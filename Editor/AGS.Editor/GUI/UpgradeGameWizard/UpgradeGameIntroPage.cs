@@ -17,8 +17,9 @@ namespace AGS.Editor
         public UpgradeGameIntroPage(Game game, UpgradeGameIntroAndBackupTask task)
             : base(game, task)
         {
-            _introTask = task;
             InitializeComponent();
+            _introTask = task;
+            chkBackup.Checked = _introTask.Enabled;
         }
 
         public override string TitleText

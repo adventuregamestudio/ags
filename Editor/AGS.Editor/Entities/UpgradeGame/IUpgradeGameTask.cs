@@ -13,8 +13,9 @@ namespace AGS.Editor
     /// in which case you may want to provide a Upgrade Wizard page with a
     /// text, describing which changes will be done to a project.
     ///
-    /// Upgrade Task is defined by a title, may have a description, and a
-    /// WizardPage which lets user to read and configure this task.
+    /// Upgrade Task is defined by a title, may have a description, and one or
+    /// a number of WizardPage(s) which let(s) user to read about and configure
+    /// this task.
     /// Upgrade Task may be marked as "Implicit", in which case it's never
     /// shown to user and is performed unconditionally.
     /// Upgrade Task may be marked as "Optional", in which case user is
@@ -74,11 +75,11 @@ namespace AGS.Editor
         bool Enabled { get; set; }
 
         /// <summary>
-        /// Provides a WizardPage control used to represent this upgrade task.
+        /// Provides WizardPage control(s) used to represent this upgrade task.
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.
         /// </summary>
-        UpgradeGameWizardPage CreateWizardPage(Game game);
+        UpgradeGameWizardPage[] CreateWizardPages(Game game);
         /// <summary>
         /// Apply task options reading them from the dictionary of key-values.
         /// </summary>

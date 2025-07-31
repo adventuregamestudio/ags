@@ -6,6 +6,21 @@ namespace AGS.Editor
 {
     public class UpgradeGameFontsToFontFilesTask : IUpgradeGameTask
     {
+        // TODO: revise this later.
+        // The conversion process is run via a delegate here, because at the time
+        // I was not certain if it should remain in FontComponent or not.
+        // It sort of makes sense, conceptually.
+        // Also, the conversion calls a number of private methods from FontComponent,
+        // therefore this seemed to be the most trivial way to proceed.
+        public delegate void ConvertFonts(Game game, IWorkProgress progress, CompileMessages errors);
+        private ConvertFonts _convertFonts;
+
+        public UpgradeGameFontsToFontFilesTask(ConvertFonts convertFonts)
+        {
+            _convertFonts = convertFonts;
+            Enabled = true;
+        }
+
         /// <summary>
         /// A unique string identifier of this upgrade task.
         /// </summary>
@@ -66,13 +81,13 @@ namespace AGS.Editor
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// Provides a WizardPage control used to represent this upgrade task.
+        /// Provides WizardPage controls used to represent this upgrade task.
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.
         /// </summary>
-        public UpgradeGameWizardPage CreateWizardPage(Game game)
+        public UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
-            return new UpdateGameGenericInfoPage(game, this);
+            return new UpgradeGameWizardPage[] { new UpdateGameGenericInfoPage(game, this) };
         }
         /// <summary>
         /// Apply task options reading them from the dictionary of key-values.
@@ -88,21 +103,6 @@ namespace AGS.Editor
         public void Execute(Game game, IWorkProgress progress, CompileMessages errors)
         {
             _convertFonts(game, progress, errors);
-        }
-
-
-        // TODO: revise this later.
-        // The conversion process is run via a delegate here, because at the time
-        // I was not certain if it should remain in FontComponent or not.
-        // It sort of makes sense, conceptually.
-        // Also, the conversion calls a number of private methods from FontComponent,
-        // therefore this seemed to be the most trivial way to proceed.
-        public delegate void ConvertFonts(Game game, IWorkProgress progress, CompileMessages errors);
-        private ConvertFonts _convertFonts;
-
-        public UpgradeGameFontsToFontFilesTask(ConvertFonts convertFonts)
-        {
-            _convertFonts = convertFonts;
         }
     }
 }

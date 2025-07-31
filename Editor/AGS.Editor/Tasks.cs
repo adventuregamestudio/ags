@@ -540,7 +540,6 @@ namespace AGS.Editor
                 }
 
                 game.Settings.TTFHeightDefinedBy = FontHeightDefinition.NominalHeight;
-                game.Settings.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
                 foreach (Font font in game.Fonts)
                 {
                     // For scaled-up bitmap fonts outline is xN
@@ -550,7 +549,6 @@ namespace AGS.Editor
                     {
                         font.AutoOutlineThickness = font.SizeMultiplier;
                     }
-                    font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
                 }
                 game.Settings.ClipGUIControls = false;
             }

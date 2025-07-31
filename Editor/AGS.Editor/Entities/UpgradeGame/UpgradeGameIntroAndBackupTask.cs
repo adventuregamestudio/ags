@@ -99,14 +99,10 @@ namespace AGS.Editor
                 return;
             }
 
-            string[] includeStr =
-            {
-                "*",
-                "!*/_Debug/",
-                "!*/Compiled/",
-            };
-            var patterns = IncludeUtils.CreatePatternList(includeStr, IncludeUtils.MatchOption.CaseInsensitive);
-            string[] filesToBackup = Utilities.GetDirectoryFileList(game.DirectoryPath, "*", SearchOption.AllDirectories);
+            // CHECKME: not sure if we should backup media resources here
+            string[] patternStr = AGSEditor.Instance.Tasks.GetPatternsForStandardGameFiles(game, mediaResources: true);
+            var patterns = IncludeUtils.CreatePatternList(patternStr, IncludeUtils.MatchOption.CaseInsensitive);
+            string[] filesToBackup = Utilities.GetDirectoryFileList(game.DirectoryPath, "*", SearchOption.AllDirectories, relativePaths: true);
             filesToBackup = IncludeUtils.FilterItemList(filesToBackup, patterns, IncludeUtils.MatchOption.CaseInsensitive);
 
             foreach (string file in filesToBackup)

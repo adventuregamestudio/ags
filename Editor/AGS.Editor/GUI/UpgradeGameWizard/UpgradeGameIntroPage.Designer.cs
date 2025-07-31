@@ -128,7 +128,7 @@ namespace AGS.Editor
             this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpgradeGameIntroPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1358, 563);
+            this.Size = new System.Drawing.Size(1358, 586);
             this.Load += new System.EventHandler(this.UpgradeGameIntroPage_Load);
             this.VisibleChanged += new System.EventHandler(this.UpgradeGameIntroPage_VisibleChanged);
             this.tableLayoutPanel1.ResumeLayout(false);

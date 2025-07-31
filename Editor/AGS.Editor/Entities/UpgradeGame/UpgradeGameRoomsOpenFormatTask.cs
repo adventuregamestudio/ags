@@ -6,6 +6,21 @@ namespace AGS.Editor
 {
     public class UpgradeGameRoomsOpenFormatTask : IUpgradeGameTask
     {
+        // TODO: revise this later.
+        // The conversion process is run via a delegate here, because at the time
+        // I was not certain if it should remain in RoomComponent or not.
+        // It sort of makes sense, conceptually.
+        // Also, the conversion calls a number of private methods from RoomComponent,
+        // therefore this seemed to be the most trivial way to proceed.
+        public delegate void ConvertRooms(Game game, IWorkProgress progress, CompileMessages errors);
+        private ConvertRooms _convertRooms;
+
+        public UpgradeGameRoomsOpenFormatTask(ConvertRooms convertRooms)
+        {
+            _convertRooms = convertRooms;
+            Enabled = true;
+        }
+
         /// <summary>
         /// A unique string identifier of this upgrade task.
         /// </summary>
@@ -68,13 +83,13 @@ namespace AGS.Editor
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// Provides a WizardPage control used to represent this upgrade task.
+        /// Provides WizardPage controls used to represent this upgrade task.
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.
         /// </summary>
-        public UpgradeGameWizardPage CreateWizardPage(Game game)
+        public UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
-            return new UpdateGameGenericInfoPage(game, this);
+            return new UpgradeGameWizardPage[] { new UpdateGameGenericInfoPage(game, this) };
         }
         /// <summary>
         /// Apply task options reading them from the dictionary of key-values.
@@ -90,20 +105,6 @@ namespace AGS.Editor
         public void Execute(Game game, IWorkProgress progress, CompileMessages errors)
         {
             _convertRooms(game, progress, errors);
-        }
-
-        // TODO: revise this later.
-        // The conversion process is run via a delegate here, because at the time
-        // I was not certain if it should remain in RoomComponent or not.
-        // It sort of makes sense, conceptually.
-        // Also, the conversion calls a number of private methods from RoomComponent,
-        // therefore this seemed to be the most trivial way to proceed.
-        public delegate void ConvertRooms(Game game, IWorkProgress progress, CompileMessages errors);
-        private ConvertRooms _convertRooms;
-
-        public UpgradeGameRoomsOpenFormatTask(ConvertRooms convertRooms)
-        {
-            _convertRooms = convertRooms;
         }
     }
 }

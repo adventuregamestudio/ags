@@ -13,6 +13,11 @@ namespace AGS.Editor
     /// </summary>
     public class UpgradeGameCommonTask : IUpgradeGameTask
     {
+        public UpgradeGameCommonTask()
+        {
+            Enabled = true;
+        }
+
         /// <summary>
         /// A unique string identifier of this upgrade task.
         /// </summary>
@@ -65,11 +70,11 @@ namespace AGS.Editor
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// Provides a WizardPage control used to represent this upgrade task.
+        /// Provides WizardPage control(s) used to represent this upgrade task.
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.
         /// </summary>
-        public UpgradeGameWizardPage CreateWizardPage(Game game)
+        public UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
             return null;
         }

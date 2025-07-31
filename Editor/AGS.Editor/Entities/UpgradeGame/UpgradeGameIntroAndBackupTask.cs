@@ -12,6 +12,11 @@ namespace AGS.Editor
     /// </summary>
     public class UpgradeGameIntroAndBackupTask : IUpgradeGameTask
     {
+        public UpgradeGameIntroAndBackupTask()
+        {
+            Enabled = true;
+        }
+
         /// <summary>
         /// A unique string identifier of this upgrade step.
         /// </summary>
@@ -67,11 +72,13 @@ namespace AGS.Editor
         public string BackupPath { get; set; }
 
         /// <summary>
-        /// Provides a WizardPage control used to represent this upgrade step.
+        /// Provides WizardPage controls used to represent this upgrade task.
+        /// The page implementation may have this IUpgradeGameTask passed into
+        /// constructor in order to assign settings right into it.
         /// </summary>
-        public UpgradeGameWizardPage CreateWizardPage(Game game)
+        public UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
-            return new UpgradeGameIntroPage(game, this);
+            return new UpgradeGameWizardPage[] { new UpgradeGameIntroPage(game, this) };
         }
         /// <summary>
         /// Apply task options reading them from the dictionary of key-values.

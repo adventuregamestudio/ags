@@ -170,16 +170,14 @@ namespace AGS.Editor
         private static IUpgradeGameTask[] ShowWizard(Game game, IUpgradeGameTask[] tasks)
         {
             List<WizardPage> pages = new List<WizardPage>();
-            Dictionary<WizardPage, IUpgradeGameTask> pageToTask = new Dictionary<WizardPage, IUpgradeGameTask>();
             foreach (var task in tasks)
             {
                 if (!task.Implicit)
                 {
-                    var page = task.CreateWizardPage(game);
-                    if (page != null)
+                    var pagesForTask = task.CreateWizardPages(game);
+                    if (pagesForTask != null)
                     {
-                        pages.Add(page);
-                        pageToTask.Add(page, task);
+                        pages.AddRange(pagesForTask);
                     }
                 }
             }
@@ -196,22 +194,8 @@ namespace AGS.Editor
             if (!doUpgrade)
                 return null;
 
-            // For the final tasks, first copy the implicit tasks that do not have respective wizard pages
-            List<IUpgradeGameTask> finalTasks = new List<IUpgradeGameTask>();
-            finalTasks.AddRange(tasks.Where(t => t.Implicit));
-
-            // Gather enabled explicit tasks
-            foreach (var page in pages)
-            {
-                var upgradePage = (page as UpgradeGameWizardPage);
-                if (upgradePage == null)
-                    continue;
-                if (!upgradePage.Enabled)
-                    continue;
-                var finalTask = pageToTask[upgradePage];
-                finalTasks.Add(finalTask);
-            }
-            return finalTasks.ToArray();
+            // Gather final tasks, which were not disabled by the user selection in wizard dialog
+            return tasks.Where(t => t.Enabled).ToArray();
         }
 
         public static bool UpgradeWithoutWizard(Game game, Dictionary<string, string> options, CompileMessages errors, out UpgradeGameResult result)
@@ -228,6 +212,13 @@ namespace AGS.Editor
         public static bool UpgradeWithWizard(Game game, CompileMessages errors, out UpgradeGameResult result)
         {
             var tasks = GetTasksForGameVersion(game.SavedXmlVersion, game.SavedXmlVersionIndex);
+            // No tasks counts as auto-success, where we skip upgrading and end opening the project
+            if (tasks.Length == 0)
+            {
+                result = new UpgradeGameResult(success: true, forceSave: false);
+                return true;
+            }
+
             bool hasExplicitTasks = tasks.FirstOrDefault(task => !task.Implicit) != null;
             bool mustShowWizard = hasExplicitTasks;
 
@@ -235,10 +226,18 @@ namespace AGS.Editor
             if (mustShowWizard)
             {
                 var finalTasks = ShowWizard(game, tasks);
+                // We only cancel if the returned collection is null,
+                // but it's allowed to be empty, in which case we assume that project should
+                // be opened, but no upgrade tasks are necessary.
                 if (finalTasks == null)
                 {
-                    result = new UpgradeGameResult(false, false);
+                    result = new UpgradeGameResult(success: false, forceSave: false);
                     return false;
+                }
+                else if (finalTasks.Length == 0)
+                {
+                    result = new UpgradeGameResult(success: true, forceSave: false);
+                    return true;
                 }
                 tasks = finalTasks;
             }

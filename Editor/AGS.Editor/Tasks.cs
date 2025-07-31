@@ -41,6 +41,83 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Returns a collection of patterns used to find standard game project files.
+        /// Uses game's last saved format version to distinguish different file sets.
+        /// </summary>
+        public string[] GetPatternsForStandardGameFiles(Game game, bool mediaResources)
+        {
+            string[] commonFiles = new string[]
+            {
+                AGSEditor.GAME_FILE_NAME,
+                AGSEditor.SPRITE_FILE_NAME,
+                "*.ico",
+                "*.asc",
+                "*.ash",
+                "*.txt",
+                "*.trs",
+                // Exclude patterns
+                "!_Debug/*",
+                "!Compiled/*"
+            };
+
+            string[] mediaRes;
+            if (mediaResources)
+            {
+                mediaRes = new string[]
+                {
+                    $"{AudioComponent.AUDIO_CACHE_DIRECTORY}\\*.*",
+                    $"{SpeechComponent.SPEECH_DIRECTORY}\\*.*",
+                    "preload.pcx",
+                    "flic*.fl?",
+                    "*.ogv"
+                };
+            }
+            else
+            {
+                mediaRes = new string[0];
+            }
+
+            string[] roomFiles;
+            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
+            {
+                roomFiles = new string[] { "*.crm" };
+            }
+            else
+            {
+                roomFiles = new string[] {
+                    "Rooms\\*\\data.xml",
+                    "Rooms\\*\\*.png",
+                    "Rooms\\*\\room*.asc"
+                };
+            }
+
+            string[] fontFiles;
+            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+            {
+                fontFiles = new string[]
+                {
+                    "*.ttf",
+                    "*.wfn"
+                };
+            }
+            else
+            {
+                fontFiles = new string[]
+                {
+                    $"{FontsComponent.FONT_FILES_DIRECTORY}\\*.ttf",
+                    $"{FontsComponent.FONT_FILES_DIRECTORY}\\*.wfn"
+                };
+            }
+
+            List<string> allFiles = new List<string>();
+            allFiles.AddRange(commonFiles);
+            allFiles.AddRange(mediaRes);
+            allFiles.AddRange(roomFiles);
+            allFiles.AddRange(fontFiles);
+            return allFiles.ToArray();
+        }
+
         private void ConstructFileListUsingIncludeFile(List<string> filesToInclude, string fileDir, string includeFile)
         {
             using (Stream s = File.OpenRead(includeFile))
@@ -50,14 +127,9 @@ namespace AGS.Editor
                 if (patterns.Length == 0)
                     return;
 
-                string[] files = Utilities.GetDirectoryFileList(fileDir, "*.*", SearchOption.AllDirectories);
+                string[] files = Utilities.GetDirectoryFileList(fileDir, "*.*", SearchOption.AllDirectories, relativePaths: true);
                 if (files.Length == 0)
                     return;
-
-                for (int i = 0; i < files.Length; ++i)
-                {
-                    files[i] = files[i].Substring(fileDir.Length + 1);
-                }
 
                 files = IncludeUtils.FilterItemList(files, patterns, IncludeUtils.MatchOption.CaseInsensitive);
                 filesToInclude.AddRange(files);
@@ -66,36 +138,10 @@ namespace AGS.Editor
 
         private void ConstructBasicFileListForTemplate(List<string> filesToInclude, List<string> filesToDeleteAfterwards)
         {
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.ico");
-            Utilities.AddAllMatchingFiles(filesToInclude, AGSEditor.GAME_FILE_NAME);
-            Utilities.AddAllMatchingFiles(filesToInclude, AGSEditor.SPRITE_FILE_NAME);
-            Utilities.AddAllMatchingFiles(filesToInclude, "preload.pcx");
-            Utilities.AddAllMatchingFiles(filesToInclude, AudioComponent.AUDIO_CACHE_DIRECTORY + @"\*.*");
-            Utilities.AddAllMatchingFiles(filesToInclude, SpeechComponent.SPEECH_DIRECTORY + @"\*.*");
-            Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(filesToInclude, FontsComponent.FONT_FILES_DIRECTORY, "*.ttf", true);
-            Utilities.AddAllMatchingFiles(filesToInclude, FontsComponent.FONT_FILES_DIRECTORY, "*.wfn", true);
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.asc");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.ash");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.txt");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.trs");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.pdf");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.ogv");
-
-            // TODO: unfortunately current subfolder pattern is just a room's number,
-            // which is impossible to narrow using just wildcards (is it?);
-            // figure this problem out later.
-            var roomDirs = Utilities.GetDirectoryRelativeDirList(Directory.GetCurrentDirectory(), @"Rooms\*");
-            foreach (var dir in roomDirs)
-            {
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "data.xml", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "room*.asc", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "background*.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "hotspots.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "regions.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "walkableareas.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "walkbehinds.png", true);
-            }
+            var patternStr = GetPatternsForStandardGameFiles(Factory.AGSEditor.CurrentGame, mediaResources: true);
+            var patterns = IncludeUtils.CreatePatternList(patternStr, IncludeUtils.MatchOption.CaseInsensitive);
+            string[] files = Utilities.GetDirectoryFileList(Factory.AGSEditor.CurrentGame.DirectoryPath, "*.*", SearchOption.AllDirectories, relativePaths: true);
+            filesToInclude.AddRange(files);
 
             if (GetFilesForInclusionInTemplate != null)
             {

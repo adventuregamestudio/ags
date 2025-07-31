@@ -353,11 +353,19 @@ namespace AGS.Editor
         /// Wraps Directory.GetFiles in a handler to deal with an exception
         /// erroneously being thrown on Linux network shares if no files match.
         /// </summary>
-        public static string[] GetDirectoryFileList(string directory, string fileMask, SearchOption searchOption)
+        public static string[] GetDirectoryFileList(string directory, string fileMask, SearchOption searchOption, bool relativePaths = false)
         {
             try
             {
-                return Directory.GetFiles(directory, fileMask, searchOption);
+                var files = Directory.GetFiles(directory, fileMask, searchOption);
+                if (relativePaths)
+                {
+                    for (int i = 0; i < files.Length; ++i)
+                    {
+                        files[i] = files[i].Substring(directory.Length + 1);
+                    }
+                }
+                return files;
             }
             catch (IOException)
             {

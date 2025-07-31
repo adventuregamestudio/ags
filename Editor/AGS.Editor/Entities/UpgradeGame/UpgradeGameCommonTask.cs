@@ -382,6 +382,11 @@ namespace AGS.Editor
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
 #pragma warning restore 0612, 0618
+
+            if (projectVersion == null)
+                errors.Add(new CompileInformation($"Upgraded game from an older version to {AGS.Types.Version.AGS_EDITOR_VERSION}"));
+            else if (projectVersion < editorVersion)
+                errors.Add(new CompileInformation($"Upgraded game from {projectVersion} to {AGS.Types.Version.AGS_EDITOR_VERSION}"));
         }
 
         private string RemoveAllLeadingSpacesFromLines(string script)

@@ -246,7 +246,7 @@ namespace AGS.Editor
             ExecuteTasksOnBackgroundThread(execData);
             result = new UpgradeGameResult(!execData.AbortedOnError && !execData.CancelledByUser, hasExplicitTasks);
 
-            if (errors.Count > 0)
+            if (errors.HasErrorsOrWarnings)
             {
                 Factory.GUIController.ShowMessage("There were errors or warnings when upgrading the game project. Please consult the output window for details.", MessageBoxIcon.Warning);
             }

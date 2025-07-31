@@ -735,7 +735,7 @@ namespace AGS.Editor.Components
 
             _guiController.ShowOutputPanel(errors);
 
-            if (errors.HasErrors)
+            if (errors.HasErrorsOrWarnings)
             {
                 Factory.GUIController.ShowMessage("There were errors or warnings when saving the room. Please consult the output window for details.", MessageBoxIcon.Warning);
             }
@@ -2665,10 +2665,10 @@ namespace AGS.Editor.Components
 
             // Now upgrade
             object progressLock = new object();
+            int progressCounter = 0;
             string progressText = "Converting rooms from .crm to open format.";
             {
                 progress.SetProgress(rooms.Count, 0, progressText, autoFormatProgress: false);
-                int progressCounter = 0;
                 Action progressReporter = () =>
                 {
                     lock (progressLock)
@@ -2685,6 +2685,8 @@ namespace AGS.Editor.Components
                     .ToArray();
                 await Task.WhenAll(roomsConvertingTasks);
             }
+
+            errors.Add(new CompileInformation($"Converted {progressCounter} rooms out of {rooms.Count} to an open format"));
         }
 
         /// <summary>

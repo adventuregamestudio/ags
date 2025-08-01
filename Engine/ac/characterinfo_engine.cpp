@@ -71,15 +71,21 @@ static void ResetFrameIfAtEnd(CharacterInfo *chi)
 }
 
 // Fixups loop and frame values, in case any of them are set to a value out of the valid range
-static void FixupCharacterLoopAndFrame(CharacterInfo *chi)
+static void FixupCharacterLoopAndFrame(CharacterInfo *chi, bool switch_from_bad_loop = true)
 {
     // If current loop property exceeds number of loops,
     // or if selected loop has no frames, then try select any first loop that has frames.
     // NOTE: although this may seem like a weird solution to a problem,
     // we do so for backwards compatibility; this approximately emulates older games behavior.
     const int view = chi->view;
-    if (view >= 0 &&
-        (chi->loop >= views[view].numLoops || views[view].loops[chi->loop].numFrames == 0))
+    if (view < 0 || view >= views.size())
+        quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", chi->scrname, view, game.numviews);
+    if (!switch_from_bad_loop && (chi->loop < 0 || chi->loop >= views[view].numLoops))
+        quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)", chi->scrname, chi->loop, view, views[view].numLoops - 1);
+
+    if (switch_from_bad_loop && (
+        (chi->loop < 0 || chi->loop >= views[view].numLoops) ||
+        (views[view].loops[chi->loop].numFrames == 0)))
     {
         int loop = chi->loop;
         for (loop = 0;
@@ -99,25 +105,26 @@ static void FixupCharacterLoopAndFrame(CharacterInfo *chi)
 
 void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep)
 {
-	if (chi->on != 1) return;
+    if (chi->on != 1) return;
     
-	// Update turning
+    // Update turning
     bool is_turning = UpdateCharacterTurning(chi, chex);
-    // Fixup character's loop prior to any further logic updates
-    FixupCharacterLoopAndFrame(chi);
+    // Fixup character's loop and frame prior to any further logic updates;
+    // but don't fixup "bad" loops if animated by command, as that leads to confusing behavior.
+    FixupCharacterLoopAndFrame(chi, !chi->is_animating());
     if (is_turning)
-		return; // still turning, break
+        return; // still turning, break
 
     int doing_nothing = 1;
-	UpdateCharacterMoving(chi, chex, doing_nothing);
+    UpdateCharacterMoving(chi, chex, doing_nothing);
 
-	// Update animating
-	if (UpdateCharacterAnimating(chi, chex, doing_nothing))
-		return; // further update blocked by active animation
+    // Update animating
+    if (UpdateCharacterAnimating(chi, chex, doing_nothing))
+        return; // further update blocked by active animation
 
-	UpdateCharacterFollower(chi, followingAsSheep, doing_nothing);
+    UpdateCharacterFollower(chi, followingAsSheep, doing_nothing);
 
-	UpdateCharacterIdle(chi, chex, doing_nothing);
+    UpdateCharacterIdle(chi, chex, doing_nothing);
 
     chex->process_idle_this_time = 0;
 }

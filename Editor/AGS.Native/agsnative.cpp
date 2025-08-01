@@ -101,9 +101,7 @@ AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos, spritecallbacks);
 GUIMain tempgui; // for drawing a GUI preview
 const char *sprsetname = "acsprset.spr";
 const char *sprindexname = "sprindex.dat";
-const char *old_editor_data_file = "editor.dat";
 const char *new_editor_data_file = "game.agf";
-const char *old_editor_main_game_file = "ac2game.dta";
 const char *TEMPLATE_LOCK_FILE = "template.dta";
 const char *TEMPLATE_ICON_FILE = "template.ico";
 const char *GAME_ICON_FILE = "user.ico";
@@ -406,7 +404,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
 
 HAGSError extract_template_files(const AGSString &templateFileName, std::vector<AGSString> *out_files)
 {
-  std::vector<AGSString> check_list = { old_editor_data_file, new_editor_data_file };
+  std::vector<AGSString> check_list = { new_editor_data_file };
   std::vector<AGSString> exclude_list = { TEMPLATE_LOCK_FILE };
   return extract_template_files_impl(templateFileName, check_list,
       "Template file does not contain main project data.",
@@ -457,31 +455,16 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
       }
       return false;
     }
-	  else if ((templateMgr->DoesAssetExist(old_editor_data_file)) || (templateMgr->DoesAssetExist(new_editor_data_file)))
-	  {
+    else if (templateMgr->DoesAssetExist(new_editor_data_file))
+    {
       Common::String oriname = lib->BaseFileName;
       if ((oriname.FindString(".exe") != -1) ||
           (oriname.FindString(".dat") != -1) ||
           (oriname.FindString(".ags") != -1))
       {
         // wasn't originally meant as a template
-	      return false;
+        return false;
       }
-
-	    auto in = templateMgr->OpenAsset(old_editor_main_game_file);
-	    if (in) 
-	    {
-		    in->Seek(30);
-		    int gameVersion = in->ReadInt32();
-			
-            // TODO: check this out, in theory we still support pre-2.72 game import
-		    if (gameVersion != 32) // CHECKME: why we use `!=` and not `>=` ? also what's 32?
-		    {
-			    // older than 2.72 template
-			    return false;
-		    }
-		    in = nullptr;
-	    }
 
         if (templateMgr->DoesAssetExist(TEMPLATE_DESC_FILE))
         {

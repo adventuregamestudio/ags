@@ -176,6 +176,12 @@
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameIntroAndBackupTask.cs" />
+    <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
@@ -253,6 +259,18 @@
     </Compile>
     <Compile Include="GUI\StartNewGameTemplatesPage.Designer.cs">
       <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpdateGameGenericInfoPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.Designer.cs">
+      <DependentUpon>UpgradeGameIntroPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameWizardPage.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="GUI\WatchVariablesPanel.cs">
       <SubType>Form</SubType>
@@ -476,6 +494,7 @@
     <Compile Include="GUI\ProjectTree.cs" />
     <Compile Include="GUI\ProjectTreeItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UpgradeGameManager.cs" />
     <Compile Include="Utils\AndroidUtilities.cs" />
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />
@@ -522,6 +541,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\StartNewGameTemplatesPage.resx">
       <DependentUpon>StartNewGameTemplatesPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\UpgradeGameWizard\UpdateGameGenericInfoPage.resx">
+      <DependentUpon>UpdateGameGenericInfoPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.resx">
+      <DependentUpon>UpgradeGameIntroPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WatchVariablesPanel.resx">
       <DependentUpon>WatchVariablesPanel.cs</DependentUpon>
@@ -851,10 +876,6 @@
       <SubType>Designer</SubType>
       <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\ImportGameWizardPage.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\WelcomeScreen.resx">
       <SubType>Designer</SubType>
       <DependentUpon>WelcomeScreen.cs</DependentUpon>
@@ -942,6 +963,7 @@
     <EmbeddedResource Include="Resources\exportmask.png" />
     <EmbeddedResource Include="Resources\folder_locked.ico" />
     <EmbeddedResource Include="Resources\font-file.ico" />
+    <EmbeddedResource Include="Resources\eventlogInfo.ico" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
     <None Include="Resources\lock open.png" />
@@ -1237,12 +1259,6 @@
       <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\GUIAddType.cs" />
-    <Compile Include="GUI\ImportGameWizardPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="GUI\ImportGameWizardPage.Designer.cs">
-      <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
-    </Compile>
     <Compile Include="GUI\WelcomeScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1267,7 +1283,6 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="TextProcessing\IGameTextProcessor.cs" />
-    <Compile Include="Utils\OldGameImporter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\AreaDrawMode.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\BaseAreasEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\EdgesEditorFilter.cs" />

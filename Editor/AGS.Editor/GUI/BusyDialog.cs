@@ -16,6 +16,10 @@ namespace AGS.Editor
         int? Total { get; set; }
         int? Current { get; set; }
         string Message { get; set; }
+        bool AutoFormatProgress { get; set; }
+
+        void SetProgress(int current, string message);
+        void SetProgress(int total, int current, string message, bool autoFormatProgress);
     }
 
     public partial class BusyDialog : Form, IWorkProgress
@@ -32,9 +36,10 @@ namespace AGS.Editor
         private Exception _exceptionThrownOnThread;
         private object _result;
         private bool _allowClose = false;
-        private int? _progressTotal = null;
-        private int? _progressCurrent = null;
-        private string _originalMessage;
+        private int? _progressTotal;
+        private int? _progressCurrent;
+        private string _message;
+        private bool _autoFormatProgress = true;
 
         private static Bitmap[] _icons = null;
 
@@ -46,8 +51,8 @@ namespace AGS.Editor
         public BusyDialog(string message, ProcessingHandler handler, object parameter, int timeoutMs)
         {
             InitializeComponent();
-            _originalMessage = message;
-            lblMessage.Text = message;
+            _message = message;
+            UpdateMessageLabel();
             _handler = handler;
             _parameter = parameter;
             _timeoutMs = timeoutMs;
@@ -119,22 +124,42 @@ namespace AGS.Editor
 
         private void UpdateMessageLabel()
         {
-            string progrText = "";
-            if (_progressTotal.HasValue && _progressCurrent.HasValue)
-                progrText = string.Format("({0} / {1})", _progressCurrent, _progressTotal);
-            else if (_progressTotal.HasValue)
-                progrText = string.Format("(- / {0})", _progressTotal);
-            else if (_progressCurrent.HasValue)
-                progrText = string.Format("({0} / -)", _progressCurrent);
-            lblMessage.Text = _originalMessage + " " + progrText;
+            StringBuilder sb = new StringBuilder();
+            sb.Append(_message);
+            if (_autoFormatProgress)
+            {
+                int? total = _progressTotal;
+                int? current = _progressCurrent;
+                string progrText = "";
+                if (total.HasValue && current.HasValue)
+                    progrText = string.Format("({0} / {1})", current, total);
+                else if (total.HasValue)
+                    progrText = string.Format("(- / {0})", total);
+                else if (current.HasValue)
+                    progrText = string.Format("({0} / -)", current);
+                sb.Append(" ");
+                sb.Append(progrText);
+            }
+            sb.Append(Environment.NewLine);
+            lblMessage.Text = sb.ToString();
         }
 
         public string Message
         {
-            get { return lblMessage.Text; }
+            get { return _message; }
             set
             {
-                _originalMessage = value;
+                _message = value;
+                Invoke((Action)(() => { UpdateMessageLabel(); }));
+            }
+        }
+
+        public bool AutoFormatProgress
+        {
+            get { return _autoFormatProgress; }
+            set
+            {
+                _autoFormatProgress = value;
                 Invoke((Action)(() => { UpdateMessageLabel(); }));
             }
         }
@@ -157,6 +182,22 @@ namespace AGS.Editor
                 _progressCurrent = value;
                 Invoke((Action)(() => { UpdateMessageLabel(); }));
             }
+        }
+
+        public void SetProgress(int current, string message)
+        {
+            _progressCurrent = current;
+            _message = message;
+            Invoke((Action)(() => { UpdateMessageLabel(); }));
+        }
+
+        public void SetProgress(int total, int current, string message, bool autoFormatProgress)
+        {
+            _progressTotal = total;
+            _progressCurrent = current;
+            _message = message;
+            _autoFormatProgress = autoFormatProgress;
+            Invoke((Action)(() => { UpdateMessageLabel(); }));
         }
 
         private void BusyDialog_Load(object sender, EventArgs e)

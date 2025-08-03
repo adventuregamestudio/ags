@@ -907,6 +907,10 @@ void DialogOptions::Begin()
             // Text-window, so do the QFG4-style speech options
             is_textwindow = true;
             forecol = guib->GetFgColor();
+
+            // TODO: we do not do CalcOptionsHeight() here in case of a textwindow,
+            // because it requires adjustments done by draw_text_window (like padding).
+            // refactoring draw_text_window() may solve this issue.
         }
         else
         {
@@ -936,15 +940,10 @@ void DialogOptions::Begin()
         CalcOptionsHeight();
 
         position = RectWH(
-            1,
+            0,
             ui_view.GetHeight() - needheight,
             ui_view.GetWidth(),
             needheight);
-    }
-
-    if (!is_textwindow)
-    {
-        areawid -= data_to_game_coord(play.dialog_options_pad_x) * 2;
     }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
@@ -1011,6 +1010,9 @@ void DialogOptions::Draw()
       int biggest = 0;
       padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
       // FIXME: figure out what these +2 and +6 constants are, used along with the padding
+      // FIXME: why do we have to add extra pixels to a padding setting anyway?
+      // this maybe is an old historical issue of padding being a hardcoded value (originally);
+      // but this no longer makes sense since the padding is a configurable property now.
       for (int i = 0; i < numdisp; ++i) {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
         break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
@@ -1088,13 +1090,18 @@ void DialogOptions::Draw()
         options_surface_has_alpha = false;
       }
 
-      // NOTE: it's strange that we sum both custom padding and standard gui padding here;
-      // keeping this for backwards compatibility for now... (although idk if it's important);
-      // x off +1 because padding is increased by 1 hardcoded pixel;
-      // NOTE: also gui's default padding was not applied to Y pos here...
-      inner_position = Point(play.dialog_options_pad_x + padding + 1, play.dialog_options_pad_y /* + padding*/);
+      // FIXME: it's strange that we sum both custom padding and standard gui padding here;
+      // originally it was only play.dialog_options_pad_x that defined leftmost offset,
+      // but a SUM of play setting and default value were used to define area width for drawing options.
+      // We need to correct this rule. Perhaps dialog_options_pad_x should begin with
+      // TEXTWINDOW_PADDING_DEFAULT as a default value, and used here alone. Be careful about
+      // restoring these values from game saves though.
+      // NOTE: gui's default padding was not applied to Y pos here...
+      inner_position = Point(
+          play.dialog_options_pad_x + padding,
+          play.dialog_options_pad_y /* + padding*/);
 
-      const int opts_areawid = areawid - (2 * padding + 2);
+      const int opts_areawid = areawid - (2 * inner_position.X);
       curyp = inner_position.Y;
       curyp = write_dialog_options(ds, options_surface_has_alpha, inner_position.X, inner_position.Y, opts_areawid,
                                    bullet_wid, game.dialog_bullet, bullet_picwid,

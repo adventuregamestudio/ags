@@ -2338,7 +2338,7 @@ void draw_fps(const Rect &viewport)
     auto &fpsDisplay = gl_DrawFPS.bmp;
     if (fpsDisplay == nullptr || gl_DrawFPS.font != font)
     {
-        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(), (get_font_surface_height(font) + get_fixed_pixel_size(5)));
+        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(), (get_font_surface_height_outlined(font) + get_fixed_pixel_size(5)));
         gl_DrawFPS.font = font;
     }
 

@@ -783,8 +783,9 @@ void engine_init_game_settings()
     play.room_changes = 0;
     play.check_interaction_only = 0;
     play.replay_hotkey_unused = -1;  // StartRecording: not supported.
-    play.dialog_options_pad_x = 0;
-    play.dialog_options_pad_y = 0;
+    play.dialog_options_pad_x = (loaded_game_file_version >= kGameVersion_363) ?
+        TEXTWINDOW_PADDING_DEFAULT : 0; // use TEXTWINDOW_PADDING_DEFAULT in 3.6.3+
+    play.dialog_options_pad_y = 0; // no Y padding by default
     play.min_dialogoption_width = 0;
     play.disable_dialog_parser = 0;
     play.ambient_sounds_persist = 0;

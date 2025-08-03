@@ -768,16 +768,31 @@ private:
 
 void DialogOptions::CalcOptionsHeight()
 {
+    // According to the options drawing logic:
+    // * the distance between LINES in a multiline option is font linespacing;
+    // * the distance between OPTIONS is font linespacing + OPT_DIALOGGAP;
+    // * IF there's a parser input, we also add another linespacing + OPT_DIALOGGAP
+    //   after the last option;
+    // * IF there's no parser, then we add *font's graphical height* + OPT_DIALOGGAP,
+    //   to ensure that the text is not going to be cut off visually.
     needheight = 0;
+    int total_lines = 0;
+    // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
         break_up_text_into_lines(draw_text, Lines, areawid-(2*padding+2+bullet_wid), usingfont);
-        needheight += get_text_lines_surf_height(usingfont, Lines.Count()) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+        total_lines += Lines.Count();
     }
+    needheight = linespacing * (total_lines - 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]) * (numdisp - 1);
     if (parserInput)
     {
+        needheight += linespacing + data_to_game_coord(game.options[OPT_DIALOGGAP]);
         needheight += parserInput->GetHeight() + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+    }
+    else
+    {
+        needheight += get_text_lines_surf_height(usingfont, 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
     }
 }
 

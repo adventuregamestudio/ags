@@ -15,6 +15,7 @@
 #define __AGS_EE_MAIN__GAMERUN_H
 
 #include "ac/keycode.h"
+#include "ac/runtime_defines.h"
 
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 struct GamepadInput;
@@ -30,6 +31,7 @@ void GameLoopUntilNotMoving(const short *move);
 void GameLoopUntilNoOverlay();
 void GameLoopUntilButAnimEnd(int guin, int objn);
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit);
+void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim);
 
 // Run the actual game until it ends, or aborted by player/error; loops GameTick() internally
 void RunGameUntilAborted();

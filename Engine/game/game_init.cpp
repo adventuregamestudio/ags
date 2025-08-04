@@ -159,7 +159,6 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].walking = 0;
-        game.chars[i].animating = 0;
         game.chars[i].pic_xoffs = 0;
         game.chars[i].pic_yoffs = 0;
         game.chars[i].blinkinterval = 140;

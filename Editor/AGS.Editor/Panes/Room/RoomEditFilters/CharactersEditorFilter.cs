@@ -162,7 +162,7 @@ namespace AGS.Editor
                 spriteSize.Width = state.RoomSizeToWindow(spriteSize.Width);
                 spriteSize.Height = state.RoomSizeToWindow(spriteSize.Height);
                 int xPos = state.RoomXToWindow(character.StartX) - spriteSize.Width / 2;
-                int yPos = state.RoomYToWindow(character.StartY) - spriteSize.Height;
+                int yPos = state.RoomYToWindow(character.StartY + 1) - spriteSize.Height;
 
                 Utilities.DrawSpriteOnGraphics(graphics, spriteNum, xPos, yPos, spriteSize.Width, spriteSize.Height);
             }
@@ -172,7 +172,7 @@ namespace AGS.Editor
         {
             AgsView view = _game.FindViewByID(character.NormalView);
             int xPos = state.RoomXToWindow(character.StartX);
-            int yPos = state.RoomYToWindow(character.StartY);
+            int yPos = state.RoomYToWindow(character.StartY + 1); // + 1 for compensating minus height
 
             if (view == null || view.Loops.Count == 0)
             {
@@ -182,11 +182,11 @@ namespace AGS.Editor
             int spriteNum = 0;
             if (view.Loops[0].Frames.Count > 0)
                 spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;
-            int spriteWidth, spriteHeight;
-            Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out spriteWidth, out spriteHeight);
-            spriteWidth = state.RoomSizeToWindow(spriteWidth);
-            spriteHeight = state.RoomSizeToWindow(spriteHeight);
-            return new Rectangle(xPos - spriteWidth / 2, yPos - spriteHeight, spriteWidth, spriteHeight);
+            int width, height;
+            Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out width, out height);
+            width = state.RoomSizeToWindow(width);
+            height = state.RoomSizeToWindow(height);
+            return new Rectangle(xPos - width / 2, yPos - height, width, height);
         }
 
         protected override void FilterActivated()

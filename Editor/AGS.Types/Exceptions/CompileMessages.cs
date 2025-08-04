@@ -25,7 +25,22 @@ namespace AGS.Types
 			}
 		}
 
-		public List<CompileError> Errors
+        public bool HasErrorsOrWarnings
+        {
+            get
+            {
+                foreach (CompileMessage message in this)
+                {
+                    if (message is CompileError || message is CompileWarning)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public List<CompileError> Errors
 		{
 			get
 			{

@@ -38,6 +38,7 @@ namespace AGS.Types
         [Description("The ID number of the font")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -79,6 +80,7 @@ namespace AGS.Types
 
         [Description("The name of the font")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string Name
         {
             get { return _name; }
@@ -88,7 +90,8 @@ namespace AGS.Types
         [AGSNoSerialize]
         [Description("The name with which the script will access this font")]
 		[Category("Design")]
-		public string ScriptID
+        [BrowsableMultiedit(false)]
+        public string ScriptID
 		{
 			get
 			{

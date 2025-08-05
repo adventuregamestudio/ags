@@ -15,6 +15,7 @@ namespace AGS.Types
         [Description("The name of this audio type")]
         [Category("Design")]
         [RefreshProperties(RefreshProperties.All)]
+        [BrowsableMultiedit(false)]
         public string Name { get; set; }
 
         [Description("The maximum number of clips of this type that can play at the same time (0=unlimited)")]
@@ -37,6 +38,7 @@ namespace AGS.Types
         [AGSNoSerialize]
         [Description("The name by which the script will know this audio type")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string ScriptID
         {
             get

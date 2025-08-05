@@ -142,18 +142,28 @@ namespace AGS.Editor
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
             // FIXME: this does not distinguish GUI and GUIControl properties!
+            // so we have to always check whether it is _gui or _selectedControl.
             if (propertyName == "Name")
             {
                 object objectBeingChanged = _gui;
                 string newName = _gui.Name;
                 if (_selectedControl != null)
                 {
+                    // Safety bail-out in case multiple controls are selected,
+                    // but this should not normally happen, because Name property
+                    // must not be editable in case of multiple objects edit.
+                    if (_selected.Count > 1)
+                        return;
                     objectBeingChanged = _selectedControl;
                     newName = _selectedControl.Name;
                 }
                 Game game = Factory.AGSEditor.CurrentGame;
                 bool nameInUse = game.IsScriptNameAlreadyUsed(newName, objectBeingChanged);
-                if (newName.StartsWith("g") && newName.Length > 1)
+
+                // For GUIs also check the uniqueness of name after 'g' prefix,
+                // because AGS generates constants named as an uppercase GUI name without 'g'.
+                if (_selectedControl == null &&
+                    newName.StartsWith("g") && newName.Length > 1)
                 {
                     nameInUse |= game.IsScriptNameAlreadyUsed(newName.Substring(1).ToUpperInvariant(), objectBeingChanged);
                 }
@@ -179,24 +189,31 @@ namespace AGS.Editor
             }
 			else if (propertyName == "Image")
 			{
-				if ((_selectedControl != null) && (_selectedControl is GUIButton))
-				{
-					GUIButton selectedButton = (GUIButton)_selectedControl;
-					if (selectedButton.Image > 0 && (selectedButton.Image != (int)oldValue))
-					{
-                        int newWidth, newHeight;
-                        Utilities.GetSizeSpriteWillBeRenderedInGame(selectedButton.Image, out newWidth, out newHeight);
-                        if (newWidth > 0 && newHeight > 0)
+                // For all selected Buttons: adjust their sizes to match the new image
+                foreach (var control in _selected)
+                {
+                    if (control is GUIButton)
+                    {
+                        GUIButton selectedButton = (GUIButton)control;
+                        if (selectedButton.Image > 0 && (selectedButton.Image != (int)oldValue))
                         {
-                            selectedButton.Width = newWidth;
-                            selectedButton.Height = newHeight;
+                            int newWidth, newHeight;
+                            Utilities.GetSizeSpriteWillBeRenderedInGame(selectedButton.Image, out newWidth, out newHeight);
+                            if (newWidth > 0 && newHeight > 0)
+                            {
+                                selectedButton.Width = newWidth;
+                                selectedButton.Height = newHeight;
+                            }
                         }
-					}
-				}
+                    }
+                }
 			}
             else if (propertyName == "Width" || propertyName == "Height")
             {
-                UpdateScrollableWindowSize();
+                if (_selectedControl == null)
+                {
+                    UpdateScrollableWindowSize();
+                }
             }
 
             bgPanel.Invalidate(true);

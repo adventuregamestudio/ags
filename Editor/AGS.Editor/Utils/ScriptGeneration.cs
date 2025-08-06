@@ -18,7 +18,13 @@ namespace AGS.Editor
         // * "int" is a real type that "function" translates to, it may be found in preprocessed scripts.
         // NOTE: we must find a function with opening brace, because there may also
         // be a function prototype somewhere.
-        public const string SCRIPT_EVENT_FUNCTION_PATTERN = @"(?<=^|\s)(void|function|int)\s+{0}\s*\(.*\)\s*{{";
+        // NOTE: we must allow a comment between a parameter list and a opening brace,
+        // where a single line comment must be followed by a linebreak.
+        public const string SCRIPT_EVENT_FUNCTION_PATTERN =
+            // function's declaration, consisting of type, name arg {0} and a parameter list with any blank space in between
+            @"(?<=^|\s)(void|function|int)\s+{0}\s*\(.*\)\s*" +
+            // any number of comments sequences (both '//' and '/**/') in any order, followed by a opening function brace
+            @"((//.*\n\s*)|(/*.*\*/\s*))*\s*{{";
 
         /// <summary>
         /// Counts braces starting with the startIndex, and finds the matching closing one.

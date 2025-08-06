@@ -153,6 +153,10 @@
 		20522A9328E8FD7700589E91 /* sys_main.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A9128E8FD7600589E91 /* sys_main.h */; };
 		20522A9428E8FD7700589E91 /* sys_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A9228E8FD7700589E91 /* sys_main.cpp */; };
 		209139322A5072AF006AC67A /* plugin_stubs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 209139312A5072AF006AC67A /* plugin_stubs.cpp */; };
+		209EEC6A2E439EB1009C0C6C /* deflatestream.h in Headers */ = {isa = PBXBuildFile; fileRef = 209EEC662E439EB1009C0C6C /* deflatestream.h */; };
+		209EEC6B2E439EB1009C0C6C /* transformstream.h in Headers */ = {isa = PBXBuildFile; fileRef = 209EEC682E439EB1009C0C6C /* transformstream.h */; };
+		209EEC6C2E439EB1009C0C6C /* transformstream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 209EEC692E439EB1009C0C6C /* transformstream.cpp */; };
+		209EEC6D2E439EB1009C0C6C /* deflatestream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 209EEC672E439EB1009C0C6C /* deflatestream.cpp */; };
 		20A5CCE82AC09016002AE475 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A5CCE62AC09015002AE475 /* miniz.c */; };
 		20A5CCE92AC09016002AE475 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = 20A5CCE72AC09015002AE475 /* miniz.h */; };
 		20C76AB528F34A1900772CFC /* include in Resources */ = {isa = PBXBuildFile; fileRef = 205229C128E8ED4400589E91 /* include */; };
@@ -898,13 +902,10 @@
 		526F28A31D3B5CC300EF4E1F /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 526F26461D3B5CC300EF4E1F /* libc.c */; };
 		526F28AF1D3B5CC300EF4E1F /* agsplugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F26591D3B5CC300EF4E1F /* agsplugin.cpp */; };
 		526F28B01D3B5CC300EF4E1F /* agsplugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F265A1D3B5CC300EF4E1F /* agsplugin.h */; };
-		526F28B41D3B5CC300EF4E1F /* CompileShader.bat in Resources */ = {isa = PBXBuildFile; fileRef = 526F265F1D3B5CC300EF4E1F /* CompileShader.bat */; };
 		526F28B61D3B5CC300EF4E1F /* game-1.ICO in Resources */ = {isa = PBXBuildFile; fileRef = 526F26611D3B5CC300EF4E1F /* game-1.ICO */; };
 		526F28B71D3B5CC300EF4E1F /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26621D3B5CC300EF4E1F /* resource.h */; };
 		526F28B81D3B5CC300EF4E1F /* tintshader.fx in Resources */ = {isa = PBXBuildFile; fileRef = 526F26631D3B5CC300EF4E1F /* tintshader.fx */; };
 		526F28B91D3B5CC300EF4E1F /* tintshader.fxo in Resources */ = {isa = PBXBuildFile; fileRef = 526F26641D3B5CC300EF4E1F /* tintshader.fxo */; };
-		526F28BA1D3B5CC300EF4E1F /* tintshaderLegacy.fx in Resources */ = {isa = PBXBuildFile; fileRef = 526F26651D3B5CC300EF4E1F /* tintshaderLegacy.fx */; };
-		526F28BB1D3B5CC300EF4E1F /* tintshaderLegacy.fxo in Resources */ = {isa = PBXBuildFile; fileRef = 526F26661D3B5CC300EF4E1F /* tintshaderLegacy.fxo */; };
 		526F28BC1D3B5CC300EF4E1F /* version.rc in Resources */ = {isa = PBXBuildFile; fileRef = 526F26671D3B5CC300EF4E1F /* version.rc */; };
 		526F28BE1D3B5CC300EF4E1F /* cc_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F266A1D3B5CC300EF4E1F /* cc_instance.cpp */; };
 		526F28BF1D3B5CC300EF4E1F /* cc_instance.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F266B1D3B5CC300EF4E1F /* cc_instance.h */; };
@@ -1105,6 +1106,10 @@
 		20522A9128E8FD7600589E91 /* sys_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sys_main.h; sourceTree = "<group>"; };
 		20522A9228E8FD7700589E91 /* sys_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sys_main.cpp; sourceTree = "<group>"; };
 		209139312A5072AF006AC67A /* plugin_stubs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_stubs.cpp; sourceTree = "<group>"; };
+		209EEC662E439EB1009C0C6C /* deflatestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deflatestream.h; sourceTree = "<group>"; };
+		209EEC672E439EB1009C0C6C /* deflatestream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = deflatestream.cpp; sourceTree = "<group>"; };
+		209EEC682E439EB1009C0C6C /* transformstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transformstream.h; sourceTree = "<group>"; };
+		209EEC692E439EB1009C0C6C /* transformstream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = transformstream.cpp; sourceTree = "<group>"; };
 		20A5CCE62AC09015002AE475 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = ../../../../libsrc/miniz/miniz.c; sourceTree = "<group>"; };
 		20A5CCE72AC09015002AE475 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = ../../../../libsrc/miniz/miniz.h; sourceTree = "<group>"; };
 		20E1611C2C0946F500538E45 /* messagebuffer.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; fileEncoding = 4; path = messagebuffer.h; sourceTree = "<group>"; };
@@ -1850,13 +1855,10 @@
 		526F26461D3B5CC300EF4E1F /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = libc.c; sourceTree = "<group>"; };
 		526F26591D3B5CC300EF4E1F /* agsplugin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsplugin.cpp; sourceTree = "<group>"; };
 		526F265A1D3B5CC300EF4E1F /* agsplugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsplugin.h; sourceTree = "<group>"; };
-		526F265F1D3B5CC300EF4E1F /* CompileShader.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CompileShader.bat; sourceTree = "<group>"; };
 		526F26611D3B5CC300EF4E1F /* game-1.ICO */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "game-1.ICO"; sourceTree = "<group>"; };
 		526F26621D3B5CC300EF4E1F /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
 		526F26631D3B5CC300EF4E1F /* tintshader.fx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tintshader.fx; sourceTree = "<group>"; };
 		526F26641D3B5CC300EF4E1F /* tintshader.fxo */ = {isa = PBXFileReference; lastKnownFileType = file; path = tintshader.fxo; sourceTree = "<group>"; };
-		526F26651D3B5CC300EF4E1F /* tintshaderLegacy.fx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tintshaderLegacy.fx; sourceTree = "<group>"; };
-		526F26661D3B5CC300EF4E1F /* tintshaderLegacy.fxo */ = {isa = PBXFileReference; lastKnownFileType = file; path = tintshaderLegacy.fxo; sourceTree = "<group>"; };
 		526F26671D3B5CC300EF4E1F /* version.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = version.rc; sourceTree = "<group>"; };
 		526F266A1D3B5CC300EF4E1F /* cc_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_instance.cpp; sourceTree = "<group>"; };
 		526F266B1D3B5CC300EF4E1F /* cc_instance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cc_instance.h; sourceTree = "<group>"; };
@@ -2863,6 +2865,10 @@
 		526F226F1D3B5C4900EF4E1F /* util */ = {
 			isa = PBXGroup;
 			children = (
+				209EEC662E439EB1009C0C6C /* deflatestream.h */,
+				209EEC672E439EB1009C0C6C /* deflatestream.cpp */,
+				209EEC682E439EB1009C0C6C /* transformstream.h */,
+				209EEC692E439EB1009C0C6C /* transformstream.cpp */,
 				20E161272C09479A00538E45 /* resourcecache.h */,
 				20E161262C09479A00538E45 /* smart_ptr.h */,
 				2034CA892A20161300824C80 /* matrix.h */,
@@ -3489,13 +3495,10 @@
 		526F265E1D3B5CC300EF4E1F /* resource */ = {
 			isa = PBXGroup;
 			children = (
-				526F265F1D3B5CC300EF4E1F /* CompileShader.bat */,
 				526F26611D3B5CC300EF4E1F /* game-1.ICO */,
 				526F26621D3B5CC300EF4E1F /* resource.h */,
 				526F26631D3B5CC300EF4E1F /* tintshader.fx */,
 				526F26641D3B5CC300EF4E1F /* tintshader.fxo */,
-				526F26651D3B5CC300EF4E1F /* tintshaderLegacy.fx */,
-				526F26661D3B5CC300EF4E1F /* tintshaderLegacy.fxo */,
 				526F26671D3B5CC300EF4E1F /* version.rc */,
 			);
 			path = resource;
@@ -3942,6 +3945,8 @@
 				205229B128E8EBE500589E91 /* room_version.h in Headers */,
 				526F27BF1D3B5CC300EF4E1F /* gfxdriverfactorybase.h in Headers */,
 				2052299628E8EAE700589E91 /* spritefile.h in Headers */,
+				209EEC6A2E439EB1009C0C6C /* deflatestream.h in Headers */,
+				209EEC6B2E439EB1009C0C6C /* transformstream.h in Headers */,
 				526F22EC1D3B5C4900EF4E1F /* guislider.h in Headers */,
 				526F22EF1D3B5C4900EF4E1F /* aastr.h in Headers */,
 				205229A028E8EBA900589E91 /* debugmanager.h in Headers */,
@@ -4063,9 +4068,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				20C76AB528F34A1900772CFC /* include in Resources */,
-				526F28BA1D3B5CC300EF4E1F /* tintshaderLegacy.fx in Resources */,
-				526F28BB1D3B5CC300EF4E1F /* tintshaderLegacy.fxo in Resources */,
-				526F28B41D3B5CC300EF4E1F /* CompileShader.bat in Resources */,
 				20E67DAB28F1BDE000B95C00 /* fmaths.inl in Resources */,
 				526F28B61D3B5CC300EF4E1F /* game-1.ICO in Resources */,
 				526F28B91D3B5CC300EF4E1F /* tintshader.fxo in Resources */,
@@ -4469,6 +4471,8 @@
 				526F281B1D3B5CC300EF4E1F /* mpeg1dec.c in Sources */,
 				20E6823728F1D2B400B95C00 /* load_ams.c in Sources */,
 				526F23DB1D3B5C4900EF4E1F /* lzw.cpp in Sources */,
+				209EEC6C2E439EB1009C0C6C /* transformstream.cpp in Sources */,
+				209EEC6D2E439EB1009C0C6C /* deflatestream.cpp in Sources */,
 				526F28711D3B5CC300EF4E1F /* update.cpp in Sources */,
 				20E6822728F1D2B400B95C00 /* load_mtm.c in Sources */,
 				526F26CF1D3B5CC300EF4E1F /* cc_object.cpp in Sources */,

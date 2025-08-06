@@ -518,6 +518,10 @@
 		2092B5992B9B4DA900B1AC1B /* audio_system.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156879290DD94C005E5B22 /* audio_system.h */; };
 		2092B59A2B9B4DAE00B1AC1B /* openal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2015687D290DD94C005E5B22 /* openal.h */; };
 		2092B59B2B9B4DB300B1AC1B /* queuedaudioitem.h in Headers */ = {isa = PBXBuildFile; fileRef = 2015687A290DD94C005E5B22 /* queuedaudioitem.h */; };
+		20CC9E0B2E43ADAF001C24E8 /* transformstream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20CC9E0A2E43ADAF001C24E8 /* transformstream.cpp */; };
+		20CC9E0C2E43ADAF001C24E8 /* deflatestream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20CC9E082E43ADAF001C24E8 /* deflatestream.cpp */; };
+		20CC9E0D2E43ADAF001C24E8 /* transformstream.h in Headers */ = {isa = PBXBuildFile; fileRef = 20CC9E092E43ADAF001C24E8 /* transformstream.h */; };
+		20CC9E0E2E43ADAF001C24E8 /* deflatestream.h in Headers */ = {isa = PBXBuildFile; fileRef = 20CC9E072E43ADAF001C24E8 /* deflatestream.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1951,6 +1955,10 @@
 		2092B5802B9B4BCC00B1AC1B /* theora_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = theora_player.h; sourceTree = "<group>"; };
 		2092B5812B9B4BCC00B1AC1B /* flic_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flic_player.h; sourceTree = "<group>"; };
 		2092B5822B9B4BCC00B1AC1B /* videoplayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = videoplayer.h; sourceTree = "<group>"; };
+		20CC9E072E43ADAF001C24E8 /* deflatestream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deflatestream.h; sourceTree = "<group>"; };
+		20CC9E082E43ADAF001C24E8 /* deflatestream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = deflatestream.cpp; sourceTree = "<group>"; };
+		20CC9E092E43ADAF001C24E8 /* transformstream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transformstream.h; sourceTree = "<group>"; };
+		20CC9E0A2E43ADAF001C24E8 /* transformstream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = transformstream.cpp; sourceTree = "<group>"; };
 		20F3EDC62A6DC96A00C7BD28 /* scriptmouse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptmouse.cpp; sourceTree = "<group>"; };
 		20F3EDC72A6DC96A00C7BD28 /* cc_staticarray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_staticarray.cpp; sourceTree = "<group>"; };
 		20F3EDC82A6DC96A00C7BD28 /* scriptgame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptgame.h; sourceTree = "<group>"; };
@@ -2998,6 +3006,10 @@
 		201561CC290DD65E005E5B22 /* util */ = {
 			isa = PBXGroup;
 			children = (
+				20CC9E072E43ADAF001C24E8 /* deflatestream.h */,
+				20CC9E082E43ADAF001C24E8 /* deflatestream.cpp */,
+				20CC9E092E43ADAF001C24E8 /* transformstream.h */,
+				20CC9E0A2E43ADAF001C24E8 /* transformstream.cpp */,
 				2063B3022E43A67700E37FC0 /* smart_ptr.h */,
 				20F3EDD42A6DC9C100C7BD28 /* resourcecache.h */,
 				20224CD72A2289E6003A32FD /* matrix.h */,
@@ -4301,6 +4313,8 @@
 				2063B31F2E43A94700E37FC0 /* agsblend.h in Headers */,
 				2063B31A2E43A93400E37FC0 /* ags_snowrain.h in Headers */,
 				2063B30D2E43A6E000E37FC0 /* messagebuffer.h in Headers */,
+				20CC9E0D2E43ADAF001C24E8 /* transformstream.h in Headers */,
+				20CC9E0E2E43ADAF001C24E8 /* deflatestream.h in Headers */,
 				2092B5912B9B4D7A00B1AC1B /* audiodefines.h in Headers */,
 				2092B5992B9B4DA900B1AC1B /* audio_system.h in Headers */,
 				2092B5942B9B4D8C00B1AC1B /* ambientsound.h in Headers */,
@@ -4812,6 +4826,8 @@
 				1C96476B2B1E4D8E0034D46A /* fonts.cpp in Sources */,
 				1C96476C2B1E4D8E0034D46A /* ttffontrenderer.cpp in Sources */,
 				1C96476E2B1E4D8E0034D46A /* wfnfontrenderer.cpp in Sources */,
+				20CC9E0B2E43ADAF001C24E8 /* transformstream.cpp in Sources */,
+				20CC9E0C2E43ADAF001C24E8 /* deflatestream.cpp in Sources */,
 				1C9647702B1E4D8E0034D46A /* wfnfont.cpp in Sources */,
 				1C9647722B1E4D8E0034D46A /* bitmap.cpp in Sources */,
 				1C9647752B1E4D8E0034D46A /* allegrobitmap.cpp in Sources */,

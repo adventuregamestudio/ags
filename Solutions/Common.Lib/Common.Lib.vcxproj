@@ -311,7 +311,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -352,7 +352,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -393,7 +393,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -435,7 +435,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -476,7 +476,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -516,7 +516,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>

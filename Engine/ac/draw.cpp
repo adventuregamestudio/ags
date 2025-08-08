@@ -2554,7 +2554,8 @@ static void draw_gui_controls_batch(int gui_id)
         obj_ddb->SetStretch(obj_ddb->GetWidth() * obj->GetScale().X, obj_ddb->GetHeight() * obj->GetScale().Y);
         obj_ddb->SetRotation(obj->GetRotation());
         obj_ddb->SetShader(shaderInstances[obj->GetShaderID()]);
-        gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X, obj->GetY() + obj_tx.Off.Y, obj_ddb);
+        // FIXME: find a way to achieve this without manually coding scaling of the offset here
+        gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X * obj->GetScale().X, obj->GetY() + obj_tx.Off.Y * obj->GetScale().Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
 }

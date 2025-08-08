@@ -195,6 +195,8 @@ struct AnimFlowParams
     AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection init_dir, AnimFlowDirection cur_dir)
         : Flow(flow), InitialDirection(init_dir), Direction(cur_dir) {}
 
+    static AnimFlowParams DefaultOnce() { return AnimFlowParams(kAnimFlow_Once, kAnimDirForward); }
+
     inline bool IsValid() const { return Flow != kAnimFlow_None; }
     inline bool IsRepeating() const
     {

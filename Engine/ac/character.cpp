@@ -1945,6 +1945,8 @@ const int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim,
     const RunPathParams &run_params)
 {
+    assert(run_params.Flow >= kAnimFlow_First && run_params.Flow <= kAnimFlow_Last);
+    assert(run_params.Direction >= kAnimDirForward && run_params.Direction <= kAnimDirBackward);
     const int chac = chin->index_id;
     if (!ValidateCharForMove(chin, "MoveCharacter"))
         return;
@@ -2319,7 +2321,7 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim)
 {
-    move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim, RunPathParams());
+    move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim, RunPathParams::DefaultOnce());
 }
 
 void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params)
@@ -2347,7 +2349,7 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
     }
 
     std::vector<Point> path = { {chaa->x, chaa->y}, {movetox, movetoy} };
-    move_character_impl(chaa, &path, movetox, movetoy, false /* walkable areas */, walk_anim, RunPathParams());
+    move_character_impl(chaa, &path, movetox, movetoy, false /* walkable areas */, walk_anim, RunPathParams::DefaultOnce());
 }
 
 void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal)

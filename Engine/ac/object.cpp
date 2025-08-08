@@ -713,7 +713,7 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
     }
     else
     {
-        move_object(objj->id, nullptr, x, y, speed, ignwal != 0, RunPathParams());
+        move_object(objj->id, nullptr, x, y, speed, ignwal != 0, RunPathParams::DefaultOnce());
     }
 
     if (blocking)
@@ -928,7 +928,7 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
 
 void move_object(int objj, int tox, int toy, int speed, bool ignwal)
 {
-    move_object(objj, nullptr, tox, toy, speed, ignwal, RunPathParams());
+    move_object(objj, nullptr, tox, toy, speed, ignwal, RunPathParams::DefaultOnce());
 }
 
 void Object_RunInteraction(ScriptObject *objj, int mode) {

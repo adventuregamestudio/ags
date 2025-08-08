@@ -218,7 +218,7 @@ void set_palette_range(AL_CONST PALETTE p, int from, int to, int vsync)
       _current_palette[c] = p[c];
 
       if (_color_depth != 8)
-        palette_color[c] = makecol(p[c].r, p[c].g, p[c].b);
+        palette_color[c] = makeacol(p[c].r, p[c].g, p[c].b, p[c].a);
    }
 
    _current_palette_changed = 0xFFFFFFFF & ~(1<<(_color_depth-1));

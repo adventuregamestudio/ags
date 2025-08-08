@@ -409,8 +409,6 @@ target_sources(engine
     util/library.h
     util/library_dummy.h
     util/library_posix.h
-    util/sdl2_util.h
-    util/sdl2_util.cpp
     util/threading.h
 
     platform/windows/acplwin.cpp

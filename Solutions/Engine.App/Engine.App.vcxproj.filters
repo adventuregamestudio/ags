@@ -687,9 +687,6 @@
     <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\util\sdl2_util.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\script\cc_reflecthelper.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -1471,9 +1468,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\openalsource.h">
       <Filter>Header Files\media\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\sdl2_util.h">
-      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h">
       <Filter>Header Files\script</Filter>

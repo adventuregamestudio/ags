@@ -394,7 +394,6 @@ namespace AGS.Editor.Components
             {
                 AssignFontFileToFont(newItem, sourceFontFile);
             }
-            newItem.TTFMetricsFixup = game.Settings.TTFMetricsFixup; // use defaults
             return newItem;
         }
 

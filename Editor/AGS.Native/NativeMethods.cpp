@@ -709,7 +709,6 @@ namespace AGS
             if (name->Equals("GUI_VERSION_CURRENT")) return (int)kGuiVersion_Current;
             if (name->Equals("CUSTOM_PROPERTY_SCHEMA_VERSION")) return (int)AGS::Common::kPropertyVersion_Current;
             if (name->Equals("FFLG_REPORTNOMINALHEIGHT")) return FFLG_REPORTNOMINALHEIGHT;
-            if (name->Equals("FFLG_ASCENDERFIXUP")) return FFLG_ASCENDERFIXUP;
             if (name->Equals("OPT_DEBUGMODE")) return safe_cast<Object^>(OPT_DEBUGMODE);
             if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
             if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;

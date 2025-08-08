@@ -72,7 +72,7 @@ PLUGINS = \
 ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFont.cpp \
 ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFontClifftopGames.cpp
 
-ALFONT = ../Common/libsrc/alfont-2.0.9/alfont.c
+SDL_TTF = ../libsrc/sdl_ttf/SDL_ttf.c
 
 MOJOAL = ../libsrc/mojoAL/mojoal.c
 

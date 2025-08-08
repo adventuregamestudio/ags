@@ -136,11 +136,9 @@ enum SpeechStyle
 // REPORTNOMINALHEIGHT: get_font_height should return nominal font's height,
 // eq to "font size" parameter, otherwise returns real pixel height.
 #define FFLG_REPORTNOMINALHEIGHT   0x04
-// ASCENDFIXUP: do the TTF ascender fixup, where font's ascender is resized
-// to the nominal font's height.
-#define FFLG_ASCENDERFIXUP         0x08
+//#define FFLG_ASCENDERFIXUP       0x08 // [DEPRECATED]
 // Collection of flags defining font's load mode
-#define FFLG_LOADMODEMASK         (FFLG_REPORTNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
+#define FFLG_LOADMODEMASK         (FFLG_REPORTNOMINALHEIGHT)
 // Font outline types
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10

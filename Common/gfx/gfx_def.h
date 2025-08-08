@@ -88,32 +88,46 @@ struct GraphicResolution : Size
 
 
 // GraphicSpace provides information about object's graphic location and basic shape on screen;
-// this may be used for e.g. hit and collision detection.
-// TODO: better name?
+// this may be used for positioning when drawing, or e.g. hit and collision detection.
+// GraphicSpace's 0,0 local coordinates do not correspond to the object's ORIGIN,
+// but to the object's sprite's left-top corner.
 class GraphicSpace
 {
 public:
     GraphicSpace() {}
-    // TODO: constructor that accepts all floats! - remove loss of precision in redundant conversions
-    GraphicSpace(int x, int y, int src_w, int src_h, int dst_w, int dst_h, float rot)
+    // ox,oy    - position of the object's origin in world coordinates
+    // src_aabb - source rectangle in local object's coordinates (around origin)
+    // dst_w,dst_h - final scale of the source rectangle
+    // g_aabb   - graphical rectangle in local object's coordinates;
+    //          this is used to separate additional offsets for the object gfx,
+    //          in case its image exceeds the "logical" rectangle.
+    // rot      - rotation, clockwise, in degrees
+    //          this constructor makes a fixed pivot at the center of src_aabb.
+    GraphicSpace(int ox, int oy, const Rect &src_aabb, int dst_w, int dst_h,
+                 const Rect &g_aabb, float rot)
     {
+        const int src_w = src_aabb.GetWidth();
+        const int src_h = src_aabb.GetHeight();
         const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;
         const float sy = src_h != 0.f ? (float)dst_h / src_h : 1.f;
-        const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon()
-            ? 0.f : 1.f / sx;
-        const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()
-            ? 0.f : 1.f / sy;
-        // World->local transform
-        W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, sx_inv, sy_inv,
-            (float)-Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
-        // Local->world transform + AABB
-        L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,
-            (float)Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
-        Rect aabb = RectWH(0, 0, src_w, src_h);
-        _AABB = glmex::full_transform(aabb, L2WTransform);
+        Init(ox, oy, src_aabb, g_aabb, sx, sy, rot);
     }
 
-    // Get axis-aligned bounding box
+    // ox,oy    - position of the object's origin in world coordinates
+    // src_aabb - source rectangle in local object's coordinates (around origin)
+    // g_aabb   - graphical rectangle in local object's coordinates;
+    //          this is used to separate additional offsets for the object gfx,
+    //          in case its image exceeds the "logical" rectangle.
+    // sx,sy    - scaling factors (along x and y axes)
+    // rot      - rotation, clockwise, in degrees
+    //          this constructor makes a fixed pivot at the center of src_aabb.
+    GraphicSpace(int ox, int oy, const Rect &src_aabb, const Rect &g_aabb,
+                 float sx, float sy, float rot)
+    {
+        Init(ox, oy, src_aabb, g_aabb, sx, sy, rot);
+    }
+
+    // Get axis-aligned bounding box, in the world coordinates
     inline const Rect &AABB() const { return _AABB; }
 
     // Converts world coordinate into local object space
@@ -131,6 +145,29 @@ public:
     }
 
 private:
+    void Init(int ox, int oy, const Rect &src_aabb, const Rect &g_aabb,
+              float sx, float sy, float rot)
+    {
+        const float local_cx = static_cast<float>(ox) + src_aabb.Left * sx;
+        const float local_cy = static_cast<float>(oy) + src_aabb.Top * sy;
+        const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon()
+            ? 0.f : 1.f / sx;
+        const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()
+            ? 0.f : 1.f / sy;
+        // Pivot is relative to local coordinate center (local_cx,cy)
+        const float pivotx = /*(-src_aabb.Left) * sx +*/ (src_aabb.GetWidth() * sx) * 0.5f;
+        const float pivoty = /*(-src_aabb.Top) * sy + */ (src_aabb.GetHeight() * sy) * 0.5f;
+        // World->local transform
+        W2LTransform = glmex::make_inv_transform2d(
+            -local_cx, -local_cy, sx_inv, sy_inv,
+            (float)-Math::DegreesToRadians(rot), pivotx, pivoty);
+        // Local->world transform + AABB
+        L2WTransform = glmex::make_transform2d(
+            local_cx, local_cy, sx, sy,
+            (float)Math::DegreesToRadians(rot), -pivotx, -pivoty);
+        _AABB = glmex::full_transform(g_aabb, L2WTransform);
+    }
+
     glm::mat4 W2LTransform; // transform from world to local space
     glm::mat4 L2WTransform; // transform from local to world space
     Rect _AABB; // axis-aligned bounding box

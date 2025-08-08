@@ -689,8 +689,15 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
 {
     Point pos = get_overlay_display_pos(over);
     Bitmap *pic = over.GetImage();
-    over._gs = GraphicSpace(pos.X, pos.Y, pic->GetWidth(), pic->GetHeight(),
-        over.scaleWidth, over.scaleHeight, over.rotation);
+    over._gs = GraphicSpace(
+        pos.X, pos.Y, // origin
+        // sprite rectangle relative to origin
+        RectWH(0, 0, pic->GetWidth(), pic->GetHeight()),
+        over.scaleWidth, over.scaleHeight, // define scaling,
+        // real graphical aabb (maybe with extra offsets)
+        RectWH(0, 0, pic->GetWidth(), pic->GetHeight()),
+        over.rotation
+    );
     return Point(pos.X, pos.Y);
 }
 

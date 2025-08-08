@@ -327,7 +327,13 @@ void RoomObject::WriteToSavegame(Stream *out) const
 
 void RoomObject::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(x          + (spr_xoff) * zoom / 100,
-                       y - height + (spr_yoff) * zoom / 100,
-                       spr_width, spr_height, width, height, rotation);
+    _gs = GraphicSpace(
+        x, y, // origin
+        // sprite rectangle relative to origin
+        RectWH(0, -height, spr_width, spr_height),
+        width, height, // define scaling
+        // real graphical aabb (maybe with extra offsets)
+        RectWH(spr_xoff, -height + spr_yoff, spr_width, spr_height),
+        rotation
+    );
 }

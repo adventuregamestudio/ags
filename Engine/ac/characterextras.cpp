@@ -21,10 +21,22 @@ using namespace AGS::Common;
 
 void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
 {
+    // FIXME: zoom_offs does not work now, should we deprecate and cut this factor completely?
+    // if not, then either:
+    // * AABB should *divide* graphical offset by zoom, which may only work if AABB is made
+    // of floats (otherwise value precision will be lost in integer division).
+    // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
     _gs = GraphicSpace(
-        chin->x - width / 2 + (chin->pic_xoffs + spr_xoff) * zoom_offs / 100,
-        chin->y - height    + (-chin->z + chin->pic_yoffs + spr_yoff) * zoom_offs / 100,
-        spr_width, spr_height, width, height, rotation);
+        chin->x, chin->y, // origin
+        // sprite rectangle relative to origin
+        RectWH(-spr_width / 2, -spr_height, spr_width, spr_height),
+        width, height, // define scaling
+        // real graphical aabb (maybe with extra offsets)
+        RectWH(-spr_width / 2 + (chin->pic_xoffs + spr_xoff),
+               -spr_height    + (-chin->z + chin->pic_yoffs + spr_yoff),
+               spr_width, spr_height),
+        rotation
+    );
 }
 
 void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)

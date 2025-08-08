@@ -149,8 +149,15 @@ void GUIObject::ClearChanged()
 
 void GUIObject::UpdateGraphicSpace()
 {
-    Rect rc = CalcGraphicRect(GUI::Options.ClipControls);
-    _gs = GraphicSpace(_x + rc.Left, _y + rc.Top, rc.GetWidth(), rc.GetHeight(), rc.GetWidth() * _scale.X, rc.GetHeight() * _scale.Y, _rotation);
+    Rect g_rc = CalcGraphicRect(GUI::Options.ClipControls);
+    _gs = GraphicSpace(
+        _x, _y, // origin
+        // sprite rectangle relative to origin
+        RectWH(0, 0, _width, _height),
+        // real graphical aabb (maybe with extra offsets)
+        g_rc,
+        _scale.X, _scale.Y, _rotation
+    );
 }
 
 } // namespace Common

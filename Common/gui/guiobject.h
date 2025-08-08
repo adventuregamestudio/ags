@@ -111,7 +111,7 @@ public:
     virtual void    MarkChanged();
     // Marks object has its position changed, "self_changed" flag tells
     // if the whole object's rectangle has changed (otherwise it's just a x,y change).
-    virtual void    MarkPositionChanged(bool self_changed);
+    virtual void    MarkPositionChanged(bool self_changed, bool transform_changed);
     // Marks object has its visual state changed (transparency, blend mode, etc)
     virtual void    MarkVisualStateChanged();
     // Clears changed flag

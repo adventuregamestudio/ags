@@ -51,7 +51,7 @@ void GUIObject::SetPosition(int x, int y)
         _x = x;
         _y = y;
         UpdateGraphicSpace();
-        MarkPositionChanged(false);
+        MarkPositionChanged(false, false);
     }
 }
 
@@ -79,12 +79,14 @@ void GUIObject::SetScale(float sx, float sy)
 {
     _scale = Pointf(sx, sy);
     UpdateGraphicSpace();
+    MarkPositionChanged(false, true);
 }
 
 void GUIObject::SetRotation(float degrees)
 {
     _rotation = Math::ClampAngle360(degrees);
     UpdateGraphicSpace();
+    MarkPositionChanged(false, true);
 }
 
 void GUIObject::SetZOrder(int zorder)
@@ -124,7 +126,7 @@ void GUIObject::SetShader(int shader_id, int shader_handle)
 void GUIObject::OnResized()
 {
     UpdateGraphicSpace();
-    MarkPositionChanged(true);
+    MarkPositionChanged(true, false);
 }
 
 void GUIObject::MarkChanged()
@@ -132,9 +134,9 @@ void GUIObject::MarkChanged()
     _hasChanged = true;
 }
 
-void GUIObject::MarkPositionChanged(bool self_changed)
+void GUIObject::MarkPositionChanged(bool self_changed, bool transform_changed)
 {
-    _hasChanged |= self_changed;
+    _hasChanged |= self_changed | (transform_changed * GUI::Context.SoftwareRender);
 }
 
 void GUIObject::MarkVisualStateChanged()

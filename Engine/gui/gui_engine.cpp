@@ -101,9 +101,9 @@ void GUIControl::MarkVisualStateChanged()
         guis[_parentID].MarkControlChanged();
 }
 
-void GUIControl::MarkPositionChanged(bool self_changed)
+void GUIControl::MarkPositionChanged(bool self_changed, bool transform_changed)
 {
-    _hasChanged |= self_changed;
+    _hasChanged |= self_changed | (transform_changed * GUI::Context.SoftwareRender);
     if (_parentID >= 0)
         guis[_parentID].NotifyControlPosition();
 }

@@ -93,7 +93,7 @@ public:
     // Notifies parent GUI that this control has changed its visual state
     void            MarkVisualStateChanged() override;
     // Notifies parent GUI that this control has changed its location (pos, size)
-    void            MarkPositionChanged(bool self_changed) override;
+    void            MarkPositionChanged(bool self_changed, bool transform_changed) override;
     // Notifies parent GUI that this control's interactive state has changed
     void            MarkStateChanged(bool self_changed, bool parent_changed);
   

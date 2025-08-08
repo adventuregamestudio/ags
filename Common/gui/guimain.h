@@ -263,6 +263,8 @@ struct GuiContext
 public:
     // Game's native color depth, in bits per pixel, saved for the GUI reference
     int GameColorDepth = 0;
+    // Working in software drawing mode
+    bool SoftwareRender = false;
     // Sprite cache, for GUI drawing in software mode
     SpriteCache *Spriteset = nullptr;
     // Current disabled state

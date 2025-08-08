@@ -629,6 +629,7 @@ void init_draw_method()
 
     drawstate.SoftwareRender = !gfxDriver->HasAcceleratedTransform();
     drawstate.FullFrameRedraw = gfxDriver->RequiresFullRedrawEachFrame();
+    GUI::Context.SoftwareRender = drawstate.SoftwareRender;
 
     // Must init this as early as possible, as this affects bitmap->texture conv
     gfxDriver->UseSmoothScaling(play.ShouldAASprites());

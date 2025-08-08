@@ -311,7 +311,7 @@ void GUISlider::OnResized()
 {
     UpdateMetrics();
     UpdateGraphicSpace();
-    MarkPositionChanged(true);
+    MarkPositionChanged(true, false);
 }
 
 void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)

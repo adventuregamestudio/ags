@@ -182,9 +182,11 @@ namespace AGS.Editor
                 }
             }
 
+            string oldVersion = game.SavedXmlEditorVersion != null ?
+                $"AGS {game.SavedXmlEditorVersion}" : "a much older version";
             WizardDialog dialog = new WizardDialog("Upgrade Game Project",
-                $"This wizard will guide you through upgrading a game project from an older version of AGS.{Environment.NewLine}{Environment.NewLine}" +
-                $"The wizard will suggest you to make a backup copy of your project first, and you are free to either accept or ignore this suggestion.{Environment.NewLine}{Environment.NewLine}" +
+                $"You are about to upgrade your game from {oldVersion} to AGS {AGS.Types.Version.AGS_EDITOR_VERSION}.{Environment.NewLine}{Environment.NewLine}" +
+                $"This wizard will guide you through upgrading process, and will suggest you to make a backup copy of your project first, where you are free to either accept or ignore this suggestion.{Environment.NewLine}{Environment.NewLine}" +
                 $"Each page in this wizard will notify you about a serious change that your project will undergo. Most of these notifications are purely informational and their purpose is to help you understand how your project files will be altered. Others may require you to make a choice between two or more ways of applying certain change, or not applying at all.{Environment.NewLine}{Environment.NewLine}" +
                 "You may cancel the upgrade anytime before pressing on Finish button. If you cancel the upgrade, no changes will be done to your project."
                 , pages);

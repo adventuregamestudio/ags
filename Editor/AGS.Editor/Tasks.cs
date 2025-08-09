@@ -78,21 +78,22 @@ namespace AGS.Editor
                 mediaRes = new string[0];
             }
 
-            string[] roomFiles;
+            string[] roomFiles = null;
             if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
             {
                 roomFiles = new string[] { "*.crm" };
             }
-            else
+            else if ((game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
+                || game.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX))
             {
                 roomFiles = new string[] {
-                    "Rooms\\*\\data.xml",
-                    "Rooms\\*\\*.png",
-                    "Rooms\\*\\room*.asc"
+                    "Rooms/*/data.xml",
+                    "Rooms/*/*.png",
+                    "Rooms/*/room*.asc"
                 };
             }
 
-            string[] fontFiles;
+            string[] fontFiles = null;
             if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
             {
                 fontFiles = new string[]
@@ -101,20 +102,24 @@ namespace AGS.Editor
                     "*.wfn"
                 };
             }
-            else
+            else if ((game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+                || game.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX))
             {
                 fontFiles = new string[]
                 {
-                    $"{FontsComponent.FONT_FILES_DIRECTORY}\\*.ttf",
-                    $"{FontsComponent.FONT_FILES_DIRECTORY}\\*.wfn"
+                    $"{FontsComponent.FONT_FILES_DIRECTORY}/*.ttf",
+                    $"{FontsComponent.FONT_FILES_DIRECTORY}/*.wfn"
                 };
             }
 
             List<string> allFiles = new List<string>();
             allFiles.AddRange(commonFiles);
-            allFiles.AddRange(mediaRes);
-            allFiles.AddRange(roomFiles);
-            allFiles.AddRange(fontFiles);
+            if (mediaRes != null)
+                allFiles.AddRange(mediaRes);
+            if (roomFiles != null)
+                allFiles.AddRange(roomFiles);
+            if (fontFiles != null)
+                allFiles.AddRange(fontFiles);
             return allFiles.ToArray();
         }
 

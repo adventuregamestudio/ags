@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 using System.Windows.Forms.Design;
+using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -103,6 +104,7 @@ namespace AGS.Editor
             {
                 propertiesGrid.SelectedObject = value;
                 propertiesGrid.ExpandAllGridItems();
+                propertiesGrid.BrowsableAttributes = null; // reset to defaults
             }
         }
 
@@ -112,6 +114,15 @@ namespace AGS.Editor
             set 
             {
                 propertiesGrid.SelectedObjects = value;
+                if (value == null)
+                {
+                    propertiesGrid.BrowsableAttributes = null; // reset to defaults
+                }
+                else
+                {
+                    propertiesGrid.BrowsableAttributes = new AttributeCollection(
+                        new Attribute[] { BrowsableAttribute.Yes, BrowsableMultieditAttribute.Yes });
+                }
                 propertiesGrid.ExpandAllGridItems();
             }
         }

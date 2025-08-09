@@ -47,6 +47,7 @@ namespace AGS.Types
         [Description("The ID number of the item")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -117,6 +118,7 @@ namespace AGS.Types
 
         [Description("The script name of the item")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string Name
         {
             get { return _name; }

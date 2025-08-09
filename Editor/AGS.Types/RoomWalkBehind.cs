@@ -15,6 +15,7 @@ namespace AGS.Types
         [Description("The ID number of the walk-behind area")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }

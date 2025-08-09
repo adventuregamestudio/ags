@@ -62,6 +62,7 @@ namespace AGS.Types
         [Category("Design")]
         [ReadOnly(true)]
         [DisplayName(PROPERTY_SPRITE_NUMBER)]
+        [BrowsableMultiedit(false)]
         public int Number 
         { 
             get { return _number; } 

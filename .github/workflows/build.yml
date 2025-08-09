@@ -17,12 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows-mingw-x86_64, os: windows-latest,   artifact: 'ags-mingw-x86_64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",       msystem: mingw64, msys-env: mingw-w64-x86_64 }
-        - { name: Windows-mingw-arm64,  os: windows-11-arm,   artifact: 'ags-mingw-arm64',  shell: 'msys2 {0}', runbin: "./ags",      bindir: "",       msystem: clangarm64, msys-env: mingw-w64-clang-aarch64 }
-        - { name: Windows,              os: windows-latest,   artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release" }
-        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: ""        }
-        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: ""        }
-        - { name: macOS,                os: macos-latest,     artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: ""        }
+        - { name: Windows-mingw-x86_64, os: windows-latest,   artifact: 'ags-mingw-x86_64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: mingw64, msys-env: mingw-w64-x86_64 }
+        - { name: Windows-mingw-arm64,  os: windows-11-arm,   artifact: 'ags-mingw-arm64',  shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: clangarm64, msys-env: mingw-w64-clang-aarch64 }
+        - { name: Windows,              os: windows-latest,   artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
+        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: ""       , cmakecmd: "cmake" }
+        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: ""       , cmakecmd: "cmake" }
+        - { name: macOS,                os: macos-latest,     artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: ""       , cmakecmd: "cmake" }
+        - { name: Emscripten,           os: ubuntu-latest,    artifact: 'ags-emscripten',   shell: sh,          runbin: "",           bindir: ""       , cmakecmd: "emcmake cmake" }
 
     steps:
     - name: Set up MSYS2
@@ -45,15 +46,21 @@ jobs:
 
     - uses: actions/checkout@v4
 
+    - uses: mymindstorm/setup-emsdk@v14
+      if: ${{ matrix.platform.name == 'Emscripten' }}
+      with:
+        version: 3.1.74
+
     - name: Configure CMake
       run: |
         cmake --version
-        cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        ${{ matrix.platform.cmakecmd }} -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 2
 
     - name: Test
+      if: ${{ matrix.platform.name != 'Emscripten' }}
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
@@ -65,6 +72,9 @@ jobs:
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
           ${{github.workspace}}/build/ags.exe
+          ${{github.workspace}}/build/ags.html
+          ${{github.workspace}}/build/ags.wasm
+          ${{github.workspace}}/build/ags.js
 
     - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
@@ -86,11 +96,13 @@ jobs:
         rm auto-test.zip
 
     - name: Run auto-test
+      if: ${{ matrix.platform.name != 'Emscripten' }}
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
         ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ags3-auto-test.ags
 
     - name: Check auto-test  # we are using tap.py so that the pipeline fails if a test fails
+      if: ${{ matrix.platform.name != 'Emscripten' }}
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
         tappy agstest.tap

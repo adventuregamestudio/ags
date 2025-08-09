@@ -91,6 +91,13 @@ struct GraphicResolution : Size
 // this may be used for positioning when drawing, or e.g. hit and collision detection.
 // GraphicSpace's 0,0 local coordinates do not correspond to the object's ORIGIN,
 // but to the object's sprite's left-top corner.
+//
+// FIXME: there's an annoying inconsistency, where GS requires "origin" to be the pure
+// object position without "graphical offsets", because it's used for interaction hit-tests,
+// while IGraphicsDriver::DrawSprite (and other related helper functions) require "origin"
+// to include graphical offsets (and scaled too). Revise this and find a way to keep
+// all things clear and together in GraphicSpace, avoid separate graphical origin recalculations
+// elsewhere and only read prepared GS members.
 class GraphicSpace
 {
 public:

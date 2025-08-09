@@ -1438,6 +1438,9 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
+// Adds DDB to the sprlist, accepts origin's position x,y (sprite's alignment
+// may be found by reading DDB's GetOrigin()), and final AABB in absolute coordinates
+// (latter is required for the software renderer).
 static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y,
     const Rect &aabb, int zorder, uint32_t id = 0u)
 {
@@ -2148,7 +2151,8 @@ void prepare_objects_for_drawing()
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
             obj.GetOrigin(), obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
-        // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
+        // FIXME: find a way to achieve this without manually coding scaling of the offset here;
+        // also see fixme comment to GraphicSpace struct.
         const int objx = obj.x + (obj.spr_xoff) * obj.zoom / 100;
         const int objy = obj.y + (obj.spr_yoff) * obj.zoom / 100;
         add_to_sprite_list(actsp.Ddb, objx, objy, aabb, usebasel, actsp.DrawIndex);
@@ -2261,7 +2265,8 @@ void prepare_characters_for_drawing()
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
             chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
         // Finally, add the texture to the draw list
-        // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
+        // FIXME: find a way to achieve this without manually coding scaling of the offset here;
+        // also see fixme comment to GraphicSpace struct.
         const int charx = chin.x + (chin.pic_xoffs + chex.spr_xoff) * chex.zoom_offs / 100;
         const int chary = chin.y + (-chin.z + chin.pic_yoffs + chex.spr_yoff) * chex.zoom_offs / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
@@ -2554,8 +2559,11 @@ static void draw_gui_controls_batch(int gui_id)
         obj_ddb->SetStretch(obj_ddb->GetWidth() * obj->GetScale().X, obj_ddb->GetHeight() * obj->GetScale().Y);
         obj_ddb->SetRotation(obj->GetRotation());
         obj_ddb->SetShader(shaderInstances[obj->GetShaderID()]);
-        // FIXME: find a way to achieve this without manually coding scaling of the offset here
-        gfxDriver->DrawSprite(obj->GetX() + obj_tx.Off.X * obj->GetScale().X, obj->GetY() + obj_tx.Off.Y * obj->GetScale().Y, obj_ddb);
+        // FIXME: find a way to achieve this without manually coding scaling of the offset here;
+        // also see fixme comment to GraphicSpace struct.
+        const int objx = obj->GetX() + obj_tx.Off.X * obj->GetScale().X;
+        const int objy = obj->GetY() + obj_tx.Off.Y * obj->GetScale().Y;
+        gfxDriver->DrawSprite(objx, objy, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
 }

@@ -347,6 +347,7 @@ public:
     virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
+    // (latter is used by the software renderer, in order to avoid recalculations)
     virtual void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) = 0;
     // Adds a render event, which runs a callback with the given parameters, to the active batch
     virtual void AddRenderEvent(int evt, int param) = 0;

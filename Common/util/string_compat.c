@@ -18,6 +18,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "core/platform.h"
+#if !AGS_PLATFORM_OS_WINDOWS
+#include <strings.h>
+#endif
 #include "debug/assert.h"
 
 char *ags_strlwr(char *s)

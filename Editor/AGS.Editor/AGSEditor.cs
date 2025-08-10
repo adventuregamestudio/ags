@@ -48,7 +48,6 @@ namespace AGS.Editor
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         public const string GAME_FILE_NAME = "Game.agf";
 		public const string BACKUP_EXTENSION = "bak";
-        public const string OLD_GAME_FILE_NAME = "ac2game.dta";
         public const string TEMPLATE_INCLUDE_FILE = "template.files";
         public const string TEMPLATES_DIRECTORY_NAME = "Templates";
         public const string AGS_REGISTRY_KEY = @"SOFTWARE\Adventure Game Studio\AGS Editor";
@@ -416,14 +415,17 @@ namespace AGS.Editor
 
         public void ReportGameLoad(CompileMessages errors)
         {
-            if (errors.Count == 1)
+            Factory.GUIController.ShowOutputPanel(errors);
+            if (errors.HasErrorsOrWarnings)
             {
-                Factory.GUIController.ShowMessage(errors[0].Message, MessageBoxIcon.Warning);
-            }
-            else if (errors.Count > 1)
-            {
-                Factory.GUIController.ShowOutputPanel(errors);
-                Factory.GUIController.ShowMessage("Game was loaded, but there were errors or warnings.", MessageBoxIcon.Warning);
+                if (errors.Count == 1)
+                {
+                    Factory.GUIController.ShowMessage(errors[0].Message, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    Factory.GUIController.ShowMessage("Game was loaded, but there were errors or warnings.", MessageBoxIcon.Warning);
+                }
             }
         }
 
@@ -1288,7 +1290,7 @@ namespace AGS.Editor
 					Factory.GUIController.ShowMessage("There were compilation errors. See the output window for details.", MessageBoxIcon.Warning);
 				}
 			}
-			else if (errors.Count > 0)
+			else if (errors.HasErrorsOrWarnings)
 			{
 				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
                 {
@@ -1821,8 +1823,7 @@ namespace AGS.Editor
                 return false;
             }
 
-            DeleteObsoleteFilesFrom272();
-			_game.FilesAddedOrRemoved = false;
+            _game.FilesAddedOrRemoved = false;
 
             return true;
         }
@@ -1874,18 +1875,6 @@ namespace AGS.Editor
             }
 
             return true;
-        }
-
-        private void DeleteObsoleteFilesFrom272()
-        {
-            string[] filesToDelete = { "ac2game.ags", "ac2game.dta", "editor.dat", "acwin.dat", 
-                                       "backup_ac2game.dta", "backup_editor.dat", "Edit this .AGSGame", 
-                                       @"Compiled\music.vox" };
-
-            foreach (string fileName in filesToDelete)
-            {
-                Utilities.TryDeleteFile(fileName);
-            }
         }
 
         public void RunProcessAllGameTextsEvent(IGameTextProcessor processor, CompileMessages errors)

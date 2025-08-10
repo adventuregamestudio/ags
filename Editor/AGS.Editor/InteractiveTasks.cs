@@ -46,7 +46,7 @@ namespace AGS.Editor
 
         public bool BrowseForAndLoadGame()
         {
-            string gameToLoad = Factory.GUIController.ShowOpenFileDialog("Select game to open", "AGS game files (*.agf, ac2game.dta)|*.agf;ac2game.dta|AGS 3.x games (*.agf)|*.agf|AGS 2.72 games (*.dta)|ac2game.dta", false);
+            string gameToLoad = Factory.GUIController.ShowOpenFileDialog("Select game to open", "AGS game files (*.agf)|*.agf", false);
             return LoadGame(gameToLoad);
         }
 
@@ -75,7 +75,8 @@ namespace AGS.Editor
         {
             try
             {
-                bool success = _tasks.LoadGameFromDisk(gameToLoad, true);
+                if (!_tasks.LoadGameFromDisk(gameToLoad, true))
+                    return false;
                 AGS.Types.Game game = Factory.AGSEditor.CurrentGame;
                 if ((game.SavedXmlVersion != null) && (game.SavedXmlVersion < new System.Version(AGSEditor.LATEST_XML_VERSION)))
                 {
@@ -84,7 +85,7 @@ namespace AGS.Editor
                         + " of AGS. If you save it now, the game will be upgraded and previous versions of AGS will be unable to open it.", MessageBoxIcon.Information);
                     game.WorkspaceState.RequiresRebuild = true;
                 }
-                return success;
+                return true;
             }
             catch (Exception ex)
             {

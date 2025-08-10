@@ -41,6 +41,88 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Returns a collection of patterns used to find standard game project files.
+        /// Uses game's last saved format version to distinguish different file sets.
+        /// </summary>
+        public string[] GetPatternsForStandardGameFiles(Game game, bool mediaResources)
+        {
+            string[] commonFiles = new string[]
+            {
+                AGSEditor.GAME_FILE_NAME,
+                AGSEditor.SPRITE_FILE_NAME,
+                "*.ico",
+                "*.asc",
+                "*.ash",
+                "*.txt",
+                "*.trs",
+                // Exclude patterns
+                "!_Debug/*",
+                "!Compiled/*"
+            };
+
+            string[] mediaRes;
+            if (mediaResources)
+            {
+                mediaRes = new string[]
+                {
+                    $"{AudioComponent.AUDIO_CACHE_DIRECTORY}\\*.*",
+                    $"{SpeechComponent.SPEECH_DIRECTORY}\\*.*",
+                    "preload.pcx",
+                    "flic*.fl?",
+                    "*.ogv"
+                };
+            }
+            else
+            {
+                mediaRes = new string[0];
+            }
+
+            string[] roomFiles = null;
+            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
+            {
+                roomFiles = new string[] { "*.crm" };
+            }
+            else if ((game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
+                || game.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX))
+            {
+                roomFiles = new string[] {
+                    "Rooms/*/data.xml",
+                    "Rooms/*/*.png",
+                    "Rooms/*/room*.asc"
+                };
+            }
+
+            string[] fontFiles = null;
+            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+            {
+                fontFiles = new string[]
+                {
+                    "*.ttf",
+                    "*.wfn"
+                };
+            }
+            else if ((game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+                || game.SavedXmlVersion >= new System.Version(AGSEditor.FIRST_XML_VERSION_WITHOUT_INDEX))
+            {
+                fontFiles = new string[]
+                {
+                    $"{FontsComponent.FONT_FILES_DIRECTORY}/*.ttf",
+                    $"{FontsComponent.FONT_FILES_DIRECTORY}/*.wfn"
+                };
+            }
+
+            List<string> allFiles = new List<string>();
+            allFiles.AddRange(commonFiles);
+            if (mediaRes != null)
+                allFiles.AddRange(mediaRes);
+            if (roomFiles != null)
+                allFiles.AddRange(roomFiles);
+            if (fontFiles != null)
+                allFiles.AddRange(fontFiles);
+            return allFiles.ToArray();
+        }
+
         private void ConstructFileListUsingIncludeFile(List<string> filesToInclude, string fileDir, string includeFile)
         {
             using (Stream s = File.OpenRead(includeFile))
@@ -50,14 +132,9 @@ namespace AGS.Editor
                 if (patterns.Length == 0)
                     return;
 
-                string[] files = Utilities.GetDirectoryFileList(fileDir, "*.*", SearchOption.AllDirectories);
+                string[] files = Utilities.GetDirectoryFileList(fileDir, "*.*", SearchOption.AllDirectories, relativePaths: true);
                 if (files.Length == 0)
                     return;
-
-                for (int i = 0; i < files.Length; ++i)
-                {
-                    files[i] = files[i].Substring(fileDir.Length + 1);
-                }
 
                 files = IncludeUtils.FilterItemList(files, patterns, IncludeUtils.MatchOption.CaseInsensitive);
                 filesToInclude.AddRange(files);
@@ -66,36 +143,10 @@ namespace AGS.Editor
 
         private void ConstructBasicFileListForTemplate(List<string> filesToInclude, List<string> filesToDeleteAfterwards)
         {
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.ico");
-            Utilities.AddAllMatchingFiles(filesToInclude, AGSEditor.GAME_FILE_NAME);
-            Utilities.AddAllMatchingFiles(filesToInclude, AGSEditor.SPRITE_FILE_NAME);
-            Utilities.AddAllMatchingFiles(filesToInclude, "preload.pcx");
-            Utilities.AddAllMatchingFiles(filesToInclude, AudioComponent.AUDIO_CACHE_DIRECTORY + @"\*.*");
-            Utilities.AddAllMatchingFiles(filesToInclude, SpeechComponent.SPEECH_DIRECTORY + @"\*.*");
-            Utilities.AddAllMatchingFiles(filesToInclude, "flic*.fl?");
-            Utilities.AddAllMatchingFiles(filesToInclude, FontsComponent.FONT_FILES_DIRECTORY, "*.ttf", true);
-            Utilities.AddAllMatchingFiles(filesToInclude, FontsComponent.FONT_FILES_DIRECTORY, "*.wfn", true);
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.asc");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.ash");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.txt");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.trs");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.pdf");
-            Utilities.AddAllMatchingFiles(filesToInclude, "*.ogv");
-
-            // TODO: unfortunately current subfolder pattern is just a room's number,
-            // which is impossible to narrow using just wildcards (is it?);
-            // figure this problem out later.
-            var roomDirs = Utilities.GetDirectoryRelativeDirList(Directory.GetCurrentDirectory(), @"Rooms\*");
-            foreach (var dir in roomDirs)
-            {
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "data.xml", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "room*.asc", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "background*.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "hotspots.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "regions.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "walkableareas.png", true);
-                Utilities.AddAllMatchingFiles(filesToInclude, dir, "walkbehinds.png", true);
-            }
+            var patternStr = GetPatternsForStandardGameFiles(Factory.AGSEditor.CurrentGame, mediaResources: true);
+            var patterns = IncludeUtils.CreatePatternList(patternStr, IncludeUtils.MatchOption.CaseInsensitive);
+            string[] files = Utilities.GetDirectoryFileList(Factory.AGSEditor.CurrentGame.DirectoryPath, "*.*", SearchOption.AllDirectories, relativePaths: true);
+            filesToInclude.AddRange(files);
 
             if (GetFilesForInclusionInTemplate != null)
             {
@@ -154,23 +205,20 @@ namespace AGS.Editor
             Factory.NativeProxy.NewWorkingDirSet(gameDirectory);
             Game game = null;
 
-            // Load or import the game itself
-            if (gameToLoad.ToLower().EndsWith(".dta"))
-            {
-                game = new OldGameImporter().ImportGameFromAGS272(gameToLoad, interactive);
-                needToSave = true;
-            }
-            else
-            {
-                Factory.AGSEditor.LoadGameFile(gameToLoad);
-                game = Factory.AGSEditor.CurrentGame;
-            }
+            Factory.AGSEditor.LoadGameFile(gameToLoad);
+            game = Factory.AGSEditor.CurrentGame;
 
             if (game == null)
                 return false;
 
             game.DirectoryPath = gameDirectory;
-            UpgradeFeatures(game);
+
+            // Run game upgrade process if necessary
+            UpgradeGameManager.UpgradeGameResult result;
+            if (!UpgradeGameManager.UpgradeWithWizard(game, errors, out result))
+                return false;
+            needToSave = result.ForceSaveProject;
+
             Utilities.EnsureStandardSubFoldersExist();
 
             InitSpritesAfterGameLoad(game, errors);
@@ -336,329 +384,7 @@ namespace AGS.Editor
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
         }
 
-        private void UpgradeFeatures(Game game)
-        {
-#pragma warning disable 0612, 0618
-            // TODO: this may be noticably if upgrading lots of items. Display some kind of
-            // progress window to notify user.
-
-            int xmlVersionIndex = 0;
-            if (game.SavedXmlVersionIndex.HasValue)
-            {
-                xmlVersionIndex = game.SavedXmlVersionIndex.Value;
-            }
-
-            if (xmlVersionIndex < 2)
-            {
-                // Upgrade old games to use the Anti-Glide Mode setting
-                foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
-                {
-                    character.MovementLinkedToAnimation = game.Settings.AntiGlideMode;
-                }
-            }
-
-            if (xmlVersionIndex < 3)
-            {
-                // Upgrade old games to flatten the dialog scripts
-                foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
-                {
-                    dialog.Script = RemoveAllLeadingSpacesFromLines(dialog.Script);
-                }
-            }
-
-            if (xmlVersionIndex < 8)
-            {
-                // GUIListBox Translated property should be false, as they never translated in older games
-                foreach (GUI gui in game.GUIs)
-                {
-                    foreach (GUIControl guic in gui.Controls)
-                    {
-                        if (guic is GUIListBox)
-                            (guic as GUIListBox).Translated = false;
-                    }
-                }
-            }
-
-            if (xmlVersionIndex < 15)
-            {
-                game.DefaultSetup.SetDefaults();
-            }
-
-            if (xmlVersionIndex < 18)
-            {
-                foreach (Font font in game.Fonts)
-                    font.SizeMultiplier = 1;
-                // Apply font scaling to each individual font settings.
-                // Bitmap fonts save multiplier explicitly, while vector fonts have their size doubled.
-                if (game.Settings.HighResolution && !game.Settings.FontsForHiRes)
-                {
-                    foreach (Font font in game.Fonts)
-                    {
-                        if (font.PointSize == 0)
-                        {
-                            font.SizeMultiplier = 2;
-                        }
-                        else
-                        {
-                            font.PointSize *= 2;
-                        }
-                    }
-                }
-            }
-
-            if (xmlVersionIndex < 18)
-            {
-                game.Settings.DefaultRoomMaskResolution = 1;
-            }
-
-            if (xmlVersionIndex < 19)
-            {
-                game.Settings.GameFileName = AGSEditor.Instance.BaseGameFileName ??
-                    Path.GetFileName(game.DirectoryPath);
-
-                var buildNames = new Dictionary<string, string>();
-                foreach (IBuildTarget target in BuildTargetsInfo.GetRegisteredBuildTargets())
-                {
-                    buildNames[target.Name] = game.Settings.GameFileName;
-                }
-                game.WorkspaceState.SetLastBuildGameFiles(buildNames);
-            }
-
-            if (xmlVersionIndex < 20)
-            {
-                // Set the alpha channel requests for re-import based on the presence of an alpha channel
-                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
-                {
-                    sprite.ImportAlphaChannel = sprite.AlphaChannel;
-                }
-            }
-
-            if (xmlVersionIndex < 21)
-            {
-                // Assign audio clip ids to match and solidify their current position in AudioClips array.
-                int clipId = 0;
-                foreach (AudioClip clip in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-                {
-                    clip.ID = clipId++;
-                }
-                game.RootAudioClipFolder.Sort(true);
-            }
-
-            if (xmlVersionIndex < 23)
-            {
-                // Set the import dimensions based on existing sprite dimensions
-                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
-                {
-                    sprite.ImportWidth = sprite.Width;
-                    sprite.ImportHeight = sprite.Height;
-                }
-            }
-
-            if (xmlVersionIndex < 24)
-            {
-                // get all known source images and their largest known size
-                // (avoiding System.Drawing / GDI as a dependency to load the project)
-                Dictionary<string, Tuple<int, int>> sourceMaxSize = new Dictionary<string, Tuple<int, int>>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
-                {
-                    if (!string.IsNullOrWhiteSpace(sprite.SourceFile))
-                    {
-                        int currentX = sprite.OffsetX + sprite.ImportWidth;
-                        int currentY = sprite.OffsetY + sprite.ImportHeight;
-
-                        if (sourceMaxSize.ContainsKey(sprite.SourceFile))
-                        {
-                            int maxX = sourceMaxSize[sprite.SourceFile].Item1;
-                            int maxY = sourceMaxSize[sprite.SourceFile].Item2;
-                            if (maxX < currentX) maxX = currentX;
-                            if (maxY < currentY) maxY = currentY;
-                            sourceMaxSize[sprite.SourceFile] = Tuple.Create(maxX, maxY);
-                        }
-                        else
-                        {
-                            sourceMaxSize.Add(sprite.SourceFile, Tuple.Create(currentX, currentY));
-                        }
-                    }
-                }
-
-                // Set the tiled image flag for existing imports - the only misdetection would be
-                // a single import from a source image that starts at 0,0, but wasn't for the
-                // entire image
-                foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
-                {
-                    if (sprite.OffsetX > 0 || sprite.OffsetY > 0)
-                    {
-                        sprite.ImportAsTile = true;
-                    }
-                    else if (sourceMaxSize.ContainsKey(sprite.SourceFile))
-                    {
-                        int maxX = sourceMaxSize[sprite.SourceFile].Item1;
-                        int maxY = sourceMaxSize[sprite.SourceFile].Item2;
-                        sprite.ImportAsTile = sprite.ImportWidth < maxX || sprite.ImportHeight < maxY;
-                    }
-                    else
-                    {
-                        sprite.ImportAsTile = false;
-                    }
-                }
-            }
-
-            if (xmlVersionIndex >= 21 && xmlVersionIndex <= 25)
-            {
-                // Remap erroneous volatile clip ID references back to Fixed Index
-                Dictionary<int, int> audioIDToIndex = new Dictionary<int, int>();
-                foreach (AudioClip clip in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-                {
-                    audioIDToIndex.Add(clip.ID, clip.Index);
-                }
-
-                foreach (Types.View view in game.RootViewFolder.AllItemsFlat)
-                {
-                    foreach (Types.ViewLoop loop in view.Loops)
-                    {
-                        foreach (Types.ViewFrame frame in loop.Frames)
-                        {
-                            if (frame.Sound == AudioClip.IDNoValue)
-                            {
-                                frame.Sound = AudioClip.FixedIndexNoValue;
-                            }
-                            else
-                            {
-                                frame.Sound = RemapAudioClipIDToFixedIndex(frame.Sound, audioIDToIndex);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (xmlVersionIndex < 3060000)
-            {
-                foreach (Character c in game.Characters)
-                {
-                    c.IdleAnimationDelay = c.AnimationDelay + 5;
-                }
-
-                game.Settings.TTFHeightDefinedBy = FontHeightDefinition.NominalHeight;
-                game.Settings.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
-                foreach (Font font in game.Fonts)
-                {
-                    // For scaled-up bitmap fonts outline is xN
-                    // NOTE: unfortunately as of now there's no direct way to determine if
-                    // this is a bitmap font or TTF
-                    if (!File.Exists(font.TTFFileName))
-                    {
-                        font.AutoOutlineThickness = font.SizeMultiplier;
-                    }
-                    font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
-                }
-                game.Settings.ClipGUIControls = false;
-            }
-
-            if (xmlVersionIndex < 3060020)
-            {
-                if (game.SavedXmlEncodingCodePage.HasValue &&
-                    game.SavedXmlEncodingCodePage.Value == 65001)
-                {
-                    game.Settings.GameTextEncoding = "UTF-8";
-                }
-                else
-                { // NOTE: use Encoding.GetEncoding(game.SavedXmlEncodingCodePage) if actual codepage is needed
-                    game.Settings.GameTextEncoding = "ANSI";
-                }
-
-                game.Settings.UseOldKeyboardHandling = true;
-            }
-
-            if (xmlVersionIndex < 3060109)
-            {
-                game.Settings.ScaleCharacterSpriteOffsets = false;
-            }
-
-            if (xmlVersionIndex < 3060200 || (xmlVersionIndex > 3999900 && xmlVersionIndex < 4000010))
-                {
-                game.Settings.UseOldVoiceClipNaming = true;
-            }
-
-            if (xmlVersionIndex < 3060206 || (xmlVersionIndex > 3999900 && xmlVersionIndex < 4000014))
-            {
-                game.Settings.GameFPS = 40; // 40 was historical default FPS
-            }
-
-            // Update all the ColourNumber property values in game
-            if (xmlVersionIndex < 4000009)
-            {
-                RemapLegacyColourProperties(game);
-            }
-            else if (xmlVersionIndex < 4000014)
-            {
-                RemapOpaqueColourProperties(game);
-            }
-
-            // Update ScriptCompiler selection
-            if (xmlVersionIndex < 3999900)
-            {
-                game.Settings.ScriptCompiler = AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
-            }
-            else if (xmlVersionIndex < 4000010)
-            {
-                game.Settings.ScriptCompiler = game.Settings.ExtendedCompiler ?
-                    AGSEditor.DEFAULT_SCRIPT_COMPILER : AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
-            }
-
-            // Update viewframes
-            if (xmlVersionIndex < 4000012)
-            {
-                foreach (AGS.Types.View view in game.ViewFlatList)
-                {
-                    foreach (ViewLoop loop in view.Loops)
-                    {
-                        foreach (ViewFrame frame in loop.Frames)
-                        {
-                            frame.Flip = frame.Flipped ? SpriteFlipStyle.Horizontal : SpriteFlipStyle.None;
-                        }
-                    }
-                }
-            }
-
-            if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))
-            {
-                var compiler = Factory.NativeProxy.GetEmbeddedScriptCompilers().FirstOrDefault();
-                game.Settings.ScriptCompiler = compiler != null ? compiler.GetName() : string.Empty;
-            }
-
-            System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
-            System.Version projectVersion = game.SavedXmlEditorVersion;
-            if (projectVersion == null || projectVersion < editorVersion)
-                game.SetScriptAPIForOldProject();
-#pragma warning restore 0612, 0618
-        }
-
-        private static int RemapAudioClipIDToFixedIndex(int id, Dictionary<int, int> audioIDToIndex)
-        {
-            int fixedIndex;
-            if (audioIDToIndex.TryGetValue(id, out fixedIndex))
-                return fixedIndex;
-            else
-                return AudioClip.FixedIndexNoValue;
-        }
-
-        private string RemoveAllLeadingSpacesFromLines(string script)
-        {
-            StringReader sr = new StringReader(script);
-            StringWriter sw = new StringWriter();
-            string thisLine;
-            while ((thisLine = sr.ReadLine()) != null)
-            {
-                sw.WriteLine(thisLine.Trim());
-            }
-            string returnValue = sw.ToString();
-            sr.Close();
-            sw.Close();
-            return returnValue;
-        }
-
-        private delegate int RemapColourProperty(int color, bool isBackgroundColor = false);
+        public delegate int RemapColourProperty(int color, bool isBackgroundColor = false);
 
         /// <summary>
         /// Remaps all color properties in game from old color depth to a new color depth;
@@ -667,7 +393,7 @@ namespace AGS.Editor
         public static void RemapColourPropertiesOnDepthChange(Game game, GameColorDepth oldColorDepth)
         {
             RemapColourProperty remapColor = (color, isBg) => { return ColorMapper.RemapColourNumberToDepth(color, game.Palette, game.Settings.ColorDepth, oldColorDepth); };
-            RemapColourProperties(game, remapColor );
+            RemapColourProperties(game, remapColor);
         }
 
         /// <summary>
@@ -701,35 +427,9 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Remaps historical 16-bit R6G5B6 values to proper 32-bit ARGB.
-        /// </summary>
-        private static void RemapLegacyColourProperties(Game game)
-        {
-            RemapColourProperty remapColor = (color, isBg) => {
-                return ColorMapper.RemapFromLegacyColourNumber(color, game.Palette, game.Settings.ColorDepth, isBg);
-            };
-            RemapColourProperties(game, remapColor);
-        }
-
-        /// <summary>
-        /// Remaps 32-bit RGB color number to proper 32-bit ARGB.
-        /// This method has a nuance: the background colors of value 0 are treated as "transparent",
-        /// while foreground colors of value 0 are treated as "black".
-        /// </summary>
-        private static void RemapOpaqueColourProperties(Game game)
-        {
-            RemapColourProperty remapColor = (color, isBg) => {
-                if (isBg && (color == 0))
-                    return 0;
-                return ColorMapper.MakeOpaque(color, game.Settings.ColorDepth);
-            };
-            RemapColourProperties(game, remapColor);
-        }
-
-        /// <summary>
         /// Remaps all color properties in game using provided delegate.
         /// </summary>
-        private static void RemapColourProperties(Game game, RemapColourProperty remapColor)
+        public static void RemapColourProperties(Game game, RemapColourProperty remapColor)
         {
             var settings = game.Settings;
             settings.InventoryHotspotMarkerCrosshairColor = remapColor(settings.InventoryHotspotMarkerCrosshairColor);

@@ -25,6 +25,7 @@ namespace AGS.Editor
     {
         private const string IMAGE_KEY_ERROR = "CompileErrorIcon";
         private const string IMAGE_KEY_WARNING = "CompileWarningIcon";
+        private const string IMAGE_KEY_INFORMATION = "CompileInfoIcon";
         private const string ACTION_GOTO_SCRIPT = "GotoScript";
         private const string ACTION_GOTO_OBJECT = "GotoObject";
         private CompileMessage _message;
@@ -50,9 +51,13 @@ namespace AGS.Editor
             {
                 ImageKey = IMAGE_KEY_ERROR;
             }
-            else
+            else if (message is CompileWarning)
             {
                 ImageKey = IMAGE_KEY_WARNING;
+            }
+            else if (message is CompileInformation)
+            {
+                ImageKey = IMAGE_KEY_INFORMATION;
             }
 
             if (_message.ScriptName.Length > 0)

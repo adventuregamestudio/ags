@@ -13,6 +13,8 @@ namespace AGS.Editor
         public event Action RefreshAllComponentsFromGame;
         public delegate void GameLoadHandler(XmlNode rootNode);
         public event GameLoadHandler GameLoad;
+        public delegate void GamePrepareUpgradeHandler(UpgradeGameEventArgs args);
+        public event GamePrepareUpgradeHandler GamePrepareUpgrade;
         public delegate void GamePostLoadHandler(Game game);
         public event GamePostLoadHandler GamePostLoad;
         public delegate void SavingGameHandler(XmlTextWriter writer);
@@ -50,6 +52,11 @@ namespace AGS.Editor
             {
                 GameLoad(rootNode);
             }
+        }
+
+        public void OnGamePrepareUpgrade(UpgradeGameEventArgs args)
+        {
+            GamePrepareUpgrade?.Invoke(args);
         }
 
         public void OnGamePostLoad(Game game)

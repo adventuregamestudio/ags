@@ -172,7 +172,9 @@ private:
         L2WTransform = glmex::make_transform2d(
             local_cx, local_cy, sx, sy,
             static_cast<float>(Math::DegreesToRadians(rot)), -pivotx, -pivoty);
-        _AABB = glmex::full_transform(g_aabb, L2WTransform);
+        // Make the graphical AABB (note: have to translate to the src_aabb coord center first)
+        const Rect local_g_aabb = Rect::MoveBy(g_aabb, -src_aabb.Left, -src_aabb.Top);
+        _AABB = glmex::full_transform(local_g_aabb, L2WTransform);
     }
 
     glm::mat4 W2LTransform; // transform from world to local space

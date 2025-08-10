@@ -330,10 +330,10 @@ void RoomObject::UpdateGraphicSpace()
     _gs = GraphicSpace(
         x, y, // origin
         // sprite rectangle relative to origin
-        RectWH(0, -height, spr_width, spr_height),
+        RectWH(0, -spr_height, spr_width, spr_height),
         width, height, // define scaling
         // real graphical aabb (maybe with extra offsets)
-        RectWH(spr_xoff, -height + spr_yoff, spr_width, spr_height),
+        RectWH(spr_xoff, -spr_height + spr_yoff, spr_width, spr_height),
         rotation
     );
 }

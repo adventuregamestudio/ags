@@ -77,10 +77,10 @@ struct GraphicResolution : Size
     GraphicResolution()
         : ColorDepth(0) {}
 
-    GraphicResolution(int32_t width, int32_t height, int32_t color_depth)
+    GraphicResolution(const int32_t width, const int32_t height, const int32_t color_depth)
         : Size(width, height), ColorDepth(color_depth) {}
 
-    GraphicResolution(Size size, int32_t color_depth)
+    GraphicResolution(const Size size, const int32_t color_depth)
         : Size(size), ColorDepth(color_depth) {}
 
     inline bool IsValid() const { return Width > 0 && Height > 0 && ColorDepth > 0; }
@@ -110,13 +110,13 @@ public:
     //          in case its image exceeds the "logical" rectangle.
     // rot      - rotation, clockwise, in degrees
     //          this constructor makes a fixed pivot at the center of src_aabb.
-    GraphicSpace(int ox, int oy, const Rect &src_aabb, int dst_w, int dst_h,
-                 const Rect &g_aabb, float rot)
+    GraphicSpace(const int ox, const int oy, const Rect &src_aabb, const int dst_w, const int dst_h,
+                 const Rect &g_aabb, const float rot)
     {
         const int src_w = src_aabb.GetWidth();
         const int src_h = src_aabb.GetHeight();
-        const float sx = src_w != 0.f ? (float)dst_w / src_w : 1.f;
-        const float sy = src_h != 0.f ? (float)dst_h / src_h : 1.f;
+        const float sx = src_w != 0.f ? static_cast<float>(dst_w) / src_w : 1.f;
+        const float sy = src_h != 0.f ? static_cast<float>(dst_h) / src_h : 1.f;
         Init(ox, oy, src_aabb, g_aabb, sx, sy, rot);
     }
 
@@ -128,8 +128,8 @@ public:
     // sx,sy    - scaling factors (along x and y axes)
     // rot      - rotation, clockwise, in degrees
     //          this constructor makes a fixed pivot at the center of src_aabb.
-    GraphicSpace(int ox, int oy, const Rect &src_aabb, const Rect &g_aabb,
-                 float sx, float sy, float rot)
+    GraphicSpace(const int ox, const int oy, const Rect &src_aabb, const Rect &g_aabb,
+                 const float sx, const float sy, const float rot)
     {
         Init(ox, oy, src_aabb, g_aabb, sx, sy, rot);
     }
@@ -140,20 +140,20 @@ public:
     // Converts world coordinate into local object space
     inline Point WorldToLocal(int x, int y) const
     {
-        glm::vec4 v = W2LTransform * glmex::vec4((float)x, (float)y);
-        return Point((int)v.x, (int)v.y); // TODO: better rounding
+        glm::vec4 v = W2LTransform * glmex::vec4(static_cast<float>(x), static_cast<float>(y));
+        return Point(static_cast<int>(v.x), static_cast<int>(v.y)); // TODO: better rounding
     }
 
     // Converts local object coordinates into world space
     inline Point LocalToWorld(int x, int y) const
     {
-        glm::vec4 v = L2WTransform * glmex::vec4((float)x, (float)y);
-        return Point((int)v.x, (int)v.y); // TODO: better rounding
+        glm::vec4 v = L2WTransform * glmex::vec4(static_cast<float>(x), static_cast<float>(y));
+        return Point(static_cast<int>(v.x), static_cast<int>(v.y)); // TODO: better rounding
     }
 
 private:
-    void Init(int ox, int oy, const Rect &src_aabb, const Rect &g_aabb,
-              float sx, float sy, float rot)
+    void Init(const int ox, const int oy, const Rect &src_aabb, const Rect &g_aabb,
+              const float sx, const float sy, const float rot)
     {
         const float local_cx = static_cast<float>(ox) + src_aabb.Left * sx;
         const float local_cy = static_cast<float>(oy) + src_aabb.Top * sy;
@@ -167,11 +167,11 @@ private:
         // World->local transform
         W2LTransform = glmex::make_inv_transform2d(
             -local_cx, -local_cy, sx_inv, sy_inv,
-            (float)-Math::DegreesToRadians(rot), pivotx, pivoty);
+            static_cast<float>(-Math::DegreesToRadians(rot)), pivotx, pivoty);
         // Local->world transform + AABB
         L2WTransform = glmex::make_transform2d(
             local_cx, local_cy, sx, sy,
-            (float)Math::DegreesToRadians(rot), -pivotx, -pivoty);
+            static_cast<float>(Math::DegreesToRadians(rot)), -pivotx, -pivoty);
         _AABB = glmex::full_transform(g_aabb, L2WTransform);
     }
 
@@ -183,12 +183,12 @@ private:
 
 namespace GfxDef
 {
-    inline bool FlagsHaveFlip(SpriteTransformFlags flags)
+    inline bool FlagsHaveFlip(const SpriteTransformFlags flags)
     {
         return (flags & kSprTf_FlipXY) != 0;
     }
 
-    inline GraphicFlip GetFlipFromFlags(SpriteTransformFlags flags)
+    inline GraphicFlip GetFlipFromFlags(const SpriteTransformFlags flags)
     {
         switch (flags & kSprTf_FlipXY)
         {
@@ -199,46 +199,45 @@ namespace GfxDef
         }
     }
 
-    inline SpriteTransformFlags GetFlagsFromFlip(GraphicFlip flip)
+    inline SpriteTransformFlags GetFlagsFromFlip(const GraphicFlip flip)
     {
-        return (SpriteTransformFlags)(
-              kSprTf_FlipX * ((flip & kFlip_Horizontal) != 0)
+        return static_cast<SpriteTransformFlags>(kSprTf_FlipX * ((flip & kFlip_Horizontal) != 0)
             | kSprTf_FlipY * ((flip & kFlip_Vertical) != 0));
     }
 
     // Converts value from range of 100 to range of 250 (sic!);
     // uses formula that reduces precision loss and supports flawless forth &
     // reverse conversion for multiplies of 10%
-    inline int Value100ToValue250(int value100)
+    inline int Value100ToValue250(const int value100)
     {
         return (value100 * 25) / 10;
     }
 
     // Converts value from range of 250 to range of 100
-    inline int Value250ToValue100(int value100)
+    inline int Value250ToValue100(const int value100)
     {
         return (value100 * 10) / 25;
     }
 
     // Converts percentage of transparency into alpha
-    inline int Trans100ToAlpha255(int transparency)
+    inline int Trans100ToAlpha255(const int transparency)
     {
         return ((100 - transparency) * 255) / 100;
     }
     // Converts alpha into percentage of transparency
-    inline int Alpha255ToTrans100(int alpha)
+    inline int Alpha255ToTrans100(const int alpha)
     {
         return 100 - ((alpha * 100) / 255);
     }
 
     // Special formulae to reduce precision loss and support flawless forth &
     // reverse conversion for multiplies of 10%
-    inline int Trans100ToAlpha250(int transparency)
+    inline int Trans100ToAlpha250(const int transparency)
     {
         return ((100 - transparency) * 25) / 10;
     }
 
-    inline int Alpha250ToTrans100(int alpha)
+    inline int Alpha250ToTrans100(const int alpha)
     {
         return 100 - ((alpha * 10) / 25);
     }
@@ -248,7 +247,7 @@ namespace GfxDef
     // 0   = opaque,
     // 255 = invisible,
     // 1 -to- 254 = barely visible -to- mostly visible (as proper alpha)
-    inline int Trans100ToLegacyTrans255(int transparency)
+    inline int Trans100ToLegacyTrans255(const int transparency)
     {
         switch (transparency)
         {
@@ -264,7 +263,7 @@ namespace GfxDef
 
     // Convert legacy 255-ranged "incorrect" transparency into proper
     // 100-ranged transparency.
-    inline int LegacyTrans255ToTrans100(int legacy_transparency)
+    inline int LegacyTrans255ToTrans100(const int legacy_transparency)
     {
         switch (legacy_transparency)
         {
@@ -282,7 +281,7 @@ namespace GfxDef
     // 0      => alpha 255
     // 100    => alpha 0
     // 1 - 99 => alpha 1 - 244
-    inline int LegacyTrans100ToAlpha255(int legacy_transparency)
+    inline int LegacyTrans100ToAlpha255(const int legacy_transparency)
     {
         switch (legacy_transparency)
         {
@@ -297,7 +296,7 @@ namespace GfxDef
     }
 
     // Convert legacy 255-ranged transparency into proper 255-ranged alpha
-    inline int LegacyTrans255ToAlpha255(int legacy_transparency)
+    inline int LegacyTrans255ToAlpha255(const int legacy_transparency)
     {
         switch (legacy_transparency)
         {
@@ -312,7 +311,7 @@ namespace GfxDef
     }
 
     // Convert 255-ranged alpha into legacy 255-ranged transparency
-    inline int Alpha255ToLegacyTrans255(int alpha)
+    inline int Alpha255ToLegacyTrans255(const int alpha)
     {
         switch (alpha)
         {

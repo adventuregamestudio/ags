@@ -30,7 +30,6 @@
 using namespace AGS::Common;
 
 extern int eip_guiobj;
-extern void replace_macro_tokens(const char*, String&);
 
 extern SpriteCache spriteset;
 extern GameSetupStruct game;

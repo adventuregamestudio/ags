@@ -17,13 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows-mingw-x86_64, os: windows-latest,   artifact: 'ags-mingw-x86_64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: mingw64, msys-env: mingw-w64-x86_64 }
-        - { name: Windows-mingw-arm64,  os: windows-11-arm,   artifact: 'ags-mingw-arm64',  shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: clangarm64, msys-env: mingw-w64-clang-aarch64 }
-        - { name: Windows,              os: windows-latest,   artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
-        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: ""       , cmakecmd: "cmake" }
-        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: ""       , cmakecmd: "cmake" }
-        - { name: macOS,                os: macos-latest,     artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: ""       , cmakecmd: "cmake" }
-        - { name: Emscripten,           os: ubuntu-latest,    artifact: 'ags-emscripten',   shell: sh,          runbin: "",           bindir: ""       , cmakecmd: "emcmake cmake" }
+        - { name: Windows-mingw-x86_64, os: windows-latest,   sys: Windows, gfx: D3D9, artifact: 'ags-mingw-x86_64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: mingw64, msys-env: mingw-w64-x86_64 }
+        - { name: Windows-mingw-arm64,  os: windows-11-arm,   sys: Windows, gfx: D3D9, artifact: 'ags-mingw-arm64',  shell: 'msys2 {0}', runbin: "./ags",      bindir: "",        cmakecmd: "cmake", msystem: clangarm64, msys-env: mingw-w64-clang-aarch64 }
+        - { name: Windows,              os: windows-latest,   sys: Windows, gfx: D3D9, artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
+        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
+        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
+        - { name: macOS,                os: macos-latest,     sys: macOS,   gfx: OGL,  artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
+        - { name: Emscripten,           os: ubuntu-latest,    sys: Web,     gfx: OGL,  artifact: 'ags-emscripten',   shell: sh,          runbin: "",           bindir: ""       , cmakecmd: "emcmake cmake" }
 
     steps:
     - name: Set up MSYS2
@@ -40,6 +40,16 @@ jobs:
           ${{ matrix.platform.msys-env }}-pkg-config
           ${{ matrix.platform.msys-env }}-clang-tools-extra
           unzip
+
+    - name: Set up SDL dependencies on Linux (ensures OpenGL)
+      if: matrix.platform.sys == 'Ubuntu'
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y \
+          gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+          libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+          libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
 
     - name: Set up Tappy
       run: pip install tap.py
@@ -95,14 +105,28 @@ jobs:
         unzip auto-test.zip
         rm auto-test.zip
 
-    - name: Run auto-test
+    - name: Run auto-test (Hardware GFX)
       if: ${{ matrix.platform.name != 'Emscripten' }}
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ags3-auto-test.ags
+        ${{matrix.platform.runbin}} --gfxdriver ${{matrix.platform.gfx}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ags3-auto-test.ags
+        mv agstest.tap agstest_hardware.tap
 
-    - name: Check auto-test  # we are using tap.py so that the pipeline fails if a test fails
+    - name: Check auto-test (Hardware GFX) # we are using tap.py so that the pipeline fails if a test fails
       if: ${{ matrix.platform.name != 'Emscripten' }}
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        tappy agstest.tap
+        tappy agstest_hardware.tap
+
+    - name: Run auto-test (Software GFX)
+      if: ${{ matrix.platform.name != 'Emscripten' }}
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        ${{matrix.platform.runbin}} --gfxdriver Software --no-message-box --log-stdout=script:info,main:info --user-data-dir . ags3-auto-test.ags
+        mv agstest.tap agstest_software.tap
+
+    - name: Check auto-test (Software GFX) # we are using tap.py so that the pipeline fails if a test fails
+      if: ${{ matrix.platform.name != 'Emscripten' }}
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        tappy agstest_software.tap

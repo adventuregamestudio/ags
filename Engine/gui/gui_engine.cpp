@@ -111,7 +111,7 @@ void GUIControl::MarkStateChanged(bool self_changed, bool parent_changed)
 {
     _hasChanged |= self_changed;
     if (_parentID >= 0)
-        guis[_parentID].NotifyControlState(_id, self_changed | parent_changed);
+        guis[_parentID].NotifyControlState(_id, self_changed || parent_changed);
 }
 
 int GUILabel::PrepareTextToDraw()

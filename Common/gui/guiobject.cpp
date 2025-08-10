@@ -136,7 +136,7 @@ void GUIObject::MarkChanged()
 
 void GUIObject::MarkPositionChanged(bool self_changed, bool transform_changed)
 {
-    _hasChanged |= self_changed | (transform_changed * GUI::Context.SoftwareRender);
+    _hasChanged |= self_changed | (transform_changed && GUI::Context.SoftwareRender);
 }
 
 void GUIObject::MarkVisualStateChanged()

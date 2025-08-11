@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -16,6 +17,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
         private const string COMMAND_CHANGE_ID = "ChangeDialogID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
+        private const string COMMAND_GO_TO_DIALOG_NUMBER = "GoToDialogNumber";
         private const string ICON_KEY = "DialogsIcon";
         
         private Dictionary<Dialog, ContentDocument> _documents;
@@ -90,11 +92,36 @@ namespace AGS.Editor.Components
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
                 findAllUsages.Find(null, _itemRightClicked.Name);
             }
+            else if (controlID == COMMAND_GO_TO_DIALOG_NUMBER)
+            {
+                ShowGoToDialogDialog();
+            }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
             {
                 ShowPaneForDialog(Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length)));
             }
+        }
+
+        private void ShowGoToDialogDialog()
+        {
+            IList<Types.Dialog> dialogs = Factory.AGSEditor.CurrentGame.DialogFlatList;
+            if (dialogs.Count == 0) return;
+
+            GoToNumberDialog goToDialogDialog = new GoToNumberDialog()
+            {
+                Text = "Go To Dialog",
+                NodeTypeName = "Dialog",
+                List = dialogs
+                    .Select(d => Tuple.Create(d.ID, d.Name))
+                    .ToList()
+            };
+            if (goToDialogDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            int dialogNumber = goToDialogDialog.Number;
+            Types.Dialog dialog = dialogs.Where(i => i.ID == dialogNumber).First();
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(dialog));
+            ShowPaneForDialog(dialogNumber);
         }
 
         private void DeleteDialog(Dialog dialog)
@@ -170,7 +197,11 @@ namespace AGS.Editor.Components
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
-            // No more commands in this menu
+            if (controlID == TOP_LEVEL_COMMAND_ID)
+            {
+                menu.Add(MenuCommand.Separator);
+                menu.Add(new MenuCommand(COMMAND_GO_TO_DIALOG_NUMBER, "Go to Dialog...", null));
+            }
         }
 
         public override IList<MenuCommand> GetContextMenu(string controlID)

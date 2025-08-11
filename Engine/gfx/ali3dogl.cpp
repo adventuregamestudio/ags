@@ -755,11 +755,14 @@ void main()
 )EOS";
 
 // blend hack 1: darken to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
-static const auto darkenbyalpha_fragment_shader_src = R"EOS(
-#version 100
-
-precision mediump float;
-
+static const auto darkenbyalpha_fragment_shader_src = ""
+#if AGS_OPENGL_ES2
+"#version 100 \n"
+"precision mediump float; \n"
+#else
+"#version 120 \n"
+#endif
+R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 
@@ -774,11 +777,14 @@ void main()
 
 
 // blend hack 2: lighten  to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
-static const auto lightenbyalpha_fragment_shader_src = R"EOS(
-#version 100
-
-precision mediump float;
-
+static const auto lightenbyalpha_fragment_shader_src = ""
+#if AGS_OPENGL_ES2
+"#version 100 \n"
+"precision mediump float; \n"
+#else
+"#version 120 \n"
+#endif
+R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 

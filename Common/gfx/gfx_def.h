@@ -103,35 +103,40 @@ class GraphicSpace
 public:
     GraphicSpace() {}
     // ox,oy    - position of the object's origin in world coordinates
-    // src_aabb - source rectangle in local object's coordinates (around origin)
-    // dst_w,dst_h - final scale of the source rectangle
-    // g_aabb   - graphical rectangle in local object's coordinates;
+    // origin   - object's origin, a relation of sprite to the object's pos [0;1]
+    // src_size - source sprite size in local object's coordinates
+    // dst_size - final scale of the source size
+    // g_aabb   - graphical rectangle in local object's coordinates,
+    //          defined as *relative* to the source sprite position;
     //          this is used to separate additional offsets for the object gfx,
     //          in case its image exceeds the "logical" rectangle.
     // rot      - rotation, clockwise, in degrees
     //          this constructor makes a fixed pivot at the center of src_aabb.
-    GraphicSpace(const int ox, const int oy, const Rect &src_aabb, const int dst_w, const int dst_h,
-                 const Rect &g_aabb, const float rot)
+    GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size,
+                 const Size &dst_size, const Rect &g_aabb, const float rot)
     {
-        const int src_w = src_aabb.GetWidth();
-        const int src_h = src_aabb.GetHeight();
-        const float sx = src_w != 0.f ? static_cast<float>(dst_w) / src_w : 1.f;
-        const float sy = src_h != 0.f ? static_cast<float>(dst_h) / src_h : 1.f;
-        Init(ox, oy, src_aabb, g_aabb, sx, sy, rot);
+        const int src_w = src_size.Width;
+        const int src_h = src_size.Height;
+        const float sx = src_w != 0.f ? static_cast<float>(dst_size.Width) / src_w : 1.f;
+        const float sy = src_h != 0.f ? static_cast<float>(dst_size.Height) / src_h : 1.f;
+        Init(ox, oy, origin, src_size, dst_size, g_aabb, sx, sy, rot);
     }
 
     // ox,oy    - position of the object's origin in world coordinates
-    // src_aabb - source rectangle in local object's coordinates (around origin)
+    // origin   - object's origin, a relation of sprite to the object's pos [0;1]
+    // src_size - source sprite size in local object's coordinates
     // g_aabb   - graphical rectangle in local object's coordinates;
     //          this is used to separate additional offsets for the object gfx,
     //          in case its image exceeds the "logical" rectangle.
     // sx,sy    - scaling factors (along x and y axes)
     // rot      - rotation, clockwise, in degrees
     //          this constructor makes a fixed pivot at the center of src_aabb.
-    GraphicSpace(const int ox, const int oy, const Rect &src_aabb, const Rect &g_aabb,
-                 const float sx, const float sy, const float rot)
+    GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size,
+                 const Rect &g_aabb, const float sx, const float sy, const float rot)
     {
-        Init(ox, oy, src_aabb, g_aabb, sx, sy, rot);
+        Init(ox, oy, origin, src_size,
+             Size(static_cast<int>(src_size.Width * sx), static_cast<int>(src_size.Height * sy)),
+             g_aabb, sx, sy, rot);
     }
 
     // Get axis-aligned bounding box, in the world coordinates
@@ -152,33 +157,35 @@ public:
     }
 
 private:
-    void Init(const int ox, const int oy, const Rect &src_aabb, const Rect &g_aabb,
-              const float sx, const float sy, const float rot)
+    void Init(const int ox, const int oy, const Pointf &origin, const Size &src_size,
+              const Size &dst_size, const Rect &g_aabb, const float sx, const float sy, const float rot)
     {
-        const float local_cx = static_cast<float>(ox) + src_aabb.Left * sx;
-        const float local_cy = static_cast<float>(oy) + src_aabb.Top * sy;
+        const int local_srcx = -static_cast<int>((src_size.Width) * origin.X);
+        const int local_srcy = -static_cast<int>((src_size.Height) * origin.Y);
+        const float world_x = static_cast<float>(ox) - (dst_size.Width) * origin.X;
+        const float world_y = static_cast<float>(oy) - (dst_size.Height) * origin.Y;
         const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon()
             ? 0.f : 1.f / sx;
         const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()
             ? 0.f : 1.f / sy;
-        // Pivot is relative to local coordinate center (local_cx,cy)
-        const float pivotx = /*(-src_aabb.Left) * sx +*/ (src_aabb.GetWidth() * sx) * 0.5f;
-        const float pivoty = /*(-src_aabb.Top) * sy + */ (src_aabb.GetHeight() * sy) * 0.5f;
+        // Pivot is relative to the local coordinate center
+        const float pivotx = (dst_size.Width) * 0.5f;
+        const float pivoty = (dst_size.Height) * 0.5f;
         // World->local transform
         W2LTransform = glmex::make_inv_transform2d(
-            -local_cx, -local_cy, sx_inv, sy_inv,
+            -world_x, -world_y, sx_inv, sy_inv,
             static_cast<float>(-Math::DegreesToRadians(rot)), pivotx, pivoty);
         // Local->world transform + AABB
         L2WTransform = glmex::make_transform2d(
-            local_cx, local_cy, sx, sy,
+            world_x, world_y, sx, sy,
             static_cast<float>(Math::DegreesToRadians(rot)), -pivotx, -pivoty);
-        // Make the graphical AABB (note: have to translate to the src_aabb coord center first)
-        const Rect local_g_aabb = Rect::MoveBy(g_aabb, -src_aabb.Left, -src_aabb.Top);
-        _AABB = glmex::full_transform(local_g_aabb, L2WTransform);
+        // Make the graphical AABB (note: have to translate to the local coord center first)
+        //const Rect local_g_aabb = Rect::MoveBy(g_aabb, -local_srcx, -local_srcy);
+        _AABB = glmex::full_transform(g_aabb, L2WTransform);
     }
 
-    glm::mat4 W2LTransform; // transform from world to local space
-    glm::mat4 L2WTransform; // transform from local to world space
+    glm::mat4 W2LTransform = glm::mat4(1.0); // transform from world to local space
+    glm::mat4 L2WTransform = glm::mat4(1.0); // transform from local to world space
     Rect _AABB; // axis-aligned bounding box
 };
 

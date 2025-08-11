@@ -160,10 +160,10 @@ private:
     void Init(const int ox, const int oy, const Pointf &origin, const Size &src_size,
               const Size &dst_size, const Rect &g_aabb, const float sx, const float sy, const float rot)
     {
-        const int local_srcx = -static_cast<int>((src_size.Width) * origin.X);
-        const int local_srcy = -static_cast<int>((src_size.Height) * origin.Y);
-        const float world_x = static_cast<float>(ox) - (dst_size.Width) * origin.X;
-        const float world_y = static_cast<float>(oy) - (dst_size.Height) * origin.Y;
+        const int local_srcx = -static_cast<int>((src_size.Width - 1) * origin.X);
+        const int local_srcy = -static_cast<int>((src_size.Height - 1) * origin.Y);
+        const float world_x = static_cast<float>(ox) - (std::abs(dst_size.Width) - 1) * origin.X;
+        const float world_y = static_cast<float>(oy) - (std::abs(dst_size.Height) - 1) * origin.Y;
         const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon()
             ? 0.f : 1.f / sx;
         const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()

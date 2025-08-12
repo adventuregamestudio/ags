@@ -32,6 +32,9 @@ namespace AGS.Editor.Components
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
         private const string SCRIPT_ICON = "ScriptIcon";
 
+        // First (lowest) room number to suggest to the user
+        private const int FIRST_SUGGESTED_ROOM_NUMBER = 1;
+
         public event PreSaveRoomHandler PreSaveRoom;
         private ContentDocument _roomSettings;
         private Dictionary<int,ContentDocument> _roomScriptEditors = new Dictionary<int,ContentDocument>();
@@ -381,7 +384,7 @@ namespace AGS.Editor.Components
             }
             else
             {
-                newRoomNumber = _agsEditor.CurrentGame.FindFirstAvailableRoomNumber(0);
+                newRoomNumber = _agsEditor.CurrentGame.FindFirstAvailableRoomNumber(FIRST_SUGGESTED_ROOM_NUMBER);
             }
 
             try

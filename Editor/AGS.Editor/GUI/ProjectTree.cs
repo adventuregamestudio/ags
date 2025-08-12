@@ -298,7 +298,7 @@ namespace AGS.Editor
                     {
                         icon = _projectTree.ImageList.Images[command.IconKey];
                     }
-                    ToolStripMenuItem item = new ToolStripMenuItem(command.Name, icon, onClick, command.ID);
+                    ToolStripMenuItem item = ToolStripExtensions.CreateMenuItem(command.Name, icon, onClick, command.ID, command.ShortcutKey);
                     if (!command.Enabled)
                     {
                         item.Enabled = false;

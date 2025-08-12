@@ -1330,7 +1330,7 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_ROOM_NUMBER, "Go to room...", null));
+                menu.Add(new MenuCommand(COMMAND_GO_TO_ROOM_NUMBER, "Go to Room...", Keys.Control | Keys.G));
             }
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_SORT_BY_NUMBER, "Sort rooms by number", null));

@@ -218,7 +218,7 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_ITEM_NUMBER, "Go to Inventory Item...", null));
+                menu.Add(new MenuCommand(COMMAND_GO_TO_ITEM_NUMBER, "Go to Inventory Item...", Keys.Control | Keys.G));
             }
         }
 

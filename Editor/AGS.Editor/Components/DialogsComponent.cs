@@ -200,7 +200,7 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_DIALOG_NUMBER, "Go to Dialog...", null));
+                menu.Add(new MenuCommand(COMMAND_GO_TO_DIALOG_NUMBER, "Go to Dialog...", Keys.Control | Keys.G));
             }
         }
 

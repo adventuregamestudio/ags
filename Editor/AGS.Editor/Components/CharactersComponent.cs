@@ -384,7 +384,7 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_CHARACTER_NUMBER, "Go to Character...", null));
+                menu.Add(new MenuCommand(COMMAND_GO_TO_CHARACTER_NUMBER, "Go to Character...", Keys.Control | Keys.G));
             }
         }
 

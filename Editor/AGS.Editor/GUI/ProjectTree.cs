@@ -46,6 +46,7 @@ namespace AGS.Editor
 			_projectTree.ItemTryDrag += projectTree_ItemTryDrag;
             _projectTree.ItemDragOver += _projectTree_ItemDragOver;
             _projectTree.ItemDragDrop += _projectTree_ItemDragDrop;
+            _projectTree.PriorityKeyDown += _projectTree_PriorityKeyDown;
         }
 
         private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
@@ -395,14 +396,8 @@ namespace AGS.Editor
             }
         }
 
-        private void projectTree_KeyDown(object sender, KeyEventArgs e)
+        private bool _projectTree_PriorityKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.F2)
-            {
-                if (_projectTree.SelectedNode != null)
-                    _projectTree.SelectedNode.BeginEdit();
-            }
-
             // We are going to pass down keys in case a context menu entry has shortcuts
             if (_projectTree.SelectedNode != null)
             {
@@ -421,10 +416,21 @@ namespace AGS.Editor
                             if (command.ShortcutKey == e.KeyData && command.Enabled)
                             {
                                 component.CommandClick(command.ID);
+                                return true;
                             }
                         }
                     }
                 }
+            }
+            return false;
+        }
+
+        private void projectTree_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F2)
+            {
+                if (_projectTree.SelectedNode != null)
+                    _projectTree.SelectedNode.BeginEdit();
             }
         }
 

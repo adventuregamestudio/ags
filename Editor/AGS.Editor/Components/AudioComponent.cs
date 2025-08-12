@@ -997,7 +997,9 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_CLIP_NUMBER, "Go to Audio Clip...", Keys.Control | Keys.G));
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_CLIP_NUMBER, "Go to Audio Clip...", Keys.Control | Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.AudioClipFlatList.Count > 0;
+                menu.Add(goToCommand);
             }
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_PROPERTIES, "Properties", null));

@@ -369,7 +369,9 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_VIEW_NUMBER, "Go to View...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_VIEW_NUMBER, "Go to View...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.ViewFlatList.Count > 0;
+                menu.Add(goToCommand);
             }
         }
 

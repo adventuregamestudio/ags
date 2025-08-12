@@ -306,7 +306,9 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_GO_TO_GUI_NUMBER, "Go to GUI...", Keys.Control | Keys.G));
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_GUI_NUMBER, "Go to GUI...", Keys.Control | Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.GUIFlatList.Count > 0;
+                menu.Add(goToCommand);
             }
         }
 

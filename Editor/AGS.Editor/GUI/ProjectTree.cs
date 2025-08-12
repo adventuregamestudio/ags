@@ -402,6 +402,30 @@ namespace AGS.Editor
                 if (_projectTree.SelectedNode != null)
                     _projectTree.SelectedNode.BeginEdit();
             }
+
+            // We are going to pass down keys in case a context menu entry has shortcuts
+            if (_projectTree.SelectedNode != null)
+            {
+                TreeNode node = _projectTree.SelectedNode;
+                string nodeId = node.Name;
+
+                if (_treeNodes.ContainsKey(nodeId))
+                {
+                    IEditorComponent component = _treeNodes[nodeId];
+                    IList<MenuCommand> contextCommands = component.GetContextMenu(nodeId);
+                    if (contextCommands != null)
+                    {
+                        foreach (MenuCommand command in contextCommands)
+                        {
+                            if (command.IsSeparator) continue;
+                            if (command.ShortcutKey == e.KeyData && command.Enabled)
+                            {
+                                component.CommandClick(command.ID);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void projectTree_BeforeLabelEdit(object sender, NodeLabelEditEventArgs e)

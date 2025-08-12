@@ -11,7 +11,10 @@ namespace AGS.Editor
 {
 	public partial class NewRoomDialog : Form
 	{
-		private Game _game;
+        // First (lowest) room number to suggest to the user
+        private const int FIRST_SUGGESTED_ROOM_NUMBER = 1;
+
+        private Game _game;
 		private ImageList _imageList = new ImageList();
         private int _startingRoomNumber;
 		private int _chosenRoomNumber;
@@ -66,7 +69,7 @@ namespace AGS.Editor
             _game = game;
             _startingRoomNumber = existingRoomNumber;
             _chosenRoomNumber = -1;
-            chkNonStateSaving.Checked = _startingRoomNumber > UnloadedRoom.NON_STATE_SAVING_INDEX;
+            chkNonStateSaving.Checked = _startingRoomNumber >= UnloadedRoom.NON_STATE_SAVING_INDEX;
             UpdateAvailableRoomNumber();
         }
 
@@ -86,14 +89,14 @@ namespace AGS.Editor
 			if (chkNonStateSaving.Checked)
 			{
 				startingRoomNumber = UnloadedRoom.NON_STATE_SAVING_INDEX;
-				udRoomNumber.Minimum = UnloadedRoom.NON_STATE_SAVING_INDEX + 1;
+				udRoomNumber.Minimum = UnloadedRoom.NON_STATE_SAVING_INDEX;
 				udRoomNumber.Maximum = UnloadedRoom.HIGHEST_ROOM_NUMBER_ALLOWED;
 			}
 			else
 			{
-				startingRoomNumber = 0;
-				udRoomNumber.Minimum = 0;
-				udRoomNumber.Maximum = UnloadedRoom.NON_STATE_SAVING_INDEX;
+                startingRoomNumber = FIRST_SUGGESTED_ROOM_NUMBER; //UnloadedRoom.FIRST_ROOM_NUMBER;
+				udRoomNumber.Minimum = UnloadedRoom.FIRST_ROOM_NUMBER;
+				udRoomNumber.Maximum = UnloadedRoom.NON_STATE_SAVING_INDEX - 1;
 			}
 			int newNumber = _game.FindFirstAvailableRoomNumber(startingRoomNumber);
 			if (newNumber > udRoomNumber.Maximum)
@@ -111,17 +114,17 @@ namespace AGS.Editor
             int roomNumber;
             if (chkNonStateSaving.Checked)
             {
-                roomNumber = _startingRoomNumber > UnloadedRoom.NON_STATE_SAVING_INDEX ?
+                roomNumber = _startingRoomNumber >= UnloadedRoom.NON_STATE_SAVING_INDEX ?
                     _startingRoomNumber : UnloadedRoom.NON_STATE_SAVING_INDEX;
-                udRoomNumber.Minimum = UnloadedRoom.NON_STATE_SAVING_INDEX + 1;
+                udRoomNumber.Minimum = UnloadedRoom.NON_STATE_SAVING_INDEX;
                 udRoomNumber.Maximum = UnloadedRoom.HIGHEST_ROOM_NUMBER_ALLOWED;
             }
             else
             {
-                roomNumber = _startingRoomNumber <= UnloadedRoom.NON_STATE_SAVING_INDEX ?
-                    _startingRoomNumber : 0;
-                udRoomNumber.Minimum = 0;
-                udRoomNumber.Maximum = UnloadedRoom.NON_STATE_SAVING_INDEX;
+                roomNumber = _startingRoomNumber < UnloadedRoom.NON_STATE_SAVING_INDEX ?
+                    _startingRoomNumber : FIRST_SUGGESTED_ROOM_NUMBER;//UnloadedRoom.FIRST_ROOM_NUMBER;
+                udRoomNumber.Minimum = UnloadedRoom.FIRST_ROOM_NUMBER;
+                udRoomNumber.Maximum = UnloadedRoom.NON_STATE_SAVING_INDEX - 1;
             }
 
             if (roomNumber != _startingRoomNumber)

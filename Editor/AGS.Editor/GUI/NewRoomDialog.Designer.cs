@@ -54,7 +54,7 @@ namespace AGS.Editor
             // btnOk
             // 
             this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnOk.Location = new System.Drawing.Point(20, 361);
+            this.btnOk.Location = new System.Drawing.Point(20, 381);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(109, 29);
             this.btnOk.TabIndex = 1;
@@ -66,7 +66,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(145, 361);
+            this.btnCancel.Location = new System.Drawing.Point(145, 381);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(117, 28);
             this.btnCancel.TabIndex = 2;
@@ -126,9 +126,10 @@ namespace AGS.Editor
             this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.Location = new System.Drawing.Point(17, 339);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(366, 13);
+            this.label3.Size = new System.Drawing.Size(366, 26);
             this.label3.TabIndex = 7;
-            this.label3.Text = "Room numbers below 300 save the room state; numbers above 300 do not";
+            this.label3.Text = "Supported Room numbers are 0 to 999.\r\nRoom numbers below 300 save the room state;" +
+    " numbers above 300 do not";
             // 
             // NewRoomDialog
             // 
@@ -136,7 +137,7 @@ namespace AGS.Editor
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(625, 402);
+            this.ClientSize = new System.Drawing.Size(625, 422);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.udRoomNumber);
             this.Controls.Add(this.label2);

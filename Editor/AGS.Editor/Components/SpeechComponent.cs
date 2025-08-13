@@ -26,6 +26,9 @@ namespace AGS.Editor.Components
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
         private const string SPEECH_VOX_FILE_NAME = "speech.vox";
 
+        // Current lipsync data format version
+        private const int LIP_SYNC_DATA_VERSION = 3060200;
+
         // Source file timestamp records: keep timestamps of the source files used in speech.vox compilation;
         // used to test whether recompilation is necessary or may be skipped.
         private Dictionary<string, Dictionary<string, DateTime>> _speechVoxStatus = new Dictionary<string, Dictionary<string, DateTime>>();
@@ -316,19 +319,14 @@ namespace AGS.Editor.Components
             if ((!errors.HasErrors) && (lipSyncDataLines.Count > 0))
             {
                 BinaryWriter bw = new BinaryWriter(new FileStream(outputName, FileMode.Create, FileAccess.Write));
-                bw.Write((int)4);
+                bw.Write(LIP_SYNC_DATA_VERSION);
                 bw.Write(lipSyncDataLines.Count);
 
                 foreach (SpeechLipSyncLine line in lipSyncDataLines)
                 {
 					bw.Write((short)line.Phonemes.Count);
 
- 					byte[] fileNameBytes = Encoding.ASCII.GetBytes(line.FileName);
-					byte[] paddedFileNameBytes = new byte[14];
-					Array.Copy(fileNameBytes, paddedFileNameBytes, fileNameBytes.Length);
-					paddedFileNameBytes[fileNameBytes.Length] = 0;
-					bw.Write(paddedFileNameBytes);
-
+                    DataFileWriter.FilePutNullTerminatedString(line.FileName, bw);
                     for (int i = 0; i < line.Phonemes.Count; i++)
                     {
 						bw.Write((int)line.Phonemes[i].EndTimeOffset);

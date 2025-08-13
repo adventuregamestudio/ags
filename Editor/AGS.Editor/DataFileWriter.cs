@@ -260,7 +260,7 @@ namespace AGS.Editor
         /// <param name="text"></param>
         /// <param name="maxLen"></param>
         /// <param name="writer"></param>
-        static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
+        public static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
         {
             if (maxLen <= 0) return;
             if ((string.IsNullOrEmpty(text)) || (maxLen == 1))
@@ -276,7 +276,7 @@ namespace AGS.Editor
         /// </summary>
         /// <param name="text"></param>
         /// <param name="writer"></param>
-        static void FilePutNullTerminatedString(string text, BinaryWriter writer)
+        public static void FilePutNullTerminatedString(string text, BinaryWriter writer)
         {
             if (string.IsNullOrEmpty(text))
                 writer.Write((byte)0);

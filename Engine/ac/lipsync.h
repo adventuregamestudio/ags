@@ -15,9 +15,11 @@
 #define __AC_LIPSYNC_H
 
 #include <vector>
+#include "util/string.h"
 
-struct SpeechLipSyncLine {
-    char  filename[14];
+struct SpeechLipSyncLine
+{
+    AGS::Common::String filename;
     std::vector<int> endtimeoffs;
     std::vector<short> frame;
     short numPhonemes;

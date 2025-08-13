@@ -2317,11 +2317,9 @@ namespace AGS.Editor.Components
             XmlDocument xml = new XmlDocument();
 
             using (FileStream filestream = File.Open(room.DataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (BinaryReader reader = new BinaryReader(filestream))
+            using (StreamReader reader = new StreamReader(filestream))
             {
-                byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
-                string xmlContent = Encoding.Default.GetString(bytes);
-                xml.LoadXml(xmlContent);
+                xml.Load(reader);
                 return xml.SelectSingleNode("Room");
             }
         }

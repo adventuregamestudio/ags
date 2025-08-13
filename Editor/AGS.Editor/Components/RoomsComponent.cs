@@ -10,6 +10,7 @@ using System.Xml;
 using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
 using System.Threading;
+using System.Reflection;
 
 namespace AGS.Editor.Components
 {
@@ -18,7 +19,8 @@ namespace AGS.Editor.Components
         private const string ROOMS_COMMAND_ID = "Rooms";
         private const string COMMAND_NEW_ITEM = "NewRoom";
         private const string COMMAND_IMPORT_ROOM = "AddExistingRoom";
-		private const string COMMAND_SORT_BY_NUMBER = "SortByNumber";
+        private const string COMMAND_GO_TO_ROOM_NUMBER = "GoToRoomNumber";
+        private const string COMMAND_SORT_BY_NUMBER = "SortByNumber";
         private const string COMMAND_DELETE_ITEM = "DeleteRoom";        
 		private const string COMMAND_CREATE_TEMPLATE = "TemplateFromRoom";
         private const string TREE_PREFIX_ROOM_NODE = "Rom";
@@ -121,12 +123,16 @@ namespace AGS.Editor.Components
                     {
                         DeleteSingleItem(FindRoomByID(_rightClickedRoomNumber));
                     }
-				}
-			}
-			else if (controlID == COMMAND_SORT_BY_NUMBER)
-			{
-                _agsEditor.CurrentGame.RootRoomFolder.Sort(true);				
-				RePopulateTreeView();
+                }
+            }
+            else if (controlID == COMMAND_GO_TO_ROOM_NUMBER)
+            {
+                ShowGoToRoomDialog();
+            }
+            else if (controlID == COMMAND_SORT_BY_NUMBER)
+            {
+                _agsEditor.CurrentGame.RootRoomFolder.Sort(true);
+                RePopulateTreeView();
                 RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
             }
 			else if (controlID.StartsWith(TREE_PREFIX_ROOM_SETTINGS))
@@ -163,12 +169,55 @@ namespace AGS.Editor.Components
 				if (_loadedRoom != null)
 				{
                     SaveRoomIfModifiedAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor);
-				}
-			}
-			else if (controlID.StartsWith(TREE_PREFIX_ROOM_NODE))
-			{
-				LoadRoom(controlID);
-			}
+                }
+            }
+            else if (controlID.StartsWith(TREE_PREFIX_ROOM_NODE))
+            {
+                LoadRoom(controlID);
+            }
+        }
+
+        public static IRoom GetRoomByNumber(int roomNumber)
+        {
+            List<IRoom> matchingRooms = Factory.AGSEditor.CurrentGame.Rooms.Where(r => r.Number == roomNumber).ToList();
+            IRoom selectedRoom = null;
+            if (matchingRooms.Count > 0)
+            {
+                selectedRoom = matchingRooms[0];
+            }
+            return selectedRoom;
+        }
+
+        private void SelectRoomByNumber(int roomNumber)
+        {
+            IRoom selectedRoom = GetRoomByNumber(roomNumber);
+
+            if (selectedRoom != null)
+            {
+                _guiController.ProjectTree.SelectNode(this, GetItemNodeID(selectedRoom));
+            }
+            else
+            {
+                _guiController.ShowMessage("Room not found.", MessageBoxIconType.Error);
+            }
+        }
+
+        private void ShowGoToRoomDialog()
+        {
+            IList<Types.IRoom> rooms = Factory.AGSEditor.CurrentGame.Rooms;
+            if (rooms.Count == 0) return;
+
+            GoToNumberDialog goToRoomDialog = new GoToNumberDialog()
+            {
+                Text = "Go To Room",
+                NodeTypeName = "Room",
+                List = rooms
+                    .Select(r => Tuple.Create(r.Number, r.Description))
+                    .ToList()
+            };
+            if (goToRoomDialog.ShowDialog() != DialogResult.OK) return;
+            int roomNumber = goToRoomDialog.Number;
+            SelectRoomByNumber(roomNumber);
         }
 
         private void TryLoadScriptAndCreateMissing(UnloadedRoom room)
@@ -1278,6 +1327,13 @@ namespace AGS.Editor.Components
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
+            if (controlID == TOP_LEVEL_COMMAND_ID)
+            {
+                menu.Add(MenuCommand.Separator);
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_ROOM_NUMBER, "Go to Room...", Keys.Control | Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.Rooms.Count > 0;
+                menu.Add(goToCommand);
+            }
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_SORT_BY_NUMBER, "Sort rooms by number", null));
         }

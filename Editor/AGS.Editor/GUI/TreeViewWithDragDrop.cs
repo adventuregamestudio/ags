@@ -24,6 +24,8 @@ namespace AGS.Editor
         public event ItemDragOverEventHandler ItemDragOver;
         public delegate void ItemDragDropEventHandler(object sender, TreeItemDragEventArgs e);
         public event ItemDragDropEventHandler ItemDragDrop;
+        public delegate bool PriorityKeyDownEventHandler(object sender, KeyEventArgs e);
+        public event PriorityKeyDownEventHandler PriorityKeyDown;
 
         // Time to wait while dragging cursor hovers over a node before expanding it
         private const int DragWaitBeforeExpandNodeMs = 500;
@@ -45,6 +47,30 @@ namespace AGS.Editor
             Controls.Add(_lineInBetween);
             _lineInBetween.BringToFront();
             _lineInBetween.Hide();
+        }
+
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if(this.Focused)
+            {
+                return HandlePriorityKeyDown(keyData);
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private bool HandlePriorityKeyDown(Keys keyData)
+        {
+            if (PriorityKeyDown != null)
+            {
+                foreach (PriorityKeyDownEventHandler handler in PriorityKeyDown.GetInvocationList())
+                { 
+                    if (handler.Invoke(this, new KeyEventArgs(keyData)))
+                        return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

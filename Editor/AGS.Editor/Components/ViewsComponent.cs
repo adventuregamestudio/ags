@@ -17,6 +17,7 @@ namespace AGS.Editor.Components
 		private const string COMMAND_DELETE = "DeleteView";
         private const string COMMAND_CHANGE_ID = "ChangeViewID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
+        private const string COMMAND_GO_TO_VIEW_NUMBER = "GoToViewNumber";
         private const string ICON_KEY = "ViewsIcon";
         
         private Dictionary<View, ContentDocument> _documents;
@@ -100,6 +101,10 @@ namespace AGS.Editor.Components
             {
                 _guiController.ProjectTree.BeginLabelEdit(this, _rightClickedID);
             }
+            else if (controlID == COMMAND_GO_TO_VIEW_NUMBER)
+            {
+                ShowGoToViewDialog();
+            }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
             {
@@ -108,7 +113,28 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void MarkViewAsDeleted(View viewToDelete)
+        private void ShowGoToViewDialog()
+        {
+            IList<Types.View> views = Factory.AGSEditor.CurrentGame.ViewFlatList;
+            if (views.Count == 0) return;
+
+            GoToNumberDialog goToViewDialog = new GoToNumberDialog()
+            {
+                Text = "Go To View",
+                NodeTypeName = "View",
+                List = views
+                    .Select(v => Tuple.Create(v.ID, v.Name))
+                    .ToList()
+            };
+            if (goToViewDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            int viewNumber = goToViewDialog.Number;
+            Types.View view = views.Where(i => i.ID == viewNumber).First();
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(view));
+            ShowOrAddPane(view);
+        }
+
+        private void MarkViewAsDeleted(View viewToDelete)
 		{
 			_agsEditor.CurrentGame.ViewDeleted(viewToDelete.ID);
 
@@ -340,7 +366,13 @@ namespace AGS.Editor.Components
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
-            // No more commands in this menu
+            if (controlID == TOP_LEVEL_COMMAND_ID)
+            {
+                menu.Add(MenuCommand.Separator);
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_VIEW_NUMBER, "Go to View...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.ViewFlatList.Count > 0;
+                menu.Add(goToCommand);
+            }
         }
 
         protected override bool CanFolderBeDeleted(ViewFolder folder)

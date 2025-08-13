@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -16,6 +17,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_DELETE_ITEM = "DeleteInventory";
         private const string COMMAND_CHANGE_ID = "ChangeInventoryID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
+        private const string COMMAND_GO_TO_ITEM_NUMBER = "GoToItemNumber";
         private const string ICON_KEY = "InventorysIcon";
         
         private Dictionary<InventoryItem, ContentDocument> _documents;
@@ -85,12 +87,37 @@ namespace AGS.Editor.Components
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
                 findAllUsages.Find(null, _itemRightClicked.Name);
             }
+            else if (controlID == COMMAND_GO_TO_ITEM_NUMBER)
+            {
+                ShowGoToItemDialog();
+            }
             else if (controlID != TOP_LEVEL_COMMAND_ID && !IsFolderNode(controlID))
             {
                 InventoryItem chosenItem = _agsEditor.CurrentGame.RootInventoryItemFolder.FindInventoryItemByID(
                     Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length)), true);
                 ShowOrAddPane(chosenItem);
             }
+        }
+
+        private void ShowGoToItemDialog()
+        {
+            IList<InventoryItem> items = GetFlatList();
+            if (items.Count == 0) return;
+
+            GoToNumberDialog goToItemDialog = new GoToNumberDialog()
+            {
+                Text = "Go To Inventory Item",
+                NodeTypeName = "Inventory Item",
+                List = items
+                    .Select(i => Tuple.Create(i.ID, string.Format("({0}) {1}", i.Name, i.Description)))
+                    .ToList()
+            };
+            if (goToItemDialog.ShowDialog() != DialogResult.OK) return;
+
+            int itemNumber = goToItemDialog.Number;
+            InventoryItem item = items.Where(i => i.ID == itemNumber).First();
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(item));
+            ShowOrAddPane(item);
         }
 
         private void DeleteInventoryItem(InventoryItem inventoryItem)
@@ -188,7 +215,13 @@ namespace AGS.Editor.Components
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
-            // No more commands in this menu
+            if (controlID == TOP_LEVEL_COMMAND_ID)
+            {
+                menu.Add(MenuCommand.Separator);
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_ITEM_NUMBER, "Go to Inventory Item...", Keys.Control | Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.InventoryFlatList.Count > 0;
+                menu.Add(goToCommand);
+            }
         }
 
         public override IList<MenuCommand> GetContextMenu(string controlID)

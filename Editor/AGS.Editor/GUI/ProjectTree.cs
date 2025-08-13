@@ -46,6 +46,7 @@ namespace AGS.Editor
 			_projectTree.ItemTryDrag += projectTree_ItemTryDrag;
             _projectTree.ItemDragOver += _projectTree_ItemDragOver;
             _projectTree.ItemDragDrop += _projectTree_ItemDragDrop;
+            _projectTree.PriorityKeyDown += _projectTree_PriorityKeyDown;
         }
 
         private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
@@ -298,7 +299,7 @@ namespace AGS.Editor
                     {
                         icon = _projectTree.ImageList.Images[command.IconKey];
                     }
-                    ToolStripMenuItem item = new ToolStripMenuItem(command.Name, icon, onClick, command.ID);
+                    ToolStripMenuItem item = ToolStripExtensions.CreateMenuItem(command.Name, icon, onClick, command.ID, command.ShortcutKey);
                     if (!command.Enabled)
                     {
                         item.Enabled = false;
@@ -393,6 +394,35 @@ namespace AGS.Editor
             {
                 ProcessClickOnNode(_selectedNode, MouseButtons.Left);
             }
+        }
+
+        private bool _projectTree_PriorityKeyDown(object sender, KeyEventArgs e)
+        {
+            // We are going to pass down keys in case a context menu entry has shortcuts
+            if (_projectTree.SelectedNode != null)
+            {
+                TreeNode node = _projectTree.SelectedNode;
+                string nodeId = node.Name;
+
+                if (_treeNodes.ContainsKey(nodeId))
+                {
+                    IEditorComponent component = _treeNodes[nodeId];
+                    IList<MenuCommand> contextCommands = component.GetContextMenu(nodeId);
+                    if (contextCommands != null)
+                    {
+                        foreach (MenuCommand command in contextCommands)
+                        {
+                            if (command.IsSeparator) continue;
+                            if (command.ShortcutKey == e.KeyData && command.Enabled)
+                            {
+                                component.CommandClick(command.ID);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         private void projectTree_KeyDown(object sender, KeyEventArgs e)

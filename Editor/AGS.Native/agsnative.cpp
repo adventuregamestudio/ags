@@ -979,6 +979,33 @@ int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int 
   return height * doubleSize;
 }
 
+void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum,
+    int dc_atx, int dc_aty, int dc_width, int dc_height,
+    int text_atx, int text_aty, int max_width)
+{
+    // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
+    int double_size = (!thisgame.IsLegacyHiRes()) ? 2 : 1;
+    antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+
+    SplitLines lines;
+    split_lines(text.GetCStr(), lines, max_width, fontnum);
+    const int linespacing = get_font_linespacing(fontnum);
+    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(dc_width, dc_height, 8));
+    tempblock->Fill(0);
+    color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
+    int x = text_atx, y = text_aty;
+    for (const auto &s : lines.GetVector())
+    {
+        wouttextxy(tempblock.get(), x, y, fontnum, text_color, s.GetCStr());
+        y += linespacing;
+    }
+
+    if (double_size > 1)
+        drawBlockDoubleAt(hdc, tempblock.get(), dc_atx, dc_aty);
+    else
+        drawBlock(hdc, tempblock.get(), dc_atx, dc_aty);
+}
+
 void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
   int newhit = newwid;
 
@@ -2177,6 +2204,21 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
 
     font->FamilyName = gcnew String(get_font_name(fontNumber));
     font->Height = get_font_surface_height(fontNumber);
+}
+
+void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum,
+    int dc_atx, int dc_aty, int dc_width, int dc_height,
+    int text_atx, int text_aty, int max_width)
+{
+    assert(fontnum < thisgame.numfonts);
+    if (fontnum >= thisgame.numfonts)
+        return;
+
+    // split_lines does not understand '\r' so replace them here
+    text = text->Replace("\r\n", "\n");
+    AGSString native_text = TextHelper::GetGameTextConverter()->Convert(text);
+    DrawTextUsingFontAt(hdc, native_text, fontnum, dc_atx, dc_aty, dc_width, dc_height,
+        text_atx, text_aty, max_width);
 }
 
 void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)

@@ -20,7 +20,7 @@ namespace AGS.Editor
         public FontEditor(AGS.Types.Font selectedFont) : this()
         {
             _item = selectedFont;
-            imagePanel.Invalidate();
+            fontViewPanel.Invalidate();
         }
 
         public delegate void ImportFont(AGS.Types.Font font);
@@ -34,21 +34,54 @@ namespace AGS.Editor
             set
             {
                 _item = value;
-                imagePanel.Invalidate();
+                fontViewPanel.Invalidate();
             }
         }
 
         public ImportFont ImportOverFont { get; set; }
 
-        public void OnFontUpdated()
+        public void OnFontUpdated(bool fontStyle = true, bool fontGlyphPosition = true)
         {
             Factory.GUIController.RefreshPropertyGrid();
-            imagePanel.Invalidate();
+            if (fontStyle)
+                fontViewPanel.Invalidate();
+            if (fontStyle || fontGlyphPosition)
+                textPreviewPanel.Invalidate();
         }
 
         protected override string OnGetHelpKeyword()
         {
             return "Font Preview";
+        }
+
+        private void textPreviewPanel_Paint(object sender, PaintEventArgs e)
+        {
+            if (_item == null)
+                return;
+
+            if (textPreviewPanel.ClientSize.Width <= 0 || textPreviewPanel.ClientSize.Height <= 0)
+                return; // sometimes occurs during automatic rearrangement of controls
+
+            Graphics g = e.Graphics;
+            int g_width = (int)e.Graphics.ClipBounds.Width;
+            int g_height = (int)e.Graphics.ClipBounds.Height;
+            bool hdcReleased = false;
+            try
+            {
+                Factory.NativeProxy.DrawTextUsingFont(g.GetHdc(), tbTextPreview.Text, _item.ID,
+                    0, 0, g_width, g_height, 5, 5, g_width - 5);
+                g.ReleaseHdc();
+                hdcReleased = true;
+            }
+            catch (Exception ex)
+            {
+                int a = 0;
+            }
+            finally
+            {
+                if (!hdcReleased)
+                    g.ReleaseHdc();
+            }
         }
 
         // TODO: reimplement this to e.g. only have a bitmap of the panel's size,
@@ -58,11 +91,11 @@ namespace AGS.Editor
             if (_item == null)
                 return;
 
-            if (imagePanel.ClientSize.Width <= 0 || imagePanel.ClientSize.Height <= 0)
+            if (fontViewPanel.ClientSize.Width <= 0 || fontViewPanel.ClientSize.Height <= 0)
                 return; // sometimes occurs during automatic rearrangement of controls
 
-            int width = imagePanel.ClientSize.Width;
-            int height = imagePanel.ClientSize.Height;
+            int width = fontViewPanel.ClientSize.Width;
+            int height = fontViewPanel.ClientSize.Height;
             int full_height = Factory.NativeProxy.DrawFont(IntPtr.Zero, _item.ID, 0, 0, width, 0, 0);
             if (full_height <= 0)
             {
@@ -72,28 +105,34 @@ namespace AGS.Editor
 
             SetPreviewHeight(full_height);
 
-            int scroll_y = -imagePanel.AutoScrollPosition.Y;
+            int scroll_y = -fontViewPanel.AutoScrollPosition.Y;
+            bool hdcReleased = false;
             try
             {
                 Factory.NativeProxy.DrawFont(g.GetHdc(), _item.ID, 0, 0, width, height, scroll_y);
                 g.ReleaseHdc();
+                hdcReleased = true;
             }
             catch (Exception)
             {
+            }
+            finally
+            {
+                if (!hdcReleased)
+                    g.ReleaseHdc();
             }
         }
 
         private void SetPreviewHeight(int height)
         {
             _previewHeight = height;
-            imagePanel.AutoScrollMinSize = new Size(0, height);
+            fontViewPanel.AutoScrollMinSize = new Size(0, height);
         }
 
-        private void imagePanel_Paint(object sender, PaintEventArgs e)
+        private void fontViewPanel_Paint(object sender, PaintEventArgs e)
         {
             PaintFont(e.Graphics);
         }
-
 
         private void btnImportFont_Click(object sender, EventArgs e)
         {
@@ -109,12 +148,23 @@ namespace AGS.Editor
 
         private void imagePanel_SizeChanged(object sender, EventArgs e)
         {
-            imagePanel.Invalidate();
+            fontViewPanel.Invalidate();
         }
 
         private void imagePanel_Scroll(object sender, ScrollEventArgs e)
         {
-            imagePanel.Invalidate();
+            fontViewPanel.Invalidate();
+        }
+
+        private void tbTextPreview_TextChanged(object sender, EventArgs e)
+        {
+            textPreviewPanel.Invalidate();
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            fontViewPanel.Invalidate();
+            textPreviewPanel.Invalidate();
         }
 
         private void LoadColorTheme(ColorTheme t)

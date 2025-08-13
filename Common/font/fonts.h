@@ -147,7 +147,7 @@ public:
 
 private:
     std::vector<AGS::Common::String> _pool;
-    size_t _count; // actual number of lines in use
+    size_t _count = 0; // actual number of lines in use
 };
 
 // Break up the text into lines restricted by the given width;

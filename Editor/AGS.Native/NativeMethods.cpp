@@ -58,6 +58,9 @@ extern bool measure_font_height(const AGSString &filename, int pixel_height, int
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
 extern int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int height, int scroll_y);
+extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum,
+    int dc_atx, int dc_aty, int dc_width, int dc_height,
+    int text_atx, int text_aty, int max_width);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(HDC hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
 extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
@@ -322,6 +325,13 @@ namespace AGS
 		{
 			return drawFontAt((HDC)hDC, fontNum, draw_atx, draw_aty, width, height, scroll_y);
 		}
+
+        void NativeMethods::DrawTextUsingFont(int hDC, String ^text, int fontNum,
+            int dc_atx, int dc_aty, int dc_width, int dc_height,
+            int text_atx, int text_aty, int max_width)
+        {
+            DrawTextUsingFontAt((HDC)hDC, text, fontNum, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width);
+        }
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)
 		{

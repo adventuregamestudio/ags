@@ -115,6 +115,13 @@ namespace AGS.Editor
             return _native.DrawFont((int)hdc, fontNum, x, y, width, height, scroll_y);
         }
 
+        public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum,
+            int dc_atx, int dc_aty, int dc_width, int dc_height,
+            int text_atx, int text_aty, int max_width)
+        {
+            _native.DrawTextUsingFont((int)hdc, text, fontNum, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width);
+        }
+
         public void DrawSprite(IntPtr hdc, int x, int y, int width, int height, int spriteNum, bool flipImage = false)
         {
 			lock (_spriteSetLock)

@@ -33,6 +33,11 @@ namespace AGS.Editor
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tbTextPreview = new System.Windows.Forms.TextBox();
             this.textPreviewPanel = new AGS.Editor.BufferedPanel();
+            this.btnGotoChar = new System.Windows.Forms.Button();
+            this.tbCharInput = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.udCharCode = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
             this.fontViewPanel = new AGS.Editor.BufferedPanel();
             this.btnImportFont = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -42,6 +47,7 @@ namespace AGS.Editor
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udCharCode)).BeginInit();
             this.SuspendLayout();
             // 
             // currentItemGroupBox
@@ -55,7 +61,7 @@ namespace AGS.Editor
             this.currentItemGroupBox.Controls.Add(this.label1);
             this.currentItemGroupBox.Location = new System.Drawing.Point(13, 13);
             this.currentItemGroupBox.Name = "currentItemGroupBox";
-            this.currentItemGroupBox.Size = new System.Drawing.Size(505, 467);
+            this.currentItemGroupBox.Size = new System.Drawing.Size(550, 467);
             this.currentItemGroupBox.TabIndex = 3;
             this.currentItemGroupBox.TabStop = false;
             this.currentItemGroupBox.Text = "Selected font settings";
@@ -68,7 +74,7 @@ namespace AGS.Editor
             this.panel1.Controls.Add(this.splitContainer1);
             this.panel1.Location = new System.Drawing.Point(6, 72);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(493, 389);
+            this.panel1.Size = new System.Drawing.Size(538, 389);
             this.panel1.TabIndex = 5;
             // 
             // splitContainer1
@@ -88,9 +94,14 @@ namespace AGS.Editor
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.btnGotoChar);
+            this.splitContainer1.Panel2.Controls.Add(this.tbCharInput);
+            this.splitContainer1.Panel2.Controls.Add(this.label3);
+            this.splitContainer1.Panel2.Controls.Add(this.udCharCode);
+            this.splitContainer1.Panel2.Controls.Add(this.label2);
             this.splitContainer1.Panel2.Controls.Add(this.fontViewPanel);
             this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(7);
-            this.splitContainer1.Size = new System.Drawing.Size(493, 389);
+            this.splitContainer1.Size = new System.Drawing.Size(538, 389);
             this.splitContainer1.SplitterDistance = 120;
             this.splitContainer1.TabIndex = 5;
             this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
@@ -99,11 +110,11 @@ namespace AGS.Editor
             // 
             this.tbTextPreview.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbTextPreview.Location = new System.Drawing.Point(10, 64);
+            this.tbTextPreview.Location = new System.Drawing.Point(10, 62);
             this.tbTextPreview.Multiline = true;
             this.tbTextPreview.Name = "tbTextPreview";
             this.tbTextPreview.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tbTextPreview.Size = new System.Drawing.Size(471, 44);
+            this.tbTextPreview.Size = new System.Drawing.Size(516, 44);
             this.tbTextPreview.TabIndex = 5;
             this.tbTextPreview.Text = "The quick brown fox jumps over the lazy dog.";
             this.tbTextPreview.TextChanged += new System.EventHandler(this.tbTextPreview_TextChanged);
@@ -116,9 +127,62 @@ namespace AGS.Editor
             this.textPreviewPanel.AutoScroll = true;
             this.textPreviewPanel.Location = new System.Drawing.Point(10, 13);
             this.textPreviewPanel.Name = "textPreviewPanel";
-            this.textPreviewPanel.Size = new System.Drawing.Size(471, 45);
+            this.textPreviewPanel.Size = new System.Drawing.Size(516, 44);
             this.textPreviewPanel.TabIndex = 4;
             this.textPreviewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.textPreviewPanel_Paint);
+            // 
+            // btnGotoChar
+            // 
+            this.btnGotoChar.Location = new System.Drawing.Point(313, 6);
+            this.btnGotoChar.Name = "btnGotoChar";
+            this.btnGotoChar.Size = new System.Drawing.Size(75, 23);
+            this.btnGotoChar.TabIndex = 8;
+            this.btnGotoChar.Text = "Go To...";
+            this.btnGotoChar.UseVisualStyleBackColor = true;
+            this.btnGotoChar.Click += new System.EventHandler(this.btnGotoChar_Click);
+            // 
+            // tbCharInput
+            // 
+            this.tbCharInput.Location = new System.Drawing.Point(231, 8);
+            this.tbCharInput.MaxLength = 1;
+            this.tbCharInput.Name = "tbCharInput";
+            this.tbCharInput.Size = new System.Drawing.Size(60, 20);
+            this.tbCharInput.TabIndex = 7;
+            this.tbCharInput.TextChanged += new System.EventHandler(this.tbCharInput_TextChanged);
+            this.tbCharInput.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbCharInput_KeyDown);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(169, 11);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(56, 13);
+            this.label3.TabIndex = 6;
+            this.label3.Text = "Character:";
+            // 
+            // udCharCode
+            // 
+            this.udCharCode.Hexadecimal = true;
+            this.udCharCode.Location = new System.Drawing.Point(65, 7);
+            this.udCharCode.Maximum = new decimal(new int[] {
+            65535,
+            0,
+            0,
+            0});
+            this.udCharCode.Name = "udCharCode";
+            this.udCharCode.Size = new System.Drawing.Size(87, 20);
+            this.udCharCode.TabIndex = 5;
+            this.udCharCode.ValueChanged += new System.EventHandler(this.udCharCode_ValueChanged);
+            this.udCharCode.KeyDown += new System.Windows.Forms.KeyEventHandler(this.udCharCode_KeyDown);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(11, 11);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(52, 13);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "Code: U+";
             // 
             // fontViewPanel
             // 
@@ -126,12 +190,12 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.fontViewPanel.AutoScroll = true;
-            this.fontViewPanel.Location = new System.Drawing.Point(10, 10);
+            this.fontViewPanel.Location = new System.Drawing.Point(10, 44);
             this.fontViewPanel.Name = "fontViewPanel";
-            this.fontViewPanel.Size = new System.Drawing.Size(471, 243);
+            this.fontViewPanel.Size = new System.Drawing.Size(516, 203);
             this.fontViewPanel.TabIndex = 3;
-            this.fontViewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.imagePanel_Scroll);
-            this.fontViewPanel.SizeChanged += new System.EventHandler(this.imagePanel_SizeChanged);
+            this.fontViewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.fontViewPanel_Scroll);
+            this.fontViewPanel.SizeChanged += new System.EventHandler(this.fontViewPanel_SizeChanged);
             this.fontViewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.fontViewPanel_Paint);
             // 
             // btnImportFont
@@ -159,7 +223,7 @@ namespace AGS.Editor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.currentItemGroupBox);
             this.Name = "FontEditor";
-            this.Size = new System.Drawing.Size(534, 493);
+            this.Size = new System.Drawing.Size(579, 493);
             this.Load += new System.EventHandler(this.FontEditor_Load);
             this.currentItemGroupBox.ResumeLayout(false);
             this.currentItemGroupBox.PerformLayout();
@@ -167,8 +231,10 @@ namespace AGS.Editor
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.udCharCode)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -183,5 +249,10 @@ namespace AGS.Editor
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TextBox tbTextPreview;
         private BufferedPanel textPreviewPanel;
+        private System.Windows.Forms.TextBox tbCharInput;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown udCharCode;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button btnGotoChar;
     }
 }

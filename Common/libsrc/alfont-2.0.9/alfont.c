@@ -36,6 +36,12 @@ struct ALFONT_FONT {
   int face_ascender;      /* face ascender */
   int real_face_extent_asc; /* calculated max extent of glyphs (ascender) */
   int real_face_extent_desc; /* calculated max extent of glyphs (descender) */
+  struct _ALFONT_BBOX {
+    int xmin;
+    int xmax;
+    int ymin;
+    int ymax;
+  } face_bbox;            /* glyph's bounding box, in pixels */
   char *data;             /* if loaded from memory, the data chunk */
   int data_size;          /* and its size */
   int ch_spacing;         /* extra spacing */
@@ -409,14 +415,13 @@ static void _alfont_new_cache_glyph(ALFONT_FONT *f) {
   }
 }
 
-static void _alfont_calculate_max_cbox(ALFONT_FONT *f, int max_glyphs) {
-  (void)max_glyphs; // kept just in case, but this was used to load N glyphs
-
-  FT_Long bbox_ymin = FT_MulFix( FT_DivFix( f->face->bbox.yMin, f->face->units_per_EM ), f->face->size->metrics.y_ppem );
-  FT_Long bbox_ymax = FT_MulFix( FT_DivFix( f->face->bbox.yMax, f->face->units_per_EM ), f->face->size->metrics.y_ppem );
-
-  f->real_face_extent_asc = (int)bbox_ymax;
-  f->real_face_extent_desc = -(int)bbox_ymin;
+static void _alfont_calculate_max_cbox(ALFONT_FONT *f) {
+  f->face_bbox.xmin = (int)FT_MulFix( FT_DivFix( f->face->bbox.xMin, f->face->units_per_EM ), f->face->size->metrics.y_ppem );
+  f->face_bbox.xmax = (int)FT_MulFix( FT_DivFix( f->face->bbox.xMax, f->face->units_per_EM ), f->face->size->metrics.y_ppem );
+  f->face_bbox.ymin = (int)FT_MulFix( FT_DivFix( f->face->bbox.yMin, f->face->units_per_EM ), f->face->size->metrics.y_ppem );
+  f->face_bbox.ymax = (int)FT_MulFix( FT_DivFix( f->face->bbox.yMax, f->face->units_per_EM ), f->face->size->metrics.y_ppem );
+  f->real_face_extent_asc = f->face_bbox.ymax;
+  f->real_face_extent_desc = -f->face_bbox.ymin;
 }
 
 
@@ -494,9 +499,9 @@ int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags) {
     f->real_face_h = real_height;
     f->face_ascender = f->face->size->metrics.ascender >> 6;
 
-    /* Precalculate actual glyphs vertical extent */
+    /* Precalculate actual glyphs extent */
     if ((flags & ALFONT_FLG_PRECALC_MAX_CBOX) != 0) {
-      _alfont_calculate_max_cbox(f, 256);
+      _alfont_calculate_max_cbox(f);
     }
 
     /* AGS COMPAT HACK: set ascender to the formal font height */
@@ -514,6 +519,10 @@ int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags) {
 }
 
 
+int alfont_get_font_ascent(ALFONT_FONT *f) {
+  return f->face_ascender;
+}
+
 int alfont_get_font_height(ALFONT_FONT *f) {
   return f->face_h;
 }
@@ -523,9 +532,11 @@ int alfont_get_font_real_height(ALFONT_FONT *f) {
   return f->real_face_h;
 }
 
-ALFONT_DLL_DECLSPEC void alfont_get_font_real_vextent(ALFONT_FONT *f, int *top, int *bottom) {
-  *top = f->face_ascender - f->real_face_extent_asc; // may be negative
-  *bottom = f->face_ascender + f->real_face_extent_desc;
+ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *top, int *right, int *bottom) {
+  *left = f->face_bbox.xmin;
+  *right = f->face_bbox.xmax;
+  *top = f->face_bbox.ymax;
+  *bottom = f->face_bbox.ymin;
 }
 
 void alfont_exit(void) {

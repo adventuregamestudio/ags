@@ -115,10 +115,23 @@ static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
     metrics->NominalHeight = alfont_get_font_height(alfptr);
     metrics->RealHeight = alfont_get_font_real_height(alfptr);
     metrics->CompatHeight = metrics->NominalHeight; // just set to default here
-    alfont_get_font_real_vextent(alfptr, &metrics->VExtent.first, &metrics->VExtent.second);
-    // fixup vextent to be *not less* than realheight
+    {
+        Rect ttf_bbox;
+        alfont_get_font_bbox(alfptr, &ttf_bbox.Left, &ttf_bbox.Top, &ttf_bbox.Right, &ttf_bbox.Bottom);
+        // Remember that FreeType has Y axis pointing bottom->up
+        int real_face_extent_asc = (int)ttf_bbox.Top;
+        int real_face_extent_desc = -(int)ttf_bbox.Bottom;
+        int face_ascent = alfont_get_font_ascent(alfptr);
+        int top    = face_ascent - real_face_extent_asc; // may be negative
+        int bottom = face_ascent + real_face_extent_desc;
+        // Get real vertical extent, relative to the ascent (y pen position)
+        metrics->VExtent = std::make_pair(top, bottom);
+        // Recalc bbox, from the top-left "pen" position, and match our Y axis pointing down
+        metrics->BBox = Rect(ttf_bbox.Left, top, ttf_bbox.Right, bottom);
+    }
+    // Fix vertical extent to be *not less* than realheight
     metrics->VExtent.first = std::min(0, metrics->VExtent.first);
-    metrics->VExtent.second = std::max(metrics->RealHeight, metrics->VExtent.second);
+    metrics->VExtent.second = std::max(metrics->RealHeight - 1, metrics->VExtent.second);
 }
 
 ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font_size, int alfont_flags)

@@ -14,6 +14,7 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
+#include "util/geometry.h"
 #include "util/string.h"
 
 struct BITMAP;
@@ -86,14 +87,17 @@ struct FontMetrics
     // selected depending on the game settings.
     // This property is used in calculating linespace, etc.
     int CompatHeight = 0;
-    // Maximal vertical extent of a font (top; bottom), this tells the actual
-    // graphical bounds that may be occupied by font's glyphs.
+    // Maximal bounding rectangle of a font's glyph, this tells the actual
+    // graphical bounds that may be occupied by any font's glyphs.
+    // BBox is given in pixels, relative to our "pen" position (top-left).
+    Rect BBox;
+    // Maximal vertical extent of a font (top; bottom).
     // In a "proper" font this extent is (0; RealHeight-1), but "bad" fonts may
     // have individual glyphs exceeding these bounds, in both directions.
     // Note that "top" may be negative!
     std::pair<int, int> VExtent;
 
-    inline int ExtentHeight() const { return VExtent.second - VExtent.first; }
+    inline int ExtentHeight() const { return VExtent.second - VExtent.first + 1; }
 };
 
 // The strictly internal font renderer interface, not to use in plugin API.

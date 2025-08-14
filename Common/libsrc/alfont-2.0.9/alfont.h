@@ -50,7 +50,6 @@ extern "C" {
 #define ALFONT_FLG_SELECT_NOMINAL_SZ  0x04
 // Precalculate maximal glyph control box, that is maximal graphical
 // extent of any glyph in the font (which may exceed font's height).
-// Note that this requires FreeType to load each glyph one by one.
 #define ALFONT_FLG_PRECALC_MAX_CBOX   0x08
 
 
@@ -73,11 +72,12 @@ ALFONT_DLL_DECLSPEC void alfont_destroy_font(ALFONT_FONT *f);
 
 ALFONT_DLL_DECLSPEC int alfont_set_font_size(ALFONT_FONT *f, int h);
 ALFONT_DLL_DECLSPEC int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags);
+ALFONT_DLL_DECLSPEC int alfont_get_font_ascent(ALFONT_FONT *f);
 ALFONT_DLL_DECLSPEC int alfont_get_font_height(ALFONT_FONT *f);
 /* Returns the real font graphical height */
 ALFONT_DLL_DECLSPEC int alfont_get_font_real_height(ALFONT_FONT *f);
-/* Returns the real font graphical extent (top, bottom) */
-ALFONT_DLL_DECLSPEC void alfont_get_font_real_vextent(ALFONT_FONT *f, int *top, int *bottom);
+/* Returns the font's glyph maximal bound box */
+ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *top, int *right, int *bottom);
 
 ALFONT_DLL_DECLSPEC int alfont_text_mode(int mode);
 

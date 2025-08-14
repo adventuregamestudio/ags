@@ -148,7 +148,7 @@ static void font_post_init(int font_number)
 
         font.Metrics.NominalHeight = std::max(0, height);
         font.Metrics.RealHeight = font.Metrics.NominalHeight;
-        font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight);
+        font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight - 1);
     }
     // Use either nominal or real pixel height to define font's logical height
     // and default linespacing; logical height = nominal height is compatible with the old games
@@ -609,9 +609,10 @@ bool load_font_size(int font_number, const String &filename, const FontInfo &fon
     font.Metrics = metrics;
     font_post_init(font_number);
 
-    Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, extent: %d,%d",
+    Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, vextent: %d,%d, aabb: %d,%d - %d,%d",
         font_number, src_filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
-    font.Metrics.VExtent.first, font.Metrics.VExtent.second);
+        font.Metrics.VExtent.first, font.Metrics.VExtent.second,
+        font.Metrics.BBox.Left, font.Metrics.BBox.Top, font.Metrics.BBox.Right, font.Metrics.BBox.Bottom);
     return true;
 }
 

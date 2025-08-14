@@ -43,7 +43,7 @@ public:
   bool IsBitmapFont() override;
   bool LoadFromDiskEx(int fontNumber, int fontSize, const String &filename, String *src_filename,
       const FontRenderParams *params, FontMetrics *metrics) override;
-  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
+  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)

@@ -40,6 +40,11 @@ namespace AGS.Editor
 
         public ImportFont ImportOverFont { get; set; }
 
+        /// <summary>
+        /// Tells if the character codes should be displayed in preview
+        /// </summary>
+        public bool DisplayCodes { get; set; }
+
         public void OnFontUpdated(bool fontStyle = true, bool fontGlyphPosition = true)
         {
             Factory.GUIController.RefreshPropertyGrid();
@@ -90,6 +95,14 @@ namespace AGS.Editor
 
         struct PreviewGrid
         {
+            // The size and font of a "character code" cue, optionally drawn below characters
+            public int CodeCueWidth;
+            public int CodeCueHeight;
+            public System.Drawing.Font CodeCueFont;
+
+            // All of the following "grid" sizes are defined in non-scaled grid coordinates,
+            // which must be scaled by a chosen factor when converting to the real
+            // client control coordinates.
             public int GridWidth; // visible grid width
             public int GridHeight; // visible grid height
             public int Padding;
@@ -100,6 +113,8 @@ namespace AGS.Editor
             public int CharsPerRow;
 
             public int PreviewHeight; // a virtual full preview height
+
+            public int SelectedChar; // a character to display a selection rect around
         };
 
         PreviewGrid _previewGrid = new PreviewGrid();
@@ -122,8 +137,10 @@ namespace AGS.Editor
             int padding = 5;
             int cell_w = Math.Max(10, bbox.Width);
             int cell_h = Math.Max(10, bbox.Height);
-            int cell_space_x = Math.Max(4, cell_w / 4);
-            int cell_space_y = Math.Max(4, cell_h / 4);
+            // We want cell spacing to include a place for printing character codes;
+            // remember that the cue sizes are in unscaled coords, so pre-unscale them here
+            int cell_space_x = Math.Max(cell_w / 4, 4); // 4 min pixels is arbitrary
+            int cell_space_y = Math.Max(cell_h / 4, _previewGrid.CodeCueHeight / scaling + 1);
 
             // Precalculate full height
             int chars_per_row = Math.Max(1, (grid_width - (padding * 2)) / (cell_w + cell_space_x));
@@ -132,7 +149,6 @@ namespace AGS.Editor
             int char_count = (last_char - first_char + 1);
             int full_height = (char_count / chars_per_row + 1) * (cell_h + cell_space_y);
 
-            _previewGrid = new PreviewGrid();
             _previewGrid.GridWidth = grid_width;
             _previewGrid.GridHeight = grid_height;
             _previewGrid.Padding = padding;
@@ -153,6 +169,11 @@ namespace AGS.Editor
 
             if (fontViewPanel.ClientSize.Width <= 0 || fontViewPanel.ClientSize.Height <= 0)
                 return; // sometimes occurs during automatic rearrangement of controls
+
+            if (_previewGrid.PreviewHeight == 0)
+            {
+                PrecalculatePreviewGrid();
+            }
 
             int width = fontViewPanel.ClientSize.Width;
             int height = fontViewPanel.ClientSize.Height;
@@ -175,6 +196,42 @@ namespace AGS.Editor
             {
                 if (!hdcReleased)
                     g.ReleaseHdc();
+            }
+
+            // Additional visual cues
+            if (_previewGrid.SelectedChar > 0)
+            {
+                int code = _previewGrid.SelectedChar;
+                int row = code / _previewGrid.CharsPerRow;
+                int y = row * (_previewGrid.CellHeight + _previewGrid.CellSpaceY) + _previewGrid.Padding;
+                int col = code % _previewGrid.CharsPerRow;
+                int x = col * (_previewGrid.CellWidth + _previewGrid.CellSpaceX) + _previewGrid.Padding;
+                Rectangle pos = new Rectangle(x * scaling, (y - scroll_y) * scaling, _previewGrid.CellWidth * scaling, (_previewGrid.CellHeight + _previewGrid.CellSpaceY) * scaling);
+                g.DrawRectangle(Pens.Yellow, pos);
+            }
+
+            // Print char codes
+            if (DisplayCodes)
+            {
+                int firstVisibleRow = (scroll_y - _previewGrid.Padding) / (_previewGrid.CellHeight + _previewGrid.CellSpaceY);
+                int firstVisibleChar = firstVisibleRow * _previewGrid.CharsPerRow;
+                int lastVisibleRow = firstVisibleRow + (_previewGrid.GridHeight / (_previewGrid.CellHeight + _previewGrid.CellSpaceY));
+                int lastVisibleChar = lastVisibleRow * _previewGrid.CharsPerRow + _previewGrid.CharsPerRow;
+                for (int code = firstVisibleChar, row = firstVisibleRow; row <= lastVisibleRow; ++row)
+                {
+                    for (int col = 0; col < _previewGrid.CharsPerRow; ++col, ++code)
+                    {
+                        int x = col * (_previewGrid.CellWidth + _previewGrid.CellSpaceX) + _previewGrid.Padding;
+                        int y = row * (_previewGrid.CellHeight + _previewGrid.CellSpaceY) + _previewGrid.Padding;
+                        // x,y and cell sizes are in scaled grid coordinates, but cue size is not scaled
+                        Rectangle pos = new Rectangle(
+                            x * scaling,
+                            (y - scroll_y + _previewGrid.CellHeight + _previewGrid.CellSpaceY) * scaling - _previewGrid.CodeCueHeight,
+                            _previewGrid.CodeCueWidth, _previewGrid.CodeCueHeight);
+                        g.FillRectangle(Brushes.LightGray, pos);
+                        g.DrawString(code.ToString("X4"), _previewGrid.CodeCueFont, Brushes.Black, pos.X + 1, pos.Y + 1);
+                    }
+                }
             }
         }
 
@@ -257,9 +314,10 @@ namespace AGS.Editor
 
             // Try to calculate the necessary scroll Y which lets us see the wanted character
             int code = (int)udCharCode.Value;
-            int row = _previewGrid.CharsPerRow > 0 ? (code / _previewGrid.CharsPerRow) : 0;
+            int row = code / _previewGrid.CharsPerRow;
             int y = row * (_previewGrid.CellHeight + _previewGrid.CellSpaceY) /*+ _previewGrid.Padding*/;
 
+            _previewGrid.SelectedChar = code;
             fontViewPanel.AutoScrollPosition = new Point(0, y);
             fontViewPanel.Invalidate();
         }
@@ -287,6 +345,12 @@ namespace AGS.Editor
             GotoChar();
         }
 
+        private void chkDisplayCodes_CheckedChanged(object sender, EventArgs e)
+        {
+            DisplayCodes = chkDisplayCodes.Checked;
+            fontViewPanel.Invalidate();
+        }
+
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
         {
             fontViewPanel.Invalidate();
@@ -305,6 +369,12 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+
+                // Assign some "static" preview grid properties
+                _previewGrid.CodeCueFont = fontViewPanel.Font;
+                Size size = TextRenderer.MeasureText("0000", _previewGrid.CodeCueFont);
+                _previewGrid.CodeCueWidth = size.Width + 2;
+                _previewGrid.CodeCueHeight = size.Height + 2;
             }
         }
     }

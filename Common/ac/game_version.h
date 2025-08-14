@@ -147,6 +147,8 @@ Room names are always serialized, not just in Debug config (had to adjust format
 Obligatory alpha component in 32-bit color. SCR_COLOR_TRANSPARENT is redefined as 0.
 4.0.0.16:
 GUI controls extended graphical properties.
+4.0.0.20:
+Fixed historical mistake of 1 vertical pixel for object and character sprite placement.
 */
 
 enum GameDataVersion
@@ -169,8 +171,9 @@ enum GameDataVersion
     kGameVersion_400_13         = 4000013,
     kGameVersion_400_14         = 4000014,
     kGameVersion_400_16         = 4000016,
+    kGameVersion_400_20         = 4000020,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_16
+    kGameVersion_Current        = kGameVersion_400_20
 };
 
 // Data format version of the loaded game

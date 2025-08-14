@@ -153,12 +153,10 @@ void GUIObject::UpdateGraphicSpace()
 {
     Rect g_rc = CalcGraphicRect(GUI::Options.ClipControls);
     _gs = GraphicSpace(
-        _x, _y, // origin
-        // sprite rectangle relative to origin
-        RectWH(0, 0, _width, _height),
-        // real graphical aabb (maybe with extra offsets)
-        g_rc,
-        _scale.X, _scale.Y, _rotation
+        _x, _y, Pointf(0.f, 0.f), // origin
+        Size(_width, _height), // source sprite size
+        g_rc, // real graphical aabb (maybe with extra offsets)
+        _scale.X, _scale.Y, _rotation // transforms
     );
 }
 

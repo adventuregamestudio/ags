@@ -103,6 +103,7 @@ namespace AGS.Editor
             // All of the following "grid" sizes are defined in non-scaled grid coordinates,
             // which must be scaled by a chosen factor when converting to the real
             // client control coordinates.
+            public float Scaling;
             public int GridWidth; // visible grid width
             public int GridHeight; // visible grid height
             public int Padding;
@@ -113,6 +114,7 @@ namespace AGS.Editor
             public int CharsPerRow;
 
             public int PreviewHeight; // a virtual full preview height
+            public int PreviewScrollY; // a virtual scroll y
 
             public int SelectedChar; // a character to display a selection rect around
         };
@@ -149,6 +151,7 @@ namespace AGS.Editor
             int char_count = (last_char - first_char + 1);
             int full_height = (char_count / chars_per_row + 1) * (cell_h + cell_space_y);
 
+            _previewGrid.Scaling = scaling;
             _previewGrid.GridWidth = grid_width;
             _previewGrid.GridHeight = grid_height;
             _previewGrid.Padding = padding;
@@ -179,7 +182,7 @@ namespace AGS.Editor
             int height = fontViewPanel.ClientSize.Height;
             int scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
 
-            int scroll_y = -fontViewPanel.AutoScrollPosition.Y;
+            int scroll_y = _previewGrid.PreviewScrollY;
             bool hdcReleased = false;
             try
             {
@@ -206,7 +209,11 @@ namespace AGS.Editor
                 int y = row * (_previewGrid.CellHeight + _previewGrid.CellSpaceY) + _previewGrid.Padding;
                 int col = code % _previewGrid.CharsPerRow;
                 int x = col * (_previewGrid.CellWidth + _previewGrid.CellSpaceX) + _previewGrid.Padding;
-                Rectangle pos = new Rectangle(x * scaling, (y - scroll_y) * scaling, _previewGrid.CellWidth * scaling, (_previewGrid.CellHeight + _previewGrid.CellSpaceY) * scaling);
+                Rectangle pos;
+                if (DisplayCodes)
+                    pos = new Rectangle(x * scaling, (y - scroll_y) * scaling, _previewGrid.CellWidth * scaling, (_previewGrid.CellHeight + _previewGrid.CellSpaceY) * scaling);
+                else
+                    pos = new Rectangle(x * scaling, (y - scroll_y) * scaling, _previewGrid.CellWidth * scaling, (_previewGrid.CellHeight) * scaling);
                 g.DrawRectangle(Pens.Yellow, pos);
             }
 
@@ -266,6 +273,7 @@ namespace AGS.Editor
 
         private void fontViewPanel_Scroll(object sender, ScrollEventArgs e)
         {
+            _previewGrid.PreviewScrollY = -fontViewPanel.AutoScrollPosition.Y;
             fontViewPanel.Invalidate();
         }
 
@@ -302,7 +310,7 @@ namespace AGS.Editor
             UpdateCharCode();
         }
 
-        private void GotoChar()
+        private void GotoChar(int code)
         {
             if (_item == null)
                 return;
@@ -313,12 +321,28 @@ namespace AGS.Editor
             }
 
             // Try to calculate the necessary scroll Y which lets us see the wanted character
-            int code = (int)udCharCode.Value;
             int row = code / _previewGrid.CharsPerRow;
             int y = row * (_previewGrid.CellHeight + _previewGrid.CellSpaceY) /*+ _previewGrid.Padding*/;
 
             _previewGrid.SelectedChar = code;
-            fontViewPanel.AutoScrollPosition = new Point(0, y);
+
+            // If y is NOT within the visible range, then do the minimal necessary scroll
+            bool do_scroll = false;
+            if (y < _previewGrid.PreviewScrollY)
+            {
+                do_scroll = true;
+            }
+            else if ((y + _previewGrid.CellHeight + _previewGrid.CellSpaceY) > (_previewGrid.PreviewScrollY + _previewGrid.GridHeight))
+            {
+                y = (y + _previewGrid.CellHeight + _previewGrid.CellSpaceY) - _previewGrid.GridHeight;
+                do_scroll = true;
+            }
+
+            if (do_scroll)
+            {
+                _previewGrid.PreviewScrollY = y;
+                fontViewPanel.AutoScrollPosition = new Point(0, y);
+            }
             fontViewPanel.Invalidate();
         }
 
@@ -326,7 +350,7 @@ namespace AGS.Editor
         {
             if (e.KeyCode == Keys.Enter)
             {
-                GotoChar();
+                GotoChar((int)udCharCode.Value);
                 e.Handled = true;
             }
         }
@@ -335,20 +359,46 @@ namespace AGS.Editor
         {
             if (e.KeyCode == Keys.Enter)
             {
-                GotoChar();
+                GotoChar((int)udCharCode.Value);
                 e.Handled = true;
             }
         }
 
         private void btnGotoChar_Click(object sender, EventArgs e)
         {
-            GotoChar();
+            GotoChar((int)udCharCode.Value);
         }
 
         private void chkDisplayCodes_CheckedChanged(object sender, EventArgs e)
         {
             DisplayCodes = chkDisplayCodes.Checked;
             fontViewPanel.Invalidate();
+        }
+
+        private void SelectCharacterAt(Point pt)
+        {
+            if (_item == null)
+                return;
+
+            if (_previewGrid.GridHeight == 0)
+            {
+                PrecalculatePreviewGrid();
+            }
+
+            int x = (int)(pt.X / _previewGrid.Scaling);
+            int y = (int)(pt.Y / _previewGrid.Scaling) + _previewGrid.PreviewScrollY;
+            int row = (y - _previewGrid.Padding) / (_previewGrid.CellHeight + _previewGrid.CellSpaceY);
+            int col = (x - _previewGrid.Padding) / (_previewGrid.CellWidth + _previewGrid.CellSpaceX);
+            int code = row * _previewGrid.CharsPerRow + col;
+
+            GotoChar(code);
+
+            udCharCode.Value = code;
+        }
+
+        private void fontViewPanel_MouseClick(object sender, MouseEventArgs e)
+        {
+            SelectCharacterAt(e.Location);
         }
 
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)

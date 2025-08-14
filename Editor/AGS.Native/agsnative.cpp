@@ -49,6 +49,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/directory.h"
 #include "util/filestream.h"
 #include "util/path.h"
+#include "util/utf8.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "NativeUtils.h"
@@ -535,10 +536,6 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
   return false;
 }
 
-void drawBlockDoubleAt (HDC hdc, Common::Bitmap *todraw ,int x, int y) {
-  drawBlockScaledAt (hdc, todraw, x, y, 2);
-}
-
 void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
   if (tblock->GetBPP() != thisgame.color_depth) {
     Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmapCopy(tblock, thisgame.color_depth*8);
@@ -916,81 +913,105 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
 }
 
 
-int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int height, int scroll_y)
+void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox)
 {
-  assert(fontnum < thisgame.numfonts);
-  if (fontnum >= thisgame.numfonts)
-  {
-    return 0;
-  }
+    last_charcode = get_font_topmost_char_code(fontnum);
+    char_bbox = get_font_glyph_bbox(fontnum);
+}
 
-  assert(width > 0);
-  if (width <= 0)
-    return 0;
+void DrawFontAt(HDC hdc, int fontnum,
+    int dc_atx, int dc_aty, int dc_width, int dc_height, int padding,
+    int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
+    int scroll_y)
+{
+    assert(fontnum < thisgame.numfonts);
+    if (fontnum >= thisgame.numfonts)
+        return;
 
-  if (!is_font_loaded(fontnum))
-    reload_font(fontnum);
+    assert(dc_width > 0 && dc_height > 0);
+    if (dc_width <= 0 || dc_height <= 0)
+        return;
 
-  // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
-  int doubleSize = (!thisgame.IsLegacyHiRes()) ? 2 : 1;
-  int blockSize = (!thisgame.IsLegacyHiRes()) ? 1 : 2;
-  antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+    if (!is_font_loaded(fontnum))
+        reload_font(fontnum);
 
-  int char_height = thisgame.fonts[fontnum].Size * thisgame.fonts[fontnum].SizeMultiplier;
-  int grid_size   = std::max(10, char_height);
-  int grid_margin = std::max(4, grid_size / 4);
-  grid_size += grid_margin * 2;
-  grid_size *= blockSize;
-  int first_char = 0;
-  int num_chars  = 256;
-  int padding = 5;
+    antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
-  if (doubleSize > 1)
-      width /= 2;
-  int chars_per_row = std::max(1, (width - (padding * 2)) / grid_size);
-  int full_height = (num_chars / chars_per_row + 1) * grid_size + padding * 2;
+    const Rect bbox = get_font_glyph_bbox(fontnum);
+    const ::Size char_size = bbox.GetSize() * thisgame.fonts[fontnum].SizeMultiplier;
+    const ::Size cell_size = ::Size(cell_w, cell_h);
+    const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top));
+    const int first_char = 0;
+    const int last_char  = get_font_topmost_char_code(fontnum);
+    const int char_count = last_char - first_char + 1;
 
-  if (!hdc)
-    return full_height * doubleSize;
+    const int grid_width = dc_width / scaling;
+    const int grid_height = dc_height / scaling;
+    const int chars_per_row = std::max(1, (grid_width - (padding * 2)) / (cell_size.Width + cell_space_x));
+    const int full_height = (char_count / chars_per_row + 1) * (cell_size.Height + cell_space_y);
 
-  int skip_rows = (scroll_y - padding - grid_margin) / grid_size;
-  first_char = skip_rows * chars_per_row;
+    const int skip_rows = (scroll_y - padding) / (cell_size.Height + cell_space_y);
+    const int first_char_to_draw = skip_rows * chars_per_row;
 
-  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(width, height, 8);
-  tempblock->Fill(0);
-  color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
-  int old_uformat = get_uformat();
-  set_uformat(U_ASCII); // we won't be able to print 128-255 chars otherwise!
-  for (int c = first_char; c < num_chars; ++c)
-  {
-    woutprintf(tempblock,
-                padding + (c % chars_per_row) * grid_size + grid_margin,
-                padding + (c / chars_per_row) * grid_size + grid_margin - scroll_y,
-                fontnum, text_color, "%c", c);
-  }
-  set_uformat(old_uformat);
+    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
+    tempblock->Fill(0);
+    const color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
+    const int uformat = get_uformat();
+    if (uformat == U_ASCII)
+    {
+        // ASCII / ANSI variant
+        for (int c = first_char_to_draw; c <= last_char; ++c)
+        {
+            const int char_col = (c % chars_per_row);
+            const int char_row = (c / chars_per_row);
+            woutprintf(tempblock.get(),
+                       padding + char_col * (cell_size.Width + cell_space_x) + char_off.X,
+                       padding + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
+                       fontnum, text_color, "%c", c);
+        }
+    }
+    else if (uformat == U_UTF8)
+    {
+        // UTF-8 variant
+        for (int c = first_char_to_draw; c <= last_char; ++c)
+        {
+            const int char_col = (c % chars_per_row);
+            const int char_row = (c / chars_per_row);
+            char uchar[Utf8::UtfSz + 1];
+            uchar[Utf8::SetChar(c, uchar, sizeof(uchar))] = 0;
+            wouttextxy(tempblock.get(),
+                       padding + char_col * (cell_size.Width + cell_space_x) + char_off.X,
+                       padding + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
+                       fontnum, text_color, uchar);
+        }
+    }
 
-  if (doubleSize > 1) 
-    drawBlockDoubleAt(hdc, tempblock, draw_atx, draw_aty);
-  else
-    drawBlock(hdc, tempblock, draw_atx, draw_aty);
-   
-  delete tempblock;
-  return height * doubleSize;
+    if (scaling != 1.f)
+        drawBlockScaledAt(hdc, tempblock.get(), dc_atx, dc_aty, scaling);
+    else
+        drawBlock(hdc, tempblock.get(), dc_atx, dc_aty);
 }
 
 void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
-    int text_atx, int text_aty, int max_width)
+    int text_atx, int text_aty, int max_width, float scaling)
 {
-    // TODO: rewrite this, use actual font size (maybe related to window size) and not game's resolution type
-    int double_size = (!thisgame.IsLegacyHiRes()) ? 2 : 1;
+    assert(dc_width > 0 && dc_height > 0);
+    if (dc_width <= 0 || dc_height <= 0)
+        return;
+
+    if (!is_font_loaded(fontnum))
+        reload_font(fontnum);
+
     antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+
+    const int ds_width = dc_width / scaling;
+    const int ds_height = dc_height / scaling;
 
     SplitLines lines;
     split_lines(text.GetCStr(), lines, max_width, fontnum);
     const int linespacing = get_font_linespacing(fontnum);
-    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(dc_width, dc_height, 8));
+    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(ds_width, ds_height, 8));
     tempblock->Fill(0);
     color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
     int x = text_atx, y = text_aty;
@@ -1000,8 +1021,8 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum,
         y += linespacing;
     }
 
-    if (double_size > 1)
-        drawBlockDoubleAt(hdc, tempblock.get(), dc_atx, dc_aty);
+    if (scaling != 1.f)
+        drawBlockScaledAt(hdc, tempblock.get(), dc_atx, dc_aty, scaling);
     else
         drawBlock(hdc, tempblock.get(), dc_atx, dc_aty);
 }
@@ -2208,7 +2229,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
 
 void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
-    int text_atx, int text_aty, int max_width)
+    int text_atx, int text_aty, int max_width, float scaling)
 {
     assert(fontnum < thisgame.numfonts);
     if (fontnum >= thisgame.numfonts)
@@ -2218,7 +2239,7 @@ void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum,
     text = text->Replace("\r\n", "\n");
     AGSString native_text = TextHelper::GetGameTextConverter()->Convert(text);
     DrawTextUsingFontAt(hdc, native_text, fontnum, dc_atx, dc_aty, dc_width, dc_height,
-        text_atx, text_aty, max_width);
+        text_atx, text_aty, max_width, scaling);
 }
 
 void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)

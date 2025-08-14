@@ -51,6 +51,9 @@ struct Font
     FontMetrics         Metrics;
     // Precalculated linespacing, based on font properties and compat settings
     int                 LineSpacingCalc = 0;
+    // First and last character code supported in this font; -1 if not initialized
+    int                 FirstCharCode = -1;
+    int                 LastCharCode = -1;
 
     // Outline buffers
     Bitmap TextStencil, TextStencilSub;
@@ -242,6 +245,20 @@ bool font_supports_extended_characters(int font_number)
     return fonts[font_number].Renderer->SupportsExtendedCharacters(font_number);
 }
 
+int get_font_topmost_char_code(int font_number)
+{
+    if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
+        return -1;
+    if (fonts[font_number].LastCharCode == -1)
+    {
+        std::pair<int, int> range;
+        fonts[font_number].RendererInt->GetCharCodeRange(font_number, &range);
+        fonts[font_number].FirstCharCode = range.first;
+        fonts[font_number].LastCharCode = range.second;
+    }
+    return fonts[font_number].LastCharCode;
+}
+
 const char *get_font_name(int font_number)
 {
     if (!assert_font_number(font_number) || !fonts[font_number].Renderer2)
@@ -377,6 +394,13 @@ std::pair<int, int> get_font_surface_extent(int font_number)
     if (!assert_font_number(font_number))
         return std::make_pair(0, 0);
     return fonts[font_number].Metrics.VExtent;
+}
+
+Rect get_font_glyph_bbox(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return Rect();
+    return fonts[font_number].Metrics.BBox;
 }
 
 int get_font_linespacing(int font_number)

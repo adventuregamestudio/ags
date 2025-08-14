@@ -539,6 +539,24 @@ ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *to
   *bottom = f->face_bbox.ymin;
 }
 
+ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode) {
+  /* See: https://freetype.sourceforge.net/freetype2/docs/reference/ft2-base_interface.html#FT_Get_First_Char */
+  FT_ULong  charcode;
+  FT_UInt   gindex;
+  
+  charcode = FT_Get_First_Char(f->face, &gindex);
+  if (first_charcode)
+    *first_charcode = charcode;
+  while (gindex != 0) {
+    FT_ULong next_charcode = FT_Get_Next_Char(f->face, charcode, &gindex);
+    if (next_charcode) {
+      charcode = next_charcode;
+    }
+  }
+  if (last_charcode)
+    *last_charcode = charcode;
+}
+
 void alfont_exit(void) {
   if (alfont_inited) {
     alfont_inited = 0;

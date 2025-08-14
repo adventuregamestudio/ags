@@ -200,6 +200,13 @@ void TTFFontRenderer::AdjustFontForAntiAlias(int fontNumber, bool /*aa_mode*/)
   }
 }
 
+void TTFFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes)
+{
+    int first_charcode = -1, last_charcode = -1;
+    alfont_get_charcode_range(_fontData[fontNumber].AlFont, &first_charcode, &last_charcode);
+    *char_codes = std::make_pair(first_charcode, last_charcode);
+}
+
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
   alfont_destroy_font(_fontData[fontNumber].AlFont);

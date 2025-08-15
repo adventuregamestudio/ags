@@ -44,6 +44,8 @@ void WFNFont::Clear()
     _refs.clear();
     _items.clear();
     _pixelData.clear();
+    _height = 0;
+    _bbox = Rect();
 }
 
 WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
@@ -124,6 +126,9 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         init_ch.Height = Memory::ReadInt16LE(p_data + sizeof(uint16_t));
         total_pixel_size += init_ch.GetRequiredPixelSize();
         _items[i] = init_ch;
+
+        _bbox.Right = std::max(_bbox.Right, init_ch.Width - 1);
+        _bbox.Bottom = std::max(_bbox.Bottom, init_ch.Height - 1);
     }
 
     // Now that we know actual size of pixels in use, create pixel data array;
@@ -190,6 +195,9 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
             }
         }
     }
+
+    // Save font metrics
+    _height = _bbox.GetHeight();
 
     return err;
 }

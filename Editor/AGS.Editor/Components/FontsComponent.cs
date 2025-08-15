@@ -164,10 +164,11 @@ namespace AGS.Editor.Components
                 return;
             }
 
-            bool shouldRepaint = (propertyName == "SourceFilename" || propertyName == "Font Size" || propertyName == "SizeMultiplier");
+            bool fontStyleChanged = (propertyName == "SourceFilename" || propertyName == "Font Size" || propertyName == "SizeMultiplier");
+            bool fontGlyphPositionChanged = true; // any other property changes this
             Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, (propertyName == "SourceFilename"));
-            if (shouldRepaint)
-                editor.OnFontUpdated();
+            if (fontStyleChanged || fontGlyphPositionChanged)
+                editor.OnFontUpdated(fontStyleChanged, fontGlyphPositionChanged);
         }
 
         public override IList<MenuCommand> GetContextMenu(string controlID)

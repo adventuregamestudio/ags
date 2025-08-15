@@ -38,6 +38,7 @@
 
 #include <vector>
 #include "core/types.h"
+#include "util/geometry.h"
 
 namespace AGS { namespace Common { class Stream; } }
 
@@ -86,15 +87,20 @@ public:
         return code < _refs.size() ? *_refs[code] : _emptyChar;
     }
 
+    inline int GetHeight() const { return _height; }
+    inline const Rect &GetBBox() const { return _bbox; }
+
     void Clear();
     // Reads WFNFont object, using data_size bytes from stream; if data_size = 0,
     // the available stream's length is used instead. Returns error code.
     WFNError ReadFromFile(AGS::Common::Stream *in, const soff_t data_size = 0);
 
-protected:
+private:
     std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items
     std::vector<WFNChar>        _items;     // actual character items
     std::vector<uint8_t>        _pixelData; // pixel data array
+    int  _height = 0;   // font's height (calculated from the max glyph's height)
+    Rect _bbox;         // bounding box (maximal glyphs extent)
 
     static const WFNChar        _emptyChar; // a dummy character to substitute bad symbols
 };

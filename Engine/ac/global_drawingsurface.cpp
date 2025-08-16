@@ -166,8 +166,12 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
 }
 
 void RawDrawImageCore(int xx, int yy, int slot, int alpha) {
-    if ((slot < 0) || (!spriteset.DoesSpriteExist(slot)))
-        quit("!RawDrawImage: invalid sprite slot number specified");
+    if (!spriteset.DoesSpriteExist(slot))
+    {
+        debug_script_warn("RawDrawImage: invalid sprite slot number specified: %d", slot);
+        slot = 0;
+    }
+
     RAW_START();
 
     Bitmap *sprite = spriteset[slot];

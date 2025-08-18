@@ -1042,7 +1042,7 @@ namespace AGS.Editor.Components
         private void UpdateLoadedRoomToTheCurrentVersion(CompileMessages errors)
         {
             _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
-            _loadedRoom.Modified |= UpgradeFeatures(_loadedRoom, errors);
+            _loadedRoom.Modified |= UpgradeRoomFeatures(_loadedRoom, errors);
             if (_loadedRoom.Script.Modified)
             {
                 if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -1052,13 +1052,49 @@ namespace AGS.Editor.Components
             }
         }
 
-        private bool UpgradeFeatures(Room room, CompileMessages errors)
+        /// <summary>
+        /// Standard Room upgrade process, done unconditionally when a room
+        /// of an older format is loaded.
+        /// </summary>
+        private bool UpgradeRoomFeatures(Room room, CompileMessages errors)
         {
 #pragma warning disable 0612
             bool modified = false;
             // Add operations here as necessary
+
             return modified;
 #pragma warning restore 0612
+        }
+
+        internal struct UpgradeOptions
+        {
+            public bool AdjustObjectsBy1YPixel;
+        }
+
+        /// <summary>
+        /// Perform any data conversion of an older room, according to user choice.
+        /// Please note that this update is likely done after the room was already
+        /// converted from an older format and *saved*, which means that we
+        /// cannot rely on the room's SavedXmlVersion!
+        /// </summary>
+        private bool UpgradeRoomOptional(Room room, UpgradeOptions options, CompileMessages errors)
+        {
+            bool modified = false;
+
+            if (options.AdjustObjectsBy1YPixel)
+            {
+                // This version fixed a historical 1-pixel mistake in character and object display,
+                // because of which objects appeared 1-pixel higher than their Y property demanded.
+                // They will now be drawn 1 pixel lower...
+                // For that reason update all the room objects to be placed 1 pixel higher.
+                foreach (RoomObject obj in room.Objects)
+                {
+                    obj.StartY--;
+                }
+                modified = true;
+            }
+
+            return modified;
         }
 
         private bool ApplyDefaultMaskResolution(Room room)
@@ -1661,20 +1697,32 @@ namespace AGS.Editor.Components
         private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
         {
             args.Tasks.Add(new UpgradeGameRoomsOpenFormatTask(ConvertAllRoomsFromCrmToOpenFormat));
+            args.Tasks.Add(new UpgradeGameRoomsOptionalTask(UpgradeAllRoomsOptional));
+        }
+
+        /// <summary>
+        /// Checks the loaded game's version and tells whether all rooms have to be upgraded.
+        /// </summary>
+        private bool IsRoomUpgradeNecessary(Game game)
+        {
+            // Test the game version here and decide if upgrade is needed
+            return (game.SavedRoomXmlVersion == null)
+                || (game.SavedRoomXmlVersion < new System.Version(Room.LATEST_XML_VERSION));
         }
 
         private void Events_GamePostLoad(Game game)
         {
-            // For the same reason we do not upgrade the room data right away,
-            // but check if they need to be upgraded (e.g. because of a new project version),
-            // and mark the project as requiring a full rebuild. This is a workaround, which
-            // will trigger all rooms recompilation, forcing them to load and upgrade
+            // If there's a need to upgrade all rooms data, do not do that right away,
+            // as the project is not saved immediately after load, and if we modify rooms
+            // then it may enter an inconsistent state.
+            //
+            // Instead we mark the project as requiring a full rebuild. This will
+            // trigger all rooms recompilation, forcing them to load and upgrade
             // whenever user compiles the game.
             if (IsRoomUpgradeNecessary(game))
             {
                 game.WorkspaceState.RequiresRebuild = true;
             }
-            //UpgradeAllRoomsIfNecessary(game);
         }
 
         private bool CheckOutAllRoomsAndScripts()
@@ -2578,68 +2626,74 @@ namespace AGS.Editor.Components
             }
         }
 
-        #region Upgrade Rooms to a new version
+        #region Process All Rooms (Optional update)
+
+        private delegate void ProcessSingleRoomAction(Room room, CompileMessages errors);
 
         /// <summary>
-        /// Checks the loaded game's version and tells whether all rooms has to be upgraded.
+        /// Runs a action over all rooms.
         /// </summary>
-        private bool IsRoomUpgradeNecessary(Game game)
+        private async Task ProcessAllRooms(Game game, ProcessSingleRoomAction doProcess, string progressText,
+            IWorkProgress progress, CompileMessages errors)
         {
-            // Test the game version here and decide if upgrade is needed
-            return (game.SavedRoomXmlVersion == null)
-                || (game.SavedRoomXmlVersion < new System.Version(Room.LATEST_XML_VERSION));
-        }
-
-        /// <summary>
-        /// Checks the loaded game's version and does the room upgrade process if it's necessary.
-        /// </summary>
-        private async void UpgradeAllRoomsIfNecessary(Game game)
-        {
-            if (!IsRoomUpgradeNecessary(game))
-                return;
-
             // Do the upgrade process
             IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;
             object progressLock = new object();
-            string progressText = "Upgrading rooms.";
-            CompileMessages errors = new CompileMessages();
-            using (Progress progressForm = new Progress(rooms.Count, progressText))
+            int progressCounter = 0;
             {
-                progressForm.Show();
-                int progress = 0;
+                progress.SetProgress(rooms.Count, 0, progressText, autoFormatProgress: false);
                 Action progressReporter = () =>
                 {
-                    lock (progressLock) { progress++; }
-                    progressForm.SetProgress(progress, $"{progressText} {progress} of {rooms.Count} rooms upgraded.");
+                    lock (progressLock)
+                    {
+                        progressCounter++;
+                        progress.SetProgress(progressCounter, $"{progressText} {progress} of {rooms.Count} rooms processed.");
+                    }
                 };
 
-                var roomsUpgradingTasks = rooms
+                // TODO: parallel execution!
+                var roomsProcessTasks = rooms
                     .Cast<UnloadedRoom>()
-                    .SelectMany(r => UpgradeRoomToNewVersion(r, errors, progressReporter))
+                    .SelectMany(r => ProcessSingleRoom(r, doProcess, errors, progressReporter))
                     .ToArray();
-                await Task.WhenAll(roomsUpgradingTasks);
+                await Task.WhenAll(roomsProcessTasks);
             }
         }
 
         /// <summary>
         /// Converts a single room from .crm to open format.
         /// </summary>
-        /// <param name="room">The room to convert to open format</param>
-        /// <returns>A collection of tasks that converts the room async.</returns>
-        private IEnumerable<Task> UpgradeRoomToNewVersion(UnloadedRoom unloadedRoom, CompileMessages errors,
-            Action report = null)
+        private IEnumerable<Task> ProcessSingleRoom(UnloadedRoom unloadedRoom, ProcessSingleRoomAction doProcess,
+            CompileMessages errors, Action report = null)
         {
             // Load room data into memory
-            Room room = new Room(LoadData(unloadedRoom));
+            Room room;
+            try
+            {
+                room = new Room(LoadData(unloadedRoom));
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError($"Failed to load a room from {unloadedRoom.DataFileName}", e));
+                report?.Invoke();
+                yield break;
+            }
 
-            // Do upgrade
-            SyncInteractionScriptModules(room); // in case it was broken
-            UpgradeFeatures(room, errors);
+            // Process this room
+            doProcess(room, errors);
 
             // Save the room data back
             yield return SaveXmlAsync(room.ToXmlDocument(), room.DataFileName);
 
             report?.Invoke();
+        }
+
+        private async void UpgradeAllRoomsOptional(Game game, UpgradeOptions options,
+            IWorkProgress progress, CompileMessages errors)
+        {
+            await ProcessAllRooms(game,
+                (Room r, CompileMessages e) => { UpgradeRoomOptional(r, options, e); },
+                "Updating rooms.", progress, errors);
         }
 
         #endregion // Upgrade Rooms to a new version

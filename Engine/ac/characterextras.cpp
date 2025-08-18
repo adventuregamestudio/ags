@@ -27,15 +27,14 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
     _gs = GraphicSpace(
-        chin->x, chin->y, // origin
-        // sprite rectangle relative to origin
-        RectWH(-spr_width / 2, -spr_height, spr_width, spr_height),
-        width, height, // define scaling
+        chin->x, chin->y, GetOrigin(), // origin
+        Size(spr_width, spr_height), // source sprite size
+        Size(width, height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH(-spr_width / 2 + (chin->pic_xoffs + spr_xoff),
-               -spr_height    + (-chin->z + chin->pic_yoffs + spr_yoff),
+        RectWH((chin->pic_xoffs + spr_xoff),
+               (-chin->z + chin->pic_yoffs + spr_yoff),
                spr_width, spr_height),
-        rotation
+        rotation // transforms
     );
 }
 

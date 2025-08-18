@@ -1480,8 +1480,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       thisY += height;
     }
     // Apply sprite origin
-    thisX -= abs(widthToScale) * bmpToDraw->GetOrigin().X;
-    thisY -= abs(heightToScale) * bmpToDraw->GetOrigin().Y;
+    thisX -= (abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X;
+    thisY -= (abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y;
     // Center inside a rendering rect
     // FIXME: this should be a part of a projection matrix, afaik
     thisX = (-(rend_sz.Width / 2.0f)) + thisX;

@@ -32,16 +32,16 @@ namespace AGS.Editor
             this.panel1 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tbTextPreview = new System.Windows.Forms.TextBox();
+            this.textPreviewPanel = new AGS.Editor.BufferedPanel();
             this.chkDisplayCodes = new System.Windows.Forms.CheckBox();
             this.btnGotoChar = new System.Windows.Forms.Button();
             this.tbCharInput = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.udCharCode = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
+            this.fontViewPanel = new AGS.Editor.FontPreviewGrid();
             this.btnImportFont = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.textPreviewPanel = new AGS.Editor.BufferedPanel();
-            this.fontViewPanel = new AGS.Editor.BufferedPanel();
             this.currentItemGroupBox.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -121,6 +121,18 @@ namespace AGS.Editor
             this.tbTextPreview.Text = "The quick brown fox jumps over the lazy dog.";
             this.tbTextPreview.TextChanged += new System.EventHandler(this.tbTextPreview_TextChanged);
             // 
+            // textPreviewPanel
+            // 
+            this.textPreviewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textPreviewPanel.AutoScroll = true;
+            this.textPreviewPanel.Location = new System.Drawing.Point(10, 13);
+            this.textPreviewPanel.Name = "textPreviewPanel";
+            this.textPreviewPanel.Size = new System.Drawing.Size(516, 44);
+            this.textPreviewPanel.TabIndex = 0;
+            this.textPreviewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.textPreviewPanel_Paint);
+            // 
             // chkDisplayCodes
             // 
             this.chkDisplayCodes.AutoSize = true;
@@ -185,6 +197,21 @@ namespace AGS.Editor
             this.label2.TabIndex = 0;
             this.label2.Text = "Code: U+";
             // 
+            // fontViewPanel
+            // 
+            this.fontViewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.fontViewPanel.AutoScroll = true;
+            this.fontViewPanel.DisplayCodes = false;
+            this.fontViewPanel.GameFontNumber = -1;
+            this.fontViewPanel.Location = new System.Drawing.Point(10, 44);
+            this.fontViewPanel.Name = "fontViewPanel";
+            this.fontViewPanel.Scaling = 1F;
+            this.fontViewPanel.SelectedCharCode = -1;
+            this.fontViewPanel.Size = new System.Drawing.Size(516, 209);
+            this.fontViewPanel.TabIndex = 6;
+            // 
             // btnImportFont
             // 
             this.btnImportFont.Location = new System.Drawing.Point(13, 40);
@@ -203,33 +230,6 @@ namespace AGS.Editor
             this.label1.Size = new System.Drawing.Size(282, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "Use the property grid on the right to change basic settings.";
-            // 
-            // textPreviewPanel
-            // 
-            this.textPreviewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textPreviewPanel.AutoScroll = true;
-            this.textPreviewPanel.Location = new System.Drawing.Point(10, 13);
-            this.textPreviewPanel.Name = "textPreviewPanel";
-            this.textPreviewPanel.Size = new System.Drawing.Size(516, 44);
-            this.textPreviewPanel.TabIndex = 0;
-            this.textPreviewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.textPreviewPanel_Paint);
-            // 
-            // fontViewPanel
-            // 
-            this.fontViewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.fontViewPanel.AutoScroll = true;
-            this.fontViewPanel.Location = new System.Drawing.Point(10, 44);
-            this.fontViewPanel.Name = "fontViewPanel";
-            this.fontViewPanel.Size = new System.Drawing.Size(516, 203);
-            this.fontViewPanel.TabIndex = 6;
-            this.fontViewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.fontViewPanel_Scroll);
-            this.fontViewPanel.SizeChanged += new System.EventHandler(this.fontViewPanel_SizeChanged);
-            this.fontViewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.fontViewPanel_Paint);
-            this.fontViewPanel.MouseClick += new System.Windows.Forms.MouseEventHandler(this.fontViewPanel_MouseClick);
             // 
             // FontEditor
             // 
@@ -258,7 +258,7 @@ namespace AGS.Editor
         private System.Windows.Forms.GroupBox currentItemGroupBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnImportFont;
-        private BufferedPanel fontViewPanel;
+        private FontPreviewGrid fontViewPanel;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TextBox tbTextPreview;

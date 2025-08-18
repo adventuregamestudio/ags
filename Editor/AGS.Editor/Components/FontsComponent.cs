@@ -217,6 +217,18 @@ namespace AGS.Editor.Components
             FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
         }
 
+        public override void GameSettingsChanged()
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                var fontEditor = doc.Control as FontEditor;
+                if (fontEditor != null)
+                {
+                    fontEditor.UpdatePreviewScaling();
+                }
+            }
+        }
+
         private string GetNodeID(AGS.Types.Font item)
         {
             return "Fnt" + item.ID;

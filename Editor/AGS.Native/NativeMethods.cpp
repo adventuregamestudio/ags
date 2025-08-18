@@ -59,7 +59,7 @@ extern bool measure_font_height(const AGSString &filename, int pixel_height, int
 extern void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox);
 // Draws font char sheet on the provided context
 extern void DrawFontAt(HDC hdc, int fontnum,
-    int dc_atx, int dc_aty, int dc_width, int dc_height, int padding,
+    int dc_atx, int dc_aty, int dc_width, int dc_height,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
     int scroll_y);
 extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum,
@@ -335,11 +335,11 @@ namespace AGS
         }
 
 		void NativeMethods::DrawFont(int hDC, int fontNum,
-            int dc_atx, int dc_aty, int dc_width, int dc_height, int padding,
+            int dc_atx, int dc_aty, int dc_width, int dc_height,
             int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
             int scroll_y)
 		{
-			return DrawFontAt((HDC)hDC, fontNum, dc_atx, dc_aty, dc_width, dc_height, padding,
+			return DrawFontAt((HDC)hDC, fontNum, dc_atx, dc_aty, dc_width, dc_height,
                               cell_w, cell_h, cell_space_x, cell_space_y, scaling,
                               scroll_y);
 		}

@@ -920,7 +920,7 @@ void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox)
 }
 
 void DrawFontAt(HDC hdc, int fontnum,
-    int dc_atx, int dc_aty, int dc_width, int dc_height, int padding,
+    int dc_atx, int dc_aty, int dc_width, int dc_height,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
     int scroll_y)
 {
@@ -947,10 +947,11 @@ void DrawFontAt(HDC hdc, int fontnum,
 
     const int grid_width = dc_width / scaling;
     const int grid_height = dc_height / scaling;
-    const int chars_per_row = std::max(1, (grid_width - (padding * 2)) / (cell_size.Width + cell_space_x));
-    const int full_height = (char_count / chars_per_row + 1) * (cell_size.Height + cell_space_y);
+    const int chars_per_row = std::max(1, (grid_width - cell_space_x)) / (cell_size.Width + cell_space_x);
+    const int full_height = (char_count / chars_per_row + 1) * (cell_size.Height + cell_space_y)
+        + cell_space_y;
 
-    const int skip_rows = (scroll_y - padding) / (cell_size.Height + cell_space_y);
+    const int skip_rows = (scroll_y - cell_space_y) / (cell_size.Height + cell_space_y);
     const int first_char_to_draw = skip_rows * chars_per_row;
 
     std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
@@ -965,8 +966,8 @@ void DrawFontAt(HDC hdc, int fontnum,
             const int char_col = (c % chars_per_row);
             const int char_row = (c / chars_per_row);
             woutprintf(tempblock.get(),
-                       padding + char_col * (cell_size.Width + cell_space_x) + char_off.X,
-                       padding + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
+                       cell_space_x + char_col * (cell_size.Width + cell_space_x) + char_off.X,
+                       cell_space_y + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
                        fontnum, text_color, "%c", c);
         }
     }
@@ -980,8 +981,8 @@ void DrawFontAt(HDC hdc, int fontnum,
             char uchar[Utf8::UtfSz + 1];
             uchar[Utf8::SetChar(c, uchar, sizeof(uchar))] = 0;
             wouttextxy(tempblock.get(),
-                       padding + char_col * (cell_size.Width + cell_space_x) + char_off.X,
-                       padding + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
+                       cell_space_x + char_col * (cell_size.Width + cell_space_x) + char_off.X,
+                       cell_space_y + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
                        fontnum, text_color, uchar);
         }
     }

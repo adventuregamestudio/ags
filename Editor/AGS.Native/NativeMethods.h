@@ -34,11 +34,31 @@ namespace AGS
             property int LastCharCode;
             property System::Drawing::Rectangle CharBBox;
 
+            static property FontMetrics ^Empty
+            {
+                FontMetrics ^get()
+                {
+                    if (_empty == nullptr)
+                        _empty = gcnew FontMetrics();
+                    return _empty;
+                }
+            }
+
             FontMetrics(int first_char, int last_char, System::Drawing::Rectangle bbox)
             {
                 FirstCharCode = first_char;
                 LastCharCode = last_char;
                 CharBBox = bbox;
+            }
+
+        private:
+            static FontMetrics ^_empty = nullptr;
+
+            FontMetrics()
+            {
+                FirstCharCode = -1;
+                LastCharCode = -1;
+                CharBBox = System::Drawing::Rectangle::Empty;
             }
         };
 
@@ -68,7 +88,7 @@ namespace AGS
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
             FontMetrics ^GetFontMetrics(int fontNum);
             // Draws font char sheet on the provided context
-            void DrawFont(int hDC, int fontNum, int dc_atx, int dc_aty, int dc_width, int dc_height, int padding,
+            void DrawFont(int hDC, int fontNum, int dc_atx, int dc_aty, int dc_width, int dc_height,
                 int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
                 int scroll_y);
             void DrawTextUsingFont(int hDC, String ^text, int fontNum,

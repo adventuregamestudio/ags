@@ -131,6 +131,7 @@ namespace AGS.Editor
             this.textPreviewPanel.Name = "textPreviewPanel";
             this.textPreviewPanel.Size = new System.Drawing.Size(516, 44);
             this.textPreviewPanel.TabIndex = 0;
+            this.textPreviewPanel.SizeChanged += new System.EventHandler(this.textPreviewPanel_SizeChanged);
             this.textPreviewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.textPreviewPanel_Paint);
             // 
             // chkDisplayCodes

@@ -12,6 +12,8 @@ namespace AGS.Editor
 {
     public partial class FontEditor : EditorContentPanel
     {
+        private bool _updatingCharCode = false;
+
         public FontEditor()
         {
             InitializeComponent();
@@ -64,6 +66,18 @@ namespace AGS.Editor
             return "Font Preview";
         }
 
+        private void btnImportFont_Click(object sender, EventArgs e)
+        {
+            if (_item != null && ImportOverFont != null)
+            {
+                if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
+                {
+                    ImportOverFont(_item);
+                    OnFontUpdated();
+                }
+            }
+        }
+
         private void textPreviewPanel_Paint(object sender, PaintEventArgs e)
         {
             if (_item == null)
@@ -73,14 +87,16 @@ namespace AGS.Editor
                 return; // sometimes occurs during automatic rearrangement of controls
 
             Graphics g = e.Graphics;
+            g.Clear(Color.Black);
+            int scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
             int g_width = (int)e.Graphics.ClipBounds.Width;
             int g_height = (int)e.Graphics.ClipBounds.Height;
             bool hdcReleased = false;
             try
             {
                 Factory.NativeProxy.DrawTextUsingFont(g.GetHdc(), tbTextPreview.Text, _item.ID,
-                    0, 0, g_width, g_height, 5, 5, g_width - 5,
-                    Factory.AGSEditor.CurrentGame.GUIScaleFactor);
+                    0, 0, g_width, g_height, 5, 5, g_width / scaling - 5,
+                    scaling);
                 g.ReleaseHdc();
                 hdcReleased = true;
             }
@@ -94,16 +110,14 @@ namespace AGS.Editor
             }
         }
 
-        private void btnImportFont_Click(object sender, EventArgs e)
+        private void tbTextPreview_TextChanged(object sender, EventArgs e)
         {
-            if (_item != null && ImportOverFont != null)
-            {
-                if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
-                {
-                    ImportOverFont(_item);
-                    OnFontUpdated();
-                }
-            }
+            textPreviewPanel.Invalidate();
+        }
+
+        private void textPreviewPanel_SizeChanged(object sender, EventArgs e)
+        {
+            textPreviewPanel.Invalidate();
         }
 
         private void fontViewPanel_CharacterSelected(object sender, FontPreviewGrid.CharacterSelectedEventArgs args)
@@ -111,22 +125,35 @@ namespace AGS.Editor
             udCharCode.Value = args.CharacterCode;
         }
 
-        private void tbTextPreview_TextChanged(object sender, EventArgs e)
-        {
-            textPreviewPanel.Invalidate();
-        }
-
         private void UpdateCharCode()
         {
-            int code = 0;
-            if (tbCharInput.Text.Length > 0)
-                code = tbCharInput.Text[0];
-            udCharCode.Value = (code >= udCharCode.Minimum && code <= udCharCode.Maximum) ? code : 0;
+            if (!_updatingCharCode)
+            {
+                _updatingCharCode = true;
+                int code = 0;
+                if (tbCharInput.Text.Length > 0)
+                    code = tbCharInput.Text[0];
+                udCharCode.Value = (code >= udCharCode.Minimum && code <= udCharCode.Maximum) ? code : 0;
+
+                // Automatically scroll the preview to the selected character
+                fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+
+                _updatingCharCode = false;
+            }
         }
 
         private void UpdateCharInput()
         {
-            tbCharInput.Text = ((char)(udCharCode.Value)).ToString();
+            if (!_updatingCharCode)
+            {
+                _updatingCharCode = true;
+                tbCharInput.Text = ((char)(udCharCode.Value)).ToString();
+
+                // Automatically scroll the preview to the selected character
+                fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+
+                _updatingCharCode = false;
+            }
         }
 
         private void udCharCode_TextChanged(object sender, EventArgs e)
@@ -149,7 +176,7 @@ namespace AGS.Editor
             if (e.KeyCode == Keys.Enter)
             {
                 fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
-                e.Handled = true;
+                e.Handled = e.SuppressKeyPress = true;
             }
         }
 
@@ -158,7 +185,7 @@ namespace AGS.Editor
             if (e.KeyCode == Keys.Enter)
             {
                 fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
-                e.Handled = true;
+                e.Handled = e.SuppressKeyPress = true;
             }
         }
 

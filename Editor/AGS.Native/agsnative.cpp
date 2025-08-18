@@ -938,9 +938,10 @@ void DrawFontAt(HDC hdc, int fontnum,
     antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
     const Rect bbox = get_font_glyph_bbox(fontnum);
+    const int font_y_offset = thisgame.fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table
     const ::Size char_size = bbox.GetSize() * thisgame.fonts[fontnum].SizeMultiplier;
     const ::Size cell_size = ::Size(cell_w, cell_h);
-    const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top));
+    const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
     const int first_char = 0;
     const int last_char  = get_font_topmost_char_code(fontnum);
     const int char_count = last_char - first_char + 1;

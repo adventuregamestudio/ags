@@ -210,6 +210,10 @@ namespace AGS.Editor
             t.ControlHelper(this, "font-editor");
             t.GroupBoxHelper(currentItemGroupBox, "font-editor/box");
             t.ButtonHelper(btnImportFont, "font-editor/btn-import");
+            t.ButtonHelper(btnGotoChar, "font-editor/btn-gotochar");
+            t.TextBoxHelper(tbTextPreview, "font-editor/text-box-preview");
+            // FIXME: color theme is not applied to the "character code" and "character" textboxes atm,
+            // because there's no implementation for "up-down-control", so no way to color them consistently.
         }
 
         private void FontEditor_Load(object sender, EventArgs e)

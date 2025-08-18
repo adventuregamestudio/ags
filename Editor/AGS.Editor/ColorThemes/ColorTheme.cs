@@ -262,9 +262,9 @@ namespace AGS.Editor
 
         public void TextBoxHelper(TextBox textbox, string path)
         {
-            SetColor(new string[] { path + "/background", "global/textbox/background" }, c => textbox.BackColor = c);
-            SetColor(new string[] { path + "/foreground", "global/textbox/foreground" }, c => textbox.ForeColor = c);
-            SetInt(new string[] { path + "/border-style", "global/textbox/border-style" }, i => textbox.BorderStyle = (BorderStyle)i);
+            SetColor(new string[] { path + "/background", "global/text-box/background" }, c => textbox.BackColor = c);
+            SetColor(new string[] { path + "/foreground", "global/text-box/foreground" }, c => textbox.ForeColor = c);
+            SetInt(new string[] { path + "/border-style", "global/text-box/border-style" }, i => textbox.BorderStyle = (BorderStyle)i);
         }
 
         private PropertyInfo getPropertyFromPath(object instance, string path)

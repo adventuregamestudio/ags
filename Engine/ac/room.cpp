@@ -1034,6 +1034,7 @@ int find_highest_room_entered() {
 }
 
 void first_room_initialization() {
+    in_room_transition = true;
     playerchar->prevroom = -1;
     set_loop_counter(0);
     // Reset background frame state

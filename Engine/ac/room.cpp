@@ -90,7 +90,6 @@ extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern std::vector<CharacterExtras> charextra;
-extern int starting_room;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
@@ -1034,7 +1033,6 @@ int find_highest_room_entered() {
 }
 
 void first_room_initialization() {
-    starting_room = displayed_room;
     playerchar->prevroom = -1;
     set_loop_counter(0);
     // Reset background frame state

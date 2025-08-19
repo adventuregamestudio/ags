@@ -47,7 +47,7 @@ extern CharacterInfo*playerchar;
 
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
-extern int displayed_room, starting_room;
+extern int displayed_room;
 
 RoomAreaMask debugLastRoomMask = kRoomAreaNone;
 int debugLastMoveChar = -1;

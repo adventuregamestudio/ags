@@ -3003,7 +3003,6 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         closeupface = nullptr;
     if (closeupface!=nullptr)
         remove_screen_overlay(ovr_type);
-    mark_screen_dirty();
     face_talking = -1;
     facetalkchar = nullptr;
     set_our_eip(157);

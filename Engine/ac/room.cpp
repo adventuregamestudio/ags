@@ -28,6 +28,7 @@
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
+#include "ac/global_gui.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
@@ -1048,9 +1049,9 @@ void check_new_room() {
         // make sure that any script calls don't re-call enters screen
         EnterNewRoomState newroom_was = in_new_room;
         in_new_room = kEnterRoom_None;
-        play.disabled_user_interface ++;
+        DisableInterfaceEx(true /* update cursor */);
         process_event(&evh);
-        play.disabled_user_interface --;
+        EnableInterfaceEx(true /* update cursor */);
         in_new_room = newroom_was;
     }
 }

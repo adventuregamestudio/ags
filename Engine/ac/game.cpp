@@ -108,7 +108,7 @@ volatile bool want_exit = false, abort_engine = false;
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 Version game_compiled_version;
 int frames_per_second=40;
-int displayed_room=-10,starting_room = -1;
+int displayed_room=-10;
 EnterNewRoomState in_new_room = kEnterRoom_None, new_room_was = kEnterRoom_None;
 int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;

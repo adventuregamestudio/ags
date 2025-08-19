@@ -66,7 +66,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int displayed_room,starting_room;
+extern int displayed_room;
 extern RoomStruct thisroom;
 extern std::vector<ViewStruct> views;
 extern RoomObject*objs;

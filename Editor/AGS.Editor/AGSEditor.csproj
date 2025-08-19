@@ -503,6 +503,7 @@
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
+    <Compile Include="Utils\ControlExtensions.cs" />
     <Compile Include="Utils\Debounce.cs" />
     <Compile Include="Utils\DirectoryInfoExtensions.cs" />
     <Compile Include="Utils\FileWatcher.cs" />

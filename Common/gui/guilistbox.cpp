@@ -212,7 +212,7 @@ void GUIListBox::Clear()
         return;
     _items.clear();
     _savedGameIndex.clear();
-    _selectedItem = 0;
+    _selectedItem = -1;
     _topItem = 0;
     MarkChanged();
 }
@@ -377,6 +377,7 @@ bool GUIListBox::OnMouseDown()
     }
 
     int sel = GetItemAt(_mousePos.X, _mousePos.Y);
+    // We do not cancel current selection if clicked on empty spot, leave it as is
     if (sel < 0)
         return false;
     if (sel != _selectedItem)
@@ -433,13 +434,15 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     GUIObject::ReadFromFile(in, gui_version);
     const uint32_t item_count = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        _selectedItem = in->ReadInt32();
-        _topItem = in->ReadInt32();
-        _mousePos.X = in->ReadInt32();
-        _mousePos.Y = in->ReadInt32();
-        _rowHeight = in->ReadInt32();
-        _visibleItemCount = in->ReadInt32();
+    {
+        // old data format have these dynamic values written as well,
+        // even though that did not have any purpose
+        in->ReadInt32(); // _selectedItem
+        in->ReadInt32(); // _topItem
+        in->ReadInt32(); // _mousePos.X
+        in->ReadInt32(); // _mousePos.Y
+        in->ReadInt32(); // _rowHeight
+        in->ReadInt32(); // _visibleItemCount
     }
     _font = in->ReadInt32();
     _textColor = in->ReadInt32();
@@ -499,6 +502,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     // Reset dynamic values
     _rowHeight = 0;
     _visibleItemCount = 0;
+    _selectedItem = -1;
     _topItem = 0;
 }
 

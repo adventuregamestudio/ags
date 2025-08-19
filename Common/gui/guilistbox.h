@@ -95,7 +95,7 @@ private:
     std::vector<String>     _items;
     // CHECKME: why int16?
     std::vector<int16_t>    _savedGameIndex;
-    int                     _selectedItem = 0;
+    int                     _selectedItem = -1;
     int                     _topItem = 0;
     Point                   _mousePos;
 

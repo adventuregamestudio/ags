@@ -220,19 +220,19 @@ void GUI_SetY(ScriptGUI *tehgui, int yy) {
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
-    guis[tehgui->id].SetPosition(xx, yy);
+    guis[tehgui->id].SetPosition(data_to_game_coord(xx), data_to_game_coord(yy));
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   if ((widd < 1) || (hitt < 1))
-    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
+  {
+      debug_script_warn("GUI.SetSize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
+      widd = std::max(1, widd);
+      hitt = std::max(1, hitt);
+  }
 
   GUIMain *tehgui = &guis[sgui->id];
   data_to_game_coords(&widd, &hitt);
-
-  if ((tehgui->GetWidth() == widd) && (tehgui->GetHeight() == hitt))
-    return;
-  
   tehgui->SetSize(widd, hitt);
 }
 
@@ -245,11 +245,21 @@ int GUI_GetHeight(ScriptGUI *sgui) {
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
-  GUI_SetSize(sgui, newwid, GUI_GetHeight(sgui));
+    if (newwid < 1)
+    {
+        debug_script_warn("GUI.SetWidth: invalid value (tried to set to %d)", newwid);
+        newwid = std::max(1, newwid);
+    }
+    guis[sgui->id].SetWidth(data_to_game_coord(newwid));
 }
 
 void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
-  GUI_SetSize(sgui, GUI_GetWidth(sgui), newhit);
+    if (newhit < 1)
+    {
+        debug_script_warn("GUI.SetHeight: invalid value (tried to set to %d)", newhit);
+        newhit = std::max(1, newhit);
+    }
+    guis[sgui->id].SetHeight(data_to_game_coord(newhit));
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {

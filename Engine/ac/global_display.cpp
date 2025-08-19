@@ -175,17 +175,13 @@ void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bo
         ypos = data_to_game_coord(ypos);
 
     if (as_speech)
+    {
+        // Message displayed as speech, using current speech style
         DisplaySpeechAt(-1, (ypos > 0) ? game_to_data_coord(ypos) : ypos, -1, game.playercharacter, texx);
-    else { 
+    }
+    else
+    { 
         // Normal "Display" in text box
-
-        if (is_screen_dirty()) {
-            // erase any previous DisplaySpeech
-            play.disabled_user_interface ++;
-            UpdateGameOnce();
-            play.disabled_user_interface --;
-        }
-
         display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4, get_translation(texx), topbar);
     }
 }

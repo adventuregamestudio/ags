@@ -96,8 +96,6 @@ struct DrawState
     bool FullFrameRedraw = false;
     // Walk-behinds representation
     WalkBehindMethodEnum WalkBehindMethod = DrawAsSeparateSprite;
-    // Whether there are currently remnants of a on-screen effect
-    bool ScreenIsDirty = false;
 
     // The base of DrawIndex range that may be allocated to dynamically
     // created objects; set after initing static game objects.
@@ -1121,16 +1119,6 @@ void texturecache_precache(uint32_t sprite_id)
     bool has_alpha = (sprite_id < game.SpriteInfos.size()) ?
         ((game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0) : false;
     texturecache.GetOrLoad(sprite_id, nullptr, has_alpha, false);
-}
-
-void mark_screen_dirty()
-{
-    drawstate.ScreenIsDirty = true;
-}
-
-bool is_screen_dirty()
-{
-    return drawstate.ScreenIsDirty;
 }
 
 void invalidate_screen()
@@ -3004,6 +2992,4 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
             bg_just_changed = 0;
         }
     }
-
-    drawstate.ScreenIsDirty = false;
 }

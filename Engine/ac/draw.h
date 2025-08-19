@@ -104,10 +104,6 @@ void clear_shared_texture(uint32_t sprite_id);
 // Prepares a texture for the given sprite and stores in the cache
 void texturecache_precache(uint32_t sprite_id);
 
-// whether there are currently remnants of a DisplaySpeech
-void mark_screen_dirty();
-bool is_screen_dirty();
-
 // marks whole screen as needing a redraw
 void invalidate_screen();
 // marks all the camera frame as needing a redraw

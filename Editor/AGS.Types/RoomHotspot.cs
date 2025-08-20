@@ -54,6 +54,7 @@ namespace AGS.Types
         [Description("The ID number of the hotspot")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -72,6 +73,7 @@ namespace AGS.Types
 		[DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
 		[Description("The script name of the hotspot")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string Name
         {
             get { return _name; }

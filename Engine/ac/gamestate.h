@@ -152,8 +152,8 @@ struct GamePlayState
     int  game_speed_modifier = 0;
     int  takeover_data = 0;         // value passed to RunAGSGame in previous game
     int  replay_hotkey_unused = 0;  // (UNUSED!) StartRecording: not supported
-    int  dialog_options_pad_x = 0;  // dialog options x padding within the gui
-    int  dialog_options_pad_y = 0;  // dialog options y padding within the gui
+    int  dialog_options_pad_x = 0; // dialog options x padding within the gui
+    int  dialog_options_pad_y = 0; // dialog options y padding within the gui
     int  narrator_speech = 0;
     int  lipsync_speed = 0;
     int  close_mouth_speech_time = 0; // stop speech animation at (messagetime - close_mouth_speech_time)

@@ -95,8 +95,6 @@ struct DrawState
     bool FullFrameRedraw = false;
     // Walk-behinds representation
     WalkBehindMethodEnum WalkBehindMethod = DrawAsSeparateSprite;
-    // Whether there are currently remnants of a on-screen effect
-    bool ScreenIsDirty = false;
 
     // The base of DrawIndex range that may be allocated to dynamically
     // created objects; set after initing static game objects.
@@ -1162,16 +1160,6 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
 void post_init_sprite(sprkey_t index)
 {
     pl_run_plugin_hooks(kPluginEvt_SpriteLoad, index);
-}
-
-void mark_screen_dirty()
-{
-    drawstate.ScreenIsDirty = true;
-}
-
-bool is_screen_dirty()
-{
-    return drawstate.ScreenIsDirty;
 }
 
 void invalidate_screen()
@@ -2449,7 +2437,7 @@ void draw_fps(const Rect &viewport)
     auto &fpsDisplay = gl_DrawFPS.bmp;
     if (fpsDisplay == nullptr || gl_DrawFPS.font != font)
     {
-        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(), (get_font_surface_height(font) + 5));
+        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(), (get_font_surface_height_outlined(font) + 5));
         gl_DrawFPS.font = font;
     }
 
@@ -3244,6 +3232,4 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
             bg_just_changed = 0;
         }
     }
-
-    drawstate.ScreenIsDirty = false;
 }

@@ -45,6 +45,7 @@ namespace AGS.Types
 
         [Description("The colour number of this colour")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public int Index
         {
             get { return _index; }

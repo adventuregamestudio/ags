@@ -58,11 +58,13 @@ int get_text_height(const char *text, int font_number);
 // note that this is a "formal" font height, that may have different value
 // depending on compatibility mode (used when running old games);
 int get_font_height(int font_number);
-// Get the maximal height of the given font, with corresponding outlining
+// Get the height of the given font with corresponding outlining
 int get_font_height_outlined(int font_number);
 // Get font's surface height: this always returns the height enough to accomodate
 // font letters on a bitmap or a texture; the distinction is needed for compatibility reasons
 int get_font_surface_height(int font_number);
+// Gets the surface height of the given font with corresponding outlining
+int get_font_surface_height_outlined(int font_number);
 // Get font's maximal graphical extent: this means the farthest vertical positions of glyphs,
 // relative to the "pen" position. Besides letting to calculate the surface height,
 // this information also lets to detect if some of the glyphs may appear above y0.
@@ -73,7 +75,7 @@ int get_font_linespacing(int font_number);
 void set_font_linespacing(int font_number, int spacing);
 // Get font's outline type
 int  get_font_outline(int font_number);
-// Get font's automatic outline thickness (if set)
+// Get font's *automatic* outline thickness setting (if set)
 int  get_font_outline_thickness(int font_number);
 // Gets the total maximal height of the given number of lines printed with the given font;
 // note that this uses formal font height, for compatibility purposes

@@ -29,6 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.mainFrame = new System.Windows.Forms.GroupBox();
+            this.chkObjectOffset = new System.Windows.Forms.CheckBox();
             this.lblMouse = new System.Windows.Forms.Label();
             this.sldTransparency = new System.Windows.Forms.TrackBar();
             this.lblTransparency = new System.Windows.Forms.Label();
@@ -55,6 +56,7 @@ namespace AGS.Editor
             this.mainFrame.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.mainFrame.Controls.Add(this.chkObjectOffset);
             this.mainFrame.Controls.Add(this.lblMouse);
             this.mainFrame.Controls.Add(this.sldTransparency);
             this.mainFrame.Controls.Add(this.lblTransparency);
@@ -77,6 +79,18 @@ namespace AGS.Editor
             this.mainFrame.TabIndex = 4;
             this.mainFrame.TabStop = false;
             this.mainFrame.Text = "Room details";
+            // 
+            // chkObjectOffset
+            // 
+            this.chkObjectOffset.AutoSize = true;
+            this.chkObjectOffset.Location = new System.Drawing.Point(308, 82);
+            this.chkObjectOffset.Name = "chkObjectOffset";
+            this.chkObjectOffset.Size = new System.Drawing.Size(179, 17);
+            this.chkObjectOffset.TabIndex = 21;
+            this.chkObjectOffset.Text = "Move Objects From Bottom-Left";
+            this.chkObjectOffset.UseVisualStyleBackColor = true;
+            this.chkObjectOffset.Visible = false;
+            this.chkObjectOffset.CheckedChanged += new System.EventHandler(this.chkObjectOffset_CheckedChanged);
             // 
             // lblMouse
             // 
@@ -129,6 +143,7 @@ namespace AGS.Editor
             this._editAddressBar.DropDownForeColor = System.Drawing.Color.Empty;
             this._editAddressBar.ForeColor = System.Drawing.SystemColors.InfoText;
             this._editAddressBar.Location = new System.Drawing.Point(98, 48);
+            this._editAddressBar.MinDisplayedDropDownItems = 0;
             this._editAddressBar.MinimumSize = new System.Drawing.Size(331, 26);
             this._editAddressBar.Name = "_editAddressBar";
             this._editAddressBar.RootNode = null;
@@ -245,6 +260,7 @@ namespace AGS.Editor
             this.bufferedPanel1.BackColor = System.Drawing.SystemColors.Control;
             this.bufferedPanel1.Location = new System.Drawing.Point(12, 106);
             this.bufferedPanel1.Name = "bufferedPanel1";
+            this.bufferedPanel1.PanButtons = System.Windows.Forms.MouseButtons.Middle;
             this.bufferedPanel1.Size = new System.Drawing.Size(741, 371);
             this.bufferedPanel1.TabIndex = 1;
             this.bufferedPanel1.TabStop = true;
@@ -290,5 +306,6 @@ namespace AGS.Editor
         private AddressBarExt.Controls.AddressBarExt _editAddressBar;
         private System.Windows.Forms.Label lblZoomInfo;
         private System.Windows.Forms.Label lblMouse;
+        private System.Windows.Forms.CheckBox chkObjectOffset;
     }
 }

@@ -25,6 +25,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
+#include "ac/global_gui.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/movelist.h"
@@ -85,7 +86,6 @@ extern EnterNewRoomState in_new_room, new_room_was;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern std::vector<CharacterExtras> charextra;
-extern int starting_room;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
@@ -937,7 +937,7 @@ void set_room_placeholder()
 }
 
 void first_room_initialization() {
-    starting_room = displayed_room;
+    in_room_transition = true;
     playerchar->prevroom = -1;
     set_loop_counter(0);
     // Reset background frame state
@@ -952,9 +952,9 @@ void check_new_room() {
         // make sure that any script calls don't re-call enters screen
         EnterNewRoomState newroom_was = in_new_room;
         in_new_room = kEnterRoom_None;
-        play.disabled_user_interface ++;
+        DisableInterfaceEx(true /* update cursor */);
         process_event(&evh);
-        play.disabled_user_interface --;
+        EnableInterfaceEx(true /* update cursor */);
         in_new_room = newroom_was;
     }
 }

@@ -655,7 +655,7 @@ public:
     int GetChosenOption() const { return chose; }
 
 private:
-    void CalcOptionsHeight();
+    void CalcOptionsHeight(int padding);
     // Process all the buffered input events; returns if handled
     bool RunControls();
     // Process single key event; returns if handled
@@ -676,7 +676,6 @@ private:
     Point init_position;
     // inner position of the options texts, relative to the gui
     Point inner_position;
-    int padding;
     int usingfont;
     int lineheight;
     int linespacing;
@@ -685,6 +684,13 @@ private:
     int bullet_picwid; // bullet sprite width
     int number_wid; // width of number component
     int needheight; // height enough to accomodate dialog options texts
+    // Backwards compatibility parameters (nasty stuff);
+    // remove these whenever you don't care about keeping precise alignment in old games
+    int line_x_off = 0; // extra X offset for option lines
+    int area_width_off = 0; // extra reduction for the options drawable area
+    int fixed_padding = 0; // a fixed padding value added to the configurable property
+    int linewrap_padding = 0; // padding sum used only for linewrapping
+
     std::unique_ptr<GUITextBox> parserInput;
     IDriverDependantBitmap *ddb = nullptr;
     std::unique_ptr<Bitmap> optionsBitmap;
@@ -718,18 +724,32 @@ private:
     int mouseison;
 };
 
-void DialogOptions::CalcOptionsHeight()
+void DialogOptions::CalcOptionsHeight(int padding)
 {
+    // According to the options drawing logic:
+    // * the distance between LINES in a multiline option is font linespacing;
+    // * the distance between OPTIONS is font linespacing + OPT_DIALOGGAP;
+    // * IF there's a parser input, we also add another linespacing + OPT_DIALOGGAP
+    //   after the last option;
+    // * IF there's no parser, then we add *font's graphical height* + OPT_DIALOGGAP,
+    //   to ensure that the text is not going to be cut off visually.
     needheight = 0;
+    int total_lines = 0;
+    // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
-        break_up_text_into_lines(draw_text, Lines, areawid-(2*padding+2+bullet_wid), usingfont);
-        needheight += get_text_lines_surf_height(usingfont, Lines.Count()) + game.options[OPT_DIALOGGAP];
+        break_up_text_into_lines(draw_text, Lines, areawid - (2 * padding + 2 + bullet_wid), usingfont);
+        total_lines += Lines.Count();
     }
+    needheight = linespacing * (total_lines - 1) + game.options[OPT_DIALOGGAP] * (numdisp - 1);
     if (parserInput)
     {
         needheight += parserInput->GetHeight() + game.options[OPT_DIALOGGAP];
+    }
+    else
+    {
+        needheight += get_text_lines_surf_height(usingfont, 1) + game.options[OPT_DIALOGGAP];
     }
 }
 
@@ -791,6 +811,16 @@ void DialogOptions::Begin()
     parserInput = nullptr;
     said_text = 0;
 
+    // Historically dialog options alignment calculation had pretty
+    // inconsistent rules. We keep some of these strictly for backwards
+    // compatible mode. Should remove these variables if we drop compatibility.
+    if (loaded_game_file_version < kGameVersion_363)
+    {
+        line_x_off = 1; // extra X offset for option lines
+        area_width_off = 5; // extra reduction for the options text (for wrapping)
+        fixed_padding = TEXTWINDOW_PADDING_DEFAULT;
+    }
+
     if (game.dialog_bullet > 0)
     {
         bullet_picwid = game.SpriteInfos[game.dialog_bullet].Width + 3;
@@ -844,6 +874,10 @@ void DialogOptions::Begin()
             // Text-window, so do the QFG4-style speech options
             is_textwindow = true;
             forecol = guib->GetFgColor();
+
+            // TODO: we do not do CalcOptionsHeight() here in case of a textwindow,
+            // because it requires adjustments done by draw_text_window (like padding).
+            // refactoring draw_text_window() may solve this issue.
         }
         else
         {
@@ -851,10 +885,9 @@ void DialogOptions::Begin()
             is_normalgui = true;
             position = guib->GetRect();
 
-            areawid = guib->GetWidth(); //- 5; NOTE: removed this -5 because was not letting to align properly
-            padding = TEXTWINDOW_PADDING_DEFAULT;
-
-            CalcOptionsHeight();
+            areawid = guib->GetWidth() - area_width_off;
+            linewrap_padding = play.dialog_options_pad_x + fixed_padding;
+            CalcOptionsHeight(linewrap_padding);
 
             if (game.options[OPT_DIALOGUPWARDS])
             {
@@ -868,20 +901,15 @@ void DialogOptions::Begin()
     {
         // Default plain surface
         const Rect &ui_view = play.GetUIViewport();
-        areawid = ui_view.GetWidth(); //- 5; NOTE: removed this -5 because was not letting to align properly
-        padding = TEXTWINDOW_PADDING_DEFAULT;
-        CalcOptionsHeight();
+        areawid = ui_view.GetWidth() - area_width_off;
+        linewrap_padding = play.dialog_options_pad_x + fixed_padding;
+        CalcOptionsHeight(linewrap_padding);
 
         position = RectWH(
-            1,
+            0,
             ui_view.GetHeight() - needheight,
             ui_view.GetWidth(),
             needheight);
-    }
-
-    if (!is_textwindow)
-    {
-        areawid -= play.dialog_options_pad_x * 2;
     }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
@@ -942,20 +970,19 @@ void DialogOptions::Draw()
       // Text window behind the options
       areawid = play.max_dialogoption_width;
       int biggest = 0;
-      padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
-      // FIXME: figure out what these +2 and +6 constants are, used along with the padding
+      const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
       for (int i = 0; i < numdisp; ++i) {
         const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
         break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
         if (longestline > biggest)
           biggest = longestline;
       }
-      if (biggest < areawid - ((2*padding + 2/*6*/)+bullet_wid))
-        areawid = biggest + ((2*padding + 2/*6*/)+bullet_wid);
+      if (biggest < areawid - ((2*padding + 2)+bullet_wid))
+        areawid = biggest + ((2*padding + 2)+bullet_wid);
 
       areawid = std::max(areawid, play.min_dialogoption_width);
 
-      CalcOptionsHeight();
+      CalcOptionsHeight(padding);
 
       const int savedwid = areawid;
       int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
@@ -973,7 +1000,7 @@ void DialogOptions::Draw()
       // Ignore the dialog_options_pad_x/y offsets when using a text window
       // because it has its own padding property
       position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
-      inner_position = Point(txoffs + 1, tyoffs); // x is +1 because padding was increased by 1 hardcoded pixel
+      inner_position = Point(txoffs + line_x_off, tyoffs);
       optionsBitmap.reset(text_window_ds);
 
       // NOTE: presumably, txoffs and tyoffs are already offset by padding,
@@ -1008,13 +1035,8 @@ void DialogOptions::Draw()
         }
       }
 
-      // NOTE: it's strange that we sum both custom padding and standard gui padding here;
-      // keeping this for backwards compatibility for now... (although idk if it's important);
-      // x off +1 because padding is increased by 1 hardcoded pixel;
-      // NOTE: also gui's default padding was not applied to Y pos here...
-      inner_position = Point(play.dialog_options_pad_x + padding + 1, play.dialog_options_pad_y /* + padding*/);
-
-      const int opts_areawid = areawid - (2 * padding + 2);
+      inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
+      const int opts_areawid = areawid - (2 * linewrap_padding + 2);
       curyp = inner_position.Y;
       curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawid,
                                    bullet_wid, game.dialog_bullet, bullet_picwid,

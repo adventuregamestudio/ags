@@ -26,6 +26,7 @@ namespace AGS.Types
         [Description("The ID number of the loop")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }

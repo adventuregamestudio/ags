@@ -285,7 +285,7 @@ int get_text_width_outlined(const char *text, int font_number)
 
     int self_width = fonts[font_number].Renderer->GetTextWidth(text, font_number);
     int outline = fonts[font_number].Info.Outline;
-    if (outline < 0 || static_cast<uint32_t>(outline) > fonts.size())
+    if (outline < 0 || static_cast<uint32_t>(outline) >= fonts.size())
     { // FONT_OUTLINE_AUTO or FONT_OUTLINE_NONE
         return self_width + 2 * fonts[font_number].Info.AutoOutlineThickness;
     }
@@ -338,18 +338,29 @@ int get_font_height(int font_number)
     return fonts[font_number].Metrics.CompatHeight;
 }
 
+// Returns a max value between the chosen font height (this may be a compat height,
+// or a real graphical height), and the font's outline height.
+static int get_font_height_with_outline(int font_number, bool surf_height)
+{
+    const int self_height = surf_height ?
+        fonts[font_number].Metrics.ExtentHeight() :
+        fonts[font_number].Metrics.CompatHeight;
+    const int outline = fonts[font_number].Info.Outline;
+    if (outline < 0 || static_cast<uint32_t>(outline) >= fonts.size())
+    { // FONT_OUTLINE_AUTO or FONT_OUTLINE_NONE
+        return self_height + 2 * fonts[font_number].Info.AutoOutlineThickness;
+    }
+    const int outline_height = surf_height ?
+        fonts[outline].Metrics.ExtentHeight() :
+        fonts[outline].Metrics.CompatHeight;
+    return std::max(self_height, outline_height);
+}
+
 int get_font_height_outlined(int font_number)
 {
     if (!assert_font_number(font_number))
         return 0;
-    int self_height = fonts[font_number].Metrics.CompatHeight;
-    int outline = fonts[font_number].Info.Outline;
-    if (outline < 0 || static_cast<uint32_t>(outline) > fonts.size())
-    { // FONT_OUTLINE_AUTO or FONT_OUTLINE_NONE
-        return self_height + 2 * fonts[font_number].Info.AutoOutlineThickness;
-    }
-    int outline_height = fonts[outline].Metrics.CompatHeight;
-    return std::max(self_height, outline_height);
+    return get_font_height_with_outline(font_number, false /* use compat height */);
 }
 
 int get_font_surface_height(int font_number)
@@ -357,6 +368,13 @@ int get_font_surface_height(int font_number)
     if (!assert_font_number(font_number))
         return 0;
     return fonts[font_number].Metrics.ExtentHeight();
+}
+
+int get_font_surface_height_outlined(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return 0;
+    return get_font_height_with_outline(font_number, true /* use surface height */);
 }
 
 std::pair<int, int> get_font_surface_extent(int font_number)
@@ -388,8 +406,7 @@ int get_text_lines_height(int font_number, size_t numlines)
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        (fonts[font_number].Metrics.CompatHeight +
-         2 * fonts[font_number].Info.AutoOutlineThickness);
+        get_font_height_with_outline(font_number, false /* use compat height */);
 }
 
 int get_text_lines_surf_height(int font_number, size_t numlines)
@@ -397,8 +414,7 @@ int get_text_lines_surf_height(int font_number, size_t numlines)
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        (fonts[font_number].Metrics.RealHeight +
-         2 * fonts[font_number].Info.AutoOutlineThickness);
+        get_font_height_with_outline(font_number, true /* use surface height */);
 }
 
 namespace AGS { namespace Common { SplitLines Lines; } }

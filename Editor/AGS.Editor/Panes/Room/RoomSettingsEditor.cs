@@ -816,7 +816,15 @@ namespace AGS.Editor
             lblTransparency.Visible = _layer.ShowTransparencySlider;
             sldTransparency.Visible = _layer.ShowTransparencySlider;
             chkCharacterOffset.Visible = _layer is CharactersEditorFilter;
-            
+            chkObjectOffset.Visible = _layer is ObjectsEditorFilter;
+
+            if (chkCharacterOffset.Visible)
+                _state.DragFromOrigin = chkCharacterOffset.Checked;
+            else if (chkObjectOffset.Visible)
+                _state.DragFromOrigin = chkObjectOffset.Checked;
+            else
+                _state.DragFromOrigin = false;
+
             _layer.FilterOn();
 
             bufferedPanel1.Invalidate();
@@ -1088,7 +1096,12 @@ namespace AGS.Editor
 
 		private void chkCharacterOffset_CheckedChanged(object sender, EventArgs e)
         {
-            _state.DragFromCenter = chkCharacterOffset.Checked;
+            _state.DragFromOrigin = chkCharacterOffset.Checked;
+        }
+
+        private void chkObjectOffset_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.DragFromOrigin = chkObjectOffset.Checked;
         }
 
         private void RoomSettingsEditor_Load(object sender, EventArgs e)
@@ -1132,7 +1145,7 @@ namespace AGS.Editor
         private Point _scrollOffset;
 
         internal Cursor CurrentCursor;
-        internal bool DragFromCenter;
+        internal bool DragFromOrigin;
 
         internal RoomEditorState()
         {

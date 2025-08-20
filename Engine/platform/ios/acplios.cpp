@@ -264,7 +264,7 @@ void startEngine(const char* filename, const char* directory, int loadLastSave)
 
 static void MakeGameSaveDirectory()
 {
-    String gamename = Path::RemoveExtension(Path::GetFilename(usetup.main_data_file));
+    String gamename = Path::RemoveExtension(Path::GetFilename(usetup.MainDataFile));
     if(gamename.IsNullOrSpace() || gamename.IsEmpty()) {
         gamename = "save";
     }

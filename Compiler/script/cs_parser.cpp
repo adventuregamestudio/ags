@@ -3976,14 +3976,15 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             memberPart += 2;
 
                             // declare the imports for the Get and Setters
-                            char propFuncName[200];
-                            sprintf(propFuncName, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
+                            const int propFuncNameLen = 200;
+                            char propFuncName[propFuncNameLen];
+                            snprintf(propFuncName, propFuncNameLen, "%s::get%s_%s", sym.get_name(stname), namePrefix, memberPart);
 
                             int propGet = scrip->add_new_import(propFuncName);
                             int propSet = 0xffff;
                             if (!member_is_readonly) {
                                 // setter only if it's not read-only
-                                sprintf(propFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
+                                snprintf(propFuncName, propFuncNameLen, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
                                 propSet = scrip->add_new_import(propFuncName);
                             }
                             sym.entries[vname].set_propfuncs(propGet, propSet);
@@ -4475,10 +4476,11 @@ startvarbit:
             return -1;
         }
         else if (symType == 0) {
-            char extratex[20] = "";
+            const int extratex_len = 40;
+            char extratex[extratex_len] = "";
             const char *symname = sym.get_name(cursym);
             if ((symname[0] <= 32) || (symname[0] >= 128))
-                sprintf (extratex, " (ASCII index %02X)", symname[0]);
+                snprintf (extratex, extratex_len, " (ASCII index %02X)", (unsigned char) symname[0]);
 
             cc_error("Undefined token '%s' %s", symname, extratex);
             return -1;

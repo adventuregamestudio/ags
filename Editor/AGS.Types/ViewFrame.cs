@@ -29,6 +29,7 @@ namespace AGS.Types
         [Description("The ID number of the frame")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -106,6 +107,16 @@ namespace AGS.Types
         public ViewFrame Clone()
         {
             return (ViewFrame)MemberwiseClone();
+        }
+        /// <summary>
+        /// Copies properties to another ViewFrame, *except* for an ID
+        /// </summary>
+        public void CopyTo(ViewFrame other)
+        {
+            other.Image = Image;
+            other.Flipped = Flipped;
+            other.Delay = Delay;
+            other.Sound = Sound;
         }
     }
 }

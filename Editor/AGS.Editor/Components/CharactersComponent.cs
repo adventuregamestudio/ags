@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -18,6 +19,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_EXPORT = "ExportCharacter";
         private const string COMMAND_CHANGE_ID = "ChangeCharacterID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
+        private const string COMMAND_GO_TO_CHARACTER_NUMBER = "GoToCharacterNumber";
         private const string ICON_KEY = "CharactersIcon";
         
         private const string CHARACTER_EXPORT_FILE_FILTER = "AGS 3.1+ exported characters (*.chr)|*.chr";
@@ -113,12 +115,37 @@ namespace AGS.Editor.Components
                 OnItemIDOrNameChanged(_itemRightClicked, false);
                 OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
             }
+            else if (controlID == COMMAND_GO_TO_CHARACTER_NUMBER)
+            {
+                ShowGoToCharacterDialog();
+            }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
             {
                 Character chosenItem = _items[controlID];
                 ShowOrAddPane(chosenItem);
             }
+        }
+
+        private void ShowGoToCharacterDialog()
+        {
+            IList<Types.Character> characters = Factory.AGSEditor.CurrentGame.CharacterFlatList;
+            if (characters.Count == 0) return;
+
+            GoToNumberDialog goToCharacterDialog = new GoToNumberDialog()
+            {
+                Text = "Go To Character",
+                NodeTypeName = "Character",
+                List = characters
+                    .Select(c => Tuple.Create(c.ID, string.Format("({0}) {1}",c.ScriptName, c.RealName)))
+                    .ToList()
+            };
+            if (goToCharacterDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            int characterNumber = goToCharacterDialog.Number;
+            Types.Character character = characters.Where(i => i.ID == characterNumber).First();
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(character));
+            ShowOrAddPane(character);
         }
 
         private void DeleteCharacter(Character character)
@@ -342,7 +369,13 @@ namespace AGS.Editor.Components
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
-            // No more commands in this menu
+            if (controlID == TOP_LEVEL_COMMAND_ID)
+            {
+                menu.Add(MenuCommand.Separator);
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_CHARACTER_NUMBER, "Go to Character...", Keys.Control | Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.CharacterFlatList.Count > 0;
+                menu.Add(goToCommand);
+            }
         }
 
         protected override bool CanFolderBeDeleted(CharacterFolder folder)

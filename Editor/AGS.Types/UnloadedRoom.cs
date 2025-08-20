@@ -14,7 +14,11 @@ namespace AGS.Types
         private const string ROOM_USER_FILE_NAME_FORMAT = "room{0}.crm.user";
         private const string ROOM_DATA_FILE_NAME_FORMAT = "data.xml";
 
+        // Lowest possible room number
+        public const int FIRST_ROOM_NUMBER = 0;
+        // First non-state saving room (synced with the engine's logic)
 		public const int NON_STATE_SAVING_INDEX = 300;
+        // Highest room number supported (rather arbitrary tbh)
 		public const int HIGHEST_ROOM_NUMBER_ALLOWED = 999;
 		public const string PROPERTY_NAME_DESCRIPTION = "Description";
 		public const string PROPERTY_NAME_NUMBER = "Number";

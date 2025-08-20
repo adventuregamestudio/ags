@@ -208,7 +208,7 @@ void GUIListBox::Clear()
         return;
     _items.clear();
     _savedGameIndex.clear();
-    _selectedItem = 0;
+    _selectedItem = -1;
     _topItem = 0;
     MarkChanged();
 }
@@ -373,6 +373,7 @@ bool GUIListBox::OnMouseDown()
     }
 
     int sel = GetItemAt(_mousePos.X, _mousePos.Y);
+    // We do not cancel current selection if clicked on empty spot, leave it as is
     if (sel < 0)
         return false;
     if (sel != _selectedItem)
@@ -449,6 +450,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     // Reset dynamic values
     _rowHeight = 0;
     _visibleItemCount = 0;
+    _selectedItem = -1;
     _topItem = 0;
 }
 

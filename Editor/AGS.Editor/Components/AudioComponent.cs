@@ -21,6 +21,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_REPLACE = "ReplaceAudioClip";
         private const string COMMAND_DELETE = "DeleteAudioClip";
         private const string COMMAND_CHANGE_ID = "ChangeAudioID";
+        private const string COMMAND_GO_TO_CLIP_NUMBER = "GoToClipNumber";
         private const string SPEECH_NODE_ID = "DummySpeechNode";
         private const string AUDIO_TYPES_FOLDER_NODE_ID = "AudioTypesFolderNode";
         private const string NODE_ID_PREFIX_CLIP_TYPE = "AudioClipType";
@@ -193,10 +194,35 @@ namespace AGS.Editor.Components
             {
                 ShowPaneForItem(_rightClickedID);
             }
+            else if (controlID == COMMAND_GO_TO_CLIP_NUMBER)
+            {
+                ShowGoToAudioClipDialog();
+            }
             else if (controlID != AUDIO_TYPES_FOLDER_NODE_ID)
             {
                 ShowPaneForItem(controlID);
             }
+        }
+
+        private void ShowGoToAudioClipDialog()
+        {
+            IList<Types.AudioClip> audioClips = Factory.AGSEditor.CurrentGame.AudioClipFlatList;
+            if (audioClips.Count == 0) return;
+
+            GoToNumberDialog goToAudioClipDialog = new GoToNumberDialog()
+            {
+                Text = "Go To Audio Clip",
+                NodeTypeName = "Audio Clip",
+                List = audioClips
+                    .Select(ac => Tuple.Create(ac.ID, ac.ScriptName))
+                    .ToList()
+            };
+            if (goToAudioClipDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            int audioClipNumber = goToAudioClipDialog.Number;
+            Types.AudioClip audioClip = audioClips.Where(i => i.ID == audioClipNumber).First();
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(audioClip));
+            ShowPaneForItem(GetNodeID(audioClip));
         }
 
         void IProjectTreeSingleClickHandler.SingleClick(string controlID)
@@ -915,6 +941,13 @@ namespace AGS.Editor.Components
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_REPLACE_AUDIO_SOURCE_FOLDER, "Replace source paths for audio clips...", null));
             menu.Add(new MenuCommand(COMMAND_REIMPORT_ALL, "Force reimport all file(s)", null));
+            if (controlID == TOP_LEVEL_COMMAND_ID)
+            {
+                menu.Add(MenuCommand.Separator);
+                MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_CLIP_NUMBER, "Go to Audio Clip...", Keys.Control | Keys.G);
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.AudioClipFlatList.Count > 0;
+                menu.Add(goToCommand);
+            }
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_PROPERTIES, "Properties", null));
         }

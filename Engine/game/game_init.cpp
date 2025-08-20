@@ -375,6 +375,15 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
+// TODO: move lipsync dat reading (and writing?) out to a dedicated module.
+enum LipsyncDatVersion
+{
+    // Version 4 had filename as a fixed-size 14-char array (including terminator)
+    kLipSyncVersion_321 = 4, // TODO: find out exact version when this format was introduced
+    // Version 3060200 has filename as a unlimited null-terminated string
+    kLipSyncVersion_362 = 3060200
+};
+
 void LoadLipsyncData()
 {
     auto speechsync = AssetMgr->OpenAsset("syncdata.dat", "voice");
@@ -382,22 +391,25 @@ void LoadLipsyncData()
         return;
     // this game has voice lip sync
     int lipsync_fmt = speechsync->ReadInt32();
-    if (lipsync_fmt != 4)
+    if (lipsync_fmt < kLipSyncVersion_321 || lipsync_fmt > kLipSyncVersion_362)
     {
-        Debug::Printf(kDbgMsg_Info, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
+        Debug::Printf(kDbgMsg_Warn, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
+        return;
     }
-    else {
-        numLipLines = speechsync->ReadInt32();
-        splipsync.resize(numLipLines);
-        for (int ee = 0; ee < numLipLines; ee++)
-        {
-            splipsync[ee].numPhonemes = speechsync->ReadInt16();
-            speechsync->Read(splipsync[ee].filename, 14);
-            splipsync[ee].endtimeoffs.resize(splipsync[ee].numPhonemes);
-            speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs.data(), splipsync[ee].numPhonemes);
-            splipsync[ee].frame.resize(splipsync[ee].numPhonemes);
-            speechsync->ReadArrayOfInt16(splipsync[ee].frame.data(), splipsync[ee].numPhonemes);
-        }
+
+    numLipLines = speechsync->ReadInt32();
+    splipsync.resize(numLipLines);
+    for (int ee = 0; ee < numLipLines; ee++)
+    {
+        splipsync[ee].numPhonemes = speechsync->ReadInt16();
+        if (lipsync_fmt < kLipSyncVersion_362)
+            splipsync[ee].filename.ReadCount(speechsync.get(), 14);
+        else
+            splipsync[ee].filename.Read(speechsync.get());
+        splipsync[ee].endtimeoffs.resize(splipsync[ee].numPhonemes);
+        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs.data(), splipsync[ee].numPhonemes);
+        splipsync[ee].frame.resize(splipsync[ee].numPhonemes);
+        speechsync->ReadArrayOfInt16(splipsync[ee].frame.data(), splipsync[ee].numPhonemes);
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }

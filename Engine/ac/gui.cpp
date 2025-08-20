@@ -230,7 +230,11 @@ void GUI_SetPosition(ScriptGUI *tehgui, int x, int y) {
 
 void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
   if ((w < 1) || (h < 1))
-    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", w, h);
+  {
+      debug_script_warn("GUI.SetSize: invalid dimensions (tried to set to %d x %d)", w, h);
+      w = std::max(1, w);
+      h = std::max(1, h);
+  }
 
   GUIMain *tehgui = &guis[sgui->id];
   tehgui->SetSize(w, h);
@@ -245,11 +249,21 @@ int GUI_GetHeight(ScriptGUI *sgui) {
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
-  GUI_SetSize(sgui, newwid, GUI_GetHeight(sgui));
+    if (newwid < 1)
+    {
+        debug_script_warn("GUI.SetWidth: invalid value (tried to set to %d)", newwid);
+        newwid = std::max(1, newwid);
+    }
+    guis[sgui->id].SetWidth(newwid);
 }
 
 void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
-  GUI_SetSize(sgui, GUI_GetWidth(sgui), newhit);
+    if (newhit < 1)
+    {
+        debug_script_warn("GUI.SetHeight: invalid value (tried to set to %d)", newhit);
+        newhit = std::max(1, newhit);
+    }
+    guis[sgui->id].SetHeight(newhit);
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {

@@ -27,6 +27,7 @@ namespace AGS.Types
         [Description("The ID number of the cursor")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -120,6 +121,7 @@ namespace AGS.Types
 
         [Description("The name of the cursor")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string Name
         {
             get { return _name; }
@@ -142,8 +144,10 @@ namespace AGS.Types
             get { return TypesHelper.MakePropertyGridTitle("Character", _name, _id); }
         }
 
+        [AGSNoSerialize]
         [Description("The script ID of the cursor")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string ScriptID
         {
 			get

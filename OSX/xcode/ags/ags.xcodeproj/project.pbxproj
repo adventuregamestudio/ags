@@ -271,7 +271,7 @@
 				);
 				INFOPLIST_FILE = "ags-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.adventuregamestudio.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = AGS;
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
@@ -296,7 +296,7 @@
 				GCC_PREFIX_HEADER = ags_Prefix.pch;
 				INFOPLIST_FILE = "ags-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.adventuregamestudio.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = AGS;
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";

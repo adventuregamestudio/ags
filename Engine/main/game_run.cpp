@@ -75,7 +75,7 @@ extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
 extern volatile bool want_exit, abort_engine;
 extern int proper_exit;
-extern int displayed_room, starting_room;
+extern int displayed_room;
 extern EnterNewRoomState in_new_room, new_room_was;
 extern ScriptSystem scsystem;
 extern GameSetupStruct game;
@@ -207,10 +207,8 @@ static void ProperExit()
 
 static void game_loop_check_problems_at_start()
 {
-    if ((in_enters_screen) & (displayed_room == starting_room))
-        quit("!A text script run in the Player Enters Screen event caused the screen to be updated. If you need to use Wait(), do so in After Fadein");
     if ((in_enters_screen) && (!done_as_error)) {
-        debug_script_warn("Wait() was used in Player Enters Screen - use Enters Screen After Fadein instead");
+        debug_script_warn("Wait() was used in \"Before Fadein\" event; use \"After Fadein\" instead");
         done_as_error = true;
     }
     if (no_blocking_functions)

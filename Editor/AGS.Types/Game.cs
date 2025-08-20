@@ -565,11 +565,10 @@ namespace AGS.Types
 
 		public int FindFirstAvailableRoomNumber(int startingFromNumber)
 		{
-			do
-			{
+            while (DoesRoomNumberAlreadyExist(startingFromNumber))
+            {
 				startingFromNumber++;
-			}
-			while (DoesRoomNumberAlreadyExist(startingFromNumber));
+			};
 			return startingFromNumber;
 		}
 

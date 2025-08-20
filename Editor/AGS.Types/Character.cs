@@ -69,6 +69,7 @@ namespace AGS.Types
         [Description("The ID number of the character")]
         [Category("Design")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -78,6 +79,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_NAME_SCRIPTNAME)]
         [Description("The script name of the character")]
         [Category("Design")]
+        [BrowsableMultiedit(false)]
         public string ScriptName
         {
             get { return _scriptName; }

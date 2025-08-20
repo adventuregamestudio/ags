@@ -63,6 +63,23 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
     EXPECT_STREQ("Syntax error at 'MyStruct::int2'; expected variable type", last_seen_cc_error());
 }
 
+TEST(Compile, UnExpectedUnicodeChar) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = " \
+        int game_start()    \n\
+        {                   \n\
+            ¨               \n\
+        }";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(-1, compileResult);
+    std::string err = last_seen_cc_error();
+    EXPECT_NE(std::string::npos, err.find("A8"));
+}
+
 TEST(Compile, DynamicArrayReturnValueErrorText) {
     ccCompiledScript *scrip = newScriptFixture();
 

@@ -60,6 +60,7 @@ namespace AGS.Types
         [DisplayName("ID")]
         [Description("The ID number of the clip")]
         [ReadOnly(true)]
+        [BrowsableMultiedit(false)]
         public int ID
         {
             get { return _id; }
@@ -76,6 +77,7 @@ namespace AGS.Types
         }
 
         [Description("The name by which this audio clip can be referenced in the script")]
+        [BrowsableMultiedit(false)]
         public string ScriptName
         {
             get { return _scriptName; }

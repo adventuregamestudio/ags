@@ -111,17 +111,13 @@ void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bo
         return;
 
     if (as_speech)
-        DisplaySpeechAt(-1, ypos, -1, game.playercharacter, texx); // CLNUP if ypos <0  it used ypos without scaling, weird
-    else { 
+    {
+        // Message displayed as speech, using current speech style
+        DisplaySpeechAt(-1, ypos, -1, game.playercharacter, texx);
+    }
+    else
+    { 
         // Normal "Display" in text box
-
-        if (is_screen_dirty()) {
-            // erase any previous DisplaySpeech
-            play.disabled_user_interface ++;
-            UpdateGameOnce();
-            play.disabled_user_interface --;
-        }
-
         display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4, get_translation(texx), topbar);
     }
 }

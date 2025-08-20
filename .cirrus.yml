@@ -73,7 +73,7 @@ build_linux_cmake_task:
     arch=$(dpkg --print-architecture)
     mkdir build_debug_$arch && cd build_debug_$arch
     cmake .. \
-      -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
+      -DAGS_USE_LOCAL_ALL_LIBRARIES=0 \
       -DAGS_USE_LOCAL_SDL2_SOUND=0 \
       -DCMAKE_BUILD_TYPE=Debug \
       -DAGS_BUILD_TOOLS=1 \

@@ -222,6 +222,12 @@
     <Compile Include="GUI\GenerateAndroidKeystore.Designer.cs">
       <DependentUpon>GenerateAndroidKeystore.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\GoToNumberDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\GoToNumberDialog.Designer.cs">
+      <DependentUpon>GoToNumberDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\ImportTTFDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -353,6 +359,7 @@
     <Compile Include="Panes\ScriptEditorBase.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Panes\ViewEditClipboard.cs" />
     <Compile Include="Panes\ViewLoopContextMenuArgs.cs" />
     <Compile Include="Panes\FreePanControl.cs">
       <SubType>Component</SubType>
@@ -527,6 +534,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\GenerateAndroidKeystore.resx">
       <DependentUpon>GenerateAndroidKeystore.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\GoToNumberDialog.resx">
+      <DependentUpon>GoToNumberDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>

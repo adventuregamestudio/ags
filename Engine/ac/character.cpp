@@ -71,7 +71,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int displayed_room,starting_room;
+extern int displayed_room;
 extern RoomStruct thisroom;
 extern RoomStatus *croom;
 extern std::vector<ViewStruct> views;
@@ -686,6 +686,7 @@ void Character_LockView(CharacterInfo *chap, int vii) {
 void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     vii--; // convert to 0-based
     AssertView("SetCharacterView", vii);
+    AssertViewHasLoops("SetCharacterView", vii);
 
     stop_character_idling(chap);
     if (stopMoving != KEEP_MOVING)
@@ -2306,9 +2307,9 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
         quitprintf("!View %d does not have any loops", chap->view + 1);
 
     // if the current loop has no frames, find one that does
-    if (views[chap->view].loops[chap->loop].numFrames < 1) 
+    if (views[chap->view].loops[chap->loop].numFrames < 1)
     {
-        for (int i = 0; i < views[chap->view].numLoops; i++) 
+        for (int i = 0; i < views[chap->view].numLoops; i++)
         {
             if (views[chap->view].loops[i].numFrames > 0) {
                 chap->loop = i;
@@ -2316,7 +2317,6 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
             }
         }
     }
-
 }
 
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim)
@@ -3185,7 +3185,6 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         closeupface = nullptr;
     if (closeupface!=nullptr)
         remove_screen_overlay(ovr_type);
-    mark_screen_dirty();
     face_talking = -1;
     facetalkchar = nullptr;
     set_our_eip(157);

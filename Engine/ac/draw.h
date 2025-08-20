@@ -136,10 +136,6 @@ Common::Bitmap *initialize_sprite(Common::sprkey_t index, Common::Bitmap *image,
 // Run after a sprite was loaded and adjusted for the game
 void post_init_sprite(Common::sprkey_t index);
 
-// whether there are currently remnants of a DisplaySpeech
-void mark_screen_dirty();
-bool is_screen_dirty();
-
 // marks whole screen as needing a redraw
 void invalidate_screen();
 // marks all the camera frame as needing a redraw

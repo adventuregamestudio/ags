@@ -183,8 +183,11 @@ void DrawingSurface_BlendImage(ScriptDrawingSurface* sds,
     int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
-    if ((slot < 0) || (spriteset[slot] == nullptr))
-        quit("!DrawingSurface.DrawImage: invalid sprite slot number specified");
+    if (!spriteset.DoesSpriteExist(slot))
+    {
+        debug_script_warn("DrawingSurface.BlendImage: invalid sprite slot number specified: %d", slot);
+        slot = 0;
+    }
     DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, trans, mode, dst_width, dst_height,
         src_x, src_y, src_width, src_height, slot);
 }

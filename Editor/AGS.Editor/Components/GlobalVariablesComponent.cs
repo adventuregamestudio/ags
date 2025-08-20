@@ -85,6 +85,10 @@ namespace AGS.Editor.Components
             sb.AppendLine("function game_start() {");
             foreach (GlobalVariable variable in variables)
             {
+                // We do not support array initialization from GlobalVariables pane at the moment
+                if (variable.ArrayType != GlobalVariableArrayType.None)
+                    continue;
+
                 if (variable.Type == "String")
                 {
                     string varValue = variable.DefaultValue.Replace("\\", "\\\\").Replace("\"", "\\\"");

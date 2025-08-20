@@ -77,9 +77,9 @@ static void FixupCharacterLoopAndFrame(CharacterInfo *chi, bool switch_from_bad_
     // we do so for backwards compatibility; this approximately emulates older games behavior.
     const int view = chi->view;
     if (view < 0 || view >= views.size())
-        quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", chi->scrname, view, game.numviews);
+        quitprintf("!Character %s is assigned a invalid view %d (valid range 1..%d)", chi->scrname.GetCStr(), view, game.numviews);
     if (!switch_from_bad_loop && (chi->loop < 0 || chi->loop >= views[view].numLoops))
-        quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)", chi->scrname, chi->loop, view, views[view].numLoops - 1);
+        quitprintf("!Character %s is assigned a invalid loop %d in view %d (valid range 0..%d)", chi->scrname.GetCStr(), chi->loop, view, views[view].numLoops - 1);
 
     if (switch_from_bad_loop && (
         (chi->loop < 0 || chi->loop >= views[view].numLoops) ||

@@ -127,7 +127,7 @@ Script module names are written in the game data.
 3.6.2.12:
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
-OPT_GUICONTROLMOUSEBUT, game info properties
+OPT_GUICONTROLMOUSEBUT, game info properties, font character spacing
 
 */
 

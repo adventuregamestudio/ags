@@ -40,15 +40,11 @@ namespace AGS.Editor
                 if (DesignMode)
                     return;
 
-                if (_fontNumber >= 0 && _fontNumber < Factory.AGSEditor.CurrentGame.Fonts.Count)
-                {
-                    _fontMetrics = Factory.NativeProxy.GetFontMetrics(_fontNumber);
-                }
-                else
+                if (_fontNumber < 0 || _fontNumber >= Factory.AGSEditor.CurrentGame.Fonts.Count)
                 {
                     _fontNumber = -1;
-                    _fontMetrics = Native.FontMetrics.Empty;
                 }
+
                 UpdateAndRepaint();
             }
         }
@@ -163,6 +159,15 @@ namespace AGS.Editor
 
         public void UpdateAndRepaint()
         {
+            if (_fontNumber >= 0 && _fontNumber < Factory.AGSEditor.CurrentGame.Fonts.Count)
+            {
+                _fontMetrics = Factory.NativeProxy.GetFontMetrics(_fontNumber);
+            }
+            else
+            {
+                _fontMetrics = Native.FontMetrics.Empty;
+            }
+
             PrecalculatePreviewGrid();
             Invalidate();
         }

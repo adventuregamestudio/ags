@@ -2154,6 +2154,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font_info.SizeMultiplier = font->SizeMultiplier;
     font_info.YOffset = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
+    font_info.CharacterSpacing = font->CharacterSpacing;
     if (game->Settings->TTFHeightDefinedBy == FontHeightDefinition::PixelHeight)
         font_info.Flags &= ~FFLG_REPORTNOMINALHEIGHT;
     else

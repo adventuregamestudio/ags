@@ -47,6 +47,7 @@ public:
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
   void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
   void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
+  void SetCharacterSpacing(int fontNumber, int spacing) override;
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
@@ -57,6 +58,7 @@ private:
   {
     WFNFont         *Font;
     FontRenderParams Params;
+    int              CharacterSpacing;
   };
   std::map<int, FontData> _fontData;
   AGS::Common::AssetManager *_amgr = nullptr;

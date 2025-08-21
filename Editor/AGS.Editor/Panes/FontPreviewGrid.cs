@@ -206,7 +206,7 @@ namespace AGS.Editor
             _grid.FullHeight = full_height;
 
             // Set virtual preview height (the virtual size of the contents within the font preview)
-            AutoScrollMinSize = new Size(0, full_height);
+            AutoScrollMinSize = new Size(0, (int)(full_height * _scaling));
         }
 
         private Point ControlToGrid(int x, int y)
@@ -332,8 +332,8 @@ namespace AGS.Editor
             _selectedChar = code;
             if (do_scroll)
             {
-                _grid.ScrollY = pos.Y;
-                AutoScrollPosition = new Point(0, pos.Y);
+                _grid.ScrollY = MathExtra.Clamp(pos.Y, 0, _grid.FullHeight - _grid.GridHeight);
+                AutoScrollPosition = new Point(0, (int)(pos.Y * _scaling));
             }
             CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(_selectedChar));
             Invalidate();
@@ -438,14 +438,22 @@ namespace AGS.Editor
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
-            UpdateAndRepaint();
+
+            PrecalculatePreviewGrid();
+            if (_grid.ScrollY + _grid.GridHeight > _grid.FullHeight)
+            {
+                _grid.ScrollY = Math.Max(0, _grid.FullHeight - _grid.GridHeight);
+            }
+            Invalidate();
         }
 
         protected override void OnScroll(ScrollEventArgs se)
         {
             base.OnScroll(se);
-            _grid.ScrollY = -AutoScrollPosition.Y;
-            UpdateAndRepaint();
+
+            PrecalculatePreviewGrid();
+            _grid.ScrollY = MathExtra.Clamp((int)(-AutoScrollPosition.Y / _scaling), 0, _grid.FullHeight - _grid.GridHeight);
+            Invalidate();
         }
 
         protected override void OnMouseClick(MouseEventArgs e)

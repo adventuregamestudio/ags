@@ -171,8 +171,11 @@ void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 
 void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes)
 {
-    *char_codes = std::make_pair(0,
-        static_cast<int>(_fontData[fontNumber].Font->GetCharCount()));
+    if (_fontData[fontNumber].Font->GetCharCount() == 0)
+        *char_codes = std::make_pair(0, 0);
+    else
+        *char_codes = std::make_pair(0,
+            static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)

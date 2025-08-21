@@ -43,7 +43,7 @@ bool ValidateInventoryItem(const char *api_name, int invitem)
     // Inventory Item 0 is a "dummy" slot in AGS historically (idk why)
     if ((invitem < 1) || (invitem >= game.numinvitems))
     {
-        debug_script_warn("%s: invalid inventory item specified, id %d, valid range is 1..%d", invitem, game.numinvitems - 1);
+        debug_script_warn("%s: invalid inventory item specified, id %d, valid range is 1..%d", api_name, invitem, game.numinvitems - 1);
         return false;
     }
     return true;

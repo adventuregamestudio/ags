@@ -37,7 +37,7 @@ int ValidateFontNumber(const char *apiname, int font_num)
 {
     if (((font_num < 0) || (font_num >= game.numfonts)) && (font_num != FONT_NULL))
     {
-        debug_script_warn("%s: invalid font number %d, valid range is %d-%d.", font_num, 0, game.numfonts);
+        debug_script_warn("%s: invalid font number %d, valid range is 0..%d.", apiname, font_num, game.numfonts);
         return FONT_NULL;
     }
     return font_num;

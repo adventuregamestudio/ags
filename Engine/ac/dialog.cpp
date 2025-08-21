@@ -166,6 +166,17 @@ void Dialog_SetOptionsBulletGraphic(int sprite)
     game.dialog_bullet = sprite;
 }
 
+int Dialog_GetOptionsFont()
+{
+    return play.dialog_options_font;
+}
+
+void Dialog_SetOptionsFont(int fontnum)
+{
+    fontnum = ValidateFontNumber("Dialog.SetOptionsFont", fontnum);
+    play.dialog_options_font = fontnum;
+}
+
 int Dialog_GetOptionsNumbering()
 {
     return game.options[OPT_DIALOGNUMBERED];
@@ -848,7 +859,11 @@ void DialogOptions::Begin()
         disporder[numdisp++] = i;
     }
 
-    usingfont=FONT_NORMAL;
+    if (loaded_game_file_version >= kGameVersion_363)
+        usingfont = play.dialog_options_font;
+    else
+        usingfont = FONT_NORMAL;
+    
     lineheight = get_font_height_outlined(usingfont);
     linespacing = get_font_linespacing(usingfont);
     curswas=cur_cursor;
@@ -2007,6 +2022,16 @@ RuntimeScriptValue Sc_Dialog_SetOptionsBulletGraphic(const RuntimeScriptValue *p
     API_SCALL_VOID_PINT(Dialog_SetOptionsBulletGraphic);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionsFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsFont);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsFont);
+}
+
 RuntimeScriptValue Sc_Dialog_GetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Dialog_GetOptionsNumbering);
@@ -2136,6 +2161,8 @@ void RegisterDialogAPI()
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
         { "Dialog::get_OptionsBulletGraphic", API_FN_PAIR(Dialog_GetOptionsBulletGraphic) },
         { "Dialog::set_OptionsBulletGraphic", API_FN_PAIR(Dialog_SetOptionsBulletGraphic) },
+        { "Dialog::get_OptionsFont",      API_FN_PAIR(Dialog_GetOptionsFont) },
+        { "Dialog::set_OptionsFont",      API_FN_PAIR(Dialog_SetOptionsFont) },
         { "Dialog::get_OptionsGap",       API_FN_PAIR(Dialog_GetOptionsGap) },
         { "Dialog::set_OptionsGap",       API_FN_PAIR(Dialog_SetOptionsGap) },
         { "Dialog::get_OptionsGUI",       API_FN_PAIR(Dialog_GetOptionsGUI) },

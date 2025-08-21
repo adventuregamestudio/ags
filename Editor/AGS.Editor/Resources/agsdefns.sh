@@ -2294,10 +2294,10 @@ builtin managed struct Dialog {
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
-  /// Gets/sets the color used to draw the active (selected) dialog option
-  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
   import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the font to use when displaying dialog options
+  import static attribute int OptionsFont; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the vertical gap between dialog options (in pixels)
   import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
@@ -2306,6 +2306,8 @@ builtin managed struct Dialog {
   import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
   import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the active (selected) dialog option
+  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
   /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
   import static attribute int OptionsMaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
   /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn

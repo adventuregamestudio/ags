@@ -308,6 +308,8 @@ struct GamePlayState
     int   dialog_options_gui_y = -1;
     // Horizontal alignment of dialog options texts
     HorAlignment dialog_options_textalign = kHAlignLeft;
+    // Font of dialog options texts, if negative then use "normal font"
+    int   dialog_options_font = 0;
 
     // Dynamic custom property values for characters and items
     std::vector<AGS::Common::StringIMap> charProps;

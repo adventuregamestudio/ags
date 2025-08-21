@@ -652,13 +652,14 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_gui_x = in->ReadInt32();
         dialog_options_gui_y = in->ReadInt32();
         dialog_options_textalign = (HorAlignment)in->ReadInt32();
-        in->ReadInt32(); // reserve up to 4 ints
+        dialog_options_font = in->ReadInt32();
     }
     else
     {
         dialog_options_gui_x = -1;
         dialog_options_gui_y = -1;
         dialog_options_textalign = kHAlignLeft;
+        dialog_options_font = -1;
     }
 }
 
@@ -849,7 +850,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(dialog_options_gui_x);
     out->WriteInt32(dialog_options_gui_y);
     out->WriteInt32(dialog_options_textalign);
-    out->WriteInt32(0); // reserve up to 4 ints
+    out->WriteInt32(dialog_options_font);
 }
 
 void GamePlayState::FreeProperties()

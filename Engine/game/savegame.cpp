@@ -728,8 +728,8 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
 // Final processing after successfully restoring from save
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
+    // Fixup game options for older games, in case the save was made by a advanced engine
     // Use a yellow dialog highlight for older game versions
-    // CHECKME: it is dubious that this should be right here
     if(loaded_game_file_version < kGameVersion_331)
         play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
 

@@ -989,15 +989,15 @@ void DialogOptions::Draw()
 
     if (usingCustomRendering)
     {
-        recycle_bitmap(optionsBitmap, game.GetColorDepth(), 
-            data_to_game_coord(ccDialogOptionsRendering.width), 
-            data_to_game_coord(ccDialogOptionsRendering.height));
+        recycle_bitmap(optionsBitmap, game.GetColorDepth(),
+            std::max(1, data_to_game_coord(ccDialogOptionsRendering.width)),
+            std::max(1, data_to_game_coord(ccDialogOptionsRendering.height)));
     }
     else
     {
         recycle_bitmap(optionsBitmap, game.GetColorDepth(),
-                       position.GetWidth(),
-                       position.GetHeight());
+            std::max(1, position.GetWidth()),
+            std::max(1, position.GetHeight()));
     }
 
     optionsBitmap->ClearTransparent();

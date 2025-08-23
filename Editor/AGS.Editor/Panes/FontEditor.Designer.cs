@@ -213,6 +213,7 @@ namespace AGS.Editor
             this.fontViewPanel.SelectedCharCode = -1;
             this.fontViewPanel.Size = new System.Drawing.Size(516, 209);
             this.fontViewPanel.TabIndex = 6;
+            this.fontViewPanel.TabStop = true;
             // 
             // btnImportFont
             // 

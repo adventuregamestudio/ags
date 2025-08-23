@@ -932,6 +932,10 @@ void DrawFontAt(HDC hdc, int fontnum,
     if (dc_width <= 0 || dc_height <= 0)
         return;
 
+    assert(scroll_y >= 0);
+    if (scroll_y < 0)
+        scroll_y = 0;
+
     if (!is_font_loaded(fontnum))
         reload_font(fontnum);
 

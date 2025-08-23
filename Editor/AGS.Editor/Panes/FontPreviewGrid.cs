@@ -152,6 +152,7 @@ namespace AGS.Editor
             public int CharsPerRow; // how many characters fit a single row
 
             public int FullHeight; // a virtual full preview height
+            public int MaxScrollY; // maximal value of a virtual scroll
             public int ScrollY; // a virtual scroll y
         };
 
@@ -169,6 +170,7 @@ namespace AGS.Editor
             }
 
             PrecalculatePreviewGrid();
+            _grid.ScrollY = MathExtra.Clamp(_grid.ScrollY, 0, _grid.MaxScrollY);
             Invalidate();
         }
 
@@ -209,6 +211,7 @@ namespace AGS.Editor
             _grid.CellSpaceY = cell_space_y;
             _grid.CharsPerRow = chars_per_row;
             _grid.FullHeight = full_height;
+            _grid.MaxScrollY = Math.Max(0, full_height - grid_height);
 
             // Set virtual preview height (the virtual size of the contents within the font preview)
             AutoScrollMinSize = new Size(0, (int)(full_height * _scaling));
@@ -337,7 +340,7 @@ namespace AGS.Editor
             _selectedChar = code;
             if (do_scroll)
             {
-                _grid.ScrollY = MathExtra.Clamp(pos.Y, 0, _grid.FullHeight - _grid.GridHeight);
+                _grid.ScrollY = MathExtra.Clamp(pos.Y, 0, _grid.MaxScrollY);
                 AutoScrollPosition = new Point(0, (int)(pos.Y * _scaling));
             }
             CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(_selectedChar));
@@ -443,28 +446,31 @@ namespace AGS.Editor
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
-
             PrecalculatePreviewGrid();
-            if (_grid.ScrollY + _grid.GridHeight > _grid.FullHeight)
-            {
-                _grid.ScrollY = Math.Max(0, _grid.FullHeight - _grid.GridHeight);
-            }
+            _grid.ScrollY = MathExtra.Clamp(_grid.ScrollY, 0, _grid.MaxScrollY);
             Invalidate();
         }
 
         protected override void OnScroll(ScrollEventArgs se)
         {
             base.OnScroll(se);
-
-            PrecalculatePreviewGrid();
-            _grid.ScrollY = MathExtra.Clamp((int)(-AutoScrollPosition.Y / _scaling), 0, _grid.FullHeight - _grid.GridHeight);
+            _grid.ScrollY = MathExtra.Clamp((int)(-AutoScrollPosition.Y / _scaling), 0, _grid.MaxScrollY);
             Invalidate();
         }
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
+            Focus();
             SelectCharacterAt(e.Location);
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            // Call base first, will update the scroll pos after the wheel
+            base.OnMouseWheel(e);
+            _grid.ScrollY = MathExtra.Clamp((int)(-AutoScrollPosition.Y / _scaling), 0, _grid.MaxScrollY);
+            Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)

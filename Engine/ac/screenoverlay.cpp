@@ -213,7 +213,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         in->ReadInt32(); // sprite anchor y
     }
 
-    if (cmp_ver > kOverSvgVersion_40018)
+    if (cmp_ver >= kOverSvgVersion_40018)
     {
         _shaderID = in->ReadInt32();
         _shaderHandle = in->ReadInt32();

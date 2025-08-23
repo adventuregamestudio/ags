@@ -205,6 +205,13 @@ namespace AGS.Editor
             textPreviewPanel.Invalidate();
         }
 
+        private void splitContainer1_Resize(object sender, EventArgs e)
+        {
+            // HACK: Fix the size of the preview panel.
+            // For some reason, when done automatically, the preview panel's bottom gets too far down.
+            fontViewPanel.SetBounds(fontViewPanel.Left, fontViewPanel.Top, fontViewPanel.Width, splitContainer1.Panel2.Height - splitContainer1.Panel2.Padding.Bottom - fontViewPanel.Top);
+        }
+
         private void LoadColorTheme(ColorTheme t)
         {
             t.ControlHelper(this, "font-editor");

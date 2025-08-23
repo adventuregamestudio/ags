@@ -2964,6 +2964,7 @@ void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float sca
   {
       lb.AddItem("Sample selected");
       lb.AddItem("Sample item");
+      lb.SetSelectedItem(0);
   }
 
   tempgui.SetHighlightControl(selectedControl);

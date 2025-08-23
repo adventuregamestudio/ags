@@ -69,8 +69,12 @@ namespace AGS.Types
 
         private Color ColorFromString(string value)
         {
+            value = value.Trim();
             if (string.IsNullOrEmpty(value))
                 return Color.FromArgb(0); // return transparent color on failure
+            // Special case: input "0" is a shortcut for "transparent"
+            if (value == "0")
+                return Color.FromArgb(0);
 
             // First check explicit notations
             if (value.StartsWith("#"))

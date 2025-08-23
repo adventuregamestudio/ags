@@ -115,11 +115,18 @@ namespace AGS.Editor
             return _native.GetFontMetrics(fontNum);
         }
 
-        public void DrawFont(IntPtr hdc, int fontNum, bool ansi_mode, int dc_atx, int dc_aty, int dc_width, int dc_height,
+        public int[] GetFontValidCharacters(int fontNum)
+        {
+            return _native.GetFontValidCharacters(fontNum);
+        }
+
+        public void DrawFont(IntPtr hdc, int fontNum, bool ansi_mode, bool only_valid_chars,
+                int dc_atx, int dc_aty, int dc_width, int dc_height,
                 int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
                 int scroll_y)
         {
-            _native.DrawFont((int)hdc, fontNum, ansi_mode, dc_atx, dc_aty, dc_width, dc_height,
+            _native.DrawFont((int)hdc, fontNum, ansi_mode, only_valid_chars,
+                dc_atx, dc_aty, dc_width, dc_height,
                 cell_w, cell_h, cell_space_x, cell_space_y, scaling,
                 scroll_y);
         }

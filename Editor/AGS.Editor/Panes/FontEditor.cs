@@ -51,7 +51,7 @@ namespace AGS.Editor
             UpdateCharInput();
 
             if (fontStyle)
-                fontViewPanel.UpdateAndRepaint();
+                fontViewPanel.UpdateAndRepaint(true);
             if (fontStyle || fontGlyphPosition)
                 textPreviewPanel.Invalidate();
         }

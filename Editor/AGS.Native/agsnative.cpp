@@ -919,7 +919,12 @@ void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox)
     char_bbox = get_font_glyph_bbox(fontnum);
 }
 
-void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
+void GetFontValidCharacters(int fontnum, std::vector<int> &char_codes)
+{
+    get_font_valid_char_codes(fontnum, char_codes);
+}
+
+void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
     int scroll_y)
@@ -939,6 +944,10 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
     if (!is_font_loaded(fontnum))
         reload_font(fontnum);
 
+    std::vector<int> char_codes;
+    if (only_valid_chars)
+        get_font_valid_char_codes(fontnum, char_codes);
+
     antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
     const Rect bbox = get_font_glyph_bbox(fontnum);
@@ -946,11 +955,19 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
     const ::Size char_size = bbox.GetSize() * thisgame.fonts[fontnum].SizeMultiplier;
     const ::Size cell_size = ::Size(cell_w, cell_h);
     const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
-    const int first_char = 0;
-    const int last_char  = ansi_mode ?
-        std::min(255, get_font_topmost_char_code(fontnum)) :
-        get_font_topmost_char_code(fontnum);
-    const int char_count = last_char - first_char + 1;
+    int char_count = 0;
+    if (only_valid_chars)
+    {
+        char_count = char_codes.size();
+    }
+    else
+    {
+        int first_char = 0;
+        int last_char = ansi_mode ?
+            std::min(255, get_font_topmost_char_code(fontnum)) :
+            get_font_topmost_char_code(fontnum);
+        char_count = last_char - first_char + 1;
+    }
 
     const int grid_width = dc_width / scaling;
     const int grid_height = dc_height / scaling;
@@ -959,7 +976,7 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
         + cell_space_y;
 
     const int skip_rows = (scroll_y - cell_space_y) / (cell_size.Height + cell_space_y);
-    const int first_char_to_draw = skip_rows * chars_per_row;
+    const int first_cell_to_draw = skip_rows * chars_per_row;
 
     std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
     tempblock->Fill(0);
@@ -971,10 +988,21 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
     if (want_uformat == U_ASCII)
     {
         // ASCII / ANSI variant
-        for (int c = first_char_to_draw; c <= last_char; ++c)
+        for (int i = first_cell_to_draw; i < char_count; ++i)
         {
-            const int char_col = (c % chars_per_row);
-            const int char_row = (c / chars_per_row);
+            int c;
+            if (only_valid_chars)
+            {
+                c = char_codes[i];
+                if (c > 255)
+                    break; // in ansi mode do not print characters above code 255
+            }
+            else
+            {
+                c = i;
+            }
+            const int char_col = (i % chars_per_row);
+            const int char_row = (i / chars_per_row);
             woutprintf(tempblock.get(),
                        cell_space_x + char_col * (cell_size.Width + cell_space_x) + char_off.X,
                        cell_space_y + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
@@ -984,10 +1012,11 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
     else if (want_uformat == U_UTF8)
     {
         // UTF-8 variant
-        for (int c = first_char_to_draw; c <= last_char; ++c)
+        for (int i = first_cell_to_draw; i < char_count; ++i)
         {
-            const int char_col = (c % chars_per_row);
-            const int char_row = (c / chars_per_row);
+            const int char_col = (i % chars_per_row);
+            const int char_row = (i / chars_per_row);
+            const int c = only_valid_chars ? char_codes[i] : i;
             char uchar[Utf8::UtfSz + 1];
             uchar[Utf8::SetChar(c, uchar, sizeof(uchar))] = 0;
             wouttextxy(tempblock.get(),

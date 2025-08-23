@@ -178,6 +178,16 @@ void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
             static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
 }
 
+void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
+{
+    const WFNFont *font = _fontData[fontNumber].Font;
+    for (int i = 0; i < font->GetCharCount(); ++i)
+    {
+        if (font->GetChar(i).IsValid())
+            char_codes.push_back(i);
+    }
+}
+
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
   delete _fontData[fontNumber].Font;

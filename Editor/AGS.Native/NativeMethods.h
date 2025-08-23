@@ -87,8 +87,10 @@ namespace AGS
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
             FontMetrics ^GetFontMetrics(int fontNum);
+            cli::array<int> ^GetFontValidCharacters(int fontNum);
             // Draws font char sheet on the provided context
-            void DrawFont(int hDC, int fontNum, bool ansi_mode, int dc_atx, int dc_aty, int dc_width, int dc_height,
+            void DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
+                int dc_atx, int dc_aty, int dc_width, int dc_height,
                 int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
                 int scroll_y);
             void DrawTextUsingFont(int hDC, String ^text, int fontNum,

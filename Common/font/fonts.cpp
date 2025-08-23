@@ -54,6 +54,8 @@ struct Font
     // First and last character code supported in this font; -1 if not initialized
     int                 FirstCharCode = -1;
     int                 LastCharCode = -1;
+    // Cached list of valid character codes in this font
+    std::vector<int>    ValidCharCodes;
 
     // Outline buffers
     Bitmap TextStencil, TextStencilSub;
@@ -257,6 +259,18 @@ int get_font_topmost_char_code(int font_number)
         fonts[font_number].LastCharCode = range.second;
     }
     return fonts[font_number].LastCharCode;
+}
+
+void get_font_valid_char_codes(int font_number, std::vector<int> &charcodes)
+{
+    if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
+        return;
+
+    if (fonts[font_number].ValidCharCodes.size() == 0)
+    {
+        fonts[font_number].RendererInt->GetValidCharCodes(font_number, fonts[font_number].ValidCharCodes);
+    }
+    charcodes = fonts[font_number].ValidCharCodes;
 }
 
 const char *get_font_name(int font_number)

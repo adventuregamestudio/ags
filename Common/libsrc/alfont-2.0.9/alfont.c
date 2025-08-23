@@ -539,15 +539,18 @@ ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *to
   *bottom = f->face_bbox.ymin;
 }
 
-ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode) {
+ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode, int *num_charcodes) {
   /* See: https://freetype.sourceforge.net/freetype2/docs/reference/ft2-base_interface.html#FT_Get_First_Char */
   FT_ULong  charcode;
   FT_UInt   gindex;
+  int       found_charcodes;
   
+  found_charcodes = 0;
   charcode = FT_Get_First_Char(f->face, &gindex);
   if (first_charcode)
     *first_charcode = charcode;
   while (gindex != 0) {
+    found_charcodes++;
     FT_ULong next_charcode = FT_Get_Next_Char(f->face, charcode, &gindex);
     if (next_charcode) {
       charcode = next_charcode;
@@ -555,7 +558,35 @@ ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_ch
   }
   if (last_charcode)
     *last_charcode = charcode;
+  if (num_charcodes)
+    *num_charcodes = found_charcodes;
 }
+
+
+ALFONT_DLL_DECLSPEC int alfont_get_valid_charcodes(ALFONT_FONT *f, int **charcodes) {
+  int num_charcodes;
+  int char_index;
+  FT_ULong  charcode;
+  FT_UInt   gindex;
+
+  ASSERT(charcodes);
+  if (!charcodes)
+    return 0;
+
+  alfont_get_charcode_range(f, NULL, NULL, &num_charcodes);
+  if (num_charcodes == 0)
+    return 0;
+
+  *charcodes = malloc(sizeof(int) * num_charcodes);
+  char_index = 0;
+  charcode = FT_Get_First_Char(f->face, &gindex);
+  while (gindex != 0) {
+    (*charcodes)[char_index++] = charcode;
+    charcode = FT_Get_Next_Char(f->face, charcode, &gindex);
+  }
+  return num_charcodes;
+}
+
 
 void alfont_exit(void) {
   if (alfont_inited) {

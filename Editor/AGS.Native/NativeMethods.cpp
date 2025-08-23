@@ -57,8 +57,9 @@ extern bool reload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
 // Get the loaded font's metrics (note: expand if necessary)
 extern void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox);
+extern void GetFontValidCharacters(int fontnum, std::vector<int> &char_codes);
 // Draws font char sheet on the provided context
-extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
+extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
     int scroll_y);
@@ -334,12 +335,23 @@ namespace AGS
                 System::Drawing::Rectangle(bbox.Left, bbox.Top, bbox.GetWidth(), bbox.GetHeight()));
         }
 
-		void NativeMethods::DrawFont(int hDC, int fontNum, bool ansi_mode,
+        cli::array<int> ^NativeMethods::GetFontValidCharacters(int fontNum)
+        {
+            std::vector<int> char_codes;
+            ::GetFontValidCharacters(fontNum, char_codes);
+            cli::array<int> ^arr = gcnew cli::array<int>(char_codes.size());
+            for (size_t i = 0; i < char_codes.size(); ++i)
+                arr[i] = char_codes[i];
+            return arr;
+        }
+
+		void NativeMethods::DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
             int dc_atx, int dc_aty, int dc_width, int dc_height,
             int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
             int scroll_y)
 		{
-			return DrawFontAt((HDC)hDC, fontNum, ansi_mode, dc_atx, dc_aty, dc_width, dc_height,
+			return DrawFontAt((HDC)hDC, fontNum, ansi_mode, only_valid_chars,
+                              dc_atx, dc_aty, dc_width, dc_height,
                               cell_w, cell_h, cell_space_x, cell_space_y, scaling,
                               scroll_y);
 		}

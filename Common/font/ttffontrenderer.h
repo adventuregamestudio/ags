@@ -47,6 +47,7 @@ public:
   void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
   void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
   void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
+  void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
 
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();

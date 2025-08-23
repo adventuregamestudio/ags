@@ -44,6 +44,9 @@ bool font_supports_extended_characters(int font_number);
 // Gets font's topmost available char code;
 // returns -1 if this information is not available
 int get_font_topmost_char_code(int font_number);
+// Gets font's valid character codes;
+// this means character codes for which this font has glyphs
+void get_font_valid_char_codes(int font_number, std::vector<int> &charcodes);
 // Get font's name, if it's available, otherwise returns empty string
 const char *get_font_name(int font_number);
 // Get a collection of FFLG_* flags corresponding to this font

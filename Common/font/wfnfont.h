@@ -58,6 +58,11 @@ struct WFNChar
 
     WFNChar();
 
+    inline bool IsValid() const
+    {
+        return Width != 0 && Height != 0;
+    }
+
     inline size_t GetRowByteCount() const
     {
         return (Width + 7) / 8;

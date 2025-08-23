@@ -78,8 +78,12 @@ ALFONT_DLL_DECLSPEC int alfont_get_font_height(ALFONT_FONT *f);
 ALFONT_DLL_DECLSPEC int alfont_get_font_real_height(ALFONT_FONT *f);
 /* Returns the font's glyph maximal bound box */
 ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *top, int *right, int *bottom);
-/* Returns first and last character codes found in the font */
-ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode);
+/* Returns first and last character codes found in the font, and number of valid character codes */
+ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode, int *num_charcodes);
+/* Creates an array containing all the valid character codes found in this font,
+*  returns the length of array.
+   The array is created with malloc() and must be disposed using free(). */
+ALFONT_DLL_DECLSPEC int alfont_get_valid_charcodes(ALFONT_FONT *f, int **charcodes);
 
 ALFONT_DLL_DECLSPEC int alfont_text_mode(int mode);
 

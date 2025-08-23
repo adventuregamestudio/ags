@@ -486,15 +486,23 @@ namespace AGS.Editor
             int width = ClientSize.Width;
             int height = ClientSize.Height;
             int scroll_y = _grid.ScrollY;
+            int firstVisibleRow = (scroll_y) / (_grid.CellHeight + _grid.CellSpaceY);
+            int firstVisibleCell = firstVisibleRow * _grid.CharsPerRow;
+            int lastVisibleRow = firstVisibleRow + (_grid.GridHeight / (_grid.CellHeight + _grid.CellSpaceY));
+            int lastVisibleCell = lastVisibleRow * _grid.CharsPerRow + _grid.CharsPerRow;
+            lastVisibleCell = Math.Min(lastVisibleCell, _charCodes.Length - 1);
 
             g.Clear(Color.Black);
             bool hdcReleased = false;
             try
             {
+                int firstRowDrawPos = _grid.CellSpaceY + firstVisibleRow * (_grid.CellHeight + _grid.CellSpaceY)
+                    - scroll_y;
                 Factory.NativeProxy.DrawFont(g.GetHdc(), _fontNumber, ANSIMode, HideMissingCharacters,
-                    0, 0, width, height,
+                    0, 0, _grid.CellSpaceX, firstRowDrawPos,
                     _grid.CellWidth, _grid.CellHeight, _grid.CellSpaceX, _grid.CellSpaceY,
-                    _scaling, scroll_y);
+                    _grid.CharsPerRow, lastVisibleRow - firstVisibleRow + 1, firstVisibleCell,
+                    _scaling);
                 g.ReleaseHdc();
                 hdcReleased = true;
             }
@@ -522,11 +530,6 @@ namespace AGS.Editor
             // Print char codes
             if (DisplayCodes)
             {
-                int firstVisibleRow = (scroll_y) / (_grid.CellHeight + _grid.CellSpaceY);
-                int firstVisibleCell = firstVisibleRow * _grid.CharsPerRow;
-                int lastVisibleRow = firstVisibleRow + (_grid.GridHeight / (_grid.CellHeight + _grid.CellSpaceY));
-                int lastVisibleCell = lastVisibleRow * _grid.CharsPerRow + _grid.CharsPerRow;
-                lastVisibleCell = Math.Min(lastVisibleCell, _charCodes.Length - 1);
                 int lastCharCode = _fontMetrics.LastCharCode;
                 if (ANSIMode)
                     lastCharCode = Math.Min(lastCharCode, 255);

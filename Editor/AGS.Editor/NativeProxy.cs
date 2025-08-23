@@ -121,14 +121,15 @@ namespace AGS.Editor
         }
 
         public void DrawFont(IntPtr hdc, int fontNum, bool ansi_mode, bool only_valid_chars,
-                int dc_atx, int dc_aty, int dc_width, int dc_height,
-                int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
-                int scroll_y)
+                int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+                int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+                int col_count, int row_count, int first_cell,
+                float scaling)
         {
             _native.DrawFont((int)hdc, fontNum, ansi_mode, only_valid_chars,
-                dc_atx, dc_aty, dc_width, dc_height,
-                cell_w, cell_h, cell_space_x, cell_space_y, scaling,
-                scroll_y);
+                dc_atx, dc_aty, draw_atx, draw_aty,
+                cell_w, cell_h, cell_space_x, cell_space_y,
+                col_count, row_count, first_cell, scaling);
         }
 
         public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum,

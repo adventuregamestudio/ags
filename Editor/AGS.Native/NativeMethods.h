@@ -90,9 +90,10 @@ namespace AGS
             cli::array<int> ^GetFontValidCharacters(int fontNum);
             // Draws font char sheet on the provided context
             void DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
-                int dc_atx, int dc_aty, int dc_width, int dc_height,
-                int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
-                int scroll_y);
+                int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+                int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+                int col_count, int row_count, int first_cell,
+                float scaling);
             void DrawTextUsingFont(int hDC, String ^text, int fontNum,
                 int dc_atx, int dc_aty, int dc_width, int dc_height,
                 int text_atx, int text_aty, int max_width, float scaling);

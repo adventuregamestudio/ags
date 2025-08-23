@@ -261,16 +261,16 @@ int get_font_topmost_char_code(int font_number)
     return fonts[font_number].LastCharCode;
 }
 
-void get_font_valid_char_codes(int font_number, std::vector<int> &charcodes)
+const std::vector<int> *get_font_valid_char_codes(int font_number)
 {
     if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
-        return;
+        return nullptr;
 
     if (fonts[font_number].ValidCharCodes.size() == 0)
     {
         fonts[font_number].RendererInt->GetValidCharCodes(font_number, fonts[font_number].ValidCharCodes);
     }
-    charcodes = fonts[font_number].ValidCharCodes;
+    return &fonts[font_number].ValidCharCodes;
 }
 
 const char *get_font_name(int font_number)

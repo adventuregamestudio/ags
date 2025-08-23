@@ -921,44 +921,45 @@ void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox)
 
 void GetFontValidCharacters(int fontnum, std::vector<int> &char_codes)
 {
-    get_font_valid_char_codes(fontnum, char_codes);
+    const auto *codes = get_font_valid_char_codes(fontnum);
+    if (codes)
+        char_codes = *codes;
 }
 
 void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
-    int dc_atx, int dc_aty, int dc_width, int dc_height,
-    int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
-    int scroll_y)
+    int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+    int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+    int col_count, int row_count, int first_cell,
+    float scaling)
 {
     assert(fontnum < thisgame.numfonts);
     if (fontnum >= thisgame.numfonts)
         return;
 
-    assert(dc_width > 0 && dc_height > 0);
-    if (dc_width <= 0 || dc_height <= 0)
+    assert(cell_w > 0 && cell_h > 0 && col_count > 0 && row_count > 0);
+    if (cell_w <= 0 || cell_h <= 0 || col_count <= 0 || row_count <= 0)
         return;
 
-    assert(scroll_y >= 0);
-    if (scroll_y < 0)
-        scroll_y = 0;
+    assert(first_cell >= 0);
+    if (first_cell < 0)
+        first_cell = 0;
 
     if (!is_font_loaded(fontnum))
         reload_font(fontnum);
 
-    std::vector<int> char_codes;
+    const std::vector<int> *char_codes = nullptr;
     if (only_valid_chars)
-        get_font_valid_char_codes(fontnum, char_codes);
+        char_codes = get_font_valid_char_codes(fontnum);
 
     antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
     const Rect bbox = get_font_glyph_bbox(fontnum);
     const int font_y_offset = thisgame.fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table
-    const ::Size char_size = bbox.GetSize() * thisgame.fonts[fontnum].SizeMultiplier;
-    const ::Size cell_size = ::Size(cell_w, cell_h);
     const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
     int char_count = 0;
     if (only_valid_chars)
     {
-        char_count = char_codes.size();
+        char_count = char_codes->size();
     }
     else
     {
@@ -969,15 +970,8 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
         char_count = last_char - first_char + 1;
     }
 
-    const int grid_width = dc_width / scaling;
-    const int grid_height = dc_height / scaling;
-    const int chars_per_row = std::max(1, (grid_width - cell_space_x)) / (cell_size.Width + cell_space_x);
-    const int full_height = (char_count / chars_per_row + 1) * (cell_size.Height + cell_space_y)
-        + cell_space_y;
-
-    const int skip_rows = (scroll_y - cell_space_y) / (cell_size.Height + cell_space_y);
-    const int first_cell_to_draw = skip_rows * chars_per_row;
-
+    const int grid_width = col_count * (cell_w + cell_space_x) + cell_space_x;
+    const int grid_height = row_count * (cell_h + cell_space_y) + cell_space_y;
     std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
     tempblock->Fill(0);
     const color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
@@ -988,12 +982,12 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
     if (want_uformat == U_ASCII)
     {
         // ASCII / ANSI variant
-        for (int i = first_cell_to_draw; i < char_count; ++i)
+        for (int i = first_cell; i < char_count; ++i)
         {
             int c;
             if (only_valid_chars)
             {
-                c = char_codes[i];
+                c = (*char_codes)[i];
                 if (c > 255)
                     break; // in ansi mode do not print characters above code 255
             }
@@ -1001,27 +995,27 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
             {
                 c = i;
             }
-            const int char_col = (i % chars_per_row);
-            const int char_row = (i / chars_per_row);
+            const int char_col = ((i - first_cell) % col_count);
+            const int char_row = ((i - first_cell) / col_count);
             woutprintf(tempblock.get(),
-                       cell_space_x + char_col * (cell_size.Width + cell_space_x) + char_off.X,
-                       cell_space_y + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
+                       draw_atx + char_col * (cell_w + cell_space_x) + char_off.X,
+                       draw_aty + char_row * (cell_h + cell_space_y) + char_off.Y,
                        fontnum, text_color, "%c", c);
         }
     }
     else if (want_uformat == U_UTF8)
     {
         // UTF-8 variant
-        for (int i = first_cell_to_draw; i < char_count; ++i)
+        for (int i = first_cell; i < char_count; ++i)
         {
-            const int char_col = (i % chars_per_row);
-            const int char_row = (i / chars_per_row);
-            const int c = only_valid_chars ? char_codes[i] : i;
+            const int c = only_valid_chars ? (*char_codes)[i] : i;
             char uchar[Utf8::UtfSz + 1];
             uchar[Utf8::SetChar(c, uchar, sizeof(uchar))] = 0;
+            const int char_col = ((i - first_cell) % col_count);
+            const int char_row = ((i - first_cell) / col_count);
             wouttextxy(tempblock.get(),
-                       cell_space_x + char_col * (cell_size.Width + cell_space_x) + char_off.X,
-                       cell_space_y + char_row * (cell_size.Height + cell_space_y) - scroll_y + char_off.Y,
+                       draw_atx + char_col * (cell_w + cell_space_x) + char_off.X,
+                       draw_aty + char_row * (cell_h + cell_space_y) + char_off.Y,
                        fontnum, text_color, uchar);
         }
     }

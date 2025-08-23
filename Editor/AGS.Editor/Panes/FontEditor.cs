@@ -120,6 +120,20 @@ namespace AGS.Editor
             textPreviewPanel.Invalidate();
         }
 
+        private void rbUnicode_CheckedChanged(object sender, EventArgs e)
+        {
+            fontViewPanel.ANSIMode = false;
+            lblCharCode.Text = "Code: U+";
+            udCharCode.Hexadecimal = true;
+        }
+
+        private void rbANSI_CheckedChanged(object sender, EventArgs e)
+        {
+            fontViewPanel.ANSIMode = true;
+            lblCharCode.Text = "Code:";
+            udCharCode.Hexadecimal = false;
+        }
+
         private void fontViewPanel_CharacterSelected(object sender, FontPreviewGrid.CharacterSelectedEventArgs args)
         {
             udCharCode.Value = args.CharacterCode;
@@ -132,7 +146,17 @@ namespace AGS.Editor
                 _updatingCharCode = true;
                 int code = 0;
                 if (tbCharInput.Text.Length > 0)
-                    code = tbCharInput.Text[0];
+                {
+                    if (fontViewPanel.ANSIMode)
+                    {
+                        var ansiBytes = Encoding.Default.GetBytes(tbCharInput.Text);
+                        code = ansiBytes[0];
+                    }
+                    else
+                    {
+                        code = tbCharInput.Text[0];
+                    }
+                }
                 udCharCode.Value = (code >= udCharCode.Minimum && code <= udCharCode.Maximum) ? code : 0;
 
                 // Automatically scroll the preview to the selected character
@@ -228,6 +252,11 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+
+                if (Factory.AGSEditor.CurrentGame.UnicodeMode)
+                    rbUnicode.Checked = true;
+                else
+                    rbANSI.Checked = false;
             }
         }
     }

@@ -10,6 +10,7 @@ namespace AGS.Editor
         private int _fontNumber = -1;
         private Native.FontMetrics _fontMetrics;
         private float _scaling = 1.0f;
+        private bool _ansiMode = false;
         private int _selectedChar = -1;
         private bool _displayCodes = false;
 
@@ -61,6 +62,19 @@ namespace AGS.Editor
                     throw new ArgumentOutOfRangeException();
 
                 _scaling = value;
+                if (!DesignMode)
+                {
+                    UpdateAndRepaint();
+                }
+            }
+        }
+
+        public bool ANSIMode
+        {
+            get { return _ansiMode; }
+            set
+            {
+                _ansiMode = value;
                 if (!DesignMode)
                 {
                     UpdateAndRepaint();
@@ -171,6 +185,7 @@ namespace AGS.Editor
 
             PrecalculatePreviewGrid();
             _grid.ScrollY = MathExtra.Clamp(_grid.ScrollY, 0, _grid.MaxScrollY);
+
             Invalidate();
         }
 
@@ -199,6 +214,8 @@ namespace AGS.Editor
             int chars_per_row = Math.Max(1, (grid_width - cell_space_x) / (cell_w + cell_space_x));
             int first_char = 0; // we draw starting with char 0 always, just as a convention
             int last_char = _fontMetrics.LastCharCode;
+            if (ANSIMode)
+                last_char = Math.Min(last_char, 255);
             int char_count = (last_char - first_char + 1);
             int full_height = (char_count / chars_per_row + 1) * (cell_h + cell_space_y)
                  + cell_space_y;
@@ -393,7 +410,7 @@ namespace AGS.Editor
             bool hdcReleased = false;
             try
             {
-                Factory.NativeProxy.DrawFont(g.GetHdc(), _fontNumber, 0, 0, width, height,
+                Factory.NativeProxy.DrawFont(g.GetHdc(), _fontNumber, ANSIMode, 0, 0, width, height,
                     _grid.CellWidth, _grid.CellHeight, _grid.CellSpaceX, _grid.CellSpaceY,
                     _scaling, scroll_y);
                 g.ReleaseHdc();
@@ -437,7 +454,10 @@ namespace AGS.Editor
                         Rectangle pos = new Rectangle(cellLeftBottom.X, cellLeftBottom.Y - _codeCue.Height,
                             _codeCue.Width, _codeCue.Height);
                         g.FillRectangle(Brushes.LightGray, pos);
-                        g.DrawString(code.ToString("X4"), _codeCue.Font, Brushes.Black, pos.X + 1, pos.Y + 1);
+                        if (ANSIMode)
+                            g.DrawString(code.ToString(), _codeCue.Font, Brushes.Black, pos.X + 1, pos.Y + 1);
+                        else
+                            g.DrawString(code.ToString("X4"), _codeCue.Font, Brushes.Black, pos.X + 1, pos.Y + 1);
                     }
                 }
             }

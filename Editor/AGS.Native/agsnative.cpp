@@ -919,7 +919,7 @@ void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox)
     char_bbox = get_font_glyph_bbox(fontnum);
 }
 
-void DrawFontAt(HDC hdc, int fontnum,
+void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
     int scroll_y)
@@ -947,7 +947,9 @@ void DrawFontAt(HDC hdc, int fontnum,
     const ::Size cell_size = ::Size(cell_w, cell_h);
     const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
     const int first_char = 0;
-    const int last_char  = get_font_topmost_char_code(fontnum);
+    const int last_char  = ansi_mode ?
+        std::min(255, get_font_topmost_char_code(fontnum)) :
+        get_font_topmost_char_code(fontnum);
     const int char_count = last_char - first_char + 1;
 
     const int grid_width = dc_width / scaling;
@@ -962,8 +964,11 @@ void DrawFontAt(HDC hdc, int fontnum,
     std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
     tempblock->Fill(0);
     const color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
-    const int uformat = get_uformat();
-    if (uformat == U_ASCII)
+    const int old_uformat = get_uformat();
+    const int want_uformat = ansi_mode ? U_ASCII : U_UTF8;
+    if (old_uformat != want_uformat)
+        set_uformat(want_uformat);
+    if (want_uformat == U_ASCII)
     {
         // ASCII / ANSI variant
         for (int c = first_char_to_draw; c <= last_char; ++c)
@@ -976,7 +981,7 @@ void DrawFontAt(HDC hdc, int fontnum,
                        fontnum, text_color, "%c", c);
         }
     }
-    else if (uformat == U_UTF8)
+    else if (want_uformat == U_UTF8)
     {
         // UTF-8 variant
         for (int c = first_char_to_draw; c <= last_char; ++c)
@@ -991,6 +996,8 @@ void DrawFontAt(HDC hdc, int fontnum,
                        fontnum, text_color, uchar);
         }
     }
+    if (old_uformat != want_uformat)
+        set_uformat(old_uformat);
 
     if (scaling != 1.f)
         drawBlockScaledAt(hdc, tempblock.get(), dc_atx, dc_aty, scaling);

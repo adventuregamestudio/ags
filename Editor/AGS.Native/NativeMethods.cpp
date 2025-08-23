@@ -58,7 +58,7 @@ extern bool measure_font_height(const AGSString &filename, int pixel_height, int
 // Get the loaded font's metrics (note: expand if necessary)
 extern void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox);
 // Draws font char sheet on the provided context
-extern void DrawFontAt(HDC hdc, int fontnum,
+extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
     int scroll_y);
@@ -334,12 +334,12 @@ namespace AGS
                 System::Drawing::Rectangle(bbox.Left, bbox.Top, bbox.GetWidth(), bbox.GetHeight()));
         }
 
-		void NativeMethods::DrawFont(int hDC, int fontNum,
+		void NativeMethods::DrawFont(int hDC, int fontNum, bool ansi_mode,
             int dc_atx, int dc_aty, int dc_width, int dc_height,
             int cell_w, int cell_h, int cell_space_x, int cell_space_y, float scaling,
             int scroll_y)
 		{
-			return DrawFontAt((HDC)hDC, fontNum, dc_atx, dc_aty, dc_width, dc_height,
+			return DrawFontAt((HDC)hDC, fontNum, ansi_mode, dc_atx, dc_aty, dc_width, dc_height,
                               cell_w, cell_h, cell_space_x, cell_space_y, scaling,
                               scroll_y);
 		}

@@ -113,6 +113,8 @@ public:
     virtual void GetFontMetrics(int fontNumber, FontMetrics *metrics) = 0;
     // Perform any necessary adjustments when the AA mode is toggled
     virtual void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) = 0;
+    // Sets additional character spacing, in pixels (can be positive or negative)
+    virtual void SetCharacterSpacing(int fontNumber, int spacing) = 0;
 
 protected:
     IAGSFontRendererInternal() = default;

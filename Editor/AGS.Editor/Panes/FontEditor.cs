@@ -56,6 +56,11 @@ namespace AGS.Editor
                 textPreviewPanel.Invalidate();
         }
 
+        public void OnTextFormatUpdated()
+        {
+            SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
+        }
+
         public void UpdatePreviewScaling()
         {
             fontViewPanel.Scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
@@ -120,18 +125,35 @@ namespace AGS.Editor
             textPreviewPanel.Invalidate();
         }
 
+        private void SetFontPreviewMode(bool unicodeMode)
+        {
+            if (unicodeMode)
+            {
+                fontViewPanel.ANSIMode = false;
+                lblCharCode.Text = "Code: U+";
+                udCharCode.Hexadecimal = true;
+            }
+            else
+            {
+                fontViewPanel.ANSIMode = true;
+                lblCharCode.Text = "Code:";
+                udCharCode.Hexadecimal = false;
+            }
+        }
+
+        private void rbPreviewAuto_CheckedChanged(object sender, EventArgs e)
+        {
+            SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
+        }
+
         private void rbUnicode_CheckedChanged(object sender, EventArgs e)
         {
-            fontViewPanel.ANSIMode = false;
-            lblCharCode.Text = "Code: U+";
-            udCharCode.Hexadecimal = true;
+            SetFontPreviewMode(true);
         }
 
         private void rbANSI_CheckedChanged(object sender, EventArgs e)
         {
-            fontViewPanel.ANSIMode = true;
-            lblCharCode.Text = "Code:";
-            udCharCode.Hexadecimal = false;
+            SetFontPreviewMode(false);
         }
 
         private void fontViewPanel_CharacterSelected(object sender, FontPreviewGrid.CharacterSelectedEventArgs args)
@@ -252,11 +274,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
-
-                if (Factory.AGSEditor.CurrentGame.UnicodeMode)
-                    rbUnicode.Checked = true;
-                else
-                    rbANSI.Checked = false;
+                SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
             }
         }
     }

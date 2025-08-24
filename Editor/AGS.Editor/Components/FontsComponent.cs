@@ -224,6 +224,7 @@ namespace AGS.Editor.Components
                 var fontEditor = doc.Control as FontEditor;
                 if (fontEditor != null)
                 {
+                    fontEditor.OnTextFormatUpdated();
                     fontEditor.UpdatePreviewScaling();
                 }
             }

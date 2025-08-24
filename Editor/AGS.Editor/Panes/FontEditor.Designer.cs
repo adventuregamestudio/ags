@@ -32,6 +32,9 @@ namespace AGS.Editor
             this.panel1 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tbTextPreview = new System.Windows.Forms.TextBox();
+            this.rbANSI = new System.Windows.Forms.RadioButton();
+            this.rbUnicode = new System.Windows.Forms.RadioButton();
+            this.label2 = new System.Windows.Forms.Label();
             this.chkDisplayCodes = new System.Windows.Forms.CheckBox();
             this.btnGotoChar = new System.Windows.Forms.Button();
             this.tbCharInput = new System.Windows.Forms.TextBox();
@@ -40,9 +43,7 @@ namespace AGS.Editor
             this.lblCharCode = new System.Windows.Forms.Label();
             this.btnImportFont = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.rbUnicode = new System.Windows.Forms.RadioButton();
-            this.rbANSI = new System.Windows.Forms.RadioButton();
+            this.rbPreviewAuto = new System.Windows.Forms.RadioButton();
             this.textPreviewPanel = new AGS.Editor.BufferedPanel();
             this.fontViewPanel = new AGS.Editor.FontPreviewGrid();
             this.currentItemGroupBox.SuspendLayout();
@@ -99,6 +100,7 @@ namespace AGS.Editor
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.rbPreviewAuto);
             this.splitContainer1.Panel2.Controls.Add(this.rbANSI);
             this.splitContainer1.Panel2.Controls.Add(this.rbUnicode);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
@@ -129,6 +131,38 @@ namespace AGS.Editor
             this.tbTextPreview.TabIndex = 1;
             this.tbTextPreview.Text = "The quick brown fox jumps over the lazy dog.";
             this.tbTextPreview.TextChanged += new System.EventHandler(this.tbTextPreview_TextChanged);
+            // 
+            // rbANSI
+            // 
+            this.rbANSI.AutoSize = true;
+            this.rbANSI.Location = new System.Drawing.Point(306, 6);
+            this.rbANSI.Name = "rbANSI";
+            this.rbANSI.Size = new System.Drawing.Size(88, 17);
+            this.rbANSI.TabIndex = 2;
+            this.rbANSI.Text = "ASCII / ANSI";
+            this.rbANSI.UseVisualStyleBackColor = true;
+            this.rbANSI.CheckedChanged += new System.EventHandler(this.rbANSI_CheckedChanged);
+            // 
+            // rbUnicode
+            // 
+            this.rbUnicode.AutoSize = true;
+            this.rbUnicode.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.rbUnicode.Location = new System.Drawing.Point(235, 6);
+            this.rbUnicode.Name = "rbUnicode";
+            this.rbUnicode.Size = new System.Drawing.Size(65, 17);
+            this.rbUnicode.TabIndex = 1;
+            this.rbUnicode.Text = "Unicode";
+            this.rbUnicode.UseVisualStyleBackColor = true;
+            this.rbUnicode.CheckedChanged += new System.EventHandler(this.rbUnicode_CheckedChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 7);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(77, 13);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Preview mode:";
             // 
             // chkDisplayCodes
             // 
@@ -213,38 +247,18 @@ namespace AGS.Editor
             this.label1.TabIndex = 0;
             this.label1.Text = "Use the property grid on the right to change basic settings.";
             // 
-            // label2
+            // rbPreviewAuto
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 7);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(77, 13);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Preview mode:";
-            // 
-            // rbUnicode
-            // 
-            this.rbUnicode.AutoSize = true;
-            this.rbUnicode.Checked = true;
-            this.rbUnicode.Location = new System.Drawing.Point(93, 6);
-            this.rbUnicode.Name = "rbUnicode";
-            this.rbUnicode.Size = new System.Drawing.Size(65, 17);
-            this.rbUnicode.TabIndex = 1;
-            this.rbUnicode.TabStop = true;
-            this.rbUnicode.Text = "Unicode";
-            this.rbUnicode.UseVisualStyleBackColor = true;
-            this.rbUnicode.CheckedChanged += new System.EventHandler(this.rbUnicode_CheckedChanged);
-            // 
-            // rbANSI
-            // 
-            this.rbANSI.AutoSize = true;
-            this.rbANSI.Location = new System.Drawing.Point(164, 6);
-            this.rbANSI.Name = "rbANSI";
-            this.rbANSI.Size = new System.Drawing.Size(88, 17);
-            this.rbANSI.TabIndex = 2;
-            this.rbANSI.Text = "ASCII / ANSI";
-            this.rbANSI.UseVisualStyleBackColor = true;
-            this.rbANSI.CheckedChanged += new System.EventHandler(this.rbANSI_CheckedChanged);
+            this.rbPreviewAuto.AutoSize = true;
+            this.rbPreviewAuto.Checked = true;
+            this.rbPreviewAuto.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.rbPreviewAuto.Location = new System.Drawing.Point(91, 6);
+            this.rbPreviewAuto.Name = "rbPreviewAuto";
+            this.rbPreviewAuto.Size = new System.Drawing.Size(138, 17);
+            this.rbPreviewAuto.TabIndex = 10;
+            this.rbPreviewAuto.Text = "Auto (use Game setting)";
+            this.rbPreviewAuto.UseVisualStyleBackColor = true;
+            this.rbPreviewAuto.CheckedChanged += new System.EventHandler(this.rbPreviewAuto_CheckedChanged);
             // 
             // textPreviewPanel
             // 
@@ -268,6 +282,7 @@ namespace AGS.Editor
             this.fontViewPanel.AutoScroll = true;
             this.fontViewPanel.DisplayCodes = false;
             this.fontViewPanel.GameFontNumber = -1;
+            this.fontViewPanel.HideMissingCharacters = true;
             this.fontViewPanel.Location = new System.Drawing.Point(6, 57);
             this.fontViewPanel.Name = "fontViewPanel";
             this.fontViewPanel.Scaling = 1F;
@@ -317,5 +332,6 @@ namespace AGS.Editor
         private System.Windows.Forms.RadioButton rbANSI;
         private System.Windows.Forms.RadioButton rbUnicode;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.RadioButton rbPreviewAuto;
     }
 }

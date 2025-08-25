@@ -164,7 +164,9 @@ namespace AGS.Editor.Components
                 return;
             }
 
-            bool fontStyleChanged = (propertyName == "SourceFilename" || propertyName == "Font Size" || propertyName == "SizeMultiplier");
+            bool fontStyleChanged =
+                (propertyName == "SourceFilename" || propertyName == "Font Size"
+                || propertyName == "SizeMultiplier" || propertyName == "TTF font adjustment");
             bool fontGlyphPositionChanged = true; // any other property changes this
             Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, (propertyName == "SourceFilename"));
             if (fontStyleChanged || fontGlyphPositionChanged)

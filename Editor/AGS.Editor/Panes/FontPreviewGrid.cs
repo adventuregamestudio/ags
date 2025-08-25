@@ -233,9 +233,11 @@ namespace AGS.Editor
 
             int width = ClientSize.Width;
             int height = ClientSize.Height;
+            // When reading BBox be aware that it may be "shifted" to the negative and positive side,
+            // but the drawing origin is always at 0,0.
             Rectangle bbox = _fontMetrics.CharBBox;
-            int cell_w = Math.Max(10, bbox.Width);
-            int cell_h = Math.Max(10, bbox.Height);
+            int cell_w = Math.Max(10, Math.Max(0, bbox.Left) + bbox.Width);
+            int cell_h = Math.Max(10, Math.Max(0, bbox.Top) + bbox.Height);
             // We want cell spacing to include a place for printing character codes;
             // remember that the cue sizes are in unscaled coords, so pre-unscale them here
             int cell_space_x = Math.Max(cell_w / 4, (int)(_codeCue.Width / _scaling) + 1 - cell_w);

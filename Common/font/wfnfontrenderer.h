@@ -43,8 +43,10 @@ public:
   bool IsBitmapFont() override;
   bool LoadFromDiskEx(int fontNumber, int fontSize, const String &filename, String *src_filename,
       const FontRenderParams *params, FontMetrics *metrics) override;
-  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
+  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
+  void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
+  void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}

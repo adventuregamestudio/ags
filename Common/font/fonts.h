@@ -41,6 +41,12 @@ bool font_first_renderer_loaded();
 bool is_font_loaded(int font_number);
 bool is_bitmap_font(int font_number);
 bool font_supports_extended_characters(int font_number);
+// Gets font's topmost available char code;
+// returns -1 if this information is not available
+int get_font_topmost_char_code(int font_number);
+// Gets font's valid character codes;
+// this means character codes for which this font has glyphs
+const std::vector<int> *get_font_valid_char_codes(int font_number);
 // Get font's name, if it's available, otherwise returns empty string
 const char *get_font_name(int font_number);
 // Get a collection of FFLG_* flags corresponding to this font
@@ -69,6 +75,8 @@ int get_font_surface_height_outlined(int font_number);
 // relative to the "pen" position. Besides letting to calculate the surface height,
 // this information also lets to detect if some of the glyphs may appear above y0.
 std::pair<int, int> get_font_surface_extent(int font_number);
+// Get font's glyphs max bounding box, in pixels relative to the "pen" position.
+Rect get_font_glyph_bbox(int font_number);
 // Get font's line spacing
 int get_font_linespacing(int font_number);
 // Set font's line spacing
@@ -147,7 +155,7 @@ public:
 
 private:
     std::vector<AGS::Common::String> _pool;
-    size_t _count; // actual number of lines in use
+    size_t _count = 0; // actual number of lines in use
 };
 
 // Break up the text into lines restricted by the given width;

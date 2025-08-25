@@ -122,6 +122,19 @@ bool WFNFontRenderer::IsBitmapFont()
     return true;
 }
 
+// Fill the FontMetrics struct from the given WFNFont
+static void FillMetrics(const WFNFont *font, FontMetrics *metrics)
+{
+    metrics->NominalHeight = font->GetHeight();
+    metrics->RealHeight = font->GetHeight();
+    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
+    metrics->BBox = font->GetBBox();
+    metrics->VExtent = std::make_pair(metrics->BBox.Top, metrics->BBox.Bottom);
+    // fix it up to be *not less* than realheight
+    metrics->VExtent.first = std::min(0, metrics->VExtent.first);
+    metrics->VExtent.second = std::max(metrics->RealHeight - 1, metrics->VExtent.second);
+}
+
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const String &filename,
     String *src_filename, const FontRenderParams *params, FontMetrics *metrics)
 {
@@ -147,8 +160,32 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
   if (src_filename)
     *src_filename = use_filename;
   if (metrics)
-    *metrics = FontMetrics();
+    FillMetrics(font, metrics);
   return true;
+}
+
+void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
+{
+    FillMetrics(_fontData[fontNumber].Font, metrics);
+}
+
+void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes)
+{
+    if (_fontData[fontNumber].Font->GetCharCount() == 0)
+        *char_codes = std::make_pair(0, 0);
+    else
+        *char_codes = std::make_pair(0,
+            static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
+}
+
+void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
+{
+    const WFNFont *font = _fontData[fontNumber].Font;
+    for (int i = 0; i < font->GetCharCount(); ++i)
+    {
+        if (font->GetChar(i).IsValid())
+            char_codes.push_back(i);
+    }
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)

@@ -55,9 +55,18 @@ extern void save_default_crm_file(Room ^roomToSave);
 extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
-// Draws font char sheet on the provided context and returns the height of drawn object;
-// may be called with hdc = 0 to get required height without drawing anything
-extern int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int height, int scroll_y);
+// Get the loaded font's metrics (note: expand if necessary)
+extern void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox);
+extern void GetFontValidCharacters(int fontnum, std::vector<int> &char_codes);
+// Draws font char sheet on the provided context
+extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
+    int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+    int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+    int col_count, int row_count, int first_cell,
+    float scaling);
+extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum,
+    int dc_atx, int dc_aty, int dc_width, int dc_height,
+    int text_atx, int text_aty, int max_width, float scaling);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(HDC hdc, int x, int y, GUI^ gui, int resolutionFactor, float scale, int control_transparency, int selectedControl);
 extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
@@ -318,10 +327,43 @@ namespace AGS
 			drawSprite((HDC)hDC, x, y, spriteNum, flipImage);
 		}
 
-		int NativeMethods::DrawFont(int hDC, int fontNum, int draw_atx, int draw_aty, int width, int height, int scroll_y)
-		{
-			return drawFontAt((HDC)hDC, fontNum, draw_atx, draw_aty, width, height, scroll_y);
-		}
+        Native::FontMetrics ^NativeMethods::GetFontMetrics(int fontNum)
+        {
+            int last_char;
+            Rect bbox;
+            ::GetFontMetrics(fontNum, last_char, bbox);
+            return gcnew Native::FontMetrics(0, last_char,
+                System::Drawing::Rectangle(bbox.Left, bbox.Top, bbox.GetWidth(), bbox.GetHeight()));
+        }
+
+        cli::array<int> ^NativeMethods::GetFontValidCharacters(int fontNum)
+        {
+            std::vector<int> char_codes;
+            ::GetFontValidCharacters(fontNum, char_codes);
+            cli::array<int> ^arr = gcnew cli::array<int>(char_codes.size());
+            for (size_t i = 0; i < char_codes.size(); ++i)
+                arr[i] = char_codes[i];
+            return arr;
+        }
+
+        void NativeMethods::DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
+            int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+            int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+            int col_count, int row_count, int first_cell,
+            float scaling)
+        {
+            return DrawFontAt((HDC)hDC, fontNum, ansi_mode, only_valid_chars,
+                dc_atx, dc_aty, draw_atx, draw_aty,
+                cell_w, cell_h, cell_space_x, cell_space_y,
+                col_count, row_count, first_cell, scaling);
+        }
+
+        void NativeMethods::DrawTextUsingFont(int hDC, String ^text, int fontNum,
+            int dc_atx, int dc_aty, int dc_width, int dc_height,
+            int text_atx, int text_aty, int max_width, float scaling)
+        {
+            DrawTextUsingFontAt((HDC)hDC, text, fontNum, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
+        }
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)
 		{

@@ -110,9 +110,33 @@ namespace AGS.Editor
 			}
         }
 
-        public int DrawFont(IntPtr hdc, int fontNum, int x, int y, int width, int height, int scroll_y)
+        public Native.FontMetrics GetFontMetrics(int fontNum)
         {
-            return _native.DrawFont((int)hdc, fontNum, x, y, width, height, scroll_y);
+            return _native.GetFontMetrics(fontNum);
+        }
+
+        public int[] GetFontValidCharacters(int fontNum)
+        {
+            return _native.GetFontValidCharacters(fontNum);
+        }
+
+        public void DrawFont(IntPtr hdc, int fontNum, bool ansi_mode, bool only_valid_chars,
+                int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+                int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+                int col_count, int row_count, int first_cell,
+                float scaling)
+        {
+            _native.DrawFont((int)hdc, fontNum, ansi_mode, only_valid_chars,
+                dc_atx, dc_aty, draw_atx, draw_aty,
+                cell_w, cell_h, cell_space_x, cell_space_y,
+                col_count, row_count, first_cell, scaling);
+        }
+
+        public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum,
+            int dc_atx, int dc_aty, int dc_width, int dc_height,
+            int text_atx, int text_aty, int max_width, float scaling)
+        {
+            _native.DrawTextUsingFont((int)hdc, text, fontNum, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
         }
 
         public void DrawSprite(IntPtr hdc, int x, int y, int width, int height, int spriteNum, bool flipImage = false)

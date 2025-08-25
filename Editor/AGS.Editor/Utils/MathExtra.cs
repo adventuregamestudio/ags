@@ -7,6 +7,9 @@ namespace AGS.Editor
     {
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable<T>
         {
+            if (min.CompareTo(max) > 0)
+                throw new ArgumentOutOfRangeException("Max is less than min");
+
             if (val.CompareTo(min) < 0) return min;
             else if (val.CompareTo(max) > 0) return max;
             else return val;

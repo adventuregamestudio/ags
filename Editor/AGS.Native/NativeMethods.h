@@ -27,6 +27,41 @@ namespace AGS
 {
 	namespace Native 
 	{
+        public ref class FontMetrics
+        {
+        public:
+            property int FirstCharCode;
+            property int LastCharCode;
+            property System::Drawing::Rectangle CharBBox;
+
+            static property FontMetrics ^Empty
+            {
+                FontMetrics ^get()
+                {
+                    if (_empty == nullptr)
+                        _empty = gcnew FontMetrics();
+                    return _empty;
+                }
+            }
+
+            FontMetrics(int first_char, int last_char, System::Drawing::Rectangle bbox)
+            {
+                FirstCharCode = first_char;
+                LastCharCode = last_char;
+                CharBBox = bbox;
+            }
+
+        private:
+            static FontMetrics ^_empty = nullptr;
+
+            FontMetrics()
+            {
+                FirstCharCode = -1;
+                LastCharCode = -1;
+                CharBBox = System::Drawing::Rectangle::Empty;
+            }
+        };
+
 		public ref class NativeMethods
 		{
 		private:
@@ -51,9 +86,17 @@ namespace AGS
 			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int controlTransparency, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
-			// Draws font char sheet on the provided context and returns the height of drawn object;
-			// may be called with hDC = 0 to get required height without drawing anything
-			int  DrawFont(int hDC, int fontNum, int draw_atx, int draw_aty, int width, int height, int scroll_y);
+            FontMetrics ^GetFontMetrics(int fontNum);
+            cli::array<int> ^GetFontValidCharacters(int fontNum);
+            // Draws font char sheet on the provided context
+            void DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
+                int dc_atx, int dc_aty, int draw_atx, int draw_aty,
+                int cell_w, int cell_h, int cell_space_x, int cell_space_y,
+                int col_count, int row_count, int first_cell,
+                float scaling);
+            void DrawTextUsingFont(int hDC, String ^text, int fontNum,
+                int dc_atx, int dc_aty, int dc_width, int dc_height,
+                int text_atx, int text_aty, int max_width, float scaling);
 			void DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum);
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);

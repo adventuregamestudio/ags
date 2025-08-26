@@ -48,6 +48,7 @@ public:
   void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
   void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
   void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
+  void SetCharacterSpacing(int fontNumber, int spacing) override;
 
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();

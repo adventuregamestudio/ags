@@ -83,6 +83,7 @@ FontInfo::FontInfo()
     , Outline(FONT_OUTLINE_NONE)
     , YOffset(0)
     , LineSpacing(0)
+    , CharacterSpacing(0)
     , AutoOutlineStyle(kSquared)
     , AutoOutlineThickness(0)
 {}
@@ -183,6 +184,12 @@ static void font_post_init(int font_number)
             font.Info.Flags |= FFLG_DEFLINESPACING;
             font.LineSpacingCalc = font.Metrics.CompatHeight + 2 * font.Info.AutoOutlineThickness;
         }
+    }
+
+    // Apply character spacing if supported
+    if (font.RendererInt)
+    {
+        font.RendererInt->SetCharacterSpacing(font_number, font.Info.CharacterSpacing);
     }
 }
 

@@ -1836,9 +1836,9 @@ namespace AGS.Editor
             {
                 writer.Write(game.Fonts[i].AutoOutlineThickness);
                 writer.Write((int)game.Fonts[i].AutoOutlineStyle);
-                // reserved ints
-                writer.Write((int)0);
-                writer.Write((int)0);
+                // Since 3.6.3
+                writer.Write(game.Fonts[i].CharacterSpacing);
+                writer.Write((int)0); // reserved
                 writer.Write((int)0);
                 writer.Write((int)0);
             }
@@ -1938,7 +1938,7 @@ namespace AGS.Editor
             {
                 writer.Write(button.TextPaddingHorizontal);
                 writer.Write(button.TextPaddingVertical);
-                writer.Write((int)0);
+                writer.Write((int)0); // reserved
                 writer.Write((int)0);
             }
         }

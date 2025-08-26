@@ -505,8 +505,10 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask)
     {
         if (has_alpha)
             BitmapHelper::ReplaceZeroAlphaWithRGBMask(new_bitmap);
-        else
+        else if (keep_mask)
             BitmapHelper::MakeOpaqueSkipMask(new_bitmap);
+        else
+            BitmapHelper::MakeOpaque(new_bitmap);
     }
     
     // Finally, if we did not create a new copy already, - ensure gfxdriver compatible format

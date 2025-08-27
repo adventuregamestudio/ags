@@ -132,17 +132,9 @@ bool WFNFontRenderer::IsBitmapFont()
     return true;
 }
 
-// Fill the FontMetrics struct from the given WFNFont
-static void FillMetrics(const WFNFont *font, FontMetrics *metrics)
+int WFNFontRenderer::GetFontHeight(int fontNumber)
 {
-    metrics->NominalHeight = font->GetHeight();
-    metrics->RealHeight = font->GetHeight();
-    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
-    metrics->BBox = font->GetBBox();
-    metrics->VExtent = std::make_pair(metrics->BBox.Top, metrics->BBox.Bottom);
-    // fix it up to be *not less* than realheight
-    metrics->VExtent.first = std::min(0, metrics->VExtent.first);
-    metrics->VExtent.second = std::max(metrics->RealHeight - 1, metrics->VExtent.second);
+    return _fontData[fontNumber].Font->GetHeight(); // return real height
 }
 
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const String &filename,
@@ -171,13 +163,27 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
   if (src_filename)
     *src_filename = use_filename;
   if (metrics)
-    FillMetrics(font, metrics);
+    GetFontMetrics(fontNumber, metrics);
   return true;
 }
 
 void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 {
-    FillMetrics(_fontData[fontNumber].Font, metrics);
+    const WFNFont *font = _fontData[fontNumber].Font;
+    // Use this magic string to calculate a "nominal height" for WFN.
+    // This is very silly, but has to be done for compatibility reasons.
+    // WFN's "real height" may be bit higher because it may contain occasional larger glyphs.
+    // TODO: this has to be changed in a future version (AGS 4?) because there's
+    // no real guarantee that the font even has these letters in it.
+    const char *height_test_string = "ZHwypgfjqhkilIK";
+    metrics->NominalHeight = GetTextHeight(height_test_string, fontNumber);
+    metrics->RealHeight = font->GetHeight();
+    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
+    metrics->BBox = font->GetBBox();
+    metrics->VExtent = std::make_pair(metrics->BBox.Top, metrics->BBox.Bottom);
+    // fix it up to be *not less* than realheight
+    metrics->VExtent.first = std::min(0, metrics->VExtent.first);
+    metrics->VExtent.second = std::max(metrics->RealHeight - 1, metrics->VExtent.second);
 }
 
 void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes)

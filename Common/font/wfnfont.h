@@ -92,7 +92,9 @@ public:
         return code < _refs.size() ? *_refs[code] : _emptyChar;
     }
 
+    // The font's real height is calculated from the highest glyph found
     inline int GetHeight() const { return _height; }
+    // The font's BBox defines max bounds of all the glyphs in the font
     inline const Rect &GetBBox() const { return _bbox; }
 
     void Clear();

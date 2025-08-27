@@ -32,6 +32,8 @@ const char *get_translation (const char *text) {
         quit("!Null string supplied to CheckForTranslations");
 
     source_text_length = GetTextDisplayLength(text);
+    if (text[0] == 0)
+        return ""; // don't try translating an empty line
 
     // check if a plugin wants to translate it - if so, return that
     const char *pl_result = reinterpret_cast<const char*>(

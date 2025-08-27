@@ -287,10 +287,6 @@ int ListBox_GetSelectedIndex(GUIListBox *listbox) {
 }
 
 void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel) {
-
-  if (newsel < 0 || static_cast<uint32_t>(newsel) >= guisl->GetItemCount())
-    newsel = -1;
-
   guisl->SetSelectedItem(newsel);
 }
 

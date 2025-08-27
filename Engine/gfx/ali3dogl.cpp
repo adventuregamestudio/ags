@@ -1030,7 +1030,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     // Use light shader
     program = _lightShader;
     glUseProgram(_lightShader.Program);
-    float light_lev = 1.0f;
+    float n_light_lev = 1.0f;
 
     // Light level parameter in DDB is weird, it is measured in units of
     // 1/255 (although effectively 1/250, see draw.cpp), but contains two
@@ -1041,14 +1041,14 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       // darkening the sprite... this stupid calculation is for
       // consistency with the allegro software-mode code that does
       // a trans blend with a (8,8,8) sprite
-      light_lev = -((light_lev * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
+      n_light_lev = -((light_lev * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
     }
     else if (light_lev > 256)
     {
-      light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
+      n_light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
     }
 
-    glUniform1f(_lightShader.LightingAmount, light_lev);
+    glUniform1f(_lightShader.LightingAmount, n_light_lev);
   }
   else
   {

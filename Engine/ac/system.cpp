@@ -93,6 +93,16 @@ int System_GetScrollLock()
     return (state[SDL_SCANCODE_SCROLLLOCK]) ? 1 : 0;
 }
 
+int System_GetShaderLanguage()
+{
+    const String &drv_name = gfxDriver->GetDriverID();
+    if (drv_name.CompareNoCase("ogl") == 0)
+        return kShaderLang_GLSL;
+    if (drv_name.CompareNoCase("d3d9") == 0)
+        return kShaderLang_HLSL;
+    return kShaderLang_NotSupported;
+}
+
 int System_GetVsync() {
     return scsystem.vsync;
 }
@@ -389,6 +399,11 @@ RuntimeScriptValue Sc_System_GetScrollLock(const RuntimeScriptValue *params, int
     API_SCALL_INT(System_GetScrollLock);
 }
 
+RuntimeScriptValue Sc_System_GetShaderLanguage(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetShaderLanguage);
+}
+
 // int ()
 RuntimeScriptValue Sc_System_GetSupportsGammaControl(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -513,6 +528,7 @@ void RegisterSystemAPI()
         { "System::set_RenderAtScreenResolution", API_FN_PAIR(System_SetRenderAtScreenResolution) },
         { "System::get_RuntimeInfo",          API_FN_PAIR(System_GetRuntimeInfo) },
         { "System::get_ScrollLock",           API_FN_PAIR(System_GetScrollLock) },
+        { "System::get_ShaderLanguage",       API_FN_PAIR(System_GetShaderLanguage) },
         { "System::get_SupportsGammaControl", API_FN_PAIR(System_GetSupportsGammaControl) },
         { "System::get_Version",              API_FN_PAIR(System_GetVersion) },
         { "SystemInfo::get_Version",          API_FN_PAIR(System_GetVersion) },

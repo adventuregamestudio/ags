@@ -17,6 +17,7 @@
 #include <vector>
 #include "ac/gui.h"
 #include "ac/common.h"
+#include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetup.h"
@@ -385,6 +386,54 @@ void GUI_SetTextPadding(ScriptGUI *tehgui, int newpos)
 {
     if (guis[tehgui->id].IsTextWindow())
         guis[tehgui->id].SetPadding(newpos);
+}
+
+int GUI_GetLeftGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_Left) : 0;
+}
+
+int GUI_GetTopLeftGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_TopLeft) : 0;
+}
+
+int GUI_GetTopGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_Top) : 0;
+}
+
+int GUI_GetTopRightGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_TopRight) : 0;
+}
+
+int GUI_GetRightGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_Right) : 0;
+}
+
+int GUI_GetBottomRightGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_BottomRight) : 0;
+}
+
+int GUI_GetBottomGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_Bottom) : 0;
+}
+
+int GUI_GetBottomLeftGraphic(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsTextWindow() ?
+        get_but_pic(&guis[tehgui->id], kTW_BottomLeft) : 0;
 }
 
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
@@ -1097,6 +1146,46 @@ RuntimeScriptValue Sc_GUI_GetShown(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_BOOL(ScriptGUI, GUI_GetShown);
 }
 
+RuntimeScriptValue Sc_GUI_GetLeftGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetLeftGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetTopLeftGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetTopLeftGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetTopGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetTopGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetTopRightGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetTopRightGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetRightGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetRightGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetBottomRightGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetBottomRightGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetBottomGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetBottomGraphic);
+}
+
+RuntimeScriptValue Sc_GUI_GetBottomLeftGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetBottomLeftGraphic);
+}
+
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
@@ -1127,10 +1216,6 @@ void RegisterGUIAPI()
         { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
         { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
         { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },
-        { "TextWindowGUI::get_TextColor", API_FN_PAIR(GUI_GetTextColor) },
-        { "TextWindowGUI::set_TextColor", API_FN_PAIR(GUI_SetTextColor) },
-        { "TextWindowGUI::get_TextPadding", API_FN_PAIR(GUI_GetTextPadding) },
-        { "TextWindowGUI::set_TextPadding", API_FN_PAIR(GUI_SetTextPadding) },
         { "GUI::get_Transparency",        API_FN_PAIR(GUI_GetTransparency) },
         { "GUI::set_Transparency",        API_FN_PAIR(GUI_SetTransparency) },
         { "GUI::get_Visible",             API_FN_PAIR(GUI_GetVisible) },
@@ -1144,6 +1229,18 @@ void RegisterGUIAPI()
         { "GUI::get_ZOrder",              API_FN_PAIR(GUI_GetZOrder) },
         { "GUI::set_ZOrder",              API_FN_PAIR(GUI_SetZOrder) },
         { "GUI::get_Shown",               API_FN_PAIR(GUI_GetShown) },
+        { "TextWindowGUI::get_TextColor", API_FN_PAIR(GUI_GetTextColor) },
+        { "TextWindowGUI::set_TextColor", API_FN_PAIR(GUI_SetTextColor) },
+        { "TextWindowGUI::get_TextPadding", API_FN_PAIR(GUI_GetTextPadding) },
+        { "TextWindowGUI::set_TextPadding", API_FN_PAIR(GUI_SetTextPadding) },
+        { "TextWindowGUI::get_LeftGraphic", API_FN_PAIR(GUI_GetLeftGraphic) },
+        { "TextWindowGUI::get_TopLeftGraphic", API_FN_PAIR(GUI_GetTopLeftGraphic) },
+        { "TextWindowGUI::get_TopGraphic", API_FN_PAIR(GUI_GetTopGraphic) },
+        { "TextWindowGUI::get_TopRightGraphic", API_FN_PAIR(GUI_GetTopRightGraphic) },
+        { "TextWindowGUI::get_RightGraphic", API_FN_PAIR(GUI_GetRightGraphic) },
+        { "TextWindowGUI::get_BottomRightGraphic", API_FN_PAIR(GUI_GetBottomRightGraphic) },
+        { "TextWindowGUI::get_BottomGraphic", API_FN_PAIR(GUI_GetBottomGraphic) },
+        { "TextWindowGUI::get_BottomLeftGraphic", API_FN_PAIR(GUI_GetBottomLeftGraphic) },
     };
 
     ccAddExternalFunctions(gui_api);

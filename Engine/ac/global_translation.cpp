@@ -34,6 +34,8 @@ const char *get_translation (const char *text) {
         quit("!Null string supplied to CheckForTranslations");
 
     source_text_length = GetTextDisplayLength(text);
+    if (text[0] == 0)
+        return ""; // don't try translating an empty line
 
 #if AGS_PLATFORM_64BIT
     // check if a plugin wants to translate it - if so, return that

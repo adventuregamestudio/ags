@@ -82,8 +82,11 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
             {
                 String src_line = read_string_decrypt(in, buf);
                 String dst_line = read_string_decrypt(in, buf);
-                if (src_line.IsEmpty() || dst_line.IsEmpty())
+                if (src_line.IsEmpty() && dst_line.IsEmpty())
                     break;
+                // Skip empty keys, skip key repeats
+                if (src_line.IsEmpty() || (tra.Dict.find(src_line) != tra.Dict.end()))
+                    continue;
                 tra.Dict.insert(std::make_pair(src_line, dst_line));
             }
         }

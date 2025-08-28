@@ -647,7 +647,7 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
 
     const int t_width = get_text_width(texx, font);
     const auto t_extent = get_font_surface_extent(font);
-    const int t_height = t_extent.second - t_extent.first;
+    const int t_height = t_extent.second - t_extent.first + 1;
     if (t_width == 0 || t_height == 0)
         return;
     // Prepare stencils

@@ -574,6 +574,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     set_our_eip(203);
     in_new_room = kEnterRoom_Normal;
 
+    // Restore the default bitmaps color depth after temporarily setting it to 8-bit (see above)
+    // TODO: find out why do we need to do this, and if we have to at all?
     set_color_depth(game.GetColorDepth());
     // Make sure the room gfx and masks are matching game's native res
     convert_room_background_to_game_res();

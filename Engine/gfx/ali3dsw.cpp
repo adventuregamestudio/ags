@@ -119,8 +119,6 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
 
-  set_color_depth(mode.ColorDepth);
-
   if (_initGfxCallback != nullptr)
     _initGfxCallback(nullptr);
 

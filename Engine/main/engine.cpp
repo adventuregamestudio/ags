@@ -446,6 +446,8 @@ int engine_load_game_data()
         display_game_file_error(err);
         return EXIT_ERROR;
     }
+    // Assign the default bitmap color depth, equals this game's color depth
+    set_color_depth(game.GetColorDepth());
     return 0;
 }
 

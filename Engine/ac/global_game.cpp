@@ -323,6 +323,8 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     HError err = load_game_file();
     if (!err)
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
+    // Assign the default bitmap color depth, equals this game's color depth
+    set_color_depth(game.GetColorDepth());
 
     spriteset.Reset();
     err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);

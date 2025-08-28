@@ -504,10 +504,6 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     Debug::Printf("Attempt to switch gfx mode to %d x %d (%d-bit) %s, on display %d",
         dm.Width, dm.Height, dm.ColorDepth, dm.IsWindowed() ? "windowed" : "fullscreen", sys_get_window_display_index());
 
-    // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
-    // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
-    set_color_depth(dm.ColorDepth);
-
     if (!gfxDriver->SetDisplayMode(dm))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", SDL_GetError());

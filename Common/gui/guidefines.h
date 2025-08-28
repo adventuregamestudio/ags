@@ -115,6 +115,19 @@ enum GUIPopupStyle
     kGUIPopupLegacyNormalOff  = 4
 };
 
+// TextWindow Border IDs
+enum GUITextWindowBorder
+{
+    kTW_TopLeft     = 0,
+    kTW_BottomLeft  = 1,
+    kTW_TopRight    = 2,
+    kTW_BottomRight = 3,
+    kTW_Left        = 4,
+    kTW_Right       = 5,
+    kTW_Top         = 6,
+    kTW_Bottom      = 7
+};
+
 // The type of GUIControl
 enum GUIControlType
 {

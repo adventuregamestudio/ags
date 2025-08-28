@@ -747,7 +747,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     draw_gui_sprite_v330(ds, sprn, x, y);
 }
 
-int get_but_pic(GUIMain*guo,int indx)
+int get_but_pic(GUIMain*guo, GUITextWindowBorder indx)
 {
     int butid = guo->GetControlID(indx);
     return butid >= 0 ? guibuts[butid].GetNormalImage() : 0;
@@ -777,8 +777,8 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         if (iep->GetBgColor() > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
-        const int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
-        const int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
+        const int leftRightWidth = game.SpriteInfos[get_but_pic(iep, kTW_Left)].Width;
+        const int topBottomHeight = game.SpriteInfos[get_but_pic(iep, kTW_Top)].Height;
         // GUI middle space
         if (iep->GetBgImage()>0)
         {
@@ -808,24 +808,24 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         }
         // Vertical borders
         ds->SetClip(Rect(xx1 - leftRightWidth, yy1, xx2 + 1 + leftRightWidth, yy2));
-        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height)
+        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep, kTW_Left)].Height)
         {
-            do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
-            do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
+            do_corner(ds, get_but_pic(iep, kTW_Left),xx1,uu,-1,0);   // left side
+            do_corner(ds, get_but_pic(iep, kTW_Right),xx2+1,uu,0,0);  // right side
         }
         // Horizontal borders
         ds->SetClip(Rect(xx1, yy1 - topBottomHeight, xx2, yy2 + 1 + topBottomHeight));
-        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width)
+        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep, kTW_Top)].Width)
         {
-            do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
-            do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
+            do_corner(ds, get_but_pic(iep, kTW_Top),uu,yy1,0,-1);  // top side
+            do_corner(ds, get_but_pic(iep, kTW_Bottom),uu,yy2+1,0,0); // bottom side
         }
         ds->ResetClip();
         // Four corners
-        do_corner(ds, get_but_pic(iep,0),xx1,yy1,-1,-1);  // top left
-        do_corner(ds, get_but_pic(iep,1),xx1,yy2+1,-1,0);  // bottom left
-        do_corner(ds, get_but_pic(iep,2),xx2+1,yy1,0,-1);  //  top right
-        do_corner(ds, get_but_pic(iep,3),xx2+1,yy2+1,0,0);  // bottom right
+        do_corner(ds, get_but_pic(iep, kTW_TopLeft),xx1,yy1,-1,-1);
+        do_corner(ds, get_but_pic(iep, kTW_BottomLeft),xx1,yy2+1,-1,0);
+        do_corner(ds, get_but_pic(iep, kTW_TopRight),xx2+1,yy1,0,-1);
+        do_corner(ds, get_but_pic(iep, kTW_BottomRight),xx2+1,yy2+1,0,0);
     }
 }
 
@@ -842,8 +842,8 @@ int get_textwindow_border_width(int twgui)
         return 0;
     }
 
-    int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], 4)].Width + 
-        game.SpriteInfos[get_but_pic(&guis[twgui], 5)].Width;
+    int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], kTW_Left)].Width +
+        game.SpriteInfos[get_but_pic(&guis[twgui], kTW_Right)].Width;
 
     return borwid;
 }
@@ -860,7 +860,7 @@ int get_textwindow_top_border_height(int twgui)
         return 0;
     }
 
-    return game.SpriteInfos[get_but_pic(&guis[twgui], 6)].Height;
+    return game.SpriteInfos[get_but_pic(&guis[twgui], kTW_Top)].Height;
 }
 
 // Get the padding for a text window
@@ -909,7 +909,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
     }
     else
     {
-        int tbnum = get_but_pic(&guis[ifnum], 0);
+        int tbnum = get_but_pic(&guis[ifnum], kTW_TopLeft);
 
         wii[0] += get_textwindow_border_width (ifnum);
         xx[0]-=game.SpriteInfos[tbnum].Width;

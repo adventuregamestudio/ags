@@ -162,7 +162,7 @@ void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color
 void wouttext_aligned (Common::Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align);
 void do_corner(Common::Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy);
 // Returns the image of a button control on the GUI under given child index
-int get_but_pic(Common::GUIMain*guo,int indx);
+int get_but_pic(Common::GUIMain*guo, AGS::Common::GUITextWindowBorder indx);
 void draw_button_background(Common::Bitmap *ds, int xx1,int yy1,int xx2,int yy2,Common::GUIMain*iep);
 // Calculate the width that the left and right border of the textwindow
 // GUI take up

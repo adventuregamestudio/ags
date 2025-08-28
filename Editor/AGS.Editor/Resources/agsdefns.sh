@@ -2164,6 +2164,24 @@ builtin managed struct TextWindowGUI extends GUI {
   import attribute int  TextColor;
   /// Gets/sets the amount of padding, in pixels, surrounding the text in the TextWindow.
   import attribute int  TextPadding;
+#ifdef SCRIPT_API_v363
+  /// Gets the sprite number used for this TextWindow's left border
+  import readonly attribute int LeftGraphic;
+  /// Gets the sprite number used for this TextWindow's top-left corner
+  import readonly attribute int TopLeftGraphic;
+  /// Gets the sprite number used for this TextWindow's top border
+  import readonly attribute int TopGraphic;
+  /// Gets the sprite number used for this TextWindow's top-right corner
+  import readonly attribute int TopRightGraphic;
+  /// Gets the sprite number used for this TextWindow's right border
+  import readonly attribute int RightGraphic;
+  /// Gets the sprite number used for this TextWindow's bottom-right corner
+  import readonly attribute int BottomRightGraphic;
+  /// Gets the sprite number used for this TextWindow's bottom border
+  import readonly attribute int BottomGraphic;
+  /// Gets the sprite number used for this TextWindow's bottom-left corner
+  import readonly attribute int BottomLeftGraphic;
+#endif // SCRIPT_API_v363
 };
 #endif // SCRIPT_API_v350
 

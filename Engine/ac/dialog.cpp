@@ -809,7 +809,7 @@ void DialogOptions::CalcOptionsHeight(int padding)
     }
     else
     {
-        needheight += get_text_lines_surf_height(usingfont, 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+        needheight += get_text_lines_height(usingfont, 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
     }
 }
 

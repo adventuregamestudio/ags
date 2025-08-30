@@ -67,7 +67,7 @@ int get_font_height(int font_number);
 // Get the height of the given font with corresponding outlining
 int get_font_height_outlined(int font_number);
 // Get font's surface height: this always returns the height enough to accomodate
-// font letters on a bitmap or a texture; the distinction is needed for compatibility reasons
+// any font's letters (glyphs) on a bitmap or a texture
 int get_font_surface_height(int font_number);
 // Gets the surface height of the given font with corresponding outlining
 int get_font_surface_height_outlined(int font_number);
@@ -85,12 +85,8 @@ void set_font_linespacing(int font_number, int spacing);
 int  get_font_outline(int font_number);
 // Get font's *automatic* outline thickness setting (if set)
 int  get_font_outline_thickness(int font_number);
-// Gets the total maximal height of the given number of lines printed with the given font;
-// note that this uses formal font height, for compatibility purposes
+// Gets the total maximal height of the given number of lines printed with the given font
 int get_text_lines_height(int font_number, size_t numlines);
-// Gets the height of a graphic surface enough to accomodate this number of text lines;
-// note this accounts for the real pixel font height
-int get_text_lines_surf_height(int font_number, size_t numlines);
 // Set font's outline type
 void set_font_outline(int font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);

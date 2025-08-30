@@ -456,7 +456,7 @@ int engine_load_game_data()
         return EXIT_ERROR;
     }
     // Assign the default bitmap color depth, equals this game's color depth
-    set_color_depth(game.GetColorDepth());
+    Bitmap::SetColorDepth(game.GetColorDepth(), game.HasAlphaInDrawingOps());
     return 0;
 }
 

@@ -500,7 +500,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // Or do we? There's a serious usability problem in this: if any bitmap is
     // created meanwhile it will have this color depth by default, which may
     // lead to unexpected errors.
-    set_color_depth(8);
+    Bitmap::SetColorDepth(8);
     displayed_room=newnum;
 
     room_filename.Format("room%d.crm", newnum);
@@ -575,7 +575,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     // Restore the default bitmaps color depth after temporarily setting it to 8-bit (see above)
     // TODO: find out why do we need to do this, and if we have to at all?
-    set_color_depth(game.GetColorDepth());
+    Bitmap::SetColorDepth(game.GetColorDepth(), game.HasAlphaInDrawingOps());
     // Make sure the room gfx and masks are matching game's native res
     convert_room_background_to_game_res();
 

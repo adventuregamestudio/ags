@@ -107,7 +107,8 @@ namespace AGS.Types
             set { _image = Math.Max(0, value); }
         }
 
-        [Description("Description of the item")]
+        [DisplayName("Name")]
+        [Description("A human readable-name or a description of the item")]
         [Category("Appearance")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description
@@ -116,6 +117,7 @@ namespace AGS.Types
             set { _description = value; }
         }
 
+        [DisplayName("ScriptName")]
         [Description("The script name of the item")]
         [Category("Design")]
         [BrowsableMultiedit(false)]

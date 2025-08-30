@@ -9,8 +9,8 @@ namespace AGS.Types
     [DefaultProperty("Image")]
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
     {
-		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
-        public const string PROPERTY_NAME_DESCRIPTION = "Description";
+		public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
+        public const string PROPERTY_NAME_DESCRIPTION = "Name";
 
         private static InteractionSchema _interactionSchema;
 
@@ -131,7 +131,8 @@ namespace AGS.Types
             set { _y = value; }
         }
 
-        [Description("Description of the object")]
+        [DisplayName(PROPERTY_NAME_DESCRIPTION)]
+        [Description("A human readable-name or a description of the object")]
         [Category("Appearance")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description

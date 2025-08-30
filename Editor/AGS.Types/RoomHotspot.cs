@@ -10,8 +10,8 @@ namespace AGS.Types
     [DefaultProperty("Description")]
     public class RoomHotspot : IChangeNotification
 	{
-		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
-        public const string PROPERTY_NAME_DESCRIPTION = "Description";
+		public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
+        public const string PROPERTY_NAME_DESCRIPTION = "Name";
 
         private static InteractionSchema _interactionSchema;
 
@@ -53,7 +53,8 @@ namespace AGS.Types
             set { _id = value; }
         }
 
-        [Description("Description of the hotspot")]
+        [DisplayName(PROPERTY_NAME_DESCRIPTION)]
+        [Description("A human readable-name or a description of the hotspot")]
         [Category("Appearance")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description

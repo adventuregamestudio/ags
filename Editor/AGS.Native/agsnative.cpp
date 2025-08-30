@@ -1174,7 +1174,7 @@ int get_adjusted_spriteheight(int spr) {
 
 void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum)
 {
-  colNum = my_setcolor(colNum, BaseColorDepth, true);
+  colNum = my_setcolor(colNum, BaseColorDepth);
   Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
   palbmp->Clear (colNum);
   drawBlockScaledAt(hdc, palbmp, x, y, 1);

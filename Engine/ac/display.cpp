@@ -301,7 +301,9 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             text_color = 15; // use fixed standard color here
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
                 &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
-            if (usingGui > 0)
+            if ((usingGui > 0)
+                // Apparently, 2.* engines never used alpha channel on text windows
+                && (loaded_game_file_version > kGameVersion_272))
             {
                 alphaChannel = guis[usingGui].HasAlphaChannel();
             }
@@ -348,7 +350,9 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
         text_color = text_window_ds->GetCompatibleColor(text_color);
 
-        if (game.options[OPT_TWCUSTOM] > 0)
+        if ((game.options[OPT_TWCUSTOM] > 0)
+            // Apparently, 2.* engines never used alpha channel on text windows
+            && (loaded_game_file_version > kGameVersion_272))
         {
             alphaChannel = guis[game.options[OPT_TWCUSTOM]].HasAlphaChannel();
         }

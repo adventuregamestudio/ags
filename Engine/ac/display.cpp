@@ -181,7 +181,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     break_up_text_into_lines(text, Lines, wii - 2 * padding, usingfont);
     DisplayVars disp(
         get_font_linespacing(usingfont),
-        get_text_lines_surf_height(usingfont, Lines.Count()));
+        get_text_lines_height(usingfont, Lines.Count()));
 
     if (topbar)
     {

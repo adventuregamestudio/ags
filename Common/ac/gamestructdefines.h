@@ -296,7 +296,7 @@ struct FontInfo
         kRounded = 1,
     };
 
-    // General font's loading and rendering flags
+    // General font's loading and rendering flags (FFLG_*)
     uint32_t      Flags;
     // Nominal font import size (in pixels)
     int           Size;

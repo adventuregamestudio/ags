@@ -334,8 +334,8 @@ int get_font_height(int font_number)
 }
 
 // Returns a max value between the chosen font height (this may be a compat height,
-// or a real graphical height), and the font's outline height.
-static int get_font_height_with_outline(int font_number, bool surf_height)
+// or a full graphical extent), and the font's outline height.
+static int get_font_height_with_outline(int font_number, bool surf_height = false)
 {
     const int self_height = surf_height ?
         fonts[font_number].Metrics.ExtentHeight() :
@@ -355,7 +355,7 @@ int get_font_height_outlined(int font_number)
 {
     if (!assert_font_number(font_number))
         return 0;
-    return get_font_height_with_outline(font_number, false /* use compat height */);
+    return get_font_height_with_outline(font_number);
 }
 
 int get_font_surface_height(int font_number)
@@ -401,15 +401,7 @@ int get_text_lines_height(int font_number, size_t numlines)
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        get_font_height_with_outline(font_number, false /* use compat height */);
-}
-
-int get_text_lines_surf_height(int font_number, size_t numlines)
-{
-    if (!assert_font_number(font_number) || numlines == 0)
-        return 0;
-    return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        get_font_height_with_outline(font_number, true /* use surface height */);
+        get_font_height_with_outline(font_number);
 }
 
 namespace AGS { namespace Common { SplitLines Lines; } }

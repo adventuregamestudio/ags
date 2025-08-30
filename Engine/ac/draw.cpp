@@ -694,7 +694,7 @@ void destroy_blank_image()
 
 int MakeColor(int color_index)
 {
-    return my_setcolor(color_index, game.GetColorDepth(), game.HasAlphaInDrawingOps());
+    return my_setcolor(color_index, game.GetColorDepth());
 }
 
 void init_draw_method()

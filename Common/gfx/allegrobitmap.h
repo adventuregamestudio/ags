@@ -52,10 +52,6 @@ public:
     Bitmap &operator =(const Bitmap &bmp);
     Bitmap &operator =(Bitmap &&bmp) = default;
 
-    // Sets default color depth of the created bitmaps (in bits per pixel);
-    // optionally sets whether we we support alpha channel when creating compatible colors.
-    static void SetColorDepth(int color_depth, bool alpha_in_colors = true);
-
     // Allocate new bitmap.
     // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
     // NOTE: in all of these color_depth may be passed as 0 in which case a default
@@ -283,9 +279,6 @@ public:
     void    SetScanLine(int index, unsigned char *data, int data_size = -1);
 
 private:
-    // Whether we support alpha channel when creating compatible colors.
-    static bool _alphaInColors;
-
     std::unique_ptr<uint8_t[]> _pixelData;
     BITMAP *_alBitmap = nullptr;
     bool    _isDataOwner = false;

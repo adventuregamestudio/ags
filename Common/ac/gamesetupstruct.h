@@ -101,8 +101,6 @@ struct GameSetupStruct : public GameSetupStructBase
 
     // Get game's native color depth (bits per pixel)
     inline int GetColorDepth() const { return color_depth * 8; }
-    // Tells whether game respects alpha channel when doing primitive drawing operations
-    inline bool HasAlphaInDrawingOps() const { return filever > kGameVersion_272; }
 
 
     GameSetupStruct();

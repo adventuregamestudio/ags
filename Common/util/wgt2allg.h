@@ -25,7 +25,7 @@ using namespace AGS; // FIXME later
 
 //=============================================================================
 
-    extern int my_setcolor(int color, int color_depth, bool fix_alpha);
+    extern int my_setcolor(int color, int color_depth);
     
     extern void wsetrgb(int coll, int r, int g, int b, RGB * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, RGB * pall);

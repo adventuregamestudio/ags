@@ -99,7 +99,8 @@ namespace AGS.Editor
             bool hdcReleased = false;
             try
             {
-                Factory.NativeProxy.DrawTextUsingFont(g.GetHdc(), tbTextPreview.Text, _item.ID,
+                Factory.NativeProxy.DrawTextUsingFont(g.GetHdc(),
+                    tbTextPreview.Text, _item.ID, true /*draw_outline*/,
                     0, 0, g_width, g_height, 5, 5, g_width / scaling - 5,
                     scaling);
                 g.ReleaseHdc();

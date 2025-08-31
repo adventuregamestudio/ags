@@ -132,11 +132,11 @@ namespace AGS.Editor
                 col_count, row_count, first_cell, scaling);
         }
 
-        public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum,
+        public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum, bool draw_outline,
             int dc_atx, int dc_aty, int dc_width, int dc_height,
             int text_atx, int text_aty, int max_width, float scaling)
         {
-            _native.DrawTextUsingFont((int)hdc, text, fontNum, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
+            _native.DrawTextUsingFont((int)hdc, text, fontNum, draw_outline, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
         }
 
         public void DrawSprite(IntPtr hdc, int x, int y, int width, int height, int spriteNum, bool flipImage = false)

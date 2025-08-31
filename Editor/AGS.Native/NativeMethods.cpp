@@ -64,7 +64,7 @@ extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_cha
     int cell_w, int cell_h, int cell_space_x, int cell_space_y,
     int col_count, int row_count, int first_cell,
     float scaling);
-extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum,
+extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum, bool draw_outline,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int text_atx, int text_aty, int max_width, float scaling);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
@@ -358,11 +358,11 @@ namespace AGS
                 col_count, row_count, first_cell, scaling);
         }
 
-        void NativeMethods::DrawTextUsingFont(int hDC, String ^text, int fontNum,
+        void NativeMethods::DrawTextUsingFont(int hDC, String ^text, int fontNum, bool draw_outline,
             int dc_atx, int dc_aty, int dc_width, int dc_height,
             int text_atx, int text_aty, int max_width, float scaling)
         {
-            DrawTextUsingFontAt((HDC)hDC, text, fontNum, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
+            DrawTextUsingFontAt((HDC)hDC, text, fontNum, draw_outline, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
         }
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)

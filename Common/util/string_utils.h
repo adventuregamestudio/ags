@@ -96,6 +96,7 @@ namespace StrUtil
 
     // Serialize and unserialize a string map, both keys and values are read using ReadString
     void            ReadStringMap(StringMap &map, Stream *in);
+    void            SkipStringMap(Stream *in);
     void            WriteStringMap(const StringMap &map, Stream *out);
 
 

@@ -40,9 +40,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Native\acfonts_agsnative.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Native\acgui_agsnative.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

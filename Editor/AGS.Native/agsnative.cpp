@@ -92,7 +92,6 @@ AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite
 
 std::unique_ptr<AssetManager> AssetMgr;
 int mousex = 0, mousey = 0;
-int antiAliasFonts = 0;
 int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
 RGB*palette = NULL;
@@ -951,8 +950,6 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
     if (only_valid_chars)
         char_codes = get_font_valid_char_codes(fontnum);
 
-    antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
-
     const Rect bbox = get_font_glyph_bbox(fontnum);
     const int font_y_offset = thisgame.fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table
     const ::Point char_off = ::Point(std::max(0, -bbox.Left), std::max(0, -bbox.Top) - font_y_offset);
@@ -1038,8 +1035,6 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum,
 
     if (!is_font_loaded(fontnum))
         reload_font(fontnum);
-
-    antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
     const int ds_width = dc_width / scaling;
     const int ds_height = dc_height / scaling;
@@ -2173,7 +2168,6 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
   thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
-  antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
 

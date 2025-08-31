@@ -3506,6 +3506,8 @@ builtin managed struct RestoredSaveInfo
   import readonly attribute String Description;
   /// Gets the version of the engine which wrote this save.
   import readonly attribute String EngineVersion;
+  /// Gets the version of the game which wrote this save (if provided by developer).
+  import readonly attribute String GameVersion;
   /// Gets the room number this save was made in.
   import readonly attribute int Room;
   /// Gets the number of Audio Types present in this save.

@@ -470,6 +470,28 @@ TEST_F(Compile2, CTEvalIntModulo1) {
 
 }
 
+TEST_F(Compile2, FloatModulo1) {
+
+    // No modulo-assign for floats
+
+    char const *inpl = "\
+        void game_start()                       \n\
+        {                                       \n\
+            float f = 17.0;                     \n\
+            f %= 7.0;                           \n\
+        }                                       \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("%="));
+    EXPECT_NE(std::string::npos, err_msg.find("float"));
+}
+
 TEST_F(Compile2, CTEvalIntModulo2) {
 
 
@@ -1181,4 +1203,22 @@ TEST_F(Compile2, NullAsStringArgument) {
     std::string const &err_msg = mh.GetError().Message;
 
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile2, Unexpected_Undefined) {
+
+    // Should complain about "undeclared" function instead of "unexpected" symbol
+
+    std::string inpl = R"%&/(
+        void game_start()
+        {
+            func(null);
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("ndeclared"));
 }

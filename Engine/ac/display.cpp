@@ -226,17 +226,17 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         }
     }
 
-    if (longestline < wii - paddingDoubledScaled)
+    // If longest line is shorter than the requested width,
+    // and shrink is allowed, then shrink the text window
+    if ((look.AllowShrink != kDisplayTextShrink_None)
+        && (longestline < wii - paddingDoubledScaled))
     {
         // shrink the width of the dialog box to fit the text
-        int oldWid = wii;
-        // If it's not speech, or a shrink is allowed, then shrink it
-        if ((look.Style == kDisplayTextStyle_MessageBox) || (look.AllowShrink > 0))
-            wii = longestline + paddingDoubledScaled;
-
+        const int old_wid = wii;
+        wii = longestline + paddingDoubledScaled;
         // shift the dialog box right to align it, if necessary
-        if ((look.AllowShrink == 2) && (xx >= 0))
-            xx += (oldWid - wii);
+        if ((look.AllowShrink == kDisplayTextShrink_Right) && (xx >= 0))
+            xx += (old_wid - wii);
     }
 
     if (xx == OVR_AUTOPLACE) {} // FIXME: don't use OVR_AUTOPLACE here
@@ -534,7 +534,7 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
     try_auto_play_speech(text, text, play.narrator_speech);
 
     display_main(xx, yy, wii, text, topbar, kDisplayText_MessageBox, 0 /* no overid */,
-        DisplayTextLooks(kDisplayTextStyle_MessageBox, get_textpos_from_scriptcoords(xx, yy, false), kDisplayTextShrink_None),
+        DisplayTextLooks(kDisplayTextStyle_MessageBox, get_textpos_from_scriptcoords(xx, yy, false), kDisplayTextShrink_Left),
         FONT_NORMAL, 0, false /* no fixed pos */);
 
     // Stop any blocking voice-over, if was started by this function

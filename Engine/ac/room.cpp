@@ -489,9 +489,41 @@ static void reset_temp_room()
     troom = RoomStatus();
 }
 
-// forchar = playerchar on NewRoom, or NULL if restore saved game
-void load_new_room(int newnum, CharacterInfo*forchar) {
+static void init_object_states(size_t from, size_t to)
+{
+    for (uint32_t i = from; i <= to; ++i)
+    {
+        const auto &trobj = thisroom.Objects[i];
+        auto &crobj = croom->obj[i];
+        crobj.x = trobj.X;
+        crobj.y = trobj.Y;
+        crobj.num = Math::InRangeOrDef<uint16_t>(trobj.Sprite, 0);
+        crobj.on = trobj.IsOn;
+        crobj.view = RoomObject::NoView;
+        crobj.loop = 0;
+        crobj.frame = 0;
+        crobj.wait = 0;
+        crobj.transparent = 0;
+        crobj.moving = -1;
+        crobj.flags = trobj.Flags;
+        crobj.baseline = -1;
+        crobj.zoom = 100;
+        crobj.last_width = 0;
+        crobj.last_height = 0;
+        crobj.blocking_width = 0;
+        crobj.blocking_height = 0;
+        crobj.name = trobj.Name;
+        if (trobj.Baseline >= 0)
+            crobj.baseline = trobj.Baseline;
+        if (trobj.Sprite > UINT16_MAX)
+            debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
+                              i, trobj.Sprite, UINT16_MAX);
+    }
+}
 
+// forchar = playerchar on NewRoom, or NULL if restore saved game
+void load_new_room(int newnum, CharacterInfo *forchar)
+{
     debug_script_log("Loading room %d", newnum);
 
     String room_filename;
@@ -607,18 +639,25 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     else
         croom=&troom;
 
-    // Safety fixup: if the restored room state has more objects than the room itself,
-    // then resize object's array: it's better to have dummy objects than to crash somewhere
-    if (croom->numobj > thisroom.Objects.size())
-    {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: the restored room state has more object states than the current room's object count (%u vs %u)", croom->numobj, (uint32_t)thisroom.Objects.size());
-        thisroom.Objects.resize(croom->numobj);
-    }
-
     // Decide what to do if we have been or not in this room before
     const bool been_here = croom->beenhere > 0;
     if (croom->beenhere > 0)
     {
+        // If the restored number of object states does not match real room,
+        // then adjust the *room state* by either expanding or cutting objects array
+        if (croom->obj.size() != thisroom.Objects.size())
+        {
+            Debug::Printf(kDbgMsg_Warn, "WARNING: the restored room state has different number of object states than the current room has objects (%u vs %u).",
+                croom->numobj, (uint32_t)thisroom.Objects.size());
+            const size_t was_obj_states = croom->obj.size();
+            croom->numobj = thisroom.Objects.size();
+            croom->obj.resize(thisroom.Objects.size());
+            croom->objProps.resize(thisroom.Objects.size());
+            croom->intrObject.resize(thisroom.Objects.size());
+            if (was_obj_states < thisroom.Objects.size())
+                init_object_states(was_obj_states, thisroom.Objects.size() - 1);
+        }
+
         // Copy the legacy interaction's Times Run information (for old games)
         if (thisroom.EventHandlers == nullptr)
         {
@@ -646,38 +685,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     else
     {
         // If we have not been in this room before, then copy necessary fields from thisroom
-        croom->numobj=thisroom.Objects.size();
-        croom->tsdatasize=0;
+        croom->numobj = thisroom.Objects.size();
+        croom->tsdatasize = 0u;
         croom->obj.resize(croom->numobj);
         croom->objProps.resize(croom->numobj);
         croom->intrObject.resize(croom->numobj);
-        for (uint32_t cc=0;cc<croom->numobj;cc++) {
-            const auto &trobj = thisroom.Objects[cc];
-            auto &crobj = croom->obj[cc];
-            crobj.x=trobj.X;
-            crobj.y=trobj.Y;
-            crobj.num = Math::InRangeOrDef<uint16_t>(trobj.Sprite, 0);
-            crobj.on=trobj.IsOn;
-            crobj.view=RoomObject::NoView;
-            crobj.loop=0;
-            crobj.frame=0;
-            crobj.wait=0;
-            crobj.transparent=0;
-            crobj.moving=-1;
-            crobj.flags = trobj.Flags;
-            crobj.baseline=-1;
-            crobj.zoom = 100;
-            crobj.last_width = 0;
-            crobj.last_height = 0;
-            crobj.blocking_width = 0;
-            crobj.blocking_height = 0;
-            crobj.name = trobj.Name;
-            if (trobj.Baseline>=0)
-                crobj.baseline=trobj.Baseline;
-            if (trobj.Sprite > UINT16_MAX)
-                debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
-                    cc, trobj.Sprite, UINT16_MAX);
-        }
+        init_object_states(0u, thisroom.Objects.size() - 1);
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
 

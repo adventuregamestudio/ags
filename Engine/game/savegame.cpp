@@ -1268,6 +1268,14 @@ const char* SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info)
     return CreateNewScriptString(info->GetDesc().EngineVersion.LongString.GetCStr());
 }
 
+const char *SaveInfo_GetGameVersion(ScriptRestoredSaveInfo *info)
+{
+    return CreateNewScriptString(
+        (info->GetCounts().GameInfo.count("version") > 0) ?
+        info->GetCounts().GameInfo.at("version").GetCStr()
+        : "");
+}
+
 int SaveInfo_GetAudioClipTypeCount(ScriptRestoredSaveInfo *info)
 {
     return info->GetCounts().AudioClipTypes;
@@ -1418,6 +1426,11 @@ RuntimeScriptValue Sc_SaveInfo_GetEngineVersion(void *self, const RuntimeScriptV
     API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetEngineVersion);
 }
 
+RuntimeScriptValue Sc_SaveInfo_GetGameVersion(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetGameVersion);
+}
+
 RuntimeScriptValue Sc_SaveInfo_GetAudioClipTypeCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetAudioClipTypeCount);
@@ -1506,6 +1519,7 @@ void RegisterSaveInfoAPI()
         { "RestoredSaveInfo::get_Slot",                 API_FN_PAIR(SaveInfo_GetSlot) },
         { "RestoredSaveInfo::get_Description",          API_FN_PAIR(SaveInfo_GetDescription) },
         { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },
+        { "RestoredSaveInfo::get_GameVersion",          API_FN_PAIR(SaveInfo_GetGameVersion) },
         { "RestoredSaveInfo::get_AudioClipTypeCount",   API_FN_PAIR(SaveInfo_GetAudioClipTypeCount) },
         { "RestoredSaveInfo::get_CharacterCount",       API_FN_PAIR(SaveInfo_GetCharacterCount) },
         { "RestoredSaveInfo::get_DialogCount",          API_FN_PAIR(SaveInfo_GetDialogCount) },

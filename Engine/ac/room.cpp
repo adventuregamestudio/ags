@@ -488,9 +488,11 @@ static void reset_temp_room()
     troom = RoomStatus();
 }
 
-static void init_object_states(size_t from, size_t to)
+// Initializes object states in the current RoomState object,
+// copying default properties from RoomStruct, in the element range [start, end).
+static void init_object_states(size_t start, size_t end)
 {
-    for (uint32_t i = from; i <= to; ++i)
+    for (uint32_t i = start; i < end; ++i)
     {
         const auto &trobj = thisroom.Objects[i];
         auto &crobj = croom->obj[i];
@@ -654,7 +656,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             croom->objProps.resize(thisroom.Objects.size());
             croom->intrObject.resize(thisroom.Objects.size());
             if (was_obj_states < thisroom.Objects.size())
-                init_object_states(was_obj_states, thisroom.Objects.size() - 1);
+                init_object_states(was_obj_states, thisroom.Objects.size());
         }
 
         // Copy the legacy interaction's Times Run information (for old games)
@@ -689,7 +691,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         croom->obj.resize(croom->numobj);
         croom->objProps.resize(croom->numobj);
         croom->intrObject.resize(croom->numobj);
-        init_object_states(0u, thisroom.Objects.size() - 1);
+        init_object_states(0u, thisroom.Objects.size());
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
 

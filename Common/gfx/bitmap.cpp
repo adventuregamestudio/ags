@@ -131,6 +131,24 @@ Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height)
     return bmp;
 }
 
+void AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, int sub_height, int color_depth)
+{
+    if (parent->IsNull() || (parent->GetColorDepth() != color_depth) ||
+        (parent->GetWidth() < sub_width) || (parent->GetHeight() < sub_height))
+    {
+        int sw = parent->IsNull() ? 0 : parent->GetWidth();
+        int sh = parent->IsNull() ? 0 : parent->GetHeight();
+        sw = std::max(sub_width, sw);
+        sh = std::max(sub_height, sh);
+        parent->Create(sw, sh, color_depth);
+        child->CreateSubBitmap(parent, RectWH(Size(sub_width, sub_height)));
+    }
+    else
+    {
+        child->ResizeSubBitmap(sub_width, sub_height);
+    }
+}
+
 void MakeOpaque(Bitmap *bmp)
 {
     if (bmp->GetColorDepth() < 32)

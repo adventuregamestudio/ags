@@ -676,23 +676,8 @@ void alloc_font_outline_buffers(int font_number,
         return;
     Font &f = fonts[font_number];
     const int thick = 2 * f.Info.AutoOutlineThickness;
-    if (f.TextStencil.IsNull() || (f.TextStencil.GetColorDepth() != color_depth) ||
-        (f.TextStencil.GetWidth() < text_width) || (f.TextStencil.GetHeight() < text_height))
-    {
-        int sw = f.TextStencil.IsNull() ? 0 : f.TextStencil.GetWidth();
-        int sh = f.TextStencil.IsNull() ? 0 : f.TextStencil.GetHeight();
-        sw = std::max(text_width, sw);
-        sh = std::max(text_height, sh);
-        f.TextStencil.Create(sw, sh, color_depth);
-        f.OutlineStencil.Create(sw, sh + thick, color_depth);
-        f.TextStencilSub.CreateSubBitmap(&f.TextStencil, RectWH(Size(text_width, text_height)));
-        f.OutlineStencilSub.CreateSubBitmap(&f.OutlineStencil, RectWH(Size(text_width, text_height + thick)));
-    }
-    else
-    {
-        f.TextStencilSub.ResizeSubBitmap(text_width, text_height);
-        f.OutlineStencilSub.ResizeSubBitmap(text_width, text_height + thick);
-    }
+    BitmapHelper::AllocateBitmapAndSubBitmap(&f.TextStencil, &f.TextStencilSub, text_width, text_height, color_depth);
+    BitmapHelper::AllocateBitmapAndSubBitmap(&f.OutlineStencil, &f.OutlineStencilSub, text_width, text_height + thick, color_depth);
     *text_stencil = &f.TextStencilSub;
     *outline_stencil = &f.OutlineStencilSub;
 }

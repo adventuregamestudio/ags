@@ -328,7 +328,6 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Native\acfonts_agsnative.cpp" />
     <ClCompile Include="..\Native\acgui_agsnative.cpp" />
     <ClCompile Include="..\Native\ac\actiontype.cpp" />
     <ClCompile Include="..\Native\ac\scriptmodule.cpp" />

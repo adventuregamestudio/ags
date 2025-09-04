@@ -711,12 +711,10 @@ void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, const char *
     }
 }
 
-// Draw an outline if requested, then draw the text on top 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int font, color_t text_color, const char *texx) 
+void wouttext_outline(Bitmap *ds, int xxp, int yyp, int font, color_t text_color, color_t outline_color, const char *texx)
 {    
     size_t const text_font = static_cast<size_t>(font);
     // Draw outline (a backdrop) if requested
-    color_t const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     int const outline_font = get_font_outline(font);
     if (outline_font >= 0)
         wouttextxy(ds, xxp, yyp, static_cast<size_t>(outline_font), outline_color, texx);
@@ -729,14 +727,26 @@ void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int font, color_t te
     wouttextxy(ds, xxp, yyp, text_font, text_color, texx);
 }
 
-void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align) {
+void wouttext_outline(Bitmap *ds, int xxp, int yyp, int font, color_t text_color, const char *texx)
+{
+    const color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    wouttext_outline(ds, xxp, yyp, font, text_color, outline_color, texx);
+}
 
+void wouttext_aligned(Bitmap *ds, int xxp, int yyp, int oriwid, int usingfont, color_t text_color, color_t outline_color, const char *text, HorAlignment align)
+{
     if (align & kMAlignHCenter)
-        usexp = usexp + (oriwid / 2) - (get_text_width_outlined(text, usingfont) / 2);
+        xxp = xxp + (oriwid / 2) - (get_text_width_outlined(text, usingfont) / 2);
     else if (align & kMAlignRight)
-        usexp = usexp + (oriwid - get_text_width_outlined(text, usingfont));
+        xxp = xxp + (oriwid - get_text_width_outlined(text, usingfont));
 
-    wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
+    wouttext_outline(ds, xxp, yyp, usingfont, text_color, outline_color, text);
+}
+
+void wouttext_aligned(Bitmap *ds, int xxp, int yyp, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align)
+{
+    int const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    wouttext_aligned(ds, xxp, yyp, oriwid, usingfont, text_color, outline_color, text, align);
 }
 
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {

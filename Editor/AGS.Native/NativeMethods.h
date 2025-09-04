@@ -94,7 +94,7 @@ namespace AGS
                 int cell_w, int cell_h, int cell_space_x, int cell_space_y,
                 int col_count, int row_count, int first_cell,
                 float scaling);
-            void DrawTextUsingFont(int hDC, String ^text, int fontNum,
+            void DrawTextUsingFont(int hDC, String ^text, int fontNum, bool draw_outline,
                 int dc_atx, int dc_aty, int dc_width, int dc_height,
                 int text_atx, int text_aty, int max_width, float scaling);
 			void DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum);

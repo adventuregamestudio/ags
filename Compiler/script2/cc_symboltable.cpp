@@ -308,6 +308,7 @@ AGS::SymbolTable::SymbolTable()
     AddAssign(kKW_AssignBitXor, "^=", 120, SCMD_XORREG);
     AddAssign(kKW_AssignDivide, "/=", 120, SCMD_DIVREG, SCMD_FDIVREG);
     AddAssign(kKW_AssignMinus, "-=", 120, SCMD_SUBREG, SCMD_FSUBREG);
+    AddAssign(kKW_AssignModulo, "%=", 120, SCMD_MODREG, kNoOpcode);
     AddAssign(kKW_AssignMultiply, "*=", 120, SCMD_MULREG, SCMD_FMULREG);
     AddAssign(kKW_AssignPlus, "+=", 120, SCMD_ADDREG, SCMD_FADDREG);
     AddAssign(kKW_AssignShiftLeft, "<<=", 120, SCMD_SHIFTLEFT);

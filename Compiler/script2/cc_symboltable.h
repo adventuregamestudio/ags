@@ -172,6 +172,7 @@ enum Predefined : Symbol
     kKW_AssignBitXor,   // "^="
     kKW_AssignDivide,   // "/="
     kKW_AssignMinus,    // "-="
+    kKW_AssignModulo,   // "%="
     kKW_AssignMultiply, // "*="
     kKW_AssignPlus,     // "+="
     kKW_AssignShiftLeft,    // "<<="

@@ -4404,16 +4404,16 @@ void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eres)
     size_t const expr_start = src.GetCursor();
     SkipToEndOfExpression(src);
     SrcList expression = SrcList(src, expr_start, src.GetCursor() - expr_start);
-    Symbol potential_ident = src.PeekNext();
-    if (_sym.IsIdentifier(potential_ident) &&
-        !_sym.IsPredefined(potential_ident) &&
-        _sym.kNoSrcLocation == _sym.GetDeclared(potential_ident))
+    Symbol const next_sym = src.PeekNext();
+    if (_sym.IsIdentifier(next_sym) &&
+        !_sym.IsPredefined(next_sym) &&
+        _sym.kNoSrcLocation == _sym.GetDeclared(next_sym))
     {
-        UserError("Identifier '%s' is undeclared", _sym.GetName(potential_ident).c_str());
+        UserError("Identifier '%s' is undeclared (did you mis-spell it?)", _sym.GetName(next_sym).c_str());
     }
 
     if (0u == expression.Length())
-        UserError("Expected an expression, found '%s' instead", _sym.GetName(src.GetNext()).c_str());
+        UserError("Expected an expression, found '%s' instead", _sym.GetName(next_sym).c_str());
 
     size_t const expr_end = src.GetCursor();
     ParseExpression_Term(expression, eres);
@@ -6794,12 +6794,17 @@ void AGS::Parser::ParseAssignmentOrExpression()
     size_t const expr_start = _src.GetCursor();
     SkipToEndOfExpression(_src);
     SrcList expression = SrcList(_src, expr_start, _src.GetCursor() - expr_start);
-
+    Symbol const next_sym = _src.PeekNext();
+    if (_sym.IsIdentifier(next_sym) &&
+        !_sym.IsPredefined(next_sym) &&
+        _sym.kNoSrcLocation == _sym.GetDeclared(next_sym))
+    {
+        UserError("Identifier '%s' is undeclared (did you mis-spell it?)", _sym.GetName(next_sym).c_str());
+    }
     if (expression.Length() == 0u)
-        UserError("Unexpected symbol '%s'", _sym.GetName(_src.GetNext()).c_str());
+        UserError("Expected an assignment or expression, found '%s' instead", _sym.GetName(next_sym).c_str());
 
-    Symbol const assignment_symbol = _src.PeekNext();
-    switch (assignment_symbol)
+    switch (next_sym)
     {
     default:
     {
@@ -6809,9 +6814,9 @@ void AGS::Parser::ParseAssignmentOrExpression()
         ParseExpression_Term(expression, eres, false);
         _src.SetCursor(expr_end);
         if (eres.kTY_FunctionName == eres.Type)
-            Expect(kKW_OpenParenthesis, _src.GetNext());
+            Expect(kKW_OpenParenthesis, next_sym);
         if (eres.kTY_StructName == eres.Type)
-            Expect(kKW_Dot, _src.GetNext());
+            Expect(kKW_Dot, next_sym);
         if (!eres.SideEffects)
             Warning("This expression doesn't have any effect");
        
@@ -6826,11 +6831,12 @@ void AGS::Parser::ParseAssignmentOrExpression()
     case kKW_AssignBitXor:
     case kKW_AssignDivide:
     case kKW_AssignMinus:
+    case kKW_AssignModulo:
     case kKW_AssignMultiply:
     case kKW_AssignPlus:
     case kKW_AssignShiftLeft:
     case kKW_AssignShiftRight:
-        return ParseAssignment_MAssign(assignment_symbol, expression);
+        return ParseAssignment_MAssign(next_sym, expression);
     }
 }
 

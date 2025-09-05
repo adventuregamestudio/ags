@@ -3943,3 +3943,50 @@ TEST_F(Bytecode1, FormatFunc01)
     size_t const globaldata_size = 0;
     EXPECT_EQ(globaldata_size, scrip.globaldata.size());
 }
+
+TEST_F(Bytecode1, ModuloEqual) {
+
+    // Assignment operator '%='
+
+    char const *inpl = R"%&/(
+        void game_start()
+        {
+            int i = 15;
+            i %= 3;
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("ModuloEqual", scrip);
+    size_t const code_size = 35;
+    EXPECT_EQ(code_size, scrip.code.size());
+
+    int32_t code[] = {
+      36,    3,   38,    0,           36,    4,    6,    3,    // 7
+      15,   29,    3,   36,            5,    6,    3,    3,    // 15
+      29,    3,   51,    8,            7,    3,   30,    4,    // 23
+      40,    3,    4,    8,            3,   36,    6,    2,    // 31
+       1,    4,    5,  -999
+    };
+    CompareCode(&scrip, code_size, code);
+
+    size_t const fixups_size = 0;
+    ASSERT_EQ(scrip.fixups.size(), scrip.fixuptypes.size());
+    EXPECT_EQ(fixups_size, scrip.fixups.size());
+
+    int const non_empty_imports_count = 0;
+    CompareImports(&scrip, non_empty_imports_count, nullptr);
+
+    size_t const exports_size = 0;
+    ASSERT_EQ(scrip.exports.size(), scrip.export_addr.size());
+    EXPECT_EQ(exports_size, scrip.exports.size());
+
+    size_t const strings_size = 0;
+    EXPECT_EQ(strings_size, scrip.strings.size());
+
+    size_t const globaldata_size = 0;
+    EXPECT_EQ(globaldata_size, scrip.globaldata.size());
+}

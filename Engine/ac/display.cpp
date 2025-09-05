@@ -178,7 +178,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     break_up_text_into_lines(text, Lines, wii - 2 * padding, usingfont);
     DisplayVars disp(
         get_font_linespacing(usingfont),
-        get_text_lines_surf_height(usingfont, Lines.Count()));
+        get_text_lines_height(usingfont, Lines.Count()));
 
     if (topbar)
     {
@@ -222,17 +222,17 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         }
     }
 
-    if (longestline < wii - paddingDoubledScaled)
+    // If longest line is shorter than the requested width,
+    // and shrink is allowed, then shrink the text window
+    if ((look.AllowShrink != kDisplayTextShrink_None)
+        && (longestline < wii - paddingDoubledScaled))
     {
         // shrink the width of the dialog box to fit the text
-        int oldWid = wii;
-        // If it's not speech, or a shrink is allowed, then shrink it
-        if ((look.Style == kDisplayTextStyle_MessageBox) || (look.AllowShrink > 0))
-            wii = longestline + paddingDoubledScaled;
-
+        const int old_wid = wii;
+        wii = longestline + paddingDoubledScaled;
         // shift the dialog box right to align it, if necessary
-        if ((look.AllowShrink == 2) && (xx >= 0))
-            xx += (oldWid - wii);
+        if ((look.AllowShrink == kDisplayTextShrink_Right) && (xx >= 0))
+            xx += (old_wid - wii);
     }
 
     if ((look.Position & kDisplayTextPos_ScreenCenterX) != 0)
@@ -541,7 +541,7 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
     try_auto_play_speech(text, text, play.narrator_speech);
 
     display_main(xx, yy, wii, text, topbar, kDisplayText_MessageBox, 0 /* no overid */,
-        DisplayTextLooks(kDisplayTextStyle_MessageBox, get_textpos_from_scriptcoords(xx, yy, false), kDisplayTextShrink_None),
+        DisplayTextLooks(kDisplayTextStyle_MessageBox, get_textpos_from_scriptcoords(xx, yy, false), kDisplayTextShrink_Left),
         FONT_NORMAL, 0, -1 /* no autoplace */, false /* screen layer */);
 
     // Stop any blocking voice-over, if was started by this function
@@ -685,7 +685,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
 
     const int t_width = get_text_width(text, font);
     const auto t_extent = get_font_surface_extent(font);
-    const int t_height = t_extent.second - t_extent.first;
+    const int t_height = t_extent.second - t_extent.first + 1;
     if (t_width == 0 || t_height == 0)
         return;
     // Prepare stencils
@@ -748,12 +748,11 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     }
 }
 
-// Draw an outline if requested, then draw the text on top 
-void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, BlendMode blend_mode, const char *text)
+// Draw an outline if requested, then draw the text on top
+void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color, BlendMode blend_mode, const char *text)
 {    
     size_t const text_font = static_cast<size_t>(font);
     // Draw outline (a backdrop) if requested
-    color_t const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     int const outline_font = get_font_outline(font);
     if (outline_font >= 0)
         wouttextxy(ds, x, y, static_cast<size_t>(outline_font), outline_color, blend_mode, text);
@@ -775,17 +774,30 @@ void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, Bl
 
 void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text)
 {
-    wouttext_outline(ds, x, y, font, text_color, kBlend_Normal, text);
+    const color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    wouttext_outline(ds, x, y, font, text_color, outline_color, kBlend_Normal, text);
 }
 
-void wouttext_aligned(Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align) {
+void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, BlendMode blend_mode, const char *text)
+{
+    const color_t outline_color = ds->GetCompatibleColor(16);
+    wouttext_outline(ds, x, y, font, text_color, outline_color, blend_mode, text);
+}
 
+void wouttext_aligned(Bitmap *ds, int x, int y, int oriwid, int usingfont, color_t text_color, color_t outline_color, const char *text, HorAlignment align)
+{
     if (align & kMAlignHCenter)
-        usexp = usexp + (oriwid / 2) - (get_text_width_outlined(text, usingfont) / 2);
+        x = x + (oriwid / 2) - (get_text_width_outlined(text, usingfont) / 2);
     else if (align & kMAlignRight)
-        usexp = usexp + (oriwid - get_text_width_outlined(text, usingfont));
+        x = x + (oriwid - get_text_width_outlined(text, usingfont));
 
-    wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
+    wouttext_outline(ds, x, y, usingfont, text_color, outline_color, kBlend_Normal, text);
+}
+
+void wouttext_aligned(Bitmap *ds, int x, int y, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align)
+{
+    int const outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
+    wouttext_aligned(ds, x, y, oriwid, usingfont, text_color, outline_color, text, align);
 }
 
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
@@ -800,7 +812,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     draw_gui_sprite(ds, sprn, x, y);
 }
 
-int get_but_pic(GUIMain*guo,int indx)
+int get_but_pic(GUIMain*guo, GUITextWindowBorder indx)
 {
     int butid = guo->GetControlID(indx);
     return butid >= 0 ? guibuts[butid].GetNormalImage() : 0;
@@ -822,8 +834,8 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         if (iep->GetBgColor() != 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), MakeColor(iep->GetBgColor()));
 
-        const int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
-        const int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
+        const int leftRightWidth = game.SpriteInfos[get_but_pic(iep, kTW_Left)].Width;
+        const int topBottomHeight = game.SpriteInfos[get_but_pic(iep, kTW_Top)].Height;
         // GUI middle space
         if (iep->GetBgImage()>0)
         {
@@ -851,24 +863,24 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         }
         // Vertical borders
         ds->SetClip(Rect(xx1 - leftRightWidth, yy1, xx2 + 1 + leftRightWidth, yy2));
-        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height)
+        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep, kTW_Left)].Height)
         {
-            do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
-            do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
+            do_corner(ds, get_but_pic(iep, kTW_Left),xx1,uu,-1,0);   // left side
+            do_corner(ds, get_but_pic(iep, kTW_Right),xx2+1,uu,0,0);  // right side
         }
         // Horizontal borders
         ds->SetClip(Rect(xx1, yy1 - topBottomHeight, xx2, yy2 + 1 + topBottomHeight));
-        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width)
+        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep, kTW_Top)].Width)
         {
-            do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
-            do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
+            do_corner(ds, get_but_pic(iep, kTW_Top),uu,yy1,0,-1);  // top side
+            do_corner(ds, get_but_pic(iep, kTW_Bottom),uu,yy2+1,0,0); // bottom side
         }
         ds->ResetClip();
         // Four corners
-        do_corner(ds, get_but_pic(iep,0),xx1,yy1,-1,-1);  // top left
-        do_corner(ds, get_but_pic(iep,1),xx1,yy2+1,-1,0);  // bottom left
-        do_corner(ds, get_but_pic(iep,2),xx2+1,yy1,0,-1);  //  top right
-        do_corner(ds, get_but_pic(iep,3),xx2+1,yy2+1,0,0);  // bottom right
+        do_corner(ds, get_but_pic(iep, kTW_TopLeft),xx1,yy1,-1,-1);
+        do_corner(ds, get_but_pic(iep, kTW_BottomLeft),xx1,yy2+1,-1,0);
+        do_corner(ds, get_but_pic(iep, kTW_TopRight),xx2+1,yy1,0,-1);
+        do_corner(ds, get_but_pic(iep, kTW_BottomRight),xx2+1,yy2+1,0,0);
     }
 }
 
@@ -885,8 +897,8 @@ int get_textwindow_border_width(int twgui)
         return 0;
     }
 
-    int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], 4)].Width + 
-        game.SpriteInfos[get_but_pic(&guis[twgui], 5)].Width;
+    int borwid = game.SpriteInfos[get_but_pic(&guis[twgui], kTW_Left)].Width +
+        game.SpriteInfos[get_but_pic(&guis[twgui], kTW_Right)].Width;
 
     return borwid;
 }
@@ -903,7 +915,7 @@ int get_textwindow_top_border_height(int twgui)
         return 0;
     }
 
-    return game.SpriteInfos[get_but_pic(&guis[twgui], 6)].Height;
+    return game.SpriteInfos[get_but_pic(&guis[twgui], kTW_Top)].Height;
 }
 
 // Get the padding for a text window
@@ -952,7 +964,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
     }
     else
     {
-        int tbnum = get_but_pic(&guis[ifnum], 0);
+        int tbnum = get_but_pic(&guis[ifnum], kTW_TopLeft);
 
         wii[0] += get_textwindow_border_width (ifnum);
         xx[0]-=game.SpriteInfos[tbnum].Width;

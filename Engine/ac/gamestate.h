@@ -270,6 +270,8 @@ struct GamePlayState
     int   dialog_options_gui_y = -1;
     // Horizontal alignment of dialog options texts
     HorAlignment dialog_options_textalign = kHAlignLeft;
+    // Font of dialog options texts, if negative then use "normal font"
+    int   dialog_options_font = 0;
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
     // Dynamic custom property values for global game objects

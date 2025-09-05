@@ -632,7 +632,7 @@ bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot)
 {
     int do_max_slot = std::min(max_slot, TOP_SAVESLOT);
     int do_min_slot = std::min(do_max_slot, std::max(0, min_slot));
-    if (do_max_slot - do_min_slot <= 0)
+    if (do_max_slot - do_min_slot + 1 <= 0)
     {
         debug_script_warn("%s: empty or invalid slots range requested (requested: %d..%d, valid range %d..%d)",
             api_name, min_slot, max_slot, 0, TOP_SAVESLOT);

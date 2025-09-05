@@ -47,7 +47,9 @@ public:
     String GetItem(int index) const;
     int  GetSavedGameIndex(int index) const;
     int  GetItemAt(int x, int y) const;
-    int  GetSelectedItem() const { return _selectedItem; }
+    // NOTE: GetSelectedItem accounts for backwards-compatible behavior,
+    // when the "selection" is kept at index 0 even when there's no items
+    int  GetSelectedItem() const { return _items.size() > 0 ? _selectedItem : -1; }
     void SetSelectedItem(int index);
     int  GetTopItem() const { return _topItem; }
     void SetTopItem(int index);

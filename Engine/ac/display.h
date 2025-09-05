@@ -158,12 +158,19 @@ bool try_auto_play_speech(const char *text, const char *&replace_text, int chari
 int GetTextDisplayLength(const char *text);
 // Calculates number of game loops for displaying a text on screen
 int GetTextDisplayTime(const char *text, int canberel = 0);
-// Draw an outline if requested, then draw the text on top 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
-void wouttext_aligned (Common::Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align);
+// Draw an (optionally) outlined text
+void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color, Common::BlendMode blend_mode, const char *text);
+// Draw an (optionally) outlined text, using default outline color
+void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, Common::BlendMode blend_mode, const char *text);
+// Draw an (optionally) outlined text, using default outline color and normal blend mode
+void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, const char *text);
+// Draw an (optionally) outlined text using a horizontal alignment
+void wouttext_aligned(Common::Bitmap *ds, int x, int y, int oriwid, int font, color_t text_color, int outline_color, const char *text, HorAlignment align);
+// Draw an (optionally) outlined text using a horizontal alignment and default outline color
+void wouttext_aligned(Common::Bitmap *ds, int x, int y, int oriwid, int usingfont, color_t text_color, const char *text, HorAlignment align);
 void do_corner(Common::Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy);
 // Returns the image of a button control on the GUI under given child index
-int get_but_pic(Common::GUIMain*guo,int indx);
+int get_but_pic(Common::GUIMain*guo, AGS::Common::GUITextWindowBorder indx);
 void draw_button_background(Common::Bitmap *ds, int xx1,int yy1,int xx2,int yy2,Common::GUIMain*iep);
 // Calculate the width that the left and right border of the textwindow
 // GUI take up

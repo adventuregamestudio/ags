@@ -287,6 +287,16 @@ void StrUtil::ReadStringMap(StringMap &map, Stream *in)
     }
 }
 
+void StrUtil::SkipStringMap(Stream *in)
+{
+    size_t count = in->ReadInt32();
+    for (size_t i = 0; i < count; ++i)
+    {
+        StrUtil::SkipString(in);
+        StrUtil::SkipString(in);
+    }
+}
+
 void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
 {
     out->WriteInt32(static_cast<uint32_t>(map.size()));

@@ -95,8 +95,13 @@ namespace BitmapHelper
     bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext);
 
     // Stretches bitmap to the requested size. The new bitmap will have same
-    // colour depth. Returns original bitmap if no changes are necessary. 
+    // colour depth. Returns original bitmap if no changes are necessary.
     Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height);
+    // Makes sure that the parent bitmap is large enough, and initializes sub-bitmap of the
+    // requested size. The parent bitmap is only recreated when grown, but is never shrunk.
+    // This function does not make an effort to retain the original image.
+    void    AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, int sub_height, int color_depth);
+
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
     void    MakeOpaque(Bitmap *bmp);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.

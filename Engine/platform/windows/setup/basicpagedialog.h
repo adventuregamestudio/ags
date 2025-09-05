@@ -179,6 +179,8 @@ private:
     int _displayIndex = 0; // validated display index
     Size _desktopSize;
     Size _maxWindowSize;
+    // List of found translations
+    std::vector<String> _translations;
 
     // Dialog controls
     HWND _hGameResolutionText = NULL;

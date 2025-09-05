@@ -254,9 +254,13 @@ namespace AGS.Editor.Utils
                         }
                     }
                     GUISlider slider = control as GUISlider;
-                    if ((slider != null) && (slider.HandleImage == spriteNumber))
+                    if (slider != null)
                     {
-                        usageReport.AppendLine("GUI slider " + control.Name + " on GUI " + gui.Name);
+                        if ((slider.HandleImage == spriteNumber) ||
+                            (slider.BackgroundImage == spriteNumber))
+                        {
+                            usageReport.AppendLine("GUI slider " + control.Name + " on GUI " + gui.Name);
+                        }
                     }
                     GUITextWindowEdge edge = control as GUITextWindowEdge;
                     if ((edge != null) && (edge.Image == spriteNumber))

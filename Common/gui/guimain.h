@@ -378,9 +378,12 @@ extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y,
     AGS::Common::Bitmap *image, AGS::Common::BlendMode blend_mode, int alpha, AGS::Common::GraphicFlip flip);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color, const char *text);
 extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
-    color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
+                             color_t text_color, const char *text);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
+                             color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
+                             color_t text_color, color_t outline_color, AGS::Common::BlendMode blend_mode, const char *texx);
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);

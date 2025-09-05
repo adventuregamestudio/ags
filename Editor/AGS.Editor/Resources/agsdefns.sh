@@ -1894,6 +1894,24 @@ builtin managed struct TextWindowGUI extends GUI {
   import attribute int  TextColor;
   /// Gets/sets the amount of padding, in pixels, surrounding the text in the TextWindow.
   import attribute int  TextPadding;
+#ifdef SCRIPT_API_v363
+  /// Gets the sprite number used for this TextWindow's left border
+  import readonly attribute int LeftGraphic;
+  /// Gets the sprite number used for this TextWindow's top-left corner
+  import readonly attribute int TopLeftGraphic;
+  /// Gets the sprite number used for this TextWindow's top border
+  import readonly attribute int TopGraphic;
+  /// Gets the sprite number used for this TextWindow's top-right corner
+  import readonly attribute int TopRightGraphic;
+  /// Gets the sprite number used for this TextWindow's right border
+  import readonly attribute int RightGraphic;
+  /// Gets the sprite number used for this TextWindow's bottom-right corner
+  import readonly attribute int BottomRightGraphic;
+  /// Gets the sprite number used for this TextWindow's bottom border
+  import readonly attribute int BottomGraphic;
+  /// Gets the sprite number used for this TextWindow's bottom-left corner
+  import readonly attribute int BottomLeftGraphic;
+#endif // SCRIPT_API_v363
 };
 #endif // SCRIPT_API_v350
 
@@ -2083,10 +2101,10 @@ builtin managed struct Dialog {
   import bool SetTextProperty(const string property, const string value);
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_API_v363 fix move up
-  /// Gets/sets the color used to draw the active (selected) dialog option
-  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
   import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the font to use when displaying dialog options
+  import static attribute int OptionsFont; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the vertical gap between dialog options (in pixels)
   import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
@@ -2095,6 +2113,8 @@ builtin managed struct Dialog {
   import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
   import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the active (selected) dialog option
+  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
   /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
   import static attribute int OptionsMaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
   /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
@@ -3206,6 +3226,8 @@ builtin managed struct RestoredSaveInfo
   import readonly attribute String Description;
   /// Gets the version of the engine which wrote this save.
   import readonly attribute String EngineVersion;
+  /// Gets the version of the game which wrote this save (if provided by developer).
+  import readonly attribute String GameVersion;
   /// Gets the room number this save was made in.
   import readonly attribute int Room;
   /// Gets the number of Audio Types present in this save.

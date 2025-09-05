@@ -36,15 +36,18 @@ public:
   int GetVersion() override { return 26; /* first compatible engine API version */ }
   const char *GetRendererName() override { return "WFNFontRenderer"; }
   const char *GetFontName(int /*fontNumber*/) override { return ""; }
-  int GetFontHeight(int fontNumber) override { return 0; /* TODO? */ }
+  int GetFontHeight(int fontNumber) override;
   int GetLineSpacing(int fontNumber) override { return 0; /* no specific spacing */ }
 
   // IAGSFontRendererInternal implementation
   bool IsBitmapFont() override;
   bool LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,
       const FontRenderParams *params, FontMetrics *metrics) override;
-  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
+  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
+  void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
+  void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
+  void SetCharacterSpacing(int fontNumber, int spacing) override;
   void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
@@ -52,10 +55,13 @@ public:
   virtual ~WFNFontRenderer() = default;
 
 private:
+  void FillMetrics(const WFNFont *font, FontMetrics *metrics);
+
   struct FontData
   {
     WFNFont         *Font;
     FontRenderParams Params;
+    int              CharacterSpacing;
   };
   std::map<int, FontData> _fontData;
   AGS::Common::AssetManager *_amgr = nullptr;

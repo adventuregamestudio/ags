@@ -22,6 +22,7 @@ namespace AGS.Types
         private int _sizeMultiplier = 1;
         private int _verticalOffset;
         private int _lineSpacing;
+        private int _characterSpacing;
         private int _autoOutlineThickness = 1;
         private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Squared;
         private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.None;
@@ -33,6 +34,7 @@ namespace AGS.Types
             _outlineStyle = FontOutlineStyle.None;
             _fontHeight = 0;
             _lineSpacing = 0;
+            _characterSpacing = 0;
         }
 
         [Description("The ID number of the font")]
@@ -230,6 +232,15 @@ namespace AGS.Types
         {
             get { return _lineSpacing; }
             set { _lineSpacing = value; }
+        }
+
+        [DisplayName("Character Spacing")]
+        [Description("Horizontal spacing between any pair of characters, in pixels, added to the default spacing (kerning)")]
+        [Category("Appearance")]
+        public int CharacterSpacing
+        {
+            get { return _characterSpacing; }
+            set { _characterSpacing = value; }
         }
 
         [Obsolete]

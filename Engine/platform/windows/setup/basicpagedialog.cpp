@@ -408,7 +408,12 @@ void BasicPageDialog::FillLanguageList()
     {
         String filename = Path::RemoveExtension(Path::GetFilename(ff.Current()));
         filename.SetAt(0, toupper(filename[0]));
-        int index = AddString(_hLanguageList, STR(filename));
+        _translations.push_back(filename);
+    }
+
+    for (const auto &tra : _translations)
+    {
+        AddString(_hLanguageList, STR(tra), (DWORD_PTR)STR(tra));
     }
 
     SetCurSel(_hLanguageList, 0);

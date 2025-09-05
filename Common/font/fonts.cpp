@@ -51,6 +51,11 @@ struct Font
     FontMetrics         Metrics;
     // Precalculated linespacing, based on font properties and compat settings
     int                 LineSpacingCalc = 0;
+    // First and last character code supported in this font; -1 if not initialized
+    int                 FirstCharCode = -1;
+    int                 LastCharCode = -1;
+    // Cached list of valid character codes in this font
+    std::vector<int>    ValidCharCodes;
 
     // Outline buffers
     Bitmap TextStencil, TextStencilSub;
@@ -78,6 +83,7 @@ FontInfo::FontInfo()
     , Outline(FONT_OUTLINE_NONE)
     , YOffset(0)
     , LineSpacing(0)
+    , CharacterSpacing(0)
     , AutoOutlineStyle(kSquared)
     , AutoOutlineThickness(0)
 {}
@@ -153,7 +159,7 @@ static void font_post_init(int font_number)
 
         font.Metrics.NominalHeight = std::max(0, height);
         font.Metrics.RealHeight = font.Metrics.NominalHeight;
-        font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight);
+        font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight - 1);
     }
     // Use either nominal or real pixel height to define font's logical height
     // and default linespacing; logical height = nominal height is compatible with the old games
@@ -183,6 +189,12 @@ static void font_post_init(int font_number)
             font.Info.Flags |= FFLG_DEFLINESPACING;
             font.LineSpacingCalc = font.Metrics.CompatHeight + 2 * font.Info.AutoOutlineThickness;
         }
+    }
+
+    // Apply character spacing if supported
+    if (font.RendererInt)
+    {
+        font.RendererInt->SetCharacterSpacing(font_number, font.Info.CharacterSpacing);
     }
 }
 
@@ -245,6 +257,32 @@ bool font_supports_extended_characters(int font_number)
     if (!assert_font_renderer(font_number))
         return false;
     return fonts[font_number].Renderer->SupportsExtendedCharacters(font_number);
+}
+
+int get_font_topmost_char_code(int font_number)
+{
+    if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
+        return -1;
+    if (fonts[font_number].LastCharCode == -1)
+    {
+        std::pair<int, int> range;
+        fonts[font_number].RendererInt->GetCharCodeRange(font_number, &range);
+        fonts[font_number].FirstCharCode = range.first;
+        fonts[font_number].LastCharCode = range.second;
+    }
+    return fonts[font_number].LastCharCode;
+}
+
+const std::vector<int> *get_font_valid_char_codes(int font_number)
+{
+    if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
+        return nullptr;
+
+    if (fonts[font_number].ValidCharCodes.size() == 0)
+    {
+        fonts[font_number].RendererInt->GetValidCharCodes(font_number, fonts[font_number].ValidCharCodes);
+    }
+    return &fonts[font_number].ValidCharCodes;
 }
 
 const char *get_font_name(int font_number)
@@ -339,8 +377,8 @@ int get_font_height(int font_number)
 }
 
 // Returns a max value between the chosen font height (this may be a compat height,
-// or a real graphical height), and the font's outline height.
-static int get_font_height_with_outline(int font_number, bool surf_height)
+// or a full graphical extent), and the font's outline height.
+static int get_font_height_with_outline(int font_number, bool surf_height = false)
 {
     const int self_height = surf_height ?
         fonts[font_number].Metrics.ExtentHeight() :
@@ -360,7 +398,7 @@ int get_font_height_outlined(int font_number)
 {
     if (!assert_font_number(font_number))
         return 0;
-    return get_font_height_with_outline(font_number, false /* use compat height */);
+    return get_font_height_with_outline(font_number);
 }
 
 int get_font_surface_height(int font_number)
@@ -382,6 +420,13 @@ std::pair<int, int> get_font_surface_extent(int font_number)
     if (!assert_font_number(font_number))
         return std::make_pair(0, 0);
     return fonts[font_number].Metrics.VExtent;
+}
+
+Rect get_font_glyph_bbox(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return Rect();
+    return fonts[font_number].Metrics.BBox;
 }
 
 int get_font_linespacing(int font_number)
@@ -406,15 +451,7 @@ int get_text_lines_height(int font_number, size_t numlines)
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        get_font_height_with_outline(font_number, false /* use compat height */);
-}
-
-int get_text_lines_surf_height(int font_number, size_t numlines)
-{
-    if (!assert_font_number(font_number) || numlines == 0)
-        return 0;
-    return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        get_font_height_with_outline(font_number, true /* use surface height */);
+        get_font_height_with_outline(font_number);
 }
 
 namespace AGS { namespace Common { SplitLines Lines; } }
@@ -580,9 +617,10 @@ bool load_font_size(int font_number, const String &filename, const FontInfo &fon
     font.Metrics = metrics;
     font_post_init(font_number);
 
-    Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, extent: %d,%d",
+    Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, vextent: %d,%d, aabb: %d,%d - %d,%d",
         font_number, font_info.Filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
-        font.Metrics.VExtent.first, font.Metrics.VExtent.second);
+        font.Metrics.VExtent.first, font.Metrics.VExtent.second,
+        font.Metrics.BBox.Left, font.Metrics.BBox.Top, font.Metrics.BBox.Right, font.Metrics.BBox.Bottom);
     return true;
 }
 
@@ -609,23 +647,8 @@ void alloc_font_outline_buffers(int font_number,
         return;
     Font &f = fonts[font_number];
     const int thick = 2 * f.Info.AutoOutlineThickness;
-    if (f.TextStencil.IsNull() || (f.TextStencil.GetColorDepth() != color_depth) ||
-        (f.TextStencil.GetWidth() < text_width) || (f.TextStencil.GetHeight() < text_height))
-    {
-        int sw = f.TextStencil.IsNull() ? 0 : f.TextStencil.GetWidth();
-        int sh = f.TextStencil.IsNull() ? 0 : f.TextStencil.GetHeight();
-        sw = std::max(text_width, sw);
-        sh = std::max(text_height, sh);
-        f.TextStencil.Create(sw, sh, color_depth);
-        f.OutlineStencil.Create(sw, sh + thick, color_depth);
-        f.TextStencilSub.CreateSubBitmap(&f.TextStencil, RectWH(Size(text_width, text_height)));
-        f.OutlineStencilSub.CreateSubBitmap(&f.OutlineStencil, RectWH(Size(text_width, text_height + thick)));
-    }
-    else
-    {
-        f.TextStencilSub.ResizeSubBitmap(text_width, text_height);
-        f.OutlineStencilSub.ResizeSubBitmap(text_width, text_height + thick);
-    }
+    BitmapHelper::AllocateBitmapAndSubBitmap(&f.TextStencil, &f.TextStencilSub, text_width, text_height, color_depth);
+    BitmapHelper::AllocateBitmapAndSubBitmap(&f.OutlineStencil, &f.OutlineStencilSub, text_width, text_height + thick, color_depth);
     *text_stencil = &f.TextStencilSub;
     *outline_stencil = &f.OutlineStencilSub;
 }

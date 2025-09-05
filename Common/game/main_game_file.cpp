@@ -642,9 +642,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             finfo.AutoOutlineThickness = in->ReadInt32();
             finfo.AutoOutlineStyle =
                 static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
-            // reserved
-            in->ReadInt32();
-            in->ReadInt32();
+            // since kGameVersion_363
+            finfo.CharacterSpacing = in->ReadInt32();
+            in->ReadInt32(); // reserved
             in->ReadInt32();
             in->ReadInt32();
         }

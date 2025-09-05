@@ -258,6 +258,26 @@ inline bool AssertGameObjectContent2(HSaveError &err, const uint32_t new_val, co
 //
 //-----------------------------------------------------------------------------
 
+HSaveError WriteGameInfo(Stream *out)
+{
+    StrUtil::WriteStringMap(game.GameInfo, out);
+    return HSaveError::None();
+}
+
+HSaveError ReadGameInfo(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams & /*pp*/, RestoredData &r_data)
+{
+    // We don't overwrite current game's info, but read this into RestoredData,
+    // in case they want to check it in "validate_restored_save"
+    StrUtil::ReadStringMap(r_data.DataCounts.GameInfo, in);
+    return HSaveError::None();
+}
+
+HSaveError PrescanGameInfo(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams & /*pp*/, RestoredData &r_data)
+{
+    StrUtil::ReadStringMap(r_data.DataCounts.GameInfo, in);
+    return HSaveError::None();
+}
+
 void WriteCameraState(const Camera &cam, Stream *out)
 {
     int flags = 0;
@@ -1757,6 +1777,15 @@ ComponentHandler ComponentHandlers[] =
 {
     // NOTE: the new format values should now be defined as AGS version
     // at which a change was introduced, represented as NN,NN,NN,NN.
+    {
+        "Game Info",
+        0,
+        0,
+        kSaveCmp_GameState, // consider this is a part of game state
+        WriteGameInfo,
+        ReadGameInfo,
+        PrescanGameInfo
+    },
     {
         "Game State",
         kGSSvgVersion_400_18,

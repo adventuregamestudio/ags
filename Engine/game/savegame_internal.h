@@ -148,6 +148,7 @@ struct SaveRestoredDataCounts
     std::vector<String> ScriptModuleNames;
     std::vector<uint32_t> ScriptModuleDataSz;
     int Room = -1; // the room this save was made in
+    AGS::Common::StringMap GameInfo; // game info from the game that made this save
 };
 
 // RestoredData keeps certain temporary data to help with

@@ -176,11 +176,15 @@ namespace AGS.Editor.Components
 
                 UpdateFont(itemBeingEdited); // update font which has a new source file
             }
-
-            bool shouldRepaint = (propertyName == "Source FontFile" || propertyName == "Font Size" || propertyName == "SizeMultiplier");
+            
+             bool fontStyleChanged =
+                (propertyName == "Source FontFile" || propertyName == "Font Size"
+                || propertyName == "SizeMultiplier" || propertyName == "TTF font adjustment");
+            bool fontGlyphPositionChanged = true; // any other property changes this
+            Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, (propertyName == "SourceFilename"));
+            if (fontStyleChanged || fontGlyphPositionChanged)
+                editor.OnFontUpdated(fontStyleChanged, fontGlyphPositionChanged);
             Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, false);
-            if (shouldRepaint)
-                editor.OnFontUpdated();
         }
 
         public override IList<MenuCommand> GetContextMenu(string controlID)
@@ -234,6 +238,19 @@ namespace AGS.Editor.Components
             RePopulateTreeView();
             FontFileTypeConverter.SetFontFileList(_agsEditor.CurrentGame.FontFiles);
             FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
+        }
+        
+        public override void GameSettingsChanged()
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                var fontEditor = doc.Control as FontEditor;
+                if (fontEditor != null)
+                {
+                    fontEditor.OnTextFormatUpdated();
+                    fontEditor.UpdatePreviewScaling();
+                }
+            }
         }
 
         private string GetNodeID(AGS.Types.FontFile item)

@@ -50,7 +50,6 @@ extern "C" {
 #define ALFONT_FLG_SELECT_NOMINAL_SZ  0x04
 // Precalculate maximal glyph control box, that is maximal graphical
 // extent of any glyph in the font (which may exceed font's height).
-// Note that this requires FreeType to load each glyph one by one.
 #define ALFONT_FLG_PRECALC_MAX_CBOX   0x08
 
 
@@ -73,11 +72,18 @@ ALFONT_DLL_DECLSPEC void alfont_destroy_font(ALFONT_FONT *f);
 
 ALFONT_DLL_DECLSPEC int alfont_set_font_size(ALFONT_FONT *f, int h);
 ALFONT_DLL_DECLSPEC int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags);
+ALFONT_DLL_DECLSPEC int alfont_get_font_ascent(ALFONT_FONT *f);
 ALFONT_DLL_DECLSPEC int alfont_get_font_height(ALFONT_FONT *f);
 /* Returns the real font graphical height */
 ALFONT_DLL_DECLSPEC int alfont_get_font_real_height(ALFONT_FONT *f);
-/* Returns the real font graphical extent (top, bottom) */
-ALFONT_DLL_DECLSPEC void alfont_get_font_real_vextent(ALFONT_FONT *f, int *top, int *bottom);
+/* Returns the font's glyph maximal bound box */
+ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *top, int *right, int *bottom);
+/* Returns first and last character codes found in the font, and number of valid character codes */
+ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode, int *num_charcodes);
+/* Creates an array containing all the valid character codes found in this font,
+*  returns the length of array.
+   The array is created with malloc() and must be disposed using free(). */
+ALFONT_DLL_DECLSPEC int alfont_get_valid_charcodes(ALFONT_FONT *f, int **charcodes);
 
 ALFONT_DLL_DECLSPEC int alfont_text_mode(int mode);
 ALFONT_DLL_DECLSPEC BLENDER_FUNC alfont_blend_mode(BLENDER_FUNC blend_func);

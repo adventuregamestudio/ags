@@ -257,7 +257,7 @@ struct FontInfo
 
     // Font's source filename
     AGS::Common::String Filename;
-    // General font's loading and rendering flags
+    // General font's loading and rendering flags (FFLG_*)
     uint32_t      Flags;
     // Nominal font import size (in pixels)
     int           Size;
@@ -269,6 +269,8 @@ struct FontInfo
     int           YOffset;
     // Custom line spacing between two lines of text (0 = use font height)
     int           LineSpacing;
+    // Horizontal spacing between individual characters, in pixels
+    int           CharacterSpacing;
     // When automatic outlining, style of the outline
     AutoOutlineStyle AutoOutlineStyle;
     // When automatic outlining, thickness of the outline (0 = no auto outline)

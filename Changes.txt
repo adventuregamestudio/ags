@@ -269,6 +269,121 @@ WinSetup:
 
 ===================================================================================================
 
+VERSION 3.6.3 - Beta, September 2025
+
+Editor:
+ - In General Settings added "GUI common controls handle only left mouse button" option that lets
+   prevent RMB from activating gui controls, except those that have separate actions for left and
+   right mouse buttons.
+ - In Default Setup added "Compress saves" option, enabled by default.
+ - For the Fonts added CharacterSpacing property that lets define additional spacing between each
+   pair of characters.
+ - In Project Explorer added context menu command "Go to X" for each applicable item type, which
+   lets to find an item by its numeric ID.
+ - Redesigned Font Preview panel. Now the table of glyphs display all the characters present in the
+   font and let jump to a chosen character. Added text preview, where user may input any multiline
+   text and see it printed with the current font.
+ - Font Preview and GUI Editor now display fonts with their respective outlines.
+ - In View Editor added context menu commands for copying, cutting and pasting individual frames
+   and frame ranges; commands for reversing a range of frames, and reversing loop.
+
+Script API:
+ - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
+   are affected by the right mouse button or not (InventoryWindows are excluded from this, because
+   they have their own special handling for RMB).
+ - Added GameInfo struct that contains meta-information about the game, such as developer's name,
+   developer's URL, version, and so forth.
+ - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
+ - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsFont, OptionsGap,
+   OptionsGUI, OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth,
+   OptionsMinGUIWidth, OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor,
+   OptionTextAlignment.
+   Most of these are replacing previously existing old-style variables in "game" struct and
+   OPT_* options. OptionsGUIX/Y and OptionTextAlignment are completely new features.
+ - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
+   was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
+ - Added number of readonly properties to TextWindowGUI which return respective border graphics:
+   LeftGraphic, RightGraphic, and so forth.
+ - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
+
+Engine:
+ - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
+   in "misc" section, enabled by default.
+ - Always compress a screenshot in game save using Deflate algorithm.
+ - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
+   is filled with files or saves). The selection has to be explicitly set using SelectedItem.
+ - Standard Dialog options now support Right-to-left text mode.
+ - Improved video playback's synchronization between video and audio streams.
+ - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
+   a warning.
+
+Compatibility:
+ - Don't use alpha channel when drawing textwindow gui in pre-3.* games.
+
+WinSetup:
+ - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
+
+
+---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 3, September 2025
+
+Common:
+ - Removed a very old limit of 14 chars max lipsync filename.
+
+Editor:
+ - In case of multiple objects selected in the editor (such as GUI controls or View Frames)
+   Properties Grid will now hide properties that are not allowed to be assigned same value,
+   such as ID or Name.
+ - Resize all Buttons when changing an Image for multiple selected buttons at once.
+ - In Room Editor added separate checkbox for "Move Room Objects From Bottom-Left". The respective
+   Character's checkbox will no longer affect Room Objects.
+ - Fixed editor not being able to find a event function in script if there was a comment
+   on the same line as a function declaration.
+ - Fixed bad script generated for Global Variables of String array type.
+ - Fixed editor was suggesting Room 301 as a first non-state-saving room, while 300 is the one.
+ - Fixed a error in "New Room" and "Change Room Number" dialogs where having number 300 and
+   ticking "don't save state" checkbox would cause "value out of range" exception.
+ - Fixed "Show sprite usage" did not account for Slider's background image.
+ - Fixed text input fields on Colour Finder and Lip Sync panels did not fallback to the default
+   text field setting in Color Theme in case their individual settings were missing.
+
+Compiler:
+ - Fixed a crash caused by meeting certain unicode characters in script (outside of string or
+   character literals).
+
+Engine:
+ - When a room state restored from a save has a different number of Room Objects, it will be
+   automatically fixed to match the number of Objects found in the current game's room.
+ - Removed error triggered if a Wait or any similar "waiting" command was called in the starting
+   room's "Before fade-in" event. For some reason this error was only shown if it's the first
+   room in the game, which does not make much sense. There's still a warning logged in this
+   circumstance.
+ - Fixed magenta color on room background could be treated as transparent when it's a part of
+   a walk-behind.
+ - Fixed switching display modes while running a 16-bit game could lead to current graphical
+   overlays (like character portraits, etc) become corrupted.
+ - Fixed engine to not automatically switch from an empty view loop when animating character
+   by command (should only do that when animating walking).
+ - Fixed text height calculation did not account for the outline font's size (only for automatic
+   outlining).
+ - Fixed standard dialog options surface had excessive height (regression in 3.6.2).
+ - Fixed mouse cursor may not get updated after "Before fade-in" event if there was a Display
+   function called in it.
+ - Fixed function such as Game.ScanSaveSlots(), ListBox.FillSaveGameList(), and similar, wrongly
+   error when a single-slot range is passed (min slot = max slot).
+ - Fixed a potential crash occuring when engine was trying to log a warning in case a invalid
+   font was assigned to a Game's or GUIControl's Font property.
+ - Fixed engine overwriting existing translations when duplicate keys are found in the translation
+   file (it should keep the first met translation instead).
+ - Fixed engine to not try to translate empty lines. There was a rare error when the translation
+   contained an incorrect entry with empty key line but non-empty translation, in which case
+   engine could display that "translation" anytime any label has empty text.
+
+WinSetup:
+ - Fixed "Translation" option always reset to default when starting the setup program.
+
+
 VERSION 3.6.2 - Patch 2, July 2025
  
 Editor:

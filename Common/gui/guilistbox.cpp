@@ -185,7 +185,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     // Include font fixes for the first and last text line,
     // in case graphical height is different, and there's a VerticalOffset
     Line vextent = GUI::CalcFontGraphicalVExtent(_font);
-    Rect text_rc = RectWH(0, vextent.Y1, max_line.X2 - max_line.X1 + 1, last_line_y + (vextent.Y2 - vextent.Y1));
+    Rect text_rc = RectWH(0, vextent.Y1, max_line.X2 - max_line.X1 + 1, last_line_y + (vextent.Y2 - vextent.Y1 + 1));
     return SumRects(rc, text_rc);
 }
 
@@ -208,8 +208,10 @@ void GUIListBox::Clear()
         return;
     _items.clear();
     _savedGameIndex.clear();
-    _selectedItem = -1;
     _topItem = 0;
+    // NOTE: backwards compatible behavior is to keep selection at index 0,
+    // so that the first item appears selected when added
+    _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
     MarkChanged();
 }
 
@@ -280,7 +282,9 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
             }
         }
         else
+        {
             text_color = ds->GetCompatibleColor(_textColor);
+        }
 
         int item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
@@ -315,6 +319,8 @@ void GUIListBox::RemoveItem(int index)
 
     if (_selectedItem > index)
         _selectedItem--;
+    if (_selectedItem >= _items.size())
+        _selectedItem = -1;
     MarkChanged();
 }
 
@@ -450,8 +456,10 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     // Reset dynamic values
     _rowHeight = 0;
     _visibleItemCount = 0;
-    _selectedItem = -1;
     _topItem = 0;
+    // NOTE: backwards compatible behavior is to keep selection at index 0,
+    // so that the first item appears selected when added
+    _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
 }
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

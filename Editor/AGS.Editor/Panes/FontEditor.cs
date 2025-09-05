@@ -12,21 +12,25 @@ namespace AGS.Editor
 {
     public partial class FontEditor : EditorContentPanel
     {
+        private bool _updatingCharCode = false;
+
         public FontEditor()
         {
             InitializeComponent();
+            udCharCode.TextChanged += udCharCode_TextChanged;
+            fontViewPanel.CharacterSelected += fontViewPanel_CharacterSelected;
         }
 
         public FontEditor(AGS.Types.Font selectedFont) : this()
         {
             _item = selectedFont;
-            imagePanel.Invalidate();
+            fontViewPanel.GameFontNumber = _item.ID;
+            fontViewPanel.Scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
         }
 
         public delegate void ImportFont(AGS.Types.Font font);
 
         private AGS.Types.Font _item;
-        private int _previewHeight;
 
         public AGS.Types.Font ItemToEdit
         {
@@ -34,16 +38,32 @@ namespace AGS.Editor
             set
             {
                 _item = value;
-                imagePanel.Invalidate();
+                fontViewPanel.GameFontNumber = _item.ID;
             }
         }
 
         public ImportFont ImportOverFont { get; set; }
 
-        public void OnFontUpdated()
+        public void OnFontUpdated(bool fontStyle = true, bool fontGlyphPosition = true)
         {
             Factory.GUIController.RefreshPropertyGrid();
-            imagePanel.Invalidate();
+
+            UpdateCharInput();
+
+            if (fontStyle)
+                fontViewPanel.UpdateAndRepaint(true);
+            if (fontStyle || fontGlyphPosition)
+                textPreviewPanel.Invalidate();
+        }
+
+        public void OnTextFormatUpdated()
+        {
+            SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
+        }
+
+        public void UpdatePreviewScaling()
+        {
+            fontViewPanel.Scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
         }
 
         protected override string OnGetHelpKeyword()
@@ -51,63 +71,201 @@ namespace AGS.Editor
             return "Font Preview";
         }
 
-        // TODO: reimplement this to e.g. only have a bitmap of the panel's size,
-        // and draw a visible portion of the font preview.
-        private void PaintFont(Graphics g)
+        private void btnImportFont_Click(object sender, EventArgs e)
+        {
+            if (_item != null && ImportOverFont != null)
+            {
+                if (Factory.GUIController.ShowQuestion("Importing a font will replace the current font. Are you sure you want to do this?") == DialogResult.Yes)
+                {
+                    ImportOverFont(_item);
+                    OnFontUpdated();
+                }
+            }
+        }
+
+        private void textPreviewPanel_Paint(object sender, PaintEventArgs e)
         {
             if (_item == null)
                 return;
 
-            if (imagePanel.ClientSize.Width <= 0 || imagePanel.ClientSize.Height <= 0)
+            if (textPreviewPanel.ClientSize.Width <= 0 || textPreviewPanel.ClientSize.Height <= 0)
                 return; // sometimes occurs during automatic rearrangement of controls
 
-            int width = imagePanel.ClientSize.Width;
-            int height = imagePanel.ClientSize.Height;
-            int full_height = Factory.NativeProxy.DrawFont(IntPtr.Zero, _item.ID, 0, 0, width, 0, 0);
-            if (full_height <= 0)
-            {
-                SetPreviewHeight(0);
-                return; // something went wrong when calculating needed height
-            }
-
-            SetPreviewHeight(full_height);
-
-            int scroll_y = -imagePanel.AutoScrollPosition.Y;
+            Graphics g = e.Graphics;
+            g.Clear(Color.Black);
+            int scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
+            int g_width = (int)e.Graphics.ClipBounds.Width;
+            int g_height = (int)e.Graphics.ClipBounds.Height;
+            bool hdcReleased = false;
             try
             {
-                Factory.NativeProxy.DrawFont(g.GetHdc(), _item.ID, 0, 0, width, height, scroll_y);
+                Factory.NativeProxy.DrawTextUsingFont(g.GetHdc(),
+                    tbTextPreview.Text, _item.ID, true /*draw_outline*/,
+                    0, 0, g_width, g_height, 5, 5, g_width / scaling - 5,
+                    scaling);
                 g.ReleaseHdc();
+                hdcReleased = true;
             }
             catch (Exception)
             {
             }
+            finally
+            {
+                if (!hdcReleased)
+                    g.ReleaseHdc();
+            }
         }
 
-        private void SetPreviewHeight(int height)
+        private void tbTextPreview_TextChanged(object sender, EventArgs e)
         {
-            _previewHeight = height;
-            imagePanel.AutoScrollMinSize = new Size(0, height);
+            textPreviewPanel.Invalidate();
         }
 
-        private void imagePanel_Paint(object sender, PaintEventArgs e)
+        private void textPreviewPanel_SizeChanged(object sender, EventArgs e)
         {
-            PaintFont(e.Graphics);
+            textPreviewPanel.Invalidate();
         }
 
-        private void imagePanel_SizeChanged(object sender, EventArgs e)
+        private void SetFontPreviewMode(bool unicodeMode)
         {
-            imagePanel.Invalidate();
+            if (unicodeMode)
+            {
+                fontViewPanel.ANSIMode = false;
+                lblCharCode.Text = "Code: U+";
+                udCharCode.Hexadecimal = true;
+            }
+            else
+            {
+                fontViewPanel.ANSIMode = true;
+                lblCharCode.Text = "Code:";
+                udCharCode.Hexadecimal = false;
+            }
         }
 
-        private void imagePanel_Scroll(object sender, ScrollEventArgs e)
+        private void rbPreviewAuto_CheckedChanged(object sender, EventArgs e)
         {
-            imagePanel.Invalidate();
+            SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
+        }
+
+        private void rbUnicode_CheckedChanged(object sender, EventArgs e)
+        {
+            SetFontPreviewMode(true);
+        }
+
+        private void rbANSI_CheckedChanged(object sender, EventArgs e)
+        {
+            SetFontPreviewMode(false);
+        }
+        private void fontViewPanel_CharacterSelected(object sender, FontPreviewGrid.CharacterSelectedEventArgs args)
+        {
+            udCharCode.Value = args.CharacterCode;
+        }
+
+        private void UpdateCharCode()
+        {
+            if (!_updatingCharCode)
+            {
+                _updatingCharCode = true;
+                int code = 0;
+                if (tbCharInput.Text.Length > 0)
+                {
+                    if (fontViewPanel.ANSIMode)
+                    {
+                        var ansiBytes = Encoding.Default.GetBytes(tbCharInput.Text);
+                        code = ansiBytes[0];
+                    }
+                    else
+                    {
+                        code = tbCharInput.Text[0];
+                    }
+                }
+                udCharCode.Value = (code >= udCharCode.Minimum && code <= udCharCode.Maximum) ? code : 0;
+
+                // Automatically scroll the preview to the selected character
+                fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+
+                _updatingCharCode = false;
+            }
+        }
+
+        private void UpdateCharInput()
+        {
+            if (!_updatingCharCode)
+            {
+                _updatingCharCode = true;
+                tbCharInput.Text = ((char)(udCharCode.Value)).ToString();
+
+                // Automatically scroll the preview to the selected character
+                fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+
+                _updatingCharCode = false;
+            }
+        }
+
+        private void udCharCode_TextChanged(object sender, EventArgs e)
+        {
+            UpdateCharInput();
+        }
+
+        private void udCharCode_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateCharInput();
+        }
+
+        private void tbCharInput_TextChanged(object sender, EventArgs e)
+        {
+            UpdateCharCode();
+        }
+
+        private void udCharCode_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+                e.Handled = e.SuppressKeyPress = true;
+            }
+        }
+
+        private void tbCharInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+                e.Handled = e.SuppressKeyPress = true;
+            }
+        }
+
+        private void btnGotoChar_Click(object sender, EventArgs e)
+        {
+            fontViewPanel.SelectedCharCode = (int)udCharCode.Value;
+        }
+
+        private void chkDisplayCodes_CheckedChanged(object sender, EventArgs e)
+        {
+            fontViewPanel.DisplayCodes = chkDisplayCodes.Checked;
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            fontViewPanel.Invalidate();
+            textPreviewPanel.Invalidate();
+        }
+
+        private void splitContainer1_Resize(object sender, EventArgs e)
+        {
+            // HACK: Fix the size of the preview panel.
+            // For some reason, when done automatically, the preview panel's bottom gets too far down.
+            fontViewPanel.SetBounds(fontViewPanel.Left, fontViewPanel.Top, fontViewPanel.Width, splitContainer1.Panel2.Height - splitContainer1.Panel2.Padding.Bottom - fontViewPanel.Top);
         }
 
         private void LoadColorTheme(ColorTheme t)
         {
             t.ControlHelper(this, "font-editor");
             t.GroupBoxHelper(currentItemGroupBox, "font-editor/box");
+            t.ButtonHelper(btnGotoChar, "font-editor/btn-gotochar");
+            t.TextBoxHelper(tbTextPreview, "font-editor/text-box-preview");
+            // FIXME: color theme is not applied to the "character code" and "character" textboxes atm,
+            // because there's no implementation for "up-down-control", so no way to color them consistently.
         }
 
         private void FontEditor_Load(object sender, EventArgs e)
@@ -115,6 +273,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+                SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
             }
         }
     }

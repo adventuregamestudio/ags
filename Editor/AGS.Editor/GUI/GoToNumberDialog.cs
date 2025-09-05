@@ -104,11 +104,16 @@ namespace AGS.Editor
             return GetItemByNumber(number) != null;
         }
 
+        private void EnableOkButtonIfNumberExists()
+        {
+            btnOk.Enabled = ExistInList(Number);
+        }
+
         private void syncFromUpDownToListBox()
         {
+            EnableOkButtonIfNumberExists();
             if (ExistInList(Number))
             {
-                btnOk.Enabled = true;
                 Tuple<int, string> selected = GetItemByNumber(Number);
                 if (selected != lstNodes.SelectedItem)
                 {
@@ -117,7 +122,6 @@ namespace AGS.Editor
             }
             else
             {
-                btnOk.Enabled = false;
                 lstNodes.SelectedItem = null;
                 lstNodes.Invalidate();
             }
@@ -142,7 +146,9 @@ namespace AGS.Editor
 
         private void upDownNumber_KeyUp(object sender, KeyEventArgs e)
         {
-            syncFromUpDownToListBox();
+            // if we sync the list will then erase back the upDown number
+            // so we only disable the ok button if the number is invalid
+            EnableOkButtonIfNumberExists();
         }
 
         private void lstNodes_SelectedValueChanged(object sender, EventArgs e)

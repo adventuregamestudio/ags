@@ -88,8 +88,14 @@ build_linux_cmake_task:
     arch=$(dpkg --print-architecture)
     mkdir build_release_$arch && cd build_release_$arch
     cmake .. \
-      -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
+      -DAGS_USE_LOCAL_SDL2=1 \
+      -DAGS_USE_LOCAL_OGG=1 \
+      -DAGS_USE_LOCAL_THEORA=1 \
+      -DAGS_USE_LOCAL_VORBIS=1 \
       -DAGS_USE_LOCAL_SDL2_SOUND=0 \
+      -DAGS_USE_LOCAL_GLM=0 \
+      -DAGS_USE_LOCAL_MINIZ=0 \
+      -DAGS_USE_LOCAL_TINYXML=0 \
       -DCMAKE_BUILD_TYPE=Release \
       -DAGS_BUILD_TOOLS=1 \
       -DAGS_TESTS=1 \

@@ -18,6 +18,9 @@ Common:
  - Removed built-in support for Game Score, including related game settings and GiveScore
    script command. Users are advised to script their own score counter if they need one.
  - Removed support for '[' as a linebreak character in text.
+ - Fixed an ancient mistake where Character's and Object's sprites would be drawn 1 pixel
+   higher than their Y position demands. This affects both how the sprites are positioned
+   in game at runtime and in the Room Editor.
 
 Editor:
  - Editor requires .NET Framework 4.7 to run.
@@ -27,6 +30,8 @@ Editor:
  - Actual font files on disk are now stored in "Fonts" subfolder in the project when imported,
    and keep their original names (no longer renamed to "agsfntN.*").
  - Translation sources are now saved in PO format.
+ - The "Upgrade Game Wizard" dialog will be now shown if the loaded game must go through noteable
+   modifications when upgrading to the current version.
  - Merged all Color and ColorNumber property pairs into a single Color property that acts as
    a RGBA selection for 32-bit games, and palette index for 8-bit games. In 32-bit game projects
    you can assign full RGBA color definition, where alpha is optional, and is assumed 255
@@ -35,9 +40,6 @@ Editor:
    using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
- - In General Settings added "GUI common controls handle only left mouse button" option that lets
-   prevent RMB from activating gui controls, except those that have separate actions for left and
-   right mouse buttons.
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property for Characters, GUI and Room Objects.
@@ -96,7 +98,6 @@ Scripting:
  - Regular arrays of dynamic arrays: that is a regular array where each element is a
    pointer to a dynamic array of the same type.
  - Dynamic arrays of regular structs.
- - Dynamic arrays now have Length pseudo-attribute used to retrieve their length.
  - Global variables may now be declared right after struct's or enum's declaration, between
    the closing bracket and closing semi-colon.
  - Support regular (non-managed) struct and array variable initializers, where you can specify
@@ -116,6 +117,7 @@ Scripting:
    break statement. This is only to clarify coder's intent and prevent compiler's warnings.
  - Support pre-increment and pre-decrement operators (++x, --x).
  - Support bitwise negation operator (~x).
+ - Support modulus-assignment operator (%=).
  - Support addressing members of the function return values in one expression. This lets
    chain multiple commands including function calls, e.g. GetObject().MyVariable...and so on.
  - Two sequenced string literals ("text" "text") are now automatically concatenated.
@@ -145,8 +147,6 @@ Script API:
    serving as a navigation mask.
  - Added MotionPath struct, which lets to read existing game object's motion plan, or create your
    own and use it as a reference when moving a custom object.
- - Added GameInfo struct that contains meta-information about the game, such as developer's name,
-   developer's URL, version, and so forth.
  - Added Custom Properties interface to types: AudioClip, Dialog, GUI, GUIControl, Region,
    WalkableArea. This includes functions: GetProperty(), GetTextProperty(), SetProperty() and
    SetTextProperty().
@@ -170,15 +170,12 @@ Script API:
  - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
  - Added Character.MotionPath and Object.MotionPath properties that let to get active character's
    or object's movement plan.
+ - Expanded RepeatStyle with more animation flow styles: eOnceAndReset, eOnceAndBack and
+   eRepeatAlternate. These styles are currently supported in Animate(), MovePath() and WalkPath()
+   commands, and MotionPath struct.
  - Added ColorFormat enum, and optional "color_format" parameter to DynamicSprite's functions:
    Create(), CreateFromBackground(), CreateFromDrawingSurface(), CreateFromExistingSprite()
    and CreateFromFile().
- - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
- - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsGap, OptionsGUI,
-   OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth, OptionsMinGUIWidth,
-   OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor, OptionTextAlignment.
-   Most of these are replacing previously existing old-style variables in "game" struct and
-   OPT_* options. OptionsGUIX/Y and OptionTextAlignment are completely new features.
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
  - Added DrawingSurface.BlendMode property that lets define blend mode for primitive drawing
    operations (line, rectangle, triangle, etc).
@@ -205,12 +202,6 @@ Script API:
  - ViewFrame.Flipped property is now settable and returns eFlipDirection instead of bool.
  - ViewFrame.Speed property is now settable.
  - Added ViewFrame.XOffset and YOffset properties.
- - Added optional width, height and layer parameters to SaveScreenShot().
-   SaveScreenShot() now supports location tokens in file path.
- - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
- - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
-   are affected by the right mouse button or not (InventoryWindows are excluded from this, because
-   they have their own special handling for RMB).
  - Added "walkarea[]" and "walkbehind[]" global arrays.
  - Global generated game objects (Characters, GUIs, etc), and global arrays of these objects
    (character[], object[], gui[], etc) are now declared as object *pointers* and arrays of
@@ -233,9 +224,6 @@ Engine:
    GLSL (for OpenGL) or HLSL (for Direct3D) shader scripts, and may be attached to game objects,
    camera, or the whole game view. Shaders may have user-defined constants, and have up to 3
    secondary textures on input.
- - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
-   in "misc" section, disabled by default.
- - Always compress a screenshot in game save using Deflate algorithm.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
  - Camera will not follow a disabled player character.
@@ -247,7 +235,6 @@ Engine:
  - Allow to run the game even if it has no fonts (log a warning).
  - Allow to continue running the game if any font failed to load on startup.
    Such font will simply not get drawn, unless replaced by a plugin, for example.
- - Standard Dialog options now support Right-to-left text mode.
  - Overlay.X and Y properties of textual screen overlays, such as blocking speech, now treat
    assigned values correctly as screen coordinates and return values set by user consistently.
    They also return the assigned values without any offsets for textual overlays created using
@@ -256,15 +243,10 @@ Engine:
    now return a null pointer if no room viewport is found under given coordinates.
  - GetTextHeight() no longer reduces "width" parameter by -1. This was an ancient mistake in
    the engine kept for many years for backwards compatibility.
- - Improved video playback's synchronization between video and audio streams.
  - Added FLAC support for music, speech and sound effects.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
    script features, such as nested managed structs.)
- - Fixed SDL log level defaulting to "verbose" instead of "info".
-
-WinSetup:
- - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
 
 
 ===================================================================================================

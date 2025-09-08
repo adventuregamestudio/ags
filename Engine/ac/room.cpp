@@ -595,8 +595,10 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         }
     }
 
-    for (size_t i = 0; i < thisroom.BgFrameCount; ++i) {
-        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, false /* no alpha */, false /* no keep mask */);
+    for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+    {
+        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(
+            thisroom.BgFrames[i].Graphic, false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
     }
 
     set_our_eip(202);

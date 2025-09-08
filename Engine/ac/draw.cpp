@@ -462,7 +462,7 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 // * keep_mask - tells whether to keep mask pixels when converting from another
 //   color depth. May be useful to disable mask when the source is a 8-bit
 //   palette-based image and the opaque sprite is intended.
-Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask)
+Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask, const RGB *bm_palette)
 {
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
@@ -473,7 +473,7 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask)
     // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
     const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
     if (must_switch_palette)
-        select_palette(palette);
+        select_palette(bm_palette != nullptr ? bm_palette : palette);
 
     Bitmap *new_bitmap = bitmap;
 
@@ -520,17 +520,17 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask)
     return new_bitmap;
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha, bool keep_mask)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha, bool keep_mask, const RGB *bm_palette)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, has_alpha, keep_mask);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, has_alpha, keep_mask, bm_palette);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha, bool keep_mask)
+PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha, bool keep_mask, const RGB *bm_palette)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), has_alpha, keep_mask);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), has_alpha, keep_mask, bm_palette);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 

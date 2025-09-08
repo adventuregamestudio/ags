@@ -872,7 +872,7 @@ static void update_cursor_view()
 
 // Assign GUI context parameters, read from the game state.
 // This will be required for GUI labels render.
-static void update_gui_context()
+static void update_gui_context(int mwasatx, int mwasaty)
 {
     if (play.fast_forward)
         return;
@@ -893,9 +893,13 @@ static void update_gui_context()
     // Update a location name for the GUI labels. We do this every game
     // tick, because this does not depend only on cursor position, but also
     // on game object positions, and game state changes, and we cannot track all of that here.
+    //
     // While game is in Wait mode, or in room transition: set empty overhotspot text.
     if (!IsInterfaceEnabled() || in_room_transition)
         GUI::Context.Overhotspot = "";
+    // Games prior to 3.6.0 had a slightly different order of updates, so use old cursor pos for them
+    else if (loaded_game_file_version < kGameVersion_360_21)
+        GUI::Context.Overhotspot = GetLocationName(game_to_data_coord(mwasatx), game_to_data_coord(mwasaty));
     else
         GUI::Context.Overhotspot = GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
 }
@@ -1091,7 +1095,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // historically room object and character scaling was updated
     // right before the drawing
     update_objects_scale();
-    update_gui_context();
+    update_gui_context(mwasatx, mwasaty);
     update_cursor_over_location(mwasatx, mwasaty);
     update_cursor_view();
 

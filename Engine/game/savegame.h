@@ -92,6 +92,7 @@ enum SavegameErrorType
     kSvgErr_DifferentColorDepth,
     kSvgErr_GameObjectInitFailed,
     kSvgErr_ComponentUncompressedSizeMismatch,
+    kSvgErr_InternalError,
     kNumSavegameError
 };
 

@@ -250,9 +250,9 @@ void WriteBitmap(const Bitmap *thispic, Stream *out, bool compressed = false);
 // Runs plugin events, requesting to read save data from the given stream.
 // NOTE: there's no error check in this function, because plugin API currently
 // does not let plugins report any errors when restoring their saved data.
-void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size);
+HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size);
 // Runs plugin events, requesting to write save data into the given stream.
-void WritePluginSaveData(Stream *out);
+HSaveError WritePluginSaveData(Stream *out);
 
 } // namespace Engine
 } // namespace AGS

@@ -4,8 +4,8 @@
     "versionSp": "Beta1",
     "versionYear": "2025",
     "versionMonth": "September",
-    "versionIsBeta": "true",
-    "appID": "7a604530-45b6-4e95-a729-22d212601256",
+    "versionIsBeta": "true",         
+    "appID": "418a11d8-f112-4cbd-95ee-704ac5b708f8",
     "licenseLink": "https://opensource.org/license/artistic-2-0/",
   
     "dependencies": {

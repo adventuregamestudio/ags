@@ -157,8 +157,8 @@ void shutdown_game_state();
 void unload_game();
 void save_game(int slotn, const Common::String &descript, std::unique_ptr<Common::Bitmap> &&image = nullptr);
 std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, int layers);
-bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
-std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &savedgame);
+bool read_savedgame_description(const Common::String &filename, Common::String &description);
+std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &filename);
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
 bool try_restore_save(int slot, bool startup = false);

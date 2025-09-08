@@ -257,6 +257,10 @@ struct SaveRestoreFeedback
 };
 
 
+// Tests if this savegame file exists
+// NOTE: this function is a pure formality now, made in case we'll have something
+// like a virtual save files at some point (so you can't use File::IsFile).
+bool           DoesSavegameExist(const String &filename);
 // Opens savegame for reading; optionally reads description, if any is provided
 HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
                             SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);

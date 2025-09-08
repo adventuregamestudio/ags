@@ -308,6 +308,11 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
     return err;
 }
 
+bool DoesSavegameExist(const String &filename)
+{
+    return File::IsFile(filename);
+}
+
 HSaveError OpenSavegame(const String &filename, SavegameSource &src, SavegameDescription &desc, SavegameDescElem elems)
 {
     return OpenSavegameBase(filename, &src, &desc, elems);

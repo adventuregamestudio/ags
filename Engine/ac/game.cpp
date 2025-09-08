@@ -1114,10 +1114,16 @@ void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&imag
 int gameHasBeenRestored = 0;
 int oldeip;
 
-bool read_savedgame_description(const String &savedgame, String &description)
+bool read_savedgame_description(const String &filename, String &description)
 {
+    if (!DoesSavegameExist(filename))
+    {
+        Debug::Printf("Save does not exist: %s", filename.GetCStr());
+        return false;
+    }
+
     SavegameDescription desc;
-    HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserText);
+    HSaveError err = OpenSavegame(filename, desc, kSvgDesc_UserText);
     if (!err)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to read save's description.\n%s", err->FullMessage().GetCStr());
@@ -1127,10 +1133,16 @@ bool read_savedgame_description(const String &savedgame, String &description)
     return true;
 }
 
-std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &savedgame)
+std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &filename)
 {
+    if (!DoesSavegameExist(filename))
+    {
+        Debug::Printf("Save does not exist: %s", filename.GetCStr());
+        return {};
+    }
+
     SavegameDescription desc;
-    HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
+    HSaveError err = OpenSavegame(filename, desc, kSvgDesc_UserImage);
     if (!err)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to read save's screenshot.\n%s", err->FullMessage().GetCStr());

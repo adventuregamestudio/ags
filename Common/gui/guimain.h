@@ -316,7 +316,16 @@ struct GuiContext
     SpriteCache *Spriteset = nullptr;
     // Current disabled state
     GuiDisableStyle DisabledState = kGuiDis_Undefined;
-    // Last selected inventory item's pic
+    // Resolved macro values for the label:
+    // A title of the game
+    String GameTitle;
+    // Total game score
+    int TotalScore = 0;
+    // Current game score
+    int Score = 0;
+    // A label from the object under the cursor
+    String Overhotspot;
+    // Last selected inventory item's pic (for the button)
     int InventoryPic = -1;
 };
 

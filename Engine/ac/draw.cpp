@@ -2463,14 +2463,6 @@ void draw_gui_and_overlays()
     // Add GUIs
     set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
-        if (playerchar->activeinv >= MAX_INV) {
-            quit("!The player.activeinv variable has been corrupted, probably as a result\n"
-                "of an incorrect assignment in the game script.");
-        }
-        if (playerchar->activeinv < 1)
-            GUI::Context.InventoryPic = -1;
-        else
-            GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;
         set_our_eip(37);
         // Prepare and update GUI textures
         {

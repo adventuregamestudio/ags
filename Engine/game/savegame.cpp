@@ -170,6 +170,8 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Game object initialization failed after save restoration.";
     case kSvgErr_ComponentUncompressedSizeMismatch:
         return "Uncompressed component data size mismatch.";
+    case kSvgErr_InternalError:
+        return "Internal program error.";
     default:
         return "Unknown error.";
     }
@@ -1117,7 +1119,7 @@ void SaveGameState(Stream *out, SaveCmpSelection select_cmp, bool compress)
     SavegameComponents::WriteAllCommon(out, select_cmp, compress);
 }
 
-void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
+HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
 {
     const soff_t start_pos = in->GetPosition();
     const soff_t end_pos = start_pos + max_size;
@@ -1132,11 +1134,19 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
             size_t data_size = in->ReadInt32();
             soff_t data_start = in->GetPosition();
 
-            auto guard_stream = std::make_unique<Stream>(
-                std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
-            int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-            pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
-            close_file_stream(fhandle, "RestoreGame");
+            try
+            {
+                auto guard_stream = std::make_unique<Stream>(
+                    std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
+                int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
+                pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
+                close_file_stream(fhandle, "RestoreGame");
+                guard_stream = nullptr;
+            }
+            catch (std::runtime_error ex)
+            {
+                return new SavegameError(kSvgErr_InternalError, String(ex.what()));
+            }
 
             // Read-out until the end of plugin data, in case it ended up reading not in the end
             cur_pos = data_start + data_size;
@@ -1148,16 +1158,25 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
         String pl_name;
         for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
         {
-            auto guard_stream = std::make_unique<Stream>(
-                std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
-            int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
-            pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, fhandle);
-            close_file_stream(fhandle, "RestoreGame");
+            try
+            {
+                auto guard_stream = std::make_unique<Stream>(
+                    std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
+                int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
+                pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, fhandle);
+                close_file_stream(fhandle, "RestoreGame");
+            }
+            catch (std::runtime_error ex)
+            {
+                return new SavegameError(kSvgErr_InternalError, String(ex.what()));
+            }
         }
     }
+
+    return HSaveError::None();
 }
 
-void WritePluginSaveData(Stream *out)
+HSaveError WritePluginSaveData(Stream *out)
 {
     uint32_t num_plugins_wrote = 0;
     String pl_name;
@@ -1181,18 +1200,28 @@ void WritePluginSaveData(Stream *out)
         // * define a reasonable default limit (e.g. 16-32 MB)
         // * compare with system memory?
         plugin_data.clear();
-        auto guard_stream = std::make_unique<Stream>(
-            std::make_unique<VectorStream>(plugin_data, kStream_Write));
-        int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
-        pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
-        close_file_stream(fhandle, "SaveGame");
-        guard_stream = nullptr;
+
+        try
+        {
+            auto guard_stream = std::make_unique<Stream>(
+                std::make_unique<VectorStream>(plugin_data, kStream_Write));
+            int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
+            pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
+            close_file_stream(fhandle, "SaveGame");
+            guard_stream = nullptr;
+        }
+        catch (std::runtime_error ex)
+        {
+            return new SavegameError(kSvgErr_InternalError, String(ex.what()));
+        }
 
         // Write a header for plugin data
         StrUtil::WriteString(pl_name, out);
         out->WriteInt32(plugin_data.size()); // data size
         out->Write(plugin_data.data(), plugin_data.size());
     }
+
+    return HSaveError::None();
 }
 
 HSaveError SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,

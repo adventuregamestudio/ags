@@ -1691,14 +1691,12 @@ HSaveError ReadManagedPool(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, con
 
 HSaveError WritePluginData(Stream *out)
 {
-    WritePluginSaveData(out);
-    return HSaveError::None();
+    return WritePluginSaveData(out);
 }
 
 HSaveError ReadPluginData(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
 {
-    ReadPluginSaveData(in, static_cast<PluginSvgVersion>(cmp_ver), cmp_size);
-    return HSaveError::None();
+    return ReadPluginSaveData(in, static_cast<PluginSvgVersion>(cmp_ver), cmp_size);
 }
 
 

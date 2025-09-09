@@ -125,6 +125,7 @@ namespace AGS.Types
 
         [Description("Font to use as an outline for this one")]
         [Category("Appearance")]
+        [TypeConverter(typeof(FontTypeConverter))]
         public int OutlineFont
         {
             get { return _outlineFont; }

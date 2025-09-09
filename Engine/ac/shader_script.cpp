@@ -97,7 +97,7 @@ IGraphicShader *CreateShaderProgram(const String &name, const String &filename)
     const String definition_ext = gfxDriver->GetShaderDefinitionExtension();
 
     const String file_ext = Path::GetFileExtension(filename);
-    const String def_filename = Path::ReplaceExtension(filename, definition_ext);
+    const String def_filename = definition_ext.IsEmpty() ? "" : Path::ReplaceExtension(filename, definition_ext);
     if (file_ext == precompiled_ext)
     {
         return TryCreateShaderPrecompiled(name, filename, def_filename);

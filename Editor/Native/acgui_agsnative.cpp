@@ -136,13 +136,13 @@ void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_c
 
 void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, const char *text)
 {
-    const color_t outline_color = ds->GetCompatibleColor(16);
+    const color_t outline_color = GUI::GetStandardColorForBitmap(16);
     wouttext_outline(ds, x, y, font, text_color, outline_color, kBlend_Normal, text);
 }
 
 void wouttext_outline(Bitmap *ds, int x, int y, int font, color_t text_color, BlendMode blend_mode, const char *text)
 {
-    const color_t outline_color = ds->GetCompatibleColor(16);
+    const color_t outline_color = GUI::GetStandardColorForBitmap(16);
     wouttext_outline(ds, x, y, font, text_color, outline_color, blend_mode, text);
 }
 
@@ -220,7 +220,7 @@ int  GUIInvWindow::GetCharacterID() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
-    color_t draw_color = ds->GetCompatibleColor(15);
+    color_t draw_color = GUI::GetStandardColorForBitmap(15);
     ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
 }
 

@@ -1063,6 +1063,10 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
 
     if (svg_ver >= kPluginSvgVersion_36115)
     {
+        // IMPORTANT: we have to use an intermediate vector here for plugin data,
+        // because we need to safeguard a stream section, but the savegame stream is
+        // restricted from Seeking, as it may be doing decompression right in memory.
+        std::vector<uint8_t> plugin_data;
         int num_plugins_read = in->ReadInt32();
         soff_t cur_pos = start_pos;
         while ((num_plugins_read--) > 0 && (cur_pos < end_pos))
@@ -1073,8 +1077,11 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
 
             try
             {
+                // Allocate enough to read data_size, but then trim if read less
+                plugin_data.resize(data_size);
+                plugin_data.resize(in->Read(plugin_data.data(), data_size));
                 auto guard_stream = std::make_unique<Stream>(
-                    std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
+                    std::make_unique<VectorStream>(plugin_data, kStream_Read));
                 int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
                 pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
                 close_file_stream(fhandle, "RestoreGame");
@@ -1092,6 +1099,8 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
     }
     else
     {
+        // NOTE: we assume that the old save format won't be found in a compressed save,
+        // so we can use StreamSection here. Fix the code below if this assumption becomes incorrect.
         String pl_name;
         for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
         {

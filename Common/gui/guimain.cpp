@@ -1001,39 +1001,70 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    const char *macro_at = nullptr;
-    for (const char *ptr = text.GetCStr(); *ptr; ++ptr)
+    for (size_t macro_at = text.FindChar('@'); macro_at != String::NoIndex; macro_at = text.FindChar('@', macro_at))
     {
-        // Haven't began parsing macro
-        if (!macro_at)
+        size_t macro_end = text.FindChar('@', macro_at + 1);
+        if (macro_end == String::NoIndex)
         {
-            if (*ptr == '@')
-                macro_at = ptr;
+            // Malformed macro string, stop
+            break;
         }
-        // Began parsing macro
-        else
-        {
-            // Found macro's end
-            if (*ptr == '@')
-            {
-                // Test which macro it is (if any)
-                macro_at++;
-                const size_t macro_len = ptr - macro_at;
-                if (ags_strnicmp(macro_at, "gamename", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Gamename;
-                else if (ags_strnicmp(macro_at, "overhotspot", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Overhotspot;
-                else if (ags_strnicmp(macro_at, "score", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Score;
-                else if (ags_strnicmp(macro_at, "scoretext", macro_len) == 0)
-                    macro_flags |= kLabelMacro_ScoreText;
-                else if (ags_strnicmp(macro_at, "totalscore", macro_len) == 0)
-                    macro_flags |= kLabelMacro_TotalScore;
-                macro_at = nullptr;
-            }
-        }
+
+        // Test which macro is it
+        const size_t macro_len = macro_end - ++macro_at;
+        if (text.CompareMidNoCase("gamename", macro_at, macro_len) == 0)
+            macro_flags |= kLabelMacro_Gamename;
+        else if (text.CompareMidNoCase("overhotspot", macro_at, macro_len) == 0)
+            macro_flags |= kLabelMacro_Overhotspot;
+        else if (text.CompareMidNoCase("score", macro_at, macro_len) == 0)
+            macro_flags |= kLabelMacro_Score;
+        else if (text.CompareMidNoCase("scoretext", macro_at, macro_len) == 0)
+            macro_flags |= kLabelMacro_ScoreText;
+        else if (text.CompareMidNoCase("totalscore", macro_at, macro_len) == 0)
+            macro_flags |= kLabelMacro_TotalScore;
+
+        macro_at = macro_end + 1;
     }
     return (GUILabelMacro)macro_flags;
+}
+
+String ResolveMacroTokens(const String &text)
+{
+    String resolved_text;
+    size_t text_at = 0u;
+    for (size_t macro_at = text.FindChar('@'); macro_at != String::NoIndex; macro_at = text.FindChar('@', text_at))
+    {
+        size_t macro_end = text.FindChar('@', macro_at + 1);
+        if (macro_end == String::NoIndex)
+        {
+            // Malformed macro string, stop
+            break;
+        }
+
+        // Copy literal text (if there's any between macros)
+        resolved_text.Append(text.Mid(text_at, macro_at - text_at));
+
+        // Test which macro is it
+        const size_t macro_len = macro_end - ++macro_at;
+        if (text.CompareMidNoCase("gamename", macro_at, macro_len) == 0)
+            resolved_text.Append(GUI::Context.GameTitle);
+        else if (text.CompareMidNoCase("overhotspot", macro_at, macro_len) == 0)
+            resolved_text.Append(GUI::Context.Overhotspot);
+        else if (text.CompareMidNoCase("score", macro_at, macro_len) == 0)
+            resolved_text.AppendFmt("%d", GUI::Context.Score);
+        else if (text.CompareMidNoCase("scoretext", macro_at, macro_len) == 0)
+            resolved_text.AppendFmt("%d of %d", GUI::Context.Score, GUI::Context.TotalScore);
+        else if (text.CompareMidNoCase("totalscore", macro_at, macro_len) == 0)
+            resolved_text.AppendFmt("%d", GUI::Context.TotalScore);
+        else
+            resolved_text.Append(text.Mid(macro_at - 1, macro_len + 2));
+
+        text_at = macro_end + 1;
+    }
+
+    // Copy trailing literal text (if there's any)
+    resolved_text.Append(text.Mid(text_at));
+    return resolved_text;
 }
 
 HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)

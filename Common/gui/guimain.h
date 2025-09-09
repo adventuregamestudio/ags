@@ -383,6 +383,8 @@ namespace GUI
 
     // Parses the string and returns combination of label macro flags
     GUILabelMacro FindLabelMacros(const String &text);
+    // Resolves macro tokens found in gui text, returns a new string where the macros are replaced by values
+    String ResolveMacroTokens(const String &text);
     // Applies text transformation necessary for rendering, in accordance to the
     // current game settings, such as right-to-left render, and anything else
     String TransformTextForDrawing(const String &text, bool translate, bool apply_direction);

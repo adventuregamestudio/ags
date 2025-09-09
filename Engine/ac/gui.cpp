@@ -529,60 +529,6 @@ void process_interface_click(int ifce, int btn, int mbut) {
     }
 }
 
-// FIXME: rewrite this awful code, use ready GUILabelMacro (?)
-void replace_macro_tokens(const char *text, String &fixed_text) {
-    const char*curptr=&text[0];
-    char tmpm[3];
-    const char*endat = curptr + strlen(text);
-    fixed_text.Empty();
-    char tempo[STD_BUFFER_SIZE];
-
-    while (1) {
-        if (curptr[0]==0) break;
-        if (curptr>=endat) break;
-        if (curptr[0]=='@') {
-            const char *curptrWasAt = curptr;
-            char macroname[21]; int idd=0; curptr++;
-            for (idd=0;idd<20;idd++) {
-                if (curptr[0]=='@') {
-                    macroname[idd]=0;
-                    curptr++;
-                    break;
-                }
-                // unterminated macro (eg. "@SCORETEXT"), so abort
-                if (curptr[0] == 0)
-                    break;
-                macroname[idd]=curptr[0];
-                curptr++;
-            }
-            macroname[idd]=0; 
-            tempo[0]=0;
-            if (ags_stricmp(macroname,"score")==0)
-                snprintf(tempo, sizeof(tempo), "%d", GUI::Context.Score);
-            else if (ags_stricmp(macroname,"totalscore")==0)
-                snprintf(tempo, sizeof(tempo), "%d", GUI::Context.TotalScore);
-            else if (ags_stricmp(macroname,"scoretext")==0)
-                snprintf(tempo, sizeof(tempo), "%d of %d", GUI::Context.Score, GUI::Context.TotalScore);
-            else if (ags_stricmp(macroname,"gamename")==0)
-                snprintf(tempo, sizeof(tempo), "%s", GUI::Context.GameTitle.GetCStr());
-            else if (ags_stricmp(macroname,"overhotspot")==0) {
-                snprintf(tempo, sizeof(tempo), "%s", GUI::Context.Overhotspot.GetCStr());
-            }
-            else { // not a macro, there's just a @ in the message
-                curptr = curptrWasAt + 1;
-                snprintf(tempo, sizeof(tempo), "%s", "@");
-            }
-
-            fixed_text.Append(tempo);
-        }
-        else {
-            tmpm[0]=curptr[0]; tmpm[1]=0;
-            fixed_text.Append(tmpm);
-            curptr++;
-        }
-    }
-}
-
 bool sort_gui_less(const int g1, const int g2)
 {
     return (guis[g1].GetZOrder() < guis[g2].GetZOrder()) ||

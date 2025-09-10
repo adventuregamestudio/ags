@@ -472,6 +472,8 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     // the line below fixes the problem with the close-up face remaining on the
     // screen after they finish talking; however, it makes the dialog options
     // area flicker when going between topics.
+    // FIXME: find a better solution rather than disable/enable iface?
+    // this causes all gui texture reupdate twice, and other things...
     DisableInterface();
     UpdateGameOnce(); // redraw the screen to make sure it looks right
     EnableInterface();
@@ -932,6 +934,10 @@ void DialogOptions::Begin()
     needRedraw = false;
     wantRefresh = false;
     mouseison=-10;
+
+    // Disable rest of the game interface while the dialog options are displayed;
+    // note that this also disables "overhotspot" labels update
+    DisableInterfaceEx(false /* don't change cursor */);
 }
 
 void DialogOptions::Draw()
@@ -1108,9 +1114,7 @@ void DialogOptions::Draw()
     ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get());
     if (runGameLoopsInBackground)
     {
-        DisableInterfaceEx(false /* don't change cursor */);
         render_graphics(ddb, position.Left, position.Top);
-        EnableInterfaceEx(false /* don't change cursor */);
     }
 }
 
@@ -1119,9 +1123,6 @@ bool DialogOptions::Run()
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
-    // Disable interface prior to updating & rendering the game in background;
-    // not that this also disables "overhotspot" labels
-    DisableInterfaceEx(false /* don't change cursor */);
     // Optionally run full game update, otherwise only minimal auto & overlay update
     if (runGameLoopsInBackground)
     {
@@ -1133,7 +1134,6 @@ bool DialogOptions::Run()
         UpdateCursorAndDrawables();
         render_graphics(ddb, position.Left, position.Top);
     }
-    EnableInterfaceEx(false /* don't change cursor */);
 
     // Stop the dialog options if wsa requested from script
     if (doStop)
@@ -1474,6 +1474,9 @@ void DialogOptions::End()
   // In case it's the QFG4 style dialog, remove the black screen
   play.in_conversation--;
   remove_screen_overlay(OVER_COMPLETE);
+
+  // Re-enabled the game GUI
+  EnableInterfaceEx(false /* don't change cursor */);
 }
 
 int run_dialog_entry(int dlgnum)
@@ -1681,6 +1684,8 @@ void DialogExec::Run()
             if (said_speech_line > 0)
             {
                 // fix the problem with the close-up face remaining on screen
+                // FIXME: find a better solution rather than disable/enable iface?
+                // this causes all gui texture reupdate twice, and other things...
                 DisableInterface();
                 UpdateGameOnce(); // redraw the screen to make sure it looks right
                 EnableInterface();

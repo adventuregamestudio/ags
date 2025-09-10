@@ -60,9 +60,13 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     }
     if (sds->roomMaskType > kRoomAreaNone)
     {
-        if (sds->roomMaskType == kRoomAreaWalkBehind)
+        if (sds->modified)
         {
-            walkbehinds_recalc();
+            if (sds->roomMaskType == kRoomAreaWalkBehind)
+            {
+                walkbehinds_recalc();
+            }
+            debug_draw_room_mask(sds->roomMaskType);
         }
         sds->roomMaskType = kRoomAreaNone;
     }

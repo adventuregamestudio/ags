@@ -5196,7 +5196,7 @@ void AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
 
         if (_sym.IsVariable(var_name))
             break;
-
+        
         // Local compile-time constants can be overridden, but global constants can't
         if (_sym.IsConstant(var_name) && _sym[var_name].Scope > 0u)
             break;
@@ -5210,15 +5210,32 @@ void AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
     }
     while (false);
 
-    if (SymbolTable::kParameterScope == _sym[var_name].Scope &&
+    size_t const declared_var_scope = _sym[var_name].Scope;
+    if (SymbolTable::kParameterScope == declared_var_scope &&
         (_nest.TopLevel() == SymbolTable::kParameterScope || _nest.TopLevel() == SymbolTable::kFunctionScope))
         UserError(
-            ReferenceMsgSym("'%s' has already been defined as a parameter", var_name).c_str(),
+            ReferenceMsgSym("'%s' has already been declared as a parameter", var_name).c_str(),
             _sym.GetName(var_name).c_str());
-    if (_nest.TopLevel() == _sym[var_name].Scope)
+    size_t const top_level = _nest.TopLevel();
+    if (top_level == declared_var_scope)
         UserError(
-            ReferenceMsgSym("'%s' has already been defined in this scope", var_name).c_str(),
+            ReferenceMsgSym("'%s' has already been declared in this scope", var_name).c_str(),
             _sym.GetName(var_name).c_str());
+    // Can't have 'for(int x;…) { int x; }'
+    // It's a bit cumbersome to theck for this:
+    // The 'for' nesting itself has an internal 'while' nesting.
+    // This 'while' nesting must have a '{}' body because a declaration can't be the sole content of a 'for'.
+    // So offending 'for' header declarations must be 2 levels higher up.
+    if (top_level >= 2 &&
+        top_level - 2 == declared_var_scope &&
+        NSType::kFor == _nest.Type(declared_var_scope) &&
+        NSType::kBraces == _nest.Type())
+    {
+        UserError(
+            ReferenceMsgSym("'%s' has already been declared in the 'for' clause of this scope", var_name).c_str(),
+            _sym.GetName(var_name).c_str());
+    }
+
     if (_nest.AddOldDefinition(var_name, _sym[var_name]))
         InternalError("AddOldDefinition: Storage place occupied");
     _sym[var_name].Clear();

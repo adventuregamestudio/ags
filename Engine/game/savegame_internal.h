@@ -173,7 +173,8 @@ struct RestoredData
     uint32_t                DoOnceCount;
     // Room data (has to be be preserved until room is loaded)
     int                     Room;
-    PBitmap                 RoomBkgScene[MAX_ROOM_BGFRAMES];
+    std::unique_ptr<Bitmap> RoomBkgScene[MAX_ROOM_BGFRAMES];
+    std::unique_ptr<Bitmap> RoomMask[kNumRoomAreaTypes];
     short                   RoomLightLevels[MAX_ROOM_REGIONS];
     int                     RoomTintLevels[MAX_ROOM_REGIONS];
     short                   RoomZoomLevels1[MAX_WALK_AREAS];

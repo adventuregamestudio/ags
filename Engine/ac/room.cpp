@@ -333,8 +333,10 @@ void unload_old_room()
     play.bg_frame_locked = 0;
     remove_all_overlays();
     raw_saved_screen = nullptr;
-    for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
-        play.raw_modified[ff] = 0;
+    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+        play.room_bg_modified[i] = false;
+    for (int i = 0; i < kNumRoomAreaTypes; ++i)
+        play.room_mask_modified[i] = false;
     for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_INTERACTION_VARIABLES; ++i)
         croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
 

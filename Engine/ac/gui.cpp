@@ -529,64 +529,6 @@ void process_interface_click(int ifce, int btn, int mbut) {
     }
 }
 
-// FIXME: rewrite this awful code, use ready GUILabelMacro (?)
-void replace_macro_tokens(const char *text, String &fixed_text) {
-    const char*curptr=&text[0];
-    char tmpm[3];
-    const char*endat = curptr + strlen(text);
-    fixed_text.Empty();
-    char tempo[STD_BUFFER_SIZE];
-
-    while (1) {
-        if (curptr[0]==0) break;
-        if (curptr>=endat) break;
-        if (curptr[0]=='@') {
-            const char *curptrWasAt = curptr;
-            char macroname[21]; int idd=0; curptr++;
-            for (idd=0;idd<20;idd++) {
-                if (curptr[0]=='@') {
-                    macroname[idd]=0;
-                    curptr++;
-                    break;
-                }
-                // unterminated macro (eg. "@SCORETEXT"), so abort
-                if (curptr[0] == 0)
-                    break;
-                macroname[idd]=curptr[0];
-                curptr++;
-            }
-            macroname[idd]=0; 
-            tempo[0]=0;
-            if (ags_stricmp(macroname,"score")==0)
-                snprintf(tempo, sizeof(tempo), "%d",play.score);
-            else if (ags_stricmp(macroname,"totalscore")==0)
-                snprintf(tempo, sizeof(tempo), "%d",MAXSCORE);
-            else if (ags_stricmp(macroname,"scoretext")==0)
-                snprintf(tempo, sizeof(tempo), "%d of %d",play.score,MAXSCORE);
-            else if (ags_stricmp(macroname,"gamename")==0)
-                snprintf(tempo, sizeof(tempo), "%s", play.game_name.GetCStr());
-            else if (ags_stricmp(macroname,"overhotspot")==0) {
-                // While game is in Wait mode, or in room transition: no overhotspot text
-                if (!IsInterfaceEnabled() || in_room_transition)
-                    tempo[0] = 0;
-                else
-                    GetLocationNameInBuf(game_to_data_coord(mousex), game_to_data_coord(mousey), tempo);
-            }
-            else { // not a macro, there's just a @ in the message
-                curptr = curptrWasAt + 1;
-                snprintf(tempo, sizeof(tempo), "%s", "@");
-            }
-
-            fixed_text.Append(tempo);
-        }
-        else {
-            tmpm[0]=curptr[0]; tmpm[1]=0;
-            fixed_text.Append(tmpm);
-            curptr++;
-        }
-    }
-}
-
 bool sort_gui_less(const int g1, const int g2)
 {
     return (guis[g1].GetZOrder() < guis[g2].GetZOrder()) ||

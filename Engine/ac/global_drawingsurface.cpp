@@ -37,7 +37,7 @@ extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
 // Raw screen writing routines - similar to old CapturedStuff
-#define RAW_START() play.raw_drawing_surface = thisroom.BgFrames[play.bg_frame].Graphic; play.raw_modified[play.bg_frame] = 1
+#define RAW_START() play.raw_drawing_surface = thisroom.BgFrames[play.bg_frame].Graphic; play.room_bg_modified[play.bg_frame] = true
 #define RAW_END()
 #define RAW_SURFACE() (play.raw_drawing_surface.get())
 
@@ -253,7 +253,7 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     data_to_game_coords(&fromx, &fromy);
     data_to_game_coords(&tox, &toy);
 
-    play.raw_modified[play.bg_frame] = 1;
+    play.room_bg_modified[play.bg_frame] = 1;
     int ii,jj;
     // draw a line thick enough to look the same at all resolutions
     PBitmap bg = thisroom.BgFrames[play.bg_frame].Graphic;
@@ -269,14 +269,14 @@ void RawDrawCircle (int xx, int yy, int rad) {
     data_to_game_coords(&xx, &yy);
     rad = data_to_game_coord(rad);
 
-    play.raw_modified[play.bg_frame] = 1;
+    play.room_bg_modified[play.bg_frame] = 1;
     PBitmap bg = thisroom.BgFrames[play.bg_frame].Graphic;
     bg->FillCircle(Circle (xx, yy, rad), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }
 void RawDrawRectangle(int x1, int y1, int x2, int y2) {
-    play.raw_modified[play.bg_frame] = 1;
+    play.room_bg_modified[play.bg_frame] = 1;
     data_to_game_coords(&x1, &y1);
     data_to_game_round_up(&x2, &y2);
 
@@ -286,7 +286,7 @@ void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     mark_current_background_dirty();
 }
 void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
-    play.raw_modified[play.bg_frame] = 1;
+    play.room_bg_modified[play.bg_frame] = 1;
     data_to_game_coords(&x1, &y1);
     data_to_game_coords(&x2, &y2);
     data_to_game_coords(&x3, &y3);

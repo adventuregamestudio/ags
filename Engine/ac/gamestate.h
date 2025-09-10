@@ -250,9 +250,12 @@ struct GamePlayState
     int   num_parsed_words = 0;
     short parsed_words[MAX_PARSED_WORDS]{};
     Common::String bad_parsed_word;
+    // Old-style raw drawing tools
     int   raw_color = 0;
-    int   raw_modified[MAX_ROOM_BGFRAMES]{};
     Common::PBitmap raw_drawing_surface;
+    // Tells which room background frames were modified by script drawing operations
+    bool  room_bg_modified[MAX_ROOM_BGFRAMES]{};
+    bool  room_mask_modified[kNumRoomAreaTypes]{};
     int16_t filenumbers[LEGACY_MAXSAVEGAMES]{};
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;

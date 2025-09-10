@@ -1515,13 +1515,22 @@ HSaveError WriteThisRoom(Stream *out)
     // modified room backgrounds
     for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
     {
-        out->WriteBool(play.raw_modified[i] != 0);
-        if (play.raw_modified[i])
+        out->WriteBool(play.room_bg_modified[i]);
+        if (play.room_bg_modified[i])
             serialize_bitmap(thisroom.BgFrames[i].Graphic.get(), out);
     }
     out->WriteBool(raw_saved_screen != nullptr);
     if (raw_saved_screen)
         serialize_bitmap(raw_saved_screen.get(), out);
+
+    // modified room masks
+    // -- kRoomStatSvgVersion_36214
+    for (int i = 0; i < kNumRoomAreaTypes; ++i)
+    {
+        out->WriteBool(play.room_mask_modified[i]);
+        if (play.room_mask_modified[i])
+            serialize_bitmap(thisroom.GetMask(static_cast<RoomAreaMask>(i)), out);
+    }
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
@@ -1558,14 +1567,23 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     // modified room backgrounds
     for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
     {
-        play.raw_modified[i] = in->ReadBool();
-        if (play.raw_modified[i])
+        play.room_bg_modified[i] = in->ReadBool();
+        if (play.room_bg_modified[i])
             r_data.RoomBkgScene[i].reset(read_serialized_bitmap(in));
-        else
-            r_data.RoomBkgScene[i] = nullptr;
     }
     if (in->ReadBool())
         raw_saved_screen.reset(read_serialized_bitmap(in));
+
+    // modified room masks
+    if (cmp_ver >= kRoomStatSvgVersion_36214)
+    {
+        for (int i = 0; i < kNumRoomAreaTypes; ++i)
+        {
+            play.room_mask_modified[i] = in->ReadBool();
+            if (play.room_mask_modified[i])
+                r_data.RoomMask[i].reset(read_serialized_bitmap(in));
+        }
+    }
 
     // room region state
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
@@ -1816,7 +1834,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_36109,
+        kRoomStatSvgVersion_36214,
         kRoomStatSvgVersion_350_Mismatch, // support mismatching 3.5.0 ver here
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -1825,7 +1843,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_36109, // must correspond to "Room States"
+        kRoomStatSvgVersion_36214, // must correspond to "Room States"
         kRoomStatSvgVersion_350, // skip pre-alpha 3.5.0 ver
         kSaveCmp_ThisRoom,
         WriteThisRoom,

@@ -218,6 +218,13 @@ float RoomStruct::GetMaskScale(RoomAreaMask mask) const
     }
 }
 
+void RoomStruct::SetMask(RoomAreaMask mask, const Bitmap *bitmap)
+{
+    Bitmap *room_mask = GetMask(mask);
+    if (room_mask)
+        room_mask->Blit(bitmap);
+}
+
 bool RoomStruct::HasRegionLightLevel(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)

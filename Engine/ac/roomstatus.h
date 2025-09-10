@@ -45,7 +45,8 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36025    = 3, // object animation volume
     kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_36109
+    kRoomStatSvgVersion_36214    = 3060214, // serialize current room's changes to masks
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_36214
 };
 
 // RoomStatus contains everything about a room that could change at runtime.

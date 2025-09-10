@@ -1153,6 +1153,31 @@ TEST_F(Compile0, StructForwardDeclareNew) {
     EXPECT_NE(std::string::npos, err_msg.find("Bang"));
 }
 
+TEST_F(Compile0, RedeclareInForBody) {
+
+    // When a variable is declared in the 'for' initializer,
+    // it can't be redeclared in the 'for' body scope
+
+    char const *inpl = R"%&/(
+        void game_start()
+        {
+            for (int x; ;)
+            {
+               int x;
+            }
+        }
+        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_NE(compile_result, 0);
+    EXPECT_NE(std::string::npos, err_msg.find("x"));
+    EXPECT_NE(std::string::npos, err_msg.find("declared"));
+}
+
 TEST_F(Compile0, StructManaged1a_NoRTTIOPS)
 {
     // Cannot have managed components in managed struct

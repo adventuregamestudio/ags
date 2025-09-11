@@ -185,8 +185,11 @@ public:
         return BitmapData(GetDataForWriting(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
-	// Get bitmap's mask color (transparent color)
-	inline color_t GetMaskColor() const
+    //=========================================================================
+    // Colors
+    //=========================================================================
+    // Get bitmap's mask color (transparent color)
+    inline color_t GetMaskColor() const
     {
         return bitmap_mask_color(_alBitmap);
     }
@@ -197,6 +200,12 @@ public:
     // bitmap itself and should rather be a part of the game data logic.
     color_t GetCompatibleColor(color_t color);
 
+    // Sets whether this bitmap will support alpha channel when creating compatible colors.
+    void    SetSupportAlphaInColors(bool alpha_in_colors);
+
+    //=========================================================================
+    // Helpers
+    //=========================================================================
     // Tells if the given point lies within the bitmap bounds
     inline bool IsOnBitmap(int x, int y) const
     {
@@ -286,6 +295,8 @@ private:
     std::unique_ptr<uint8_t[]> _pixelData;
     BITMAP *_alBitmap = nullptr;
     bool    _isDataOwner = false;
+    // Whether we support alpha channel when creating compatible colors
+    bool    _alphaInColors = true;
 };
 
 

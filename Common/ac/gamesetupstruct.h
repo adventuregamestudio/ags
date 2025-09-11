@@ -52,9 +52,8 @@ struct GameSetupStruct : public GameSetupStructBase
     UInteraction intrInv[MAX_INV];
     std::vector<UInteractionEvents> charScripts;
     std::vector<UInteractionEvents> invScripts;
-    // TODO: why we do not use this in the engine instead of
-    // loaded_game_file_version?
-    int               filever = 0;  // just used by editor
+    // TODO: use this everywhere in the engine instead of loaded_game_file_version!
+    GameDataVersion   filever = kGameVersion_Undefined;
     Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     AGS::Common::PropertySchema propSchema;
@@ -101,6 +100,8 @@ struct GameSetupStruct : public GameSetupStructBase
 
     // Get game's native color depth (bits per pixel)
     inline int GetColorDepth() const { return color_depth * 8; }
+    // Tells whether game respects alpha channel when doing primitive drawing operations
+    inline bool HasAlphaInDrawingOps() const { return filever > kGameVersion_272; }
 
 
     GameSetupStruct();

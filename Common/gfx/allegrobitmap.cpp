@@ -20,7 +20,7 @@
 #include "util/filestream.h"
 #include "debug/assert.h"
 
-extern int my_setcolor(int color, int color_depth);
+extern int my_setcolor(int color, int color_depth, bool fix_alpha);
 
 namespace AGS
 {
@@ -219,7 +219,12 @@ bool Bitmap::SaveToFile(const char *filename, const RGB *palette)
 
 color_t Bitmap::GetCompatibleColor(color_t color)
 {
-    return my_setcolor(color, bitmap_color_depth(_alBitmap));
+    return my_setcolor(color, bitmap_color_depth(_alBitmap), _alphaInColors);
+}
+
+void Bitmap::SetSupportAlphaInColors(bool alpha_in_colors)
+{
+    _alphaInColors = alpha_in_colors;
 }
 
 //=============================================================================

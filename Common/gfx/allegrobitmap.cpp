@@ -76,6 +76,11 @@ Bitmap &Bitmap::operator =(const Bitmap &bmp)
 // Creation and destruction
 //=============================================================================
 
+/*static*/ void Bitmap::SetColorDepth(int color_depth)
+{
+    set_color_depth(color_depth);
+}
+
 bool Bitmap::Create(int width, int height, int color_depth)
 {
     Destroy();

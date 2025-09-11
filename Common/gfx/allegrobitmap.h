@@ -52,6 +52,10 @@ public:
     Bitmap &operator =(const Bitmap &bmp);
     Bitmap &operator =(Bitmap &&bmp) = default;
 
+    // Sets default color depth of the created bitmaps (in bits per pixel);
+    // optionally sets whether we we support alpha channel when creating compatible colors.
+    static void SetColorDepth(int color_depth);
+
     // Allocate new bitmap.
     // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
     // NOTE: in all of these color_depth may be passed as 0 in which case a default

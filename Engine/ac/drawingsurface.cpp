@@ -66,7 +66,10 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
             {
                 walkbehinds_recalc();
             }
-            debug_draw_room_mask(sds->roomMaskType);
+            if (get_room_mask_debugmode() == sds->roomMaskType)
+            {
+                debug_draw_room_mask(sds->roomMaskType);
+            }
             play.room_mask_modified[sds->roomMaskType] = true;
         }
 

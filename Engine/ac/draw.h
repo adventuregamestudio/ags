@@ -134,6 +134,7 @@ void construct_engine_overlay();
 // Clears black game borders in legacy letterbox mode
 void clear_letterbox_borders();
 
+RoomAreaMask get_room_mask_debugmode();
 void debug_draw_room_mask(RoomAreaMask mask);
 void debug_draw_movelist(int charnum);
 void update_room_debug();

@@ -2875,6 +2875,11 @@ void update_shakescreen()
     }
 }
 
+RoomAreaMask get_room_mask_debugmode()
+{
+    return debugRoomMask;
+}
+
 void debug_draw_room_mask(RoomAreaMask mask)
 {
     debugRoomMask = mask;

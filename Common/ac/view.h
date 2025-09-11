@@ -16,6 +16,7 @@
 
 #include <vector>
 #include "gfx/gfx_def.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -29,6 +30,8 @@ struct ViewFrame
     Common::SpriteTransformFlags flags = Common::kSprTf_None;
     int   sound = -1;  // play sound when this frame comes round
     int   reserved_for_future[2] = { 0 }; // kept only for plugin api // CLNUP: may remove in ags4?
+    Common::String event_name;
+
     ViewFrame() = default;
 
     void ReadFromFile(Common::Stream *in);

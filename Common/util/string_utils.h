@@ -75,6 +75,8 @@ namespace StrUtil
     // Serialize and unserialize string as c-string (null-terminated sequence)
     //
     // Reads a null-terminated string until getting a null-terminator.
+    String          ReadCStr(Stream *in, size_t buf_limit = 5 * 1024 * 1024);
+    // Reads a null-terminated string until getting a null-terminator.
     // writes into the buffer up to the buf_limit.
     // Note that this will keep reading the stream out until 0 is read,
     // even if buffer is already full.

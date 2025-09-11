@@ -846,7 +846,7 @@ namespace AGS.Editor
                 }
             }
 
-            public bool WriteViews(IViewFolder folder, Game game, CompileMessages errors)
+            public bool WriteViews(Game game, CompileMessages errors)
             {
                 if (writer == null)
                 {
@@ -881,6 +881,29 @@ namespace AGS.Editor
                     }
                 }
                 return true;
+            }
+
+            // TODO: reorganize this...
+            public void WriteViewsExt_FrameEvents(Game game, CompileMessages errors)
+            {
+                writer.Write(views.Length);
+                foreach (View view in views)
+                {
+                    // views are not always sequential, so we may have some null entries;
+                    // but even in that case we must write number of loops (0) to conform
+                    // to the data format
+                    int numLoops = (view != null ? view.Loops.Count : 0);
+                    writer.Write(numLoops);
+                    for (int i = 0; i < numLoops; ++i)
+                    {
+                        int numFrames = view.Loops[i].Frames.Count;
+                        writer.Write(numFrames);
+                        for (int j = 0; j < numFrames; ++j)
+                        {
+                            FilePutNullTerminatedString(view.Loops[i].Frames[j].EventName, writer);
+                        }
+                    }
+                }
             }
         }
 
@@ -1574,7 +1597,7 @@ namespace AGS.Editor
                 }
             }
             ViewsWriter viewsWriter = new ViewsWriter(writer, game);
-            if (!viewsWriter.WriteViews(FolderHelper.GetRootViewFolder(game), game, errors))
+            if (!viewsWriter.WriteViews(game, errors))
             {
                 return false;
             }
@@ -1805,6 +1828,7 @@ namespace AGS.Editor
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
             WriteExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
             WriteExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
+            WriteExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2098,6 +2122,12 @@ namespace AGS.Editor
                 writer.Write(reserve_color_options);
                 writer.Write(reserve_transform_options);
             }
+        }
+
+        private static void WriteExt_400ViewFrameEvents(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            ViewsWriter viewsWriter = new ViewsWriter(writer, ents.Game);
+            viewsWriter.WriteViewsExt_FrameEvents(ents.Game, errors);
         }
 
         private static void WriteExt_363GameInfo(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)

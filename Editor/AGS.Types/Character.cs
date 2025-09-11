@@ -57,9 +57,19 @@ namespace AGS.Types
                 new string[] {"$$01 character",
                 "$$02 character","$$03 character","Use inventory on character",
                 "Any click on character", "$$05 character","$$08 character", 
-                "$$09 character"}, 
-                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Character *theCharacter, CursorMode mode");
+                "$$09 character", "View frame event"}, 
+                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9", "OnFrameEvent" },
+                new string[] {
+                    "Character *theCharacter, CursorMode mode", // look
+                    "Character *theCharacter, CursorMode mode", // interact
+                    "Character *theCharacter, CursorMode mode", // talk
+                    "Character *theCharacter, CursorMode mode", // useinv
+                    "Character *theCharacter, CursorMode mode", // anyclick
+                    "Character *theCharacter, CursorMode mode", // pickup
+                    "Character *theCharacter, CursorMode mode", // mode8
+                    "Character *theCharacter, CursorMode mode", // mode9
+                    "Character *theCharacter, int view, int loop, int frame, String eventName" // view frame
+                });
         }
 
         public Character()

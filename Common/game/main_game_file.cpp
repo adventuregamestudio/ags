@@ -912,6 +912,29 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         if (!err)
             return err;
     }
+    else if (ext_id.CompareNoCase("v400_viewevents") == 0)
+    {
+        uint32_t view_count = in->ReadInt32();
+        if (view_count != _ents.Game.numviews)
+            return new Error(String::FromFormat("Mismatching number of views: read %u expected %u", view_count, (uint32_t)_ents.Game.numviews));
+        for (uint32_t view = 0; view < view_count; ++view)
+        {
+            auto &view_s = _ents.Views[view];
+            uint32_t loop_count = in->ReadInt32();
+            if (loop_count != view_s.numLoops)
+                return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u", view, loop_count, (uint32_t)view_s.numLoops));
+            for (uint32_t loop = 0; loop < loop_count; ++loop)
+            {
+                uint32_t frame_count = in->ReadInt32();
+                if (frame_count != view_s.loops[loop].numFrames)
+                    return new Error(String::FromFormat("Mismatching number of frames for view %u loop %u: read %u expected %u", view, loop, frame_count, (uint32_t)view_s.loops[loop].numFrames));
+                for (uint32_t frame = 0; frame < frame_count; ++frame)
+                {
+                    view_s.loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
+                }
+            }
+        }
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));

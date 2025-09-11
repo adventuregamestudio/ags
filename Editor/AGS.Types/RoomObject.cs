@@ -39,8 +39,18 @@ namespace AGS.Types
                 "$$02 object", "$$03 object",  "Use inventory on object", 
                 "Any click on object", 
                 "$$05 object", "$$08 object", "$$09 object"},
-                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Object *theObject, CursorMode mode");
+                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9", "OnFrameEvent" },
+                new string[] {
+                "Object *theObject, CursorMode mode", // look
+                "Object *theObject, CursorMode mode", // interact
+                "Object *theObject, CursorMode mode", // talk
+                "Object *theObject, CursorMode mode", // useinv
+                "Object *theObject, CursorMode mode", // anyclick
+                "Object *theObject, CursorMode mode", // pickup
+                "Object *theObject, CursorMode mode", // mode8
+                "Object *theObject, CursorMode mode", // mode9
+                "Object *theObject, int view, int loop, int frame, String eventName" // view frame
+                });
         }
 
 		public RoomObject(IChangeNotification changeNotifier)

@@ -29,14 +29,15 @@ public:
 
     // Constructs DateTime initialized with zero time
     ScriptDateTime() = default;
-    // Constructs DateTime initialized using C time_t
-    ScriptDateTime(const time_t &time);
     // Constructs DateTime initialized using chrono::time_point
     ScriptDateTime(const ClockTimePoint &time);
+
+    // Constructs DateTime initialized using C time_t
+    static ScriptDateTime *FromStdTime(const time_t &time);
     // Constructs DateTime initialized with raw time (unix time)
-    ScriptDateTime(int raw_time);
+    static ScriptDateTime *FromRawTime(int raw_time);
     // Constructs DateTime initialized with all the date/time components
-    ScriptDateTime(int year, int month, int day, int hour, int minute, int second);
+    static ScriptDateTime *FromFullDate(int year, int month, int day, int hour, int minute, int second);
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;

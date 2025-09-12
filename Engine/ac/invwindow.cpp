@@ -263,12 +263,10 @@ bool InventoryScreen::CheckExitCondition()
         update_invorder();
     if (charextra[game.playercharacter].invorder_count == 0) {
         DisplayMessage(996);
-        in_inv_screen--;
         return false;
     }
 
     if (inv_screen_newroom >= 0) {
-        in_inv_screen--;
         NewRoom(inv_screen_newroom);
         return false;
     }

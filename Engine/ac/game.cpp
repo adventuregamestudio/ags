@@ -423,7 +423,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 ScriptDateTime* Game_GetSaveSlotTime(int slnum)
 {
     time_t ft = File::GetFileTime(get_save_game_path(slnum));
-    ScriptDateTime *sdt = new ScriptDateTime(ft);
+    ScriptDateTime *sdt = ScriptDateTime::FromStdTime(ft);
     ccRegisterManagedObject(sdt, sdt);
     return sdt;
 }

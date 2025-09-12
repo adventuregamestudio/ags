@@ -39,6 +39,7 @@ namespace AGS.Types
             set { _id = value; }
         }
 
+        [DisplayName("ScriptName")]
         [Description("The script name of the dialog")]
         [Category("Design")]
         [BrowsableMultiedit(false)]

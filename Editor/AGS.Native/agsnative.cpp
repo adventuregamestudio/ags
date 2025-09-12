@@ -135,10 +135,6 @@ std::vector<GUISlider> guislider;
 std::vector<GUITextBox> guitext;
 std::vector<ViewStruct> newViews;
 
-// A reference color depth, for correct color selection;
-// originally was defined by 'abuf' bitmap.
-int BaseColorDepth = 0;
-
 
 struct NativeRoomTools
 {
@@ -1180,9 +1176,9 @@ int get_adjusted_spriteheight(int spr) {
 
 void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum)
 {
-  colNum = my_setcolor(colNum, BaseColorDepth);
   Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
-  palbmp->Clear (colNum);
+  colNum = palbmp->GetCompatibleColor(colNum);
+  palbmp->Clear(colNum);
   drawBlockScaledAt(hdc, palbmp, x, y, 1);
   delete palbmp;
 }
@@ -1225,7 +1221,6 @@ bool initialize_native()
 
 	palette = &thisgame.defpal[0];
 	thisgame.color_depth = 2;
-    BaseColorDepth = 32;
 	thisgame.numfonts = 0;
 
     HAGSError err = reset_sprite_file();
@@ -1513,10 +1508,6 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
   }
 }
 
-void update_abuf_coldepth() {
-    BaseColorDepth = thisgame.color_depth * 8;
-}
-
 bool reload_font(int curFont)
 {
     return load_font_size(curFont, thisgame.fonts[curFont]);
@@ -1597,7 +1588,6 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
     for (int i = 0; i < thisgame.numfonts; ++i)
         reload_font(i);
 
-    update_abuf_coldepth();
     spritesModified = false;
     thisgame.filever = data_ver;
     return HAGSError::None();
@@ -2181,8 +2171,6 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
 
   AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
-
-  BaseColorDepth = thisgame.color_depth * 8;
 
   // ensure that the sprite import knows about pal slots 
   for (int i = 0; i < 256; i++) {

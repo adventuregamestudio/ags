@@ -237,7 +237,7 @@ String GUI::TransformTextForDrawing(const String &text, bool /*translate*/, bool
 
 size_t GUI::SplitLinesForDrawing(const String &text, bool /*apply_direction*/, SplitLines &lines, int font, int width, size_t max_lines)
 {
-    return split_lines(text.GetCStr(), lines, width, font, max_lines);
+    return split_lines(text.GetCStr(), lines, width, font, false /* not a compat mode */, max_lines);
 }
 
 void GUIObject::MarkChanged()

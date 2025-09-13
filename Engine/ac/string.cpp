@@ -290,11 +290,16 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     lines.Reset();
     longestline=0;
 
+    // If empty string - bail out now
+    if (todis[0] == 0)
+        return 0;
+
     // Don't attempt to display anything if the width is tiny
     if (wii < 3)
         return 0;
 
-    split_lines(todis, lines, wii, fonnt, max_lines);
+    bool compat_mode = loaded_game_file_version < kGameVersion_360;
+    split_lines(todis, lines, wii, fonnt, compat_mode, max_lines);
 
     int line_length;
     // Right-to-left just means reverse the text then

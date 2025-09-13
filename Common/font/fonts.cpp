@@ -486,7 +486,7 @@ static void unescape_script_string(const char *cstr, std::string &out)
 }
 
 // Break up the text into lines
-size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
+size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, bool compat_mode, size_t max_lines) {
     // NOTE: following hack accomodates for the legacy math mistake in split_lines.
     // It's hard to tell how cruicial it is for the game looks, so research may be needed.
     // TODO: IMHO this should rely not on game format, but script API level, because it
@@ -555,6 +555,11 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
             if (split_at == theline && !((*theline == ' ') || (*theline == '\n'))) {
                 // cannot split with current width restriction
                 lines.Reset();
+                // Old versions had a mistake in split_lines() which let a single-char (ascii) text
+                // to display always regardless of the width limit. Compensate for that.
+                if (compat_mode && theline[0] != 0 && theline[1] == 0) {
+                    lines.Add(todis);
+                }
                 break;
             }
             // add this line, saved into the test buffer

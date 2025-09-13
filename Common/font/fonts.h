@@ -156,7 +156,8 @@ private:
 
 // Break up the text into lines restricted by the given width;
 // returns number of lines, or 0 if text cannot be split well to fit in this width
-size_t split_lines(const char *texx, SplitLines &lines, int width, int font_number, size_t max_lines = -1);
+size_t split_lines(const char *texx, SplitLines &lines, int width, int font_number,
+                   bool compat_mode = false, size_t max_lines = -1);
 
 namespace AGS { namespace Common { extern SplitLines Lines; } }
 

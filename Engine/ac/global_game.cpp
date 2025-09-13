@@ -441,7 +441,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     if (!err)
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
     // Assign the default bitmap color depth, equals this game's color depth
-    set_color_depth(game.GetColorDepth());
+    Bitmap::SetColorDepth(game.GetColorDepth());
 
     err = engine_init_sprites();
     if (!err)

@@ -694,7 +694,7 @@ void destroy_blank_image()
 
 int MakeColor(int color_index)
 {
-    return my_setcolor(color_index, game.GetColorDepth());
+    return my_setcolor(color_index, game.GetColorDepth(), game.HasAlphaInDrawingOps());
 }
 
 void init_draw_method()
@@ -2480,6 +2480,11 @@ void draw_gui_and_overlays()
                 {
                     auto &gbg = guibg[index];
                     recycle_bitmap(gbg.Bmp, game.GetColorDepth(), gui.GetWidth(), gui.GetHeight(), true);
+                    // Configure GUI drawing alpha support, depending on a game version:
+                    // old versions of the engine did not make opaque drawing colors, so anything
+                    // non-sprite on guis with alpha-containing background would be transparent.
+                    gbg.Bmp->SetSupportAlphaInColors(game.HasAlphaInDrawingOps());
+
                     if (draw_with_controls)
                         gui.DrawWithControls(gbg.Bmp.get());
                     else

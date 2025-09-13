@@ -121,7 +121,7 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
     }
 
     // NumPad with NumLock on
-    if ((sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
+    if (!old_keyhandle && (sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
     {
         switch (sym)
         {

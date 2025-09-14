@@ -16,7 +16,7 @@
 
 using namespace AGS::Common;
 
-int my_setcolor(const int color, int color_depth)
+int my_setcolor(const int color, int color_depth, bool fix_alpha)
 {
     if (color_depth == 8)
     {
@@ -42,7 +42,7 @@ int my_setcolor(const int color, int color_depth)
         int res_color = makecol_depth(color_depth, col_lookups[color] >> 16,
                                   (col_lookups[color] >> 8) & 0x000ff, col_lookups[color] & 0x000ff);
 
-        if (color_depth > 16)
+        if (fix_alpha && (color_depth > 16))
             res_color |= 0xff000000; // add alpha for 32-bit color depth
         return res_color;
     }

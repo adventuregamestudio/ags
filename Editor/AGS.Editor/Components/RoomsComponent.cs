@@ -1093,7 +1093,6 @@ namespace AGS.Editor.Components
 
         private void UpdateLoadedRoomToTheCurrentVersion(CompileMessages errors)
         {
-            _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= UpgradeRoomFeatures(_loadedRoom, errors);
             if (_loadedRoom.Script.Modified)
             {

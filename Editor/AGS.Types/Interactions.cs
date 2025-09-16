@@ -11,14 +11,12 @@ namespace AGS.Types
         private InteractionSchema _schema;
         private string _scriptModule = string.Empty;
         private string[] _scriptFunctionNames;
-        private string[] _importedScripts;
 
         public Interactions(InteractionSchema schema)
         {
             _schema = schema;
             _scriptModule = schema.DefaultScriptModule;
             _scriptFunctionNames = new string[schema.EventNames.Length];
-            _importedScripts = new string[schema.EventNames.Length];
             Reset();
         }
 
@@ -51,7 +49,6 @@ namespace AGS.Types
             for (int i = 0; i < _scriptFunctionNames.Length; i++)
             {
                 _scriptFunctionNames[i] = null;
-                _importedScripts[i] = null;
             }
         }
 
@@ -72,11 +69,6 @@ namespace AGS.Types
         public string[] ScriptFunctionNames
         {
             get { return _scriptFunctionNames; }
-        }
-
-        public string[] ImportedScripts
-        {
-            get { return _importedScripts; }
         }
 
         public string[] FunctionSuffixes

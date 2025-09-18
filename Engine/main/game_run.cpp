@@ -174,6 +174,10 @@ public:
     // Update the state during a game tick
     bool Run() override
     {
+        // If skipping cutscene and expecting user input: don't wait at all
+        if (play.fast_forward && (play.wait_counter != 0) && ((play.key_skip_wait & ~SKIP_AUTOTIMER) != 0))
+            return false;
+
         GameTick();
         return ShouldStayInWaitMode();
     }

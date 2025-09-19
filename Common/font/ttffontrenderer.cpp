@@ -87,16 +87,18 @@ bool TTFFontRenderer::IsBitmapFont()
 
 static int GetAlfontFlags(int load_mode)
 {
-  int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
-  // Compatibility: font ascender is always adjusted to the formal font's height;
-  // EXCEPTION: not if it's a game made before AGS 3.4.1 with TTF anti-aliasing
-  // (the reason is uncertain, but this is to emulate old engine's behavior).
-  if (((load_mode & FFLG_ASCENDERFIXUP) != 0) &&
-      !(ShouldAntiAliasText() && (loaded_game_file_version < kGameVersion_341)))
-      flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
-  // Precalculate real glyphs extent (will make loading fonts relatively slower)
-  flags |= ALFONT_FLG_PRECALC_MAX_CBOX;
-  return flags;
+    int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
+    // Compatibility: optionally adjust font ascender to the formal font's height;
+    // EXCEPTION: not if it's a game made in AGS version range [3.2.0, 3.4.1) with TTF anti-aliasing
+    // (the reason is uncertain, but this is to emulate old engine's behavior).
+    const bool aa_special_case = (loaded_game_file_version >= kGameVersion_320) && (loaded_game_file_version < kGameVersion_341);
+    if (((load_mode & FFLG_ASCENDERFIXUP) != 0) && !(ShouldAntiAliasText() && aa_special_case))
+    {
+        flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
+    }
+    // Precalculate real glyphs extent (will make loading fonts relatively slower)
+    flags |= ALFONT_FLG_PRECALC_MAX_CBOX;
+    return flags;
 }
 
 // Loads a TTF font of a certain size

@@ -987,6 +987,12 @@ void DialogOptions::Begin()
     // Disable rest of the game interface while the dialog options are displayed;
     // note that this also disables "overhotspot" labels update
     DisableInterfaceEx(false /* don't change cursor */);
+
+    // Must update drawable states, in case they have not been initialized yet,
+    // because we call Draw() once prior to Run().
+    // TODO: need to revise the update logic within DialogOptions state,
+    // maybe this will be not necessary to do after some adjustments.
+    UpdateCursorAndDrawables();
 }
 
 void DialogOptions::Draw()
@@ -1178,6 +1184,12 @@ void DialogOptions::Draw()
     }
 
     ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get(), options_surface_has_alpha, false);
+
+    // FIXME: this operation, combined with the UpdateGameOnce/render calls
+    // in Run() actually causes the scene to draw TWICE per game frame!
+    // ...somehow this fact was overlooked during earlier refactors.
+    // But fixing this might require caution, as DialogOptions own
+    // update is mixed with the game update, noteably input events handling.
     if (runGameLoopsInBackground)
     {
         render_graphics(ddb, position.Left, position.Top);

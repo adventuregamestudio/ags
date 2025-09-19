@@ -208,6 +208,11 @@ void StrUtil::WriteString(const char *cstr, size_t len, Stream *out)
         out->Write(cstr, len);
 }
 
+String StrUtil::ReadCStr(Stream *in, size_t buf_limit)
+{
+    return String::FromStream(in, buf_limit);
+}
+
 void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
 {
     if (buf_limit == 0)

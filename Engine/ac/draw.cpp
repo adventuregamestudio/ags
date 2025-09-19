@@ -1500,6 +1500,8 @@ void draw_gui_sprite_v330(Bitmap *ds, int pic, int x, int y, bool use_alpha, Ble
 // Avoid freeing and reallocating the memory if possible
 Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent)
 {
+    assert(wid > 0 && hit > 0);
+
     if (bimp != nullptr)
     {
         // same colour depth, width and height -> reuse
@@ -1692,6 +1694,8 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level,
 static Bitmap *transform_sprite(std::unique_ptr<Bitmap> &dst, Bitmap *src, bool src_has_alpha,
     const Size &dst_sz, GraphicFlip flip = Common::kFlip_None)
 {
+    assert(!dst_sz.IsNull());
+
     if ((src->GetSize() == dst_sz) && (flip == kFlip_None))
         return src; // No transform: return source image
 

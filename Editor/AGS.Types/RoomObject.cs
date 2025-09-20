@@ -6,14 +6,12 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
-
-        private static InteractionSchema _interactionSchema;
 
         private int _id;
         private int _image;
@@ -29,19 +27,11 @@ namespace AGS.Types
         private bool _useRoomAreaScaling;
         private bool _useRoomAreaLighting;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Objects);
-        private Interactions _interactions = new Interactions(_interactionSchema);
+        // Game Events
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onAnyClick;
+        //
         private Room _room;
-
-        static RoomObject()
-        {
-            _interactionSchema = new InteractionSchema(string.Empty, true,
-                new string[] {"$$01 object",
-                "$$02 object", "$$03 object",  "Use inventory on object", 
-                "Any click on object", 
-                "$$05 object", "$$08 object", "$$09 object"},
-                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Object *theObject, CursorMode mode");
-        }
 
         public RoomObject(Room room)
         {
@@ -218,12 +208,30 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
         [AGSNoSerialize()]
         [Browsable(false)]
+        [Category("Cursor Events")]
+        [ScriptFunction("Object *theObject, CursorMode mode")]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
+
+        [DisplayName("Any click on")]
+        [Category("Cursor Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AnyClick", "Object *theObject, CursorMode mode")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAnyClick
+        {
+            get { return _onAnyClick; }
+            set { _onAnyClick = value; }
+        }
+
+        #endregion // Game Events
 
         public int CompareTo(RoomObject other)
         {

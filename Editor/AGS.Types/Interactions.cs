@@ -1,54 +1,48 @@
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Xml;
 
 namespace AGS.Types
 {
+    /// <summary>
+    /// Interactions is a table of script function names mapped to the
+    /// object events. The list of events is defined by InteractionSchema.
+    /// While InteractionSchema is attached to the object *type*,
+    /// Interactions object is attached to individual object instances.
+    /// </summary>
     public class Interactions
     {
         private InteractionSchema _schema;
         private string _scriptModule = string.Empty;
-        private string[] _scriptFunctionNames;
+        // Map event name to a script function
+        private Dictionary<string, string> _scriptFunctionNames;
 
         public Interactions(InteractionSchema schema)
         {
             _schema = schema;
-            _scriptModule = schema.DefaultScriptModule;
-            _scriptFunctionNames = new string[schema.EventNames.Length];
-            Reset();
+            _scriptFunctionNames = new Dictionary<string, string>();
+            _schema.Changed += Schema_Changed;
         }
 
-        public string GetScriptFunctionNameForInteractionSuffix(string suffix)
+        private void Schema_Changed(object sender, InteractionSchemaChangedEventArgs args)
         {
-            for (int i = 0; i < _schema.FunctionSuffixes.Length; i++)
+            SyncWithSchema(args.EventNameRemap);
+        }
+
+        private void SyncWithSchema(Dictionary<string, string> eventNameRemap)
+        {
+            var oldFunctions = _scriptFunctionNames;
+            _scriptFunctionNames = new Dictionary<string, string>();
+            if (eventNameRemap != null)
             {
-                if (_schema.FunctionSuffixes[i] == suffix)
+                foreach (var remap in eventNameRemap)
                 {
-                    return _scriptFunctionNames[i];
+                    if (oldFunctions.ContainsKey(remap.Key))
+                    {
+                        _scriptFunctionNames.Add(remap.Value, oldFunctions[remap.Key]);
+                    }
                 }
-            }
-            return null;
-        }
-
-        public void SetScriptFunctionNameForInteractionSuffix(string suffix, string scriptFunctionName)
-        {
-            for (int i = 0; i < _schema.FunctionSuffixes.Length; i++)
-            {
-                if (_schema.FunctionSuffixes[i] == suffix)
-                {
-                    _scriptFunctionNames[i] = scriptFunctionName;
-                    break;
-                }
-            }
-        }
-
-        private void Reset()
-        {
-            for (int i = 0; i < _scriptFunctionNames.Length; i++)
-            {
-                _scriptFunctionNames[i] = null;
             }
         }
 
@@ -57,60 +51,43 @@ namespace AGS.Types
             get { return _schema; }
         }
 
-        //[Category("(Basic)")]
-        //[DefaultValue(Script.GLOBAL_SCRIPT_FILE_NAME)]
-        //[TypeConverter(typeof(ScriptListTypeConverter))]
-        public string ScriptModule
-        {
-            get { return _scriptModule; }
-            set { _scriptModule = value; }
-        }
-
-        public string[] ScriptFunctionNames
+        public Dictionary<string, string> ScriptFunctionNames
         {
             get { return _scriptFunctionNames; }
         }
 
-        public string[] FunctionSuffixes
-        {
-            get { return _schema.FunctionSuffixes; }
-        }
-
-        public string[] FunctionParameterLists
-        {
-            get { return _schema.FunctionParameterLists; }
-        }
-
-        public string[] DisplayNames
-        {
-            get { return _schema.EventNames; }
-        }
-
         public void FromXml(XmlNode node)
         {
-            Reset();
+            _scriptFunctionNames = new Dictionary<string, string>();
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "Interactions"))
             {
+                /*
                 if (child.Name != "Event")
                 {
                     if (child.Name == "ScriptModule")
                         ScriptModule = child.InnerText;
                     continue;
-                } 
+                }
+                */
 
+                /*
                 int index = SerializeUtils.GetAttributeInt(child, "Index");
+                if (index < 0 || index >= _scriptFunctionNames.Length)
+                    continue; // FIXME: throw? need compat handle first
                 _scriptFunctionNames[index] = child.InnerText;
                 if (_scriptFunctionNames[index] == string.Empty)
                 {
                     _scriptFunctionNames[index] = null;
                 }
+                */
             }
         }
 
         public void ToXml(XmlTextWriter writer)
         {
             writer.WriteStartElement("Interactions");
-            writer.WriteElementString("ScriptModule", ScriptModule);
+            //writer.WriteElementString("ScriptModule", ScriptModule);
+            /*
             for (int i = 0; i < _scriptFunctionNames.Length; i++)
             {
                 writer.WriteStartElement("Event");
@@ -121,8 +98,8 @@ namespace AGS.Types
                 }
                 writer.WriteEndElement();
             }
+            */
             writer.WriteEndElement();
         }
-
     }
 }

@@ -167,7 +167,6 @@ namespace AGS.Editor
                 newObj.Name = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
                 newObj.StartX = MenuClickPos.X;
                 newObj.StartY = MenuClickPos.Y;
-                newObj.Interactions.ScriptModule = _room.Interactions.ScriptModule;
                 _room.Objects.Add(newObj);
                 AddObjectRef(newObj);
                 OnItemsChanged(this, null);

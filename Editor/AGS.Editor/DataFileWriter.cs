@@ -779,12 +779,14 @@ namespace AGS.Editor
         static void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
         {
             writer.Write((int)3060200); // kInterEvents_v362 version
+            /*
             FilePutString(interactions.ScriptModule, writer);
             writer.Write(interactions.ScriptFunctionNames.Length);
             foreach (string funcName in interactions.ScriptFunctionNames)
             {
                 FilePutString(funcName, writer);
             }
+            */
         }
 
         static void SerializeEmptyInteractionScripts(BinaryWriter writer)

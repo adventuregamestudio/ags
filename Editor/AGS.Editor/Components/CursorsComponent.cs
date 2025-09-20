@@ -43,6 +43,7 @@ namespace AGS.Editor.Components
                 newItem.ID = items.Count;
                 newItem.Name = "Cursor" + newItem.ID;
                 items.Add(newItem);
+                SyncCursorsWithInteractionSchema();
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), GetNodeLabel(newItem), "CursorIcon");
                 _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
@@ -66,6 +67,7 @@ namespace AGS.Editor.Components
                         _documents.Remove(_itemRightClicked);
                     }
                     _agsEditor.CurrentGame.Cursors.Remove(_itemRightClicked);
+                    SyncCursorsWithInteractionSchema();
                     RePopulateTreeView();
                 }
             }
@@ -117,6 +119,7 @@ namespace AGS.Editor.Components
         {
             if (propertyName == "Name")
             {
+                SyncCursorsWithInteractionSchema();
                 RePopulateTreeView();
 
                 foreach (ContentDocument doc in _documents.Values)
@@ -157,6 +160,8 @@ namespace AGS.Editor.Components
 
         public override void RefreshDataFromGame()
         {
+            SyncCursorsWithInteractionSchema();
+
             foreach (ContentDocument doc in _documents.Values)
             {
                 _guiController.RemovePaneIfExists(doc);
@@ -202,6 +207,20 @@ namespace AGS.Editor.Components
             Dictionary<string, object> list = new Dictionary<string, object>();
             list.Add(cursor.PropertyGridTitle, cursor);
             return list;
+        }
+
+        private void SyncCursorsWithInteractionSchema()
+        {
+            // TODO: maybe don't reset everything every time, but only do necessary change to the list
+            var cursors = _agsEditor.CurrentGame.Cursors;
+            var schema = InteractionSchema.Instance;
+            List<InteractionEvent> events = new List<InteractionEvent>();
+            foreach (var cursor in cursors)
+            {
+                // TODO: add something for "display name" in Cursor
+                events.Add(new InteractionEvent(Types.Utilities.RemoveInvalidCharactersFromScriptName(cursor.Name), cursor.Name));
+            }
+            schema.Events = events.ToArray();
         }
     }
 }

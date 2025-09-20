@@ -7,37 +7,25 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Description")]
     public class RoomHotspot : IChangeNotification, IToXml
 	{
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
-        private static InteractionSchema _interactionSchema;
-
         private int _id;
         private string _name = string.Empty;
         private string _description = string.Empty;
         private Point _walkToPoint;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Hotspots);
-        private Interactions _interactions = new Interactions(_interactionSchema);
+        // Game Events
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onAnyClick;
+        private string _onWalkOn;
+        private string _onMouseMove;
+        //
         private Room _room;
-
-        static RoomHotspot()
-        {
-            _interactionSchema = new InteractionSchema(string.Empty, true,
-                new string[] {"Stands on hotspot",
-                "$$01 hotspot","$$02 hotspot","Use inventory on hotspot",
-                "$$03 hotspot", "Any click on hotspot","Mouse moves over hotspot", 
-                "$$05 hotspot", "$$08 hotspot", "$$09 hotspot"},
-                new string[] { "WalkOn", "Look", "Interact", "UseInv", "Talk", "AnyClick", "MouseMove", "PickUp", "Mode8", "Mode9" },
-                new string[] { /*WalkOn*/"Hotspot *theHotspot", /*Look*/"Hotspot *theHotspot, CursorMode mode",
-                    /*Interact*/"Hotspot *theHotspot, CursorMode mode", /*UseInv*/"Hotspot *theHotspot, CursorMode mode",
-                    /*Talk*/"Hotspot *theHotspot, CursorMode mode", /*AnyClick*/"Hotspot *theHotspot, CursorMode mode",
-                    /*MouseMove*/"Hotspot *theHotspot", /*PickUp*/"Hotspot *theHotspot, CursorMode mode",
-                    /*Mode8*/"Hotspot *theHotspot, CursorMode mode", /*Mode9*/"Hotspot *theHotspot, CursorMode mode" });
-        }
 
 		public RoomHotspot(Room room)
 		{
@@ -113,14 +101,56 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
         [AGSSerializeClass()]
         [Browsable(false)]
+        [Category("Cursor Events")]
+        [ScriptFunction("Hotspot *theHotspot, CursorMode mode")]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
 
-		void IChangeNotification.ItemModified()
+        [DisplayName("Any click on")]
+        [Category("Cursor Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AnyClick", "Hotspot *theHotspot, CursorMode mode")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAnyClick
+        {
+            get { return _onAnyClick; }
+            set { _onAnyClick = value; }
+        }
+
+        [DisplayName("Player stands on hotspot")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("WalkOn", "Hotspot *theHotspot")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnWalkOn
+        {
+            get { return _onWalkOn; }
+            set { _onWalkOn = value; }
+        }
+
+        [DisplayName("Mouse moves over hotspot")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("WalkOn", "Hotspot *theHotspot")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnMouseMove
+        {
+            get { return _onMouseMove; }
+            set { _onMouseMove = value; }
+        }
+
+        #endregion // Game Events
+
+        void IChangeNotification.ItemModified()
 		{
 			(_room as IChangeNotification).ItemModified();
 		}

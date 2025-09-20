@@ -6,12 +6,10 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
     public class InventoryItem : IToXml, IComparable<InventoryItem>
     {
-        private static InteractionSchema _interactionSchema;
-
         private string _name;
         private string _description;
         private int _image;
@@ -20,18 +18,12 @@ namespace AGS.Types
         private int _id;
         private int _hotspotX, _hotspotY;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.InventoryItems);
-        private Interactions _interactions = new Interactions(_interactionSchema);
+        // Game Events
+        private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onAnyClick;
+        //
         private bool _currentlyDeserializing = false;
-
-        static InventoryItem()
-        {
-            _interactionSchema = new InteractionSchema(Script.GLOBAL_SCRIPT_FILE_NAME, false,
-                new string[] { "$$01 inventory item", 
-                "$$02 inventory item", "$$03 inventory item", "Use inventory on this item", 
-                "Other click on inventory item" },
-                new string[] { "Look", "Interact", "Talk", "UseInv", "OtherClick" },
-                "InventoryItem *theItem, CursorMode mode");
-        }
 
         public InventoryItem()
         {
@@ -150,12 +142,41 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
+        [Description("Script module which contains this inventory item's event functions")]
+        [Category("(Basic)")]
+        [Browsable(false)]
+        [AGSEventsTabProperty()]
+        [TypeConverter(typeof(ScriptListTypeConverter))]
+        public string ScriptModule
+        {
+            get { return _scriptModule; }
+            set { _scriptModule = value; }
+        }
+
         [AGSNoSerialize()]
         [Browsable(false)]
+        [Category("Cursor Events")]
+        [ScriptFunction("InventoryItem *theItem, CursorMode mode")]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
+
+        [DisplayName("Any click on")]
+        [Category("Cursor Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AnyClick", "InventoryItem *theItem, CursorMode mode")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAnyClick
+        {
+            get { return _onAnyClick; }
+            set { _onAnyClick = value; }
+        }
+
+        #endregion // Game Events
 
         public InventoryItem(XmlNode node)
         {

@@ -611,10 +611,7 @@ namespace AGS.Editor
             EnsureCharacterScriptNameIsUnique(newChar, game);
 
             // Clear any existing event handler function names
-            for (int i = 0; i < newChar.Interactions.ScriptFunctionNames.Length; i++)
-            {
-                newChar.Interactions.ScriptFunctionNames[i] = string.Empty;
-            }
+            newChar.Interactions.ScriptFunctionNames.Clear();
 
             PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
             SpriteFolder newFolder = new SpriteFolder(newChar.ScriptName + "Import");

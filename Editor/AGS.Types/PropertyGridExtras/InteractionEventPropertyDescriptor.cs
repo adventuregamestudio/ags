@@ -18,19 +18,19 @@ namespace AGS.Types
     public class InteractionEventPropertyDescriptor : PropertyDescriptor
     {
         private Type _componentType;
-        private int _eventIndex;
+        private string _eventName;
 
-        public InteractionEventPropertyDescriptor(object component, int eventIndex, string eventName, string displayName,
-                string parameterList)
+        public InteractionEventPropertyDescriptor(object component,
+            string eventName, string displayName, string category, string parameterList)
             :
             base(eventName, new Attribute[]{new DisplayNameAttribute(displayName), 
                 new EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor)),
-                new CategoryAttribute("Events"),
+                new CategoryAttribute(category),
                 new DefaultValueAttribute(string.Empty),
-                new ScriptFunctionParametersAttribute(parameterList)})
+                new ScriptFunctionAttribute(parameterList)})
         {
             _componentType = component.GetType();
-            _eventIndex = eventIndex;
+            _eventName = eventName;
         }
 
         public override bool CanResetValue(object component)
@@ -47,7 +47,9 @@ namespace AGS.Types
         {
             PropertyInfo interactionsProperty = component.GetType().GetProperty("Interactions");
             Interactions interactions = (Interactions)interactionsProperty.GetValue(component, null);
-            return interactions.ScriptFunctionNames[_eventIndex];
+            string value = null;
+            interactions.ScriptFunctionNames.TryGetValue(_eventName, out value);
+            return value;
         }
 
         public override bool IsReadOnly
@@ -69,7 +71,7 @@ namespace AGS.Types
         {
             PropertyInfo interactionsProperty = component.GetType().GetProperty("Interactions");
             Interactions interactions = (Interactions)interactionsProperty.GetValue(component, null);
-            interactions.ScriptFunctionNames[_eventIndex] = value.ToString();
+            interactions.ScriptFunctionNames[_eventName] = value.ToString();
         }
 
         public override bool ShouldSerializeValue(object component)

@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Description")]
     public class Room : UnloadedRoom, IChangeNotification, ILoadedRoom
     {
@@ -22,7 +22,7 @@ namespace AGS.Types
         public const int MAX_WALK_BEHINDS = 16;
         public const int MAX_REGIONS = 16;
 
-        public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
+        public const string EVENT_NAME_ROOM_LOAD = "Load";
 
         public const string PROPERTY_NAME_MASKRESOLUTION = "MaskResolution";
         /*
@@ -34,8 +34,6 @@ namespace AGS.Types
         public const string LATEST_XML_VERSION = "4.00.00.20";
 
         private const string FIRST_XML_VERSION = "3.99.99.01";
-
-        private static InteractionSchema _interactionSchema;
 
         public delegate void RoomModifiedChangedHandler(bool isModified);
         public event RoomModifiedChangedHandler RoomModifiedChanged;
@@ -59,33 +57,23 @@ namespace AGS.Types
         private int _gameId;
         private bool _modified;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Rooms);
-        private Interactions _interactions = new Interactions(_interactionSchema);
         private readonly List<RoomObject> _objects = new List<RoomObject>();
         private readonly List<RoomHotspot> _hotspots = new List<RoomHotspot>();
         private readonly List<RoomWalkableArea> _walkableAreas = new List<RoomWalkableArea>();
         private readonly List<RoomWalkBehind> _walkBehinds = new List<RoomWalkBehind>();
         private readonly List<RoomRegion> _regions = new List<RoomRegion>();
-
-        static Room()
-        {
-            _interactionSchema = new InteractionSchema(
-                string.Empty, true,
-                new string[] {
-                "Walks off left edge",
-                "Walks off right edge",
-                "Walks off bottom edge",
-                "Walks off top edge",
-                "First time enters room",
-                "Enters room before fade-in",
-                "Repeatedly execute",
-                "Enters room after fade-in",
-                "Leaves room before fade-out",
-                "Leaves room after fade-out"
-            },
-                new string[] { "LeaveLeft", "LeaveRight", "LeaveBottom", "LeaveTop", 
-                    "FirstLoad", EVENT_SUFFIX_ROOM_LOAD, "RepExec", "AfterFadeIn", "Leave", "Unload" },
-                    "");
-        }
+        // Game Events
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onLeaveLeft;
+        private string _onLeaveRight;
+        private string _onLeaveBottom;
+        private string _onLeaveTop;
+        private string _onLoad;
+        private string _onFirstTimeEnter;
+        private string _onAfterFadeIn;
+        private string _onBeforeFadeOut;
+        private string _onUnload;
+        private string _onRepExec;
 
         public Room(int roomNumber) : base(roomNumber)
         {
@@ -386,12 +374,137 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
         [AGSNoSerialize()]
         [Browsable(false)]
+        [Obsolete]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
+
+        [DisplayName("Walks off left edge")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("LeaveLeft", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnLeaveLeft
+        {
+            get { return _onLeaveLeft; }
+            set { _onLeaveLeft = value; }
+        }
+
+        [DisplayName("Walks off right edge")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("LeaveRight", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnLeaveRight
+        {
+            get { return _onLeaveRight; }
+            set { _onLeaveRight = value; }
+        }
+
+        [DisplayName("Walks off bottom edge")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("LeaveBottom", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnLeaveBottom
+        {
+            get { return _onLeaveBottom; }
+            set { _onLeaveBottom = value; }
+        }
+
+        [DisplayName("Walks off top edge")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("LeaveTop", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnLeaveTop
+        {
+            get { return _onLeaveTop; }
+            set { _onLeaveTop = value; }
+        }
+
+        [DisplayName("Enters room before fade-in")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("Load", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnLoad
+        {
+            get { return _onLoad; }
+            set { _onLoad = value; }
+        }
+
+        [DisplayName("First time enters room")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("FirstTimeEnter", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnFirstTimeEnter
+        {
+            get { return _onFirstTimeEnter; }
+            set { _onFirstTimeEnter = value; }
+        }
+
+        [DisplayName("Enters room after fade-in")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AfterFadeIn", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAfterFadeIn
+        {
+            get { return _onAfterFadeIn; }
+            set { _onAfterFadeIn = value; }
+        }
+
+        [DisplayName("Leaves room before fade-out")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("Leave", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnLeave
+        {
+            get { return _onBeforeFadeOut; }
+            set { _onBeforeFadeOut = value; }
+        }
+
+        [DisplayName("Leaves room after fade-out")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("Unload", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnUnload
+        {
+            get { return _onUnload; }
+            set { _onUnload = value; }
+        }
+
+        [DisplayName("Repeatedly execute")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("RepExec", "")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnRepExec
+        {
+            get { return _onRepExec; }
+            set { _onRepExec = value; }
+        }
+
+        #endregion // Game Events
 
         public static int GetMaskMaxColor(RoomAreaMaskType mask)
         {
@@ -426,7 +539,7 @@ namespace AGS.Types
 			this.Modified = true;
 		}
 		
-    public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
+        public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
         {
             foreach (RoomHotspot hotspot in Hotspots)
             {
@@ -450,7 +563,6 @@ namespace AGS.Types
             writer.WriteStartElement(GetType().Name);
             writer.WriteAttributeString("Version", LATEST_XML_VERSION);
             SerializeUtils.SerializePropertiesToXML(this, writer);
-            Interactions.ToXml(writer);
             SerializeUtils.SerializeToXML(writer, "Objects", Objects);
             SerializeUtils.SerializeToXML(writer, "Hotspots", Hotspots);
             SerializeUtils.SerializeToXML(writer, "WalkableAreas", WalkableAreas);
@@ -490,7 +602,6 @@ namespace AGS.Types
                 }
             }
 
-            _interactions.FromXml(node);
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
             _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
             _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(this, xml) { ID = i }));

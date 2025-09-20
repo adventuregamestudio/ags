@@ -45,32 +45,32 @@ namespace AGS.Types
             else if (context.Instance is InventoryItem)
             {
                 itemName = ((InventoryItem)context.Instance).Name;
-                scriptModule = ((InventoryItem)context.Instance).Interactions.ScriptModule;
+                scriptModule = ((InventoryItem)context.Instance).ScriptModule;
             }
             else if (context.Instance is Character)
             {
                 itemName = ((Character)context.Instance).ScriptName;
-                scriptModule = ((Character)context.Instance).Interactions.ScriptModule;
+                scriptModule = ((Character)context.Instance).ScriptModule;
             }
             else if (context.Instance is Room)
             {
                 itemName = "room";
-                scriptModule = ((Room)context.Instance).Interactions.ScriptModule;
+                scriptModule = ((Room)context.Instance).ScriptFileName;
             }
             else if (context.Instance is RoomHotspot)
             {
                 itemName = ((RoomHotspot)context.Instance).Name;
-                scriptModule = ((RoomHotspot)context.Instance).Interactions.ScriptModule;
+                scriptModule = ((RoomHotspot)context.Instance).Room.ScriptFileName;
             }
             else if (context.Instance is RoomObject)
             {
                 itemName = ((RoomObject)context.Instance).Name;
-                scriptModule = ((RoomObject)context.Instance).Interactions.ScriptModule;
+                scriptModule = ((RoomObject)context.Instance).Room.ScriptFileName;
             }
             else if (context.Instance is RoomRegion)
             {
                 itemName = "region" + ((RoomRegion)context.Instance).ID;
-                scriptModule = ((RoomRegion)context.Instance).Interactions.ScriptModule;
+                scriptModule = ((RoomRegion)context.Instance).Room.ScriptFileName;
             }
             else
             {
@@ -80,12 +80,12 @@ namespace AGS.Types
             if (!scriptModule.EndsWith(".asc"))
                 scriptModule = scriptModule + ".asc";
 
-            ScriptFunctionParametersAttribute parametersAttribute = ((ScriptFunctionParametersAttribute)context.PropertyDescriptor.Attributes[typeof(ScriptFunctionParametersAttribute)]);
+            ScriptFunctionAttribute parametersAttribute = ((ScriptFunctionAttribute)context.PropertyDescriptor.Attributes[typeof(ScriptFunctionAttribute)]);
 
 			return CreateOrOpenScriptFunction((string)value, itemName, context.PropertyDescriptor.Name, parametersAttribute, scriptModule);
         }
 
-		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string functionSuffix, ScriptFunctionParametersAttribute parametersAttribute, string scriptModule)
+		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string eventName, ScriptFunctionAttribute parametersAttribute, string scriptModule)
 		{
             if (string.IsNullOrEmpty(stringValue))
             {
@@ -97,7 +97,7 @@ namespace AGS.Types
 
                 if (CreateScriptFunction != null)
                 {
-                    string newStringValue = itemName + "_" + functionSuffix;
+                    string newStringValue = itemName + "_" + eventName;
                     if (CreateScriptFunction.Invoke(new CreateScriptFunctionArgs(scriptModule, newStringValue, parametersAttribute.Parameters)))
                     {
                         stringValue = newStringValue;

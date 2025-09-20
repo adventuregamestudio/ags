@@ -2567,13 +2567,16 @@ const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game)
 
 void CopyInteractions(AGS::Types::Interactions ^destination, const AGS::Common::InteractionEvents *source)
 {
-    destination->ScriptModule = TextHelper::ConvertASCII(source->ScriptModule);
+    //destination->ScriptModule = TextHelper::ConvertASCII(source->ScriptModule);
+    // FIXME: update to the new Interactions struct
+    /*
     size_t evt_count = std::min(source->Events.size(), (size_t)destination->ScriptFunctionNames->Length);
     // TODO: add a warning? if warning list would be passed in here
 	for (size_t i = 0; i < evt_count; i++)
 	{
 		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->Events[i].FunctionName);
 	}
+    */
 }
 
 // Load compiled game's main data file and use it to create AGS::Types::Game.
@@ -3076,7 +3079,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		obj->UseRoomAreaLighting = ((rs.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &rs.Objects[i].Properties);
         CopyInteractions(obj->Interactions, rs.Objects[i].EventHandlers.get());
-        obj->Interactions->ScriptModule = roomScriptName;
+        //obj->Interactions->ScriptModule = roomScriptName;
 
 		room->Objects->Add(obj);
 	}
@@ -3090,7 +3093,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         hotspot->WalkToPoint = System::Drawing::Point(rs.Hotspots[i].WalkTo.X, rs.Hotspots[i].WalkTo.Y);
 		CopyInteractions(hotspot->Interactions, rs.Hotspots[i].EventHandlers.get());
         ConvertCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
-        hotspot->Interactions->ScriptModule = roomScriptName;
+        //hotspot->Interactions->ScriptModule = roomScriptName;
 	}
 
 	for (size_t i = 0; i < MAX_WALK_AREAS; ++i) 
@@ -3141,13 +3144,14 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
         ConvertCustomProperties(area->Properties, &rs.Regions[i].Properties);
-        CopyInteractions(area->Interactions, rs.Regions[i].EventHandlers.get());
-        area->Interactions->ScriptModule = roomScriptName;
+        // FIXME - update to the new events
+        //CopyInteractions(area->Interactions, rs.Regions[i].EventHandlers.get());
+        //area->Interactions->ScriptModule = roomScriptName;
 	}
 
 	ConvertCustomProperties(room->Properties, &rs.Properties);
 	CopyInteractions(room->Interactions, rs.EventHandlers.get());
-    room->Interactions->ScriptModule = roomScriptName;
+    //room->Interactions->ScriptModule = roomScriptName;
 }
 
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs);
@@ -3289,11 +3293,13 @@ void save_default_crm_file(Room ^room)
 std::unique_ptr<InteractionEvents> convert_interaction_scripts(Interactions ^interactions)
 {
     std::unique_ptr<InteractionEvents> native_inter(new InteractionEvents());
-    native_inter->ScriptModule = TextHelper::ConvertASCII(interactions->ScriptModule);
+    //native_inter->ScriptModule = TextHelper::ConvertASCII(interactions->ScriptModule);
+    /* FIXME: update to the new interactions struct
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
         native_inter->Events.push_back(TextHelper::ConvertASCII(funcName));
 	}
+    */
     return native_inter;
 }
 
@@ -3310,7 +3316,8 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
 	}
     for (int i = 0; i < room->Regions->Count; ++i)
 	{
-        rs.Regions[i].EventHandlers = convert_interaction_scripts(room->Regions[i]->Interactions);
+        // FIXME - update to the new events
+        //rs.Regions[i].EventHandlers = convert_interaction_scripts(room->Regions[i]->Interactions);
 	}
 }
 

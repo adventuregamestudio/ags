@@ -21,13 +21,13 @@ namespace AGS.Types
         private string _eventName;
 
         public InteractionEventPropertyDescriptor(object component,
-            string eventName, string displayName, string category, string parameterList)
+            string eventName, string displayName, string category, string functionSuffix, string parameterList)
             :
             base(eventName, new Attribute[]{new DisplayNameAttribute(displayName), 
                 new EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor)),
                 new CategoryAttribute(category),
                 new DefaultValueAttribute(string.Empty),
-                new ScriptFunctionAttribute(parameterList)})
+                new ScriptFunctionAttribute(functionSuffix, parameterList)})
         {
             _componentType = component.GetType();
             _eventName = eventName;

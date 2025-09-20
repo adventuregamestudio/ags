@@ -81,7 +81,7 @@ namespace AGS.Types
                 foreach (var evt in events)
                 {
                     propList.Add(new InteractionEventPropertyDescriptor(component,
-                            evt.EventName, evt.DisplayName, category, functionParameters));
+                            evt.EventName, evt.DisplayName, category, evt.FunctionSuffix, functionParameters));
                 }
             }
             return propList;

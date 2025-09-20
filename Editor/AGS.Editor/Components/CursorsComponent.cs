@@ -119,13 +119,20 @@ namespace AGS.Editor.Components
         {
             if (propertyName == "Name")
             {
-                SyncCursorsWithInteractionSchema();
                 RePopulateTreeView();
 
                 foreach (ContentDocument doc in _documents.Values)
                 {
                     doc.Name = ((CursorEditor)doc.Control).ItemToEdit.WindowTitle;
                 }
+            }
+
+            // TODO: if we had a reference to the current object (why we dont have one in PropertyChanged??),
+            // then we could also check the current state of CreateEvent property and optimize following a bit.
+            if (propertyName == "CreateEvent" ||
+                (propertyName == "Name" || propertyName == "EventLabel" || propertyName == "EventFunctionName"))
+            {
+                SyncCursorsWithInteractionSchema();
             }
         }
 
@@ -217,8 +224,13 @@ namespace AGS.Editor.Components
             List<InteractionEvent> events = new List<InteractionEvent>();
             foreach (var cursor in cursors)
             {
-                // TODO: add something for "display name" in Cursor
-                events.Add(new InteractionEvent(Types.Utilities.RemoveInvalidCharactersFromScriptName(cursor.Name), cursor.Name));
+                if (cursor.CreateEvent)
+                {
+                    string eventName = Types.Utilities.RemoveInvalidCharactersFromScriptName(cursor.Name);
+                    string displayName = string.IsNullOrWhiteSpace(cursor.EventLabel) ? cursor.Name : cursor.EventLabel;
+                    string functionSuffix = string.IsNullOrWhiteSpace(cursor.EventFunctionName) ? eventName : cursor.EventFunctionName;
+                    events.Add(new InteractionEvent(eventName, displayName, functionSuffix));
+                }
             }
             schema.Events = events.ToArray();
         }

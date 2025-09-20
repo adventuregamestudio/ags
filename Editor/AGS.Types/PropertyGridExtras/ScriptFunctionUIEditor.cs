@@ -80,12 +80,12 @@ namespace AGS.Types
             if (!scriptModule.EndsWith(".asc"))
                 scriptModule = scriptModule + ".asc";
 
-            ScriptFunctionAttribute parametersAttribute = ((ScriptFunctionAttribute)context.PropertyDescriptor.Attributes[typeof(ScriptFunctionAttribute)]);
+            ScriptFunctionAttribute scriptFunctionAttribute = ((ScriptFunctionAttribute)context.PropertyDescriptor.Attributes[typeof(ScriptFunctionAttribute)]);
 
-			return CreateOrOpenScriptFunction((string)value, itemName, context.PropertyDescriptor.Name, parametersAttribute, scriptModule);
+			return CreateOrOpenScriptFunction((string)value, itemName, context.PropertyDescriptor.Name, scriptFunctionAttribute, scriptModule);
         }
 
-		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string eventName, ScriptFunctionAttribute parametersAttribute, string scriptModule)
+		public static string CreateOrOpenScriptFunction(string stringValue, string itemName, string eventName, ScriptFunctionAttribute scriptFunctionAttribute, string scriptModule)
 		{
             if (string.IsNullOrEmpty(stringValue))
             {
@@ -97,8 +97,14 @@ namespace AGS.Types
 
                 if (CreateScriptFunction != null)
                 {
-                    string newStringValue = itemName + "_" + eventName;
-                    if (CreateScriptFunction.Invoke(new CreateScriptFunctionArgs(scriptModule, newStringValue, parametersAttribute.Parameters)))
+                    string suffix = eventName, parameters = string.Empty;
+                    if (scriptFunctionAttribute != null)
+                    {
+                        suffix = scriptFunctionAttribute.Suffix;
+                        parameters = scriptFunctionAttribute.Parameters;
+                    }
+                    string newStringValue = itemName + "_" + suffix;
+                    if (CreateScriptFunction.Invoke(new CreateScriptFunctionArgs(scriptModule, newStringValue, parameters)))
                     {
                         stringValue = newStringValue;
                     }
@@ -109,7 +115,7 @@ namespace AGS.Types
                 }
             }
 
-            OpenScriptFunction?.Invoke(new OpenScriptFunctionArgs(scriptModule, stringValue, parametersAttribute.Parameters, true));
+            OpenScriptFunction?.Invoke(new OpenScriptFunctionArgs(scriptModule, stringValue, scriptFunctionAttribute.Parameters, true));
             return stringValue;
 		}
     }

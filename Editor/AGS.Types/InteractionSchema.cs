@@ -11,15 +11,18 @@ namespace AGS.Types
     {
         private string _eventName;
         private string _displayName;
+        private string _functionSuffix;
 
-        public InteractionEvent(string evtName, string displayName)
+        public InteractionEvent(string evtName, string displayName, string functionSuffix)
         {
             _eventName = evtName;
             _displayName = displayName;
+            _functionSuffix = functionSuffix;
         }
 
         public string EventName { get { return _eventName; } }
         public string DisplayName { get { return _displayName; } }
+        public string FunctionSuffix { get { return _functionSuffix; } }
     }
 
     public class InteractionSchemaChangedEventArgs

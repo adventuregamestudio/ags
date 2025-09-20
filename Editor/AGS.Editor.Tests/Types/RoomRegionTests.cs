@@ -8,14 +8,14 @@ namespace AGS.Types
     [TestFixture]
     public class RoomRegionTests
     {
-        private IChangeNotification _changeNotification;
+        private Room _room;
         private RoomRegion _roomRegion;
 
         [SetUp]
         public void SetUp()
         {
-            _changeNotification = Substitute.For<IChangeNotification>();
-            _roomRegion = new RoomRegion(_changeNotification);
+            _room = new Room(0);
+            _roomRegion = new RoomRegion(_room);
         }
 
         [TestCase(0)]
@@ -120,7 +120,7 @@ namespace AGS.Types
             </RoomRegion>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomRegion = new RoomRegion(_changeNotification, doc.SelectSingleNode("RoomRegion"));
+            _roomRegion = new RoomRegion(_room, doc.SelectSingleNode("RoomRegion"));
 
             Assert.That(_roomRegion.UseColourTint, Is.EqualTo(useColourTint));
             Assert.That(_roomRegion.LightLevel, Is.EqualTo(lightLevel));

@@ -107,7 +107,7 @@ namespace AGS.Types
 
             for (int i = 0; i < MAX_WALK_BEHINDS; i++)
             {
-                RoomWalkBehind area = new RoomWalkBehind();
+                RoomWalkBehind area = new RoomWalkBehind(this);
                 area.ID = i;
                 _walkBehinds.Add(area);
             }
@@ -494,7 +494,7 @@ namespace AGS.Types
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
             _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
             _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(this, xml) { ID = i }));
-            _walkBehinds.AddRange(GetXmlChildren(node, "/Room/WalkBehinds", MAX_WALK_BEHINDS).Select((xml, i) => new RoomWalkBehind(xml) { ID = i }));
+            _walkBehinds.AddRange(GetXmlChildren(node, "/Room/WalkBehinds", MAX_WALK_BEHINDS).Select((xml, i) => new RoomWalkBehind(this, xml) { ID = i }));
             _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(this, xml) { ID = i }));
 
             _savedXmlVersion = fileVersion;

@@ -23,7 +23,7 @@ namespace AGS.Types
         private int _tintLuminance = 100;
         private Interactions _interactions = new Interactions(_interactionSchema);
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Regions);
-        private IChangeNotification _notifyOfModification;
+        private Room _room;
 
         static RoomRegion()
         {
@@ -36,15 +36,22 @@ namespace AGS.Types
                 "Region *theRegion");
         }
 
-        public RoomRegion(IChangeNotification changeNotifier)
+        public RoomRegion(Room room)
         {
-            _notifyOfModification = changeNotifier;
+            _room = room;
         }
 
-        public RoomRegion(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        public RoomRegion(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
             Interactions.FromXml(node);
+        }
+
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
+        {
+            get { return _room; }
         }
 
         [AGSNoSerialize]
@@ -245,7 +252,7 @@ namespace AGS.Types
 
         void IChangeNotification.ItemModified()
         {
-            _notifyOfModification.ItemModified();
+            (_room as IChangeNotification).ItemModified();
         }
 
         public void ToXml(XmlTextWriter writer)

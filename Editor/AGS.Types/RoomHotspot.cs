@@ -22,7 +22,7 @@ namespace AGS.Types
         private Point _walkToPoint;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Hotspots);
         private Interactions _interactions = new Interactions(_interactionSchema);
-		private IChangeNotification _notifyOfModification;
+        private Room _room;
 
         static RoomHotspot()
         {
@@ -39,15 +39,22 @@ namespace AGS.Types
                     /*Mode8*/"Hotspot *theHotspot, CursorMode mode", /*Mode9*/"Hotspot *theHotspot, CursorMode mode" });
         }
 
-		public RoomHotspot(IChangeNotification changeNotifier)
+		public RoomHotspot(Room room)
 		{
-			_notifyOfModification = changeNotifier;
+			_room = room;
 		}
 
-        public RoomHotspot(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        public RoomHotspot(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
             Interactions.FromXml(node);
+        }
+
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
+        {
+            get { return _room; }
         }
 
         [AGSNoSerialize]
@@ -115,7 +122,7 @@ namespace AGS.Types
 
 		void IChangeNotification.ItemModified()
 		{
-			_notifyOfModification.ItemModified();
+			(_room as IChangeNotification).ItemModified();
 		}
 
         public void ToXml(XmlTextWriter writer)

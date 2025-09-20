@@ -7,14 +7,14 @@ namespace AGS.Types
     [TestFixture]
     public class RoomWalkableAreaTests
     {
-        private IChangeNotification _changeNotification;
+        private Room _room;
         private RoomWalkableArea _roomWalkAbleArea;
 
         [SetUp]
         public void SetUp()
         {
-            _changeNotification = Substitute.For<IChangeNotification>();
-            _roomWalkAbleArea = new RoomWalkableArea(_changeNotification);
+            _room = new Room(0);
+            _roomWalkAbleArea = new RoomWalkableArea(_room);
         }
 
         [TestCase(0)]
@@ -93,7 +93,7 @@ namespace AGS.Types
             </RoomWalkableArea>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomWalkAbleArea = new RoomWalkableArea(_changeNotification, doc.SelectSingleNode("RoomWalkableArea"));
+            _roomWalkAbleArea = new RoomWalkableArea(_room, doc.SelectSingleNode("RoomWalkableArea"));
 
             Assert.That(_roomWalkAbleArea.AreaSpecificView, Is.EqualTo(areaSpecificView));
             Assert.That(_roomWalkAbleArea.UseContinuousScaling, Is.EqualTo(userContinousScaling));

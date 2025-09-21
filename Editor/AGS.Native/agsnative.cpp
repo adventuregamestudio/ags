@@ -3316,8 +3316,7 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
 	}
     for (int i = 0; i < room->Regions->Count; ++i)
 	{
-        // FIXME - update to the new events
-        //rs.Regions[i].EventHandlers = convert_interaction_scripts(room->Regions[i]->Interactions);
+        rs.Regions[i].EventHandlers = convert_interaction_scripts(room->Regions[i]->Interactions);
 	}
 }
 

@@ -30,8 +30,9 @@ namespace AGS.Types
          * 
          * 1            - New XML room format introduced
          * 4.00.00.20   - Updated to a X.Y.Z.W version format.
+         * 4.00.00.21   - New event tables.
         */
-        public const string LATEST_XML_VERSION = "4.00.00.20";
+        public const string LATEST_XML_VERSION = "4.00.00.21";
 
         private const string FIRST_XML_VERSION = "3.99.99.01";
 
@@ -602,6 +603,8 @@ namespace AGS.Types
                 }
             }
 
+            LoadAndConvertInteractionEvents(node);
+
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
             _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
             _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(this, xml) { ID = i }));
@@ -609,6 +612,30 @@ namespace AGS.Types
             _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(this, xml) { ID = i }));
 
             _savedXmlVersion = fileVersion;
+        }
+
+        private void LoadAndConvertInteractionEvents(XmlNode node)
+        {
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
+
+            // Load old-style events into the temporary interactions object,
+            // as the one that we are keeping is for compatibility only.
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            if (interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, bail out
+            // Convert interaction events to our new event properties
+            OnLeaveLeft = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+            OnLeaveRight = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+            OnLeaveBottom = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
+            OnLeaveTop = interactions.IndexedFunctionNames.TryGetValueOrDefault(3, string.Empty);
+            OnFirstTimeEnter = interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+            OnLoad = interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
+            OnRepExec = interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
+            OnAfterFadeIn = interactions.IndexedFunctionNames.TryGetValueOrDefault(7, string.Empty);
+            OnLeave = interactions.IndexedFunctionNames.TryGetValueOrDefault(8, string.Empty);
+            OnUnload = interactions.IndexedFunctionNames.TryGetValueOrDefault(9, string.Empty);
         }
     }
 }

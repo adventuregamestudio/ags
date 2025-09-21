@@ -33,11 +33,6 @@ namespace AGS.Types
             _room = room;
         }
 
-        public RoomRegion(Room room, XmlNode node) : this(room)
-        {
-            SerializeUtils.DeserializeFromXML(this, node);
-        }
-
         [AGSNoSerialize()]
         [Browsable(false)]
         public Room Room
@@ -287,10 +282,38 @@ namespace AGS.Types
             (_room as IChangeNotification).ItemModified();
         }
 
+        #region Serialization
+
+        public RoomRegion(Room room, XmlNode node) : this(room)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+
+            LoadAndConvertInteractionEvents(node);
+        }
+
+        private void LoadAndConvertInteractionEvents(XmlNode node)
+        {
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
+
+            // Load old-style events into the temporary interactions object,
+            // as the one that we are keeping is for compatibility only.
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            if (interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, bail out
+            // Convert interaction events to our new event properties
+            OnStanding = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+            OnWalksOnto = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+            OnWalksOff = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer, false);
             writer.WriteEndElement();
         }
+
+        #endregion // Serialization
     }
 }

@@ -395,6 +395,24 @@ namespace AGS.Types
             return Convert.ToInt32(GetAttributeString(node, attrName));
         }
 
+        public static string GetAttributeStringOrDefault(XmlNode node, string attrName, string defName)
+        {
+            if (node.Attributes[attrName] == null)
+            {
+                return defName;
+            }
+            return node.Attributes[attrName].InnerText;
+        }
+
+        public static int GetAttributeIntOrDefault(XmlNode node, string attrName, int defValue)
+        {
+            if (node.Attributes[attrName] == null)
+            {
+                return defValue;
+            }
+            return Convert.ToInt32(node.Attributes[attrName].InnerText);
+        }
+
         public static Size CompatStringToResolution(String s)
         {
             String[] parts = s.Split(',');

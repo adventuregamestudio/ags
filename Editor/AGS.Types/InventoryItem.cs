@@ -178,6 +178,8 @@ namespace AGS.Types
 
         #endregion // Game Events
 
+        #region Serialization
+
         public InventoryItem(XmlNode node)
         {
             _currentlyDeserializing = true;
@@ -191,9 +193,27 @@ namespace AGS.Types
                 _cursorImage = _image;
             }
 
+            // Disable schema temporarily, in case we must convert from old format
+            _interactions.Schema = null;
             _interactions.FromXml(node);
+            ConvertOldInteractionEvents();
+            _interactions.Schema = InteractionSchema.Instance;
 
             _currentlyDeserializing = false;
+        }
+
+        private void ConvertOldInteractionEvents()
+        {
+            if (_interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, no conversion necessary
+
+            // Inventory Items had "Other Click" event that fired for virtually any cursor
+            // besides Look, Interact and UseInv.
+            _interactions.RemapLegacyFunctionIndexes(new int[]
+            {
+                4 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
+                4 /* PickUp */, 4 /* Pointer */, 4 /* Wait */, 4 /* Mode8 */, 4 /* Mode9 */
+            });
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -202,6 +222,8 @@ namespace AGS.Types
             _interactions.ToXml(writer);
             writer.WriteEndElement();
         }
+
+        #endregion // Serialization
 
         #region IComparable<InventoryItem> Members
 

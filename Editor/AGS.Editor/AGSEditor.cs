@@ -134,9 +134,10 @@ namespace AGS.Editor
          * 
          * XML_VERSION versions:
          * 4.00.00.20     - start using version string again.
+         * 4.00.00.21     - cursors explicitly tell if they correspond to interaction events.
          *
         */
-        public const string LATEST_XML_VERSION = "4.0.0.20";
+        public const string LATEST_XML_VERSION = "4.0.0.21";
 
         /*
          * FIRST_XML_VERSION is the very first version of the Editor using XML project file.

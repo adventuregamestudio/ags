@@ -38,12 +38,6 @@ namespace AGS.Types
             _room = room;
         }
 
-        public RoomObject(Room room, XmlNode node) : this(room)
-        {
-            SerializeUtils.DeserializeFromXML(this, node);
-            Interactions.FromXml(node);
-        }
-
         [AGSNoSerialize()]
         [Browsable(false)]
         public Room Room
@@ -327,11 +321,38 @@ namespace AGS.Types
 
         #endregion
 
+        #region Serialization
+
+        public RoomObject(Room room, XmlNode node) : this(room)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+            // Disable schema temporarily, in case we must convert from old format
+            _interactions.Schema = null;
+            _interactions.FromXml(node);
+            ConvertOldInteractionEvents();
+            _interactions.Schema = InteractionSchema.Instance;
+        }
+
+        private void ConvertOldInteractionEvents()
+        {
+            if (_interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, no conversion necessary
+
+            OnAnyClick = _interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+            _interactions.RemapLegacyFunctionIndexes(new int[]
+            {
+                -1 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
+                5 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 6 /* Mode8 */, 7 /* Mode9 */
+            });
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer, false);
             _interactions.ToXml(writer);
             writer.WriteEndElement();
         }
+
+        #endregion // Serialization
     }
 }

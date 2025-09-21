@@ -602,6 +602,8 @@ namespace AGS.Types
                 }
             }
 
+            LoadAndConvertInteractionEvents(node);
+
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
             _hotspots.AddRange(GetXmlChildren(node, "/Room/Hotspots", MAX_HOTSPOTS).Select((xml, i) => new RoomHotspot(this, xml) { ID = i }));
             _walkableAreas.AddRange(GetXmlChildren(node, "/Room/WalkableAreas", MAX_WALKABLE_AREAS).Select((xml, i) => new RoomWalkableArea(this, xml) { ID = i }));
@@ -609,6 +611,30 @@ namespace AGS.Types
             _regions.AddRange(GetXmlChildren(node, "/Room/Regions", MAX_REGIONS).Select((xml, i) => new RoomRegion(this, xml) { ID = i }));
 
             _savedXmlVersion = fileVersion;
+        }
+
+        private void LoadAndConvertInteractionEvents(XmlNode node)
+        {
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
+
+            // Load old-style events into the temporary interactions object,
+            // as the one that we are keeping is for compatibility only.
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            if (interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, bail out
+            // Convert interaction events to our new event properties
+            OnLeaveLeft = interactions.IndexedFunctionNames[0];
+            OnLeaveRight = interactions.IndexedFunctionNames[1];
+            OnLeaveBottom = interactions.IndexedFunctionNames[2];
+            OnLeaveTop = interactions.IndexedFunctionNames[3];
+            OnFirstTimeEnter = interactions.IndexedFunctionNames[4];
+            OnLoad = interactions.IndexedFunctionNames[5];
+            OnRepExec = interactions.IndexedFunctionNames[6];
+            OnAfterFadeIn = interactions.IndexedFunctionNames[7];
+            OnLeave = interactions.IndexedFunctionNames[8];
+            OnUnload = interactions.IndexedFunctionNames[9];
         }
     }
 }

@@ -229,7 +229,7 @@ namespace AGS.Editor.Components
                     string eventName = Types.Utilities.RemoveInvalidCharactersFromScriptName(cursor.Name);
                     string displayName = string.IsNullOrWhiteSpace(cursor.EventLabel) ? cursor.Name : cursor.EventLabel;
                     string functionSuffix = string.IsNullOrWhiteSpace(cursor.EventFunctionName) ? eventName : cursor.EventFunctionName;
-                    events.Add(new InteractionEvent(eventName, displayName, functionSuffix));
+                    events.Add(new InteractionEvent(cursor.ID, eventName, displayName, functionSuffix));
                 }
             }
             schema.Events = events.ToArray();

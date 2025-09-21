@@ -9,17 +9,20 @@ namespace AGS.Types
     /// </summary>
     public class InteractionEvent
     {
+        private int _index;
         private string _eventName;
         private string _displayName;
         private string _functionSuffix;
 
-        public InteractionEvent(string evtName, string displayName, string functionSuffix)
+        public InteractionEvent(int index, string evtName, string displayName, string functionSuffix)
         {
+            _index = index;
             _eventName = evtName;
             _displayName = displayName;
             _functionSuffix = functionSuffix;
         }
 
+        public int Index { get { return _index; } }
         public string EventName { get { return _eventName; } }
         public string DisplayName { get { return _displayName; } }
         public string FunctionSuffix { get { return _functionSuffix; } }
@@ -50,7 +53,7 @@ namespace AGS.Types
     /// </summary>
     public class InteractionSchema
     {
-        private InteractionEvent[] _events;
+        private InteractionEvent[] _events = new InteractionEvent[0];
 
         public InteractionEvent[] Events
         {
@@ -60,9 +63,12 @@ namespace AGS.Types
             }
             set
             {
-                // TODO: support explicit change operation (add/remove/rename)
                 _events = value;
-                Changed?.Invoke(this, new InteractionSchemaChangedEventArgs());
+                // TODO: make a proper matching, based on change operation (add/remove/rename)
+                Dictionary<string, string> remap = new Dictionary<string, string>();
+                foreach (var evt in _events)
+                    remap.Add(evt.EventName, evt.EventName);
+                Changed?.Invoke(this, new InteractionSchemaChangedEventArgs(remap));
             }
         }
 

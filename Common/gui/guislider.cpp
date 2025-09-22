@@ -22,11 +22,13 @@ namespace AGS
 namespace Common
 {
 
+/* static */ String GUISlider::EventNames[GUISlider::EventCount] =
+    { "Change" };
+/* static */ String GUISlider::EventArgs[GUISlider::EventCount] =
+    { "GUIControl *control" };
+
 GUISlider::GUISlider()
 {
-    _scEventCount = 1;
-    _scEventNames[0] = "Change";
-    _scEventArgs[0] = "GUIControl *control";
     _handleRange = 0;
 }
 
@@ -95,6 +97,25 @@ bool GUISlider::IsHorizontal() const
 bool GUISlider::HasAlphaChannel() const
 {
     return is_sprite_alpha(_bgImage) || is_sprite_alpha(_handleImage);
+}
+
+uint32_t GUISlider::GetEventCount() const
+{
+    return EventCount;
+}
+
+String GUISlider::GetEventName(uint32_t event) const
+{
+    if (event >= EventCount)
+        return "";
+    return EventNames[event];
+}
+
+String GUISlider::GetEventArgs(uint32_t event) const
+{
+    if (event >= EventCount)
+        return "";
+    return EventNames[event];
 }
 
 bool GUISlider::IsOverControl(int x, int y, int leeway) const

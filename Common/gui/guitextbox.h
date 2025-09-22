@@ -38,6 +38,11 @@ public:
     bool HasAlphaChannel() const override;
     bool IsBorderShown() const;
 
+    // Script Events
+    uint32_t GetEventCount() const override;
+    String GetEventArgs(uint32_t event) const override;
+    String GetEventName(uint32_t event) const override;
+
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
@@ -53,6 +58,10 @@ public:
     void WriteToSavegame(Stream *out) const override;
 
 private:
+    static const uint32_t EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
+
     int     _font = 0;
     String  _text;
     color_t _textColor = 0;

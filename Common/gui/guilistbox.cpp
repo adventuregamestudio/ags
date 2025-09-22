@@ -24,11 +24,13 @@ namespace AGS
 namespace Common
 {
 
+/* static */ String GUIListBox::EventNames[GUIListBox::EventCount] =
+    { "SelectionChanged" };
+/* static */ String GUIListBox::EventArgs[GUIListBox::EventCount] =
+    { "GUIControl *control" };
+
 GUIListBox::GUIListBox()
 {
-    _scEventCount = 1;
-    _scEventNames[0] = "SelectionChanged";
-    _scEventArgs[0] = "GUIControl *control";
 }
 
 void GUIListBox::SetFont(int font)
@@ -109,6 +111,25 @@ void GUIListBox::SetTopItem(int index)
 bool GUIListBox::HasAlphaChannel() const
 {
     return is_font_antialiased(_font);
+}
+
+uint32_t GUIListBox::GetEventCount() const
+{
+    return EventCount;
+}
+
+String GUIListBox::GetEventName(uint32_t event) const
+{
+    if (event >= EventCount)
+        return "";
+    return EventNames[event];
+}
+
+String GUIListBox::GetEventArgs(uint32_t event) const
+{
+    if (event >= EventCount)
+        return "";
+    return EventNames[event];
 }
 
 String GUIListBox::GetItem(int index) const

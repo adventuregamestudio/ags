@@ -25,8 +25,6 @@ namespace Common
 GUIInvWindow::GUIInvWindow()
 {
     CalculateNumCells();
-
-    _scEventCount = 0;
 }
 
 void GUIInvWindow::SetItemDimensions(int itemw, int itemh)

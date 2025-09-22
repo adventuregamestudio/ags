@@ -88,9 +88,10 @@ public:
     // Tells if the object image supports alpha channel
     virtual bool    HasAlphaChannel() const { return false; }
 
-    int             GetEventCount() const { return _scEventCount; }
-    String          GetEventName(uint32_t event) const;
-    String          GetEventArgs(uint32_t event) const;
+    // Script Events
+    virtual uint32_t GetEventCount() const;
+    virtual String  GetEventArgs(uint32_t event) const;
+    virtual String  GetEventName(uint32_t event) const;
     // Gets a script function name for the given event
     String          GetEventHandler(uint32_t event) const;
     void            SetEventHandler(uint32_t event, const String &fn_name);
@@ -151,13 +152,7 @@ protected:
     int      _height = 0;
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     bool     _hasChanged = false;
-
-    // TODO: explicit event names & handlers for every event
-    // FIXME: these must be static!! per type
-    uint32_t _scEventCount = 0u;               // number of supported script events
-    String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
-    String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
-    String   _eventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
+    std::vector<String> _eventHandlers; // script function names
 };
 
 // Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)

@@ -83,23 +83,34 @@ bool Camera::IsLocked() const
 // Locks room camera at its current position
 void Camera::Lock()
 {
-    debug_script_log("Room camera locked");
-    _locked = true;
+    if (!_locked)
+    {
+        debug_script_log("Room camera pos locked");
+        _locked = true;
+    }
 }
 
 // Similar to SetAt, but also locks camera preventing it from following player character
 void Camera::LockAt(int x, int y)
 {
-    debug_script_log("Room camera locked to %d,%d", x, y);
-    SetAt(x, y);
-    _locked = true;
+    if (!_locked || _position.Left != x || _position.Top != y)
+    {
+        const Point old_pos = _position.GetLT();
+        SetAt(x, y);
+        _locked = true;
+        if (old_pos != _position.GetLT())
+            debug_script_log("Room camera pos locked to %d,%d (request %d,%d)", _position.Left, _position.Top, x, y);
+    }
 }
 
 // Releases camera lock, letting it follow player character
 void Camera::Release()
 {
-    _locked = false;
-    debug_script_log("Room camera released back to engine control");
+    if (_locked)
+    {
+        _locked = false;
+        debug_script_log("Room camera pos released");
+    }
 }
 
 // Link this camera to a new viewport; this does not unlink any linked ones

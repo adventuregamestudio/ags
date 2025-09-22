@@ -78,6 +78,10 @@ private:
     const String _assetName; // for diagnostics
     int _videoFlags = 0;
     int _stateFlags = 0;
+    bool _isSoftwareRender = false;
+    // Stores frame bitmap received from the VideoPlayer,
+    // for software renderer, because it has to be locked in DDB
+    std::unique_ptr<Bitmap> _recvBitmap;
     IDriverDependantBitmap *_videoDDB = nullptr;
     Rect _dstRect;
     float _oldFps = 0.f;
@@ -108,6 +112,7 @@ BlockingVideoPlayer::~BlockingVideoPlayer()
 void BlockingVideoPlayer::Begin()
 {
     assert(_player);
+    assert(gfxDriver);
 
     // Optionally stop the game audio
     if ((_stateFlags & kVideoState_StopGameAudio) != 0)
@@ -123,7 +128,7 @@ void BlockingVideoPlayer::Begin()
     // Setup video
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
-        const bool software_draw = gfxDriver->HasAcceleratedTransform();
+        _isSoftwareRender = !gfxDriver->HasAcceleratedTransform();
         Size frame_sz = _player->GetFrameSize();
         Rect dest = PlaceInRect(play.GetMainViewport(), RectWH(frame_sz),
             ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
@@ -135,13 +140,13 @@ void BlockingVideoPlayer::Begin()
 
         // We only need to resize target bitmap for software renderer,
         // because texture-based ones can scale the texture themselves.
-        if (software_draw && (frame_sz != dest.GetSize()))
+        if (_isSoftwareRender && (frame_sz != dest.GetSize()))
         {
             _player->SetTargetFrame(dest.GetSize());
         }
 
         const int dst_depth = _player->GetTargetDepth();
-        if (!software_draw || ((_stateFlags & kVideoState_Stretch) == 0))
+        if (!_isSoftwareRender || ((_stateFlags & kVideoState_Stretch) == 0))
         {
             _videoDDB = gfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, true);
         }
@@ -268,6 +273,18 @@ bool BlockingVideoPlayer::Run()
             gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get(), false);
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
 
+            if (_isSoftwareRender)
+            {
+                // In software mode we have to lock the frame bitmap until the next frame
+                // pops out, because it's used in rendering directly.
+                if (_recvBitmap)
+                {
+                    std::lock_guard<std::mutex> lk(_videoMutex);
+                    _player->ReleaseFrame(std::move(_recvBitmap));
+                }
+                _recvBitmap = std::move(frame);
+            }
+            else
             {
                 std::lock_guard<std::mutex> lk(_videoMutex);
                 _player->ReleaseFrame(std::move(frame));

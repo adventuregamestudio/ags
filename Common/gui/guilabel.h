@@ -28,9 +28,10 @@ class GUILabel : public GUIObject
 public:
     GUILabel();
 
+    // Properties
     bool HasAlphaChannel() const override;
     // Gets label's text property in original set form (with macros etc)
-    String       GetText() const;
+    String GetText() const;
     // Gets which macro are contained within label's text
     GUILabelMacro GetTextMacros() const;
 
@@ -56,6 +57,10 @@ private:
     // Transforms the Text property to a drawn text, applies translation,
     // replaces macros, splits and wraps, etc; returns number of lines.
     int PrepareTextToDraw();
+
+    //static const int EventCount = 0;
+    //static String EventNames[EventCount];
+    //static String EventArgs[EventCount];
 
     // Information on macros contained within Text field
     GUILabelMacro _textMacro;

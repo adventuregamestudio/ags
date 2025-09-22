@@ -27,12 +27,18 @@ class GUISlider : public GUIObject
 public:
     GUISlider();
 
+    // Properties
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
     bool IsOverControl(int x, int y, int leeway) const override;
     // Compatibility: sliders are not clipped as of 3.6.0
     bool IsContentClipped() const override { return false; }
     bool HasAlphaChannel() const override;
+
+    // Script Events
+    String GetEventArgs(int event) const override;
+    int    GetEventCount() const override;
+    String GetEventName(int event) const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -63,6 +69,10 @@ public:
 private:
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
+
+    static const int EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
 
     // Cached coordinates of slider bar; in relative coords
     Rect    _cachedBar;

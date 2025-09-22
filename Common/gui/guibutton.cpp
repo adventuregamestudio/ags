@@ -50,6 +50,10 @@ FrameAlignment ConvertLegacyButtonAlignment(LegacyButtonAlignment align)
     return kAlignNone;
 }
 
+/* static */ String GUIButton::EventNames[GUIButton::EventCount] =
+    { "Click" };
+/* static */ String GUIButton::EventArgs[GUIButton::EventCount] =
+    { "GUIControl *control, MouseButton button" };
 
 GUIButton::GUIButton()
 {
@@ -66,15 +70,12 @@ GUIButton::GUIButton()
     ClickAction[kGUIClickRight] = kGUIAction_RunScript;
     ClickData[kGUIClickLeft] = 0;
     ClickData[kGUIClickRight] = 0;
+    EventHandlerCount = 1;
 
     IsPushed = false;
     IsMouseOver = false;
     _placeholder = kButtonPlace_None;
     _unnamed = true;
-
-    _scEventCount = 1;
-    _scEventNames[0] = "Click";
-    _scEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
 bool GUIButton::HasAlphaChannel() const
@@ -121,6 +122,25 @@ bool GUIButton::IsImageButton() const
 bool GUIButton::IsClippingImage() const
 {
     return (Flags & kGUICtrl_Clip) != 0;
+}
+
+int GUIButton::GetEventCount() const
+{
+    return EventCount;
+}
+
+String GUIButton::GetEventName(int event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventNames[event];
+}
+
+String GUIButton::GetEventArgs(int event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventNames[event];
 }
 
 Rect GUIButton::CalcGraphicRect(bool clipped)

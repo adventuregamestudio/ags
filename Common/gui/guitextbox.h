@@ -28,8 +28,14 @@ class GUITextBox : public GUIObject
 public:
     GUITextBox();
 
+    // Properties
     bool HasAlphaChannel() const override;
     bool IsBorderShown() const;
+
+    // Script Events
+    String GetEventArgs(int event) const override;
+    int    GetEventCount() const override;
+    String GetEventName(int event) const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -52,6 +58,10 @@ public:
     color_t TextColor;
 
 private:
+    static const int EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
+
     int32_t TextBoxFlags;
     String  _textToDraw;
 

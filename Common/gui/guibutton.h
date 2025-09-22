@@ -72,6 +72,7 @@ public:
 
     GUIButton();
 
+    // Properties
     bool HasAlphaChannel() const override;
     int32_t GetCurrentImage() const;
     int32_t GetNormalImage() const;
@@ -81,6 +82,11 @@ public:
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
+
+    // Script Events
+    String GetEventArgs(int event) const override;
+    int    GetEventCount() const override;
+    String GetEventName(int event) const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -128,6 +134,10 @@ private:
     void PrepareTextToDraw();
     // Update current image depending on the button's state
     void UpdateCurrentImage();
+
+    static const int EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
 
     int32_t _image;
     int32_t _mouseOverImage;

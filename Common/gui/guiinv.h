@@ -27,6 +27,7 @@ class GUIInvWindow : public GUIObject
 public:
     GUIInvWindow();
 
+    // Properties
     bool HasAlphaChannel() const override;
     // This function has distinct implementations in Engine and Editor
     int GetCharacterId() const;
@@ -59,6 +60,10 @@ public:
 
 private:
     void CalculateNumCells();
+
+    //static const int EventCount = 0;
+    //static String EventNames[EventCount];
+    //static String EventArgs[EventCount];
 };
 
 } // namespace Common

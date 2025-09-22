@@ -28,12 +28,18 @@ class GUIListBox : public GUIObject
 public:
     GUIListBox();
 
+    // Properties
     bool HasAlphaChannel() const override;
     bool AreArrowsShown() const;
     bool IsBorderShown() const;
     bool IsSvgIndex() const;
     bool IsInRightMargin(int x) const;
     int  GetItemAt(int x, int y) const;
+
+    // Script Events
+    String GetEventArgs(int event) const override;
+    int    GetEventCount() const override;
+    String GetEventName(int event) const override;
 
     // Operations
     int  AddItem(const String &text);
@@ -85,6 +91,10 @@ private:
     void UpdateMetrics();
     // Applies translation
     void PrepareTextToDraw(const String &text);
+
+    static const int EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
 
     // prepared text buffer/cache
     String _textToDraw;

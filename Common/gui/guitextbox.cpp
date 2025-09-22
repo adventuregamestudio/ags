@@ -26,15 +26,17 @@ namespace AGS
 namespace Common
 {
 
+/* static */ String GUITextBox::EventNames[GUITextBox::EventCount] =
+    { "Activate" };
+/* static */ String GUITextBox::EventArgs[GUITextBox::EventCount] =
+    { "GUIControl *control" };
+
 GUITextBox::GUITextBox()
 {
     Font = 0;
     TextColor = 0;
     TextBoxFlags = kTextBox_DefFlags;
-
-    _scEventCount = 1;
-    _scEventNames[0] = "Activate";
-    _scEventArgs[0] = "GUIControl *control";
+    EventHandlerCount = 1;
 }
 
 bool GUITextBox::HasAlphaChannel() const
@@ -45,6 +47,25 @@ bool GUITextBox::HasAlphaChannel() const
 bool GUITextBox::IsBorderShown() const
 {
     return (TextBoxFlags & kTextBox_ShowBorder) != 0;
+}
+
+int GUITextBox::GetEventCount() const
+{
+    return EventCount;
+}
+
+String GUITextBox::GetEventName(int event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventNames[event];
+}
+
+String GUITextBox::GetEventArgs(int event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventNames[event];
 }
 
 Rect GUITextBox::CalcGraphicRect(bool clipped)

@@ -34,7 +34,7 @@ GUIObject::GUIObject()
     ZOrder      = -1;
     IsActivated   = false;
     _transparency = 0;
-    _scEventCount = 0;
+    EventHandlerCount = 0;
     _hasChanged = true;
 }
 
@@ -45,21 +45,17 @@ String GUIObject::GetScriptName() const
 
 int GUIObject::GetEventCount() const
 {
-    return _scEventCount;
+    return 0;
 }
 
 String GUIObject::GetEventName(int event) const
 {
-    if (event < 0 || event >= _scEventCount)
-        return "";
-    return _scEventNames[event];
+    return "";
 }
 
 String GUIObject::GetEventArgs(int event) const
 {
-    if (event < 0 || event >= _scEventCount)
-        return "";
-    return _scEventArgs[event];
+    return "";
 }
 
 bool GUIObject::IsOverControl(int x, int y, int leeway) const
@@ -133,8 +129,8 @@ void GUIObject::WriteToFile(Stream *out) const
     out->WriteInt32(_height);
     out->WriteInt32(ZOrder);
     Name.Write(out);
-    out->WriteInt32(_scEventCount);
-    for (int i = 0; i < _scEventCount; ++i)
+    out->WriteInt32(EventHandlerCount);
+    for (int i = 0; i < EventHandlerCount; ++i)
         EventHandlers[i].Write(out);
 }
 
@@ -159,7 +155,7 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     else
         Name.Free();
 
-    for (int i = 0; i < _scEventCount; ++i)
+    for (int i = 0; i < EventHandlerCount; ++i)
     {
         EventHandlers[i].Free();
     }
@@ -167,7 +163,8 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (gui_version >= kGuiVersion_unkn_108)
     {
         int evt_count = in->ReadInt32();
-        if (evt_count > _scEventCount)
+        // FIXME: do not use quit here, return error instead!
+        if (evt_count > EventHandlerCount)
             quit("Error: too many control events, need newer version");
         for (int i = 0; i < evt_count; ++i)
         {

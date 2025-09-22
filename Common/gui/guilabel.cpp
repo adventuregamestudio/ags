@@ -31,8 +31,6 @@ GUILabel::GUILabel()
     Font = 0;
     TextColor = 0;
     TextAlignment = kAlignTopLeft;
-
-    _scEventCount = 0;
 }
 
 bool GUILabel::HasAlphaChannel() const

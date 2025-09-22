@@ -32,8 +32,6 @@ GUIInvWindow::GUIInvWindow()
     RowCount = 0;
     TopItem = 0;
     CalculateNumCells();
-
-    _scEventCount = 0;
 }
 
 void GUIInvWindow::OnMouseEnter()

@@ -24,6 +24,11 @@ namespace AGS
 namespace Common
 {
 
+/* static */ String GUIListBox::EventNames[GUIListBox::EventCount] =
+    { "SelectionChanged" };
+/* static */ String GUIListBox::EventArgs[GUIListBox::EventCount] =
+    { "GUIControl *control" };
+
 GUIListBox::GUIListBox()
 {
     ItemCount = 0;
@@ -37,15 +42,31 @@ GUIListBox::GUIListBox()
     ListBoxFlags = kListBox_DefFlags;
     SelectedBgColor = 16;
     TextAlignment = kHAlignLeft;
-
-    _scEventCount = 1;
-    _scEventNames[0] = "SelectionChanged";
-    _scEventArgs[0] = "GUIControl *control";
+    EventHandlerCount = 1;
 }
 
 bool GUIListBox::HasAlphaChannel() const
 {
     return is_font_antialiased(Font);
+}
+
+int GUIListBox::GetEventCount() const
+{
+    return EventCount;
+}
+
+String GUIListBox::GetEventName(int event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventNames[event];
+}
+
+String GUIListBox::GetEventArgs(int event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventNames[event];
 }
 
 int GUIListBox::GetItemAt(int x, int y) const

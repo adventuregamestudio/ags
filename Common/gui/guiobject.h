@@ -43,9 +43,7 @@ public:
 
     String          GetScriptName() const;
 
-    String          GetEventArgs(int event) const;
-    int             GetEventCount() const;
-    String          GetEventName(int event) const;
+    // Properties
     bool            IsClickable() const { return (Flags & kGUICtrl_Clickable) != 0; }
     bool            IsDeleted() const { return (Flags & kGUICtrl_Deleted) != 0; }
     bool            IsEnabled() const { return (Flags & kGUICtrl_Enabled) != 0; }
@@ -62,6 +60,11 @@ public:
     virtual bool    IsContentClipped() const { return true; }
     // Tells if the object image supports alpha channel
     virtual bool    HasAlphaChannel() const { return false; }
+
+    // Script Events
+    virtual String  GetEventArgs(int event) const;
+    virtual int     GetEventCount() const;
+    virtual String  GetEventName(int event) const;
     
     // Operations
     // Returns the (untransformed!) visual rectangle of this control,
@@ -123,6 +126,7 @@ public:
     int32_t  ZOrder;
     bool     IsActivated; // signals user interaction
 
+    int      EventHandlerCount;
     String   EventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
   
 protected:
@@ -131,12 +135,6 @@ protected:
     int32_t  _height;
     int32_t  _transparency; // "incorrect" alpha (in legacy 255-range units)
     bool     _hasChanged;
-
-    // TODO: explicit event names & handlers for every event
-    // FIXME: these must be static!! per type
-    int32_t  _scEventCount;                    // number of supported script events
-    String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
-    String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
 };
 
 // Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)

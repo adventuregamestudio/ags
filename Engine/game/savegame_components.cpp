@@ -1555,7 +1555,7 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteBool(false); //[DEPRECATED]
 
     // modified room masks
-    // -- kRoomStatSvgVersion_36214
+    // -- kRoomStatSvgVersion_36214, kRoomStatSvgVersion_40021
     for (int i = 0; i < kNumRoomAreaTypes; ++i)
     {
         out->WriteBool(play.room_mask_modified[i]);
@@ -1605,7 +1605,8 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
         SkipBitmap(in, false /* not compressed (expect component is compressed) */); //[DEPRECATED]
 
     // modified room masks
-    if (cmp_ver >= kRoomStatSvgVersion_36214)
+    if (((cmp_ver >= kRoomStatSvgVersion_36214) && (cmp_ver < kRoomStatSvgVersion_400)) ||
+        (cmp_ver >= kRoomStatSvgVersion_40021))
     {
         for (int i = 0; i < kNumRoomAreaTypes; ++i)
         {
@@ -1922,7 +1923,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40020,
+        kRoomStatSvgVersion_40021,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -1931,7 +1932,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40020, // must correspond to "Room States"
+        kRoomStatSvgVersion_40021, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         kSaveCmp_ThisRoom,
         WriteThisRoom,

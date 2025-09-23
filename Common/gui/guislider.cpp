@@ -67,7 +67,7 @@ String GUISlider::GetEventArgs(int event) const
 {
     if (event < 0 || event >= EventCount)
         return "";
-    return EventNames[event];
+    return EventArgs[event];
 }
 
 bool GUISlider::IsOverControl(int x, int y, int leeway) const

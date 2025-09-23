@@ -65,7 +65,7 @@ String GUITextBox::GetEventArgs(int event) const
 {
     if (event < 0 || event >= EventCount)
         return "";
-    return EventNames[event];
+    return EventArgs[event];
 }
 
 Rect GUITextBox::CalcGraphicRect(bool clipped)

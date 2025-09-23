@@ -66,7 +66,7 @@ String GUIListBox::GetEventArgs(int event) const
 {
     if (event < 0 || event >= EventCount)
         return "";
-    return EventNames[event];
+    return EventArgs[event];
 }
 
 int GUIListBox::GetItemAt(int x, int y) const

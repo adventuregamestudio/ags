@@ -59,6 +59,11 @@ public:
     void SetSvgIndex(bool on); // TODO: work around this
     void SetItemText(int index, const String &text);
 
+    // Script Events
+    uint32_t GetEventCount() const override;
+    String GetEventArgs(uint32_t event) const override;
+    String GetEventName(uint32_t event) const override;
+
     // Operations
     int AddItem(const String &text);
     int AddItem(const String &text, int save_slot);
@@ -105,6 +110,10 @@ private:
     void UpdateMetrics();
     // Applies translation
     void PrepareTextToDraw(const String &text);
+
+    static const int EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
 
     // prepared text buffer/cache
     String _textToDraw;

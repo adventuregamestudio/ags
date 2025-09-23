@@ -35,7 +35,7 @@ ScriptDateTime* DateTime_CreateFromDate(int year, int month, int day, int hour, 
     }
     else
     {
-        sdt = new ScriptDateTime(year, month, day, hour, minute, second);
+        sdt = ScriptDateTime::FromFullDate(year, month, day, hour, minute, second);
     }
     ccRegisterManagedObject(sdt, sdt);
     return sdt;
@@ -50,7 +50,7 @@ ScriptDateTime* DateTime_CreateFromRawTime(int raw_time) {
     }
     else
     {
-        sdt = new ScriptDateTime(raw_time);
+        sdt = ScriptDateTime::FromRawTime(raw_time);
     }
     ccRegisterManagedObject(sdt, sdt);
     return sdt;

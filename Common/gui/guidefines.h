@@ -15,7 +15,6 @@
 #define __AC_GUIDEFINES_H
 
 #define GUIMAGIC          0xcafebeef
-#define MAX_GUIOBJ_EVENTS 10
 #define TEXTWINDOW_PADDING_DEFAULT  3
 
 // TODO: find out more about gui version history

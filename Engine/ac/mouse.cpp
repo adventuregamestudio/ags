@@ -202,10 +202,14 @@ void Mouse_ChangeCursorGraphic (int curs, int newslot) {
     if ((curs == MODE_USE) && (game.options[OPT_FIXEDINVCURSOR] == 0))
         debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
-    game.mcurs[curs].pic = newslot;
-    spriteset.PrecacheSprite(newslot);
+    if (game.mcurs[curs].pic != newslot)
+    {
+        game.mcurs[curs].pic = newslot;
+        spriteset.PrecacheSprite(newslot);
+    }
+
     if (curs == cur_mode)
-        set_mouse_cursor (curs);
+        set_mouse_cursor(curs);
 }
 
 int Mouse_GetModeGraphic(int curs) {
@@ -228,19 +232,23 @@ void Mouse_ChangeModeView(int curs, int newview, int delay) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!Mouse.ChangeModeView: invalid mouse cursor");
 
-    newview--;
+    newview--; // convert to 0-based view index
 
-    game.mcurs[curs].view = newview;
+    if (newview != game.mcurs[curs].view)
+    {
+        game.mcurs[curs].view = newview;
+        if (newview >= 0)
+        {
+            precache_view(newview);
+        }
+    }
+
     if (delay != SCR_NO_VALUE)
         game.mcurs[curs].animdelay = delay;
 
-    if (newview >= 0)
-    {
-        precache_view(newview);
-    }
-
+    // If it's a current cursor, then force view update
     if (curs == cur_cursor)
-        mouse_delay = 0;  // force update
+        mouse_delay = 0;
 }
 
 void Mouse_ChangeModeView2(int curs, int newview) {

@@ -455,7 +455,7 @@ int engine_load_game_data()
         return EXIT_ERROR;
     }
     // Assign the default bitmap color depth, equals this game's color depth
-    set_color_depth(game.GetColorDepth());
+    Bitmap::SetColorDepth(game.GetColorDepth());
 
     // Checks and warnings
     if (!is_any_font_loaded())
@@ -807,7 +807,7 @@ void engine_init_game_settings()
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
     for (ee = 0; ee < MAX_ROOM_BGFRAMES; ee++) 
-        play.raw_modified[ee] = false;
+        play.room_bg_modified[ee] = false;
     play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;

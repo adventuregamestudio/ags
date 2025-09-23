@@ -53,20 +53,29 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
                 invalidate_screen();
                 mark_current_background_dirty();
             }
-            play.raw_modified[sds->roomBackgroundNumber] = true;
+            play.room_bg_modified[sds->roomBackgroundNumber] = true;
         }
 
         sds->roomBackgroundNumber = -1;
     }
-    if (sds->roomMaskType > kRoomAreaNone)
+    else if (sds->roomMaskType > kRoomAreaNone)
     {
-        if (sds->roomMaskType == kRoomAreaWalkBehind)
+        if (sds->modified)
         {
-            walkbehinds_recalc();
+            if (sds->roomMaskType == kRoomAreaWalkBehind)
+            {
+                walkbehinds_recalc();
+            }
+            if (get_room_mask_debugmode() == sds->roomMaskType)
+            {
+                debug_draw_room_mask(sds->roomMaskType);
+            }
+            play.room_mask_modified[sds->roomMaskType] = true;
         }
+
         sds->roomMaskType = kRoomAreaNone;
     }
-    if (sds->dynamicSpriteNumber >= 0)
+    else if (sds->dynamicSpriteNumber >= 0)
     {
         if (sds->modified)
         {
@@ -75,7 +84,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
 
         sds->dynamicSpriteNumber = -1;
     }
-    if (sds->dynamicSurfaceNumber >= 0)
+    else if (sds->dynamicSurfaceNumber >= 0)
     {
         dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = nullptr;
         sds->dynamicSurfaceNumber = -1;

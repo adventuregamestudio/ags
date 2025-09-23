@@ -58,6 +58,7 @@ enum RoomAreaMask
     kRoomAreaWalkBehind,
     kRoomAreaWalkable,
     kRoomAreaRegion,
+    kNumRoomAreaTypes,
 
     kRoomArea_First = kRoomAreaHotspot,
     kRoomArea_Last  = kRoomAreaRegion
@@ -267,6 +268,8 @@ public:
     void    SetMask(RoomAreaMask mask, Bitmap *bmp);
     // Gets mask's scale relative to the room's background size
     float   GetMaskScale(RoomAreaMask mask) const;
+    // Replaces contents of a bitmap for the particular mask layer
+    void    SetMask(RoomAreaMask mask, const Bitmap *bitmap);
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set

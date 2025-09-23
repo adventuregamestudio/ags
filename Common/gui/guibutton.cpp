@@ -25,16 +25,16 @@ namespace AGS
 namespace Common
 {
 
+/* static */ String GUIButton::EventNames[GUIButton::EventCount] =
+    { "Click" };
+/* static */ String GUIButton::EventArgs[GUIButton::EventCount] =
+    { "GUIControl *control, MouseButton button" };
 
 GUIButton::GUIButton()
 {
     _clickAction[kGUIClickLeft] = kGUIAction_RunScript;
     _clickAction[kGUIClickRight] = kGUIAction_RunScript;
     _clickData[kGUIClickLeft] = 0;
-
-    _scEventCount = 1;
-    _scEventNames[0] = "Click";
-    _scEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
 void GUIButton::SetFont(int font)
@@ -165,6 +165,25 @@ void GUIButton::SetClickAction(GUIClickMouseButton button, GUIClickAction action
 
     _clickAction[button] = action;
     _clickData[button] = data;
+}
+
+uint32_t GUIButton::GetEventCount() const
+{
+    return EventCount;
+}
+
+String GUIButton::GetEventName(uint32_t event) const
+{
+    if (event >= EventCount)
+        return "";
+    return EventNames[event];
+}
+
+String GUIButton::GetEventArgs(uint32_t event) const
+{
+    if (event < 0 || event >= EventCount)
+        return "";
+    return EventArgs[event];
 }
 
 Rect GUIButton::CalcGraphicRect(bool clipped)

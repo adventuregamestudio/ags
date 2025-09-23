@@ -167,6 +167,7 @@ void construct_engine_overlay();
 
 void update_shakescreen();
 
+RoomAreaMask get_room_mask_debugmode();
 void debug_draw_room_mask(RoomAreaMask mask);
 void debug_draw_movelist(int charnum);
 void update_room_debug();
@@ -227,9 +228,9 @@ Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);
 //   color depth. May be useful to disable mask when the source is a 8-bit
 //   palette-based image and the opaque sprite is intended.
 // TODO: think if it's logical to merge 'make_opaque' and 'keep_mask'.
-Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false, bool keep_mask = true);
+Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque = false, bool keep_mask = true, const RGB *bm_palette = nullptr);
 // Same as above, but compatible with std::shared_ptr.
-Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false, bool keep_mask = true);
+Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque = false, bool keep_mask = true, const RGB *bm_palette = nullptr);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,

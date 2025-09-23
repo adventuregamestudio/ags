@@ -179,6 +179,10 @@ public:
     // Update the state during a game tick
     bool Run() override
     {
+        // If skipping cutscene and expecting user input: don't wait at all
+        if (play.fast_forward && (play.wait_counter != 0) && ((play.key_skip_wait & ~SKIP_AUTOTIMER) != 0))
+            return false;
+
         GameTick();
         return ShouldStayInWaitMode();
     }
@@ -1025,6 +1029,39 @@ static void update_cursor_view()
     }
 }
 
+// Assign GUI context parameters, read from the game state.
+// This will be required for GUI labels render.
+static void update_gui_context(int mwasatx, int mwasaty)
+{
+    if (play.fast_forward)
+        return;
+    if (displayed_room < 0)
+        return;
+
+    // It's easier to update these every game tick, this is simple data and copy is fast,
+    // OTOH it may be inconvenient to have this in every place where this data changes.
+    GUI::Context.GameTitle = play.game_name;
+
+    if (playerchar->activeinv < 1 || playerchar->activeinv >= MAX_INV)
+        GUI::Context.InventoryPic = -1;
+    else
+        GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;
+
+    // Update a location name for the GUI labels. We do this every game
+    // tick, because this does not depend only on cursor position, but also
+    // on game object positions, and game state changes, and we cannot track all of that here.
+    //
+    // While game is in Wait mode, or in room transition: set empty overhotspot text.
+    if (!IsInterfaceEnabled() || in_room_transition)
+        GUI::Context.Overhotspot = "";
+    // Games prior to 3.6.0 had a slightly different order of updates, so use old cursor pos for them
+    else if (loaded_game_file_version < kGameVersion_360_21)
+        GUI::Context.Overhotspot = GetLocationName(mwasatx, mwasaty);
+    else
+        GUI::Context.Overhotspot = GetLocationName(mousex, mousey);
+}
+
+// Detect mouse move over hotspot, and run respective event if necessary
 static void update_cursor_over_location(int mwasatx, int mwasaty)
 {
     if (play.fast_forward)
@@ -1032,7 +1069,6 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
     if (displayed_room < 0)
         return;
 
-    // Check Mouse Moves Over Hotspot event
     auto view = play.GetRoomViewportAt(mousex, mousey);
     auto cam = view ? view->GetCamera() : nullptr;
     if (!cam)
@@ -1050,7 +1086,8 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         (offsetxWas != offsetx) || (offsetyWas != offsety))) 
     {
         // mouse moves over hotspot
-        if (__GetLocationType(mousex, mousey, 1) == LOCTYPE_HOTSPOT) {
+        if (__GetLocationType(mousex, mousey, 1) == LOCTYPE_HOTSPOT)
+        {
             int onhs = getloctype_index;
 
             setevent(AGSEvent_Interaction(kIntEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
@@ -1233,6 +1270,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // After everything else,
     // update object states necessary for upcoming rendering;
     // historically this was done right prior to drawing
+    update_gui_context(mwasatx, mwasaty);
     update_drawable_object_states(true /* cursor-related update */, mwasatx, mwasaty);
 
     update_video_system_on_game_loop();
@@ -1275,10 +1313,13 @@ void UpdateGameAudioOnly()
     WaitForNextFrame();
 }
 
-static void UpdateMouseOverLocation()
+// Update the "saved cursor until it leaves location" state
+static void UpdateSavedCursorOverLocation()
 {
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
+    // CHECKME: this is also likely called in the main game update function,
+    // so it may be not necessary here.
     GetLocationName(mousex, mousey);
 
     if ((play.get_loc_name_save_cursor >= 0) &&
@@ -1377,7 +1418,8 @@ static void GameTick()
         quit("!A blocking function was called before the first room has been loaded");
 
     UpdateGameOnce(true);
-    UpdateMouseOverLocation();
+    // TODO: figure out if it's safe to move this function inside UpdateGameOnce!
+    UpdateSavedCursorOverLocation();
 }
 
 // This function is called from lot of various functions

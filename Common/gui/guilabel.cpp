@@ -26,7 +26,6 @@ namespace Common
 
 GUILabel::GUILabel()
 {
-    _scEventCount = 0;
 }
 
 void GUILabel::SetFont(int font)

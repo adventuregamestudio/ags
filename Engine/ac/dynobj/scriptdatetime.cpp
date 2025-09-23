@@ -31,22 +31,26 @@ const char *ScriptDateTime::GetType()
     return "DateTime";
 }
 
-ScriptDateTime::ScriptDateTime(const time_t &time)
-{
-    SetTime(SystemClock::from_time_t(time));
-}
-
 ScriptDateTime::ScriptDateTime(const ClockTimePoint &time)
 {
     SetTime(time);
 }
 
-ScriptDateTime::ScriptDateTime(int raw_time)
+/* static */ ScriptDateTime *ScriptDateTime::FromStdTime(const time_t &time)
 {
-    SetTime(ClockTimePoint(std::chrono::seconds(raw_time)));
+    ScriptDateTime *sdt = new ScriptDateTime();
+    sdt->SetTime(SystemClock::from_time_t(time));
+    return sdt;
 }
 
-ScriptDateTime::ScriptDateTime(int year, int month, int day, int hour, int minute, int second)
+/* static */ ScriptDateTime *ScriptDateTime::FromRawTime(int raw_time)
+{
+    ScriptDateTime *sdt = new ScriptDateTime();
+    sdt->SetTime(ClockTimePoint(std::chrono::seconds(raw_time)));
+    return sdt;
+}
+
+/* static */ ScriptDateTime *ScriptDateTime::FromFullDate(int year, int month, int day, int hour, int minute, int second)
 {
     // NOTE: we do not init our calendar fields here directly, and instead
     // go through SetTime, in case the combination of input values does not
@@ -60,7 +64,9 @@ ScriptDateTime::ScriptDateTime(int year, int month, int day, int hour, int minut
                    /* .tm_year = */ year - 1900,
                 };
     tm.tm_isdst = -1; // use DST value from local time zone
-    SetTime(std::chrono::system_clock::from_time_t(std::mktime(&tm)));
+    ScriptDateTime *sdt = new ScriptDateTime();
+    sdt->SetTime(std::chrono::system_clock::from_time_t(std::mktime(&tm)));
+    return sdt;
 }
 
 void ScriptDateTime::SetTime(const ClockTimePoint &time)

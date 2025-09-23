@@ -63,6 +63,10 @@ private:
     static const int DefaultItemWidth = 40;
     static const int DefaultItemHeight = 22;
 
+    //static const int EventCount = 0;
+    //static String EventNames[EventCount];
+    //static String EventArgs[EventCount];
+
     bool    _isMouseOver = false;
     int     _charID = -1; // whose inventory (-1 = current player)
     int     _itemWidth = DefaultItemWidth;

@@ -26,30 +26,31 @@ void GUIControl::SetParentID(int parent_id)
     _parentID = parent_id;
 }
 
+uint32_t GUIControl::GetEventCount() const
+{
+    return 0;
+}
+
 String GUIControl::GetEventName(uint32_t event) const
 {
-    if (event < 0 || event >= _scEventCount)
-        return "";
-    return _scEventNames[event];
+    return "";
 }
 
 String GUIControl::GetEventArgs(uint32_t event) const
 {
-    if (event < 0 || event >= _scEventCount)
-        return "";
-    return _scEventArgs[event];
+    return "";
 }
 
 String GUIControl::GetEventHandler(uint32_t event) const
 {
-    if (event < 0 || event >= _scEventCount)
+    if (event >= _eventHandlers.size())
         return "";
     return _eventHandlers[event];
 }
 
 void GUIControl::SetEventHandler(uint32_t event, const String &fn_name)
 {
-    if (event < 0 || event >= _scEventCount)
+    if (event >= _eventHandlers.size())
         return;
     _eventHandlers[event] = fn_name;
 }
@@ -117,8 +118,8 @@ void GUIControl::WriteToFile(Stream *out) const
     out->WriteInt32(_height);
     out->WriteInt32(_zOrder);
     _name.Write(out);
-    out->WriteInt32(_scEventCount);
-    for (uint32_t i = 0; i < _scEventCount; ++i)
+    out->WriteInt32(_eventHandlers.size());
+    for (uint32_t i = 0; i < _eventHandlers.size(); ++i)
         _eventHandlers[i].Write(out);
 }
 
@@ -132,15 +133,10 @@ void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
     _zOrder   = in->ReadInt32();
     _name.Read(in);
 
-    for (uint32_t i = 0; i < _scEventCount; ++i)
-    {
-        _eventHandlers[i].Free();
-    }
+    _eventHandlers.clear();
 
     uint32_t evt_count = static_cast<uint32_t>(in->ReadInt32());
-    // FIXME: don't use quit here!!
-    if (evt_count > _scEventCount)
-        quit("Error: too many control events, need newer version");
+    _eventHandlers.resize(evt_count);
     for (uint32_t i = 0; i < evt_count; ++i)
     {
         _eventHandlers[i].Read(in);

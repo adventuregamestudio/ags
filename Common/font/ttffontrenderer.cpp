@@ -101,13 +101,15 @@ bool TTFFontRenderer::IsBitmapFont()
 
 static int GetAlfontFlags(int load_mode)
 {
-  int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
-  // Compatibility: font ascender is always adjusted to the formal font's height
-  if ((load_mode & FFLG_ASCENDERFIXUP) != 0)
-      flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
-  // Precalculate real glyphs extent (will make loading fonts relatively slower)
-  flags |= ALFONT_FLG_PRECALC_MAX_CBOX;
-  return flags;
+    int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
+    // Compatibility: optionally adjust font ascender to the formal font's height;
+    if ((load_mode & FFLG_ASCENDERFIXUP) != 0)
+    {
+        flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
+    }
+    // Precalculate real glyphs extent (will make loading fonts relatively slower)
+    flags |= ALFONT_FLG_PRECALC_MAX_CBOX;
+    return flags;
 }
 
 // Loads a TTF font of a certain size

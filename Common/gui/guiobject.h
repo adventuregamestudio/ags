@@ -137,7 +137,7 @@ protected:
     BlendMode _blendMode = kBlend_Normal;
     int     _shaderID = 0;
     int     _shaderHandle = 0; // runtime script shader handle
-
+    
     GraphicSpace _gs;
     bool    _hasChanged = false;
 };

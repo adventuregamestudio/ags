@@ -117,7 +117,7 @@ void GUIControl::MarkStateChanged(bool self_changed, bool parent_changed)
 int GUILabel::PrepareTextToDraw()
 {
     const bool is_translated = (_flags & kGUICtrl_Translated) != 0;
-    replace_macro_tokens(is_translated ? get_translation(_text.GetCStr()) : _text.GetCStr(), _textToDraw);
+    _textToDraw = GUI::ResolveMacroTokens(is_translated ? get_translation(_text.GetCStr()) : _text);
     return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, _font, _width);
 }
 

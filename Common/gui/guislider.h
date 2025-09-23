@@ -45,6 +45,11 @@ public:
     // Compatibility: sliders are not clipped as of 3.6.0
     bool IsContentClipped() const override { return false; }
 
+    // Script Events
+    uint32_t GetEventCount() const override;
+    String GetEventArgs(uint32_t event) const override;
+    String GetEventName(uint32_t event) const override;
+
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
@@ -67,6 +72,10 @@ private:
     bool IsOverControlImpl(int x, int y, int leeway) const override;
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
+
+    static const int EventCount = 1;
+    static String EventNames[EventCount];
+    static String EventArgs[EventCount];
 
     int     _minValue = 0;
     int     _maxValue = 0;

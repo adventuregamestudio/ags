@@ -35,6 +35,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36025    = 3, // object animation volume
     kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
+    kRoomStatSvgVersion_36214    = 3060214, // serialize current room's changes to masks
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
     kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
     kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas

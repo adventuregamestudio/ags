@@ -56,6 +56,10 @@ private:
     // replaces macros, splits and wraps, etc; returns number of lines.
     int PrepareTextToDraw();
 
+    //static const int EventCount = 0;
+    //static String EventNames[EventCount];
+    //static String EventArgs[EventCount];
+
     String  _text;
     int     _font = 0;
     color_t _textColor = 0;

@@ -490,7 +490,7 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 // * keep_mask - tells whether to keep mask pixels when converting from another
 //   color depth. May be useful to disable mask when the source is a 8-bit
 //   palette-based image and the opaque sprite is intended.
-static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask)
+static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask, const RGB *bm_palette)
 {
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
@@ -500,7 +500,7 @@ static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_game
     // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
     const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);
     if (must_switch_palette)
-        select_palette(palette);
+        select_palette(bm_palette != nullptr ? bm_palette : palette);
 
     Bitmap *new_bitmap = bitmap;
 
@@ -547,17 +547,17 @@ static Bitmap *PrepareSpriteForUseImpl(Common::Bitmap *bitmap, bool conv_to_game
     return new_bitmap;
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask, const RGB *bm_palette)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, conv_to_gamedepth, make_opaque, keep_mask);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, conv_to_gamedepth, make_opaque, keep_mask, bm_palette);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask)
+PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask, const RGB *bm_palette)
 {
-    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), conv_to_gamedepth, make_opaque, keep_mask);
+    Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), conv_to_gamedepth, make_opaque, keep_mask, bm_palette);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
@@ -1540,6 +1540,8 @@ void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
 // Avoid freeing and reallocating the memory if possible
 Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent)
 {
+    assert(wid > 0 && hit > 0);
+
     if (bimp != nullptr)
     {
         // same colour depth, width and height -> reuse
@@ -1778,6 +1780,8 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
     std::unique_ptr<Bitmap> (&transform_bmp)[2],
     const Size &scale_sz, float rotation = 0.f, GraphicFlip flip = Common::kFlip_None)
 {
+    assert(!scale_sz.IsNull());
+
     if ((src->GetSize() == scale_sz) && (rotation == 0.f) && (flip == kFlip_None) )
         return src; // No transform: return source image
 
@@ -2581,14 +2585,6 @@ void draw_gui_and_overlays()
     // Add GUIs
     set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
-        if (playerchar->activeinv >= MAX_INV) {
-            quit("!The player.activeinv variable has been corrupted, probably as a result\n"
-                "of an incorrect assignment in the game script.");
-        }
-        if (playerchar->activeinv < 1)
-            GUI::Context.InventoryPic = -1;
-        else
-            GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;
         set_our_eip(37);
         // Prepare and update GUI textures
         {
@@ -3119,6 +3115,11 @@ void update_shakescreen()
         if ((get_loop_counter() % play.shakesc_delay) < (play.shakesc_delay / 2))
             play.shake_screen_yoff = play.shakesc_amount;
     }
+}
+
+RoomAreaMask get_room_mask_debugmode()
+{
+    return debugRoomMask;
 }
 
 void debug_draw_room_mask(RoomAreaMask mask)

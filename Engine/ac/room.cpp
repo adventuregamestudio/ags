@@ -368,8 +368,10 @@ void unload_old_room()
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
     remove_all_overlays();
-    for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
-        play.raw_modified[ff] = false;
+    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+        play.room_bg_modified[i] = false;
+    for (int i = 0; i < kNumRoomAreaTypes; ++i)
+        play.room_mask_modified[i] = false;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
     for (int ff = 0; ff < game.numcharacters; ff++) {
@@ -509,11 +511,6 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     String room_filename;
     done_as_error = false;
     play.room_changes ++;
-    // TODO: find out why do we need to temporarily lower color depth to 8-bit.
-    // Or do we? There's a serious usability problem in this: if any bitmap is
-    // created meanwhile it will have this color depth by default, which may
-    // lead to unexpected errors.
-    set_color_depth(8);
     displayed_room=newnum;
 
     room_filename.Format("room%d.crm", newnum);
@@ -573,8 +570,10 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         }
     }
 
-    for (size_t i = 0; i < thisroom.BgFrameCount; ++i) {
-        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, true /* to game depth */, true /* force opaque */, false /* no keep mask */);
+    for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
+    {
+        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(
+            thisroom.BgFrames[i].Graphic, false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
     }
 
     set_our_eip(202);
@@ -583,9 +582,6 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     set_our_eip(203);
     in_new_room = kEnterRoom_Normal;
 
-    // Restore the default bitmaps color depth after temporarily setting it to 8-bit (see above)
-    // TODO: find out why do we need to do this, and if we have to at all?
-    set_color_depth(game.GetColorDepth());
 
     // walkable_areas_temp is used by the pathfinder to generate a
     // copy of the walkable areas - allocate it here to save time later

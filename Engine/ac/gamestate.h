@@ -227,7 +227,9 @@ struct GamePlayState
     int   num_parsed_words = 0;
     short parsed_words[MAX_PARSED_WORDS]{};
     Common::String bad_parsed_word;
-    bool  raw_modified[MAX_ROOM_BGFRAMES]{}; // tell which current room bgs were modified
+    // Tells which room background frames were modified by script drawing operations
+    bool  room_bg_modified[MAX_ROOM_BGFRAMES]{};
+    bool  room_mask_modified[kNumRoomAreaTypes]{};
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;
     uint32_t shakesc_delay = 0; // unsigned to match loopcounter

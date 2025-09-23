@@ -805,7 +805,17 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         {
             if (r_data.RoomBkgScene[i])
             {
-                thisroom.BgFrames[i].Graphic = r_data.RoomBkgScene[i];
+                // Blit, don't replace image, in case we restored a image of different size
+                thisroom.BgFrames[i].Graphic->Blit(r_data.RoomBkgScene[i].get());
+            }
+        }
+
+        for (int i = 0; i < kNumRoomAreaTypes; ++i)
+        {
+            if (r_data.RoomMask[i])
+            {
+                // Blit, don't replace image, in case we restored a image of different size
+                thisroom.SetMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
             }
         }
 

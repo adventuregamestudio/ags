@@ -46,8 +46,7 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<MouseCursor> mcurs;
     std::vector<UInteractionEvents> charScripts;
     std::vector<UInteractionEvents> invScripts;
-    // TODO: why we do not use this in the engine instead of
-    // loaded_game_file_version?
+    // TODO: use this everywhere in the engine instead of loaded_game_file_version!
     GameDataVersion   filever = kGameVersion_Undefined;
     Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
@@ -98,7 +97,6 @@ struct GameSetupStruct : public GameSetupStructBase
     // we could use a kind of hash map containing fixed-sized arrays, where size of
     // array is calculated based on key spread factor.
     std::vector<SpriteInfo> SpriteInfos;
-
 
     GameSetupStruct() = default;
     GameSetupStruct(GameSetupStruct &&gss) = default;

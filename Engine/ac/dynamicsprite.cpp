@@ -158,6 +158,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
     }
 
     BitmapHelper::CopyTransparency(target, source, dst_has_alpha, src_has_alpha);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y) 

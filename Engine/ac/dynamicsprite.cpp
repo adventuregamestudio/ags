@@ -151,6 +151,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
 
     // set the target's alpha channel depending on the source
     BitmapHelper::CopyTransparency(target, source, target->GetColorDepth() == 32, source->GetColorDepth() == 32);
+    game_sprite_updated(sds->slot);
 }
 
 void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y) 

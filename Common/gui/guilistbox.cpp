@@ -129,7 +129,7 @@ String GUIListBox::GetEventArgs(uint32_t event) const
 {
     if (event >= EventCount)
         return "";
-    return EventNames[event];
+    return EventArgs[event];
 }
 
 String GUIListBox::GetItem(int index) const

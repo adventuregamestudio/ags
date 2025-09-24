@@ -778,22 +778,62 @@ namespace AGS.Editor
 
         static void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
         {
-            writer.Write((int)3060200); // kInterEvents_v362 version
-            /*
+            writer.Write((int)3060200); // kEventsTable_v362 version (no change from 3.6.2+ yet)
             FilePutString(interactions.ScriptModule, writer);
-            writer.Write(interactions.ScriptFunctionNames.Length);
-            foreach (string funcName in interactions.ScriptFunctionNames)
+            if (interactions.ScriptFunctionNames.Count == 0)
             {
-                FilePutString(funcName, writer);
+                // No assigned functions: write an empty table
+                writer.Write(0);
+                return;
             }
-            */
+            // When we write interactions event table, we use Cursor ID as an index,
+            // and write empty slots too, because we must keep a correct index at runtime.
+            var events = interactions.Schema.Events;
+            int topIndex = events.Select(evt => evt.Index).Max();
+            writer.Write(topIndex + 1);
+            for (int index = 0, eventIndex = 0; index <= topIndex; ++index)
+            {
+                if (events[eventIndex].Index == index)
+                {
+                    string funcName;
+                    if (interactions.ScriptFunctionNames.TryGetValue(events[eventIndex].EventName, out funcName))
+                        FilePutString(funcName, writer);
+                    else
+                        writer.Write((int)0); // unassigned slot
+                    eventIndex++;
+                }
+                else
+                {
+                    writer.Write((int)0); // ignored slot
+                }
+            }
         }
 
         static void SerializeEmptyInteractionScripts(BinaryWriter writer)
         {
-            writer.Write((int)3060200); // kInterEvents_v362 version
+            writer.Write((int)4000000); // kEventsTable_v400 version
             writer.Write((int)0); // empty ScriptModule string
             writer.Write((int)0); // zero list length
+        }
+
+        static void SerializeEventsTable(string scriptModule, Tuple<string, string>[] events, BinaryWriter writer)
+        {
+            writer.Write((int)4000000); // kEventsTable_v400 version
+            FilePutString(scriptModule, writer);
+            // String map
+            writer.Write(events.Length);
+            foreach (var evt in events)
+            {
+                FilePutString(evt.Item1, writer);
+                FilePutString(evt.Item2, writer);
+            }
+        }
+
+        static void SerializeEmptyEventsTable(BinaryWriter writer)
+        {
+            writer.Write((int)4000000); // kEventsTable_v400 version
+            writer.Write((int)0); // empty ScriptModule string
+            writer.Write((int)0); // empty strings map
         }
 
         // Encrypts an ANSI string
@@ -1539,6 +1579,7 @@ namespace AGS.Editor
                 WriteString(game.Cursors[i].Name, 9, writer);
                 writer.Write((byte)0); // null terminator
                 if (game.Cursors[i].StandardMode) flags |= NativeConstants.MCF_STANDARD;
+                if (game.Cursors[i].CreateEvent) flags |= NativeConstants.MCF_EVENT;
                 writer.Write(flags);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
@@ -1806,6 +1847,7 @@ namespace AGS.Editor
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
             WriteExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
             WriteExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
+            WriteExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1928,6 +1970,25 @@ namespace AGS.Editor
                 writer.Write(button.TextPaddingVertical);
                 writer.Write((int)0); // reserved
                 writer.Write((int)0);
+            }
+        }
+
+        private static void WriteExt_363GameInfo(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            var gameinfo = new Dictionary<string, string>();
+            gameinfo.Add("title", ents.Game.Settings.GameName);
+            gameinfo.Add("description", ents.Game.Settings.Description);
+            gameinfo.Add("dev_name", ents.Game.Settings.DeveloperName);
+            gameinfo.Add("dev_url", ents.Game.Settings.DeveloperURL);
+            gameinfo.Add("genre", ents.Game.Settings.Genre);
+            gameinfo.Add("release_date", ents.Game.Settings.ReleaseDate.ToString("dd.MM.yyyy"));
+            gameinfo.Add("version", ents.Game.Settings.Version);
+
+            writer.Write(gameinfo.Count);
+            foreach (var item in gameinfo)
+            {
+                FilePutString(item.Key, writer);
+                FilePutString(item.Value, writer);
             }
         }
 
@@ -2101,23 +2162,26 @@ namespace AGS.Editor
             }
         }
 
-        private static void WriteExt_363GameInfo(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        private static void WriteExt_400NewEventTables(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
-            var gameinfo = new Dictionary<string, string>();
-            gameinfo.Add("title", ents.Game.Settings.GameName);
-            gameinfo.Add("description", ents.Game.Settings.Description);
-            gameinfo.Add("dev_name", ents.Game.Settings.DeveloperName);
-            gameinfo.Add("dev_url", ents.Game.Settings.DeveloperURL);
-            gameinfo.Add("genre", ents.Game.Settings.Genre);
-            gameinfo.Add("release_date", ents.Game.Settings.ReleaseDate.ToString("dd.MM.yyyy"));
-            gameinfo.Add("version", ents.Game.Settings.Version);
-
-            writer.Write(gameinfo.Count);
-            foreach (var item in gameinfo)
+            writer.Write(ents.Game.Characters.Count);
+            foreach (var ch in ents.Game.Characters)
             {
-                FilePutString(item.Key, writer);
-                FilePutString(item.Value, writer);
+                SerializeEventsTable(ch.ScriptModule, new Tuple<string, string>[]{
+                    new Tuple<string, string>( "OnAnyClick", ch.OnAnyClick )
+                }, writer);
             }
+            writer.Write(ents.Game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
+            // inventory slot 0 is unused, so write a dummy events table
+            SerializeEmptyEventsTable(writer);
+            foreach (var inv in ents.Game.InventoryItems)
+            {
+                SerializeEventsTable(inv.ScriptModule, new Tuple<string, string>[]{
+                    new Tuple<string, string>( "OnAnyClick", inv.OnAnyClick )
+                }, writer);
+            }
+
+            // TODO: add all GUI here too
         }
 
         /// <summary>

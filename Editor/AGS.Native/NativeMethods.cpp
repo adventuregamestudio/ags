@@ -693,6 +693,7 @@ namespace AGS
             if (name->Equals("MCF_ANIMMOVE")) return MCF_ANIMMOVE;
             if (name->Equals("MCF_STANDARD")) return MCF_STANDARD;
             if (name->Equals("MCF_HOTSPOT")) return MCF_HOTSPOT;
+            if (name->Equals("MCF_EVENT")) return MCF_EVENT;
             if (name->Equals("CHF_MANUALSCALING")) return CHF_MANUALSCALING;
             if (name->Equals("CHF_NOINTERACT")) return CHF_NOINTERACT;
             if (name->Equals("CHF_NODIAGONAL")) return CHF_NODIAGONAL;

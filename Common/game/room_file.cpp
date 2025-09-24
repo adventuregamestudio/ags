@@ -18,6 +18,7 @@
 #include "core/assetmanager.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
+#include "game/data_helpers.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
@@ -340,6 +341,7 @@ HError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 // Extended walkable areas and related room properties
 HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
+    HError err;
     // New room properties
     room->Options.FaceDirectionRatio = in->ReadFloat32();
     // reserve few more 32-bit values (for a total of 4)
@@ -347,10 +349,9 @@ HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_v
     in->ReadInt32();
     in->ReadInt32();
 
-    size_t wa_count = in->ReadInt32();
-    if (wa_count != room->WalkAreaCount)
-        return new Error(String::FromFormat("Mismatching number of walkable areas: read %zu expected %zu", wa_count, room->WalkAreaCount));
-    for (size_t i = 0; i < wa_count; ++i)
+    if (!ReadAndAssertCount(in, "walkable areas", room->WalkAreaCount, err))
+        return err;
+    for (size_t i = 0; i < room->WalkAreaCount; ++i)
     {
         auto &wa = room->WalkAreas[i];
         wa.FaceDirectionRatio = in->ReadFloat32();
@@ -364,9 +365,9 @@ HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HError ReadExt_400_CustomProps(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
-    size_t region_count = in->ReadInt32();
-    if (region_count != room->RegionCount)
-        return new Error(String::FromFormat("Mismatching number of regions: read %zu expected %zu", region_count, room->RegionCount));
+    HError err;
+    if (!ReadAndAssertCount(in, "regions", room->RegionCount, err))
+        return err;
     int errors = 0;
     for (size_t i = 0; i < room->RegionCount; ++i)
     {
@@ -375,9 +376,8 @@ HError ReadExt_400_CustomProps(RoomStruct *room, Stream *in, RoomFileVersion dat
     if (errors > 0)
         return new RoomFileError(kRoomFileErr_InvalidPropertyValues);
 
-    size_t wa_count = in->ReadInt32();
-    if (wa_count != room->WalkAreaCount)
-        return new Error(String::FromFormat("Mismatching number of walkable areas: read %zu expected %zu", wa_count, room->WalkAreaCount));
+    if (!ReadAndAssertCount(in, "walkable areas", room->WalkAreaCount, err))
+        return err;
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
     {
         Properties::ReadValues(room->WalkAreas[i].Properties, in);

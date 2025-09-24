@@ -859,5 +859,8 @@
     <ClInclude Include="..\..\Common\gui\guiobject.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\game\data_helpers.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

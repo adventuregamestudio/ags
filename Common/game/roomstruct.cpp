@@ -116,13 +116,23 @@ void RoomStruct::Free()
 
     CompiledScript.reset();
 
-    EventHandlers.reset();
+    Interactions = {};
+    Events = {};
     for (uint32_t i = 0; i < HotspotCount; ++i)
-        Hotspots[i].EventHandlers.reset();
+    {
+        Hotspots[i].Interactions = {};
+        Hotspots[i].Events = {};
+    }
     for (auto &obj : Objects)
-        obj.EventHandlers.reset();
+    {
+        obj.Interactions = {};
+        obj.Events = {};
+    }
     for (uint32_t i = 0; i < RegionCount; ++i)
-        Regions[i].EventHandlers.reset();
+    {
+        Regions[i].Interactions = {};
+        Regions[i].Events = {};
+    }
 }
 
 void RoomStruct::InitDefaults()

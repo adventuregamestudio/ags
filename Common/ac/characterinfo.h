@@ -19,7 +19,9 @@
 #include "core/types.h"
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
+#include "game/scripteventstable.h"
 #include "util/bbop.h"
+#include "util/string_types.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -158,8 +160,12 @@ struct CharacterInfo
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
     int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
-    AGS::Common::String scrname; // script name
-    AGS::Common::String name; // regular name (aka description)
+    AGS::Common::String scrname = {}; // script name
+    AGS::Common::String name = {}; // regular name (aka description)
+    // Interaction events (cursor-based)
+    AGS::Common::ScriptEventHandlers interactions = {};
+    // Common events
+    AGS::Common::ScriptEventsTable events = {};
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2

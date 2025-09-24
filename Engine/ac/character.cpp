@@ -1229,9 +1229,9 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
     const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", chaa->index_id,
                                      RuntimeScriptValue().SetScriptObject(chaa, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
-        run_interaction_script(obj_evt, game.charScripts[chaa->index_id].get(), evnt, anyclick_evt) < 0)
+        run_interaction_script(obj_evt, &game.chars[chaa->index_id].interactions, evnt, anyclick_evt) < 0)
         return; // game state changed, don't do "any click"
-    run_interaction_script(obj_evt, game.charScripts[chaa->index_id].get(), anyclick_evt);  // any click on char
+    run_interaction_script(obj_evt, &game.chars[chaa->index_id].interactions, anyclick_evt);  // any click on char
 }
 
 

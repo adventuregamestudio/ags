@@ -69,8 +69,6 @@ target_sources(common
     font/wfnfontrenderer.h
     game/customproperties.cpp
     game/customproperties.h
-    game/interactions.cpp
-    game/interactions.h
     game/data_helpers.h
     game/main_game_file.cpp
     game/main_game_file.h
@@ -81,6 +79,8 @@ target_sources(common
     game/room_version.h
     game/roomstruct.cpp
     game/roomstruct.h
+    game/scripteventstable.cpp
+    game/scripteventstable.h
     game/tra_file.cpp
     game/tra_file.h
     gfx/allegrobitmap.cpp

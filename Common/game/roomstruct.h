@@ -39,7 +39,7 @@
 #include <memory>
 #include <allegro.h> // RGB
 #include "ac/common_defines.h"
-#include "game/interactions.h"
+#include "game/scripteventstable.h"
 #include "gfx/gfx_def.h"
 #include "script/cc_script.h"
 #include "util/error.h"
@@ -145,8 +145,10 @@ struct RoomHotspot
     String      ScriptName;
     // Custom properties
     StringIMap  Properties;
-    // Event script links
-    UInteractionEvents EventHandlers;
+    // Interaction events (cursor-based)
+    ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventsTable Events = {};
 
     // Player will automatically walk here when interacting with hotspot
     Point       WalkTo;
@@ -167,8 +169,10 @@ struct RoomObjectInfo
     String          ScriptName;
     // Custom properties
     StringIMap      Properties;
-    // Event script links
-    UInteractionEvents EventHandlers;
+    // Interaction events (cursor-based)
+    ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventsTable Events = {};
 
     RoomObjectInfo();
 };
@@ -182,8 +186,10 @@ struct RoomRegion
     int32_t         Tint;
     // Custom properties
     StringIMap      Properties;
-    // Event script links
-    UInteractionEvents EventHandlers;
+    // Interaction events (old-style event storage, kept of loading old data)
+    ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventsTable Events = {};
 
     RoomRegion();
 };
@@ -252,9 +258,13 @@ public:
     ~RoomStruct();
 
     // Releases room resources
-    void            Free();
+    void    Free();
     // Init default room state
-    void            InitDefaults();
+    void    InitDefaults();
+    // Remaps legacy interaction list into new event table
+    void    RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void    ResolveEventHandlers();
 
     // Gets this room's human-readable name (description)
     const String &GetName() const { return Name; }
@@ -334,8 +344,10 @@ public:
 
     // Custom properties
     StringIMap              Properties;
-    // Event script links
-    UInteractionEvents      EventHandlers;
+    // Interaction events (old-style event storage, kept of loading old data)
+    ScriptEventHandlers     Interactions = {};
+    // Common events
+    ScriptEventsTable       Events = {};
     // Compiled room script
     UScript                 CompiledScript;
     // Various extended options with string values, meta-data etc

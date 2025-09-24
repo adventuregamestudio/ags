@@ -17,14 +17,14 @@
 #include <memory>
 #include <vector>
 #include "ac/dynobj/scriptsystem.h"
-#include "game/interactions.h"
+#include "game/scripteventstable.h"
 #include "script/executingscript.h"
 #include "script/runtimescript.h"
 #include "script/scriptexecutor.h"
 #include "util/string.h"
 
 using AGS::Common::String;
-using AGS::Common::InteractionEvents;
+using AGS::Common::ScriptEventHandlers;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
@@ -97,7 +97,7 @@ void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun
 // Runs the ObjectEvent using a script callback of 'evnt' index,
 // or alternatively of 'chkAny' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
+int     run_interaction_script(const ObjectEvent &obj_evt, const ScriptEventHandlers *nint, int evnt, int chkAny = -1);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult

@@ -125,8 +125,7 @@ void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, in
 void run_room_event(int id)
 {
     auto obj_evt = ObjectEvent(kScTypeRoom, "room");
-    assert(thisroom.EventHandlers);
-    run_interaction_script(obj_evt, thisroom.EventHandlers.get(), id);
+    run_interaction_script(obj_evt, &thisroom.Interactions, id);
 }
 
 // event list functions
@@ -175,7 +174,7 @@ void process_event(const AGSEvent *evp)
     else if (evp->Type == kAGSEvent_Interaction)
     {
         const auto &inter = evp->Data.Inter;
-        InteractionEvents *obj_events = nullptr;
+        ScriptEventHandlers *obj_events = nullptr;
         ObjectEvent obj_evt;
 
         switch (inter.IntEvType)
@@ -183,9 +182,7 @@ void process_event(const AGSEvent *evp)
         case kIntEventType_Hotspot:
         {
             const int hotspot_id = inter.ObjID;
-            if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
-                obj_events = thisroom.Hotspots[hotspot_id].EventHandlers.get();
-
+            obj_events = &thisroom.Hotspots[hotspot_id].Interactions;
             obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
@@ -193,9 +190,7 @@ void process_event(const AGSEvent *evp)
         }
         case kIntEventType_Room:
         {
-            if (thisroom.EventHandlers != nullptr)
-                obj_events = thisroom.EventHandlers.get();
-
+            obj_events = &thisroom.Interactions;
             obj_evt = ObjectEvent(kScTypeRoom, "room");
             if (inter.ObjEvent == kRoomEvent_BeforeFadein)
             {

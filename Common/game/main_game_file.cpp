@@ -522,6 +522,7 @@ protected:
     HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents);
     HError ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents);
     void   ReadGUIControlExtGraphics(Stream *in, GUIControl &obj);
+    HError ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents);
 
     LoadedGameEntities &_ents;
     GameDataVersion _dataVer {};
@@ -535,11 +536,19 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
     if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
-        ents.Game.charScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    {
+        err = ents.Game.chars[i].interactions.Read_v362(in);
+        if (!err)
+            return err;
+    }
     if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
         return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
-        ents.Game.invScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    {
+        err = ents.Game.invinfo[i].interactions.Read_v362(in);
+        if (!err)
+            return err;
+    }
 
     // Script module specification for GUI events
     if (!ReadAndAssertCount(in, "GUI", static_cast<uint32_t>(ents.Game.numgui), err))
@@ -619,6 +628,27 @@ HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedG
     {
         ReadGUIControlExtGraphics(in, listbox);
     }
+    return HError::None();
+}
+
+HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents)
+{
+    HError err;
+    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+        return err;
+    for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
+    {
+        ents.Game.chars[i].events.Read(in);
+    }
+    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
+    {
+        ents.Game.invinfo[i].events.Read(in);
+    }
+
+    // TODO: add all GUI reading their events as a map too
+
     return HError::None();
 }
 
@@ -808,6 +838,12 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v400_guictrlgfx") == 0)
     {
         HError err = ReadExtGUIControlGraphicProperties(in, _ents);
+        if (!err)
+            return err;
+    }
+    else if (ext_id.CompareNoCase("v400_eventtables") == 0)
+    {
+        HError err = ReadNewScriptEventTables(in, _ents);
         if (!err)
             return err;
     }

@@ -245,7 +245,7 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\interactions.cpp">
+    <ClCompile Include="..\..\Common\game\scripteventstable.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\main_game_file.cpp">
@@ -727,7 +727,7 @@
     <ClInclude Include="..\..\Common\game\customproperties.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\interactions.h">
+    <ClInclude Include="..\..\Common\game\scripteventstable.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\main_game_file.h">

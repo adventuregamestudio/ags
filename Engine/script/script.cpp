@@ -116,19 +116,19 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 // Returns 0 normally, or -1 to indicate that the event has
 // become invalid and another handler should not be run
 // (eg. a room change occured)
-int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny)
+int run_interaction_script(const ObjectEvent &obj_evt, const ScriptEventHandlers *nint, int evnt, int chkAny)
 {
     assert(nint);
     if (!nint)
         return 0;
 
-    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size() ||
-            !nint->Events[evnt].IsEnabled())
+    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Handlers.size() ||
+            !nint->Handlers[evnt].IsEnabled())
     {
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if (chkAny >= 0 && nint->Events[chkAny].IsEnabled())
+        if (chkAny >= 0 && nint->Handlers[chkAny].IsEnabled())
             return 0;
 
         // Otherwise, run unhandled_event
@@ -145,8 +145,8 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(nint->ScriptModule, nint->Events[evnt].FunctionName),
-        obj_evt.ParamCount, obj_evt.Params, nint->Events[evnt].Enabled);
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(nint->ScriptModule, nint->Handlers[evnt].FunctionName),
+        obj_evt.ParamCount, obj_evt.Params, nint->Handlers[evnt].Enabled);
 
     // if the room changed within the action
     if (room_was != play.room_changes)

@@ -15,7 +15,7 @@
 #define __AGS_EE_AC__ROOMSTATUS_H
 
 #include "ac/roomobject.h"
-#include "game/interactions.h"
+#include "game/scripteventstable.h"
 #include "game/roomstruct.h"
 #include "game/savegame.h"
 #include "util/string_types.h"

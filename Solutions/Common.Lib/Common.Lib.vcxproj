@@ -725,6 +725,7 @@
     <ClInclude Include="..\..\Common\font\wfnfont.h" />
     <ClInclude Include="..\..\Common\font\wfnfontrenderer.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
+    <ClInclude Include="..\..\Common\game\data_helpers.h" />
     <ClInclude Include="..\..\Common\game\interactions.h" />
     <ClInclude Include="..\..\Common\game\main_game_file.h" />
     <ClInclude Include="..\..\Common\game\plugininfo.h" />

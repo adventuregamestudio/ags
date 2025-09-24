@@ -71,6 +71,7 @@ target_sources(common
     game/customproperties.h
     game/interactions.cpp
     game/interactions.h
+    game/data_helpers.h
     game/main_game_file.cpp
     game/main_game_file.h
     game/plugininfo.h

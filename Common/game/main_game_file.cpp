@@ -59,7 +59,7 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     case kMGFErr_FileOpenFailed:
         return "Main game file not found or could not be opened.";
     case kMGFErr_SignatureFailed:
-        return "Not an AGS main game file or unsupported format.";
+        return "Not an AGS main game file or an unsupported format.";
     case kMGFErr_FormatVersionNotSupported:
         return "Format version not supported.";
     case kMGFErr_CapsNotSupported:
@@ -168,8 +168,11 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     src.CompiledWith = StrUtil::ReadString(in);
     if (src.DataVersion < kGameVersion_LowSupported || src.DataVersion > kGameVersion_Current)
+    {
         return new MainGameFileError(kMGFErr_FormatVersionNotSupported,
-            String::FromFormat("Game was compiled with %s. Required format version: %d, supported %d - %d", src.CompiledWith.GetCStr(), src.DataVersion, kGameVersion_LowSupported, kGameVersion_Current));
+            String::FromFormat("Game was compiled with %s. Required format version: %d, supported %d - %d",
+               !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion, kGameVersion_LowSupported, kGameVersion_Current));
+    }
     // Read required capabilities
     size_t count = in->ReadInt32();
     for (size_t i = 0; i < count; ++i)

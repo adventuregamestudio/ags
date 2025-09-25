@@ -1428,6 +1428,11 @@ void ThrowManagedException(const char *message)
 	throw gcnew AGS::Types::AGSEditorException(gcnew String(message));
 }
 
+AGSString GetEditorVersionAsNativeString()
+{
+    return TextHelper::ConvertASCII(AGS::Types::Version::AGS_EDITOR_VERSION);
+}
+
 void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)
 {
 	for each (Sprite ^sprite in folder->Sprites)
@@ -3310,7 +3315,6 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
 }
 
 
-
 #pragma unmanaged
 
 // Fixups and saves the native room struct into the file
@@ -3327,7 +3331,9 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     if (out == NULL)
         quit("save_room: unable to open room file for writing.");
 
-    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out.get(), kRoomVersion_Current);
+    // NOTE: the "compiled with" field value should match the one written into the main game data file
+    AGSString compiled_with = GetEditorVersionAsNativeString();
+    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out.get(), kRoomVersion_Current, compiled_with);
     if (!err)
         quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
 }

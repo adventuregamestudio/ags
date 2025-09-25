@@ -1452,8 +1452,7 @@ namespace AGS.Editor
             BinaryWriter writer = new BinaryWriter(ostream);
             WriteString(NativeConstants.GAME_FILE_SIG, NativeConstants.GAME_FILE_SIG.Length, writer);
             writer.Write(NativeConstants.GAME_DATA_VERSION_CURRENT);
-            writer.Write(AGS.Types.Version.AGS_EDITOR_VERSION.Length);
-            WriteString(AGS.Types.Version.AGS_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION.Length, writer);
+            FilePutString(AGS.Types.Version.AGS_EDITOR_VERSION, writer);
             // Write extended engine caps; none for this version
             writer.Write((int)0);
             // An example of writing caps (pseudo-code):

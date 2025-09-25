@@ -758,13 +758,14 @@ void WriteExt_400_RoomNames(const RoomStruct *room, Stream *out)
     StrUtil::WriteString(room->Name, out);
 }
 
-HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
+HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");
 
     // Header
-    out->WriteInt16(data_ver);
+    WriteRoomHeader(out, data_ver, compiled_with);
+
     // Main data
     WriteRoomBlock(room, kRoomFblk_Main, WriteMainBlock, out);
     // Compiled script

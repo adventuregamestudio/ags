@@ -34,6 +34,8 @@ String GetRoomFileErrorText(RoomFileErrorType err)
         return "No error.";
     case kRoomFileErr_FileOpenFailed:
         return "Room file was not found or could not be opened.";
+    case kRoomFileErr_SignatureFailed:
+        return "Not an AGS room file or an unsupported format.";
     case kRoomFileErr_FormatNotSupported:
         return "Format version not supported.";
     case kRoomFileErr_BlockListFailed:
@@ -58,6 +60,8 @@ String GetRoomFileErrorText(RoomFileErrorType err)
     }
 }
 
+const String RoomDataSource::Signature = "AGS Room File v2";
+
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 {
     // Cleanup source struct
@@ -74,15 +78,40 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 // Read room data header and check that we support this format
 HRoomFileError ReadRoomHeader(RoomDataSource &src)
 {
-    src.DataVersion = (RoomFileVersion)src.InputStream->ReadInt16();
+    Stream *in = src.InputStream.get();
+    // Older format started with a 16-bit version number right away.
+    // The new format has this field filled with 0xFFFF
+    uint16_t old_room_ver = in->ReadInt16();
+    if (old_room_ver == 0xFFFF)
+    {
+        // New format
+        String data_sig = String::FromStreamCount(in, RoomDataSource::Signature.GetLength());
+        if (data_sig.Compare(RoomDataSource::Signature))
+            return new RoomFileError(kRoomFileErr_SignatureFailed);
+        src.DataVersion = static_cast<RoomFileVersion>(in->ReadInt32());
+        src.CompiledWith = StrUtil::ReadString(in);
+    }
+    else
+    {
+        // Old format
+        src.DataVersion = static_cast<RoomFileVersion>(old_room_ver);
+    }
+
     if (src.DataVersion < kRoomVersion_LowSupport || src.DataVersion > kRoomVersion_Current)
-        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_LowSupport, kRoomVersion_Current));
+    {
+        return new RoomFileError(kRoomFileErr_FormatNotSupported,
+            String::FromFormat("Room was compiled with %s. Required format version: %d, supported %d - %d",
+                !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion, kRoomVersion_LowSupport, kRoomVersion_Current));
+    }
     return HRoomFileError::None();
 }
 
-void WriteRoomHeader(Stream *out, RoomFileVersion data_ver)
+void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
-    out->WriteInt16(static_cast<uint16_t>(data_ver));
+    out->WriteInt16(0xFFFF); // old 16-bit version field, mark as extended version
+    out->Write(RoomDataSource::Signature.GetCStr(), RoomDataSource::Signature.GetLength());
+    out->WriteInt32(data_ver);
+    StrUtil::WriteString(compiled_with, out);
 }
 
 void WriteRoomEnding(Stream *out)

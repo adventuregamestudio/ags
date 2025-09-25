@@ -42,6 +42,7 @@ enum RoomFileErrorType
 {
     kRoomFileErr_NoError,
     kRoomFileErr_FileOpenFailed,
+    kRoomFileErr_SignatureFailed,
     kRoomFileErr_FormatNotSupported,
     kRoomFileErr_BlockListFailed,
     kRoomFileErr_UnknownBlockType,
@@ -91,10 +92,15 @@ typedef std::unique_ptr<Stream> UStream;
 // RoomDataSource defines a successfully opened room file
 struct RoomDataSource
 {
+    // Signature of the current room format
+    static const String Signature;
+
     // Name of the asset file
     String              Filename;
     // Room file format version
     RoomFileVersion     DataVersion;
+    // Tool identifier (like version) this game was compiled with
+    String              CompiledWith;
     // A ponter to the opened stream
     UStream             InputStream;
 
@@ -117,13 +123,13 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, con
 // Historically, text sources were kept inside packed room files before AGS 3.*.
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Writes all room data to the stream
-HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver);
+HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
 
 // Reads room data header using stream assigned to RoomDataSource;
 // tests and saves its format index if successful
 HRoomFileError ReadRoomHeader(RoomDataSource &src);
 // Writes room data header
-void WriteRoomHeader(Stream *out, RoomFileVersion data_ver);
+void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compiled_with);
 // Writes a room data ending
 void WriteRoomEnding(Stream *out);
 

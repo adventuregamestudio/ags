@@ -1204,21 +1204,14 @@ void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking, int r
 
 void Character_RunInteraction(CharacterInfo *chaa, int mood)
 {
-    // convert cursor mode to event index (in character event table)
-    // TODO: probably move this conversion table elsewhere? should be a global info
-    int evnt;
-    switch (mood)
-    {
-    case MODE_LOOK: evnt = 0; break;
-    case MODE_HAND: evnt = 1; break;
-    case MODE_TALK: evnt = 2; break;
-    case MODE_USE: evnt = 3; break;
-    case MODE_PICKUP: evnt = 5; break;
-    case MODE_CUSTOM1: evnt = 6; break;
-    case MODE_CUSTOM2: evnt = 7; break;
-    default: evnt = -1; break;
-    }
-    const int anyclick_evt = 4; // TODO: make global constant (character any-click evt)
+    if (!AssertCursorValidForEvent("Character.RunInteraction", mood))
+        return;
+
+    // Cursor mode must match the event index in "Interactions" table,
+    // except when it does not have a "event" flag
+    // TODO: do we need extra flag telling if to trigger "any click" for this mode?
+    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int anyclick_evt = kCharacterEvent_AnyClick;
 
     // For USE verb: remember active inventory
     if (mood == MODE_USE)
@@ -1229,9 +1222,11 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
     const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", chaa->index_id,
                                      RuntimeScriptValue().SetScriptObject(chaa, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
-        run_interaction_script(obj_evt, &game.chars[chaa->index_id].interactions, evnt, anyclick_evt) < 0)
+        run_event_script(obj_evt, &game.chars[chaa->index_id].interactions, evnt,
+                         &game.chars[chaa->index_id].events, anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
-    run_interaction_script(obj_evt, &game.chars[chaa->index_id].interactions, anyclick_evt);  // any click on char
+    // any click on char
+    run_event_script(obj_evt, &game.chars[chaa->index_id].events, anyclick_evt);
 }
 
 

@@ -24,7 +24,7 @@
 #include "util/string.h"
 
 using AGS::Common::String;
-using AGS::Common::ScriptEventHandlers;
+using AGS::Common::ScriptEventsBase;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
@@ -39,6 +39,8 @@ struct ObjectEvent
     ScriptType ScType = kScTypeNone;
     // Name of the script block to run, may be used as a formatting string;
     // has a form of "objecttype%d"
+    // TODO: this is currently only used for "unhandled_event", perhaps may be
+    // replaced by an enumeration.
     String BlockName;
     // Script block's ID, commonly corresponds to the object's ID
     int BlockID = 0;
@@ -95,9 +97,11 @@ struct NonBlockingScriptFunction
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
 
 // Runs the ObjectEvent using a script callback of 'evnt' index,
-// or alternatively of 'chkAny' index, if previous does not exist
+// or alternatively of 'any_evt' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_interaction_script(const ObjectEvent &obj_evt, const ScriptEventHandlers *nint, int evnt, int chkAny = -1);
+int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
+                         const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
+int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult

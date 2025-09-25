@@ -113,26 +113,26 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     funcToRun->RoomHasFunction = DoRunScriptFuncCantBlock(roomscript.get(), funcToRun, funcToRun->RoomHasFunction);
 }
 
-// Returns 0 normally, or -1 to indicate that the event has
-// become invalid and another handler should not be run
-// (eg. a room change occured)
-int run_interaction_script(const ObjectEvent &obj_evt, const ScriptEventHandlers *nint, int evnt, int chkAny)
+int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
+                        const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event)
 {
-    assert(nint);
-    if (!nint)
+    assert(handlers);
+    if (!handlers)
         return 0;
 
-    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Handlers.size() ||
-            !nint->Handlers[evnt].IsEnabled())
+    if (evnt < 0 || static_cast<size_t>(evnt) >= handlers->Handlers.size() ||
+            !handlers->Handlers[evnt].IsEnabled())
     {
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if (chkAny >= 0 && nint->Handlers[chkAny].IsEnabled())
+        if ((chkany_handlers != nullptr && any_evt >= 0 && any_evt < chkany_handlers->Handlers.size())
+            && chkany_handlers->Handlers[any_evt].IsEnabled())
             return 0;
 
-        // Otherwise, run unhandled_event
-        run_unhandled_event(obj_evt, evnt);
+        // Optionally, run unhandled_event
+        if (do_unhandled_event)
+            run_unhandled_event(obj_evt, evnt);
         return 0;
     }
 
@@ -145,13 +145,18 @@ int run_interaction_script(const ObjectEvent &obj_evt, const ScriptEventHandlers
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(nint->ScriptModule, nint->Handlers[evnt].FunctionName),
-        obj_evt.ParamCount, obj_evt.Params, nint->Handlers[evnt].Enabled);
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->ScriptModule, handlers->Handlers[evnt].FunctionName),
+        obj_evt.ParamCount, obj_evt.Params, handlers->Handlers[evnt].Enabled);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
         return -1;
     return 0;
+}
+
+int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event)
+{
+    return run_event_script(obj_evt, handlers, evnt, nullptr, -1, do_unhandled_event);
 }
 
 void SetupBuiltinTypeAliases()
@@ -786,6 +791,8 @@ bool get_can_run_delayed_command()
 }
 
 void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
+
+    // TODO: reimplement this script callback's parameters! right now it's a total mess
 
     if (play.check_interaction_only)
         return;

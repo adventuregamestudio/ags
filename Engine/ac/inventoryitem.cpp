@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/inventoryitem.h"
 #include "ac/characterinfo.h"
+#include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
@@ -138,19 +139,12 @@ int InventoryItem_GetGraphic(ScriptInvItem *iitem) {
 void RunInventoryInteraction(int iit, int mood) {
     if ((iit < 0) || (iit >= game.numinvitems))
         quit("!RunInventoryInteraction: invalid inventory number");
+    if (!AssertCursorValidForEvent("InventoryItem.RunInteraction", mood))
+        return;
 
-    // convert cursor mode to event index (in inventoryitem event table)
-    // TODO: probably move this conversion table elsewhere? should be a global info
-    int evnt;
-    switch (mood)
-    {
-    case MODE_LOOK: evnt = 0; break;
-    case MODE_HAND: evnt = 1; break;
-    case MODE_TALK: evnt = 2; break;
-    case MODE_USE: evnt = 3; break;
-    default: evnt = -1; break;
-    }
-    const int otherclick_evt = 4; // TODO: make global constant (inventory other-click evt)
+    // Cursor mode must match the event index in "Interactions" table
+    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int anyclick_evt = kInventoryEvent_AnyClick;
 
     // For USE verb: remember active inventory
     if (mood == MODE_USE)
@@ -158,12 +152,14 @@ void RunInventoryInteraction(int iit, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    if (evnt < 0) // on any non-supported mode - use "other-click"
-        evnt = otherclick_evt;
-
     const auto obj_evt = ObjectEvent(kScTypeGame, "inventory%d", iit,
                                      RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
-    run_interaction_script(obj_evt, &game.invinfo[iit].interactions, evnt);
+    if ((evnt >= 0) &&
+        run_event_script(obj_evt, &game.invinfo[iit].interactions, evnt,
+                         &game.invinfo[iit].events, anyclick_evt, true /* do unhandled event */) < 0)
+        return; // game state changed, don't do "any click"
+    // any click on inv item
+    run_event_script(obj_evt, &game.invinfo[iit].events, anyclick_evt);
 }
 
 int IsInventoryInteractionAvailable(int item, int mood) {

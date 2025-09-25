@@ -19,6 +19,32 @@
 
 using namespace AGS::Common;
 
+void CharacterInfo::RemapOldInteractions()
+{
+    ScriptEventHandlers new_interactions;
+    // this is just for safety, it's supposed to be that large
+    interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers[MODE_WALK]    = {};
+    new_interactions.Handlers[MODE_LOOK]    = interactions.Handlers[0];
+    new_interactions.Handlers[MODE_HAND]    = interactions.Handlers[1];
+    new_interactions.Handlers[MODE_TALK]    = interactions.Handlers[2];
+    new_interactions.Handlers[MODE_USE]     = interactions.Handlers[3];
+    new_interactions.Handlers[MODE_PICKUP]  = interactions.Handlers[5];
+    new_interactions.Handlers[MODE_CUSTOM1] = interactions.Handlers[6];
+    new_interactions.Handlers[MODE_CUSTOM2] = interactions.Handlers[7];
+
+    events.EventMap["OnAnyClick"] = interactions.Handlers[4].FunctionName;
+    interactions = std::move(new_interactions);
+    interactions.ScriptModule = events.ScriptModule;
+}
+
+void CharacterInfo::ResolveEventHandlers()
+{
+    events.CreateIndexedList(std::vector<String>() = {
+        "OnAnyClick"
+    });
+}
 
 void CharacterInfo::ReadBaseFields(Stream *in)
 {

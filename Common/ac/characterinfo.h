@@ -116,6 +116,12 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
 };
 
+// Character event indexes
+enum CharacterEventID
+{
+    // an interaction with any cursor mode that normally has a event
+    kCharacterEvent_AnyClick = 0
+};
 
 // Design-time Character data.
 // TODO: must refactor, some parts of it should be in a runtime Character class.
@@ -214,6 +220,11 @@ struct CharacterInfo
     {
         flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
+
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;

@@ -202,15 +202,15 @@ int Region_GetID(ScriptRegion *ssr) {
 
 void RunRegionInteraction(int regnum, int mood) {
     if ((regnum < 0) || (regnum >= MAX_ROOM_REGIONS))
-        quit("!RunRegionInteraction: invalid region speicfied");
-    if ((mood < 0) || (mood > 2))
+        quit("!RunRegionInteraction: invalid region specified");
+    if ((mood < kRegionEvent_Standing) || (mood > kRegionEvent_WalkOff))
         quit("!RunRegionInteraction: invalid event specified");
 
-    // NOTE: for Regions the mode has specific meanings (NOT verbs):
-    // 0 - stands on region, 1 - walks onto region, 2 - walks off region
+    // Regions do not react to cursor modes, but this function
+    // was historically executing special region events (see RegionEventID)
     const auto obj_evt = ObjectEvent(kScTypeRoom, "region%d", regnum,
                                      RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion), mood);
-    run_interaction_script(obj_evt, &thisroom.Regions[regnum].Interactions, mood);
+    run_event_script(obj_evt, &thisroom.Regions[regnum].Events, mood);
 }
 
 void Region_RunInteraction(ScriptRegion *ssr, int mood) {

@@ -561,6 +561,28 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
 
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(RGB) * 256);
+
+    if (data_ver < kRoomVersion_400_21)
+    {
+        room->RemapOldInteractions();
+        for (auto &hot : room->Hotspots)
+            hot.RemapOldInteractions();
+        for (auto &obj : room->Objects)
+            obj.RemapOldInteractions();
+        for (auto &reg : room->Regions)
+            reg.RemapOldInteractions();
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    room->ResolveEventHandlers();
+    for (auto &hot : room->Hotspots)
+        hot.ResolveEventHandlers();
+    for (auto &obj : room->Objects)
+        obj.ResolveEventHandlers();
+    for (auto &reg : room->Regions)
+        reg.ResolveEventHandlers();
+
     return HRoomFileError::None();
 }
 

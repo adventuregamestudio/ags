@@ -424,6 +424,42 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
             chars[i].talkcolor = RemapFromLegacyColourNumber(game, chars[i].talkcolor);
         }
     }
+
+    if (data_ver < kGameVersion_400_21)
+    {
+        for (int i = 0; i < char_count; i++)
+        {
+            chars[i].RemapOldInteractions();
+        }
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    for (int i = 0; i < char_count; i++)
+    {
+        chars[i].ResolveEventHandlers();
+    }
+}
+
+void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    const int inv_count = game.numinvitems;
+    auto &inv = game.invinfo;
+
+    if (data_ver < kGameVersion_400_21)
+    {
+        for (int i = 0; i < inv_count; i++)
+        {
+            inv[i].RemapOldInteractions();
+        }
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    for (int i = 0; i < inv_count; i++)
+    {
+        inv[i].ResolveEventHandlers();
+    }
 }
 
 void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
@@ -969,6 +1005,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
+    UpgradeInventoryItems(game, data_ver);
     UpgradeGUI(game, ents, data_ver);
     UpgradeMouseCursors(game, data_ver);
     FixupSaveDirectory(game);

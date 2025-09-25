@@ -22,6 +22,13 @@
 #define IFLG_STARTWITH 1
 #define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
+// Inventory item event indexes
+enum InventoryEventID
+{
+    // an interaction with any cursor mode that normally has a event
+    kInventoryEvent_AnyClick = 0
+};
+
 struct InventoryItemInfo
 {
     AGS::Common::String name = {};
@@ -33,6 +40,10 @@ struct InventoryItemInfo
     // Common events
     AGS::Common::ScriptEventsTable events = {};
 
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);

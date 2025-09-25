@@ -51,6 +51,35 @@ RoomEdges::RoomEdges(int l, int r, int t, int b)
 {
 }
 
+void RoomHotspot::RemapOldInteractions()
+{
+    ScriptEventHandlers new_interactions;
+    // this is just for safety, it's supposed to be that large
+    Interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers[MODE_WALK] = {};
+    new_interactions.Handlers[MODE_LOOK] = Interactions.Handlers[1];
+    new_interactions.Handlers[MODE_HAND] = Interactions.Handlers[2];
+    new_interactions.Handlers[MODE_TALK] = Interactions.Handlers[4];
+    new_interactions.Handlers[MODE_USE]  = Interactions.Handlers[3];
+    new_interactions.Handlers[MODE_PICKUP] = Interactions.Handlers[7];
+    new_interactions.Handlers[MODE_CUSTOM1] = Interactions.Handlers[8];
+    new_interactions.Handlers[MODE_CUSTOM2] = Interactions.Handlers[9];
+
+    Events.EventMap["OnWalkOn"] = Interactions.Handlers[0].FunctionName;
+    Events.EventMap["OnAnyClick"] = Interactions.Handlers[5].FunctionName;
+    Events.EventMap["OnMouseMove"] = Interactions.Handlers[6].FunctionName;
+    Interactions = std::move(new_interactions);
+    Interactions.ScriptModule = Events.ScriptModule;
+}
+
+void RoomHotspot::ResolveEventHandlers()
+{
+    Events.CreateIndexedList(std::vector<String>() = {
+        "OnAnyClick", "OnMouseMove", "OnWalkOn", 
+    });
+}
+
 RoomObjectInfo::RoomObjectInfo()
     : Room(-1)
     , X(0)
@@ -62,10 +91,56 @@ RoomObjectInfo::RoomObjectInfo()
 {
 }
 
+void RoomObjectInfo::RemapOldInteractions()
+{
+    ScriptEventHandlers new_interactions;
+    // this is just for safety, it's supposed to be that large
+    Interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers[MODE_WALK] = {};
+    new_interactions.Handlers[MODE_LOOK] = Interactions.Handlers[0];
+    new_interactions.Handlers[MODE_HAND] = Interactions.Handlers[1];
+    new_interactions.Handlers[MODE_TALK] = Interactions.Handlers[2];
+    new_interactions.Handlers[MODE_USE] = Interactions.Handlers[3];
+    new_interactions.Handlers[MODE_PICKUP] = Interactions.Handlers[5];
+    new_interactions.Handlers[MODE_CUSTOM1] = Interactions.Handlers[6];
+    new_interactions.Handlers[MODE_CUSTOM2] = Interactions.Handlers[7];
+
+    Events.EventMap["OnAnyClick"] = Interactions.Handlers[4].FunctionName;
+    Interactions = std::move(new_interactions);
+    Interactions.ScriptModule = Events.ScriptModule;
+}
+
+void RoomObjectInfo::ResolveEventHandlers()
+{
+    Events.CreateIndexedList(std::vector<String>() = {
+        "OnAnyClick"
+    });
+}
+
 RoomRegion::RoomRegion()
     : Light(0)
     , Tint(0)
 {
+}
+
+void RoomRegion::RemapOldInteractions()
+{
+    // this is just for safety, it's supposed to be that large
+    Interactions.Handlers.resize(3);
+
+    Events.EventMap["OnStanding"] = Interactions.Handlers[0].FunctionName;
+    Events.EventMap["OnWalksOnto"] = Interactions.Handlers[1].FunctionName;
+    Events.EventMap["OnWalksOff"] = Interactions.Handlers[2].FunctionName;
+    Interactions = {};
+}
+
+void RoomRegion::ResolveEventHandlers()
+{
+    // Keeping old interaction indexes for the new events
+    Events.CreateIndexedList(std::vector<String>() = {
+        "OnStanding", "OnWalksOnto", "OnWalksOff", 
+    });
 }
 
 WalkArea::WalkArea()
@@ -166,6 +241,33 @@ void RoomStruct::InitDefaults()
     BgAnimSpeed = 5;
 
     memset(Palette, 0, sizeof(Palette));
+}
+
+void RoomStruct::RemapOldInteractions()
+{
+    // this is just for safety, it's supposed to be that large
+    Interactions.Handlers.resize(10);
+
+    Events.EventMap["OnLeaveLeft"] = Interactions.Handlers[0].FunctionName;
+    Events.EventMap["OnLeaveRight"] = Interactions.Handlers[1].FunctionName;
+    Events.EventMap["OnLeaveBottom"] = Interactions.Handlers[2].FunctionName;
+    Events.EventMap["OnLeaveTop"] = Interactions.Handlers[3].FunctionName;
+    Events.EventMap["OnFirstTimeEnter"] = Interactions.Handlers[4].FunctionName;
+    Events.EventMap["OnLoad"] = Interactions.Handlers[5].FunctionName;
+    Events.EventMap["OnRepExec"] = Interactions.Handlers[6].FunctionName;
+    Events.EventMap["OnAfterFadeIn"] = Interactions.Handlers[7].FunctionName;
+    Events.EventMap["OnLeave"] = Interactions.Handlers[8].FunctionName;
+    Events.EventMap["OnUnload"] = Interactions.Handlers[9].FunctionName;
+    Interactions = {};
+}
+
+void RoomStruct::ResolveEventHandlers()
+{
+    // Keeping old interaction indexes for the new events
+    Events.CreateIndexedList(std::vector<String>() = {
+        "OnLeaveLeft", "OnLeaveRight", "OnLeaveBottom", "OnLeaveTop",
+        "OnFirstTimeEnter", "OnLoad", "OnRepExec", "OnAfterFadeIn", "OnLeave", "OnUnload"
+    });
 }
 
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const

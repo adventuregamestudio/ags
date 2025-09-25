@@ -61,14 +61,48 @@ struct ScriptEventHandler
         : FunctionName(fn_name), Enabled(new bool(!fn_name.IsEmpty())) {}
 };
 
-// A indexed list of function links for all the supported events.
-struct ScriptEventHandlers
+struct ScriptEventsBase
 {
     // An optional name of a script module to lookup functions in
     String ScriptModule = {};
+    // Flat indexed list of handlers
     std::vector<ScriptEventHandler> Handlers;
 
+    ScriptEventsBase() = default;
+    ScriptEventsBase(const ScriptEventsBase &script_events)
+        : ScriptModule(script_events.ScriptModule), Handlers(script_events.Handlers)
+    {}
+    ScriptEventsBase(ScriptEventsBase &&script_events)
+        : ScriptModule(std::move(script_events.ScriptModule)), Handlers(std::move(script_events.Handlers))
+    {}
+
+    ScriptEventsBase &operator =(const ScriptEventsBase &script_events) = default;
+    ScriptEventsBase &operator =(ScriptEventsBase &&script_events) = default;
+};
+
+// A indexed list of function links for all the supported events.
+struct ScriptEventHandlers : public ScriptEventsBase
+{
     ScriptEventHandlers() = default;
+
+    ScriptEventHandlers(const ScriptEventsBase &handlers)
+        : ScriptEventsBase(handlers)
+    {}
+
+    ScriptEventHandlers(const ScriptEventHandlers &handlers)
+        : ScriptEventsBase(handlers)
+    {}
+
+    ScriptEventHandlers(ScriptEventsBase &&handlers)
+        : ScriptEventsBase(handlers)
+    {}
+
+    ScriptEventHandlers(ScriptEventHandlers &&handlers)
+        : ScriptEventsBase(handlers)
+    {}
+
+    ScriptEventHandlers &operator =(const ScriptEventHandlers &handlers) = default;
+    ScriptEventHandlers &operator =(ScriptEventHandlers &&handlers) = default;
 
     // Read pre-3.6.2 version of the ScriptEventHandlers
     // (this is still may be used by contemporary room structs, because they didn't need some data)
@@ -80,24 +114,37 @@ struct ScriptEventHandlers
 };
 
 // A two-part events table
-struct ScriptEventsTable
+struct ScriptEventsTable : public ScriptEventsBase
 {
-    // An optional name of a script module to lookup functions in
-    String ScriptModule = {};
     // A map of event name to event handler
     StringMap EventMap;
-    // Flat indexed list of handlers
-    std::vector<ScriptEventHandler> Handlers;
 
     ScriptEventsTable() = default;
 
-    ScriptEventsTable(const ScriptEventHandlers &handlers)
-        : ScriptModule(handlers.ScriptModule), Handlers(handlers.Handlers)
+    ScriptEventsTable(const ScriptEventsBase &handlers)
+        : ScriptEventsBase(handlers)
     {}
 
-    ScriptEventsTable(ScriptEventHandlers &&handlers)
-        : ScriptModule(std::move(handlers.ScriptModule)), Handlers(std::move(handlers.Handlers))
+    ScriptEventsTable(const ScriptEventsTable &events)
+        : ScriptEventsBase(events)
     {}
+
+    ScriptEventsTable(ScriptEventsBase &&handlers)
+        : ScriptEventsBase(handlers)
+    {}
+
+    ScriptEventsTable(ScriptEventsTable &&events)
+        : ScriptEventsBase(events)
+    {
+        EventMap = std::move(events.EventMap);
+    }
+
+    ScriptEventsTable &operator =(const ScriptEventsTable &events) = default;
+    ScriptEventsTable &operator =(ScriptEventsTable &&events) = default;
+
+    // Generates a index-based Handlers list based on available EventMap
+    // and provided indexed list of event names
+    void CreateIndexedList(const std::vector<String> &eventnames);
 
     HError Read(Stream *in);
     void Write(Stream *out) const;

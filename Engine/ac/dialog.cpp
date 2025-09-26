@@ -1074,8 +1074,8 @@ void DialogOptions::Draw()
         xspos = (ui_view.GetWidth() - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
-      Bitmap *text_window_ds = nullptr;
-      draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
+      std::unique_ptr<Bitmap> text_window_ds =
+        draw_text_window(&txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
       options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
       // since draw_text_window incrases the width, restore the inner placement
       areawid = savedwid;
@@ -1084,7 +1084,7 @@ void DialogOptions::Draw()
       // because it has its own padding property
       position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
       inner_position = Point(txoffs, tyoffs);
-      optionsBitmap.reset(text_window_ds);
+      optionsBitmap = std::move(text_window_ds);
 
       // NOTE: presumably, txoffs and tyoffs are already offset by padding,
       // although it's not entirely reliable, because these calculations are done inside draw_text_window.

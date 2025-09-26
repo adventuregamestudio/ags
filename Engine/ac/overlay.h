@@ -46,6 +46,7 @@ Point get_overlay_position(const ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, bool has_alpha);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool has_alpha);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy, int pic_offx, int pic_offy, bool has_alpha);
 void remove_screen_overlay(int type);
 void remove_all_overlays();
 // Creates and registers a managed script object for existing overlay object;

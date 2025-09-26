@@ -153,7 +153,7 @@ DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech)
     return (DisplayTextPosition)text_pos;
 }
 
-Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
+std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont,
     bool &alphaChannel, const TopBarSettings *topbar)
 {
@@ -258,17 +258,10 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         xx = Math::Clamp(xx, screen_padding, ui_view.GetWidth() - screen_padding - wii);
     }
 
-    const int extraHeight = paddingDoubledScaled;
-    const int bmp_width = std::max(2, wii);
-    const int bmp_height = std::max(2, disp.FullTextHeight + extraHeight);
-    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game.GetColorDepth());
-
-    // inform draw_text_window to free the old bitmap
-    const bool wantFreeScreenop = true;
-
     //
     // Create the textual image (may also adjust some params in the process)
     //
+    std::unique_ptr<Bitmap> text_window_ds;
 
     // may later change if usingGUI, needed to avoid changing original coordinates
     adjustedXX = xx;
@@ -276,7 +269,10 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
 
     // if it's an empty speech line, don't draw anything
     if ((strlen(text) < 1) || (strcmp(text, "  ") == 0) || (wii == 0))
-        return text_window_ds;
+    {
+        // CHECKME: creating a clear bitmap here is a safety measure, but probably we may somehow avoid doing this?
+        return std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(2, 2, game.GetColorDepth()));
+    }
 
     if (look.Style != kDisplayTextStyle_MessageBox)
     {
@@ -299,8 +295,8 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         if (drawBackground)
         {
             text_color = 15; // use fixed standard color here
-            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
-                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
+            text_window_ds = draw_text_window_and_bar(topbar, disp,
+                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, usingGui);
             if ((usingGui > 0)
                 // Apparently, 2.* engines never used alpha channel on text windows
                 && (loaded_game_file_version > kGameVersion_272))
@@ -308,9 +304,12 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
                 alphaChannel = guis[usingGui].HasAlphaChannel();
             }
         }
-        else if ((ShouldAntiAliasText()) && (game.GetColorDepth() >= 24))
+        else
         {
-            alphaChannel = true;
+            const int bmp_width = std::max(2, wii);
+            const int bmp_height = std::max(2, disp.FullTextHeight + paddingDoubledScaled);
+            text_window_ds.reset(BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game.GetColorDepth()));
+            alphaChannel = ((ShouldAntiAliasText()) && (game.GetColorDepth() >= 24));
         }
 
         // Assign final text color, either use passed parameter, or TextWindow property
@@ -334,11 +333,11 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
             // if it's inside a text box then don't centre the text
             if (fix_look.Style == kDisplayTextStyle_TextWindow)
             {
-                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
+                wouttext_aligned(text_window_ds.get(), ttxleft, ttyp, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
             }
             else
             {
-                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, Lines[i].GetCStr(), play.speech_text_align);
+                wouttext_aligned(text_window_ds.get(), ttxleft, ttyp, wii, usingfont, text_color, Lines[i].GetCStr(), play.speech_text_align);
             }
         }
     }
@@ -347,7 +346,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         // Textual overlay purposed for the standard message box
         int xoffs, yoffs, oriwid = wii - padding * 2;
         text_color = 15; // use fixed standard color here
-        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
+        text_window_ds = draw_text_window_and_bar(topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
         text_color = text_window_ds->GetCompatibleColor(text_color);
 
         if ((game.options[OPT_TWCUSTOM] > 0)
@@ -360,7 +359,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (size_t i = 0; i < Lines.Count(); ++i)
-            wouttext_aligned(text_window_ds, xoffs, yoffs + i * disp.Linespacing, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
+            wouttext_aligned(text_window_ds.get(), xoffs, yoffs + i * disp.Linespacing, oriwid, usingfont, text_color, Lines[i].GetCStr(), play.text_align);
     }
     return text_window_ds;
 }
@@ -483,12 +482,12 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
 
     int adjustedXX, adjustedYY;
     bool alphaChannel;
-    Bitmap *text_window_ds = create_textual_image(text, look, text_color,
+    auto text_window_ds = create_textual_image(text, look, text_color,
         xx, yy, adjustedXX, adjustedYY, wii, usingfont, alphaChannel, topbar);
 
-    size_t nse = add_screen_overlay(roomlayer, xx, yy, over_id, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
+    size_t nse = add_screen_overlay(roomlayer, xx, yy, over_id, std::move(text_window_ds),
+        adjustedXX - xx, adjustedYY - yy, alphaChannel);
     auto *over = get_overlay(nse); // FIXME: optimize return value
-    // we should not delete text_window_ds here, because it is now owned by Overlay
 
     // If it's a non-blocking overlay type, then we're done here
     if (disp_type == kDisplayText_NormalOverlay) {
@@ -892,12 +891,12 @@ int get_textwindow_padding(int ifnum) {
     return result;
 }
 
-void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
-                      int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color,
-                      int ovrheight, int ifnum, const DisplayVars &disp)
+std::unique_ptr<Bitmap> draw_text_window(
+    int *xins, int *yins, int *xx, int *yy, int *wii, color_t *set_text_color,
+    int ovrheight, int ifnum, const DisplayVars &disp)
 {
-    assert(text_window_ds);
-    Bitmap *ds = *text_window_ds;
+    std::unique_ptr<Bitmap> text_window;
+
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
@@ -913,8 +912,15 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         ifnum = 0;
     }
 
+    if (ovrheight == 0)
+        ovrheight = disp.FullTextHeight;
+    const int padding = get_textwindow_padding(ifnum);
+
     if (ifnum <= 0)
     {
+        const int paddingDoubledScaled = get_fixed_pixel_size(padding * 2);
+        text_window.reset(BitmapHelper::CreateTransparentBitmap(wii[0], ovrheight + paddingDoubledScaled, game.GetColorDepth()));
+        Bitmap *ds = text_window.get();
         draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,nullptr);
         if (set_text_color)
             *set_text_color = 16;
@@ -928,14 +934,9 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         wii[0] += get_textwindow_border_width (ifnum);
         xx[0]-=game.SpriteInfos[tbnum].Width;
         yy[0]-=game.SpriteInfos[tbnum].Height;
-        if (ovrheight == 0)
-            ovrheight = disp.FullTextHeight;
 
-        if (should_free_ds)
-            delete *text_window_ds;
-        int padding = get_textwindow_padding(ifnum);
-        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+ game.SpriteInfos[tbnum].Height*2,game.GetColorDepth());
-        ds = *text_window_ds;
+        text_window.reset(BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+ game.SpriteInfos[tbnum].Height*2,game.GetColorDepth()));
+        Bitmap *ds = text_window.get();
         int xoffs=game.SpriteInfos[tbnum].Width,yoffs= game.SpriteInfos[tbnum].Height;
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
@@ -943,24 +944,25 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         xins[0]=xoffs+padding;
         yins[0]=yoffs+padding;
     }
+    return text_window;
 }
 
-void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
-                              const TopBarSettings *topbar, const DisplayVars &disp,
-                              int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
+std::unique_ptr<Bitmap> draw_text_window_and_bar(
+    const TopBarSettings *topbar, const DisplayVars &disp,
+    int *xins, int *yins, int *xx, int *yy, int *wii, color_t *set_text_color, int ifnum)
+{
+    std::unique_ptr<Bitmap> text_window_bmp =
+        draw_text_window(xins, yins, xx, yy, wii, set_text_color, 0 /*use disp*/, ifnum, disp);
 
-    assert(text_window_ds);
-    draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum, disp);
-
-    if ((topbar) && (text_window_ds && *text_window_ds)) {
+    if (topbar)
+    {
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
-        Bitmap *ds = *text_window_ds;
-        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topbar->Height, game.GetColorDepth());
-        newScreenop->Blit(ds, 0, 0, 0, topbar->Height, ds->GetWidth(), ds->GetHeight());
-        delete *text_window_ds;
-        *text_window_ds = newScreenop;
-        ds = *text_window_ds;
+        Bitmap *ds = text_window_bmp.get();
+        std::unique_ptr<Bitmap> text_window_top(BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topbar->Height, game.GetColorDepth()));
+        text_window_top->Blit(ds, 0, 0, 0, topbar->Height, ds->GetWidth(), ds->GetHeight());
+        text_window_bmp = std::move(text_window_top);
+        ds = text_window_bmp.get();
 
         // draw the top bar
         color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
@@ -980,4 +982,6 @@ void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
         // adjust the text Y position
         yins[0] += topbar->Height;
     }
+
+    return text_window_bmp;
 }

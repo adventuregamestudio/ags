@@ -625,16 +625,16 @@ namespace AGS.Types
             if (interactions.IndexedFunctionNames.Count == 0)
                 return; // no old indexed events, bail out
             // Convert interaction events to our new event properties
-            OnLeaveLeft = interactions.IndexedFunctionNames[0];
-            OnLeaveRight = interactions.IndexedFunctionNames[1];
-            OnLeaveBottom = interactions.IndexedFunctionNames[2];
-            OnLeaveTop = interactions.IndexedFunctionNames[3];
-            OnFirstTimeEnter = interactions.IndexedFunctionNames[4];
-            OnLoad = interactions.IndexedFunctionNames[5];
-            OnRepExec = interactions.IndexedFunctionNames[6];
-            OnAfterFadeIn = interactions.IndexedFunctionNames[7];
-            OnLeave = interactions.IndexedFunctionNames[8];
-            OnUnload = interactions.IndexedFunctionNames[9];
+            OnLeaveLeft = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+            OnLeaveRight = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+            OnLeaveBottom = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
+            OnLeaveTop = interactions.IndexedFunctionNames.TryGetValueOrDefault(3, string.Empty);
+            OnFirstTimeEnter = interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+            OnLoad = interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
+            OnRepExec = interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
+            OnAfterFadeIn = interactions.IndexedFunctionNames.TryGetValueOrDefault(7, string.Empty);
+            OnLeave = interactions.IndexedFunctionNames.TryGetValueOrDefault(8, string.Empty);
+            OnUnload = interactions.IndexedFunctionNames.TryGetValueOrDefault(9, string.Empty);
         }
     }
 }

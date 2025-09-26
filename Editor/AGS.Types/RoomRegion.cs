@@ -303,9 +303,9 @@ namespace AGS.Types
             if (interactions.IndexedFunctionNames.Count == 0)
                 return; // no old indexed events, bail out
             // Convert interaction events to our new event properties
-            OnStanding = interactions.IndexedFunctionNames[0];
-            OnWalksOnto = interactions.IndexedFunctionNames[1];
-            OnWalksOff = interactions.IndexedFunctionNames[2];
+            OnStanding = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+            OnWalksOnto = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+            OnWalksOff = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
         }
 
         public void ToXml(XmlTextWriter writer)

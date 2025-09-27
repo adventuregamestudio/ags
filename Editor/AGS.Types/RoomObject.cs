@@ -6,14 +6,12 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
-
-        private static InteractionSchema _interactionSchema;
 
         private int _id;
         private int _image;
@@ -29,29 +27,22 @@ namespace AGS.Types
         private bool _useRoomAreaScaling;
         private bool _useRoomAreaLighting;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Objects);
-        private Interactions _interactions = new Interactions(_interactionSchema);
-		private IChangeNotification _notifyOfModification;
+        // Game Events
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onAnyClick;
+        //
+        private Room _room;
 
-        static RoomObject()
+        public RoomObject(Room room)
         {
-            _interactionSchema = new InteractionSchema(string.Empty, true,
-                new string[] {"$$01 object",
-                "$$02 object", "$$03 object",  "Use inventory on object", 
-                "Any click on object", 
-                "$$05 object", "$$08 object", "$$09 object"},
-                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Object *theObject, CursorMode mode");
+            _room = room;
         }
 
-		public RoomObject(IChangeNotification changeNotifier)
-		{
-			_notifyOfModification = changeNotifier;
-		}
-
-        public RoomObject(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
         {
-            SerializeUtils.DeserializeFromXML(this, node);
-            Interactions.FromXml(node);
+            get { return _room; }
         }
 
         [AGSNoSerialize]
@@ -211,12 +202,30 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
         [AGSNoSerialize()]
         [Browsable(false)]
+        [Category("Cursor Events")]
+        [ScriptFunction("Object *theObject, CursorMode mode")]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
+
+        [DisplayName("Any click on")]
+        [Category("Cursor Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AnyClick", "Object *theObject, CursorMode mode")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAnyClick
+        {
+            get { return _onAnyClick; }
+            set { _onAnyClick = value; }
+        }
+
+        #endregion // Game Events
 
         public int CompareTo(RoomObject other)
         {
@@ -225,7 +234,7 @@ namespace AGS.Types
 
 		void IChangeNotification.ItemModified()
 		{
-			_notifyOfModification.ItemModified();
+            (_room as IChangeNotification).ItemModified();
 		}
 
 
@@ -312,11 +321,38 @@ namespace AGS.Types
 
         #endregion
 
+        #region Serialization
+
+        public RoomObject(Room room, XmlNode node) : this(room)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+            // Disable schema temporarily, in case we must convert from old format
+            _interactions.Schema = null;
+            _interactions.FromXml(node);
+            ConvertOldInteractionEvents();
+            _interactions.Schema = InteractionSchema.Instance;
+        }
+
+        private void ConvertOldInteractionEvents()
+        {
+            if (_interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, no conversion necessary
+
+            OnAnyClick = _interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+            _interactions.RemapLegacyFunctionIndexes(new int[]
+            {
+                -1 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
+                5 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 6 /* Mode8 */, 7 /* Mode9 */
+            });
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer, false);
             _interactions.ToXml(writer);
             writer.WriteEndElement();
         }
+
+        #endregion // Serialization
     }
 }

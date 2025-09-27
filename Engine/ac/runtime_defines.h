@@ -52,22 +52,6 @@
 #define FONT_NORMAL     play.normal_font
 #define FONT_SPEECH     play.speech_font
 
-// Standard interaction verbs (aka cursor modes)
-#define MODE_NONE      -1
-#define MODE_WALK       0
-#define MODE_LOOK       1
-#define MODE_HAND       2
-#define MODE_TALK       3
-#define MODE_USE        4
-#define MODE_PICKUP     5
-// aka MODE_POINTER
-#define CURS_ARROW      6
-// aka MODE_WAIT
-#define CURS_WAIT       7
-#define MODE_CUSTOM1    8
-#define MODE_CUSTOM2    9
-#define NUM_STANDARD_VERBS 10
-
 // Fixed Overlay IDs
 #define OVER_TEXTMSG  1
 #define OVER_COMPLETE 2

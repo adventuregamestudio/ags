@@ -1008,7 +1008,6 @@ namespace AGS.Editor
                 ViewUIEditor.ViewSelectionGUI = ShowViewChooserFromPropertyGrid;
                 SpriteSelectUIEditor.SpriteSelectionGUI = ShowSpriteChooserFromPropertyGrid;
                 CustomPropertiesUIEditor.CustomPropertiesGUI = ShowPropertiesEditorFromPropertyGrid;
-                PropertyTabInteractions.UpdateEventName = PropertyTabInteractions_UpdateEventName;
                 ScriptFunctionUIEditor.OpenScriptFunction = ScriptFunctionUIEditor_OpenScriptFunction;
                 ScriptFunctionUIEditor.CreateScriptFunction = ScriptFunctionUIEditor_CreateScriptFunction;
                 CustomResolutionUIEditor.CustomResolutionSetGUI = ShowCustomResolutionChooserFromPropertyGrid;
@@ -1593,16 +1592,6 @@ namespace AGS.Editor
                 evArgs.ZoomToLineAfterOpeningBrace = true;
                 OnZoomToFile(evArgs);
             }
-        }
-
-        private string PropertyTabInteractions_UpdateEventName(string eventName)
-        {
-            Game game = _agsEditor.CurrentGame;
-            for (int i = 1; i <= Math.Min(9, game.Cursors.Count - 1); i++)
-            {
-                eventName = eventName.Replace("$$0" + i, game.Cursors[i].Name);
-            }
-            return eventName;
         }
 
         private Size ShowCustomResolutionChooserFromPropertyGrid(Size currentSize)

@@ -11,7 +11,7 @@ namespace AGS.Types
         [SetUp]
         public void SetUp()
         {
-            _roomWalkBehind = new RoomWalkBehind();
+            _roomWalkBehind = new RoomWalkBehind(null);
         }
 
         [TestCase(0)]
@@ -52,7 +52,7 @@ namespace AGS.Types
             </RoomWalkBehind>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomWalkBehind = new RoomWalkBehind(doc.SelectSingleNode("RoomWalkBehind"));
+            _roomWalkBehind = new RoomWalkBehind(null, doc.SelectSingleNode("RoomWalkBehind"));
 
             Assert.That(_roomWalkBehind.Baseline, Is.EqualTo(baseline));
         }

@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("StartingRoom")]
     public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
     {
@@ -15,8 +15,6 @@ namespace AGS.Types
         public const string PROPERTY_NAME_DESCRIPTION = "RealName";
         public const string PROPERTY_NAME_STARTINGROOM = "StartingRoom";
         public const int NARRATOR_CHARACTER_ID = 999;
-
-        private static InteractionSchema _interactionSchema;
 
         private int _id;
         private string _scriptName = string.Empty;
@@ -49,18 +47,10 @@ namespace AGS.Types
         private bool _adjustVolumeWithScaling;
         private bool _movementLinkedToAnimation = true;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Characters);
-        private Interactions _interactions = new Interactions(_interactionSchema);
-
-        static Character()
-        {
-            _interactionSchema = new InteractionSchema(Script.GLOBAL_SCRIPT_FILE_NAME, false,
-                new string[] {"$$01 character",
-                "$$02 character","$$03 character","Use inventory on character",
-                "Any click on character", "$$05 character","$$08 character", 
-                "$$09 character"}, 
-                new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Character *theCharacter, CursorMode mode");
-        }
+        // Game Events
+        private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onAnyClick;
 
         public Character()
         {
@@ -384,12 +374,41 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
+        [Description("Script module which contains this character's event functions")]
+        [Category("(Basic)")]
+        [Browsable(false)]
+        [AGSEventsTabProperty()]
+        [TypeConverter(typeof(ScriptListTypeConverter))]
+        public string ScriptModule
+        {
+            get { return _scriptModule; }
+            set { _scriptModule = value; }
+        }
+
         [AGSNoSerialize()]
         [Browsable(false)]
+        [Category("Cursor Events")]
+        [ScriptFunction("Character *theCharacter, CursorMode mode")]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
+
+        [DisplayName("Any click on")]
+        [Category("Cursor Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AnyClick", "Character *theCharacter, CursorMode mode")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAnyClick
+        {
+            get { return _onAnyClick; }
+            set { _onAnyClick = value; }
+        }
+
+        #endregion // Game Events
 
         [Browsable(false)]
         public string PropertyGridTitle
@@ -397,10 +416,29 @@ namespace AGS.Types
             get { return TypesHelper.MakePropertyGridTitle("Character", _scriptName, _fullName, _id); }
         }
 
+        #region Serialization
+
         public Character(XmlNode node)
         {
             SerializeUtils.DeserializeFromXML(this, node);
+            // Disable schema temporarily, in case we must convert from old format
+            _interactions.Schema = null;
             _interactions.FromXml(node);
+            ConvertOldInteractionEvents();
+            _interactions.Schema = InteractionSchema.Instance;
+        }
+
+        private void ConvertOldInteractionEvents()
+        {
+            if (_interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, no conversion necessary
+
+            OnAnyClick = _interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+            _interactions.RemapLegacyFunctionIndexes(new int[]
+            {
+                -1 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
+                5 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 6 /* Mode8 */, 7 /* Mode9 */
+            });
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -410,6 +448,7 @@ namespace AGS.Types
             writer.WriteEndElement();
         }
 
+        #endregion // Serialization
 
         #region ICustomTypeDescriptor Members
 

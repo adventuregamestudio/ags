@@ -28,18 +28,13 @@
 // postfix. For example, RoomObjectInfo is the initial object data, and
 // there is also RoomObject runtime-only class for mutable data.
 //
-// [ivan-mogilko] In my opinion, eventually there should be only one room class
-// and one class per room entity, regardless of whether code is shared with
-// the editor or not. But that would require extensive refactor/rewrite of
-// the engine code, and savegame read/write code.
-//
 //=============================================================================
 #ifndef __AGS_CN_GAME__ROOMINFO_H
 #define __AGS_CN_GAME__ROOMINFO_H
 #include <memory>
 #include <allegro.h> // RGB
 #include "ac/common_defines.h"
-#include "game/interactions.h"
+#include "game/scripteventstable.h"
 #include "gfx/gfx_def.h"
 #include "script/cc_script.h"
 #include "util/error.h"
@@ -99,6 +94,55 @@ class Stream;
 
 typedef std::shared_ptr<Bitmap> PBitmap;
 
+// Room event indexes;
+// these are used after resolving events map read from room file
+enum RoomEventID
+{
+    // room edge crossing
+    kRoomEvent_EdgeLeft = 0,
+    kRoomEvent_EdgeRight = 1,
+    kRoomEvent_EdgeBottom = 2,
+    kRoomEvent_EdgeTop = 3,
+    // first time enters room
+    kRoomEvent_FirstEnter = 4,
+    // load room; aka before fade-in
+    kRoomEvent_BeforeFadein = 5,
+    // room's rep-exec
+    kRoomEvent_Repexec = 6,
+    // after fade-in
+    kRoomEvent_AfterFadein = 7,
+    // leave room (before fade-out)
+    kRoomEvent_BeforeFadeout = 8,
+    // unload room; aka after fade-out
+    kRoomEvent_AfterFadeout = 9,
+};
+
+// Hotspot event indexes
+enum HotspotEventID
+{
+    // an interaction with any cursor mode that normally has a event
+    kHotspotEvent_AnyClick = 0,
+    // cursor is over hotspot
+    kHotspotEvent_MouseOver = 1,
+    // player stands on hotspot
+    kHotspotEvent_StandOn = 2,
+};
+
+// Room object event indexes
+enum RoomObjectEventID
+{
+    // an interaction with any cursor mode that normally has a event
+    kRoomObjectEvent_AnyClick = 0
+};
+
+// Region event indexes
+enum RegionEventID
+{
+    kRegionEvent_Standing = 0,
+    kRegionEvent_WalkOn = 1,
+    kRegionEvent_WalkOff = 2,
+};
+
 // Various room options
 struct RoomOptions
 {
@@ -145,11 +189,18 @@ struct RoomHotspot
     String      ScriptName;
     // Custom properties
     StringIMap  Properties;
-    // Event script links
-    UInteractionEvents EventHandlers;
+    // Interaction events (cursor-based)
+    ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventsTable Events = {};
 
     // Player will automatically walk here when interacting with hotspot
     Point       WalkTo;
+
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 };
 
 // Room object description
@@ -167,10 +218,17 @@ struct RoomObjectInfo
     String          ScriptName;
     // Custom properties
     StringIMap      Properties;
-    // Event script links
-    UInteractionEvents EventHandlers;
+    // Interaction events (cursor-based)
+    ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventsTable Events = {};
 
     RoomObjectInfo();
+
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 };
 
 // Room region description
@@ -182,10 +240,17 @@ struct RoomRegion
     int32_t         Tint;
     // Custom properties
     StringIMap      Properties;
-    // Event script links
-    UInteractionEvents EventHandlers;
+    // Interaction events (old-style event storage, kept of loading old data)
+    ScriptEventHandlers Interactions = {};
+    // Common events
+    ScriptEventsTable Events = {};
 
     RoomRegion();
+
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 };
 
 // Walkable area description
@@ -252,9 +317,13 @@ public:
     ~RoomStruct();
 
     // Releases room resources
-    void            Free();
+    void    Free();
     // Init default room state
-    void            InitDefaults();
+    void    InitDefaults();
+    // Remaps old-format interaction list into new event table
+    void    RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void    ResolveEventHandlers();
 
     // Gets this room's human-readable name (description)
     const String &GetName() const { return Name; }
@@ -334,8 +403,10 @@ public:
 
     // Custom properties
     StringIMap              Properties;
-    // Event script links
-    UInteractionEvents      EventHandlers;
+    // Interaction events (old-style event storage, kept of loading old data)
+    ScriptEventHandlers     Interactions = {};
+    // Common events
+    ScriptEventsTable       Events = {};
     // Compiled room script
     UScript                 CompiledScript;
     // Various extended options with string values, meta-data etc

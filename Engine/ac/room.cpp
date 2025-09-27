@@ -966,7 +966,7 @@ void first_room_initialization() {
 void check_new_room() {
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
     if ((in_new_room>0) & (in_new_room!=3)) {
-        AGSEvent evh(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
+        AGSEvent evh(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen
         EnterNewRoomState newroom_was = in_new_room;
         in_new_room = kEnterRoom_None;

@@ -138,7 +138,7 @@ namespace AGS.Types
 
         public IList<Dialog> Dialogs
         {
-            get { return _dialogs; }            
+            get { return _dialogs; }
         }
 
         public IList<MouseCursor> Cursors

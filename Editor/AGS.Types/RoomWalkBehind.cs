@@ -12,14 +12,23 @@ namespace AGS.Types
     {
         private int _id;
         private int _baseline;
+        private Room _room;
 
-        public RoomWalkBehind()
+        public RoomWalkBehind(Room room)
         {
+            _room = room;
         }
 
-        public RoomWalkBehind(XmlNode node) : this()
+        public RoomWalkBehind(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
+        }
+
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
+        {
+            get { return _room; }
         }
 
         [AGSNoSerialize]

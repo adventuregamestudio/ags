@@ -108,10 +108,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InteractionSchema.cs" />
     <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
     <Compile Include="Attributes\AGSSerializeClassAttribute.cs" />
     <Compile Include="Attributes\BrowsableMultieditAttribute.cs" />
-    <Compile Include="Attributes\ScriptFunctionParametersAttribute.cs" />
+    <Compile Include="Attributes\InteractionsAttribute.cs" />
+    <Compile Include="Attributes\ScriptFunctionAttribute.cs" />
     <Compile Include="Attributes\SerializeAsHex.cs" />
     <Compile Include="AudioClip.cs" />
     <Compile Include="AudioClipFolder.cs" />
@@ -196,10 +198,10 @@
     <Compile Include="GlobalVariables.cs" />
     <Compile Include="GUIControlGroup.cs" />
     <Compile Include="HelperTypes\FakeEnumerator.cs" />
+    <Compile Include="HelperTypes\GameObjectEvents.cs" />
     <Compile Include="HelperTypes\SpriteInfo.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
-    <Compile Include="InteractionSchema.cs" />
     <Compile Include="Interfaces\IChangeNotification.cs" />
     <Compile Include="Interfaces\ICompiledScript.cs" />
     <Compile Include="Interfaces\IEditorComponent.cs" />
@@ -234,7 +236,6 @@
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\InteractionEventPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\MultilineStringUIEditor.cs" />
-    <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />
     <Compile Include="PropertyGridExtras\ReadOnlyConverter .cs" />
     <Compile Include="PropertyGridExtras\RoomMaskResolutionTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\ScriptCompilerTypeConverter.cs" />

@@ -7,12 +7,10 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("LightLevel")]
     public class RoomRegion : IChangeNotification, ICustomTypeDescriptor, IToXml
     {
-        private static InteractionSchema _interactionSchema;
-
         private int _id;
         private int _lightLevel = 100;
         private bool _useTint = false;
@@ -21,30 +19,25 @@ namespace AGS.Types
         private int _blueTint = 0;
         private int _tintAmount = 50;
         private int _tintLuminance = 100;
-        private Interactions _interactions = new Interactions(_interactionSchema);
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Regions);
-        private IChangeNotification _notifyOfModification;
+        // Game Events
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onStanding;
+        private string _onWalksOnto;
+        private string _onWalksOff;
+        //
+        private Room _room;
 
-        static RoomRegion()
+        public RoomRegion(Room room)
         {
-            _interactionSchema = new InteractionSchema(string.Empty, true,
-                new string[] {
-                "While standing on region",
-                "Walks onto region", 
-                "Walks off region"},
-                new string[] { "Standing", "WalksOnto", "WalksOff" },
-                "Region *theRegion");
+            _room = room;
         }
 
-        public RoomRegion(IChangeNotification changeNotifier)
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
         {
-            _notifyOfModification = changeNotifier;
-        }
-
-        public RoomRegion(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
-        {
-            SerializeUtils.DeserializeFromXML(this, node);
-            Interactions.FromXml(node);
+            get { return _room; }
         }
 
         [AGSNoSerialize]
@@ -130,12 +123,53 @@ namespace AGS.Types
             get { return TypesHelper.MakePropertyGridTitle("Region", _id); }
         }
 
-        [AGSSerializeClass]
+        #region Game Events
+
+        [AGSNoSerialize()]
         [Browsable(false)]
+        [Obsolete]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
+
+        [DisplayName("While standing on region")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("Standing", "Region *theRegion")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnStanding
+        {
+            get { return _onStanding; }
+            set { _onStanding = value; }
+        }
+
+        [DisplayName("Walks onto region")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("WalksOnto", "Region *theRegion")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnWalksOnto
+        {
+            get { return _onWalksOnto; }
+            set { _onWalksOnto = value; }
+        }
+
+        [DisplayName("Walks off region")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("WalksOff", "Region *theRegion")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnWalksOff
+        {
+            get { return _onWalksOff; }
+            set { _onWalksOff = value; }
+        }
+
+        #endregion // Game Events
 
         [AGSSerializeClass()]
         [Description("Custom properties for this region")]
@@ -245,14 +279,41 @@ namespace AGS.Types
 
         void IChangeNotification.ItemModified()
         {
-            _notifyOfModification.ItemModified();
+            (_room as IChangeNotification).ItemModified();
+        }
+
+        #region Serialization
+
+        public RoomRegion(Room room, XmlNode node) : this(room)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+
+            LoadAndConvertInteractionEvents(node);
+        }
+
+        private void LoadAndConvertInteractionEvents(XmlNode node)
+        {
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
+
+            // Load old-style events into the temporary interactions object,
+            // as the one that we are keeping is for compatibility only.
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            if (interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, bail out
+            // Convert interaction events to our new event properties
+            OnStanding = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+            OnWalksOnto = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+            OnWalksOff = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
         }
 
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer, false);
-            _interactions.ToXml(writer);
             writer.WriteEndElement();
         }
+
+        #endregion // Serialization
     }
 }

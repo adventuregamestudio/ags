@@ -17,10 +17,12 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-#define MCF_ANIMMOVE 1
-#define MCF_DISABLED 2
-#define MCF_STANDARD 4
-#define MCF_HOTSPOT  8  // only animate when over hotspot
+// Cursor flags
+#define MCF_ANIMMOVE 0x01
+#define MCF_DISABLED 0x02  // enabled for the cursor-cycling and display
+#define MCF_STANDARD 0x04  // a part of the cursor-cycling
+#define MCF_HOTSPOT  0x08  // only animate when over hotspot
+#define MCF_EVENT    0x10  // generates interaction events
 
 #define LEGACY_MAX_CURSOR_NAME_LENGTH 10
 

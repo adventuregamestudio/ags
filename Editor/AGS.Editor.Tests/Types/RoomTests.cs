@@ -199,17 +199,7 @@ namespace AGS.Types
                 <Properties/>
                 <Number>{number}</Number>
                 <Description xml:space=""preserve"">{description}</Description>
-                <Interactions>
-                    <Event Index=""0"">room_LeftEdge</Event>
-                    <Event Index=""1"" />
-                    <Event Index=""2"" />
-                    <Event Index=""3"" />
-                    <Event Index=""4"" />
-                    <Event Index=""5"" />
-                    <Event Index=""6"" />
-                    <Event Index=""7"" />
-                    <Event Index=""8"" />
-                </Interactions>
+                <OnLeaveLeft>room_LeftEdge</OnLeaveLeft>
                 <Objects/>
                 <Hotspots/>
                 <WalkableAreas/>
@@ -238,16 +228,7 @@ namespace AGS.Types
             Assert.That(_room.BottomEdgeY, Is.EqualTo(bottomEdgeY));
             Assert.That(_room.Number, Is.EqualTo(number));
             Assert.That(_room.Description, Is.EqualTo(description));
-
-            Assert.That(_room.Interactions.ScriptFunctionNames[0], Is.EqualTo("room_LeftEdge"));
-            Assert.That(_room.Interactions.ScriptFunctionNames[1], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[2], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[3], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[4], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[5], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[6], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[7], Is.Null);
-            Assert.That(_room.Interactions.ScriptFunctionNames[8], Is.Null);
+            Assert.That(_room.OnLeaveLeft, Is.EqualTo("room_LeftEdge"));
 
             File.Delete("TestScript.asc");
         }
@@ -273,8 +254,7 @@ namespace AGS.Types
             _room.BottomEdgeY = bottomEdgeY;
             _room.Number = number;
             _room.Description = description;
-
-            _room.Interactions.ScriptFunctionNames[0] = "room_LeftEdge";
+            _room.OnLeaveLeft = "room_LeftEdge";
 
             XmlDocument doc = _room.ToXmlDocument();
 
@@ -293,18 +273,7 @@ namespace AGS.Types
             Assert.That(doc.SelectSingleNode("/Room/BottomEdgeY").InnerText, Is.EqualTo(bottomEdgeY.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/Number").InnerText, Is.EqualTo(number.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/Description").InnerText, Is.EqualTo(description.ToString()));
-
-            var interactions = doc.SelectSingleNode("/Room/Interactions").SelectNodes("Event");
-            
-            Assert.That(interactions[0].InnerText, Is.EqualTo("room_LeftEdge"));
-            Assert.That(interactions[1].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[2].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[3].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[4].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[5].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[6].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[7].InnerText, Is.EqualTo(""));
-            Assert.That(interactions[8].InnerText, Is.EqualTo(""));
+            Assert.That(doc.SelectSingleNode("/Room/OnLeaveLeft").InnerText, Is.EqualTo("room_LeftEdge"));
         }
     }
 }

@@ -79,13 +79,12 @@ HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
-    charScripts.resize(numcharacters);
-    invScripts.resize(numinvitems);
+    chars.resize(numcharacters); // safety precaution, because chars may be read later
     for (size_t i = 0; i < (size_t)numcharacters; ++i)
-        charScripts[i] = InteractionEvents::CreateFromStream_v361(in);
-    // NOTE: new inventory items' events are loaded starting from 1 for some reason
+        chars[i].interactions.Read_v361(in);
+    // NOTE: inventory item events are loaded starting from index 1, because index 0 is an unused item
     for (size_t i = 1; i < (size_t)numinvitems; ++i)
-        invScripts[i] = InteractionEvents::CreateFromStream_v361(in);
+        invinfo[i].interactions.Read_v361(in);
 }
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)

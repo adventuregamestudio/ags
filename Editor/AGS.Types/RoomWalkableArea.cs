@@ -18,16 +18,23 @@ namespace AGS.Types
         private int _scalingLevelMin = 100;
         private int _scalingLevelMax = 100;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.WalkableAreas);
-        private IChangeNotification _notifyOfModification;
+        private Room _room;
 
-        public RoomWalkableArea(IChangeNotification changeNotifier)
+        public RoomWalkableArea(Room room)
         {
-            _notifyOfModification = changeNotifier;
+            _room = room;
         }
 
-        public RoomWalkableArea(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        public RoomWalkableArea(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
+        }
+
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
+        {
+            get { return _room; }
         }
 
         [AGSNoSerialize]
@@ -208,7 +215,7 @@ namespace AGS.Types
 
         void IChangeNotification.ItemModified()
         {
-            _notifyOfModification.ItemModified();
+            (_room as IChangeNotification).ItemModified();
         }
 
         public void ToXml(XmlTextWriter writer) => SerializeUtils.SerializeToXML(this, writer);

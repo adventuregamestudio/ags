@@ -18,6 +18,7 @@
 #include "core/assetmanager.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
+#include "game/data_helpers.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
@@ -148,19 +149,19 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     // Interaction script links
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
-    room->EventHandlers = InteractionEvents::CreateFromStream_v361(in);
+    room->Interactions.Read_v361(in);
 
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
     {
-        room->Hotspots[i].EventHandlers = InteractionEvents::CreateFromStream_v361(in);
+        room->Hotspots[i].Interactions.Read_v361(in);
     }
     for (auto &obj : room->Objects)
     {
-        obj.EventHandlers = InteractionEvents::CreateFromStream_v361(in);
+        obj.Interactions.Read_v361(in);
     }
     for (uint32_t i = 0; i < room->RegionCount; ++i)
     {
-        room->Regions[i].EventHandlers = InteractionEvents::CreateFromStream_v361(in);
+        room->Regions[i].Interactions.Read_v361(in);
     }
 
     // Room object baselines
@@ -340,6 +341,7 @@ HError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 // Extended walkable areas and related room properties
 HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
+    HError err;
     // New room properties
     room->Options.FaceDirectionRatio = in->ReadFloat32();
     // reserve few more 32-bit values (for a total of 4)
@@ -347,10 +349,9 @@ HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_v
     in->ReadInt32();
     in->ReadInt32();
 
-    size_t wa_count = in->ReadInt32();
-    if (wa_count != room->WalkAreaCount)
-        return new Error(String::FromFormat("Mismatching number of walkable areas: read %zu expected %zu", wa_count, room->WalkAreaCount));
-    for (size_t i = 0; i < wa_count; ++i)
+    if (!ReadAndAssertCount(in, "walkable areas", room->WalkAreaCount, err))
+        return err;
+    for (size_t i = 0; i < room->WalkAreaCount; ++i)
     {
         auto &wa = room->WalkAreas[i];
         wa.FaceDirectionRatio = in->ReadFloat32();
@@ -364,9 +365,9 @@ HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HError ReadExt_400_CustomProps(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
-    size_t region_count = in->ReadInt32();
-    if (region_count != room->RegionCount)
-        return new Error(String::FromFormat("Mismatching number of regions: read %zu expected %zu", region_count, room->RegionCount));
+    HError err;
+    if (!ReadAndAssertCount(in, "regions", room->RegionCount, err))
+        return err;
     int errors = 0;
     for (size_t i = 0; i < room->RegionCount; ++i)
     {
@@ -375,9 +376,8 @@ HError ReadExt_400_CustomProps(RoomStruct *room, Stream *in, RoomFileVersion dat
     if (errors > 0)
         return new RoomFileError(kRoomFileErr_InvalidPropertyValues);
 
-    size_t wa_count = in->ReadInt32();
-    if (wa_count != room->WalkAreaCount)
-        return new Error(String::FromFormat("Mismatching number of walkable areas: read %zu expected %zu", wa_count, room->WalkAreaCount));
+    if (!ReadAndAssertCount(in, "walkable areas", room->WalkAreaCount, err))
+        return err;
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
     {
         Properties::ReadValues(room->WalkAreas[i].Properties, in);
@@ -391,6 +391,36 @@ HError ReadExt_400_RoomNames(RoomStruct *room, Stream *in, RoomFileVersion data_
 {
     room->ScriptName = StrUtil::ReadString(in);
     room->Name = StrUtil::ReadString(in);
+    return HError::None();
+}
+
+HError ReadExt_400_EventTables(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+{
+    HError err = room->Events.Read(in);
+    if (!ReadAndAssertCount(in, "hotspots", room->HotspotCount, err))
+        return err;
+    for (size_t i = 0; i < room->HotspotCount; ++i)
+    {
+        err = room->Hotspots[i].Events.Read(in);
+        if (!err)
+            return err;
+    }
+    if (!ReadAndAssertCount(in, "objects", static_cast<uint32_t>(room->Objects.size()), err))
+        return err;
+    for (size_t i = 0; i < room->Objects.size(); ++i)
+    {
+        err = room->Objects[i].Events.Read(in);
+        if (!err)
+            return err;
+    }
+    if (!ReadAndAssertCount(in, "regions", room->RegionCount, err))
+        return err;
+    for (size_t i = 0; i < room->RegionCount; ++i)
+    {
+        err = room->Regions[i].Events.Read(in);
+        if (!err)
+            return err;
+    }
     return HError::None();
 }
 
@@ -450,6 +480,10 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     else if (ext_id.CompareNoCase("v400_roomnames") == 0)
     {
         return ReadExt_400_RoomNames(room, in, data_ver);
+    }
+    else if (ext_id.CompareNoCase("v400_eventtables") == 0)
+    {
+        return ReadExt_400_EventTables(room, in, data_ver);
     }
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
@@ -527,6 +561,28 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
 
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(RGB) * 256);
+
+    if (data_ver < kRoomVersion_400_21)
+    {
+        room->RemapOldInteractions();
+        for (auto &hot : room->Hotspots)
+            hot.RemapOldInteractions();
+        for (auto &obj : room->Objects)
+            obj.RemapOldInteractions();
+        for (auto &reg : room->Regions)
+            reg.RemapOldInteractions();
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    room->ResolveEventHandlers();
+    for (auto &hot : room->Hotspots)
+        hot.ResolveEventHandlers();
+    for (auto &obj : room->Objects)
+        obj.ResolveEventHandlers();
+    for (auto &reg : room->Regions)
+        reg.ResolveEventHandlers();
+
     return HRoomFileError::None();
 }
 
@@ -597,14 +653,15 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt32(0); // legacy interaction vars
     out->WriteInt32(MAX_ROOM_REGIONS);
 
-    // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
-    room->EventHandlers->Write_v361(out);
+    // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection;
+    // if we want to use newer format, then we need to up the room format version too.
+    room->Interactions.Write_v361(out);
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
-        room->Hotspots[i].EventHandlers->Write_v361(out);
+        room->Hotspots[i].Interactions.Write_v361(out);
     for (const auto &obj : room->Objects)
-        obj.EventHandlers->Write_v361(out);
+        obj.Interactions.Write_v361(out);
     for (uint32_t i = 0; i < room->RegionCount; ++i)
-        room->Regions[i].EventHandlers->Write_v361(out);
+        room->Regions[i].Interactions.Write_v361(out);
 
     // Room object baselines
     for (const auto &obj : room->Objects)
@@ -758,6 +815,26 @@ void WriteExt_400_RoomNames(const RoomStruct *room, Stream *out)
     StrUtil::WriteString(room->Name, out);
 }
 
+void WriteExt_400_EventTables(const RoomStruct *room, Stream *out)
+{
+    room->Events.Write(out);
+    out->WriteInt32(room->HotspotCount);
+    for (size_t i = 0; i < room->HotspotCount; ++i)
+    {
+        room->Hotspots[i].Events.Write(out);
+    }
+    out->WriteInt32(static_cast<uint32_t>(room->Objects.size()));
+    for (size_t i = 0; i < room->Objects.size(); ++i)
+    {
+        room->Objects[i].Events.Write(out);
+    }
+    out->WriteInt32(room->RegionCount);
+    for (size_t i = 0; i < room->RegionCount; ++i)
+    {
+        room->Regions[i].Events.Write(out);
+    }
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)
@@ -791,6 +868,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     WriteRoomBlock(room, "v400_walkopts", WriteExt_400_WalkareaOpts, out);
     WriteRoomBlock(room, "v400_customprops", WriteExt_400_CustomProps, out);
     WriteRoomBlock(room, "v400_roomnames", WriteExt_400_RoomNames, out);
+    WriteRoomBlock(room, "v400_eventtables", WriteExt_400_EventTables, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

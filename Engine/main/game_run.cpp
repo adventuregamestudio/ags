@@ -226,7 +226,7 @@ static void game_loop_do_early_script_update()
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
         setevent(AGSEvent_Script(kTS_RepeatedlyExecute));
-        setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_Repexec));
+        setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_Repexec));
     }
 }
 
@@ -268,7 +268,7 @@ static bool game_loop_check_ground_level_interactions()
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
         // run Stands on Hotspot event
-        setevent(AGSEvent_Interaction(kIntEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
+        setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
 
         // check current region
         int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
@@ -283,15 +283,15 @@ static bool game_loop_check_ground_level_interactions()
             play.player_on_region = onRegion;
             // Walks Off last region
             if (oldRegion > 0)
-                RunRegionInteraction (oldRegion, 2);
+                RunRegionInteraction(oldRegion, kRegionEvent_WalkOff);
             // Walks Onto new region
             if (onRegion > 0)
-                RunRegionInteraction (onRegion, 1);
+                RunRegionInteraction(onRegion, kRegionEvent_WalkOn);
         }
 
         if (play.player_on_region > 0) // player stands on region
         {
-            RunRegionInteraction(play.player_on_region, 0);
+            RunRegionInteraction(play.player_on_region, kRegionEvent_Standing);
         }
 
         // one of the region interactions sent us to another room
@@ -905,7 +905,7 @@ static void check_room_edges(size_t numevents_was)
 
                     for (int ii = 0; ii < 4; ii++) {
                         if (edgesActivated[ii])
-                            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, ii));
+                            setevent(AGSEvent_Object(kObjEventType_Room, 0, ii));
                     }
             }
     }
@@ -1090,7 +1090,7 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         {
             int onhs = getloctype_index;
 
-            setevent(AGSEvent_Interaction(kIntEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
+            setevent(AGSEvent_Object(kObjEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
         }
     }
 
@@ -1130,10 +1130,10 @@ static void game_loop_update_events()
         switch (new_room_was)
         {
         case kEnterRoom_FirstTime: // first time enters screen
-            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_FirstEnter));
+            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
             /* fall-through */
         case kEnterRoom_Normal: // enters screen after fadein
-            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_AfterFadein));
+            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
             break;
         case kEnterRoom_RestoredSave:
             in_room_transition = false; // room transition ends here

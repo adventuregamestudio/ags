@@ -27,6 +27,17 @@ namespace AGS.Types
             list[index2] = temp;
         }
 
+        /// <summary>
+        /// Tries to get a value by a key from a dictionary, or returns "defValue" on failure.
+        /// </summary>
+        public static TValue TryGetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dic, TKey key, TValue defValue)
+        {
+            TValue value;
+            if (dic.TryGetValue(key, out value))
+                return value;
+            return defValue;
+        }
+
         public static T GetDefaultValue<T>(Type type, string propertyName, T defaultValue)
         {
             PropertyInfo property = type.GetProperty(propertyName);

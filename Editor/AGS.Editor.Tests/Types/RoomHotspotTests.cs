@@ -11,14 +11,14 @@ namespace AGS.Types
     [TestFixture]
     public class RoomHotspotTests
     {
-        private IChangeNotification _changeNotification;
+        private Room _room;
         private RoomHotspot _roomHotspot;
 
         [SetUp]
         public void SetUp()
         {
-            _changeNotification = Substitute.For<IChangeNotification>();
-            _roomHotspot = new RoomHotspot(_changeNotification);
+            _room = new Room(0);
+            _roomHotspot = new RoomHotspot(_room);
         }
 
         [TestCase(0)]
@@ -89,9 +89,9 @@ namespace AGS.Types
         [Test]
         public void ItemModified()
         {
-            _changeNotification.DidNotReceive();
+            Assert.That(_room.Modified, Is.EqualTo(false));
             ((IChangeNotification)_roomHotspot).ItemModified();
-            _changeNotification.Received();
+            Assert.That(_room.Modified, Is.EqualTo(true));
         }
 
         [TestCase("Hotspot 1", "hHotspot1", 0, 0)]
@@ -108,7 +108,7 @@ namespace AGS.Types
             </RoomHotspot>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomHotspot = new RoomHotspot(_changeNotification, doc.SelectSingleNode("RoomHotspot"));
+            _roomHotspot = new RoomHotspot(_room, doc.SelectSingleNode("RoomHotspot"));
 
             Assert.That(_roomHotspot.Description, Is.EqualTo(description));
             Assert.That(_roomHotspot.Name, Is.EqualTo(name));

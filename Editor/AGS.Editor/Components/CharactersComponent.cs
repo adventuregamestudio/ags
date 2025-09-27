@@ -396,27 +396,30 @@ namespace AGS.Editor.Components
         private void ScanAndReportMissingInteractionHandlers(GenericMessagesArgs args)
         {
             var errors = args.Messages;
+            var events = GameObjectEvents.GetEvents(typeof(Character));
             foreach (Character c in _agsEditor.CurrentGame.Characters)
             {
-                var funcs = _agsEditor.Tasks.FindInteractionHandlers(c.ScriptName, c.Interactions, true);
-                if (funcs == null || funcs.Length == 0)
+                var scriptFunctions = GameObjectEvents.GetScriptFunctions(c);
+                var funcs = _agsEditor.Tasks.FindEventHandlersForObject(c.ScriptName, scriptFunctions, true, c.ScriptModule);
+                if (funcs == null || funcs.Count == 0)
                     continue;
 
-                for (int i = 0; i < funcs.Length; ++i)
+                
+                foreach (var evt in events)
                 {
-                    bool has_interaction = !string.IsNullOrEmpty(c.Interactions.ScriptFunctionNames[i]);
-                    bool has_function = funcs[i].HasValue;
+                    bool has_interaction = scriptFunctions.ContainsKey(evt.Key) && !string.IsNullOrEmpty(scriptFunctions[evt.Key]);
+                    bool has_function = funcs.ContainsKey(evt.Key);
                     // If we have an assigned interaction function, but the function is not found - report a missing warning
                     if (has_interaction && !has_function)
                     {
-                        errors.Add(new CompileWarningWithGameObject($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[i]} function \"{c.Interactions.ScriptFunctionNames[i]}\" not found in script {c.Interactions.ScriptModule}.",
+                        errors.Add(new CompileWarningWithGameObject($"Character ({c.ID}) {c.ScriptName}'s event {evt.Key} function \"{scriptFunctions[evt.Key]}\" not found in script {c.ScriptModule}.",
                             "Character", c.ScriptName, true));
                     }
                     // If we don't have an assignment, but has a similar function - report a possible unlinked function
                     else if (!has_interaction && has_function)
                     {
-                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Character ({c.ID}) {c.ScriptName}'s Event pane",
-                            "Character", c.ScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[evt.Key].Name}\" looks like an event handler, but is not linked on Character ({c.ID}) {c.ScriptName}'s Event pane",
+                            "Character", c.ScriptName, funcs[evt.Key].ScriptName, funcs[evt.Key].Name, funcs[evt.Key].LineNumber));
                     }
                 }
             }

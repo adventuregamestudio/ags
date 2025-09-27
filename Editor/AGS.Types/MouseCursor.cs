@@ -7,10 +7,13 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("Image")]
-    public class MouseCursor
+    public class MouseCursor : ICustomTypeDescriptor
     {
         private string _name = string.Empty;
         private bool _standardMode = false;
+        private bool _createEvent = false;
+        private string _eventLabel = string.Empty;
+        private string _eventFunctionName = string.Empty;
         private int _id = 0;
         private int _image = 0;
         private int _hotspotX = 0, _hotspotY = 0;
@@ -56,6 +59,31 @@ namespace AGS.Types
         {
             get { return _standardMode; }
             set { _standardMode = value; }
+        }
+
+        [Description("This cursor mode creates interaction event for characters and other objects.")]
+        [Category("Design")]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool CreateEvent
+        {
+            get { return _createEvent; }
+            set { _createEvent = value; }
+        }
+
+        [Description("The label used for this event in the Property Grid. If left empty then cursor's own Name will be used instead")]
+        [Category("Design")]
+        public string EventLabel
+        {
+            get { return _eventLabel; }
+            set { _eventLabel = value; }
+        }
+
+        [Description("The name which will be used when generating a script function for this event. If left empty then cursor's own Name will be used instead")]
+        [Category("Design")]
+        public string EventFunctionName
+        {
+            get { return _eventFunctionName; }
+            set { _eventFunctionName = value; }
         }
 
         [Description("Sprite used to display the cursor")]
@@ -167,6 +195,86 @@ namespace AGS.Types
 				return cursorName;
 			}
         }
+
+        #region ICustomTypeDescriptor Members
+
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
+
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
+
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
+
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
+
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
+
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
+
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
+
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
+
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
+
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantProperties = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor property in properties)
+            {
+                bool wantThisProperty = true;
+                if ((property.Name == "EventLabel") || (property.Name == "EventFunctionName"))
+                {
+                    wantThisProperty = _createEvent;
+                }
+
+                if (wantThisProperty)
+                {
+                    wantProperties.Add(property);
+                }
+            }
+            return new PropertyDescriptorCollection(wantProperties.ToArray());
+        }
+
+        public PropertyDescriptorCollection GetProperties()
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, true);
+            return properties;
+        }
+
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
+
+        #endregion
 
         public MouseCursor(XmlNode node)
         {

@@ -898,33 +898,34 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Scans corresponding script module looking for the interaction functions.
-        /// Creates an array of FunctionLocations, which indexes correspond to interaction indexes.
+        /// Scans corresponding script module looking for the event functions.
+        /// Creates a dictionary of FunctionLocations with event names as keys.
         /// If checkDefaultMatches is true, then also scans for the default event function names,
-        /// otherwise only scans for the function names actually assigned to the interactions.
+        /// otherwise only scans for the function names actually assigned to the event.
         /// Returns null on any error.
         /// </summary>
-        public FunctionLocation?[] FindInteractionHandlers(string objectName, Interactions interactions, bool checkDefaultMatches)
+        public Dictionary<string, FunctionLocation> FindEventHandlersForObject(string objectName,
+            Dictionary<string, string> scriptFunctions, bool checkDefaultMatches,
+            string scriptModule, ScriptAutoCompleteData autoCompleteData = null)
         {
-            if (string.IsNullOrEmpty(interactions.ScriptModule))
-                return null;
-
             // We generate default function names for those interactions that *DO NOT* have a function linked.
-            var functionNames = checkDefaultMatches ?
-                interactions.ScriptFunctionNames
-                    .Select((f, i) => { return !string.IsNullOrEmpty(f) ? f : $"{objectName}_{interactions.FunctionSuffixes[i]}"; })
-                    .ToArray()
-                : interactions.ScriptFunctionNames;
-
-            return FindEventHandlers(interactions.ScriptModule, functionNames);
+            var lookupFunctionNames = checkDefaultMatches ?
+                scriptFunctions
+                    .Select(f => { return new KeyValuePair<string, string>(f.Key, !string.IsNullOrEmpty(f.Value) ? f.Value : $"{objectName}_{f.Key}"); })
+                    .ToDictionary(f => f.Key, f => f.Value)
+                : scriptFunctions;
+            if (autoCompleteData != null)
+                return FindEventHandlers(scriptModule, autoCompleteData, lookupFunctionNames);
+            else
+                return FindEventHandlers(scriptModule, lookupFunctionNames);
         }
 
         /// <summary>
         /// Scans the script module looking for the list of functions.
-        /// Creates an array of FunctionLocations, which indexes correspond to the input function name indexes.
+        /// Creates a dictionary of FunctionLocations with event names as keys.
         /// Returns null on any error.
         /// <returns></returns>
-        public FunctionLocation?[] FindEventHandlers(string scriptName, string[] functionNames)
+        public Dictionary<string, FunctionLocation> FindEventHandlers(string scriptName, Dictionary<string, string> functionNames)
         {
             Script script = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.GetScriptByFilename(scriptName);
             if (script == null || script.AutoCompleteData == null || !script.AutoCompleteData.Populated)
@@ -933,16 +934,20 @@ namespace AGS.Editor
             return FindEventHandlers(scriptName, script.AutoCompleteData, functionNames);
         }
 
-        public FunctionLocation?[] FindEventHandlers(string scriptName, ScriptAutoCompleteData scriptData, string[] functionNames)
+        public Dictionary<string, FunctionLocation> FindEventHandlers(string scriptName, ScriptAutoCompleteData scriptData, Dictionary<string, string> functionNames)
         {
             // FIXME: cannot get function line from ScriptToken.StartsAtCharacterIndex here
             // need to either add this to autocomplete, or rescan the file... which is going to be a lot of extra work
-            return functionNames
-                .Select(f => {
-                    var func = scriptData.FindFunction(f);
-                    return func != null ? new FunctionLocation(f, scriptName, 0) : (FunctionLocation?)null;
-                })
-                .ToArray();
+            var foundLoc = new Dictionary<string, FunctionLocation>();
+            foreach (var fn in functionNames)
+            {
+                var func = scriptData.FindFunction(fn.Value);
+                if (func != null)
+                {
+                    foundLoc.Add(fn.Key, new FunctionLocation(fn.Value, scriptName, 0));
+                }
+            }
+            return foundLoc;
         }
 
         /// <summary>

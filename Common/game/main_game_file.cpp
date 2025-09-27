@@ -509,6 +509,20 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
+    if (data_ver < kGameVersion_400_21)
+    {
+        // Configure standard cursors that have associated events
+        const std::array<bool, 10> cursor_event = {
+            false /* walk */, true /* look */, true /* interact */, true /* talk */,
+            true /* use inv */, true /* pickup */, false /* pointer */, false /* wait */,
+            true /* mode8 */, true /* mode9 */
+        };
+
+        for (int i = 0; i < game.numcursors && i < cursor_event.size(); ++i)
+        {
+            game.mcurs[i].flags |= MCF_EVENT * cursor_event[i];
+        }
+    }
 }
 
 void FixupSaveDirectory(GameSetupStruct &game)

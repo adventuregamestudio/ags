@@ -62,7 +62,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_9     = 2,
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
-    kGSSvgVersion_363       = 3060300
+    kGSSvgVersion_363       = 3060300,
+    kGSSvgVersion_363_02    = 3060302
 };
 
 // SavedLocationType defines the type of location which
@@ -313,6 +314,7 @@ struct GamePlayState
     HorAlignment dialog_options_textalign = kHAlignLeft;
     // Font of dialog options texts, if negative then use "normal font"
     int   dialog_options_font = 0;
+    int   dialog_options_zorder = INT32_MAX;
 
     // Dynamic custom property values for characters and items
     std::vector<AGS::Common::StringIMap> charProps;

@@ -218,6 +218,16 @@ void Dialog_SetOptionsTextAlignment(int align)
     play.dialog_options_textalign = (HorAlignment)align;
 }
 
+int Dialog_GetOptionsZOrder()
+{
+    return play.dialog_options_zorder;
+}
+
+void Dialog_SetOptionsZOrder(int zorder)
+{
+    play.dialog_options_zorder = zorder;
+}
+
 int Dialog_GetOptionsGap()
 {
     return game.options[OPT_DIALOGGAP];
@@ -1173,6 +1183,7 @@ void DialogOptions::Draw()
     // if we created a new bitmap then assign one to overlay.
     options_over->x = position.Left;
     options_over->y = position.Top;
+    options_over->zorder = play.dialog_options_zorder;
     if (new_options_bmp)
     {
         options_over->SetImage(std::move(new_options_bmp), options_have_alpha);
@@ -2086,6 +2097,16 @@ RuntimeScriptValue Sc_Dialog_SetOptionsTextAlignment(const RuntimeScriptValue *p
     API_SCALL_VOID_PINT(Dialog_SetOptionsTextAlignment);
 }
 
+RuntimeScriptValue Sc_Dialog_GetOptionsZOrder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Dialog_GetOptionsZOrder);
+}
+
+RuntimeScriptValue Sc_Dialog_SetOptionsZOrder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Dialog_SetOptionsZOrder);
+}
+
 RuntimeScriptValue Sc_Dialog_GetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Dialog_GetOptionsGap);
@@ -2201,6 +2222,8 @@ void RegisterDialogAPI()
         { "Dialog::set_OptionsReadColor",  API_FN_PAIR(Dialog_SetOptionsReadColor) },
         { "Dialog::get_OptionsTextAlignment", API_FN_PAIR(Dialog_GetOptionsTextAlignment) },
         { "Dialog::set_OptionsTextAlignment", API_FN_PAIR(Dialog_SetOptionsTextAlignment) },
+        { "Dialog::get_OptionsZOrder",    API_FN_PAIR(Dialog_GetOptionsZOrder) },
+        { "Dialog::set_OptionsZOrder",    API_FN_PAIR(Dialog_SetOptionsZOrder) },
         { "Dialog::get_ScriptName",       API_FN_PAIR(Dialog_GetScriptName) },
         { "Dialog::get_ShowTextParser",   API_FN_PAIR(Dialog_GetShowTextParser) },
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },

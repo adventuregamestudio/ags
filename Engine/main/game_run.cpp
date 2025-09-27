@@ -283,15 +283,15 @@ static bool game_loop_check_ground_level_interactions()
             play.player_on_region = onRegion;
             // Walks Off last region
             if (oldRegion > 0)
-                RunRegionInteraction (oldRegion, 2);
+                RunRegionInteraction(oldRegion, kRegionEvent_WalkOff);
             // Walks Onto new region
             if (onRegion > 0)
-                RunRegionInteraction (onRegion, 1);
+                RunRegionInteraction(onRegion, kRegionEvent_WalkOn);
         }
 
         if (play.player_on_region > 0) // player stands on region
         {
-            RunRegionInteraction(play.player_on_region, 0);
+            RunRegionInteraction(play.player_on_region, kRegionEvent_Standing);
         }
 
         // one of the region interactions sent us to another room

@@ -100,7 +100,8 @@ void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun
 // or alternatively of 'any_evt' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
 int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
-                         const ScriptEventsBase *chkany_handlers = nullptr, int any_evt = -1);
+                         const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
+int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult

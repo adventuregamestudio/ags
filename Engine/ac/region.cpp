@@ -210,7 +210,7 @@ void RunRegionInteraction(int regnum, int mood) {
     // was historically executing special region events (see RegionEventID)
     const auto obj_evt = ObjectEvent(kScTypeRoom, "region%d", regnum,
                                      RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion), mood);
-    run_event_script(obj_evt, &thisroom.Regions[regnum].Interactions, mood);
+    run_event_script(obj_evt, &thisroom.Regions[regnum].Events, mood);
 }
 
 void Region_RunInteraction(ScriptRegion *ssr, int mood) {

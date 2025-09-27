@@ -670,10 +670,12 @@ void RunObjectInteraction(int aa, int mood) {
 
     const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", aa,
                                      RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
-    if ((evnt >= 0) && run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt,
-                                        &thisroom.Objects[aa].Events, anyclick_evt) < 0)
+    if ((evnt >= 0) &&
+        run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt,
+                         &thisroom.Objects[aa].Events, anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
-    run_event_script(obj_evt, &thisroom.Objects[aa].Events, anyclick_evt); // any click on obj
+     // any click on obj
+    run_event_script(obj_evt, &thisroom.Objects[aa].Events, anyclick_evt);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {

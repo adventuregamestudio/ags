@@ -114,24 +114,25 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 }
 
 int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
-                        const ScriptEventsBase *chkany_handlers, int any_evt)
+                        const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event)
 {
     assert(handlers);
     if (!handlers)
         return 0;
 
-    const bool has_any = (chkany_handlers != nullptr && any_evt >= 0);
     if (evnt < 0 || static_cast<size_t>(evnt) >= handlers->Handlers.size() ||
             !handlers->Handlers[evnt].IsEnabled())
     {
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if (has_any && chkany_handlers->Handlers[has_any].IsEnabled())
+        if ((chkany_handlers != nullptr && any_evt >= 0 && any_evt < chkany_handlers->Handlers.size())
+            && chkany_handlers->Handlers[any_evt].IsEnabled())
             return 0;
 
-        // Otherwise, run unhandled_event
-        run_unhandled_event(obj_evt, evnt);
+        // Optionally, run unhandled_event
+        if (do_unhandled_event)
+            run_unhandled_event(obj_evt, evnt);
         return 0;
     }
 
@@ -151,6 +152,11 @@ int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handler
     if (room_was != play.room_changes)
         return -1;
     return 0;
+}
+
+int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event)
+{
+    return run_event_script(obj_evt, handlers, evnt, nullptr, -1, do_unhandled_event);
 }
 
 void SetupBuiltinTypeAliases()

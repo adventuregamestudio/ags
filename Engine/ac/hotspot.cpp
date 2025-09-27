@@ -158,10 +158,12 @@ void RunHotspotInteraction(int hotspothere, int mood)
 
     const auto obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspothere,
                                      RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
-    if ((evnt >= 0) && run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Interactions, evnt,
-                                        &thisroom.Hotspots[hotspothere].Events, anyclick_evt) < 0)
+    if ((evnt >= 0) &&
+        run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Interactions, evnt,
+                         &thisroom.Hotspots[hotspothere].Events, anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
-    run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Events, anyclick_evt); // any click on hotspot
+    // any click on hotspot
+    run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Events, anyclick_evt);
 }
 
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {

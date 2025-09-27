@@ -22,6 +22,9 @@ namespace AGS.Types
             _functionSuffix = functionSuffix;
         }
 
+        /// <summary>
+        /// Get a numeric interaction index, matching the Cursor's ID
+        /// </summary>
         public int Index { get { return _index; } }
         public string EventName { get { return _eventName; } }
         public string DisplayName { get { return _displayName; } }

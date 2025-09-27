@@ -3292,13 +3292,27 @@ void save_default_crm_file(Room ^room)
 void convert_interaction_scripts(Interactions ^interactions, ScriptEventHandlers &native_inter)
 {
     native_inter.ScriptModule = TextHelper::ConvertASCII(interactions->ScriptModule);
-    for each (InteractionEvent^ evt in interactions->Schema->Events)
+    native_inter.Handlers.clear();
+    if (interactions->ScriptFunctionNames->Count == 0)
+        return; // no assigned functions, no need to write anything
+    // When we write interactions event table, we use Cursor ID as an index,
+    // and write empty slots too, because we must keep a correct index at runtime.
+    cli::array<InteractionEvent ^> ^events = interactions->Schema->Events;
+    for (int index = 0, evt_index = 0; evt_index < events->Length; ++index)
     {
-        String ^funcName;
-        if (interactions->ScriptFunctionNames->TryGetValue(evt->EventName, funcName))
-            native_inter.Handlers.push_back(TextHelper::ConvertASCII(funcName));
+        if (events[evt_index]->Index == index)
+        {
+            String ^funcName;
+            if (interactions->ScriptFunctionNames->TryGetValue(events[evt_index]->EventName, funcName))
+                native_inter.Handlers.push_back(TextHelper::ConvertASCII(funcName));
+            else
+                native_inter.Handlers.push_back(AGSString()); // unassigned slot
+            evt_index++;
+        }
         else
-            native_inter.Handlers.push_back(AGSString());
+        {
+            native_inter.Handlers.push_back(AGSString()); // empty slot
+        }
     }
 }
 

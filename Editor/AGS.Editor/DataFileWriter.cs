@@ -778,20 +778,34 @@ namespace AGS.Editor
 
         static void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
         {
-            writer.Write((int)4000000); // kEventsTable_v400 version
+            writer.Write((int)3060200); // kEventsTable_v362 version (no change from 3.6.2+ yet)
             FilePutString(interactions.ScriptModule, writer);
-            // We write all interaction events here even if they miss a handler,
-            // because we must keep index sequence
-            writer.Write(interactions.Schema.Events.Length);
-            // Write interaction handlers in the order of events in Schema,
-            // which corresponds to the order of Cursors they are related to
-            foreach (var evt in interactions.Schema.Events)
+            if (interactions.ScriptFunctionNames.Count == 0)
             {
-                string funcName;
-                if (interactions.ScriptFunctionNames.TryGetValue(evt.EventName, out funcName))
-                    FilePutString(funcName, writer);
+                // No assigned functions: write an empty table
+                writer.Write(0);
+                return;
+            }
+            // When we write interactions event table, we use Cursor ID as an index,
+            // and write empty slots too, because we must keep a correct index at runtime.
+            var events = interactions.Schema.Events;
+            int topIndex = events.Select(evt => evt.Index).Max();
+            writer.Write(topIndex + 1);
+            for (int index = 0, eventIndex = 0; index <= topIndex; ++index)
+            {
+                if (events[eventIndex].Index == index)
+                {
+                    string funcName;
+                    if (interactions.ScriptFunctionNames.TryGetValue(events[eventIndex].EventName, out funcName))
+                        FilePutString(funcName, writer);
+                    else
+                        writer.Write((int)0); // unassigned slot
+                    eventIndex++;
+                }
                 else
-                    writer.Write((int)0); // zero string
+                {
+                    writer.Write((int)0); // ignored slot
+                }
             }
         }
 

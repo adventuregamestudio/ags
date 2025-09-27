@@ -134,7 +134,7 @@ namespace AGS.Editor
          * 
          * XML_VERSION versions:
          * 4.00.00.20     - start using version string again.
-         * 4.00.00.21     - cursors explicitly tell if they correspond to interaction events.
+         * 4.00.00.21     - New event tables; Cursors have "create event" property.
          *
         */
         public const string LATEST_XML_VERSION = "4.0.0.21";

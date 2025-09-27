@@ -59,7 +59,7 @@ void ScriptEventHandlers::Write_v361(Stream *out) const
 
 void ScriptEventHandlers::Write_v362(Stream *out) const
 {
-    out->WriteInt32(kEventsTable_Current);
+    out->WriteInt32(kEventsTable_v362);
     StrUtil::WriteString(ScriptModule, out);
     out->WriteInt32(static_cast<uint32_t>(Handlers.size()));
     for (const auto &evt : Handlers)

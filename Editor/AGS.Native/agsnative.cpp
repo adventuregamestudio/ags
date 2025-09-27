@@ -3353,7 +3353,7 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         std::vector<std::pair<AGSString, AGSString>> events = {
             { "OnAnyClick",         TextHelper::ConvertASCII(hotspot->OnAnyClick) },
             { "OnMouseMove",        TextHelper::ConvertASCII(hotspot->OnMouseMove) },
-            { "OnLOnWalkOneave",    TextHelper::ConvertASCII(hotspot->OnWalkOn) }
+            { "OnWalkOn",           TextHelper::ConvertASCII(hotspot->OnWalkOn) }
         };
         assign_valid_event_handlers(native_hotspot.Events, events);
     }

@@ -125,7 +125,7 @@ void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, in
 void run_room_event(int id)
 {
     auto obj_evt = ObjectEvent(kScTypeRoom);
-    run_event_script(obj_evt, &thisroom.Interactions, id);
+    run_event_script(obj_evt, &thisroom.Events, id);
 }
 
 // event list functions

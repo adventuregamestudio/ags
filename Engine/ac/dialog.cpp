@@ -20,6 +20,7 @@
 #include "ac/dialogtopic.h"
 #include "ac/display.h"
 #include "ac/draw.h"
+#include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
@@ -754,8 +755,8 @@ private:
     int linewrap_padding = 0; // padding sum used only for linewrapping
 
     std::unique_ptr<GUITextBox> parserInput;
-    IDriverDependantBitmap *ddb = nullptr;
-    std::unique_ptr<Bitmap> optionsBitmap;
+    bool options_have_alpha = false;
+    int options_overlay_id = -1;
 
     // List of displayed options and their precalculated states;
     // NOTE: this is only used in standard options render, not custom render
@@ -773,7 +774,6 @@ private:
 
     int curyp; // current (latest) draw position of a option text
     bool needRedraw;
-    bool wantRefresh; // FIXME: merge with needRedraw? or better names
     bool is_textwindow;
     bool is_normalgui;
     bool usingCustomRendering;
@@ -825,9 +825,8 @@ DialogOptions::DialogOptions(DialogTopic *dtop_, int dlgnum_, bool runGameLoopsI
 
 DialogOptions::~DialogOptions()
 {
-    if (ddb != nullptr)
-        gfxDriver->DestroyDDB(ddb);
-    optionsBitmap.reset();
+    if (options_overlay_id > 0)
+        remove_screen_overlay(options_overlay_id);
     parserInput.reset();
 }
 
@@ -873,8 +872,6 @@ void DialogOptions::Begin()
     bullet_wid = 0;
     bullet_picwid = 0;
     number_wid = 0;
-    ddb = nullptr;
-    optionsBitmap = nullptr;
     parserInput = nullptr;
     said_text = 0;
 
@@ -932,6 +929,7 @@ void DialogOptions::Begin()
             data_to_game_coord(ccDialogOptionsRendering.y),
             data_to_game_coord(ccDialogOptionsRendering.width),
             data_to_game_coord(ccDialogOptionsRendering.height));
+        options_have_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
@@ -942,6 +940,7 @@ void DialogOptions::Begin()
             // Text-window, so do the QFG4-style speech options
             is_textwindow = true;
             forecol = guib->GetFgColor();
+            options_have_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
 
             // TODO: we do not do CalcOptionsHeight() here in case of a textwindow,
             // because it requires adjustments done by draw_text_window (like padding).
@@ -956,6 +955,7 @@ void DialogOptions::Begin()
             areawid = guib->GetWidth() + normal_area_width_mod;
             linewrap_padding = play.dialog_options_pad_x + fixed_padding;
             CalcOptionsHeight(linewrap_padding);
+            options_have_alpha = guib->HasAlphaChannel();
 
             if (game.options[OPT_DIALOGUPWARDS])
             {
@@ -978,13 +978,17 @@ void DialogOptions::Begin()
             ui_view.GetHeight() - needheight,
             ui_view.GetWidth(),
             needheight);
+        options_have_alpha = false;
     }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
     init_position = position.GetLT();
     needRedraw = false;
-    wantRefresh = false;
     mouseison=-10;
+
+    std::unique_ptr<Bitmap> opt_bitmap(new Bitmap(
+        std::max(1, position.GetWidth()), std::max(1, position.GetHeight()), game.GetColorDepth()));
+    options_overlay_id = add_screen_overlay(false /* screen */, position.Left, position.Top, OVER_CUSTOM, std::move(opt_bitmap), options_have_alpha);
 
     // Disable rest of the game interface while the dialog options are displayed;
     // note that this also disables "overhotspot" labels update
@@ -999,37 +1003,24 @@ void DialogOptions::Begin()
 
 void DialogOptions::Draw()
 {
-    wantRefresh = true;
+    std::unique_ptr<Bitmap> new_options_bmp;
+    ScreenOverlay *options_over = get_overlay(options_overlay_id);
+    Bitmap *options_bmp = options_over->GetImage();
 
-    if (usingCustomRendering)
-    {
-        recycle_bitmap(optionsBitmap, game.GetColorDepth(),
-            std::max(1, data_to_game_coord(ccDialogOptionsRendering.width)),
-            std::max(1, data_to_game_coord(ccDialogOptionsRendering.height)));
-    }
-    else
-    {
-        recycle_bitmap(optionsBitmap, game.GetColorDepth(),
-            std::max(1, position.GetWidth()),
-            std::max(1, position.GetHeight()));
-    }
-
-    optionsBitmap->ClearTransparent();
     position.MoveTo(init_position);
     std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
 
     const Rect &ui_view = play.GetUIViewport();
 
-    bool options_surface_has_alpha = false;
-
     if (usingCustomRendering)
     {
+      options_bmp->ClearTransparent();
+
       // Custom dialog options rendering
       ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
       ccDialogOptionsRendering.surfaceAccessed = false;
-      dialogOptionsRenderingSurface->linkedBitmapOnly = optionsBitmap.get();
+      dialogOptionsRenderingSurface->linkedBitmapOnly = options_bmp;
       dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
-      options_surface_has_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
 
       renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
@@ -1043,7 +1034,7 @@ void DialogOptions::Draw()
         curyp = data_to_game_coord(ccDialogOptionsRendering.parserTextboxY);
         areawid = data_to_game_coord(ccDialogOptionsRendering.parserTextboxWidth);
         if (areawid == 0)
-          areawid = optionsBitmap->GetWidth();
+          areawid = options_bmp->GetWidth();
       }
       ccDialogOptionsRendering.needRepaint = false;
     }
@@ -1076,7 +1067,6 @@ void DialogOptions::Draw()
       // needs to draw the right text window, not the default
       std::unique_ptr<Bitmap> text_window_ds =
         draw_text_window(&txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
-      options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
       // since draw_text_window incrases the width, restore the inner placement
       areawid = savedwid;
 
@@ -1084,12 +1074,20 @@ void DialogOptions::Draw()
       // because it has its own padding property
       position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
       inner_position = Point(txoffs, tyoffs);
-      optionsBitmap = std::move(text_window_ds);
+      if (options_bmp->GetSize() == text_window_ds->GetSize())
+      {
+          options_bmp->Blit(text_window_ds.get());
+      }
+      else
+      {
+          new_options_bmp = std::move(text_window_ds);
+          options_bmp = new_options_bmp.get();
+      }
 
       // NOTE: presumably, txoffs and tyoffs are already offset by padding,
       // although it's not entirely reliable, because these calculations are done inside draw_text_window.
       const int opts_areawid = areawid - (2 * padding + 2);
-      curyp = write_dialog_options(optionsBitmap.get(), options_surface_has_alpha, inner_position.X, inner_position.Y, opts_areawid,
+      curyp = write_dialog_options(options_bmp, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
                                    bullet_wid, game.dialog_bullet, bullet_picwid,
                                    usingfont, linespacing, forecol,
                                    dtop, numdisp, mouseison, disporder, dispyp);
@@ -1099,41 +1097,28 @@ void DialogOptions::Draw()
     else
     {
       // Normal GUI or default surface
-      Bitmap *ds = optionsBitmap.get();
-      if (wantRefresh)
-      {
-        // redraw the background so that anti-alias fonts don't re-alias themselves
-        if (game.options[OPT_DIALOGIFACE] == 0)
-        {
-          // Default surface
-          color_t draw_color = ds->GetCompatibleColor(16);
-          ds->FillRect(RectWH(position.GetSize()), draw_color);
-        }
-        else
-        {
-          // Normal GUI
-          GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-          if (!guib->IsTextWindow())
-            draw_gui_for_dialog_options(ds, guib, 0, 0);
-        }
-      }
+      options_bmp->ClearTransparent();
 
-      if (game.options[OPT_DIALOGIFACE] > 0) 
+      Bitmap *ds = options_bmp;
+      // redraw the background so that anti-alias fonts don't re-alias themselves
+      if (game.options[OPT_DIALOGIFACE] == 0)
       {
-        // the whole GUI area should be marked dirty in order
-        // to ensure it gets drawn
-        GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        options_surface_has_alpha = guib->HasAlphaChannel();
+        // Default surface
+        color_t draw_color = ds->GetCompatibleColor(16);
+        ds->FillRect(RectWH(position.GetSize()), draw_color);
       }
       else
       {
-        options_surface_has_alpha = false;
+        // Normal GUI
+        GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
+        if (!guib->IsTextWindow())
+        draw_gui_for_dialog_options(ds, guib, 0, 0);
       }
 
       inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
       const int opts_areawid = areawid - (2 * linewrap_padding + 2);
       curyp = inner_position.Y;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, inner_position.X, inner_position.Y, opts_areawid,
+      curyp = write_dialog_options(ds, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
                                    bullet_wid, game.dialog_bullet, bullet_picwid,
                                    usingfont, linespacing, forecol,
                                    dtop, numdisp, mouseison, disporder, dispyp);
@@ -1161,20 +1146,18 @@ void DialogOptions::Draw()
 
       const int parserx = parserInput->GetX();
       const int parsery = parserInput->GetY();
-      Bitmap *ds = optionsBitmap.get();
+      Bitmap *ds = options_bmp;
       if (game.dialog_bullet)
       {
           if (ltr_position)
-            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx - bullet_wid, parsery, options_surface_has_alpha);
+            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx - bullet_wid, parsery, options_have_alpha);
           else
-            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery, options_surface_has_alpha);
+            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery, options_have_alpha);
       }
 
       parserInput->Draw(ds, parserx, parsery);
       parserInput->SetActivated(false);
     }
-
-    wantRefresh = false;
 
     // Apply custom GUI position (except when it's fully custom options rendering)
     if (!usingCustomRendering)
@@ -1185,7 +1168,19 @@ void DialogOptions::Draw()
             position.MoveToY(play.dialog_options_gui_y);
     }
 
-    ddb = recycle_ddb_bitmap(ddb, optionsBitmap.get(), options_surface_has_alpha, false);
+    // Update the overlay image: if we modified the pre-existing bitmap, then
+    // mark the sprite as changed (this will force texture update);
+    // if we created a new bitmap then assign one to overlay.
+    options_over->x = position.Left;
+    options_over->y = position.Top;
+    if (new_options_bmp)
+    {
+        options_over->SetImage(std::move(new_options_bmp), options_have_alpha);
+    }
+    else
+    {
+        options_over->MarkImageChanged();
+    }
 
     // FIXME: this operation, combined with the UpdateGameOnce/render calls
     // in Run() actually causes the scene to draw TWICE per game frame!
@@ -1194,7 +1189,7 @@ void DialogOptions::Draw()
     // update is mixed with the game update, noteably input events handling.
     if (runGameLoopsInBackground)
     {
-        render_graphics(ddb, position.Left, position.Top);
+        render_graphics();
     }
 }
 
@@ -1206,13 +1201,13 @@ bool DialogOptions::Run()
     // Optionally run full game update, otherwise only minimal auto & overlay update
     if (runGameLoopsInBackground)
     {
-        UpdateGameOnce(false, ddb, position.Left, position.Top);
+        UpdateGameOnce(false);
     }
     else
     {
         update_audio_system_on_game_loop();
         UpdateCursorAndDrawables();
-        render_graphics(ddb, position.Left, position.Top);
+        render_graphics();
     }
 
     // Stop the dialog options if wsa requested from script
@@ -1410,7 +1405,6 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     const eAGSKeyCode agskey = ki.Key;
     if (parserInput)
     {
-        wantRefresh = true;
         // type into the parser 
         // TODO: find out what are these key commands, and are these documented?
         if ((agskey == eAGSKeyCodeF3) || ((agskey == eAGSKeyCodeSpace) && (parserInput->GetText().GetLength() == 0)))
@@ -1540,10 +1534,11 @@ void DialogOptions::End()
     chose = CHOSE_TEXTPARSER;
   }
 
-  if (ddb != nullptr)
-    gfxDriver->DestroyDDB(ddb);
-  ddb = nullptr;
-  optionsBitmap.reset();
+  if (options_overlay_id >= 0)
+  {
+    remove_screen_overlay(options_overlay_id);
+    options_overlay_id = 0;
+  }
   parserInput.reset();
 
   set_mouse_cursor(curswas);

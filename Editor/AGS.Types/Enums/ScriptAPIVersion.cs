@@ -55,6 +55,8 @@ namespace AGS.Types
         v400_16 = 4000016,
         [Description("4.0.0 Alpha 22")]
         v400_18 = 4000018,
+        [Description("4.0.0 Alpha 25")]
+        v400_21 = 4000021,
         // Highest constant is used for automatic upgrade to new API when
         // the game is loaded in the newer version of the Editor
         [Description("Latest version")]

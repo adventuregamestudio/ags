@@ -236,9 +236,9 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
     // We clone only dynamic sprites, because it makes no sense to clone normal ones
     if (clone && ((game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) != 0))
     {
-        Bitmap *screeno = BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth());
+        std::unique_ptr<Bitmap> screeno(BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth()));
         screeno->Blit(spriteset[slot], 0, 0, transparent ? kBitmap_Transparency : kBitmap_Copy);
-        overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, screeno,
+        overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, std::move(screeno),
             (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
     }
     else
@@ -516,14 +516,9 @@ size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum)
     return add_screen_overlay_impl(roomlayer, x, y, type, sprnum, nullptr, 0, 0, false);
 }
 
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Bitmap *piccy, bool has_alpha)
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, bool has_alpha)
 {
-    return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::unique_ptr<Bitmap>(piccy), 0, 0, has_alpha);
-}
-
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Bitmap *piccy, int pic_offx, int pic_offy, bool has_alpha)
-{
-    return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::unique_ptr<Bitmap>(piccy), pic_offx, pic_offy, has_alpha);
+    return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::move(piccy), 0, 0, has_alpha);
 }
 
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy, bool has_alpha)

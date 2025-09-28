@@ -103,9 +103,11 @@
 
 #define STD_BUFFER_SIZE 2048
 
+#define LOCTYPE_NOTHING 0
 #define LOCTYPE_HOTSPOT 1
-#define LOCTYPE_CHAR 2
-#define LOCTYPE_OBJ  3
+#define LOCTYPE_CHAR    2
+#define LOCTYPE_OBJ     3
+#define LOCTYPE_INVITEM 4
 
 #define MAX_DYNAMIC_SURFACES 20
 

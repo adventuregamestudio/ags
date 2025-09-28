@@ -1219,7 +1219,7 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", chaa->index_id,
+    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_CHAR, chaa->index_id,
                                      RuntimeScriptValue().SetScriptObject(chaa, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &game.chars[chaa->index_id].interactions, evnt,

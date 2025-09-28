@@ -668,7 +668,7 @@ void RunObjectInteraction(int aa, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", aa,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, aa,
                                      RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt,

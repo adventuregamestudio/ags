@@ -790,36 +790,26 @@ bool get_can_run_delayed_command()
     return no_blocking_functions == 0;
 }
 
-void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
-
-    // TODO: reimplement this script callback's parameters! right now it's a total mess
-
+void run_unhandled_event(const ObjectEvent &obj_evt, int evnt)
+{
+    // FIXME: do not use a global variable here, pass as a function argument!
     if (play.check_interaction_only)
         return;
 
-    const char *evblockbasename = obj_evt.BlockName.GetCStr();
-    const int evblocknum = obj_evt.BlockID;
-    int evtype=0;
+    // No "unhandled event" for walk mode
+    if (evnt == MODE_WALK)
+        return;
 
-    if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
-    else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
-    else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;
-    else if (ags_strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
-    else if (ags_strnicmp(evblockbasename,"region",6)==0)
-        return;  // no unhandled_events for regions
+    int loc_type = obj_evt.ObjectTypeID;
+    int obj_id = obj_evt.ObjectID;
 
-    // clicked Hotspot 0, so change the type code
-    if ((evtype == 1) & (evblocknum == 0) & (evnt != 0) & (evnt != 5) & (evnt != 6))
-        evtype = 4;
-    if ((evtype==1) & ((evnt==0) | (evnt==5) | (evnt==6)))
-        ;  // character stands on hotspot, mouse moves over hotspot, any click
-    else if ((evtype==2) & (evnt==4)) ;  // any click on object
-    else if ((evtype==3) & (evnt==4)) ;  // any click on character
-    else if (evtype > 0) {
-        can_run_delayed_command();
-        RuntimeScriptValue params[] = { evtype, evnt };
-        QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
-    }
+    // Special case for Hotspot 0: change to "no location"
+    if (loc_type == LOCTYPE_HOTSPOT && obj_id == 0)
+        loc_type = LOCTYPE_NOTHING;
+
+    can_run_delayed_command();
+    RuntimeScriptValue params[] = { loc_type, evnt };
+    QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
 }
 
 ExecutingScript *get_executingscript()

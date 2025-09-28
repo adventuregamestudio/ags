@@ -156,7 +156,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
     else if ((mood != MODE_WALK) && (play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter, hotspothere);
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspothere,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,
                                      RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Interactions, evnt,

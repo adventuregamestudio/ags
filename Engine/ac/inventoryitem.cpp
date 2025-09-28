@@ -152,7 +152,7 @@ void RunInventoryInteraction(int iit, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeGame, "inventory%d", iit,
+    const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, iit,
                                      RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &game.invinfo[iit].interactions, evnt,

@@ -32,6 +32,8 @@ namespace AGS.Editor
             _character = characterToEdit;
             viewPreview1.IsCharacterView = true;
             viewPreview2.IsCharacterView = true;
+            viewPreview1.DynamicUpdates = true;
+            viewPreview2.DynamicUpdates = true;
             UpdateActivateCharacterText();
             UpdateViewPreview();
         }

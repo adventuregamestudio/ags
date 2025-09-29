@@ -169,6 +169,19 @@ void MarkInventoryForUpdate(int char_id, bool is_player)
     }
 }
 
+void MarkDisabledGUIForUpdate()
+{
+    for (auto &gui : guis)
+    {
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+        {
+            auto *gc = gui.GetControl(i);
+            if (!gc->IsEnabled())
+                gc->MarkChanged();
+        }
+    }
+}
+
 } // namespace GUI
 } // namespace Engine
 } // namespace AGS
@@ -605,8 +618,10 @@ void update_gui_disabled_status()
     if (disabled_state_was != GUI::Context.DisabledState)
     {
         // Mark guis for redraw and reset control-under-mouse detection
-        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-        if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
+        const bool keep_visuals = (disabled_state_was == kGuiDis_Undefined || disabled_state_was == kGuiDis_Unchanged)
+            && (GUI::Context.DisabledState == kGuiDis_Undefined || GUI::Context.DisabledState == kGuiDis_Unchanged);
+        GUIE::MarkAllGUIForUpdate(!keep_visuals, true);
+        if (!keep_visuals)
         {
             invalidate_screen();
         }

@@ -643,7 +643,7 @@ static void check_keyboard_controls()
     // it should be either a printable character or one of the textbox control keys
     // TODO: instead of making a preliminary check, just let each gui control
     // test the key and OnKeyPress return if it was handled?
-    if ((GUI::Context.DisabledState == kGuiDis_Undefined) &&
+    if (GUI::IsEnabledState() &&
         ((ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
          (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
@@ -831,11 +831,6 @@ static void update_cursor_over_gui()
     {
         if (!gui.IsDisplayed()) continue; // not on screen
         if (!gui.IsClickable()) continue; // don't update non-clickable
-        // Don't touch GUI if "GUIs Turn Off When Disabled"
-        if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-            (GUI::Context.DisabledState >= 0) &&
-            (gui.PopupStyle != kGUIPopupNoAutoRemove))
-            continue;
         gui.Poll(mousex, mousey);
     }
 }
@@ -1011,10 +1006,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
         play.screen_is_faded_out = 0;
 
-    set_our_eip(1014);
-
-    update_gui_disabled_status();
-
     set_our_eip(1004);
 
     game_loop_do_early_script_update();
@@ -1027,7 +1018,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if (!game_loop_check_ground_level_interactions())
         return; // update interrupted
 
-    mouse_on_iface=-1;
+    mouse_on_iface=-1; // FIXME: why is this here? move to a related update function!
 
     check_debug_keys();
 
@@ -1039,6 +1030,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // update gui under mouse; this also updates gui control focus;
     // atm we must call this before "check_controls", because GUI interaction
     // relies on remembering which control was focused by the cursor prior
+    update_gui_disabled_status();
     update_cursor_over_gui();
     // handle actual input (keys, mouse, and so forth)
     game_loop_check_controls(checkControls);
@@ -1062,7 +1054,10 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     // Only render if we are not skipping a cutscene
     if (!play.fast_forward)
+    {
+        update_gui_disabled_status(); // in case they changed it in the late script update
         render_graphics(extraBitmap, extraX, extraY);
+    }
 
     set_our_eip(6);
 

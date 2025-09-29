@@ -46,9 +46,7 @@ int GUIInvWindow::GetCharacterId() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
-    const bool enabled = GUI::IsGUIEnabled(this);
-    if (!enabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
-        return;
+    const bool draw_disabled = GUI::ShouldDrawDisabled(this);
 
     // backwards compatibility
     // TODO: find a way to not have this inside GUIInvWindow::Draw!
@@ -83,9 +81,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
         }
     }
 
-    if (!enabled &&
-        GUI::Options.DisabledStyle == kGuiDis_Greyout &&
-        play.inventory_greys_out == 1)
+    if (draw_disabled)
     {
         // darken the inventory when disabled
         GUI::DrawDisabledEffect(ds, RectWH(x, y, _width, _height));

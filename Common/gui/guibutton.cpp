@@ -200,21 +200,10 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
 
 void GUIButton::Draw(Bitmap *ds, int x, int y)
 {
-    bool draw_disabled = !GUI::IsGUIEnabled(this);
-
-    // if it's "Unchanged when disabled" or "GUI Off", don't grey out
-    if ((GUI::Options.DisabledStyle == kGuiDis_Unchanged) ||
-        (GUI::Options.DisabledStyle == kGuiDis_Off))
-    {
-        draw_disabled = false;
-    }
+    const bool draw_disabled = GUI::ShouldDrawDisabled(this);
     // TODO: should only change properties in reaction to particular events
     if (_currentImage <= 0 || draw_disabled)
         _currentImage = _image;
-
-    if (draw_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
-        // buttons off when disabled - no point carrying on
-        return;
 
     if (IsImageButton())
         DrawImageButton(ds, x, y, draw_disabled);
@@ -514,7 +503,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         }
     }
 
-    if ((draw_disabled) && (GUI::Options.DisabledStyle == kGuiDis_Greyout))
+    if (draw_disabled)
     {
         // darken the button when disabled
         const Size sz = spriteset.GetSpriteResolution(_currentImage);

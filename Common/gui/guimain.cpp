@@ -284,7 +284,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
 
 void GUIMain::DrawControls(Bitmap *ds)
 {
-    if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if (GUI::ShouldSkipControls())
         return; // don't draw GUI controls
 
     Bitmap tempbmp; // in case we need transforms
@@ -295,9 +295,12 @@ void GUIMain::DrawControls(Bitmap *ds)
         GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
         Size obj_size = objToDraw->GetSize();
 
-        if (!objToDraw->IsVisible() || (obj_size.Width <= 0 || obj_size.Height <= 0))
+        // Note that the control is invisible not only when Visible property is false,
+        // but also according to a combination of being disabled and some disabled gui modes
+        if (!GUI::IsGUIVisible(objToDraw))
             continue;
-        if (!objToDraw->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+        // Control's size is empty, no sense in drawing it
+        if (obj_size.IsNull())
             continue;
 
         if (GUI::Options.ClipControls && objToDraw->IsContentClipped())

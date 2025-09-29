@@ -642,8 +642,8 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking)
 {
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-        ((GUI::Context.DisabledState != kGuiDis_Undefined) || assume_blocking))
+    if ((GUI::Options.DisabledStyle == kGuiDis_Off) &&
+        (!IsInterfaceEnabled() || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
     // FIXME: should not we also account for the text's width here?
@@ -670,8 +670,8 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
 
 int adjust_y_for_guis(int y, bool assume_blocking)
 {
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-        ((GUI::Context.DisabledState >= 0) || assume_blocking))
+    if ((GUI::Options.DisabledStyle == kGuiDis_Off) &&
+        (!IsInterfaceEnabled() || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
     // FIXME: should not we also account for the text's height here?
@@ -693,9 +693,9 @@ int adjust_y_for_guis(int y, bool assume_blocking)
     return y;
 }
 
-int gui_get_interactable(int x,int y)
+int gui_get_interactable(int x, int y)
 {
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
+    if (GUI::Context.DisabledState == kGuiDis_Off)
         return -1;
     return GetGUIAt(x, y);
 }

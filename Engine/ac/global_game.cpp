@@ -588,6 +588,8 @@ int SetGameOption (int opt, int newval) {
         GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
         // If interface was disabled at this time then also update GUIs, as visual style could've changed
         update_gui_disabled_status();
+        // Also update all disabled controls (like buttons), in case they need to update their disabled effect
+        GUIE::MarkDisabledGUIForUpdate();
         break;
     case OPT_CROSSFADEMUSIC:
         if (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC)

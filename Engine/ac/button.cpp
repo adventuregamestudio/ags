@@ -83,11 +83,9 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     {
         // Wait until the animation completes.
         // Override disabled effect for the animating button and its parent GUI.
-        GUI::Context.GuiExcludedFromDisabled = guin;
-        GUI::Context.GuiControlExcludedFromDisabled = objn;
+        GUI::SetExcludedFromDisabled(butt, true);
         GameLoopUntilButAnimEnd(guin, objn);
-        GUI::Context.GuiExcludedFromDisabled = -1;
-        GUI::Context.GuiControlExcludedFromDisabled = -1;
+        GUI::SetExcludedFromDisabled(butt, false);
     }
 }
 

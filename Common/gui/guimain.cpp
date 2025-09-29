@@ -1177,6 +1177,23 @@ void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis)
     }
 }
 
+void SetExcludedFromDisabled(GUIObject *gc, bool on)
+{
+    if (on)
+    {
+        Context.GuiControlExcludedFromDisabled = gc->Id;
+        Context.GuiExcludedFromDisabled = gc->ParentId;
+    }
+    else
+    {
+        Context.GuiControlExcludedFromDisabled = -1;
+        Context.GuiExcludedFromDisabled = -1;
+    }
+
+    if (Context.DisabledState != kGuiDis_Undefined && Context.DisabledState != kGuiDis_Unchanged)
+        gc->MarkChanged();
+}
+
 } // namespace GUI
 
 } // namespace Common

@@ -428,6 +428,10 @@ namespace GUI
 
     // Rebuilds GUIs, connecting them to the child controls in memory.
     HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
+
+    // Exclude the given gui control from disabled state. This means that it will not
+    // be applied any "disabled" effect, nor will its parent GUI (if it matters).
+    void SetExcludedFromDisabled(GUIObject *gc, bool on);
 }
 
 } // namespace Common

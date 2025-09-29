@@ -284,7 +284,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
 
 void GUIMain::DrawControls(Bitmap *ds)
 {
-    if (GUI::ShouldSkipControls())
+    if (GUI::ShouldSkipControls(this))
         return; // don't draw GUI controls
 
     Bitmap tempbmp; // in case we need transforms

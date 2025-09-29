@@ -350,7 +350,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
 
 void GUIMain::DrawControls(Bitmap *ds)
 {
-    if (GUI::ShouldSkipControls())
+    if (GUI::ShouldSkipControls(this))
         return; // don't draw GUI controls
 
     Bitmap tempbmp; // in case we need transforms
@@ -1281,6 +1281,23 @@ void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis)
         gui.SetVisible(vis != kGUIVisibility_Off);
         gui.SetConceal(false);
     }
+}
+
+void SetExcludedFromDisabled(GUIObject *gc, bool on)
+{
+    if (on)
+    {
+        Context.GuiControlExcludedFromDisabled = gc->GetID();
+        Context.GuiExcludedFromDisabled = gc->GetParentID();
+    }
+    else
+    {
+        Context.GuiControlExcludedFromDisabled = -1;
+        Context.GuiExcludedFromDisabled = -1;
+    }
+
+    if (Context.DisabledState != kGuiDis_Undefined && Context.DisabledState != kGuiDis_Unchanged)
+        gc->MarkChanged();
 }
 
 } // namespace GUI

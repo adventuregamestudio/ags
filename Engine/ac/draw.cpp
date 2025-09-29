@@ -2374,16 +2374,15 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(GUIMain &gui)
 {
-    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if (GUI::ShouldSkipControls())
         return; // don't draw GUI controls
 
     int draw_index = guiobjddbref[gui.GetID()];
     for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
     {
         GUIObject *obj = gui.GetControl(i);
-        if (!obj->IsVisible() ||
-            (obj->GetSize().IsNull()) ||
-            (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+        if (!GUI::IsGUIVisible(obj) || // not visible, or hidden by disabled state
+            (obj->GetSize().IsNull()))
             continue;
         if (!obj->HasChanged())
             continue;
@@ -2413,7 +2412,7 @@ static void draw_gui_controls_batch(int gui_id)
     gfxDriver->DrawSprite(0, 0, gui_bg);
 
     // Don't draw child controls at all if disabled with kGuiDis_Blackout style
-    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if (GUI::ShouldSkipControls())
     {
         gfxDriver->EndSpriteBatch();
         return;
@@ -2424,10 +2423,10 @@ static void draw_gui_controls_batch(int gui_id)
     for (const auto &obj_id : gui.GetControlsDrawOrder())
     {
         GUIObject *obj = gui.GetControl(obj_id);
-        if (!obj->IsVisible() ||
-            (obj->GetSize().IsNull()) ||
-            (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+        if (!GUI::IsGUIVisible(obj) || // not visible, or hidden by disabled state
+            (obj->GetSize().IsNull()))
             continue;
+
         const auto &obj_tx = guiobjbg[draw_index + obj_id];
         auto *obj_ddb = obj_tx.Ddb;
         assert(obj_ddb); // Test for missing texture, might happen if not marked for update
@@ -2467,6 +2466,8 @@ void draw_gui_and_overlays()
     // Add GUIs
     set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
+        GUI::Options.GreyOutInvWindow = play.inventory_greys_out;
+
         set_our_eip(37);
         // Prepare and update GUI textures
         {
@@ -2523,14 +2524,11 @@ void draw_gui_and_overlays()
         for (int index = 0; index < game.numgui; ++index)
         {
             const auto &gui = guis[index];
-            if (!gui.IsDisplayed()) continue; // not on screen
-            if (gui.GetTransparency() == 255) continue; // 100% transparent
-
-            // Don't draw GUI if "GUIs Turn Off When Disabled"
-            if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-                (GUI::Context.DisabledState >= 0) &&
-                (gui.GetPopupStyle() != kGUIPopupNoAutoRemove))
+            // Don't draw GUI if it's not on, or it's a "GUIs Turn Off When Disabled" state
+            if (!GUI::IsGUIVisible(&gui))
                 continue;
+            if (gui.GetTransparency() == 255)
+                continue; // 100% transparent
 
             auto *gui_ddb = guibg[index].Ddb;
             assert(gui_ddb); // Test for missing texture, might happen if not marked for update

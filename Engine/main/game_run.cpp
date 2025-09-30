@@ -102,7 +102,7 @@ struct GameTimer
     // Real FPS (calculated from time between frames)
     float FPS = std::numeric_limits<float>::quiet_NaN();
     // FPS syncing: it's done periodically, not every frame
-    static const uint32_t FPSSyncPeriodMs = 1000u;
+    const uint32_t FPSSyncPeriodMs = 1000u;
     Clock::time_point LastFPSSyncTime = {};
     uint32_t LastFPSSyncCounter = 0u;
     // For runtime reference
@@ -1006,7 +1006,7 @@ static void game_loop_update_fps()
     const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - GameTimer.LastFPSSyncTime);
     const auto frames = GameTimer.LoopCounter - GameTimer.LastFPSSyncCounter;
 
-    if (duration >= std::chrono::milliseconds(GameTimer::FPSSyncPeriodMs) && frames > 0)
+    if (duration >= std::chrono::milliseconds(GameTimer.FPSSyncPeriodMs) && frames > 0)
     {
         GameTimer.FPS = 1000.0f * frames / duration.count();
         GameTimer.LastFPSSyncTime = now;

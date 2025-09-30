@@ -37,6 +37,9 @@
     <ClCompile Include="..\..\Common\test\utf8_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\gui_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\test\common_stubs.cpp">
       <Filter>Test</Filter>
     </ClCompile>

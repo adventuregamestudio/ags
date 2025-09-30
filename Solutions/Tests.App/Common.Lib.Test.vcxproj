@@ -24,6 +24,7 @@
     <ClCompile Include="..\..\Common\test\cmdlineopts_test.cpp" />
     <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
+    <ClCompile Include="..\..\Common\test\gui_test.cpp" />
     <ClCompile Include="..\..\Common\test\inifile_test.cpp" />
     <ClCompile Include="..\..\Common\test\math_test.cpp" />
     <ClCompile Include="..\..\Common\test\memory_test.cpp" />

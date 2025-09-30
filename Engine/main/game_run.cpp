@@ -96,10 +96,20 @@ extern char check_dynamic_sprites_at_exit;
 // Checks if wait mode should continue until condition is met
 static bool ShouldStayInWaitMode();
 
-float fps = std::numeric_limits<float>::quiet_NaN();
-static auto t1 = Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
-uint32_t loopcounter = 0u;
-static uint32_t lastcounter = 0u; // CHECKME: not sure if needed, review its use
+struct GameTimer
+{
+    uint32_t LoopCounter = 0u;
+    // Real FPS (calculated from time between frames)
+    float FPS = std::numeric_limits<float>::quiet_NaN();
+    // FPS syncing: it's done periodically, not every frame
+    static const uint32_t FPSSyncPeriodMs = 1000u;
+    Clock::time_point LastFPSSyncTime = {};
+    uint32_t LastFPSSyncCounter = 0u;
+    // For runtime reference
+    Clock::time_point StartTime = {};
+} static GameTimer;
+
+
 static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 
 #define UNTIL_ANIMEND   1
@@ -984,7 +994,7 @@ static void game_loop_update_background_animation()
 
 static void game_loop_update_loop_counter()
 {
-    loopcounter++;
+    GameTimer.LoopCounter++;
 
     if (play.wait_counter > 0) play.wait_counter--;
     if (play.shakesc_length > 0) play.shakesc_length--;
@@ -992,47 +1002,65 @@ static void game_loop_update_loop_counter()
 
 static void game_loop_update_fps()
 {
-    auto t2 = Clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-    auto frames = loopcounter - lastcounter;
+    const auto now = Clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - GameTimer.LastFPSSyncTime);
+    const auto frames = GameTimer.LoopCounter - GameTimer.LastFPSSyncCounter;
 
-    if (duration >= std::chrono::milliseconds(1000) && frames > 0) {
-        fps = 1000.0f * frames / duration.count();
-        t1 = t2;
-        lastcounter = loopcounter;
+    if (duration >= std::chrono::milliseconds(GameTimer::FPSSyncPeriodMs) && frames > 0)
+    {
+        GameTimer.FPS = 1000.0f * frames / duration.count();
+        GameTimer.LastFPSSyncTime = now;
+        GameTimer.LastFPSSyncCounter = GameTimer.LoopCounter;
     }
 }
 
-float get_game_fps() {
+float get_game_fps()
+{
     // if we have maxed out framerate then return the frame rate we're seeing instead
     // fps must be greater that 0 or some timings will take forever.
-    if (isTimerFpsMaxed() && fps > 0.0f) {
-        return fps;
+    if (isTimerFpsMaxed() && GameTimer.FPS > 0.0f)
+    {
+        return GameTimer.FPS;
     }
     return frames_per_second;
 }
 
-float get_real_fps() {
-    return fps;
+float get_real_fps()
+{
+    return GameTimer.FPS;
 }
 
-void set_loop_counter(uint32_t new_counter) {
-    loopcounter = new_counter;
-    lastcounter = loopcounter;
-    t1 = Clock::now();
-    fps = std::numeric_limits<float>::quiet_NaN();
+void set_loop_counter(uint32_t new_counter)
+{
+    GameTimer.LoopCounter = new_counter;
+    GameTimer.LastFPSSyncCounter = GameTimer.LoopCounter;
+    GameTimer.LastFPSSyncTime = Clock::now();
+    GameTimer.FPS = std::numeric_limits<float>::quiet_NaN();
 }
 
-void increment_loop_counter() {
-    loopcounter++;
-    lastcounter = loopcounter;
+void increment_loop_counter()
+{
+    GameTimer.LoopCounter++;
+    GameTimer.LastFPSSyncCounter = GameTimer.LoopCounter;
 }
 
-uint32_t get_loop_counter() {
-    return loopcounter;
+uint32_t get_loop_counter()
+{
+    return GameTimer.LoopCounter;
 }
 
-void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
+void set_runtime_start()
+{
+    GameTimer.StartTime = Clock::now();
+}
+
+uint32_t get_runtime_ms()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - GameTimer.StartTime).count();
+}
+
+void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+{
     sys_evt_process_pending();
 
     numEventsAtStartOfFunction = events.size();

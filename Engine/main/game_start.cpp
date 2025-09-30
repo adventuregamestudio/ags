@@ -64,6 +64,7 @@ void start_game() {
 
     set_our_eip(-42);
 
+    set_runtime_start();
     // skip ticks to account for initialisation or a restored game.
     skipMissedTicks();
 

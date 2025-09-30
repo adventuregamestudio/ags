@@ -234,6 +234,7 @@ add_library(AGS::Common ALIAS common)
 if(AGS_TESTS)
     add_executable(common_test
         test/cmdlineopts_test.cpp
+        test/common_stubs.cpp
         test/gfxdef_test.cpp
         test/inifile_test.cpp
         test/math_test.cpp

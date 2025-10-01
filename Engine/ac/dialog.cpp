@@ -747,9 +747,10 @@ private:
     int needheight; // height enough to accomodate dialog options texts
     // Backwards compatibility parameters (nasty stuff);
     // remove these whenever you don't care about keeping precise alignment in old games
-    int line_x_off = 0; // extra X offset for option lines
-    int area_width_off = 0; // extra reduction for the options drawable area
-    int fixed_padding = 0; // a fixed padding value added to the configurable property
+    int line_x_off = 0; // extra X offset for option lines (normal GUI or def surf)
+    int normal_area_width_mod = 0; // inc/dec for the options drawable area (normal GUI or def surf)
+    int tw_area_width_mod = 0; // inc/dec for the options drawable area (TextWindow case)
+    int fixed_padding = 0; // a fixed padding value added to the setup property (normal GUI or def surf)
     int linewrap_padding = 0; // padding sum used only for linewrapping
 
     std::unique_ptr<GUITextBox> parserInput;
@@ -883,7 +884,8 @@ void DialogOptions::Begin()
     if (loaded_game_file_version < kGameVersion_363)
     {
         line_x_off = 1; // extra X offset for option lines
-        area_width_off = 5; // extra reduction for the options text (for wrapping)
+        normal_area_width_mod = -5; // extra reduction for the options text (normal gui)
+        tw_area_width_mod = +4; // extra increment for the options text (textwindow)
         fixed_padding = TEXTWINDOW_PADDING_DEFAULT;
     }
 
@@ -951,7 +953,7 @@ void DialogOptions::Begin()
             is_normalgui = true;
             position = guib->GetRect();
 
-            areawid = guib->GetWidth() - area_width_off;
+            areawid = guib->GetWidth() + normal_area_width_mod;
             linewrap_padding = play.dialog_options_pad_x + fixed_padding;
             CalcOptionsHeight(linewrap_padding);
 
@@ -967,7 +969,7 @@ void DialogOptions::Begin()
     {
         // Default plain surface
         const Rect &ui_view = play.GetUIViewport();
-        areawid = ui_view.GetWidth() - area_width_off;
+        areawid = ui_view.GetWidth() + normal_area_width_mod;
         linewrap_padding = play.dialog_options_pad_x + fixed_padding;
         CalcOptionsHeight(linewrap_padding);
 
@@ -1057,8 +1059,8 @@ void DialogOptions::Draw()
         if (longestline > biggest)
           biggest = longestline;
       }
-      if (biggest < areawid - ((2*padding + 2)+bullet_wid))
-        areawid = biggest + ((2*padding + 2)+bullet_wid);
+      if (biggest < areawid - ((2*padding + 2 + tw_area_width_mod)+bullet_wid))
+        areawid = biggest + ((2*padding + 2 + tw_area_width_mod)+bullet_wid);
 
       areawid = std::max(areawid, data_to_game_coord(play.min_dialogoption_width));
 
@@ -1075,13 +1077,13 @@ void DialogOptions::Draw()
       Bitmap *text_window_ds = nullptr;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
       options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
-      // since draw_text_window incrases the width, restore the relative placement
-      areawid -= ((areawid - savedwid) / 2);
+      // since draw_text_window incrases the width, restore the inner placement
+      areawid = savedwid;
 
       // Ignore the dialog_options_pad_x/y offsets when using a text window
       // because it has its own padding property
       position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
-      inner_position = Point(txoffs + line_x_off, tyoffs);
+      inner_position = Point(txoffs, tyoffs);
       optionsBitmap.reset(text_window_ds);
 
       // NOTE: presumably, txoffs and tyoffs are already offset by padding,

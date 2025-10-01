@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/screenoverlay.h"
 #include "ac/dynamicsprite.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
@@ -75,6 +76,11 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha
         _sprnum = add_dynamic_sprite(std::move(pic), has_alpha, SPF_OBJECTOWNED);
     }
     MarkChanged();
+}
+
+void ScreenOverlay::MarkImageChanged()
+{
+    game_sprite_updated(_sprnum);
 }
 
 void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)

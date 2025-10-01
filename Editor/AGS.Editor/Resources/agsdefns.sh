@@ -2340,6 +2340,8 @@ builtin managed struct Dialog {
   import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the horizontal alignment of each dialog option's text
   import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
+  import static attribute int OptionsZOrder; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v363
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

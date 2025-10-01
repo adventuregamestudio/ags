@@ -89,10 +89,11 @@ struct ScreenOverlay
         on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
              _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
-    // Gets actual overlay's image, whether owned by overlay or by a sprite reference
+    // Gets actual overlay's image
     Common::Bitmap *GetImage() const;
     // Get this overlay's sprite id
     int  GetSpriteNum() const { return _sprnum; }
+    // Get this overlay's graphical dimensions
     Size GetGraphicSize() const;
     // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
     // in a sprite cache, but owned by this overlay and therefore disposed at its disposal
@@ -105,6 +106,8 @@ struct ScreenOverlay
     void MarkChanged() { _hasChanged = true; }
     // Clears changed flag
     void ClearChanged() { _hasChanged = false; }
+    // Marks that the overlay's image has changed and the texture has to be updated
+    void MarkImageChanged();
 
     void ReadFromSavegame(Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

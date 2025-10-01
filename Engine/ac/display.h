@@ -127,7 +127,7 @@ DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech)
 // but this should not be done here at all.
 // FIXME: xx is allowed to be passed as OVR_AUTOPLACE, which has special meaning,
 // but that's a confusing use of this argument.
-Common::Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
+std::unique_ptr<Common::Bitmap> create_textual_image(const char *text, const DisplayTextLooks &look, color_t text_color,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont,
     bool &alphaChannel, const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
@@ -175,15 +175,13 @@ int get_textwindow_border_width (int twgui);
 // get the hegiht of the text window's top border
 int get_textwindow_top_border_height (int twgui);
 // draw_text_window: draws the normal or custom text window
-// create a new bitmap the size of the window before calling, and
-//   point text_window_ds to it
-// returns text start x & y pos in parameters
-// Warning!: draw_text_window() and draw_text_window_and_bar() can create new text_window_ds
-void draw_text_window(Common::Bitmap **text_window_ds, bool should_free_ds, int*xins,int*yins,int*xx,int*yy,int*wii,
-    color_t *set_text_color,int ovrheight, int ifnum, const DisplayVars &disp);
-void draw_text_window_and_bar(Common::Bitmap **text_window_ds, bool should_free_ds,
-                              const TopBarSettings *topbar, const DisplayVars &disp,
-                              int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight=0, int ifnum=-1);
+// creates and returns a new bitmap
+// assings text start x & y pos in parameters
+std::unique_ptr<Common::Bitmap> draw_text_window(int *xins, int *yins, int *xx, int *yy, int *wii,
+    color_t *set_text_color, int ovrheight, int ifnum, const DisplayVars &disp);
+std::unique_ptr<Common::Bitmap> draw_text_window_and_bar(const TopBarSettings *topbar,
+    const DisplayVars &disp, int *xins,int *yins, int *xx, int *yy, int *wii, color_t *set_text_color,
+    int ifnum =- 1);
 int get_textwindow_padding(int ifnum);
 
 // The efficient length of the last source text prepared for display

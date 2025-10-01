@@ -101,13 +101,13 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
     bool has_alpha = false;
-    Bitmap *image = create_textual_image(draw_text,
+    std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
         DisplayTextLooks(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink),
         text_color, dummy_x, dummy_y, adj_x, adj_y,
         width, fontid, has_alpha, nullptr);
 
     // Update overlay properties
-    over.SetImage(std::unique_ptr<Bitmap>(image), has_alpha, adj_x - dummy_x, adj_y - dummy_y);
+    over.SetImage(std::move(image), has_alpha, adj_x - dummy_x, adj_y - dummy_y);
 }
 
 int Overlay_GetX(ScriptOverlay *scover)
@@ -236,9 +236,9 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
     // We clone only dynamic sprites, because it makes no sense to clone normal ones
     if (clone && ((game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) != 0))
     {
-        Bitmap *screeno = BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth());
+        std::unique_ptr<Bitmap> screeno(BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth()));
         screeno->Blit(spriteset[slot], 0, 0, transparent ? kBitmap_Transparency : kBitmap_Copy);
-        overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, screeno,
+        overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, std::move(screeno),
             (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
     }
     else
@@ -448,8 +448,8 @@ ScreenOverlay *get_overlay(int type)
         screenover[type].type >= 0) ? &screenover[type] : nullptr;
 }
 
-size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
-    int pic_offx, int pic_offy, bool has_alpha)
+size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum,
+    std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy, bool has_alpha)
 {
     if (type == OVER_CUSTOM)
     {
@@ -472,7 +472,7 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
     over.type = type;
     if (piccy)
     {
-        over.SetImage(std::unique_ptr<Bitmap>(piccy), has_alpha, pic_offx, pic_offy);
+        over.SetImage(std::move(piccy), has_alpha, pic_offx, pic_offy);
     }
     else
     {
@@ -516,14 +516,14 @@ size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum)
     return add_screen_overlay_impl(roomlayer, x, y, type, sprnum, nullptr, 0, 0, false);
 }
 
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Bitmap *piccy, bool has_alpha)
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, bool has_alpha)
 {
-    return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, 0, 0, has_alpha);
+    return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::move(piccy), 0, 0, has_alpha);
 }
 
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool has_alpha)
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy, bool has_alpha)
 {
-    return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, pic_offx, pic_offy, has_alpha);
+    return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::move(piccy), pic_offx, pic_offy, has_alpha);
 }
 
 Point get_overlay_position(const ScreenOverlay &over)

@@ -1004,29 +1004,38 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    for (size_t macro_at = text.FindChar('@'); macro_at != String::NoIndex; macro_at = text.FindChar('@', macro_at))
+    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
-        size_t macro_end = text.FindChar('@', macro_at + 1);
+        const size_t macro_at = scan_at + 1;
+        const size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
         if (macro_end == String::NoIndex)
         {
             // Malformed macro string, stop
             break;
         }
+        if (macro_end == macro_at)
+        {
+            // Zero-length substring, ignore and continue from the last '@'
+            continue;
+        }
 
         // Test which macro is it
-        const size_t macro_len = macro_end - ++macro_at;
-        if (text.CompareMidNoCase("gamename", macro_at, macro_len) == 0)
+        const size_t macro_len = macro_end - macro_at;
+        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
             macro_flags |= kLabelMacro_Gamename;
-        else if (text.CompareMidNoCase("overhotspot", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
             macro_flags |= kLabelMacro_Overhotspot;
-        else if (text.CompareMidNoCase("score", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("score", macro_at, macro_len))
             macro_flags |= kLabelMacro_Score;
-        else if (text.CompareMidNoCase("scoretext", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("scoretext", macro_at, macro_len))
             macro_flags |= kLabelMacro_ScoreText;
-        else if (text.CompareMidNoCase("totalscore", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("totalscore", macro_at, macro_len))
             macro_flags |= kLabelMacro_TotalScore;
+        else
+            continue; // no matching macro, ignore and continue from the last '@'
 
-        macro_at = macro_end + 1;
+        // If macro was resolved, then search for the next @...@ pair
+        scan_at = text.FindChar('@', macro_end + 1);
     }
     return (GUILabelMacro)macro_flags;
 }
@@ -1035,34 +1044,43 @@ String ResolveMacroTokens(const String &text)
 {
     String resolved_text;
     size_t text_at = 0u;
-    for (size_t macro_at = text.FindChar('@'); macro_at != String::NoIndex; macro_at = text.FindChar('@', text_at))
+    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
-        size_t macro_end = text.FindChar('@', macro_at + 1);
+        const size_t macro_at = scan_at + 1;
+        const size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
         if (macro_end == String::NoIndex)
         {
             // Malformed macro string, stop
             break;
         }
+        if (macro_end == macro_at)
+        {
+            // Zero-length substring, ignore and continue from the last '@'
+            continue;
+        }
 
         // Copy literal text (if there's any between macros)
-        resolved_text.Append(text.Mid(text_at, macro_at - text_at));
+        resolved_text.Append(text.Mid(text_at, macro_at - 1 - text_at));
+        text_at = macro_at - 1;
 
         // Test which macro is it
-        const size_t macro_len = macro_end - ++macro_at;
-        if (text.CompareMidNoCase("gamename", macro_at, macro_len) == 0)
+        const size_t macro_len = macro_end - macro_at;
+        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
             resolved_text.Append(GUI::Context.GameTitle);
-        else if (text.CompareMidNoCase("overhotspot", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
             resolved_text.Append(GUI::Context.Overhotspot);
-        else if (text.CompareMidNoCase("score", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("score", macro_at, macro_len))
             resolved_text.AppendFmt("%d", GUI::Context.Score);
-        else if (text.CompareMidNoCase("scoretext", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("scoretext", macro_at, macro_len))
             resolved_text.AppendFmt("%d of %d", GUI::Context.Score, GUI::Context.TotalScore);
-        else if (text.CompareMidNoCase("totalscore", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("totalscore", macro_at, macro_len))
             resolved_text.AppendFmt("%d", GUI::Context.TotalScore);
         else
-            resolved_text.Append(text.Mid(macro_at - 1, macro_len + 2));
+            continue; // no matching macro, continue from the last '@'
 
+        // If macro was resolved, then search for the next @...@ pair
         text_at = macro_end + 1;
+        scan_at = text.FindChar('@', macro_end + 1);
     }
 
     // Copy trailing literal text (if there's any)

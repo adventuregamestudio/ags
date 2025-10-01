@@ -727,7 +727,7 @@ public:
     int GetChosenOption() const { return chose; }
 
 private:
-    void CalcOptionsHeight(int padding);
+    int CalcOptionsHeight(int padding);
     // Process all the buffered input events; returns if handled
     bool RunControls();
     // Process single key event; returns if handled
@@ -768,6 +768,10 @@ private:
     bool options_have_alpha = false;
     int options_overlay_id = -1;
 
+    // Text window essentials
+    std::unique_ptr<Bitmap> text_window;
+    Point text_window_offset;
+
     // List of displayed options and their precalculated states;
     // NOTE: this is only used in standard options render, not custom render
     // display order of options
@@ -796,7 +800,7 @@ private:
     int mouseison;
 };
 
-void DialogOptions::CalcOptionsHeight(int padding)
+int DialogOptions::CalcOptionsHeight(int padding)
 {
     // According to the options drawing logic:
     // * the distance between LINES in a multiline option is font linespacing;
@@ -805,7 +809,7 @@ void DialogOptions::CalcOptionsHeight(int padding)
     //   after the last option;
     // * IF there's no parser, then we add *font's graphical height* + OPT_DIALOGGAP,
     //   to ensure that the text is not going to be cut off visually.
-    needheight = 0;
+    int needheight = 0;
     int total_lines = 0;
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
@@ -824,6 +828,7 @@ void DialogOptions::CalcOptionsHeight(int padding)
     {
         needheight += get_text_lines_height(usingfont, 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
     }
+    return needheight;
 }
 
 DialogOptions::DialogOptions(DialogTopic *dtop_, int dlgnum_, bool runGameLoopsInBackground_)
@@ -951,10 +956,37 @@ void DialogOptions::Begin()
             is_textwindow = true;
             forecol = guib->GetFgColor();
             options_have_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
+            const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
+            // Find the widest options line that will be in the text window,
+            // and adjust the area width to that line's width, while clamping to min,max range
+            const int max_width = data_to_game_coord(play.max_dialogoption_width);
+            int max_line_width = 0;
+            for (int i = 0; i < numdisp; ++i)
+            {
+                const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+                break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
+                max_line_width = std::max(max_line_width, longestline);
+            }
+            areawid = max_line_width + ((2 * padding + 2 + tw_area_width_mod) + bullet_wid);
+            areawid = Math::Clamp(areawid, data_to_game_coord(play.min_dialogoption_width),
+                data_to_game_coord(play.max_dialogoption_width));
+            needheight = CalcOptionsHeight(padding);
 
-            // TODO: we do not do CalcOptionsHeight() here in case of a textwindow,
-            // because it requires adjustments done by draw_text_window (like padding).
-            // refactoring draw_text_window() may solve this issue.
+            const int savedwid = areawid;
+            const Rect &ui_view = play.GetUIViewport();
+            int txoffs = 0, tyoffs = 0, yspos = ui_view.GetHeight() / 2 - (2 * padding + needheight) / 2;
+            int xspos = ui_view.GetWidth() / 2 - areawid / 2;
+            // shift window to the right if QG4-style full-screen pic
+            if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) && (said_text > 0))
+                xspos = (ui_view.GetWidth() - areawid) - get_fixed_pixel_size(10);
+
+            // needs to draw the right text window, not the default
+            text_window =
+                draw_text_window(&txoffs, &tyoffs, &xspos, &yspos, &areawid, nullptr, needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
+            // since draw_text_window incrases the width, restore the inner placement
+            areawid = savedwid;
+            position = RectWH(xspos, yspos, text_window->GetWidth(), text_window->GetHeight());
+            text_window_offset = Point(txoffs, tyoffs);
         }
         else
         {
@@ -964,7 +996,7 @@ void DialogOptions::Begin()
 
             areawid = guib->GetWidth() + normal_area_width_mod;
             linewrap_padding = play.dialog_options_pad_x + fixed_padding;
-            CalcOptionsHeight(linewrap_padding);
+            needheight = CalcOptionsHeight(linewrap_padding);
             options_have_alpha = guib->HasAlphaChannel();
 
             if (game.options[OPT_DIALOGUPWARDS])
@@ -981,7 +1013,7 @@ void DialogOptions::Begin()
         const Rect &ui_view = play.GetUIViewport();
         areawid = ui_view.GetWidth() + normal_area_width_mod;
         linewrap_padding = play.dialog_options_pad_x + fixed_padding;
-        CalcOptionsHeight(linewrap_padding);
+        needheight = CalcOptionsHeight(linewrap_padding);
 
         position = RectWH(
             0,
@@ -1013,14 +1045,11 @@ void DialogOptions::Begin()
 
 void DialogOptions::Draw()
 {
-    std::unique_ptr<Bitmap> new_options_bmp;
     ScreenOverlay *options_over = get_overlay(options_overlay_id);
     Bitmap *options_bmp = options_over->GetImage();
 
     position.MoveTo(init_position);
     std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
-
-    const Rect &ui_view = play.GetUIViewport();
 
     if (usingCustomRendering)
     {
@@ -1050,50 +1079,14 @@ void DialogOptions::Draw()
     }
     else if (is_textwindow)
     {
+      // Draw the text window on background
+      options_bmp->Blit(text_window.get());
+
       // Text window behind the options
-      areawid = data_to_game_coord(play.max_dialogoption_width);
-      int biggest = 0;
       const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
-      for (int i = 0; i < numdisp; ++i) {
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
-        break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
-        if (longestline > biggest)
-          biggest = longestline;
-      }
-      if (biggest < areawid - ((2*padding + 2 + tw_area_width_mod)+bullet_wid))
-        areawid = biggest + ((2*padding + 2 + tw_area_width_mod)+bullet_wid);
-
-      areawid = std::max(areawid, data_to_game_coord(play.min_dialogoption_width));
-
-      CalcOptionsHeight(padding);
-
-      const int savedwid = areawid;
-      int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;
-      int xspos = ui_view.GetWidth()/2 - areawid/2;
-      // shift window to the right if QG4-style full-screen pic
-      if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) && (said_text > 0))
-        xspos = (ui_view.GetWidth() - areawid) - get_fixed_pixel_size(10);
-
-      // needs to draw the right text window, not the default
-      std::unique_ptr<Bitmap> text_window_ds =
-        draw_text_window(&txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE], DisplayVars());
-      // since draw_text_window incrases the width, restore the inner placement
-      areawid = savedwid;
-
       // Ignore the dialog_options_pad_x/y offsets when using a text window
-      // because it has its own padding property
-      position = RectWH(xspos, yspos, text_window_ds->GetWidth(), text_window_ds->GetHeight());
-      inner_position = Point(txoffs, tyoffs);
-      if (options_bmp->GetSize() == text_window_ds->GetSize())
-      {
-          options_bmp->Blit(text_window_ds.get());
-      }
-      else
-      {
-          new_options_bmp = std::move(text_window_ds);
-          options_bmp = new_options_bmp.get();
-      }
-
+      // because it has its own padding + border gfx
+      inner_position = text_window_offset;
       // NOTE: presumably, txoffs and tyoffs are already offset by padding,
       // although it's not entirely reliable, because these calculations are done inside draw_text_window.
       const int opts_areawid = areawid - (2 * padding + 2);
@@ -1121,7 +1114,6 @@ void DialogOptions::Draw()
       {
         // Normal GUI
         GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        if (!guib->IsTextWindow())
         draw_gui_for_dialog_options(ds, guib, 0, 0);
       }
 
@@ -1178,20 +1170,11 @@ void DialogOptions::Draw()
             position.MoveToY(play.dialog_options_gui_y);
     }
 
-    // Update the overlay image: if we modified the pre-existing bitmap, then
-    // mark the sprite as changed (this will force texture update);
-    // if we created a new bitmap then assign one to overlay.
+    // Mark the overlay's image as changed and update its position
     options_over->x = position.Left;
     options_over->y = position.Top;
     options_over->zorder = play.dialog_options_zorder;
-    if (new_options_bmp)
-    {
-        options_over->SetImage(std::move(new_options_bmp), options_have_alpha);
-    }
-    else
-    {
-        options_over->MarkImageChanged();
-    }
+    options_over->MarkImageChanged();
 }
 
 bool DialogOptions::Run()

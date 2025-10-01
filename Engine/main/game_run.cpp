@@ -107,6 +107,7 @@ struct GameTimer
     uint32_t LastFPSSyncCounter = 0u;
     // For runtime reference
     Clock::time_point StartTime = {};
+    bool RuntimeStarted = false;
 } static GameTimer;
 
 
@@ -1052,6 +1053,12 @@ uint32_t get_loop_counter()
 void set_runtime_start()
 {
     GameTimer.StartTime = Clock::now();
+    GameTimer.RuntimeStarted = true;
+}
+
+bool is_runtime_set()
+{
+    return GameTimer.RuntimeStarted;
 }
 
 uint32_t get_runtime_ms()

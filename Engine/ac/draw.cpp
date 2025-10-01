@@ -2324,6 +2324,10 @@ void dispose_engine_overlay()
 
 void draw_fps(const Rect &viewport)
 {
+    // We may be at preload pic display, where nor game updates neither re-renders are run.
+    if (!is_runtime_set())
+        return;
+
     const int font = FONT_NORMAL;
     auto &fpsDisplay = gl_DrawFPS.bmp;
     if (fpsDisplay == nullptr || gl_DrawFPS.font != font)

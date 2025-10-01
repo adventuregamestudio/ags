@@ -652,7 +652,7 @@ void DialogOptions::Show()
     wantRefresh = false;
     mouseison=-10;
 
-    Redraw();
+    Redraw(); // prepare the options texture prior to the first Run()
     while(Run());
 
     // Close custom dialog options
@@ -859,11 +859,6 @@ void DialogOptions::Redraw()
       ddb = gfxDriver->CreateDDBFromBitmap(subBitmap, options_surface_has_alpha, false);
     else
       gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, options_surface_has_alpha);
-
-    if (runGameLoopsInBackground)
-    {
-        render_graphics(ddb, dirtyx, dirtyy);
-    }
 }
 
 bool DialogOptions::Run()
@@ -872,6 +867,12 @@ bool DialogOptions::Run()
     sys_evt_process_pending();
 
     // Optionally run full game update, otherwise only minimal auto & overlay update
+    // NOTE: the redrawing of the dialog options themselves is a bit off here in this code:
+    // it happens AFTER we update the rest of the game, and stored on the dialog options
+    // texture, which will become updated on screen during the *next* Run().
+    // But technically there's no wait between options redraw and next update.
+    // The wait is between update and next options redraw... We might benefit from
+    // another code restructure here.
     if (runGameLoopsInBackground)
     {
         play.disabled_user_interface++;
@@ -880,9 +881,13 @@ bool DialogOptions::Run()
     }
     else
     {
+        update_polled_stuff();
         update_audio_system_on_game_loop();
         UpdateCursorAndDrawables();
         render_graphics(ddb, dirtyx, dirtyy);
+
+        if (!play.fast_forward)
+            WaitForNextFrame();
     }
 
     needRedraw = false;
@@ -1004,12 +1009,6 @@ bool DialogOptions::Run()
     if (needRedraw)
         Redraw();
 
-    // Go for another options loop round
-    update_polled_stuff();
-    if (!runGameLoopsInBackground && (play.fast_forward == 0))
-    { // NOTE: if runGameLoopsInBackground then it's called inside UpdateGameOnce
-        WaitForNextFrame();
-    }
     return true; // continue running loop
 }
 

@@ -40,7 +40,8 @@
 
 #include <stdarg.h>
 #include <vector>
-#include <string>
+#include <string> // for converting from and to std::string
+#include <string.h>
 #include "core/platform.h"
 #include "core/types.h"
 #include "debug/assert.h"

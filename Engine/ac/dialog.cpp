@@ -900,6 +900,10 @@ void DialogOptions::Begin()
         tw_area_width_mod = +4; // extra increment for the options text (textwindow)
         fixed_padding = TEXTWINDOW_PADDING_DEFAULT;
     }
+    else
+    {
+        tw_area_width_mod = +1; // a fix vs split_lines mistake
+    }
 
     if (game.dialog_bullet > 0)
     {

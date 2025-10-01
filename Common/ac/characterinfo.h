@@ -19,7 +19,9 @@
 #include "core/types.h"
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
+#include "game/scripteventstable.h"
 #include "util/bbop.h"
+#include "util/string_types.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -114,6 +116,12 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
 };
 
+// Character event indexes
+enum CharacterEventID
+{
+    // an interaction with any cursor mode that normally has a event
+    kCharacterEvent_AnyClick = 0
+};
 
 // Design-time Character data.
 // TODO: must refactor, some parts of it should be in a runtime Character class.
@@ -158,8 +166,12 @@ struct CharacterInfo
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
     int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
-    AGS::Common::String scrname; // script name
-    AGS::Common::String name; // regular name (aka description)
+    AGS::Common::String scrname = {}; // script name
+    AGS::Common::String name = {}; // regular name (aka description)
+    // Interaction events (cursor-based)
+    AGS::Common::ScriptEventHandlers interactions = {};
+    // Common events
+    AGS::Common::ScriptEventsTable events = {};
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2
@@ -208,6 +220,11 @@ struct CharacterInfo
     {
         flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
+
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;

@@ -7,47 +7,36 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Description")]
     public class RoomHotspot : IChangeNotification, IToXml
 	{
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
-        private static InteractionSchema _interactionSchema;
-
         private int _id;
         private string _name = string.Empty;
         private string _description = string.Empty;
         private Point _walkToPoint;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Hotspots);
-        private Interactions _interactions = new Interactions(_interactionSchema);
-		private IChangeNotification _notifyOfModification;
+        // Game Events
+        private Interactions _interactions = new Interactions(InteractionSchema.Instance);
+        private string _onAnyClick;
+        private string _onWalkOn;
+        private string _onMouseMove;
+        //
+        private Room _room;
 
-        static RoomHotspot()
-        {
-            _interactionSchema = new InteractionSchema(string.Empty, true,
-                new string[] {"Stands on hotspot",
-                "$$01 hotspot","$$02 hotspot","Use inventory on hotspot",
-                "$$03 hotspot", "Any click on hotspot","Mouse moves over hotspot", 
-                "$$05 hotspot", "$$08 hotspot", "$$09 hotspot"},
-                new string[] { "WalkOn", "Look", "Interact", "UseInv", "Talk", "AnyClick", "MouseMove", "PickUp", "Mode8", "Mode9" },
-                new string[] { /*WalkOn*/"Hotspot *theHotspot", /*Look*/"Hotspot *theHotspot, CursorMode mode",
-                    /*Interact*/"Hotspot *theHotspot, CursorMode mode", /*UseInv*/"Hotspot *theHotspot, CursorMode mode",
-                    /*Talk*/"Hotspot *theHotspot, CursorMode mode", /*AnyClick*/"Hotspot *theHotspot, CursorMode mode",
-                    /*MouseMove*/"Hotspot *theHotspot", /*PickUp*/"Hotspot *theHotspot, CursorMode mode",
-                    /*Mode8*/"Hotspot *theHotspot, CursorMode mode", /*Mode9*/"Hotspot *theHotspot, CursorMode mode" });
-        }
-
-		public RoomHotspot(IChangeNotification changeNotifier)
+		public RoomHotspot(Room room)
 		{
-			_notifyOfModification = changeNotifier;
+			_room = room;
 		}
 
-        public RoomHotspot(IChangeNotification changeNotifier, XmlNode node) : this(changeNotifier)
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public Room Room
         {
-            SerializeUtils.DeserializeFromXML(this, node);
-            Interactions.FromXml(node);
+            get { return _room; }
         }
 
         [AGSNoSerialize]
@@ -106,23 +95,94 @@ namespace AGS.Types
             }
         }
 
+        #region Game Events
+
         [AGSSerializeClass()]
         [Browsable(false)]
+        [Category("Cursor Events")]
+        [ScriptFunction("Hotspot *theHotspot, CursorMode mode")]
         public Interactions Interactions
         {
             get { return _interactions; }
         }
 
-		void IChangeNotification.ItemModified()
+        [DisplayName("Any click on")]
+        [Category("Cursor Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("AnyClick", "Hotspot *theHotspot, CursorMode mode")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnAnyClick
+        {
+            get { return _onAnyClick; }
+            set { _onAnyClick = value; }
+        }
+
+        [DisplayName("Player stands on hotspot")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("WalkOn", "Hotspot *theHotspot")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnWalkOn
+        {
+            get { return _onWalkOn; }
+            set { _onWalkOn = value; }
+        }
+
+        [DisplayName("Mouse moves over hotspot")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("WalkOn", "Hotspot *theHotspot")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnMouseMove
+        {
+            get { return _onMouseMove; }
+            set { _onMouseMove = value; }
+        }
+
+        #endregion // Game Events
+
+        void IChangeNotification.ItemModified()
 		{
-			_notifyOfModification.ItemModified();
+			(_room as IChangeNotification).ItemModified();
 		}
+
+        #region Serialization
+
+        public RoomHotspot(Room room, XmlNode node) : this(room)
+        {
+            SerializeUtils.DeserializeFromXML(this, node);
+            // Disable schema temporarily, in case we must convert from old format
+            _interactions.Schema = null;
+            _interactions.FromXml(node);
+            ConvertOldInteractionEvents();
+            _interactions.Schema = InteractionSchema.Instance;
+        }
+
+        private void ConvertOldInteractionEvents()
+        {
+            if (_interactions.IndexedFunctionNames.Count == 0)
+                return; // no old indexed events, no conversion necessary
+
+            OnWalkOn = _interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+            OnAnyClick = _interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
+            OnMouseMove = _interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
+            _interactions.RemapLegacyFunctionIndexes(new int[]
+            {
+                -1 /* Walk */, 1 /* Look */, 2 /* Interact */, 4 /* Talk */, 3 /* UseInv */,
+                7 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 8 /* Mode8 */, 9 /* Mode9 */
+            });
+        }
 
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer, false);
-            Interactions.ToXml(writer);
+            _interactions.ToXml(writer);
             writer.WriteEndElement();
         }
+
+        #endregion // Serialization
     }
 }

@@ -26,12 +26,11 @@
 #include "ac/mousecursor.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/customproperties.h"
-#include "game/interactions.h"
+#include "game/scripteventstable.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 #include "gui/guidefines.h"
 
 
-using AGS::Common::UInteractionEvents;
 using AGS::Common::HGameFileError;
 
 
@@ -44,8 +43,6 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
-    std::vector<UInteractionEvents> charScripts;
-    std::vector<UInteractionEvents> invScripts;
     // TODO: use this everywhere in the engine instead of loaded_game_file_version!
     GameDataVersion   filever = kGameVersion_Undefined;
     Common::String    compiled_with; // version of AGS this data was created by

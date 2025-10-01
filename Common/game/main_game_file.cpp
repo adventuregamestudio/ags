@@ -23,6 +23,7 @@
 #include "core/asset.h"
 #include "core/assetmanager.h"
 #include "debug/out.h"
+#include "game/data_helpers.h"
 #include "game/main_game_file.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
@@ -423,6 +424,42 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
             chars[i].talkcolor = RemapFromLegacyColourNumber(game, chars[i].talkcolor);
         }
     }
+
+    if (data_ver < kGameVersion_400_21)
+    {
+        for (int i = 0; i < char_count; i++)
+        {
+            chars[i].RemapOldInteractions();
+        }
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    for (int i = 0; i < char_count; i++)
+    {
+        chars[i].ResolveEventHandlers();
+    }
+}
+
+void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    const int inv_count = game.numinvitems;
+    auto &inv = game.invinfo;
+
+    if (data_ver < kGameVersion_400_21)
+    {
+        for (int i = 0; i < inv_count; i++)
+        {
+            inv[i].RemapOldInteractions();
+        }
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    for (int i = 0; i < inv_count; i++)
+    {
+        inv[i].ResolveEventHandlers();
+    }
 }
 
 void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
@@ -472,6 +509,20 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
+    if (data_ver < kGameVersion_400_21)
+    {
+        // Configure standard cursors that have associated events
+        const std::array<bool, 10> cursor_event = {
+            false /* walk */, true /* look */, true /* interact */, true /* talk */,
+            true /* use inv */, true /* pickup */, false /* pointer */, false /* wait */,
+            true /* mode8 */, true /* mode9 */
+        };
+
+        for (int i = 0; i < game.numcursors && i < cursor_event.size(); ++i)
+        {
+            game.mcurs[i].flags |= MCF_EVENT * cursor_event[i];
+        }
+    }
 }
 
 void FixupSaveDirectory(GameSetupStruct &game)
@@ -517,10 +568,11 @@ public:
 protected:
     HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override;
-    HError ReadCustomProperties(Stream *in, const char *obj_type, size_t expect_obj_count, std::vector<StringIMap> &obj_values);
+    HError ReadCustomProperties(Stream *in, const char *obj_type, uint32_t obj_count, std::vector<StringIMap> &obj_values);
     HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents);
     HError ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents);
     void   ReadGUIControlExtGraphics(Stream *in, GUIControl &obj);
+    HError ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents);
 
     LoadedGameEntities &_ents;
     GameDataVersion _dataVer {};
@@ -528,33 +580,39 @@ protected:
 
 HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
 {
+    HError err;
     // Updated InteractionEvents format, which specifies script module
     // for object interaction events
-    size_t num_chars = in->ReadInt32();
-    if (num_chars != ents.Game.chars.size())
-        return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, ents.Game.chars.size()));
+    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+        return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
-        ents.Game.charScripts[i] = InteractionEvents::CreateFromStream_v362(in);
-    uint32_t num_invitems = in->ReadInt32();
-    if (num_invitems != ents.Game.numinvitems)
-        return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)ents.Game.numinvitems));
+    {
+        err = ents.Game.chars[i].interactions.Read_v362(in);
+        if (!err)
+            return err;
+    }
+    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
+        return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
-        ents.Game.invScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    {
+        err = ents.Game.invinfo[i].interactions.Read_v362(in);
+        if (!err)
+            return err;
+    }
 
     // Script module specification for GUI events
-    uint32_t num_gui = in->ReadInt32();
-    if (num_gui != ents.Game.numgui)
-        return new Error(String::FromFormat("Mismatching number of GUI: read %zu expected %zu", num_gui, (size_t)ents.Game.numgui));
+    if (!ReadAndAssertCount(in, "GUI", static_cast<uint32_t>(ents.Game.numgui), err))
+        return err;
     for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
         ents.Guis[i].SetScriptModule(StrUtil::ReadString(in));
     return HError::None();
 }
 
-HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type, size_t expect_obj_count, std::vector<StringIMap> &obj_values)
+HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type, uint32_t obj_count, std::vector<StringIMap> &obj_values)
 {
-    size_t obj_count = in->ReadInt32();
-    if (obj_count != expect_obj_count)
-        return new Error(String::FromFormat("Mismatching number of %s: read %zu expected %zu", obj_type, obj_count, expect_obj_count));
+    HError err;
+    if (!ReadAndAssertCount(in, obj_type, obj_count, err))
+        return err;
     obj_values.resize(obj_count);
     int errors = 0;
     for (size_t i = 0; i < obj_count; ++i)
@@ -578,49 +636,44 @@ void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIControl &obj)
 
 HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents)
 {
-    size_t num_guibut = in->ReadInt32();
-    if (num_guibut != _ents.GuiControls.Buttons.size())
-        return new Error(String::FromFormat("Mismatching number of GUI buttons: read %zu expected %zu", num_guibut, _ents.GuiControls.Buttons.size()));
+    HError err;
+    if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+        return err;
     for (GUIButton &but : _ents.GuiControls.Buttons)
     {
         ReadGUIControlExtGraphics(in, but);
     }
 
-    size_t num_guilabel = in->ReadInt32();
-    if (num_guilabel != _ents.GuiControls.Labels.size())
-        return new Error(String::FromFormat("Mismatching number of GUI labels: read %zu expected %zu", num_guilabel, _ents.GuiControls.Labels.size()));
+    if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.GuiControls.Labels.size()), err))
+        return err;
     for (GUILabel &label : _ents.GuiControls.Labels)
     {
         ReadGUIControlExtGraphics(in, label);
     }
 
-    size_t num_guiinv = in->ReadInt32();
-    if (num_guiinv != _ents.GuiControls.InvWindows.size())
-        return new Error(String::FromFormat("Mismatching number of GUI invwindows: read %zu expected %zu", num_guiinv, _ents.GuiControls.InvWindows.size()));
+    if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.GuiControls.InvWindows.size()), err))
+        return err;
     for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
     {
         ReadGUIControlExtGraphics(in, invw);
     }
 
-    size_t num_guisliders = in->ReadInt32();
-    if (num_guisliders != _ents.GuiControls.Sliders.size())
-        return new Error(String::FromFormat("Mismatching number of GUI sliders: read %zu expected %zu", num_guisliders, _ents.GuiControls.Sliders.size()));
+    if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.GuiControls.Sliders.size()), err))
+        return err;
     for (GUISlider &slider : _ents.GuiControls.Sliders)
     {
         ReadGUIControlExtGraphics(in, slider);
     }
 
-    size_t num_guitextboxes = in->ReadInt32();
-    if (num_guitextboxes != _ents.GuiControls.TextBoxes.size())
-        return new Error(String::FromFormat("Mismatching number of GUI textboxes: read %zu expected %zu", num_guitextboxes, _ents.GuiControls.TextBoxes.size()));
+    if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.GuiControls.TextBoxes.size()), err))
+        return err;
     for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
     {
         ReadGUIControlExtGraphics(in, textbox);
     }
 
-    size_t num_guilistboxes = in->ReadInt32();
-    if (num_guilistboxes != _ents.GuiControls.ListBoxes.size())
-        return new Error(String::FromFormat("Mismatching number of GUI listboxes: read %zu expected %zu", num_guilistboxes, _ents.GuiControls.ListBoxes.size()));
+    if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.GuiControls.ListBoxes.size()), err))
+        return err;
     for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
     {
         ReadGUIControlExtGraphics(in, listbox);
@@ -628,9 +681,31 @@ HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedG
     return HError::None();
 }
 
+HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents)
+{
+    HError err;
+    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+        return err;
+    for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
+    {
+        ents.Game.chars[i].events.Read(in);
+    }
+    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
+    {
+        ents.Game.invinfo[i].events.Read(in);
+    }
+
+    // TODO: add all GUI reading their events as a map too
+
+    return HError::None();
+}
+
 HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
     soff_t /*block_len*/, bool &read_next)
 {
+    HError err;
     read_next = true;
     // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
     // if (ext_id.CompareNoCase("GUI_NEWPROPS") == 0)
@@ -669,32 +744,28 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // for object types that had hard name length limits
         _ents.Game.gamename = StrUtil::ReadString(in);
         _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
-        size_t num_chars = in->ReadInt32();
-        if (num_chars != _ents.Game.chars.size())
-            return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, _ents.Game.chars.size()));
+        if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.chars.size()), err))
+            return err;
         for (int i = 0; i < _ents.Game.numcharacters; ++i)
         {
             auto &chinfo = _ents.Game.chars[i];
             chinfo.scrname = StrUtil::ReadString(in);
             chinfo.name = StrUtil::ReadString(in);
         }
-        size_t num_invitems = in->ReadInt32();
-        if (num_invitems != _ents.Game.numinvitems)
-            return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)_ents.Game.numinvitems));
+        if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(_ents.Game.numinvitems), err))
+            return err;
         for (int i = 0; i < _ents.Game.numinvitems; ++i)
         {
             _ents.Game.invinfo[i].name = StrUtil::ReadString(in);
         }
-        size_t num_cursors = in->ReadInt32();
-        if (num_cursors != _ents.Game.mcurs.size())
-            return new Error(String::FromFormat("Mismatching number of cursors: read %zu expected %zu", num_cursors, _ents.Game.mcurs.size()));
+        if (!ReadAndAssertCount(in, "cursors", static_cast<uint32_t>(_ents.Game.mcurs.size()), err))
+            return err;
         for (MouseCursor &mcur : _ents.Game.mcurs)
         {
             mcur.name = StrUtil::ReadString(in);
         }
-        size_t num_clips = in->ReadInt32();
-        if (num_clips != _ents.Game.audioClips.size())
-            return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, _ents.Game.audioClips.size()));
+        if (!ReadAndAssertCount(in, "audio clips", static_cast<uint32_t>(_ents.Game.audioClips.size()), err))
+            return err;
         for (ScriptAudioClip &clip : _ents.Game.audioClips)
         {
             clip.scriptName = StrUtil::ReadString(in);
@@ -718,10 +789,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         script_name = StrUtil::ReadString(in);
         if (_ents.DialogScript)
             _ents.DialogScript->SetScriptName(script_name.ToStdString());
-        size_t module_count = in->ReadInt32();
-        if (module_count != _ents.ScriptModules.size())
-            return new Error(String::FromFormat("Mismatching number of script modules: read %zu expected %zu", module_count, _ents.ScriptModules.size()));
-        for (size_t i = 0; i < module_count; ++i)
+        if (!ReadAndAssertCount(in, "script modules", static_cast<uint32_t>(_ents.ScriptModules.size()), err))
+            return err;
+        for (size_t i = 0; i < _ents.ScriptModules.size(); ++i)
         {
             script_name = StrUtil::ReadString(in);
             if (_ents.ScriptModules[i])
@@ -734,9 +804,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v362_guictrls") == 0)
     {
-        size_t num_guibut = in->ReadInt32();
-        if (num_guibut != _ents.GuiControls.Buttons.size())
-            return new Error(String::FromFormat("Mismatching number of GUI buttons: read %zu expected %zu", num_guibut, _ents.GuiControls.Buttons.size()));
+        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+            return err;
         for (GUIButton &but : _ents.GuiControls.Buttons)
         {
             // button padding
@@ -809,9 +878,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_fontfiles") == 0)
     {
-        size_t font_count = in->ReadInt32();
-        if (font_count != _ents.Game.numfonts)
-            return new Error(String::FromFormat("Mismatching number of fonts: read %zu expected %zu", font_count, (size_t)_ents.Game.numfonts));
+        if (!ReadAndAssertCount(in, "fonts", static_cast<uint32_t>(_ents.Game.fonts.size()), err))
+            return err;
         for (FontInfo &finfo : _ents.Game.fonts)
         {
             finfo.Filename = StrUtil::ReadString(in);
@@ -820,6 +888,12 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v400_guictrlgfx") == 0)
     {
         HError err = ReadExtGUIControlGraphicProperties(in, _ents);
+        if (!err)
+            return err;
+    }
+    else if (ext_id.CompareNoCase("v400_eventtables") == 0)
+    {
+        HError err = ReadNewScriptEventTables(in, _ents);
         if (!err)
             return err;
     }
@@ -945,6 +1019,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
+    UpgradeInventoryItems(game, data_ver);
     UpgradeGUI(game, ents, data_ver);
     UpgradeMouseCursors(game, data_ver);
     FixupSaveDirectory(game);

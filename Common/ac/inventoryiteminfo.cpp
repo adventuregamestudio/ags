@@ -12,10 +12,38 @@
 //
 //=============================================================================
 #include "ac/inventoryiteminfo.h"
+#include "ac/common_defines.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+
+void InventoryItemInfo::RemapOldInteractions()
+{
+    ScriptEventHandlers new_interactions;
+    // this is just for safety, it's supposed to be that large
+    interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
+    new_interactions.Handlers[MODE_WALK]    = {};
+    new_interactions.Handlers[MODE_LOOK]    = interactions.Handlers[0];
+    new_interactions.Handlers[MODE_HAND]    = interactions.Handlers[1];
+    new_interactions.Handlers[MODE_TALK]    = interactions.Handlers[2];
+    new_interactions.Handlers[MODE_USE]     = interactions.Handlers[3];
+    // "Other click" event handler is assigned to any other standard interaction
+    new_interactions.Handlers[MODE_PICKUP]  = interactions.Handlers[4];
+    new_interactions.Handlers[MODE_CUSTOM1] = interactions.Handlers[4];
+    new_interactions.Handlers[MODE_CUSTOM2] = interactions.Handlers[4];
+
+    interactions = std::move(new_interactions);
+    interactions.ScriptModule = events.ScriptModule;
+}
+
+void InventoryItemInfo::ResolveEventHandlers()
+{
+    events.CreateIndexedList(std::vector<String>() = {
+        "OnAnyClick"
+    });
+}
 
 void InventoryItemInfo::ReadFromFile(Stream *in)
 {

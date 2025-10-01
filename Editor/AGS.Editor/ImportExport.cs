@@ -146,95 +146,6 @@ namespace AGS.Editor
             return newPalette;
         }
 
-        private static bool CreateScriptsForInteraction(string itemName, Script script, Interactions interactions, CompileMessages errors)
-        {
-            bool convertedSome = false;
-
-            for (int i = 0; i < interactions.ImportedScripts.Length; i++)
-            {
-                if ((interactions.ImportedScripts[i] != null) &&
-                    (interactions.ImportedScripts[i].Length > 0))
-                {
-					if (interactions.ImportedScripts[i].IndexOf(SINGLE_RUN_SCRIPT_TAG) >= 0)
-					{
-						// just a single Run Script -- don't wrap it in an outer
-						// function since there's no need to
-						interactions.ScriptFunctionNames[i] = interactions.ImportedScripts[i].Replace(SINGLE_RUN_SCRIPT_TAG, string.Empty).Replace("();", string.Empty).Trim();
-						convertedSome = true;
-					}
-					else
-					{
-						string funcName = itemName + "_" + interactions.FunctionSuffixes[i];
-						string funcScriptLine = "function " + funcName + "()";
-						interactions.ScriptFunctionNames[i] = funcName;
-						if (script.Text.IndexOf(funcScriptLine) >= 0)
-						{
-							errors.Add(new CompileWarning("Function " + funcName + " already exists in script and could not be created"));
-						}
-						else
-						{
-							script.Text += Environment.NewLine + funcScriptLine + Environment.NewLine;
-							script.Text += "{" + Environment.NewLine + interactions.ImportedScripts[i] + "}" + Environment.NewLine;
-							convertedSome = true;
-						}
-					}
-                    interactions.ImportedScripts[i] = null;
-                }
-            }
-
-            return convertedSome;
-        }
-
-        public static void CreateInteractionScripts(Game game, CompileMessages errors)
-        {
-            Script theScript = game.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
-            foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
-            {
-                if (item.Name.Length < 1)
-                {
-					item.Name = "iInventory" + item.ID;
-                }
-				CreateScriptsForInteraction(item.Name, theScript, item.Interactions, errors);
-            }
-            foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
-            {
-                if (character.ScriptName.Length < 1)
-                {
-					character.ScriptName = "cCharacter" + character.ID;
-                }
-				CreateScriptsForInteraction(character.ScriptName, theScript, character.Interactions, errors);
-            }
-        }
-
-        public static bool CreateInteractionScripts(Room room, CompileMessages errors)
-        {
-            Script theScript = room.Script;
-            bool convertedSome = CreateScriptsForInteraction("room", theScript, room.Interactions, errors);
-
-            foreach (RoomHotspot hotspot in room.Hotspots)
-            {
-				if (hotspot.Name.Length < 1)
-                {
-                    hotspot.Name = "hHotspot" + hotspot.ID;
-                }
-                convertedSome |= CreateScriptsForInteraction(hotspot.Name, theScript, hotspot.Interactions, errors);
-            }
-            foreach (RoomObject obj in room.Objects)
-            {
-                if (obj.Name.Length < 1)
-                {
-					obj.Name = "oObject" + obj.ID;
-                }
-				convertedSome |= CreateScriptsForInteraction(obj.Name, theScript, obj.Interactions, errors);
-            }
-            foreach (RoomRegion region in room.Regions)
-            {
-                string useName = "region" + region.ID;
-                convertedSome |= CreateScriptsForInteraction(useName, theScript, region.Interactions, errors);
-            }
-            return convertedSome;
-        }
-
         public static CompileMessages ImportOldEditorDatFile(string fileName, Game game, Dictionary<int, Sprite> spriteList)
         {
             CompileMessages importErrors = new CompileMessages();
@@ -700,10 +611,7 @@ namespace AGS.Editor
             EnsureCharacterScriptNameIsUnique(newChar, game);
 
             // Clear any existing event handler function names
-            for (int i = 0; i < newChar.Interactions.ScriptFunctionNames.Length; i++)
-            {
-                newChar.Interactions.ScriptFunctionNames[i] = string.Empty;
-            }
+            newChar.Interactions.ScriptFunctionNames.Clear();
 
             PaletteEntry[] palette = game.ReadPaletteFromXML(doc.DocumentElement);
             SpriteFolder newFolder = new SpriteFolder(newChar.ScriptName + "Import");

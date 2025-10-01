@@ -85,6 +85,21 @@ namespace AGS.Editor
         {
             // does not have any options
         }
+
+        struct CursorEvent
+        {
+            public bool CreateEvent;
+            public string Label;
+            public string FunctionName;
+
+            public CursorEvent(bool create, string label, string functionName)
+            {
+                CreateEvent = create;
+                Label = label;
+                FunctionName = functionName;
+            }
+        };
+
         /// <summary>
         /// Execute the upgrade task over the given Game project.
         /// Fills any errors or warnings into the provided "errors" collection.
@@ -367,6 +382,37 @@ namespace AGS.Editor
                         {
                             frame.Flip = frame.Flipped ? SpriteFlipStyle.Horizontal : SpriteFlipStyle.None;
                         }
+                    }
+                }
+            }
+
+            // Update cursors
+            if (xmlVersionIndex < 4000021)
+            {
+                // This is nasty, but certain standard cursors meanings and function suffixes
+                // have been hardcoded by their INDEX in the object Interactions.
+                // Although the labels were not hardcoded, and taken from the cursor's Name.
+                CursorEvent[] eventDefs = new CursorEvent[]
+                {
+                    new CursorEvent(false, string.Empty, string.Empty), // Walk to
+                    new CursorEvent(true, string.Empty, "Look"),
+                    new CursorEvent(true, string.Empty, "Interact"),
+                    new CursorEvent(true, string.Empty, "Talk"),
+                    new CursorEvent(true, "Use inventory on", "UseInv"),
+                    new CursorEvent(true, string.Empty, "PickUp"),
+                    new CursorEvent(false, string.Empty, string.Empty), // Pointer
+                    new CursorEvent(false, string.Empty, string.Empty), // Wait
+                    new CursorEvent(true, string.Empty, "Mode8"),
+                    new CursorEvent(true, string.Empty, "Mode9"),
+                };
+
+                foreach (var cursor in game.Cursors)
+                {
+                    if (cursor.ID < eventDefs.Length)
+                    {
+                        cursor.CreateEvent = eventDefs[cursor.ID].CreateEvent;
+                        cursor.EventLabel = eventDefs[cursor.ID].Label;
+                        cursor.EventFunctionName = eventDefs[cursor.ID].FunctionName;
                     }
                 }
             }

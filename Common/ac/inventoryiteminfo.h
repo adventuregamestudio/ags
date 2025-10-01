@@ -14,18 +14,36 @@
 #ifndef __AC_INVENTORYITEMINFO_H
 #define __AC_INVENTORYITEMINFO_H
 
+#include "game/scripteventstable.h"
 #include "util/stream.h"
 #include "util/string.h"
+#include "util/string_types.h"
 
 #define IFLG_STARTWITH 1
 #define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
+// Inventory item event indexes
+enum InventoryEventID
+{
+    // an interaction with any cursor mode that normally has a event
+    kInventoryEvent_AnyClick = 0
+};
+
 struct InventoryItemInfo
 {
-    AGS::Common::String name{};
+    AGS::Common::String name = {};
     int  pic = 0;
     int  cursorPic = 0, hotx = 0, hoty = 0;
     uint8_t flags = 0u; // IFLG_STARTWITH
+    // Interaction events (cursor-based)
+    AGS::Common::ScriptEventHandlers interactions = {};
+    // Common events
+    AGS::Common::ScriptEventsTable events = {};
+
+    // Remaps old-format interaction list into new event table
+    void RemapOldInteractions();
+    // Generate indexed handlers list from the event handlers map
+    void ResolveEventHandlers();
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);

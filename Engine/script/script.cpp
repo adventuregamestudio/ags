@@ -113,26 +113,26 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     funcToRun->RoomHasFunction = DoRunScriptFuncCantBlock(roomscript.get(), funcToRun, funcToRun->RoomHasFunction);
 }
 
-// Returns 0 normally, or -1 to indicate that the event has
-// become invalid and another handler should not be run
-// (eg. a room change occured)
-int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny)
+int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
+                        const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event)
 {
-    assert(nint);
-    if (!nint)
+    assert(handlers);
+    if (!handlers)
         return 0;
 
-    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size() ||
-            !nint->Events[evnt].IsEnabled())
+    if (evnt < 0 || static_cast<size_t>(evnt) >= handlers->Handlers.size() ||
+            !handlers->Handlers[evnt].IsEnabled())
     {
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if (chkAny >= 0 && nint->Events[chkAny].IsEnabled())
+        if ((chkany_handlers != nullptr && any_evt >= 0 && any_evt < chkany_handlers->Handlers.size())
+            && chkany_handlers->Handlers[any_evt].IsEnabled())
             return 0;
 
-        // Otherwise, run unhandled_event
-        run_unhandled_event(obj_evt, evnt);
+        // Optionally, run unhandled_event
+        if (do_unhandled_event)
+            run_unhandled_event(obj_evt, evnt);
         return 0;
     }
 
@@ -145,13 +145,18 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(nint->ScriptModule, nint->Events[evnt].FunctionName),
-        obj_evt.ParamCount, obj_evt.Params, nint->Events[evnt].Enabled);
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->ScriptModule, handlers->Handlers[evnt].FunctionName),
+        obj_evt.ParamCount, obj_evt.Params, handlers->Handlers[evnt].Enabled);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
         return -1;
     return 0;
+}
+
+int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event)
+{
+    return run_event_script(obj_evt, handlers, evnt, nullptr, -1, do_unhandled_event);
 }
 
 void SetupBuiltinTypeAliases()
@@ -785,34 +790,26 @@ bool get_can_run_delayed_command()
     return no_blocking_functions == 0;
 }
 
-void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
-
+void run_unhandled_event(const ObjectEvent &obj_evt, int evnt)
+{
+    // FIXME: do not use a global variable here, pass as a function argument!
     if (play.check_interaction_only)
         return;
 
-    const char *evblockbasename = obj_evt.BlockName.GetCStr();
-    const int evblocknum = obj_evt.BlockID;
-    int evtype=0;
+    // No "unhandled event" for walk mode
+    if (evnt == MODE_WALK)
+        return;
 
-    if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
-    else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
-    else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;
-    else if (ags_strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
-    else if (ags_strnicmp(evblockbasename,"region",6)==0)
-        return;  // no unhandled_events for regions
+    int loc_type = obj_evt.ObjectTypeID;
+    int obj_id = obj_evt.ObjectID;
 
-    // clicked Hotspot 0, so change the type code
-    if ((evtype == 1) & (evblocknum == 0) & (evnt != 0) & (evnt != 5) & (evnt != 6))
-        evtype = 4;
-    if ((evtype==1) & ((evnt==0) | (evnt==5) | (evnt==6)))
-        ;  // character stands on hotspot, mouse moves over hotspot, any click
-    else if ((evtype==2) & (evnt==4)) ;  // any click on object
-    else if ((evtype==3) & (evnt==4)) ;  // any click on character
-    else if (evtype > 0) {
-        can_run_delayed_command();
-        RuntimeScriptValue params[] = { evtype, evnt };
-        QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
-    }
+    // Special case for Hotspot 0: change to "no location"
+    if (loc_type == LOCTYPE_HOTSPOT && obj_id == 0)
+        loc_type = LOCTYPE_NOTHING;
+
+    can_run_delayed_command();
+    RuntimeScriptValue params[] = { loc_type, evnt };
+    QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
 }
 
 ExecutingScript *get_executingscript()

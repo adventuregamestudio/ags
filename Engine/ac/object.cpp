@@ -13,9 +13,10 @@
 //=============================================================================
 #include "ac/object.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/draw.h"
 #include "ac/character.h"
+#include "ac/draw.h"
+#include "ac/event.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
@@ -654,21 +655,12 @@ void RunObjectInteraction(int aa, int mood) {
     if (!is_valid_object(aa))
         quit("!RunObjectInteraction: invalid object number for current room");
 
-    // convert cursor mode to event index (in character event table)
-    // TODO: probably move this conversion table elsewhere? should be a global info
-    int evnt;
-    switch (mood)
-    {
-    case MODE_LOOK: evnt = 0; break;
-    case MODE_HAND: evnt = 1; break;
-    case MODE_TALK: evnt = 2; break;
-    case MODE_USE: evnt = 3; break;
-    case MODE_PICKUP: evnt = 5; break;
-    case MODE_CUSTOM1: evnt = 6; break;
-    case MODE_CUSTOM2: evnt = 7; break;
-    default: evnt = -1; break;
-    }
-    const int anyclick_evt = 4; // TODO: make global constant (character any-click evt)
+    if (!AssertCursorValidForEvent("Object.RunInteraction", mood))
+        return;
+
+    // Cursor mode must match the event index in "Interactions" table
+    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int anyclick_evt = kRoomObjectEvent_AnyClick;
 
     // For USE verb: remember active inventory
     if (mood == MODE_USE)
@@ -676,11 +668,14 @@ void RunObjectInteraction(int aa, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", aa,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_OBJ, aa,
                                      RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
-    if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), evnt, anyclick_evt) < 0)
+    if ((evnt >= 0) &&
+        run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt,
+                         &thisroom.Objects[aa].Events, anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
-    run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), anyclick_evt); // any click on obj
+     // any click on obj
+    run_event_script(obj_evt, &thisroom.Objects[aa].Events, anyclick_evt);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {

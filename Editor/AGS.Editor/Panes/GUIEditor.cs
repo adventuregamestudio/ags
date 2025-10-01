@@ -1399,11 +1399,11 @@ namespace AGS.Editor
 				return;
 			}
 
-			object[] paramsAttribute = property.GetCustomAttributes(typeof(ScriptFunctionParametersAttribute), true);
+			object[] paramsAttribute = property.GetCustomAttributes(typeof(ScriptFunctionAttribute), true);
 			if (paramsAttribute.Length > 0)
 			{
 				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(
-                    eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], _gui.ScriptModule), null);
+                    eventHandler, itemName, property.Name, (ScriptFunctionAttribute)paramsAttribute[0], _gui.ScriptModule), null);
 			}
 		}
 

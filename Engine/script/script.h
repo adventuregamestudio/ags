@@ -17,14 +17,14 @@
 #include <memory>
 #include <vector>
 #include "ac/dynobj/scriptsystem.h"
-#include "game/interactions.h"
+#include "game/scripteventstable.h"
 #include "script/executingscript.h"
 #include "script/runtimescript.h"
 #include "script/scriptexecutor.h"
 #include "util/string.h"
 
 using AGS::Common::String;
-using AGS::Common::InteractionEvents;
+using AGS::Common::ScriptEventsBase;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
@@ -37,31 +37,40 @@ struct ObjectEvent
     // Script type (i.e. game or room);
     // NOTE: kScTypeGame also may refer to "all modules", not only "globalscript"
     ScriptType ScType = kScTypeNone;
-    // Name of the script block to run, may be used as a formatting string;
-    // has a form of "objecttype%d"
-    String BlockName;
-    // Script block's ID, commonly corresponds to the object's ID
-    int BlockID = 0;
+    // Interacted object type, defined as a LOCTYPE_*
+    int ObjectTypeID = LOCTYPE_NOTHING;
+    // Interacted object's ID
+    int ObjectID = 0;
     // Event parameters
     size_t ParamCount = 0u;
     RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
 
     ObjectEvent() = default;
     // An event without additional parameters
-    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id = 0)
-        : ScType(sc_type), BlockName(block_name), BlockID(block_id) {}
+    ObjectEvent(ScriptType sc_type)
+        : ScType(sc_type) {}
+    // An interaction event without additional parameters
+    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id)
+        : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id) {}
     // An event with a dynamic object reference
-    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id,
+    ObjectEvent(ScriptType sc_type, const RuntimeScriptValue &dyn_obj)
+        : ScType(sc_type)
+    {
+        ParamCount = 1u;
+        Params[0] = dyn_obj;
+    }
+    // An interaction event with a dynamic object reference
+    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id,
         const RuntimeScriptValue &dyn_obj)
-        : ScType(sc_type), BlockName(block_name), BlockID(block_id)
+        : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id)
     {
         ParamCount = 1u;
         Params[0] = dyn_obj;
     }
     // An event with a dynamic object reference and interaction mode
-    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id,
+    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id,
         const RuntimeScriptValue &dyn_obj, int mode)
-        : ScType(sc_type), BlockName(block_name), BlockID(block_id)
+        : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id)
     {
         ParamCount = 2u;
         Params[0] = dyn_obj;
@@ -95,9 +104,11 @@ struct NonBlockingScriptFunction
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
 
 // Runs the ObjectEvent using a script callback of 'evnt' index,
-// or alternatively of 'chkAny' index, if previous does not exist
+// or alternatively of 'any_evt' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
+int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
+                         const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
+int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult

@@ -14,6 +14,7 @@
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/character.h"
 #include "ac/common.h"
+#include "ac/event.h"
 #include "ac/hotspot.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -135,25 +136,14 @@ void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-void RunHotspotInteraction(int hotspothere, int mood) {
+void RunHotspotInteraction(int hotspothere, int mood)
+{
+    if (!AssertCursorValidForEvent("Hotspot.RunInteraction", mood))
+        return;
 
-    // convert cursor mode to event index (in hotspot event table)
-    // TODO: probably move this conversion table elsewhere? should be a global info
-    // TODO: find out what is hotspot event with index 6 (5 is any-click)
-    int evnt;
-    switch (mood)
-    {
-    case MODE_WALK: evnt = 0; break;
-    case MODE_LOOK: evnt = 1; break;
-    case MODE_HAND: evnt = 2; break;
-    case MODE_TALK: evnt = 4; break;
-    case MODE_USE: evnt = 3; break;
-    case MODE_PICKUP: evnt = 7; break;
-    case MODE_CUSTOM1: evnt = 8; break;
-    case MODE_CUSTOM2: evnt = 9; break;
-    default: evnt = -1; break;
-    }
-    const int anyclick_evt = 5; // TODO: make global constant (hotspot any-click evt)
+    // Cursor mode must match the event index in "Interactions" table
+    const int evnt = (game.mcurs[mood].flags & MCF_EVENT) != 0 ? mood : -1;
+    const int anyclick_evt = kHotspotEvent_AnyClick;
 
     // For USE verb: remember active inventory
     if (mood == MODE_USE)
@@ -166,11 +156,14 @@ void RunHotspotInteraction(int hotspothere, int mood) {
     else if ((mood != MODE_WALK) && (play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter, hotspothere);
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspothere,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,
                                      RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
-    if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), evnt, anyclick_evt) < 0)
+    if ((evnt >= 0) &&
+        run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Interactions, evnt,
+                         &thisroom.Hotspots[hotspothere].Events, anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
-    run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), anyclick_evt); // any click on hotspot
+    // any click on hotspot
+    run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Events, anyclick_evt);
 }
 
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {

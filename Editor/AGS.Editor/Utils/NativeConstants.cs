@@ -18,6 +18,7 @@ namespace AGS.Editor
         public static readonly char MCF_ANIMMOVE = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_ANIMMOVE");
         public static readonly char MCF_STANDARD = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_STANDARD");
         public static readonly char MCF_HOTSPOT = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_HOTSPOT");
+        public static readonly char MCF_EVENT = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_EVENT");
         public static readonly int CHF_MANUALSCALING = (int)Factory.NativeProxy.GetNativeConstant("CHF_MANUALSCALING");
         public static readonly int CHF_NOINTERACT = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOINTERACT");
         public static readonly int CHF_NODIAGONAL = (int)Factory.NativeProxy.GetNativeConstant("CHF_NODIAGONAL");

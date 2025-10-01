@@ -7,14 +7,14 @@ namespace AGS.Types
     [TestFixture]
     public class RoomObjectTests
     {
-        private IChangeNotification _changeNotification;
+        private Room _room;
         private RoomObject _roomObject;
 
         [SetUp]
         public void SetUp()
         {
-            _changeNotification = Substitute.For<IChangeNotification>();
-            _roomObject = new RoomObject(_changeNotification);
+            _room = new Room(0);
+            _roomObject = new RoomObject(_room);
         }
 
         [TestCase(0)]
@@ -144,9 +144,9 @@ namespace AGS.Types
         [Test]
         public void ItemModified()
         {
-            _changeNotification.DidNotReceive();
+            Assert.That(_room.Modified, Is.EqualTo(false));
             ((IChangeNotification)_roomObject).ItemModified();
-            _changeNotification.Received();
+            Assert.That(_room.Modified, Is.EqualTo(true));
         }
 
         [TestCase(230, BlendMode.Normal, false, -1, false, 200, 100, "description1", "name1", false, false)]
@@ -171,7 +171,7 @@ namespace AGS.Types
             </RoomObject>";
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            _roomObject = new RoomObject(_changeNotification, doc.SelectSingleNode("RoomObject"));
+            _roomObject = new RoomObject(_room, doc.SelectSingleNode("RoomObject"));
 
             Assert.That(_roomObject.Image, Is.EqualTo(image));
             Assert.That(_roomObject.BlendMode, Is.EqualTo(blendMode));

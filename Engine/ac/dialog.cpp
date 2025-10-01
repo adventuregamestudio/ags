@@ -843,7 +843,7 @@ DialogOptions::~DialogOptions()
 void DialogOptions::Show()
 {
     Begin();
-    Draw();
+    Draw(); // prepare the options texture prior to the first Run()
     while (Run());
     End();
 }
@@ -1192,16 +1192,6 @@ void DialogOptions::Draw()
     {
         options_over->MarkImageChanged();
     }
-
-    // FIXME: this operation, combined with the UpdateGameOnce/render calls
-    // in Run() actually causes the scene to draw TWICE per game frame!
-    // ...somehow this fact was overlooked during earlier refactors.
-    // But fixing this might require caution, as DialogOptions own
-    // update is mixed with the game update, noteably input events handling.
-    if (runGameLoopsInBackground)
-    {
-        render_graphics();
-    }
 }
 
 bool DialogOptions::Run()
@@ -1210,15 +1200,25 @@ bool DialogOptions::Run()
     sys_evt_process_pending();
 
     // Optionally run full game update, otherwise only minimal auto & overlay update
+    // NOTE: the redrawing of the dialog options themselves is a bit off here in this code:
+    // it happens AFTER we update the rest of the game, and stored on the dialog options
+    // texture, which will become updated on screen during the *next* Run().
+    // But technically there's no wait between options redraw and next update.
+    // The wait is between update and next options redraw... We might benefit from
+    // another code restructure here.
     if (runGameLoopsInBackground)
     {
         UpdateGameOnce(false);
     }
     else
     {
+        update_polled_stuff();
         update_audio_system_on_game_loop();
         UpdateCursorAndDrawables();
         render_graphics();
+
+        if (!play.fast_forward)
+            WaitForNextFrame();
     }
 
     // Stop the dialog options if wsa requested from script
@@ -1362,12 +1362,6 @@ bool DialogOptions::Run()
     if (needRedraw)
         Draw();
 
-    // Go for another options loop round
-    update_polled_stuff();
-    if (!runGameLoopsInBackground && (play.fast_forward == 0))
-    { // NOTE: if runGameLoopsInBackground then it's called inside UpdateGameOnce
-        WaitForNextFrame();
-    }
     return true; // continue running loop
 }
 

@@ -128,6 +128,20 @@ void GUIObject::SetScriptModule(const String &scmodule)
     _events.ScriptModule = scmodule;
 }
 
+String GUIObject::GetEventHandler(uint32_t event) const
+{
+    if (event >= _events.Handlers.size())
+        return "";
+    return _events.Handlers[event].FunctionName;
+}
+
+void GUIObject::SetEventHandler(uint32_t event, const String &fn_name)
+{
+    if (event >= _events.Handlers.size())
+        return;
+    _events.Handlers[event] = ScriptEventHandler(fn_name);
+}
+
 void GUIObject::RemapOldEvents()
 {
     // We expect old-style events to be stored in indexed Handlers list;

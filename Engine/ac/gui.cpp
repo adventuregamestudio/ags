@@ -576,16 +576,18 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // click on GUI background
         RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut) };
-        QueueScriptFunction(kScTypeGame, ScriptFunctionRef(guis[ifce].GetScriptModule(), guis[ifce].GetOnClickHandler()), 2, params);
+        QueueScriptFunction(kScTypeGame, guis[ifce].GetScriptModule(), guis[ifce].GetEvents().GetHandler(kGUIEvent_OnClick), 2, params);
         return;
     }
 
     int btype = guis[ifce].GetControlType(btn);
     int rtype=kGUIAction_None,rdata=0;
+    bool want_mb_param = false;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
         rtype=gbuto->GetClickAction(kGUIClickLeft);
         rdata=gbuto->GetClickData(kGUIClickLeft);
+        want_mb_param = true;
     }
     else if ((btype==kGUISlider) || (btype == kGUITextBox) || (btype == kGUIListBox))
         rtype = kGUIAction_RunScript;
@@ -600,13 +602,12 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // otherwise, run interface_click
         // FIXME: do not call DoesScriptFunctionExist* every time, remember last result,
         // similar to the interaction event handler test.
-        if ((theObj->GetEventCount() > 0) &&
-            (!theObj->GetEventHandler(0).IsEmpty()) &&
-            DoesScriptFunctionExistInModule(guis[ifce].GetScriptModule(), theObj->GetEventHandler(0)))
+        if (theObj->GetEvents().HasHandler(0) &&
+            DoesScriptFunctionExistInModule(guis[ifce].GetScriptModule(), theObj->GetEvents().GetHandler(0).FunctionName))
         {
             // control-specific event handler
-            const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->GetEventHandler(0));
-            if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
+            const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->GetEvents().GetHandler(0).FunctionName);
+            if (want_mb_param)
             {
                 RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIControl),
                     RuntimeScriptValue().SetInt32(mbut) };
@@ -974,7 +975,7 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     else
     {
         // run GUI click handler if not on any control
-        if (!guis[guin].GetOnClickHandler().IsEmpty())
+        if (guis[guin].GetEvents().GetHandler(kGUIEvent_OnClick).IsEnabled())
             force_event(AGSEvent_GUI(guin, -1, static_cast<eAGSMouseButton>(mbut)));
     }
 

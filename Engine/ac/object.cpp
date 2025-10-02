@@ -673,10 +673,10 @@ void RunObjectInteraction(int aa, int mood) {
                                      RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &thisroom.Objects[aa].Interactions, evnt,
-                         &thisroom.Objects[aa].Events, anyclick_evt, true /* do unhandled event */) < 0)
+                         &thisroom.Objects[aa].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
      // any click on obj
-    run_event_script(obj_evt, &thisroom.Objects[aa].Events, anyclick_evt);
+    run_event_script(obj_evt, &thisroom.Objects[aa].GetEvents(), anyclick_evt);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {

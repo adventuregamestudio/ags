@@ -39,8 +39,8 @@ void CharacterInfo::RemapOldInteractions()
     new_interactions[MODE_CUSTOM1] = old_interactions[6];
     new_interactions[MODE_CUSTOM2] = old_interactions[7];
 
-    Events.SetHandler(kCharacterEvent_AnyClick, old_interactions[4].FunctionName);
-    interactions.SetScriptModule(Events.GetScriptModule());
+    _events.SetHandler(kCharacterEvent_AnyClick, old_interactions[4].FunctionName);
+    interactions.SetScriptModule(_events.GetScriptModule());
     interactions.SetHandlers(std::move(new_interactions));
 }
 

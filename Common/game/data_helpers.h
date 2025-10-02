@@ -66,7 +66,7 @@ HError ReadScriptEventsTablesForObjects(TObjIter begin, TObjIter end, const char
             return err;
         if (must_remap)
             handlers.Remap(remap);
-        (*(begin + i)).Events.SetHandlers(handlers);
+        (*(begin + i)).GetEvents().SetHandlers(handlers);
     }
     return HError::None();
 }

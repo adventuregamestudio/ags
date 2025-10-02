@@ -19,7 +19,8 @@ namespace AGS
 namespace Common
 {
 
-GUIObject::GUIObject()
+GUIObject::GUIObject(const ScriptEventSchema *schema)
+    : _events(schema)
 {
     UpdateGraphicSpace();
 }
@@ -121,6 +122,17 @@ void GUIObject::SetShader(int shader_id, int shader_handle)
 {
     _shaderID = shader_id;
     _shaderHandle = shader_handle;
+}
+
+void GUIObject::SetScriptModule(const String &scmodule)
+{
+    _events.SetScriptModule(scmodule);
+}
+
+void GUIObject::RemapOldEvents()
+{
+    // Do nothing here at a time, because GUI objects only had literally 1 event,
+    // and it remains at the same index 0 for now.
 }
 
 void GUIObject::OnResized()

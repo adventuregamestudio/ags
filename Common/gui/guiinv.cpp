@@ -23,6 +23,7 @@ namespace Common
 {
 
 GUIInvWindow::GUIInvWindow()
+    : GUIControl(&ScriptEventTable::DefaultSchema())
 {
     CalculateNumCells();
 }

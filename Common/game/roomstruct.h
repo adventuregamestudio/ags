@@ -182,8 +182,29 @@ struct RoomEdges
     RoomEdges(int l, int r, int t, int b);
 };
 
+// A (possibly) temporary struct made for sharing event tables;
+// replace or expand later. Also, we have a similar thing for GUIObject,
+// so maybe merge these too.
+struct RoomObjectBase
+{
+public:
+    RoomObjectBase(const ScriptEventSchema *schema)
+        : _events(schema)
+    {}
+
+    // Provides a script events table
+    const ScriptEventTable &GetEvents() const { return _events; }
+    AGS::Common::ScriptEventTable &GetEvents() { return _events; }
+    // Clears all handlers from assigned functions
+    void ClearEventHandlers() { _events.ClearHandlers(); }
+
+protected:
+    // Common events
+    ScriptEventTable _events = {};
+};
+
 // Room hotspot description
-struct RoomHotspot
+struct RoomHotspot : public RoomObjectBase
 {
     String      Name;
     String      ScriptName;
@@ -191,11 +212,13 @@ struct RoomHotspot
     StringIMap  Properties;
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
-    // Common events
-    ScriptEventTable Events = ScriptEventTable(&RoomHotspot::_eventSchema);
 
     // Player will automatically walk here when interacting with hotspot
     Point       WalkTo;
+
+    RoomHotspot() : RoomObjectBase(&RoomHotspot::_eventSchema)
+    {
+    }
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -207,7 +230,7 @@ private:
 };
 
 // Room object description
-struct RoomObjectInfo
+struct RoomObjectInfo : public RoomObjectBase
 {
     int32_t         Room;
     int32_t         X;
@@ -223,8 +246,6 @@ struct RoomObjectInfo
     StringIMap      Properties;
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
-    // Common events
-    ScriptEventTable Events = ScriptEventTable(&RoomObjectInfo::_eventSchema);
 
     RoomObjectInfo();
 
@@ -238,7 +259,7 @@ private:
 };
 
 // Room region description
-struct RoomRegion
+struct RoomRegion : public RoomObjectBase
 {
     // Light level (-100 -> +100) or Tint luminance (0 - 255)
     int32_t         Light;
@@ -248,8 +269,6 @@ struct RoomRegion
     StringIMap      Properties;
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
-    // Common events
-    ScriptEventTable Events = ScriptEventTable(&RoomRegion::_eventSchema);
 
     RoomRegion();
 
@@ -316,7 +335,7 @@ enum RoomResolutionType
 // This class contains initial room data. Some of it may still be modified
 // at the runtime, but then these changes get lost as soon as room is unloaded.
 //
-class RoomStruct
+class RoomStruct : public RoomObjectBase
 {
 public:
     // Mask resolution auto-assigned for high-res rooms in very old versions
@@ -414,8 +433,6 @@ public:
     StringIMap              Properties;
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers     Interactions = {};
-    // Common events
-    ScriptEventTable       Events = ScriptEventTable(&RoomStruct::_eventSchema);
     // Compiled room script
     UScript                 CompiledScript;
     // Various extended options with string values, meta-data etc

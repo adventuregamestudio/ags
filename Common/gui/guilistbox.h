@@ -23,6 +23,14 @@ namespace AGS
 namespace Common
 {
 
+// ListBox event indexes;
+// these are used after resolving events map read from game file
+enum ListBoxEventID
+{
+    kListBoxEvent_OnSelChanged,
+    kNumListBoxEvents
+};
+
 class GUIListBox : public GUIControl
 {
 public:
@@ -60,9 +68,9 @@ public:
     void SetItemText(int index, const String &text);
 
     // Script Events
-    uint32_t GetEventCount() const override;
-    String GetEventArgs(uint32_t event) const override;
-    String GetEventName(uint32_t event) const override;
+    // Gets a events schema corresponding to this object's type
+    static const ScriptEventSchema &GetEventSchema() { return GUIListBox::_eventSchema; }
+    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIListBox::_eventSchema; }
 
     // Operations
     int AddItem(const String &text);
@@ -89,6 +97,9 @@ private:
     static const color_t DefaultSelectFgColor = 7;
     static const color_t DefaultSelectBgColor = 16;
 
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
+
     int                     _listBoxFlags = kListBox_DefFlags;
     int                     _font = 0;
     color_t                 _textColor = DefaultTextColor;
@@ -110,10 +121,6 @@ private:
     void UpdateMetrics();
     // Applies translation
     void PrepareTextToDraw(const String &text);
-
-    static const int EventCount = 1;
-    static String EventNames[EventCount];
-    static String EventArgs[EventCount];
 
     // prepared text buffer/cache
     String _textToDraw;

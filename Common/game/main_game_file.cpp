@@ -491,6 +491,24 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
             tbox.SetTextColor(RemapFromLegacyColourNumber(game, tbox.GetTextColor()));
         }
     }
+
+    if (data_ver < kGameVersion_400_22)
+    {
+        for (auto &gui : ents.Guis)
+            gui.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Buttons)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.InvWindows)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Labels)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.ListBoxes)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Sliders)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.TextBoxes)
+            obj.RemapOldEvents();
+    }
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
@@ -675,9 +693,27 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
     err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, ents.Game.numinvitems, "inventory items", in);
     if (!err)
         return err;
-
-    // TODO: add all GUI reading their events as a map too
-
+    err = ReadScriptEventsTablesForObjects(ents.Guis, "GUIs", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Buttons, "GUI buttons", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Labels, "GUI labels", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.InvWindows, "GUI invwindows", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Sliders, "GUI sliders", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.TextBoxes, "GUI textboxes", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.ListBoxes, "GUI listboxes", in);
+    if (!err)
+        return err;
     return HError::None();
 }
 

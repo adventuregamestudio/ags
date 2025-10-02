@@ -39,7 +39,7 @@ void InventoryItemInfo::RemapOldInteractions()
     new_interactions[MODE_CUSTOM1] = old_interactions[4];
     new_interactions[MODE_CUSTOM2] = old_interactions[4];
 
-    interactions.SetScriptModule(Events.GetScriptModule());
+    interactions.SetScriptModule(_events.GetScriptModule());
     interactions.SetHandlers(std::move(new_interactions));
 }
 

@@ -311,6 +311,13 @@ void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
     QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params);
 }
 
+void QueueScriptFunction(ScriptType sc_type, const String &script_module, const ScriptEventHandler &handler,
+                            size_t param_count, const RuntimeScriptValue *params)
+{
+    if (handler.IsEnabled())
+        QueueScriptFunction(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
+}
+
 void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
     size_t param_count, const RuntimeScriptValue *params)
 {

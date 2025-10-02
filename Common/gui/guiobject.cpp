@@ -129,6 +129,16 @@ void GUIObject::SetScriptModule(const String &scmodule)
     _events.SetScriptModule(scmodule);
 }
 
+String GUIObject::GetEventHandler(uint32_t event) const
+{
+    return _events.GetHandler(event).FunctionName;
+}
+
+void GUIObject::SetEventHandler(uint32_t event, const String &fn_name)
+{
+    _events.SetHandler(event, fn_name);
+}
+
 void GUIObject::RemapOldEvents()
 {
     // Do nothing here at a time, because GUI objects only had literally 1 event,

@@ -94,6 +94,11 @@ public:
     // Provides a script events table
     const ScriptEventTable &GetEvents() const { return _events; }
     ScriptEventTable &GetEvents() { return _events; }
+    // Gets a particular event's handler by event's index
+    String          GetEventHandler(uint32_t event) const;
+    // Sets a particular event's handler by event's index;
+    // this function succeeds only if this index is found in the events schema
+    void            SetEventHandler(uint32_t event, const String &fn_name);
     // Remap old-format events into new event table
     virtual void    RemapOldEvents();
 

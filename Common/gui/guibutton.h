@@ -47,6 +47,14 @@ enum GUIButtonPlaceholder
     kButtonPlace_InvItemAuto
 };
 
+// Button event indexes;
+// these are used after resolving events map read from game file
+enum ButonEventID
+{
+    kButtonEvent_OnClick,
+    kNumButtonEvents
+};
+
 
 class GUIButton : public GUIControl
 {
@@ -85,11 +93,10 @@ public:
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;
     void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
-    
+
     // Script Events
-    uint32_t GetEventCount() const override;
-    String GetEventArgs(uint32_t event) const override;
-    String GetEventName(uint32_t event) const override;
+    // Gets a events schema corresponding to this object's type
+    virtual const ScriptEventsSchema *GetEventsSchema() const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -125,9 +132,8 @@ private:
     // Update current image depending on the button's state
     void UpdateCurrentImage();
 
-    static const int EventCount = 1;
-    static String EventNames[EventCount];
-    static String EventArgs[EventCount];
+    // Script events schema
+    static ScriptEventsSchema _eventSchema;
 
     int     _font = 0;
     color_t _textColor = 0;

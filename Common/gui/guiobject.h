@@ -19,6 +19,7 @@
 #define __AGS_CN_GUI__GUIOBJECT_H
 
 #include "core/types.h"
+#include "game/scripteventstable.h"
 #include "gfx/gfx_def.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -83,11 +84,27 @@ public:
     int             GetZOrder() const { return _zOrder; }
     void            SetZOrder(int zorder);
 
+    // Script Events
+    // Gets a events schema corresponding to this object's type
+    virtual const ScriptEventsSchema *GetEventsSchema() const { return nullptr; }
+    // Gets a (optional) script module which contains handlers
+    // for this object's events
+    const String   &GetScriptModule() const { return _events.ScriptModule; }
+    // Sets a script module for this object's events
+    void            SetScriptModule(const String &scmodule);
+    // Provides a script events table
+    const ScriptEventsTable &GetEvents() const { return _events; }
+    // Sets a new script events table
+    void            SetEvents(const ScriptEventsTable &events) { _events = events; }
+    // Sets a new script events table
+    void            SetEvents(ScriptEventsTable &&events) { _events = std::move(events); }
+    // Remap old-format events into new event table
+    virtual void    RemapOldEvents();
+    // Generate indexed handlers list from the event handlers map
+    virtual void    ResolveEventHandlers();
+
     // Returns GUI object's graphic space params
     inline const GraphicSpace &GetGraphicSpace() const { return _gs; }
-
-    // TODO: can possible move script events and handlers config to the GUIObject interface too;
-    // this will require for GUIMain to share similar event/handler iface
 
     // Operations
     // Returns the (untransformed!) visual rectangle of this control,
@@ -132,12 +149,14 @@ protected:
     Pointf  _scale = Pointf(1.f, 1.f);; // x,y scale
     float   _rotation = 0.f;    // rotation, in degrees
     int     _zOrder = 0;
-    
+
     int     _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
     int     _shaderID = 0;
     int     _shaderHandle = 0; // runtime script shader handle
-    
+
+    ScriptEventsTable _events;
+
     GraphicSpace _gs;
     bool    _hasChanged = false;
 };

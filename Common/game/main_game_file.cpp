@@ -505,6 +505,41 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
             tbox.SetTextColor(RemapFromLegacyColourNumber(game, tbox.GetTextColor()));
         }
     }
+
+    if (data_ver < kGameVersion_400_21)
+    {
+        for (auto &gui : ents.Guis)
+            gui.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Buttons)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.InvWindows)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Labels)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.ListBoxes)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Sliders)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.TextBoxes)
+            obj.RemapOldEvents();
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    for (auto &gui : ents.Guis)
+        gui.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.Buttons)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.InvWindows)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.Labels)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.ListBoxes)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.Sliders)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.TextBoxes)
+        obj.ResolveEventHandlers();
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
@@ -697,7 +732,48 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
         ents.Game.invinfo[i].events.Read(in);
     }
 
-    // TODO: add all GUI reading their events as a map too
+    if (!ReadAndAssertCount(in, "GUIs", static_cast<uint32_t>(ents.Game.numgui), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.Game.numgui; ++i)
+    {
+        ents.Guis[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(ents.GuiControls.Buttons.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.Buttons.size(); ++i)
+    {
+        ents.GuiControls.Buttons[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(ents.GuiControls.Labels.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.Labels.size(); ++i)
+    {
+        ents.GuiControls.Labels[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(ents.GuiControls.InvWindows.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.InvWindows.size(); ++i)
+    {
+        ents.GuiControls.InvWindows[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(ents.GuiControls.Sliders.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.Sliders.size(); ++i)
+    {
+        ents.GuiControls.Sliders[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(ents.GuiControls.TextBoxes.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.TextBoxes.size(); ++i)
+    {
+        ents.GuiControls.TextBoxes[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(ents.GuiControls.ListBoxes.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.ListBoxes.size(); ++i)
+    {
+        ents.GuiControls.ListBoxes[i].SetEvents(ScriptEventsTable(in));
+    }
 
     return HError::None();
 }

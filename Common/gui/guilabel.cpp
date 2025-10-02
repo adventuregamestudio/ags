@@ -55,6 +55,11 @@ void GUILabel::SetTextAlignment(FrameAlignment align)
     }
 }
 
+const ScriptEventsSchema *GUILabel::GetEventsSchema() const
+{
+    return nullptr;
+}
+
 Rect GUILabel::CalcGraphicRect(bool clipped)
 {
     if (clipped)

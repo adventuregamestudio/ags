@@ -123,6 +123,38 @@ void GUIObject::SetShader(int shader_id, int shader_handle)
     _shaderHandle = shader_handle;
 }
 
+void GUIObject::SetScriptModule(const String &scmodule)
+{
+    _events.ScriptModule = scmodule;
+}
+
+void GUIObject::RemapOldEvents()
+{
+    // We expect old-style events to be stored in indexed Handlers list;
+    // old events index match current events ID
+    // (if this will ever change, we'll need to adjust this code)
+    if (_events.Handlers.size() == 0)
+        return;
+
+    const ScriptEventsSchema *schema = GetEventsSchema();
+    if (!schema || schema->EventList.size() == 0)
+        return;
+
+    for (uint32_t i = 0; i < _events.Handlers.size() && i < schema->EventList.size(); ++i)
+    {
+        _events.EventMap[schema->EventList[i].Name] = _events.Handlers[i].FunctionName;
+    }
+}
+
+void GUIObject::ResolveEventHandlers()
+{
+    const ScriptEventsSchema *schema = GetEventsSchema();
+    if (!schema || schema->EventList.size() == 0)
+        return;
+
+    _events.CreateIndexedList(schema->EventList);
+}
+
 void GUIObject::OnResized()
 {
     UpdateGraphicSpace();

@@ -24,10 +24,9 @@ namespace AGS
 namespace Common
 {
 
-/* static */ String GUITextBox::EventNames[GUITextBox::EventCount] =
-    { "Activate" };
-/* static */ String GUITextBox::EventArgs[GUITextBox::EventCount] =
-    { "GUIControl *control" };
+/* static */ ScriptEventsSchema GUITextBox::_eventSchema = {{
+        { "OnActivate", kTextBoxEvent_OnActivate }
+    }};
 
 GUITextBox::GUITextBox()
 {
@@ -65,23 +64,9 @@ bool GUITextBox::IsBorderShown() const
     return (_textBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
-uint32_t GUITextBox::GetEventCount() const
+const ScriptEventsSchema *GUITextBox::GetEventsSchema() const
 {
-    return EventCount;
-}
-
-String GUITextBox::GetEventName(uint32_t event) const
-{
-    if (event >= EventCount)
-        return "";
-    return EventNames[event];
-}
-
-String GUITextBox::GetEventArgs(uint32_t event) const
-{
-    if (event >= EventCount)
-        return "";
-    return EventArgs[event];
+    return &GUITextBox::_eventSchema;
 }
 
 Rect GUITextBox::CalcGraphicRect(bool clipped)

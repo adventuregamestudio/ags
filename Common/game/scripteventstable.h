@@ -123,6 +123,11 @@ struct ScriptEventsBase
 
     ScriptEventsBase &operator =(const ScriptEventsBase &script_events) = default;
     ScriptEventsBase &operator =(ScriptEventsBase &&script_events) = default;
+
+    inline bool HasHandler(uint32_t evt) const
+    {
+        return evt < Handlers.size() && Handlers[evt].IsEnabled();
+    }
 };
 
 // A indexed list of function links for all the supported events.

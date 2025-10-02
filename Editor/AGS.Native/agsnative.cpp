@@ -3364,7 +3364,8 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         convert_interaction_scripts(object->Interactions, native_object.Interactions);
 
         std::vector<std::pair<AGSString, AGSString>> events = {
-            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) }
+            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) },
+            { "OnFrameEvent",       TextHelper::ConvertASCII(object->OnFrameEvent) }
         };
         assign_valid_event_handlers(native_object.Events, events);
     }

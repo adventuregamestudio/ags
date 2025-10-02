@@ -51,6 +51,7 @@ namespace AGS.Types
         private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
         private string _onAnyClick;
+        private string _onFrameEvent;
 
         public Character()
         {
@@ -406,6 +407,18 @@ namespace AGS.Types
         {
             get { return _onAnyClick; }
             set { _onAnyClick = value; }
+        }
+
+        [Description("Script function to run when the animating character displays a frame with custom event")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("OnFrameEvent", "Character *theCharacter, int view, int loop, int frame, String eventName")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnFrameEvent
+        {
+            get { return _onFrameEvent; }
+            set { _onFrameEvent = value; }
         }
 
         #endregion // Game Events

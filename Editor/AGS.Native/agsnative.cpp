@@ -3364,7 +3364,8 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         convert_interaction_scripts(object->Interactions, native_object.Interactions);
 
         std::unordered_map<AGSString, AGSString> events = {
-            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) }
+            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) },
+            { "OnFrameEvent",       TextHelper::ConvertASCII(object->OnFrameEvent) }
         };
         native_object.GetEvents().SetHandlers(events);
     }

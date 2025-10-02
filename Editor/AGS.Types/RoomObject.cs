@@ -30,6 +30,7 @@ namespace AGS.Types
         // Game Events
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
         private string _onAnyClick;
+        private string _onFrameEvent;
         //
         private Room _room;
 
@@ -223,6 +224,18 @@ namespace AGS.Types
         {
             get { return _onAnyClick; }
             set { _onAnyClick = value; }
+        }
+
+        [Description("Script function to run when the animating object displays a frame with custom event")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("OnFrameEvent", "Object *theObject, int view, int loop, int frame, String eventName")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnFrameEvent
+        {
+            get { return _onFrameEvent; }
+            set { _onFrameEvent = value; }
         }
 
         #endregion // Game Events

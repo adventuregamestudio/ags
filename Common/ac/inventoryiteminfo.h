@@ -49,6 +49,10 @@ struct InventoryItemInfo
     void WriteToFile(AGS::Common::Stream *out);
     void ReadFromSavegame(AGS::Common::Stream *in);
     void WriteToSavegame(AGS::Common::Stream *out) const;
+
+private:
+    // Script events schema
+    static AGS::Common::ScriptEventsSchema _eventSchema;
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

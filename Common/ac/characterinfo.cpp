@@ -19,6 +19,10 @@
 
 using namespace AGS::Common;
 
+/* static */ ScriptEventsSchema CharacterInfo::_eventSchema = {{
+        { "OnAnyClick", kCharacterEvent_AnyClick }
+    }};
+
 void CharacterInfo::RemapOldInteractions()
 {
     ScriptEventHandlers new_interactions;
@@ -41,9 +45,7 @@ void CharacterInfo::RemapOldInteractions()
 
 void CharacterInfo::ResolveEventHandlers()
 {
-    events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick"
-    });
+    events.CreateIndexedList(_eventSchema.EventList);
 }
 
 void CharacterInfo::ReadBaseFields(Stream *in)

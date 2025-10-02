@@ -18,6 +18,10 @@
 
 using namespace AGS::Common;
 
+/* static */ ScriptEventsSchema InventoryItemInfo::_eventSchema = {{
+        { "OnAnyClick", kInventoryEvent_AnyClick }
+    }};
+
 void InventoryItemInfo::RemapOldInteractions()
 {
     ScriptEventHandlers new_interactions;
@@ -40,9 +44,7 @@ void InventoryItemInfo::RemapOldInteractions()
 
 void InventoryItemInfo::ResolveEventHandlers()
 {
-    events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick"
-    });
+    events.CreateIndexedList(_eventSchema.EventList);
 }
 
 void InventoryItemInfo::ReadFromFile(Stream *in)

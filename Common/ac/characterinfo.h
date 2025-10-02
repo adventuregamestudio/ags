@@ -237,6 +237,9 @@ private:
     // common for both game file and save.
     void ReadBaseFields(Common::Stream *in);
     void WriteBaseFields(Common::Stream *out) const;
+
+    // Script events schema
+    static AGS::Common::ScriptEventsSchema _eventSchema;
 };
 
 #endif // __AC_CHARACTERINFO_H

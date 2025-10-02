@@ -132,7 +132,8 @@ enum HotspotEventID
 enum RoomObjectEventID
 {
     // an interaction with any cursor mode that normally has a event
-    kRoomObjectEvent_AnyClick = 0
+    kRoomObjectEvent_AnyClick = 0,
+    kRoomObjectEvent_OnFrameEvent
 };
 
 // Region event indexes

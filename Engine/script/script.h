@@ -76,6 +76,9 @@ struct ObjectEvent
         Params[0] = dyn_obj;
         Params[1] = RuntimeScriptValue().SetInt32(mode);
     }
+
+    bool IsValid() const { return ScType != kScTypeNone; }
+    operator bool() const { return IsValid(); }
 };
 
 // NonBlockingScriptFunction struct contains a cached information about

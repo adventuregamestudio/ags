@@ -39,6 +39,7 @@ class RoomObject
 public:
     static const uint16_t NoView = UINT16_MAX;
 
+    int   id = 0;
     int   x,y;
     int   transparent;    // current transparency setting
     short tint_r, tint_g;   // specific object tint

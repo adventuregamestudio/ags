@@ -20,7 +20,8 @@
 using namespace AGS::Common;
 
 /* static */ ScriptEventSchema CharacterInfo::_eventSchema = {{
-        { "OnAnyClick", kCharacterEvent_AnyClick }
+        { "OnAnyClick", kCharacterEvent_AnyClick },
+        { "OnFrameEvent", kCharacterEvent_OnFrameEvent },
     }};
 
 void CharacterInfo::RemapOldInteractions()

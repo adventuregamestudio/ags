@@ -120,7 +120,9 @@ enum CharacterSvgVersion
 enum CharacterEventID
 {
     // an interaction with any cursor mode that normally has a event
-    kCharacterEvent_AnyClick = 0
+    kCharacterEvent_AnyClick,
+    // a view frame triggering a custom event
+    kCharacterEvent_OnFrameEvent,
 };
 
 // Design-time Character data.

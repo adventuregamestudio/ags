@@ -44,6 +44,9 @@ namespace AGS.Types
         private GUIClickAction _clickAction;
         private int _newModeNumber;
         private string _onClick = string.Empty;
+        private string _onFrameEvent = string.Empty;
+
+        #region Game Events
 
         [Description("Script function to run when the button is clicked")]
         [Category("Events")]
@@ -56,6 +59,20 @@ namespace AGS.Types
             get { return _onClick; }
             set { _onClick = value; }
         }
+
+        [Description("Script function to run when the animating button displays a frame with custom event")]
+        [Category("Events")]
+        [Browsable(false)]
+        [AGSEventsTabProperty(), AGSEventProperty()]
+        [ScriptFunction("OnFrameEvent", "Button *button, int view, int loop, int frame, String eventName")]
+        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string OnFrameEvent
+        {
+            get { return _onFrameEvent; }
+            set { _onFrameEvent = value; }
+        }
+
+        #endregion // Game Events
 
         [Description("What action to perform when the button is clicked")]
         [Category("Design")]

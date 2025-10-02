@@ -396,31 +396,34 @@ HError ReadExt_400_RoomNames(RoomStruct *room, Stream *in, RoomFileVersion data_
 
 HError ReadExt_400_EventTables(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
-    HError err = room->Events.Read(in);
-    if (!ReadAndAssertCount(in, "hotspots", room->HotspotCount, err))
-        return err;
-    for (size_t i = 0; i < room->HotspotCount; ++i)
+    // TODO: figure out a more optimal way for handling all the operations here,
+    // perhaps join schema read and remap into the member of the ScriptEventSchema class?
+    // join Handlers read and remap? anything else that may be improved?
     {
-        err = room->Hotspots[i].Events.Read(in);
+        ScriptEventSchema schema;
+        HError err = schema.Read(in);
         if (!err)
             return err;
-    }
-    if (!ReadAndAssertCount(in, "objects", static_cast<uint32_t>(room->Objects.size()), err))
-        return err;
-    for (size_t i = 0; i < room->Objects.size(); ++i)
-    {
-        err = room->Objects[i].Events.Read(in);
+        std::vector<uint32_t> remap;
+        const bool must_remap = schema.CreateRemap(RoomStruct::GetEventSchema(), remap);
+        ScriptEventHandlers handlers;
+        err = handlers.Read(in);
         if (!err)
             return err;
+        if (must_remap)
+            handlers.Remap(remap);
+        room->Events.SetHandlers(handlers);
     }
-    if (!ReadAndAssertCount(in, "regions", room->RegionCount, err))
+
+    HError err = ReadScriptEventsTablesForObjects(room->Hotspots, room->HotspotCount, "hotspots", in);
+    if (!err)
         return err;
-    for (size_t i = 0; i < room->RegionCount; ++i)
-    {
-        err = room->Regions[i].Events.Read(in);
-        if (!err)
-            return err;
-    }
+    err = ReadScriptEventsTablesForObjects(room->Objects, "objects", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(room->Regions, room->RegionCount, "regions", in);
+    if (!err)
+        return err;
     return HError::None();
 }
 
@@ -572,16 +575,6 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
         for (auto &reg : room->Regions)
             reg.RemapOldInteractions();
     }
-
-    // Generate indexed event tables from event maps (for simpler access at runtime)
-    // TODO: consider moving this step to a runtime-only place?
-    room->ResolveEventHandlers();
-    for (auto &hot : room->Hotspots)
-        hot.ResolveEventHandlers();
-    for (auto &obj : room->Objects)
-        obj.ResolveEventHandlers();
-    for (auto &reg : room->Regions)
-        reg.ResolveEventHandlers();
 
     return HRoomFileError::None();
 }
@@ -817,17 +810,24 @@ void WriteExt_400_RoomNames(const RoomStruct *room, Stream *out)
 
 void WriteExt_400_EventTables(const RoomStruct *room, Stream *out)
 {
+    RoomStruct::GetEventSchema().Write(out);
     room->Events.Write(out);
+
+    RoomHotspot::GetEventSchema().Write(out);
     out->WriteInt32(room->HotspotCount);
     for (size_t i = 0; i < room->HotspotCount; ++i)
     {
         room->Hotspots[i].Events.Write(out);
     }
+
+    RoomObjectInfo::GetEventSchema().Write(out);
     out->WriteInt32(static_cast<uint32_t>(room->Objects.size()));
     for (size_t i = 0; i < room->Objects.size(); ++i)
     {
         room->Objects[i].Events.Write(out);
     }
+
+    RoomRegion::GetEventSchema().Write(out);
     out->WriteInt32(room->RegionCount);
     for (size_t i = 0; i < room->RegionCount; ++i)
     {

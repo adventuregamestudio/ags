@@ -19,31 +19,29 @@
 
 using namespace AGS::Common;
 
+/* static */ ScriptEventSchema CharacterInfo::_eventSchema = {{
+        { "OnAnyClick", kCharacterEvent_AnyClick }
+    }};
+
 void CharacterInfo::RemapOldInteractions()
 {
-    ScriptEventHandlers new_interactions;
+    std::vector<ScriptEventHandler> old_interactions = interactions.GetHandlers();
+    std::vector<ScriptEventHandler> new_interactions;
     // this is just for safety, it's supposed to be that large
-    interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers[MODE_WALK]    = {};
-    new_interactions.Handlers[MODE_LOOK]    = interactions.Handlers[0];
-    new_interactions.Handlers[MODE_HAND]    = interactions.Handlers[1];
-    new_interactions.Handlers[MODE_TALK]    = interactions.Handlers[2];
-    new_interactions.Handlers[MODE_USE]     = interactions.Handlers[3];
-    new_interactions.Handlers[MODE_PICKUP]  = interactions.Handlers[5];
-    new_interactions.Handlers[MODE_CUSTOM1] = interactions.Handlers[6];
-    new_interactions.Handlers[MODE_CUSTOM2] = interactions.Handlers[7];
+    old_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions[MODE_WALK]    = {};
+    new_interactions[MODE_LOOK]    = old_interactions[0];
+    new_interactions[MODE_HAND]    = old_interactions[1];
+    new_interactions[MODE_TALK]    = old_interactions[2];
+    new_interactions[MODE_USE]     = old_interactions[3];
+    new_interactions[MODE_PICKUP]  = old_interactions[5];
+    new_interactions[MODE_CUSTOM1] = old_interactions[6];
+    new_interactions[MODE_CUSTOM2] = old_interactions[7];
 
-    events.EventMap["OnAnyClick"] = interactions.Handlers[4].FunctionName;
-    interactions = std::move(new_interactions);
-    interactions.ScriptModule = events.ScriptModule;
-}
-
-void CharacterInfo::ResolveEventHandlers()
-{
-    events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick"
-    });
+    Events.SetHandler(kCharacterEvent_AnyClick, old_interactions[4].FunctionName);
+    interactions.SetScriptModule(Events.GetScriptModule());
+    interactions.SetHandlers(std::move(new_interactions));
 }
 
 void CharacterInfo::ReadBaseFields(Stream *in)

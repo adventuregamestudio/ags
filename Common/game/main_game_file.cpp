@@ -432,13 +432,6 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
             chars[i].RemapOldInteractions();
         }
     }
-
-    // Generate indexed event tables from event maps (for simpler access at runtime)
-    // TODO: consider moving this step to a runtime-only place?
-    for (int i = 0; i < char_count; i++)
-    {
-        chars[i].ResolveEventHandlers();
-    }
 }
 
 void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
@@ -452,13 +445,6 @@ void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
         {
             inv[i].RemapOldInteractions();
         }
-    }
-
-    // Generate indexed event tables from event maps (for simpler access at runtime)
-    // TODO: consider moving this step to a runtime-only place?
-    for (int i = 0; i < inv_count; i++)
-    {
-        inv[i].ResolveEventHandlers();
     }
 }
 
@@ -587,7 +573,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
     {
-        err = ents.Game.chars[i].interactions.Read_v362(in);
+        err = ents.Game.chars[i].interactions.Read(in);
         if (!err)
             return err;
     }
@@ -595,7 +581,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
         return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
     {
-        err = ents.Game.invinfo[i].interactions.Read_v362(in);
+        err = ents.Game.invinfo[i].interactions.Read(in);
         if (!err)
             return err;
     }
@@ -683,19 +669,12 @@ HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedG
 
 HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents)
 {
-    HError err;
-    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+    HError err = ReadScriptEventsTablesForObjects(ents.Game.chars, "characters", in);
+    if (!err)
         return err;
-    for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
-    {
-        ents.Game.chars[i].events.Read(in);
-    }
-    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
+    err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, ents.Game.numinvitems, "inventory items", in);
+    if (!err)
         return err;
-    for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
-    {
-        ents.Game.invinfo[i].events.Read(in);
-    }
 
     // TODO: add all GUI reading their events as a map too
 

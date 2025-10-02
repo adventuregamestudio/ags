@@ -51,33 +51,33 @@ RoomEdges::RoomEdges(int l, int r, int t, int b)
 {
 }
 
+/* static */ ScriptEventSchema RoomHotspot::_eventSchema = {{
+        { "OnAnyClick", kHotspotEvent_AnyClick },
+        { "OnMouseMove", kHotspotEvent_MouseOver },
+        { "OnWalkOn", kHotspotEvent_StandOn }
+    }};
+
 void RoomHotspot::RemapOldInteractions()
 {
-    ScriptEventHandlers new_interactions;
+    std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
+    std::vector<ScriptEventHandler> new_interactions;
     // this is just for safety, it's supposed to be that large
-    Interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers[MODE_WALK] = {};
-    new_interactions.Handlers[MODE_LOOK] = Interactions.Handlers[1];
-    new_interactions.Handlers[MODE_HAND] = Interactions.Handlers[2];
-    new_interactions.Handlers[MODE_TALK] = Interactions.Handlers[4];
-    new_interactions.Handlers[MODE_USE]  = Interactions.Handlers[3];
-    new_interactions.Handlers[MODE_PICKUP] = Interactions.Handlers[7];
-    new_interactions.Handlers[MODE_CUSTOM1] = Interactions.Handlers[8];
-    new_interactions.Handlers[MODE_CUSTOM2] = Interactions.Handlers[9];
+    old_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions[MODE_WALK] = {};
+    new_interactions[MODE_LOOK] = old_interactions[1];
+    new_interactions[MODE_HAND] = old_interactions[2];
+    new_interactions[MODE_TALK] = old_interactions[4];
+    new_interactions[MODE_USE]  = old_interactions[3];
+    new_interactions[MODE_PICKUP] = old_interactions[7];
+    new_interactions[MODE_CUSTOM1] = old_interactions[8];
+    new_interactions[MODE_CUSTOM2] = old_interactions[9];
+    Interactions.SetHandlers(new_interactions);
+    Interactions.SetScriptModule(Events.GetScriptModule());
 
-    Events.EventMap["OnWalkOn"] = Interactions.Handlers[0].FunctionName;
-    Events.EventMap["OnAnyClick"] = Interactions.Handlers[5].FunctionName;
-    Events.EventMap["OnMouseMove"] = Interactions.Handlers[6].FunctionName;
-    Interactions = std::move(new_interactions);
-    Interactions.ScriptModule = Events.ScriptModule;
-}
-
-void RoomHotspot::ResolveEventHandlers()
-{
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick", "OnMouseMove", "OnWalkOn", 
-    });
+    Events.SetHandler(kHotspotEvent_StandOn, old_interactions[0].FunctionName);
+    Events.SetHandler(kHotspotEvent_AnyClick, old_interactions[5].FunctionName);
+    Events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
 }
 
 RoomObjectInfo::RoomObjectInfo()
@@ -91,31 +91,29 @@ RoomObjectInfo::RoomObjectInfo()
 {
 }
 
+/* static */ ScriptEventSchema RoomObjectInfo::_eventSchema = {{
+        { "OnAnyClick", kRoomObjectEvent_AnyClick }
+    }};
+
 void RoomObjectInfo::RemapOldInteractions()
 {
-    ScriptEventHandlers new_interactions;
+    std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
+    std::vector<ScriptEventHandler> new_interactions;
     // this is just for safety, it's supposed to be that large
-    Interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers[MODE_WALK] = {};
-    new_interactions.Handlers[MODE_LOOK] = Interactions.Handlers[0];
-    new_interactions.Handlers[MODE_HAND] = Interactions.Handlers[1];
-    new_interactions.Handlers[MODE_TALK] = Interactions.Handlers[2];
-    new_interactions.Handlers[MODE_USE] = Interactions.Handlers[3];
-    new_interactions.Handlers[MODE_PICKUP] = Interactions.Handlers[5];
-    new_interactions.Handlers[MODE_CUSTOM1] = Interactions.Handlers[6];
-    new_interactions.Handlers[MODE_CUSTOM2] = Interactions.Handlers[7];
+    old_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions[MODE_WALK] = {};
+    new_interactions[MODE_LOOK] = old_interactions[0];
+    new_interactions[MODE_HAND] = old_interactions[1];
+    new_interactions[MODE_TALK] = old_interactions[2];
+    new_interactions[MODE_USE] = old_interactions[3];
+    new_interactions[MODE_PICKUP] = old_interactions[5];
+    new_interactions[MODE_CUSTOM1] = old_interactions[6];
+    new_interactions[MODE_CUSTOM2] = old_interactions[7];
+    Interactions.SetHandlers(new_interactions);
+    Interactions.SetScriptModule(Events.GetScriptModule());
 
-    Events.EventMap["OnAnyClick"] = Interactions.Handlers[4].FunctionName;
-    Interactions = std::move(new_interactions);
-    Interactions.ScriptModule = Events.ScriptModule;
-}
-
-void RoomObjectInfo::ResolveEventHandlers()
-{
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick"
-    });
+    Events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
 }
 
 RoomRegion::RoomRegion()
@@ -124,23 +122,22 @@ RoomRegion::RoomRegion()
 {
 }
 
+/* static */ ScriptEventSchema RoomRegion::_eventSchema = {{
+        { "OnStanding", kRegionEvent_Standing },
+        { "OnWalksOnto", kRegionEvent_WalkOn },
+        { "OnWalksOff", kRegionEvent_WalkOff },
+    }};
+
 void RoomRegion::RemapOldInteractions()
 {
+    std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     // this is just for safety, it's supposed to be that large
-    Interactions.Handlers.resize(3);
+    old_interactions.resize(3);
 
-    Events.EventMap["OnStanding"] = Interactions.Handlers[0].FunctionName;
-    Events.EventMap["OnWalksOnto"] = Interactions.Handlers[1].FunctionName;
-    Events.EventMap["OnWalksOff"] = Interactions.Handlers[2].FunctionName;
+    Events.SetHandler(kRegionEvent_Standing, old_interactions[0].FunctionName);
+    Events.SetHandler(kRegionEvent_WalkOn, old_interactions[1].FunctionName);
+    Events.SetHandler(kRegionEvent_WalkOff, old_interactions[2].FunctionName);
     Interactions = {};
-}
-
-void RoomRegion::ResolveEventHandlers()
-{
-    // Keeping old interaction indexes for the new events
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnStanding", "OnWalksOnto", "OnWalksOff", 
-    });
 }
 
 WalkArea::WalkArea()
@@ -192,21 +189,21 @@ void RoomStruct::Free()
     CompiledScript.reset();
 
     Interactions = {};
-    Events = {};
+    Events.ClearHandlers();
     for (uint32_t i = 0; i < HotspotCount; ++i)
     {
         Hotspots[i].Interactions = {};
-        Hotspots[i].Events = {};
+        Hotspots[i].Events.ClearHandlers();
     }
     for (auto &obj : Objects)
     {
         obj.Interactions = {};
-        obj.Events = {};
+        obj.Events.ClearHandlers();
     }
     for (uint32_t i = 0; i < RegionCount; ++i)
     {
         Regions[i].Interactions = {};
-        Regions[i].Events = {};
+        Regions[i].Events.ClearHandlers();
     }
 }
 
@@ -243,31 +240,36 @@ void RoomStruct::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
 }
 
+/* static */ ScriptEventSchema RoomStruct::_eventSchema = {{
+        { "OnLeaveLeft", kRoomEvent_EdgeLeft },
+        { "OnLeaveRight", kRoomEvent_EdgeRight },
+        { "OnLeaveBottom", kRoomEvent_EdgeBottom},
+        { "OnLeaveTop", kRoomEvent_EdgeTop },
+        { "OnFirstTimeEnter", kRoomEvent_FirstEnter },
+        { "OnLoad", kRoomEvent_BeforeFadein },
+        { "OnRepExec", kRoomEvent_Repexec },
+        { "OnAfterFadeIn", kRoomEvent_AfterFadein },
+        { "OnLeave", kRoomEvent_BeforeFadeout },
+        { "OnUnload", kRoomEvent_AfterFadeout },
+    }};
+
 void RoomStruct::RemapOldInteractions()
 {
+    std::vector<ScriptEventHandler> old_interactions = Interactions.GetHandlers();
     // this is just for safety, it's supposed to be that large
-    Interactions.Handlers.resize(10);
+    old_interactions.resize(10);
 
-    Events.EventMap["OnLeaveLeft"] = Interactions.Handlers[0].FunctionName;
-    Events.EventMap["OnLeaveRight"] = Interactions.Handlers[1].FunctionName;
-    Events.EventMap["OnLeaveBottom"] = Interactions.Handlers[2].FunctionName;
-    Events.EventMap["OnLeaveTop"] = Interactions.Handlers[3].FunctionName;
-    Events.EventMap["OnFirstTimeEnter"] = Interactions.Handlers[4].FunctionName;
-    Events.EventMap["OnLoad"] = Interactions.Handlers[5].FunctionName;
-    Events.EventMap["OnRepExec"] = Interactions.Handlers[6].FunctionName;
-    Events.EventMap["OnAfterFadeIn"] = Interactions.Handlers[7].FunctionName;
-    Events.EventMap["OnLeave"] = Interactions.Handlers[8].FunctionName;
-    Events.EventMap["OnUnload"] = Interactions.Handlers[9].FunctionName;
+    Events.SetHandler(kRoomEvent_EdgeLeft, old_interactions[0].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeRight, old_interactions[1].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeBottom, old_interactions[2].FunctionName);
+    Events.SetHandler(kRoomEvent_EdgeTop, old_interactions[3].FunctionName);
+    Events.SetHandler(kRoomEvent_FirstEnter, old_interactions[4].FunctionName);
+    Events.SetHandler(kRoomEvent_BeforeFadein, old_interactions[5].FunctionName);
+    Events.SetHandler(kRoomEvent_Repexec, old_interactions[6].FunctionName);
+    Events.SetHandler(kRoomEvent_AfterFadein, old_interactions[7].FunctionName);
+    Events.SetHandler(kRoomEvent_BeforeFadeout, old_interactions[8].FunctionName);
+    Events.SetHandler(kRoomEvent_AfterFadeout, old_interactions[9].FunctionName);
     Interactions = {};
-}
-
-void RoomStruct::ResolveEventHandlers()
-{
-    // Keeping old interaction indexes for the new events
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnLeaveLeft", "OnLeaveRight", "OnLeaveBottom", "OnLeaveTop",
-        "OnFirstTimeEnter", "OnLoad", "OnRepExec", "OnAfterFadeIn", "OnLeave", "OnUnload"
-    });
 }
 
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const

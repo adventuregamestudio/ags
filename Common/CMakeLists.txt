@@ -79,8 +79,8 @@ target_sources(common
     game/room_version.h
     game/roomstruct.cpp
     game/roomstruct.h
-    game/scripteventstable.cpp
-    game/scripteventstable.h
+    game/scripteventtable.cpp
+    game/scripteventtable.h
     game/tra_file.cpp
     game/tra_file.h
     gfx/allegrobitmap.cpp

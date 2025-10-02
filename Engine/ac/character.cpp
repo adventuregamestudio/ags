@@ -1232,10 +1232,10 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
                                      RuntimeScriptValue().SetScriptObject(chaa, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &game.chars[chaa->index_id].interactions, evnt,
-                         &game.chars[chaa->index_id].events, anyclick_evt, true /* do unhandled event */) < 0)
+                         &game.chars[chaa->index_id].Events, anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on char
-    run_event_script(obj_evt, &game.chars[chaa->index_id].events, anyclick_evt);
+    run_event_script(obj_evt, &game.chars[chaa->index_id].Events, anyclick_evt);
 }
 
 

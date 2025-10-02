@@ -27,6 +27,14 @@ namespace AGS.Types
             list[index2] = temp;
         }
 
+        public static string ToStringOrEmpty(this object o)
+        {
+            if (o != null)
+                return o.ToString();
+            else
+                return string.Empty;
+        }
+
         /// <summary>
         /// Tries to get a value by a key from a dictionary, or returns "defValue" on failure.
         /// </summary>

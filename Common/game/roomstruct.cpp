@@ -73,15 +73,16 @@ void RoomHotspot::RemapOldInteractions()
     new_interactions[MODE_CUSTOM1] = old_interactions[8];
     new_interactions[MODE_CUSTOM2] = old_interactions[9];
     Interactions.SetHandlers(new_interactions);
-    Interactions.SetScriptModule(Events.GetScriptModule());
+    Interactions.SetScriptModule(_events.GetScriptModule());
 
-    Events.SetHandler(kHotspotEvent_StandOn, old_interactions[0].FunctionName);
-    Events.SetHandler(kHotspotEvent_AnyClick, old_interactions[5].FunctionName);
-    Events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
+    _events.SetHandler(kHotspotEvent_StandOn, old_interactions[0].FunctionName);
+    _events.SetHandler(kHotspotEvent_AnyClick, old_interactions[5].FunctionName);
+    _events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
 }
 
 RoomObjectInfo::RoomObjectInfo()
-    : Room(-1)
+    : RoomObjectBase(&RoomObjectInfo::_eventSchema)
+    , Room(-1)
     , X(0)
     , Y(0)
     , Sprite(0)
@@ -111,13 +112,14 @@ void RoomObjectInfo::RemapOldInteractions()
     new_interactions[MODE_CUSTOM1] = old_interactions[6];
     new_interactions[MODE_CUSTOM2] = old_interactions[7];
     Interactions.SetHandlers(new_interactions);
-    Interactions.SetScriptModule(Events.GetScriptModule());
+    Interactions.SetScriptModule(_events.GetScriptModule());
 
-    Events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
+    _events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
 }
 
 RoomRegion::RoomRegion()
-    : Light(0)
+    : RoomObjectBase(&RoomRegion::_eventSchema)
+    , Light(0)
     , Tint(0)
 {
 }
@@ -134,9 +136,9 @@ void RoomRegion::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(3);
 
-    Events.SetHandler(kRegionEvent_Standing, old_interactions[0].FunctionName);
-    Events.SetHandler(kRegionEvent_WalkOn, old_interactions[1].FunctionName);
-    Events.SetHandler(kRegionEvent_WalkOff, old_interactions[2].FunctionName);
+    _events.SetHandler(kRegionEvent_Standing, old_interactions[0].FunctionName);
+    _events.SetHandler(kRegionEvent_WalkOn, old_interactions[1].FunctionName);
+    _events.SetHandler(kRegionEvent_WalkOff, old_interactions[2].FunctionName);
     Interactions = {};
 }
 
@@ -157,6 +159,7 @@ WalkBehind::WalkBehind()
 }
 
 RoomStruct::RoomStruct()
+    : RoomObjectBase(&RoomStruct::_eventSchema)
 {
     InitDefaults();
 }
@@ -189,21 +192,21 @@ void RoomStruct::Free()
     CompiledScript.reset();
 
     Interactions = {};
-    Events.ClearHandlers();
+    _events.ClearHandlers();
     for (uint32_t i = 0; i < HotspotCount; ++i)
     {
         Hotspots[i].Interactions = {};
-        Hotspots[i].Events.ClearHandlers();
+        Hotspots[i].ClearEventHandlers();
     }
     for (auto &obj : Objects)
     {
         obj.Interactions = {};
-        obj.Events.ClearHandlers();
+        obj.ClearEventHandlers();
     }
     for (uint32_t i = 0; i < RegionCount; ++i)
     {
         Regions[i].Interactions = {};
-        Regions[i].Events.ClearHandlers();
+        Regions[i].ClearEventHandlers();
     }
 }
 
@@ -259,16 +262,16 @@ void RoomStruct::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(10);
 
-    Events.SetHandler(kRoomEvent_EdgeLeft, old_interactions[0].FunctionName);
-    Events.SetHandler(kRoomEvent_EdgeRight, old_interactions[1].FunctionName);
-    Events.SetHandler(kRoomEvent_EdgeBottom, old_interactions[2].FunctionName);
-    Events.SetHandler(kRoomEvent_EdgeTop, old_interactions[3].FunctionName);
-    Events.SetHandler(kRoomEvent_FirstEnter, old_interactions[4].FunctionName);
-    Events.SetHandler(kRoomEvent_BeforeFadein, old_interactions[5].FunctionName);
-    Events.SetHandler(kRoomEvent_Repexec, old_interactions[6].FunctionName);
-    Events.SetHandler(kRoomEvent_AfterFadein, old_interactions[7].FunctionName);
-    Events.SetHandler(kRoomEvent_BeforeFadeout, old_interactions[8].FunctionName);
-    Events.SetHandler(kRoomEvent_AfterFadeout, old_interactions[9].FunctionName);
+    _events.SetHandler(kRoomEvent_EdgeLeft, old_interactions[0].FunctionName);
+    _events.SetHandler(kRoomEvent_EdgeRight, old_interactions[1].FunctionName);
+    _events.SetHandler(kRoomEvent_EdgeBottom, old_interactions[2].FunctionName);
+    _events.SetHandler(kRoomEvent_EdgeTop, old_interactions[3].FunctionName);
+    _events.SetHandler(kRoomEvent_FirstEnter, old_interactions[4].FunctionName);
+    _events.SetHandler(kRoomEvent_BeforeFadein, old_interactions[5].FunctionName);
+    _events.SetHandler(kRoomEvent_Repexec, old_interactions[6].FunctionName);
+    _events.SetHandler(kRoomEvent_AfterFadein, old_interactions[7].FunctionName);
+    _events.SetHandler(kRoomEvent_BeforeFadeout, old_interactions[8].FunctionName);
+    _events.SetHandler(kRoomEvent_AfterFadeout, old_interactions[9].FunctionName);
     Interactions = {};
 }
 

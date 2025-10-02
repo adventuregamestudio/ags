@@ -170,8 +170,6 @@ struct CharacterInfo
     AGS::Common::String name = {}; // regular name (aka description)
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
-    // Common events
-    AGS::Common::ScriptEventTable Events = AGS::Common::ScriptEventTable(&CharacterInfo::_eventSchema);
 
     // Gets a events schema corresponding to this object's type
     static const AGS::Common::ScriptEventSchema &GetEventSchema() { return CharacterInfo::_eventSchema; }
@@ -231,6 +229,10 @@ struct CharacterInfo
     CharacterInfo &operator = (const CharacterInfo&) = default;
     CharacterInfo &operator = (CharacterInfo&&) = default;
 
+    // Provides a script events table
+    const AGS::Common::ScriptEventTable &GetEvents() const { return _events; }
+    AGS::Common::ScriptEventTable &GetEvents() { return _events; }
+
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
@@ -248,6 +250,8 @@ private:
 
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;
+    // Common events
+    AGS::Common::ScriptEventTable _events = AGS::Common::ScriptEventTable(&CharacterInfo::_eventSchema);
 };
 
 #endif // __AC_CHARACTERINFO_H

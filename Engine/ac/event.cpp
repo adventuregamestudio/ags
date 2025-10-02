@@ -125,7 +125,7 @@ void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, in
 void run_room_event(int id)
 {
     auto obj_evt = ObjectEvent(kScTypeRoom);
-    run_event_script(obj_evt, &thisroom.Events, id);
+    run_event_script(obj_evt, &thisroom.GetEvents(), id);
 }
 
 // event list functions
@@ -182,7 +182,7 @@ void process_event(const AGSEvent *evp)
         case kObjEventType_Hotspot:
         {
             const int hotspot_id = obj.ObjID;
-            obj_events = &thisroom.Hotspots[hotspot_id].Events;
+            obj_events = &thisroom.Hotspots[hotspot_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
@@ -190,7 +190,7 @@ void process_event(const AGSEvent *evp)
         }
         case kObjEventType_Room:
         {
-            obj_events = &thisroom.Events;
+            obj_events = &thisroom.GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom);
             if (obj.ObjEvent == kRoomEvent_BeforeFadein)
             {

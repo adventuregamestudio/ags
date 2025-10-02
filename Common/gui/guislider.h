@@ -22,6 +22,14 @@ namespace AGS
 namespace Common
 {
 
+// Slider event indexes;
+// these are used after resolving events map read from game file
+enum SliderEventID
+{
+    kSliderEvent_OnChange,
+    kNumSliderEvents
+};
+
 class GUISlider : public GUIControl
 {
 public:
@@ -46,9 +54,9 @@ public:
     bool IsContentClipped() const override { return false; }
 
     // Script Events
-    uint32_t GetEventCount() const override;
-    String GetEventArgs(uint32_t event) const override;
-    String GetEventName(uint32_t event) const override;
+    // Gets a events schema corresponding to this object's type
+    static const ScriptEventSchema &GetEventSchema() { return GUISlider::_eventSchema; }
+    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUISlider::_eventSchema; }
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -73,9 +81,8 @@ private:
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
 
-    static const int EventCount = 1;
-    static String EventNames[EventCount];
-    static String EventArgs[EventCount];
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
 
     int     _minValue = 0;
     int     _maxValue = 0;

@@ -297,7 +297,7 @@ struct ScriptEventTable : public ScriptEventsBase
     }
 
     // Retrieves a default dummy schema that can be used to initialize empty ScriptEventTable
-    static const ScriptEventSchema *DefaultSchema() { return &_defaultSchema; }
+    static const ScriptEventSchema &DefaultSchema() { return _defaultSchema; }
 
     // Clears all assigned handler functions
     void ClearHandlers();

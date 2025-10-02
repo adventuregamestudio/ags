@@ -72,6 +72,14 @@ struct GUIRefCollection
 class Bitmap;
 
 
+// GUI event indexes;
+// these are used after resolving events map read from game file
+enum GUIEventID
+{
+    kGUIEvent_OnClick,
+    kNumGUIEvents
+};
+
 class GUIMain : public GUIObject
 {
 public:
@@ -133,10 +141,10 @@ public:
     // Sets highlighted control index
     void    SetHighlightControl(int control_index);
 
-    const String &GetScriptModule() const { return _scriptModule; }
-    void    SetScriptModule(const String &scmodule);
-    const String &GetOnClickHandler() const { return _onClickHandler; }
-    void    SetOnClickHandler(const String &handler);
+    // Script Events
+    // Gets a events schema corresponding to this object's type
+    static const ScriptEventSchema &GetEventSchema() { return GUIMain::_eventSchema; }
+    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIMain::_eventSchema; }
 
     // Tells if GUI controls have graphically changed recently
     bool    HasControlsChanged() const { return _hasControlsChanged; }
@@ -213,6 +221,9 @@ private:
     static const int DefaultBgColor = 8;
     static const int DefaultFgColor = 1;
 
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
+
     color_t _bgColor = DefaultBgColor; // background color
     int     _bgImage = 0;       // background sprite index
     color_t _fgColor = DefaultFgColor; // foreground color (used as border color in normal GUIs,
@@ -226,10 +237,6 @@ private:
     int     _mouseOverCtrl = -1; // which control has the mouse cursor over it
     int     _mouseDownCtrl = -1; // which control has the mouse button pressed on it
     Point   _mouseWasAt = { -1, -1 }; // last mouse cursor position
-
-    String  _scriptModule;      // (optional) script module which contains callbacks
-                                // for this GUI and its controls
-    String  _onClickHandler;    // script function name
 
     int     _flags = kGUIMain_DefFlags; // style and behavior flags
     bool    _hasControlsChanged = false; // flag tells that GUI controls have changed position or image

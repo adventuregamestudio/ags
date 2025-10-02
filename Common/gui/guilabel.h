@@ -40,6 +40,11 @@ public:
     // Gets which macro are contained within label's text
     GUILabelMacro GetTextMacros() const { return _textMacro; }
 
+    // Script Events
+    // Gets a events schema corresponding to this object's type
+    static const ScriptEventSchema &GetEventSchema() { return ScriptEventTable::DefaultSchema(); }
+    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &ScriptEventTable::DefaultSchema(); }
+
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
@@ -55,10 +60,6 @@ private:
     // Transforms the Text property to a drawn text, applies translation,
     // replaces macros, splits and wraps, etc; returns number of lines.
     int PrepareTextToDraw();
-
-    //static const int EventCount = 0;
-    //static String EventNames[EventCount];
-    //static String EventArgs[EventCount];
 
     String  _text;
     int     _font = 0;

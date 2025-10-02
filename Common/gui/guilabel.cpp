@@ -25,6 +25,7 @@ namespace Common
 {
 
 GUILabel::GUILabel()
+    : GUIControl(&ScriptEventTable::DefaultSchema())
 {
 }
 

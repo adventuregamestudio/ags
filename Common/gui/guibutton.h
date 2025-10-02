@@ -52,6 +52,7 @@ enum GUIButtonPlaceholder
 enum ButonEventID
 {
     kButtonEvent_OnClick,
+    kButtonEvent_OnFrameEvent,
     kNumButtonEvents
 };
 

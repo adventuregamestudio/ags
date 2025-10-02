@@ -26,7 +26,8 @@ namespace Common
 {
 
 /* static */ ScriptEventsSchema GUIButton::_eventSchema = {{
-        { "OnClick", kButtonEvent_OnClick }
+        { "OnClick", kButtonEvent_OnClick },
+        { "OnFrameEvent", kButtonEvent_OnFrameEvent },
     }};
 
 GUIButton::GUIButton()

@@ -96,7 +96,8 @@ RoomObjectInfo::RoomObjectInfo()
 }
 
 /* static */ ScriptEventsSchema RoomObjectInfo::_eventSchema = {{
-        { "OnAnyClick", kRoomObjectEvent_AnyClick }
+        { "OnAnyClick", kRoomObjectEvent_AnyClick },
+        { "OnFrameEvent", kRoomObjectEvent_OnFrameEvent },
     }};
 
 void RoomObjectInfo::RemapOldInteractions()

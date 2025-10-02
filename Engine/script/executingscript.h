@@ -23,7 +23,7 @@
 #include "script/runtimescript.h"
 #include "script/runtimescriptvalue.h"
 
-#define MAX_SCRIPT_EVT_PARAMS  4
+#define MAX_SCRIPT_EVT_PARAMS  5
 
 // A general script type, used to search for or run a function.
 // NOTE: "game" type may mean either "global script" or any script module,

@@ -24,8 +24,9 @@
 #include "ac/dynobj/scriptviewframe.h"
 #include "gfx/bitmap.h"
 
-namespace AGS { namespace Common { class Graphics; } }
+namespace AGS { namespace Common { struct InteractionEvents; } }
 using namespace AGS; // FIXME later
+struct ObjectEvent;
 
 int  ViewFrame_GetFlipped(ScriptViewFrame *svf);
 int  ViewFrame_GetGraphic(ScriptViewFrame *svf);
@@ -44,6 +45,8 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale = 100);
 // Handle the new animation frame (play linked sounds, etc);
 // sound_volume is an optional *relative* factor, 100 is default (unchanged)
 void CheckViewFrame(int view, int loop, int frame, int sound_volume = 100);
+void CheckViewFrame(int view, int loop, int frame, int sound_volume,
+                    const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
 

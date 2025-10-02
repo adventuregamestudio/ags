@@ -22,15 +22,18 @@
 #include "ac/object.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/cc_guicontrol.h"
 #include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
+#include "script/script.h"
 #include "main/game_run.h"
 
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
+extern CCGUIButton ccDynamicGUIButton;
 
 // *** BUTTON FUNCTIONS
 
@@ -234,7 +237,10 @@ bool UpdateAnimatingButton(int bu)
     }
     if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, abtn.anim))
         return false;
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume);
+
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(&guibuts[abtn.buttonid], &ccDynamicGUIButton));
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume,
+                   objevt, &guibuts[abtn.buttonid].GetEvents(), kButtonEvent_OnFrameEvent);
     abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     UpdateButtonState(abtn);
     return true;

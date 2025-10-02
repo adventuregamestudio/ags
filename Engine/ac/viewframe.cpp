@@ -17,9 +17,11 @@
 #include "ac/viewframe.h"
 #include "ac/spritecache.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptstring.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script.h"
 #include "media/audio/audio_system.h"
 #include "util/math.h"
 
@@ -134,24 +136,40 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
     return frame_vol;
 }
 
-// Handle the new animation frame (play linked sounds, etc)
 void CheckViewFrame(int view, int loop, int frame, int sound_volume)
 {
-    ScriptAudioChannel *channel = nullptr;
+    CheckViewFrame(view, loop, frame, sound_volume, ObjectEvent(), nullptr, 0);
+}
 
-    if (views[view].loops[loop].frames[frame].sound >= 0) {
-        // play this sound (eg. footstep)
-        channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
-    }
-
-    if (channel)
+// Handle the new animation frame (play linked sounds, etc)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume,
+                    const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt)
+{
+    if (views[view].loops[loop].frames[frame].sound >= 0)
     {
-        sound_volume = Math::Clamp(sound_volume, 0, 100);
-        auto* ch = AudioChans::GetChannel(channel->id);
-        if (ch)
-            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+        // play this sound (eg. footstep)
+        ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+        if (channel)
+        {
+            sound_volume = Math::Clamp(sound_volume, 0, 100);
+            auto *ch = AudioChans::GetChannel(channel->id);
+            if (ch)
+                ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+        }
     }
-    
+
+    if (!views[view].loops[loop].frames[frame].event_name.IsEmpty()
+        && obj_evt && handlers->HasHandler(evnt))
+    {
+        ObjectEvent evt_ext = obj_evt;
+        evt_ext.Params[1] = RuntimeScriptValue().SetInt32(view);
+        evt_ext.Params[2] = RuntimeScriptValue().SetInt32(loop);
+        evt_ext.Params[3] = RuntimeScriptValue().SetInt32(frame);
+        auto dyn_str = ScriptString::Create(views[view].loops[loop].frames[frame].event_name.GetCStr());
+        evt_ext.Params[4] = RuntimeScriptValue().SetScriptObject(dyn_str.Obj, dyn_str.Mgr);
+        evt_ext.ParamCount = 5;
+        run_event_script(evt_ext, handlers, evnt);
+    }
 }
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()

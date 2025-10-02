@@ -31,7 +31,7 @@ namespace AGS.Types
         private int _zorder;
 		private int _bordercol;
         private int _transparency = 0;
-		private string _clickEventHandler = string.Empty;
+		private string _onClick = string.Empty;
 
         /// <summary>
         /// Width of the GUI, as displayed in the Editor.
@@ -61,8 +61,8 @@ namespace AGS.Types
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnClick
         {
-            get { return _clickEventHandler; }
-            set { _clickEventHandler = value; }
+            get { return _onClick; }
+            set { _onClick = value; }
         }
 
         [Description("The height, in pixels, of the GUI")]

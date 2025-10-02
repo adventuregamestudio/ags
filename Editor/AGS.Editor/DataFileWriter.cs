@@ -1128,6 +1128,7 @@ namespace AGS.Editor
                     }
                 }
 
+                [AGSEventProperty()]
                 public string OnClick
                 {
                     get
@@ -1175,7 +1176,7 @@ namespace AGS.Editor
             /// Writes the common elements of this GUIControl to the file. Type-specific
             /// data is written only by the respective method for that type.
             /// </summary>
-            private void WriteGUIControl(GUIControl control, int flags, string[] events)
+            private void WriteGUIControl(GUIControl control, int flags)
             {
                 flags |= MakeCommonGUIControlFlags(control);
                 writer.Write(flags); // flags
@@ -1185,16 +1186,8 @@ namespace AGS.Editor
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
                 FilePutNullTerminatedString(control.Name, writer);
-                writer.Write(events.Length); // numSupportedEvents
-                foreach (string sevent in events)
-                {
-                    FilePutNullTerminatedString(sevent, writer);
-                }
-            }
-
-            private void WriteGUIControl(GUIControl control, int flags)
-            {
-                WriteGUIControl(control, flags, new string[0]);
+                // Old style events table; now unused so write size 0 always
+                writer.Write(0);
             }
 
             private void WriteAllButtonsAndTextWindowEdges()
@@ -1205,7 +1198,7 @@ namespace AGS.Editor
                     int flags;
                     flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0) |
                             (ctrl.WrapText ? NativeConstants.GUIF_WRAPTEXT : 0);
-                    WriteGUIControl(ctrl, flags, new string[] { ctrl.OnClick });
+                    WriteGUIControl(ctrl, flags);
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
                     writer.Write(ctrl.PushedImage); // pushedpic
@@ -1251,7 +1244,7 @@ namespace AGS.Editor
                 writer.Write(GUISliders.Count);
                 foreach (GUISlider slider in GUISliders)
                 {
-                    WriteGUIControl(slider, 0, new string[] { slider.OnChange });
+                    WriteGUIControl(slider, 0);
                     writer.Write(slider.MinValue);
                     writer.Write(slider.MaxValue);
                     writer.Write(slider.Value);
@@ -1266,7 +1259,7 @@ namespace AGS.Editor
                 writer.Write(GUITextBoxes.Count);
                 foreach (GUITextBox textBox in GUITextBoxes)
                 {
-                    WriteGUIControl(textBox, 0, new string[] { textBox.OnActivate });
+                    WriteGUIControl(textBox, 0);
                     FilePutString(TextProperty(textBox.Text), writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
@@ -1284,7 +1277,7 @@ namespace AGS.Editor
                 writer.Write(GUIListBoxes.Count);
                 foreach (GUIListBox listBox in GUIListBoxes)
                 {
-                    WriteGUIControl(listBox, 0, new string[] { listBox.OnSelectionChanged });
+                    WriteGUIControl(listBox, 0);
                     writer.Write(0); // numItems
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);
@@ -2198,6 +2191,12 @@ namespace AGS.Editor
             // Write a list of handlers per each object
             foreach (var obj in objs)
             {
+                if (obj == null)
+                {
+                    SerializeEmptyEventsTable(writer);
+                    continue;
+                }
+            
                 // Gather the list of handlers matching previously gathered events;
                 // include empty handlers too (handler indexes must match event indexes)
                 var handlerList = events.Select(evt => evt.GetValue(obj).ToStringOrEmpty()).ToArray();
@@ -2213,10 +2212,21 @@ namespace AGS.Editor
             var inventoryEvents = (typeof(InventoryItem)).GetProperties().Where(
                 prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute)));
 
+            // Characters and InventoryItems
             SerializeEventsTables(ents.Game.Characters, writer);
             SerializeEventsTables(ents.Game.InventoryItems, writer, extraItemAt0: true);
 
-            // TODO: add all GUI here too
+            // GUIs collection stores 2 types of guis, one of which does not have any events,
+            // so for simplicity sake we construct a list where these are replaced with nulls
+            var onlyNormalGUIs = ents.Game.GUIs.Select(g => g is NormalGUI ? g : null).ToList();
+            SerializeEventsTables(onlyNormalGUIs, writer);
+            // GUI controls
+            SerializeEventsTables(ents.GUIControls.GUIButtons, writer);
+            SerializeEventsTables(ents.GUIControls.GUILabels, writer);
+            SerializeEventsTables(ents.GUIControls.GUIInvWindows, writer);
+            SerializeEventsTables(ents.GUIControls.GUISliders, writer);
+            SerializeEventsTables(ents.GUIControls.GUITextBoxes, writer);
+            SerializeEventsTables(ents.GUIControls.GUIListBoxes, writer);
         }
 
         /// <summary>

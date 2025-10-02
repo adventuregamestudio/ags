@@ -171,7 +171,7 @@ struct CharacterInfo
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
     // Common events
-    AGS::Common::ScriptEventsTable events = {};
+    AGS::Common::ScriptEventsTable Events = AGS::Common::ScriptEventsTable(&CharacterInfo::_eventSchema);
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2
@@ -221,10 +221,15 @@ struct CharacterInfo
         flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
 
+    CharacterInfo() = default;
+    CharacterInfo(const CharacterInfo&) = default;
+    CharacterInfo(CharacterInfo &&) = default;
+
+    CharacterInfo &operator = (const CharacterInfo&) = default;
+    CharacterInfo &operator = (CharacterInfo&&) = default;
+
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void ResolveEventHandlers();
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;
@@ -237,6 +242,9 @@ private:
     // common for both game file and save.
     void ReadBaseFields(Common::Stream *in);
     void WriteBaseFields(Common::Stream *out) const;
+
+    // Script events schema
+    static AGS::Common::ScriptEventsSchema _eventSchema;
 };
 
 #endif // __AC_CHARACTERINFO_H

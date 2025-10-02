@@ -38,17 +38,19 @@ struct InventoryItemInfo
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
     // Common events
-    AGS::Common::ScriptEventsTable events = {};
+    AGS::Common::ScriptEventsTable Events = AGS::Common::ScriptEventsTable(&InventoryItemInfo::_eventSchema);
 
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void ResolveEventHandlers();
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);
     void ReadFromSavegame(AGS::Common::Stream *in);
     void WriteToSavegame(AGS::Common::Stream *out) const;
+
+private:
+    // Script events schema
+    static AGS::Common::ScriptEventsSchema _eventSchema;
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

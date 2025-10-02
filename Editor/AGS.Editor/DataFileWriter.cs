@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -811,27 +812,26 @@ namespace AGS.Editor
 
         static void SerializeEmptyInteractionScripts(BinaryWriter writer)
         {
-            writer.Write((int)4000000); // kEventsTable_v400 version
+            writer.Write((int)3060200); // kEventsTable_v362 version (no change from 3.6.2+ yet)
             writer.Write((int)0); // empty ScriptModule string
             writer.Write((int)0); // zero list length
         }
 
-        static void SerializeEventsTable(string scriptModule, Tuple<string, string>[] events, BinaryWriter writer)
+        static void SerializeEventsTable(string scriptModule, string[] events, BinaryWriter writer)
         {
-            writer.Write((int)4000000); // kEventsTable_v400 version
+            writer.Write((int)4000022); // kEventsTable_v400 version
             FilePutString(scriptModule, writer);
             // String map
             writer.Write(events.Length);
             foreach (var evt in events)
             {
-                FilePutString(evt.Item1, writer);
-                FilePutString(evt.Item2, writer);
+                FilePutString(evt, writer);
             }
         }
 
         static void SerializeEmptyEventsTable(BinaryWriter writer)
         {
-            writer.Write((int)4000000); // kEventsTable_v400 version
+            writer.Write((int)4000022); // kEventsTable_v400 version
             writer.Write((int)0); // empty ScriptModule string
             writer.Write((int)0); // empty strings map
         }
@@ -2162,24 +2162,59 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Serializes event tables for the list of objects of the same type.
+        /// Gathers event properties using reflection.
+        /// Writes a simple "event schema": an indexed list of event names.
+        /// Then writes event handler lists for each object - matching order
+        /// of the event names in the prepended "schema".
+        /// </summary>
+        private static void SerializeEventsTables<T>(IList<T> objs, BinaryWriter writer, bool extraItemAt0 = false)
+        {
+            var events = (typeof(T)).GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute))).ToList();
+            var scriptModuleProp = typeof(T).GetProperty("ScriptModule");
+
+            // Events schema
+            writer.Write(4000022); // kEventsTable_v400 version
+            writer.Write(events.Count);
+            foreach (var evt in events)
+            {
+                FilePutString(evt.Name, writer);
+            }
+
+            // Some object lists require a dummy first item
+            if (extraItemAt0)
+            {
+                // object slot 0 is unused, so write a dummy events table
+                writer.Write(objs.Count + 1);
+                SerializeEmptyEventsTable(writer);
+            }
+            else
+            {
+                writer.Write(objs.Count);
+            }
+
+            // Write a list of handlers per each object
+            foreach (var obj in objs)
+            {
+                // Gather the list of handlers matching previously gathered events;
+                // include empty handlers too (handler indexes must match event indexes)
+                var handlerList = events.Select(evt => evt.GetValue(obj).ToStringOrEmpty()).ToArray();
+                SerializeEventsTable(scriptModuleProp != null ? scriptModuleProp.GetValue(obj).ToStringOrEmpty() : string.Empty,
+                    handlerList, writer);
+            }
+        }
+
         private static void WriteExt_400NewEventTables(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
-            writer.Write(ents.Game.Characters.Count);
-            foreach (var ch in ents.Game.Characters)
-            {
-                SerializeEventsTable(ch.ScriptModule, new Tuple<string, string>[]{
-                    new Tuple<string, string>( "OnAnyClick", ch.OnAnyClick )
-                }, writer);
-            }
-            writer.Write(ents.Game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
-            // inventory slot 0 is unused, so write a dummy events table
-            SerializeEmptyEventsTable(writer);
-            foreach (var inv in ents.Game.InventoryItems)
-            {
-                SerializeEventsTable(inv.ScriptModule, new Tuple<string, string>[]{
-                    new Tuple<string, string>( "OnAnyClick", inv.OnAnyClick )
-                }, writer);
-            }
+            var characterEvents = (typeof(Character)).GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute)));
+            var inventoryEvents = (typeof(InventoryItem)).GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute)));
+
+            SerializeEventsTables(ents.Game.Characters, writer);
+            SerializeEventsTables(ents.Game.InventoryItems, writer, extraItemAt0: true);
 
             // TODO: add all GUI here too
         }

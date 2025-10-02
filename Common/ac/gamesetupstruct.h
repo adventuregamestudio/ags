@@ -26,7 +26,7 @@
 #include "ac/mousecursor.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/customproperties.h"
-#include "game/scripteventstable.h"
+#include "game/scripteventtable.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 #include "gui/guidefines.h"
 

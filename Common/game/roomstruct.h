@@ -34,7 +34,7 @@
 #include <memory>
 #include <allegro.h> // RGB
 #include "ac/common_defines.h"
-#include "game/scripteventstable.h"
+#include "game/scripteventtable.h"
 #include "gfx/gfx_def.h"
 #include "script/cc_script.h"
 #include "util/error.h"
@@ -192,15 +192,18 @@ struct RoomHotspot
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
     // Common events
-    ScriptEventsTable Events = {};
+    ScriptEventTable Events = ScriptEventTable(&RoomHotspot::_eventSchema);
 
     // Player will automatically walk here when interacting with hotspot
     Point       WalkTo;
 
+    static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void ResolveEventHandlers();
+
+private:
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
 };
 
 // Room object description
@@ -221,14 +224,17 @@ struct RoomObjectInfo
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
     // Common events
-    ScriptEventsTable Events = {};
+    ScriptEventTable Events = ScriptEventTable(&RoomObjectInfo::_eventSchema);
 
     RoomObjectInfo();
 
+    static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void ResolveEventHandlers();
+
+private:
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
 };
 
 // Room region description
@@ -243,14 +249,17 @@ struct RoomRegion
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
     // Common events
-    ScriptEventsTable Events = {};
+    ScriptEventTable Events = ScriptEventTable(&RoomRegion::_eventSchema);
 
     RoomRegion();
 
+    static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void ResolveEventHandlers();
+
+private:
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
 };
 
 // Walkable area description
@@ -320,10 +329,10 @@ public:
     void    Free();
     // Init default room state
     void    InitDefaults();
+
+    static const ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
     void    RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void    ResolveEventHandlers();
 
     // Gets this room's human-readable name (description)
     const String &GetName() const { return Name; }
@@ -406,11 +415,15 @@ public:
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers     Interactions = {};
     // Common events
-    ScriptEventsTable       Events = {};
+    ScriptEventTable       Events = ScriptEventTable(&RoomStruct::_eventSchema);
     // Compiled room script
     UScript                 CompiledScript;
     // Various extended options with string values, meta-data etc
     StringMap               StrOptions;
+
+private:
+    // Script events schema
+    static ScriptEventSchema _eventSchema;
 };
 
 

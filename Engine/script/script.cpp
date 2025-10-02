@@ -130,18 +130,18 @@ static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_r
 // Writes down the result of the test for the future use.
 static bool test_interaction_handler(ScriptEventsBase *handlers, int evnt, bool in_room)
 {
-    if (evnt < 0 || static_cast<size_t>(evnt) >= handlers->Handlers.size())
+    if (!handlers->HasHandler(evnt))
         return false;
-    auto &handler = handlers->Handlers[static_cast<size_t>(evnt)];
+    auto &handler = handlers->GetHandler(static_cast<size_t>(evnt));
     if (!handler.IsChecked())
     {
         if (in_room)
             handler.SetChecked(DoesScriptFunctionExist(roomscript.get(), handler.FunctionName));
         else
-            handler.SetChecked(DoesScriptFunctionExistInModule(handlers->ScriptModule, handler.FunctionName));
+            handler.SetChecked(DoesScriptFunctionExistInModule(handlers->GetScriptModule(), handler.FunctionName));
 
         if (!handler.IsEnabled())
-            WarnEventFunctionNotFound(ScriptFunctionRef(handlers->ScriptModule, handler.FunctionName), in_room);
+            WarnEventFunctionNotFound(ScriptFunctionRef(handlers->GetScriptModule(), handler.FunctionName), in_room);
     }
     return handler.IsEnabled();
 }
@@ -177,7 +177,7 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->ScriptModule, handlers->Handlers[evnt].FunctionName),
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
         obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action

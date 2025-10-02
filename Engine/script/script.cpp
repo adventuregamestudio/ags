@@ -177,7 +177,7 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->ScriptModule, handlers->Handlers[evnt].FunctionName),
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
         obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
@@ -309,6 +309,13 @@ void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
     size_t param_count, const RuntimeScriptValue *params)
 {
     QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params);
+}
+
+void QueueScriptFunction(ScriptType sc_type, const String &script_module, const ScriptEventHandler &handler,
+                            size_t param_count, const RuntimeScriptValue *params)
+{
+    if (handler.IsEnabled())
+        QueueScriptFunction(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
 }
 
 void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,

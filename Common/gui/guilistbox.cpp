@@ -24,12 +24,12 @@ namespace AGS
 namespace Common
 {
 
-/* static */ String GUIListBox::EventNames[GUIListBox::EventCount] =
-    { "SelectionChanged" };
-/* static */ String GUIListBox::EventArgs[GUIListBox::EventCount] =
-    { "GUIControl *control" };
+/* static */ ScriptEventsSchema GUIListBox::_eventSchema = {{
+        { "OnSelectionChanged", kListBoxEvent_OnSelChanged }
+    }};
 
 GUIListBox::GUIListBox()
+    : GUIControl(&GUIListBox::_eventSchema)
 {
 }
 
@@ -109,25 +109,6 @@ void GUIListBox::SetTopItem(int index)
     }
 }
 
-uint32_t GUIListBox::GetEventCount() const
-{
-    return EventCount;
-}
-
-String GUIListBox::GetEventName(uint32_t event) const
-{
-    if (event >= EventCount)
-        return "";
-    return EventNames[event];
-}
-
-String GUIListBox::GetEventArgs(uint32_t event) const
-{
-    if (event >= EventCount)
-        return "";
-    return EventArgs[event];
-}
-
 String GUIListBox::GetItem(int index) const
 {
     if (index < 0 || static_cast<uint32_t>(index) >= _items.size())
@@ -173,6 +154,11 @@ bool GUIListBox::IsInRightMargin(int x) const
     if (x >= (_width - 6) && IsBorderShown() && AreArrowsShown())
         return 1;
     return 0;
+}
+
+const ScriptEventsSchema *GUIListBox::GetEventsSchema() const
+{
+    return &GUIListBox::_eventSchema;
 }
 
 Rect GUIListBox::CalcGraphicRect(bool clipped)

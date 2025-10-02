@@ -397,10 +397,15 @@ HError ReadExt_400_RoomNames(RoomStruct *room, Stream *in, RoomFileVersion data_
 HError ReadExt_400_EventTables(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
     std::vector<ScriptEventDefinition> event_defs;
+    ScriptEventHandlers event_handlers;
     HError err = ScriptEventsSchema::ReadInto(event_defs, in);
     if (!err)
         return err;
-    err = room->Events.Read(event_defs, in);
+    err = event_handlers.Read(in);
+    if (!err)
+        return err;
+    room->GetEvents().CreateHandlers(event_defs, event_handlers.GetHandlers());
+
     err = ReadScriptEventsTablesForObjects(room->Hotspots, room->HotspotCount, "hotspots", in);
     if (!err)
         return err;
@@ -797,27 +802,27 @@ void WriteExt_400_RoomNames(const RoomStruct *room, Stream *out)
 void WriteExt_400_EventTables(const RoomStruct *room, Stream *out)
 {
     RoomStruct::GetEventSchema().Write(out);
-    room->Events.Write(out);
+    room->GetEvents().Write(out);
 
     RoomHotspot::GetEventSchema().Write(out);
     out->WriteInt32(room->HotspotCount);
     for (size_t i = 0; i < room->HotspotCount; ++i)
     {
-        room->Hotspots[i].Events.Write(out);
+        room->Hotspots[i].GetEvents().Write(out);
     }
 
     RoomObjectInfo::GetEventSchema().Write(out);
     out->WriteInt32(static_cast<uint32_t>(room->Objects.size()));
     for (size_t i = 0; i < room->Objects.size(); ++i)
     {
-        room->Objects[i].Events.Write(out);
+        room->Objects[i].GetEvents().Write(out);
     }
 
     RoomRegion::GetEventSchema().Write(out);
     out->WriteInt32(room->RegionCount);
     for (size_t i = 0; i < room->RegionCount; ++i)
     {
-        room->Regions[i].Events.Write(out);
+        room->Regions[i].GetEvents().Write(out);
     }
 }
 

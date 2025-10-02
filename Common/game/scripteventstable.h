@@ -264,26 +264,32 @@ struct ScriptEventsTable : public ScriptEventsBase
         ResetHandlers();
     }
 
-    ScriptEventsTable(const ScriptEventsSchema *schema, Stream *in)
-        : _schema(schema)
-    {
-        ResetHandlers();
-        Read(in);
-    }
-
     ScriptEventsTable &operator =(const ScriptEventsTable &events)
     {
         _schema = events._schema;
-        static_cast<ScriptEventsBase&>(*this) = static_cast<const ScriptEventsBase&>(events);
-        return *this;
+        return (*this = static_cast<const ScriptEventsBase&>(events));
     }
 
     ScriptEventsTable &operator =(ScriptEventsTable &&events)
     {
         _schema = std::move(events._schema);
-        static_cast<ScriptEventsBase&>(*this) = std::move(static_cast<ScriptEventsBase&>(events));
+        return (*this = std::move(static_cast<ScriptEventsBase&>(events)));
+    }
+
+    ScriptEventsTable &operator =(const ScriptEventHandlers &events)
+    {
+        static_cast<ScriptEventsBase&>(*this) = events;
         return *this;
     }
+
+    ScriptEventsTable &operator =(ScriptEventHandlers &&events)
+    {
+        static_cast<ScriptEventsBase&>(*this) = std::move(events);
+        return *this;
+    }
+
+    // Retrieves a default dummy schema that can be used to initialize empty ScriptEventsTable
+    static const ScriptEventsSchema *DefaultSchema() { return &_defaultSchema; }
 
     // Clears all assigned handler functions
     void ClearHandlers();
@@ -293,6 +299,12 @@ struct ScriptEventsTable : public ScriptEventsBase
     // Generates a index-based Handlers list based on provided events list and handlers list,
     // using available ScriptEventsSchema to remap handlers to our inner indexes.
     void CreateHandlers(const std::vector<ScriptEventDefinition> &event_defs, const std::vector<ScriptEventHandler> &handlers);
+    // Generates a index-based Handlers list based on provided events list and ScriptEventHandlers object,
+    // using available ScriptEventsSchema to remap handlers to our inner indexes.
+    void CreateHandlers(const std::vector<ScriptEventDefinition> &event_defs, const ScriptEventHandlers &handlers)
+    {
+        CreateHandlers(event_defs, handlers.GetHandlers());
+    }
 
     // Read the list of event handlers
     HError Read(Stream *in)

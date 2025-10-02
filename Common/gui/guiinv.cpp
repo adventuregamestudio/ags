@@ -23,6 +23,7 @@ namespace Common
 {
 
 GUIInvWindow::GUIInvWindow()
+    : GUIControl(ScriptEventsTable::DefaultSchema())
 {
     CalculateNumCells();
 }
@@ -44,6 +45,11 @@ void GUIInvWindow::SetCharacterID(int charid)
         _charID = charid;
         MarkChanged();
     }
+}
+
+const ScriptEventsSchema *GUIInvWindow::GetEventsSchema() const
+{
+    return nullptr;
 }
 
 void GUIInvWindow::OnMouseEnter()

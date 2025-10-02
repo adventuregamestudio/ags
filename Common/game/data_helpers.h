@@ -49,11 +49,13 @@ HError ReadScriptEventsTablesForObjects(std::vector<TObj> &objs, const char *obj
         return err;
     if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(objs.size()), err))
         return err;
+    ScriptEventHandlers handlers;
     for (size_t i = 0; i < objs.size(); ++i)
     {
-        err = objs[i].Events.Read(event_defs, in);
+        err = handlers.Read(in);
         if (!err)
             return err;
+        objs[i].GetEvents().CreateHandlers(event_defs, handlers.GetHandlers());
     }
     return HError::None();
 }
@@ -70,11 +72,13 @@ HError ReadScriptEventsTablesForObjects(TObj (&objs)[ObjListSize], size_t obj_co
         return err;
     if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(obj_count), err))
         return err;
+    ScriptEventHandlers handlers;
     for (size_t i = 0; i < obj_count; ++i)
     {
-        err = objs[i].Events.Read(event_defs, in);
+        err = handlers.Read(in);
         if (!err)
             return err;
+        objs[i].GetEvents().CreateHandlers(event_defs, handlers.GetHandlers());
     }
     return HError::None();
 }

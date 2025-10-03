@@ -505,6 +505,41 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
             tbox.SetTextColor(RemapFromLegacyColourNumber(game, tbox.GetTextColor()));
         }
     }
+
+    if (data_ver < kGameVersion_400_21)
+    {
+        for (auto &gui : ents.Guis)
+            gui.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Buttons)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.InvWindows)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Labels)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.ListBoxes)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Sliders)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.TextBoxes)
+            obj.RemapOldEvents();
+    }
+
+    // Generate indexed event tables from event maps (for simpler access at runtime)
+    // TODO: consider moving this step to a runtime-only place?
+    for (auto &gui : ents.Guis)
+        gui.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.Buttons)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.InvWindows)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.Labels)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.ListBoxes)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.Sliders)
+        obj.ResolveEventHandlers();
+    for (auto &obj : ents.GuiControls.TextBoxes)
+        obj.ResolveEventHandlers();
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
@@ -697,7 +732,48 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
         ents.Game.invinfo[i].events.Read(in);
     }
 
-    // TODO: add all GUI reading their events as a map too
+    if (!ReadAndAssertCount(in, "GUIs", static_cast<uint32_t>(ents.Game.numgui), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.Game.numgui; ++i)
+    {
+        ents.Guis[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(ents.GuiControls.Buttons.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.Buttons.size(); ++i)
+    {
+        ents.GuiControls.Buttons[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(ents.GuiControls.Labels.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.Labels.size(); ++i)
+    {
+        ents.GuiControls.Labels[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(ents.GuiControls.InvWindows.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.InvWindows.size(); ++i)
+    {
+        ents.GuiControls.InvWindows[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(ents.GuiControls.Sliders.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.Sliders.size(); ++i)
+    {
+        ents.GuiControls.Sliders[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(ents.GuiControls.TextBoxes.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.TextBoxes.size(); ++i)
+    {
+        ents.GuiControls.TextBoxes[i].SetEvents(ScriptEventsTable(in));
+    }
+    if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(ents.GuiControls.ListBoxes.size()), err))
+        return err;
+    for (uint32_t i = 0; i < (uint32_t)ents.GuiControls.ListBoxes.size(); ++i)
+    {
+        ents.GuiControls.ListBoxes[i].SetEvents(ScriptEventsTable(in));
+    }
 
     return HError::None();
 }
@@ -896,6 +972,29 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         HError err = ReadNewScriptEventTables(in, _ents);
         if (!err)
             return err;
+    }
+    else if (ext_id.CompareNoCase("v400_viewevents") == 0)
+    {
+        uint32_t view_count = in->ReadInt32();
+        if (view_count != _ents.Game.numviews)
+            return new Error(String::FromFormat("Mismatching number of views: read %u expected %u", view_count, (uint32_t)_ents.Game.numviews));
+        for (uint32_t view = 0; view < view_count; ++view)
+        {
+            auto &view_s = _ents.Views[view];
+            uint32_t loop_count = in->ReadInt32();
+            if (loop_count != view_s.numLoops)
+                return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u", view, loop_count, (uint32_t)view_s.numLoops));
+            for (uint32_t loop = 0; loop < loop_count; ++loop)
+            {
+                uint32_t frame_count = in->ReadInt32();
+                if (frame_count != view_s.loops[loop].numFrames)
+                    return new Error(String::FromFormat("Mismatching number of frames for view %u loop %u: read %u expected %u", view, loop, frame_count, (uint32_t)view_s.loops[loop].numFrames));
+                for (uint32_t frame = 0; frame < frame_count; ++frame)
+                {
+                    view_s.loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
+                }
+            }
+        }
     }
     else
     {

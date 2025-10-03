@@ -33,7 +33,7 @@ namespace AGS.Types
         private int _font;
         private int _textColor;
         private bool _showBorder;
-        private string _activateEventHandler = string.Empty;
+        private string _onActivate = string.Empty;
 
         [Description("Script function to run when return is pressed in the text box")]
         [Category("Events")]
@@ -43,8 +43,8 @@ namespace AGS.Types
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnActivate
         {
-            get { return _activateEventHandler; }
-            set { _activateEventHandler = value; }
+            get { return _onActivate; }
+            set { _onActivate = value; }
         }
 
         [Description("Colour of the text")]

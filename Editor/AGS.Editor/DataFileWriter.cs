@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -811,7 +812,7 @@ namespace AGS.Editor
 
         static void SerializeEmptyInteractionScripts(BinaryWriter writer)
         {
-            writer.Write((int)4000000); // kEventsTable_v400 version
+            writer.Write((int)3060200); // kEventsTable_v362 version (no change from 3.6.2+ yet)
             writer.Write((int)0); // empty ScriptModule string
             writer.Write((int)0); // zero list length
         }
@@ -888,7 +889,7 @@ namespace AGS.Editor
                 }
             }
 
-            public bool WriteViews(IViewFolder folder, Game game, CompileMessages errors)
+            public bool WriteViews(Game game, CompileMessages errors)
             {
                 if (writer == null)
                 {
@@ -923,6 +924,28 @@ namespace AGS.Editor
                     }
                 }
                 return true;
+            }
+
+            public void WriteViewsExt_FrameEvents(Game game, CompileMessages errors)
+            {
+                writer.Write(views.Length);
+                foreach (View view in views)
+                {
+                    // views are not always sequential, so we may have some null entries;
+                    // but even in that case we must write number of loops (0) to conform
+                    // to the data format
+                    int numLoops = (view != null ? view.Loops.Count : 0);
+                    writer.Write(numLoops);
+                    for (int i = 0; i < numLoops; ++i)
+                    {
+                        int numFrames = view.Loops[i].Frames.Count;
+                        writer.Write(numFrames);
+                        for (int j = 0; j < numFrames; ++j)
+                        {
+                            FilePutNullTerminatedString(view.Loops[i].Frames[j].EventName, writer);
+                        }
+                    }
+                }
             }
         }
 
@@ -960,6 +983,10 @@ namespace AGS.Editor
             /// because it does not support user-defined conversions). If a
             /// GUIControl that is neither a GUIButton nor a GUITextWindowEdge
             /// is cast to this type then null is returned.
+            ///
+            /// FIXME: this turns to be very inconvenient, because we have to
+            /// remember to add new properties here any time a property is
+            /// added to GUIButton. Need to find a better way than this.
             /// </summary>
             public class GUIButtonOrTextWindowEdge
             {
@@ -1128,6 +1155,17 @@ namespace AGS.Editor
                     }
                 }
 
+                public bool ClipImage
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.ClipImage;
+                        return false;
+                    }
+                }
+
+                [AGSEventProperty()]
                 public string OnClick
                 {
                     get
@@ -1138,13 +1176,14 @@ namespace AGS.Editor
                     }
                 }
 
-                public bool ClipImage
+                [AGSEventProperty()]
+                public string OnFrameEvent
                 {
                     get
                     {
                         GUIButton button = (GUIButton)this;
-                        if (button != null) return button.ClipImage;
-                        return false;
+                        if (button != null) return button.OnFrameEvent;
+                        return null;
                     }
                 }
             }
@@ -1175,7 +1214,7 @@ namespace AGS.Editor
             /// Writes the common elements of this GUIControl to the file. Type-specific
             /// data is written only by the respective method for that type.
             /// </summary>
-            private void WriteGUIControl(GUIControl control, int flags, string[] events)
+            private void WriteGUIControl(GUIControl control, int flags)
             {
                 flags |= MakeCommonGUIControlFlags(control);
                 writer.Write(flags); // flags
@@ -1185,16 +1224,8 @@ namespace AGS.Editor
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
                 FilePutNullTerminatedString(control.Name, writer);
-                writer.Write(events.Length); // numSupportedEvents
-                foreach (string sevent in events)
-                {
-                    FilePutNullTerminatedString(sevent, writer);
-                }
-            }
-
-            private void WriteGUIControl(GUIControl control, int flags)
-            {
-                WriteGUIControl(control, flags, new string[0]);
+                // Old style events table; now unused so write size 0 always
+                writer.Write(0);
             }
 
             private void WriteAllButtonsAndTextWindowEdges()
@@ -1205,7 +1236,7 @@ namespace AGS.Editor
                     int flags;
                     flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0) |
                             (ctrl.WrapText ? NativeConstants.GUIF_WRAPTEXT : 0);
-                    WriteGUIControl(ctrl, flags, new string[] { ctrl.OnClick });
+                    WriteGUIControl(ctrl, flags);
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
                     writer.Write(ctrl.PushedImage); // pushedpic
@@ -1251,7 +1282,7 @@ namespace AGS.Editor
                 writer.Write(GUISliders.Count);
                 foreach (GUISlider slider in GUISliders)
                 {
-                    WriteGUIControl(slider, 0, new string[] { slider.OnChange });
+                    WriteGUIControl(slider, 0);
                     writer.Write(slider.MinValue);
                     writer.Write(slider.MaxValue);
                     writer.Write(slider.Value);
@@ -1266,7 +1297,7 @@ namespace AGS.Editor
                 writer.Write(GUITextBoxes.Count);
                 foreach (GUITextBox textBox in GUITextBoxes)
                 {
-                    WriteGUIControl(textBox, 0, new string[] { textBox.OnActivate });
+                    WriteGUIControl(textBox, 0);
                     FilePutString(TextProperty(textBox.Text), writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
@@ -1284,7 +1315,7 @@ namespace AGS.Editor
                 writer.Write(GUIListBoxes.Count);
                 foreach (GUIListBox listBox in GUIListBoxes)
                 {
-                    WriteGUIControl(listBox, 0, new string[] { listBox.OnSelectionChanged });
+                    WriteGUIControl(listBox, 0);
                     writer.Write(0); // numItems
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);
@@ -1616,7 +1647,7 @@ namespace AGS.Editor
                 }
             }
             ViewsWriter viewsWriter = new ViewsWriter(writer, game);
-            if (!viewsWriter.WriteViews(FolderHelper.GetRootViewFolder(game), game, errors))
+            if (!viewsWriter.WriteViews(game, errors))
             {
                 return false;
             }
@@ -1848,6 +1879,7 @@ namespace AGS.Editor
             WriteExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
             WriteExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
             WriteExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
+            WriteExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2162,26 +2194,67 @@ namespace AGS.Editor
             }
         }
 
-        private static void WriteExt_400NewEventTables(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        private static void WriteExt_400ViewFrameEvents(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
-            writer.Write(ents.Game.Characters.Count);
-            foreach (var ch in ents.Game.Characters)
+            ViewsWriter viewsWriter = new ViewsWriter(writer, ents.Game);
+            viewsWriter.WriteViewsExt_FrameEvents(ents.Game, errors);
+        }
+
+        private static void SerializeEventsTables<T>(IList<T> objs, BinaryWriter writer, bool extraItemAt0 = false)
+        {
+            var events = (typeof(T)).GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute)));
+            var scriptModuleProp = typeof(T).GetProperty("ScriptModule");
+
+            if (extraItemAt0)
             {
-                SerializeEventsTable(ch.ScriptModule, new Tuple<string, string>[]{
-                    new Tuple<string, string>( "OnAnyClick", ch.OnAnyClick )
-                }, writer);
+                // object slot 0 is unused, so write a dummy events table
+                writer.Write(objs.Count + 1);
+                SerializeEmptyEventsTable(writer);
             }
-            writer.Write(ents.Game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
-            // inventory slot 0 is unused, so write a dummy events table
-            SerializeEmptyEventsTable(writer);
-            foreach (var inv in ents.Game.InventoryItems)
+            else
             {
-                SerializeEventsTable(inv.ScriptModule, new Tuple<string, string>[]{
-                    new Tuple<string, string>( "OnAnyClick", inv.OnAnyClick )
-                }, writer);
+                writer.Write(objs.Count);
             }
 
-            // TODO: add all GUI here too
+            foreach (var obj in objs)
+            {
+                if (obj == null)
+                {
+                    SerializeEmptyEventsTable(writer);
+                    continue;
+                }
+
+                // Gather all the event-handler pairs where handler has a valid value
+                var handlerList = events.Select(evt => new Tuple<string, string>(evt.Name, evt.GetValue(obj).ToStringOrEmpty()))
+                    .Where(handler => !string.IsNullOrEmpty(handler.Item2)).ToArray();
+                SerializeEventsTable(scriptModuleProp != null ? scriptModuleProp.GetValue(obj).ToStringOrEmpty() : string.Empty,
+                    handlerList, writer);
+            }
+        }
+
+        private static void WriteExt_400NewEventTables(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            var characterEvents = (typeof(Character)).GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute)));
+            var inventoryEvents = (typeof(InventoryItem)).GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute)));
+
+            // Characters and InventoryItems
+            SerializeEventsTables(ents.Game.Characters, writer);
+            SerializeEventsTables(ents.Game.InventoryItems, writer, extraItemAt0: true);
+
+            // GUIs collection stores 2 types of guis, one of which does not have any events,
+            // so for simplicity sake we construct a list where these are replaced with nulls
+            var onlyNormalGUIs = ents.Game.GUIs.Select(g => g is NormalGUI ? g : null).ToList();
+            SerializeEventsTables(onlyNormalGUIs, writer);
+            // GUI controls
+            SerializeEventsTables(ents.GUIControls.GUIButtons, writer);
+            SerializeEventsTables(ents.GUIControls.GUILabels, writer);
+            SerializeEventsTables(ents.GUIControls.GUIInvWindows, writer);
+            SerializeEventsTables(ents.GUIControls.GUISliders, writer);
+            SerializeEventsTables(ents.GUIControls.GUITextBoxes, writer);
+            SerializeEventsTables(ents.GUIControls.GUIListBoxes, writer);
         }
 
         /// <summary>

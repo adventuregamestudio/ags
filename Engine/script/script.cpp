@@ -120,14 +120,12 @@ int run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handler
     if (!handlers)
         return 0;
 
-    if (evnt < 0 || static_cast<size_t>(evnt) >= handlers->Handlers.size() ||
-            !handlers->Handlers[evnt].IsEnabled())
+    if (evnt < 0 || !handlers->HasHandler(static_cast<uint32_t>(evnt)))
     {
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if ((chkany_handlers != nullptr && any_evt >= 0 && any_evt < chkany_handlers->Handlers.size())
-            && chkany_handlers->Handlers[any_evt].IsEnabled())
+        if (chkany_handlers != nullptr && any_evt >= 0 && chkany_handlers->HasHandler(static_cast<uint32_t>(any_evt)))
             return 0;
 
         // Optionally, run unhandled_event
@@ -250,6 +248,19 @@ bool DoesScriptFunctionExist(const RuntimeScript *script, const String &fn_name)
     return script->GetSymbolAddress(fn_name).Type == kScValCodePtr;
 }
 
+bool DoesScriptFunctionExist(const String &script_module, const String &fn_name)
+{
+    if (script_module.IsEmpty() || gamescript->GetScriptName() == script_module)
+        return DoesScriptFunctionExist(gamescript.get(), fn_name);
+
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        if (scriptModules[i]->GetScriptName() == script_module)
+            return DoesScriptFunctionExist(scriptModules[i].get(), fn_name);
+    }
+    return false;
+}
+
 bool DoesScriptFunctionExistInModules(const String &fn_name)
 {
     for (size_t i = 0; i < numScriptModules; ++i)
@@ -277,6 +288,13 @@ void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
     size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
 {
     QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params, result);
+}
+
+void QueueScriptFunction(ScriptType sc_type, const String &script_module, const ScriptEventHandler &handler,
+                            size_t param_count, const RuntimeScriptValue *params)
+{
+    if (handler.Enabled)
+        QueueScriptFunction(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params, handler.Enabled);
 }
 
 void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,

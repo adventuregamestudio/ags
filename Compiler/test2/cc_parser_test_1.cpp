@@ -2720,6 +2720,125 @@ TEST_F(Compile1, ConstructorDeclaration6) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
+TEST_F(Compile1, ConstructorCall01) {
+
+    // It's (normally) not okay to call a constructor as a function.
+
+    char const *inpl = R"%&/(
+        managed struct volvo
+        {
+            int payload;
+            import void volvo();
+        };
+
+        void game_start()
+        {
+            volvo v = new volvo();
+            v.volvo();
+        }
+                        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("onstructor"));
+}
+
+TEST_F(Compile1, ConstructorCall02) {
+
+    // It's (normally) not okay to call a constructor as a function.
+
+    char const *inpl = R"%&/(
+        managed struct car
+        {
+            int payload;
+            void car();
+        };
+
+        managed struct volvo extends car
+        {
+        };
+
+        void game_start()
+        {
+            volvo v = new volvo();
+            v.car();
+        }
+                        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("onstructor"));
+}
+
+TEST_F(Compile1, ConstructorCall03) {
+
+    // No recursive calling the constructor.
+
+    char const *inpl = R"%&/(
+        managed struct volvo
+        {
+            int payload;
+            import void volvo();
+        };
+
+        void volvo::volvo()
+        {
+            this.volvo();
+        }
+                        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STRNE("OK", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("onstructor"));
+}
+
+TEST_F(Compile1, ConstructorCall04) {
+
+    // It's okay to call the constructor of an _ancester_ within a constructor
+    // (so that the ancester elements can be initialized)
+
+    char const *inpl = R"%&/(
+        managed struct vehicle
+        {
+            writeprotected int max_speed;
+            import void vehicle(int max_speed);
+        };
+
+        managed struct car extends vehicle
+        {
+        };
+
+        managed struct volvo extends car
+        {
+            import void volvo();
+        };
+
+        void volvo::volvo()
+        {
+            this.vehicle(9);
+        }
+                        )%&/";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
 TEST_F(Compile1, ParensAfterNew01) {
 
     // Parentheses after 'new' are not required if there's no constructor

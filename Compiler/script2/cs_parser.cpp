@@ -4031,11 +4031,33 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
                 _sym.GetName(qualified_component).c_str());
 
         if (_sym.IsConstructor(qualified_component))
-            UserError(
-                ReferenceMsgSym(
-                    "Calling the constructor of struct '%s' directly is illegal",
-                    vartype).c_str(),
-                _sym.GetName(vartype).c_str());
+        {
+            // Cannot call a constructor directly as a function.
+            // As an exception, when within a constructor
+            // you may call the constructors of ancestors of 'this'.
+            bool is_call_forbidden = true;
+            if (_sym.IsConstructor(_currentlyCompiledFunction))
+            {
+                Symbol const struct_of_constructor = _sym[qualified_component].ComponentD ?
+                    _sym[qualified_component].ComponentD->Parent : kKW_NoSymbol;
+                Symbol const vartype_of_this = _sym.GetVartype(kKW_This);
+                
+                for (int vartype = _sym[vartype_of_this].VartypeD->Parent;
+                    vartype != kKW_NoSymbol && _sym.IsVartype(vartype);
+                    vartype = _sym[vartype].VartypeD->Parent)
+                    if (struct_of_constructor == vartype)
+                    {
+                        is_call_forbidden = false;
+                        break;
+                    }
+            }
+
+            if (is_call_forbidden)
+                UserError(
+                    ReferenceMsgSym(
+                        "Cannot call this constructor directly as a function",
+                        qualified_component).c_str());
+        }
 
         SkipNextSymbol(expression, unqualified_component); // Eat function symbol
         if (kKW_OpenParenthesis != expression.PeekNext())
@@ -5256,6 +5278,8 @@ void AGS::Parser::ParseVardecl(TypeQualifierSet tqs, Vartype vartype, Symbol var
 
 void AGS::Parser::ParseFuncBodyStart(Symbol const struct_of_func, Symbol const name_of_func)
 {
+    _currentlyCompiledFunction = name_of_func;
+
     _nest.Push(NSType::kFunction);
 
     // write base address of function for any relocation needed later
@@ -5300,6 +5324,8 @@ void AGS::Parser::ParseFuncBodyStart(Symbol const struct_of_func, Symbol const n
 
 void AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &name_of_current_func)
 {
+    _currentlyCompiledFunction = kKW_NoSymbol;
+
     bool const dead_end = _nest.JumpOutLevel() <= _sym.kParameterScope;
 
     if (!dead_end)

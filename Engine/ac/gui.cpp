@@ -571,59 +571,85 @@ void remove_popup_interface(int ifacenum) {
     if (ifacenum==mouse_on_iface) mouse_on_iface=-1;
 }
 
-void process_interface_click(int ifce, int btn, int mbut) {
-    if (btn < 0) {
-        // click on GUI background
-        RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
-            RuntimeScriptValue().SetInt32(mbut) };
-        QueueScriptFunction(kScTypeGame, guis[ifce].GetScriptModule(), guis[ifce].GetEvents().GetHandler(kGUIEvent_OnClick), 2, params);
-        return;
-    }
-
-    int btype = guis[ifce].GetControlType(btn);
-    int rtype=kGUIAction_None,rdata=0;
-    bool want_mb_param = false;
-    if (btype==kGUIButton) {
-        GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
-        rtype=gbuto->GetClickAction(kGUIClickLeft);
-        rdata=gbuto->GetClickData(kGUIClickLeft);
-        want_mb_param = true;
-    }
-    else if ((btype==kGUISlider) || (btype == kGUITextBox) || (btype == kGUIListBox))
-        rtype = kGUIAction_RunScript;
-    else quit("unknown GUI object triggered process_interface");
-
-    if (rtype==kGUIAction_None) ;
-    else if (rtype==kGUIAction_SetMode)
-        set_cursor_mode(rdata);
-    else if (rtype==kGUIAction_RunScript) {
-        GUIControl *theObj = guis[ifce].GetControl(btn);
-        // if the object has a special handler script then run it;
-        // otherwise, run interface_click
-        // FIXME: do not call DoesScriptFunctionExist* every time, remember last result,
-        // similar to the interaction event handler test.
-        if (theObj->GetEvents().HasHandler(0) &&
-            DoesScriptFunctionExistInModule(guis[ifce].GetScriptModule(), theObj->GetEvents().GetHandler(0).FunctionName))
+static void run_control_event(GUIControl *control, const String &script_module, int evt_index,
+                              int mb_param, bool do_interface_click)
+{
+    // If the object has a special handler script then run it;
+    // otherwise, run interface_click
+    // FIXME: do not call DoesScriptFunctionExist* every time, remember last result,
+    // similar to the interaction event handler test.
+    if (control->GetEvents().HasHandler(evt_index) &&
+        DoesScriptFunctionExistInModule(script_module, control->GetEvents().GetHandler(evt_index).FunctionName))
+    {
+        // control-specific event handler
+        const ScriptFunctionRef fn_ref(script_module, control->GetEvents().GetHandler(evt_index).FunctionName);
+        if (mb_param >= 0)
         {
-            // control-specific event handler
-            const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->GetEvents().GetHandler(0).FunctionName);
-            if (want_mb_param)
-            {
-                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIControl),
-                    RuntimeScriptValue().SetInt32(mbut) };
-                QueueScriptFunction(kScTypeGame, fn_ref, 2, params);
-            }
-            else
-            {
-                RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(theObj, &ccDynamicGUIControl) };
-                QueueScriptFunction(kScTypeGame, fn_ref, 1, params);
-            }
+            RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl),
+                RuntimeScriptValue().SetInt32(mb_param) };
+            QueueScriptFunction(kScTypeGame, fn_ref, 2, params);
         }
         else
         {
-            RuntimeScriptValue params[]{ ifce , btn };
-            QueueScriptFunction(kScTypeGame, "interface_click", 2, params);
+            RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl) };
+            QueueScriptFunction(kScTypeGame, fn_ref, 1, params);
         }
+    }
+    else if (do_interface_click)
+    {
+        RuntimeScriptValue params[]{ control->GetParentID(), control->GetID() };
+        QueueScriptFunction(kScTypeGame, "interface_click", 2, params);
+    }
+}
+
+void process_interface_click(int ifce, int btn, int mbut)
+{
+    const GUIMain &gui = guis[ifce];
+    if (btn < 0)
+    {
+        // click on GUI background
+        RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
+            RuntimeScriptValue().SetInt32(mbut) };
+        QueueScriptFunction(kScTypeGame, gui.GetScriptModule(), gui.GetEvents().GetHandler(kGUIEvent_OnClick), 2, params);
+        return;
+    }
+
+    // Decide which event to fire when the control is clicked on
+    GUIControl *control = guis[ifce].GetControl(btn);
+    if (!control)
+        return;
+
+    const GUIControlType ctrl_type = guis[ifce].GetControlType(btn);
+    switch (ctrl_type)
+    {
+    case kGUIButton:
+        {
+            const GUIButton *but = dynamic_cast<GUIButton*>(control);
+            GUIClickAction action_type = but->GetClickAction(kGUIClickLeft);
+            switch (action_type)
+            {
+            case kGUIAction_SetMode:
+                set_cursor_mode(but->GetClickData(kGUIClickLeft));
+                break;
+            case kGUIAction_RunScript:
+                run_control_event(control, gui.GetScriptModule(), kButtonEvent_OnClick, mbut, true);
+            default:
+                break;
+            }
+        }
+        break;
+    case kGUIListBox:
+        run_control_event(control, gui.GetScriptModule(), kListBoxEvent_OnSelChanged, -1, true);
+        break;
+    case kGUISlider:
+        run_control_event(control, gui.GetScriptModule(), kSliderEvent_OnChange, -1, true);
+        break;
+    case kGUITextBox:
+        run_control_event(control, gui.GetScriptModule(), kTextBoxEvent_OnActivate, -1, true);
+        break;
+    default:
+        assert(false); // should not happen
+        break;
     }
 }
 

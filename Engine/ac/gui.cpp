@@ -516,9 +516,11 @@ void process_interface_click(int ifce, int btn, int mbut) {
         GUIObject *theObj = guis[ifce].GetControl(btn);
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
+        // FIXME: do not call DoesScriptFunctionExist* every time, remember last result,
+        // similar to the interaction event handler test.
         if ((theObj->GetEventCount() > 0) &&
             (!theObj->GetEventHandler(0).IsEmpty()) &&
-            DoesScriptFunctionExistInModules(theObj->GetEventHandler(0)))
+            DoesScriptFunctionExistInModule(guis[ifce].GetScriptModule(), theObj->GetEventHandler(0)))
         {
             // control-specific event handler
             const ScriptFunctionRef fn_ref(guis[ifce].GetScriptModule(), theObj->GetEventHandler(0));

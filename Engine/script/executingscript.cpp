@@ -69,13 +69,13 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
 }
 
 void ExecutingScript::RunAnother(ScriptType sctype, const String &fn_name,
-    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
+    size_t param_count, const RuntimeScriptValue *params)
 {
-    RunAnother(sctype, ScriptFunctionRef(fn_name), param_count, params, result);
+    RunAnother(sctype, ScriptFunctionRef(fn_name), param_count, params);
 }
 
 void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_ref,
-    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
+    size_t param_count, const RuntimeScriptValue *params)
 {
     // Some old games were (accidentally) relying on number of queued script calls being limited;
     // NOTE: the extra call was *not* ignored, it was *replacing* the last one instead.
@@ -91,6 +91,5 @@ void ExecutingScript::RunAnother(ScriptType sctype, const ScriptFunctionRef &fn_
     script.ParamCount = param_count;
     for (size_t p = 0; p < MAX_SCRIPT_EVT_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];
-    script.Result = result;
     ScFnQueue.push_back(script);
 }

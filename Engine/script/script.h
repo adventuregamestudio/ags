@@ -105,11 +105,12 @@ void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun
 // 'isInv' tells if this is a inventory event (it has a slightly different handling for that)
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
 int     run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evnt, int chkAny = -1, bool isInv = false);
+int     run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int*cmdsrun);
+// Runs new-style interaction event handler in script.
 // Runs the ObjectEvent using a script callback of 'evnt' index,
 // or alternatively of 'chkAny' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny = -1);
-int     run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int*cmdsrun);
+int     run_interaction_script(const ObjectEvent &obj_evt, InteractionEvents *nint, int evnt, int chkAny = -1);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 int     create_global_script();
@@ -128,15 +129,17 @@ ccInstance *GetScriptInstanceByType(ScriptType sc_type);
 bool    DoesScriptFunctionExist(ccInstance *sci, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
 bool    DoesScriptFunctionExistInModules(const String &fn_name);
+// Tests if a function exists in a particular script module (except room script)
+bool    DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name);
 // Queues a script function to be run either called by the engine or from another script;
 // the function is identified by its name, and will be run in time, by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
+    const RuntimeScriptValue *params = nullptr);
 // Queues a script function to be run either called by the engine or from another script;
 // the function is identified by its name and script module, and will be run in time,
 // by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
+    const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a given script instance
 RunScFuncResult RunScriptFunction(ccInstance *sci, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);

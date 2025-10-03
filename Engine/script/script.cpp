@@ -113,9 +113,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     funcToRun->RoomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->RoomHasFunction);
 }
 
-// Returns 0 normally, or -1 to indicate that the event has
-// become invalid and another interaction should not be run
-// (eg. a room change occured)
+// Runs old-style interaction command list
 int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evnt, int chkAny, bool isInv)
 {
     assert(nint);
@@ -156,22 +154,52 @@ int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evn
     return retval;
 }
 
-// Returns 0 normally, or -1 to indicate that the event has
-// become invalid and another handler should not be run
-// (eg. a room change occured)
-int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *nint, int evnt, int chkAny)
+// Reports a warning in case a requested event handler function was not run
+// TODO: find a way to pass event's name too, but they are not clearly defined as strings inside the engine atm...
+static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_room)
+{
+    String message = String::FromFormat("WARNING: event script function '%s' not found",
+                                        fn_ref.FuncName.GetCStr());
+    if (in_room)
+        message.AppendFmt(" (Room %d)", displayed_room);
+    else
+        message.AppendFmt(" (%s)", fn_ref.ModuleName.IsEmpty() ? "Global Script" : fn_ref.ModuleName.GetCStr());
+    debug_script_warn("%s", message.GetCStr());
+}
+
+// Tests if the interaction handler is referencing an existing function in script.
+// Writes down the result of the test for the future use.
+static bool test_interaction_handler(InteractionEvents *nint, int evnt, bool in_room)
+{
+    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size())
+        return false;
+    auto &handler = nint->Events[static_cast<size_t>(evnt)];
+    if (!handler.IsChecked())
+    {
+        if (in_room)
+            handler.SetChecked(DoesScriptFunctionExist(roominst.get(), handler.FunctionName));
+        else
+            handler.SetChecked(DoesScriptFunctionExistInModule(nint->ScriptModule, handler.FunctionName));
+
+        if (!handler.IsEnabled())
+            WarnEventFunctionNotFound(ScriptFunctionRef(nint->ScriptModule, handler.FunctionName), in_room);
+    }
+    return handler.IsEnabled();
+}
+
+// Runs new-style interaction event handler in script
+int run_interaction_script(const ObjectEvent &obj_evt, InteractionEvents *nint, int evnt, int chkAny)
 {
     assert(nint);
     if (!nint)
         return 0;
 
-    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->Events.size() ||
-            !nint->Events[evnt].IsEnabled())
+    if (!test_interaction_handler(nint, evnt, obj_evt.ScType == kScTypeRoom))
     {
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if (chkAny >= 0 && nint->Events[chkAny].IsEnabled())
+        if (chkAny >= 0 && test_interaction_handler(nint, chkAny, obj_evt.ScType == kScTypeRoom))
             return 0;
 
         // Otherwise, run unhandled_event
@@ -189,7 +217,7 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
     const int room_was = play.room_changes;
 
     QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(nint->ScriptModule, nint->Events[evnt].FunctionName),
-        obj_evt.ParamCount, obj_evt.Params, nint->Events[evnt].Enabled);
+        obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
@@ -299,44 +327,37 @@ bool DoesScriptFunctionExistInModules(const String &fn_name)
     return DoesScriptFunctionExist(gameinst.get(), fn_name);
 }
 
-// Reports a warning in case a requested event handler function was not run
-// TODO: find a way to pass event's name too, but they are not clearly defined as strings inside the engine atm...
-static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_room)
+bool DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name)
 {
-    String message = String::FromFormat("WARNING: requested event handler function '%s' not found",
-            fn_ref.FuncName.GetCStr());
-    if (in_room)
-        message.AppendFmt(" (Room %d)", displayed_room);
-    else
-        message.AppendFmt(" (%s)", fn_ref.ModuleName.GetCStr());
-    debug_script_warn("%s", message.GetCStr());
+    if (script_module.IsEmpty() || script_module == gameinst->GetScript()->GetScriptName().c_str())
+        return DoesScriptFunctionExist(gameinst.get(), fn_name);
+
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        if (script_module == moduleInst[i]->GetScript()->GetScriptName().c_str())
+            return DoesScriptFunctionExist(moduleInst[i].get(), fn_name);
+    }
+    return false;
 }
 
 void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
-    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
+    size_t param_count, const RuntimeScriptValue *params)
 {
-    QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params, result);
+    QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params);
 }
 
 void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
-    size_t param_count, const RuntimeScriptValue *params, std::weak_ptr<bool> result)
+    size_t param_count, const RuntimeScriptValue *params)
 {
     if (inside_script)
     {
         // queue the script for the run after current script is finished
-        curscript->RunAnother(sc_type, fn_ref, param_count, params, result);
+        curscript->RunAnother(sc_type, fn_ref, param_count, params);
     }
     else
     {
         // if no script is currently running, run the requested script right away
-        bool res = RunScriptFunctionAuto(sc_type, fn_ref, param_count, params);
-        auto recv_result = result.lock();
-        if (recv_result)
-        {
-            if (!res)
-                WarnEventFunctionNotFound(fn_ref, sc_type == kScTypeRoom);
-            *recv_result = res;
-        }
+        RunScriptFunctionAuto(sc_type, fn_ref, param_count, params);
     }
 }
 
@@ -747,14 +768,7 @@ void post_script_cleanup()
     {
         old_room_number = displayed_room;
 
-        bool res = RunScriptFunctionAuto(script.ScType, script.Function, script.ParamCount, script.Params);
-        auto recv_result = script.Result.lock();
-        if (recv_result)
-        {
-            if (!res)
-                WarnEventFunctionNotFound(script.Function, script.ScType == kScTypeRoom);
-            *recv_result = res;
-        }
+        RunScriptFunctionAuto(script.ScType, script.Function, script.ParamCount, script.Params);
 
         // FIXME: this is some bogus hack for "on_call" event handler
         // don't use instance + param count, instead find a way to save actual callback name!

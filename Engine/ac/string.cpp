@@ -463,13 +463,18 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
     VALIDATE_STRING(lookForText);
 
     const auto &header = ScriptString::GetHeader(thisString);
-    if ((startIndex < 0) || ((size_t) startIndex >= header.ULength)) {
+    if ((startIndex != 0) && ((startIndex < 0) || ((size_t) startIndex >= header.ULength))) {
         debug_script_warn("String.IndexOf: invalid start index %d, string length is %u.", startIndex, header.ULength);
         return -1;
     }
 
     if (count < 0) {
         debug_script_warn("String.IndexOf: invalid count %d. Did you meant to use '0' for until string end?", count);
+        return -1;
+    }
+
+    // Empty strings will never contain anything, empty input won't be found
+    if (header.ULength == 0 || lookForText[0] == 0) {
         return -1;
     }
 
@@ -501,7 +506,7 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
     return startIndex + ustrlen(thistmpbuf.get());
 }
 
-int String_IndexOf2(const char *s1, const char *s2) {
+int String_IndexOf1(const char *s1, const char *s2) {
     return String_IndexOf(s1, s2, false, 0, 0);
 }
 
@@ -607,9 +612,9 @@ RuntimeScriptValue Sc_String_CompareTo(void *self, const RuntimeScriptValue *par
 }
 
 // int  (const char *s1, const char *s2)
-RuntimeScriptValue Sc_String_IndexOf2(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_String_IndexOf1(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(const char, String_IndexOf2, const char);
+    API_OBJCALL_INT_POBJ(const char, String_IndexOf1, const char);
 }
 
 // int  (const char *s1, const char *s2)
@@ -738,10 +743,10 @@ void RegisterStringAPI()
         { "String::Append^1",         API_FN_PAIR(String_Append) },
         { "String::AppendChar^1",     API_FN_PAIR(String_AppendChar) },
         { "String::CompareTo^2",      API_FN_PAIR(String_CompareTo) },
-        { "String::Contains^1",       API_FN_PAIR(String_IndexOf2) },
+        { "String::Contains^1",       API_FN_PAIR(String_IndexOf1) },
         { "String::Copy^0",           API_FN_PAIR(String_Copy) },
         { "String::EndsWith^2",       API_FN_PAIR(String_EndsWith) },
-        { "String::IndexOf^1",        API_FN_PAIR(String_IndexOf2) },
+        { "String::IndexOf^1",        API_FN_PAIR(String_IndexOf1) },
         { "String::IndexOf^4",        API_FN_PAIR(String_IndexOf) },
         { "String::LowerCase^0",      API_FN_PAIR(String_LowerCase) },
         { "String::Replace^3",        API_FN_PAIR(String_Replace) },

@@ -13,9 +13,9 @@ namespace AGS.Types
 {
     public class Game : IGame
     {
-		private readonly string[] RESERVED_SCRIPT_NAMES = { "inventory", "character", 
-			"views", "player", "object", "mouse", "system", "game", "palette",
-			"hotspot", "region", "dialog", "gui", "GUI"};
+        public static readonly string[] RESERVED_SCRIPT_NAMES = { "inventory", "character", 
+            "views", "player", "object", "mouse", "system", "game", "palette",
+            "hotspot", "region", "dialog", "gui", "GUI"};
         private const int PALETTE_SIZE = 256;
         private const int NUMBER_OF_GLOBAL_MESSAGES = 500;
         private const int GLOBAL_MESSAGE_ID_START = 500;

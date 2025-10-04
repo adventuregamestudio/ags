@@ -671,6 +671,8 @@ namespace AGS.Editor.Components
         {
             foreach (RoomHotspot hotspot in room.Hotspots)
             {
+                if (string.IsNullOrEmpty(hotspot.Name))
+                    continue;
                 if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(hotspot.Name, hotspot) ||
                     room.IsScriptNameAlreadyUsed(hotspot.Name, hotspot))
                 {
@@ -679,6 +681,8 @@ namespace AGS.Editor.Components
             }
             foreach (RoomObject obj in room.Objects)
             {
+                if (string.IsNullOrEmpty(obj.Name))
+                    continue;
                 if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(obj.Name, obj) ||
                     room.IsScriptNameAlreadyUsed(obj.Name, obj))
                 {

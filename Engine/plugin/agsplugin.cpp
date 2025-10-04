@@ -810,7 +810,7 @@ void IAGSEngine::NotifyFontUpdated(int fontNumber)
 
 size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t buf_len)
 {
-    ResolvedPath rp = ResolveScriptPathAndFindFile(script_path, true, true);
+    ResolvedPath rp = ResolveScriptPathAndFindFile(script_path, true, true /* don't test file */);
     String path = Path::MakeAbsolutePath(rp.FullPath); // make it pretty
     if (!buf || buf_len == 0)
         return path.GetLength() + 1;

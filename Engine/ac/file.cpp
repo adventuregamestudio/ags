@@ -46,7 +46,7 @@ extern AGSPlatformDriver *platform;
 // object-based File routines
 
 int File_Exists(const char *fnmm) {
-  const auto rp = ResolveScriptPathAndFindFile(fnmm, true);
+  const auto rp = ResolveScriptPathAndTestFile(fnmm);
   if (!rp)
     return 0;
 
@@ -221,7 +221,7 @@ void *sc_OpenFile(const char *fnmm, int mode) {
 
 const char *File_ResolvePath(const char *fnmm)
 {
-    ResolvedPath rp = ResolveScriptPathAndFindFile(fnmm, true, true);
+    ResolvedPath rp = ResolveScriptPathAndFindFile(fnmm, true, true /* don't test file */);
     // Make path pretty -
     String path = Path::MakeAbsolutePath(rp.FullPath);
     return CreateNewScriptString(path.GetCStr());
@@ -685,7 +685,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     return true;
 }
 
-ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only, bool ignore_find_result)
+ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only, bool ignore_find_result, bool assert_exists)
 {
     ResolvedPath rp, alt_rp;
     if (!ResolveScriptPath(sc_path, read_only, rp, alt_rp))
@@ -716,11 +716,19 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only,
 #endif
         }
 
-        debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s\n\talt try: %s",
-            sc_path.GetCStr(), rp.FullPath.GetCStr(), alt_rp.FullPath.GetCStr());
+        if (assert_exists)
+        {
+            debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s\n\talt try: %s",
+                sc_path.GetCStr(), rp.FullPath.GetCStr(), alt_rp.FullPath.GetCStr());
+        }
         return {}; // nothing matching found
     }
     return ResolvedPath(found_file);
+}
+
+ResolvedPath ResolveScriptPathAndTestFile(const String &sc_path)
+{
+    return ResolveScriptPathAndFindFile(sc_path, true /* read-only */, false /* find exact file */, false /* don't warn if no file */);
 }
 
 ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)

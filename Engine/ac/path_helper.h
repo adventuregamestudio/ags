@@ -114,7 +114,11 @@ ResolvedPath ResolveScriptPath(const String &sc_path, bool read_only);
 // if necessary. Fills in the successful ResolvedPath variant.
 // Fails if path could not be resolved, or no matching file was found.
 // WARNING: AssetMgr path is not tested.
-ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only, bool ignore_find_result = false);
+ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only, bool ignore_find_result = false, bool assert_exists = true);
+// Resolves the script file path and tests if the file exists;
+// don't report a missing file warning.
+// WARNING: AssetMgr path is not tested.
+ResolvedPath ResolveScriptPathAndTestFile(const String &sc_path);
 // Resolves a user file path for writing, and makes sure all the sub-directories are
 // created along the actual path.
 // Returns 'true' on success, and 'false' if either path is impossible to resolve,

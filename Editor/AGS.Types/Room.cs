@@ -428,6 +428,19 @@ namespace AGS.Types
 		
     public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
         {
+            if (tryName == string.Empty)
+            {
+                return false;
+            }
+
+            foreach (string name in Game.RESERVED_SCRIPT_NAMES)
+            {
+                if (tryName == name)
+                {
+                    return true;
+                }
+            }
+
             foreach (RoomHotspot hotspot in Hotspots)
             {
                 if ((hotspot.Name == tryName) && (hotspot != ignoreObject))

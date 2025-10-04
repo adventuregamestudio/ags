@@ -13,9 +13,9 @@ namespace AGS.Types
 {
     public class Game : IGame
     {
-		private readonly string[] RESERVED_SCRIPT_NAMES = { "inventory", "character", 
-			"views", "player", "object", "mouse", "system", "game", "palette",
-			"hotspot", "region", "dialog", "gui", "GUI"};
+        public static readonly string[] RESERVED_SCRIPT_NAMES = { "inventory", "character", 
+            "views", "player", "object", "mouse", "system", "game", "palette",
+            "hotspot", "region", "dialog", "gui", "GUI"};
         private const int PALETTE_SIZE = 256;
 
         public const int MAX_INV_ITEMS = 300;

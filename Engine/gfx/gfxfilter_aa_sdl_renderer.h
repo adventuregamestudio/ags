@@ -12,15 +12,14 @@
 //
 //=============================================================================
 //
-// SDL software renderer filter. Technically a non-op, as SDL_Renderer
+// SDL software renderer Linear filter. Technically a non-op, as SDL_Renderer
 // does the job.
 //
 //=============================================================================
-#ifndef __AGS_EE_GFX__SDLRENDERERFILTER_H
-#define __AGS_EE_GFX__SDLRENDERERFILTER_H
+#ifndef __AGS_EE_GFX__SDLRENDERERAAFILTER_H
+#define __AGS_EE_GFX__SDLRENDERERAAFILTER_H
 
-#include <SDL_render.h>
-#include "gfx/gfxfilter_scaling.h"
+#include "gfx/gfxfilter_sdl_renderer.h"
 
 namespace AGS
 {
@@ -29,13 +28,13 @@ namespace Engine
 namespace ALSW
 {
 
-class SDLRendererGfxFilter : public ScalingGfxFilter
+class SDLRendererAAGfxFilter : public SDLRendererGfxFilter
 {
 public:
     const GfxFilterInfo &GetInfo() const override;
 
-    virtual SDL_ScaleMode GetScaleMode() const;
-    virtual void InitSDLHint() const;
+    SDL_ScaleMode GetScaleMode() const override;
+    void InitSDLHint() const override;
 
     static const GfxFilterInfo FilterInfo;
 };
@@ -44,4 +43,4 @@ public:
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_GFX__SDLRENDERERFILTER_H
+#endif // __AGS_EE_GFX__SDLRENDERERAAFILTER_H

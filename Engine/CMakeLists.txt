@@ -333,6 +333,8 @@ target_sources(engine
     gfx/gfxfilter_scaling.h
     gfx/gfxfilter_sdl_renderer.cpp
     gfx/gfxfilter_sdl_renderer.h
+    gfx/gfxfilter_aa_sdl_renderer.cpp
+    gfx/gfxfilter_aa_sdl_renderer.h
     gfx/gfxmodelist.h
     gfx/graphicsdriver.h
     gfx/ogl_headers.h

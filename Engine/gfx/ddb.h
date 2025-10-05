@@ -78,6 +78,11 @@ public:
     // Get an arbitrary sprite ID, returns UINT32_MAX if does not have one
     virtual uint32_t GetRefID() const = 0;
 
+#if (AGS_PLATFORM_DEBUG)
+    virtual void SetTag(const Common::String &tag) = 0;
+    virtual const Common::String &GetTag() const = 0;
+#endif
+
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
     virtual int GetColorDepth() const = 0;

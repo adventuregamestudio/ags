@@ -201,6 +201,11 @@ protected:
 class BaseDDB : public IDriverDependantBitmap
 {
 public:
+#if (AGS_PLATFORM_DEBUG)
+    void SetTag(const Common::String &tag) override { _tag = tag; }
+    const Common::String &GetTag() const { return _tag; }
+#endif
+
     int GetWidth() const override { return _width; }
     int GetHeight() const override { return _height; }
     int GetColorDepth() const override { return _colDepth; }
@@ -213,6 +218,10 @@ public:
     int _colDepth = 0;
     bool _hasAlpha = false; // has meaningful alpha channel
     bool _opaque = false; // no mask color
+
+#if (AGS_PLATFORM_DEBUG)
+    Common::String _tag;
+#endif
 
 protected:
     BaseDDB() = default;

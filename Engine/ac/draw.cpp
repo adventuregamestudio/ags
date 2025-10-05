@@ -195,6 +195,10 @@ struct ObjTexture
 // if active sprite / texture should be reconstructed
 struct ObjectCache
 {
+#if (AGS_PLATFORM_DEBUG)
+    String tag;
+#endif
+
     std::unique_ptr<Bitmap> image;
     bool  in_use = false; // CHECKME: possibly may be removed
     int   sppic = 0;
@@ -762,6 +766,10 @@ void init_game_drawdata()
     charcache.resize(game.numcharacters);
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
+#if (AGS_PLATFORM_DEBUG)
+    for (auto &ch : game.chars)
+        charcache[ch.index_id].tag.Format("CHAR%d:%s", ch.index_id, ch.scrname);
+#endif
 
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
@@ -951,6 +959,11 @@ void init_room_drawdata()
     CameraDrawData.resize(view_count);
     for (int i = 0; i < play.GetRoomViewportCount(); ++i)
         sync_roomview(play.GetRoomViewport(i).get());
+
+#if (AGS_PLATFORM_DEBUG)
+    for (size_t i = 0; i < (size_t)thisroom.Objects.size(); ++i)
+        objcache[i].tag.Format("OBJ%d:%s", (int)i, thisroom.Objects[i].ScriptName.GetCStr());
+#endif
 }
 
 void on_roomviewport_created(int index)
@@ -1962,6 +1975,9 @@ void prepare_and_add_object_gfx(
     if ((actsp.Ddb == nullptr) || (actsp_modified))
     {
         sync_object_texture(actsp, (game.SpriteInfos[actsp.SpriteID].Flags & SPF_ALPHACHANNEL) != 0);
+#if (AGS_PLATFORM_DEBUG)
+        actsp.Ddb->SetTag(objsav.tag);
+#endif
     }
 
     // Now when we have a ready texture, assign texture properties
@@ -2152,6 +2168,9 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), atx, aty, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0, chin.transparency, hw_accel);
+#if (AGS_PLATFORM_DEBUG)
+        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname));
+#endif
         // Finally, add the texture to the draw list
         add_to_sprite_list(actsp.Ddb, atx, aty, usebasel, actsp.DrawIndex);
     }
@@ -2503,6 +2522,9 @@ void draw_gui_and_overlays()
                         }
                     }
                     sync_object_texture(gbg, is_alpha);
+#if (AGS_PLATFORM_DEBUG)
+                    gbg.Ddb->SetTag(String::FromFormat("GUI%d:%s", gui.ID, gui.Name.GetCStr()));
+#endif
                 }
 
                 set_our_eip(373);
@@ -2738,6 +2760,9 @@ static void construct_overlays()
             }
 
             sync_object_texture(overtx, over.HasAlphaChannel());
+#if (AGS_PLATFORM_DEBUG)
+            overtx.Ddb->SetTag(String::FromFormat("OVER%d", over.type));
+#endif
             over.ClearChanged();
         }
 

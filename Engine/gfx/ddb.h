@@ -65,6 +65,11 @@ public:
   // Get an arbitrary sprite ID, returns UINT32_MAX if does not have one
   virtual uint32_t GetRefID() const = 0;
 
+#if (AGS_PLATFORM_DEBUG)
+  virtual void SetTag(const Common::String &tag) = 0;
+  virtual const Common::String &GetTag() const = 0;
+#endif
+
   virtual int  GetAlpha() const = 0;
   virtual void SetAlpha(int alpha) = 0;  // 0-255
   virtual void SetFlippedLeftRight(bool isFlipped) = 0;

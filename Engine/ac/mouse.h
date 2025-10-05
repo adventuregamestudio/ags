@@ -80,9 +80,11 @@ public:
     void ClearChanged() { _hasChanged = false; }
 
 private:
+    void ResetImage();
+
     // Current cursor sprite ID, may be a >= 0 for a sprite or -1 for a generated bitmap
     // TODO: refactor, replace these with ObjTexture, and move to draw.cpp
-    int  _sprnum = 0;
+    int  _sprnum = -1;
     bool _hasAlpha = false;
     // Generated cursor image, used to create a modified cursor with
     // hotspot crosshair drawn over it, or when an invalid pic index set.

@@ -3003,6 +3003,10 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // TODO: find out if it's okay to move shake to update function
     update_shakescreen();
 
+    // Disable spritecache's auto disposal for the duration of render;
+    // this prevents sprites getting deleted while they are part of the draw lists.
+    spriteset.EnableAutoFreeMem(false);
+
     gfxDriver->ClearDrawLists();
     construct_game_scene(false);
     set_our_eip(5);
@@ -3017,6 +3021,8 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     }
     construct_game_screen_overlay(!in_room_transition);
     render_to_screen();
+
+    spriteset.EnableAutoFreeMem(true);
 
     if (!play.screen_is_faded_out) {
         // always update the palette, regardless of whether the plugin

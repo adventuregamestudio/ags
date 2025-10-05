@@ -117,6 +117,8 @@ public:
     inline size_t GetExternalSize() const { return ResourceCache::GetExternalSize(); }
     // Returns maximal size limit of the cache, in bytes; this includes locked size too!
     inline size_t GetMaxCacheSize() const { return ResourceCache::GetMaxCacheSize(); }
+    // Get if auto memory freeing is enabled
+    inline bool IsAutoFreeMemEnabled() const { ResourceCache::IsAutoFreeMemEnabled(); }
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     size_t      GetSpriteSlotCount() const;
     // Tells if the sprite storage still has unoccupied slots to put new sprites in
@@ -176,6 +178,9 @@ public:
     void        SetEmptySprite(sprkey_t index, bool as_asset);
     // Sets max cache size in bytes
     inline void SetMaxCacheSize(size_t size) { ResourceCache::SetMaxCacheSize(size); }
+    // Enable or disable automatic memory freeing done when any (non-locked)
+    // items exceed the cache's limit.
+    inline void EnableAutoFreeMem(bool enable) { ResourceCache::EnableAutoFreeMem(enable); }
 
     // Loads (if it's not in cache yet) and returns bitmap by the sprite index
     Bitmap *operator[] (sprkey_t index);

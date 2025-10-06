@@ -1061,7 +1061,15 @@ static int UpdateWaitMode()
     if (restrict_until.type == 0) { return RETURN_CONTINUE; }
 
     if (!ShouldStayInWaitMode())
+    {
         restrict_until.type = 0;
+    }
+    // If skipping cutscene and expecting user input: don't wait at all
+    else if (play.fast_forward && (play.wait_counter != 0) && ((play.key_skip_wait & ~SKIP_AUTOTIMER) != 0))
+    {
+        play.SetWaitSkipResult(SKIP_NONE);
+        restrict_until.type = 0;
+    }
     set_our_eip(77);
 
     if (restrict_until.type > 0) { return RETURN_CONTINUE; }

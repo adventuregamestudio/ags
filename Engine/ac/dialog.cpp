@@ -731,12 +731,6 @@ void DialogOptions::Begin()
     // Disable rest of the game interface while the dialog options are displayed;
     // note that this also disables "overhotspot" labels update
     DisableInterfaceEx(false /* don't change cursor */);
-
-    // Must update drawable states, in case they have not been initialized yet,
-    // because we call Draw() once prior to Run().
-    // TODO: need to revise the update logic within DialogOptions state,
-    // maybe this will be not necessary to do after some adjustments.
-    UpdateCursorAndDrawables();
 }
 
 void DialogOptions::Draw()

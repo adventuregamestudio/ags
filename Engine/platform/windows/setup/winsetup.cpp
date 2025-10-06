@@ -312,6 +312,31 @@ int SetCurSelToItemData(HWND hwnd, DWORD_PTR data, PfnCompareCBItemData pfn_cmp 
     return SendMessage(hwnd, CB_SETCURSEL, def_sel, 0);
 }
 
+int SetCurSelToNearestItemData(HWND hwnd, DWORD_PTR data)
+{
+    int nearest = -1;
+    int64_t min_diff = 0;
+    int count = SendMessage(hwnd, CB_GETCOUNT, 0, 0);
+    for (int i = 0; i < count; ++i)
+    {
+        DWORD_PTR item_data = SendMessage(hwnd, CB_GETITEMDATA, i, 0);
+        if (item_data == data)
+        {
+            return SendMessage(hwnd, CB_SETCURSEL, i, 0);
+        }
+
+        int64_t diff = std::abs(static_cast<int64_t>(item_data) - static_cast<int64_t>(data));
+        if (nearest == -1 || diff < min_diff)
+        {
+            nearest = i;
+            min_diff = diff;
+        }
+    }
+    if (nearest >= 0)
+        return SendMessage(hwnd, CB_SETCURSEL, nearest, 0);
+    return 0;
+}
+
 int SetCurSelToItemDataStr(HWND hwnd, LPCSTR text, int def_sel = -1)
 {
     return SetCurSelToItemData(hwnd, (DWORD_PTR)text, CmpICBItemDataAsStr, def_sel);
@@ -708,8 +733,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     for (const auto &val : spr_cache_vals64)
         AddString(_hTextureCacheList, val.first, val.second);
 #endif
-    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
-    SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
+    SetCurSelToNearestItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024);
+    SetCurSelToNearestItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024);
 
     // Init sound cache list (keep in mind: currently meant only for small sounds)
     const std::array<std::pair<const char*, int>, 5> sound_cache_vals = { {
@@ -717,7 +742,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     }};
     for (const auto &val : sound_cache_vals)
         AddString(_hSoundCacheList, val.first, val.second);
-    SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
+    SetCurSelToNearestItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024);
 
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
 

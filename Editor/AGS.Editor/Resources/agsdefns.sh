@@ -2342,6 +2342,8 @@ builtin managed struct Dialog {
   import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
   import static attribute int OptionsZOrder; // $AUTOCOMPLETESTATICONLY$
+  /// Gets overlay that is currently used to display dialog options on screen. Returns null if options are not shown.
+  import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v363
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

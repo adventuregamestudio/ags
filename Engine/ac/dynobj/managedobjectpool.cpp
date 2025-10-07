@@ -62,6 +62,7 @@ int32_t ManagedObjectPool::SubRef(int32_t handle) {
     if (handle < 1 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
+    if (o.refCount <= 0) { assert(false); return 0; } // already disposed / disposing
 
     o.refCount--;
     const auto newRefCount = o.refCount;

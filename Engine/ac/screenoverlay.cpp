@@ -160,10 +160,17 @@ void ScreenOverlay::DisposeScriptObject()
     }
 }
 
+void ScreenOverlay::SetRemoveCallback(PfnOverlayRemoved remove_cb)
+{
+    _removeCb = remove_cb;
+}
+
 void ScreenOverlay::OnRemove()
 {
     SetImage(nullptr);
     DisposeScriptObject();
+    if (_removeCb)
+        _removeCb(*this);
 }
 
 int ScreenOverlay::UpdateTimeout()

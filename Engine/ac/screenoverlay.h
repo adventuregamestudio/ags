@@ -61,6 +61,8 @@ enum OverlaySvgVersion
 class ScreenOverlay
 {
 public:
+    typedef std::function<void(ScreenOverlay &over)> PfnOverlayRemoved;
+
     ScreenOverlay() = default;
     ScreenOverlay(int id) : _id(id) {}
     ScreenOverlay(ScreenOverlay&&);
@@ -118,6 +120,8 @@ public:
     ScriptOverlay *CreateScriptObject();
     // Resets script object handle (script object will remain in script memory)
     void DetachScriptObject();
+    // Sets a callback to run whenever overlay's Dispose method is called
+    void SetRemoveCallback(PfnOverlayRemoved remove_cb);
 
     // Disposes overlay's resources. Disposes script object (if one was created).
     // Calls remove callback, if one is set.
@@ -171,6 +175,8 @@ private:
     // overlay should not have such data as its member.
     int _bgSpeechForChar = -1;
     int _scriptHandle = 0;
+    PfnOverlayRemoved _removeCb;
+
     bool _hasChanged = false;
 };
 

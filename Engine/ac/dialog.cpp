@@ -41,6 +41,7 @@
 #include "ac/string.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/dynobj/cc_gui.h"
@@ -725,9 +726,12 @@ public:
 
     DialogTopic *GetDialog() const { return dtop; }
     int GetChosenOption() const { return chose; }
+    int GetOverlayHandle() const { return options_overlay_schandle; }
 
 private:
     int CalcOptionsHeight(int padding);
+    void CreateOverlay();
+    void OnOverlayRemoved(ScreenOverlay &over);
     // Process all the buffered input events; returns if handled
     bool RunControls();
     // Process single key event; returns if handled
@@ -744,8 +748,6 @@ private:
 
     // dialog options rectangle on screen
     Rect position;
-    // initial dialog options position; used to restore pos in case of text window offsets
-    Point init_position;
     // inner position of the options texts, relative to the gui
     Point inner_position;
     int usingfont;
@@ -767,6 +769,7 @@ private:
     std::unique_ptr<GUITextBox> parserInput;
     bool options_have_alpha = false;
     int options_overlay_id = -1;
+    int options_overlay_schandle = 0;
 
     // Text window essentials
     std::unique_ptr<Bitmap> text_window;
@@ -800,6 +803,22 @@ private:
     int mouseison;
 };
 
+DialogOptions::DialogOptions(DialogTopic *dtop_, int dlgnum_, bool runGameLoopsInBackground_)
+    : dtop(dtop_)
+    , dlgnum(dlgnum_)
+    , runGameLoopsInBackground(runGameLoopsInBackground_)
+{
+}
+
+DialogOptions::~DialogOptions()
+{
+    if (options_overlay_id > 0)
+    {
+        remove_screen_overlay(options_overlay_id);
+    }
+    parserInput.reset();
+}
+
 int DialogOptions::CalcOptionsHeight(int padding)
 {
     // According to the options drawing logic:
@@ -831,18 +850,27 @@ int DialogOptions::CalcOptionsHeight(int padding)
     return needheight;
 }
 
-DialogOptions::DialogOptions(DialogTopic *dtop_, int dlgnum_, bool runGameLoopsInBackground_)
-    : dtop(dtop_)
-    , dlgnum(dlgnum_)
-    , runGameLoopsInBackground(runGameLoopsInBackground_)
+void DialogOptions::CreateOverlay()
 {
+    std::unique_ptr<Bitmap> opt_bitmap(new Bitmap(
+        std::max(1, position.GetWidth()), std::max(1, position.GetHeight()), game.GetColorDepth()));
+    options_overlay_id = add_screen_overlay(false /* screen */, position.Left, position.Top, OVER_CUSTOM, std::move(opt_bitmap), options_have_alpha);
+    auto *over = get_overlay(options_overlay_id);
+    if (over)
+    {
+        over->SetRemoveCallback([this](ScreenOverlay &over) { this->OnOverlayRemoved(over); });
+        options_overlay_schandle = ccAssignObjectHandle(over->CreateScriptObject());
+
+        // Set initial position and sorting order
+        over->SetPosition(position.Left, position.Top);
+        over->SetZOrder(play.dialog_options_zorder);
+    }
 }
 
-DialogOptions::~DialogOptions()
+void DialogOptions::OnOverlayRemoved(ScreenOverlay &over)
 {
-    if (options_overlay_id > 0)
-        remove_screen_overlay(options_overlay_id);
-    parserInput.reset();
+    options_overlay_schandle = ccRemoveObjectHandle(options_overlay_schandle);
+    options_overlay_id = -1;
 }
 
 void DialogOptions::Show()
@@ -932,7 +960,6 @@ void DialogOptions::Begin()
     is_normalgui = false;
     is_textwindow = false;
     position = {};
-    init_position = {};
     inner_position = {};
     forecol = play.dialog_options_highlight_color;
 
@@ -1027,14 +1054,20 @@ void DialogOptions::Begin()
         options_have_alpha = false;
     }
 
+    // Apply custom GUI position (except when it's fully custom options rendering)
+    if (!usingCustomRendering)
+    {
+        if (play.dialog_options_gui_x >= 0)
+            position.MoveToX(play.dialog_options_gui_x);
+        if (play.dialog_options_gui_y >= 0)
+            position.MoveToY(play.dialog_options_gui_y);
+    }
+
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
-    init_position = position.GetLT();
     needRedraw = false;
     mouseison=-10;
 
-    std::unique_ptr<Bitmap> opt_bitmap(new Bitmap(
-        std::max(1, position.GetWidth()), std::max(1, position.GetHeight()), game.GetColorDepth()));
-    options_overlay_id = add_screen_overlay(false /* screen */, position.Left, position.Top, OVER_CUSTOM, std::move(opt_bitmap), options_have_alpha);
+    CreateOverlay();
 
     // Disable rest of the game interface while the dialog options are displayed;
     // note that this also disables "overhotspot" labels update
@@ -1043,10 +1076,13 @@ void DialogOptions::Begin()
 
 void DialogOptions::Draw()
 {
+    // Since we have our overlay exposed to script, we must check that it was not removed by command
+    if (options_overlay_id < 0)
+        CreateOverlay();
+
     ScreenOverlay *options_over = get_overlay(options_overlay_id);
     Bitmap *options_bmp = options_over->GetImage();
 
-    position.MoveTo(init_position);
     std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
 
     if (usingCustomRendering)
@@ -1159,18 +1195,7 @@ void DialogOptions::Draw()
       parserInput->SetActivated(false);
     }
 
-    // Apply custom GUI position (except when it's fully custom options rendering)
-    if (!usingCustomRendering)
-    {
-        if (play.dialog_options_gui_x >= 0)
-            position.MoveToX(play.dialog_options_gui_x);
-        if (play.dialog_options_gui_y >= 0)
-            position.MoveToY(play.dialog_options_gui_y);
-    }
-
-    // Mark the overlay's image as changed and update its position
-    options_over->SetPosition(position.Left, position.Top);
-    options_over->SetZOrder(play.dialog_options_zorder);
+    // Mark the overlay's image as changed
     options_over->MarkImageChanged();
 }
 
@@ -1914,6 +1939,11 @@ int Dialog_GetExecutedOption()
     return dialogExec ? dialogExec->GetExecutedOption() : -1;
 }
 
+ScriptOverlay *Dialog_GetOptionsOverlay()
+{
+    return dialogOpts ? (ScriptOverlay*)ccGetObjectAddressFromHandle(dialogOpts->GetOverlayHandle()) : nullptr;
+}
+
 bool Dialog_GetAreOptionsDisplayed()
 {
     return is_in_dialogoptions();
@@ -2039,6 +2069,11 @@ RuntimeScriptValue Sc_Dialog_GetOptionsNumbering(const RuntimeScriptValue *param
 RuntimeScriptValue Sc_Dialog_SetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(Dialog_SetOptionsNumbering);
+}
+
+RuntimeScriptValue Sc_Dialog_GetOptionsOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, Dialog_GetOptionsOverlay);
 }
 
 RuntimeScriptValue Sc_Dialog_GetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
@@ -2188,6 +2223,7 @@ void RegisterDialogAPI()
         { "Dialog::set_OptionsMinGUIWidth", API_FN_PAIR(Dialog_SetMinOptionsGUIWidth) },
         { "Dialog::get_OptionsNumbering", API_FN_PAIR(Dialog_GetOptionsNumbering) },
         { "Dialog::set_OptionsNumbering", API_FN_PAIR(Dialog_SetOptionsNumbering) },
+        { "Dialog::get_OptionsOverlay",   API_FN_PAIR(Dialog_GetOptionsOverlay) },
         { "Dialog::get_OptionsPaddingX",  API_FN_PAIR(Dialog_GetOptionsPaddingX) },
         { "Dialog::set_OptionsPaddingX",  API_FN_PAIR(Dialog_SetOptionsPaddingX) },
         { "Dialog::get_OptionsPaddingY",  API_FN_PAIR(Dialog_GetOptionsPaddingY) },

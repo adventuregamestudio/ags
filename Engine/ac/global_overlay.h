@@ -16,8 +16,6 @@
 
 #include "display.h"
 
-struct ScreenOverlay;
-
 void RemoveOverlay(int ovrid);
 int  CreateGraphicOverlay(int xx, int yy, int slott, int trans);
 int  CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text);

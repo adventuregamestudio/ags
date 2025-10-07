@@ -49,7 +49,8 @@ void ScreenOverlay::ResetImage()
         free_dynamic_sprite(_sprnum, false);
     _sprnum = 0;
     _flags &= ~(kOver_SpriteShared | kOver_AlphaChannel);
-    scaleWidth = scaleHeight = offsetX = offsetY = 0;
+    _scaledSize = {};
+    _offx = _offy = 0;
 }
 
 Bitmap *ScreenOverlay::GetImage() const
@@ -62,6 +63,30 @@ Size ScreenOverlay::GetGraphicSize() const
     return Size(game.SpriteInfos[_sprnum].Width, game.SpriteInfos[_sprnum].Height);
 }
 
+void ScreenOverlay::SetPosition(int x, int y)
+{
+    _x = x;
+    _y = y;
+}
+
+void ScreenOverlay::SetScaledSize(int w, int h)
+{
+    if ((w == _scaledSize.Width) && (h == _scaledSize.Height))
+        return;
+    _scaledSize = Size(w, h);
+    MarkChanged();
+}
+
+void ScreenOverlay::SetTransparency(int trans)
+{
+    _transparency = trans;
+}
+
+void ScreenOverlay::SetZOrder(int zorder)
+{
+    _zorder = zorder;
+}
+
 void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha, int offx, int offy)
 {
     ResetImage();
@@ -69,10 +94,9 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha
     if (pic)
     {
         _flags |= kOver_AlphaChannel * has_alpha;
-        offsetX = offx;
-        offsetY = offy;
-        scaleWidth = pic->GetWidth();
-        scaleHeight = pic->GetHeight();
+        _offx = offx;
+        _offy = offy;
+        _scaledSize = Size(pic->GetWidth(), pic->GetHeight());
         _sprnum = add_dynamic_sprite(std::move(pic), has_alpha, SPF_OBJECTOWNED);
     }
     MarkChanged();
@@ -94,11 +118,28 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
     _flags |= kOver_SpriteShared
            |  kOver_AlphaChannel * ((game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0);
     _sprnum = sprnum;
-    offsetX = offx;
-    offsetY = offy;
-    scaleWidth = game.SpriteInfos[sprnum].Width;
-    scaleHeight = game.SpriteInfos[sprnum].Height;
+    _offx = offx;
+    _offy = offy;
+    _scaledSize = Size(game.SpriteInfos[sprnum].Width, game.SpriteInfos[sprnum].Height);
     MarkChanged();
+}
+
+void ScreenOverlay::SetAsBackgroundSpeech(int char_id, int timeout)
+{
+    _bgSpeechForChar = char_id;
+    _timeout = timeout;
+}
+
+void ScreenOverlay::SetScriptHandle(int schandle)
+{
+    _scriptHandle = schandle;
+}
+
+int ScreenOverlay::UpdateTimeout()
+{
+    if (_timeout > 0)
+        _timeout--;
+    return _timeout;
 }
 
 void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
@@ -107,12 +148,12 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
 
     in->ReadInt32(); // ddb 32-bit pointer value (nasty legacy format)
     int pic = in->ReadInt32();
-    type = in->ReadInt32();
-    x = in->ReadInt32();
-    y = in->ReadInt32();
-    timeout = in->ReadInt32();
-    bgSpeechForChar = in->ReadInt32();
-    associatedOverlayHandle = in->ReadInt32();
+    _id = in->ReadInt32();
+    _x = in->ReadInt32();
+    _y = in->ReadInt32();
+    _timeout = in->ReadInt32();
+    _bgSpeechForChar = in->ReadInt32();
+    _scriptHandle = in->ReadInt32();
     if (cmp_ver >= kOverSvgVersion_36025)
     {
         _flags = in->ReadInt16();
@@ -131,15 +172,15 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     }
     if (cmp_ver >= kOverSvgVersion_35028)
     {
-        offsetX = in->ReadInt32();
-        offsetY = in->ReadInt32();
+        _offx = in->ReadInt32();
+        _offy = in->ReadInt32();
     }
     if (cmp_ver >= kOverSvgVersion_36008)
     {
-        zorder = in->ReadInt32();
-        transparency = in->ReadInt32();
-        scaleWidth = in->ReadInt32();
-        scaleHeight = in->ReadInt32();
+        _zorder = in->ReadInt32();
+        _transparency = in->ReadInt32();
+        _scaledSize.Width = in->ReadInt32();
+        _scaledSize.Height = in->ReadInt32();
     }
 
     // New saves always save overlay images as a part of the dynamicsprite set;
@@ -160,19 +201,19 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(0); // ddb 32-bit pointer value (nasty legacy format)
     out->WriteInt32(_sprnum); // sprite id
-    out->WriteInt32(type);
-    out->WriteInt32(x);
-    out->WriteInt32(y);
-    out->WriteInt32(timeout);
-    out->WriteInt32(bgSpeechForChar);
-    out->WriteInt32(associatedOverlayHandle);
+    out->WriteInt32(_id);
+    out->WriteInt32(_x);
+    out->WriteInt32(_y);
+    out->WriteInt32(_timeout);
+    out->WriteInt32(_bgSpeechForChar);
+    out->WriteInt32(_scriptHandle);
     out->WriteInt16(_flags);
     // since cmp_ver = 1
-    out->WriteInt32(offsetX);
-    out->WriteInt32(offsetY);
+    out->WriteInt32(_offx);
+    out->WriteInt32(_offy);
     // since cmp_ver = 2
-    out->WriteInt32(zorder);
-    out->WriteInt32(transparency);
-    out->WriteInt32(scaleWidth);
-    out->WriteInt32(scaleHeight);
+    out->WriteInt32(_zorder);
+    out->WriteInt32(_transparency);
+    out->WriteInt32(_scaledSize.Width);
+    out->WriteInt32(_scaledSize.Height);
 }

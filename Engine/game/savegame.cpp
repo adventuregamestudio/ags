@@ -759,7 +759,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     for (auto &over_im : r_data.OverlayImages)
     {
         auto &over = overs[over_im.first];
-        over.SetImage(std::move(over_im.second), over.HasAlphaChannel(), over.offsetX, over.offsetY);
+        over.SetImage(std::move(over_im.second), over.HasAlphaChannel(), over.GetOffsetX(), over.GetOffsetY());
     }
     // Restore dynamic surfaces
     const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());

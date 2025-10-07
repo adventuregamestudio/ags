@@ -511,9 +511,8 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
         if (!overlayPositionFixed)
         {
             over->SetRoomRelative(true);
-            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(over->x, over->y, false);
-            over->x = vpt.first.X;
-            over->y = vpt.first.Y;
+            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(over->GetX(), over->GetY(), false);
+            over->SetPosition(vpt.first.X, vpt.first.Y);
         }
 
         GameLoopUntilNoOverlay();

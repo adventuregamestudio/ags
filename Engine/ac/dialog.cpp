@@ -1169,9 +1169,8 @@ void DialogOptions::Draw()
     }
 
     // Mark the overlay's image as changed and update its position
-    options_over->x = position.Left;
-    options_over->y = position.Top;
-    options_over->zorder = play.dialog_options_zorder;
+    options_over->SetPosition(position.Left, position.Top);
+    options_over->SetZOrder(play.dialog_options_zorder);
     options_over->MarkImageChanged();
 }
 

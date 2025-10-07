@@ -2567,8 +2567,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         auto &overs = get_overlays();
         for (auto &over : overs)
         {
-            if (over.timeout > 0)
-                remove_screen_overlay(over.type);
+            if (over.GetTimeout() > 0)
+                remove_screen_overlay(over.GetID());
         }
     }
     said_text = 1;

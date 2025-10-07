@@ -55,33 +55,43 @@ enum OverlaySvgVersion
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
 };
 
-struct ScreenOverlay
+class ScreenOverlay
 {
-    // Overlay's "type" is a merged special overlay ID and internal container index
-    int type = -1;
-    int timeout = 0;
-    // Note that x,y are overlay's properties, that define its position in script;
-    // but real drawn position is x + offsetX, y + offsetY;
-    int x = 0, y = 0;
-    // Border/padding offset for the tiled text windows
-    int offsetX = 0, offsetY = 0;
-    // Width and height to stretch the texture to
-    int scaleWidth = 0, scaleHeight = 0;
-    int bgSpeechForChar = -1;
-    int associatedOverlayHandle = 0; // script obj handle
-    int zorder = INT_MIN;
-    int transparency = 0;
-
+public:
     ScreenOverlay() = default;
+    ScreenOverlay(int id) : _id(id) {}
     ScreenOverlay(ScreenOverlay&&);
     ~ScreenOverlay();
 
     ScreenOverlay &operator =(ScreenOverlay&&);
 
+    int  GetID() const { return _id; }
+    int  GetX() const { return _x; }
+    int  GetY() const { return _y; }
+    int  GetOffsetX() const { return _offx; }
+    int  GetOffsetY() const { return _offy; }
+    // Get position of a overlay's sprite (may be displayed with an offset relative to overlay's pos)
+    int  GetDrawX() const { return _x + _offx; }
+    int  GetDrawY() const { return _y + _offy; }
+    const Size &GetScaledSize() const { return _scaledSize; }
+    int  GetScaledWidth() const { return _scaledSize.Width; }
+    int  GetScaledHeight() const { return _scaledSize.Height; }
     bool HasAlphaChannel() const { return (_flags & kOver_AlphaChannel) != 0; }
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
+    int  GetTransparency() const { return _transparency; }
+    int  GetZOrder() const { return _zorder; }
+    // Gets actual overlay's image
+    Common::Bitmap *GetImage() const;
+    // Get this overlay's sprite id
+    int  GetSpriteNum() const { return _sprnum; }
+    // Get this overlay's graphic's dimensions (unscaled)
+    Size GetGraphicSize() const;
+    int  GetTimeout() const { return _timeout; }
+    int  GetCharacterRef() const { return _bgSpeechForChar; }
+    int  GetScriptHandle() const { return _scriptHandle; }
+
     void SetAlphaChannel(bool on) { on ? _flags |= kOver_AlphaChannel : _flags &= ~kOver_AlphaChannel; }
     void SetRoomRelative(bool on) { on ? _flags |= kOver_PositionAtRoomXY : _flags &= ~kOver_PositionAtRoomXY; }
     void SetRoomLayer(bool on)
@@ -89,17 +99,22 @@ struct ScreenOverlay
         on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
              _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
-    // Gets actual overlay's image
-    Common::Bitmap *GetImage() const;
-    // Get this overlay's sprite id
-    int  GetSpriteNum() const { return _sprnum; }
-    // Get this overlay's graphical dimensions
-    Size GetGraphicSize() const;
+    void SetPosition(int x, int y);
+    void SetScaledSize(int w, int h);
+    void SetTransparency(int trans);
+    void SetZOrder(int zorder);
     // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
     // in a sprite cache, but owned by this overlay and therefore disposed at its disposal
     void SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha = false, int offx = 0, int offy = 0);
     // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
+    // Assigns a role of background speech
+    void SetAsBackgroundSpeech(int char_id, int timeout);
+    // Assigns a handle to the script object that represents this overlay
+    void SetScriptHandle(int schandle);
+    // Decrements timeout by one tick
+    int  UpdateTimeout();
+
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
     // Manually marks GUI as graphically changed
@@ -118,8 +133,28 @@ private:
     ScreenOverlay(const ScreenOverlay &) = default;
     ScreenOverlay &operator =(const ScreenOverlay&) = default;
 
+    // Overlay's ID
+    int _id = -1;
     int _flags = 0; // OverlayFlags
-    int _sprnum = 0; // sprite id
+    // Note that x,y are overlay's properties, that define its position in script;
+    // but real drawn position is x + offx, y + offy;
+    int _x = 0;
+    int _y = 0;
+    // Border/padding offset for the tiled text windows
+    int _offx = 0;
+    int _offy = 0;
+    int _sprnum = 0;
+    // The size to stretch the texture to
+    Size _scaledSize;
+    int _zorder = INT_MIN;
+    int _transparency = 0;
+    // Timeout for automatic removal, 0 means disabled
+    int _timeout = 0;
+    // Index of a Character whose background speech this overlay represents;
+    // TODO: redesign this, store the overlay's reference in character instead,
+    // overlay should not have such data as its member.
+    int _bgSpeechForChar = -1;
+    int _scriptHandle = 0;
     bool _hasChanged = false;
 };
 

@@ -26,7 +26,7 @@ void RemoveOverlay(int ovrid) {
 
 int CreateGraphicOverlay(int x, int y, int slott, int trans) {
     auto *over = Overlay_CreateGraphicCore(false, x, y, slott, trans != 0, true); // always clone
-    return over ? over->type : 0;
+    return over ? over->GetID() : 0;
 }
 
 int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text) {
@@ -49,7 +49,7 @@ int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const
     }
 
     auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, OVER_CUSTOM, style, allow_shrink);
-    return over ? over->type : 0;
+    return over ? over->GetID() : 0;
 }
 
 void SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int text_color, const char *text) {
@@ -66,8 +66,7 @@ void MoveOverlay(int ovrid, int newx,int newy) {
     auto *over = get_overlay(ovrid);
     if (!over)
         quit("!MoveOverlay: invalid overlay ID specified");
-    over->x = newx;
-    over->y = newy;
+    over->SetPosition(newx, newy);
 }
 
 int IsOverlayValid(int ovrid) {

@@ -1251,14 +1251,14 @@ HSaveError WriteOverlays(Stream *out)
     uint32_t valid_count = 0;
     for (const auto &over : overs)
     {
-        if (over.type >= 0)
+        if (over.GetID() >= 0)
             valid_count++;
     }
     out->WriteInt32(valid_count);
 
     for (const auto &over : overs)
     {
-        if (over.type >= 0)
+        if (over.GetID() >= 0)
             over.WriteToSavegame(out);
     }
     return HSaveError::None();
@@ -1276,13 +1276,13 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
         ScreenOverlay over;
         bool has_bitmap;
         over.ReadFromSavegame(in, has_bitmap, cmp_ver);
-        if (over.type < 0)
+        if (over.GetID() < 0)
             continue; // safety abort
         if (has_bitmap)
-            r_data.OverlayImages[over.type].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
-        if (overs.size() <= static_cast<uint32_t>(over.type))
-            overs.resize(over.type + 1);
-        overs[over.type] = std::move(over);
+            r_data.OverlayImages[over.GetID()].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
+        if (overs.size() <= static_cast<uint32_t>(over.GetID()))
+            overs.resize(over.GetID() + 1);
+        overs[over.GetID()] = std::move(over);
     }
     return HSaveError::None();
 }

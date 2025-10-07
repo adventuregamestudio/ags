@@ -556,7 +556,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
     const auto &overs = get_overlays();
     for (size_t i = 0; i < overs.size(); ++i)
     {
-        if (overs[i].bgSpeechForChar == charid)
+        if (overs[i].GetCharacterRef() == charid)
         {
             remove_screen_overlay(i);
             break;
@@ -567,7 +567,6 @@ int DisplaySpeechBackground(int charid, const char*speel) {
         game.chars[charid].talkcolor, get_translation(speel), kDisplayTextStyle_Overchar);
 
     auto *over = get_overlay(ovrl);
-    over->bgSpeechForChar = charid;
-    over->timeout = GetTextDisplayTime(speel, 1);
+    over->SetAsBackgroundSpeech(charid, GetTextDisplayTime(speel, 1));
     return ovrl;
 }

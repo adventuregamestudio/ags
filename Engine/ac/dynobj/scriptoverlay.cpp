@@ -32,7 +32,7 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
         auto *over = get_overlay(overlayId);
         if (over)
         {
-            over->associatedOverlayHandle = 0;
+            over->SetScriptHandle(0);
         }
     }
 

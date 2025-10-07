@@ -2198,11 +2198,11 @@ static void add_roomovers_for_drawing()
     const auto &overs = get_overlays();
     for (const auto &over : overs)
     {
-        if (over.type < 0) continue; // empty slot
+        if (over.GetID() < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (over.GetTransparency() == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over.zorder, overtxs[over.type].DrawIndex);
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, pos.X, pos.Y, over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 }
 
@@ -2478,11 +2478,11 @@ void draw_gui_and_overlays()
     const auto &overs = get_overlays();
     for (const auto &over : overs)
     {
-        if (over.type < 0) continue; // empty slot
+        if (over.GetID() < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (over.GetTransparency() == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over.zorder, overtxs[over.type].DrawIndex);
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, pos.X, pos.Y, over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 
     // Add GUIs
@@ -2718,8 +2718,8 @@ static void construct_overlays()
     for (size_t i = 0; i < overs.size(); ++i)
     {
         auto &over = overs[i];
-        if (over.type < 0) continue; // empty slot
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (over.GetID() < 0) continue; // empty slot
+        if (over.GetTransparency() == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
         if (overtxs[i].DrawIndex == 0u)
@@ -2750,7 +2750,7 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
-                use_bmp = transform_sprite(overtx.Bmp, over.GetImage(), over.HasAlphaChannel(), Size(over.scaleWidth, over.scaleHeight));
+                use_bmp = transform_sprite(overtx.Bmp, over.GetImage(), over.HasAlphaChannel(), over.GetScaledSize());
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     if (use_bmp != overtx.Bmp.get())
@@ -2759,22 +2759,22 @@ static void construct_overlays()
                         overtx.Bmp->Blit(use_bmp);
                     }
                     Point pos = get_overlay_position(over);
-                    walkbehinds_cropout(overtx.Bmp.get(), pos.X, pos.Y, over.zorder);
+                    walkbehinds_cropout(overtx.Bmp.get(), pos.X, pos.Y, over.GetZOrder());
                     use_bmp = overtx.Bmp.get();
                 }
             }
 
             sync_object_texture(overtx, over.HasAlphaChannel());
 #if (AGS_PLATFORM_DEBUG)
-            overtx.Ddb->SetTag(String::FromFormat("OVER%d", over.type));
+            overtx.Ddb->SetTag(String::FromFormat("OVER%d", over.GetID()));
 #endif
             over.ClearChanged();
         }
 
         assert(overtx.Ddb); // Test for missing texture, might happen if not marked for update
         if (!overtx.Ddb) continue;
-        overtx.Ddb->SetStretch(over.scaleWidth, over.scaleHeight);
-        overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
+        overtx.Ddb->SetStretch(over.GetScaledWidth(), over.GetScaledHeight());
+        overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.GetTransparency()));
     }
 }
 

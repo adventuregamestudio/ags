@@ -794,7 +794,9 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     if (!over)
         quit("!SayBackground internal error: no overlay");
     // Create script object with an internal ref, keep at least until internal timeout
-    return create_scriptoverlay(*over, true);
+    ScriptOverlay *scover = over->CreateScriptObject();
+    ccAddObjectReference(over->GetScriptHandle());
+    return scover;
 }
 
 void Character_SetAsPlayer(CharacterInfo *chaa) {

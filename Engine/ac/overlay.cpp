@@ -258,7 +258,7 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)
 {
     auto *over = Overlay_CreateGraphicCore(room_layer, x, y, slot, transparent, clone);
-    return over ? create_scriptoverlay(*over) : nullptr;
+    return over ? over->CreateScriptObject() : nullptr;
 }
 
 ScriptOverlay* Overlay_CreateGraphical4(int x, int y, int slot, bool transparent)
@@ -281,7 +281,7 @@ ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int widt
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
     auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, OVER_CUSTOM, kDisplayTextStyle_TextWindow, kDisplayTextShrink_None);
-    return over ? create_scriptoverlay(*over) : nullptr;
+    return over ? over->CreateScriptObject() : nullptr;
 }
 
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
@@ -343,76 +343,38 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder)
 
 //=============================================================================
 
-// Creates and registers a managed script object for existing overlay object;
-// optionally adds an internal engine reference to prevent object's disposal
-ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref)
-{
-    ScriptOverlay *scover = new ScriptOverlay();
-    scover->overlayId = over.GetID();
-    int handl = ccRegisterManagedObject(scover, scover);
-    over.SetScriptHandle(handl); // save the handle for access
-    if (internal_ref) // requested additional ref
-        ccAddObjectReference(handl);
-    return scover;
-}
-
-// Invalidates existing script object to let user know that previous overlay is gone,
-// and releases engine's internal reference (script object may exist while there are user refs)
-static void invalidate_and_subref(ScreenOverlay &over)
-{
-    if (over.GetScriptHandle() <= 0)
-        return; // invalid handle
-
-    ScriptOverlay *scover = (ScriptOverlay*)ccGetObjectAddressFromHandle(over.GetScriptHandle());
-    if (scover)
-    {
-        scover->overlayId = -1; // invalidate script object
-        ccReleaseObjectReference(over.GetScriptHandle());
-    }
-    over.SetScriptHandle(0); // reset internal handle
-}
-
-// Frees overlay resources and tell to dispose script object if there are no refs left
-static void dispose_overlay(ScreenOverlay &over)
-{
-    over.SetImage(nullptr);
-    // invalidate script object and dispose it if there are no more refs
-    if (over.GetScriptHandle() > 0)
-    {
-        ScriptOverlay *scover = (ScriptOverlay*)ccGetObjectAddressFromHandle(over.GetScriptHandle());
-        if (scover) scover->overlayId = -1;
-        ccAttemptDisposeObject(over.GetScriptHandle());
-    }
-}
-
 void remove_screen_overlay(int type)
 {
     if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover[type].GetID() < 0)
         return; // requested non-existing overlay
 
     ScreenOverlay &over = screenover[type];
+    // Dispose overlay's resources and try dispose a script object (if one exists)
+    over.OnRemove();
+    // Do necessary changes to the game state after overlay's removal
     // TODO: move these custom settings outside of this function
+    // TODO: consider using a callback function ptr, run when overlay is removed
     if (over.GetID() == play.complete_overlay_on)
     {
         play.complete_overlay_on = 0;
     }
     else if (over.GetID() == play.text_overlay_on)
-    { // release internal ref for speech text
-        invalidate_and_subref(over);
-        play.speech_text_schandle = 0;
+    {
+        // reset ref for speech text
+        play.speech_text_schandle = ccRemoveObjectHandle(play.speech_text_schandle);
         play.text_overlay_on = 0;
     }
     else if (over.GetID() == OVER_PICTURE)
-    { // release internal ref for speech face
-        invalidate_and_subref(over);
-        play.speech_face_schandle = 0;
+    {
+        // reset ref for speech face
+        play.speech_face_schandle = ccRemoveObjectHandle(play.speech_face_schandle);
         face_talking = -1;
     }
     else if (over.GetCharacterRef() >= 0)
-    { // release internal ref for bg speech
-        invalidate_and_subref(over);
+    {
+        // release internal ref for bg speech
+        ccReleaseObjectReference(over.GetScriptHandle());
     }
-    dispose_overlay(over);
 
     // Don't erase vector elements, instead set invalid and record free index
     screenover[type] = ScreenOverlay();
@@ -475,7 +437,10 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
         INT_MAX : INT_MIN);
     over.SetRoomLayer(roomlayer);
     // TODO: move these custom settings outside of this function
-    if (type == OVER_COMPLETE) play.complete_overlay_on = type;
+    if (type == OVER_COMPLETE)
+    {
+        play.complete_overlay_on = type;
+    }
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
     {
         play.text_overlay_on = type;
@@ -483,14 +448,12 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
         // and therefore cannot be accessed, so no practical reason for that atm
         if (type == OVER_TEXTSPEECH)
         {
-            create_scriptoverlay(over, true);
-            play.speech_text_schandle = over.GetScriptHandle();
+            play.speech_text_schandle = ccAssignObjectHandle(over.CreateScriptObject());
         }
     }
     else if (type == OVER_PICTURE)
     {
-        create_scriptoverlay(over, true);
-        play.speech_face_schandle = over.GetScriptHandle();
+        play.speech_face_schandle = ccAssignObjectHandle(over.CreateScriptObject());
     }
     over.MarkChanged();
     screenover[type] = std::move(over);

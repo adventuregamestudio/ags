@@ -29,7 +29,9 @@
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
+#include <functional>
 #include <memory>
+#include "ac/dynobj/scriptoverlay.h"
 #include "core/types.h"
 #include "util/geometry.h"
 
@@ -38,6 +40,7 @@ namespace AGS { namespace Common { class Bitmap; class Stream; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS; // FIXME later
 
+// NOTE: overlay flags are serialized as int16
 enum OverlayFlags
 {
     kOver_AlphaChannel     = 0x0001,
@@ -110,8 +113,17 @@ public:
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
     // Assigns a role of background speech
     void SetAsBackgroundSpeech(int char_id, int timeout);
-    // Assigns a handle to the script object that represents this overlay
-    void SetScriptHandle(int schandle);
+    // Creates a script object associated with this overlay;
+    // optionally adds an internal reference to prevent script object's disposal
+    ScriptOverlay *CreateScriptObject();
+    // Resets script object handle (script object will remain in script memory)
+    void DetachScriptObject();
+
+    // Disposes overlay's resources. Disposes script object (if one was created).
+    // Calls remove callback, if one is set.
+    // TODO: revise this, figure out if it's safe to call one from destructor,
+    // might need to double check the ScreenOverlay's removal from storage
+    void OnRemove();
     // Decrements timeout by one tick
     int  UpdateTimeout();
 
@@ -129,6 +141,10 @@ public:
 
 private:
     void ResetImage();
+    // Disposes an associated script object, if one was created earlier;
+    // releases internal reference if one was made
+    // (script object may exist while there are user refs)
+    void DisposeScriptObject();
 
     ScreenOverlay(const ScreenOverlay &) = default;
     ScreenOverlay &operator =(const ScreenOverlay&) = default;

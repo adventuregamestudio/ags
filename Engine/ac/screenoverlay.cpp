@@ -16,6 +16,7 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "gfx/bitmap.h"
 #include "util/stream.h"
 
@@ -130,9 +131,39 @@ void ScreenOverlay::SetAsBackgroundSpeech(int char_id, int timeout)
     _timeout = timeout;
 }
 
-void ScreenOverlay::SetScriptHandle(int schandle)
+ScriptOverlay *ScreenOverlay::CreateScriptObject()
 {
-    _scriptHandle = schandle;
+    ScriptOverlay *scover = new ScriptOverlay();
+    scover->overlayId = _id;
+    _scriptHandle = ccRegisterManagedObject(scover, scover);
+    return scover;
+}
+
+void ScreenOverlay::DetachScriptObject()
+{
+    _scriptHandle = 0;
+}
+
+void ScreenOverlay::DisposeScriptObject()
+{
+    if (_scriptHandle <= 0)
+        return; // invalid handle
+
+    ScriptOverlay *scover = (ScriptOverlay *)ccGetObjectAddressFromHandle(_scriptHandle);
+    if (scover)
+    {
+        // Invalidate script object: this is required in case the object will
+        // remain in script mem after disconnecting overlay from it
+        scover->overlayId = -1;
+        ccAttemptDisposeObject(_scriptHandle);
+        _scriptHandle = 0;
+    }
+}
+
+void ScreenOverlay::OnRemove()
+{
+    SetImage(nullptr);
+    DisposeScriptObject();
 }
 
 int ScreenOverlay::UpdateTimeout()

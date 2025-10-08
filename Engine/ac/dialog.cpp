@@ -93,6 +93,10 @@ void Dialog_Start(ScriptDialog *sd) {
   RunDialog(sd->id);
 }
 
+void Dialog_StartOption(ScriptDialog *sd, int option) {
+    RunDialogOption(sd->id, option);
+}
+
 #define CHOSE_TEXTPARSER -3053
 #define SAYCHOSEN_USEFLAG 1
 #define SAYCHOSEN_YES 2
@@ -1654,8 +1658,8 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
 class DialogExec
 {
 public:
-    DialogExec(int start_dlgnum)
-        : _dlgNum(start_dlgnum) {}
+    DialogExec(int start_dlgnum, int start_opt = 0)
+        : _dlgNum(start_dlgnum), _startOpt(start_opt) {}
 
     // Tells if the dialog is either processing or ended on the start entry
     // TODO: possibly a hack, investigate if it's possible to do without this
@@ -1666,6 +1670,12 @@ public:
 
     // FIXME: this is a hack, see also the comment below
     ScriptPosition &GetSavedDialogRequestScPos() { return _savedDialogRequestScriptPos; }
+
+    // Sets the starting option number for when running the next dialog topic;
+    // TODO: this is a kind of a hack, because there's no direct way to add this
+    // as a new parameter when switching between dialogs while in dialog script;
+    // perhaps a dialog exec redesign may improve the situation.
+    void SetStartOption(int start_opt);
 
     // Runs Dialog state
     void Run();
@@ -1679,6 +1689,7 @@ private:
 
     int _dlgNum = -1;
     int _dlgWas = -1;
+    int _startOpt = -1;
     // CHECKME: this may be unnecessary, investigate later
     bool _isFirstEntry = true;
     // Dialog topics history, used by "goto-previous" command
@@ -1694,6 +1705,11 @@ private:
     // for regular calls in normal script.
     ScriptPosition _savedDialogRequestScriptPos;
 };
+
+void DialogExec::SetStartOption(int start_opt)
+{
+    _startOpt = start_opt;
+}
 
 int DialogExec::HandleDialogResult(int res)
 {
@@ -1735,8 +1751,13 @@ void DialogExec::Run()
         // If a new dialog topic: run dialog entry point
         if (_dlgNum != _dlgWas)
         {
+            const int start_opt = _startOpt;
+            _startOpt = 0; // reset starting option
             _executedOption = 0;
-            res = run_dialog_entry(_dlgNum);
+            if (start_opt == 0)
+                res = run_dialog_entry(_dlgNum);
+            else
+                res = run_dialog_option(_dlgNum, start_opt - 1, SAYCHOSEN_USEFLAG, true /* run script */);
             _dlgWas = _dlgNum;
             _executedOption = -1;
 
@@ -1798,7 +1819,7 @@ void DialogExec::Stop()
     _doStop = true;
 }
 
-void do_conversation(int dlgnum)
+void do_conversation(int dlgnum, int start_opt)
 {
     assert(dialogExec == nullptr);
     if (dialogExec)
@@ -1816,7 +1837,7 @@ void do_conversation(int dlgnum)
     // Run the global DialogStart event
     run_on_event(kScriptEvent_DialogStart, dlgnum);
 
-    dialogExec.reset(new DialogExec(dlgnum));
+    dialogExec.reset(new DialogExec(dlgnum, start_opt));
     dialogExec->Run();
     // CHECKME: find out if this is safe to do always, regardless of number of iterations
     if (dialogExec->IsFirstEntry())
@@ -1849,11 +1870,14 @@ bool is_dialog_executing_script()
 }
 
 // TODO: this is ugly, but I could not come to a better solution at the time...
-void set_dialog_result_goto(int dlgnum)
+void set_dialog_result_goto(int dlgnum, int start_opt)
 {
     assert(is_dialog_executing_script());
     if (is_dialog_executing_script())
+    {
+        dialogExec->SetStartOption(start_opt);
         dialogScriptsInst->SetReturnValue(dlgnum);
+    }
 }
 
 void set_dialog_result_stop()
@@ -1863,7 +1887,7 @@ void set_dialog_result_stop()
         dialogScriptsInst->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
 }
 
-bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval)
+bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, int start_opt)
 {
     // Test if we are inside a dialog state AND dialog_request callback
     if ((dialogExec == nullptr) || (play.stop_dialog_at_end == DIALOG_NONE))
@@ -1876,6 +1900,7 @@ bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retva
     {
         play.stop_dialog_at_end = dlgreq_retval;
         get_script_position(dialogExec->GetSavedDialogRequestScPos());
+        dialogExec->SetStartOption(start_opt);
     }
     else
     {
@@ -2193,6 +2218,11 @@ RuntimeScriptValue Sc_Dialog_Start(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID(ScriptDialog, Dialog_Start);
 }
 
+RuntimeScriptValue Sc_Dialog_StartOption(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptDialog, Dialog_StartOption);
+}
+
 void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
@@ -2243,6 +2273,7 @@ void RegisterDialogAPI()
         { "Dialog::SetHasOptionBeenChosen^2", API_FN_PAIR(Dialog_SetHasOptionBeenChosen) },
         { "Dialog::SetOptionState^2",     API_FN_PAIR(Dialog_SetOptionState) },
         { "Dialog::Start^0",              API_FN_PAIR(Dialog_Start) },
+        { "Dialog::StartOption^1",        API_FN_PAIR(Dialog_StartOption) },
     };
 
     ccAddExternalFunctions(dialog_api);

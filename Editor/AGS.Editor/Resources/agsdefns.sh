@@ -2344,6 +2344,8 @@ builtin managed struct Dialog {
   import static attribute int OptionsZOrder; // $AUTOCOMPLETESTATICONLY$
   /// Gets overlay that is currently used to display dialog options on screen. Returns null if options are not shown.
   import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
+  /// Runs the dialog starting from the certain option's script rather than the entry point
+  import void StartOption(int option);
 #endif // SCRIPT_API_v363
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

@@ -688,6 +688,7 @@ void post_script_cleanup()
     for (const auto &act : copyof.PostScriptActions)
     {
         const int data1 = act.Data[0];
+        const int data2 = act.Data[1];
 
         switch (act.Type)
         {
@@ -719,11 +720,11 @@ void post_script_cleanup()
         case ePSARunDialog:
             if (is_in_dialog())
             {
-                set_dialog_result_goto(data1);
+                set_dialog_result_goto(data1, data2);
             }
             else
             {
-                do_conversation(data1);
+                do_conversation(data1, data2);
             }
             break;
         case ePSAStopDialog:

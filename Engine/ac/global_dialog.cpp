@@ -27,20 +27,25 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 
-void RunDialog(int tum)
+void RunDialog(int dlg)
 {
-    if ((tum<0) | (tum>=game.numdialog))
-        quit("!RunDialog: invalid topic number specified");
+    RunDialogOption(dlg, 0);
+}
+
+void RunDialogOption(int dlg, int opt)
+{
+    if ((dlg <0) | (dlg >=game.numdialog))
+        quit("!Dialog.Start: invalid topic number specified");
 
     can_run_delayed_command();
 
-    if (handle_state_change_in_dialog_request("RunDialog", DIALOG_NEWTOPIC + tum))
+    if (handle_state_change_in_dialog_request("RunDialog", DIALOG_NEWTOPIC + dlg, opt))
         return; // handled
 
     if (inside_script) 
-        get_executingscript()->QueueAction(PostScriptAction(ePSARunDialog, tum, "RunDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSARunDialog, dlg, opt, "RunDialog"));
     else
-        do_conversation(tum);
+        do_conversation(dlg);
 }
 
 void StopDialog()

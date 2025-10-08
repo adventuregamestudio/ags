@@ -18,7 +18,8 @@
 #ifndef __AGS_EE_AC__GLOBALDIALOG_H
 #define __AGS_EE_AC__GLOBALDIALOG_H
 
-void RunDialog(int tum);
+void RunDialog(int dlg);
+void RunDialogOption(int dlg, int opt);
 int GetDialogOption (int dlg, int opt);
 void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script = false);
 void StopDialog();

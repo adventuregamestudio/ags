@@ -51,6 +51,7 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
+#include "ac/dynobj/managedobjectpool.h"
 #include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -375,6 +376,7 @@ void unload_old_room()
         play.temporarily_turned_off_character = -1;
     }
 
+    pool.PrintStats();
     displayed_room = -10;
 }
 

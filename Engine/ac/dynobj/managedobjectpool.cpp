@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cinttypes>
 #include <vector>
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
@@ -23,7 +24,8 @@ using namespace AGS::Common;
 
 const auto OBJECT_CACHE_MAGIC_NUMBER = 0xa30b;
 const auto SERIALIZE_BUFFER_SIZE = 10240;
-const auto GARBAGE_COLLECTION_INTERVAL = 1024;
+const auto GARBAGE_COLLECTION_INTERVAL = 1024; // in times objects added
+const auto PRINT_STATS_INTERVAL = 1023; // bitmask!, in times ran GC
 const auto RESERVED_SIZE = 2048;
 
 int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
@@ -31,6 +33,7 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     if (!(can_remove || force))
         return 0;
 
+    stats.Removed++;
     available_ids.push(o.handle);
     handleByAddress.erase(o.addr);
     ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, o.handle);
@@ -117,16 +120,25 @@ void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 {
     if (objectCreationCounter <= GARBAGE_COLLECTION_INTERVAL) { return; }
     RunGarbageCollection();
+    if ((stats.GCTimesRun & PRINT_STATS_INTERVAL) == 0)
+        PrintStats();
     objectCreationCounter = 0;
 }
 
 void ManagedObjectPool::RunGarbageCollection()
 {
+    stats.GCTimesRun++;
+    // NOTE: following GC implementation is not exactly a proper collector.
+    // For instance, it cannot resolve circular dependencies.
+    // But then, 3.* version of the engine and script compiler do not support
+    // user managed structs referencing each other. This is only implemented
+    // in 4.* engine and script compiler.
     for (int i = 1; i < nextHandle; i++) {
         auto & o = objects[i];
         if (!o.isUsed()) { continue; }
-        if (o.refCount < 1) {
-            Remove(o);
+        assert(o.refCount >= 0); // just to make certain it's not underflow
+        if (o.refCount == 0) {
+            stats.RemovedGC += Remove(o);
         }
     }
     ManagedObjectLog("Ran garbage collection");
@@ -140,6 +152,8 @@ int ManagedObjectPool::Add(int handle, void *address, IScriptObject *callback, S
     o = ManagedObject(obj_type, handle, address, callback);
 
     handleByAddress.insert({address, handle});
+    stats.Added++;
+    stats.MaxObjectsPresent = std::max(stats.MaxObjectsPresent, stats.Added - stats.Removed);
     ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
     return handle;
 }
@@ -295,8 +309,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
     return 0;
 }
 
-// de-allocate all objects
-void ManagedObjectPool::reset() {
+void ManagedObjectPool::Reset() {
     for (int i = 1; i < nextHandle; i++) {
         auto & o = objects[i];
         if (!o.isUsed()) { continue; }
@@ -304,6 +317,26 @@ void ManagedObjectPool::reset() {
     }
     available_ids = std::queue<int32_t>();
     nextHandle = 1;
+
+    PrintStats();
+}
+
+void ManagedObjectPool::PrintStats()
+{
+    Debug::Printf(kDbgGroup_ManObj, kDbgMsg_Info,
+        "Managed Pool stats:\n"
+        "\tObjects present:             %+10" PRIu64 "\n"
+        "\tMax objects present at once: %+10" PRIu64 "\n"
+        "\tTotal objects added:         %+10" PRIu64 "\n"
+        "\tTotal objects removed:       %+10" PRIu64 "\n"
+        "\tObjects removed by GC:       %+10" PRIu64 "\n"
+        "\tTimes GC ran:                %+10" PRIu64 "",
+        stats.Added - stats.Removed,
+        stats.MaxObjectsPresent,
+        stats.Added, stats.Removed,
+        stats.RemovedGC,
+        stats.GCTimesRun
+    );
 }
 
 void ManagedObjectPool::TraverseManagedObjects(const String &type, PfnProcessObject proc)

@@ -45,14 +45,23 @@ private:
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
-    int objectCreationCounter;  // used to do garbage collection every so often
-
     int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
     std::unordered_map<void*, int32_t> handleByAddress;
 
     int  Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type);
+    // Various counters, for GC trigger and stats
+    int objectCreationCounter;  // used to do garbage collection every so often
+    struct Stats
+    {
+        uint64_t Added = 0u; // total number of objects added
+        uint64_t Removed = 0u; // total number of objects removed
+        uint64_t RemovedGC = 0u; // number of objects removed by GC
+        uint64_t MaxObjectsPresent = 0u; // max objects presets at the same time
+        uint64_t GCTimesRun = 0u; // how many times GC ran
+    } stats;
+
     int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
 
@@ -70,7 +79,9 @@ public:
     int AddUnserializedObject(void *address, IScriptObject *callback, ScriptValueType obj_type, int handle);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectCollectionReader *reader);
-    void reset();
+    // De-allocate all objects
+    void Reset();
+    void PrintStats();
 
     typedef void (*PfnProcessObject)(int handle, IScriptObject *obj);
     void TraverseManagedObjects(const AGS::Common::String &type, PfnProcessObject proc);

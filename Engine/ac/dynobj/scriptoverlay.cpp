@@ -22,6 +22,11 @@
 
 using namespace AGS::Common;
 
+const char *ScriptOverlay::GetType()
+{
+    return "Overlay";
+}
+
 int ScriptOverlay::Dispose(void* /*address*/, bool force)
 {
     // since the managed object is being deleted, remove the
@@ -48,31 +53,24 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     return 1;
 }
 
-const char *ScriptOverlay::GetType() {
-    return "Overlay";
-}
-
 size_t ScriptOverlay::CalcSerializeSize(const void* /*address*/)
 {
-    return sizeof(int32_t) * 4;
+    return sizeof(int32_t);
 }
 
-void ScriptOverlay::Serialize(const void* /*address*/, Stream *out) {
+void ScriptOverlay::Serialize(const void* /*address*/, Stream *out)
+{
     out->WriteInt32(_overlayID);
-    out->WriteInt32(0); // unused (was text window x padding)
-    out->WriteInt32(0); // unused (was text window y padding)
-    out->WriteInt32(0); // unused (was internal ref flag)
 }
 
-void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     _overlayID = in->ReadInt32();
-    in->ReadInt32(); // unused (was text window x padding)
-    in->ReadInt32(); // unused (was text window y padding)
-    in->ReadInt32(); // unused (was internal ref flag)
+    // NOTE: some older formats had 3 more int32 here, which we exclude now
     ccRegisterUnserializedObject(index, this, this);
 }
 
-void ScriptOverlay::Remove() 
+void ScriptOverlay::Remove()
 {
     if (_overlayID < 0)
     {
@@ -81,4 +79,19 @@ void ScriptOverlay::Remove()
     }
     remove_screen_overlay(_overlayID);
     _overlayID = -1;
+}
+
+const char *ScriptAnimatedOverlay::GetType()
+{
+    return "AnimatedOverlay";
+}
+
+int ScriptAnimatedOverlay::Dispose(void *address, bool force)
+{
+    if (!force && _overlayID >= 0)
+    {
+        RemoveAnimatedOverlay(_overlayID);
+    }
+
+    return ScriptOverlay::Dispose(address, force);
 }

@@ -463,6 +463,13 @@ int Overlay_GetTintLuminance(ScriptOverlay *scover)
 
 //=============================================================================
 
+ScriptAnimatedOverlay *create_scriptanimoverlay(ScreenOverlay &over)
+{
+    ScriptAnimatedOverlay *scover = new ScriptAnimatedOverlay(over.GetID());
+    over.AssignScriptObject(scover);
+    return scover;
+}
+
 void remove_screen_overlay(int type)
 {
     if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover[type].GetID() < 0)
@@ -797,6 +804,80 @@ void RemoveAllAnimatedOverlays()
 }
 
 //=============================================================================
+
+ScriptAnimatedOverlay *AnimatedOverlay_CreateAnimatedImpl(bool room_layer, int x, int y, int slot, bool pause_with_game)
+{
+    auto *over = Overlay_CreateGraphicCore(false, x, y, slot, false);
+    if (!over)
+        return nullptr;
+    CreateAnimatedOverlay(over->GetID(), pause_with_game);
+    return create_scriptanimoverlay(*over);
+}
+
+ScriptAnimatedOverlay *AnimatedOverlay_CreateAnimated(int x, int y, int slot, bool pause_with_game)
+{
+    return AnimatedOverlay_CreateAnimatedImpl(false, x, y, slot, pause_with_game);
+}
+
+ScriptAnimatedOverlay *AnimatedOverlay_CreateRoomAnimated(int x, int y, int slot, bool pause_with_game)
+{
+    return AnimatedOverlay_CreateAnimatedImpl(true, x, y, slot, pause_with_game);
+}
+
+void AnimatedOverlay_Animate(ScriptAnimatedOverlay *scover, int view, int loop, int speed, int repeat,
+                             int blocking, int direction, int sframe, int volume)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Animate", scover);
+
+    view--; // convert to internal 0-based view ID
+    ValidateViewAnimVLF("AnimatedOverlay.Animate", "", view, loop, sframe);
+    ValidateViewAnimParams("AnimatedOverlay.Animate", "", blocking, repeat, direction);
+
+    volume = Math::Clamp(volume, 0, 100);
+
+    BeginAnimateOverlay(over->GetID(), view, loop, sframe,
+                        ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume));
+
+    // Blocking animate
+    if (blocking)
+        GameLoopUntilOverlayAnimEnd(over->GetID());
+}
+
+bool AnimatedOverlay_GetAnimating(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Animate", scover);
+    return IsOverlayAnimating(over->GetID());
+}
+
+int AnimatedOverlay_GetFrame(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Frame", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetFrame() : -1;
+}
+
+int AnimatedOverlay_GetLoop(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Loop", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetLoop() : -1;
+}
+
+bool AnimatedOverlay_GetPauseWithGame(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.PauseWithGame", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetPauseWithGame() : false;
+}
+
+int AnimatedOverlay_GetView(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.View", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetView() + 1 : 0; // convert view index from internal to script
+}
+
+//=============================================================================
 //
 // Script API Functions
 //
@@ -1056,6 +1137,46 @@ RuntimeScriptValue Sc_Overlay_GetTintLuminance(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintLuminance);
 }
 
+RuntimeScriptValue Sc_AnimatedOverlay_CreateAnimated(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptAnimatedOverlay, AnimatedOverlay_CreateAnimated);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_CreateRoomAnimated(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptAnimatedOverlay, AnimatedOverlay_CreateRoomAnimated);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT8(ScriptAnimatedOverlay, AnimatedOverlay_Animate);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptAnimatedOverlay, AnimatedOverlay_GetAnimating);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetView);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetLoop);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetFrame);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetPauseWithGame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetPauseWithGame);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -1139,4 +1260,17 @@ void RegisterOverlayAPI()
     };
 
     ccAddExternalFunctions(overlay_api);
+
+    ScFnRegister animoverlay_api[] = {
+        { "AnimatedOverlay::CreateAnimated",        API_FN_PAIR(AnimatedOverlay_CreateAnimated) },
+        { "AnimatedOverlay::CreateRoomAnimated",    API_FN_PAIR(AnimatedOverlay_CreateRoomAnimated) },
+        { "AnimatedOverlay::Animate",               API_FN_PAIR(AnimatedOverlay_Animate) },
+        { "AnimatedOverlay::get_Animating",         API_FN_PAIR(AnimatedOverlay_GetAnimating) },
+        { "AnimatedOverlay::get_Frame",             API_FN_PAIR(AnimatedOverlay_GetFrame) },
+        { "AnimatedOverlay::get_Loop",              API_FN_PAIR(AnimatedOverlay_GetLoop) },
+        { "AnimatedOverlay::get_PauseWithGame",     API_FN_PAIR(AnimatedOverlay_GetPauseWithGame) },
+        { "AnimatedOverlay::get_View",              API_FN_PAIR(AnimatedOverlay_GetView) },
+    };
+
+    ccAddExternalFunctions(animoverlay_api);
 }

@@ -155,9 +155,11 @@ public:
     void RemoveShader();
     // Assigns a role of character's speech
     void SetAsSpeech(int char_id, int timeout);
-    // Creates a script object associated with this overlay;
-    // optionally adds an internal reference to prevent script object's disposal
+    // Creates a script object associated with this overlay.
     ScriptOverlay *CreateScriptObject();
+    // Registers the provided script object, and attaches to this overlay
+    // TODO: revise this, not a particularly secure design.
+    void AssignScriptObject(ScriptOverlay *scover);
     // Resets script object handle (script object will remain in script memory)
     void DetachScriptObject();
     // Sets a callback to run whenever overlay's Dispose method is called

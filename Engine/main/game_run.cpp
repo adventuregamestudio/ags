@@ -127,11 +127,13 @@ static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 #define UNTIL_ANIMBTNEND 9
 #define UNTIL_FLAGUNSET 10
 #define UNTIL_VIEWANIM  11
+#define UNTIL_ANIMOVEREND 12
 
 static void GameTick();
 
 // Game state instructs the engine to run game loops until
 // certain condition is not fullfilled.
+// TODO: reimplement the end condition check using a function pointer?
 class GameLoopUntilState : public GameState
 {
 public:
@@ -1450,6 +1452,10 @@ static bool ShouldStayInWaitMode()
         const ViewAnimateParams *anim = static_cast<const ViewAnimateParams*>(restrict_until->GetDataPtr());
         return anim->IsValid();
     }
+    case UNTIL_ANIMOVEREND:
+    {
+        return IsOverlayAnimating(restrict_until->GetData1());
+    }
     default:
         debug_script_warn("loop_until: unknown until event, aborting");
         return false;
@@ -1529,6 +1535,11 @@ void GameLoopUntilNoOverlay()
 void GameLoopUntilButAnimEnd(int guin, int objn)
 {
     GameLoopUntilEvent(UNTIL_ANIMBTNEND, nullptr, guin, objn);
+}
+
+void GameLoopUntilOverlayAnimEnd(int over_id)
+{
+    GameLoopUntilEvent(UNTIL_ANIMOVEREND, nullptr, over_id);
 }
 
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit)

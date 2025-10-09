@@ -663,6 +663,9 @@ if(AGS_TESTS)
         common
         gtest_main
     )
+    if(AGS_USE_LOCAL_GTEST)
+        target_link_libraries(engine_test gtest)
+    endif()
 
     include(GoogleTest)
     gtest_add_tests(TARGET engine_test)

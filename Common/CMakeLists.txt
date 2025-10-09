@@ -251,6 +251,9 @@ if(AGS_TESTS)
         common
         gtest_main
     )
+    if(AGS_USE_LOCAL_GTEST)
+        target_link_libraries(common_test gtest)
+    endif()
 
     include(GoogleTest)
     gtest_add_tests(TARGET common_test)

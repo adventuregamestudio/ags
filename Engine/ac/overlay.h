@@ -56,4 +56,15 @@ void restore_overlays();
 // by external code...
 std::vector<ScreenOverlay> &get_overlays();
 
+void CreateAnimatedOverlay(int over_id, bool pause_with_game);
+size_t AddAnimatedOverlay(AnimatedOverlay &&aover);
+void BeginAnimateOverlay(int over_id, int view, int loop, int frame, const ViewAnimateParams &params);
+const std::vector<AnimatedOverlay> &GetAnimatedOverlays();
+bool IsOverlayAnimating(int over_id);
+AnimatedOverlay *GetOverlayAnimation(int over_id);
+void UpdateOverlayAnimations();
+void StopOverlayAnimation(int over_id);
+void RemoveAnimatedOverlay(int over_id);
+void RemoveAllAnimatedOverlays();
+
 #endif // __AGS_EE_AC__OVERLAY_H

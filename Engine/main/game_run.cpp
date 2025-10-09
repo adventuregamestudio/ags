@@ -948,17 +948,21 @@ static void game_loop_do_update()
     else if (game_paused==0) update_stuff();
 }
 
-static void game_loop_update_animated_buttons()
+// Updated objects that do not auto-pause when the game is paused
+static void game_loop_update_animated_always()
 {
-    // update animating GUI buttons
-    // this bit isn't in update_stuff because it always needs to
-    // happen, even when the game is paused
-    for (size_t i = 0; i < GetAnimatingButtonCount(); ++i) {
-        if (!UpdateAnimatingButton(i)) {
+    // Update animating GUI buttons and overlays
+    // The buttons are animated even if the game is paused
+    for (size_t i = 0; i < GetAnimatingButtonCount(); ++i)
+    {
+        if (!UpdateAnimatingButton(i))
+        {
             StopButtonAnimation(i);
             i--;
         }
     }
+
+    UpdateOverlayAnimations();
 }
 
 extern std::vector<ViewStruct> views;
@@ -1296,7 +1300,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // do the overall game state update
     game_loop_do_update();
 
-    game_loop_update_animated_buttons();
+    game_loop_update_animated_always();
 
     game_loop_do_late_script_update();
 

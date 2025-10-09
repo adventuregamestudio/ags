@@ -19,19 +19,23 @@
 struct ScriptOverlay final : AGSCCDynamicObject
 {
 public:
-    int overlayId = -1;
-
+    ScriptOverlay() = default;
+    ScriptOverlay(int over_id) : _overlayID(over_id) {}
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
     void Remove();
-    ScriptOverlay() = default;
+
+    int GetOverlayID() const { return _overlayID; }
+    void Invalidate() { _overlayID = -1; }
 
 protected:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
+
+    int _overlayID = -1;
 };
 
 #endif // __AC_SCRIPTOVERLAY_H

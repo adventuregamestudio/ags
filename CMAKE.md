@@ -99,7 +99,7 @@ The available flags are:
 - `AGS_USE_LOCAL_SDL2_SOUND` : Find SDL sound locally
 - `AGS_USE_LOCAL_GLM` : Find GLM locally
 - `AGS_USE_LOCAL_MINIZ` : Find Miniz locally
-- `AGS_USE_LOCAL_TINYXML` : Find TinyXML locally
+- `AGS_USE_LOCAL_TINYXML2` : Find TinyXML2 locally
 - `AGS_USE_LOCAL_OGG` : Find OGG locally
 - `AGS_USE_LOCAL_THEORA` : Find Theora locally
 - `AGS_USE_LOCAL_VORBIS` : Find Vorbis locally

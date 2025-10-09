@@ -864,7 +864,7 @@ void RemoveAllAnimatedOverlays()
 {
     animovers.clear();
     over_to_anim.clear();
-    animover_free_ids = {};
+    animover_free_ids = std::queue<size_t>();
 }
 
 //=============================================================================

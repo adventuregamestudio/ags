@@ -103,6 +103,7 @@ The available flags are:
 - `AGS_USE_LOCAL_OGG` : Find OGG locally
 - `AGS_USE_LOCAL_THEORA` : Find Theora locally
 - `AGS_USE_LOCAL_VORBIS` : Find Vorbis locally
+- `AGS_USE_LOCAL_GTEST` : Find GTest locally
 - `AGS_USE_LOCAL_ALL_LIBRARIES` : Force all the above to be local libraries
 
 While default fetching scripts static link AGS to required libraries, when using local libraries AGS should dynamic link

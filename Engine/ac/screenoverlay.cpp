@@ -209,6 +209,11 @@ ScriptOverlay *ScreenOverlay::CreateScriptObject()
     return scover;
 }
 
+void ScreenOverlay::AssignScriptObject(ScriptOverlay *scover)
+{
+    _scriptHandle = ccRegisterManagedObject(scover, scover);
+}
+
 void ScreenOverlay::DetachScriptObject()
 {
     _scriptHandle = 0;

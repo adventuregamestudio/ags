@@ -31,6 +31,7 @@
 
 #include <functional>
 #include <memory>
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "core/types.h"
 #include "gfx/gfx_def.h"
@@ -234,6 +235,42 @@ private:
 
     Common::GraphicSpace _gs;
     bool _hasChanged = false;
+};
+
+struct ViewFrame;
+
+class AnimatedOverlay
+{
+public:
+    AnimatedOverlay() = default;
+    AnimatedOverlay(int over_id, bool pause_with_game)
+        : _overid(over_id), _pauseWithGame(pause_with_game)
+    {}
+
+    int GetOverID() const { return _overid; }
+    bool IsAnimating() const { return _anim.IsValid(); }
+    bool GetPauseWithGame() const { return _pauseWithGame; }
+    int GetView() const { return _view; }
+    int GetLoop() const { return _loop; }
+    int GetFrame() const { return _frame; }
+    const ViewFrame *GetViewFrame() const;
+
+    void Begin(int view, int loop, int frame, const ViewAnimateParams &params);
+    bool UpdateOnce();
+    void Reset();
+
+    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    int _overid = -1;
+    bool _pauseWithGame = false;
+    // current animation status
+    int _view = -1;
+    uint16_t _loop = 0u;
+    uint16_t _frame = 0u;
+    ViewAnimateParams _anim;
+    int _wait = 0;
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

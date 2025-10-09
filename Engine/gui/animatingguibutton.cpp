@@ -70,7 +70,7 @@ void AnimatingGUIButton::ReadFromSavegame(Stream *in, int cmp_ver)
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, anim_volume);
 }
 
-void AnimatingGUIButton::WriteToSavegame(Stream *out)
+void AnimatingGUIButton::WriteToSavegame(Stream *out) const
 {
     out->WriteInt16(buttonid);
     out->WriteInt16(ongui);

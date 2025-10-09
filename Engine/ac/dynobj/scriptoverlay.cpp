@@ -27,9 +27,9 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     // since the managed object is being deleted, remove the
     // reference so it doesn't try and dispose something else
     // with that handle later
-    if (overlayId >= 0)
+    if (_overlayID >= 0)
     {
-        auto *over = get_overlay(overlayId);
+        auto *over = get_overlay(_overlayID);
         if (over)
         {
             over->DetachScriptObject();
@@ -58,14 +58,14 @@ size_t ScriptOverlay::CalcSerializeSize(const void* /*address*/)
 }
 
 void ScriptOverlay::Serialize(const void* /*address*/, Stream *out) {
-    out->WriteInt32(overlayId);
+    out->WriteInt32(_overlayID);
     out->WriteInt32(0); // unused (was text window x padding)
     out->WriteInt32(0); // unused (was text window y padding)
     out->WriteInt32(0); // unused (was internal ref flag)
 }
 
 void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
-    overlayId = in->ReadInt32();
+    _overlayID = in->ReadInt32();
     in->ReadInt32(); // unused (was text window x padding)
     in->ReadInt32(); // unused (was text window y padding)
     in->ReadInt32(); // unused (was internal ref flag)
@@ -74,11 +74,11 @@ void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
 
 void ScriptOverlay::Remove() 
 {
-    if (overlayId < 0)
+    if (_overlayID < 0)
     {
         debug_script_warn("Overlay.Remove: overlay is invalid, could have been removed earlier.");
         return;
     }
-    remove_screen_overlay(overlayId);
-    overlayId = -1;
+    remove_screen_overlay(_overlayID);
+    _overlayID = -1;
 }

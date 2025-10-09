@@ -390,6 +390,9 @@ private:
     // Track a forward-declared struct and one of its references to it.
     std::map<Symbol, size_t> _structRefs;
 
+    // The function that is currently being compiled (qualified when it's a struct function)
+    Symbol _currentlyCompiledFunction = kKW_NoSymbol;
+
     size_t _lastEmittedSectionId;
     size_t _lastEmittedLineno;
 

@@ -1079,13 +1079,13 @@ namespace AGS.Editor
             foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
                 // Primary cleanup
-                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName, errors);
 
                 // Old files cleanup (if necessary)
                 string oldName;
                 if (!buildNames.TryGetValue(target.Name, out oldName)) continue;
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
-                    target.DeleteMainGameData(oldName);
+                    target.DeleteMainGameData(oldName, errors);
             }
 
             IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
@@ -1333,10 +1333,10 @@ namespace AGS.Editor
             if (buildNames.TryGetValue(target.Name, out oldName))
             {
                 // Primary cleanup
-                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName, errors);
                 // Old files cleanup (if necessary)
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
-                    target.DeleteMainGameData(oldName);
+                    target.DeleteMainGameData(oldName, errors);
             }
 
             target.Build(errors, false);

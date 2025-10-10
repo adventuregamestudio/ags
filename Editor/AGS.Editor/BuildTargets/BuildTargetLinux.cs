@@ -65,12 +65,12 @@ namespace AGS.Editor
             };
         }
 
-        public override void DeleteMainGameData(string name)
+        public override void DeleteMainGameData(string name, CompileMessages errors)
         {
-            DeleteCommonGameFiles(Path.Combine(OutputDirectoryFullPath, LINUX_DATA_DIR), name);
+            DeleteCommonGameFiles(Path.Combine(OutputDirectoryFullPath, LINUX_DATA_DIR), name, errors);
 
             string script_filename = Path.Combine(OutputDirectoryFullPath, GetScriptFileNameFromBasename(name));
-            Utilities.TryDeleteFile(script_filename);
+            Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(script_filename); }, $"Failed to delete an old file {script_filename}.", errors);
         }
 
         private void CheckPluginsHaveSharedLibraries(CompileMessages errors)

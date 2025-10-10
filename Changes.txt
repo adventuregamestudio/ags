@@ -1,6 +1,55 @@
 REVISION HISTORY
 ================
 
+VERSION 3.6.2 - Patch 4, October 2025
+
+Editor:
+ - Make Font's OutlineFont property provide a drop-down list with fonts.
+ - Fixed Character's animating preview not updating if a View is being edited at the same time.
+ - Fixed Font preview scrolling too far down, and sometimes causing some letters to cut off.
+ - Fixed Editor reporting "the script name in use" errors for Room Objects and Hotspots that
+   don't have any script name set.
+ - Fixed Editor Preferences resetting Android JDK and SDK path if one was typed or pasted directly
+   into the text box rather than selected using a Folder browse dialog.
+ - Fixed Editor displaying an "unhandled exception" if an older file cannot be deleted while
+   rebuilding the game. Should be recording such error and display as a regular message box or
+   in the output panel.
+
+Engine:
+ - Returned "Linear" filter for Software renderer. It was temporarily cut during development of
+   version 3.6.0, but we forgot to bring it back.
+ - Do not apply disabled effect on a Button which runs a blocking animation. Also do not hide
+   its parent GUI if game options tells that GUIs should be hidden when the interface is disabled.
+ - Changes to the current room's masks will now be remembered in game saves.
+   (This only refers to he current room; the mask changes are still reset when player leaves
+   the room, just like the changes to room backgrounds.)
+ - Dynamically update debug overlay with a room mask on it if a room mask is being drawn upon.
+ - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
+   as these functions are meant to test a file existence.
+ - Fixed severe performance drop when dialog options are displayed (regression in 3.6.2).
+ - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
+   glitches, but could cause extra performance issues).
+ - Fixed that room objects may not get drawn during dialog options if they are started right at
+   entering the room, and running game loops is disabled when options are shown.
+ - Fixed PlayVideo() displaying a single black frame before playing the actual video.
+ - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
+   running with a Software renderer).
+ - Fixed that disabled Buttons may not have their looks updated if GUI disabled style was changed
+   in script ("OPT_WHENGUIDISABLED").
+ - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
+ - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
+ - Fixed wrong palette used when loading secondary 8-bit backgrounds in a 16/32-bit game.
+ - Fixed that "unhandled_event" would be called only starting with the second object interaction
+   if that object has a function name assigned for that interaction, but the actual function is
+   not found in script.
+ - Fixed that "interface_click" not getting called if a GUI click event's function is missing in
+   a designated script module, but is present elsewhere (although that function will be never run).
+ - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
+   character does not have any items (regression in 3.6.2).
+ - Fixed Software renderer could potentially crash when the sprite cache reaches its limit and
+   there's an overlay displayed on screen.
+
+
 VERSION 3.6.2 - Patch 3, September 2025
 
 Common:

@@ -1,4 +1,14 @@
-# Welcome to AGS Android
+# Introduction
+
+AGS Android port allows to run games compiled in AGS on Android devices.
+
+The runtime support comes with two options:
+1. Bundling native engine executable with the game files in a APK.
+2. AGS Player application that can be installed on device and run any game files available.
+
+Making an exclusive game APK may be done either by hand (following instructions below), or through the AGS Editor.
+
+Currently the lowest supported platform version is Android 4.4.
 
 If you have questions, feel free to ask in the [Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=59751.0), which also contains additional information.
 

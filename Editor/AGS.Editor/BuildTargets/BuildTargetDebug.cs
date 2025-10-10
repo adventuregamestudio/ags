@@ -34,10 +34,10 @@ namespace AGS.Editor
             return GetCompiledPath(parts);
         }
 
-        public override void DeleteMainGameData(string name)
+        public override void DeleteMainGameData(string name, CompileMessages errors)
         {
             string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, DEBUG_DIRECTORY), name + ".exe");
-            Utilities.TryDeleteFile(filename);
+            Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(filename); }, $"Failed to delete an old file {filename}.", errors);
         }
 
         private object CreateDebugFiles(IWorkProgress progress, object parameter)
@@ -107,7 +107,7 @@ namespace AGS.Editor
                 }
 
                 // Copy files from Compiled/Data to Compiled/Windows, because this is currently where game will be looking them up
-                targetWin.CopyAuxiliaryGameFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY), false);
+                targetWin.CopyAuxiliaryGameFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY), false, errors);
                 // Update config file with current game parameters
                 GenerateConfigFile(GetCompiledPath());
             }

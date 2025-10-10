@@ -575,9 +575,9 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
-        public override void DeleteMainGameData(string name)
+        public override void DeleteMainGameData(string name, CompileMessages errors)
         {
-            DeleteCommonGameFiles(GetAssetsDir(), name);
+            DeleteCommonGameFiles(GetAssetsDir(), name, errors);
         }
 
         public override bool Build(CompileMessages errors, bool forceRebuild)

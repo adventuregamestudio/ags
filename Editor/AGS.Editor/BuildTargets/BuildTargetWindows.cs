@@ -24,12 +24,12 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
-        public override void DeleteMainGameData(string name)
+        public override void DeleteMainGameData(string name, CompileMessages errors)
         {
-            DeleteCommonGameFiles(OutputDirectoryFullPath, name);
+            DeleteCommonGameFiles(OutputDirectoryFullPath, name, errors);
 
             string filename = Path.Combine(OutputDirectoryFullPath, name + ".exe");
-            Utilities.TryDeleteFile(filename);
+            Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(filename); }, $"Failed to delete an old file {filename}.", errors);
         }
 
         public void CopyPlugins(CompileMessages errors)
@@ -135,7 +135,7 @@ namespace AGS.Editor
             {
                 errors.Add(new CompileError(String.Format("Unable to locate main game data file at '{0}'", mainGameDataSrc)));
             }
-            CopyAuxiliaryGameFiles(compiledDataDir, true);
+            CopyAuxiliaryGameFiles(compiledDataDir, true, errors);
             // Copy DLLs
             File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, "SDL2.dll"), Path.Combine(GetCompiledPath(), "SDL2.dll"), true);
             // Update config file with current game parameters
@@ -173,13 +173,13 @@ namespace AGS.Editor
         /// Copies all files that could potentially be a part of the game
         /// into the final compiled directory.
         /// </summary>
-        public void CopyAuxiliaryGameFiles(string sourcePath, bool alwaysOverwrite)
+        public void CopyAuxiliaryGameFiles(string sourcePath, bool alwaysOverwrite, CompileMessages errors)
         {
             List<string> files = GetAuxiliaryGameFiles(sourcePath);
             // This method could be called separately from the standard building process,
             // so double-check that necessary folders exist
             if (files.Count > 0)
-                EnsureStandardSubfoldersExist();
+                EnsureStandardSubfoldersExist(errors);
             foreach (string fileName in files)
             {
                 string destFile = GetCompiledPath(Path.GetFileName(fileName));

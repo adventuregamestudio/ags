@@ -953,6 +953,8 @@ int drawFontAt(HDC hdc, int fontnum, int draw_atx, int draw_aty, int width, int 
   if (!hdc)
     return full_height * doubleSize;
 
+  scroll_y /= doubleSize;
+
   int skip_rows = (scroll_y - padding - grid_margin) / grid_size;
   first_char = skip_rows * chars_per_row;
 

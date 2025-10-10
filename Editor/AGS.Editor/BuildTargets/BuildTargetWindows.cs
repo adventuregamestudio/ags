@@ -124,7 +124,7 @@ namespace AGS.Editor
                 if (Factory.AGSEditor.CurrentGame.Settings.AttachDataToExe)
                 {
                     AttachDataToEXE(mainGameDataSrc, newExeName);
-                    Utilities.TryDeleteFile(mainGameDataDst);
+                    Utilities.ExecuteOrWarn(()=>{ Utilities.TryDeleteFile(mainGameDataDst); }, $"Failed to delete a temporary file {mainGameDataDst}", errors);
                 }
                 else
                 {

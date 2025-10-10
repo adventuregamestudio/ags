@@ -315,7 +315,8 @@ namespace AGS.Editor.Components
             }
 
             // Write output file, using gathered lines
-            Utilities.TryDeleteFile(outputName);
+            Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(outputName); }, $"Failed to delete an old file {outputName}.", errors);
+
             if ((!errors.HasErrors) && (lipSyncDataLines.Count > 0))
             {
                 BinaryWriter bw = new BinaryWriter(new FileStream(outputName, FileMode.Create, FileAccess.Write));

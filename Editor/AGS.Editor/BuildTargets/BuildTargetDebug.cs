@@ -73,8 +73,17 @@ namespace AGS.Editor
                 {
                     return false;
                 }
-                Utilities.TryDeleteFile(GetDebugPath(exeFileName));
-                File.Move(exeFileName, GetDebugPath(exeFileName));
+                string exePath = GetDebugPath(exeFileName);
+                if (!Utilities.ExecuteOrError(() =>
+                    {
+                        Utilities.TryDeleteFile(exePath);
+                        File.Move(exeFileName, exePath);
+                    },
+                    $"Failed to replace an old file {exePath}", errors))
+                {
+                    return false;
+                }
+                
                 // copy configuration from Compiled folder to use with Debugging
                 string cfgFilePath = targetWin.GetCompiledPath(AGSEditor.CONFIG_FILE_NAME);
                 if (File.Exists(cfgFilePath))

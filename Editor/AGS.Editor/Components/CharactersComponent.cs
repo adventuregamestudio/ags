@@ -309,7 +309,7 @@ namespace AGS.Editor.Components
             }
             catch (ApplicationException ex)
             {
-                _guiController.ShowMessage("An error occurred exporting the character file. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("An error occurred exporting the character file.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -335,7 +335,7 @@ namespace AGS.Editor.Components
             }
             catch (ApplicationException ex)
             {
-                _guiController.ShowMessage("An error occurred importing the character file. The error was: " + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("An error occurred importing the character file.", ex, MessageBoxIcon.Warning);
             }
         }        
 

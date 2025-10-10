@@ -310,7 +310,7 @@ namespace AGS.Editor.Components
             }
             catch (CannotDeleteFileException ex)
             {
-                _guiController.ShowMessage("The room file could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("The room file could not be deleted.", ex, MessageBoxIcon.Warning);
             }
             RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
@@ -476,7 +476,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("There was a problem importing the room file: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was a problem importing the room file.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -496,7 +496,7 @@ namespace AGS.Editor.Components
             }
             catch (AGSEditorException ex)
             {
-                _guiController.ShowMessage("There was an error saving the script for room " + roomFile + ": " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was an error saving the script for room " + roomFile + ".", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -514,7 +514,7 @@ namespace AGS.Editor.Components
                 }
                 catch (Exception ex)
                 {
-                    _guiController.ShowMessage("The existing file could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                    _guiController.ShowError("The existing file could not be deleted.", ex, MessageBoxIcon.Warning);
                     return false;
                 }
             }
@@ -574,7 +574,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("There was an error attempting to create the new room. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was an error attempting to create the new room.", ex, MessageBoxIcon.Warning);
             }
         }
 

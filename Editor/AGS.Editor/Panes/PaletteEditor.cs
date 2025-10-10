@@ -270,7 +270,7 @@ namespace AGS.Editor
                     }
                     catch (Exception ex)
                     {
-                        Factory.GUIController.ShowMessage("There was an error exporting the palette. The error message was '" + ex.Message + "'. Please retry.", MessageBoxIcon.Warning);
+                        Factory.GUIController.ShowError("There was an error exporting the palette.", ex, MessageBoxIcon.Warning);
                     }
                 }
             }
@@ -320,7 +320,7 @@ namespace AGS.Editor
                 }
                 catch (Exception ex)
                 {
-                    Factory.GUIController.ShowMessage("There was an error importing the palette. The error message was '" + ex.Message + "'. Please retry.", MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("There was an error importing the palette.", ex, MessageBoxIcon.Warning);
                 }
             }
             return newPalette;

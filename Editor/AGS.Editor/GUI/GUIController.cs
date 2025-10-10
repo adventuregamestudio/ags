@@ -183,6 +183,18 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Displays a custom error message, optionally appending exception message text.
+        /// </summary>
+        public void ShowError(string message, Exception ex = null, MessageBoxIcon icon = MessageBoxIcon.Error)
+        {
+            if (ex != null)
+            {
+                message = string.Format($"{message}{Environment.NewLine}Error:{ex.Message}{Environment.NewLine}{Environment.NewLine}Error details:{Environment.NewLine}{ex.ToString()}");
+            }
+            ShowMessage(message, icon);
+        }
+
         public DialogResult ShowQuestion(string message)
         {
             return ShowQuestion(message, MessageBoxIcon.Question);
@@ -1269,7 +1281,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error creating your game. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Stop);
+                Factory.GUIController.ShowError("There was an error creating your game.", ex, MessageBoxIcon.Stop);
             }
 
             if (!createdSuccessfully)
@@ -1312,11 +1324,11 @@ namespace AGS.Editor
                 }
                 catch (AGSEditorException ex)
                 {
-                    Factory.GUIController.ShowMessage("There was an error creating your room template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("There was an error creating your room template.", ex, MessageBoxIcon.Warning);
                 }
                 catch (Exception ex)
                 {
-                    Factory.GUIController.ShowMessage("There was an error creating your room template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("There was an error creating your room template.", ex, MessageBoxIcon.Warning);
                 }
             }
         }
@@ -1332,12 +1344,12 @@ namespace AGS.Editor
             }
             catch (AGSEditorException ex)
             {
-                Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error creating your template.", ex, MessageBoxIcon.Warning);
                 success = false;
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error creating your template.", ex, MessageBoxIcon.Warning);
                 success = false;
             }
             return success;
@@ -1381,7 +1393,7 @@ namespace AGS.Editor
 				}
 				catch (Exception ex)
 				{
-					Factory.GUIController.ShowMessage("There was an error creating the voice acting script. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+					Factory.GUIController.ShowError("There was an error creating the voice acting script.", ex, MessageBoxIcon.Warning);
 				}
 			}
 
@@ -1420,7 +1432,7 @@ namespace AGS.Editor
                 }
                 catch (Exception ex)
                 {
-                    Factory.GUIController.ShowMessage("There was an error numbering your speech lines. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("There was an error numbering your speech lines.", ex, MessageBoxIcon.Warning);
                 }
             }
 

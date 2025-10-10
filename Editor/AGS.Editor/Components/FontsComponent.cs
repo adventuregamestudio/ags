@@ -310,7 +310,7 @@ namespace AGS.Editor.Components
             }
             catch (AGSEditorException ex)
             {
-                Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to import the font.", ex, MessageBoxIcon.Warning);
                 Utilities.TryDeleteFile(newTTFName);
             }
 
@@ -345,7 +345,7 @@ namespace AGS.Editor.Components
             }
             catch (AGSEditorException ex)
             {
-                Factory.GUIController.ShowMessage("Unable to import the font.\n\n" + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to import the font.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -376,7 +376,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was a problem importing the font. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was a problem importing the font.", ex, MessageBoxIcon.Warning);
             }
         }
 

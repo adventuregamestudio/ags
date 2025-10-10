@@ -17,6 +17,8 @@ namespace AGS.Editor
     public partial class PreferencesEditor : Form
     {
         private AppSettings _settings;
+        private readonly Debouncer javaHomeChanged = new Debouncer(150);
+        private readonly Debouncer androidHomeChanged = new Debouncer(150);
 
         private void UpdateAndroidKeystorePasswordState()
         {
@@ -422,12 +424,16 @@ namespace AGS.Editor
 
         private void javaHomeCheck()
         {
-            labelJdkOk.Visible = AndroidUtilities.IsJdkFound(_settings.AndroidJavaHome);
+            string foundInPath;
+            labelJdkOk.Visible = AndroidUtilities.IsJdkFound(_settings.AndroidJavaHome, out foundInPath)
+                && (radAndJavaHomeEnv.Checked || (foundInPath == _settings.AndroidJavaHome));
         }
 
         private void androidHomeCheck()
         {
-            labelSdkOk.Visible = AndroidUtilities.IsSdkFound(_settings.AndroidHome);
+            string foundInPath;
+            labelSdkOk.Visible = AndroidUtilities.IsSdkFound(_settings.AndroidHome, out foundInPath)
+                && (radAndAndroidHomeEnv.Checked || (foundInPath == _settings.AndroidHome));
         }
 
 
@@ -457,6 +463,18 @@ namespace AGS.Editor
 
             _settings.AndroidHome = (radAndAndroidHomeEnv.Checked ? string.Empty : txtAndAndroidHomePath.Text);
             androidHomeCheck();
+        }
+
+        private void txtAndJavaHomePath_TextChanged(object sender, EventArgs e)
+        {
+            _settings.AndroidJavaHome = txtAndJavaHomePath.Text;
+            javaHomeChanged.Debounce(() => { javaHomeCheck(); });
+        }
+
+        private void txtAndAndroidHomePath_TextChanged(object sender, EventArgs e)
+        {
+            _settings.AndroidHome = txtAndAndroidHomePath.Text;
+            androidHomeChanged.Debounce(() => { androidHomeCheck(); });
         }
 
         private void btnAndChooseJavaHomePath_Click(object sender, EventArgs e)

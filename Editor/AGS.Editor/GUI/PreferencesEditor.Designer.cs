@@ -1009,6 +1009,7 @@ namespace AGS.Editor
             this.txtAndJavaHomePath.Name = "txtAndJavaHomePath";
             this.txtAndJavaHomePath.Size = new System.Drawing.Size(272, 24);
             this.txtAndJavaHomePath.TabIndex = 3;
+            this.txtAndJavaHomePath.TextChanged += new System.EventHandler(this.txtAndJavaHomePath_TextChanged);
             // 
             // label16
             // 
@@ -1084,6 +1085,7 @@ namespace AGS.Editor
             this.txtAndAndroidHomePath.Name = "txtAndAndroidHomePath";
             this.txtAndAndroidHomePath.Size = new System.Drawing.Size(272, 24);
             this.txtAndAndroidHomePath.TabIndex = 3;
+            this.txtAndAndroidHomePath.TextChanged += new System.EventHandler(this.txtAndAndroidHomePath_TextChanged);
             // 
             // label15
             // 

@@ -538,7 +538,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error importing the area mask. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error importing the area mask.", ex, MessageBoxIcon.Warning);
             }
             finally
             {
@@ -557,7 +557,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error exporting the area mask. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error exporting the area mask.", ex, MessageBoxIcon.Warning);
             }
         }
 

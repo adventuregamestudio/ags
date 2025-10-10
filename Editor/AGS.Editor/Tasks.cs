@@ -257,7 +257,7 @@ namespace AGS.Editor
             }
             catch (Exception e)
             {
-                Factory.GUIController.ShowMessage("The recreation of a sprite file was interrupted by error.\nNO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
+                Factory.GUIController.ShowError("The recreation of a sprite file was interrupted by error.\nNO CHANGES were applied to your game.", e, MessageBoxIcon.Error);
                 return;
             }
 

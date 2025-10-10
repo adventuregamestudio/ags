@@ -61,7 +61,7 @@ namespace AGS.Editor
                 }
                 catch (AGSEditorException ex)
                 {
-                    Factory.GUIController.ShowMessage("An problem occurred setting your custom icon onto the setup file. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("An problem occurred setting your custom icon onto the setup file.", ex, MessageBoxIcon.Warning);
                 }
             }
 
@@ -92,7 +92,7 @@ namespace AGS.Editor
                 }
                 catch (AGSEditorException ex)
                 {
-                    Factory.GUIController.ShowMessage("An problem occurred setting your custom icon onto the EXE file. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("An problem occurred setting your custom icon onto the EXE file.", ex, MessageBoxIcon.Warning);
                 }
             }
             try

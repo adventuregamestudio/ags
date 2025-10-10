@@ -63,11 +63,11 @@ namespace AGS.Editor
                 }
                 catch (AGS.Types.InvalidDataException e)
                 {
-                    Factory.GUIController.ShowMessage("Unable to import the game.\n\n" + e.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("Unable to import the game.", e, MessageBoxIcon.Warning);
                 }
                 catch (AGS.Types.AGSEditorException e)
                 {
-                    Factory.GUIController.ShowMessage("Unable to import the game.\n\n" + e.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("Unable to import the game.", e, MessageBoxIcon.Warning);
                 }
             }
             return loadedSuccessfully;

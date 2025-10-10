@@ -98,7 +98,7 @@ namespace AGS.Editor.Components
                     }
                     catch (Exception ex)
                     {
-                        _guiController.ShowMessage("There was an error importing the GUI. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                        _guiController.ShowError("There was an error importing the GUI.", ex, MessageBoxIcon.Warning);
                     }
                 }
             }
@@ -118,7 +118,7 @@ namespace AGS.Editor.Components
                     }
                     catch (Exception ex)
                     {
-                        _guiController.ShowMessage("There was an error exporting the GUI. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                        _guiController.ShowError("There was an error exporting the GUI.", ex, MessageBoxIcon.Warning);
                     }
                 }
             }

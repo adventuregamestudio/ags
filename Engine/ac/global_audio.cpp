@@ -175,9 +175,12 @@ void SeekMIDIPosition (int position) {
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return;
 
-    auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
-    ch->seek(position);
-    debug_script_log("Seek MIDI position to %d", position);
+    auto *ch = AudioChans::GetChannel(play.silent_midi == 0 ? SCHAN_MUSIC : play.silent_midi_channel);
+    if (ch)
+    {
+        ch->seek(position);
+        debug_script_log("Seek MIDI position to %d", position);
+    }
 }
 
 int GetMIDIPosition () {
@@ -186,7 +189,7 @@ int GetMIDIPosition () {
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return -1; // returns -1 on failure according to old manuals
     
-    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* ch = AudioChans::GetChannelIfPlaying(play.silent_midi == 0 ? SCHAN_MUSIC : play.silent_midi_channel);
     if (ch) {
         return ch->get_pos();
     }

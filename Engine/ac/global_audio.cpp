@@ -391,26 +391,25 @@ void PlaySilentMIDI (int mnum) {
     if (current_music_type == MUS_MIDI)
         quit("!PlaySilentMIDI: proper midi music is in progress");
 
-    play.silent_midi = mnum;
-    play.silent_midi_channel = SCHAN_SPEECH;
-    stop_and_destroy_channel(play.silent_midi_channel);
+    const int silent_midi_chan = SCHAN_SPEECH;
+    stop_and_destroy_channel(silent_midi_chan);
     // No idea why it uses speech voice channel, but since it does (and until this is changed)
     // we have to correctly reset speech voice in case there was a nonblocking speech
     if (play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
 
-    SOUNDCLIP *clip = load_sound_clip_from_old_style_number(true, mnum, false);
+    std::unique_ptr<SOUNDCLIP> clip(load_sound_clip_from_old_style_number(true, mnum, false));
     if (clip == nullptr)
     {
-        quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
+        debug_script_warn("PlaySilentMIDI: music file 'aMusic%d' not found or cannot be read", mnum);
+        return;
     }
-    if (clip->play()) {
-        AudioChans::SetChannel(play.silent_midi_channel, std::unique_ptr<SOUNDCLIP>(clip));
-        clip->set_volume100(0);
-    } else {
-        delete clip;
-        quitprintf("!PlaySilentMIDI: failed to play aMusic%d", mnum);
-    }
+    
+    clip->set_volume100(0);
+    clip->play();
+    AudioChans::SetChannel(play.silent_midi_channel, std::move(clip));
+    play.silent_midi = mnum;
+    play.silent_midi_channel = silent_midi_chan;
 }
 
 void SetSpeechVolume(int newvol) {

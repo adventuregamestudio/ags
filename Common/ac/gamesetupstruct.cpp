@@ -237,7 +237,7 @@ HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVer
 {
     dialogScriptNames.resize(numdialog);
     viewNames.resize(numviews);
-    if (data_ver >= kGameVersion_260) // >= 2.60
+    if (data_ver >= kGameVersion_256)
     {
         if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
             return new MainGameFileError(kMGFErr_InvalidPropertySchema);

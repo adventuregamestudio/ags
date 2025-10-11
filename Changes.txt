@@ -31,7 +31,7 @@ Engine:
    glitches, but could cause extra performance issues).
  - Fixed that room objects may not get drawn during dialog options if they are started right at
    entering the room, and running game loops is disabled when options are shown.
- - Fixed PlayVideo() displaying a single black frame before playing the actual video.
+ - Fixed video playback in Software renderer mode displaying frames in a wrong order.
  - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
    running with a Software renderer).
  - Fixed that disabled Buttons may not have their looks updated if GUI disabled style was changed

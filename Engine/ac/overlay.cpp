@@ -1323,6 +1323,8 @@ void RegisterOverlayAPI()
         { "Overlay::set_Shader",          API_FN_PAIR(Overlay_SetShader) },
     };
 
+    ccAddExternalFunctions(overlay_api);
+
     ScFnRegister animoverlay_api[] = {
         { "AnimatedOverlay::CreateAnimated",        API_FN_PAIR(AnimatedOverlay_CreateAnimated) },
         { "AnimatedOverlay::CreateRoomAnimated",    API_FN_PAIR(AnimatedOverlay_CreateRoomAnimated) },

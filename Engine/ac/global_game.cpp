@@ -1031,12 +1031,23 @@ int WaitImpl(int skip_type, int nloops)
     if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
         return 0;
 
-    // < 3.6.0 treated negative nloops as "no time";
+    // < 3.6.0 scripts treated negative nloops as "no time";
     // also old engine let nloops to overflow into neg when assigned to wait_counter...
     if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
     {
         if (nloops < 0 || nloops > INT16_MAX)
             nloops = 0;
+    }
+
+    // Zero loops make no sense, however very old engines seem to
+    // accidentally produce a "wait one tick" effect.
+    // v2.62 was the first engine to report error on Wait(0).
+    if (nloops == 0)
+    {
+        if (loaded_game_file_version < kGameVersion_262)
+            nloops = 1;
+        else
+            return 0;
     }
 
     // clamp to int16

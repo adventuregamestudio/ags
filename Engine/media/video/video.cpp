@@ -495,7 +495,7 @@ HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType 
     return video_single_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);
 }
 
-HError play_theora_video(const char *name, int video_flags, int state_flags, VideoSkipType skip)
+HError play_theora_video(const String &name, int video_flags, int state_flags, VideoSkipType skip)
 {
     return video_single_run(std::make_unique<TheoraPlayer>(), name, video_flags, state_flags, skip);
 }
@@ -524,7 +524,7 @@ void video_shutdown()
 
 #else
 
-HError play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
+HError play_theora_video(const String &name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
 HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
 void video_pause() {}
 void video_resume() {}

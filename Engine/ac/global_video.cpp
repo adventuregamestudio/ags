@@ -18,6 +18,7 @@
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "media/video/video.h"
+#include "util/path.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -126,8 +127,15 @@ void PlayVideo(const char* name, int skip, int scr_flags)
     // but we may rethink this later (or add an explicit setting)
     state_flags |= kVideoState_SetGameFps;
 
-    // TODO: use extension as a format hint
-    HError err = play_theora_video(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));
+    String filename = name;
+    String ext = Path::GetFileExtension(filename);
+    // We only support OGV currently, starting with 3.6.0. If the (presumably older) game
+    // is asking for a different type of video, then try to find a video file of same name
+    // but OGV extension. This is a workaround for users who can convert the videos in
+    // older games into OGV and still see them being played.
+    if (ext.CompareNoCase("ogv") != 0)
+        filename = Path::ReplaceExtension(filename, "ogv");
+    HError err = play_theora_video(filename, video_flags, state_flags, static_cast<VideoSkipType>(skip));
     if (!err)
         debug_script_warn("Failed to play video '%s': %s", name, err->FullMessage().GetCStr());
 }

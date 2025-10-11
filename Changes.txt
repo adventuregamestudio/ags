@@ -1,5 +1,49 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Patch 12, October 2025
+
+Compiler:
+ - Fixed a crash caused by meeting certain unicode characters in script (outside of string or
+   character literals).
+
+Engine:
+ - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
+   message box instead and log a warning.
+ - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
+   as these functions are meant to test a file existence.
+ - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
+   glitches, but could cause extra performance issues).
+ - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
+ - Fixed sprite cache or texture cache not initializing properly if their size in config is
+   assigned to a too large number. The cache sizes will be now correctly limited to the max
+   possible size available to the current engine build (32-bit or 64-bit).
+ - Fixed Software renderer could potentially crash when the sprite cache reaches its limit and
+   there's an overlay displayed on screen.
+ - Fixed switching display modes while running a 16-bit game could lead to current graphical
+   overlays (like character portraits, etc) become corrupted.
+ - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
+   running with a Software renderer).
+ - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
+ - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
+ - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
+   character does not have any items (regression in 3.6.2).
+ - Fixed engine overwriting existing translations when duplicate keys are found in the translation
+   file (it should keep the first met translation instead).
+ - Fixed engine to not try to translate empty lines. There was a rare error when the translation
+   contained an incorrect entry with empty key line but non-empty translation, in which case
+   engine could display that "translation" anytime any label has empty text.
+
+Compatibility:
+ - Fixed loading saves made by v3.4 - v3.4.1 engine in games with custom properties.
+ - Disable smooth walk transition in pre-3.6.1 games, as apparently this breaks logic in some of
+   them where precise walking coordinates and/or timing is required by scripts.
+ - Fixed misaligned text centering on buttons in pre-3.6.0 games.
+
+WinSetup:
+ - If any of the cache sizes in config is set to a value not present in the option lists,
+   the list will be assigned to the nearest matching value, instead of resetting to default.
+
+
 VERSION 3.6.1 - Patch 11, May 2025
 
 Editor:

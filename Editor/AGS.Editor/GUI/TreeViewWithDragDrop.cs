@@ -54,7 +54,8 @@ namespace AGS.Editor
         {
             if(this.Focused)
             {
-                return HandlePriorityKeyDown(keyData);
+                if(HandlePriorityKeyDown(keyData))
+                    return true;
             }
 
             return base.ProcessCmdKey(ref msg, keyData);

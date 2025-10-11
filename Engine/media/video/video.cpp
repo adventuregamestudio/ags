@@ -598,7 +598,7 @@ HError play_flc_video(int numb, int flags, VideoSkipType skip)
     return HError::None();
 }
 
-HError play_theora_video(const char *name, int flags, VideoSkipType skip)
+HError play_theora_video(const String &name, int flags, VideoSkipType skip)
 {
     std::unique_ptr<TheoraPlayer> video(new TheoraPlayer());
     HError err = video->Open(name, flags);
@@ -634,7 +634,7 @@ void video_shutdown()
 
 #else
 
-void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip) {}
+void play_theora_video(const String &name, int flags, AGS::Engine::VideoSkipType skip) {}
 void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip) {}
 void video_pause() {}
 void video_resume() {}

@@ -138,7 +138,7 @@ private:
 } // namespace AGS
 
 
-AGS::Common::HError play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_theora_video(const AGS::Common::String &name, int flags, AGS::Engine::VideoSkipType skip);
 AGS::Common::HError play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip);
 
 // Pause the active video

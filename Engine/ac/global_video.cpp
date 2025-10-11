@@ -139,8 +139,15 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
         stop_all_sound_and_music();
     }
 
-    // TODO: use extension as a format hint
-    HError err = play_theora_video(name, flags, skip);
+    String filename = name;
+    String ext = Path::GetFileExtension(filename);
+    // We only support OGV currently, starting with 3.6.0. If the (presumably older) game
+    // is asking for a different type of video, then try to find a video file of same name
+    // but OGV extension. This is a workaround for users who can convert the videos in
+    // older games into OGV and still see them being played.
+    if (ext.CompareNoCase("ogv") != 0)
+        filename = Path::ReplaceExtension(filename, "ogv");
+    HError err = play_theora_video(filename, flags, skip);
     if (!err)
         debug_script_warn("Failed to play video '%s': %s", name, err->FullMessage().GetCStr());
 

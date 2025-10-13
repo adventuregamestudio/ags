@@ -1672,6 +1672,12 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         }
     }
 
+    if (total_frames == 0)
+    {
+        Debug::Printf("Precache view %d (loops %d-%d): %d frames found in the view, skip");
+        return;
+    }
+
     // Print gathered time and size info
     size_t spcache_after = spriteset.GetCacheSize();
     size_t txcache_after = texturecache_get_size();

@@ -1839,20 +1839,25 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", chin->scrname);
     }
 
-    // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
-    const int src_x = data_to_game_coord(chin->x);
-    const int src_y = data_to_game_coord(chin->y);
-    const int dst_x = data_to_game_coord(tox);
-    const int dst_y = data_to_game_coord(toy);
-
     const int mslot = chac + CHMLSOFFS;
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], *path, move_speed_x, move_speed_y, ignwal ? kMoveStage_Direct : 0);
+        // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
+        std::vector<Point> data_path = *path;
+        for (auto &pt : data_path)
+            data_to_game_coords(&pt.X, &pt.Y);
+
+        path_result = Pathfinding::CalculateMoveList(mls[mslot], data_path, move_speed_x, move_speed_y, ignwal ? kMoveStage_Direct : 0);
     }
     else
     {
+        // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
+        const int src_x = data_to_game_coord(chin->x);
+        const int src_y = data_to_game_coord(chin->y);
+        const int dst_x = data_to_game_coord(tox);
+        const int dst_y = data_to_game_coord(toy);
+
         MaskRouteFinder *pathfind = get_room_pathfinder();
         pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
         path_result = Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal);
@@ -2165,22 +2170,24 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
 
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
-    if (!pathfind->IsWalkableAt(chaa->x, chaa->y))
+    if (!pathfind->IsWalkableAt(src_x, src_y))
     {
         StopMoving(chaa->index_id);
         debug_script_log("MoveCharacterStraight: %s (%d,%d) is not on a walkable area, not moving", chaa->scrname, chaa->x, chaa->y);
         return;
     }
 
-    int movetox = x, movetoy = y;
-    int lastcx = chaa->x, lastcy = chaa->y;
-    if (!pathfind->CanSeeFrom(chaa->x, chaa->y, x, y, &lastcx, &lastcy))
+    int movetox = dst_x, movetoy = dst_y;
+    int lastcx = src_x, lastcy = src_y;
+    if (!pathfind->CanSeeFrom(src_x, src_y, dst_x, dst_y, &lastcx, &lastcy))
     {
-        // move_character_impl assumes all coordinates in "data" system
-        movetox = game_to_data_coord(lastcx);
-        movetoy = game_to_data_coord(lastcy);
+        movetox = lastcx;
+        movetoy = lastcy;
     }
 
+    // We need to pass the "data" values into move_character_impl, because it converts data-to-game again
+    movetox = game_to_data_coord(movetox);
+    movetoy = game_to_data_coord(movetoy);
     std::vector<Point> path = { {chaa->x, chaa->y}, {movetox, movetoy} };
     move_character_impl(chaa, &path, movetox, movetoy, false /* walkable areas */, walk_anim);
 }

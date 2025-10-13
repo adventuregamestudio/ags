@@ -743,8 +743,23 @@ void dispose_draw_method()
 static void alloc_fixed_drawindexes()
 {
     size_t draw_index = 1u; // DrawIndex 0 is reserved for walk-behinds
-    for (auto &actsp : actsps)
-        actsp.DrawIndex = draw_index++;
+    // Open-source engine range v3.3.0 -> v3.4.0 have contained a silly hack
+    // in a object sprite sorting function, which caused a different order
+    // of objects with equal baselines.
+    // See commit https://github.com/adventuregamestudio/ags/commit/31e4df93d666971e9dcdbe61f2f8658e66f7c94e
+    // Here we try to emulate this by assigning "draw index" in reverse.
+    if (loaded_game_file_version >= kGameVersion_330 && loaded_game_file_version <= kGameVersion_340_4)
+    {
+        draw_index = actsps.size();
+        for (auto &actsp : actsps)
+            actsp.DrawIndex = draw_index--;
+        draw_index = actsps.size() + 1;
+    }
+    else
+    {
+        for (auto &actsp : actsps)
+            actsp.DrawIndex = draw_index++;
+    }
     for (auto &guidraw : guibg)
         guidraw.DrawIndex = draw_index++;
     drawstate.FixedDrawIndexBase = draw_index;

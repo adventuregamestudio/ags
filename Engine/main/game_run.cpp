@@ -844,28 +844,27 @@ extern int mouse_frame, mouse_delay;
 static void update_cursor_view()
 {
     // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view >= 0) {
+    const auto &mcur = game.mcurs[cur_cursor];
+    if (mcur.view >= 0 && mcur.view < game.numviews)
+    {
         // only on mousemove, and it's not moving
-        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
+        if (((mcur.flags & MCF_ANIMMOVE) != 0) &&
             (mousex == lastmx) && (mousey == lastmy));
         // only on hotspot, and it's not on one
-        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT) != 0) &&
+        else if (((mcur.flags & MCF_HOTSPOT) != 0) &&
             (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
-            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
+            set_new_cursor_graphic(mcur.pic);
         else if (mouse_delay>0) mouse_delay--;
-        else {
-            int viewnum = game.mcurs[cur_cursor].view;
-            int loopnum = 0;
-            if (loopnum >= views[viewnum].numLoops)
-                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
-            if (views[viewnum].loops[loopnum].numFrames < 1)
-                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
-
+        // only animate if the loop 0 exists and has frames
+        else if (views[mcur.view].numLoops > 0 && views[mcur.view].loops[0].numFrames > 0)
+        {
+            const int viewnum = mcur.view;
+            const int loopnum = 0;
             mouse_frame++;
             if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
                 mouse_frame = 0;
             set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + game.mcurs[cur_cursor].animdelay;
+            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + mcur.animdelay;
             CheckViewFrame(viewnum, loopnum, mouse_frame);
         }
         lastmx = mousex; lastmy = mousey;

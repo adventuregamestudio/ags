@@ -298,9 +298,9 @@ extern int cbuttfont;
 extern int acdialog_font;
 
 int oldmouse;
-void setup_for_dialog() {
-    cbuttfont = play.normal_font;
-    acdialog_font = play.normal_font;
+void setup_for_dialog(int use_font) {
+    cbuttfont = use_font;
+    acdialog_font = use_font;
     oldmouse=cur_cursor;
     set_mouse_cursor(CURS_ARROW);
 }
@@ -444,15 +444,15 @@ void restore_game_dialog2(int min_slot, int max_slot)
         return;
     }
     if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "RestoreGameDialog"));
         return;
     }
-    do_restore_game_dialog(min_slot, max_slot);
+    do_restore_game_dialog(min_slot, max_slot, play.normal_font);
 }
 
-bool do_restore_game_dialog(int min_slot, int max_slot)
+bool do_restore_game_dialog(int min_slot, int max_slot, int use_font)
 {
-    setup_for_dialog();
+    setup_for_dialog(use_font);
     int toload = loadgamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (toload >= 0)
@@ -476,14 +476,15 @@ void save_game_dialog2(int min_slot, int max_slot)
         return;
     }
     if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "SaveGameDialog"));
         return;
     }
-    do_save_game_dialog(min_slot, max_slot);
+    do_save_game_dialog(min_slot, max_slot, play.normal_font);
 }
 
-bool do_save_game_dialog(int min_slot, int max_slot) {
-    setup_for_dialog();
+bool do_save_game_dialog(int min_slot, int max_slot, int use_font)
+{
+    setup_for_dialog(use_font);
     int tosave = savegamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (tosave >= 0)

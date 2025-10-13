@@ -711,7 +711,7 @@ void post_script_cleanup()
             try_restore_save(data1);
             return;
         case ePSARestoreGameDialog:
-            restore_game_dialog2(data1 & 0xFFFF, (data1 >> 16));
+            do_restore_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
             return;
         case ePSARunAGSGame:
             cancel_all_scripts();
@@ -745,7 +745,7 @@ void post_script_cleanup()
             save_game(data1, act.Text, std::move(act.Image));
             break;
         case ePSASaveGameDialog:
-            save_game_dialog2(data1 & 0xFFFF, (data1 >> 16));
+            do_save_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
             break;
         case ePSAScanSaves:
             prescan_save_slots(act.Data[0], act.Data[1], act.Data[2], act.Data[3], act.Data[4], act.Data[5]);

@@ -515,7 +515,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
 void QuitGame(int dialog) {
     if (dialog) {
         int rcode;
-        setup_for_dialog();
+        setup_for_dialog(play.normal_font);
         rcode=quitdialog();
         restore_after_dialog();
         if (rcode==0) return;
@@ -705,7 +705,7 @@ void ShowInputBox(const char*msg, char*bufr) {
 }
 
 void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
-    setup_for_dialog();
+    setup_for_dialog(play.normal_font);
     enterstringwindow(get_translation(msg), bufr, buf_len);
     restore_after_dialog();
 }

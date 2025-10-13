@@ -695,10 +695,10 @@ static void check_keyboard_controls()
 
     // Built-in key-presses
     if ((usetup.Override.KeySaveGame > 0) && (agskey == usetup.Override.KeySaveGame)) {
-        do_save_game_dialog(0, TOP_SAVESLOT - 1);
+        do_save_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font);
         return;
     } else if ((usetup.Override.KeyRestoreGame > 0) && (agskey == usetup.Override.KeyRestoreGame)) {
-        do_restore_game_dialog(0, TOP_SAVESLOT - 1);
+        do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font);
         return;
     }
 

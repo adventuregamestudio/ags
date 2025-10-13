@@ -133,7 +133,7 @@ void MoveSaveSlot(int old_save, int new_save)
 
 void RestoreGameSlot(int slnum)
 {
-    if (displayed_room < 0)
+    if ((displayed_room < 0) && (loaded_game_file_version >= kGameVersion_270))
         quit("!RestoreGameSlot: a game cannot be restored from within game_start");
 
     can_run_delayed_command();

@@ -42,8 +42,8 @@ public:
     virtual void    WriteFormat(const char *fmt, ...)       = 0;
     virtual void    WriteLineBreak()                        = 0;
 
-    // Flushes the underlying device
-    virtual void    Flush() = 0;
+    // Flushes the underlying device (does nothing in def impl)
+    virtual void    Flush() { /* do nothing */ }
 };
 
 } // namespace Common

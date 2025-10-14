@@ -20,6 +20,12 @@ SystemImports simp_for_plugin;
 
 uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
 {
+    assert(!name.IsEmpty());
+    assert(value.IsValid());
+
+    if (name.IsEmpty() || !value.IsValid())
+        return UINT32_MAX;
+
     uint32_t ixof = get_index_of(name);
     // Check if symbol already exists
     if (ixof != UINT32_MAX)

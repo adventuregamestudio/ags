@@ -117,8 +117,10 @@ void PlayVideo(const char* name, int skip, int scr_flags)
 
     // for old versions: allow slightly offset video frames
     // original engine's behavior was to adjust FPS to match video's,
-    // but we may rethink this later (or add an explicit setting)
-    state_flags |= kVideoState_SetGameFps;
+    // but we may rethink this later (or add an explicit setting).
+    // clearing the screen is necessary for software renderer, whenever
+    // the video is not stretched to the full screen.
+    state_flags |= kVideoState_SetGameFps | kVideoState_ClearScreen;
 
     // TODO: use extension as a format hint
     HError err = play_theora_video(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));

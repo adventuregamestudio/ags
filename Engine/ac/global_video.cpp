@@ -123,8 +123,10 @@ void PlayVideo(const char* name, int skip, int scr_flags)
         video_flags |= kVideo_LegacyFrameSize;
 
     // original engine's behavior was to adjust FPS to match video's,
-    // but we may rethink this later (or add an explicit setting)
-    state_flags |= kVideoState_SetGameFps;
+    // but we may rethink this later (or add an explicit setting).
+    // clearing the screen is necessary for software renderer, whenever
+    // the video is not stretched to the full screen.
+    state_flags |= kVideoState_SetGameFps | kVideoState_ClearScreen;
 
     String filename = name;
     String ext = Path::GetFileExtension(filename);

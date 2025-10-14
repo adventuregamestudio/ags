@@ -296,7 +296,11 @@ namespace AGS.Types
         public int BackgroundAnimationDelay
         {
             get { return _backgroundAnimationDelay; }
-            set { _backgroundAnimationDelay = value; }
+            set
+            {
+                // The animation delay value is restricted to 1 byte in the compiled room at the moment
+                _backgroundAnimationDelay = Math.Max(0, Math.Min(255, value));
+            }
         }
 
         [Description("Whether the background frames will switch automatically (only applicable if you have imported more than one)")]

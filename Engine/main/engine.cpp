@@ -839,6 +839,7 @@ void engine_init_game_settings()
         play.debug_mode = 1;
     play.shake_screen_yoff = 0;
 
+    GUI::DataVersion = loaded_game_file_version;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
     GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;
     // Force GUI metrics recalculation, accomodating for loaded fonts

@@ -16,6 +16,7 @@
 
 #include <vector>
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
+#include "ac/game_version.h"
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
 #include "gui/guidefines.h"
 #include "gui/guibutton.h"
@@ -348,6 +349,11 @@ namespace GUI
     // These are still global objects for now, but in the future it will be
     // optimal to have these as an object allocated on heap, and passed to
     // GUI functions as a pointer.
+    // GameDataVersion is commonly used to make backwards compatibility switches
+    // in the game logic.
+    extern GameDataVersion DataVersion;
+    // GuiVersion has a limited use, mostly referenced when reading gui data;
+    // so maybe this should not be exposed here at all.
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
     extern GuiContext Context;

@@ -848,6 +848,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
 namespace GUI
 {
 
+GameDataVersion DataVersion = kGameVersion_Undefined;
 GuiVersion GameGuiVersion = kGuiVersion_Initial;
 
 String FixupGUIName272(const String &name)
@@ -1007,11 +1008,15 @@ GUILabelMacro FindLabelMacros(const String &text)
     for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
         const size_t macro_at = scan_at + 1;
-        const size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
+        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
         if (macro_end == String::NoIndex)
         {
             // Malformed macro string, stop
-            break;
+            // NOTE: allow macros without closing '@' in older games
+            if (GUI::DataVersion > kGameVersion_350)
+                break;
+
+            macro_end = text.GetLength();
         }
         if (macro_end == macro_at)
         {
@@ -1047,11 +1052,14 @@ String ResolveMacroTokens(const String &text)
     for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
         const size_t macro_at = scan_at + 1;
-        const size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
+        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
         if (macro_end == String::NoIndex)
         {
-            // Malformed macro string, stop
-            break;
+            // NOTE: allow macros without closing '@' in older games
+            if (GUI::DataVersion > kGameVersion_350)
+                break;
+
+            macro_end = text.GetLength();
         }
         if (macro_end == macro_at)
         {

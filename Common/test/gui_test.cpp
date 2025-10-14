@@ -18,6 +18,8 @@
 using namespace AGS::Common;
 
 TEST(GUI, LabelMacros) {
+    GUI::DataVersion = kGameVersion_Current;
+    GUI::GameGuiVersion = kGuiVersion_Current;
     GUI::Context.GameTitle = "My Game";
     GUI::Context.Overhotspot = "Location Name";
     GUI::Context.Score = 100;

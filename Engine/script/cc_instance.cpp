@@ -435,6 +435,8 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     if (ccGetOption(SCOPT_DEBUGRUN) != 0)
     {
         OpenExecLog();
+        WriteString(String::FromFormat("-------- [[ %s : %s ]] --------",
+            _instanceof->GetScriptName().c_str(), funcname.GetCStr()));
     }
 #endif
 
@@ -2388,6 +2390,16 @@ void ccInstance::CloseExecLog()
     }
 }
 
+void ccInstance::WriteString(const String &text)
+{
+    assert(_execWriter);
+    if (_execWriter)
+    {
+        _execWriter->WriteString(text);
+        _execWriter->WriteLineBreak();
+    }
+}
+
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
 const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
 
@@ -2417,18 +2429,22 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
         {
             _execWriter->WriteChar(',');
         }
+
+        RuntimeScriptValue arg = op.Args[i];
         if (cmd_info.ArgIsReg[i])
         {
-            _execWriter->WriteFormat(" %s", regnames[op.Args[i].IValue]);
+            _execWriter->WriteFormat(" [%s]", regnames[op.Args[i].IValue]);
+            arg = _registers[arg.IValue];
         }
-        else
+        
         {
-            RuntimeScriptValue arg = op.Args[i];
             if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
             {
                 arg = *arg.RValue;
             }
-            switch (arg.Type) {
+
+            switch (arg.Type)
+            {
             case kScValInteger:
             case kScValPluginArg:
                 _execWriter->WriteFormat(" %d", arg.IValue);
@@ -2472,6 +2488,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
             }
         }
     }
+
     _execWriter->WriteLineBreak();
 }
 

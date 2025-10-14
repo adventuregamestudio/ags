@@ -133,6 +133,8 @@ enum ccInstError
 class ccInstance
 {
 public:
+    using String = AGS::Common::String;
+
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
     // clears recorded stack of current instances
@@ -170,14 +172,14 @@ public:
     void    AbortAndDestroy();
     
     // Call an exported function in the script
-    ccInstError CallScriptFunction(const Common::String &funcname, int32_t num_params, const RuntimeScriptValue *params);
+    ccInstError CallScriptFunction(const String &funcname, int32_t num_params, const RuntimeScriptValue *params);
     
     // Get the script's execution position and callstack as human-readable text
-    Common::String GetCallStack(int max_lines = INT_MAX) const;
+    String  GetCallStack(int max_lines = INT_MAX) const;
     // Get the script's execution position
     void    GetScriptPosition(ScriptPosition &script_pos) const;
     // Get the address of an exported symbol (function or variable) in the script
-    RuntimeScriptValue GetSymbolAddress(const Common::String &symname) const;
+    RuntimeScriptValue GetSymbolAddress(const String &symname) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
     // Notifies that the game was being updated (script not hanging)
@@ -210,7 +212,7 @@ private:
     // Searches for the function among this script's exports,
     // on success returns its starting position in bytecode, and number of arguments;
     // returns number of args as -1 if no args data found in the compiled script.
-    bool    FindExportedFunction(const Common::String &fn_name, int32_t &start_at, int32_t &num_args) const;
+    bool    FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const;
 
     // Begin executing script starting from the given bytecode index
     ccInstError Run(int32_t curpc);
@@ -243,6 +245,8 @@ private:
     void    OpenExecLog();
     // Closes execution log
     void    CloseExecLog();
+    // Writes a arbitrary line of text into the log
+    void    WriteString(const String &text);
     // Formats instruction into string output
     void    DumpInstruction(const ScriptOperation &op) const;
 #endif

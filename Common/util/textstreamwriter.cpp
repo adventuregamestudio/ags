@@ -69,5 +69,10 @@ void TextStreamWriter::WriteLineBreak()
     _stream->Write(Endl, sizeof(Endl));
 }
 
+void TextStreamWriter::Flush()
+{
+    _stream->Flush();
+}
+
 } // namespace Common
 } // namespace AGS

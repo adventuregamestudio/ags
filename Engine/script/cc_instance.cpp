@@ -22,19 +22,13 @@
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "gui/guidefines.h"
-#include "debug/debug_log.h"
-#include "debug/out.h"
 #include "script/cc_common.h"
-#include "script/script.h"
 #include "script/script_runtime.h"
-#include "script/systemimports.h"
-#include "util/bbop.h"
-#include "util/stream.h"
-#include "util/textstreamwriter.h"
+
+#if (DEBUG_CC_EXEC)
 #include "util/file.h"
-#include "util/memory.h"
-#include "util/string_utils.h" // linux strnicmp definition
+#include "util/textstreamwriter.h"
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
@@ -146,9 +140,6 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
 };
 
-const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
-const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
-
 
 extern new_line_hook_type new_line_hook;
 
@@ -206,6 +197,9 @@ struct FunctionCallStack
 unsigned ccInstance::_timeoutCheckMs = 60u;
 unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
+#if (DEBUG_CC_EXEC)
+std::weak_ptr<AGS::Common::TextStreamWriter> ccInstance::_execWriterRef;
+#endif
 
 
 ccInstance::ResolvedScriptData::ResolvedScriptData()
@@ -249,6 +243,9 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
 
 ccInstance::~ccInstance()
 {
+#if (DEBUG_CC_EXEC)
+    CloseExecLog();
+#endif
     Free();
 }
 
@@ -433,6 +430,13 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     // Push placeholder for the return value (it will be popped before ret)
     PushValueToStack(RuntimeScriptValue().SetInt32(0));
 
+#if DEBUG_CC_EXEC
+    if (ccGetOption(SCOPT_DEBUGRUN) != 0)
+    {
+        OpenExecLog();
+    }
+#endif
+
     InstThreads.push_back(this); // push instance thread
     _runningInst = this;
     const ccInstError reterr = Run(start_at);
@@ -442,6 +446,14 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     _pc = 0;
     currentline = 0;
     InstThreads.pop_back(); // pop instance thread
+
+#if DEBUG_CC_EXEC
+    if (InstThreads.size() == 0)
+    {
+        CloseExecLog();
+    }
+#endif
+
     if (reterr != kInstErr_None)
         return reterr;
 
@@ -1640,89 +1652,6 @@ RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
     return (exp_index < UINT32_MAX) ? _scriptData->exports[exp_index] : RuntimeScriptValue();
 }
 
-void ccInstance::DumpInstruction(const ScriptOperation &op) const
-{
-    // line_num local var should be shared between all the instances
-    static int line_num = 0;
-
-    if (op.Instruction.Code == SCMD_LINENUM)
-    {
-        line_num = op.Args[0].IValue;
-        return;
-    }
-
-    auto data_s = File::OpenFile("script.log", kFile_Create, kStream_Write);
-    TextStreamWriter writer(std::move(data_s));
-    writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, _pc, _registers[SREG_SP].RValue);
-
-    const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
-    writer.WriteString(cmd_info.CmdName);
-
-    for (int i = 0; i < cmd_info.ArgCount; ++i)
-    {
-        if (i > 0)
-        {
-            writer.WriteChar(',');
-        }
-        if (cmd_info.ArgIsReg[i])
-        {
-            writer.WriteFormat(" %s", regnames[op.Args[i].IValue]);
-        }
-        else
-        {
-            RuntimeScriptValue arg = op.Args[i];
-            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
-            {
-                arg = *arg.RValue;
-            }
-            switch(arg.Type) {
-            case kScValInteger:
-            case kScValPluginArg:
-                writer.WriteFormat(" %d", arg.IValue);
-                break;
-            case kScValFloat:
-                writer.WriteFormat(" %f", arg.FValue);
-                break;
-            case kScValStringLiteral:
-                writer.WriteFormat(" \"%s\"", arg.Ptr);
-                break;
-            case kScValStackPtr:
-            case kScValGlobalVar:
-                writer.WriteFormat(" %p", arg.RValue);
-                break;
-            case kScValData:
-            case kScValCodePtr:
-                writer.WriteFormat(" %p", arg.GetPtrWithOffset());
-                break;
-            case kScValStaticArray:
-            case kScValScriptObject:
-            case kScValStaticFunction:
-            case kScValObjectFunction:
-            case kScValPluginFunction:
-            case kScValPluginObject:
-            case kScValPluginArgPtr:
-            {
-                String name = simp.FindName(arg);
-                if (!name.IsEmpty())
-                {
-                    writer.WriteFormat(" &%s", name.GetCStr());
-                }
-                else
-                {
-                    writer.WriteFormat(" %p", arg.GetPtrWithOffset());
-                }
-             }
-                break;
-            case kScValUndefined:
-				writer.WriteString("undefined");
-                break;
-             }
-        }
-    }
-    writer.WriteLineBreak();
-    // the writer will delete data stream internally
-}
-
 bool ccInstance::IsBeingRun() const
 {
     return _pc != 0;
@@ -2422,3 +2351,127 @@ void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t
     func_callstack.Head += num_entries;
     func_callstack.Count -= num_entries;
 }
+
+//-----------------------------------------------------------------------------
+//
+// Script execution debug log.
+// WARNING: quite verbose, and has a serious impact on the game's performance.
+//
+//-----------------------------------------------------------------------------
+
+#if (DEBUG_CC_EXEC)
+
+void ccInstance::OpenExecLog()
+{
+    // Try if there's a already a shared one available, if not then create a new one.
+    auto writer = _execWriterRef.lock();
+    if (writer)
+    {
+        _execWriter = writer;
+    }
+    else
+    {
+        // TODO: let configure file path
+        auto s = File::OpenFile("script.log", kFile_Create, kStream_Write);
+        _execWriter.reset(new TextStreamWriter(std::move(s)));
+        _execWriterRef = _execWriter;
+    }
+}
+
+void ccInstance::CloseExecLog()
+{
+    if (_execWriter)
+    {
+        _execWriter->Flush();
+        _execWriter = {};
+    }
+}
+
+const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
+const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
+
+void ccInstance::DumpInstruction(const ScriptOperation &op) const
+{
+    assert(_execWriter);
+    if (!_execWriter)
+        return;
+
+    // line_num local var should be shared between all the instances
+    static int line_num = 0; // FIXME, don't use local static variable
+
+    if (op.Instruction.Code == SCMD_LINENUM)
+    {
+        line_num = op.Args[0].IValue;
+        return;
+    }
+
+    _execWriter->WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, _pc, _registers[SREG_SP].RValue);
+
+    const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
+    _execWriter->WriteString(cmd_info.CmdName);
+
+    for (int i = 0; i < cmd_info.ArgCount; ++i)
+    {
+        if (i > 0)
+        {
+            _execWriter->WriteChar(',');
+        }
+        if (cmd_info.ArgIsReg[i])
+        {
+            _execWriter->WriteFormat(" %s", regnames[op.Args[i].IValue]);
+        }
+        else
+        {
+            RuntimeScriptValue arg = op.Args[i];
+            if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
+            {
+                arg = *arg.RValue;
+            }
+            switch (arg.Type) {
+            case kScValInteger:
+            case kScValPluginArg:
+                _execWriter->WriteFormat(" %d", arg.IValue);
+                break;
+            case kScValFloat:
+                _execWriter->WriteFormat(" %f", arg.FValue);
+                break;
+            case kScValStringLiteral:
+                _execWriter->WriteFormat(" \"%s\"", arg.Ptr);
+                break;
+            case kScValStackPtr:
+            case kScValGlobalVar:
+                _execWriter->WriteFormat(" %p", arg.RValue);
+                break;
+            case kScValData:
+            case kScValCodePtr:
+                _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                break;
+            case kScValStaticArray:
+            case kScValScriptObject:
+            case kScValStaticFunction:
+            case kScValObjectFunction:
+            case kScValPluginFunction:
+            case kScValPluginObject:
+            case kScValPluginArgPtr:
+            {
+                String name = simp.FindName(arg);
+                if (!name.IsEmpty())
+                {
+                    _execWriter->WriteFormat(" &%s", name.GetCStr());
+                }
+                else
+                {
+                    _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                }
+            }
+            break;
+            case kScValUndefined:
+                _execWriter->WriteString("undefined");
+                break;
+            }
+        }
+    }
+    _execWriter->WriteLineBreak();
+}
+
+#endif // DEBUG_CC_EXEC

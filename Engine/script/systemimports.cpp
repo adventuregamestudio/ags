@@ -140,7 +140,12 @@ SystemImports::SystemImports()
 
 uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script, ScriptValueHint val_hint)
 {
+    assert(!name.IsEmpty());
     assert(value.IsValid());
+
+    if (name.IsEmpty() || !value.IsValid())
+        return UINT32_MAX;
+
     uint32_t ixof = GetIndexOf(name);
     // Check if symbol already exists
     if (ixof != UINT32_MAX)

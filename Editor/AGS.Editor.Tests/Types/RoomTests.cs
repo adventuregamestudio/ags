@@ -80,7 +80,7 @@ namespace AGS.Types
 
         [TestCase(0)]
         [TestCase(1)]
-        [TestCase(int.MaxValue)]
+        [TestCase(255)]
         public void GetsAndSetsBackgroundAnimationDelay(int backgroundAnimationDelay)
         {
             _room.BackgroundAnimationDelay = backgroundAnimationDelay;

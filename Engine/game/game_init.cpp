@@ -137,7 +137,8 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
         // between game versions, for now.
         game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
-        ccAddExternalScriptObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
+        if (!game.audioClips[i].scriptName.IsEmpty())
+            ccAddExternalScriptObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
     }
 }
 
@@ -162,7 +163,8 @@ void InitAndRegisterCharacters(GameSetupStruct &game)
         ccRegisterManagedObject(&game.chars[i], &ccDynamicCharacter);
 
         // export the character's script object
-        ccAddExternalScriptObject(game.chars2[i].scrname_new, &game.chars[i], &ccDynamicCharacter);
+        if (!game.chars2[i].scrname_new.IsEmpty())
+            ccAddExternalScriptObject(game.chars2[i].scrname_new, &game.chars[i], &ccDynamicCharacter);
     }
 }
 
@@ -211,8 +213,9 @@ HError InitAndRegisterGUI(GameSetupStruct &game)
         // export all the GUI's controls
         export_gui_controls(i);
         scrGui[i].id = i;
-        ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
         ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);
+        if (!guis[i].Name.IsEmpty())
+            ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
     }
     return HError::None();
 }

@@ -741,17 +741,14 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     for (uint32_t cc = 0; cc < thisroom.Objects.size(); cc++)
     {
         // export the object's script object
-        if (thisroom.Objects[cc].ScriptName.IsEmpty())
-            continue;
-        ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
+        if (!thisroom.Objects[cc].ScriptName.IsEmpty())
+            ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
     }
 
     for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
     {
-        if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
-            continue;
-
-        ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
+        if (!thisroom.Hotspots[cc].ScriptName.IsEmpty())
+            ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
     }
 
     set_our_eip(210);

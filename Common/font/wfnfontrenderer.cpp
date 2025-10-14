@@ -170,6 +170,7 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
 void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 {
     const WFNFont *font = _fontData[fontNumber].Font;
+    const int size_mult = _fontData[fontNumber].Params.SizeMultiplier;
     // Use this magic string to calculate a "nominal height" for WFN.
     // This is very silly, but has to be done for compatibility reasons.
     // WFN's "real height" may be bit higher because it may contain occasional larger glyphs.
@@ -177,9 +178,9 @@ void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
     // no real guarantee that the font even has these letters in it.
     const char *height_test_string = "ZHwypgfjqhkilIK";
     metrics->NominalHeight = GetTextHeight(height_test_string, fontNumber);
-    metrics->RealHeight = font->GetHeight();
+    metrics->RealHeight = font->GetHeight() * size_mult;
     metrics->CompatHeight = metrics->NominalHeight; // just set to default here
-    metrics->BBox = font->GetBBox();
+    metrics->BBox = font->GetBBox() * size_mult;
     metrics->VExtent = std::make_pair(metrics->BBox.Top, metrics->BBox.Bottom);
     // fix it up to be *not less* than realheight
     metrics->VExtent.first = std::min(0, metrics->VExtent.first);

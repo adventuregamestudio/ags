@@ -371,6 +371,11 @@ struct Rect
         return Left == r.Left && Top == r.Top &&
             Right == r.Right && Bottom == r.Bottom;
     }
+
+    inline Rect operator *(int mult) const
+    {
+        return Rect(Left * mult, Top * mult, Right * mult, Bottom * mult);
+    }
 };
 
 // Helper factory function

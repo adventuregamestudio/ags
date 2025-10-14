@@ -49,6 +49,9 @@ public:
     void    WriteFormat(const char *fmt, ...) override;
     void    WriteLineBreak() override;
 
+    // Flushes the underlying device
+    void    Flush() override;
+
 private:
     std::unique_ptr<Stream> _stream;
     String  _buf; // formatting string buffer

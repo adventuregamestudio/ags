@@ -57,6 +57,10 @@ using namespace AGS;
 #define DEBUG_CC_EXEC (AGS_PLATFORM_DEBUG)
 #endif
 
+#if (DEBUG_CC_EXEC)
+#include "util/textstreamwriter.h"
+#endif
+
 
 struct ScriptInstruction
 {
@@ -174,7 +178,6 @@ public:
     void    GetScriptPosition(ScriptPosition &script_pos) const;
     // Get the address of an exported symbol (function or variable) in the script
     RuntimeScriptValue GetSymbolAddress(const Common::String &symname) const;
-    void    DumpInstruction(const ScriptOperation &op) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
     // Notifies that the game was being updated (script not hanging)
@@ -234,6 +237,15 @@ private:
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
+    // Script execution debug log.
+#if (DEBUG_CC_EXEC)
+    // Opens log for dumping execution steps
+    void    OpenExecLog();
+    // Closes execution log
+    void    CloseExecLog();
+    // Formats instruction into string output
+    void    DumpInstruction(const ScriptOperation &op) const;
+#endif
 
     // Represented script object
     PScript _instanceof;
@@ -301,6 +313,12 @@ private:
     static unsigned _maxWhileLoops;
     // Last time the script was noted of being "alive"
     AGS::Engine::FastClock::time_point _lastAliveTs;
+
+#if (DEBUG_CC_EXEC)
+    // Execution logger, optional, shared among all the ccInstances
+    std::shared_ptr<AGS::Common::TextStreamWriter> _execWriter;
+    static std::weak_ptr<AGS::Common::TextStreamWriter> _execWriterRef;
+#endif
 };
 
 #endif // __CC_INSTANCE_H

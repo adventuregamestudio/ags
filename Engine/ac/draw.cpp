@@ -1064,7 +1064,11 @@ void add_drawobj_for_overlay(int objnum)
     if (objnum > 0)
     {
         if (static_cast<uint32_t>(objnum) >= overtxs.size())
+        {
             overtxs.resize(static_cast<uint32_t>(objnum) + 1);
+            if (drawstate.SoftwareRender)
+                overcache.resize(static_cast<uint32_t>(objnum) + 1, Point(INT32_MIN, INT32_MIN));
+        }
 
         overtxs[objnum].DrawIndex = drawstate.NextDrawIndex;
         drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;

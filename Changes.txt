@@ -2,6 +2,11 @@ REVISION HISTORY
 ================
 VERSION 3.6.1 - Patch 12, October 2025
 
+Editor:
+ - Restrict Room's BackgroundAnimationDelay property to a range of 0-255 (engine's limitation).
+ - Fixed View Editor reacting to shortcuts such as F or Delete when the input focus is set to 
+   a selected Frame's properties.
+
 Compiler:
  - Fixed a crash caused by meeting certain unicode characters in script (outside of string or
    character literals).
@@ -9,8 +14,14 @@ Compiler:
 Engine:
  - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
    message box instead and log a warning.
+ - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
+ - Do not try animating a cursor if the assigned view is invalid or contains no frames in loop 0.
  - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
    as these functions are meant to test a file existence.
+ - Fixed engine's general misbehavior occuring if any Character, GUI or AudioClip does not have
+   any ScriptName assigned.
+ - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
+   to a value > 127.
  - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
    glitches, but could cause extra performance issues).
  - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
@@ -23,6 +34,7 @@ Engine:
    overlays (like character portraits, etc) become corrupted.
  - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
    running with a Software renderer).
+ - Fixed SeekMIDIPosition() and GetMIDIPosition() crashing the game if a "silent MIDI" is playing.
  - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
  - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
  - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
@@ -32,8 +44,13 @@ Engine:
  - Fixed engine to not try to translate empty lines. There was a rare error when the translation
    contained an incorrect entry with empty key line but non-empty translation, in which case
    engine could display that "translation" anytime any label has empty text.
+ - Fixed a "division by zero" crash occuring when the engine is precaching a View without frames.
 
 Compatibility:
+ - If PlayVideo() is used to play a non-OGV file, then engine will lookup to a OGV file of the same
+   name to play instead. This is made to let game authors or players of old games to convert wmv/avi
+   video assets to ogv without recompiling game scripts.
+ - Fixed loading games made by v2.56 editor which contain custom properties.
  - Fixed loading saves made by v3.4 - v3.4.1 engine in games with custom properties.
  - Disable smooth walk transition in pre-3.6.1 games, as apparently this breaks logic in some of
    them where precise walking coordinates and/or timing is required by scripts.

@@ -358,9 +358,7 @@ namespace AGS.Editor
             if (selectedFrame >= 0)
             {
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAME));
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME);
-                deleteOption.ShortcutKeys = Keys.Delete;
-                menu.Items.Add(deleteOption);
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME, Keys.Delete));
                 if (_selectedFrames.Count == 1)
                 {
                     menu.Items.Add(new ToolStripSeparator());

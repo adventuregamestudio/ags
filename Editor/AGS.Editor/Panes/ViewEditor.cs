@@ -295,9 +295,7 @@ namespace AGS.Editor
                 var menu = e.Menu;
                 EventHandler onClick = new EventHandler(ContextMenuEventHandler);
                 menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAMES));
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES);
-                deleteOption.ShortcutKeys = Keys.Delete;
-                menu.Items.Add(deleteOption);
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES, Keys.Delete));
             }
         }
 
@@ -430,16 +428,23 @@ namespace AGS.Editor
 			viewPreview.ViewUpdated();
         }
 
-        protected override void OnKeyPressed(Keys keyData)
+        protected override bool HandleKeyPress(Keys keyData)
         {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
             if (keyData == Keys.Delete)
             {
                 DeleteSelectedFrames();
+                return true;
             }
 			else if (keyData == Keys.F)
 			{
                 FlipSelectedFrames();
-			}
+                return true;
+            }
+
+            return false;
         }
 
 		private void UpdateWhetherPreviewIsShown()

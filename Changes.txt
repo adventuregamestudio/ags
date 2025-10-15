@@ -1,12 +1,14 @@
 REVISION HISTORY
 ================
-
 VERSION 3.6.2 - Patch 4, October 2025
 
 Editor:
  - Make Font's OutlineFont property provide a drop-down list with fonts.
+ - Restrict Room's BackgroundAnimationDelay property to a range of 0-255 (engine's limitation).
  - Fixed Character's animating preview not updating if a View is being edited at the same time.
  - Fixed Font preview scrolling too far down, and sometimes causing some letters to cut off.
+ - Fixed View Editor reacting to shortcuts such as F or Delete when the input focus is set to 
+   a selected Frame's properties.
  - Fixed Editor reporting "the script name in use" errors for Room Objects and Hotspots that
    don't have any script name set.
  - Fixed Editor Preferences resetting Android JDK and SDK path if one was typed or pasted directly
@@ -24,19 +26,32 @@ Engine:
    (This only refers to he current room; the mask changes are still reset when player leaves
    the room, just like the changes to room backgrounds.)
  - Dynamically update debug overlay with a room mask on it if a room mask is being drawn upon.
+ - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
+ - Do not try animating a cursor if the assigned view is invalid or contains no frames in loop 0.
  - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
    as these functions are meant to test a file existence.
+ - Fixed engine's general misbehavior occuring if any Character, GUI or AudioClip does not have
+   any ScriptName assigned.
+ - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
+   to a value > 127.
+ - Fixed Character.WalkStraight for games with legacy "low-res" coordinates setting.
  - Fixed severe performance drop when dialog options are displayed (regression in 3.6.2).
  - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
    glitches, but could cause extra performance issues).
  - Fixed that room objects may not get drawn during dialog options if they are started right at
    entering the room, and running game loops is disabled when options are shown.
  - Fixed video playback in Software renderer mode displaying frames in a wrong order.
+ - Fixed PlayVideo() does not clear the screen before playing a video in Software render mode,
+   which could result in having traces of previous scene staying on screen.
  - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
    running with a Software renderer).
  - Fixed that disabled Buttons may not have their looks updated if GUI disabled style was changed
    in script ("OPT_WHENGUIDISABLED").
+ - Fixed Overlays with the matching z-order not always sorted in the order of their creation
+   (regression in 3.6.2).
+ - Fixed SeekMIDIPosition() and GetMIDIPosition() crashing the game if a "silent MIDI" is playing.
  - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
+ - Fixed Wait(0) call still suspending the game until the next update, should exit instantly.
  - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
  - Fixed wrong palette used when loading secondary 8-bit backgrounds in a 16/32-bit game.
  - Fixed that "unhandled_event" would be called only starting with the second object interaction
@@ -48,6 +63,13 @@ Engine:
    character does not have any items (regression in 3.6.2).
  - Fixed Software renderer could potentially crash when the sprite cache reaches its limit and
    there's an overlay displayed on screen.
+ - Fixed a "division by zero" crash occuring when the engine is precaching a View without frames.
+
+Compatibility:
+ - If PlayVideo() is used to play a non-OGV file, then engine will lookup to a OGV file of the same
+   name to play instead. This is made to let game authors or players of old games to convert wmv/avi
+   video assets to ogv without recompiling game scripts.
+ - Fixed loading games made by v2.56 editor which contain custom properties.
 
 
 VERSION 3.6.2 - Patch 3, September 2025
@@ -506,6 +528,67 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.1 - Patch 12, October 2025
+
+Editor:
+ - Restrict Room's BackgroundAnimationDelay property to a range of 0-255 (engine's limitation).
+ - Fixed View Editor reacting to shortcuts such as F or Delete when the input focus is set to 
+   a selected Frame's properties.
+
+Compiler:
+ - Fixed a crash caused by meeting certain unicode characters in script (outside of string or
+   character literals).
+
+Engine:
+ - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
+   message box instead and log a warning.
+ - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
+ - Do not try animating a cursor if the assigned view is invalid or contains no frames in loop 0.
+ - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
+   as these functions are meant to test a file existence.
+ - Fixed engine's general misbehavior occuring if any Character, GUI or AudioClip does not have
+   any ScriptName assigned.
+ - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
+   to a value > 127.
+ - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
+   glitches, but could cause extra performance issues).
+ - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
+ - Fixed sprite cache or texture cache not initializing properly if their size in config is
+   assigned to a too large number. The cache sizes will be now correctly limited to the max
+   possible size available to the current engine build (32-bit or 64-bit).
+ - Fixed Software renderer could potentially crash when the sprite cache reaches its limit and
+   there's an overlay displayed on screen.
+ - Fixed switching display modes while running a 16-bit game could lead to current graphical
+   overlays (like character portraits, etc) become corrupted.
+ - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
+   running with a Software renderer).
+ - Fixed SeekMIDIPosition() and GetMIDIPosition() crashing the game if a "silent MIDI" is playing.
+ - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
+ - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
+ - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
+   character does not have any items (regression in 3.6.2).
+ - Fixed engine overwriting existing translations when duplicate keys are found in the translation
+   file (it should keep the first met translation instead).
+ - Fixed engine to not try to translate empty lines. There was a rare error when the translation
+   contained an incorrect entry with empty key line but non-empty translation, in which case
+   engine could display that "translation" anytime any label has empty text.
+ - Fixed a "division by zero" crash occuring when the engine is precaching a View without frames.
+
+Compatibility:
+ - If PlayVideo() is used to play a non-OGV file, then engine will lookup to a OGV file of the same
+   name to play instead. This is made to let game authors or players of old games to convert wmv/avi
+   video assets to ogv without recompiling game scripts.
+ - Fixed loading games made by v2.56 editor which contain custom properties.
+ - Fixed loading saves made by v3.4 - v3.4.1 engine in games with custom properties.
+ - Disable smooth walk transition in pre-3.6.1 games, as apparently this breaks logic in some of
+   them where precise walking coordinates and/or timing is required by scripts.
+ - Fixed misaligned text centering on buttons in pre-3.6.0 games.
+
+WinSetup:
+ - If any of the cache sizes in config is set to a value not present in the option lists,
+   the list will be assigned to the nearest matching value, instead of resetting to default.
+
 
 VERSION 3.6.1 - Patch 11, May 2025
 

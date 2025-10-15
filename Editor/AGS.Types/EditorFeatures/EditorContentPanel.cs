@@ -32,7 +32,12 @@ namespace AGS.Types
 			OnCommandClick(command);
 		}
 
-		protected virtual void OnCommandClick(string command)
+        protected bool DoesThisPanelHaveFocus()
+        {
+            return this.ActiveControl != null && this.ActiveControl.ContainsFocus;
+        }
+
+        protected virtual void OnCommandClick(string command)
 		{
 		}
 

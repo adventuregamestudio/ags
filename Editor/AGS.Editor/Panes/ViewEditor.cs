@@ -430,16 +430,23 @@ namespace AGS.Editor
 			viewPreview.ViewUpdated();
         }
 
-        protected override void OnKeyPressed(Keys keyData)
+        protected override bool HandleKeyPress(Keys keyData)
         {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
             if (keyData == Keys.Delete)
             {
                 DeleteSelectedFrames();
+                return true;
             }
 			else if (keyData == Keys.F)
 			{
                 FlipSelectedFrames();
-			}
+                return true;
+            }
+
+            return false;
         }
 
 		private void UpdateWhetherPreviewIsShown()

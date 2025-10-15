@@ -76,20 +76,34 @@ void MoveToWalkableArea(int charid) {
     Character_PlaceOnWalkableArea(&game.chars[charid]);
 }
 
-void FaceLocation(int cha, int xx, int yy) {
+int FaceLocation(int cha, int xx, int yy) {
     if (!is_valid_character(cha))
         quit("!FaceLocation: Invalid character specified");
 
+    const int old_loop = game.chars[cha].loop;
     Character_FaceLocation(&game.chars[cha], xx, yy, BLOCKING);
+
+    // Bw-compat (accidental return value): in case of OPT_CHARTURNWHENFACE == 0 return 0 always,
+    // in case OPT_CHARTURNWHENFACE == 1: return 1 if there was no turn and -1 if there was a turn.
+    return (game.options[OPT_CHARTURNWHENFACE] != 0) ?
+        ((old_loop == game.chars[cha].loop) ? 1 : -1)
+        : 0;
 }
 
-void FaceCharacter(int cha,int toface) {
+int FaceCharacter(int cha,int toface) {
     if (!is_valid_character(cha))
         quit("!FaceCharacter: Invalid character specified");
     if (!is_valid_character(toface)) 
         quit("!FaceCharacter: invalid character specified");
 
+    const int old_loop = game.chars[cha].loop;
     Character_FaceCharacter(&game.chars[cha], &game.chars[toface], BLOCKING);
+
+    // Bw-compat (accidental return value): in case of OPT_CHARTURNWHENFACE == 0 return 0 always,
+    // in case OPT_CHARTURNWHENFACE == 1: return 1 if there was no turn and -1 if there was a turn.
+    return (game.options[OPT_CHARTURNWHENFACE] != 0) ?
+        ((old_loop == game.chars[cha].loop) ? 1 : -1)
+        : 0;
 }
 
 

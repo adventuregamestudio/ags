@@ -23,8 +23,8 @@
 void StopMoving(int chaa);
 void ReleaseCharacterView(int chat);
 void MoveToWalkableArea(int charid);
-void FaceLocation(int cha, int xx, int yy);
-void FaceCharacter(int cha,int toface);
+int  FaceLocation(int cha, int xx, int yy);
+int  FaceCharacter(int cha,int toface);
 void SetCharacterIdle(int who, int iview, int itime);
 int  GetCharacterWidth(int ww);
 int  GetCharacterHeight(int charid);

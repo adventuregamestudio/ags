@@ -363,13 +363,13 @@ RuntimeScriptValue Sc_EndCutscene(const RuntimeScriptValue *params, int32_t para
 // void (int cha,int toface)
 RuntimeScriptValue Sc_FaceCharacter(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(FaceCharacter);
+    API_SCALL_INT_PINT2(FaceCharacter);
 }
 
 // void (int cha, int xx, int yy)
 RuntimeScriptValue Sc_FaceLocation(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(FaceLocation);
+    API_SCALL_INT_PINT3(FaceLocation);
 }
 
 // void (int sppd)

@@ -84,6 +84,8 @@ void mark_object_changed(int objid);
 // allocates a drawable for itself, and disposes one if being removed.
 // Resets drawing index for dynamic objects
 void reset_drawobj_dynamic_index();
+// Assigns drawable object index for this overlay
+void add_drawobj_for_overlay(int objnum);
 // Resets drawable object for this overlay
 void reset_drawobj_for_overlay(int objnum);
 // Marks all game objects which reference this sprite for redraw

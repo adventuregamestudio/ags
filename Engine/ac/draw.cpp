@@ -982,6 +982,22 @@ void reset_drawobj_dynamic_index()
     drawstate.NextDrawIndex = drawstate.FixedDrawIndexBase;
 }
 
+void add_drawobj_for_overlay(int objnum)
+{
+    if (objnum > 0)
+    {
+        if (static_cast<uint32_t>(objnum) >= overtxs.size())
+        {
+            overtxs.resize(static_cast<uint32_t>(objnum) + 1);
+            if (drawstate.SoftwareRender)
+                overcache.resize(static_cast<uint32_t>(objnum) + 1, Point(INT32_MIN, INT32_MIN));
+        }
+
+        overtxs[objnum].DrawIndex = drawstate.NextDrawIndex;
+        drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
+    }
+}
+
 void reset_drawobj_for_overlay(int objnum)
 {
     if (objnum > 0 && static_cast<size_t>(objnum) < overtxs.size())
@@ -2925,12 +2941,6 @@ static void construct_overlays()
         if (over.transparency == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
-        if (overtxs[i].DrawIndex == 0u)
-        {
-            overtxs[i].DrawIndex = drawstate.NextDrawIndex;
-            drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
-        }
-
         bool has_changed = over.HasChanged();
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())

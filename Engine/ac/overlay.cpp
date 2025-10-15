@@ -625,6 +625,7 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
     over.MarkChanged();
     screenover[type] = std::move(over);
     play.overlay_count++;
+    add_drawobj_for_overlay(type);
     return type;
 }
 

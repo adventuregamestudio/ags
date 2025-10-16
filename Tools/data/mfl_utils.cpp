@@ -54,7 +54,7 @@ static void ExportAsset(Stream *lib_in, const AssetInfo &asset, const String &ds
 }
 
 HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
-                     const std::vector<std::regex> *asset_patterns)
+    const std::function<bool(const String &)> *asset_filter)
 {
     for (size_t i = 0; i < lib.LibFileNames.size(); ++i)
     {
@@ -72,16 +72,10 @@ HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const S
             if (asset.LibUid != i)
                 continue;
 
-            if (asset_patterns)
+            if (asset_filter)
             {
-                for (const auto &pattern : *asset_patterns)
-                {
-                    if (std::regex_match(asset.FileName.GetCStr(), pattern))
-                    {
-                        ExportAsset(lib_in.get(), asset, dst_dir);
-                        break;
-                    }
-                }
+                if ((*asset_filter)(asset.FileName))
+                    ExportAsset(lib_in.get(), asset, dst_dir);
             }
             else
             {
@@ -90,6 +84,17 @@ HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const S
         }
     }
     return HError::None();
+}
+
+HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir)
+{
+    return ExportFromLibrary(lib, lib_dir, dst_dir, nullptr);
+}
+
+HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
+    const std::function<bool(const String &)> &asset_filter)
+{
+    return ExportFromLibrary(lib, lib_dir, dst_dir, &asset_filter);
 }
 
 HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs)

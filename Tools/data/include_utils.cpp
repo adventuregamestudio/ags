@@ -27,7 +27,6 @@
 #include "util/file.h"
 #include "util/path.h"
 #include "util/textstreamreader.h"
-#include <regex>
 
 using namespace AGS::Common;
 
@@ -37,20 +36,6 @@ namespace DataUtil
 {
 
 using AGS::Common::Stream;
-
-enum PatternType
-{
-    eInclude = 0,
-    eExclude
-};
-
-struct Pattern
-{
-    PatternType Type;
-    std::regex Regex;
-    String TextualTranslatedPattern; // for debug purposes
-    String TextualOriginalPattern; // for debug purposes
-};
 
 static bool is_regex_syntax_character(const int c)
 {
@@ -170,12 +155,11 @@ HError description_to_patterns(const std::vector<String> &description, std::vect
             line.ClipLeft(1);
         }
         line.MakeLowerUTF8(); // for case insensitivity
+
         String shell_regex_txt = normalize_separators_in_text(line); // for unix paths
-
         String regex_txt = translate_to_regex_string(shell_regex_txt);
-
-        p.TextualOriginalPattern = shell_regex_txt;
-        p.TextualTranslatedPattern = regex_txt;
+        p.OriginalPattern = shell_regex_txt;
+        p.RegexPattern = regex_txt;
 
         // catch exceptions, since they may happen from user input in the pattern file
         try
@@ -194,33 +178,37 @@ HError description_to_patterns(const std::vector<String> &description, std::vect
     return HError::None();
 }
 
-std::vector<String> match_files(const std::vector<String>& files, const std::vector<Pattern> &patterns)
+bool match_file(const String& file, const std::vector<Pattern> &patterns)
 {
-    std::vector<String> matches;
     // if a file entry matches no pattern of the include type it should not be included in the list
     // if a file entry matches a pattern of the include type it should be included unless a pattern of exclude type will match it after
     // if a pattern of exclude type exists but a later pattern causes it to be included, it should be included.
 
-    for (const auto& file : files) {
-        bool include = false;
-        String normalized_file_path = file.LowerUTF8(); // for case insensitivity
-        normalized_file_path = normalize_separators_in_string(normalized_file_path);
+    bool include = false;
+    String normalized_file_path = file.LowerUTF8(); // for case insensitivity
+    normalized_file_path = normalize_separators_in_string(normalized_file_path);
 
-        for (const auto& pattern : patterns) {
-            if (std::regex_search(normalized_file_path.GetCStr(), pattern.Regex)) {
-                if (pattern.Type == eInclude) {
-                    include = true;
-                } else if (pattern.Type == eExclude) {
-                    include = false;
-                }
+    for (const auto& pattern : patterns) {
+        if (std::regex_search(normalized_file_path.GetCStr(), pattern.Regex)) {
+            if (pattern.Type == eInclude) {
+                include = true;
+            } else if (pattern.Type == eExclude) {
+                include = false;
             }
-        }
-
-        if (include) {
-            matches.push_back(file);
         }
     }
 
+    return include;
+}
+
+std::vector<String> match_files(const std::vector<String> &files, const std::vector<Pattern> &patterns)
+{
+    std::vector<String> matches;
+    for (const auto &file : files) {
+        if (match_file(file, patterns)) {
+            matches.push_back(file);
+        }
+    }
     return matches;
 }
 
@@ -252,27 +240,50 @@ std::vector<String> read_file(const String &filename, bool verbose)
     return lines;
 }
 
+HError CreatePatternList(const std::vector<String> pattern_desc, std::vector<Pattern> &patterns)
+{
+    return description_to_patterns(pattern_desc, patterns);
+}
+
 HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
-    const std::vector<String> &patterns_description)
+    const std::vector<String> &pattern_desc)
 {
     std::vector<Pattern> patterns {};
-    HError err = description_to_patterns(patterns_description, patterns);
+    HError err = description_to_patterns(pattern_desc, patterns);
+    return MatchPatternPaths(input_files, output_matches, patterns);
+}
+
+HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
+    const std::vector<Pattern> &patterns)
+{
     const std::vector<String> matches = match_files(input_files, patterns);
     output_matches.insert(output_matches.end(), matches.begin(), matches.end());
-
-    return err;
+    return HError::None();
 }
 
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
-    const String &parent, const String &include_pattern_file, const bool verbose)
+    const String &include_pattern_file, const bool verbose)
 {
-    const String ignore_filename = Path::ConcatPaths(parent, include_pattern_file);
-    std::vector<String> patterns_description = read_file(ignore_filename, verbose);
-    std::vector<String> matches{};
-    HError err = MatchPatternPaths(input_files, matches, patterns_description);
-    output_files.insert(output_files.end(), matches.begin(), matches.end());
+    std::vector<String> pattern_desc = read_file(include_pattern_file, verbose);
+    std::vector<Pattern> patterns{};
+    HError err = description_to_patterns(pattern_desc, patterns);
+    if (!err)
+        return err;
+    return IncludeFiles(input_files, output_files, patterns, verbose);
+}
 
+HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
+    const std::vector<Pattern> &patterns, bool verbose)
+{
+    std::vector<String> matches{};
+    HError err = MatchPatternPaths(input_files, matches, patterns);
+    output_files.insert(output_files.end(), matches.begin(), matches.end());
     return err;
+}
+
+bool PatternMatch::operator()(const String &item)
+{
+    return match_file(item, _patterns);
 }
 
 } // namespace DataUtil

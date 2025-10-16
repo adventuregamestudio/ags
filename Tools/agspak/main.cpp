@@ -40,7 +40,7 @@ const char *HELP_STRING = "Usage:\n"
     "      directory, and an optional files list. Depending on a command either the\n"
     "      pack or the directory is an input or an output.\n"
     "      File list should be a comma-separated list of file names, which may\n"
-    "      contain simple wildcard patterns. If no file list is provided, then all\n"
+    "      contain include/exclude patterns. If no file list is provided, then all\n"
     "      the files found in the respective input location (dir or pack) will be\n"
     "      selected for the operation.\n"
     "      Options may adjust the operation further.\n"
@@ -54,7 +54,8 @@ const char *HELP_STRING = "Usage:\n"
     "\n"
     "Command options:\n"
     "  -f, --pattern-file <file>\n"
-    "                         use pattern file with the include/exclude patterns\n"
+    "                         when creating a pack file, use pattern file with the"
+    "                         include/exclude patterns\n"
     "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
     "                         partitions of this size max. Input files are not split,\n"
     "                         so files larger than this amount will occupy a single\n"
@@ -66,20 +67,6 @@ const char *HELP_STRING = "Usage:\n"
     "  -v, --verbose          print operation details"
     ;
 
-
-// Parses a comma-separated list of filenames, which may contain wildcards,
-// and creates a list of regexes for each of them.
-static std::vector<std::regex> FileListString2FilePatterns(const String &file_list)
-{
-    std::vector<std::regex> patterns;
-    std::vector<String> file_names = file_list.Split(',');
-    for (auto &fn : file_names)
-    {
-        fn.Trim();
-        patterns.push_back(std::regex(StrUtil::WildcardToRegex(fn).GetCStr(), std::regex_constants::icase));
-    }
-    return patterns;
-}
 
 int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
 {
@@ -131,9 +118,9 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     const bool do_subdirs = cmdargs.Opt.count("-r") || cmdargs.Opt.count("--recursive");
     const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
 
-    std::vector<std::regex> pattern_list;
+    std::vector<String> pattern_list;
     if (!file_list_str.IsEmpty())
-        pattern_list = FileListString2FilePatterns(file_list_str);
+        pattern_list = file_list_str.Split(',');
 
     // Run supported commands
     switch (command)

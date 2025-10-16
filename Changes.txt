@@ -1,7 +1,6 @@
 REVISION HISTORY
 ================
-
-VERSION 3.6.3 - in dev, future minor 3.6.* update
+VERSION 3.6.3 - Beta
 
 Editor:
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
@@ -29,9 +28,13 @@ Script API:
  - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsFont, OptionsGap,
    OptionsGUI, OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth,
    OptionsMinGUIWidth, OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor,
-   OptionTextAlignment.
+   OptionTextAlignment, OptionsZOrder.
    Most of these are replacing previously existing old-style variables in "game" struct and
-   OPT_* options. OptionsGUIX/Y and OptionTextAlignment are completely new features.
+   OPT_* options. OptionsGUIX/Y, OptionTextAlignment and OptionsZOrder are completely new features.
+ - Added Dialog.OptionsOverlay that lets access a overlay object which represents dialog options
+   on screen (only returns overlay when the options are displayed).
+ - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
+   (turned off, turned off forever) is disregarded in this case.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
@@ -50,13 +53,107 @@ Engine:
    a warning.
 
 Compatibility:
+ - Let restore a save from game_start() in pre-2.7 games.
+ - When a Restore/SaveGameDialog() function is called, remember the game's "normal font" value
+   at the moment of a function call, and use it when the dialog is finally shown, even if "normal
+   font" setting 
+ - Don't outline fonts on standard dialogs in pre-2.56 games.
  - Don't use alpha channel when drawing textwindow gui in pre-3.* games.
+ - Let very narrow labels to still display a 1 character long text in pre-3.6.0 games.
+ - In 32-bit games made by AGS 2.* whenever GUI has a background graphic with alpha channel,
+   render all colored (no sprite) child controls as fully transparent; and do not render
+   the GUI's own background and border color too in that case.
+ - Allow a non-closed label macro (such as "@overhotspot") in pre-3.5.1 games.
+ - In pre-2.62 games Wait(0) should be treated as Wait(1).
+ - Don't do infinite loop check in scripts in pre-2.56 games.
+ - Implemented a stub for AudioChannel.SetRoomLocation() variant with 3 parameters, needed for
+   the "Nefasto's Misadventures" game which used a custom engine.
+ - Implemented an accidental return value for FaceCharacter() and FaceLocation() functions that
+   they had in 2.* engines; some very old games have used that return value in script.
+ - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game
+   has a "Fonts anti-aliasing" enabled.
+ - Fixed unwanted overhotspot text flicker which may potentially happen in pre-3.6.0 games.
+ - Fixed room object sorting order for the games made between 3.3.0 and 3.4.0 editors. They have
+   had a mistake which unfortunately affected how objects with the identical baseline will be
+   sorted among themselves.
 
 WinSetup:
  - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 4, October 2025
+
+Editor:
+ - Make Font's OutlineFont property provide a drop-down list with fonts.
+ - Restrict Room's BackgroundAnimationDelay property to a range of 0-255 (engine's limitation).
+ - Fixed Character's animating preview not updating if a View is being edited at the same time.
+ - Fixed Font preview scrolling too far down, and sometimes causing some letters to cut off.
+ - Fixed View Editor reacting to shortcuts such as F or Delete when the input focus is set to 
+   a selected Frame's properties.
+ - Fixed Editor reporting "the script name in use" errors for Room Objects and Hotspots that
+   don't have any script name set.
+ - Fixed Editor Preferences resetting Android JDK and SDK path if one was typed or pasted directly
+   into the text box rather than selected using a Folder browse dialog.
+ - Fixed Editor displaying an "unhandled exception" if an older file cannot be deleted while
+   rebuilding the game. Should be recording such error and display as a regular message box or
+   in the output panel.
+
+Engine:
+ - Returned "Linear" filter for Software renderer. It was temporarily cut during development of
+   version 3.6.0, but we forgot to bring it back.
+ - Do not apply disabled effect on a Button which runs a blocking animation. Also do not hide
+   its parent GUI if game options tells that GUIs should be hidden when the interface is disabled.
+ - Changes to the current room's masks will now be remembered in game saves.
+   (This only refers to he current room; the mask changes are still reset when player leaves
+   the room, just like the changes to room backgrounds.)
+ - Dynamically update debug overlay with a room mask on it if a room mask is being drawn upon.
+ - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
+ - Do not try animating a cursor if the assigned view is invalid or contains no frames in loop 0.
+ - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
+   as these functions are meant to test a file existence.
+ - Fixed engine's general misbehavior occuring if any Character, GUI or AudioClip does not have
+   any ScriptName assigned.
+ - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
+   to a value > 127.
+ - Fixed Character.WalkStraight for games with legacy "low-res" coordinates setting.
+ - Fixed severe performance drop when dialog options are displayed (regression in 3.6.2).
+ - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
+   glitches, but could cause extra performance issues).
+ - Fixed that room objects may not get drawn during dialog options if they are started right at
+   entering the room, and running game loops is disabled when options are shown.
+ - Fixed video playback in Software renderer mode displaying frames in a wrong order.
+ - Fixed PlayVideo() does not clear the screen before playing a video in Software render mode,
+   which could result in having traces of previous scene staying on screen.
+ - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
+   running with a Software renderer).
+ - Fixed that disabled Buttons may not have their looks updated if GUI disabled style was changed
+   in script ("OPT_WHENGUIDISABLED").
+ - Fixed Overlays with the matching z-order not always sorted in the order of their creation
+   (regression in 3.6.2).
+ - Fixed SeekMIDIPosition() and GetMIDIPosition() crashing the game if a "silent MIDI" is playing.
+ - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
+ - Fixed Wait(0) call still suspending the game until the next update, should exit instantly.
+ - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
+ - Fixed wrong palette used when loading secondary 8-bit backgrounds in a 16/32-bit game.
+ - Fixed that "unhandled_event" would be called only starting with the second object interaction
+   if that object has a function name assigned for that interaction, but the actual function is
+   not found in script.
+ - Fixed that "interface_click" not getting called if a GUI click event's function is missing in
+   a designated script module, but is present elsewhere (although that function will be never run).
+ - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
+   character does not have any items (regression in 3.6.2).
+ - Fixed Software renderer could potentially crash when the sprite cache reaches its limit and
+   there's an overlay displayed on screen.
+ - Fixed a "division by zero" crash occuring when the engine is precaching a View without frames.
+
+Compatibility:
+ - If PlayVideo() is used to play a non-OGV file, then engine will lookup to a OGV file of the same
+   name to play instead. This is made to let game authors or players of old games to convert wmv/avi
+   video assets to ogv without recompiling game scripts.
+ - Fixed loading games made by v2.56 editor which contain custom properties.
+
 
 VERSION 3.6.2 - Patch 3, September 2025
 
@@ -117,7 +214,7 @@ WinSetup:
 
 
 VERSION 3.6.2 - Patch 2, July 2025
- 
+
 Editor:
  - The multiline Text edit window can now be called for all the "free text" properties in the game,
    by pressing the "..." button.
@@ -148,7 +245,7 @@ Script API:
  - Fixed default values for save slots range in FillSaveGameList(), RestoreGameDialog() and
    SaveGameDialog(), they did not match historical behavior of these functions. The default
    slots range is now 0-99.
- 
+
 Engine:
  - Fixed game refusing to load if a font file is not found, use font 0 as a fallback instead.
    (This restores a historical behavior, but now it works for any font, not only WFNs.)
@@ -171,11 +268,11 @@ Engine:
  - Fixed sprite cache or texture cache not initializing properly if their size in config is
    assigned to a too large number. The cache sizes will be now correctly limited to the max
    possible size available to the current engine build (32-bit or 64-bit).
- 
+
 Compatibility:
  - Corrected a fix for the misaligned text centering on buttons in pre-3.6.0 games (the previous
    fix introduced in 3.6.2 Patch 1 happened to be breaking some other cases).
- 
+
 WinSetup:
  - If any of the cache sizes in config is set to a value not present in the option lists,
    the list will be assigned to the nearest matching value, instead of resetting to default.
@@ -265,6 +362,7 @@ Editor:
  - Font's "SourceFilename" and "Font Size" properties now have buttons that let import another font
    file, or reimport same font with different size respectively, instead of clicking on a button on
    the preview window.
+ - Added a readonly "ProjectFilename" property to Fonts, which displays their in-project file name.
  - Global Variables panel now allows to declare arrays.
  - Added "Controls transparency" slider to GUI edit pane.
  - Copy, paste and delete commands now apply to all the selected GUI controls in GUI editor.
@@ -315,6 +413,7 @@ Editor:
    even if that's a filler entry not used by the image.
  - Fixed exporting room backgrounds was always writing a 32-bit image rather than using actual
    background's color depth.
+ - Fixed Autocomplete failing in case of UNIX line endings in script file.
  - Fixed Autocomplete not giving correct results in case of a long chained access, i.e. something
    like "var[0].member.member".
  - Fixed Autocomplete giving wrong list of choices for wrong syntax cases like: indexed access of
@@ -322,6 +421,7 @@ Editor:
  - Fixed Button getting resized to the image's size when user cancels different sprite assignment.
  - Fixed "Color Finder" and color properties were mapping a color number to RGB values with
    accuracy mistakes, resulting in slightly different values than the engine would use.
+ - Fixed Font preview could crash the Editor with out of memory error in case of a very big font.
  - Fixed Editor refusing to open a project if one or more of the sections are missing in the file.
  - Fixed an unhandled exception occuring when rebuilding rooms if any script's header is missing.
  - Fixed a "unterminated string" error in Dialogs was not pointing to the actual error location.
@@ -382,7 +482,9 @@ Script API:
    of save slot indexes.
  - Added Object.DestinationX and DestinationY properties, complementing ones in Character.
  - Added Overlay.SetPosition() and SetSize() functions for convenience.
+ - Added Room.BackgroundCount readonly property.
  - Added Room.NearestWalkableArea() that returns the nearest found point on a walkable area.
+ - Added GetWalkBehindBase() function, complementing SetWalkBehindBase().
  - Added Speech.SpeakingCharacter that returns currently speaking character (for blocking speech).
  - Added GetTimerPos() that returns timer's position (remaining time), in ticks.
  - Added CopySaveSlot() and MoveSaveSlot(), which moves existing save to another slot.
@@ -509,6 +611,67 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.1 - Patch 12, October 2025
+
+Editor:
+ - Restrict Room's BackgroundAnimationDelay property to a range of 0-255 (engine's limitation).
+ - Fixed View Editor reacting to shortcuts such as F or Delete when the input focus is set to 
+   a selected Frame's properties.
+
+Compiler:
+ - Fixed a crash caused by meeting certain unicode characters in script (outside of string or
+   character literals).
+
+Engine:
+ - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
+   message box instead and log a warning.
+ - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
+ - Do not try animating a cursor if the assigned view is invalid or contains no frames in loop 0.
+ - Don't log warnings for File.Exists and Game.GetSaveSlotDescription when a file was not found,
+   as these functions are meant to test a file existence.
+ - Fixed engine's general misbehavior occuring if any Character, GUI or AudioClip does not have
+   any ScriptName assigned.
+ - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
+   to a value > 127.
+ - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
+   glitches, but could cause extra performance issues).
+ - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
+ - Fixed sprite cache or texture cache not initializing properly if their size in config is
+   assigned to a too large number. The cache sizes will be now correctly limited to the max
+   possible size available to the current engine build (32-bit or 64-bit).
+ - Fixed Software renderer could potentially crash when the sprite cache reaches its limit and
+   there's an overlay displayed on screen.
+ - Fixed switching display modes while running a 16-bit game could lead to current graphical
+   overlays (like character portraits, etc) become corrupted.
+ - Fixed a DynamicSprite not updated on screen after CopyTransparencyMask() call (except when
+   running with a Software renderer).
+ - Fixed SeekMIDIPosition() and GetMIDIPosition() crashing the game if a "silent MIDI" is playing.
+ - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
+ - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
+ - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
+   character does not have any items (regression in 3.6.2).
+ - Fixed engine overwriting existing translations when duplicate keys are found in the translation
+   file (it should keep the first met translation instead).
+ - Fixed engine to not try to translate empty lines. There was a rare error when the translation
+   contained an incorrect entry with empty key line but non-empty translation, in which case
+   engine could display that "translation" anytime any label has empty text.
+ - Fixed a "division by zero" crash occuring when the engine is precaching a View without frames.
+
+Compatibility:
+ - If PlayVideo() is used to play a non-OGV file, then engine will lookup to a OGV file of the same
+   name to play instead. This is made to let game authors or players of old games to convert wmv/avi
+   video assets to ogv without recompiling game scripts.
+ - Fixed loading games made by v2.56 editor which contain custom properties.
+ - Fixed loading saves made by v3.4 - v3.4.1 engine in games with custom properties.
+ - Disable smooth walk transition in pre-3.6.1 games, as apparently this breaks logic in some of
+   them where precise walking coordinates and/or timing is required by scripts.
+ - Fixed misaligned text centering on buttons in pre-3.6.0 games.
+
+WinSetup:
+ - If any of the cache sizes in config is set to a value not present in the option lists,
+   the list will be assigned to the nearest matching value, instead of resetting to default.
+
 
 VERSION 3.6.1 - Patch 11, May 2025
 

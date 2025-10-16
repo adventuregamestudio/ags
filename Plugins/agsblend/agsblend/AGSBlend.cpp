@@ -427,6 +427,9 @@ int Clamp(int val, int min, int max){
 int DrawSprite(int destination, int sprite, int x, int y, int DrawMode, int trans){
     
     trans = 100 - trans;
+    if (trans == 0)
+        return 0;
+
     int srcWidth, srcHeight, destWidth, destHeight;
     
     BITMAP* src = engine->GetSpriteGraphic(sprite);

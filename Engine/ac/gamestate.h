@@ -312,8 +312,8 @@ struct GamePlayState
     int   dialog_options_gui_y = -1;
     // Horizontal alignment of dialog options texts
     HorAlignment dialog_options_textalign = kHAlignLeft;
-    // Font of dialog options texts, if negative then use "normal font"
-    int   dialog_options_font = 0;
+    // Font of dialog options texts, if FONT_UNDEFINED then use "normal font"
+    int   dialog_options_font = FONT_UNDEFINED;
     int   dialog_options_zorder = INT32_MAX;
 
     // Dynamic custom property values for characters and items

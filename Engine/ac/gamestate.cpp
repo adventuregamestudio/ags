@@ -659,7 +659,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_gui_x = -1;
         dialog_options_gui_y = -1;
         dialog_options_textalign = kHAlignLeft;
-        dialog_options_font = -1;
+        dialog_options_font = FONT_UNDEFINED;
     }
 
     if (svg_ver >= kGSSvgVersion_363_02)

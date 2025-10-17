@@ -909,7 +909,7 @@ void DialogOptions::Begin()
     }
 
     if (loaded_game_file_version >= kGameVersion_363)
-        usingfont = play.dialog_options_font;
+        usingfont = (play.dialog_options_font == FONT_UNDEFINED) ? FONT_NORMAL : play.dialog_options_font;
     else
         usingfont = FONT_NORMAL;
     

@@ -936,6 +936,7 @@ namespace AGS.Editor
         private void AppendFontsToHeader(StringBuilder sb, IList<AGS.Types.Font> fonts)
         {
             sb.AppendLine("enum FontType {");
+            sb.Append("  eUndefinedFont = -2,");
             sb.Append("  eNullFont = -1");
             foreach (AGS.Types.Font font in fonts)
             {

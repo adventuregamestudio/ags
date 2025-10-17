@@ -46,6 +46,11 @@ void GUIInvWindow::SetCharacterID(int charid)
     }
 }
 
+const ScriptEventsSchema *GUIInvWindow::GetEventsSchema() const
+{
+    return nullptr;
+}
+
 void GUIInvWindow::OnMouseEnter()
 {
     _isMouseOver = true;

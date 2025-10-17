@@ -53,14 +53,6 @@ public:
 
     // Compatibility: should the control's graphic be clipped to its x,y,w,h
     virtual bool    IsContentClipped() const { return true; }
-
-    // Script Events
-    virtual uint32_t GetEventCount() const;
-    virtual String  GetEventArgs(uint32_t event) const;
-    virtual String  GetEventName(uint32_t event) const;
-    // Gets a script function name for the given event
-    String          GetEventHandler(uint32_t event) const;
-    void            SetEventHandler(uint32_t event, const String &fn_name);
     
     // Operations
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
@@ -107,8 +99,6 @@ protected:
 
     uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     bool     _isActivated = false; // signals user interaction
-
-    std::vector<String> _eventHandlers; // script function names
 };
 
 } // namespace Common

@@ -2334,7 +2334,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	gui->SetOnClickHandler(TextHelper::ConvertASCII(normalGui->OnClick));
+	gui->SetEventHandler(Common::kGUIEvent_OnClick, TextHelper::ConvertASCII(normalGui->OnClick));
 	gui->SetX(normalGui->Left);
 	gui->SetY(normalGui->Top);
 	gui->SetWidth(normalGui->Width);
@@ -2390,7 +2390,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
             (Common::GUIClickAction)button->ClickAction, button->NewModeNumber);
           nbut.SetClipImage(button->ClipImage);
           nbut.SetText(tcv->ConvertTextProperty(button->Text));
-          nbut.SetEventHandler(0, TextHelper::ConvertASCII(button->OnClick));
+          nbut.SetEventHandler(Common::kButtonEvent_OnClick, TextHelper::ConvertASCII(button->OnClick));
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
@@ -2413,7 +2413,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           ntext.SetTextColor(textbox->TextColor);
           ntext.SetFont(textbox->Font);
           ntext.SetShowBorder(textbox->ShowBorder);
-          ntext.SetEventHandler(0, TextHelper::ConvertASCII(textbox->OnActivate));
+          ntext.SetEventHandler(Common::kTextBoxEvent_OnActivate, TextHelper::ConvertASCII(textbox->OnActivate));
           guitext.push_back(ntext);
 
           gui->AddControl(Common::kGUITextBox, guitext.size() - 1, &guitext.back());
@@ -2429,7 +2429,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nlist.SetTranslated(listbox->Translated);
           nlist.SetShowBorder(listbox->ShowBorder);
           nlist.SetShowArrows(listbox->ShowScrollArrows);
-          nlist.SetEventHandler(0, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
+          nlist.SetEventHandler(Common::kListBoxEvent_OnSelChanged, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
           guilist.push_back(nlist);
 
           gui->AddControl(Common::kGUIListBox, guilist.size() - 1, &guilist.back());
@@ -2443,7 +2443,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  nslider.SetHandleImage(slider->HandleImage);
 		  nslider.SetHandleOffset(slider->HandleOffset);
 		  nslider.SetBgImage(slider->BackgroundImage);
-          nslider.SetEventHandler(0, TextHelper::ConvertASCII(slider->OnChange));
+          nslider.SetEventHandler(Common::kSliderEvent_OnChange, TextHelper::ConvertASCII(slider->OnChange));
           guislider.push_back(nslider);
 
           gui->AddControl(Common::kGUISlider, guislider.size() - 1, &guislider.back());
@@ -2880,7 +2880,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			((NormalGUI^)newGui)->PopupYPos = guis[i].GetPopupAtY();
 			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].GetPopupStyle();
 			((NormalGUI^)newGui)->ZOrder = guis[i].GetZOrder();
-			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].GetOnClickHandler());
+			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].GetEventHandler(Common::kGUIEvent_OnClick));
       ((NormalGUI^)newGui)->BorderColor = guis[i].GetFgColor();
 		}
 		newGui->BackgroundColor = guis[i].GetBgColor();
@@ -2922,7 +2922,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newButton->NewModeNumber = copyFrom->GetClickData(Common::kGUIClickLeft);
                     newButton->ClipImage = copyFrom->IsClippingImage();
 					newButton->Text = tcv->Convert(copyFrom->GetText());
-					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kButtonEvent_OnClick));
 				}
 				break;
 				}
@@ -2946,7 +2946,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newTextbox->Font = copyFrom->GetFont();
                   newTextbox->ShowBorder = copyFrom->IsBorderShown();
 				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
-				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kTextBoxEvent_OnActivate));
 				  break;
 				}
 			case Common::kGUIListBox:
@@ -2962,7 +2962,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newListbox->ShowBorder = copyFrom->IsBorderShown();
 				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
                   newListbox->Translated = copyFrom->IsTranslated();
-				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kListBoxEvent_OnSelChanged));
 				  break;
 				}
 			case Common::kGUISlider:
@@ -2976,7 +2976,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newSlider->HandleImage = copyFrom->GetHandleImage();
 			  	  newSlider->HandleOffset = copyFrom->GetHandleOffset();
 				  newSlider->BackgroundImage = copyFrom->GetBgImage();
-				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kSliderEvent_OnChange));
 				  break;
 				}
 			case Common::kGUIInvWindow:
@@ -3364,7 +3364,8 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         convert_interaction_scripts(object->Interactions, native_object.Interactions);
 
         std::vector<std::pair<AGSString, AGSString>> events = {
-            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) }
+            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) },
+            { "OnFrameEvent",       TextHelper::ConvertASCII(object->OnFrameEvent) }
         };
         assign_valid_event_handlers(native_object.Events, events);
     }

@@ -83,6 +83,21 @@ void ScriptEventsTable::CreateIndexedList(const std::vector<String> &eventnames)
     }
 }
 
+void ScriptEventsTable::CreateIndexedList(const std::vector<ScriptEventDefinition> &events)
+{
+    Handlers = std::vector<ScriptEventHandler>();
+    Handlers.resize(events.size());
+    if (events.size() == 0 || EventMap.size() == 0)
+        return;
+
+    for (size_t i = 0; i < Handlers.size(); ++i)
+    {
+        auto it_func = EventMap.find(events[i].Name);
+        if (it_func != EventMap.end())
+            Handlers[i] = ScriptEventHandler(it_func->second);
+    }
+}
+
 HError ScriptEventsTable::Read(Stream *in)
 {
     EventMap.clear();

@@ -23,6 +23,14 @@ namespace AGS
 namespace Common
 {
 
+// Slider event indexes;
+// these are used after resolving events map read from game file
+enum TextBoxEventID
+{
+    kTextBoxEvent_OnActivate,
+    kNumTextBoxEvents
+};
+
 class GUITextBox : public GUIControl
 {
 public:
@@ -38,9 +46,8 @@ public:
     bool IsBorderShown() const;
 
     // Script Events
-    uint32_t GetEventCount() const override;
-    String GetEventArgs(uint32_t event) const override;
-    String GetEventName(uint32_t event) const override;
+    // Gets a events schema corresponding to this object's type
+    virtual const ScriptEventsSchema *GetEventsSchema() const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
@@ -57,9 +64,8 @@ public:
     void WriteToSavegame(Stream *out) const override;
 
 private:
-    static const uint32_t EventCount = 1;
-    static String EventNames[EventCount];
-    static String EventArgs[EventCount];
+    // Script events schema
+    static ScriptEventsSchema _eventSchema;
 
     int     _font = 0;
     String  _text;

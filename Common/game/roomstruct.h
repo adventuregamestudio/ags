@@ -132,7 +132,8 @@ enum HotspotEventID
 enum RoomObjectEventID
 {
     // an interaction with any cursor mode that normally has a event
-    kRoomObjectEvent_AnyClick = 0
+    kRoomObjectEvent_AnyClick = 0,
+    kRoomObjectEvent_OnFrameEvent
 };
 
 // Region event indexes
@@ -201,6 +202,10 @@ struct RoomHotspot
     void RemapOldInteractions();
     // Generate indexed handlers list from the event handlers map
     void ResolveEventHandlers();
+
+private:
+    // Script events schema
+    static ScriptEventsSchema _eventSchema;
 };
 
 // Room object description
@@ -229,6 +234,10 @@ struct RoomObjectInfo
     void RemapOldInteractions();
     // Generate indexed handlers list from the event handlers map
     void ResolveEventHandlers();
+
+private:
+    // Script events schema
+    static ScriptEventsSchema _eventSchema;
 };
 
 // Room region description
@@ -251,6 +260,10 @@ struct RoomRegion
     void RemapOldInteractions();
     // Generate indexed handlers list from the event handlers map
     void ResolveEventHandlers();
+
+private:
+    // Script events schema
+    static ScriptEventsSchema _eventSchema;
 };
 
 // Walkable area description
@@ -411,6 +424,10 @@ public:
     UScript                 CompiledScript;
     // Various extended options with string values, meta-data etc
     StringMap               StrOptions;
+
+private:
+    // Script events schema
+    static ScriptEventsSchema _eventSchema;
 };
 
 

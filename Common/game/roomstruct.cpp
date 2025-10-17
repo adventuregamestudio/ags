@@ -51,6 +51,12 @@ RoomEdges::RoomEdges(int l, int r, int t, int b)
 {
 }
 
+/* static */ ScriptEventsSchema RoomHotspot::_eventSchema = {{
+        { "OnAnyClick", kHotspotEvent_AnyClick },
+        { "OnMouseMove", kHotspotEvent_MouseOver },
+        { "OnWalkOn", kHotspotEvent_StandOn }
+    }};
+
 void RoomHotspot::RemapOldInteractions()
 {
     ScriptEventHandlers new_interactions;
@@ -75,9 +81,7 @@ void RoomHotspot::RemapOldInteractions()
 
 void RoomHotspot::ResolveEventHandlers()
 {
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick", "OnMouseMove", "OnWalkOn", 
-    });
+    Events.CreateIndexedList(_eventSchema.EventList);
 }
 
 RoomObjectInfo::RoomObjectInfo()
@@ -90,6 +94,11 @@ RoomObjectInfo::RoomObjectInfo()
     , BlendMode(kBlend_Normal)
 {
 }
+
+/* static */ ScriptEventsSchema RoomObjectInfo::_eventSchema = {{
+        { "OnAnyClick", kRoomObjectEvent_AnyClick },
+        { "OnFrameEvent", kRoomObjectEvent_OnFrameEvent },
+    }};
 
 void RoomObjectInfo::RemapOldInteractions()
 {
@@ -113,9 +122,7 @@ void RoomObjectInfo::RemapOldInteractions()
 
 void RoomObjectInfo::ResolveEventHandlers()
 {
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick"
-    });
+    Events.CreateIndexedList(_eventSchema.EventList);
 }
 
 RoomRegion::RoomRegion()
@@ -123,6 +130,12 @@ RoomRegion::RoomRegion()
     , Tint(0)
 {
 }
+
+/* static */ ScriptEventsSchema RoomRegion::_eventSchema = {{
+        { "OnStanding", kRegionEvent_Standing },
+        { "OnWalksOnto", kRegionEvent_WalkOn },
+        { "OnWalksOff", kRegionEvent_WalkOff },
+    }};
 
 void RoomRegion::RemapOldInteractions()
 {
@@ -138,9 +151,7 @@ void RoomRegion::RemapOldInteractions()
 void RoomRegion::ResolveEventHandlers()
 {
     // Keeping old interaction indexes for the new events
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnStanding", "OnWalksOnto", "OnWalksOff", 
-    });
+    Events.CreateIndexedList(_eventSchema.EventList);
 }
 
 WalkArea::WalkArea()
@@ -243,6 +254,19 @@ void RoomStruct::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
 }
 
+/* static */ ScriptEventsSchema RoomStruct::_eventSchema = {{
+        { "OnLeaveLeft", kRoomEvent_EdgeLeft },
+        { "OnLeaveRight", kRoomEvent_EdgeRight },
+        { "OnLeaveBottom", kRoomEvent_EdgeBottom},
+        { "OnLeaveTop", kRoomEvent_EdgeTop },
+        { "OnFirstTimeEnter", kRoomEvent_FirstEnter },
+        { "OnLoad", kRoomEvent_BeforeFadein },
+        { "OnRepExec", kRoomEvent_Repexec },
+        { "OnAfterFadeIn", kRoomEvent_AfterFadein },
+        { "OnLeave", kRoomEvent_BeforeFadeout },
+        { "OnUnload", kRoomEvent_AfterFadeout },
+    }};
+
 void RoomStruct::RemapOldInteractions()
 {
     // this is just for safety, it's supposed to be that large
@@ -264,10 +288,7 @@ void RoomStruct::RemapOldInteractions()
 void RoomStruct::ResolveEventHandlers()
 {
     // Keeping old interaction indexes for the new events
-    Events.CreateIndexedList(std::vector<String>() = {
-        "OnLeaveLeft", "OnLeaveRight", "OnLeaveBottom", "OnLeaveTop",
-        "OnFirstTimeEnter", "OnLoad", "OnRepExec", "OnAfterFadeIn", "OnLeave", "OnUnload"
-    });
+    Events.CreateIndexedList(_eventSchema.EventList);
 }
 
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const

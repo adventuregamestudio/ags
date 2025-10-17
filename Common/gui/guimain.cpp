@@ -38,6 +38,10 @@ namespace Common
 GuiOptions GUI::Options;
 GuiContext GUI::Context;
 
+/* static */ ScriptEventsSchema GUIMain::_eventSchema = {{
+        { "OnClick", kGUIEvent_OnClick }
+    }};
+
 GUIMain::GUIMain()
 {
 }
@@ -82,16 +86,6 @@ void GUIMain::SetPopupAtY(int popup_aty)
 void GUIMain::SetPadding(int padding)
 {
     _padding = padding;
-}
-
-void GUIMain::SetScriptModule(const String &scmodule)
-{
-    _scriptModule = scmodule;
-}
-
-void GUIMain::SetOnClickHandler(const String &handler)
-{
-    _onClickHandler = handler;
 }
 
 int GUIMain::FindControlAt(int atx, int aty, int leeway, bool must_be_clickable) const
@@ -177,6 +171,11 @@ bool GUIMain::IsInteractableAt(int x, int y) const
     // transform to GUI's local coordinates
     Point pt = _gs.WorldToLocal(x, y);
     return ((pt.X >= 0) && (pt.Y >= 0) && (pt.X < _width) && (pt.Y < _height));
+}
+
+const ScriptEventsSchema *GUIMain::GetEventsSchema() const
+{
+    return &GUIMain::_eventSchema;
 }
 
 void GUIMain::MarkControlChanged()
@@ -591,8 +590,10 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
+    _events.Handlers.resize(1);
+
     _name          = StrUtil::ReadString(in);
-    _onClickHandler = StrUtil::ReadString(in);
+    _events.Handlers[kGUIEvent_OnClick] = StrUtil::ReadString(in); // old-style event table
     _x             = in->ReadInt32();
     _y             = in->ReadInt32();
     _width         = in->ReadInt32();
@@ -627,7 +628,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUIMain::WriteToFile(Stream *out) const
 {
     StrUtil::WriteString(_name, out);
-    StrUtil::WriteString(_onClickHandler, out);
+    StrUtil::WriteString(String(), out); // obsolete
     out->WriteInt32(_x);
     out->WriteInt32(_y);
     out->WriteInt32(_width);

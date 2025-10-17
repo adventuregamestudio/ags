@@ -36,6 +36,51 @@ namespace Common
 
 class Stream;
 
+// ScriptEventDefinition describes a event, which has a name and
+// a numeric index, specific for each object type. The index is
+// used at runtime for simpler event handler access
+struct ScriptEventDefinition
+{
+    // Name of event
+    String Name;
+    // Numeric index (meaning depends on object type, each type has its indexed table)
+    uint32_t Index = 0u;
+
+    ScriptEventDefinition(const String &name, uint32_t index)
+        : Name(name), Index(index)
+    {}
+};
+
+// ScriptEventsSchema defines a index-based list of events for a particular object type.
+struct ScriptEventsSchema
+{
+    // A index-based list of event definitions, for simpler access at runtime
+    std::vector<ScriptEventDefinition> EventList;
+    // A lookup map for getting event definition's index
+    std::unordered_map<String, uint32_t> EventMap;
+
+    ScriptEventsSchema() = default;
+    ScriptEventsSchema(const std::vector<ScriptEventDefinition> &evt_defs)
+        : EventList(evt_defs)
+    {
+        MakeMap();
+    }
+    ScriptEventsSchema(std::vector<ScriptEventDefinition> &&evt_defs)
+        : EventList(std::move(evt_defs))
+    {
+        MakeMap();
+    }
+
+private:
+    void MakeMap()
+    {
+        for (const auto &evt_def : EventList)
+        {
+            EventMap[evt_def.Name] = evt_def.Index;
+        }
+    }
+};
+
 enum EventsTableVersion
 {
     kEventsTable_Initial = 0,
@@ -78,6 +123,11 @@ struct ScriptEventsBase
 
     ScriptEventsBase &operator =(const ScriptEventsBase &script_events) = default;
     ScriptEventsBase &operator =(ScriptEventsBase &&script_events) = default;
+
+    inline bool HasHandler(uint32_t evt) const
+    {
+        return evt < Handlers.size() && Handlers[evt].IsEnabled();
+    }
 };
 
 // A indexed list of function links for all the supported events.
@@ -139,12 +189,20 @@ struct ScriptEventsTable : public ScriptEventsBase
         EventMap = std::move(events.EventMap);
     }
 
+    ScriptEventsTable(Stream *in)
+    {
+        Read(in);
+    }
+
     ScriptEventsTable &operator =(const ScriptEventsTable &events) = default;
     ScriptEventsTable &operator =(ScriptEventsTable &&events) = default;
 
     // Generates a index-based Handlers list based on available EventMap
     // and provided indexed list of event names
     void CreateIndexedList(const std::vector<String> &eventnames);
+    // Generates a index-based Handlers list based on available EventMap
+    // and provided indexed list of event definitions
+    void CreateIndexedList(const std::vector<ScriptEventDefinition> &events);
 
     HError Read(Stream *in);
     void Write(Stream *out) const;

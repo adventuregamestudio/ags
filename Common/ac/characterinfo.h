@@ -120,7 +120,9 @@ enum CharacterSvgVersion
 enum CharacterEventID
 {
     // an interaction with any cursor mode that normally has a event
-    kCharacterEvent_AnyClick = 0
+    kCharacterEvent_AnyClick,
+    // a view frame triggering a custom event
+    kCharacterEvent_OnFrameEvent,
 };
 
 // Design-time Character data.
@@ -237,6 +239,9 @@ private:
     // common for both game file and save.
     void ReadBaseFields(Common::Stream *in);
     void WriteBaseFields(Common::Stream *out) const;
+
+    // Script events schema
+    static AGS::Common::ScriptEventsSchema _eventSchema;
 };
 
 #endif // __AC_CHARACTERINFO_H

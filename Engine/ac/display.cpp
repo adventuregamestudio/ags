@@ -884,15 +884,18 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         ifnum = game.options[OPT_TWCUSTOM];
 
     // Assertions
-    if (ifnum >= game.numgui)
+    if (ifnum > 0)
     {
-        debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", ifnum, game.numgui);
-        ifnum = 0;
-    }
-    else if (!guis[ifnum].IsTextWindow())
-    {
-        debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", ifnum);
-        ifnum = 0;
+        if (ifnum >= game.numgui)
+        {
+            debug_script_warn("Invalid GUI %d specified as text window (valid range: 1..%d)", ifnum, game.numgui);
+            ifnum = 0;
+        }
+        else if (!guis[ifnum].IsTextWindow())
+        {
+            debug_script_warn("GUI %d is set as text window but is not actually a text window GUI", ifnum);
+            ifnum = 0;
+        }
     }
 
     if (ifnum <= 0)

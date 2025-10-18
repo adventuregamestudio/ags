@@ -282,25 +282,24 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     {
         // Textual overlay purposed for character speech
         int ttxleft = 0, ttxtop = paddingScaled, oriwid = wii - padding * 2;
-        int drawBackground = 0;
+        bool draw_background = false;
 
         DisplayTextLooks fix_look = look;
         if (use_speech_textwindow)
         {
-            drawBackground = 1;
+            draw_background = true;
         }
         else if (use_thought_gui)
         {
             // make it treat it as drawing inside a window now
             fix_look.Style = kDisplayTextStyle_TextWindow;
-            drawBackground = 1;
+            draw_background = true;
         }
 
-        if (drawBackground)
+        if (draw_background)
         {
-            text_color = 15; // use fixed standard color here
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
-                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
+                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, nullptr, 0, usingGui);
             if (usingGui > 0)
             {
                 alphaChannel = guis[usingGui].HasAlphaChannel();
@@ -344,7 +343,7 @@ Bitmap *create_textual_image(const char *text, const DisplayTextLooks &look, col
     {
         // Textual overlay purposed for the standard message box
         int xoffs, yoffs, oriwid = wii - padding * 2;
-        text_color = 15; // use fixed standard color here
+        text_color = 15; // use standard text box color here (may be adjusted inside draw_text_window)
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
         text_color = text_window_ds->GetCompatibleColor(text_color);
 

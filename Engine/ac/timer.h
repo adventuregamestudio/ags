@@ -38,8 +38,8 @@ inline int64_t ToMilliseconds(TDur dur)
 // Sleeps for time remaining until the next game frame, updates next frame timestamp
 extern void WaitForNextFrame();
 
-// Sets real FPS to the given number of frames per second; pass 1000+ for maxed FPS mode
-extern int setTimerFps(int new_fps);
+// Sets real FPS to the given number of frames per second
+extern int setTimerFps(int new_fps, bool max_fps_mode);
 // Tells whether maxed FPS mode is currently set
 extern bool isTimerFpsMaxed();
 // If more than N frames, just skip all, start a fresh.

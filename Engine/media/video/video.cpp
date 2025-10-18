@@ -548,7 +548,7 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
     }
     
     gl_Video->Play();
-    const int old_fps = setTimerFps(gl_Video->GetFramerate());
+    const int old_fps = setTimerFps(gl_Video->GetFramerate(), false);
     // Loop until finished or skipped by player
     while (gl_Video->GetPlayState() == PlayStatePlaying ||
            gl_Video->GetPlayState() == PlayStatePaused)
@@ -560,7 +560,7 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
         gl_Video->Poll(); // update/render next frame
         UpdateGameAudioOnly(); // update the game and wait for next frame
     }
-    setTimerFps(old_fps);
+    setTimerFps(old_fps, false);
     gl_Video.reset();
 
     // Clear the screen after stopping playback

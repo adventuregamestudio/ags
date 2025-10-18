@@ -278,25 +278,24 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     {
         // Textual overlay purposed for character speech
         int ttxleft = 0, ttxtop = paddingScaled, oriwid = wii - padding * 2;
-        int drawBackground = 0;
+        bool draw_background = false;
 
         DisplayTextLooks fix_look = look;
         if (use_speech_textwindow)
         {
-            drawBackground = 1;
+            draw_background = true;
         }
         else if (use_thought_gui)
         {
             // make it treat it as drawing inside a window now
             fix_look.Style = kDisplayTextStyle_TextWindow;
-            drawBackground = 1;
+            draw_background = true;
         }
 
-        if (drawBackground)
+        if (draw_background)
         {
-            text_color = 15; // use fixed standard color here
             text_window_ds = draw_text_window_and_bar(topbar, disp,
-                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, usingGui);
+                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, nullptr, usingGui);
             if ((usingGui > 0)
                 // Apparently, 2.* engines never used alpha channel on text windows
                 && (loaded_game_file_version > kGameVersion_272))
@@ -345,7 +344,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     {
         // Textual overlay purposed for the standard message box
         int xoffs, yoffs, oriwid = wii - padding * 2;
-        text_color = 15; // use fixed standard color here
+        text_color = 15; // use standard text box color here (may be adjusted inside draw_text_window)
         text_window_ds = draw_text_window_and_bar(topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
         text_color = text_window_ds->GetCompatibleColor(text_color);
 

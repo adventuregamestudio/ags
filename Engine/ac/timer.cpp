@@ -49,7 +49,7 @@ std::chrono::microseconds GetFrameDuration()
     return tick_duration;
 }
 
-int setTimerFps(int new_fps)
+int setTimerFps(int new_fps, bool max_fps_mode)
 {
     assert(new_fps >= 0);
     if (new_fps <= 0)
@@ -57,7 +57,7 @@ int setTimerFps(int new_fps)
     int old_fps = framerate;
     tick_duration = std::chrono::microseconds(1000000LL/new_fps);
     framerate = new_fps;
-    framerate_maxed = new_fps >= 1000;
+    framerate_maxed = max_fps_mode;
     // Update next frame time
     next_frame_timestamp = last_tick_time + tick_duration;
     return old_fps;

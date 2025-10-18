@@ -531,8 +531,8 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     if ((agskey == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
-        // if --fps paramter is used, Ctrl+E will max out frame rate
-        setTimerFps(isTimerFpsMaxed() ? frames_per_second : 1000);
+        // if --fps parameter is used, Ctrl+E will toggle maxed out frame rate
+        setTimerFps(frames_per_second, !isTimerFpsMaxed());
         return false;
     }
 
@@ -1021,6 +1021,9 @@ float get_game_fps()
 {
     // if we have maxed out framerate then return the frame rate we're seeing instead
     // fps must be greater that 0 or some timings will take forever.
+    // TODO: review this, consider always returning fixed property here,
+    // and use get_real_fps() whenever we need real time;
+    // but must double check all situations where this function is used!
     if (isTimerFpsMaxed() && GameTimer.FPS > 0.0f)
     {
         return GameTimer.FPS;

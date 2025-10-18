@@ -294,8 +294,7 @@ void set_debug_mode(bool on)
 
 void set_game_speed(int new_fps) {
     frames_per_second = new_fps;
-    if (!isTimerFpsMaxed()) // if in maxed mode, don't update timer for now
-        setTimerFps(new_fps);
+    setTimerFps(new_fps, isTimerFpsMaxed()); // keep the current maxed mode (on/off)
 }
 
 float get_game_speed() {

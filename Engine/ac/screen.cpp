@@ -136,8 +136,11 @@ protected:
 class ScreenFade : public ScreenTransition
 {
 public:
-    ScreenFade(bool fade_in, int speed)
-        : ScreenTransition(kScrTran_Fade, fade_in, speed) {}
+    ScreenFade(bool fade_in, int speed, int fader, int fadeg, int fadeb)
+        : ScreenTransition(kScrTran_Fade, fade_in, speed)
+    {
+        _fadeColor = makecol(fader, fadeg, fadeb);
+    }
 
     // Begin the state, initialize and prepare any resources
     void Begin() override
@@ -154,7 +157,7 @@ public:
         _sprTrans = play.GetGlobalTransform(true);
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
-        black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+        black_bmp->Clear(_fadeColor);
         _fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), false, true);
         _fade->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
 
@@ -194,6 +197,7 @@ public:
 private:
     bool _fadeIn = false;
     IDriverDependantBitmap *_fade = nullptr;
+    int _fadeColor = 0;
     int _alpha = 0;
     Rect _view;
     SpriteTransform _sprTrans;
@@ -345,8 +349,11 @@ private:
 class ScreenBoxOut : public ScreenTransition
 {
 public:
-    ScreenBoxOut(bool fade_in, int speed)
-        : ScreenTransition(kScrTran_Boxout, fade_in, speed) {}
+    ScreenBoxOut(bool fade_in, int speed, int fader = 0, int fadeg = 0, int fadeb = 0)
+        : ScreenTransition(kScrTran_Boxout, fade_in, speed)
+    {
+        _fadeColor = makecol(fader, fadeg, fadeb);
+    }
 
     // Begin the state, initialize and prepare any resources
     void Begin() override
@@ -358,7 +365,7 @@ public:
         _sprTrans = play.GetGlobalTransform(true);
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
-        black_bmp->Clear(0); // use black color always
+        black_bmp->Clear(_fadeColor);
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
             _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), false, true);
@@ -418,6 +425,7 @@ private:
     // For fade-in we create 4 boxes, one across each side of the screen;
     // for fade-out we need 1 box that will stretch from center until covers whole screen
     IDriverDependantBitmap *_fade[4]{};
+    int _fadeColor = 0;
     int _yspeed = 0;
     int _boxWidth = 0;
     int _boxHeight = 0;
@@ -428,8 +436,11 @@ private:
 class ScreenBoxOutSoftware : public ScreenTransition
 {
 public:
-    ScreenBoxOutSoftware(bool fade_in, int speed)
-        : ScreenTransition(kScrTran_Boxout, fade_in, speed) {}
+    ScreenBoxOutSoftware(bool fade_in, int speed, int fader = 0, int fadeg = 0, int fadeb = 0)
+        : ScreenTransition(kScrTran_Boxout, fade_in, speed)
+    {
+        _fadeColor = makecol(fader, fadeg, fadeb);
+    }
 
     // Begin the state, initialize and prepare any resources
     void Begin() override
@@ -449,7 +460,7 @@ public:
 
         if (_fadein)
         {
-            _bmpBuff->Clear();
+            _bmpBuff->Clear(_fadeColor);
         }
     }
     // End the state, release all resources
@@ -474,8 +485,8 @@ public:
             int hcentre = _view.GetWidth() / 2;
             int vcentre = _view.GetHeight() / 2;
             _bmpFrame->FillRect(Rect(hcentre - _boxWidth / 2, vcentre - _boxHeight / 2,
-                hcentre + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
-            _bmpBuff->Fill(0);
+                hcentre + _boxWidth / 2, vcentre + _boxHeight / 2), _fadeColor);
+            _bmpBuff->Fill(_fadeColor);
             _bmpBuff->Blit(_bmpFrame.get(), _view.Left, _view.Top);
             render_to_screen();
         }
@@ -499,6 +510,7 @@ public:
 private:
     Bitmap *_bmpBuff = nullptr;
     std::unique_ptr<Bitmap> _bmpFrame;
+    int _fadeColor = 0;
     int _yspeed = 0;
     int _boxWidth = 0;
     int _boxHeight = 0;
@@ -649,12 +661,22 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     case kScrTran_Fade:
         scrtr.reset(software_mode ?
             (ScreenTransition*)new ScreenFadeSoftware(&palette, fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue) :
-            (ScreenTransition*)new ScreenFade(fade_in, speed));
+            (ScreenTransition*)new ScreenFade(fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue));
         break;
     case kScrTran_Boxout:
-        scrtr.reset(software_mode ?
-            (ScreenTransition*)new ScreenBoxOutSoftware(fade_in, speed) :
-            (ScreenTransition*)new ScreenBoxOut(fade_in, speed));
+        // Pre-3.6.2 games always used a fixed black color
+        if (loaded_game_file_version >= kGameVersion_362)
+        {
+            scrtr.reset(software_mode ?
+                (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue) :
+                (ScreenTransition *)new ScreenBoxOut(fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+        }
+        else
+        {
+            scrtr.reset(software_mode ?
+                (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed) :
+                (ScreenTransition *)new ScreenBoxOut(fade_in, speed));
+        }
         break;
     case kScrTran_Crossfade:
         scrtr.reset(new ScreenCrossfade(fade_in, speed));

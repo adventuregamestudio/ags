@@ -132,8 +132,10 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     int last_line_y = pixel_size + 1 + (VisibleItemCount - 1) * RowHeight;
     // Include font fixes for the first and last text line,
     // in case graphical height is different, and there's a VerticalOffset
+    int h_ext = GUI::CalcFontGraphicalHExtent(Font);
     Line vextent = GUI::CalcFontGraphicalVExtent(Font);
-    Rect text_rc = RectWH(0, vextent.Y1, max_line.X2 - max_line.X1 + 1, last_line_y + (vextent.Y2 - vextent.Y1));
+    Rect text_rc = RectWH(h_ext, vextent.Y1, max_line.X2 - max_line.X1 + 1 + (-h_ext) * 2,
+        last_line_y + (vextent.Y2 - vextent.Y1));
     return SumRects(rc, text_rc);
 }
 

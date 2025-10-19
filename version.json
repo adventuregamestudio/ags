@@ -1,9 +1,9 @@
 {
-    "version": "4.00.00.20",
+    "version": "4.00.00.21",
     "versionFriendly": "4.0.0",
-    "versionSp": "Alpha24",
+    "versionSp": "Alpha25",
     "versionYear": "2025",
-    "versionMonth": "September",
+    "versionMonth": "October",
     "versionIsBeta": "true",         
     "appID": "572bfb67-1c66-4e44-bdad-322754f679a6",
     "licenseLink": "https://opensource.org/license/artistic-2-0/",

@@ -799,6 +799,7 @@ private:
     bool is_normalgui;
     bool usingCustomRendering;
     bool newCustomRender; // using newer (post-3.5.0 render API)
+    bool redrawOnMouseMove;
     // width of a region within the gui where options are arranged;
     // includes internal gui padding (from both sides)
     int areawid;
@@ -1077,8 +1078,10 @@ void DialogOptions::Begin()
     }
 
     newCustomRender = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
+    // Pre-3.6.1 engines always forced redraw on mouse move, even if it's custom rendering
+    redrawOnMouseMove = !usingCustomRendering || loaded_game_file_version < kGameVersion_361;
     needRedraw = false;
-    mouseison=-10;
+    mouseison = INT32_MIN; // this "hack" forces a redraw at a first update even if mouse cursor did not move yet
 
     CreateOverlay();
 
@@ -1332,7 +1335,8 @@ bool DialogOptions::Run()
         // could be set by setting ActiveOptionID, or calling Update()
         needRedraw |= ccDialogOptionsRendering.needRepaint;
     }
-    else
+
+    if (redrawOnMouseMove)
     {
         // Default rendering and old-style custom rendering:
         // test if an active option has changed

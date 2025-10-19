@@ -24,7 +24,7 @@ namespace AGS.Editor
         public FontEditor(AGS.Types.Font selectedFont) : this()
         {
             _item = selectedFont;
-            fontViewPanel.GameFontNumber = _item.ID;
+            fontViewPanel.GameFont = _item;
             fontViewPanel.Scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
         }
 
@@ -38,7 +38,7 @@ namespace AGS.Editor
             set
             {
                 _item = value;
-                fontViewPanel.GameFontNumber = _item.ID;
+                fontViewPanel.GameFont = _item;
             }
         }
 
@@ -85,12 +85,20 @@ namespace AGS.Editor
 
         private void textPreviewPanel_Paint(object sender, PaintEventArgs e)
         {
-            if (_item == null)
+            if (DesignMode)
                 return;
 
             if (textPreviewPanel.ClientSize.Width <= 0 || textPreviewPanel.ClientSize.Height <= 0)
                 return; // sometimes occurs during automatic rearrangement of controls
 
+            if (_item == null || _item.FontFile == null)
+            {
+                // no selected font (unusual...) or font has no font file associated
+                e.Graphics.Clear(Color.Black);
+                return;
+            }
+
+            // Always clear the panel first
             Graphics g = e.Graphics;
             g.Clear(Color.Black);
             int scaling = Factory.AGSEditor.CurrentGame.GUIScaleFactor;

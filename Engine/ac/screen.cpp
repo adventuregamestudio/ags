@@ -358,7 +358,7 @@ public:
         _sprTrans = play.GetGlobalTransform(true);
 
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
-        black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+        black_bmp->Clear(0); // use black color always
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
             _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), kTxFlags_Opaque);

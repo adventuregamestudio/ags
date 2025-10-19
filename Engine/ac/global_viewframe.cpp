@@ -25,7 +25,7 @@ extern std::vector<ViewStruct> views;
 
 void SetFrameSound (int vii, int loop, int frame, int sound) {
     vii--; // convert to 0-based
-    AssertFrame("SetFrameSound", vii, loop, frame);
+    AssertFrame("SetFrameSound", "", vii, loop, frame);
 
     if (sound < 1)
     {

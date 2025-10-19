@@ -105,11 +105,11 @@ int     check_click_on_object(int roomx, int roomy, int mood);
 // TODO: pick out some kind of "animation" struct
 // Tests if the standard animate parameters are in valid range, if not then clamps them and
 // reports a script warning.
-void    ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int &direction);
+void    ValidateViewAnimParams(const char *apiname, const char *objname, int &repeat, int &blocking, int &direction);
 // Tests if the view, loop, frame animate params are in valid range,
 // errors in case of out-of-range view or loop, but clamps a frame to a range.
 // NOTE: assumes view is already in an internal 0-based range.
-void    ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe);
+void    ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int loop, int &sframe);
 // Calculates the first shown frame for a view animation, depending on parameters.
 int     SetFirstAnimFrame(int view, int loop, int sframe, int direction);
 // General view animation algorithm: find next loop and frame, depending on anim settings;

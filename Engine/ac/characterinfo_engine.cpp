@@ -181,7 +181,10 @@ int CharacterInfo::update_character_walkturning(CharacterExtras *chex)
 	return 0;
 }
 
+extern void reset_character_idling_time(CharacterInfo *chi);
+
 void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing)
+
 {
 	if ((walking > 0) && (room == displayed_room))
     {
@@ -232,7 +235,7 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
 
       if (walking < 1) {
         // Finished walking, stop and reset state
-        chex->process_idle_this_time = 1;
+        reset_character_idling_time(this);
         doing_nothing=1;
         walkwait=0;
         Character_StopMoving(this);

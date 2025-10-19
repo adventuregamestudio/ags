@@ -110,13 +110,20 @@ bool is_valid_character(int char_id)
 }
 
 // Checks if character is currently playing idle anim, and reset it
-static void stop_character_idling(CharacterInfo *chi)
+void stop_character_idling(CharacterInfo *chi)
 {
     if (chi->idleleft < 0)
     {
         Character_UnlockView(chi);
         chi->idleleft = chi->idletime;
     }
+}
+
+// Resets idling timer, and marks for immediate update (in case its persistent idling)
+void reset_character_idling_time(CharacterInfo *chi)
+{
+    chi->idleleft = chi->idletime;
+    charextra[chi->index_id].process_idle_this_time = 1;
 }
 
 bool AssertCharacter(const char *apiname, int char_id)
@@ -408,6 +415,8 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
 
 void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
 {
+    stop_character_idling(char1);
+
     // Change facing only if the desired direction is different
     if (direction != char1->loop)
     {
@@ -440,6 +449,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
     }
 
     char1->frame = 0;
+    reset_character_idling_time(char1);
 }
 
 void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
@@ -870,7 +880,6 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
     // if they switch to a swimming animation, kick it off immediately
     if (itime == 0)
         charextra[chaa->index_id].process_idle_this_time = 1;
-
 }
 
 bool Character_GetHasExplicitLight(CharacterInfo *ch)
@@ -981,9 +990,8 @@ void Character_StopMoving(CharacterInfo *charp) {
 
         debug_script_log("%s: stop moving", charp->scrname);
 
-        charp->idleleft = charp->idletime;
-        // restart the idle animation straight away
-        charextra[chaa].process_idle_this_time = 1;
+        // Restart idle timer
+        reset_character_idling_time(charp);
     }
     if (charp->walking) {
         // If the character is currently moving, stop them and reset their frame
@@ -1037,11 +1045,10 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
         FindReasonableLoopForCharacter(chaa);
     }
     stop_character_anim(chaa);
-    chaa->idleleft = chaa->idletime;
     chaa->pic_xoffs = 0;
     chaa->pic_yoffs = 0;
-    // restart the idle animation straight away
-    charextra[chaa->index_id].process_idle_this_time = 1;
+    // Restart idle timer
+    reset_character_idling_time(chaa);
 
 }
 
@@ -2910,9 +2917,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         stop_character_anim(speakingChar);
         speakingChar->frame = charFrameWas;
         speakingChar->wait=0;
-        speakingChar->idleleft = speakingChar->idletime;
-        // restart the idle animation straight away
-        charextra[aschar].process_idle_this_time = 1;
+        // Restart idle timer
+        reset_character_idling_time(speakingChar);
     }
     char_speaking = -1;
     char_thinking = -1;

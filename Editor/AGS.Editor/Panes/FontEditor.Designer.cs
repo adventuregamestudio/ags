@@ -261,7 +261,7 @@ namespace AGS.Editor
             this.fontViewPanel.ANSIMode = false;
             this.fontViewPanel.AutoScroll = true;
             this.fontViewPanel.DisplayCodes = false;
-            this.fontViewPanel.GameFontNumber = -1;
+            this.fontViewPanel.GameFont = null;
             this.fontViewPanel.HideMissingCharacters = true;
             this.fontViewPanel.Location = new System.Drawing.Point(6, 57);
             this.fontViewPanel.Name = "fontViewPanel";

@@ -8,7 +8,7 @@ namespace AGS.Editor
 {
     public class FontPreviewGrid : BufferedPanel
     {
-        private int _fontNumber = -1;
+        private AGS.Types.Font _font;
         private Native.FontMetrics _fontMetrics;
         // Valid character codes for the current font
         private int[] _charCodes;
@@ -36,22 +36,17 @@ namespace AGS.Editor
         /// Game font to display.
         /// </summary>
         [Browsable(false)]
-        public int GameFontNumber
+        public AGS.Types.Font GameFont
         {
             get
             {
-                return _fontNumber;
+                return _font;
             }
             set
             {
-                _fontNumber = value;
+                _font = value;
                 if (DesignMode)
                     return;
-
-                if (_fontNumber < 0 || _fontNumber >= Factory.AGSEditor.CurrentGame.Fonts.Count)
-                {
-                    _fontNumber = -1;
-                }
 
                 UpdateAndRepaint(true);
             }
@@ -141,7 +136,7 @@ namespace AGS.Editor
         [Browsable(false)]
         public bool GameFontValid
         {
-            get { return !DesignMode && _fontNumber >= 0 && _fontNumber < Factory.AGSEditor.CurrentGame.Fonts.Count; }
+            get { return !DesignMode && _font != null && _font.FontFile != null; }
         }
 
         public class CharacterSelectedEventArgs : EventArgs
@@ -194,13 +189,13 @@ namespace AGS.Editor
 
         public void UpdateAndRepaint(bool reloadFont)
         {
-            if (_fontNumber >= 0 && _fontNumber < Factory.AGSEditor.CurrentGame.Fonts.Count)
+            if (GameFontValid)
             {
-                _fontMetrics = Factory.NativeProxy.GetFontMetrics(_fontNumber);
+                _fontMetrics = Factory.NativeProxy.GetFontMetrics(_font.ID);
                 if (reloadFont)
                 {
                     _charcodeToCellIndex = new Dictionary<int, int>();
-                    _charCodes = Factory.NativeProxy.GetFontValidCharacters(_fontNumber);
+                    _charCodes = Factory.NativeProxy.GetFontValidCharacters(_font.ID);
                     for (int i = 0; i < _charCodes.Length; ++i)
                     {
                         _charcodeToCellIndex.Add(_charCodes[i], i);
@@ -494,13 +489,14 @@ namespace AGS.Editor
             int lastVisibleCell = lastVisibleRow * _grid.CharsPerRow + _grid.CharsPerRow;
             lastVisibleCell = Math.Min(lastVisibleCell, _charCodes.Length - 1);
 
+            // Always clear the panel first
             g.Clear(Color.Black);
             bool hdcReleased = false;
             try
             {
                 int firstRowDrawPos = _grid.CellSpaceY + firstVisibleRow * (_grid.CellHeight + _grid.CellSpaceY)
                     - scroll_y;
-                Factory.NativeProxy.DrawFont(g.GetHdc(), _fontNumber, ANSIMode, HideMissingCharacters,
+                Factory.NativeProxy.DrawFont(g.GetHdc(), _font.ID, ANSIMode, HideMissingCharacters,
                     0, 0, _grid.CellSpaceX, firstRowDrawPos,
                     _grid.CellWidth, _grid.CellHeight, _grid.CellSpaceX, _grid.CellSpaceY,
                     _grid.CharsPerRow, lastVisibleRow - firstVisibleRow + 1, firstVisibleCell,

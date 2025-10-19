@@ -668,11 +668,18 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
         first_cell = 0;
 
     if (!is_font_loaded(fontnum))
-        reload_font(fontnum);
+    {
+        if (!reload_font(fontnum))
+            return;
+    }
 
     const std::vector<int> *char_codes = nullptr;
     if (only_valid_chars)
+    {
         char_codes = get_font_valid_char_codes(fontnum);
+        if (!char_codes)
+            return; // assume that none are valid?
+    }
 
     const Rect bbox = get_font_glyph_bbox(fontnum);
     const int font_y_offset = thisgame.fonts[fontnum].YOffset; // hack to avoid YOffset in the preview table

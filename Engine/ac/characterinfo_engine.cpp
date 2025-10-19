@@ -331,8 +331,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
                         frame = 0;
                     // one-off anim, stop
                     else {
-                        ReleaseCharacterView(aa);
-                        idleleft = idletime;
+                        ReleaseCharacterView(aa); // this resets idle timer too
                     }
                 }
             }

@@ -354,8 +354,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
                         chi->frame = 0;
                     // one-off anim, stop
                     else {
-                        ReleaseCharacterView(chi->index_id);
-                        chi->idleleft = chi->idletime;
+                        ReleaseCharacterView(chi->index_id); // this resets idle timer too
                     }
                 }
             }

@@ -481,7 +481,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
    case GP_FRAMESOUND:
    case GP_ISFRAMEFLIPPED:
        {
-           AssertFrame("GetGameParameter", data1 - 1, data2, data3);
+           AssertFrame("GetGameParameter", "", data1 - 1, data2, data3);
 
            ViewFrame *pvf = &views[data1 - 1].loops[data2].frames[data3];
 

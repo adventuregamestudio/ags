@@ -652,7 +652,7 @@ int check_click_on_object(int roomx, int roomy, int mood)
     return 1;
 }
 
-void ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int &direction)
+void ValidateViewAnimParams(const char *apiname, const char *objname, int &repeat, int &blocking, int &direction)
 {
     if (blocking == BLOCKING)
         blocking = 1;
@@ -666,33 +666,33 @@ void ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int
 
     if ((repeat < ANIM_ONCE) || (repeat > ANIM_ONCERESET))
     {
-        debug_script_warn("%s: invalid repeat value %d, will treat as REPEAT (1).", apiname, repeat);
+        debug_script_warn("%s (%s): invalid repeat value %d, will treat as REPEAT (1).", apiname, objname, repeat);
         repeat = ANIM_REPEAT;
     }
     if ((blocking < 0) || (blocking > 1))
     {
-        debug_script_warn("%s: invalid blocking value %d, will treat as BLOCKING (1)", apiname, blocking);
+        debug_script_warn("%s (%s): invalid blocking value %d, will treat as BLOCKING (1)", apiname, objname, blocking);
         blocking = 1;
     }
     if ((direction < 0) || (direction > 1))
     {
-        debug_script_warn("%s: invalid direction value %d, will treat as BACKWARDS (1)", apiname, direction);
+        debug_script_warn("%s (%s): invalid direction value %d, will treat as BACKWARDS (1)", apiname, objname, direction);
         direction = 1;
     }
 }
 
-void ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe)
+void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int loop, int &sframe)
 {
     // NOTE: we assume that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
-    AssertLoop(apiname, view, loop);
+    AssertLoop(apiname, objname, view, loop);
 
     if (views[view].loops[loop].numFrames < 1)
-        debug_script_warn("%s: view %d loop %d does not have any frames, will use a frame placeholder.",
-            apiname, view + 1, loop);
+        debug_script_warn("%s (%s): view %d loop %d does not have any frames, will use a frame placeholder.",
+            apiname, objname, view + 1, loop);
     else if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
-        debug_script_warn("%s: invalid starting frame number %d for view %d loop %d (range is 0..%d)",
-            apiname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
+        debug_script_warn("%s (%s): invalid starting frame number %d for view %d loop %d (range is 0..%d)",
+            apiname, objname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
     // NOTE: there's always frame 0 allocated for safety
     sframe = std::max(0, std::min(sframe, views[view].loops[loop].numFrames - 1));
 }

@@ -229,8 +229,8 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
     // do this prior to the loop check, as the view may switch back to defview here
     stop_character_idling(chaa);
 
-    ValidateViewAnimVLF("Character.Animate", chaa->view, loop, sframe);
-    ValidateViewAnimParams("Character.Animate", repeat, blocking, direction);
+    ValidateViewAnimVLF("Character.Animate", chaa->scrname, chaa->view, loop, sframe);
+    ValidateViewAnimParams("Character.Animate", chaa->scrname, repeat, blocking, direction);
 
     animate_character(chaa, loop, delay, repeat, direction, sframe, volume);
 
@@ -634,8 +634,8 @@ void Character_LockView(CharacterInfo *chap, int vii) {
 
 void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     vii--; // convert to 0-based
-    AssertView("SetCharacterView", vii);
-    AssertViewHasLoops("SetCharacterView", vii);
+    AssertView("SetCharacterView", chap->scrname, vii);
+    AssertViewHasLoops("SetCharacterView", chap->scrname, vii);
 
     stop_character_idling(chap);
     if (stopMoving != KEEP_MOVING)
@@ -674,7 +674,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
 
     Character_LockViewEx(chap, vii, stopMoving);
 
-    AssertLoop("SetCharacterViewEx", chap->view, loop);
+    AssertLoop("SetCharacterViewEx", chap->scrname, chap->view, loop);
 
     chap->loop = loop;
     chap->frame = 0;
@@ -701,7 +701,7 @@ void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame)
 
 void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
     Character_LockViewEx(chaa, view, stopMoving);
-    AssertFrame("SetCharacterFrame", view - 1, loop, frame);
+    AssertFrame("SetCharacterFrame", chaa->scrname, view - 1, loop, frame);
     chaa->loop = loop;
     chaa->frame = frame;
 }
@@ -1472,7 +1472,7 @@ int Character_GetLoop(CharacterInfo *chaa) {
 }
 
 void Character_SetLoop(CharacterInfo *chaa, int newval) {
-    AssertLoop("Character.Loop", chaa->view, newval);
+    AssertLoop("Character.Loop", chaa->scrname, chaa->view, newval);
 
     chaa->loop = newval;
     if (chaa->frame >= views[chaa->view].loops[chaa->loop].numFrames)

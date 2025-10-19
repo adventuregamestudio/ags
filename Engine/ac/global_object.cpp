@@ -147,7 +147,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (!is_valid_object(obn))
         quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
     viw--;
-    AssertViewHasLoops("SetObjectFrame", viw);
+    AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obn].ScriptName.GetCStr(), viw);
 
     auto &obj = objs[obn];
     // Previous version of Object.SetView had negative loop and frame mean "use latest values",
@@ -232,13 +232,14 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     if (!is_valid_object(obn))
         quit("!AnimateObject: invalid object number specified");
 
+    const RoomObjectInfo &obji = thisroom.Objects[obn];
     RoomObject &obj = objs[obn];
 
     if (obj.view == RoomObject::NoView)
         quit("!AnimateObject: object has not been assigned a view");
 
-    ValidateViewAnimVLF("Object.Animate", obj.view, loopn, sframe);
-    ValidateViewAnimParams("Object.Animate", rept, blocking, direction);
+    ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), obj.view, loopn, sframe);
+    ValidateViewAnimParams("Object.Animate", obji.ScriptName.GetCStr(), rept, blocking, direction);
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {

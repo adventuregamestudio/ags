@@ -65,10 +65,14 @@ int get_font_height_outlined(int font_number);
 int get_font_surface_height(int font_number);
 // Gets the surface height of the given font with corresponding outlining
 int get_font_surface_height_outlined(int font_number);
-// Get font's maximal graphical extent: this means the farthest vertical positions of glyphs,
-// relative to the "pen" position. Besides letting to calculate the surface height,
-// this information also lets to detect if some of the glyphs may appear above y0.
-std::pair<int, int> get_font_surface_extent(int font_number);
+// Get font's maximal negative horizontal extent: this means the farthest negative offset
+// of any glyph, relative to the "pen" position.
+int get_font_surface_hextent(int font_number);
+// Get font's maximal vertical extent: this means the farthest vertical positions
+// of any glyph, relative to the "pen" position. Besides letting to calculate the
+// surface height, this information also lets to detect if some of the glyphs may
+// appear above y0.
+std::pair<int, int> get_font_surface_vextent(int font_number);
 // Get font's line spacing
 int get_font_linespacing(int font_number);
 // Set font's line spacing

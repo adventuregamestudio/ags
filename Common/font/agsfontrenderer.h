@@ -86,6 +86,10 @@ struct FontMetrics
     // selected depending on the game settings.
     // This property is used in calculating linespace, etc.
     int CompatHeight = 0;
+    // Maximal negative horizontal extent of a font's glyph;
+    // this tells if any glyph in the font may have a negative offset relative
+    // to the text draw position.
+    int HExtent = 0;
     // Maximal vertical extent of a font (top; bottom), this tells the actual
     // graphical bounds that may be occupied by font's glyphs.
     // In a "proper" font this extent is (0; RealHeight-1), but "bad" fonts may

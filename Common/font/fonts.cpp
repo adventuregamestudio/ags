@@ -148,6 +148,7 @@ static void font_post_init(int font_number)
 
         font.Metrics.NominalHeight = std::max(0, height);
         font.Metrics.RealHeight = font.Metrics.NominalHeight;
+        font.Metrics.HExtent = 0; // no info
         font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight);
     }
     // Use either nominal or real pixel height to define font's logical height
@@ -372,7 +373,14 @@ int get_font_surface_height_outlined(int font_number)
     return get_font_height_with_outline(font_number, true /* use surface height */);
 }
 
-std::pair<int, int> get_font_surface_extent(int font_number)
+int get_font_surface_hextent(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return 0;
+    return fonts[font_number].Metrics.HExtent;
+}
+
+std::pair<int, int> get_font_surface_vextent(int font_number)
 {
     if (!assert_font_number(font_number))
         return std::make_pair(0, 0);

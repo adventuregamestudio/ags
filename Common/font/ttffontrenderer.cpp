@@ -114,7 +114,9 @@ static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
 {
     metrics->NominalHeight = alfont_get_font_height(alfptr);
     metrics->RealHeight = alfont_get_font_real_height(alfptr);
-    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
+    metrics->CompatHeight = metrics->NominalHeight; // just set to default here;
+    metrics->HExtent = 0;
+    alfont_get_font_bbox(alfptr, &metrics->HExtent, nullptr, nullptr, nullptr);
     alfont_get_font_real_vextent(alfptr, &metrics->VExtent.first, &metrics->VExtent.second);
     // fixup vextent to be *not less* than realheight
     metrics->VExtent.first = std::min(0, metrics->VExtent.first);

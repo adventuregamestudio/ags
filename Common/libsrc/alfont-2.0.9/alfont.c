@@ -533,10 +533,14 @@ int alfont_get_font_real_height(ALFONT_FONT *f) {
 }
 
 ALFONT_DLL_DECLSPEC void alfont_get_font_bbox(ALFONT_FONT *f, int *left, int *top, int *right, int *bottom) {
-  *left = f->face_bbox.xmin;
-  *right = f->face_bbox.xmax;
-  *top = f->face_bbox.ymax;
-  *bottom = f->face_bbox.ymin;
+  if (left)
+    *left = f->face_bbox.xmin;
+  if (right)
+    *right = f->face_bbox.xmax;
+  if (top)
+    *top = f->face_bbox.ymax;
+  if (bottom)
+    *bottom = f->face_bbox.ymin;
 }
 
 ALFONT_DLL_DECLSPEC void alfont_get_charcode_range(ALFONT_FONT *f, int *first_charcode, int *last_charcode, int *num_charcodes) {

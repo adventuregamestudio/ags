@@ -864,7 +864,7 @@ Line CalcFontGraphicalVExtent(int font)
     // * font's real graphical extent (top and bottom offsets relative to the "pen")
     // * custom vertical offset set by user (if non-zero),
     const auto finfo = get_fontinfo(font);
-    const auto fextent = get_font_surface_extent(font);
+    const auto fextent = get_font_surface_vextent(font);
     int top = fextent.first +
         std::min(0, finfo.YOffset); // apply YOffset only if negative
     int bottom = fextent.second +

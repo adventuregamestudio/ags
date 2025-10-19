@@ -410,7 +410,14 @@ int get_font_surface_height_outlined(int font_number)
     return get_font_height_with_outline(font_number, true /* use surface height */);
 }
 
-std::pair<int, int> get_font_surface_extent(int font_number)
+std::pair<int, int> get_font_surface_hextent(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return std::make_pair(0, 0);
+    return std::make_pair(fonts[font_number].Metrics.BBox.Left, fonts[font_number].Metrics.BBox.Right);
+}
+
+std::pair<int, int> get_font_surface_vextent(int font_number)
 {
     if (!assert_font_number(font_number))
         return std::make_pair(0, 0);

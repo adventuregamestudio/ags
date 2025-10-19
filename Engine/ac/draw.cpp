@@ -2414,7 +2414,7 @@ void draw_fps(const Rect &viewport)
     char loop_buffer[128];
     snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u Time %.2f", loopcounter, time_ms * 0.001f);
 
-    int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
+    int text_off = get_font_surface_vextent(font).first; // TODO: a generic function that accounts for this?
     wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
     wouttext_outline(fpsDisplay.get(), viewport.GetWidth() / 2, 1 - text_off, font, text_color, loop_buffer);
 

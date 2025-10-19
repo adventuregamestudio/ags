@@ -449,6 +449,14 @@ int get_text_lines_height(int font_number, size_t numlines)
         get_font_height_with_outline(font_number);
 }
 
+int get_text_lines_surf_height(size_t font_number, size_t numlines)
+{
+    if (!assert_font_number(font_number) || numlines == 0)
+        return 0;
+    return fonts[font_number].LineSpacingCalc * (numlines - 1) +
+        get_font_height_with_outline(font_number, true /* surf height */);
+}
+
 namespace AGS { namespace Common { SplitLines Lines; } }
 
 // Replaces AGS-specific linebreak tags with common '\n'

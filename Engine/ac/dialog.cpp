@@ -834,6 +834,13 @@ int DialogOptions::CalcOptionsHeight(int padding)
     //   to ensure that the text is not going to be cut off visually.
     int needheight = 0;
     int total_lines = 0;
+
+    // Unfortunately, there was a logical mistake in 3.6.0->3.6.1 range,
+    // where the engine always used full graphical font extent when calculating overlay's height.
+    // This hack here is strictly for visual backwards compatibility with games made in these versions.
+    const bool use_font_surface_height =
+        (loaded_game_file_version >= kGameVersion_360) && (loaded_game_file_version < kGameVersion_362);
+
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
@@ -844,12 +851,14 @@ int DialogOptions::CalcOptionsHeight(int padding)
     needheight = linespacing * (total_lines - 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]) * (numdisp - 1);
     if (parserInput)
     {
-        needheight += linespacing + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+        needheight += use_font_surface_height ? get_text_lines_surf_height(usingfont, 1) : linespacing
+            + data_to_game_coord(game.options[OPT_DIALOGGAP]);
         needheight += parserInput->GetHeight() + data_to_game_coord(game.options[OPT_DIALOGGAP]);
     }
     else
     {
-        needheight += get_text_lines_height(usingfont, 1) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+        needheight += use_font_surface_height ? get_text_lines_surf_height(usingfont, 1) : get_text_lines_height(usingfont, 1)
+            + data_to_game_coord(game.options[OPT_DIALOGGAP]);
     }
     return needheight;
 }

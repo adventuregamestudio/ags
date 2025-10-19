@@ -85,8 +85,13 @@ void set_font_linespacing(int font_number, int spacing);
 int  get_font_outline(int font_number);
 // Get font's *automatic* outline thickness setting (if set)
 int  get_font_outline_thickness(int font_number);
-// Gets the total maximal height of the given number of lines printed with the given font
+// Gets the total maximal height of the given number of lines printed with the given font;
+// note this accounts for the font's setting which may either tell to use nominal
+// or real graphical height of a font.
 int get_text_lines_height(int font_number, size_t numlines);
+// Gets the height of a graphic surface enough to accomodate this number of text lines;
+// note this accounts always for the real pixel font height
+int get_text_lines_surf_height(size_t font_number, size_t numlines);
 // Set font's outline type
 void set_font_outline(int font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);

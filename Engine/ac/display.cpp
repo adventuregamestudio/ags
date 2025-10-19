@@ -177,11 +177,18 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     const int paddingScaled = get_fixed_pixel_size(padding);
     // Just in case screen size does is not neatly divisible by 320x200
     const int paddingDoubledScaled = get_fixed_pixel_size(padding * 2);
+    // Unfortunately, there was a logical mistake in 3.6.0->3.6.1 range,
+    // where the engine always used full graphical font extent when calculating overlay's height.
+    // This hack here is strictly for visual backwards compatibility with games made in these versions.
+    const bool use_font_surface_height =
+        (loaded_game_file_version >= kGameVersion_360) && (loaded_game_file_version < kGameVersion_362);
 
     break_up_text_into_lines(text, Lines, wii - 2 * padding, usingfont);
     DisplayVars disp(
         get_font_linespacing(usingfont),
-        get_text_lines_height(usingfont, Lines.Count()));
+        use_font_surface_height ?
+            get_text_lines_surf_height(usingfont, Lines.Count()) :
+            get_text_lines_height(usingfont, Lines.Count()));
 
     if (topbar)
     {

@@ -858,6 +858,12 @@ String FixupGUIName272(const String &name)
     return name;
 }
 
+int CalcFontGraphicalHExtent(int font)
+{
+    const auto hextent = get_font_surface_hextent(font);
+    return hextent.first >= 0 ? 0 : hextent.first;
+}
+
 Line CalcFontGraphicalVExtent(int font)
 {
     // Following factors are affecting the graphical vertical metrics:
@@ -893,8 +899,9 @@ Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAli
     Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
     if (gr_rect)
     {
+        int h_ext = CalcFontGraphicalHExtent(font);
         Line vextent = CalcFontGraphicalVExtent(font);
-        *gr_rect = RectWH(rc.Left, rc.Top + vextent.Y1, rc.GetWidth(), vextent.Y2 - vextent.Y1 + 1);
+        *gr_rect = RectWH(rc.Left + h_ext, rc.Top + vextent.Y1, rc.GetWidth() + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
     }
     return rc.GetLT();
 }
@@ -910,8 +917,9 @@ Rect CalcTextGraphicalRect(const String &text, int font, const Point &at)
 {
     // Calc only width, and let CalcFontGraphicalVExtent() calc height
     int w = get_text_width_outlined(text.GetCStr(), font);
+    int h_ext = CalcFontGraphicalHExtent(font);
     Line vextent = CalcFontGraphicalVExtent(font);
-    return RectWH(at.X, at.Y + vextent.Y1, w, vextent.Y2 - vextent.Y1 + 1);
+    return RectWH(at.X + h_ext, at.Y + vextent.Y1, w + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
 }
 
 Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align)
@@ -946,8 +954,9 @@ Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, i
     }
     // Include font fixes for the first and last text line,
     // in case graphical height is different, and there's a VerticalOffset
+    int h_ext = CalcFontGraphicalHExtent(font);
     Line vextent = GUI::CalcFontGraphicalVExtent(font);
-    Rect text_rc = RectWH(0, vextent.Y1, max_line.X2 - max_line.X1 + 1,
+    Rect text_rc = RectWH(h_ext, vextent.Y1, max_line.X2 - max_line.X1 + 1 + (-h_ext) * 2,
         at_y - linespace + (vextent.Y2 - vextent.Y1 + 1));
     return text_rc;
 }

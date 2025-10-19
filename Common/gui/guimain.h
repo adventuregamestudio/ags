@@ -452,6 +452,8 @@ namespace GUI
     // if drawn aligned to the given frame
     Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace, 
         const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
+    // Returns max potential negative offset position of a font's glyphs.
+    int CalcFontGraphicalHExtent(int font);
     // Calculates a vertical graphical extent for a given font,
     // which is a top and bottom offsets in zero-based coordinates.
     // NOTE: this applies font size fixups.

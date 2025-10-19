@@ -33,5 +33,6 @@ namespace AGS.Editor
         public const string Rooms = "Rooms";
         public const string DebugLog = "DebugLog";
         public const string StatisticsSender = "StatisticsSender";
+        public const string CustomProperties = "CustomProperties";
     }
 }

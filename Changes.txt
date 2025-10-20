@@ -43,7 +43,7 @@ Engine:
  - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
  - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
  - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
-   character does not have any items (regression in 3.6.2).
+   character does not have any items.
  - Fixed engine overwriting existing translations when duplicate keys are found in the translation
    file (it should keep the first met translation instead).
  - Fixed engine to not try to translate empty lines. There was a rare error when the translation

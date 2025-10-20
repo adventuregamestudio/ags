@@ -12,6 +12,10 @@ Compiler:
    character literals).
 
 Engine:
+ - Do not enable "infinite FPS mode" if game script calls SetGameSpeed with a value 1000 or higher.
+   The problem is that the script API does not have any means to turn this mode off, so game
+   will be stuck in "maxed FPS". The remaining method is Ctrl+E hotkey used to toggle
+   "infinite FPS" if the game is run with "--fps" command line argument.
  - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
    message box instead and log a warning.
  - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
@@ -22,6 +26,7 @@ Engine:
    any ScriptName assigned.
  - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
    to a value > 127.
+ - Fixed Character.FaceDirection() and similar commands not resetting idle state.
  - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
    glitches, but could cause extra performance issues).
  - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
@@ -55,6 +60,10 @@ Compatibility:
  - Disable smooth walk transition in pre-3.6.1 games, as apparently this breaks logic in some of
    them where precise walking coordinates and/or timing is required by scripts.
  - Fixed misaligned text centering on buttons in pre-3.6.0 games.
+
+Plugins:
+ - Fixed a crash in AGSBlend plugin, occuring if DrawSprite function was called with transparency
+   parameter = 100 (fully transparent).
 
 WinSetup:
  - If any of the cache sizes in config is set to a value not present in the option lists,

@@ -61,6 +61,12 @@ int System_GetColorDepth() {
     return scsystem.coldepth;
 }
 
+int System_GetFPS()
+{
+    float fps = get_real_fps();
+    return std::isnan(fps) ? -1 : static_cast<int>(std::round(fps));
+}
+
 int System_GetOS() {
     return scsystem.os;
 }
@@ -384,6 +390,11 @@ RuntimeScriptValue Sc_System_GetColorDepth(const RuntimeScriptValue *params, int
     API_SCALL_INT(System_GetColorDepth);
 }
 
+RuntimeScriptValue Sc_System_GetFPS(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetFPS);
+}
+
 // int ()
 RuntimeScriptValue Sc_System_GetGamma(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -563,6 +574,7 @@ void RegisterSystemAPI()
         { "System::geti_AudioChannels",       API_FN_PAIR(System_GetAudioChannels) },
         { "System::get_CapsLock",             API_FN_PAIR(System_GetCapsLock) },
         { "System::get_ColorDepth",           API_FN_PAIR(System_GetColorDepth) },
+        { "System::get_FPS",                  API_FN_PAIR(System_GetFPS) },
         { "System::get_Gamma",                API_FN_PAIR(System_GetGamma) },
         { "System::set_Gamma",                API_FN_PAIR(System_SetGamma) },
         { "System::get_HardwareAcceleration", API_FN_PAIR(System_GetHardwareAcceleration) },

@@ -841,6 +841,16 @@ int Game_GetNormalFont() {
     return play.normal_font;
 }
 
+int Game_GetSpeed()
+{
+    return GetGameSpeed();
+}
+
+void Game_SetSpeed(int speed)
+{
+    SetGameSpeed(speed);
+}
+
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
     GetTranslationName(buffer); // fills up to MAX_MAXSTRLEN
@@ -2003,6 +2013,16 @@ RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT(SetSpeechFont);
 }
 
+RuntimeScriptValue Sc_Game_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetSpeed);
+}
+
+RuntimeScriptValue Sc_Game_SetSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetSpeed);
+}
+
 // int (int spriteNum)
 RuntimeScriptValue Sc_Game_GetSpriteWidth(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2216,6 +2236,8 @@ void RegisterGameAPI()
         { "Game::get_SpeechFont",                         API_FN_PAIR(Game_GetSpeechFont) },
         { "Game::set_SpeechFont",                         API_FN_PAIR(SetSpeechFont) },
         { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
+        { "Game::get_Speed",                              API_FN_PAIR(Game_GetSpeed) },
+        { "Game::set_Speed",                              API_FN_PAIR(Game_SetSpeed) },
         { "Game::geti_SpriteWidth",                       API_FN_PAIR(Game_GetSpriteWidth) },
         { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
         { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },

@@ -532,19 +532,18 @@ void SetRestartPoint() {
 
 
 
-void SetGameSpeed(int newspd) {
+void SetGameSpeed(int newspd)
+{
     game.options[OPT_GAMEFPS] = newspd; // save for the reference
-    newspd += play.game_speed_modifier;
-    if (newspd>1000) newspd=1000;
-    if (newspd<10) newspd=10;
-    set_game_speed(newspd);
-    debug_script_log("Game speed set to %d", newspd);
+    int fix_spd = newspd + play.game_speed_modifier;
+    fix_spd = Math::Clamp(fix_spd, 10, 1000);
+    set_game_speed(fix_spd);
+    debug_script_log("Game speed set to %d (requested %d)", fix_spd, newspd);
 }
 
-int GetGameSpeed() {
-    // TODO: consider return strictly logical game fps;
-    // need to investigate what would be consequence of this in "infinite FPS" mode
-    return ::lround(get_game_fps()) - play.game_speed_modifier;
+int GetGameSpeed()
+{
+    return game.options[OPT_GAMEFPS];
 }
 
 int SetGameOption (int opt, int newval) {

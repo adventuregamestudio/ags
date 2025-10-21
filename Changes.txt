@@ -22,6 +22,8 @@ Script API:
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
    they have their own special handling for RMB).
+ - Add eUndefinedFont constant that may be used in certain font properties as a indication that
+   they are not initialized, and engine should go for a default fallback value instead.
  - Added GameInfo struct that contains meta-information about the game, such as developer's name,
    developer's URL, version, and so forth.
  - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
@@ -30,13 +32,17 @@ Script API:
    OptionsMinGUIWidth, OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor,
    OptionTextAlignment, OptionsZOrder.
    Most of these are replacing previously existing old-style variables in "game" struct and
-   OPT_* options. OptionsGUIX/Y, OptionTextAlignment and OptionsZOrder are completely new features.
+   OPT_* options. OptionsFont, OptionsGUIX/Y, OptionTextAlignment and OptionsZOrder are completely
+   new features. OptionsFont is initialized as eUndefinedFont, meaning that if it's not set,
+   then dialogs should use Game.NormalFont.
  - Added Dialog.OptionsOverlay that lets access a overlay object which represents dialog options
    on screen (only returns overlay when the options are displayed).
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
    (turned off, turned off forever) is disregarded in this case.
+ - Added Game.Speed property. Get/SetGameSpeed function is deprecated.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
+ - Added System.FPS that lets read current real fps.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
    LeftGraphic, RightGraphic, and so forth.
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
@@ -66,6 +72,9 @@ Compatibility:
  - Allow a non-closed label macro (such as "@overhotspot") in pre-3.5.1 games.
  - In pre-2.62 games Wait(0) should be treated as Wait(1).
  - Don't do infinite loop check in scripts in pre-2.56 games.
+ - In pre-3.6.1 games with custom dialog options rendering force options redraw each time a 
+   mouse was moved (regardless of user script update instruction) to complement for a change
+   in engine's behavior.
  - Implemented a stub for AudioChannel.SetRoomLocation() variant with 3 parameters, needed for
    the "Nefasto's Misadventures" game which used a custom engine.
  - Implemented an accidental return value for FaceCharacter() and FaceLocation() functions that
@@ -76,6 +85,7 @@ Compatibility:
  - Fixed room object sorting order for the games made between 3.3.0 and 3.4.0 editors. They have
    had a mistake which unfortunately affected how objects with the identical baseline will be
    sorted among themselves.
+ - Fixed textual overlay heights in 3.6.0-3.6.1 games which fonts have incorrectly reported sizes.
 
 WinSetup:
  - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.

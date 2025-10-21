@@ -103,6 +103,10 @@ Editor:
 Engine:
  - Returned "Linear" filter for Software renderer. It was temporarily cut during development of
    version 3.6.0, but we forgot to bring it back.
+ - Do not enable "infinite FPS mode" if game script calls SetGameSpeed with a value 1000 or higher.
+   The problem is that the script API does not have any means to turn this mode off, so game
+   will be stuck in "maxed FPS". The remaining method is Ctrl+E hotkey used to toggle
+   "infinite FPS" if the game is run with "--fps" command line argument.
  - Do not apply disabled effect on a Button which runs a blocking animation. Also do not hide
    its parent GUI if game options tells that GUIs should be hidden when the interface is disabled.
  - Changes to the current room's masks will now be remembered in game saves.
@@ -115,8 +119,11 @@ Engine:
    as these functions are meant to test a file existence.
  - Fixed engine's general misbehavior occuring if any Character, GUI or AudioClip does not have
    any ScriptName assigned.
+ - Fixed "Box Out" room transition not using a color set with SetFadeColor() when running with
+   a Software renderer (this behavior was implemented in 3.6.2).
  - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
    to a value > 127.
+ - Fixed Character.FaceDirection() and similar commands not resetting idle state.
  - Fixed Character.WalkStraight for games with legacy "low-res" coordinates setting.
  - Fixed severe performance drop when dialog options are displayed (regression in 3.6.2).
  - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
@@ -130,6 +137,10 @@ Engine:
    running with a Software renderer).
  - Fixed that disabled Buttons may not have their looks updated if GUI disabled style was changed
    in script ("OPT_WHENGUIDISABLED").
+ - Fixed wrong text color used for a speech with "Sierra with background" style when no GUI is
+   assigned as a text window and speech is displayed in a standard box.
+ - Fixed automatic font outline could miss some pixels around the first and last letter of the
+   text string if the font's glyphs contain pixels with negative offsets.
  - Fixed Overlays with the matching z-order not always sorted in the order of their creation
    (regression in 3.6.2).
  - Fixed SeekMIDIPosition() and GetMIDIPosition() crashing the game if a "silent MIDI" is playing.
@@ -153,6 +164,10 @@ Compatibility:
    name to play instead. This is made to let game authors or players of old games to convert wmv/avi
    video assets to ogv without recompiling game scripts.
  - Fixed loading games made by v2.56 editor which contain custom properties.
+
+Plugins:
+ - Fixed a crash in AGSBlend plugin, occuring if DrawSprite function was called with transparency
+   parameter = 100 (fully transparent).
 
 
 VERSION 3.6.2 - Patch 3, September 2025
@@ -525,6 +540,7 @@ Engine:
    modules, a single active dialog script, and a single active room script).
  - Engine no longer quits with error in case a script function assigned to a Room event is missing.
    Logs warnings about missing script functions assigned to any events.
+ - "Box Out" room transition now uses color set with SetFadeColor().
  - Character.FollowCharacter() can now have a distance parameter up to 32766 (was limited to 255).
  - Ensure that Character.Speaking returns true when a speech is playing even if the character
    has no speech view.
@@ -624,6 +640,10 @@ Compiler:
    character literals).
 
 Engine:
+ - Do not enable "infinite FPS mode" if game script calls SetGameSpeed with a value 1000 or higher.
+   The problem is that the script API does not have any means to turn this mode off, so game
+   will be stuck in "maxed FPS". The remaining method is Ctrl+E hotkey used to toggle
+   "infinite FPS" if the game is run with "--fps" command line argument.
  - Do not quit with error if a wrong GUI type is assigned as a "TextWindow GUI", display default
    message box instead and log a warning.
  - Do not quit if failed to run PlaySilentMIDI(), log a warning instead.
@@ -634,6 +654,7 @@ Engine:
    any ScriptName assigned.
  - Fixed room background animation running too fast if the BackgroundAnimationDelay was set
    to a value > 127.
+ - Fixed Character.FaceDirection() and similar commands not resetting idle state.
  - Fixed dialog options were rendering twice per game frame (this did not cause any graphical
    glitches, but could cause extra performance issues).
  - Fixed slightly broken slider's handle position for thin sliders with very small handle sprites.
@@ -650,7 +671,7 @@ Engine:
  - Fixed NumPad key presses doubling up when NumLock is on in a "old key-handling mode".
  - Fixed WaitInput() with infinite timeout suspending forever in a skipped cutscene.
  - Fixed mouse clicks could stop working after a call to a InventoryScreen() function, if player
-   character does not have any items (regression in 3.6.2).
+   character does not have any items.
  - Fixed engine overwriting existing translations when duplicate keys are found in the translation
    file (it should keep the first met translation instead).
  - Fixed engine to not try to translate empty lines. There was a rare error when the translation
@@ -667,6 +688,10 @@ Compatibility:
  - Disable smooth walk transition in pre-3.6.1 games, as apparently this breaks logic in some of
    them where precise walking coordinates and/or timing is required by scripts.
  - Fixed misaligned text centering on buttons in pre-3.6.0 games.
+
+Plugins:
+ - Fixed a crash in AGSBlend plugin, occuring if DrawSprite function was called with transparency
+   parameter = 100 (fully transparent).
 
 WinSetup:
  - If any of the cache sizes in config is set to a value not present in the option lists,

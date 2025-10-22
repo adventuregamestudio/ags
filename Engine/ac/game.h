@@ -76,10 +76,10 @@ Common::GraphicFlip ValidateFlip(const char *apiname, int flip);
 
 // View, loop, frame parameter assertions.
 // WARNING: these functions assume that view is already in an internal 0-based range.
-void AssertView(const char *apiname, int view);
-void AssertViewHasLoops(const char *apiname, int view);
-void AssertLoop(const char *apiname, int view, int loop);
-void AssertFrame(const char *apiname, int view, int loop, int frame);
+void AssertView(const char *apiname, const char *objname, int view);
+void AssertViewHasLoops(const char *apiname, const char *objname, int view);
+void AssertLoop(const char *apiname, const char *objname, int view, int loop);
+void AssertFrame(const char *apiname, const char *objname, int view, int loop, int frame);
 
 int Game_GetInventoryItemCount();
 int Game_GetFontCount();

@@ -300,7 +300,7 @@ int Overlay_GetBlendMode(ScriptOverlay *scover)
 void Overlay_SetBlendMode(ScriptOverlay *scover, int blend_mode)
 {
     auto *over = GetOverlayValidate("Overlay.BlendMode", scover);
-    over->SetBlendMode(ValidateBlendMode("Overlay.BlendMode", blend_mode));
+    over->SetBlendMode(ValidateBlendMode("Overlay.BlendMode", "", blend_mode));
 }
 
 ScriptShaderInstance *Overlay_GetShader(ScriptOverlay *scover)

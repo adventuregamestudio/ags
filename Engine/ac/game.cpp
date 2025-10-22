@@ -653,60 +653,60 @@ GraphicFlip ValidateFlip(const char *apiname, int flip)
     return static_cast<GraphicFlip>(flip);
 }
 
-void AssertView(const char *apiname, int view)
+void AssertView(const char *apiname, const char *objname, int view)
 {
     // NOTE: we assume (here and below) that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
     if ((view < 0) || (view >= game.numviews))
-        quitprintf("!%s: invalid view %d (range is 1..%d)", apiname, view + 1, game.numviews);
+        quitprintf("!%s (%s): invalid view %d (range is 1..%d)", apiname, objname, view + 1, game.numviews);
 }
 
-void AssertViewHasLoops(const char *apiname, int view)
+void AssertViewHasLoops(const char *apiname, const char *objname, int view)
 {
-    AssertView(apiname, view);
+    AssertView(apiname, objname, view);
     if (views[view].numLoops == 0)
-        quitprintf("!%s: view %d does not have any loops.", apiname, view + 1);
+        quitprintf("!%s (%s): view %d does not have any loops.", apiname, objname, view + 1);
 }
 
-void AssertLoop(const char *apiname, int view, int loop)
+void AssertLoop(const char *apiname, const char *objname, int view, int loop)
 {
-    AssertViewHasLoops(apiname, view);
+    AssertViewHasLoops(apiname, objname, view);
     if ((loop < 0) || (loop >= views[view].numLoops))
-        quitprintf("!%s: invalid loop number %d for view %d (range is 0..%d).",
-            apiname, loop, view + 1, views[view].numLoops - 1);
+        quitprintf("!%s (%s): invalid loop number %d for view %d (range is 0..%d).",
+            apiname, objname, loop, view + 1, views[view].numLoops - 1);
 }
 
-void AssertFrame(const char *apiname, int view, int loop, int frame)
+void AssertFrame(const char *apiname, const char *objname, int view, int loop, int frame)
 {
-    AssertLoop(apiname, view, loop);
+    AssertLoop(apiname, objname, view, loop);
     if (views[view].loops[loop].numFrames == 0)
-        quitprintf("!%s: view %d loop %d does not have any frames", apiname, view + 1, loop);
+        quitprintf("!%s (%s): view %d loop %d does not have any frames", apiname, objname, view + 1, loop);
     if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
-        quitprintf("!%s: invalid frame number %d for view %d loop %d (range is 0..%d)",
-            apiname, frame, view + 1, loop, views[view].loops[loop].numFrames - 1);
+        quitprintf("!%s (%s): invalid frame number %d for view %d loop %d (range is 0..%d)",
+            apiname, objname, frame, view + 1, loop, views[view].loops[loop].numFrames - 1);
 }
 
 int Game_GetLoopCountForView(int view) {
     view--; // convert to 0-based
-    AssertView("Game.GetLoopCountForView", view);
+    AssertView("Game.GetLoopCountForView", "", view);
     return views[view].numLoops;
 }
 
 int Game_GetRunNextSettingForLoop(int view, int loop) {
     view--; // convert to 0-based
-    AssertLoop("Game.GetRunNextSettingForLoop", view, loop);
+    AssertLoop("Game.GetRunNextSettingForLoop", "", view, loop);
     return (views[view].loops[loop].RunNextLoop()) ? 1 : 0;
 }
 
 int Game_GetFrameCountForLoop(int view, int loop) {
     view--; // convert to 0-based
-    AssertLoop("Game.GetFrameCountForLoop", view, loop);
+    AssertLoop("Game.GetFrameCountForLoop", "", view, loop);
     return views[view].loops[loop].numFrames;
 }
 
 ScriptViewFrame* Game_GetViewFrame(int view, int loop, int frame) {
     view--; // convert to 0-based
-    AssertFrame("Game.GetViewFrame", view, loop, frame);
+    AssertFrame("Game.GetViewFrame", "", view, loop, frame);
     ScriptViewFrame *sdt = new ScriptViewFrame(view, loop, frame);
     ccRegisterManagedObject(sdt, sdt);
     return sdt;

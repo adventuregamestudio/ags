@@ -294,7 +294,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (!is_valid_object(obn))
         quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
     viw--;
-    AssertViewHasLoops("SetObjectFrame", viw);
+    AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obn].ScriptName.GetCStr(), viw);
 
     auto &obj = objs[obn];
     // Fixup invalid loop & frame numbers by using default 0 value
@@ -395,12 +395,13 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
         quit("!AnimateObject: invalid object number specified");
 
     RoomObject &obj = objs[obn];
+    const RoomObjectInfo &obji = thisroom.Objects[obn];
 
     if (obj.view == RoomObject::NoView)
         quit("!AnimateObject: object has not been assigned a view");
 
-    ValidateViewAnimVLF("Object.Animate", obj.view, loopn, sframe);
-    ValidateViewAnimParams("Object.Animate", blocking, rept, direction);
+    ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), obj.view, loopn, sframe);
+    ValidateViewAnimParams("Object.Animate", obji.ScriptName.GetCStr(), blocking, rept, direction);
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {
@@ -693,8 +694,9 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
     int speed, int blocking, int ignwal,
     int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
-    ValidateMoveParams(api_name, blocking, ignwal);
-    ValidateAnimParams(api_name, repeat, direction);
+    const RoomObjectInfo &obji = thisroom.Objects[objj->id];
+    ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
+    ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
 
     if (use_path)
     {
@@ -847,7 +849,7 @@ int Object_GetBlendMode(ScriptObject *objj) {
 }
 
 void Object_SetBlendMode(ScriptObject *objj, int blend_mode) {
-    objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", blend_mode);
+    objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", thisroom.Objects[objj->id].ScriptName.GetCStr(), blend_mode);
 }
 
 ScriptShaderInstance *Object_GetShader(ScriptObject *objj)
@@ -1141,17 +1143,17 @@ int check_click_on_object(int roomx, int roomy, int mood)
     return 1;
 }
 
-BlendMode ValidateBlendMode(const char *apiname, int blend_mode)
+BlendMode ValidateBlendMode(const char *apiname, const char *objname, int blend_mode)
 {
     if ((blend_mode < 0) || (blend_mode >= kNumBlendModes))
     {
-        debug_script_warn("!%s: invalid blend mode %d, supported modes are %d - %d", apiname, blend_mode, 0, kNumBlendModes - 1);
+        debug_script_warn("!%s (%s): invalid blend mode %d, supported modes are %d - %d", apiname, objname, blend_mode, 0, kNumBlendModes - 1);
         return kBlend_Normal;
     }
     return static_cast<BlendMode>(blend_mode);
 }
 
-void ValidateAnimParams(const char *apiname, int &repeat, int &direction)
+void ValidateAnimParams(const char *apiname, const char *objname, int &repeat, int &direction)
 {
     if (direction == FORWARDS)
         direction = kAnimDirForward;
@@ -1160,17 +1162,17 @@ void ValidateAnimParams(const char *apiname, int &repeat, int &direction)
 
     if ((repeat < kAnimFlow_First) || (repeat > kAnimFlow_Last))
     {
-        debug_script_warn("%s: invalid 'repeat' value %d, will treat as ONCE (0).", apiname, repeat);
+        debug_script_warn("%s (%s): invalid 'repeat' value %d, will treat as ONCE (0).", apiname, objname, repeat);
         repeat = kAnimFlow_Once;
     }
     if ((direction < kAnimDirForward) || (direction > kAnimDirBackward))
     {
-        debug_script_warn("%s: invalid 'direction' value %d, will treat as FORWARDS (0)", apiname, direction);
+        debug_script_warn("%s (%s): invalid 'direction' value %d, will treat as FORWARDS (0)", apiname, objname, direction);
         direction = kAnimDirForward;
     }
 }
 
-void ValidateViewAnimParams(const char *apiname, int &blocking, int &repeat, int &direction)
+void ValidateViewAnimParams(const char *apiname, const char *objname, int &blocking, int &repeat, int &direction)
 {
     if (blocking == BLOCKING)
         blocking = 1;
@@ -1179,25 +1181,25 @@ void ValidateViewAnimParams(const char *apiname, int &blocking, int &repeat, int
 
     if ((blocking < 0) || (blocking > 1))
     {
-        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
+        debug_script_warn("%s (%s): invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, objname, blocking);
         blocking = 1;
     }
 
-    ValidateAnimParams(apiname, repeat, direction);
+    ValidateAnimParams(apiname, objname, repeat, direction);
 }
 
-void ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe)
+void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int loop, int &sframe)
 {
     // NOTE: we assume that the view is already in an internal 0-based range.
     // but when printing an error we will use (view + 1) for compliance with the script API.
-    AssertLoop(apiname, view, loop);
+    AssertLoop(apiname, objname, view, loop);
 
     if (views[view].loops[loop].numFrames < 1)
-        debug_script_warn("%s: view %d loop %d does not have any frames, will use a frame placeholder.",
-            apiname, view + 1, loop);
+        debug_script_warn("%s (%s): view %d loop %d does not have any frames, will use a frame placeholder.",
+            apiname, objname, view + 1, loop);
     else if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
-        debug_script_warn("%s: invalid starting frame number %d for view %d loop %d (range is 0..%d)",
-            apiname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
+        debug_script_warn("%s (%s): invalid starting frame number %d for view %d loop %d (range is 0..%d)",
+            apiname, objname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
     // NOTE: there's always frame 0 allocated for safety
     sframe = std::max(0, std::min(sframe, views[view].loops[loop].numFrames - 1));
 }
@@ -1351,7 +1353,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, AnimFlowParams
     return !is_done; // have we finished animating?
 }
 
-void ValidateMoveParams(const char *apiname, int &blocking, int &ignwal)
+void ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal)
 {
     if (blocking == BLOCKING)
         blocking = 1;
@@ -1365,12 +1367,12 @@ void ValidateMoveParams(const char *apiname, int &blocking, int &ignwal)
 
     if ((blocking < 0) || (blocking > 1))
     {
-        debug_script_warn("%s: invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, blocking);
+        debug_script_warn("%s (%s): invalid 'blocking' value %d, will treat as BLOCKING (1)", apiname, objname, blocking);
         blocking = 1;
     }
     if ((ignwal < 0) || (ignwal > 1))
     {
-        debug_script_warn("%s: invalid 'walk where' value %d, will treat as ANYWHERE (1)", apiname, ignwal);
+        debug_script_warn("%s (%s): invalid 'walk where' value %d, will treat as ANYWHERE (1)", apiname, objname, ignwal);
         ignwal = 1;
     }
 }

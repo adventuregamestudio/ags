@@ -52,8 +52,8 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     int objn = butt->GetID();
 
     view--; // convert to internal 0-based view ID
-    ValidateViewAnimVLF("Button.Animate", view, loop, sframe);
-    ValidateViewAnimParams("Button.Animate", blocking, repeat, direction);
+    ValidateViewAnimVLF("Button.Animate", butt->GetName().GetCStr(), view, loop, sframe);
+    ValidateViewAnimParams("Button.Animate", butt->GetName().GetCStr(), blocking, repeat, direction);
 
     volume = Math::Clamp(volume, 0, 100);
 

@@ -257,7 +257,7 @@ int GUIControl_GetBlendMode(GUIControl *guio) {
 }
 
 void GUIControl_SetBlendMode(GUIControl *guio, int blend_mode) {
-    guio->SetBlendMode(ValidateBlendMode("GUIControl.BlendMode", blend_mode));
+    guio->SetBlendMode(ValidateBlendMode("GUIControl.BlendMode", guio->GetName().GetCStr(), blend_mode));
 }
 
 int GUIControl_GetProperty(GUIControl *guio, const char *property)

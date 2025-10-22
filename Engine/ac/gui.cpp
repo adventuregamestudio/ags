@@ -478,7 +478,7 @@ int GUI_GetBlendMode(ScriptGUI *gui) {
 }
 
 void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
-    guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", blend_mode));
+    guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", guis[gui->id].GetName().GetCStr(), blend_mode));
 }
 
 ScriptShaderInstance *GUI_GetShader(ScriptGUI *gui)

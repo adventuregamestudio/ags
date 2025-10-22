@@ -142,7 +142,7 @@ ScriptMotionPath *MotionPath_Create(void *path_arr, float speedx, float speedy, 
         return nullptr;
     }
 
-    ValidateAnimParams("MotionPath.Create", repeat, direction);
+    ValidateAnimParams("MotionPath.Create", "", repeat, direction);
 
     MoveList mlist;
     Pathfinding::CalculateMoveList(mlist, path, speedx, speedy, 0u,
@@ -176,7 +176,7 @@ ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *spe
         return nullptr;
     }
 
-    ValidateAnimParams("MotionPath.Create", repeat, direction);
+    ValidateAnimParams("MotionPath.Create", "", repeat, direction);
 
     std::vector<Pointf> speeds;
     for (size_t i = 0; i < speedxs.size() && i < speedys.size(); ++i)

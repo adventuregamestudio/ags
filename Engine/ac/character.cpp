@@ -219,8 +219,8 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
     // do this prior to the loop check, as the view may switch back to defview here
     stop_character_idling(chaa);
 
-    ValidateViewAnimVLF("Character.Animate", chaa->view, loop, sframe);
-    ValidateViewAnimParams("Character.Animate", blocking, repeat, direction);
+    ValidateViewAnimVLF("Character.Animate", chaa->scrname.GetCStr(), chaa->view, loop, sframe);
+    ValidateViewAnimParams("Character.Animate", chaa->scrname.GetCStr(), blocking, repeat, direction);
 
     animate_character(chaa, loop, delay, repeat, direction, sframe, volume);
 
@@ -685,8 +685,8 @@ void Character_LockView(CharacterInfo *chap, int vii) {
 
 void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     vii--; // convert to 0-based
-    AssertView("SetCharacterView", vii);
-    AssertViewHasLoops("SetCharacterView", vii);
+    AssertView("SetCharacterView", chap->scrname.GetCStr(), vii);
+    AssertViewHasLoops("SetCharacterView", chap->scrname.GetCStr(), vii);
 
     stop_character_idling(chap);
     if (stopMoving != KEEP_MOVING)
@@ -713,7 +713,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
 
     Character_LockViewEx(chap, vii, stopMoving);
 
-    AssertLoop("Character.LockViewAligned", chap->view, loop);
+    AssertLoop("Character.LockViewAligned", chap->scrname.GetCStr(), chap->view, loop);
 
     chap->loop = loop;
     chap->frame = 0;
@@ -736,7 +736,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
 
 void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
     Character_LockViewEx(chaa, view, stopMoving);
-    AssertFrame("Character.LockViewFrame", view - 1, loop, frame);
+    AssertFrame("Character.LockViewFrame", chaa->scrname.GetCStr(), view - 1, loop, frame);
     chaa->loop = loop;
     chaa->frame = frame;
 }
@@ -1146,8 +1146,8 @@ static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
     if (!ValidateCharForMove(chaa, api_name))
         return;
 
-    ValidateMoveParams(api_name, blocking, ignwal);
-    ValidateAnimParams(api_name, repeat, direction);
+    ValidateMoveParams(api_name, chaa->scrname.GetCStr(), blocking, ignwal);
+    ValidateAnimParams(api_name, chaa->scrname.GetCStr(), repeat, direction);
 
     if (use_path)
     {
@@ -1539,7 +1539,7 @@ int Character_GetLoop(CharacterInfo *chaa) {
 }
 
 void Character_SetLoop(CharacterInfo *chaa, int newval) {
-    AssertLoop("Character.Loop", chaa->view, newval);
+    AssertLoop("Character.Loop", chaa->scrname.GetCStr(), chaa->view, newval);
 
     chaa->loop = newval;
     if (chaa->frame >= views[chaa->view].loops[chaa->loop].numFrames)
@@ -1783,7 +1783,7 @@ int Character_GetBlendMode(CharacterInfo *chaa) {
 }
 
 void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
-    charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", blend_mode);
+    charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", chaa->scrname.GetCStr(), blend_mode);
 }
 
 ScriptShaderInstance *Character_GetShader(CharacterInfo *chaa)

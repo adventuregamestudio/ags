@@ -1244,11 +1244,6 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= GUIController_OnPropertyObjectChanged;
         }
 
-        private bool DoesThisPanelHaveFocus()
-        {
-            return this.ActiveControl != null && this.ActiveControl.Focused;
-        }
-
         protected override bool HandleKeyPress(Keys keyData)
         {
             if (!DoesThisPanelHaveFocus())

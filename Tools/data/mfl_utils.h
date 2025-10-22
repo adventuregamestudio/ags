@@ -14,7 +14,7 @@
 #ifndef __AGS_TOOL_DATA__MFLUTIL_H
 #define __AGS_TOOL_DATA__MFLUTIL_H
 
-#include <regex>
+#include <functional>
 #include "core/asset.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
@@ -33,12 +33,12 @@ namespace DataUtil
     // Exports assets from the library by reading its parts and writing assets into files.
     // lib_dir - tells the directory where the library parts are located.
     // The output files will be written into dst_dir directory.
-    // asset_patterns is an optional list of regex patterns used to filter assets;
-    // passing null would export all available assets.
     // If the asset name contains directories, they will be created as sub-
     // directories inside dst_dir.
+    HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
+    // Same as above, but allows to pass a functor used to filter assets.
     HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
-                         const std::vector<std::regex> *asset_patterns = nullptr);
+        const std::function<bool(const String&)> &asset_filter);
     // Gather a list of files from a given directory as a vector of strings
     HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
     // Prepare list of assets from a list of filenames

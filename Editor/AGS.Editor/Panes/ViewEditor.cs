@@ -472,32 +472,42 @@ namespace AGS.Editor
 			viewPreview.ViewUpdated();
         }
 
-        protected override void OnKeyPressed(Keys keyData)
+        protected override bool HandleKeyPress(Keys keyData)
         {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
             if (keyData == Keys.Delete)
             {
                 DeleteSelectedFrames();
+                return true;
             }
-			else if (keyData == Keys.F)
-			{
+            else if (keyData == Keys.F)
+            {
                 FlipSelectedFrames();
-			}
+                return true;
+            }
             else if (keyData == Keys.R)
             {
                 ReverseSelectedFrames();
+                return true;
             }
             else if (keyData == (Keys.Control | Keys.C))
             {
                 CopySelectedFrames();
+                return true;
             }
             else if (keyData == (Keys.Control | Keys.X))
             {
                 CutSelectedFrames();
+                return true;
             }
             else if (keyData == (Keys.Control | Keys.V))
             {
                 PasteFramesIntoSelectedLoop();
+                return true;
             }
+            return false;
         }
 
 		private void UpdateWhetherPreviewIsShown()

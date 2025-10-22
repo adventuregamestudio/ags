@@ -84,7 +84,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to read the room design-time preferences. This SHOULD NOT affect the actual game data, but the design-time state of all room items will be reset." + Environment.NewLine + Environment.NewLine + "The error was: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to read the room design-time preferences. This SHOULD NOT affect the actual game data, but the design-time state of all room items will be reset.", ex, MessageBoxIcon.Warning);
             }
         }
 

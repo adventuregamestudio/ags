@@ -456,7 +456,7 @@ HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType 
     return video_single_run(flicname, video_flags, state_flags, skip);
 }
 
-HError play_theora_video(const char *name, int video_flags, int state_flags, VideoSkipType skip)
+HError play_theora_video(const String &name, int video_flags, int state_flags, VideoSkipType skip)
 {
     return video_single_run(name, video_flags, state_flags, skip);
 }
@@ -753,7 +753,7 @@ void video_shutdown()
     gl_VideoObjects.clear();
 }
 
-#else
+#else // AGS_NO_VIDEO_PLAYER
 
 //-----------------------------------------------------------------------------
 // Stubs for the video support
@@ -761,7 +761,7 @@ void video_shutdown()
 
 using namespace AGS::Common;
 
-HError play_theora_video(const char *, int, int, AGS::Engine::VideoSkipType)
+HError play_theora_video(const AGS::Common::String &name, int, int, AGS::Engine::VideoSkipType)
 {
     return new Error("Video playback is not supported in this engine build.");
 }
@@ -790,4 +790,4 @@ bool VideoControl::NextFrame() { return false; }
 uint32_t VideoControl::SeekFrame(uint32_t) { return -1; }
 float VideoControl::SeekMs(float) { return -1.f; }
 
-#endif
+#endif // AGS_NO_VIDEO_PLAYER

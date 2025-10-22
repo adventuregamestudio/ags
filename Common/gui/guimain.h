@@ -16,6 +16,7 @@
 
 #include <vector>
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
+#include "ac/game_version.h"
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
 #include "gui/guidefines.h"
 #include "gui/guibutton.h"
@@ -249,8 +250,14 @@ struct GuiOptions
 {
     // Clip GUI control's contents to the control's rectangle
     bool ClipControls = true;
-    // How the GUI controls are drawn when the interface is disabled
+    // How the GUI controls are drawn when the interface is disabled.
+    // This parameter is normally checked only when the *individual* gui control
+    // is disabled on its own, and we need to know which visual effect to use.
+    // If you need to check the global interface disabled state,
+    // then refer to GuiContext::DisabledState instead.
     GuiDisableStyle DisabledStyle = kGuiDis_Unchanged;
+    // Whether draw disabled effect over inventory windows
+    bool GreyOutInvWindow = false;
     // Whether to graphically outline GUI controls
     bool OutlineControls = false;
 };
@@ -267,8 +274,16 @@ public:
     bool SoftwareRender = false;
     // Sprite cache, for GUI drawing in software mode
     SpriteCache *Spriteset = nullptr;
-    // Current disabled state
+    // Current disabled state.
+    // Disabled state is set whenever the interface gets disabled, copying value from
+    // the Disabled style. If it's set to anything but "undefined" - that means that
+    // the interface is globally disabled now.
     GuiDisableStyle DisabledState = kGuiDis_Undefined;
+    // Optional index of GUI and control excluded from applying a disabled effect.
+    // This is currently used for the blocking Button Animation, because hiding
+    // or greying out gui control that animates defeats the purpose of animating.
+    int GuiExcludedFromDisabled = -1;
+    int GuiControlExcludedFromDisabled = -1;
     // Resolved macro values for the label:
     // A title of the game
     String GameTitle;
@@ -288,14 +303,86 @@ namespace GUI
     // These are still global objects for now, but in the future it will be
     // optimal to have these as an object allocated on heap, and passed to
     // GUI functions as a pointer.
+    // GameDataVersion is commonly used to make backwards compatibility switches
+    // in the game logic.
+    extern GameDataVersion DataVersion;
+    // GuiVersion has a limited use, mostly referenced when reading gui data;
+    // so maybe this should not be exposed here at all.
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
     extern GuiContext Context;
 
-    // Tells if the given control is considered enabled, taking global flag into account
-    inline bool IsGUIEnabled(GUIControl *g)
+    // Tells if the game interface is currently in disabled state
+    inline bool IsEnabledState()
     {
-        return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
+        return GUI::Context.DisabledState == kGuiDis_Undefined;
+    }
+
+    // Tells if the GUI should be drawn, taking global disabled interface state into account
+    inline bool IsGUIVisible(const GUIMain *g)
+    {
+        return g->IsDisplayed() && 
+            // If GUI is excluded from the disabled interface, then don't check the disabled state
+            ((GUI::Context.GuiExcludedFromDisabled == g->GetID()) ||
+            // If GUI is in a disabled state, which tells to hide guis, and current gui
+            // does not have a "persistent" property, then it should not be visible
+            !((GUI::Context.DisabledState == kGuiDis_Off) && (g->GetPopupStyle() != kGUIPopupNoAutoRemove)));
+    }
+
+    // Tells if the gui control should be excluded from the disabled state check
+    inline bool IsExcludedFromDisabled(const GUIControl *g)
+    {
+        return (g->GetID() == GUI::Context.GuiControlExcludedFromDisabled) &&
+            (g->GetParentID() == GUI::Context.GuiExcludedFromDisabled);
+    }
+
+    // Tells if the gui control is considered enabled, taking global disabled interface state into account
+    inline bool IsGUIEnabled(const GUIObject *g)
+    {
+        return g->IsEnabled() && (GUI::Context.DisabledState == kGuiDis_Undefined);
+    }
+
+    // Tells if the gui control is considered visible, taking global disabled interface state into account
+    inline bool IsGUIVisible(const GUIControl *g)
+    {
+        return g->IsVisible() &&
+            // If control is excluded from the disabled interface, then don't check the disabled state
+            (IsExcludedFromDisabled(g) ||
+            // Control is also not shown if...
+            // If interface is globally disabled and all controls should be hidden
+            !(GUI::Context.DisabledState == kGuiDis_Blackout) &&
+            // If control is individually disabled AND controls should be hidden when disabled
+            !(!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)));
+    }
+
+    // Tells if the gui control should be drawn with disabled effect
+    inline bool ShouldDrawDisabled(const GUIControl *g)
+    {
+        return 
+            // If control is excluded from the disabled interface, then don't check the disabled state
+            !IsExcludedFromDisabled(g) &&
+            // If either whole interface is disabled with "grey out" style,
+            // or this control is individually disabled, and "grey out" style is set
+            ((GUI::Context.DisabledState == kGuiDis_Greyout) ||
+            (!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Greyout)));
+    }
+
+    // Tells if the inventory window should be drawn with disabled effect;
+    // this is a special handling for inventory window, which has its own setting in the engine
+    inline bool ShouldDrawDisabled(const GUIInvWindow *inv)
+    {
+        // If either whole interface is disabled with "grey out" style,
+        // or this control is individually disabled, and "grey out" style is set.
+        // Inventory windows have a separate global option that tells if they should be greyed out
+        return (GUI::Options.GreyOutInvWindow) &&
+            ShouldDrawDisabled(static_cast<const GUIControl*>(inv));
+    }
+
+    // Tells if the child gui controls should not be drawn, because of the disabled state
+    inline bool ShouldSkipControls(const GUIMain *g)
+    {
+        return (g->GetID() != GUI::Context.GuiExcludedFromDisabled) &&
+            (GUI::Context.DisabledState == kGuiDis_Blackout);
     }
 
     // Gets a default hardcoded color value for the given index.
@@ -329,6 +416,8 @@ namespace GUI
     // if drawn aligned to the given frame
     Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace, 
         const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
+    // Returns max potential negative offset position of a font's glyphs.
+    int CalcFontGraphicalHExtent(int font);
     // Calculates a vertical graphical extent for a given font,
     // which is a top and bottom offsets in zero-based coordinates.
     // NOTE: this applies font size fixups.
@@ -365,6 +454,10 @@ namespace GUI
 
     // Rebuilds GUIs, connecting them to the child controls in memory.
     HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
+
+    // Exclude the given gui control from disabled state. This means that it will not
+    // be applied any "disabled" effect, nor will its parent GUI (if it matters).
+    void SetExcludedFromDisabled(GUIControl *gc, bool on);
 }
 
 } // namespace Common

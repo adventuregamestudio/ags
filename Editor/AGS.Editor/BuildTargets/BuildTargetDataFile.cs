@@ -19,9 +19,9 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
-        public override void DeleteMainGameData(string name)
+        public override void DeleteMainGameData(string name, CompileMessages errors)
         {
-            DeleteCommonGameFiles(OutputDirectoryFullPath, name);
+            DeleteCommonGameFiles(OutputDirectoryFullPath, name, errors);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace AGS.Editor
             {
                 errors.Add(new CompileError(errorMsg));
             }
-            Utilities.TryDeleteFile(AGSEditor.COMPILED_DTA_FILE_NAME);
+            Utilities.ExecuteOrWarn(() => { Utilities.TryDeleteFile(AGSEditor.COMPILED_DTA_FILE_NAME); }, $"Failed to delete a temporary file {AGSEditor.COMPILED_DTA_FILE_NAME}", errors);
             CreateAudioVOXFile(forceRebuild);
             // Update config file with current game parameters
             GenerateConfigFile(GetCompiledPath());

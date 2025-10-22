@@ -91,9 +91,9 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
-    std::unique_ptr<Bitmap> image(create_textual_image(draw_text,
+    std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
         DisplayTextLooks(kDisplayTextStyle_TextWindow, text_pos, allow_shrink),
-        text_color, dummy_x, dummy_y, adj_x, adj_y, width, fontid, nullptr));
+        text_color, dummy_x, dummy_y, adj_x, adj_y, width, fontid, nullptr);
 
     // Update overlay properties
     over.SetImage(std::move(image), adj_x - dummy_x, adj_y - dummy_y);
@@ -571,6 +571,7 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
     over.MarkChanged();
     screenover[type] = std::move(over);
     play.overlay_count++;
+    add_drawobj_for_overlay(type);
     return type;
 }
 

@@ -57,23 +57,30 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     int const  stencil_cd = alpha_blend ? 32 : ds_cd;
 
     const int t_width = get_text_width(text, font);
-    const auto t_extent = get_font_surface_extent(font);
-    const int t_height = t_extent.second - t_extent.first + 1;
+    // Horizontal extent lets us know if any glyphs have negative horizontal offset
+    const auto t_extent_hor = get_font_surface_hextent(font);
+    const auto t_extent_ver = get_font_surface_vextent(font);
+    const int t_height = t_extent_ver.second - t_extent_ver.first + 1;
     if (t_width == 0 || t_height == 0)
         return;
     // Prepare stencils
-    const int t_yoff = t_extent.first;
+    const int t_xoff = (t_extent_hor.first < 0 ? t_extent_hor.first : 0);
+    const int t_yoff = t_extent_ver.first;
     Bitmap *texx_stencil, *outline_stencil;
     alloc_font_outline_buffers(font, &texx_stencil, &outline_stencil,
-                               t_width, t_height, stencil_cd);
+                               t_width + (-t_xoff) * 2, t_height, stencil_cd);
     texx_stencil->ClearTransparent();
     outline_stencil->ClearTransparent();
     // Ready text stencil
-    // Note we are drawing with y off, in case some font's glyphs exceed font's ascender
-    wouttextxy(texx_stencil, 0, -t_yoff, font, color, blend_mode, text);
+    // Note we are drawing with x off, in case some glyphs have negative offsets
+    // and appear further to the left (we create stencil with extra space in that case);
+    // and y off, in case some font's glyphs exceed font's ascender
+    // NOTE: t_xoff here will only fix the outline, but this won't resolve e.g. parts
+    // of leftmost glyph positioned outside of a gui control or an overlay.
+    wouttextxy(texx_stencil, -t_xoff, -t_yoff, font, color, blend_mode, text);
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
-    void(Bitmap:: * pfn_drawstencil)(const Bitmap * src, int dst_x, int dst_y);
+    void(Bitmap::*pfn_drawstencil)(const Bitmap * src, int dst_x, int dst_y);
     if (alpha_blend)
     { // NOTE: we must set out blender AFTER wouttextxy, or it will be overidden
         SetBlender(blend_mode, 0xFF);
@@ -84,8 +91,9 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
         pfn_drawstencil = &Bitmap::MaskedBlit;
     }
 
-    // move start of text so that the outline doesn't drop off the bitmap
-    x += thickness;
+    // move start of text so that the outline doesn't drop off the bitmap;
+    // move by glyph offset in case the stencil was drawn with offset
+    x += thickness + t_xoff;
     int const outline_y = y + t_yoff;
     y += thickness;
 
@@ -116,6 +124,8 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
         if (x_diff > 0)
             (ds->*pfn_drawstencil)(outline_stencil, x + x_diff, outline_y);
     }
+
+    x -= t_xoff; // remove glyph offset from the final text position (keep std text pos)
 }
 
 void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color, BlendMode blend_mode, const char *text)

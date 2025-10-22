@@ -53,6 +53,11 @@
 #define LEGACY_ANIM_REPEAT      1
 #define LEGACY_ANIM_ONCERESET   2
 
+// A value of a font property that tells that the property is not set;
+// this is handled on a per-case basis by the engine, replacing by
+// the default value (depends on a situation). If nothing else, has the
+// same effect as a FONT_NULL.
+#define FONT_UNDEFINED (-2)
 // An identifier of a "null font", a pseudo font used when you don't want a text to be drawn
 #define FONT_NULL (-1)
 

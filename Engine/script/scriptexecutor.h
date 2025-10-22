@@ -208,6 +208,8 @@ private:
     void    OpenExecLog();
     // Closes execution log
     void    CloseExecLog();
+    // Writes a arbitrary line of text into the log
+    void    WriteString(const String &text) const;
     // Formats instruction into string output
     void    DumpInstruction(const ScriptOperation &op) const;
 #endif

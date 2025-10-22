@@ -344,7 +344,7 @@ namespace AGS.Editor
             }
             catch (Exception e)
             {
-                Factory.GUIController.ShowMessage("The recreation of a sprite file was interrupted by error.\nNO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
+                Factory.GUIController.ShowError("The recreation of a sprite file was interrupted by error.\nNO CHANGES were applied to your game.", e, MessageBoxIcon.Error);
                 return;
             }
 
@@ -840,6 +840,7 @@ namespace AGS.Editor
         private void AppendFontsToHeader(StringBuilder sb, IList<AGS.Types.Font> fonts)
         {
             sb.AppendLine("enum FontType {");
+            sb.Append("  eUndefinedFont = -2,");
             sb.Append("  eNullFont = -1");
             foreach (AGS.Types.Font font in fonts)
             {

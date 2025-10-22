@@ -24,26 +24,6 @@ using namespace AGS::DataUtil;
 namespace AGSPak
 {
 
-// Filters the list of valid file paths using a list of regex patterns;
-// returns the filtered result.
-static std::vector<String> FilterFileList(const std::vector<String> &files, const std::vector<std::regex> &patterns)
-{
-    std::vector<String> filtered_files;
-    for (const auto &full_filepath : files)
-    {
-        String fn_only = Path::GetFilename(full_filepath);
-        for (const auto &p : patterns)
-        {
-            if (std::regex_match(fn_only.GetCStr(), p))
-            {
-                filtered_files.push_back(full_filepath);
-                break;
-            }
-        }
-    }
-    return filtered_files;
-}
-
 static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 {
     auto in = File::OpenFileRead(pak_file);
@@ -57,7 +37,7 @@ static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 }
 
 
-int Command_Create(const String &src_dir, const String &dst_pak, const std::vector<std::regex> &pattern_list,
+int Command_Create(const String &src_dir, const String &dst_pak, const std::vector<String> &pattern_list,
                    const String &pattern_file, bool do_subdirs, size_t part_size_mb, bool verbose)
 {
     printf("Input directory: %s\n", src_dir.GetCStr());
@@ -90,14 +70,22 @@ int Command_Create(const String &src_dir, const String &dst_pak, const std::vect
     // Apply the explicit file list, if provided
     if (!pattern_list.empty())
     {
-        files = std::move(FilterFileList(files, pattern_list));
+        std::vector<String> output_files;
+        err = MatchPatternPaths(files, output_files, pattern_list);
+        if (!err)
+        {
+            printf("Error: failed to filter files:\n");
+            printf("%s\n", err->FullMessage().GetCStr());
+            return -1;
+        }
+        files = std::move(output_files);
     }
 
     // Apply the include/exclude pattern file as a filter
     if (has_pattern_file)
     {
         std::vector<String> output_files;
-        err = IncludeFiles(files, output_files, asset_dir, pattern_file, verbose);
+        err = IncludeFiles(files, output_files, Path::ConcatPaths(asset_dir, pattern_file), verbose);
         if (!err)
         {
             printf("Error: failed to processes %s file:\n", pattern_file.GetCStr());
@@ -147,7 +135,7 @@ int Command_Create(const String &src_dir, const String &dst_pak, const std::vect
     return 0;
 }
 
-int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<std::regex> &pattern_list)
+int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list)
 {
     printf("Input pack file: %s\n", src_pak.GetCStr());
     printf("Output directory: %s\n", dst_dir.GetCStr());
@@ -184,9 +172,22 @@ int Command_Export(const String &src_pak, const String &dst_dir, const std::vect
     // saved in lib; e.g. if the lib was attached to *.exe.
     lib.LibFileNames[0] = lib_basefile;
     if (pattern_list.empty())
+    {
         err = ExportFromLibrary(lib, lib_dir, dst_dir);
+    }
     else
-        err = ExportFromLibrary(lib, lib_dir, dst_dir, &pattern_list);
+    {
+        std::vector<Pattern> patterns;
+        HError err = CreatePatternList(pattern_list, patterns);
+        if (!err)
+        {
+            printf("Error: failed to filter files:\n");
+            printf("%s\n", err->FullMessage().GetCStr());
+            return -1;
+        }
+        err = ExportFromLibrary(lib, lib_dir, dst_dir, PatternMatch(patterns));
+    }
+
     if (!err)
     {
         printf("Failed unpacking the library\n%s", err->FullMessage().GetCStr());

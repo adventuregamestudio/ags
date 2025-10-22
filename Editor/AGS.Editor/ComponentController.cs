@@ -60,9 +60,9 @@ namespace AGS.Editor
                 catch(Exception e)
                 {
                     // TODO: write into the Editor's log or something?
-                    GUIController.Instance.ShowMessage(
-                        string.Format("Editor component {0} was shut down with an exception.\n\n{1}",
-                        component.ComponentID, e.Message), MessageBoxIconType.Warning);
+                    GUIController.Instance.ShowError(
+                        string.Format($"Editor component {component.ComponentID} was shut down with an exception.",
+                        e, MessageBoxIconType.Warning));
                 }
 			}
 		}

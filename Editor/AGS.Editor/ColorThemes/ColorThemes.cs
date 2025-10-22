@@ -71,10 +71,10 @@ namespace AGS.Editor
             }
             catch (Exception e)
             {
-                Factory.GUIController.ShowMessage(
+                Factory.GUIController.ShowError(
                     $"Something went wrong when loading color theme {Current.Name}. The editor " +
                     $"will set the color them back to the default them and continue as normal. " +
-                    $"See stack trace for more details.\n\n{e}",
+                    $"See stack trace for more details.", e,
                     MessageBoxIcon.Warning);
                 Current = ColorThemeStub.DEFAULT;
             }
@@ -90,11 +90,11 @@ namespace AGS.Editor
                 }
                 catch (Exception e)
                 {
-                    Factory.GUIController.ShowMessage(
+                    Factory.GUIController.ShowError(
                         $"Something went wrong when trying to apply color theme {Current}. " +
                         $"The editor will set the color theme back to the default theme and continue " +
                         $"as normal, however it may not look right until the next time you restart " +
-                        $"the editor. See stack trace for more details.\n\n{e}",
+                        $"the editor. See stack trace for more details.", e,
                         MessageBoxIcon.Warning);
                     Current = ColorThemeStub.DEFAULT;
                 }
@@ -111,8 +111,8 @@ namespace AGS.Editor
             }
             catch (Exception e)
             {
-                Factory.GUIController.ShowMessage(
-                    $"Something went wrong importing the color theme, see stack trace for more details.\n\n{e}",
+                Factory.GUIController.ShowError(
+                    $"Something went wrong importing the color theme, see stack trace for more details.", e,
                     MessageBoxIcon.Error);
             }
         }

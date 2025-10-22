@@ -292,7 +292,7 @@ HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     if (room->BgFrameCount > MAX_ROOM_BGFRAMES)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many room backgrounds (in room: %d, max: %d).", room->BgFrameCount, MAX_ROOM_BGFRAMES));
 
-    room->BgAnimSpeed = in->ReadInt8();
+    room->BgAnimSpeed = static_cast<uint8_t>(in->ReadInt8());
     for (size_t i = 0; i < room->BgFrameCount; ++i)
         room->BgFrames[i].IsPaletteShared = in->ReadInt8() != 0;
 

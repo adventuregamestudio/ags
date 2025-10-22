@@ -196,6 +196,10 @@ struct ObjTexture
 // if active sprite / texture should be reconstructed
 struct ObjectCache
 {
+#if (AGS_PLATFORM_DEBUG)
+    String tag;
+#endif
+
     std::unique_ptr<Bitmap> image;
     bool  in_use = false; // CHECKME: possibly may be removed
     int   sppic = 0;
@@ -685,6 +689,10 @@ void init_game_drawdata()
     charcache.resize(game.numcharacters);
     for (size_t i = 0; i < (size_t)MAX_ROOM_OBJECTS; ++i)
         objcache[i] = ObjectCache();
+#if (AGS_PLATFORM_DEBUG)
+    for (auto &ch : game.chars)
+        charcache[ch.index_id].tag.Format("CHAR%d:%s", ch.index_id, ch.scrname);
+#endif
 
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
@@ -882,6 +890,11 @@ void init_room_drawdata()
         // Make sure camera frame buffers are created for software drawing
         for (int i = 0; i < view_count; ++i)
             sync_roomview(play.GetRoomViewport(i).get());
+
+#if (AGS_PLATFORM_DEBUG)
+    for (size_t i = 0; i < (size_t)thisroom.Objects.size(); ++i)
+        objcache[i].tag.Format("OBJ%d:%s", (int)i, thisroom.Objects[i].ScriptName.GetCStr());
+#endif
     }
 }
 
@@ -980,6 +993,22 @@ void mark_object_changed(int objid)
 void reset_drawobj_dynamic_index()
 {
     drawstate.NextDrawIndex = drawstate.FixedDrawIndexBase;
+}
+
+void add_drawobj_for_overlay(int objnum)
+{
+    if (objnum > 0)
+    {
+        if (static_cast<uint32_t>(objnum) >= overtxs.size())
+        {
+            overtxs.resize(static_cast<uint32_t>(objnum) + 1);
+            if (drawstate.SoftwareRender)
+                overcache.resize(static_cast<uint32_t>(objnum) + 1, Point(INT32_MIN, INT32_MIN));
+        }
+
+        overtxs[objnum].DrawIndex = drawstate.NextDrawIndex;
+        drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
+    }
 }
 
 void reset_drawobj_for_overlay(int objnum)
@@ -2069,6 +2098,9 @@ void prepare_and_add_object_gfx(
     if ((actsp.Ddb == nullptr) || (actsp_modified))
     {
         sync_object_texture(actsp);
+#if (AGS_PLATFORM_DEBUG)
+        actsp.Ddb->SetTag(objsav.tag);
+#endif
     }
 
     // Now when we have a ready texture, assign texture properties
@@ -2256,6 +2288,9 @@ void prepare_characters_for_drawing()
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
             chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
+#if (AGS_PLATFORM_DEBUG)
+        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname));
+#endif
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
@@ -2437,6 +2472,10 @@ void dispose_engine_overlay()
 
 void draw_fps(const Rect &viewport)
 {
+    // We may be at preload pic display, where nor game updates neither re-renders are run.
+    if (!is_runtime_set())
+        return;
+
     const int font = FONT_NORMAL;
     auto &fpsDisplay = gl_DrawFPS.bmp;
     if (fpsDisplay == nullptr || gl_DrawFPS.font != font)
@@ -2459,22 +2498,21 @@ void draw_fps(const Rect &viewport)
 
     char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
-    float fps = get_real_fps();
-    float time = 0.f;
+    const float fps = get_real_fps();
+    const uint32_t time_ms = get_runtime_ms();
     const uint32_t loopcounter = get_loop_counter();
     if (!std::isnan(fps))
     {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
-        time = loopcounter / fps;
     }
     else
     {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: --.- / %s", base_buffer);
     }
     char loop_buffer[128];
-    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u Time %.2f", loopcounter, time);
+    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u Time %.2f", loopcounter, time_ms * 0.001f);
 
-    int text_off = get_font_surface_extent(font).first; // TODO: a generic function that accounts for this?
+    int text_off = get_font_surface_vextent(font).first; // TODO: a generic function that accounts for this?
     wouttext_outline(fpsDisplay.get(), 1, 1 - text_off, font, text_color, fps_buffer);
     wouttext_outline(fpsDisplay.get(), viewport.GetWidth() / 2, 1 - text_off, font, text_color, loop_buffer);
 
@@ -2487,16 +2525,15 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(GUIMain &gui)
 {
-    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if (GUI::ShouldSkipControls(&gui))
         return; // don't draw GUI controls
 
     int draw_index = guiobjddbref[gui.GetID()];
     for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
     {
         GUIControl *obj = gui.GetControl(i);
-        if (!obj->IsVisible() ||
-            (obj->GetSize().IsNull()) ||
-            (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+        if (!GUI::IsGUIVisible(obj) || // not visible, or hidden by disabled state
+            (obj->GetSize().IsNull()))
             continue;
         if (!obj->HasChanged())
             continue;
@@ -2526,7 +2563,7 @@ static void draw_gui_controls_batch(int gui_id)
     gfxDriver->DrawSprite(0, 0, gui_bg);
 
     // Don't draw child controls at all if disabled with kGuiDis_Blackout style
-    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if (GUI::ShouldSkipControls(&gui))
     {
         gfxDriver->EndSpriteBatch();
         return;
@@ -2537,10 +2574,10 @@ static void draw_gui_controls_batch(int gui_id)
     for (const auto &obj_id : gui.GetControlsDrawOrder())
     {
         GUIControl *obj = gui.GetControl(obj_id);
-        if (!obj->IsVisible() ||
-            (obj->GetSize().IsNull()) ||
-            (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+        if (!GUI::IsGUIVisible(obj) || // not visible, or hidden by disabled state
+            (obj->GetSize().IsNull()))
             continue;
+
         const auto &obj_tx = guiobjbg[draw_index + obj_id];
         auto *obj_ddb = obj_tx.Ddb;
         assert(obj_ddb); // Test for missing texture, might happen if not marked for update
@@ -2585,6 +2622,8 @@ void draw_gui_and_overlays()
     // Add GUIs
     set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
+        GUI::Options.GreyOutInvWindow = play.inventory_greys_out;
+
         set_our_eip(37);
         // Prepare and update GUI textures
         {
@@ -2641,15 +2680,10 @@ void draw_gui_and_overlays()
                         }
                     }
 
-                    IDriverDependantBitmap *&ddb = guibg[index].Ddb;
-                    if (ddb != nullptr)
-                    {
-                        gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final);
-                    }
-                    else
-                    {
-                        ddb = gfxDriver->CreateDDBFromBitmap(guibg_final);
-                    }
+                    sync_object_texture(gbg);
+#if (AGS_PLATFORM_DEBUG)
+                    gbg.Ddb->SetTag(String::FromFormat("GUI%d:%s", gui.GetID(), gui.GetName().GetCStr()));
+#endif
                 }
                 
                 set_our_eip(373);
@@ -2668,14 +2702,11 @@ void draw_gui_and_overlays()
         for (int index = 0; index < game.numgui; ++index)
         {
             GUIMain &gui = guis[index];
-            if (!gui.IsDisplayed()) continue; // not on screen
-            if (gui.GetTransparency() == 255) continue; // 100% transparent
-
-            // Don't draw GUI if "GUIs Turn Off When Disabled"
-            if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-                (GUI::Context.DisabledState >= 0) &&
-                (gui.GetPopupStyle() != kGUIPopupNoAutoRemove))
+            // Don't draw GUI if it's not on, or it's a "GUIs Turn Off When Disabled" state
+            if (!GUI::IsGUIVisible(&gui))
                 continue;
+            if (gui.GetTransparency() == 255)
+                continue; // 100% transparent
 
             auto *gui_ddb = guibg[index].Ddb;
             assert(gui_ddb); // Test for missing texture, might happen if not marked for update
@@ -2921,12 +2952,6 @@ static void construct_overlays()
         if (over.GetTransparency() == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
-        if (overtxs[i].DrawIndex == 0u)
-        {
-            overtxs[i].DrawIndex = drawstate.NextDrawIndex;
-            drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
-        }
-
         bool has_changed = over.HasChanged();
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
@@ -2969,6 +2994,9 @@ static void construct_overlays()
             }
 
             sync_object_texture(overtx);
+#if (AGS_PLATFORM_DEBUG)
+            overtx.Ddb->SetTag(String::FromFormat("OVER%d", over.GetID()));
+#endif
             over.ClearChanged();
         }
 
@@ -3209,6 +3237,10 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // TODO: find out if it's okay to move shake to update function
     update_shakescreen();
 
+    // Disable spritecache's auto disposal for the duration of render;
+    // this prevents sprites getting deleted while they are part of the draw lists.
+    spriteset.EnableAutoFreeMem(false);
+
     gfxDriver->ClearDrawLists();
     construct_game_scene(false);
     set_our_eip(5);
@@ -3223,6 +3255,8 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     }
     construct_game_screen_overlay(!in_room_transition);
     render_to_screen();
+
+    spriteset.EnableAutoFreeMem(true);
 
     if (!play.screen_is_faded_out) {
         // always update the palette, regardless of whether the plugin

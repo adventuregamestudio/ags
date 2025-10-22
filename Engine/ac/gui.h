@@ -112,6 +112,9 @@ namespace GUIE
     // also marks buttons with inventory icon mode;
     // pass char_id = -1 to update all inventory windows at once.
     void MarkInventoryForUpdate(int char_id, bool is_player);
+    // Mark all *disabled* GUI controls for redraw;
+    // this function is used when the "disabled style" changes at runtime
+    void MarkDisabledGUIForUpdate();
 } // namespace GUIE
 } // namespace Engine
 } // namespace AGS

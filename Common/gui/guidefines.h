@@ -181,7 +181,7 @@ enum GuiDisableStyle
 {
     kGuiDis_Undefined = -1, // this is for marking not-disabled state
     kGuiDis_Greyout   = 0, // paint "gisabled" effect over controls
-    kGuiDis_Blackout  = 1, // invisible controls (but guis are shown
+    kGuiDis_Blackout  = 1, // invisible controls (but guis are shown)
     kGuiDis_Unchanged = 2, // no change, display normally
     kGuiDis_Off       = 3  // fully invisible guis
 };

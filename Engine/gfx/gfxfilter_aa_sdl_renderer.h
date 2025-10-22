@@ -12,22 +12,35 @@
 //
 //=============================================================================
 //
-// Game update timer control.
+// SDL software renderer Linear filter. Technically a non-op, as SDL_Renderer
+// does the job.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__TIMER_H
-#define __AGS_EE_AC__TIMER_H
+#ifndef __AGS_EE_GFX__SDLRENDERERAAFILTER_H
+#define __AGS_EE_GFX__SDLRENDERERAAFILTER_H
 
-#include "util/time_util.h"
+#include "gfx/gfxfilter_sdl_renderer.h"
 
-// Sleeps for time remaining until the next game frame, updates next frame timestamp
-extern void WaitForNextFrame();
+namespace AGS
+{
+namespace Engine
+{
+namespace ALSW
+{
 
-// Sets real FPS to the given number of frames per second
-extern int setTimerFps(int new_fps, bool max_fps_mode);
-// Tells whether maxed FPS mode is currently set
-extern bool isTimerFpsMaxed();
-// If more than N frames, just skip all, start a fresh.
-extern void skipMissedTicks();
+class SDLRendererAAGfxFilter : public SDLRendererGfxFilter
+{
+public:
+    const GfxFilterInfo &GetInfo() const override;
 
-#endif // __AGS_EE_AC__TIMER_H
+    SDL_ScaleMode GetScaleMode() const override;
+    void InitSDLHint() const override;
+
+    static const GfxFilterInfo FilterInfo;
+};
+
+} // namespace ALSW
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_GFX__SDLRENDERERAAFILTER_H

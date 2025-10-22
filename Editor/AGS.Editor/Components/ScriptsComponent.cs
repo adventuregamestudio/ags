@@ -251,7 +251,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("An error occurred trying to export the script module. The error details are below." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Warning);
+                _guiController.ShowError("An error occurred trying to export the script module.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -540,7 +540,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("An error occurred trying to import the script module. The error details are below." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Warning);
+                _guiController.ShowError("An error occurred trying to import the script module.", ex, MessageBoxIcon.Warning);
             }
         }
 

@@ -19,6 +19,7 @@
 #include "ac/sys_events.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_sdl_renderer.h"
+#include "gfx/gfxfilter_aa_sdl_renderer.h"
 #include "gfx/gfx_util.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
@@ -102,13 +103,11 @@ PGfxFilter SDLRendererGraphicsDriver::GetGraphicsFilter() const
 
 void SDLRendererGraphicsDriver::SetGraphicsFilter(PSDLRenderFilter filter)
 {
-  _filter = filter;
-  OnSetFilter();
-
-  // TODO: support separate nearest and linear filters, initialize hint by calls to filter object
-  // e.g like D3D and OGL filters act
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-  // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+    _filter = filter;
+    _filter->InitSDLHint();
+    if (_screenTex)
+        SDL_SetTextureScaleMode(_screenTex, _filter->GetScaleMode());
+    OnSetFilter();
 }
 
 bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
@@ -221,6 +220,8 @@ void SDLRendererGraphicsDriver::CreateVirtualScreen()
   _stageVirtualScreen = virtualScreen;
 
   _screenTex = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, vscreen_w, vscreen_h);
+  if (_filter)
+    SDL_SetTextureScaleMode(_screenTex, _filter->GetScaleMode());
 
   // Fake bitmap that will wrap over texture pixels for simplier conversion
   _fakeTexBitmap = create_bitmap_placeholder(32, vscreen_w, vscreen_h, nullptr);
@@ -857,7 +858,7 @@ SDLRendererGraphicsFactory::~SDLRendererGraphicsFactory()
 
 size_t SDLRendererGraphicsFactory::GetFilterCount() const
 {
-    return 1;
+    return 2;
 }
 
 const GfxFilterInfo *SDLRendererGraphicsFactory::GetFilterInfo(size_t index) const
@@ -866,6 +867,8 @@ const GfxFilterInfo *SDLRendererGraphicsFactory::GetFilterInfo(size_t index) con
     {
     case 0:
         return &SDLRendererGfxFilter::FilterInfo;
+    case 1:
+        return &SDLRendererAAGfxFilter::FilterInfo;
     default:
         return nullptr;
     }
@@ -894,6 +897,8 @@ SDLRendererGfxFilter *SDLRendererGraphicsFactory::CreateFilter(const String &id)
 {
     if (SDLRendererGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new SDLRendererGfxFilter();
+    if (SDLRendererAAGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new SDLRendererAAGfxFilter();
     return nullptr;
 }
 

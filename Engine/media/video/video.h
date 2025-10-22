@@ -95,7 +95,7 @@ enum VideoSkipType
 // Legacy Blocking video API
 //
 // Start a blocking OGV playback
-AGS::Common::HError play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_theora_video(const AGS::Common::String &name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
 // Start a blocking FLIC playback
 AGS::Common::HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
 // Pause the active blocking video

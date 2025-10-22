@@ -129,7 +129,7 @@ void set_debug_mode(bool on);
 void set_game_speed(int new_fps);
 // Gets strictly logical game FPS, regardless of whether this is real FPS right now or not.
 float get_game_speed();
-void setup_for_dialog();
+void setup_for_dialog(int use_font);
 void restore_after_dialog();
 Common::String get_save_game_directory();
 Common::String get_save_game_suffix();
@@ -143,13 +143,13 @@ bool get_save_slotnum(const Common::String &filename, int &slot);
 void restore_game_dialog();
 void restore_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in restore game dialog
-bool do_restore_game_dialog(int min_slot, int max_slot);
+bool do_restore_game_dialog(int min_slot, int max_slot, int use_font);
 // Try calling built-in save game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void save_game_dialog();
 void save_game_dialog2(int min_slot, int max_slot);
 // Unconditionally display a built-in save game dialog
-bool do_save_game_dialog(int min_slot, int max_slot);
+bool do_save_game_dialog(int min_slot, int max_slot, int use_font);
 void free_do_once_tokens();
 // Shuts down game's running state objects
 void shutdown_game_state();

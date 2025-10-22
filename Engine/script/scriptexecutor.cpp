@@ -60,7 +60,6 @@ static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<Sc
     return buffer;
 }
 
-
 // Size of stack in RuntimeScriptValues (aka distinct variables)
 #define CC_STACK_SIZE       256
 // Size of stack in bytes (raw data storage)
@@ -197,6 +196,8 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     if (ccGetOption(SCOPT_DEBUGRUN) != 0)
     {
         OpenExecLog();
+        WriteString(String::FromFormat("-------- [[ %s : %s ]] --------",
+            script->GetScriptName().GetCStr(), funcname.GetCStr()));
     }
 #endif
 
@@ -2057,13 +2058,8 @@ void ScriptExecutor::PopFromFuncCallStack(FunctionCallStack &func_callstack, int
 
 //-----------------------------------------------------------------------------
 //
-// Script execution debug dump.
-//
-// TODO: debug dump that we have now has a very bad performance,
-// and is mostly useless for games with big scripts, because it does not print
-// any information about the context (which script or function is run, etc).
-// It's ported from the older engine code without much change, only for the
-// reference. This needs some work to make it any useful with modern games.
+// Script execution debug log.
+// WARNING: quite verbose, and has a serious impact on the game's performance.
 //
 //-----------------------------------------------------------------------------
 
@@ -2078,7 +2074,21 @@ void ScriptExecutor::OpenExecLog()
 
 void ScriptExecutor::CloseExecLog()
 {
-    _execWriter = {};
+    if (_execWriter)
+    {
+        _execWriter->Flush();
+        _execWriter = {};
+    }
+}
+
+void ScriptExecutor::WriteString(const String &text) const
+{
+    assert(_execWriter);
+    if (_execWriter)
+    {
+        _execWriter->WriteString(text);
+        _execWriter->WriteLineBreak();
+    }
 }
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -2091,7 +2101,7 @@ void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
         return;
 
     // line_num local var should be shared between all the instances
-    static int line_num = 0; // FIXME
+    static int line_num = 0; // FIXME, don't use local static variable
 
     if (op.Instruction.Code == SCMD_LINENUM)
     {
@@ -2104,41 +2114,46 @@ void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
     const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
     _execWriter->WriteString(cmd_info.CmdName);
 
+    String value_buf;
     for (int i = 0; i < cmd_info.ArgCount; ++i)
     {
         if (i > 0)
         {
             _execWriter->WriteChar(',');
         }
+
+        RuntimeScriptValue arg = op.Args[i];
         if (cmd_info.ArgIsReg[i])
         {
             _execWriter->WriteFormat(" %s", regnames[op.Args[i].IValue]);
+            arg = _registers[arg.IValue];
         }
-        else
+
         {
-            RuntimeScriptValue arg = op.Args[i];
             if (arg.Type == kScValStackPtr || arg.Type == kScValGlobalVar)
             {
                 arg = *arg.RValue;
             }
-            switch(arg.Type) {
+
+            switch (arg.Type)
+            {
             case kScValInteger:
             case kScValPluginArg:
-                _execWriter->WriteFormat(" %d", arg.IValue);
+                value_buf.Format("%d", arg.IValue);
                 break;
             case kScValFloat:
-                _execWriter->WriteFormat(" %f", arg.FValue);
+                value_buf.Format("%f", arg.FValue);
                 break;
             case kScValStringLiteral:
-                _execWriter->WriteFormat(" \"%s\"", arg.Ptr);
+                value_buf.Format("\"%s\"", arg.Ptr);
                 break;
             case kScValStackPtr:
             case kScValGlobalVar:
-                _execWriter->WriteFormat(" %p", arg.RValue);
+                value_buf.Format("%p", arg.RValue);
                 break;
             case kScValData:
             case kScValCodePtr:
-                _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                value_buf.Format("%p", arg.GetPtrWithOffset());
                 break;
             case kScValStaticArray:
             case kScValScriptObject:
@@ -2151,20 +2166,26 @@ void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
                 String name = simp.FindName(arg);
                 if (!name.IsEmpty())
                 {
-                    _execWriter->WriteFormat(" &%s", name.GetCStr());
+                    value_buf.Format("&%s", name.GetCStr());
                 }
                 else
                 {
-                    _execWriter->WriteFormat(" %p", arg.GetPtrWithOffset());
+                    value_buf.Format("%p", arg.GetPtrWithOffset());
                 }
-             }
-                break;
+            }
+            break;
             case kScValUndefined:
-				_execWriter->WriteString("undefined");
+                value_buf.SetString("undefined");
                 break;
-             }
+            }
         }
+
+        if (cmd_info.ArgIsReg[i])
+            _execWriter->WriteFormat(" (%s)", value_buf.GetCStr());
+        else
+            _execWriter->WriteFormat(" %s", value_buf.GetCStr());
     }
+
     _execWriter->WriteLineBreak();
 }
 

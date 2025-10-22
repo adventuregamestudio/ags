@@ -40,7 +40,8 @@
 
 #include <stdarg.h>
 #include <vector>
-#include <string>
+#include <string> // for converting from and to std::string
+#include <string.h>
 #include "core/platform.h"
 #include "core/types.h"
 #include "debug/assert.h"
@@ -163,6 +164,14 @@ public:
     // Convenience aliases for Compare functions
     inline bool Equals(const String &str) const { return Compare(str) == 0; }
     inline bool Equals(const char *cstr) const { return Compare(cstr) == 0; }
+    inline bool SubstrEquals(const String &str, size_t from, size_t count = NoIndex) const
+                { return (str.GetLength() == count) && (CompareMid(str, from, count) == 0); }
+    inline bool SubstrEquals(const char *cstr, size_t from, size_t count = NoIndex) const
+                { return (strlen(cstr) == count) && (CompareMid(cstr, from, count) == 0); }
+    inline bool SubstrEqualsNoCase(const String &str, size_t from, size_t count = NoIndex) const
+                { return (str.GetLength() == count) && (CompareMidNoCase(str, from, count) == 0); }
+    inline bool SubstrEqualsNoCase(const char *cstr, size_t from, size_t count = NoIndex) const
+                { return (strlen(cstr) == count) && (CompareMidNoCase(cstr, from, count) == 0); }
     inline bool StartsWith(const String &str) const { return CompareLeft(str) == 0; }
     inline bool StartsWith(const char *cstr) const { return CompareLeft(cstr) == 0; }
     inline bool EndsWith(const String &str) const { return CompareRight(str) == 0; }

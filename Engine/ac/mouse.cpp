@@ -61,17 +61,23 @@ Bitmap *CursorGraphicState::GetImage() const
     return _genImage != nullptr ? _genImage.get() : spriteset[_sprnum];
 }
 
+void CursorGraphicState::ResetImage()
+{
+    _genImage.reset();
+    _sprnum = -1;
+}
+
 void CursorGraphicState::SetImage(std::unique_ptr<Common::Bitmap> pic)
 {
+    ResetImage();
     _genImage = std::move(pic);
-    _sprnum = -1;
     MarkChanged();
 }
 
 void CursorGraphicState::SetSpriteNum(int sprnum)
 {
+    ResetImage();
     _sprnum = sprnum;
-    _genImage.reset();
     MarkChanged();
 }
 

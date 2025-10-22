@@ -77,7 +77,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error exporting the file. The error message was: '" + ex.Message + "'. Please try again", System.Windows.Forms.MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error exporting the file.", ex, System.Windows.Forms.MessageBoxIcon.Warning);
             }
         }
 

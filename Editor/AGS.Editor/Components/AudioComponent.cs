@@ -469,7 +469,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("Failed to create audio clip from " + sourceFileName + " with message " + ex.Message + ".", MessageBoxIconType.Warning);
+                _guiController.ShowError("Failed to create audio clip from " + sourceFileName + ".", ex, MessageBoxIcon.Warning);
                 return null;
             }
             return newClip;
@@ -635,9 +635,9 @@ namespace AGS.Editor.Components
             }
             catch (Exception e)
             {
-                Factory.GUIController.ShowMessage(
-                    "The reimport of all audio clips was interrupted by error.\n\n" + e.Message,
-                    MessageBoxIconType.Error);
+                Factory.GUIController.ShowError(
+                    "The reimport of all audio clips was interrupted by error.", e,
+                    MessageBoxIcon.Error);
                 return;
             }
 
@@ -665,9 +665,9 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage(
-                     "Failed to Replace Audio Clip Source with error: " + ex.Message + ".",
-                    MessageBoxIconType.Error);
+                Factory.GUIController.ShowError(
+                     "Failed to replace audio clip source file.", ex,
+                    MessageBoxIcon.Error);
                 return;
             }
 

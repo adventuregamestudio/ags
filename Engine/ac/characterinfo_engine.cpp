@@ -191,6 +191,8 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 	return false;
 }
 
+extern void reset_character_idling_time(CharacterInfo *chi);
+
 void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
 {
     if (chi->is_moving() && (chi->room == displayed_room))
@@ -248,7 +250,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
       const int view = chi->view, loop = chi->loop;
       if (chi->walking < 1) {
         // Finished walking, stop and reset state
-        chex->process_idle_this_time = 1;
+        reset_character_idling_time(chi);
         doing_nothing=1;
         chi->walkwait=0;
         const bool was_walk_anim = chi->is_moving_walkanim();
@@ -353,7 +355,6 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
                     // one-off anim, stop
                     else {
                         Character_UnlockView(chi);
-                        chi->idleleft = chi->idletime;
                     }
                 }
             }

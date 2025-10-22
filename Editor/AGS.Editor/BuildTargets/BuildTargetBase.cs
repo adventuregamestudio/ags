@@ -21,7 +21,7 @@ namespace AGS.Editor
                     missingFile + "' is unavailable."));
                 return false;
             }
-            EnsureStandardSubfoldersExist();
+            EnsureStandardSubfoldersExist(errors);
             return true;
         }
 
@@ -53,7 +53,7 @@ namespace AGS.Editor
             return new List<string>(GetRequiredLibraryPaths().Keys).ToArray();
         }
 
-        public virtual void EnsureStandardSubfoldersExist()
+        public virtual void EnsureStandardSubfoldersExist(CompileMessages errors)
         {
             foreach (string subfolder in GetPlatformStandardSubfolders())
             {
@@ -61,7 +61,7 @@ namespace AGS.Editor
             }
         }
 
-        public virtual void DeleteMainGameData(string name)
+        public virtual void DeleteMainGameData(string name, CompileMessages errors)
         {
         }
 
@@ -176,15 +176,15 @@ namespace AGS.Editor
         ///  * primary: <name>.ags,
         ///  * split resources: <name>.001, <name>.002, etc.
         /// </summary>
-        protected void DeleteCommonGameFiles(string dir, string gamename)
+        protected void DeleteCommonGameFiles(string dir, string gamename, CompileMessages errors)
         {
             string filename = Path.Combine(dir, gamename + ".ags");
-            Utilities.TryDeleteFile(filename);
+            Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(filename); }, $"Failed to delete an old file {filename}.", errors);
 
             // Delete split resources (if any)
             foreach (string fileName in Utilities.GetDirectoryFileList(dir, gamename + ".0*"))
             {
-                Utilities.TryDeleteFile(fileName);
+                Utilities.ExecuteOrError(() => { Utilities.TryDeleteFile(filename); }, $"Failed to delete an old file {filename}.", errors);
             }
         }
     }

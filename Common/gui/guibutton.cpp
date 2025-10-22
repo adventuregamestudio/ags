@@ -250,12 +250,8 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
         _clickAction[kGUIClickLeft] != kGUIAction_None ||
         _clickAction[kGUIClickRight] != kGUIAction_None;
 
-    bool const draw_disabled =
-        !GUI::IsGUIEnabled(this) &&
-        button_is_clickable &&
-        GUI::Options.DisabledStyle != kGuiDis_Unchanged &&
-        GUI::Options.DisabledStyle != kGuiDis_Off;
-
+    const bool draw_disabled = GUI::ShouldDrawDisabled(this)
+        && button_is_clickable;
     // TODO: should only change properties in reaction to particular events
     if (_currentImage <= 0 || draw_disabled)
         _currentImage = _image;
@@ -581,7 +577,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         }
     }
 
-    if ((draw_disabled) && (GUI::Options.DisabledStyle == kGuiDis_Greyout))
+    if (draw_disabled)
     {
         // darken the button when disabled
         const Size sz = spriteset.GetSpriteResolution(_currentImage);

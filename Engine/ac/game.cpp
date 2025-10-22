@@ -294,8 +294,7 @@ void set_debug_mode(bool on)
 
 void set_game_speed(int new_fps) {
     frames_per_second = new_fps;
-    if (!isTimerFpsMaxed()) // if in maxed mode, don't update timer for now
-        setTimerFps(new_fps);
+    setTimerFps(new_fps, isTimerFpsMaxed()); // keep the current maxed mode (on/off)
 }
 
 float get_game_speed() {
@@ -306,9 +305,9 @@ extern int cbuttfont;
 extern int acdialog_font;
 
 int oldmouse;
-void setup_for_dialog() {
-    cbuttfont = play.normal_font;
-    acdialog_font = play.normal_font;
+void setup_for_dialog(int use_font) {
+    cbuttfont = use_font;
+    acdialog_font = use_font;
     oldmouse=cur_cursor;
     set_mouse_cursor(CURS_ARROW);
 }
@@ -448,15 +447,15 @@ void restore_game_dialog2(int min_slot, int max_slot)
 
     can_run_delayed_command();
     if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "RestoreGameDialog"));
         return;
     }
-    do_restore_game_dialog(min_slot, max_slot);
+    do_restore_game_dialog(min_slot, max_slot, play.normal_font);
 }
 
-bool do_restore_game_dialog(int min_slot, int max_slot)
+bool do_restore_game_dialog(int min_slot, int max_slot, int use_font)
 {
-    setup_for_dialog();
+    setup_for_dialog(use_font);
     int toload = loadgamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (toload >= 0)
@@ -476,14 +475,15 @@ void save_game_dialog2(int min_slot, int max_slot)
 
     can_run_delayed_command();
     if (inside_script) {
-        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "SaveGameDialog"));
         return;
     }
-    do_save_game_dialog(min_slot, max_slot);
+    do_save_game_dialog(min_slot, max_slot, play.normal_font);
 }
 
-bool do_save_game_dialog(int min_slot, int max_slot) {
-    setup_for_dialog();
+bool do_save_game_dialog(int min_slot, int max_slot, int use_font)
+{
+    setup_for_dialog(use_font);
     int tosave = savegamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (tosave >= 0)
@@ -843,6 +843,16 @@ void Game_SetSpeechFont(int fontnum) {
 void Game_SetNormalFont(int fontnum) {
     fontnum = ValidateFontNumber("SetNormalFont", fontnum);
     play.normal_font = fontnum;
+}
+
+int Game_GetSpeed()
+{
+    return GetGameSpeed();
+}
+
+void Game_SetSpeed(int speed)
+{
+    SetGameSpeed(speed);
 }
 
 const char* Game_GetTranslationFilename() {
@@ -1625,6 +1635,12 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         }
     }
 
+    if (total_frames == 0)
+    {
+        Debug::Printf("Precache view %d (loops %d-%d): %d frames found in the view, skip");
+        return;
+    }
+
     // Print gathered time and size info
     size_t spcache_after = spriteset.GetCacheSize();
     size_t txcache_after = texturecache_get_size();
@@ -1999,6 +2015,16 @@ RuntimeScriptValue Sc_Game_SetSpeechFont(const RuntimeScriptValue *params, int32
     API_SCALL_VOID_PINT(Game_SetSpeechFont);
 }
 
+RuntimeScriptValue Sc_Game_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetSpeed);
+}
+
+RuntimeScriptValue Sc_Game_SetSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetSpeed);
+}
+
 // int (int spriteNum)
 RuntimeScriptValue Sc_Game_GetSpriteWidth(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2232,6 +2258,8 @@ void RegisterGameAPI()
         { "Game::get_SpeechFont",                         API_FN_PAIR(Game_GetSpeechFont) },
         { "Game::set_SpeechFont",                         API_FN_PAIR(Game_SetSpeechFont) },
         { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
+        { "Game::get_Speed",                              API_FN_PAIR(Game_GetSpeed) },
+        { "Game::set_Speed",                              API_FN_PAIR(Game_SetSpeed) },
         { "Game::geti_SpriteWidth",                       API_FN_PAIR(Game_GetSpriteWidth) },
         { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
         { "Game::geti_SpriteColorDepth",                  API_FN_PAIR(Game_GetSpriteDepth) },

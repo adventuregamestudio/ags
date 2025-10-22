@@ -228,6 +228,11 @@ protected:
 class BaseDDB : public IDriverDependantBitmap
 {
 public:
+#if (AGS_PLATFORM_DEBUG)
+    void SetTag(const Common::String &tag) override { _tag = tag; }
+    const Common::String &GetTag() const { return _tag; }
+#endif
+
     int  GetWidth() const override { return _size.Width; }
     int  GetHeight() const override { return _size.Height; }
     int  GetColorDepth() const override { return _colDepth; }
@@ -285,6 +290,10 @@ public:
 protected:
     BaseDDB() = default;
     virtual ~BaseDDB() = default;
+    
+#if (AGS_PLATFORM_DEBUG)
+    Common::String _tag;
+#endif
 
     Size _size;
     int _colDepth = 0;

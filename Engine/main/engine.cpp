@@ -763,7 +763,7 @@ void engine_init_game_settings()
     play.dialog_options_pad_x = (loaded_game_file_version >= kGameVersion_363) ?
         TEXTWINDOW_PADDING_DEFAULT : 0; // use TEXTWINDOW_PADDING_DEFAULT in 3.6.3+
     play.dialog_options_pad_y = 0; // no Y padding by default
-    play.dialog_options_font = play.normal_font;
+    play.dialog_options_font = FONT_UNDEFINED;
     play.min_dialogoption_width = 0;
     play.disable_dialog_parser = 0;
     play.screen_is_faded_out = 0;
@@ -814,6 +814,7 @@ void engine_init_game_settings()
     play.shake_screen_yoff = 0;
     play.face_dir_ratio = game.faceDirectionRatio;
 
+    GUI::DataVersion = loaded_game_file_version;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
     GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;
     // Force GUI metrics recalculation, accomodating for loaded fonts

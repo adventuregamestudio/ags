@@ -684,7 +684,7 @@ namespace AGS.Editor
                 }
                 catch (Exception ex)
                 {
-                    Factory.GUIController.ShowMessage("Unable to create the file '" + fileName + "' due to an error: " + ex.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("Unable to create the file '" + fileName + "' due to an error.", ex, MessageBoxIcon.Warning);
                     return false;
                 }
                 // File does not exist, but we do have permission to create it
@@ -763,7 +763,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to read the user preferences file for this project. You may lose some of your Preferences settings." + Environment.NewLine + Environment.NewLine + "The error was: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to read the user preferences file for this project. You may lose some of your Preferences settings.", ex, MessageBoxIcon.Warning);
             }
 
             Factory.Events.OnLoadedUserData(docNode);
@@ -1249,13 +1249,13 @@ namespace AGS.Editor
             foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
                 // Primary cleanup
-                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName, errors);
 
                 // Old files cleanup (if necessary)
                 string oldName;
                 if (!buildNames.TryGetValue(target.Name, out oldName)) continue;
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
-                    target.DeleteMainGameData(oldName);
+                    target.DeleteMainGameData(oldName, errors);
             }
 
             IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
@@ -1501,10 +1501,10 @@ namespace AGS.Editor
             if (buildNames.TryGetValue(target.Name, out oldName))
             {
                 // Primary cleanup
-                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName, errors);
                 // Old files cleanup (if necessary)
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
-                    target.DeleteMainGameData(oldName);
+                    target.DeleteMainGameData(oldName, errors);
             }
 
             target.Build(errors, false);
@@ -1781,11 +1781,11 @@ namespace AGS.Editor
             }
             catch (UnauthorizedAccessException ex)
             {
-                Factory.GUIController.ShowMessage("Unable to write the user data file. Ensure that you have write access to the game folder, and that the file is not already open.\n\n" + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to write the user data file. Ensure that you have write access to the game folder, and that the file is not already open.", ex, MessageBoxIcon.Warning);
             }
             catch (IOException ex)
             {
-                Factory.GUIController.ShowMessage("Unable to write the user data file. Ensure that you have write access to the game folder, and that the file is not already open.\n\n" + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to write the user data file. Ensure that you have write access to the game folder, and that the file is not already open.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -1842,7 +1842,7 @@ namespace AGS.Editor
                 }
                 catch (Exception ex)
                 {
-                    Factory.GUIController.ShowMessage($"Unable to save new game data to '{tempFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError($"Unable to save new game data to '{tempFile}'.", ex, MessageBoxIcon.Warning);
                     return false;
                 }
             }
@@ -1860,7 +1860,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage($"Unable to create the backup file '{backupFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError($"Unable to create the backup file '{backupFile}'.", ex, MessageBoxIcon.Warning);
                 return false;
             }
 
@@ -1871,7 +1871,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage($"Unable to create the game file '{gameFile}'. The error was: {ex.Message}", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError($"Unable to create the game file '{gameFile}'.", ex, MessageBoxIcon.Warning);
                 return false;
             }
 

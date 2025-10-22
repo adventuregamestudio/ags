@@ -57,6 +57,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
     kGSSvgVersion_363       = 3060300,
+    kGSSvgVersion_363_02    = 3060302,
     kGSSvgVersion_400       = 4000000,
     kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
@@ -272,8 +273,9 @@ struct GamePlayState
     int   dialog_options_gui_y = -1;
     // Horizontal alignment of dialog options texts
     HorAlignment dialog_options_textalign = kHAlignLeft;
-    // Font of dialog options texts, if negative then use "normal font"
-    int   dialog_options_font = 0;
+    // Font of dialog options texts, if FONT_UNDEFINED then use "normal font"
+    int   dialog_options_font = FONT_UNDEFINED;
+    int   dialog_options_zorder = INT32_MAX;
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
     // Dynamic custom property values for global game objects

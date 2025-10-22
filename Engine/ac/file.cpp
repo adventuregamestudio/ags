@@ -773,7 +773,7 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only,
         if (assert_exists)
         {
             debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s",
-                              sc_path.GetCStr(), rp.FullPath.GetCStr());
+                sc_path.GetCStr(), rp.FullPath.GetCStr());
         }
         return {}; // nothing matching found
     }

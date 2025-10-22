@@ -290,22 +290,40 @@ namespace AGS.Editor.Utils
             return IsExecutableAvailable(GetKeytoolPath());
         }
 
-        public static bool IsJdkFound(string dir)
+        public static bool IsJdkFound(string dir, out string foundInDir)
         {
+            foundInDir = string.Empty;
             string path = GetEnvironmentPreferences("JAVA_HOME", dir);
 
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return false;
 
-            return IsExecutableAvailable(Path.Combine(path, "bin\\javac")) && IsExecutableAvailable(Path.Combine(path, "bin\\keytool"));
+            if (IsExecutableAvailable(Path.Combine(path, "bin\\javac")) && IsExecutableAvailable(Path.Combine(path, "bin\\keytool")))
+            {
+                foundInDir = path;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        public static bool IsSdkFound(string dir)
+        public static bool IsSdkFound(string dir, out string foundInDir)
         {
+            foundInDir = string.Empty;
             string path = GetEnvironmentPreferences("ANDROID_HOME", dir);
 
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return false;
 
-            return !String.IsNullOrEmpty(FindSdkManager(path));
+            if (!string.IsNullOrEmpty(FindSdkManager(path)))
+            {
+                foundInDir = path;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private static bool IsJavacAvailable()

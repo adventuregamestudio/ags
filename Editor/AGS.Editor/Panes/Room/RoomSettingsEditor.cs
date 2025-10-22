@@ -629,7 +629,7 @@ namespace AGS.Editor
                 }
                 catch (Exception ex)
                 {
-                    Factory.GUIController.ShowMessage("The background could not be imported. The error was:" + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("The background could not be imported.", ex, MessageBoxIcon.Warning);
                 }
                 finally
                 {

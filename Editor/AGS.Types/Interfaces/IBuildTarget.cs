@@ -41,12 +41,12 @@ namespace AGS.Types
         /// sure that each of those folders exist. This is always
         /// called as part of the normal Build process.
         /// </summary>
-        void EnsureStandardSubfoldersExist();
+        void EnsureStandardSubfoldersExist(CompileMessages errors);
         /// <summary>
         /// Temporary solution for cleaning old compiled game in
         /// case game binary name was changed.
         /// </summary>
-        void DeleteMainGameData(string name);
+        void DeleteMainGameData(string name, CompileMessages errors);
         /// <summary>
         /// Attempts to build the target. Compilation errors will
         /// be added to the ERRORS collection. Returns whether or

@@ -72,11 +72,11 @@ namespace AGS.Editor.Components
             }
             catch (AGSEditorException ex)
             {
-                _guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was an error loading plugin '" + fileName + "'.", ex, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Warning);
+                _guiController.ShowError("There was an error loading plugin '" + fileName + "'.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -89,11 +89,11 @@ namespace AGS.Editor.Components
 			}
 			catch (AGSEditorException ex)
 			{
-				_guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+				_guiController.ShowError("There was an error loading plugin '" + fileName + "'.", ex, MessageBoxIcon.Warning);
 			}
 			catch (Exception ex)
 			{
-				_guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Warning);
+				_guiController.ShowError("There was an error loading plugin '" + fileName + "'.", ex, MessageBoxIcon.Warning);
 			}
 		}
 

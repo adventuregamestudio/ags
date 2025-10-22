@@ -98,10 +98,21 @@ extern char check_dynamic_sprites_at_exit;
 // Checks if wait mode should continue until condition is met
 static bool ShouldStayInWaitMode();
 
-float fps = std::numeric_limits<float>::quiet_NaN();
-static auto t1 = Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
-uint32_t loopcounter = 0u;
-static uint32_t lastcounter = 0u; // CHECKME: not sure if needed, review its use
+struct GameTimer
+{
+    uint32_t LoopCounter = 0u;
+    // Real FPS (calculated from time between frames)
+    float FPS = std::numeric_limits<float>::quiet_NaN();
+    // FPS syncing: it's done periodically, not every frame
+    const uint32_t FPSSyncPeriodMs = 1000u;
+    Clock::time_point LastFPSSyncTime = {};
+    uint32_t LastFPSSyncCounter = 0u;
+    // For runtime reference
+    Clock::time_point StartTime = {};
+    bool RuntimeStarted = false;
+} static GameTimer;
+
+
 static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 
 // Kinds of conditions used when "waiting" for something
@@ -181,7 +192,10 @@ public:
     {
         // If skipping cutscene and expecting user input: don't wait at all
         if (play.fast_forward && (play.wait_counter != 0) && ((play.key_skip_wait & ~SKIP_AUTOTIMER) != 0))
+        {
+            play.SetWaitSkipResult(SKIP_NONE);
             return false;
+        }
 
         GameTick();
         return ShouldStayInWaitMode();
@@ -522,8 +536,8 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     if ((agskey == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
-        // if --fps paramter is used, Ctrl+E will max out frame rate
-        setTimerFps(isTimerFpsMaxed() ? frames_per_second : 1000);
+        // if --fps parameter is used, Ctrl+E will toggle maxed out frame rate
+        setTimerFps(frames_per_second, !isTimerFpsMaxed());
         return false;
     }
 
@@ -648,7 +662,7 @@ static void check_keyboard_controls()
     // it should be either a printable character or one of the textbox control keys
     // TODO: instead of making a preliminary check, just let each gui control
     // test the key and OnKeyPress return if it was handled?
-    if ((GUI::Context.DisabledState == kGuiDis_Undefined) &&
+    if (GUI::IsEnabledState() &&
         ((ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
          (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
@@ -686,10 +700,10 @@ static void check_keyboard_controls()
 
     // Built-in key-presses
     if ((usetup.Override.KeySaveGame > 0) && (agskey == usetup.Override.KeySaveGame)) {
-        do_save_game_dialog(0, TOP_SAVESLOT - 1); // ignore special slot 999
+        do_save_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
         return;
     } else if ((usetup.Override.KeyRestoreGame > 0) && (agskey == usetup.Override.KeyRestoreGame)) {
-        do_restore_game_dialog(0, TOP_SAVESLOT - 1); // ignore special slot 999
+        do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
         return;
     }
 
@@ -986,11 +1000,6 @@ static void update_cursor_over_gui()
     {
         if (!gui.IsDisplayed()) continue; // not on screen
         if (!gui.IsClickable()) continue; // don't update non-clickable
-        // Don't touch GUI if "GUIs Turn Off When Disabled"
-        if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-            (GUI::Context.DisabledState >= 0) &&
-            (gui.GetPopupStyle() != kGUIPopupNoAutoRemove))
-            continue;
         gui.Poll(mousex, mousey);
     }
 }
@@ -1001,28 +1010,27 @@ extern int mouse_frame, mouse_delay;
 static void update_cursor_view()
 {
     // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view >= 0) {
+    const auto &mcur = game.mcurs[cur_cursor];
+    if (mcur.view >= 0 && mcur.view < game.numviews)
+    {
         // only on mousemove, and it's not moving
-        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
+        if (((mcur.flags & MCF_ANIMMOVE) != 0) &&
             (mousex == lastmx) && (mousey == lastmy));
         // only on hotspot, and it's not on one
-        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT) != 0) &&
+        else if (((mcur.flags & MCF_HOTSPOT) != 0) &&
             (GetLocationType(mousex, mousey) == 0))
-            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
+            set_new_cursor_graphic(mcur.pic);
         else if (mouse_delay>0) mouse_delay--;
-        else {
-            int viewnum = game.mcurs[cur_cursor].view;
-            int loopnum = 0;
-            if (loopnum >= views[viewnum].numLoops)
-                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
-            if (views[viewnum].loops[loopnum].numFrames < 1)
-                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
-
+        // only animate if the loop 0 exists and has frames
+        else if (views[mcur.view].numLoops > 0 && views[mcur.view].loops[0].numFrames > 0)
+        {
+            const int viewnum = mcur.view;
+            const int loopnum = 0;
             mouse_frame++;
             if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
                 mouse_frame = 0;
             set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + game.mcurs[cur_cursor].animdelay;
+            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + mcur.animdelay;
             CheckViewFrame(viewnum, loopnum, mouse_frame);
         }
         lastmx = mousex; lastmy = mousey;
@@ -1160,7 +1168,7 @@ static void game_loop_update_background_animation()
 
 static void game_loop_update_loop_counter()
 {
-    loopcounter++;
+    GameTimer.LoopCounter++;
 
     if (play.wait_counter > 0) play.wait_counter--;
     if (play.shakesc_length > 0) play.shakesc_length--;
@@ -1168,47 +1176,74 @@ static void game_loop_update_loop_counter()
 
 static void game_loop_update_fps()
 {
-    auto t2 = Clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-    auto frames = loopcounter - lastcounter;
+    const auto now = Clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - GameTimer.LastFPSSyncTime);
+    const auto frames = GameTimer.LoopCounter - GameTimer.LastFPSSyncCounter;
 
-    if (duration >= std::chrono::milliseconds(1000) && frames > 0) {
-        fps = 1000.0f * frames / duration.count();
-        t1 = t2;
-        lastcounter = loopcounter;
+    if (duration >= std::chrono::milliseconds(GameTimer.FPSSyncPeriodMs) && frames > 0)
+    {
+        GameTimer.FPS = 1000.0f * frames / duration.count();
+        GameTimer.LastFPSSyncTime = now;
+        GameTimer.LastFPSSyncCounter = GameTimer.LoopCounter;
     }
 }
 
-float get_game_fps() {
+float get_game_fps()
+{
     // if we have maxed out framerate then return the frame rate we're seeing instead
     // fps must be greater that 0 or some timings will take forever.
-    if (isTimerFpsMaxed() && fps > 0.0f) {
-        return fps;
+    // TODO: review this, consider always returning fixed property here,
+    // and use get_real_fps() whenever we need real time;
+    // but must double check all situations where this function is used!
+    if (isTimerFpsMaxed() && GameTimer.FPS > 0.0f)
+    {
+        return GameTimer.FPS;
     }
     return frames_per_second;
 }
 
-float get_real_fps() {
-    return fps;
+float get_real_fps()
+{
+    return GameTimer.FPS;
 }
 
-void set_loop_counter(uint32_t new_counter) {
-    loopcounter = new_counter;
-    lastcounter = loopcounter;
-    t1 = Clock::now();
-    fps = std::numeric_limits<float>::quiet_NaN();
+void set_loop_counter(uint32_t new_counter)
+{
+    GameTimer.LoopCounter = new_counter;
+    GameTimer.LastFPSSyncCounter = GameTimer.LoopCounter;
+    GameTimer.LastFPSSyncTime = Clock::now();
+    GameTimer.FPS = std::numeric_limits<float>::quiet_NaN();
 }
 
-void increment_loop_counter() {
-    loopcounter++;
-    lastcounter = loopcounter;
+void increment_loop_counter()
+{
+    GameTimer.LoopCounter++;
+    GameTimer.LastFPSSyncCounter = GameTimer.LoopCounter;
 }
 
-uint32_t get_loop_counter() {
-    return loopcounter;
+uint32_t get_loop_counter()
+{
+    return GameTimer.LoopCounter;
 }
 
-void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
+void set_runtime_start()
+{
+    GameTimer.StartTime = Clock::now();
+    GameTimer.RuntimeStarted = true;
+}
+
+bool is_runtime_set()
+{
+    return GameTimer.RuntimeStarted;
+}
+
+uint32_t get_runtime_ms()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - GameTimer.StartTime).count();
+}
+
+void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+{
     sys_evt_process_pending();
 
     numEventsAtStartOfFunction = events.size();
@@ -1226,10 +1261,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
         play.screen_is_faded_out = 0;
 
-    set_our_eip(1014);
-
-    update_gui_disabled_status();
-
     set_our_eip(1004);
 
     game_loop_do_early_script_update();
@@ -1242,7 +1273,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if (!game_loop_check_ground_level_interactions())
         return; // update interrupted
 
-    mouse_on_iface=-1;
+    mouse_on_iface=-1; // FIXME: why is this here? move to a related update function!
 
     check_debug_keys();
 
@@ -1254,6 +1285,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // update gui under mouse; this also updates gui control focus;
     // atm we must call this before "check_controls", because GUI interaction
     // relies on remembering which control was focused by the cursor prior
+    update_gui_disabled_status();
     update_cursor_over_gui();
     // handle actual input (keys, mouse, and so forth)
     game_loop_check_controls(checkControls);
@@ -1278,7 +1310,10 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     // Only render if we are not skipping a cutscene
     if (!play.fast_forward)
+    {
+        update_gui_disabled_status(); // in case they changed it in the late script update
         render_graphics(extraBitmap, extraX, extraY);
+    }
 
     set_our_eip(6);
 
@@ -1529,11 +1564,6 @@ void SyncDrawablesState()
 void ShutGameWaitState()
 {
     restrict_until = {};
-}
-
-unsigned GetGameFrameIndex()
-{
-    return loopcounter;
 }
 
 void update_polled_stuff()

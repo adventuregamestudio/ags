@@ -382,7 +382,7 @@ namespace AGS.Editor.Components
             }
             catch (CannotDeleteFileException ex)
             {
-                _guiController.ShowMessage("The room file(s) could not be deleted." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("The room file(s) could not be deleted.", ex, MessageBoxIcon.Warning);
                 return false;
             }
 
@@ -393,7 +393,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("The room file(s) have been deleted, but could not delete the room directory." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("The room file(s) have been deleted, but could not delete the room directory.", ex, MessageBoxIcon.Warning);
             }
             return true;
         }
@@ -572,7 +572,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("There was a problem importing the room file: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was a problem importing the room file.", ex, MessageBoxIcon.Warning);
                 _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
             }
         }
@@ -586,7 +586,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception e)
             {
-                _guiController.ShowMessage($"There was an error loading the script from the old room {roomFile}: {e.Message}", MessageBoxIcon.Warning);
+                _guiController.ShowError($"There was an error loading the script from the old room {roomFile}.", e, MessageBoxIcon.Warning);
             }
 
             if (roomScript == null)
@@ -603,7 +603,7 @@ namespace AGS.Editor.Components
             }
             catch (AGSEditorException ex)
             {
-                _guiController.ShowMessage("There was an error saving the script for room " + roomFile + ": " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was an error saving the script for room " + roomFile + ".", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -710,7 +710,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("There was an error attempting to create the new room. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("There was an error attempting to create the new room.", ex, MessageBoxIcon.Warning);
                 _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
             }
         }

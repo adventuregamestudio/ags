@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "gfx/gfxfilter_sdl_renderer.h"
+#include <SDL.h>
 
 namespace AGS
 {
@@ -25,6 +26,16 @@ const GfxFilterInfo SDLRendererGfxFilter::FilterInfo = GfxFilterInfo("StdScale",
 const GfxFilterInfo &SDLRendererGfxFilter::GetInfo() const
 {
     return FilterInfo;
+}
+
+SDL_ScaleMode SDLRendererGfxFilter::GetScaleMode() const
+{
+    return SDL_ScaleModeNearest;
+}
+
+void SDLRendererGfxFilter::InitSDLHint() const
+{
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 }
 
 } // namespace ALSW

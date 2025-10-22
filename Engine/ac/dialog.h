@@ -30,7 +30,7 @@ void Dialog_Start(ScriptDialog *sd);
 void StopDialog();
 
 // Starts a dialog
-void do_conversation(int dlgnum);
+void do_conversation(int dlgnum, int start_opt = 0);
 // Tells if the game is currently running a dialog
 bool is_in_dialog();
 // Tells if the game is currently displaying dialog options;
@@ -39,7 +39,7 @@ bool is_in_dialogoptions();
 // Tells if the game is currently running a dialog, and a dialog script is being executed
 bool is_dialog_executing_script();
 // Commands dialog executor to goto a different dialog topic after current option's script have finished executing
-void set_dialog_result_goto(int dlgnum);
+void set_dialog_result_goto(int dlgnum, int start_opt = 0);
 // Commands dialog executor to stop a dialog after current option's script have finished executing
 void set_dialog_result_stop();
 // Displays dialog options, and returns the chosen number, or CHOSE_TEXTPARSER if parser input was activated
@@ -49,7 +49,7 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
 // Handles a game-state changing command (such as StartDialog) inside "dialog_request" callback.
 // Returns whether the change was handled in "dialog's way", and further processing is not necessary.
 // Otherwise should process the command as normal.
-bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval);
+bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, int start_opt = 0);
 // Shedule dialog state to stop next time it receives a control
 void schedule_dialog_stop();
 // Disposes dialog state object(s)

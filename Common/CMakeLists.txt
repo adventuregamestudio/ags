@@ -239,7 +239,9 @@ add_library(AGS::Common ALIAS common)
 if(AGS_TESTS)
     add_executable(common_test
         test/cmdlineopts_test.cpp
+        test/common_stubs.cpp
         test/gfxdef_test.cpp
+        test/gui_test.cpp
         test/inifile_test.cpp
         test/math_test.cpp
         test/memory_test.cpp
@@ -260,6 +262,9 @@ if(AGS_TESTS)
         common
         gtest_main
     )
+    if(AGS_USE_LOCAL_GTEST)
+        target_link_libraries(common_test gtest)
+    endif()
 
     include(GoogleTest)
     gtest_add_tests(TARGET common_test)

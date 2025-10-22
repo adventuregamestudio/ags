@@ -11,16 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-// SDL software renderer filter. Technically a non-op, as SDL_Renderer
-// does the job.
-//
-//=============================================================================
-#ifndef __AGS_EE_GFX__SDLRENDERERFILTER_H
-#define __AGS_EE_GFX__SDLRENDERERFILTER_H
-
-#include <SDL_render.h>
-#include "gfx/gfxfilter_scaling.h"
+#include "gfx/gfxfilter_aa_sdl_renderer.h"
+#include <SDL.h>
 
 namespace AGS
 {
@@ -29,19 +21,23 @@ namespace Engine
 namespace ALSW
 {
 
-class SDLRendererGfxFilter : public ScalingGfxFilter
+const GfxFilterInfo SDLRendererAAGfxFilter::FilterInfo = GfxFilterInfo("Linear", "Linear interpolation");
+
+const GfxFilterInfo &SDLRendererAAGfxFilter::GetInfo() const
 {
-public:
-    const GfxFilterInfo &GetInfo() const override;
+    return FilterInfo;
+}
 
-    virtual SDL_ScaleMode GetScaleMode() const;
-    virtual void InitSDLHint() const;
+SDL_ScaleMode SDLRendererAAGfxFilter::GetScaleMode() const
+{
+    return SDL_ScaleModeLinear;
+}
 
-    static const GfxFilterInfo FilterInfo;
-};
+void SDLRendererAAGfxFilter::InitSDLHint() const
+{
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+}
 
 } // namespace ALSW
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__SDLRENDERERFILTER_H

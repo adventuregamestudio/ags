@@ -288,7 +288,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
 
 void GUIMain::DrawControls(Bitmap *ds)
 {
-    if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if (GUI::ShouldSkipControls(this))
         return; // don't draw GUI controls
 
     Bitmap tbmp, tbmp2, tbmp3; // in case we need transforms
@@ -299,9 +299,12 @@ void GUIMain::DrawControls(Bitmap *ds)
         GUIControl *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
         Size obj_size = objToDraw->GetSize();
 
-        if (!objToDraw->IsVisible() || (obj_size.Width <= 0 || obj_size.Height <= 0))
+        // Note that the control is invisible not only when Visible property is false,
+        // but also according to a combination of being disabled and some disabled gui modes
+        if (!GUI::IsGUIVisible(objToDraw))
             continue;
-        if (!objToDraw->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+        // Control's size is empty, no sense in drawing it
+        if (obj_size.IsNull())
             continue;
 
         if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
@@ -838,6 +841,7 @@ const int GuiContext::StandardColors[MaxStandardColors] =
 namespace GUI
 {
 
+GameDataVersion DataVersion = kGameVersion_Undefined;
 GuiVersion GameGuiVersion = kGuiVersion_Undefined;
 
 int GetStandardColor(int index)
@@ -857,13 +861,19 @@ int GetStandardColorForBitmap(int index)
     return BitmapHelper::AGSColorToBitmapColor(GetStandardColor(index), Context.GameColorDepth);
 }
 
+int CalcFontGraphicalHExtent(int font)
+{
+    const auto hextent = get_font_surface_hextent(font);
+    return hextent.first >= 0 ? 0 : hextent.first;
+}
+
 Line CalcFontGraphicalVExtent(int font)
 {
     // Following factors are affecting the graphical vertical metrics:
     // * font's real graphical extent (top and bottom offsets relative to the "pen")
     // * custom vertical offset set by user (if non-zero),
     const auto finfo = get_fontinfo(font);
-    const auto fextent = get_font_surface_extent(font);
+    const auto fextent = get_font_surface_vextent(font);
     int top = fextent.first +
         std::min(0, finfo.YOffset); // apply YOffset only if negative
     int bottom = fextent.second +
@@ -877,8 +887,9 @@ Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAli
     Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
     if (gr_rect)
     {
+        int h_ext = CalcFontGraphicalHExtent(font);
         Line vextent = CalcFontGraphicalVExtent(font);
-        *gr_rect = RectWH(rc.Left, rc.Top + vextent.Y1, rc.GetWidth(), vextent.Y2 - vextent.Y1 + 1);
+        *gr_rect = RectWH(rc.Left + h_ext, rc.Top + vextent.Y1, rc.GetWidth() + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
     }
     return rc.GetLT();
 }
@@ -894,8 +905,9 @@ Rect CalcTextGraphicalRect(const String &text, int font, const Point &at)
 {
     // Calc only width, and let CalcFontGraphicalVExtent() calc height
     int w = get_text_width_outlined(text.GetCStr(), font);
+    int h_ext = CalcFontGraphicalHExtent(font);
     Line vextent = CalcFontGraphicalVExtent(font);
-    return RectWH(at.X, at.Y + vextent.Y1, w, vextent.Y2 - vextent.Y1 + 1);
+    return RectWH(at.X + h_ext, at.Y + vextent.Y1, w + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
 }
 
 Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align)
@@ -930,8 +942,9 @@ Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, i
     }
     // Include font fixes for the first and last text line,
     // in case graphical height is different, and there's a VerticalOffset
+    int h_ext = CalcFontGraphicalHExtent(font);
     Line vextent = GUI::CalcFontGraphicalVExtent(font);
-    Rect text_rc = RectWH(0, vextent.Y1, max_line.X2 - max_line.X1 + 1,
+    Rect text_rc = RectWH(h_ext, vextent.Y1, max_line.X2 - max_line.X1 + 1 + (-h_ext) * 2,
         at_y - linespace + (vextent.Y2 - vextent.Y1 + 1));
     return text_rc;
 }
@@ -1001,23 +1014,32 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    for (size_t macro_at = text.FindChar('@'); macro_at != String::NoIndex; macro_at = text.FindChar('@', macro_at))
+    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
-        size_t macro_end = text.FindChar('@', macro_at + 1);
+        const size_t macro_at = scan_at + 1;
+        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
         if (macro_end == String::NoIndex)
         {
             // Malformed macro string, stop
             break;
         }
+        if (macro_end == macro_at)
+        {
+            // Zero-length substring, ignore and continue from the last '@'
+            continue;
+        }
 
         // Test which macro is it
-        const size_t macro_len = macro_end - ++macro_at;
-        if (text.CompareMidNoCase("gamename", macro_at, macro_len) == 0)
+        const size_t macro_len = macro_end - macro_at;
+        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
             macro_flags |= kLabelMacro_Gamename;
-        else if (text.CompareMidNoCase("overhotspot", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
             macro_flags |= kLabelMacro_Overhotspot;
+        else
+            continue; // no matching macro, ignore and continue from the last '@'
 
-        macro_at = macro_end + 1;
+        // If macro was resolved, then search for the next @...@ pair
+        scan_at = text.FindChar('@', macro_end + 1);
     }
     return (GUILabelMacro)macro_flags;
 }
@@ -1026,28 +1048,37 @@ String ResolveMacroTokens(const String &text)
 {
     String resolved_text;
     size_t text_at = 0u;
-    for (size_t macro_at = text.FindChar('@'); macro_at != String::NoIndex; macro_at = text.FindChar('@', text_at))
+    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
-        size_t macro_end = text.FindChar('@', macro_at + 1);
+        const size_t macro_at = scan_at + 1;
+        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
         if (macro_end == String::NoIndex)
         {
             // Malformed macro string, stop
             break;
         }
+        if (macro_end == macro_at)
+        {
+            // Zero-length substring, ignore and continue from the last '@'
+            continue;
+        }
 
         // Copy literal text (if there's any between macros)
-        resolved_text.Append(text.Mid(text_at, macro_at - text_at));
+        resolved_text.Append(text.Mid(text_at, macro_at - 1 - text_at));
+        text_at = macro_at - 1;
 
         // Test which macro is it
-        const size_t macro_len = macro_end - ++macro_at;
-        if (text.CompareMidNoCase("gamename", macro_at, macro_len) == 0)
+        const size_t macro_len = macro_end - macro_at;
+        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
             resolved_text.Append(GUI::Context.GameTitle);
-        else if (text.CompareMidNoCase("overhotspot", macro_at, macro_len) == 0)
+        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
             resolved_text.Append(GUI::Context.Overhotspot);
         else
-            resolved_text.Append(text.Mid(macro_at - 1, macro_len + 2));
+            continue; // no matching macro, continue from the last '@'
 
+        // If macro was resolved, then search for the next @...@ pair
         text_at = macro_end + 1;
+        scan_at = text.FindChar('@', macro_end + 1);
     }
 
     // Copy trailing literal text (if there's any)
@@ -1205,6 +1236,23 @@ void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs,
     {
         list.WriteToFile(out);
     }
+}
+
+void SetExcludedFromDisabled(GUIControl *gc, bool on)
+{
+    if (on)
+    {
+        Context.GuiControlExcludedFromDisabled = gc->GetID();
+        Context.GuiExcludedFromDisabled = gc->GetParentID();
+    }
+    else
+    {
+        Context.GuiControlExcludedFromDisabled = -1;
+        Context.GuiExcludedFromDisabled = -1;
+    }
+
+    if (Context.DisabledState != kGuiDis_Undefined && Context.DisabledState != kGuiDis_Unchanged)
+        gc->MarkChanged();
 }
 
 } // namespace GUI

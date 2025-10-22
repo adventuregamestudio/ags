@@ -415,7 +415,14 @@ int get_font_surface_height_outlined(int font_number)
     return get_font_height_with_outline(font_number, true /* use surface height */);
 }
 
-std::pair<int, int> get_font_surface_extent(int font_number)
+std::pair<int, int> get_font_surface_hextent(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return std::make_pair(0, 0);
+    return std::make_pair(fonts[font_number].Metrics.BBox.Left, fonts[font_number].Metrics.BBox.Right);
+}
+
+std::pair<int, int> get_font_surface_vextent(int font_number)
 {
     if (!assert_font_number(font_number))
         return std::make_pair(0, 0);
@@ -452,6 +459,14 @@ int get_text_lines_height(int font_number, size_t numlines)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) +
         get_font_height_with_outline(font_number);
+}
+
+int get_text_lines_surf_height(size_t font_number, size_t numlines)
+{
+    if (!assert_font_number(font_number) || numlines == 0)
+        return 0;
+    return fonts[font_number].LineSpacingCalc * (numlines - 1) +
+        get_font_height_with_outline(font_number, true /* surf height */);
 }
 
 namespace AGS { namespace Common { SplitLines Lines; } }

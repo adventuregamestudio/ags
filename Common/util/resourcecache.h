@@ -88,12 +88,25 @@ public:
     inline size_t GetLockedSize() const { return _lockedSize; }
     // Get the summed size of external items (excluded from total cache size)
     inline size_t GetExternalSize() const { return _externalSize; }
+    // Get if auto memory freeing is enabled
+    inline bool IsAutoFreeMemEnabled() const { return _autoFreeMem; }
 
     // Set the MRU cache size limit
     void SetMaxCacheSize(TSize size)
     {
         _maxSize = size;
         FreeMem(0u); // makes sure it does not exceed max size
+    }
+
+    // Enable or disable automatic memory freeing done when any (non-locked)
+    // items exceed the cache's limit.
+    void EnableAutoFreeMem(bool enable)
+    {
+        _autoFreeMem = enable;
+        if (enable)
+        {
+            FreeMem(0u); // dispose anything exceeding max size
+        }
     }
 
     // Tells if particular key is in the cache
@@ -184,6 +197,8 @@ public:
             _sectionLocked = std::next(item.MruIt);
         _mru.splice(_mru.begin(), _mru, item.MruIt); // CHECKME: TEST!!
         _lockedSize -= item.Size;
+
+        FreeMem(0u); // dispose anything exceeding max size
     }
 
     // Deletes the cached item
@@ -349,6 +364,9 @@ private:
     // Keep disposing oldest elements until cache has at least the given free space
     void FreeMem(size_t space)
     {
+        if (!_autoFreeMem)
+            return;
+
         // TODO: consider sprite cache's behavior where it would just clear
         // whole cache in case disposing one by one were taking too much iterations
         while ((_mru.begin() != _sectionLocked) && (_cacheSize + space > _maxSize))
@@ -357,7 +375,9 @@ private:
         }
     }
 
-
+    // Auto free memory mode: if enabled - will free space in case the
+    // new item exceeds the cache limit.
+    bool    _autoFreeMem = true;
     // Size of tracked data stored in this cache;
     // note that this is an abstract value, which may or not refer to an
     // actual size in bytes, and depends on the implementation.

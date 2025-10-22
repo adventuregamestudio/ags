@@ -273,7 +273,7 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("Unable to check for updates. Your internet connection may be down, or server response had mistakes.\nPlease visit the AGS website to see if an updated version is available.\n\nError details: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowError("Unable to check for updates. Your internet connection may be down, or server response had mistakes.\nPlease visit the AGS website to see if an updated version is available.", ex, MessageBoxIcon.Warning);
             }
         }
 

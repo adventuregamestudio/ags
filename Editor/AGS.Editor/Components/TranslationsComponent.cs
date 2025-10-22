@@ -198,8 +198,11 @@ namespace AGS.Editor.Components
 
             string destFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
-            Utilities.TryDeleteFile(destFile);
-            File.Move(tempFile, destFile);
+            Utilities.ExecuteOrError(() =>
+            {
+                Utilities.TryDeleteFile(destFile);
+                File.Move(tempFile, destFile);
+            }, $"Failed to replace an old file {destFile}", errors);
         }
 
         private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)

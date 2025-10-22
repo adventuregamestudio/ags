@@ -974,10 +974,12 @@ import int  HasPlayerBeenInRoom(int roomNumber);
 import void AbortGame(__format const string message, ...);
 /// Quits the game, optionally showing a confirmation dialog.
 import void QuitGame(int promptUser);
+#ifdef SCRIPT_COMPAT_v363
 /// Changes the current game speed.
 import void SetGameSpeed(int framesPerSecond);
 /// Gets the current game speed.
 import int  GetGameSpeed();
+#endif // SCRIPT_COMPAT_v363
 /// Changes a game option; see the manual for details.
 import int  SetGameOption(int option, int value);
 /// Gets the current value of a game option.
@@ -2132,6 +2134,12 @@ builtin managed struct Dialog {
   import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the horizontal alignment of each dialog option's text
   import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
+  import static attribute int OptionsZOrder; // $AUTOCOMPLETESTATICONLY$
+  /// Gets overlay that is currently used to display dialog options on screen. Returns null if options are not shown.
+  import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
+  /// Runs the dialog starting from the certain option's script rather than the entry point
+  import void StartOption(int option);
 #endif // SCRIPT_API_v363
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
@@ -2398,6 +2406,10 @@ builtin struct System {
   /// Gets/sets whether the engine displays the FPS counter
   import static attribute bool DisplayFPS; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets current real game's FPS; this may or not match the game's speed property.
+  import static readonly attribute int FPS;
+#endif // #ifdef SCRIPT_API_v363
 };
 
 builtin managed struct Object {
@@ -2934,6 +2946,10 @@ builtin struct Game {
   /// Gets whether the game is currently in a blocking state, that is during a blocking action or a Wait() call.
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets game's running speed, in frames per second.
+  import static attribute int Speed;
+#endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets the AGS Colour Number for the specified RGBA colour.
   import static int    GetColorFromRGBA(int red, int green, int blue, int alpha);

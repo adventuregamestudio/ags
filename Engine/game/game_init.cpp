@@ -146,7 +146,8 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
         game.audioClips[i].id = i;
         int handle = ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
         StaticAudioClipArray[i] = handle;
-        ccAddExternalScriptObjectHandle(game.audioClips[i].scriptName, &StaticAudioClipArray[i]);
+        if (!game.audioClips[i].scriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(game.audioClips[i].scriptName, &StaticAudioClipArray[i]);
     }
 }
 
@@ -175,7 +176,8 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         StaticCharacterArray[i] = handle;
 
         // export the character's script object
-        ccAddExternalScriptObjectHandle(game.chars[i].scrname, &StaticCharacterArray[i]);
+        if (!game.chars[i].scrname.IsEmpty())
+            ccAddExternalScriptObjectHandle(game.chars[i].scrname, &StaticCharacterArray[i]);
     }
 
     // extra character properties (because the characters are split into 2 structs now)
@@ -237,14 +239,14 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         if (!err)
             return err;
         scrGui[i].id = i;
-
         // register and save handle
         IScriptObject *mgr = guis[i].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
         int handle = ccRegisterPersistentObject(&scrGui[i], mgr);
         StaticGUIArray[i] = handle;
 
         // export the gui script object
-        ccAddExternalScriptObjectHandle(guis[i].GetName(), &StaticGUIArray[i]);
+        if (!guis[i].GetName().IsEmpty())
+            ccAddExternalScriptObjectHandle(guis[i].GetName(), &StaticGUIArray[i]);
     }
     // export all the GUI's controls
     export_all_gui_controls();

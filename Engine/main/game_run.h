@@ -64,6 +64,12 @@ void set_loop_counter(uint32_t new_counter);
 void increment_loop_counter();
 // Gets game frame index, counted since the game started
 uint32_t get_loop_counter();
+// Reset runtime counter
+void set_runtime_start();
+// Tells if the runtime counter was initialized
+bool is_runtime_set();
+// Gets real runtime duration in ms, for diagnostic purposes
+uint32_t get_runtime_ms();
 
 // Runs service key controls, returns false if no key was pressed or key input was claimed by the engine,
 // otherwise returns true and provides a keycode.

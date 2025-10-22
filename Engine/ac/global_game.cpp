@@ -362,7 +362,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 void QuitGame(int dialog) {
     if (dialog) {
         int rcode;
-        setup_for_dialog();
+        setup_for_dialog(play.normal_font);
         rcode=quitdialog();
         restore_after_dialog();
         if (rcode==0) return;
@@ -379,19 +379,18 @@ void SetRestartPoint() {
 
 
 
-void SetGameSpeed(int newspd) {
+void SetGameSpeed(int newspd)
+{
     game.options[OPT_GAMEFPS] = newspd; // save for the reference
-    newspd += play.game_speed_modifier;
-    if (newspd>1000) newspd=1000;
-    if (newspd<10) newspd=10;
-    set_game_speed(newspd);
-    debug_script_log("Game speed set to %d", newspd);
+    int fix_spd = newspd + play.game_speed_modifier;
+    fix_spd = Math::Clamp(fix_spd, 10, 1000);
+    set_game_speed(fix_spd);
+    debug_script_log("Game speed set to %d (requested %d)", fix_spd, newspd);
 }
 
-int GetGameSpeed() {
-    // TODO: consider return strictly logical game fps;
-    // need to investigate what would be consequence of this in "infinite FPS" mode
-    return ::lround(get_game_fps()) - play.game_speed_modifier;
+int GetGameSpeed()
+{
+    return game.options[OPT_GAMEFPS];
 }
 
 int SetGameOption (int opt, int newval) {
@@ -433,8 +432,10 @@ int SetGameOption (int opt, int newval) {
         break;
     case OPT_DISABLEOFF:
         GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
-        // If GUI was disabled at this time then also update it, as visual style could've changed
-        if (play.disabled_user_interface > 0) { GUIE::MarkAllGUIForUpdate(true, false); }
+        // If interface was disabled at this time then also update GUIs, as visual style could've changed
+        update_gui_disabled_status();
+        // Also update all disabled controls (like buttons), in case they need to update their disabled effect
+        GUIE::MarkDisabledGUIForUpdate();
         break;
     case OPT_ANTIALIASFONTS:
         adjust_fonts_for_render_mode(newval != 0);
@@ -542,7 +543,7 @@ void ShowInputBox(const char*msg, char*bufr) {
 }
 
 void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
-    setup_for_dialog();
+    setup_for_dialog(play.normal_font);
     enterstringwindow(get_translation(msg), bufr, buf_len);
     restore_after_dialog();
 }
@@ -815,12 +816,17 @@ int WaitImpl(int skip_type, int nloops)
     if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
         return 0;
 
-    // < 3.6.0 treated negative nloops as "no time";
+    // < 3.6.0 scripts treated negative nloops as "no time";
     // also old engine let nloops to overflow into neg when assigned to wait_counter...
     if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
     {
         if (nloops < 0 || nloops > INT16_MAX)
             nloops = 0;
+    }
+
+    if (nloops == 0)
+    {
+        return 0;
     }
 
     // clamp to int16

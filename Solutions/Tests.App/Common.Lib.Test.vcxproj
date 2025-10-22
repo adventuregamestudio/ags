@@ -22,7 +22,9 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\test\cmdlineopts_test.cpp" />
+    <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
+    <ClCompile Include="..\..\Common\test\gui_test.cpp" />
     <ClCompile Include="..\..\Common\test\inifile_test.cpp" />
     <ClCompile Include="..\..\Common\test\math_test.cpp" />
     <ClCompile Include="..\..\Common\test\memory_test.cpp" />
@@ -31,55 +33,6 @@
     <ClCompile Include="..\..\Common\test\string_test.cpp" />
     <ClCompile Include="..\..\Common\test\utf8_test.cpp" />
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
-    <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
-    <ClCompile Include="..\..\Common\util\deflatestream.cpp" />
-    <ClCompile Include="..\..\Common\util\file.cpp" />
-    <ClCompile Include="..\..\Common\util\filestream.cpp" />
-    <ClCompile Include="..\..\Common\util\inifile.cpp" />
-    <ClCompile Include="..\..\Common\util\ini_util.cpp" />
-    <ClCompile Include="..\..\Common\util\memorystream.cpp" />
-    <ClCompile Include="..\..\Common\util\path.cpp" />
-    <ClCompile Include="..\..\Common\util\path_ex.cpp" />
-    <ClCompile Include="..\..\Common\util\stdio_compat.c" />
-    <ClCompile Include="..\..\Common\util\stream.cpp" />
-    <ClCompile Include="..\..\Common\util\string.cpp" />
-    <ClCompile Include="..\..\Common\util\string_compat.c" />
-    <ClCompile Include="..\..\Common\util\string_utils.cpp" />
-    <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
-    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
-    <ClCompile Include="..\..\Common\util\transformstream.cpp" />
-    <ClCompile Include="..\..\Common\util\version.cpp" />
-    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\file.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\libc.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
-    <ClCompile Include="..\..\libsrc\miniz\miniz.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
-    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
-    <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
-    <ClInclude Include="..\..\Common\util\deflatestream.h" />
-    <ClInclude Include="..\..\Common\util\file.h" />
-    <ClInclude Include="..\..\Common\util\filestream.h" />
-    <ClInclude Include="..\..\Common\util\inifile.h" />
-    <ClInclude Include="..\..\Common\util\ini_util.h" />
-    <ClInclude Include="..\..\Common\util\math.h" />
-    <ClInclude Include="..\..\Common\util\memory.h" />
-    <ClInclude Include="..\..\Common\util\memorystream.h" />
-    <ClInclude Include="..\..\Common\util\path.h" />
-    <ClInclude Include="..\..\Common\util\stdio_compat.h" />
-    <ClInclude Include="..\..\Common\util\stream.h" />
-    <ClInclude Include="..\..\Common\util\string.h" />
-    <ClInclude Include="..\..\Common\util\string_compat.h" />
-    <ClInclude Include="..\..\Common\util\string_utils.h" />
-    <ClInclude Include="..\..\Common\util\textstreamreader.h" />
-    <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
-    <ClInclude Include="..\..\Common\util\transformstream.h" />
-    <ClInclude Include="..\..\Common\util\version.h" />
-    <ClInclude Include="..\..\libsrc\miniz\miniz.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{212724F9-66FC-4BB6-97F5-975CA10EFFEB}</ProjectGuid>
@@ -163,8 +116,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Common_d.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -182,8 +135,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Common_d.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -205,8 +158,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Common.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -228,8 +181,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Common.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

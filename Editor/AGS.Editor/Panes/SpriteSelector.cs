@@ -965,7 +965,7 @@ namespace AGS.Editor
             }
             catch (IOException ex)
             {
-                Factory.GUIController.ShowMessage("Unable to create temporary file. Your TEMP directory could be full. Open your temp folder in explorer (" + System.IO.Path.GetTempPath() + ") and delete any unnecessary files.\n\nError: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to create temporary file. Your TEMP directory could be full. Open your temp folder in explorer (" + System.IO.Path.GetTempPath() + ") and delete any unnecessary files.", ex, MessageBoxIcon.Warning);
                 fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "agsimg.tmp");
             }
 
@@ -998,7 +998,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("Unable to launch your image editor. Make sure you have an application installed to handle PNG and BMP files, and that it is not already running. If it is already running, close it and then try again.\n\nError: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("Unable to launch your image editor. Make sure you have an application installed to handle PNG and BMP files, and that it is not already running. If it is already running, close it and then try again.", ex, MessageBoxIcon.Warning);
             }
 
             DateTime fileNowModified = System.IO.File.GetLastWriteTimeUtc(fileName);
@@ -1024,7 +1024,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("AGS was not able to delete the temporary sprite file. It could be that the image editor is still running and that AGS has not been able to properly detect when it shuts down. Please report this problem on the AGS Forums." + Environment.NewLine + Environment.NewLine + "Error: " + ex.Message, MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("AGS was not able to delete the temporary sprite file. It could be that the image editor is still running and that AGS has not been able to properly detect when it shuts down.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -1320,7 +1320,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error importing the file. The error message was: '" + ex.Message + "'. Please try again", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error importing the file.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -1332,7 +1332,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                Factory.GUIController.ShowMessage("There was an error importing the file. The error message was: '" + ex.Message + "'. Please try again", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowError("There was an error importing the file.", ex, MessageBoxIcon.Warning);
             }
         }
 
@@ -1486,7 +1486,7 @@ namespace AGS.Editor
                 }
                 catch (AGSEditorException ex)
                 {
-                    Factory.GUIController.ShowMessage("Unable to change the sprite number: " + ex.Message, MessageBoxIcon.Warning);
+                    Factory.GUIController.ShowError("Unable to change the sprite number.", ex, MessageBoxIcon.Warning);
                 }
             }
         }

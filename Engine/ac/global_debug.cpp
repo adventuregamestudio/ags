@@ -121,13 +121,13 @@ void script_debug(int cmdd,int dataa) {
         if (game.roomNames.size() == 0)
         {
             String inroomtex = String::FromFormat("!Enter new room: (in room %d)", displayed_room);
-            setup_for_dialog();
+            setup_for_dialog(play.normal_font);
             goToRoom = enternumberwindow(inroomtex.GetCStr());
             restore_after_dialog();
         }
         else
         {
-            setup_for_dialog();
+            setup_for_dialog(play.normal_font);
             goToRoom = roomSelectorWindow(displayed_room, game.roomNames);
             restore_after_dialog();
         }

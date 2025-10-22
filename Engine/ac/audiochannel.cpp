@@ -220,6 +220,13 @@ void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPo
     }
 }
 
+// NOTE: This is a stub, made for a custom engine of "Nefasto's Misadventures - Meeting Noeroze";
+// the purpose of the 3rd function parameter is unknown.
+void AudioChannel_SetRoomLocation3(ScriptAudioChannel *channel, int xPos, int yPos, int /* unknown */)
+{
+    AudioChannel_SetRoomLocation(channel, xPos, yPos);
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -313,6 +320,11 @@ RuntimeScriptValue Sc_AudioChannel_SetRoomLocation(void *self, const RuntimeScri
     API_OBJCALL_VOID_PINT2(ScriptAudioChannel, AudioChannel_SetRoomLocation);
 }
 
+RuntimeScriptValue Sc_AudioChannel_SetRoomLocation3(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(ScriptAudioChannel, AudioChannel_SetRoomLocation3);
+}
+
 RuntimeScriptValue Sc_AudioChannel_GetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptAudioChannel, AudioChannel_GetSpeed);
@@ -346,6 +358,7 @@ void RegisterAudioChannelAPI()
         { "AudioChannel::Seek^1",             API_FN_PAIR(AudioChannel_Seek) },
         { "AudioChannel::SeekMs^1",           API_FN_PAIR(AudioChannel_SeekMs) },
         { "AudioChannel::SetRoomLocation^2",  API_FN_PAIR(AudioChannel_SetRoomLocation) },
+        { "AudioChannel::SetRoomLocation^3",  API_FN_PAIR(AudioChannel_SetRoomLocation3) },
         { "AudioChannel::Stop^0",             API_FN_PAIR(AudioChannel_Stop) },
         { "AudioChannel::get_ID",             API_FN_PAIR(AudioChannel_GetID) },
         { "AudioChannel::get_IsPaused",       API_FN_PAIR(AudioChannel_GetIsPaused) },

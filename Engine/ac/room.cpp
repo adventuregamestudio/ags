@@ -408,10 +408,9 @@ void unload_old_room()
         play.temporarily_turned_off_character = -1;
     }
 
+    pool.PrintStats();
 
     displayed_room = -10;
-   
-    pool.PrintStats();
 }
 
 // Automatically reset primary room viewport and camera to match the new room size
@@ -667,17 +666,14 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     for (uint32_t cc = 0; cc < thisroom.Objects.size(); cc++)
     {
         // export the object's script object
-        if (thisroom.Objects[cc].ScriptName.IsEmpty())
-            continue;
-        ccAddExternalScriptObjectHandle(thisroom.Objects[cc].ScriptName, &StaticObjectArray[cc]);
+        if (!thisroom.Objects[cc].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.Objects[cc].ScriptName, &StaticObjectArray[cc]);
     }
 
     for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
     {
-        if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
-            continue;
-
-        ccAddExternalScriptObjectHandle(thisroom.Hotspots[cc].ScriptName, &StaticHotspotArray[cc]);
+        if (!thisroom.Hotspots[cc].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.Hotspots[cc].ScriptName, &StaticHotspotArray[cc]);
     }
 
     set_our_eip(210);

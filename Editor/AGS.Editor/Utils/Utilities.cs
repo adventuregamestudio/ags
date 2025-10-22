@@ -435,6 +435,10 @@ namespace AGS.Editor
         /// 
         /// Exceptions:
         ///  - CannotDeleteFileException
+        ///
+        /// FIXME: consider renaming this method, as in .NET Framework
+        /// "Try*" methods usually mean no exceptions are thrown.
+        /// Add another method called "Try*" which simply returns bool.
         /// </summary>
         public static void TryDeleteFile(string fileName)
         {
@@ -956,6 +960,42 @@ namespace AGS.Editor
             foreach (PropertyInfo prop in properties)
             {
                 prop.SetValue(clone, prop.GetValue(source_obj));
+            }
+        }
+
+        /// <summary>
+        /// Runs an action inside a try-catch block. If any exception is thrown,
+        /// then catches it, adds to the errors collection and returns a failure.
+        /// </summary>
+        public static bool ExecuteOrError(Action action, string errorMsg, CompileMessages errors)
+        {
+            try
+            {
+                action.Invoke();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new CompileError(errorMsg, ex));
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Runs an action inside a try-catch block. If any exception is thrown,
+        /// then catches it, adds to the errors collection as a warning and returns a failure.
+        /// </summary>
+        public static bool ExecuteOrWarn(Action action, string errorMsg, CompileMessages errors)
+        {
+            try
+            {
+                action.Invoke();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new CompileWarning(errorMsg, ex));
+                return false;
             }
         }
     }

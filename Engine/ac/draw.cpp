@@ -691,7 +691,7 @@ void init_game_drawdata()
         objcache[i] = ObjectCache();
 #if (AGS_PLATFORM_DEBUG)
     for (auto &ch : game.chars)
-        charcache[ch.index_id].tag.Format("CHAR%d:%s", ch.index_id, ch.scrname);
+        charcache[ch.index_id].tag.Format("CHAR%d:%s", ch.index_id, ch.scrname.GetCStr());
 #endif
 
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
@@ -2289,7 +2289,7 @@ void prepare_characters_for_drawing()
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
             chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
-        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname));
+        actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname.GetCStr()));
 #endif
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;

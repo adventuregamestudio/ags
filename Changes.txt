@@ -251,7 +251,8 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.3 - Beta, September 2025
+VERSION 3.6.3 - Beta, October 2025
+
 Editor:
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
@@ -1282,8 +1283,6 @@ Editor:
  - When run with "/compile" argument Editor will print all messages to the console (stdout),
    instead of displaying modal message windows.
  - For Android build target Editor now supports a directory to place plugins in.
- - For Android build target disabled compression of `.ags` and `.vox` assets, as that slows down
-   engine streaming resources (sprites etc).
  - When building a game for Android and Linux the Editor will now be more tolerant to missing
    plugins and only issue a warning instead of stopping with error.
  - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.
@@ -3859,7 +3858,7 @@ VERSION 3.2, June 2010
  - The Restart Point save file (AGSSAVE.999) is no longer deleted when you quit the game, 
    to fix a problem where RestartGame didn't work if you started the game by double-clicking
    an Enhanced Save Game file in explorer
- - Disallowed accented characters like é in script names in the editor, because they
+ - Disallowed accented characters like 頩n script names in the editor, because they
    wouldn't compile
  - Dynamic sprite deletion warning is now only displayed on exit if Debug Mode is turned on
  - Fixed sprite entry getting duplicated if you dragged a sprite to the end of the list
@@ -4104,7 +4103,7 @@ VERSION 3.1, October 2008
    help newbies who are using it by accident instead of the Change button.
  - Added option for AGS Editor to pop up a message every X days reminding you to back
    up your game
- - GUI Text Box now allows the user to type in extended chars like éíñ when the
+ - GUI Text Box now allows the user to type in extended chars like 魱 when the
    textbox is using a TTF font
  - D3D driver now automatically tries 640x400 if your monitor doesn't support 320x200,
    like the DX5 driver already did

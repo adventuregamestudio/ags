@@ -135,7 +135,7 @@ static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color
     // allow DisplaySpeechBackground to be shrunk
     DisplayTextShrink allow_shrink = (speech_for_char >= 0) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
     auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, over_type, style, allow_shrink, speech_for_char);
-    return over ? over->type : 0;
+    return over ? over->GetID() : 0;
 }
 
 // [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
@@ -145,7 +145,7 @@ int DisplaySpeechBackground(int charid, const char *speel) {
     const auto &overs = get_overlays();
     for (size_t i = 0; i < overs.size(); ++i)
     {
-        if (overs[i].speechForChar == charid)
+        if (overs[i].GetCharacterRef() == charid)
         {
             remove_screen_overlay(i);
             break;
@@ -156,7 +156,6 @@ int DisplaySpeechBackground(int charid, const char *speel) {
                                  game.chars[charid].talkcolor, get_translation(speel), OVER_CUSTOM, kDisplayTextStyle_Overchar, charid);
 
     auto *over = get_overlay(ovrl);
-    over->speechForChar = charid;
-    over->timeout = GetTextDisplayTime(speel, 1);
+    over->SetAsSpeech(charid, GetTextDisplayTime(speel, 1));
     return ovrl;
 }

@@ -41,22 +41,15 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     const char *text, int over_type, DisplayTextStyle style, DisplayTextShrink allow_shrink, int speech_for_char = -1);
 
 ScreenOverlay *get_overlay(int type);
-// Gets overlay position for drawing in its respective layer (screen or room)
-Point get_overlay_display_pos(const ScreenOverlay &over);
 // Autopositions overlay, that is linked to a character
 void autoposition_overlay(ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy, int pic_offx, int pic_offy);
 void remove_screen_overlay(int type);
 void remove_all_overlays();
-// Creates and registers a managed script object for existing overlay object;
-// optionally adds an internal engine reference to prevent object's disposal
-ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);
 // Restores overlays, e.g. after restoring a game save
 void restore_overlays();
-// Recalculates overlay's transform matrix and AABB, returns overlay object's position
-Point update_overlay_graphicspace(ScreenOverlay &over);
 // Returns a ref to overlays list, useful for iterating over them
 // FIXME: this should be a CONST ref (if any at all), strictly for reading,
 // but unfortunately some batch operations on overlays are currently performed

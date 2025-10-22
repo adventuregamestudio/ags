@@ -2291,11 +2291,11 @@ static void add_roomovers_for_drawing()
     auto &overs = get_overlays();
     for (auto &over : overs)
     {
-        if (over.type < 0) continue; // empty slot
+        if (over.GetID() < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
-        if (over.transparency == 255) continue; // skip fully transparent
-        const Point pos = update_overlay_graphicspace(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, overtxs[over.type].DrawIndex);
+        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        over.UpdateGraphicSpace();
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, over.GetDrawX(), over.GetDrawY(), over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 }
 
@@ -2575,11 +2575,11 @@ void draw_gui_and_overlays()
     auto &overs = get_overlays();
     for (auto &over : overs)
     {
-        if (over.type < 0) continue; // empty slot
+        if (over.GetID() < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
-        if (over.transparency == 255) continue; // skip fully transparent
-        const Point pos = update_overlay_graphicspace(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, overtxs[over.type].DrawIndex);
+        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        over.UpdateGraphicSpace();
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, over.GetDrawX(), over.GetDrawY(), over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 
     // Add GUIs
@@ -2917,8 +2917,8 @@ static void construct_overlays()
     for (size_t i = 0; i < overs.size(); ++i)
     {
         auto &over = overs[i];
-        if (over.type < 0) continue; // empty slot
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (over.GetID() < 0) continue; // empty slot
+        if (over.GetTransparency() == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
         if (overtxs[i].DrawIndex == 0u)
@@ -2931,7 +2931,7 @@ static void construct_overlays()
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
         {
-            Point pos = get_overlay_display_pos(over);
+            Point pos = over.GetDrawPos();
             has_changed |= (pos.X != overcache[i].X || pos.Y != overcache[i].Y);
             overcache[i].X = pos.X; overcache[i].Y = pos.Y;
         }
@@ -2949,7 +2949,7 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
-                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, Size(over.scaleWidth, over.scaleHeight), over.rotation, over.GetFlip());
+                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, over.GetScaledSize(), over.GetRotation(), over.GetFlip());
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     auto &use_cache = overtx.Bmp;
@@ -2958,13 +2958,12 @@ static void construct_overlays()
                         recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);
                         use_cache->Blit(use_bmp);
                     }
-                    Point pos = get_overlay_display_pos(over);
-                    walkbehinds_cropout(use_cache.get(), pos.X, pos.Y, over.zorder);
+                    walkbehinds_cropout(use_cache.get(), over.GetDrawX(), over.GetDrawY(), over.GetZOrder());
                     use_bmp = use_cache.get();
                 }
                 if (over.HasLightLevel() || over.HasTint())
                 {
-                    apply_tint_or_light(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light,
+                    apply_tint_or_light(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(), over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight(),
                         use_bmp->GetColorDepth(), use_bmp);
                 }
             }
@@ -2976,13 +2975,13 @@ static void construct_overlays()
         assert(overtx.Ddb); // Test for missing texture, might happen if not marked for update
         if (!overtx.Ddb) continue;
         overtx.Ddb->SetOrigin(0.f, 0.f);
-        overtx.Ddb->SetStretch(over.scaleWidth, over.scaleHeight);
+        overtx.Ddb->SetStretch(over.GetScaledWidth(), over.GetScaledHeight());
         overtx.Ddb->SetFlip(over.GetFlip());
-        overtx.Ddb->SetRotation(over.rotation);
-        overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
-        overtx.Ddb->SetBlendMode(over.blendMode);
+        overtx.Ddb->SetRotation(over.GetRotation());
+        overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.GetTransparency()));
+        overtx.Ddb->SetBlendMode(over.GetBlendMode());
         overtx.Ddb->SetShader(shaderInstances[over.GetShaderID()]);
-        apply_tint_or_light_ddb(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light);
+        apply_tint_or_light_ddb(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(), over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight());
     }
 }
 

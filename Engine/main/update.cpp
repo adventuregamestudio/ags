@@ -153,16 +153,15 @@ void update_following_exactly_characters(const std::vector<int> &followingAsShee
 
 void update_overlay_timers()
 {
-    // update overlay timers and positions
+    // update overlay timers
     auto &overs = get_overlays();
     for (auto &over : overs)
     {
-        if (over.timeout > 0)
+        if (over.GetTimeout() > 0)
         {
-            over.timeout--;
-            if (over.timeout == 0)
+            if (over.UpdateTimeout() == 0)
             {
-                remove_screen_overlay(over.type);
+                remove_screen_overlay(over.GetID());
             }
         }
     }

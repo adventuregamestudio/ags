@@ -492,10 +492,10 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     }
 
     int adjustedXX, adjustedYY;
-    Bitmap *text_window_ds = create_textual_image(text, look, text_color,
-        xx, yy, adjustedXX, adjustedYY, wii, usingfont, topbar);
+    std::unique_ptr<Bitmap> text_window_ds(create_textual_image(text, look, text_color,
+        xx, yy, adjustedXX, adjustedYY, wii, usingfont, topbar));
 
-    size_t nse = add_screen_overlay(roomlayer, xx, yy, over_id, text_window_ds, adjustedXX - xx, adjustedYY - yy);
+    size_t nse = add_screen_overlay(roomlayer, xx, yy, over_id, std::move(text_window_ds), adjustedXX - xx, adjustedYY - yy);
     auto *over = get_overlay(nse); // FIXME: optimize return value
     // we should not delete text_window_ds here, because it is now owned by Overlay
 

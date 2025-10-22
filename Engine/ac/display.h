@@ -18,8 +18,9 @@
 #ifndef __AGS_EE_AC__DISPLAY_H
 #define __AGS_EE_AC__DISPLAY_H
 
-#include "gui/guimain.h"
+#include "ac/screenoverlay.h"
 #include "gfx/bitmap.h"
+#include "gui/guimain.h"
 #include "util/string.h"
 
 using namespace AGS; // FIXME later
@@ -115,8 +116,6 @@ struct DisplayVars
     DisplayVars(int linespacing, int fulltxheight)
         : Linespacing(linespacing), FullTextHeight(fulltxheight) {}
 };
-
-struct ScreenOverlay;
 
 // Cast text coordinates received from the script to DisplayTextPosition
 DisplayTextPosition get_textpos_from_scriptcoords(int x, int y, bool for_speech);

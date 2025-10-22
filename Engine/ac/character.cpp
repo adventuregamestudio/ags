@@ -832,7 +832,9 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     if (!over)
         quit("!SayBackground internal error: no overlay");
     // Create script object with an internal ref, keep at least until internal timeout
-    return create_scriptoverlay(*over, true);
+    ScriptOverlay *scover = over->CreateScriptObject();
+    ccAddObjectReference(over->GetScriptHandle());
+    return scover;
 }
 
 // [DEPRECATED] still used by Character_SetAsPlayer
@@ -2739,8 +2741,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         auto &overs = get_overlays();
         for (auto &over : overs)
         {
-            if (over.timeout > 0)
-                remove_screen_overlay(over.type);
+            if (over.GetTimeout() > 0)
+                remove_screen_overlay(over.GetID());
         }
     }
     said_text = 1;
@@ -2826,7 +2828,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     int ovr_type = 0;
     text_lips_offset = 0;
     text_lips_text = texx;
-    Bitmap *closeupface = nullptr;
+    std::unique_ptr<Bitmap> closeupface;
     int charFrameWas = 0;
     int viewWasLocked = 0;
     if (speakingChar->flags & CHF_FIXVIEW)
@@ -2997,7 +2999,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
             if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4) {
                 // QFG4-style whole screen picture
-                closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight());
+                closeupface.reset(BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight()));
                 closeupface->Clear(0);
                 if (xx < 0 && play.speech_portrait_placement)
                 {
@@ -3029,14 +3031,14 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
                 else
                     ovr_yp = yy;
 
-                closeupface = BitmapHelper::CreateTransparentBitmap(bigx + 1, bigy + 1);
+                closeupface.reset(BitmapHelper::CreateTransparentBitmap(bigx + 1, bigy + 1));
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
             const ViewFrame *vf = &viptr->loops[0].frames[0];
-            DrawViewFrame(closeupface, vf, view_frame_x, view_frame_y);
+            DrawViewFrame(closeupface.get(), vf, view_frame_x, view_frame_y);
 
             int overlay_x = 10;
             if (xx < 0) {
@@ -3091,7 +3093,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             }
             if (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4)
                 overlay_x = 0;
-            face_talking = add_screen_overlay(false,overlay_x,ovr_yp,ovr_type,closeupface);
+            face_talking = add_screen_overlay(false, overlay_x, ovr_yp, ovr_type, std::move(closeupface));
             facetalkview = useview;
             facetalkloop = 0;
             facetalkframe = 0;
@@ -3176,10 +3178,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */,
         DisplayTextLooks(disp_style, disp_pos, allow_shrink, is_thought), FONT_SPEECH, text_color, -1 /* don't autoplace */);
     set_our_eip(156);
-    if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == kSpeechStyle_QFG4))
-        closeupface = nullptr;
-    if (closeupface!=nullptr)
-        remove_screen_overlay(ovr_type);
+    if (face_talking >= 0)
+        remove_screen_overlay(face_talking);
     face_talking = -1;
     facetalkchar = nullptr;
     set_our_eip(157);

@@ -45,20 +45,23 @@ enum EventsTableVersion
 };
 
 // Script function names, corresponding to the event's index,
-// paired with Enabled flag to tell if this event handler has to be processed
+// paired with Enabled flag to tell if this event handler has to be processed,
+// and Checked flag that tells whether the handler test in script was performed.
 struct ScriptEventHandler
 {
     String FunctionName = {};
-    // At runtime we may want to receive function's call result and update
-    // Enabled status, but result may be delayed, so we have to use a shared memory object for safety.
-    // TODO: have this in runtime-only struct, when we have a clear separation
-    std::shared_ptr<bool> Enabled;
 
-    inline bool IsEnabled() const { return Enabled && *Enabled; }
+    bool Enabled = false;
+    bool Checked = false;
+
+    inline bool IsEnabled() const { return Enabled; }
+    inline bool IsChecked() const { return Checked; }
+    inline void SetChecked(bool enabled) { Checked = true; Enabled = enabled; }
 
     ScriptEventHandler() = default;
     ScriptEventHandler(const String &fn_name)
-        : FunctionName(fn_name), Enabled(new bool(!fn_name.IsEmpty())) {}
+        // If no function name is assigned, then we disable and mark as checked right away
+        : FunctionName(fn_name), Enabled(!fn_name.IsEmpty()), Checked(fn_name.IsEmpty()) {}
 };
 
 struct ScriptEventsBase

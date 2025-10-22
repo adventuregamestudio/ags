@@ -102,13 +102,13 @@ struct NonBlockingScriptFunction
 
 // Run a script function on a non-blocking script thread
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
-
+// Runs new-style interaction event handler in script.
 // Runs the ObjectEvent using a script callback of 'evnt' index,
 // or alternatively of 'any_evt' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt,
-                         const ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
-int     run_event_script(const ObjectEvent &obj_evt, const ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
+int     run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt,
+                         ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
+int     run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult
@@ -124,15 +124,17 @@ AGS::Engine::RuntimeScript *GetScriptInstanceByType(ScriptType sc_type);
 bool    DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
 bool    DoesScriptFunctionExistInModules(const String &fn_name);
+// Tests if a function exists in a particular script module (except room script)
+bool    DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name);
 // Queues a script function to be run either called by the engine or from another script;
 // the function is identified by its name, and will be run in time, by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
+    const RuntimeScriptValue *params = nullptr);
 // Queues a script function to be run either called by the engine or from another script;
 // the function is identified by its name and script module, and will be run in time,
 // by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr, std::weak_ptr<bool> result = {});
+    const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on the main script thread
 RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);

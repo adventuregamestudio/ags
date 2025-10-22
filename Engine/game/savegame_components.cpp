@@ -1805,7 +1805,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_400_18,
+        kGSSvgVersion_400_21,
         kGSSvgVersion_400,
         kSaveCmp_GameState,
         WriteGameState,

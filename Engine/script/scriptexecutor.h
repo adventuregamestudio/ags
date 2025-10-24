@@ -151,7 +151,7 @@ public:
     const RuntimeScriptValue *GetCurrentStack() const { return _registers[SREG_SP].RValue; }
     // Get latest return value
     int     GetReturnValue() const { return _returnValue; }
-    // TODO: this is a hack, required for dialog script; redo this later!
+    // FIXME: this is a hack, required for dialog script; redo this later!
     void    SetReturnValue(int val) { _returnValue = val; }
 
     // Get the script's execution position and callstack as human-readable text

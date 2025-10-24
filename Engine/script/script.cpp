@@ -394,10 +394,17 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         quit_with_script_error(tsname);
     }
 
+    // FIXME: here we save the return value of the current called function,
+    // because anything scheduled for the post-script processing will be run by the same executor,
+    // and on the same thread, and may replace "return value" field saved in a executor.
+    // That's ugly. Should revise and redesign this later. BTW, ScriptExecutor keeping
+    // last return value is also a hack, used currently only by dialogs. This should be done differently.
+    const int ret_value = scriptExecutor->GetReturnValue();
     if (!scriptThreadMain->IsBusy())
     {
         PostScriptProcessing(tsname);
     }
+    scriptExecutor->SetReturnValue(ret_value); // restore saved ret value
 
     // restore cached error state
     cc_error(cachedCcError);

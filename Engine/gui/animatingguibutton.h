@@ -35,7 +35,7 @@ struct AnimatingGUIButton
     short wait = 0;
 
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
-    void WriteToSavegame(Common::Stream *out);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AGS_EE_GUI__ANIMATINGGUIBUTTON_H

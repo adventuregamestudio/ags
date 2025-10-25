@@ -207,9 +207,9 @@ enum LocationType {
   eLocationHotspot = 1,
   eLocationCharacter = 2,
   eLocationObject = 3,
-#ifdef SCRIPT_API_v400_21
+#ifdef SCRIPT_API_v400_22
   eLocationInvItem = 4
-#endif // SCRIPT_API_v400_21
+#endif // SCRIPT_API_v400_22
 };
 
 enum CutsceneSkipType {

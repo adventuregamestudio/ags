@@ -562,7 +562,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(RGB) * 256);
 
-    if (data_ver < kRoomVersion_400_21)
+    if (data_ver < kRoomVersion_400_22)
     {
         room->RemapOldInteractions();
         for (auto &hot : room->Hotspots)

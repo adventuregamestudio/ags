@@ -387,7 +387,7 @@ namespace AGS.Editor
             }
 
             // Update cursors
-            if (xmlVersionIndex < 4000021)
+            if (xmlVersionIndex < 4000022)
             {
                 // This is nasty, but certain standard cursors meanings and function suffixes
                 // have been hardcoded by their INDEX in the object Interactions.

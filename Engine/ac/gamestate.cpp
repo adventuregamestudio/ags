@@ -678,7 +678,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_font = FONT_UNDEFINED;
     }
 
-    if ((svg_ver >= kGSSvgVersion_363_02 && svg_ver < kGSSvgVersion_400) || svg_ver >= kGSSvgVersion_400_21)
+    if ((svg_ver >= kGSSvgVersion_363_02 && svg_ver < kGSSvgVersion_400) || svg_ver >= kGSSvgVersion_400_22)
     {
         dialog_options_zorder = in->ReadInt32();
         in->ReadInt32(); // reserved up to 4 ints
@@ -899,7 +899,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(dialog_options_gui_y);
     out->WriteInt32(dialog_options_textalign);
     out->WriteInt32(dialog_options_font);
-    // kGSSvgVersion_363_02, kGSSvgVersion_400_21
+    // kGSSvgVersion_363_02, kGSSvgVersion_400_22
     out->WriteInt32(dialog_options_zorder);
     out->WriteInt32(0); // reserved up to 4 ints
     out->WriteInt32(0);

@@ -16,6 +16,7 @@
 //
 //=============================================================================
 
+#include "game/scripteventstable.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"

@@ -149,7 +149,7 @@ Obligatory alpha component in 32-bit color. SCR_COLOR_TRANSPARENT is redefined a
 GUI controls extended graphical properties.
 4.0.0.20:
 Fixed historical mistake of 1 vertical pixel for object and character sprite placement.
-4.0.0.21:
+4.0.0.22:
 Remade events tables
 */
 

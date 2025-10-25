@@ -13,7 +13,7 @@ namespace AGS.Types
     /// </summary>
     public class Interactions
     {
-        public const string XML_VERSION = "4.0.0.21";
+        public const string XML_VERSION = "4.0.0.22";
 
         private InteractionSchema _schema;
         private string _scriptModule = string.Empty;

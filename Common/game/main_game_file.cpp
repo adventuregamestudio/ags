@@ -432,13 +432,6 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
             chars[i].RemapOldInteractions();
         }
     }
-
-    // Generate indexed event tables from event maps (for simpler access at runtime)
-    // TODO: consider moving this step to a runtime-only place?
-    for (int i = 0; i < char_count; i++)
-    {
-        chars[i].ResolveEventHandlers();
-    }
 }
 
 void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
@@ -452,13 +445,6 @@ void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
         {
             inv[i].RemapOldInteractions();
         }
-    }
-
-    // Generate indexed event tables from event maps (for simpler access at runtime)
-    // TODO: consider moving this step to a runtime-only place?
-    for (int i = 0; i < inv_count; i++)
-    {
-        inv[i].ResolveEventHandlers();
     }
 }
 
@@ -504,6 +490,24 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         {
             tbox.SetTextColor(RemapFromLegacyColourNumber(game, tbox.GetTextColor()));
         }
+    }
+
+    if (data_ver < kGameVersion_400_22)
+    {
+        for (auto &gui : ents.Guis)
+            gui.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Buttons)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.InvWindows)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Labels)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.ListBoxes)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.Sliders)
+            obj.RemapOldEvents();
+        for (auto &obj : ents.GuiControls.TextBoxes)
+            obj.RemapOldEvents();
     }
 }
 
@@ -587,7 +591,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
     {
-        err = ents.Game.chars[i].interactions.Read_v362(in);
+        err = ents.Game.chars[i].interactions.Read(in);
         if (!err)
             return err;
     }
@@ -595,7 +599,7 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
         return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
     {
-        err = ents.Game.invinfo[i].interactions.Read_v362(in);
+        err = ents.Game.invinfo[i].interactions.Read(in);
         if (!err)
             return err;
     }
@@ -683,22 +687,33 @@ HError GameDataExtReader::ReadExtGUIControlGraphicProperties(Stream *in, LoadedG
 
 HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents)
 {
-    HError err;
-    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+    HError err = ReadScriptEventsTablesForObjects(ents.Game.chars, "characters", in);
+    if (!err)
         return err;
-    for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
-    {
-        ents.Game.chars[i].events.Read(in);
-    }
-    if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
+    err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, ents.Game.numinvitems, "inventory items", in);
+    if (!err)
         return err;
-    for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
-    {
-        ents.Game.invinfo[i].events.Read(in);
-    }
-
-    // TODO: add all GUI reading their events as a map too
-
+    err = ReadScriptEventsTablesForObjects(ents.Guis, "GUIs", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Buttons, "GUI buttons", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Labels, "GUI labels", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.InvWindows, "GUI invwindows", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.Sliders, "GUI sliders", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.TextBoxes, "GUI textboxes", in);
+    if (!err)
+        return err;
+    err = ReadScriptEventsTablesForObjects(ents.GuiControls.ListBoxes, "GUI listboxes", in);
+    if (!err)
+        return err;
     return HError::None();
 }
 
@@ -896,6 +911,29 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         HError err = ReadNewScriptEventTables(in, _ents);
         if (!err)
             return err;
+    }
+    else if (ext_id.CompareNoCase("v400_viewevents") == 0)
+    {
+        uint32_t view_count = in->ReadInt32();
+        if (view_count != _ents.Game.numviews)
+            return new Error(String::FromFormat("Mismatching number of views: read %u expected %u", view_count, (uint32_t)_ents.Game.numviews));
+        for (uint32_t view = 0; view < view_count; ++view)
+        {
+            auto &view_s = _ents.Views[view];
+            uint32_t loop_count = in->ReadInt32();
+            if (loop_count != view_s.numLoops)
+                return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u", view, loop_count, (uint32_t)view_s.numLoops));
+            for (uint32_t loop = 0; loop < loop_count; ++loop)
+            {
+                uint32_t frame_count = in->ReadInt32();
+                if (frame_count != view_s.loops[loop].numFrames)
+                    return new Error(String::FromFormat("Mismatching number of frames for view %u loop %u: read %u expected %u", view, loop, frame_count, (uint32_t)view_s.loops[loop].numFrames));
+                for (uint32_t frame = 0; frame < frame_count; ++frame)
+                {
+                    view_s.loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
+                }
+            }
+        }
     }
     else
     {

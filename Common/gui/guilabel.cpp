@@ -25,6 +25,7 @@ namespace Common
 {
 
 GUILabel::GUILabel()
+    : GUIControl(ScriptEventsTable::DefaultSchema())
 {
 }
 
@@ -53,6 +54,11 @@ void GUILabel::SetTextAlignment(FrameAlignment align)
         _textAlignment = align;
         MarkChanged();
     }
+}
+
+const ScriptEventsSchema *GUILabel::GetEventsSchema() const
+{
+    return nullptr;
 }
 
 Rect GUILabel::CalcGraphicRect(bool clipped)

@@ -26,35 +26,6 @@ void GUIControl::SetParentID(int parent_id)
     _parentID = parent_id;
 }
 
-uint32_t GUIControl::GetEventCount() const
-{
-    return 0;
-}
-
-String GUIControl::GetEventName(uint32_t event) const
-{
-    return "";
-}
-
-String GUIControl::GetEventArgs(uint32_t event) const
-{
-    return "";
-}
-
-String GUIControl::GetEventHandler(uint32_t event) const
-{
-    if (event >= _eventHandlers.size())
-        return "";
-    return _eventHandlers[event];
-}
-
-void GUIControl::SetEventHandler(uint32_t event, const String &fn_name)
-{
-    if (event >= _eventHandlers.size())
-        return;
-    _eventHandlers[event] = fn_name;
-}
-
 bool GUIControl::IsOverControl(int x, int y, int leeway) const
 {
     Point at = _gs.WorldToLocal(x, y);
@@ -118,9 +89,7 @@ void GUIControl::WriteToFile(Stream *out) const
     out->WriteInt32(_height);
     out->WriteInt32(_zOrder);
     _name.Write(out);
-    out->WriteInt32(_eventHandlers.size());
-    for (uint32_t i = 0; i < _eventHandlers.size(); ++i)
-        _eventHandlers[i].Write(out);
+    out->WriteInt32(0); // obsolete (old-style event table)
 }
 
 void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -133,13 +102,11 @@ void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
     _zOrder   = in->ReadInt32();
     _name.Read(in);
 
-    _eventHandlers.clear();
-
+    // Old-style events table (will be converted to new-style)
     uint32_t evt_count = static_cast<uint32_t>(in->ReadInt32());
-    _eventHandlers.resize(evt_count);
     for (uint32_t i = 0; i < evt_count; ++i)
     {
-        _eventHandlers[i].Read(in);
+        _events.SetHandler(i, String::FromStream(in));
     }
 
     //UpdateGraphicSpace(); // can't do here, because sprite infos may not be loaded yet

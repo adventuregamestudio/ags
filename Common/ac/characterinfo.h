@@ -120,7 +120,9 @@ enum CharacterSvgVersion
 enum CharacterEventID
 {
     // an interaction with any cursor mode that normally has a event
-    kCharacterEvent_AnyClick = 0
+    kCharacterEvent_AnyClick,
+    // a view frame triggering a custom event
+    kCharacterEvent_OnFrameEvent,
 };
 
 // Design-time Character data.
@@ -170,8 +172,6 @@ struct CharacterInfo
     AGS::Common::String name = {}; // regular name (aka description)
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
-    // Common events
-    AGS::Common::ScriptEventsTable events = {};
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2
@@ -221,10 +221,19 @@ struct CharacterInfo
         flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
 
+    CharacterInfo() = default;
+    CharacterInfo(const CharacterInfo&) = default;
+    CharacterInfo(CharacterInfo &&) = default;
+
+    CharacterInfo &operator = (const CharacterInfo&) = default;
+    CharacterInfo &operator = (CharacterInfo&&) = default;
+
+    // Provides a script events table
+    const AGS::Common::ScriptEventsTable &GetEvents() const { return _events; }
+    AGS::Common::ScriptEventsTable &GetEvents() { return _events; }
+
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
-    // Generate indexed handlers list from the event handlers map
-    void ResolveEventHandlers();
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;
@@ -237,6 +246,11 @@ private:
     // common for both game file and save.
     void ReadBaseFields(Common::Stream *in);
     void WriteBaseFields(Common::Stream *out) const;
+
+    // Script events schema
+    static AGS::Common::ScriptEventsSchema _eventSchema;
+    // Common events
+    AGS::Common::ScriptEventsTable _events = AGS::Common::ScriptEventsTable(&CharacterInfo::_eventSchema);
 };
 
 #endif // __AC_CHARACTERINFO_H

@@ -76,6 +76,9 @@ struct ObjectEvent
         Params[0] = dyn_obj;
         Params[1] = RuntimeScriptValue().SetInt32(mode);
     }
+
+    bool IsValid() const { return ScType != kScTypeNone; }
+    operator bool() const { return IsValid(); }
 };
 
 // NonBlockingScriptFunction struct contains a cached information about
@@ -135,6 +138,11 @@ void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t pa
 // by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
+// Queues a script function to be run either called by the engine or from another script;
+// the function is identified by its name and script module, and will be run in time,
+// by RunScriptFunctionAuto().
+void    QueueScriptFunction(ScriptType sc_type, const AGS::Common::String &script_module,
+    const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on the main script thread
 RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);

@@ -209,7 +209,7 @@ void RunRegionInteraction(int regnum, int mood) {
     // Regions do not react to cursor modes, but this function
     // was historically executing special region events (see RegionEventID)
     const auto obj_evt = ObjectEvent(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion));
-    run_event_script(obj_evt, &thisroom.Regions[regnum].Events, mood);
+    run_event_script(obj_evt, &thisroom.Regions[regnum].GetEvents(), mood);
 }
 
 void Region_RunInteraction(ScriptRegion *ssr, int mood) {

@@ -122,6 +122,19 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
+        public void CopyFrom(CustomPropertySchemaItem schemaItem)
+        {
+            this.DefaultValue = schemaItem.DefaultValue;
+            this.Description = schemaItem.Description;
+            this.Name = schemaItem.Name;
+            this.Type = schemaItem.Type;
+            this.AppliesToCharacters = schemaItem.AppliesToCharacters;
+            this.AppliesToHotspots = schemaItem.AppliesToHotspots;
+            this.AppliesToInvItems = schemaItem.AppliesToInvItems;
+            this.AppliesToObjects = schemaItem.AppliesToObjects;
+            this.AppliesToRooms = schemaItem.AppliesToRooms;
+        }
+
         public object Clone()
         {
             CustomPropertySchemaItem copy = new CustomPropertySchemaItem();

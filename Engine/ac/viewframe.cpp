@@ -168,7 +168,8 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume,
         auto dyn_str = ScriptString::Create(views[view].loops[loop].frames[frame].event_name.GetCStr());
         evt_ext.Params[4] = RuntimeScriptValue().SetScriptObject(dyn_str.Obj, dyn_str.Mgr);
         evt_ext.ParamCount = 5;
-        run_event_script(evt_ext, handlers, evnt);
+        // This event is run on either blocking or non-blocking thread
+        run_event_script_always(evt_ext, handlers, evnt);
     }
 }
 

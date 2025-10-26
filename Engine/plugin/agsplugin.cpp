@@ -629,7 +629,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (inside_script)
         return -300;
 
-    RuntimeScript *run_script = GetScriptInstanceByType(globalScript ? kScTypeGame : kScTypeRoom);
+    RuntimeScript *run_script = GetScriptInstance(globalScript ? kScTypeGame : kScTypeRoom);
     RuntimeScriptValue params[] {
         RuntimeScriptValue().SetPluginArgOrPtr(arg1),
         RuntimeScriptValue().SetPluginArgOrPtr(arg2),

@@ -16,6 +16,7 @@
 #include "ac/game_version.h"
 #include "ac/viewframe.h"
 #include "ac/spritecache.h"
+#include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptstring.h"
 #include "debug/debug_log.h"
@@ -32,6 +33,16 @@ extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern CCAudioClip ccDynamicAudioClip;
 
+
+const char *ViewFrame_GetEventName(ScriptViewFrame *svf)
+{
+    return CreateNewScriptString(views[svf->view].loops[svf->loop].frames[svf->frame].event_name);
+}
+
+void ViewFrame_SetEventName(ScriptViewFrame *svf, const char *name)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].event_name = name;
+}
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf)
 {
@@ -209,6 +220,16 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+RuntimeScriptValue Sc_ViewFrame_GetEventName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptViewFrame, const char, myScriptStringImpl, ViewFrame_GetEventName);
+}
+
+RuntimeScriptValue Sc_ViewFrame_SetEventName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptViewFrame, ViewFrame_SetEventName, const char);
+}
+
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetFlipped(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -296,6 +317,8 @@ RuntimeScriptValue Sc_ViewFrame_SetYOffset(void *self, const RuntimeScriptValue 
 void RegisterViewFrameAPI()
 {
     ScFnRegister viewframe_api[] = {
+        { "ViewFrame::get_EventName",     API_FN_PAIR(ViewFrame_GetEventName) },
+        { "ViewFrame::set_EventName",     API_FN_PAIR(ViewFrame_SetEventName) },
         { "ViewFrame::get_Flipped",       API_FN_PAIR(ViewFrame_GetFlipped) },
         { "ViewFrame::set_Flipped",       API_FN_PAIR(ViewFrame_SetFlipped) },
         { "ViewFrame::get_Frame",         API_FN_PAIR(ViewFrame_GetFrame) },

@@ -796,6 +796,10 @@ builtin managed struct ViewFrame {
   import attribute int XOffset;
   /// Gets/sets the relative y offset applied to this frame.
   import attribute int YOffset;
+#ifdef SCRIPT_API_v400_22
+  /// Gets/sets the name of custom event associated with this frame.
+  import attribute String EventName;
+#endif // SCRIPT_API_v400_22
 };
 
 builtin managed struct DrawingSurface {

@@ -138,7 +138,14 @@ void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
     ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(),
-                     objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+        objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+}
+
+bool RoomObject::RunFrameEvent(int view, int loop, int frame)
+{
+    ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
+    return ::RunViewFrameEvent(view, loop, frame,
+        objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)

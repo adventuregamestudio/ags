@@ -90,7 +90,14 @@ void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
     ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi),
-                     objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+        objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+}
+
+bool CharacterExtras::RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame)
+{
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
+    return ::RunViewFrameEvent(view, loop, frame,
+        objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
 void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int distance, int eagerness, bool sort_behind)

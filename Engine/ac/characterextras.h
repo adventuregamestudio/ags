@@ -114,6 +114,8 @@ public:
     // Process the current animation frame for the character:
     // play linked sounds, and so forth.
     void CheckViewFrame(CharacterInfo *chi);
+    // Run the arbitrary frame's event if one is associated and character has a handler
+    bool RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame);
     // Setups following another character (follow_who)
     void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 

@@ -47,6 +47,12 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale = 100);
 void CheckViewFrame(int view, int loop, int frame, int sound_volume = 100);
 void CheckViewFrame(int view, int loop, int frame, int sound_volume,
                     const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt);
+// Plays a linked sound of the given frame; returns if the sound is linked and played successfully
+bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume);
+// Triggers a object's frame event handler for the given frame;
+// returns if the frame has associated custom event and object has a handler
+bool RunViewFrameEvent(int view, int loop, int frame,
+    const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
 

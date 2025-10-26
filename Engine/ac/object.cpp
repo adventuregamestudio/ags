@@ -928,6 +928,15 @@ void move_object(int objj, int tox, int toy, int speed, bool ignwal)
     move_object(objj, nullptr, tox, toy, speed, ignwal, RunPathParams::DefaultOnce());
 }
 
+bool Object_RunFrameEvent(ScriptObject *objj, int view, int loop, int frame)
+{
+    if (!AssertObject("Object.RunFrameEvent", objj->id))
+        return false;
+    view--; // convert to internal 0-based view ID
+    AssertFrame("Object.RunFrameEvent", thisroom.Objects[objj->id].ScriptName.GetCStr(), view, loop, frame);
+    return objs[objj->id].RunFrameEvent(view, loop, frame);
+}
+
 void Object_RunInteraction(ScriptObject *objj, int mode) {
     RunObjectInteraction(objj->id, mode);
 }
@@ -1472,6 +1481,11 @@ RuntimeScriptValue Sc_Object_RemoveTint(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_VOID(ScriptObject, Object_RemoveTint);
 }
 
+RuntimeScriptValue Sc_Object_RunFrameEvent(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(ScriptObject, Object_RunFrameEvent);
+}
+
 // void (ScriptObject *objj, int mode)
 RuntimeScriptValue Sc_Object_RunInteraction(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1858,6 +1872,7 @@ void RegisterObjectAPI()
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
         { "Object::MovePath^5",               API_FN_PAIR(Object_MovePath) },
         { "Object::RemoveTint^0",             API_FN_PAIR(Object_RemoveTint) },
+        { "Object::RunFrameEvent^3",          API_FN_PAIR(Object_RunFrameEvent) },
         { "Object::RunInteraction^1",         API_FN_PAIR(Object_RunInteraction) },
         { "Object::SetLightLevel^1",          API_FN_PAIR(Object_SetLightLevel) },
         { "Object::SetPosition^2",            API_FN_PAIR(Object_SetPosition) },

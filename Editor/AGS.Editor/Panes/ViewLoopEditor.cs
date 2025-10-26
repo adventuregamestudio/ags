@@ -31,6 +31,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_QUICK_IMPORT_REPLACE = "QuickImportReplace";
         private Icon _audioIcon = Resources.ResourceManager.GetIcon("audio_indicator.ico");
         private Icon _delayIcon = Resources.ResourceManager.GetIcon("delay_indicator.ico");
+        private Icon _eventIcon = Resources.ResourceManager.GetIcon("event_indicator.ico");
         private const int ICON_WIDTH = 16;
 
         public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame, MultiSelectAction action);
@@ -216,7 +217,8 @@ namespace AGS.Editor
             {
                 bool has_delay_info = _loop.Frames[i].Delay != 0;
                 bool has_sound_info = _loop.Frames[i].Sound != 0;
-                bool has_any_info = has_delay_info || has_sound_info;
+                bool has_event_info = !string.IsNullOrEmpty(_loop.Frames[i].EventName);
+                bool has_any_info = has_delay_info || has_sound_info || has_event_info;
                 if (!has_any_info) continue;
 
                 string delayString;
@@ -232,6 +234,7 @@ namespace AGS.Editor
 
                 if (has_delay_info) info_width += ICON_WIDTH + (int)e.Graphics.MeasureString(delayString, this.Font).Width;
                 if (has_sound_info) info_width += ICON_WIDTH;
+                if (has_event_info) info_width += ICON_WIDTH;
 
                 Point infoPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (info_width / 2), btnNewFrame.Bottom + 2);
 
@@ -245,6 +248,11 @@ namespace AGS.Editor
                 if (has_sound_info)
                 {
                     e.Graphics.DrawIcon(_audioIcon, infoPos.X, infoPos.Y);
+                    infoPos.X += ICON_WIDTH + 3;
+                }
+                if (has_event_info)
+                {
+                    e.Graphics.DrawIcon(_eventIcon, infoPos.X, infoPos.Y);
                 }
             }
         }

@@ -214,6 +214,7 @@ private:
 // TODO: this is a global variable, because this state is checked during update;
 // find a way to refactor this and not have it here.
 std::unique_ptr<GameLoopUntilState> restrict_until;
+bool restrict_until_in_script = false;
 
 
 static void ProperExit()
@@ -1380,6 +1381,11 @@ bool IsInWaitMode()
     return restrict_until != nullptr;
 }
 
+bool IsInWaitRunFromScript()
+{
+    return restrict_until_in_script;
+}
+
 // Checks if wait mode should continue until condition is met
 // FIXME: should be a private method of GameLoopUntilState,
 // but is called elsewhere for some strange reason;
@@ -1467,7 +1473,9 @@ static void GameLoopUntilEvent(int untilwhat, const void* data_ptr = nullptr, in
     // remember the state of these vars in case a higher level
     // call needs them
     std::unique_ptr<GameLoopUntilState> cached_restrict_until = std::move(restrict_until);
+    bool cached_restrict_until_in_script = restrict_until_in_script;
 
+    restrict_until_in_script = inside_script;
     restrict_until.reset(new GameLoopUntilState(untilwhat, data_ptr, data1, data2));
     restrict_until->Begin();
     while (restrict_until->Run());
@@ -1476,6 +1484,7 @@ static void GameLoopUntilEvent(int untilwhat, const void* data_ptr = nullptr, in
     set_our_eip(78);
 
     restrict_until = std::move(cached_restrict_until);
+    restrict_until_in_script = cached_restrict_until_in_script;
 }
 
 void GameLoopUntilValueIsZero(const char *value) 
@@ -1564,6 +1573,7 @@ void SyncDrawablesState()
 void ShutGameWaitState()
 {
     restrict_until = {};
+    restrict_until_in_script = false;
 }
 
 void update_polled_stuff()

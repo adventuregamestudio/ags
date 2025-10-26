@@ -103,6 +103,8 @@ public:
     // Process the current animation frame for the room object:
     // play linked sounds, and so forth.
     void CheckViewFrame();
+    // Run the arbitrary frame's event if one is associated and character has a handler
+    bool RunFrameEvent(int view, int loop, int frame);
 
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

@@ -147,28 +147,27 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
     return frame_vol;
 }
 
-void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume)
 {
-    CheckViewFrame(view, loop, frame, sound_volume, ObjectEvent(), nullptr, 0);
+    if (views[view].loops[loop].frames[frame].sound < 0)
+        return false;
+
+    // play this sound (eg. footstep)
+    ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+    if (channel)
+    {
+        sound_volume = Math::Clamp(sound_volume, 0, 100);
+        auto *ch = AudioChans::GetChannel(channel->id);
+        if (ch)
+            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+        return true; // return positive if sound is linked, regardless of the playback success
+    }
+    return false;
 }
 
-// Handle the new animation frame (play linked sounds, etc)
-void CheckViewFrame(int view, int loop, int frame, int sound_volume,
-                    const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt)
+bool RunViewFrameEvent(int view, int loop, int frame,
+    const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt)
 {
-    if (views[view].loops[loop].frames[frame].sound >= 0)
-    {
-        // play this sound (eg. footstep)
-        ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
-        if (channel)
-        {
-            sound_volume = Math::Clamp(sound_volume, 0, 100);
-            auto *ch = AudioChans::GetChannel(channel->id);
-            if (ch)
-                ch->set_volume100(ch->get_volume100() * sound_volume / 100);
-        }
-    }
-
     if (!views[view].loops[loop].frames[frame].event_name.IsEmpty()
         && obj_evt && handlers->HasHandler(evnt))
     {
@@ -181,7 +180,23 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume,
         evt_ext.ParamCount = 5;
         // This event is run on either blocking or non-blocking thread
         run_event_script_always(evt_ext, handlers, evnt);
+        return true;
     }
+
+    return false;
+}
+
+void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+{
+    CheckViewFrame(view, loop, frame, sound_volume, ObjectEvent(), nullptr, 0);
+}
+
+// Handle the new animation frame (play linked sounds, etc)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume,
+                    const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt)
+{
+    PlayViewFrameSound(view, loop, frame, sound_volume);
+    RunViewFrameEvent(view, loop, frame, obj_evt, handlers, evnt);
 }
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()

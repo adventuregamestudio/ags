@@ -746,6 +746,14 @@ void Game_SetTextReadingSpeed(int newTextSpeed)
         play.text_speed = newTextSpeed;
 }
 
+int Game_GetTickCounter()
+{
+    // Loop counter is uint32, but the script values are int32;
+    // convert uint32 value into a int32 wrapped in the range of 0 - INT32_MAX.
+    uint32_t loopcounter = get_loop_counter();
+    return loopcounter <= INT32_MAX ? static_cast<int32_t>(loopcounter) : static_cast<int32_t>(loopcounter - INT32_MAX);
+}
+
 int Game_GetMinimumTextDisplayTimeMs()
 {
     return play.text_min_display_time_ms;
@@ -2047,6 +2055,11 @@ RuntimeScriptValue Sc_Game_SetTextReadingSpeed(const RuntimeScriptValue *params,
     API_SCALL_VOID_PINT(Game_SetTextReadingSpeed);
 }
 
+RuntimeScriptValue Sc_Game_GetTickCounter(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetTickCounter);
+}
+
 // const char* ()
 RuntimeScriptValue Sc_Game_GetTranslationFilename(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2242,6 +2255,7 @@ void RegisterGameAPI()
         { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
         { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },
         { "Game::set_TextReadingSpeed",                   API_FN_PAIR(Game_SetTextReadingSpeed) },
+        { "Game::get_TickCounter",                        API_FN_PAIR(Game_GetTickCounter) },
         { "Game::get_TranslationFilename",                API_FN_PAIR(Game_GetTranslationFilename) },
         { "Game::get_UseNativeCoordinates",               API_FN_PAIR(Game_GetUseNativeCoordinates) },
         { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },

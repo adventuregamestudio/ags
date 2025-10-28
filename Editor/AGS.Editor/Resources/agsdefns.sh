@@ -3248,6 +3248,8 @@ builtin struct Game {
 #ifdef SCRIPT_API_v363
   /// Gets/sets game's running speed, in frames per second.
   import static attribute int Speed;
+  /// Gets number of game's ticks (updates) passed since the game start.
+  import static readonly attribute int TickCounter;
 #endif // SCRIPT_API_v363
 };
 

@@ -180,7 +180,7 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
         // if still turning, wait for next frame
         if (chex->turns > 0)
           chi->walkwait = chi->animspeed;
-        else
+        else if (chi->is_moving())
           chi->walkwait = 1; // wait 1 frame to let walking animation advance once
         chex->animwait = 0;
       }

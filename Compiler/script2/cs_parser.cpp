@@ -6842,6 +6842,7 @@ void AGS::Parser::ParseAssignmentOrExpression()
         !_sym.IsPredefined(next_sym) &&
         _sym.kNoSrcLocation == _sym.GetDeclared(next_sym))
     {
+        SkipNextSymbol(_src, next_sym);
         UserError("Identifier '%s' is undeclared (did you mis-spell it?)", _sym.GetName(next_sym).c_str());
     }
     if (expression.Length() == 0u)

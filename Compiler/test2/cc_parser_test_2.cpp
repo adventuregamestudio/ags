@@ -1208,10 +1208,16 @@ TEST_F(Compile2, NullAsStringArgument) {
 TEST_F(Compile2, Unexpected_Undefined) {
 
     // Should complain about "undeclared" function instead of "unexpected" symbol
+    // Undefined symbol should be reported for line #9, not earlier
 
     std::string inpl = R"%&/(
         void game_start()
         {
+            int i;
+
+
+
+
             func(null);
         }
         )%&/";
@@ -1221,4 +1227,5 @@ TEST_F(Compile2, Unexpected_Undefined) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("ndeclared"));
+    ASSERT_EQ(9, mh.GetError().Lineno);
 }

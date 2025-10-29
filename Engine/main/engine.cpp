@@ -847,7 +847,7 @@ void engine_init_game_settings()
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
-    memset(&play.default_audio_type_volumes[0], -1, MAX_AUDIO_TYPES * sizeof(int));
+    play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!usetup.Translation.IsEmpty())
         Game_ChangeTranslation(usetup.Translation.GetCStr());

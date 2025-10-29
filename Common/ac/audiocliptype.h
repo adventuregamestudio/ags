@@ -19,7 +19,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define AUDIO_CLIP_TYPE_SOUND 1
 struct AudioClipType {
     int id;
     int reservedChannels;

@@ -305,7 +305,7 @@ struct GamePlayState
     std::unordered_set<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
-    int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
+    std::vector<int> default_audio_type_volumes;
     // GUI position for dialog options, -1 to use default pos
     int   dialog_options_gui_x = -1;
     // GUI position for dialog options, -1 to use default pos

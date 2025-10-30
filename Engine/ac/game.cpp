@@ -902,6 +902,19 @@ bool Game_ChangeSpeechVox(const char *newFilename)
     return true;
 }
 
+// Starts voice-over playback and returns audio channel it is played on;
+// as_speech flag determines whether engine should apply speech-related logic
+// as well, such as temporary volume reduction.
+ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech, int priority, int repeat)
+{
+    return play_voice_nonblocking(ch->index_id, sndid, as_speech, priority, repeat);
+}
+
+ScriptAudioChannel *Game_PlayVoiceClip3(CharacterInfo *ch, int sndid, bool as_speech)
+{
+    return Game_PlayVoiceClip(ch, sndid, as_speech, SCR_NO_VALUE, SCR_NO_VALUE);
+}
+
 int Game_GetAudioClipCount()
 {
     return game.audioClips.size();
@@ -2100,7 +2113,12 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
 
 RuntimeScriptValue Sc_Game_PlayVoiceClip(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, PlayVoiceClip, CharacterInfo);
+    API_SCALL_OBJ_POBJ_PINT4(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClip, CharacterInfo);
+}
+
+RuntimeScriptValue Sc_Game_PlayVoiceClip3(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ_PINT2(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClip3, CharacterInfo);
 }
 
 RuntimeScriptValue Sc_Game_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
@@ -2212,7 +2230,8 @@ void RegisterGameAPI()
         { "Game::StopSound^1",                            API_FN_PAIR(StopAllSounds) },
         { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
         { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
-        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
+        { "Game::PlayVoiceClip^3",                        API_FN_PAIR(Game_PlayVoiceClip3) },
+        { "Game::PlayVoiceClip^5",                        API_FN_PAIR(Game_PlayVoiceClip) },
         { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },

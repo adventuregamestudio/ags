@@ -3207,7 +3207,7 @@ builtin struct Game {
 #endif // SCRIPT_API_v340
 #ifdef SCRIPT_API_v350
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
-  import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
+  import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech=true, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Simulate a keypress on the keyboard.
   import static void   SimulateKeyPress(eKeyCode key);
 #endif // SCRIPT_API_v350

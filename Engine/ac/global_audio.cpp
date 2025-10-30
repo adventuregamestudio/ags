@@ -434,13 +434,6 @@ int IsMusicVoxAvailable () {
     return play.separate_music_lib ? 1 : 0;
 }
 
-extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-
-ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
-{
-    return play_voice_nonblocking(ch->index_id, sndid, as_speech);
-}
-
 // Construct an asset name for the voice-over clip for the given character and cue id
 static String get_cue_filename(int charid, int sndid, bool old_style)
 {
@@ -467,7 +460,7 @@ static String get_cue_filename(int charid, int sndid, bool old_style)
 
 // Play voice-over clip on the common channel;
 // voice_name should be bare clip name without extension
-static ScriptAudioChannel *play_voice_clip_on_any_channel(const String &voice_name)
+static ScriptAudioChannel *play_voice_clip_on_any_channel(const String &voice_name, int priority = SCR_NO_VALUE, int repeat = SCR_NO_VALUE)
 {
     // TODO: perhaps a better algorithm, allow any extension / sound format?
     // e.g. make a hashmap matching a voice name to a asset name
@@ -488,14 +481,15 @@ static ScriptAudioChannel *play_voice_clip_on_any_channel(const String &voice_na
     }
 
     ScriptAudioClip clip(AUDIO_CLIP_TYPE_SPEECH, "", apath.Name, kAudioBundle_SpeechVox);
-    return play_audio_clip(&clip, SCR_NO_VALUE, SCR_NO_VALUE, 0, false);
+    return play_audio_clip(&clip, priority, repeat, 0, false);
 }
 
 // Play voice-over clip and adjust audio volumes;
 // voice_name should be bare clip name without extension
-static ScriptAudioChannel *play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
+static ScriptAudioChannel *play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking,
+    int priority = SCR_NO_VALUE, int repeat = SCR_NO_VALUE)
 {
-    ScriptAudioChannel *achan = play_voice_clip_on_any_channel(voice_name);
+    ScriptAudioChannel *achan = play_voice_clip_on_any_channel(voice_name, priority, repeat);
     if (!achan)
         return nullptr;
 
@@ -613,7 +607,7 @@ bool play_voice_speech(int charid, int sndid)
     return true;
 }
 
-ScriptAudioChannel *play_voice_nonblocking(int charid, int sndid, bool as_speech)
+ScriptAudioChannel *play_voice_nonblocking(int charid, int sndid, bool as_speech, int priority, int repeat)
 {
     // don't play voice if we're skipping a cutscene
     if (!play.ShouldPlayVoiceSpeech())

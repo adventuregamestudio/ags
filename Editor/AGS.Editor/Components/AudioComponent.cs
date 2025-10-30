@@ -31,8 +31,11 @@ namespace AGS.Editor.Components
         private const string COMMAND_PROPERTIES_CLIP_TYPE = "PropertiesAudioClipType";
 
         private const string AUDIO_CLIP_TYPE_ICON = "AGSAudioClipTypeIcon";
+        private const string AUDIO_CLIP_TYPE_FIXED_ICON = "AGSAudioClipTypeFixedIcon";
 
         private const string AUDIO_FILES_FILTER = "All supported audio (*.ogg; *.mp3; *.wav; *.voc; *.mid; *.mod; *.xm; *.s3m; *.it)|*.ogg;*.mp3;*.wav;*.voc;*.mid;*.mod;*.xm;*.s3m;*.it|OGG digital sound file (*.ogg)|*.ogg|MP3 file (*.mp3)|*.mp3|WAV uncompressed audio (*.wav)|*.wav|Creative Labs VOC (*.voc)|*.voc|MIDI music (*.mid)|*.mid|Digital tracker formats (*.mod; *.xm; *.s3m; *.it)|*.mod;*.xm;*.s3m;*.it";
+        private const int DEFAULT_AUDIO_TYPE_SPEECH = 0;
+        private const int DEFAULT_AUDIO_TYPE_AMBIENT = 1;
         private const int DEFAULT_AUDIO_TYPE_MUSIC = 2;
         private const int DEFAULT_AUDIO_TYPE_SOUND = 3;
 
@@ -73,6 +76,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("AGSAudioClipIconVoc", Resources.ResourceManager.GetIcon("audio-voc.ico"));
             _guiController.RegisterIcon("AGSAudioSpeechIcon", Resources.ResourceManager.GetIcon("audio_speech.ico"));
             _guiController.RegisterIcon(AUDIO_CLIP_TYPE_ICON, Resources.ResourceManager.GetIcon("tree_audio_generic.ico"));
+            _guiController.RegisterIcon(AUDIO_CLIP_TYPE_FIXED_ICON, Resources.ResourceManager.GetIcon("tree_audio_fixed.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Audio", "AGSAudioClipsIcon");
             _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
             RePopulateTreeView();
@@ -499,6 +503,10 @@ namespace AGS.Editor.Components
             {
                 CreateDefaultAudioClipTypes();
             }
+            else
+            {
+                EnsureFixedAudioClipTypes();
+            }
 
             IList<AudioClip> allAudio = null;
 
@@ -516,7 +524,10 @@ namespace AGS.Editor.Components
             {
                 allAudio = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders();
             }
-            AudioClipTypeTypeConverter.SetAudioClipTypeList(_agsEditor.CurrentGame.AudioClipTypes);
+
+            // Generate a list of audio types excluding Speech
+            AudioClipTypeTypeConverter.SetAudioClipTypeList(
+                _agsEditor.CurrentGame.AudioClipTypes.Where(t => t.TypeID != DEFAULT_AUDIO_TYPE_SPEECH).ToList());
             AudioClipTypeConverter.SetAudioClipList(allAudio);
 
             RePopulateTreeView();
@@ -570,9 +581,18 @@ namespace AGS.Editor.Components
 
         private void CreateDefaultAudioClipTypes()
         {
-            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(1, "Ambient Sound", 1, 0, true, CrossfadeSpeed.No));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SPEECH, "Speech", 1, 0, false, CrossfadeSpeed.No));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_AMBIENT, "Ambient Sound", 1, 0, true, CrossfadeSpeed.No));
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_MUSIC, "Music", 1, 30, true, _agsEditor.CurrentGame.Settings.CrossfadeMusic));
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SOUND, "Sound", 0, 0, false, CrossfadeSpeed.No));
+        }
+
+        private void EnsureFixedAudioClipTypes()
+        {
+            if (_agsEditor.CurrentGame.AudioClipTypes.FirstOrDefault(t => t.TypeID == DEFAULT_AUDIO_TYPE_SPEECH) == null)
+            {
+                _agsEditor.CurrentGame.AudioClipTypes.Insert(0, new AudioClipType(DEFAULT_AUDIO_TYPE_SPEECH, "Speech", 1, 0, false, CrossfadeSpeed.No));
+            }
         }
 
         private void ImportSoundAndMusicFromOldVersion()
@@ -925,9 +945,13 @@ namespace AGS.Editor.Components
             }
             else if (controlID.StartsWith(NODE_ID_PREFIX_CLIP_TYPE))
             {
-                menu.Add(new MenuCommand(COMMAND_RENAME_CLIP_TYPE, "Rename", null));
-                menu.Add(new MenuCommand(COMMAND_DELETE_CLIP_TYPE, "Delete", null));
-                menu.Add(MenuCommand.Separator);
+                AudioClipType typeItem = FindAudioClipTypeByNodeID(_rightClickedID, true);
+                if (typeItem.TypeID != DEFAULT_AUDIO_TYPE_SPEECH)
+                {
+                    menu.Add(new MenuCommand(COMMAND_RENAME_CLIP_TYPE, "Rename", null));
+                    menu.Add(new MenuCommand(COMMAND_DELETE_CLIP_TYPE, "Delete", null));
+                    menu.Add(MenuCommand.Separator);
+                }
                 menu.Add(new MenuCommand(COMMAND_PROPERTIES_CLIP_TYPE, "Properties", null));
             }
             else if (controlID == AUDIO_TYPES_FOLDER_NODE_ID)
@@ -1017,20 +1041,24 @@ namespace AGS.Editor.Components
 
         protected override void AddExtraManualNodesToTree()
         {
-            _guiController.ProjectTree.AddTreeLeaf(this, SPEECH_NODE_ID, "Speech", "AGSAudioSpeechIcon");
             _guiController.ProjectTree.AddTreeBranch(this, AUDIO_TYPES_FOLDER_NODE_ID, "Types", "FixedFolderIcon");
             _guiController.ProjectTree.StartFromNode(this, AUDIO_TYPES_FOLDER_NODE_ID);
             foreach (AudioClipType clipType in _agsEditor.CurrentGame.AudioClipTypes)
             {
                 AddTreeNodeForAudioClipType(clipType);
             }
+            _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
+            _guiController.ProjectTree.AddTreeLeaf(this, SPEECH_NODE_ID, "Speech", "AGSAudioSpeechIcon");
         }
 
         private string AddTreeNodeForAudioClipType(AudioClipType clipType)
         {
             string newNodeID = GetClipTypeNodeID(clipType);
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, newNodeID, clipType.Name, AUDIO_CLIP_TYPE_ICON);
-            treeItem.AllowLabelEdit = true;
+            // TODO: figure out how to make certain properties (like Name) readonly only in the "fixed" type
+            bool isFixed = clipType.TypeID == DEFAULT_AUDIO_TYPE_SPEECH;
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, newNodeID, clipType.Name,
+                isFixed ? AUDIO_CLIP_TYPE_FIXED_ICON : AUDIO_CLIP_TYPE_ICON);
+            treeItem.AllowLabelEdit = !isFixed;
             treeItem.LabelTextProperty = clipType.GetType().GetProperty("Name");
             treeItem.LabelTextDescriptionProperty = clipType.GetType().GetProperty("Name");
             treeItem.LabelTextDataSource = clipType;

@@ -1751,19 +1751,13 @@ namespace AGS.Editor
             {
                 FilePutNullTerminatedString(game.Dialogs[i].Name, writer);
             }
-            writer.Write(game.AudioClipTypes.Count + 1);
-            // hard coded SPEECH audio type 0
-            writer.Write(0); // id
-            writer.Write(1); // reservedChannels
-            writer.Write(0); // volume_reduction_while_speech_playing
-            writer.Write(0); // crossfadeSpeed
-            writer.Write(0); // reservedForFuture
-            for (int i = 1; i < (game.AudioClipTypes.Count + 1); ++i)
+            writer.Write(game.AudioClipTypes.Count);
+            for (int i = 0; i < (game.AudioClipTypes.Count); ++i)
             {
                 writer.Write(i); // id
-                writer.Write(game.AudioClipTypes[i - 1].MaxChannels); // reservedChannels
-                writer.Write(game.AudioClipTypes[i - 1].VolumeReductionWhileSpeechPlaying); // volume_reduction_while_speech_playing
-                writer.Write((int)game.AudioClipTypes[i - 1].CrossfadeClips); // crossfadeSpeed
+                writer.Write(game.AudioClipTypes[i].MaxChannels); // reservedChannels
+                writer.Write(game.AudioClipTypes[i].VolumeReductionWhileSpeechPlaying); // volume_reduction_while_speech_playing
+                writer.Write((int)game.AudioClipTypes[i].CrossfadeClips); // crossfadeSpeed
                 writer.Write(0);
             }
             IList<AudioClip> allClips = game.AudioClips;

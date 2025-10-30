@@ -1018,7 +1018,7 @@ namespace AGS.Editor.Components
         protected override void AddExtraManualNodesToTree()
         {
             _guiController.ProjectTree.AddTreeLeaf(this, SPEECH_NODE_ID, "Speech", "AGSAudioSpeechIcon");
-            _guiController.ProjectTree.AddTreeBranch(this, AUDIO_TYPES_FOLDER_NODE_ID, "Types", "GenericFolderIcon");
+            _guiController.ProjectTree.AddTreeBranch(this, AUDIO_TYPES_FOLDER_NODE_ID, "Types", "FixedFolderIcon");
             _guiController.ProjectTree.StartFromNode(this, AUDIO_TYPES_FOLDER_NODE_ID);
             foreach (AudioClipType clipType in _agsEditor.CurrentGame.AudioClipTypes)
             {

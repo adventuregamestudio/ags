@@ -908,6 +908,7 @@
     <None Include="Resources\eye.png" />
     <None Include="Resources\eye closed.png" />
     <EmbeddedResource Include="Resources\exportmask.png" />
+    <EmbeddedResource Include="Resources\folder_locked.ico" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
     <None Include="Resources\lock open.png" />

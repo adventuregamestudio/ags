@@ -129,4 +129,7 @@
 // An identifier of a "null font", a pseudo font used when you don't want a text to be drawn
 #define FONT_NULL (-1)
 
+// Fixed audio clip type for speech (voice-over)
+#define AUDIO_CLIP_TYPE_SPEECH 0
+
 #endif // __AC_DEFINES_H

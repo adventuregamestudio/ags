@@ -563,6 +563,12 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         System_SetVolume(temp_vol);
     }
 
+    // old speech volume: apply as the speech audio type's volume
+    if (r_data.SvgVersion < kSvgVersion_363_03)
+    {
+        Game_SetAudioTypeVolume(AUDIO_CLIP_TYPE_SPEECH, Math::Range255To100(play.speech_volume), VOL_BOTH);
+    }
+
     // Run audio clips on channels
     // these two crossfading parameters have to be temporarily reset
     const int cf_in_chan = play.crossfading_in_channel;
@@ -968,6 +974,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const Savegame
     RestoredData r_data;
     DoBeforeRestore(pp, select_cmp); // WARNING: this frees scripts and some other data
 
+    r_data.SvgVersion = save_ver;
     // Mark the clear game data state for restoration process
     r_data.Result.RestoreFlags = (SaveRestorationFlags)(
           (kSaveRestore_ClearData * options.IsGameClear) // tell that the game data is reset

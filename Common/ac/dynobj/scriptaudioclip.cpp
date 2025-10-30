@@ -22,7 +22,7 @@ void ScriptAudioClip::ReadFromFile(Stream *in)
     id = in->ReadInt32();
     scriptName.ReadCount(in, LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH);
     fileName.ReadCount(in, LEGACY_AUDIOCLIP_FILENAMELENGTH);
-    bundlingType = static_cast<uint8_t>(in->ReadInt8());
+    bundlingType = static_cast<AudioClipBundlingType>(in->ReadInt8());
     type = static_cast<uint8_t>(in->ReadInt8());
     fileType = static_cast<AudioFileType>(in->ReadInt8());
     defaultRepeat = in->ReadInt8();

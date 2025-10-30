@@ -154,6 +154,8 @@ struct SaveRestoredDataCounts
 // the restoration process
 struct RestoredData
 {
+    SavegameVersion         SvgVersion = kSvgVersion_Undefined;
+
     SaveRestoreResult       Result;
     SaveRestoredDataCounts  DataCounts;
 

@@ -418,9 +418,7 @@ void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);
-    if (ch)
-        ch->set_volume255(newvol);
+    Game_SetAudioTypeVolume(AUDIO_CLIP_TYPE_SPEECH, Math::Range255To100(newvol), VOL_BOTH);
     play.speech_volume = newvol;
 }
 
@@ -448,9 +446,7 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
 {
-    if (!play_voice_nonblocking(ch->index_id, sndid, as_speech))
-        return NULL;
-    return &scrAudioChannel[SCHAN_SPEECH];
+    return play_voice_nonblocking(ch->index_id, sndid, as_speech);
 }
 
 // Construct an asset name for the voice-over clip for the given character and cue id
@@ -479,10 +475,8 @@ static String get_cue_filename(int charid, int sndid, bool old_style)
 
 // Play voice-over clip on the common channel;
 // voice_name should be bare clip name without extension
-static bool play_voice_clip_on_channel(const String &voice_name)
+static ScriptAudioChannel *play_voice_clip_on_any_channel(const String &voice_name)
 {
-    stop_and_destroy_channel(SCHAN_SPEECH);
-
     // TODO: perhaps a better algorithm, allow any extension / sound format?
     // e.g. make a hashmap matching a voice name to a asset name
     std::array<const char*, 3> exts = {{ "mp3", "ogg", "wav" }};
@@ -498,33 +492,22 @@ static bool play_voice_clip_on_channel(const String &voice_name)
 
     if (!found) {
         debug_script_warn("Speech file not found: '%s'", voice_name.GetCStr());
-        return false;
+        return nullptr;
     }
 
-    std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
-    if (voice_clip != nullptr) {
-        voice_clip->set_volume255(play.speech_volume);
-        if (!voice_clip->play())
-            voice_clip.reset();
-    }
-
-    if (!voice_clip) {
-        debug_script_warn("Speech load failure: '%s'", voice_name.GetCStr());
-        return false;
-    }
-
-    AudioChans::SetChannel(SCHAN_SPEECH, std::move(voice_clip));
-    return true;
+    ScriptAudioClip clip(AUDIO_CLIP_TYPE_SPEECH, "", apath.Name, kAudioBundle_SpeechVox);
+    return play_audio_clip(&clip, SCR_NO_VALUE, SCR_NO_VALUE, 0, false);
 }
 
 // Play voice-over clip and adjust audio volumes;
 // voice_name should be bare clip name without extension
-static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
+static ScriptAudioChannel *play_voice_clip_impl(const String &voice_name, bool as_speech, bool is_blocking)
 {
-    if (!play_voice_clip_on_channel(voice_name))
-        return false;
+    ScriptAudioChannel *achan = play_voice_clip_on_any_channel(voice_name);
+    if (!achan)
+        return nullptr;
     if (!as_speech)
-        return true;
+        return achan;
 
     play.speech_has_voice = true;
     play.speech_voice_blocking = is_blocking;
@@ -539,7 +522,7 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
     apply_volume_drop_modifier(true);
     update_music_volume();
     update_ambient_sound_vol();
-    return true;
+    return achan;
 }
 
 // Stop voice-over clip and schedule audio volume reset
@@ -559,7 +542,8 @@ bool play_voice_speech(int charid, int sndid)
         return false;
 
     String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
-    if (!play_voice_clip_impl(voice_file, true, true))
+    ScriptAudioChannel *achan = play_voice_clip_impl(voice_file, true, true);
+    if (!achan)
         return false;
 
     int ii;  // Compare the base file name to the .pam file name
@@ -585,14 +569,14 @@ bool play_voice_speech(int charid, int sndid)
     return true;
 }
 
-bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
+ScriptAudioChannel *play_voice_nonblocking(int charid, int sndid, bool as_speech)
 {
     // don't play voice if we're skipping a cutscene
     if (!play.ShouldPlayVoiceSpeech())
-        return false;
+        return nullptr;
     // don't play voice if there's a blocking speech with voice-over already
     if (play.IsBlockingVoiceSpeech())
-        return false;
+        return nullptr;
 
     String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
     return play_voice_clip_impl(voice_file, as_speech, false);

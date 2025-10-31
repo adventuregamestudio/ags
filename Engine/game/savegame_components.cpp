@@ -467,6 +467,7 @@ enum AudioSvgVersion
     kAudioSvgVersion_35026    = 1, // source position settings
     kAudioSvgVersion_36009    = 2, // up number of channels
     kAudioSvgVersion_36130    = 3060130, // playback state
+    kAudioSvgVersion_363_03   = 3060303
 };
 
 HSaveError WriteAudio(Stream *out)
@@ -605,16 +606,29 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     // Ambient sound (legacy feature)
     for (int i = 0; i < max_game_channels; ++i)
         ambient[i].ReadFromFile(in);
+
+    // Post-read corrections
+    if (cmp_ver < kAudioSvgVersion_363_03)
+    {
+        // channel ref uses -1 as undefined (was 0)
+        for (int i = 0; i < max_game_channels; ++i)
+        {
+            if (ambient[i].channel == 0)
+                ambient[i].channel = AUDIO_CHANNEL_UNDEFINED;
+        }
+    }
+
+    // Save instructions for the post-restore restart of ambient sounds
     for (int i = 0; i < max_game_channels; ++i)
     {
-        if (ambient[i].channel == 0)
+        if (ambient[i].channel == AUDIO_CHANNEL_UNDEFINED)
         {
             r_data.DoAmbient[i] = 0;
         }
         else
         {
             r_data.DoAmbient[i] = ambient[i].num;
-            ambient[i].channel = 0;
+            ambient[i].channel = AUDIO_CHANNEL_UNDEFINED;
         }
     }
     return err;
@@ -1746,7 +1760,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_363_02,
+        kGSSvgVersion_363_03,
         kGSSvgVersion_Initial,
         kSaveCmp_GameState,
         WriteGameState,
@@ -1755,7 +1769,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        kAudioSvgVersion_36130,
+        kAudioSvgVersion_363_03,
         kAudioSvgVersion_Initial,
         kSaveCmp_Audio,
         WriteAudio,

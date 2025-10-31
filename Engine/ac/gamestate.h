@@ -63,7 +63,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
     kGSSvgVersion_363       = 3060300,
-    kGSSvgVersion_363_02    = 3060302
+    kGSSvgVersion_363_02    = 3060302,
+    kGSSvgVersion_363_03    = 3060303,
 };
 
 // SavedLocationType defines the type of location which
@@ -282,11 +283,11 @@ struct GamePlayState
     short music_queue_size = 0;
     short music_queue[MAX_QUEUED_MUSIC]{};
     short new_music_queue_size = 0;
-    short crossfading_out_channel = 0;
+    short crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     short crossfade_step = 0;
     short crossfade_out_volume_per_step = 0;
     short crossfade_initial_volume_out = 0;
-    short crossfading_in_channel = 0;
+    short crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
     short crossfade_in_volume_per_step = 0;
     short crossfade_final_volume_in = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};

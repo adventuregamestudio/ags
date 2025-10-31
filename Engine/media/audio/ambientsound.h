@@ -11,9 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_AMBIENTSOUND_H
 #define __AC_AMBIENTSOUND_H
+
+#include "media/audio/audiodefines.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -22,11 +23,13 @@ using namespace AGS; // FIXME later
 #define AMBIENCE_FULL_DIST 25
 
 struct AmbientSound {
-    int  channel;  // channel number, 1 upwards
-    int  x,y;
-    int  vol;
-    int  num;  // sound number, eg. 3 = sound3.wav
-    int  maxdist;
+    int  channel = AUDIO_CHANNEL_UNDEFINED; // channel number
+    int  x = 0, y = 0;
+    int  vol = 0;
+    int  num = 0;  // sound number, eg. 3 = sound3.wav
+    int  maxdist = 0;
+
+    AmbientSound() = default;
 
     bool IsPlaying();
 

@@ -825,7 +825,7 @@ void engine_init_game_settings()
     play.complete_overlay_on = 0;
     play.text_overlay_on = 0;
     play.narrator_speech = game.playercharacter;
-    play.crossfading_out_channel = 0;
+    play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
     if (play.speech_textwindow_gui == 0)
         play.speech_textwindow_gui = -1;

@@ -573,8 +573,8 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     // these two crossfading parameters have to be temporarily reset
     const int cf_in_chan = play.crossfading_in_channel;
     const int cf_out_chan = play.crossfading_out_channel;
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
+    play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
+    play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
@@ -603,9 +603,9 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
                 ch->pause();
         }
     }
-    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
+    if ((cf_in_chan >= 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
+    if ((cf_out_chan >= 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
     // Test if the old-style audio had playing music and it was properly loaded
@@ -632,7 +632,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
 
     for (int i = 0; i < game.numGameChannels; ++i)
     {
-        if (r_data.DoAmbient[i])
+        if (r_data.DoAmbient[i] > 0)
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
 

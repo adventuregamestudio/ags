@@ -217,7 +217,7 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
         stop_or_fade_out_channel(lowestPriorityID, lowestPriorityID, clip);
         channelToUse = lowestPriorityID;
     }
-    else if ((channelToUse >= 0) && (play.crossfading_in_channel < 1))
+    else if ((channelToUse >= 0) && (play.crossfading_in_channel < 0))
     {
         start_fading_in_new_track_if_applicable(channelToUse, clip);
     }
@@ -273,10 +273,10 @@ static void audio_update_polled_stuff()
     // Do crossfade
     play.crossfade_step++;
 
-    if (play.crossfading_out_channel > 0 && !AudioChans::GetChannelIfPlaying(play.crossfading_out_channel))
-        play.crossfading_out_channel = 0;
+    if (play.crossfading_out_channel >= 0 && !AudioChans::GetChannelIfPlaying(play.crossfading_out_channel))
+        play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
 
-    if (play.crossfading_out_channel > 0)
+    if (play.crossfading_out_channel >= 0)
     {
         SoundClip* ch = AudioChans::GetChannel(play.crossfading_out_channel);
         int newVolume = ch ? ch->get_volume100() - play.crossfade_out_volume_per_step : 0;
@@ -287,14 +287,14 @@ static void audio_update_polled_stuff()
         else
         {
             stop_and_destroy_channel(play.crossfading_out_channel);
-            play.crossfading_out_channel = 0;
+            play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
         }
     }
 
-    if (play.crossfading_in_channel > 0 && !AudioChans::GetChannelIfPlaying(play.crossfading_in_channel))
-        play.crossfading_in_channel = 0;
+    if (play.crossfading_in_channel >= 0 && !AudioChans::GetChannelIfPlaying(play.crossfading_in_channel))
+        play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
 
-    if (play.crossfading_in_channel > 0)
+    if (play.crossfading_in_channel >= 0)
     {
         SoundClip* ch = AudioChans::GetChannel(play.crossfading_in_channel);
         int newVolume = ch ? ch->get_volume100() + play.crossfade_in_volume_per_step : 0;
@@ -307,7 +307,7 @@ static void audio_update_polled_stuff()
 
         if (newVolume >= play.crossfade_final_volume_in)
         {
-            play.crossfading_in_channel = 0;
+            play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
         }
     }
 
@@ -385,7 +385,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         debug_script_log("AudioClip.Play: unable to load sound file");
         if (play.crossfading_in_channel == channel)
         {
-            play.crossfading_in_channel = 0;
+            play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
         }
         return nullptr;
     }
@@ -500,16 +500,16 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     AudioChans::DeleteClipOnChannel(chid);
 
     if (play.crossfading_in_channel == chid)
-        play.crossfading_in_channel = 0;
+        play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
     if (play.crossfading_out_channel == chid)
-        play.crossfading_out_channel = 0;
+        play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 
     // destroyed an ambient sound channel
     if (chid < game.numGameChannels)
     {
-        if (ambient[chid].channel > 0)
-            ambient[chid].channel = 0;
+        if (ambient[chid].channel >= 0)
+            ambient[chid].channel = AUDIO_CHANNEL_UNDEFINED;
     }
 
     if ((chid == SCHAN_MUSIC) && (resetLegacyMusicSettings))
@@ -616,7 +616,7 @@ void update_ambient_sound_vol ()
 
         AmbientSound *thisSound = &ambient[chan];
 
-        if (thisSound->channel == 0)
+        if (thisSound->channel < 0)
             continue;
 
         int sourceVolume = thisSound->vol;

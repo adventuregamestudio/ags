@@ -239,7 +239,7 @@ void BlockingVideoPlayer::End()
             newmusic(_wasMusPlaying);
         for (int i = 0; i < game.numGameChannels; ++i)
         {
-            if (_wasAmbient[i] > 0)
+            if (_wasAmbient[i] >= 0)
                 PlayAmbientSound(_wasAmbient[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);
         }
     }

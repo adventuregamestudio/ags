@@ -38,11 +38,11 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 void StopAmbientSound (int channel) {
-    if (ambient[channel].channel == 0)
+    if (ambient[channel].channel == AUDIO_CHANNEL_UNDEFINED)
         return;
 
     stop_and_destroy_channel(channel);
-    ambient[channel].channel = 0;
+    ambient[channel].channel = AUDIO_CHANNEL_UNDEFINED;
 }
 
 void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
@@ -57,7 +57,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
         return;
 
     // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (!AudioChans::ChannelIsPlaying(ambient[channel].channel)) ||
+    if ((ambient[channel].channel < 0) || (!AudioChans::ChannelIsPlaying(ambient[channel].channel)) ||
         (ambient[channel].num != sndnum)) {
 
             StopAmbientSound(channel);

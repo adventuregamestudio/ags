@@ -673,6 +673,16 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     {
         dialog_options_zorder = INT32_MAX;
     }
+
+    // Post-read corrections
+    if (svg_ver < kGSSvgVersion_363_03)
+    {
+        // crossfade channel ref uses -1 as undefined (was 0)
+        if (crossfading_in_channel == 0)
+            crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
+        if (crossfading_out_channel == 0)
+            crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
+    }
 }
 
 void GamePlayState::WriteForSavegame(Stream *out) const

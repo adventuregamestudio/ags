@@ -14,13 +14,13 @@
 #include "media/audio/audio_system.h"
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
-#include "ac/common.h" // quitprintf
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "core/assetmanager.h"
+#include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
@@ -57,7 +57,7 @@ int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 
 void AudioClip_Stop(ScriptAudioClip *clip)
 {
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
+    for (int i = 0; i < game.numGameChannels; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
         if ((ch != nullptr) && (ch->sourceClipID == clip->id))
@@ -84,9 +84,12 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 
 ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
 {
-    if (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels)
-        quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d",
-            chan, NUM_SPEECH_CHANS, game.numGameChannels - 1);
+    if (chan < 0 || chan >= game.numGameChannels)
+    {
+        debug_script_warn("AudioClip.PlayOnChannel: invalid channel %d, the range is 0.. %d", chan, game.numGameChannels - 1);
+        return nullptr;
+    }
+
     if (priority == SCR_NO_VALUE)
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)

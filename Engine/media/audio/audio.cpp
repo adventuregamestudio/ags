@@ -595,7 +595,7 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 
 void update_directional_sound_vol()
 {
-    for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
+    for (int chnum = 0; chnum < game.numGameChannels; chnum++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(chnum);
         if ((ch != nullptr) && (ch->xSource >= 0)) 
@@ -612,7 +612,7 @@ void update_directional_sound_vol()
 
 void update_ambient_sound_vol ()
 {
-    for (int chan = NUM_SPEECH_CHANS; chan < game.numGameChannels; chan++) {
+    for (int chan = 0; chan < game.numGameChannels; chan++) {
 
         AmbientSound *thisSound = &ambient[chan];
 
@@ -840,10 +840,10 @@ int calculate_max_volume() {
 // add/remove the volume drop to the audio channels while speech is playing
 void apply_volume_drop_modifier(bool applyModifier)
 {
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
+    for (int i = 0; i < game.numGameChannels; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if (ch && ch->sourceClipID >= 0)
+        if (ch && (ch->sourceClipID >= 0) && (ch->sourceClipType != AUDIO_CLIP_TYPE_SPEECH))
         {
             if (applyModifier)
                 apply_volume_drop_to_clip(ch);

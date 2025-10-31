@@ -630,7 +630,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         }
     }
 
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+    for (int i = 0; i < game.numGameChannels; ++i)
     {
         if (r_data.DoAmbient[i])
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);

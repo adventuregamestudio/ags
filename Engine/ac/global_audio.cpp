@@ -38,10 +38,6 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 void StopAmbientSound (int channel) {
-    if ((channel < NUM_SPEECH_CHANS) || (channel >= game.numGameChannels))
-        quitprintf("!StopAmbientSound: invalid channel %d, supported %d - %d",
-            channel, NUM_SPEECH_CHANS, MAX_GAME_CHANNELS - 1);
-
     if (ambient[channel].channel == 0)
         return;
 

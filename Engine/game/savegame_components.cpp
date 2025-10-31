@@ -605,7 +605,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
     // Ambient sound (legacy feature)
     for (int i = 0; i < max_game_channels; ++i)
         ambient[i].ReadFromFile(in);
-    for (int i = NUM_SPEECH_CHANS; i < max_game_channels; ++i)
+    for (int i = 0; i < max_game_channels; ++i)
     {
         if (ambient[i].channel == 0)
         {

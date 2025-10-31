@@ -139,7 +139,7 @@ void BlockingVideoPlayer::Begin()
         // Save the game audio parameters, in case we stop these
         // TODO: implement a global function that does this?
         _wasMusPlaying = play.cur_music_number;
-        for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+        for (int i = 0; i < game.numGameChannels; ++i)
             _wasAmbient[i] = ambient[i].channel;
         stop_all_sound_and_music();
     }
@@ -237,7 +237,7 @@ void BlockingVideoPlayer::End()
         update_music_volume();
         if (_wasMusPlaying >= 0)
             newmusic(_wasMusPlaying);
-        for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+        for (int i = 0; i < game.numGameChannels; ++i)
         {
             if (_wasAmbient[i] > 0)
                 PlayAmbientSound(_wasAmbient[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);

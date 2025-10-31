@@ -53,8 +53,6 @@ inline bool IsPlaybackDone(PlaybackState state)
 #define SPECIAL_CROSSFADE_CHANNEL (MAX_GAME_CHANNELS)
 // Total number of channels: game chans + utility chans
 #define TOTAL_AUDIO_CHANNELS      (MAX_GAME_CHANNELS + 1)
-// Number of game channels reserved for speech voice-over
-#define NUM_SPEECH_CHANS          1
 // Legacy channel numbers
 #define MAX_GAME_CHANNELS_v320    8
 #define TOTAL_AUDIO_CHANNELS_v320 (MAX_GAME_CHANNELS_v320 + 1)

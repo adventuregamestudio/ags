@@ -16,10 +16,13 @@
 #include "ac/game_version.h"
 #include "ac/viewframe.h"
 #include "ac/spritecache.h"
+#include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptstring.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
+#include "script/script.h"
 #include "media/audio/audio_system.h"
 #include "util/math.h"
 
@@ -30,6 +33,16 @@ extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern CCAudioClip ccDynamicAudioClip;
 
+
+const char *ViewFrame_GetEventName(ScriptViewFrame *svf)
+{
+    return CreateNewScriptString(views[svf->view].loops[svf->loop].frames[svf->frame].event_name);
+}
+
+void ViewFrame_SetEventName(ScriptViewFrame *svf, const char *name)
+{
+    views[svf->view].loops[svf->loop].frames[svf->frame].event_name = name;
+}
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf)
 {
@@ -134,24 +147,56 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
     return frame_vol;
 }
 
-// Handle the new animation frame (play linked sounds, etc)
-void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume)
 {
-    ScriptAudioChannel *channel = nullptr;
+    if (views[view].loops[loop].frames[frame].sound < 0)
+        return false;
 
-    if (views[view].loops[loop].frames[frame].sound >= 0) {
-        // play this sound (eg. footstep)
-        channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
-    }
-
+    // play this sound (eg. footstep)
+    ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
     if (channel)
     {
         sound_volume = Math::Clamp(sound_volume, 0, 100);
-        auto* ch = AudioChans::GetChannel(channel->id);
+        auto *ch = AudioChans::GetChannel(channel->id);
         if (ch)
             ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+        return true; // return positive if sound is linked, regardless of the playback success
     }
-    
+    return false;
+}
+
+bool RunViewFrameEvent(int view, int loop, int frame,
+    const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt)
+{
+    if (!views[view].loops[loop].frames[frame].event_name.IsEmpty()
+        && obj_evt && handlers->HasHandler(evnt))
+    {
+        ObjectEvent evt_ext = obj_evt;
+        evt_ext.Params[1] = RuntimeScriptValue().SetInt32(view);
+        evt_ext.Params[2] = RuntimeScriptValue().SetInt32(loop);
+        evt_ext.Params[3] = RuntimeScriptValue().SetInt32(frame);
+        auto dyn_str = ScriptString::Create(views[view].loops[loop].frames[frame].event_name.GetCStr());
+        evt_ext.Params[4] = RuntimeScriptValue().SetScriptObject(dyn_str.Obj, dyn_str.Mgr);
+        evt_ext.ParamCount = 5;
+        // This event is run on either blocking or non-blocking thread
+        run_event_script_always(evt_ext, handlers, evnt);
+        return true;
+    }
+
+    return false;
+}
+
+void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+{
+    CheckViewFrame(view, loop, frame, sound_volume, ObjectEvent(), nullptr, 0);
+}
+
+// Handle the new animation frame (play linked sounds, etc)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume,
+                    const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt)
+{
+    PlayViewFrameSound(view, loop, frame, sound_volume);
+    RunViewFrameEvent(view, loop, frame, obj_evt, handlers, evnt);
 }
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()
@@ -189,6 +234,16 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+
+RuntimeScriptValue Sc_ViewFrame_GetEventName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptViewFrame, const char, myScriptStringImpl, ViewFrame_GetEventName);
+}
+
+RuntimeScriptValue Sc_ViewFrame_SetEventName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptViewFrame, ViewFrame_SetEventName, const char);
+}
 
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetFlipped(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -277,6 +332,8 @@ RuntimeScriptValue Sc_ViewFrame_SetYOffset(void *self, const RuntimeScriptValue 
 void RegisterViewFrameAPI()
 {
     ScFnRegister viewframe_api[] = {
+        { "ViewFrame::get_EventName",     API_FN_PAIR(ViewFrame_GetEventName) },
+        { "ViewFrame::set_EventName",     API_FN_PAIR(ViewFrame_SetEventName) },
         { "ViewFrame::get_Flipped",       API_FN_PAIR(ViewFrame_GetFlipped) },
         { "ViewFrame::set_Flipped",       API_FN_PAIR(ViewFrame_SetFlipped) },
         { "ViewFrame::get_Frame",         API_FN_PAIR(ViewFrame_GetFrame) },

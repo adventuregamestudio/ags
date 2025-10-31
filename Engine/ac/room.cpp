@@ -476,6 +476,7 @@ static void init_object_states(size_t start, size_t end)
     {
         const auto &trobj = thisroom.Objects[i];
         auto &crobj = croom->obj[i];
+        crobj.id = i;
         crobj.x = trobj.X;
         crobj.y = trobj.Y;
         crobj.num = Math::InRangeOrDef<uint16_t>(trobj.Sprite, 0);
@@ -620,7 +621,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         croom->objProps.resize(croom->numobj);
         croom->face_dir_ratio = thisroom.Options.FaceDirectionRatio;
         init_object_states(0u, thisroom.Objects.size());
-        
+
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
 

@@ -156,10 +156,10 @@ void RunInventoryInteraction(int iit, int mood) {
                                      RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &game.invinfo[iit].interactions, evnt,
-                         &game.invinfo[iit].events, anyclick_evt, true /* do unhandled event */) < 0)
+                         &game.invinfo[iit].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on inv item
-    run_event_script(obj_evt, &game.invinfo[iit].events, anyclick_evt);
+    run_event_script(obj_evt, &game.invinfo[iit].GetEvents(), anyclick_evt);
 }
 
 int IsInventoryInteractionAvailable(int item, int mood) {

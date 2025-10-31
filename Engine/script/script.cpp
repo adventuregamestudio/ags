@@ -130,18 +130,18 @@ static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_r
 // Writes down the result of the test for the future use.
 static bool test_interaction_handler(ScriptEventsBase *handlers, int evnt, bool in_room)
 {
-    if (evnt < 0 || static_cast<size_t>(evnt) >= handlers->Handlers.size())
+    if (!handlers->HasHandler(evnt))
         return false;
-    auto &handler = handlers->Handlers[static_cast<size_t>(evnt)];
+    auto &handler = handlers->GetHandler(static_cast<size_t>(evnt));
     if (!handler.IsChecked())
     {
         if (in_room)
             handler.SetChecked(DoesScriptFunctionExist(roomscript.get(), handler.FunctionName));
         else
-            handler.SetChecked(DoesScriptFunctionExistInModule(handlers->ScriptModule, handler.FunctionName));
+            handler.SetChecked(DoesScriptFunctionExistInModule(handlers->GetScriptModule(), handler.FunctionName));
 
         if (!handler.IsEnabled())
-            WarnEventFunctionNotFound(ScriptFunctionRef(handlers->ScriptModule, handler.FunctionName), in_room);
+            WarnEventFunctionNotFound(ScriptFunctionRef(handlers->GetScriptModule(), handler.FunctionName), in_room);
     }
     return handler.IsEnabled();
 }
@@ -177,7 +177,7 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->ScriptModule, handlers->Handlers[evnt].FunctionName),
+    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
         obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
@@ -189,6 +189,50 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt, bool do_unhandled_event)
 {
     return run_event_script(obj_evt, handlers, evnt, nullptr, -1, do_unhandled_event);
+}
+
+int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt)
+{
+    assert(handlers);
+    if (!handlers)
+        return 0;
+
+    if (!test_interaction_handler(handlers, evnt, obj_evt.ScType == kScTypeRoom))
+    {
+        return 0;
+    }
+
+    const int room_was = play.room_changes;
+
+    // Following is abusing the convoluted engine logic:
+    // inside_script - means that something is run on main thread,
+    //                 but this may be a normal event or something triggered from rep-exec-always.
+    // no_blocking_functions - means that something is run on non-blocking thread
+    // IsInWaitRunFromScript() - tells if a blocking action was run on main script thread.
+    //
+    // NOTE: if there's a blocking action run on main, and at the same time
+    // the non-blocking thread is occupied, then we can only schedule this new call
+    // to run on main thread AFTER the blocking action finishes. There's no way around that atm.
+    // TODO: redesign this in the future, but will likely require a complete script callback logic overhaul.
+    if (IsInWaitRunFromScript() && !no_blocking_functions)
+    {
+        // Main thread is blocked, but non-blocking thread is free,
+        // then run the requested script on a non-blocking thread.
+        RunScriptFunctionNonBlocking(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
+            obj_evt.ParamCount, obj_evt.Params);
+    }
+    else
+    {
+        // Otherwise try running on the main thread;
+        // if there's another script running on main already, then our function will be queued.
+        QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
+            obj_evt.ParamCount, obj_evt.Params);
+    }
+
+    // if the room changed within the action
+    if (room_was != play.room_changes)
+        return -1;
+    return 0;
 }
 
 void SetupBuiltinTypeAliases()
@@ -268,12 +312,19 @@ void AbortAllScripts()
     num_scripts = 0;
 }
 
-RuntimeScript *GetScriptInstanceByType(ScriptType sc_type)
+RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module)
 {
-    if (sc_type == kScTypeGame)
-        return gamescript.get();
-    else if (sc_type == kScTypeRoom)
+    if (sc_type == kScTypeRoom)
         return roomscript.get();
+
+    if (script_module.IsEmpty() || script_module == gamescript->GetScriptName())
+        return gamescript.get();
+
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        if (script_module == scriptModules[i]->GetScriptName())
+            return scriptModules[i].get();
+    }
     return nullptr;
 }
 
@@ -309,6 +360,13 @@ void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
     size_t param_count, const RuntimeScriptValue *params)
 {
     QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params);
+}
+
+void QueueScriptFunction(ScriptType sc_type, const String &script_module, const ScriptEventHandler &handler,
+                            size_t param_count, const RuntimeScriptValue *params)
+{
+    if (handler.IsEnabled())
+        QueueScriptFunction(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
 }
 
 void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
@@ -568,6 +626,32 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
 
     // Else run this event in script modules (except room) according to the function ref
     return RunEventInModule(fn_ref, param_count, params);
+}
+
+// TODO: merge this function with DoRunScriptFuncCantBlock
+RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
+    size_t param_count, const RuntimeScriptValue *params)
+{
+    auto *script = GetScriptInstance(sc_type, fn_ref.ModuleName);
+
+    no_blocking_functions++;
+    const ScriptExecError result = scriptExecutor->Run(scriptThreadNonBlocking.get(),
+        script, fn_ref.FuncName, params, param_count);
+
+    if ((result != kScExecErr_None) && (result != kScExecErr_FuncNotFound) && (result != kScExecErr_Aborted))
+    {
+        quit_with_script_error(fn_ref.FuncName);
+    }
+
+    // this might be nested, so don't disrupt blocked scripts
+    cc_clear_error();
+    no_blocking_functions--;
+
+    // Convert any instance exec error into RunScriptFunction result;
+    // NOTE: only kScExecErr_FuncNotFound and kScExecErr_Aborted can reach here
+    if (result == kScExecErr_FuncNotFound)
+        return kScFnRes_NotFound;
+    return kScFnRes_Done;
 }
 
 void InitScriptExec()

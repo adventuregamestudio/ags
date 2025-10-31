@@ -21,8 +21,10 @@
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
 #include "main/update.h"
+#include "script/script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
@@ -30,6 +32,9 @@ using namespace AGS::Common;
 
 extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
+extern CCObject ccDynamicObject;
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
+extern RoomStruct thisroom;
 
 RoomObject::RoomObject()
 {
@@ -131,7 +136,16 @@ int RoomObject::GetFrameSoundVolume() const
 
 void RoomObject::CheckViewFrame()
 {
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume());
+    ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(),
+        objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+}
+
+bool RoomObject::RunFrameEvent(int view, int loop, int frame)
+{
+    ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
+    return ::RunViewFrameEvent(view, loop, frame,
+        objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)

@@ -70,7 +70,7 @@ using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;
 using AGS::Common::RoomStruct;
 using AGS::Common::ScriptEventHandlers;
-using AGS::Common::ScriptEventsTable;
+using AGS::Common::ScriptEventTable;
 typedef AGS::Common::String AGSString;
 namespace AGSDirectory = AGS::Common::Directory;
 namespace AGSFile = AGS::Common::File;
@@ -2341,7 +2341,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	gui->SetOnClickHandler(TextHelper::ConvertASCII(normalGui->OnClick));
+	gui->SetEventHandler(Common::kGUIEvent_OnClick, TextHelper::ConvertASCII(normalGui->OnClick));
 	gui->SetX(normalGui->Left);
 	gui->SetY(normalGui->Top);
 	gui->SetWidth(normalGui->Width);
@@ -2397,7 +2397,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
             (Common::GUIClickAction)button->ClickAction, button->NewModeNumber);
           nbut.SetClipImage(button->ClipImage);
           nbut.SetText(tcv->ConvertTextProperty(button->Text));
-          nbut.SetEventHandler(0, TextHelper::ConvertASCII(button->OnClick));
+          nbut.SetEventHandler(Common::kButtonEvent_OnClick, TextHelper::ConvertASCII(button->OnClick));
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
@@ -2420,7 +2420,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           ntext.SetTextColor(textbox->TextColor);
           ntext.SetFont(textbox->Font);
           ntext.SetShowBorder(textbox->ShowBorder);
-          ntext.SetEventHandler(0, TextHelper::ConvertASCII(textbox->OnActivate));
+          ntext.SetEventHandler(Common::kTextBoxEvent_OnActivate, TextHelper::ConvertASCII(textbox->OnActivate));
           guitext.push_back(ntext);
 
           gui->AddControl(Common::kGUITextBox, guitext.size() - 1, &guitext.back());
@@ -2436,7 +2436,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nlist.SetTranslated(listbox->Translated);
           nlist.SetShowBorder(listbox->ShowBorder);
           nlist.SetShowArrows(listbox->ShowScrollArrows);
-          nlist.SetEventHandler(0, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
+          nlist.SetEventHandler(Common::kListBoxEvent_OnSelChanged, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
           guilist.push_back(nlist);
 
           gui->AddControl(Common::kGUIListBox, guilist.size() - 1, &guilist.back());
@@ -2450,7 +2450,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  nslider.SetHandleImage(slider->HandleImage);
 		  nslider.SetHandleOffset(slider->HandleOffset);
 		  nslider.SetBgImage(slider->BackgroundImage);
-          nslider.SetEventHandler(0, TextHelper::ConvertASCII(slider->OnChange));
+          nslider.SetEventHandler(Common::kSliderEvent_OnChange, TextHelper::ConvertASCII(slider->OnChange));
           guislider.push_back(nslider);
 
           gui->AddControl(Common::kGUISlider, guislider.size() - 1, &guislider.back());
@@ -2887,7 +2887,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			((NormalGUI^)newGui)->PopupYPos = guis[i].GetPopupAtY();
 			((NormalGUI^)newGui)->PopupStyle = (GUIPopupStyle)guis[i].GetPopupStyle();
 			((NormalGUI^)newGui)->ZOrder = guis[i].GetZOrder();
-			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].GetOnClickHandler());
+			((NormalGUI^)newGui)->OnClick = TextHelper::ConvertASCII(guis[i].GetEventHandler(Common::kGUIEvent_OnClick));
       ((NormalGUI^)newGui)->BorderColor = guis[i].GetFgColor();
 		}
 		newGui->BackgroundColor = guis[i].GetBgColor();
@@ -2929,7 +2929,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newButton->NewModeNumber = copyFrom->GetClickData(Common::kGUIClickLeft);
                     newButton->ClipImage = copyFrom->IsClippingImage();
 					newButton->Text = tcv->Convert(copyFrom->GetText());
-					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+					newButton->OnClick = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kButtonEvent_OnClick));
 				}
 				break;
 				}
@@ -2953,7 +2953,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newTextbox->Font = copyFrom->GetFont();
                   newTextbox->ShowBorder = copyFrom->IsBorderShown();
 				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
-				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kTextBoxEvent_OnActivate));
 				  break;
 				}
 			case Common::kGUIListBox:
@@ -2969,7 +2969,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newListbox->ShowBorder = copyFrom->IsBorderShown();
 				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
                   newListbox->Translated = copyFrom->IsTranslated();
-				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kListBoxEvent_OnSelChanged));
 				  break;
 				}
 			case Common::kGUISlider:
@@ -2983,7 +2983,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newSlider->HandleImage = copyFrom->GetHandleImage();
 			  	  newSlider->HandleOffset = copyFrom->GetHandleOffset();
 				  newSlider->BackgroundImage = copyFrom->GetBgImage();
-				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
+				  newSlider->OnChange = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kSliderEvent_OnChange));
 				  break;
 				}
 			case Common::kGUIInvWindow:
@@ -3298,8 +3298,8 @@ void save_default_crm_file(Room ^room)
 
 void convert_interaction_scripts(Interactions ^interactions, ScriptEventHandlers &native_inter)
 {
-    native_inter.ScriptModule = TextHelper::ConvertASCII(interactions->ScriptModule);
-    native_inter.Handlers.clear();
+    native_inter.SetScriptModule(TextHelper::ConvertASCII(interactions->ScriptModule));
+    std::vector<AGS::Common::ScriptEventHandler> handlers;
     if (interactions->ScriptFunctionNames->Count == 0)
         return; // no assigned functions, no need to write anything
     // When we write interactions event table, we use Cursor ID as an index,
@@ -3311,32 +3311,25 @@ void convert_interaction_scripts(Interactions ^interactions, ScriptEventHandlers
         {
             String ^funcName;
             if (interactions->ScriptFunctionNames->TryGetValue(events[evt_index]->EventName, funcName))
-                native_inter.Handlers.push_back(TextHelper::ConvertASCII(funcName));
+                handlers.push_back(TextHelper::ConvertASCII(funcName));
             else
-                native_inter.Handlers.push_back(AGSString()); // unassigned slot
+                handlers.push_back(AGSString()); // unassigned slot
             evt_index++;
         }
         else
         {
-            native_inter.Handlers.push_back(AGSString()); // empty slot
+            handlers.push_back(AGSString()); // empty slot
         }
     }
-}
 
-void assign_valid_event_handlers(ScriptEventsTable &dest_events, const std::vector<std::pair<AGSString, AGSString>> &all_events)
-{
-    for (const auto &evt : all_events)
-    {
-        if (!evt.second.IsEmpty())
-            dest_events.EventMap[evt.first] = evt.second;
-    }
+    native_inter.SetHandlers(std::move(handlers));
 }
 
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
 {
     convert_interaction_scripts(room->Interactions, rs.Interactions);
     {
-        std::vector<std::pair<AGSString, AGSString>> events = {
+        std::unordered_map<AGSString, AGSString> events = {
             { "OnAfterFadeIn",      TextHelper::ConvertASCII(room->OnAfterFadeIn) },
             { "OnFirstTimeEnter",   TextHelper::ConvertASCII(room->OnFirstTimeEnter) },
             { "OnLeave",            TextHelper::ConvertASCII(room->OnLeave) },
@@ -3348,7 +3341,7 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
             { "OnRepExec",          TextHelper::ConvertASCII(room->OnRepExec) },
             { "OnUnload",           TextHelper::ConvertASCII(room->OnUnload) },
         };
-        assign_valid_event_handlers(rs.Events, events);
+        rs.GetEvents().SetHandlers(events);
     }
 
     for (int i = 0; i < room->Hotspots->Count; ++i)
@@ -3357,12 +3350,12 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         auto &native_hotspot = rs.Hotspots[i];
         convert_interaction_scripts(hotspot->Interactions, native_hotspot.Interactions);
 
-        std::vector<std::pair<AGSString, AGSString>> events = {
+        std::unordered_map<AGSString, AGSString> events = {
             { "OnAnyClick",         TextHelper::ConvertASCII(hotspot->OnAnyClick) },
             { "OnMouseMove",        TextHelper::ConvertASCII(hotspot->OnMouseMove) },
             { "OnWalkOn",           TextHelper::ConvertASCII(hotspot->OnWalkOn) }
         };
-        assign_valid_event_handlers(native_hotspot.Events, events);
+        native_hotspot.GetEvents().SetHandlers(events);
     }
     for (int i = 0; i < room->Objects->Count; ++i)
     {
@@ -3370,10 +3363,11 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         auto &native_object = rs.Objects[i];
         convert_interaction_scripts(object->Interactions, native_object.Interactions);
 
-        std::vector<std::pair<AGSString, AGSString>> events = {
-            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) }
+        std::unordered_map<AGSString, AGSString> events = {
+            { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) },
+            { "OnFrameEvent",       TextHelper::ConvertASCII(object->OnFrameEvent) }
         };
-        assign_valid_event_handlers(native_object.Events, events);
+        native_object.GetEvents().SetHandlers(events);
     }
     for (int i = 0; i < room->Regions->Count; ++i)
     {
@@ -3381,12 +3375,12 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         auto &native_region = rs.Regions[i];
         convert_interaction_scripts(region->Interactions, native_region.Interactions);
 
-        std::vector<std::pair<AGSString, AGSString>> events = {
+        std::unordered_map<AGSString, AGSString> events = {
             { "OnStanding",         TextHelper::ConvertASCII(region->OnStanding) },
             { "OnWalksOff",         TextHelper::ConvertASCII(region->OnWalksOff) },
             { "OnWalksOnto",        TextHelper::ConvertASCII(region->OnWalksOnto) }
         };
-        assign_valid_event_handlers(native_region.Events, events);
+        native_region.GetEvents().SetHandlers(events);
     }
 }
 

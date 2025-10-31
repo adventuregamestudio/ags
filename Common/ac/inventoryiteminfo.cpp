@@ -18,31 +18,29 @@
 
 using namespace AGS::Common;
 
+/* static */ ScriptEventSchema InventoryItemInfo::_eventSchema = {{
+        { "OnAnyClick", kInventoryEvent_AnyClick }
+    }};
+
 void InventoryItemInfo::RemapOldInteractions()
 {
-    ScriptEventHandlers new_interactions;
+    std::vector<ScriptEventHandler> old_interactions = interactions.GetHandlers();
+    std::vector<ScriptEventHandler> new_interactions;
     // this is just for safety, it's supposed to be that large
-    interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers.resize(NUM_STANDARD_VERBS);
-    new_interactions.Handlers[MODE_WALK]    = {};
-    new_interactions.Handlers[MODE_LOOK]    = interactions.Handlers[0];
-    new_interactions.Handlers[MODE_HAND]    = interactions.Handlers[1];
-    new_interactions.Handlers[MODE_TALK]    = interactions.Handlers[2];
-    new_interactions.Handlers[MODE_USE]     = interactions.Handlers[3];
+    old_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions.resize(NUM_STANDARD_VERBS);
+    new_interactions[MODE_WALK]    = {};
+    new_interactions[MODE_LOOK]    = old_interactions[0];
+    new_interactions[MODE_HAND]    = old_interactions[1];
+    new_interactions[MODE_TALK]    = old_interactions[2];
+    new_interactions[MODE_USE]     = old_interactions[3];
     // "Other click" event handler is assigned to any other standard interaction
-    new_interactions.Handlers[MODE_PICKUP]  = interactions.Handlers[4];
-    new_interactions.Handlers[MODE_CUSTOM1] = interactions.Handlers[4];
-    new_interactions.Handlers[MODE_CUSTOM2] = interactions.Handlers[4];
+    new_interactions[MODE_PICKUP]  = old_interactions[4];
+    new_interactions[MODE_CUSTOM1] = old_interactions[4];
+    new_interactions[MODE_CUSTOM2] = old_interactions[4];
 
-    interactions = std::move(new_interactions);
-    interactions.ScriptModule = events.ScriptModule;
-}
-
-void InventoryItemInfo::ResolveEventHandlers()
-{
-    events.CreateIndexedList(std::vector<String>() = {
-        "OnAnyClick"
-    });
+    interactions.SetScriptModule(_events.GetScriptModule());
+    interactions.SetHandlers(std::move(new_interactions));
 }
 
 void InventoryItemInfo::ReadFromFile(Stream *in)

@@ -19,6 +19,7 @@
 #define __AGS_CN_GUI__GUIOBJECT_H
 
 #include "core/types.h"
+#include "game/scripteventtable.h"
 #include "gfx/gfx_def.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -31,7 +32,6 @@ namespace Common
 class GUIObject
 {
 public:
-    GUIObject();
     virtual ~GUIObject() = default;
 
     // Properties
@@ -83,11 +83,27 @@ public:
     int             GetZOrder() const { return _zOrder; }
     void            SetZOrder(int zorder);
 
+    // Script Events
+    // Gets a events schema corresponding to this object's type
+    virtual const ScriptEventSchema *GetTypeEventSchema() const { return nullptr; }
+    // Gets a (optional) script module which contains handlers
+    // for this object's events
+    const String   &GetScriptModule() const { return _events.GetScriptModule(); }
+    // Sets a script module for this object's events
+    void            SetScriptModule(const String &scmodule);
+    // Provides a script events table
+    const ScriptEventTable &GetEvents() const { return _events; }
+    ScriptEventTable &GetEvents() { return _events; }
+    // Gets a particular event's handler by event's index
+    String          GetEventHandler(uint32_t event) const;
+    // Sets a particular event's handler by event's index;
+    // this function succeeds only if this index is found in the events schema
+    void            SetEventHandler(uint32_t event, const String &fn_name);
+    // Remap old-format events into new event table
+    virtual void    RemapOldEvents();
+
     // Returns GUI object's graphic space params
     inline const GraphicSpace &GetGraphicSpace() const { return _gs; }
-
-    // TODO: can possible move script events and handlers config to the GUIObject interface too;
-    // this will require for GUIMain to share similar event/handler iface
 
     // Operations
     // Returns the (untransformed!) visual rectangle of this control,
@@ -121,6 +137,7 @@ public:
     void            UpdateGraphicSpace();
   
 protected:
+    GUIObject(const ScriptEventSchema *schema);
 
     int     _id = -1;      // GUI object's identifier
     String  _name;         // script name
@@ -132,12 +149,14 @@ protected:
     Pointf  _scale = Pointf(1.f, 1.f);; // x,y scale
     float   _rotation = 0.f;    // rotation, in degrees
     int     _zOrder = 0;
-    
+
     int     _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     BlendMode _blendMode = kBlend_Normal;
     int     _shaderID = 0;
     int     _shaderHandle = 0; // runtime script shader handle
-    
+
+    ScriptEventTable _events = {};
+
     GraphicSpace _gs;
     bool    _hasChanged = false;
 };

@@ -31,6 +31,7 @@
 
 #include <functional>
 #include <memory>
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "core/types.h"
 #include "gfx/gfx_def.h"
@@ -154,9 +155,11 @@ public:
     void RemoveShader();
     // Assigns a role of character's speech
     void SetAsSpeech(int char_id, int timeout);
-    // Creates a script object associated with this overlay;
-    // optionally adds an internal reference to prevent script object's disposal
+    // Creates a script object associated with this overlay.
     ScriptOverlay *CreateScriptObject();
+    // Registers the provided script object, and attaches to this overlay
+    // TODO: revise this, not a particularly secure design.
+    void AssignScriptObject(ScriptOverlay *scover);
     // Resets script object handle (script object will remain in script memory)
     void DetachScriptObject();
     // Sets a callback to run whenever overlay's Dispose method is called
@@ -234,6 +237,53 @@ private:
 
     Common::GraphicSpace _gs;
     bool _hasChanged = false;
+};
+
+
+enum AnimatedOverlayFlags
+{
+    kAnimOver_PauseWithGame = 0x0001
+};
+
+enum AnimOverlaySvgVersion
+{
+    kAnimOverSvgVersion_40022 = 4000022, // initial
+};
+
+struct ViewFrame;
+
+class AnimatedOverlay
+{
+public:
+    AnimatedOverlay() = default;
+    AnimatedOverlay(int over_id, uint32_t flags)
+        : _overid(over_id), _flags(flags)
+    {}
+
+    int GetOverID() const { return _overid; }
+    bool IsAnimating() const { return _anim.IsValid(); }
+    bool GetPauseWithGame() const { return (_flags & kAnimOver_PauseWithGame) != 0; }
+    int GetView() const { return _view; }
+    int GetLoop() const { return _loop; }
+    int GetFrame() const { return _frame; }
+    const ViewFrame *GetViewFrame() const;
+
+    void Begin(int view, int loop, int frame, const ViewAnimateParams &params);
+    bool UpdateOnce();
+    void Reset();
+
+    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    int _overid = -1;
+    uint32_t _flags = 0u; // AnimatedOverlayFlags
+    // current animation status
+    int _view = -1;
+    uint16_t _loop = 0u;
+    uint16_t _frame = 0u;
+    ViewAnimateParams _anim;
+    int _wait = 0;
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

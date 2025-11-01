@@ -23,6 +23,7 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_game.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
 #include "ac/runtime_defines.h"
@@ -34,6 +35,7 @@
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "main/game_run.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
@@ -46,16 +48,21 @@ extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
 
+// We store overlays in a container where items are never erased:
+// this makes things optimized for very fast mass object adding/removal.
 // TODO: consider some kind of a "object pool" template,
 // which handles this kind of storage; share with ManagedPool's handles?
 std::vector<ScreenOverlay> screenover;
 std::queue<int32_t> over_free_ids;
+std::vector<AnimatedOverlay> animovers;
+std::vector<size_t> over_to_anim; // overlay to animated overlay lookup
+std::queue<size_t> animover_free_ids;
 
 // Gets an actual ScreenOverlay object from its ScriptOverlay reference,
 // validate object, throw an error on failure
 static ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
 {
-    auto *over = get_overlay(scover->overlayId);
+    auto *over = get_overlay(scover->GetOverlayID());
     if (!over)
         quitprintf("!%s: invalid overlay specified", apiname);
     return over;
@@ -206,7 +213,7 @@ void Overlay_SetFlip(ScriptOverlay *scover, int flip)
 
 int Overlay_GetValid(ScriptOverlay *scover)
 {
-    return get_overlay(scover->overlayId) != nullptr;
+    return get_overlay(scover->GetOverlayID()) != nullptr;
 }
 
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone)
@@ -456,6 +463,13 @@ int Overlay_GetTintLuminance(ScriptOverlay *scover)
 
 //=============================================================================
 
+ScriptAnimatedOverlay *create_scriptanimoverlay(ScreenOverlay &over)
+{
+    ScriptAnimatedOverlay *scover = new ScriptAnimatedOverlay(over.GetID());
+    over.AssignScriptObject(scover);
+    return scover;
+}
+
 void remove_screen_overlay(int type)
 {
     if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover[type].GetID() < 0)
@@ -654,6 +668,213 @@ void restore_overlays()
 std::vector<ScreenOverlay> &get_overlays()
 {
     return screenover;
+}
+
+void CreateAnimatedOverlay(int over_id, bool pause_with_game)
+{
+    AddAnimatedOverlay(AnimatedOverlay(over_id, pause_with_game));
+}
+
+static void UpdateOverlayState(const AnimatedOverlay &aover)
+{
+    const ViewFrame *vf = aover.GetViewFrame();
+    if (vf)
+        screenover[aover.GetOverID()].SetSpriteNum(vf->pic, vf->xoffs, vf->yoffs);
+}
+
+void BeginAnimateOverlay(int over_id, int view, int loop, int frame, const ViewAnimateParams &params)
+{
+    auto *aover = GetOverlayAnimation(over_id);
+    if (!aover)
+        return;
+
+    aover->Begin(view, loop, frame, params);
+    UpdateOverlayState(*aover);
+}
+
+const std::vector<AnimatedOverlay> &GetAnimateOverlays()
+{
+    return animovers;
+}
+
+size_t AddAnimatedOverlay(AnimatedOverlay &&aover)
+{
+    const int over_id = aover.GetOverID();
+    if (over_id < 0)
+        return SIZE_MAX;
+
+    if (static_cast<uint32_t>(over_id) < over_to_anim.size() && over_to_anim[over_id] != SIZE_MAX)
+    {
+        animovers[over_to_anim[over_id]] = std::move(aover);
+        return over_to_anim[over_id];
+    }
+    else
+    {
+        // Find free id
+        size_t aover_id;
+        if (animover_free_ids.size() > 0)
+        {
+            aover_id = animover_free_ids.front();
+            animover_free_ids.pop();
+        }
+        else
+        {
+            aover_id = animovers.size();
+            animovers.resize(aover_id + 1);
+        }
+
+        animovers[aover_id] = std::move(aover);
+        if (static_cast<uint32_t>(over_id) >= over_to_anim.size())
+            over_to_anim.resize(over_id + 1, SIZE_MAX);
+        over_to_anim[over_id] = aover_id;
+        return aover_id;
+    }
+}
+
+const std::vector<AnimatedOverlay> &GetAnimatedOverlays()
+{
+    return animovers;
+}
+
+bool IsOverlayAnimating(int over_id)
+{
+    if (over_id >= 0 && static_cast<uint32_t>(over_id) < over_to_anim.size() && over_to_anim[over_id] != SIZE_MAX)
+        return animovers[over_to_anim[over_id]].IsAnimating();
+    else
+        return false;
+}
+
+AnimatedOverlay *GetOverlayAnimation(int over_id)
+{
+    if (over_id >= 0 && static_cast<uint32_t>(over_id) < over_to_anim.size() && over_to_anim[over_id] != SIZE_MAX)
+        return &animovers[over_to_anim[over_id]];
+    return nullptr;
+}
+
+static void StopOverlayAnimImpl(size_t aover_id)
+{
+    animovers[aover_id].Reset();
+}
+
+void UpdateOverlayAnimations()
+{
+    for (size_t i = 0; i < animovers.size(); ++i)
+    {
+        auto &aover = animovers[i];
+        if (!aover.IsAnimating())
+            continue;
+        if (aover.GetPauseWithGame() && IsGamePaused())
+            continue;
+
+        if (aover.UpdateOnce())
+        {
+            UpdateOverlayState(aover);
+        }
+        else
+        {
+            StopOverlayAnimImpl(i);
+        }
+    }
+}
+
+void StopOverlayAnimation(int over_id)
+{
+    if (over_id >= 0 && static_cast<uint32_t>(over_id) < over_to_anim.size() && over_to_anim[over_id] != SIZE_MAX)
+    {
+        StopOverlayAnimImpl(over_to_anim[over_id]);
+    }
+}
+
+void RemoveAnimatedOverlay(int over_id)
+{
+    if (over_id >= 0 && static_cast<uint32_t>(over_id) < over_to_anim.size() && over_to_anim[over_id] != SIZE_MAX)
+    {
+        size_t aover_id = over_to_anim[over_id];
+        animovers[aover_id] = {};
+        animover_free_ids.push(aover_id);
+        over_to_anim[over_id] = SIZE_MAX;
+    }
+}
+
+void RemoveAllAnimatedOverlays()
+{
+    animovers.clear();
+    over_to_anim.clear();
+    animover_free_ids = std::queue<size_t>();
+}
+
+//=============================================================================
+
+ScriptAnimatedOverlay *AnimatedOverlay_CreateAnimatedImpl(bool room_layer, int x, int y, int slot, bool pause_with_game)
+{
+    auto *over = Overlay_CreateGraphicCore(false, x, y, slot, false);
+    if (!over)
+        return nullptr;
+    CreateAnimatedOverlay(over->GetID(), pause_with_game);
+    return create_scriptanimoverlay(*over);
+}
+
+ScriptAnimatedOverlay *AnimatedOverlay_CreateAnimated(int x, int y, int slot, bool pause_with_game)
+{
+    return AnimatedOverlay_CreateAnimatedImpl(false, x, y, slot, pause_with_game);
+}
+
+ScriptAnimatedOverlay *AnimatedOverlay_CreateRoomAnimated(int x, int y, int slot, bool pause_with_game)
+{
+    return AnimatedOverlay_CreateAnimatedImpl(true, x, y, slot, pause_with_game);
+}
+
+void AnimatedOverlay_Animate(ScriptAnimatedOverlay *scover, int view, int loop, int speed, int repeat,
+                             int blocking, int direction, int sframe, int volume)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Animate", scover);
+
+    view--; // convert to internal 0-based view ID
+    ValidateViewAnimVLF("AnimatedOverlay.Animate", "", view, loop, sframe);
+    ValidateViewAnimParams("AnimatedOverlay.Animate", "", blocking, repeat, direction);
+
+    volume = Math::Clamp(volume, 0, 100);
+
+    BeginAnimateOverlay(over->GetID(), view, loop, sframe,
+                        ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume));
+
+    // Blocking animate
+    if (blocking)
+        GameLoopUntilOverlayAnimEnd(over->GetID());
+}
+
+bool AnimatedOverlay_GetAnimating(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Animate", scover);
+    return IsOverlayAnimating(over->GetID());
+}
+
+int AnimatedOverlay_GetFrame(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Frame", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetFrame() : -1;
+}
+
+int AnimatedOverlay_GetLoop(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.Loop", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetLoop() : -1;
+}
+
+bool AnimatedOverlay_GetPauseWithGame(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.PauseWithGame", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetPauseWithGame() : false;
+}
+
+int AnimatedOverlay_GetView(ScriptAnimatedOverlay *scover)
+{
+    auto *over = GetOverlayValidate("AnimatedOverlay.View", scover);
+    const auto *aover = GetOverlayAnimation(over->GetID());
+    return aover ? aover->GetView() + 1 : 0; // convert view index from internal to script
 }
 
 //=============================================================================
@@ -916,6 +1137,46 @@ RuntimeScriptValue Sc_Overlay_GetTintLuminance(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetTintLuminance);
 }
 
+RuntimeScriptValue Sc_AnimatedOverlay_CreateAnimated(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptAnimatedOverlay, AnimatedOverlay_CreateAnimated);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_CreateRoomAnimated(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptAnimatedOverlay, AnimatedOverlay_CreateRoomAnimated);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT8(ScriptAnimatedOverlay, AnimatedOverlay_Animate);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptAnimatedOverlay, AnimatedOverlay_GetAnimating);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetView);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetLoop);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetFrame);
+}
+
+RuntimeScriptValue Sc_AnimatedOverlay_GetPauseWithGame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetPauseWithGame);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -999,4 +1260,17 @@ void RegisterOverlayAPI()
     };
 
     ccAddExternalFunctions(overlay_api);
+
+    ScFnRegister animoverlay_api[] = {
+        { "AnimatedOverlay::CreateAnimated",        API_FN_PAIR(AnimatedOverlay_CreateAnimated) },
+        { "AnimatedOverlay::CreateRoomAnimated",    API_FN_PAIR(AnimatedOverlay_CreateRoomAnimated) },
+        { "AnimatedOverlay::Animate",               API_FN_PAIR(AnimatedOverlay_Animate) },
+        { "AnimatedOverlay::get_Animating",         API_FN_PAIR(AnimatedOverlay_GetAnimating) },
+        { "AnimatedOverlay::get_Frame",             API_FN_PAIR(AnimatedOverlay_GetFrame) },
+        { "AnimatedOverlay::get_Loop",              API_FN_PAIR(AnimatedOverlay_GetLoop) },
+        { "AnimatedOverlay::get_PauseWithGame",     API_FN_PAIR(AnimatedOverlay_GetPauseWithGame) },
+        { "AnimatedOverlay::get_View",              API_FN_PAIR(AnimatedOverlay_GetView) },
+    };
+
+    ccAddExternalFunctions(animoverlay_api);
 }

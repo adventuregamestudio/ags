@@ -15,7 +15,9 @@
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/object.h"
 #include "ac/spritecache.h"
+#include "ac/viewframe.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "gfx/bitmap.h"
 #include "util/stream.h"
@@ -24,6 +26,7 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
+extern std::vector<ViewStruct> views;
 
 ScreenOverlay::ScreenOverlay(ScreenOverlay &&over)
 {
@@ -201,10 +204,14 @@ void ScreenOverlay::SetAsSpeech(int char_id, int timeout)
 
 ScriptOverlay *ScreenOverlay::CreateScriptObject()
 {
-    ScriptOverlay *scover = new ScriptOverlay();
-    scover->overlayId = _id;
+    ScriptOverlay *scover = new ScriptOverlay(_id);
     _scriptHandle = ccRegisterManagedObject(scover, scover);
     return scover;
+}
+
+void ScreenOverlay::AssignScriptObject(ScriptOverlay *scover)
+{
+    _scriptHandle = ccRegisterManagedObject(scover, scover);
 }
 
 void ScreenOverlay::DetachScriptObject()
@@ -222,7 +229,7 @@ void ScreenOverlay::DisposeScriptObject()
     {
         // Invalidate script object: this is required in case the object will
         // remain in script mem after disconnecting overlay from it
-        scover->overlayId = -1;
+        scover->Invalidate();
         ccAttemptDisposeObject(_scriptHandle);
         _scriptHandle = 0;
     }
@@ -401,4 +408,86 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_shaderHandle);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
+}
+
+const ViewFrame *AnimatedOverlay::GetViewFrame() const
+{
+    return &views[_view].loops[_loop].frames[_frame];
+}
+
+void AnimatedOverlay::Begin(int view, int loop, int frame, const ViewAnimateParams &params)
+{
+    _view = view;
+    _loop = loop;
+    _frame = SetFirstAnimFrame(view, loop, frame, params.InitialDirection);
+    _anim = params;
+    CheckViewFrame(_view, _loop, _frame, _anim.AudioVolume);
+    _wait = _anim.Delay + views[_view].loops[_loop].frames[_frame].speed;
+}
+
+bool AnimatedOverlay::UpdateOnce()
+{
+    if (!_anim.IsValid())
+        return false;
+
+    if (_wait > 0)
+    {
+        _wait--;
+        return true;
+    }
+    if (!CycleViewAnim(_view, _loop, _frame, _anim))
+        return false;
+    CheckViewFrame(_view, _loop, _frame, _anim.AudioVolume);
+    _wait = _anim.Delay + views[_view].loops[_loop].frames[_frame].speed;
+    return true;
+}
+
+void AnimatedOverlay::Reset()
+{
+    _view = -1;
+    _loop = _frame = 0;
+    _anim = {};
+}
+
+void AnimatedOverlay::ReadFromSavegame(Common::Stream *in, int cmp_ver)
+{
+    // Overlay's id and current view state
+    _overid = in->ReadInt32();
+    _flags = static_cast<uint32_t>(in->ReadInt32());
+    _view = in->ReadInt16();
+    _loop = in->ReadInt16();
+    _frame = in->ReadInt16();
+
+    // Animation properties and flow state
+    AnimFlowStyle anim_flow = static_cast<AnimFlowStyle>(in->ReadInt8());
+    AnimFlowDirection anim_dir_initial = static_cast<AnimFlowDirection>(in->ReadInt8());
+    AnimFlowDirection anim_dir_current = static_cast<AnimFlowDirection>(in->ReadInt8());
+    in->ReadInt8(); // reserved to fill int32
+    int anim_delay = in->ReadInt16();
+    int wait = in->ReadInt16();
+    int anim_volume = in->ReadInt8();
+    in->ReadInt8(); // reserved to fill int32
+    in->ReadInt8();
+    in->ReadInt8();
+
+    _anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, anim_volume);
+}
+
+void AnimatedOverlay::WriteToSavegame(Common::Stream *out) const
+{
+    out->WriteInt32(_overid);
+    out->WriteInt32(_flags);
+    out->WriteInt16(_view);
+    out->WriteInt16(_loop);
+    out->WriteInt16(_frame);
+    out->WriteInt8(_anim.Flow);
+    out->WriteInt8(_anim.InitialDirection);
+    out->WriteInt8(_anim.Direction);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt16(_anim.Delay);
+    out->WriteInt16(_wait);
+    out->WriteInt8(static_cast<uint8_t>(_anim.AudioVolume));
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt8(0);
+    out->WriteInt8(0);
 }

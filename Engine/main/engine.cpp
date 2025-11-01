@@ -858,7 +858,7 @@ void engine_init_game_settings()
     set_our_eip(-4);
     mousey=100;  // stop icon bar popping up
 
-    set_game_speed((game.options[OPT_GAMEFPS] > 0) ? game.options[OPT_GAMEFPS] : 40);
+    set_game_speed(game.options[OPT_GAMEFPS]);
 
     // We use same variable to read config and be used at runtime for now,
     // so update it here with regards to game design option

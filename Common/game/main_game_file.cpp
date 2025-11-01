@@ -529,6 +529,10 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     {
         game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
     }
+    if (data_ver < kGameVersion_362_12)
+    {
+        game.options[OPT_GAMEFPS] = 40; // default to 40 fps in the older games
+    }
 }
 
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)

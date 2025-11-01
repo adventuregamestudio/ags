@@ -9,6 +9,7 @@ jobs:
   build:
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 20
     defaults:
       run:
         shell: ${{ matrix.platform.shell }}

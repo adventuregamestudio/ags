@@ -1,6 +1,7 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using AGS.Editor.Resources;
 using System.Text;
 
 namespace AGS.Editor.Components
@@ -16,6 +17,8 @@ namespace AGS.Editor.Components
         {
             _guiController = guiController;
             _agsEditor = agsEditor;
+
+            _guiController.RegisterIcon("FixedFolderIcon", ResourceManager.GetIcon("folder_locked.ico"));
         }
 
         public virtual void CommandClick(string controlID)

@@ -154,6 +154,8 @@ struct SaveRestoredDataCounts
 // the restoration process
 struct RestoredData
 {
+    SavegameVersion         SvgVersion = kSvgVersion_Undefined;
+
     SaveRestoreResult       Result;
     SaveRestoredDataCounts  DataCounts;
 
@@ -201,7 +203,7 @@ struct RestoredData
         int MaxDist = 0;
     };
     ChannelInfo             AudioChans[TOTAL_AUDIO_CHANNELS];
-    // Ambient sounds
+    // Ambient sounds (old-style sound index)
     int                     DoAmbient[MAX_GAME_CHANNELS];
     // Viewport and camera data, has to be preserved and applied only after
     // room gets loaded, because we must clamp these to room parameters.

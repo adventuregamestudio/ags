@@ -31,7 +31,6 @@
 #define GLED_INTERACTION 1
 #define GLED_EFFECTS     2 
 #define QUEUED_MUSIC_REPEAT 10000
-#define MAX_AUDIO_TYPES  30
 
 // Legacy (pre 3.5.0) alignment types used in the script API
 enum LegacyScriptAlignment

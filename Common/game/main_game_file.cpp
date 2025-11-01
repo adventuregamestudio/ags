@@ -452,7 +452,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
         {
             clip.scriptName.Format("aMusic%d", temp_number);
             clip.fileName.Format("music%d.%s", temp_number, temp_extension);
-            clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+            clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? kAudioBundle_GamePak : kAudioBundle_AudioVox;
             clip.type = 2;
             clip.defaultRepeat = 1;
         }
@@ -460,7 +460,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
         {
             clip.scriptName.Format("aSound%d", temp_number);
             clip.fileName.Format("sound%d.%s", temp_number, temp_extension);
-            clip.bundlingType = AUCL_BUNDLE_EXE;
+            clip.bundlingType = kAudioBundle_GamePak;
             clip.type = 3;
             clip.defaultRepeat = 0;
         }
@@ -574,23 +574,31 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_320)
-        return;
-
-    // Create new-style audioClipTypes array.
-    std::vector<AudioClipType> audiocliptypes;
-    // FIXME: use audio type constants instead of obscure numeric literals
-    // (maybe music, sound, ambient sound, voice???)
-    audiocliptypes.resize(4);
-    for (int i = 0; i < 4; i++)
     {
-        audiocliptypes[i].reservedChannels = 1;
-        audiocliptypes[i].id = i;
-        audiocliptypes[i].volume_reduction_while_speech_playing = 10;
+        // Ensure the fixed audio type for speech is properly configured
+        if (game.audioClipTypes.size() < 1)
+        {
+            game.audioClipTypes.emplace_back(0 /* id */, 1 /* channels */, 0 /* vol reduction */);
+        }
     }
-    audiocliptypes[3].reservedChannels = 0;
+    else
+    {
+        // Create new-style audioClipTypes array.
+        std::vector<AudioClipType> audiocliptypes;
+        // FIXME: use audio type constants instead of obscure numeric literals
+        // (maybe music, sound, ambient sound, voice???)
+        audiocliptypes.resize(4);
+        for (int i = 0; i < 4; i++)
+        {
+            audiocliptypes[i].reservedChannels = 1;
+            audiocliptypes[i].id = i;
+            audiocliptypes[i].volume_reduction_while_speech_playing = 10;
+        }
+        audiocliptypes[3].reservedChannels = 0;
 
-    // Assign new types to the game
-    game.audioClipTypes = audiocliptypes;
+        // Assign new types to the game
+        game.audioClipTypes = std::move(audiocliptypes);
+    }
 }
 
 void ScanOldStyleAudio(AssetManager *asset_mgr, GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver)

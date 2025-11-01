@@ -32,22 +32,34 @@ enum AudioFileType {
     eAudioFileMOD = 6
 };
 
-#define AUCL_BUNDLE_EXE 1
-#define AUCL_BUNDLE_VOX 2
+// Bundling type tells where to look for the audio asset
+enum AudioClipBundlingType
+{
+    kAudioBundle_Undefined = 0,
+    kAudioBundle_GamePak = 1,
+    kAudioBundle_AudioVox = 2,
+    kAudioBundle_SpeechVox = 3, // for voice-overs
+};
 
 #define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
 #define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
 
-struct ScriptAudioClip {
-    int id = 0;
+struct ScriptAudioClip
+{
+    int id = -1;
     Common::String scriptName;
     Common::String fileName;
-    uint8_t bundlingType = AUCL_BUNDLE_EXE;
+    AudioClipBundlingType bundlingType = kAudioBundle_GamePak;
     uint8_t type = 0;
     AudioFileType fileType = eAudioFileOGG;
     char defaultRepeat = 0;
     short defaultPriority = 50;
     short defaultVolume = 100;
+
+    ScriptAudioClip() = default;
+    ScriptAudioClip(uint8_t type_, const Common::String &script_name, const Common::String &file_name, AudioClipBundlingType bundle_type)
+        : type(type_), scriptName(script_name), fileName(file_name), bundlingType(bundle_type)
+    {}
 
     void ReadFromFile(Common::Stream *in);
 };

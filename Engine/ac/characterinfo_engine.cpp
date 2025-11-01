@@ -340,7 +340,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
         bool done_anim = false;
         if ((chi->index_id == char_speaking_anim) &&
             (play.speech_in_post_state ||
-            ((!play.speech_has_voice) &&
+            ((!play.IsBlockingVoiceSpeech()) &&
                 (play.close_mouth_speech_time > 0) &&
                 (play.messagetime < play.close_mouth_speech_time)))) {
             // finished talking - stop animation

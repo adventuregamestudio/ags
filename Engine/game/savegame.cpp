@@ -563,12 +563,18 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         System_SetVolume(temp_vol);
     }
 
+    // old speech volume: apply as the speech audio type's volume
+    if (r_data.SvgVersion < kSvgVersion_363_03)
+    {
+        Game_SetAudioTypeVolume(AUDIO_CLIP_TYPE_SPEECH, Math::Range255To100(play.speech_volume), VOL_BOTH);
+    }
+
     // Run audio clips on channels
     // these two crossfading parameters have to be temporarily reset
     const int cf_in_chan = play.crossfading_in_channel;
     const int cf_out_chan = play.crossfading_out_channel;
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
+    play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
+    play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
@@ -597,16 +603,16 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
                 ch->pause();
         }
     }
-    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
+    if ((cf_in_chan >= 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
+    if ((cf_out_chan >= 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
     // Test if the old-style audio had playing music and it was properly loaded
     if (current_music_type > 0)
     {
         if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
+            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC)))
         {
             current_music_type = 0; // playback failed, reset flag
         }
@@ -624,12 +630,13 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         }
     }
 
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+    for (int i = 0; i < game.numGameChannels; ++i)
     {
-        if (r_data.DoAmbient[i])
+        if (r_data.DoAmbient[i] > 0)
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
 
+    update_voice_state();
     update_directional_sound_vol();
     return HSaveError::None();
 }
@@ -968,6 +975,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const Savegame
     RestoredData r_data;
     DoBeforeRestore(pp, select_cmp); // WARNING: this frees scripts and some other data
 
+    r_data.SvgVersion = save_ver;
     // Mark the clear game data state for restoration process
     r_data.Result.RestoreFlags = (SaveRestorationFlags)(
           (kSaveRestore_ClearData * options.IsGameClear) // tell that the game data is reset

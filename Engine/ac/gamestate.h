@@ -63,7 +63,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
     kGSSvgVersion_363       = 3060300,
-    kGSSvgVersion_363_02    = 3060302
+    kGSSvgVersion_363_02    = 3060302,
+    kGSSvgVersion_363_03    = 3060303,
 };
 
 // SavedLocationType defines the type of location which
@@ -282,11 +283,11 @@ struct GamePlayState
     short music_queue_size = 0;
     short music_queue[MAX_QUEUED_MUSIC]{};
     short new_music_queue_size = 0;
-    short crossfading_out_channel = 0;
+    short crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     short crossfade_step = 0;
     short crossfade_out_volume_per_step = 0;
     short crossfade_initial_volume_out = 0;
-    short crossfading_in_channel = 0;
+    short crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
     short crossfade_in_volume_per_step = 0;
     short crossfade_final_volume_in = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
@@ -305,7 +306,8 @@ struct GamePlayState
     std::unordered_set<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
-    int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
+    // Audio clip type default volume: applied to all the new playbacks of this type (100-based value range)
+    std::vector<int> default_audio_type_volumes;
     // GUI position for dialog options, -1 to use default pos
     int   dialog_options_gui_x = -1;
     // GUI position for dialog options, -1 to use default pos
@@ -322,13 +324,14 @@ struct GamePlayState
 
     // Dynamic speech state
     //
-    // Tells whether there is a voice-over played during current speech
-    bool  speech_has_voice = false;
-    // Tells whether the voice was played in blocking mode;
-    // atm blocking speech handles itself, and we only need to finalize
-    // non-blocking voice speech during game update; speech refactor would be
-    // required to get rid of this rule.
-    bool  speech_voice_blocking = false;
+    // Markers that tell whether respective audio channels contain voice playbacks,
+    // that are considered "speech", and should trigger audio volume drop.
+    std::vector<bool> voice_chan_as_speech;
+    // Total number of voice playbacks that count as "speech"
+    uint32_t speech_voice_count = 0;
+    // Audio channel used by the current blocking speech for a voice-over;
+    // if none set then either there's no speech, or speech is without voice.
+    int   speech_blocking_voice_chan = AUDIO_CHANNEL_UNDEFINED;
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state = false;
 
@@ -462,10 +465,12 @@ struct GamePlayState
     //
     // Voice speech management
     //
+    // Tells if there's any voice-over counted as "speech" is playing right now
+    bool IsAnyVoiceSpeechPlaying() const;
     // Tells if there's a blocking voice speech playing right now
     bool IsBlockingVoiceSpeech() const;
-    // Tells whether we have to finalize voice speech when stopping or reusing the channel
-    bool IsNonBlockingVoiceSpeech() const;
+    // Gets a audio channel index of a blocking voice speech
+    int  GetBlockingVoiceChannel() const;
     // Speech helpers
     bool ShouldPlayVoiceSpeech() const;
 

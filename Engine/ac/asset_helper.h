@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__ASSETHELPER_H
 #include <memory>
 #include <utility>
+#include "ac/dynobj/scriptaudioclip.h"
 #include "core/assetmanager.h"
 
 namespace AGS { namespace Common {class Stream;} }
@@ -34,7 +35,7 @@ extern "C" {
 }
 
 // Returns the path to the audio asset, considering the given bundling type
-AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);
+AssetPath get_audio_clip_assetpath(AudioClipBundlingType bundling_type, const String &filename);
 // Returns the path to the voice-over asset
 AssetPath get_voice_over_assetpath(const String &filename);
 

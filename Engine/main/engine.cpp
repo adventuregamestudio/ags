@@ -819,13 +819,13 @@ void engine_init_game_settings()
     play.speech_portrait_y = 0;
     play.speech_display_post_time_ms = 0;
     play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
-    play.speech_has_voice = false;
-    play.speech_voice_blocking = false;
+    play.speech_blocking_voice_chan = AUDIO_CHANNEL_UNDEFINED;
+    play.speech_voice_count = 0;
     play.speech_in_post_state = false;
     play.complete_overlay_on = 0;
     play.text_overlay_on = 0;
     play.narrator_speech = game.playercharacter;
-    play.crossfading_out_channel = 0;
+    play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
     play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
     if (play.speech_textwindow_gui == 0)
         play.speech_textwindow_gui = -1;
@@ -847,7 +847,7 @@ void engine_init_game_settings()
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
-    memset(&play.default_audio_type_volumes[0], -1, MAX_AUDIO_TYPES * sizeof(int));
+    play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!usetup.Translation.IsEmpty())
         Game_ChangeTranslation(usetup.Translation.GetCStr());

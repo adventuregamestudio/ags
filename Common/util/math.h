@@ -95,6 +95,12 @@ namespace Math
             return std::fmod(degrees, 360.0);
         return std::fmod(360.0 + degrees, 360.0);
     }
+
+    // Converts a value from the 255-based range to a 100-based range (with precision loss!)
+    inline int Range255To100(int value255)
+    {
+        return value255 * 100 / 255;
+    }
 } // namespace Math
 
 } // namespace Common

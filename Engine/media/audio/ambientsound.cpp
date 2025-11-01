@@ -20,7 +20,7 @@
 using AGS::Common::Stream;
 
 bool AmbientSound::IsPlaying () {
-    if (channel <= 0)
+    if (channel < 0)
         return false;
     return AudioChans::ChannelIsPlaying(channel);
 }

@@ -732,6 +732,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\tree_audio_fixed.ico" />
     <EmbeddedResource Include="Resources\wizard-bg.png" />
     <EmbeddedResource Include="Resources\wizard-cup.png" />
     <EmbeddedResource Include="Resources\menu_build_openfolder.over.ico" />
@@ -908,6 +909,7 @@
     <None Include="Resources\eye.png" />
     <None Include="Resources\eye closed.png" />
     <EmbeddedResource Include="Resources\exportmask.png" />
+    <EmbeddedResource Include="Resources\folder_locked.ico" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
     <None Include="Resources\lock open.png" />

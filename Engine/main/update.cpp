@@ -324,16 +324,16 @@ void update_overlay_timers()
 void update_speech_and_messages()
 {
   bool is_voice_playing = false;
-  if (play.speech_has_voice)
+  if (play.IsBlockingVoiceSpeech())
   {
-      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
+      auto *ch = AudioChans::GetChannel(play.GetBlockingVoiceChannel());
       is_voice_playing = ch && ch->is_ready();
   }
   // determine if speech text should be removed
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
-    if (play.speech_has_voice && !play.speech_in_post_state) {
+    if (play.IsBlockingVoiceSpeech() && !play.speech_in_post_state) {
       if ((is_voice_playing) && (play.fast_forward == 0)) {
         if (play.messagetime <= 1)
           play.messagetime = 1;
@@ -371,7 +371,7 @@ void update_speech_and_messages()
 
 bool has_voice_lipsync()
 {
-    return play.speech_has_voice && (curLipLine >= 0);
+    return play.IsBlockingVoiceSpeech() && (curLipLine >= 0);
 }
 
 int update_voice_lipsync(int frame)
@@ -379,7 +379,7 @@ int update_voice_lipsync(int frame)
     if (!has_voice_lipsync())
         return frame; // no change
 
-    auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
+    auto *ch = AudioChans::GetChannel(play.GetBlockingVoiceChannel());
     const int voice_pos_ms = ch ? ch->get_pos_ms() : -1;
     if (voice_pos_ms < 0)
         return frame; // no change
@@ -453,13 +453,13 @@ void update_sierra_speech()
              // if play.close_mouth_speech_time = 0, this means animation should play till
              // the speech ends; but this should not work in voice mode, and also if the
              // speech is in the "post" state
-             (play.speech_has_voice || play.speech_in_post_state || play.close_mouth_speech_time > 0))
+             (play.IsBlockingVoiceSpeech() || play.speech_in_post_state || play.close_mouth_speech_time > 0))
     { }
     else {
       // Close mouth at end of sentence: if speech has entered the "post" state,
       // or if this is a text only mode and close_mouth_speech_time is set
       if (play.speech_in_post_state ||
-          (!play.speech_has_voice &&
+          (!play.IsBlockingVoiceSpeech() &&
           (play.messagetime < play.close_mouth_speech_time) &&
           (play.close_mouth_speech_time > 0))) {
         facetalkframe = 0;
@@ -476,7 +476,7 @@ void update_sierra_speech()
         // normal non-lip-sync
         facetalkframe++;
         if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) ||
-            (!play.speech_has_voice && (play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
+            (!play.IsBlockingVoiceSpeech() && (play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
 
           if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) &&
               (views[facetalkview].loops[facetalkloop].RunNextLoop())) 

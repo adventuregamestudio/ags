@@ -61,9 +61,9 @@ ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech);
 bool    play_voice_speech(int charid, int sndid);
 // Play voice-over clip in non-blocking manner
 ScriptAudioChannel *play_voice_nonblocking(int charid, int sndid, bool as_speech);
-// Stop voice-over for the active speech and reset relevant data
-void    stop_voice_speech();
-// Stop non-blocking voice-over and revert audio volumes if necessary
-void    stop_voice_nonblocking();
+// Stop voice-over for the active blocking speech and reset relevant data
+void    stop_blocking_voice_speech();
+// Update current state of voice-over playbacks, start or reset audio volume drop
+void    update_voice_state();
 
 #endif // __AGS_EE_AC__GLOBALAUDIO_H

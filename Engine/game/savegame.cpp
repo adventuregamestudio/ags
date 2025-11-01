@@ -612,7 +612,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     if (current_music_type > 0)
     {
         if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
+            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC)))
         {
             current_music_type = 0; // playback failed, reset flag
         }
@@ -636,6 +636,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
             PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
     }
 
+    update_voice_state();
     update_directional_sound_vol();
     return HSaveError::None();
 }

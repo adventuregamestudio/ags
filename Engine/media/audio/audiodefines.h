@@ -15,6 +15,7 @@
 #ifndef __AC_AUDIODEFINES_H
 #define __AC_AUDIODEFINES_H
 
+// Legacy music format type
 #define MUS_MIDI 1
 #define MUS_MP3  2
 #define MUS_WAVE 3
@@ -58,12 +59,13 @@ inline bool IsPlaybackDone(PlaybackState state)
 #define MAX_GAME_CHANNELS_v320    8
 #define TOTAL_AUDIO_CHANNELS_v320 (MAX_GAME_CHANNELS_v320 + 1)
 
-#define SCHAN_SPEECH  0
-#define SCHAN_AMBIENT 1
-#define SCHAN_MUSIC   2
-#define SCHAN_NORMAL  3
-#define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
-#define AUDIOTYPE_LEGACY_MUSIC 2
-#define AUDIOTYPE_LEGACY_SOUND 3
+// Legacy hardcoded audio types and channels
+#define LEGACY_AUDIOTYPE_AMBIENT_SOUND 1
+#define LEGACY_AUDIOTYPE_MUSIC    2
+#define LEGACY_AUDIOTYPE_SOUND    3
+#define LEGACY_AUDIO_CHAN_SPEECH  0
+#define LEGACY_AUDIO_CHAN_AMBIENT 1
+#define LEGACY_AUDIO_CHAN_MUSIC   2
+#define LEGACY_AUDIO_CHAN_NORMAL  3
 
 #endif // __AC_AUDIODEFINES_H

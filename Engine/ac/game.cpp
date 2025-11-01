@@ -266,7 +266,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 int Game_GetMODPattern() {
     if (current_music_type != MUS_MOD)
         return -1;
-    auto* music_ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* music_ch = AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC);
     return music_ch ? music_ch->get_pos() : -1;
 }
 

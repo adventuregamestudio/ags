@@ -324,13 +324,14 @@ struct GamePlayState
 
     // Dynamic speech state
     //
-    // Tells whether there is a voice-over played during current speech
-    bool  speech_has_voice = false;
-    // Tells whether the voice was played in blocking mode;
-    // atm blocking speech handles itself, and we only need to finalize
-    // non-blocking voice speech during game update; speech refactor would be
-    // required to get rid of this rule.
-    bool  speech_voice_blocking = false;
+    // Markers that tell whether respective audio channels contain voice playbacks,
+    // that are considered "speech", and should trigger audio volume drop.
+    std::vector<bool> voice_chan_as_speech;
+    // Total number of voice playbacks that count as "speech"
+    uint32_t speech_voice_count = 0;
+    // Audio channel used by the current blocking speech for a voice-over;
+    // if none set then either there's no speech, or speech is without voice.
+    int   speech_blocking_voice_chan = AUDIO_CHANNEL_UNDEFINED;
     // Tells whether character speech stays on screen not animated for additional time
     bool  speech_in_post_state = false;
 
@@ -464,10 +465,12 @@ struct GamePlayState
     //
     // Voice speech management
     //
+    // Tells if there's any voice-over counted as "speech" is playing right now
+    bool IsAnyVoiceSpeechPlaying() const;
     // Tells if there's a blocking voice speech playing right now
     bool IsBlockingVoiceSpeech() const;
-    // Tells whether we have to finalize voice speech when stopping or reusing the channel
-    bool IsNonBlockingVoiceSpeech() const;
+    // Gets a audio channel index of a blocking voice speech
+    int  GetBlockingVoiceChannel() const;
     // Speech helpers
     bool ShouldPlayVoiceSpeech() const;
 

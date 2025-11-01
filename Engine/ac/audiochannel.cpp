@@ -172,10 +172,7 @@ void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed)
 
 void AudioChannel_Stop(ScriptAudioChannel *channel)
 {
-    if (channel->id == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
-        stop_voice_nonblocking();
-    else
-        stop_or_fade_out_channel(channel->id, -1, nullptr);
+    stop_or_fade_out_channel(channel->id, -1, nullptr);
 }
 
 void AudioChannel_Pause(ScriptAudioChannel *channel)

@@ -3039,7 +3039,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     char_thinking = -1;
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())
-        stop_voice_speech();
+        stop_blocking_voice_speech();
 }
 
 int get_character_currently_talking() {

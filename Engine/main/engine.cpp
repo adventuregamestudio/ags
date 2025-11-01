@@ -819,8 +819,8 @@ void engine_init_game_settings()
     play.speech_portrait_y = 0;
     play.speech_display_post_time_ms = 0;
     play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
-    play.speech_has_voice = false;
-    play.speech_voice_blocking = false;
+    play.speech_blocking_voice_chan = AUDIO_CHANNEL_UNDEFINED;
+    play.speech_voice_count = 0;
     play.speech_in_post_state = false;
     play.complete_overlay_on = 0;
     play.text_overlay_on = 0;

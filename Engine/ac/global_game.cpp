@@ -591,11 +591,11 @@ int SetGameOption (int opt, int newval) {
         GUIE::MarkDisabledGUIForUpdate();
         break;
     case OPT_CROSSFADEMUSIC:
-        if (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC)
+        if (game.audioClipTypes.size() > LEGACY_AUDIOTYPE_MUSIC)
         {
             // legacy compatibility -- changing crossfade speed here also
             // updates the new audio clip type style
-            game.audioClipTypes[AUDIOTYPE_LEGACY_MUSIC].crossfadeSpeed = newval;
+            game.audioClipTypes[LEGACY_AUDIOTYPE_MUSIC].crossfadeSpeed = newval;
         }
         break;
     case OPT_ANTIALIASFONTS:

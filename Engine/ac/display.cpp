@@ -106,9 +106,9 @@ public:
         _timer--;
 
         // Special behavior when coupled with a voice-over
-        if (play.speech_has_voice) {
+        if (play.IsBlockingVoiceSpeech()) {
             // extend life of text if the voice hasn't finished yet
-            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
+            if (AudioChans::ChannelIsPlaying(play.GetBlockingVoiceChannel()) && (play.fast_forward == 0)) {
                 if (_timer <= 1)
                     _timer = 1;
             }
@@ -543,7 +543,7 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
 
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())
-        stop_voice_speech();
+        stop_blocking_voice_speech();
 }
 
 void post_display_cleanup()

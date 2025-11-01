@@ -47,7 +47,7 @@ void StopAmbientSound (int channel) {
 
 void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     // the channel parameter is to allow multiple ambient sounds in future
-    if ((channel < 1) || (channel == SCHAN_SPEECH) || (channel >= game.numGameChannels))
+    if ((channel < 1) || (channel == LEGACY_AUDIO_CHAN_SPEECH) || (channel >= game.numGameChannels))
         quit("!PlayAmbientSound: invalid channel number");
     if ((vol < 1) || (vol > 255))
         quit("!PlayAmbientSound: volume must be 1 to 255");
@@ -104,7 +104,7 @@ int IsSoundPlaying() {
         return 0;
 
     // find if there's a sound playing
-    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
+    for (int i = LEGACY_AUDIO_CHAN_NORMAL; i < game.numGameChannels; i++) {
         if (AudioChans::GetChannelIfPlaying(i))
             return 1;
     }
@@ -122,8 +122,8 @@ int PlaySoundEx(int val1, int channel) {
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return -1; // if sound is off, ignore it
 
-    if ((channel < SCHAN_NORMAL) || (channel >= game.numGameChannels))
-        quitprintf("!PlaySoundEx: invalid channel specified, must be %d-%d", SCHAN_NORMAL, game.numGameChannels - 1);
+    if ((channel < LEGACY_AUDIO_CHAN_NORMAL) || (channel >= game.numGameChannels))
+        quitprintf("!PlaySoundEx: invalid channel specified, must be %d-%d", LEGACY_AUDIO_CHAN_NORMAL, game.numGameChannels - 1);
 
     // if an ambient sound is playing on this channel, abort it
     StopAmbientSound(channel);
@@ -170,7 +170,7 @@ void SeekMIDIPosition (int position) {
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return;
 
-    auto *ch = AudioChans::GetChannel(play.silent_midi == 0 ? SCHAN_MUSIC : play.silent_midi_channel);
+    auto *ch = AudioChans::GetChannel(play.silent_midi == 0 ? LEGACY_AUDIO_CHAN_MUSIC : play.silent_midi_channel);
     if (ch)
     {
         ch->seek(position);
@@ -184,7 +184,7 @@ int GetMIDIPosition () {
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return -1; // returns -1 on failure according to old manuals
     
-    auto* ch = AudioChans::GetChannelIfPlaying(play.silent_midi == 0 ? SCHAN_MUSIC : play.silent_midi_channel);
+    auto* ch = AudioChans::GetChannelIfPlaying(play.silent_midi == 0 ? LEGACY_AUDIO_CHAN_MUSIC : play.silent_midi_channel);
     if (ch) {
         return ch->get_pos();
     }
@@ -201,7 +201,7 @@ int IsMusicPlaying() {
     if (current_music_type == 0)
         return 0;
 
-    auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
+    auto *ch = AudioChans::GetChannel(LEGACY_AUDIO_CHAN_MUSIC);
     if (ch == nullptr)
     { // This was probably a hacky fix in case it was not reset by game update; TODO: find out if needed
         current_music_type = 0;
@@ -264,7 +264,7 @@ void SeekMODPattern(int patnum) {
     if (current_music_type != MUS_MOD)
         return;
 
-    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* ch = AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC);
     if (ch) {
         ch->seek (patnum);
         debug_script_log("Seek MOD/XM to pattern %d", patnum);
@@ -275,7 +275,7 @@ void SeekMP3PosMillis (int posn) {
     if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
         return;
 
-    auto *mus_ch = AudioChans::GetChannel(SCHAN_MUSIC);
+    auto *mus_ch = AudioChans::GetChannel(LEGACY_AUDIO_CHAN_MUSIC);
     auto *cf_ch = (crossFading > 0) ? AudioChans::GetChannel(crossFading) : nullptr;
     if (cf_ch)
         cf_ch->seek(posn);
@@ -290,7 +290,7 @@ int GetMP3PosMillis () {
     if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
         return 0;  // returns 0 on failure according to old manuals
 
-    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
+    auto* ch = AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC);
     if (ch) {
         int result = ch->get_pos_ms();
         if (result >= 0)
@@ -322,8 +322,8 @@ void SetSoundVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSoundVolume: invalid volume - must be from 0-255");
     play.sound_volume = newvol;
-    Game_SetAudioTypeVolume(AUDIOTYPE_LEGACY_AMBIENT_SOUND, (newvol * 100) / 255, VOL_BOTH);
-    Game_SetAudioTypeVolume(AUDIOTYPE_LEGACY_SOUND, (newvol * 100) / 255, VOL_BOTH);
+    Game_SetAudioTypeVolume(LEGACY_AUDIOTYPE_AMBIENT_SOUND, (newvol * 100) / 255, VOL_BOTH);
+    Game_SetAudioTypeVolume(LEGACY_AUDIOTYPE_SOUND, (newvol * 100) / 255, VOL_BOTH);
     update_ambient_sound_vol ();
 }
 
@@ -389,12 +389,8 @@ void PlaySilentMIDI (int mnum) {
     if (current_music_type == MUS_MIDI)
         quit("!PlaySilentMIDI: proper midi music is in progress");
 
-    const int silent_midi_chan = SCHAN_SPEECH;
+    const int silent_midi_chan = LEGACY_AUDIO_CHAN_SPEECH;
     stop_and_destroy_channel(silent_midi_chan);
-    // No idea why it uses speech voice channel, but since it does (and until this is changed)
-    // we have to correctly reset speech voice in case there was a nonblocking speech
-    if (play.IsNonBlockingVoiceSpeech())
-        stop_voice_nonblocking();
 
     std::unique_ptr<SoundClip> clip = load_sound_clip_from_old_style_number(true, mnum, false);
     if (clip == nullptr)
@@ -502,33 +498,85 @@ static ScriptAudioChannel *play_voice_clip_impl(const String &voice_name, bool a
     ScriptAudioChannel *achan = play_voice_clip_on_any_channel(voice_name);
     if (!achan)
         return nullptr;
-    if (!as_speech)
-        return achan;
 
-    play.speech_has_voice = true;
-    play.speech_voice_blocking = is_blocking;
-
-    cancel_scheduled_music_update();
-    play.music_vol_was = play.music_master_volume;
-    // Negative value means set exactly; positive means drop that amount
-    if (play.speech_music_drop < 0)
-        play.music_master_volume = -play.speech_music_drop;
-    else
-        play.music_master_volume -= play.speech_music_drop;
-    apply_volume_drop_modifier(true);
-    update_music_volume();
-    update_ambient_sound_vol();
+    if (as_speech)
+    {
+        // Mark the playback as "speech", so that it caused audio volume drop,
+        // and any other effects meant to happen when the speech voice is playing.
+        // There can be only single blocking speech at the same time, save its channel id
+        if (is_blocking)
+            play.speech_blocking_voice_chan = achan->id;
+        play.voice_chan_as_speech[achan->id] = true;
+        update_voice_state();
+    }
     return achan;
 }
 
-// Stop voice-over clip and schedule audio volume reset
-static void stop_voice_clip_impl()
+// Reset the game state in case blocking voice speech has stopped
+static void on_blocking_voice_stop()
 {
-    play.music_master_volume = play.music_vol_was;
-    // update the music in a bit (fixes two speeches follow each other
-    // and music going up-then-down)
-    schedule_music_update_at(Clock::now() + std::chrono::milliseconds(500));
-    stop_and_destroy_channel(SCHAN_SPEECH);
+    // Reset lipsync
+    curLipLine = -1;
+    // Set back to Sierra w/bgrnd
+    if (play.no_textbg_when_voice == 2)
+    {
+        play.no_textbg_when_voice = 1;
+        game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraBackground;
+    }
+    play.speech_blocking_voice_chan = AUDIO_CHANNEL_UNDEFINED;
+}
+
+// Check if there's no active voice-over clips, and schedule audio volume reset
+void update_voice_state()
+{
+    int speech_voice_count = 0;
+    // Here we assume that the speech audio type is under fixed index 0,
+    // and therefore all its reserved channels are first in the channel list
+    for (int i = 0; i < game.audioClipTypes[AUDIO_CLIP_TYPE_SPEECH].reservedChannels; ++i)
+    {
+        if (AudioChans::ChannelIsPlaying(i))
+        {
+            if (play.voice_chan_as_speech[i])
+                speech_voice_count++;
+        }
+        else
+        {
+            // If the blocking speech's playback has stopped for any reason,
+            // then update the respective game state
+            if (play.speech_blocking_voice_chan == i)
+                on_blocking_voice_stop();
+
+            play.voice_chan_as_speech[i] = false;
+        }
+    }
+
+    // Handle general voice-over playbacks state
+    if (play.speech_voice_count == 0 && speech_voice_count > 0)
+    {
+        // First voice-over started: apply a volume drop
+        cancel_scheduled_music_update();
+        play.music_vol_was = play.music_master_volume;
+        // Negative value means set exactly; positive means drop that amount
+        if (play.speech_music_drop < 0)
+            play.music_master_volume = -play.speech_music_drop;
+        else
+            play.music_master_volume -= play.speech_music_drop;
+        apply_volume_drop_modifier(true);
+        update_music_volume();
+        update_ambient_sound_vol();
+    }
+    else if (play.speech_voice_count > 0 && speech_voice_count == 0)
+    {
+        // Last voice-over have stopped:
+        // reset settings back and schedule audio volume update
+        play.music_master_volume = play.music_vol_was;
+        // update the music in a bit (fixes two speeches follow each other
+        // and music going up-then-down)
+        // FIXME: don't use a hardcoded number, make at least an internal constant or variable
+        schedule_music_update_at(Clock::now() + std::chrono::milliseconds(500));
+    }
+
+    play.speech_voice_count = speech_voice_count;
 }
 
 bool play_voice_speech(int charid, int sndid)
@@ -578,37 +626,11 @@ ScriptAudioChannel *play_voice_nonblocking(int charid, int sndid, bool as_speech
     return play_voice_clip_impl(voice_file, as_speech, false);
 }
 
-void stop_voice_speech()
+void stop_blocking_voice_speech()
 {
-    if (!play.speech_has_voice)
+    if (play.speech_blocking_voice_chan == AUDIO_CHANNEL_UNDEFINED)
         return;
 
-    stop_voice_clip_impl();
-
-    // Reset lipsync
-    curLipLine = -1;
-    // Set back to Sierra w/bgrnd
-    if (play.no_textbg_when_voice == 2)
-    {
-        play.no_textbg_when_voice = 1;
-        game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraBackground;
-    }
-    play.speech_has_voice = false;
-    play.speech_voice_blocking = false;
-}
-
-void stop_voice_nonblocking()
-{
-    if (!play.speech_has_voice)
-        return;
-    stop_voice_clip_impl();
-    // Only reset speech flags if we are truly playing a non-blocking voice;
-    // otherwise we might be inside blocking speech function and should let
-    // it keep these flags to be able to finalize properly.
-    // This is an imperfection of current speech implementation.
-    if (!play.speech_voice_blocking)
-    {
-        play.speech_has_voice = false;
-        play.speech_voice_blocking = false;
-    }
+    // Note we call update_voice_state() and on_blocking_voice_stop() inside stop_and_destroy_channel()
+    stop_and_destroy_channel(play.speech_blocking_voice_chan);
 }

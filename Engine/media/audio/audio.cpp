@@ -52,17 +52,28 @@ static std::array<std::unique_ptr<SoundClip>, TOTAL_AUDIO_CHANNELS> _channels;
 
 SoundClip *AudioChans::GetChannel(int index)
 {
-    return _channels[index].get();
+    assert(index >= 0 && static_cast<uint32_t>(index) < _channels.size());
+    if (index >= 0 && static_cast<uint32_t>(index) < _channels.size())
+        return _channels[index].get();
+    return nullptr;
 }
 
 SoundClip *AudioChans::GetChannelIfPlaying(int index)
 {
-    auto *ch = _channels[index].get();
-    return (ch != nullptr && ch->is_ready()) ? ch : nullptr;
+    assert(index >= 0 && static_cast<uint32_t>(index) < _channels.size());
+    if (index >= 0 && static_cast<uint32_t>(index) < _channels.size())
+    {
+        auto *ch = _channels[index].get();
+        return (ch != nullptr && ch->is_ready()) ? ch : nullptr;
+    }
+    return nullptr;
 }
 
 SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&ch)
 {
+    assert(index >= 0 && static_cast<uint32_t>(index) < _channels.size());
+    if (index < 0 || static_cast<uint32_t>(index) >= _channels.size())
+        return nullptr;
     if ((ch != nullptr) && (_channels[index] != nullptr))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
     _channels[index] = std::move(ch);
@@ -71,12 +82,23 @@ SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&ch)
 
 SoundClip *AudioChans::MoveChannel(int to, int from)
 {
-    return SetChannel(to, std::move(_channels[from]));
+    assert(to >= 0 && static_cast<uint32_t>(to) < _channels.size());
+    assert(from >= 0 && static_cast<uint32_t>(from) < _channels.size());
+    if (to >= 0 && static_cast<uint32_t>(to) < _channels.size() &&
+        from >= 0 && static_cast<uint32_t>(from) < _channels.size())
+    {
+        return SetChannel(to, std::move(_channels[from]));
+    }
+    return nullptr;
 }
 
 void AudioChans::DeleteClipOnChannel(int index)
 {
-    _channels[index].reset();
+    assert(index >= 0 && static_cast<uint32_t>(index) < _channels.size());
+    if (index >= 0 && static_cast<uint32_t>(index) < _channels.size())
+    {
+        _channels[index].reset();
+    }
 }
 
 extern GameSetupStruct game;
@@ -108,6 +130,36 @@ void update_clip_default_volume(ScriptAudioClip *audioClip)
     }
 }
 
+// Execute necessary checks and operations when a channel gets freed
+static void on_channel_free(int channel, bool reset_legacy_music = false)
+{
+    if (play.crossfading_in_channel == channel)
+        play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
+    if (play.crossfading_out_channel == channel)
+        play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
+    // don't update 'crossFading' here as it is updated in all the cross-fading functions.
+
+    // destroyed an ambient sound channel
+    if (channel < game.numGameChannels)
+    {
+        if (ambient[channel].channel >= 0)
+            ambient[channel].channel = AUDIO_CHANNEL_UNDEFINED;
+    }
+
+    if ((channel == LEGACY_AUDIO_CHAN_MUSIC) && (reset_legacy_music))
+    {
+        play.cur_music_number = -1;
+        current_music_type = 0;
+    }
+
+    // If we are stopping one of the voice-over channels,
+    // then check if we need to update game volumes
+    if (channel >= 0 && channel < game.audioClipTypes[AUDIO_CLIP_TYPE_SPEECH].reservedChannels)
+    {
+        update_voice_state();
+    }
+}
+
 void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound)
 {
     int crossfadeSpeed = game.audioClipTypes[newSound->type].crossfadeSpeed;
@@ -123,6 +175,7 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip 
 static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, ScriptAudioClip *newSound)
 {
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
+    on_channel_free(currentChannel);
     auto *cfade_clip = AudioChans::MoveChannel(SPECIAL_CROSSFADE_CHANNEL, currentChannel);
     if (!cfade_clip)
         return;
@@ -336,17 +389,8 @@ static void audio_update_polled_stuff()
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // Do non-blocking voice speech
-    // NOTE: there's only one speech channel, therefore it's either blocking
-    // or non-blocking at any given time. If it's changed, we'd need to keep
-    // record of every channel, or keep a count of active channels.
-    if (play.IsNonBlockingVoiceSpeech())
-    {
-        if (!AudioChans::ChannelIsPlaying(SCHAN_SPEECH))
-        {
-            stop_voice_nonblocking();
-        }
-    }
+    // Check for non-blocking voice speech state
+    update_voice_state();
 }
 
 // Applies a volume drop modifier to the clip, in accordance to its audio type
@@ -422,7 +466,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     // NOTE: there is a confusing logic in sound clip classes, that they do not use
     // any modifiers when begin playing, therefore we must apply this only after
     // playback was started.
-    if (!play.fast_forward && play.speech_has_voice)
+    if (!play.fast_forward && play.IsAnyVoiceSpeechPlaying())
         apply_volume_drop_to_clip(soundfx.get());
 
     AudioChans::SetChannel(channel, std::move(soundfx));
@@ -492,30 +536,15 @@ ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
         return nullptr;
 }
 
-void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
+void stop_and_destroy_channel_ex(int chid, bool reset_legacy_music)
 {
     if ((chid < 0) || (chid >= TOTAL_AUDIO_CHANNELS))
         quit("!StopChannel: invalid channel ID");
 
-    AudioChans::DeleteClipOnChannel(chid);
-
-    if (play.crossfading_in_channel == chid)
-        play.crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
-    if (play.crossfading_out_channel == chid)
-        play.crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
-    // don't update 'crossFading' here as it is updated in all the cross-fading functions.
-
-    // destroyed an ambient sound channel
-    if (chid < game.numGameChannels)
+    if (AudioChans::ChannelHasClip(chid))
     {
-        if (ambient[chid].channel >= 0)
-            ambient[chid].channel = AUDIO_CHANNEL_UNDEFINED;
-    }
-
-    if ((chid == SCHAN_MUSIC) && (resetLegacyMusicSettings))
-    {
-        play.cur_music_number = -1;
-        current_music_type = 0;
+        AudioChans::DeleteClipOnChannel(chid);
+        on_channel_free(chid, reset_legacy_music);
     }
 }
 
@@ -621,7 +650,7 @@ void update_ambient_sound_vol ()
 
         int sourceVolume = thisSound->vol;
 
-        if (play.speech_has_voice) {
+        if (play.IsAnyVoiceSpeechPlaying()) {
             // Negative value means set exactly; positive means drop that amount
             if (play.speech_music_drop < 0)
                 sourceVolume = -play.speech_music_drop;
@@ -668,14 +697,14 @@ std::unique_ptr<SoundClip> load_sound_and_play(ScriptAudioClip *aclip, bool repe
 
 void stop_all_sound_and_music() 
 {
+    // Reset legacy music state
     stopmusic();
-    stop_voice_nonblocking();
-    // make sure it doesn't start crossfading when it comes back
+    // Make sure it doesn't start crossfading when it comes back
     crossFading = 0;
-    // any ambient sound will be aborted
+    // Stop all active playbacks
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
-    // Sound queues
+    // Reset sound queues
     cachedQueuedMusic.reset();
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
         play.new_music_queue[i] = QueuedAudioItem();
@@ -696,7 +725,7 @@ static int play_sound_priority (int val1, int priority) {
     int lowest_pri = 9999, lowest_pri_id = -1;
 
     // find a free channel to play it on
-    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
+    for (int i = LEGACY_AUDIO_CHAN_NORMAL; i < game.numGameChannels; i++) {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
         if (val1 < 0) {
             // Playing sound -1 means iterate through and stop all sound
@@ -856,7 +885,7 @@ void apply_volume_drop_modifier(bool applyModifier)
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void update_volume_drop_if_voiceover()
 {
-    apply_volume_drop_modifier(play.speech_has_voice);
+    apply_volume_drop_modifier(play.IsAnyVoiceSpeechPlaying());
 }
 
 // Sync logical game channels with the audio backend:
@@ -906,7 +935,7 @@ void update_audio_system_on_game_loop ()
         else if ((game.options[OPT_CROSSFADEMUSIC] > 0) &&
             (play.music_queue_size > 0) && (!crossFading)) {
                 // want to crossfade, and new tune in the queue
-                auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
+                auto *ch = AudioChans::GetChannel(LEGACY_AUDIO_CHAN_MUSIC);
                 if (ch) {
                     int curpos = ch->get_pos_ms();
                     int muslen = ch->get_length_ms();
@@ -944,14 +973,14 @@ void stopmusic()
         // the music is already fading out
         if (game.options[OPT_CROSSFADEMUSIC] <= 0) {
             // If they have since disabled crossfading, stop the fadeout
-            stop_and_destroy_channel(SCHAN_MUSIC);
+            stop_and_destroy_channel(LEGACY_AUDIO_CHAN_MUSIC);
             crossFading = 0;
             crossFadeStep = 0;
             update_music_volume();
         }
     }
     else if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (AudioChans::GetChannelIfPlaying(SCHAN_MUSIC) != nullptr)
+        && (AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC) != nullptr)
         && (current_music_type != 0)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
@@ -962,7 +991,7 @@ void stopmusic()
         crossFadeVolumeAtStart = calculate_max_volume();
     }
     else
-        stop_and_destroy_channel (SCHAN_MUSIC);
+        stop_and_destroy_channel (LEGACY_AUDIO_CHAN_MUSIC);
 
     play.cur_music_number = -1;
     current_music_type = 0;
@@ -970,6 +999,7 @@ void stopmusic()
 
 void update_music_volume()
 {
+    // This is a legacy music crossfade handling, not used with the new (post-3.2) audio system
     if ((current_music_type) || (crossFading < 0)) 
     {
         // targetVol is the maximum volume we're fading in to
@@ -991,9 +1021,9 @@ void update_music_volume()
             if ((curvol > targetVol) && (curvol > newvol)) {
                 // it has fully faded to the new track
                 newvol = targetVol;
-                stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
+                stop_and_destroy_channel_ex(LEGACY_AUDIO_CHAN_MUSIC, false);
                 if (crossFading > 0) {
-                    AudioChans::MoveChannel(SCHAN_MUSIC, crossFading);
+                    AudioChans::MoveChannel(LEGACY_AUDIO_CHAN_MUSIC, crossFading);
                 }
                 crossFading = 0;
             }
@@ -1010,7 +1040,7 @@ void update_music_volume()
                     newvol = 0;
             }
         }
-        auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
+        auto *ch = AudioChans::GetChannel(LEGACY_AUDIO_CHAN_MUSIC);
         if (ch)
             ch->set_volume255(newvol);
     }
@@ -1023,7 +1053,7 @@ void post_new_music_check()
     if ((crossFading > 0) && (AudioChans::GetChannel(crossFading) == nullptr)) {
         crossFading = 0;
         // Was fading out but then they played invalid music, continue to fade out
-        if (AudioChans::GetChannel(SCHAN_MUSIC) != nullptr)
+        if (AudioChans::GetChannel(LEGACY_AUDIO_CHAN_MUSIC) != nullptr)
             crossFading = -1;
     }
 
@@ -1031,17 +1061,18 @@ void post_new_music_check()
 
 int prepare_for_new_music ()
 {
-    int useChannel = SCHAN_MUSIC;
+    // This is a legacy music crossfade handling, not used with the new (post-3.2) audio system
+    int useChannel = LEGACY_AUDIO_CHAN_MUSIC;
 
     if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (AudioChans::GetChannelIfPlaying(SCHAN_MUSIC) != nullptr)
+        && (AudioChans::GetChannelIfPlaying(LEGACY_AUDIO_CHAN_MUSIC) != nullptr)
         && (current_music_type != MUS_MIDI)
         && (current_music_type != MUS_MOD)) {
 
             if (crossFading > 0) {
                 // It's still crossfading to the previous track
-                stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
-                AudioChans::MoveChannel(SCHAN_MUSIC, crossFading);
+                stop_and_destroy_channel_ex(LEGACY_AUDIO_CHAN_MUSIC, false);
+                AudioChans::MoveChannel(LEGACY_AUDIO_CHAN_MUSIC, crossFading);
                 crossFading = 0;
                 update_music_volume();
             }
@@ -1111,7 +1142,7 @@ static void play_new_music(int mnum, std::unique_ptr<SoundClip> &&music)
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return;
 
-    int useChannel = SCHAN_MUSIC;
+    int useChannel = LEGACY_AUDIO_CHAN_MUSIC;
     debug_script_log("Playing music %d", mnum);
 
     if (mnum<0) {

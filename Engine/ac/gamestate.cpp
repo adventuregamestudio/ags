@@ -433,14 +433,19 @@ int GamePlayState::GetWaitSkipResult() const
         | (wait_skipped_by_data & SKIP_RESULT_DATA_MASK);
 }
 
-bool GamePlayState::IsBlockingVoiceSpeech() const
+bool GamePlayState::IsAnyVoiceSpeechPlaying() const
 {
-    return speech_has_voice && speech_voice_blocking;
+    return speech_voice_count > 0;
 }
 
-bool GamePlayState::IsNonBlockingVoiceSpeech() const
+bool GamePlayState::IsBlockingVoiceSpeech() const
 {
-    return speech_has_voice && !speech_voice_blocking;
+    return speech_blocking_voice_chan >= 0;
+}
+
+int GamePlayState::GetBlockingVoiceChannel() const
+{
+    return speech_blocking_voice_chan;
 }
 
 bool GamePlayState::ShouldPlayVoiceSpeech() const
@@ -640,6 +645,10 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     if (svg_ver < kGSSvgVersion_350_9)
         in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
+
+    // pre-3.6.3 single-channel speech state
+    bool speech_has_voice = false;
+    bool speech_voice_blocking = false;
     if (svg_ver >= kGSSvgVersion_350_9)
     {
         int voice_speech_flags = in->ReadInt32();
@@ -674,6 +683,16 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_zorder = INT32_MAX;
     }
 
+    std::fill(voice_chan_as_speech.begin(), voice_chan_as_speech.end(), false);
+    if (svg_ver >= kGSSvgVersion_363_03)
+    {
+        uint32_t num_voice_chans = in->ReadInt32();
+        std::vector<bool> voice_chans(num_voice_chans);
+        for (uint32_t i = 0; i < num_voice_chans; ++i)
+            voice_chans[i] = in->ReadInt8();
+        std::copy_n(voice_chans.begin(), std::min<size_t>(num_voice_chans, voice_chan_as_speech.size()), voice_chan_as_speech.begin());
+    }
+
     // Post-read corrections
     if (svg_ver < kGSSvgVersion_363_03)
     {
@@ -682,6 +701,15 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
             crossfading_in_channel = AUDIO_CHANNEL_UNDEFINED;
         if (crossfading_out_channel == 0)
             crossfading_out_channel = AUDIO_CHANNEL_UNDEFINED;
+
+        // 3.5.1 -> 3.6.3 single-channel speech state
+        if (speech_has_voice)
+        {
+            voice_chan_as_speech[LEGACY_AUDIO_CHAN_SPEECH] = true;
+            speech_voice_count = 1;
+            if (speech_voice_blocking)
+                speech_blocking_voice_chan = LEGACY_AUDIO_CHAN_SPEECH;
+        }
     }
 }
 
@@ -863,9 +891,12 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
 
-    int voice_speech_flags = speech_has_voice ? 0x01 : 0;
-    if (speech_voice_blocking)
-        voice_speech_flags |= 0x02;
+    // Voice speech flags:
+    // 0x1 - means that there's a voice-over;
+    // 0x2 - means that voice-over belongs to a blocking speech
+    // these two above flags are not strictly required now, but save them anyway
+    int voice_speech_flags = 0x01 * (speech_voice_count > 0)
+        | 0x02 * (speech_blocking_voice_chan >= 0);
     out->WriteInt32(voice_speech_flags);
 
     // kGSSvgVersion_363
@@ -878,6 +909,10 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0); // reserved up to 4 ints
     out->WriteInt32(0);
     out->WriteInt32(0);
+    // kGSSvgVersion_363_03: multi-channel voice-over state
+    out->WriteInt32(voice_chan_as_speech.size());
+    for (const auto &as_speech : voice_chan_as_speech)
+        out->WriteInt8(as_speech ? 1 : 0);
 }
 
 void GamePlayState::FreeProperties()

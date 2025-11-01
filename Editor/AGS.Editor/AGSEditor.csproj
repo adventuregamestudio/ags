@@ -156,6 +156,7 @@
     <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Entities\CompilationStepArgs.cs" />
     <Compile Include="Entities\CompileWarningEx.cs" />
+    <Compile Include="Entities\DiffListItem.cs" />
     <Compile Include="Entities\TreeItemDragEventArgs.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />
@@ -214,6 +215,12 @@
     </Compile>
     <Compile Include="GUI\LineInBetween.cs">
       <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="GUI\ListDiffDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ListDiffDialog.Designer.cs">
+      <DependentUpon>ListDiffDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\LogPanel.cs">
       <SubType>Form</SubType>
@@ -482,6 +489,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ListDiffDialog.resx">
+      <DependentUpon>ListDiffDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\LogPanel.resx">
       <DependentUpon>LogPanel.cs</DependentUpon>

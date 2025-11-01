@@ -35,6 +35,13 @@ namespace AGS.Editor.Components
             schemaEditor.Dispose();
         }
 
+        private CustomPropertySchema ShowSchemaDiffDialog(CustomPropertySchema schema)
+        {
+            ListDiffDialog dlg = new ListDiffDialog(SchemaToListDiff(_agsEditor.CurrentGame.PropertySchema), SchemaToListDiff(schema));
+            dlg.ShowDialog();
+            dlg.Dispose();
+        }
+
         private void ExportSchema()
         {
             string fileName = _guiController.ShowSaveFileDialog("Export custom properties schema as...", SCHEMA_EXPORT_FILE_FILTER);
@@ -53,6 +60,20 @@ namespace AGS.Editor.Components
             }
         }
 
+        List<DiffListItem> SchemaToListDiff(CustomPropertySchema schema)
+        {
+            List<DiffListItem> diffListItems = new List<DiffListItem>();
+            schema.PropertyDefinitions.ForEach(def =>
+            {
+                DiffListItem item = new DiffListItem();
+                item.Name = def.Name;
+                item.Description = def.Description;
+                item.Data = def;
+                diffListItems.Add(item);
+            });
+            return diffListItems;
+        }
+
         private void ImportSchema()
         {
             string fileName = _guiController.ShowOpenFileDialog("Select custom properties schema file to import...", SCHEMA_IMPORT_FILE_FILTER);
@@ -63,6 +84,8 @@ namespace AGS.Editor.Components
             try
             { 
                 CustomPropertySchema schema = ImportExport.ImportCustomPropertiesSchemaFromFile(fileName, game);
+
+
                 MergeToGameSchema(schema);
 
                 // refresh property grid, a property may have been added, changed or removed

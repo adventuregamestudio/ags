@@ -1211,6 +1211,13 @@ void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking, int r
     Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, true /* use path */, false /* not straight */, blocking, ANYWHERE, false /* no anim */, repeat, direction);
 }
 
+bool Character_RunFrameEvent(CharacterInfo *chaa, int view, int loop, int frame)
+{
+    view--; // convert to internal 0-based view ID
+    AssertFrame("Character.RunFrameEvent", chaa->scrname.GetCStr(), view, loop, frame);
+    return charextra[chaa->index_id].RunFrameEvent(&game.chars[chaa->index_id], view, loop, frame);
+}
+
 void Character_RunInteraction(CharacterInfo *chaa, int mood)
 {
     if (!AssertCursorValidForEvent("Character.RunInteraction", mood))
@@ -1232,10 +1239,10 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
                                      RuntimeScriptValue().SetScriptObject(chaa, &ccDynamicCharacter), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &game.chars[chaa->index_id].interactions, evnt,
-                         &game.chars[chaa->index_id].events, anyclick_evt, true /* do unhandled event */) < 0)
+                         &game.chars[chaa->index_id].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on char
-    run_event_script(obj_evt, &game.chars[chaa->index_id].events, anyclick_evt);
+    run_event_script(obj_evt, &game.chars[chaa->index_id].GetEvents(), anyclick_evt);
 }
 
 
@@ -3575,6 +3582,11 @@ RuntimeScriptValue Sc_Character_RemoveTint(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID(CharacterInfo, Character_RemoveTint);
 }
 
+RuntimeScriptValue Sc_Character_RunFrameEvent(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_RunFrameEvent);
+}
+
 // void (CharacterInfo *chaa, int mood)
 RuntimeScriptValue Sc_Character_RunInteraction(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4366,6 +4378,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::MoveStraight^3",            API_FN_PAIR(Character_MoveStraight) },
         { "Character::PlaceOnWalkableArea^0",     API_FN_PAIR(Character_PlaceOnWalkableArea) },
         { "Character::RemoveTint^0",              API_FN_PAIR(Character_RemoveTint) },
+        { "Character::RunFrameEvent^3",           API_FN_PAIR(Character_RunFrameEvent) },
         { "Character::RunInteraction^1",          API_FN_PAIR(Character_RunInteraction) },
         { "Character::Say^101",                   Sc_Character_Say, ScPl_Character_Say },
         // old non-variadic variants

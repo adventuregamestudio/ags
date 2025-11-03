@@ -1075,6 +1075,7 @@ enum ViewSvgVersion
 {
     kViewSvgVersion_Initial = 0,
     kViewSvgVersion_4000018 = 4000018, // view frame offsets
+    kViewSvgVersion_4000022 = 4000022, // view frame events
 };
 
 HSaveError WriteViews(Stream *out)
@@ -1096,6 +1097,12 @@ HSaveError WriteViews(Stream *out)
                 out->WriteInt16(vf.speed);
                 out->WriteInt16(vf.xoffs);
                 out->WriteInt16(vf.yoffs);
+            }
+
+            // ---- kViewSvgVersion_4000022
+            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+            {
+                StrUtil::WriteCStr(views[view].loops[loop].frames[frame].event_name, out);
             }
         }
     }
@@ -1138,6 +1145,14 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
                     vf.speed = in->ReadInt16();
                     vf.xoffs = in->ReadInt16();
                     vf.yoffs = in->ReadInt16();
+                }
+            }
+
+            if (cmp_ver >= kViewSvgVersion_4000022)
+            {
+                for (uint32_t frame = 0; frame < frames_read; ++frame)
+                {
+                    views[view].loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
                 }
             }
         }
@@ -1868,7 +1883,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Views",
-        kViewSvgVersion_4000018,
+        kViewSvgVersion_4000022,
         kViewSvgVersion_Initial,
         kSaveCmp_Views,
         WriteViews,

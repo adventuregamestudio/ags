@@ -39,7 +39,7 @@ namespace AGS.Types
         private HorizontalAlignment _textAlignment;
         private bool _showBorder;
         private bool _showScrollArrows;
-        private string _selectionChangedEventHandler = string.Empty;
+        private string _onSelectionChanged = string.Empty;
 
         [Description("Script function to run when the selection is changed")]
         [Category("Events")]
@@ -49,8 +49,8 @@ namespace AGS.Types
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnSelectionChanged
         {
-            get { return _selectionChangedEventHandler; }
-            set { _selectionChangedEventHandler = value; }
+            get { return _onSelectionChanged; }
+            set { _onSelectionChanged = value; }
         }
 
         [Description("Determines whether the listbox default up/down scroll arrows are drawn")]

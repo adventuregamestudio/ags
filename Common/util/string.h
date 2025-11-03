@@ -57,6 +57,7 @@ class String
 {
 public:
     static const size_t NoIndex = SIZE_MAX;
+    static const String NoString;
 
     // Standard constructor: intialize empty string
     String();

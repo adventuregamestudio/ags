@@ -31,7 +31,6 @@ namespace Common
 class GUIControl : public GUIObject
 {
 public:
-    GUIControl() = default;
     virtual ~GUIControl() = default;
 
     // Properties
@@ -53,14 +52,6 @@ public:
 
     // Compatibility: should the control's graphic be clipped to its x,y,w,h
     virtual bool    IsContentClipped() const { return true; }
-
-    // Script Events
-    virtual uint32_t GetEventCount() const;
-    virtual String  GetEventArgs(uint32_t event) const;
-    virtual String  GetEventName(uint32_t event) const;
-    // Gets a script function name for the given event
-    String          GetEventHandler(uint32_t event) const;
-    void            SetEventHandler(uint32_t event, const String &fn_name);
     
     // Operations
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
@@ -99,6 +90,9 @@ public:
     void            MarkStateChanged(bool self_changed, bool parent_changed);
   
 protected:
+    GUIControl(const ScriptEventSchema *schema) : GUIObject(schema)
+    {}
+
     // Overridable routine to determine whether the coordinates is over the control;
     // coordinates are guaranteed to be transformed to the control's local cs
     virtual bool    IsOverControlImpl(int x, int y, int leeway) const;
@@ -107,8 +101,6 @@ protected:
 
     uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     bool     _isActivated = false; // signals user interaction
-
-    std::vector<String> _eventHandlers; // script function names
 };
 
 } // namespace Common

@@ -13,11 +13,19 @@
 //=============================================================================
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/scriptstring.h"
+#include "script/script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+
+extern CCCharacter ccDynamicCharacter;
+extern std::vector<ViewStruct> views;
+extern GameSetupStruct game;
 
 void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
 {
@@ -80,7 +88,16 @@ int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
 
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi));
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi),
+        objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+}
+
+bool CharacterExtras::RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame)
+{
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
+    return ::RunViewFrameEvent(view, loop, frame,
+        objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
 void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int distance, int eagerness, bool sort_behind)

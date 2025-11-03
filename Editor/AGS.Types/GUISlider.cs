@@ -34,7 +34,7 @@ namespace AGS.Types
         private int _handleImage;
         private int _handleOffset;
         private int _backgroundImage;
-        private string _changeEventHandler = string.Empty;
+        private string _onChange = string.Empty;
 
         [Description("Script function to run when the slider is moved")]
         [Category("Events")]
@@ -44,8 +44,8 @@ namespace AGS.Types
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnChange
         {
-            get { return _changeEventHandler; }
-            set { _changeEventHandler = value; }
+            get { return _onChange; }
+            set { _onChange = value; }
         }
 
         [Description("Image to use for the grabbable handle on the slider")]

@@ -16,6 +16,7 @@ namespace AGS.Types
         private int _speed = 0;
         private int _xoff = 0;
         private int _yoff = 0;
+        private string _eventName = string.Empty;
 
         public ViewFrame()
         {
@@ -92,6 +93,13 @@ namespace AGS.Types
         {
             get { return _sound; }
             set { _sound = value; }
+        }
+
+        [Category("Design")]
+        public string EventName
+        {
+            get { return _eventName; }
+            set { _eventName = value; }
         }
 
         public ViewFrame(XmlNode node)

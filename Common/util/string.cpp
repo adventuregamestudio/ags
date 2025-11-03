@@ -26,6 +26,8 @@ namespace AGS
 namespace Common
 {
 
+/* static */ const String String::NoString;
+
 String::String()
     : _cstr(const_cast<char*>(""))
     , _len(0)

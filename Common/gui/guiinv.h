@@ -41,6 +41,11 @@ public:
     int  GetCharacterID() const;
     void SetCharacterID(int charid);
 
+    // Script Events
+    // Gets a events schema corresponding to this object's type
+    static const ScriptEventSchema &GetEventSchema() { return ScriptEventTable::DefaultSchema(); }
+    virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &ScriptEventTable::DefaultSchema(); }
+
     // Operations
     // This function has distinct implementations in Engine and Editor
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
@@ -62,10 +67,6 @@ private:
 
     static const int DefaultItemWidth = 40;
     static const int DefaultItemHeight = 22;
-
-    //static const int EventCount = 0;
-    //static String EventNames[EventCount];
-    //static String EventArgs[EventCount];
 
     bool    _isMouseOver = false;
     int     _charID = -1; // whose inventory (-1 = current player)

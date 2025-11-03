@@ -16,21 +16,24 @@
 #include "ac/button.h"
 #include "ac/common.h"
 #include "ac/gui.h"
-#include "ac/view.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/cc_guicontrol.h"
 #include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
+#include "script/script.h"
 #include "main/game_run.h"
 
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
+extern CCGUIButton ccDynamicGUIButton;
 
 // *** BUTTON FUNCTIONS
 
@@ -43,6 +46,21 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
     const auto &vf = views[abtn.view].loops[abtn.loop].frames[abtn.frame];
     guibuts[abtn.buttonid].SetImages(
         vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
+}
+
+void ABut_CheckViewFrame(AnimatingGUIButton &abtn)
+{
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(&guibuts[abtn.buttonid], &ccDynamicGUIButton));
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume,
+        objevt, &guibuts[abtn.buttonid].GetEvents(), kButtonEvent_OnFrameEvent);
+    UpdateButtonState(abtn);
+}
+
+bool Button_RunFrameEventImpl(GUIButton &btn, int view, int loop, int frame)
+{
+    ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(&btn, &ccDynamicGUIButton));
+    return RunViewFrameEvent(view, loop, frame,
+        objevt, &btn.GetEvents(), kButtonEvent_OnFrameEvent);
 }
 
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
@@ -72,8 +90,7 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     animbuts.push_back(abtn);
     // launch into the first frame, and play the first frame's sound
-    UpdateButtonState(abtn);
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, volume);
+    ABut_CheckViewFrame(abtn);
 
     // Blocking animate
     if (blocking)
@@ -234,9 +251,9 @@ bool UpdateAnimatingButton(int bu)
     }
     if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, abtn.anim))
         return false;
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume);
+
+    ABut_CheckViewFrame(abtn);
     abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
-    UpdateButtonState(abtn);
     return true;
 }
 
@@ -273,6 +290,13 @@ void FindAndRemoveButtonAnimation(int guin, int objn)
 void Button_Click(GUIButton *butt, int mbut)
 {
     process_interface_click(butt->GetParentID(), butt->GetID(), mbut);
+}
+
+bool Button_RunFrameEvent(GUIButton *butt, int view, int loop, int frame)
+{
+    view--; // convert to internal 0-based view ID
+    AssertFrame("Button.RunFrameEvent", butt->GetName().GetCStr(), view, loop, frame);
+    return Button_RunFrameEventImpl(*butt, view, loop, frame);
 }
 
 bool Button_IsAnimating(GUIButton *butt)
@@ -483,6 +507,11 @@ RuntimeScriptValue Sc_Button_Click(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(GUIButton, Button_Click);
 }
 
+RuntimeScriptValue Sc_Button_RunFrameEvent(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(GUIButton, Button_RunFrameEvent);
+}
+
 RuntimeScriptValue Sc_Button_IsAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL(GUIButton, Button_IsAnimating);
@@ -550,6 +579,7 @@ void RegisterButtonAPI()
         { "Button::Animate^7",            API_FN_PAIR(Button_Animate7) },
         { "Button::Animate^8",            API_FN_PAIR(Button_Animate) },
         { "Button::Click^1",              API_FN_PAIR(Button_Click) },
+        { "Button::RunFrameEvent^3",      API_FN_PAIR(Button_RunFrameEvent) },
         { "Button::GetText^1",            API_FN_PAIR(Button_GetText) },
         { "Button::SetText^1",            API_FN_PAIR(Button_SetText) },
         { "Button::get_TextAlignment",    API_FN_PAIR(Button_GetTextAlignment) },

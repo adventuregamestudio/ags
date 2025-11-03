@@ -17,7 +17,7 @@
 #include <memory>
 #include <vector>
 #include "ac/dynobj/scriptsystem.h"
-#include "game/scripteventstable.h"
+#include "game/scripteventtable.h"
 #include "script/executingscript.h"
 #include "script/runtimescript.h"
 #include "script/scriptexecutor.h"
@@ -76,6 +76,9 @@ struct ObjectEvent
         Params[0] = dyn_obj;
         Params[1] = RuntimeScriptValue().SetInt32(mode);
     }
+
+    bool IsValid() const { return ScType != kScTypeNone; }
+    operator bool() const { return IsValid(); }
 };
 
 // NonBlockingScriptFunction struct contains a cached information about
@@ -109,6 +112,8 @@ void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun
 int     run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt,
                          ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
 int     run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
+// Runs event handler, optionally choosing to run on a non-blocking thread if the main thread is busy.
+int     run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult
@@ -119,7 +124,7 @@ enum RunScFuncResult
     kScFnRes_ScriptBusy = -3,       // script is already being executed
 };
 
-AGS::Engine::RuntimeScript *GetScriptInstanceByType(ScriptType sc_type);
+AGS::Engine::RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module = {});
 // Tests if a function exists in the given script module
 bool    DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
@@ -135,6 +140,11 @@ void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t pa
 // by RunScriptFunctionAuto().
 void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
+// Queues a script function to be run either called by the engine or from another script;
+// the function is identified by its name and script module, and will be run in time,
+// by RunScriptFunctionAuto().
+void    QueueScriptFunction(ScriptType sc_type, const AGS::Common::String &script_module,
+    const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on the main script thread
 RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
@@ -150,6 +160,9 @@ bool    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, co
 // returns if at least one instance of a function was run successfully.
 bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
+// Try to run a script function on a non-blocking thread
+RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
+    size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 
 // Allocates script executor and standard threads
 void    InitScriptExec();

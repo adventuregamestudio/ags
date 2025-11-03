@@ -1075,7 +1075,7 @@ enum ViewSvgVersion
 {
     kViewSvgVersion_Initial = 0,
     kViewSvgVersion_4000018 = 4000018, // view frame offsets
-    kViewSvgVersion_4000022 = 4000022, // view frame events
+    kViewSvgVersion_4000023 = 4000023, // view frame events
 };
 
 HSaveError WriteViews(Stream *out)
@@ -1099,7 +1099,7 @@ HSaveError WriteViews(Stream *out)
                 out->WriteInt16(vf.yoffs);
             }
 
-            // ---- kViewSvgVersion_4000022
+            // ---- kViewSvgVersion_4000023
             for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
             {
                 StrUtil::WriteCStr(views[view].loops[loop].frames[frame].event_name, out);
@@ -1148,7 +1148,7 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
                 }
             }
 
-            if (cmp_ver >= kViewSvgVersion_4000022)
+            if (cmp_ver >= kViewSvgVersion_4000023)
             {
                 for (uint32_t frame = 0; frame < frames_read; ++frame)
                 {
@@ -1604,7 +1604,7 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteBool(false); //[DEPRECATED]
 
     // modified room masks
-    // -- kRoomStatSvgVersion_36214, kRoomStatSvgVersion_40022
+    // -- kRoomStatSvgVersion_36214, kRoomStatSvgVersion_40023
     for (int i = 0; i < kNumRoomAreaTypes; ++i)
     {
         out->WriteBool(play.room_mask_modified[i]);
@@ -1655,7 +1655,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
 
     // modified room masks
     if (((cmp_ver >= kRoomStatSvgVersion_36214) && (cmp_ver < kRoomStatSvgVersion_400)) ||
-        (cmp_ver >= kRoomStatSvgVersion_40022))
+        (cmp_ver >= kRoomStatSvgVersion_40023))
     {
         for (int i = 0; i < kNumRoomAreaTypes; ++i)
         {
@@ -1854,7 +1854,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_400_22,
+        kGSSvgVersion_400_23,
         kGSSvgVersion_400,
         kSaveCmp_GameState,
         WriteGameState,
@@ -1917,7 +1917,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Views",
-        kViewSvgVersion_4000022,
+        kViewSvgVersion_4000023,
         kViewSvgVersion_Initial,
         kSaveCmp_Views,
         WriteViews,
@@ -1954,8 +1954,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "AnimatedOverlays",
-        kAnimOverSvgVersion_40022,
-        kAnimOverSvgVersion_40022,
+        kAnimOverSvgVersion_40023,
+        kAnimOverSvgVersion_40023,
         kSaveCmp_Overlays,
         WriteAnimOverlays,
         ReadAnimOverlays,
@@ -1981,7 +1981,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40022,
+        kRoomStatSvgVersion_40023,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -1990,7 +1990,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40022, // must correspond to "Room States"
+        kRoomStatSvgVersion_40023, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         kSaveCmp_ThisRoom,
         WriteThisRoom,

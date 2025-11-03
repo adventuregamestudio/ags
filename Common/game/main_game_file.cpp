@@ -425,7 +425,7 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
         }
     }
 
-    if (data_ver < kGameVersion_400_22)
+    if (data_ver < kGameVersion_400_23)
     {
         for (int i = 0; i < char_count; i++)
         {
@@ -439,7 +439,7 @@ void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
     const int inv_count = game.numinvitems;
     auto &inv = game.invinfo;
 
-    if (data_ver < kGameVersion_400_22)
+    if (data_ver < kGameVersion_400_23)
     {
         for (int i = 0; i < inv_count; i++)
         {
@@ -492,7 +492,7 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         }
     }
 
-    if (data_ver < kGameVersion_400_22)
+    if (data_ver < kGameVersion_400_23)
     {
         for (auto &gui : ents.Guis)
             gui.RemapOldEvents();
@@ -513,7 +513,7 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_400_22)
+    if (data_ver < kGameVersion_400_23)
     {
         // Configure standard cursors that have associated events
         const std::array<bool, 10> cursor_event = {

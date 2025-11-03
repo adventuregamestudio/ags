@@ -45,7 +45,7 @@ enum EventsTableVersion
 {
     kEventsTable_Initial = 0,
     kEventsTable_v362 = 3060200,
-    kEventsTable_v400 = 4000022,
+    kEventsTable_v400 = 4000023,
     kEventsTable_Current = kEventsTable_v400
 };
 

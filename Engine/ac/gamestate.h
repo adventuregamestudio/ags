@@ -64,7 +64,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
     kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
     kGSSvgVersion_400_18    = 4000018, // shaders
-    kGSSvgVersion_400_22    = 4000022, // sync with kGSSvgVersion_363_02
+    kGSSvgVersion_400_23    = 4000023, // sync with kGSSvgVersion_363_02
 };
 
 // SavedLocationType defines the type of location which

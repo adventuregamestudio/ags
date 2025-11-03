@@ -149,7 +149,7 @@ Obligatory alpha component in 32-bit color. SCR_COLOR_TRANSPARENT is redefined a
 GUI controls extended graphical properties.
 4.0.0.20:
 Fixed historical mistake of 1 vertical pixel for object and character sprite placement.
-4.0.0.22:
+4.0.0.23:
 Remade events tables
 */
 
@@ -174,9 +174,9 @@ enum GameDataVersion
     kGameVersion_400_14         = 4000014,
     kGameVersion_400_16         = 4000016,
     kGameVersion_400_20         = 4000020,
-    kGameVersion_400_22         = 4000022,
+    kGameVersion_400_23         = 4000023,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_22
+    kGameVersion_Current        = kGameVersion_400_23
 };
 
 // Data format version of the loaded game

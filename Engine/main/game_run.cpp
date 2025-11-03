@@ -127,11 +127,13 @@ static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 #define UNTIL_ANIMBTNEND 9
 #define UNTIL_FLAGUNSET 10
 #define UNTIL_VIEWANIM  11
+#define UNTIL_ANIMOVEREND 12
 
 static void GameTick();
 
 // Game state instructs the engine to run game loops until
 // certain condition is not fullfilled.
+// TODO: reimplement the end condition check using a function pointer?
 class GameLoopUntilState : public GameState
 {
 public:
@@ -948,17 +950,21 @@ static void game_loop_do_update()
     else if (game_paused==0) update_stuff();
 }
 
-static void game_loop_update_animated_buttons()
+// Updated objects that do not auto-pause when the game is paused
+static void game_loop_update_animated_always()
 {
-    // update animating GUI buttons
-    // this bit isn't in update_stuff because it always needs to
-    // happen, even when the game is paused
-    for (size_t i = 0; i < GetAnimatingButtonCount(); ++i) {
-        if (!UpdateAnimatingButton(i)) {
+    // Update animating GUI buttons and overlays
+    // The buttons are animated even if the game is paused
+    for (size_t i = 0; i < GetAnimatingButtonCount(); ++i)
+    {
+        if (!UpdateAnimatingButton(i))
+        {
             StopButtonAnimation(i);
             i--;
         }
     }
+
+    UpdateOverlayAnimations();
 }
 
 extern std::vector<ViewStruct> views;
@@ -1296,7 +1302,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // do the overall game state update
     game_loop_do_update();
 
-    game_loop_update_animated_buttons();
+    game_loop_update_animated_always();
 
     game_loop_do_late_script_update();
 
@@ -1446,6 +1452,10 @@ static bool ShouldStayInWaitMode()
         const ViewAnimateParams *anim = static_cast<const ViewAnimateParams*>(restrict_until->GetDataPtr());
         return anim->IsValid();
     }
+    case UNTIL_ANIMOVEREND:
+    {
+        return IsOverlayAnimating(restrict_until->GetData1());
+    }
     default:
         debug_script_warn("loop_until: unknown until event, aborting");
         return false;
@@ -1525,6 +1535,11 @@ void GameLoopUntilNoOverlay()
 void GameLoopUntilButAnimEnd(int guin, int objn)
 {
     GameLoopUntilEvent(UNTIL_ANIMBTNEND, nullptr, guin, objn);
+}
+
+void GameLoopUntilOverlayAnimEnd(int over_id)
+{
+    GameLoopUntilEvent(UNTIL_ANIMOVEREND, nullptr, over_id);
 }
 
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit)

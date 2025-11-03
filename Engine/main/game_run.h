@@ -22,6 +22,7 @@ struct GamepadInput;
 struct TouchInput;
 
 // Loops game frames until certain event takes place (for blocking actions)
+// TODO: reimplement these using a function pointer?
 void GameLoopUntilValueIsZero(const char *value);
 void GameLoopUntilValueIsZero(const short *value);
 void GameLoopUntilValueIsZero(const int *value);
@@ -30,6 +31,7 @@ void GameLoopUntilValueIsNegative(const int *value);
 void GameLoopUntilNotMoving(const short *move);
 void GameLoopUntilNoOverlay();
 void GameLoopUntilButAnimEnd(int guin, int objn);
+void GameLoopUntilOverlayAnimEnd(int over_id);
 void GameLoopUntilFlagUnset(const int *flagset, int flagbit);
 void GameLoopUntilViewAnimEnd(const ViewAnimateParams *anim);
 

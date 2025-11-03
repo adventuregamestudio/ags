@@ -88,9 +88,9 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     abtn.anim = ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume);
     abtn.frame = SetFirstAnimFrame(view, loop, sframe, static_cast<AnimFlowDirection>(direction));
     abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
-    animbuts.push_back(abtn);
     // launch into the first frame, and play the first frame's sound
     ABut_CheckViewFrame(abtn);
+    animbuts.push_back(std::move(abtn));
 
     // Blocking animate
     if (blocking)

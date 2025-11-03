@@ -16,22 +16,35 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptOverlay final : AGSCCDynamicObject
+struct ScriptOverlay : AGSCCDynamicObject
 {
 public:
-    int overlayId = -1;
-
-    int Dispose(void *address, bool force) override;
+    ScriptOverlay() = default;
+    ScriptOverlay(int over_id) : _overlayID(over_id) {}
     const char *GetType() override;
+    int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
     void Remove();
-    ScriptOverlay() = default;
+
+    int GetOverlayID() const { return _overlayID; }
+    void Invalidate() { _overlayID = -1; }
 
 protected:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
+
+    int _overlayID = -1;
+};
+
+struct ScriptAnimatedOverlay final : ScriptOverlay
+{
+public:
+    ScriptAnimatedOverlay() = default;
+    ScriptAnimatedOverlay(int over_id) : ScriptOverlay(over_id) {}
+    const char *GetType() override;
+    int Dispose(void *address, bool force) override;
 };
 
 #endif // __AC_SCRIPTOVERLAY_H

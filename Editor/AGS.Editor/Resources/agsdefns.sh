@@ -669,6 +669,28 @@ enum StringSplitOptions {
 };
 #endif // SCRIPT_API_v400
 
+#ifdef SCRIPT_API_v350
+enum GUIPopupStyle {
+  eGUIPopupNormal = 0,
+  eGUIPopupMouseYPos = 1,
+  eGUIPopupModal = 2,
+  eGUIPopupPersistent = 3
+};
+#endif // SCRIPT_API_v350
+
+enum BlockingStyle {
+  eBlock = 919,
+  eNoBlock = 920
+};
+enum Direction {
+  eForwards = 1062,
+  eBackwards = 1063
+};
+enum WalkWhere {
+  eAnywhere = 304,
+  eWalkableAreas = 305
+};
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(__format const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -1341,6 +1363,28 @@ builtin managed struct Overlay {
 #endif // SCRIPT_API_v400_18
 };
 
+#ifdef SCRIPT_API_v400_22
+builtin managed struct AnimatedOverlay extends Overlay
+{
+  /// Creates a AnimatedOverlay object on the screen layer, optionally using a initial sprite
+  import static AnimatedOverlay* CreateAnimated(int x, int y, int slot = 0, bool pauseWithGame = true); // $AUTOCOMPLETESTATICONLY$
+  /// Creates a AnimatedOverlay object on the room layer, optionally using a initial sprite
+  import static AnimatedOverlay* CreateRoomAnimated(int x, int y, int slot = 0, bool pauseWithGame = true); // $AUTOCOMPLETESTATICONLY$
+  /// Animates the overlay using the specified view loop.
+  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
+  /// Gets whether the overlay is currently animating.
+  import readonly attribute bool Animating;
+  /// Gets the current frame number during an animation.
+  import readonly attribute int  Frame;
+  /// Gets the current loop number during an animation.
+  import readonly attribute int  Loop;
+  /// Gets whether the overlay's animation is paused when the game is paused.
+  import readonly attribute bool PauseWithGame;
+  /// Gets the current view number during an animation.
+  import readonly attribute int  View;
+};
+#endif // SCRIPT_API_v400_22
+
 #ifdef SCRIPT_API_v400
 enum ColorFormat
 {
@@ -1516,28 +1560,6 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 /// Skip current cutscene (if one is currently in progress)
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
-
-#ifdef SCRIPT_API_v350
-enum GUIPopupStyle {
-  eGUIPopupNormal = 0,
-  eGUIPopupMouseYPos = 1,
-  eGUIPopupModal = 2,
-  eGUIPopupPersistent = 3
-};
-#endif // SCRIPT_API_v350
-
-enum BlockingStyle {
-  eBlock = 919,
-  eNoBlock = 920
-};
-enum Direction {
-  eForwards = 1062,
-  eBackwards = 1063
-};
-enum WalkWhere {
-  eAnywhere = 304,
-  eWalkableAreas = 305
-};
 
 // forward-declare these so that they can be returned by GUIControl class
 builtin managed struct GUI;

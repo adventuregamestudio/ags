@@ -1289,7 +1289,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
 {
     // Remember that overlay indexes may be non-sequential
     // the vector may be resized during read
-    size_t over_count = in->ReadInt32();
+    uint32_t over_count = static_cast<uint32_t>(in->ReadInt32());
     auto &overs = get_overlays();
     overs.resize(over_count); // reserve minimal size
     for (size_t i = 0; i < over_count; ++i)
@@ -1304,6 +1304,40 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
         if (overs.size() <= static_cast<uint32_t>(over.GetID()))
             overs.resize(over.GetID() + 1);
         overs[over.GetID()] = std::move(over);
+    }
+    return HSaveError::None();
+}
+
+HSaveError WriteAnimOverlays(Stream *out)
+{
+    const auto &aovers = GetAnimatedOverlays();
+    // Calculate and save valid overlays only
+    uint32_t valid_count = 0;
+    for (const auto &over : aovers)
+    {
+        if (over.GetOverID() >= 0)
+            valid_count++;
+    }
+    out->WriteInt32(valid_count);
+
+    for (const auto &over : aovers)
+    {
+        if (over.GetOverID() >= 0)
+            over.WriteToSavegame(out);
+    }
+    return HSaveError::None();
+}
+
+HSaveError ReadAnimOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams & /*pp*/, RestoredData &r_data)
+{
+    uint32_t over_count = static_cast<uint32_t>(in->ReadInt32());
+    for (size_t i = 0; i < over_count; ++i)
+    {
+        AnimatedOverlay over;
+        over.ReadFromSavegame(in, cmp_ver);
+        if (over.GetOverID() < 0)
+            continue; // safety abort
+        AddAnimatedOverlay(std::move(over));
     }
     return HSaveError::None();
 }
@@ -1916,6 +1950,15 @@ ComponentHandler ComponentHandlers[] =
         kSaveCmp_Overlays,
         WriteOverlays,
         ReadOverlays,
+        nullptr
+    },
+    {
+        "AnimatedOverlays",
+        kAnimOverSvgVersion_40022,
+        kAnimOverSvgVersion_40022,
+        kSaveCmp_Overlays,
+        WriteAnimOverlays,
+        ReadAnimOverlays,
         nullptr
     },
     {

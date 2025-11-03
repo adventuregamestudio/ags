@@ -79,7 +79,7 @@ namespace AGS.Editor
             }
 
             string[] roomFiles = null;
-            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
+            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex > 0 && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
             {
                 roomFiles = new string[] { "*.crm" };
             }
@@ -94,7 +94,7 @@ namespace AGS.Editor
             }
 
             string[] fontFiles = null;
-            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
+            if (game.SavedXmlVersionIndex != null && game.SavedXmlVersionIndex > 0 && game.SavedXmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES)
             {
                 fontFiles = new string[]
                 {
@@ -146,6 +146,7 @@ namespace AGS.Editor
             var patternStr = GetPatternsForStandardGameFiles(Factory.AGSEditor.CurrentGame, mediaResources: true);
             var patterns = IncludeUtils.CreatePatternList(patternStr, IncludeUtils.MatchOption.CaseInsensitive);
             string[] files = Utilities.GetDirectoryFileList(Factory.AGSEditor.CurrentGame.DirectoryPath, "*.*", SearchOption.AllDirectories, relativePaths: true);
+            files = IncludeUtils.FilterItemList(files, patterns, IncludeUtils.MatchOption.CaseInsensitive);
             filesToInclude.AddRange(files);
 
             if (GetFilesForInclusionInTemplate != null)

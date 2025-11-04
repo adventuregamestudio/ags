@@ -17,6 +17,7 @@
 #define NOMINMAX
 #include "platform/windows/gfx/ali3dd3d.h"
 #include <algorithm>
+#include <cmath>
 #include <stack>
 #include <SDL.h>
 #include <glm/ext.hpp>
@@ -1506,12 +1507,9 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       heightToScale = -heightToScale;
       thisY += height;
     }
-    // Apply sprite origin
-    // CHECKME: applying -1 to width conflicts with _pixelRenderXOffset, it seems;
-    // (_pixelRenderXOffset * 2.f) factor was found by experiment, comparing with
-    // other renderers, using cases with middle and rightmost origin.
-    thisX -= (abs(widthToScale) - _pixelRenderXOffset * 2.f) * bmpToDraw->GetOrigin().X;
-    thisY -= (abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y;
+    // Apply sprite origin, rounded to keep pixel precision
+    thisX -= std::roundf((abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X);
+    thisY -= std::roundf((abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y);
     // Center inside a rendering rect
     // FIXME: this should be a part of a projection matrix, afaik
     thisX = (-(rend_sz.Width / 2.0f)) + thisX;

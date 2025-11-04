@@ -16,6 +16,7 @@
 #if AGS_HAS_OPENGL
 #include "gfx/ali3dogl.h"
 #include <algorithm>
+#include <cmath>
 #include <stack>
 #include <SDL.h>
 #include "ac/sys_events.h"
@@ -1479,9 +1480,9 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       heightToScale = -heightToScale;
       thisY += height;
     }
-    // Apply sprite origin
-    thisX -= (abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X;
-    thisY -= (abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y;
+    // Apply sprite origin, rounded to keep pixel precision
+    thisX -= std::roundf((abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X);
+    thisY -= std::roundf((abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y);
     // Center inside a rendering rect
     // FIXME: this should be a part of a projection matrix, afaik
     thisX = (-(rend_sz.Width / 2.0f)) + thisX;

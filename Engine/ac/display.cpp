@@ -377,8 +377,8 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
 
             countdown--;
 
-            // Special behavior when coupled with a voice-over
-            if (play.speech_has_voice) {
+            // Special behavior when coupled with a blocking voice-over
+            if (play.speech_voice_blocking) {
                 // extend life of text if the voice hasn't finished yet
                 if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
                     if (countdown <= 1)

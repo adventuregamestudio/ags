@@ -872,7 +872,11 @@ void apply_volume_drop_modifier(bool applyModifier)
     for (int i = 0; i < game.numGameChannels; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if (ch && (ch->sourceClipID >= 0) && (ch->sourceClipType != AUDIO_CLIP_TYPE_SPEECH))
+        // Apply volume drop to:
+        // * non-speech audio type
+        // * speech audio type, which is played as a background non-speech clip
+        if (ch && (ch->sourceClipID >= 0) &&
+            ((ch->sourceClipType != AUDIO_CLIP_TYPE_SPEECH) || !play.IsVoiceSpeechOnChannel(i)))
         {
             if (applyModifier)
                 apply_volume_drop_to_clip(ch);

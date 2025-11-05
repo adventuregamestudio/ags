@@ -154,7 +154,7 @@ static void on_channel_free(int channel, bool reset_legacy_music = false)
 
     // If we are stopping one of the voice-over channels,
     // then check if we need to update game volumes
-    if (channel >= 0 && channel < game.audioClipTypes[AUDIO_CLIP_TYPE_SPEECH].reservedChannels)
+    if (play.IsVoiceSpeechOnChannel(channel))
     {
         update_voice_state();
     }

@@ -500,7 +500,7 @@ static ScriptAudioChannel *play_voice_clip_impl(const String &voice_name, bool a
         // There can be only single blocking speech at the same time, save its channel id
         if (is_blocking)
             play.speech_blocking_voice_chan = achan->id;
-        play.voice_chan_as_speech[achan->id] = true;
+        play.voice_chan_as_speech.push_back(achan->id);
         update_voice_state();
     }
     return achan;
@@ -523,29 +523,20 @@ static void on_blocking_voice_stop()
 // Check if there's no active voice-over clips, and schedule audio volume reset
 void update_voice_state()
 {
-    int speech_voice_count = 0;
-    // Here we assume that the speech audio type is under fixed index 0,
-    // and therefore all its reserved channels are first in the channel list
-    for (int i = 0; i < game.audioClipTypes[AUDIO_CLIP_TYPE_SPEECH].reservedChannels; ++i)
-    {
-        if (AudioChans::ChannelIsPlaying(i))
-        {
-            if (play.voice_chan_as_speech[i])
-                speech_voice_count++;
-        }
-        else
-        {
-            // If the blocking speech's playback has stopped for any reason,
-            // then update the respective game state
-            if (play.speech_blocking_voice_chan == i)
-                on_blocking_voice_stop();
+    // Erase all voice chan records that do not correspond to a active playback
+    auto it_end = std::remove_if(play.voice_chan_as_speech.begin(), play.voice_chan_as_speech.end(),
+        [](const int &ch_id) { return !AudioChans::ChannelIsPlaying(ch_id); });
+    play.voice_chan_as_speech.erase(it_end, play.voice_chan_as_speech.end());
 
-            play.voice_chan_as_speech[i] = false;
-        }
+    // Reset blocking voice-over if it's not within active list now
+    if ((play.speech_blocking_voice_chan != AUDIO_CHANNEL_UNDEFINED) &&
+        std::count(play.voice_chan_as_speech.begin(), play.voice_chan_as_speech.end(), play.speech_blocking_voice_chan) == 0)
+    {
+        on_blocking_voice_stop();
     }
 
     // Handle general voice-over playbacks state
-    if (play.speech_voice_count == 0 && speech_voice_count > 0)
+    if (play.speech_voice_count == 0 && play.voice_chan_as_speech.size() > 0)
     {
         // First voice-over started: apply a volume drop
         cancel_scheduled_music_update();
@@ -559,7 +550,7 @@ void update_voice_state()
         update_music_volume();
         update_ambient_sound_vol();
     }
-    else if (play.speech_voice_count > 0 && speech_voice_count == 0)
+    else if (play.speech_voice_count > 0 && play.voice_chan_as_speech.size() == 0)
     {
         // Last voice-over have stopped:
         // reset settings back and schedule audio volume update
@@ -570,7 +561,7 @@ void update_voice_state()
         schedule_music_update_at(Clock::now() + std::chrono::milliseconds(500));
     }
 
-    play.speech_voice_count = speech_voice_count;
+    play.speech_voice_count = play.voice_chan_as_speech.size();
 }
 
 bool play_voice_speech(int charid, int sndid)

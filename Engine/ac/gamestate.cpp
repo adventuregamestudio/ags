@@ -435,12 +435,18 @@ int GamePlayState::GetWaitSkipResult() const
 
 bool GamePlayState::IsAnyVoiceSpeechPlaying() const
 {
-    return speech_voice_count > 0;
+    return voice_chan_as_speech.size() > 0;
 }
 
 bool GamePlayState::IsBlockingVoiceSpeech() const
 {
     return speech_blocking_voice_chan >= 0;
+}
+
+bool GamePlayState::IsVoiceSpeechOnChannel(int ch_id) const
+{
+    return std::any_of(voice_chan_as_speech.begin(), voice_chan_as_speech.end(),
+        [ch_id](const int play_ch) {return play_ch == ch_id; });
 }
 
 int GamePlayState::GetBlockingVoiceChannel() const
@@ -683,14 +689,13 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         dialog_options_zorder = INT32_MAX;
     }
 
-    std::fill(voice_chan_as_speech.begin(), voice_chan_as_speech.end(), false);
+    voice_chan_as_speech.clear();
     if (svg_ver >= kGSSvgVersion_363_03)
     {
         uint32_t num_voice_chans = in->ReadInt32();
-        std::vector<bool> voice_chans(num_voice_chans);
+        voice_chan_as_speech.resize(num_voice_chans);
         for (uint32_t i = 0; i < num_voice_chans; ++i)
-            voice_chans[i] = in->ReadInt8();
-        std::copy_n(voice_chans.begin(), std::min<size_t>(num_voice_chans, voice_chan_as_speech.size()), voice_chan_as_speech.begin());
+            voice_chan_as_speech[i] = in->ReadInt8();
     }
 
     // Post-read corrections
@@ -705,12 +710,13 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         // 3.5.1 -> 3.6.3 single-channel speech state
         if (speech_has_voice)
         {
-            voice_chan_as_speech[LEGACY_AUDIO_CHAN_SPEECH] = true;
-            speech_voice_count = 1;
+            voice_chan_as_speech.push_back(LEGACY_AUDIO_CHAN_SPEECH);
             if (speech_voice_blocking)
                 speech_blocking_voice_chan = LEGACY_AUDIO_CHAN_SPEECH;
         }
     }
+
+    play.speech_voice_count = voice_chan_as_speech.size();
 }
 
 void GamePlayState::WriteForSavegame(Stream *out) const
@@ -895,7 +901,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     // 0x1 - means that there's a voice-over;
     // 0x2 - means that voice-over belongs to a blocking speech
     // these two above flags are not strictly required now, but save them anyway
-    int voice_speech_flags = 0x01 * (speech_voice_count > 0)
+    int voice_speech_flags = 0x01 * (voice_chan_as_speech.size() > 0)
         | 0x02 * (speech_blocking_voice_chan >= 0);
     out->WriteInt32(voice_speech_flags);
 
@@ -911,8 +917,8 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0);
     // kGSSvgVersion_363_03: multi-channel voice-over state
     out->WriteInt32(voice_chan_as_speech.size());
-    for (const auto &as_speech : voice_chan_as_speech)
-        out->WriteInt8(as_speech ? 1 : 0);
+    for (const auto &chid : voice_chan_as_speech)
+        out->WriteInt8(chid);
 }
 
 void GamePlayState::FreeProperties()

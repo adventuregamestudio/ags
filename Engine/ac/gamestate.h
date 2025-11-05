@@ -324,10 +324,10 @@ struct GamePlayState
 
     // Dynamic speech state
     //
-    // Markers that tell whether respective audio channels contain voice playbacks,
+    // A list of audio channels with voice playbacks on them,
     // that are considered "speech", and should trigger audio volume drop.
-    std::vector<bool> voice_chan_as_speech;
-    // Total number of voice playbacks that count as "speech"
+    std::vector<int> voice_chan_as_speech;
+    // Total number of voice playbacks that count as "speech" (used to detect changes)
     uint32_t speech_voice_count = 0;
     // Audio channel used by the current blocking speech for a voice-over;
     // if none set then either there's no speech, or speech is without voice.
@@ -469,6 +469,8 @@ struct GamePlayState
     bool IsAnyVoiceSpeechPlaying() const;
     // Tells if there's a blocking voice speech playing right now
     bool IsBlockingVoiceSpeech() const;
+    // Tells if a voice-over counted as "speech" is playing on the given audio channel
+    bool IsVoiceSpeechOnChannel(int ch_id) const;
     // Gets a audio channel index of a blocking voice speech
     int  GetBlockingVoiceChannel() const;
     // Speech helpers

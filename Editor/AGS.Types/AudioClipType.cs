@@ -16,11 +16,19 @@ namespace AGS.Types
         [Category("Design")]
         [RefreshProperties(RefreshProperties.All)]
         [BrowsableMultiedit(false)]
-        public string Name { get; set; }
+        public string Name
+        {
+            get;
+            set;
+        }
 
         [Description("The maximum number of clips of this type that can play at the same time (0=unlimited)")]
         [Category("Design")]
-        public int MaxChannels { get; set; }
+        public int MaxChannels
+        {
+            get;
+            set;
+        }
 
         [Description("Number of percentage points to reduce the volume of clips of this type by while speech is playing")]
         [Category("Design")]
@@ -31,6 +39,9 @@ namespace AGS.Types
         [DefaultValue(CrossfadeSpeed.No)]
         [Category("Design")]
         public CrossfadeSpeed CrossfadeClips { get; set; }
+
+        [Browsable(false)]
+        public bool FixedType { get; set; }
 
         [Browsable(false)]
         public bool BackwardsCompatibilityType { get; set; }
@@ -59,14 +70,16 @@ namespace AGS.Types
             }
         }
 
-        public AudioClipType(int typeID, string name, int maxChannels, int volumeReductionWhileSpeechPlaying, bool backwardsCompatType, CrossfadeSpeed crossfading)
+        public AudioClipType(int typeID, string name, int maxChannels, int volumeReductionWhileSpeechPlaying,
+            CrossfadeSpeed crossfading, bool fixedType = false, bool backwardsCompatType = false)
         {
             this.TypeID = typeID;
             this.Name = name;
             this.MaxChannels = maxChannels;
             this.VolumeReductionWhileSpeechPlaying = volumeReductionWhileSpeechPlaying;
-            this.BackwardsCompatibilityType = backwardsCompatType;
             this.CrossfadeClips = crossfading;
+            this.FixedType = fixedType;
+            this.BackwardsCompatibilityType = backwardsCompatType;
         }
 
         public AudioClipType(XmlNode node)

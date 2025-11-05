@@ -242,6 +242,12 @@ namespace AGS.Editor.Components
                 return;
             }
 
+            if (typeToDelete.FixedType)
+            {
+                _guiController.ShowMessage("You cannot delete this fixed audio type, it is required for the game to function properly.", MessageBoxIconType.Warning);
+                return;
+            }
+
             if (typeToDelete.BackwardsCompatibilityType)
             {
                 if (_guiController.ShowQuestion("This audio type is required for backwards compatibility with old-style audio scripting. If you delete it, commands like PlayMusic and PlayAmbientSound will no longer work correctly. Are you sure you want to continue?", System.Windows.Forms.MessageBoxIcon.Warning) == System.Windows.Forms.DialogResult.No)
@@ -318,7 +324,7 @@ namespace AGS.Editor.Components
         private void CreateNewAudioClipType()
         {
             _guiController.ProjectTree.StartFromNode(this, AUDIO_TYPES_FOLDER_NODE_ID);
-            AudioClipType newClipType = new AudioClipType(_agsEditor.CurrentGame.AudioClipTypes.Count + 1, "New audio type", 0, 0, false, CrossfadeSpeed.No);
+            AudioClipType newClipType = new AudioClipType(_agsEditor.CurrentGame.AudioClipTypes.Count + 1, "New audio type", 0, 0, CrossfadeSpeed.No);
             _agsEditor.CurrentGame.AudioClipTypes.Add(newClipType);
             string newNodeID = AddTreeNodeForAudioClipType(newClipType);
             _guiController.ProjectTree.BeginLabelEdit(this, newNodeID);
@@ -581,17 +587,17 @@ namespace AGS.Editor.Components
 
         private void CreateDefaultAudioClipTypes()
         {
-            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SPEECH, "Speech", 1, 0, false, CrossfadeSpeed.No));
-            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_AMBIENT, "Ambient Sound", 1, 0, true, CrossfadeSpeed.No));
-            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_MUSIC, "Music", 1, 30, true, _agsEditor.CurrentGame.Settings.CrossfadeMusic));
-            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SOUND, "Sound", 0, 0, false, CrossfadeSpeed.No));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SPEECH, "Speech", 1, 0, CrossfadeSpeed.No));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_AMBIENT, "Ambient Sound", 1, 0, CrossfadeSpeed.No, backwardsCompatType: true));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_MUSIC, "Music", 1, 30, _agsEditor.CurrentGame.Settings.CrossfadeMusic, backwardsCompatType: true));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SOUND, "Sound", 0, 0, CrossfadeSpeed.No));
         }
 
         private void EnsureFixedAudioClipTypes()
         {
             if (_agsEditor.CurrentGame.AudioClipTypes.FirstOrDefault(t => t.TypeID == DEFAULT_AUDIO_TYPE_SPEECH) == null)
             {
-                _agsEditor.CurrentGame.AudioClipTypes.Insert(0, new AudioClipType(DEFAULT_AUDIO_TYPE_SPEECH, "Speech", 1, 0, false, CrossfadeSpeed.No));
+                _agsEditor.CurrentGame.AudioClipTypes.Insert(0, new AudioClipType(DEFAULT_AUDIO_TYPE_SPEECH, "Speech", 1, 0, CrossfadeSpeed.No, fixedType: true));
             }
         }
 
@@ -946,7 +952,7 @@ namespace AGS.Editor.Components
             else if (controlID.StartsWith(NODE_ID_PREFIX_CLIP_TYPE))
             {
                 AudioClipType typeItem = FindAudioClipTypeByNodeID(_rightClickedID, true);
-                if (typeItem.TypeID != DEFAULT_AUDIO_TYPE_SPEECH)
+                if (!typeItem.FixedType)
                 {
                     menu.Add(new MenuCommand(COMMAND_RENAME_CLIP_TYPE, "Rename", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_CLIP_TYPE, "Delete", null));
@@ -1055,10 +1061,9 @@ namespace AGS.Editor.Components
         {
             string newNodeID = GetClipTypeNodeID(clipType);
             // TODO: figure out how to make certain properties (like Name) readonly only in the "fixed" type
-            bool isFixed = clipType.TypeID == DEFAULT_AUDIO_TYPE_SPEECH;
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, newNodeID, clipType.Name,
-                isFixed ? AUDIO_CLIP_TYPE_FIXED_ICON : AUDIO_CLIP_TYPE_ICON);
-            treeItem.AllowLabelEdit = !isFixed;
+                clipType.FixedType ? AUDIO_CLIP_TYPE_FIXED_ICON : AUDIO_CLIP_TYPE_ICON);
+            treeItem.AllowLabelEdit = !clipType.FixedType;
             treeItem.LabelTextProperty = clipType.GetType().GetProperty("Name");
             treeItem.LabelTextDescriptionProperty = clipType.GetType().GetProperty("Name");
             treeItem.LabelTextDataSource = clipType;

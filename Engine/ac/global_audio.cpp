@@ -448,7 +448,7 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
 {
-    if (!play_voice_nonblocking(ch->index_id, sndid, as_speech))
+    if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sndid, as_speech))
         return NULL;
     return &scrAudioChannel[SCHAN_SPEECH];
 }

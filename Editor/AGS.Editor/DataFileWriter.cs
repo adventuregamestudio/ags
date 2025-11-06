@@ -575,7 +575,7 @@ namespace AGS.Editor
                 writer.Write((byte)(game.Palette[i].Colour.R / 4));
                 writer.Write((byte)(game.Palette[i].Colour.G / 4));
                 writer.Write((byte)(game.Palette[i].Colour.B / 4));
-                writer.Write((byte)0); // filler
+                writer.Write((byte)255); // opaque
             }
             writer.Write(game.ViewCount);
             writer.Write(game.Characters.Count);

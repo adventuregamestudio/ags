@@ -2303,19 +2303,24 @@ void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
 
 // Forces transparency color to the palette index 0
 // This must be done, because AGS (or rather Allegro 4) hardcodes transparent color index as 0.
-static void NormalizePaletteTransparency(AGSBitmap *dst, cli::array<System::Drawing::Color> ^bmpPalette)
+static void NormalizePaletteTransparency(AGSBitmap *dst, RGB *imgpal, size_t pal_len)
 {
     // Determine actual transparency index in the palette
     int transparency_index = -1;
-    for (int i = 0; i < bmpPalette->Length; ++i)
+    for (int i = 0; i < pal_len; ++i)
     {
-        if (bmpPalette[i].A == 0)
+        if (imgpal[i].a == 0)
         {
             transparency_index = i;
-            break; // to avoid blank palette entries
+            break;
         }
     }
 
+    // CHECKME: can't remember why this was added earlier, but had to disable,
+    // because palette 0 is always treated as transparent in AGS bitmaps,
+    // therefore if there's a non-transparent color in original palette 0,
+    // it must be swapped with a dummy slot at least.
+    /*
     // Find out if the transparency index is actually used in the image:
     // some BMPs seem to fill unused palette entries with zeroed ARGB.
     if (transparency_index > 0)
@@ -2334,13 +2339,47 @@ static void NormalizePaletteTransparency(AGSBitmap *dst, cli::array<System::Draw
         if (!found_transparency_index)
             transparency_index = -1; // reset and ignore
     }
-    
-    // Swap found transparent color index with index 0
+    */
+
+    // If there's no transparent color available in the palette,
+    // then try to make a dummy transparent slot, so that we could
+    // swap it with the color at original index 0.
+    if (transparency_index < 0)
+    {
+        // If there's still free slots left in palette, then simply add a dummy slot in the end.
+        if (pal_len < 256)
+        {
+            transparency_index = pal_len;
+        }
+        // If palette has all 256 slots, then look up for any slot
+        // which is not used within the image, and turn it into "transparency".
+        else
+        {
+            bool used[256] = { 0 };
+            const uint8_t *px_ptr = dst->GetDataForWriting();
+            const uint8_t *px_end = px_ptr + dst->GetDataSize();
+            for (; px_ptr != px_end; ++px_ptr)
+            {
+                used[*px_ptr] = true;
+            }
+            const bool *unused_at = std::find(used, used + 256, false);
+            if (unused_at < used + 256)
+                transparency_index = unused_at - used;
+        }
+
+        if (transparency_index >= 0)
+        {
+            imgpal[transparency_index] = { 0,0,0,0 };
+        }
+    }
+
+    // If transparent color is not 0, then swap found transparent index
+    // with color at index 0
     if (transparency_index > 0)
     {
-        System::Drawing::Color toswap = bmpPalette[0];
-        bmpPalette[0] = bmpPalette[transparency_index];
-        bmpPalette[transparency_index] = toswap;
+        RGB toswap = imgpal[0];
+        imgpal[0] = imgpal[transparency_index];
+        imgpal[transparency_index] = toswap;
 
         uint8_t *px_ptr = dst->GetDataForWriting();
         uint8_t *px_end = px_ptr + dst->GetDataSize();
@@ -2358,18 +2397,13 @@ static void NormalizePaletteTransparency(AGSBitmap *dst, cli::array<System::Draw
 static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array<System::Drawing::Color> ^bmpPalette,
     bool normalizeTrans)
 {
-    if (normalizeTrans)
-    {
-        NormalizePaletteTransparency(dst, bmpPalette);
-    }
-    
     // Copy palette, fixing colors if necessary
     for (int i = 0; i < 256; i++)
     {
         if (i >= bmpPalette->Length)
         {
             // BMP files can have an arbitrary palette size, fill any
-            // missing colours with black
+            // missing colours with transparent black
             imgpal[i].r = 0;
             imgpal[i].g = 0;
             imgpal[i].b = 0;
@@ -2381,7 +2415,7 @@ static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array
             imgpal[i].r = bmpPalette[i].R / 4;
             imgpal[i].g = bmpPalette[i].G / 4;
             imgpal[i].b = bmpPalette[i].B / 4;
-            imgpal[i].a = 0; // filler
+            imgpal[i].a = 255; // opaque
         }
         else
         {
@@ -2391,13 +2425,18 @@ static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array
             imgpal[i].a = bmpPalette[i].A;
         }
     }
+
+    if (normalizeTrans)
+    {
+        NormalizePaletteTransparency(dst, imgpal, bmpPalette->Length);
+    }
 }
 
 void Convert8BitToHiColor(const AGSBitmap *src, const RGB *imgpal, AGSBitmap *dst, bool keep_transparency);
 void Convert8BitARGBTo32(const AGSBitmap *src, const RGB *imgpal, AGSBitmap *dst);
 
 AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
-    bool fixColourDepth, bool importAlpha, bool keepTransparency, int *originalColDepth)
+    bool fixColourDepth, bool importAlpha, bool keepTransparency, bool fixPalette, int *originalColDepth)
 {
     // We do the bitmap creation in two steps:
     // First we unpack the pixels from the src bitmap to a buffer,
@@ -2459,7 +2498,7 @@ AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int 
 
     if (src_depth <= 8)
     {
-        ConvertPaletteToNativeFormat(tempsprite.get(), imgpal, bmp->Palette->Entries, true);
+        ConvertPaletteToNativeFormat(tempsprite.get(), imgpal, bmp->Palette->Entries, keepTransparency && fixPalette);
     }
 
     // Second step is to upgrade bitmap to the game's color depth, if necessary.
@@ -2571,7 +2610,7 @@ void DeleteBackground(Room ^room, int backgroundNumber)
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
 {
     RGB oldpale[256];
-	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, nullptr, true, false, false, nullptr);
+	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, nullptr, true, false, false, false, nullptr);
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
@@ -2632,7 +2671,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
     RGB oldpale[256];
-	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, nullptr, false, false, false, nullptr);
+	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, nullptr, false, false, false, false, nullptr);
 	Common::Bitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
 
 	if (mask->GetWidth() != importedImage->GetWidth())
@@ -2690,8 +2729,10 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
 
     RGB imgPalBuf[256];
     int importedColourDepth;
+    const bool keep_trans = (spriteImportMethod != SIMP_NONE);
+    const bool fix_palette = (spriteImportMethod != SIMP_INDEX0) && (spriteImportMethod != SIMP_INDEX);
     AGSBitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true,
-        alphaChannel, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+        alphaChannel, keep_trans, fix_palette, &importedColourDepth);
 
     int transcol;
     sort_out_transparency(tempsprite, spriteImportMethod, transColour, imgPalBuf, importedColourDepth, transcol);

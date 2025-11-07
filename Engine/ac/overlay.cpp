@@ -307,6 +307,18 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
     over->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
 }
 
+bool Overlay_GetVisible(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Visible", scover);
+    return over->IsVisible();
+}
+
+void Overlay_SetVisible(ScriptOverlay *scover, bool visible)
+{
+    auto *over = GetOverlayValidate("Overlay.Visible", scover);
+    over->SetVisible(visible);
+}
+
 void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int height)
 {
     auto *over = GetOverlayValidate("Overlay.SetPosition", scover);
@@ -687,6 +699,16 @@ RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
 }
 
+RuntimeScriptValue Sc_Overlay_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptOverlay, Overlay_GetVisible);
+}
+
+RuntimeScriptValue Sc_Overlay_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptOverlay, Overlay_SetVisible);
+}
+
 RuntimeScriptValue Sc_Overlay_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetZOrder);
@@ -763,6 +785,8 @@ void RegisterOverlayAPI()
         { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
         { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
         { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
+        { "Overlay::get_Visible",         API_FN_PAIR(Overlay_GetVisible) },
+        { "Overlay::set_Visible",         API_FN_PAIR(Overlay_SetVisible) },
         { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
         { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
     };

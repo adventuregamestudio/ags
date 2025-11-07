@@ -1837,7 +1837,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        kOverSvgVersion_36108,
+        kOverSvgVersion_36303,
         kOverSvgVersion_Initial,
         kSaveCmp_Overlays,
         WriteOverlays,

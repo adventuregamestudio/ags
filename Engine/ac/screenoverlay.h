@@ -47,6 +47,7 @@ enum OverlayFlags
     kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
+    kOver_Visible          = 0x0010
 };
 
 enum OverlaySvgVersion
@@ -56,6 +57,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_36008   = 2, // z, transparency
     kOverSvgVersion_36025   = 3, // merged options into flags
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
+    kOverSvgVersion_36303   = 3060303 // visible flag must be on by default
 };
 
 class ScreenOverlay
@@ -85,6 +87,7 @@ public:
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
+    bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
     int  GetTransparency() const { return _transparency; }
     int  GetZOrder() const { return _zorder; }
     // Gets actual overlay's image
@@ -104,6 +107,7 @@ public:
         on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
              _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
+    void SetVisible(bool on) { on ? _flags |= kOver_Visible : _flags &= ~kOver_Visible; }
     void SetPosition(int x, int y);
     void SetScaledSize(int w, int h);
     void SetTransparency(int trans);
@@ -155,7 +159,7 @@ private:
 
     // Overlay's ID
     int _id = -1;
-    int _flags = 0; // OverlayFlags
+    int _flags = kOver_Visible; // OverlayFlags
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offx, y + offy;
     int _x = 0;

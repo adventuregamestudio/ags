@@ -1523,6 +1523,10 @@ builtin managed struct Overlay {
   /// Changes the size of the overlay.
   import void SetSize(int width, int height);
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets whether this Overlay is visible.
+  import attribute bool Visible;
+#endif // #ifdef SCRIPT_API_v363
 };
 
 builtin managed struct DynamicSprite {

@@ -233,6 +233,11 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _sprnum = 0;
         has_bitmap = pic != 0;
     }
+
+    if (cmp_ver < kOverSvgVersion_36303)
+    {
+        _flags |= kOver_Visible;
+    }
 }
 
 void ScreenOverlay::WriteToSavegame(Stream *out) const

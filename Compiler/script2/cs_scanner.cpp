@@ -26,8 +26,9 @@
 std::string const AGS::Scanner::kNewSectionLitPrefix = "__NEWSCRIPTSTART_";
 size_t const AGS::Scanner::kNewSectionLitPrefixSize = 17u;
 
-AGS::Scanner::Scanner(std::string const &input, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler)
-    : _ocMatcher(*this)
+AGS::Scanner::Scanner(std::string const &input, bool const use_utf8, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler)
+    : _useUtf8(use_utf8)
+    , _ocMatcher(*this)
     , _lineno(1u)
     , _tokenList(token_list)
     , _msgHandler(messageHandler)
@@ -345,7 +346,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 
         errno = 0;
         char *endptr;
-        std::strtof(valstring.c_str(), &endptr);
+        (void) std::strtof(valstring.c_str(), &endptr);
         bool const can_be_a_floating_point =
             (errno == 0 || errno == ERANGE) &&                  // range errors will be treated below
             (valstring.length() == endptr - valstring.c_str()); // ensure that all chars are used up in the conversion
@@ -459,6 +460,11 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
 
             EscapedChar2Char(lit_char, symstring, lit_char);
         }
+        else if (UseUtf8() && (lit_char < 0 || lit_char > 0x7f))
+        {
+            // Accept an UTF-8 sequence, use the codepoint that corresponds to the sequence
+            ReadInCharLit_utf8(lit_char, symstring, lit_char);
+        }
 
         // Closing '\''
         int const closer = Get();
@@ -556,6 +562,91 @@ void AGS::Scanner::EscapedChar2Char(int first_char_after_backslash, std::string 
     case 'v': converted = '\v'; return;
     }
     UserError("Unrecognized '\\%c' in character or string literal", first_char_after_backslash);
+}
+
+void AGS::Scanner::ReadInCharLit_utf8(int const first_char, std::string &symstring, int &converted)
+{
+    unsigned int const char0 = first_char & 0xff;
+    if (char0 <= 0x7f)
+    {
+        // No UTF-8 sequence
+        symstring.push_back(first_char);
+        converted = first_char;
+        return;
+    }
+
+    if (char0 < 0xc2 || char0 > 0xf4)
+        UserError("After the quote mark, found the byte '0x%02X'; "
+            "a legal UTF-8 sequence cannot start this way (file corrupt?)", char0);
+
+    do // exactly 1 time
+    {
+        int next_char = Get();
+        if (EOFReached() || Failed())
+            break; // to error msg
+        symstring.push_back(next_char);
+        unsigned int const char1 = next_char & 0xff;
+
+        // Strictly going by the algo, you can encode some characters
+        // in different ways, but the standard doesn't allow this:
+        // You must always use the shortest encoding possible.
+        // Thus, some combinations of first and second byte are forbidden.
+        if (char1 < 0x80 ||
+            char1 > 0xbf ||
+            char0 == 0xe0 && char1 <= 0x9f ||
+            char0 == 0xed && char1 >= 0xa0 ||
+            char0 == 0xf0 && char1 <= 0x8f ||
+            char0 == 0xf4 && char1 >= 0x90)
+            UserError("After the quote mark, found the bytes '0x%02X%02X'; "
+            "a legal UTF-8 sequence cannot start this way (file corrupt?)", char0, char1);
+
+        if (char0 <= 0xdf)
+        {
+            // 2-byte sequence
+            converted = ((char0 & 0x1f) << 6) + (char1 & 0x3f);
+            return;
+        }
+
+        next_char = Get();
+        if (EOFReached() || Failed())
+            break; // to error msg
+        unsigned int const char2 = next_char & 0xff;
+        if (char2 < 0x80 || char2 > 0xbf)
+            UserError("After the quote mark, found the bytes '0x%02X%02X%02X'; "
+                "a legal UTF-8 sequence cannot start this way (file corrupt?)", char0, char1, char2);
+        symstring.push_back(next_char);
+
+        if (char0 <= 0xef)
+        {
+            // 3-byte sequence
+            converted = ((char0 & 0x0F) << 12) |
+                        ((char1 & 0x3F) << 6) |
+                        (char2 & 0x3F);
+            return;
+        }
+
+        // 4-byte sequence
+        next_char = Get();
+        if (EOFReached() || Failed())
+            break; // to error msg
+        unsigned int const char3 = next_char & 0xff;
+        if (char3 < 0x80 || char3 > 0xbf)
+            UserError("After the quote mark, found the bytes '0x%02X%02X%02X%02X' "
+                "a legal UTF-8 sequence cannot start this way (file corrupt?)", char0, char1, char2, char3);
+        symstring.push_back(next_char);
+
+        converted = ((char0 & 0x07) << 18) |
+                    ((char1 & 0x3F) << 12) |
+                    ((char2 & 0x3F) << 6) |
+                    (char3 & 0x3F);
+        return;
+    } while (false);
+
+    // Here in case of reading errors
+    if (EOFReached())
+        UserError("Reached the end of the input inmidst of a UTF-8 sequence (file corrupt?)");
+    if (Failed())
+        UserError("Encountered a reading error inmidst of a UTF-8 sequence (file corrupt?)");
 }
 
 void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstring)

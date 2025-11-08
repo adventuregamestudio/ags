@@ -98,6 +98,7 @@ private:
     // We need that, so we collect in _eofReached the fact that end-of-stream has ever been reached.
     bool _eofReached = false;
     bool _failed = false;
+    bool _useUtf8;
     std::size_t _lineno;
     std::string _section;
     SrcList &_tokenList;
@@ -130,6 +131,9 @@ private:
 
     // Translate a '\\' combination into a character, backslash is already read in
     void EscapedChar2Char(int first_char_after_backslash, std::string &symstring, int &converted);
+
+    // Read a sequence of bytes in UTF-8 format, translate to the respective codepoint
+    void ReadInCharLit_utf8(int first_char, std::string &symstring, int &converted);
 
     // Read oct combination \777; backslash is already read in
     int OctDigits2Char(int first_digit_char, std::string &symstring);
@@ -192,10 +196,13 @@ protected:
     inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement) { where.replace(where.find(token), token.length(), replacement); }
 
 public:
-    Scanner(std::string const &input, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
+    Scanner(std::string const &input, bool use_utf8, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
 
     // Scan the input into token_list; symbols into symt; strings into _string_collector
     void Scan();
+
+    // Whether UTF-8 encoding is used
+    inline bool UseUtf8() const { return _useUtf8; }
 
     // Returns whether we've encountered EOF.
     inline bool EOFReached() const { return _eofReached; };

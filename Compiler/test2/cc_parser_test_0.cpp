@@ -19,6 +19,7 @@
 
 #include "script2/cc_symboltable.h"
 #include "script2/cc_internallist.h"
+#include "script2/cs_scanner.h"
 #include "script2/cs_parser.h"
 
 #include "cc_parser_test_lib.h"
@@ -300,9 +301,12 @@ TEST_F(Compile0, EnumNegative) {
         };\
         ";
 
-    // Call cc_scan() and cc_parse() by hand so that we can see the symbol table
-    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    int compile_result = cc_parse(targ, options, scrip, sym, mh);
+    // Call scanner and parser by hand so that we can see the symbol table
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
@@ -351,12 +355,14 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
         ";
 
 
-    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    int compile_result = cc_parse(targ, options, scrip, sym, mh);
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     AGS::Symbol const funcidx = sym.Find("importedfunc");
@@ -405,12 +411,14 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
         };                                  \n\
         ";
 
-    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    int compile_result = cc_parse(targ, options, scrip, sym, mh);
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     int funcidx;
@@ -847,8 +855,13 @@ TEST_F(Compile0, LocalGlobalSeq2) {
     AGS::SymbolTable sym;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    parser.Parse();
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     ASSERT_LE(1u, mh.GetMessages().size());
     EXPECT_EQ(7u, mh.GetMessages()[0].Lineno);
@@ -1850,8 +1863,13 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     AGS::SymbolTable sym;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    ASSERT_LE(0, cc_scan(inpl, targ, scrip, sym, mh));
-    ASSERT_EQ(0, cc_parse(targ, options, scrip, sym, mh));
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    parser.Parse();
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     AGS::Symbol const idx = sym.Find("J");
     ASSERT_LE(0, idx);

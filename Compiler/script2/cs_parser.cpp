@@ -7722,21 +7722,6 @@ void AGS::Parser::Parse()
     }
 }
 
-// Scan inpl into scan tokens, build a symbol table
-int cc_scan(std::string const &inpl, AGS::SrcList &src, AGS::ccCompiledScript &scrip, AGS::SymbolTable &symt, AGS::MessageHandler &mh)
-{
-    AGS::Scanner scanner = { inpl, src, scrip, symt, mh };
-    scanner.Scan();
-    return -static_cast<int>(mh.HasError());
-}
-
-int cc_parse(AGS::SrcList &src, AGS::FlagSet options, AGS::ccCompiledScript &scrip, AGS::SymbolTable &symt, AGS::MessageHandler &mh)
-{
-    AGS::Parser parser = { src, options, scrip, symt, mh };
-    parser.Parse();
-    return -static_cast<int>(mh.HasError());
-}
-
 int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScript &scrip, AGS::MessageHandler &mh)
 {
     AGS::SymbolTable local_symt;
@@ -7754,9 +7739,16 @@ int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScr
     src.NewSection("UnnamedSection");
     src.NewLine(1u);
 
-    int error_code = cc_scan(inpl, src, scrip, symt, mh);
-    if (error_code >= 0)
-        error_code = cc_parse(src, options, scrip, symt, mh);
+    AGS::Scanner scanner = { inpl, FlagIsSet(options, SCOPT_UTF8), src, scrip, symt, mh };
+    scanner.Scan();
+    if (mh.HasError())
+        return -1;
+    
+    AGS::Parser parser = { src, options, scrip, symt, mh };
+    parser.Parse();
+    if (mh.HasError())
+        return -2;
+
     sections = lh.CreateSectionList();
-    return error_code;
+    return 0;
 }

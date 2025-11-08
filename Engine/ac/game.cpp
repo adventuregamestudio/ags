@@ -944,6 +944,29 @@ int Game_InBlockingWait()
     return IsInWaitMode();
 }
 
+ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
+{
+    if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sndid, as_speech))
+        return nullptr;
+    return &scrAudioChannel[SCHAN_SPEECH];
+}
+
+ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sndid, int audio_type, int chan, int priority, int repeat)
+{
+    if (audio_type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(audio_type) >= game.audioClipTypes.size())
+        quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u",
+                   audio_type, AUDIOTYPE_SPEECH + 1, static_cast<uint32_t>(game.audioClipTypes.size() - 1));
+    if (chan != SCR_NO_VALUE && (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels))
+        quitprintf("!AudioClip.PlayAsType: invalid channel %d, the range is %d - %d",
+                   chan, NUM_SPEECH_CHANS, game.numGameChannels - 1);
+    if (chan == SCR_NO_VALUE)
+        chan = -1;
+
+    if (!play_voice_clip_as_type(ch ? ch->index_id : -1 /* narrator */, sndid, audio_type, chan, priority, repeat))
+        return nullptr;
+    return &scrAudioChannel[SCHAN_SPEECH];
+}
+
 void Game_PrecacheSprite(int sprnum)
 {
     const auto tp_start = FastClock::now();
@@ -2100,7 +2123,12 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
 
 RuntimeScriptValue Sc_Game_PlayVoiceClip(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, PlayVoiceClip, CharacterInfo);
+    API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClip, CharacterInfo);
+}
+
+RuntimeScriptValue Sc_Game_PlayVoiceClipAsType(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ_PINT5(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClipAsType, CharacterInfo);
 }
 
 RuntimeScriptValue Sc_Game_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
@@ -2212,7 +2240,8 @@ void RegisterGameAPI()
         { "Game::StopSound^1",                            API_FN_PAIR(StopAllSounds) },
         { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
         { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
-        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
+        { "Game::PlayVoiceClip",                          API_FN_PAIR(Game_PlayVoiceClip) },
+        { "Game::PlayVoiceClipAsType",                    API_FN_PAIR(Game_PlayVoiceClipAsType) },
         { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },

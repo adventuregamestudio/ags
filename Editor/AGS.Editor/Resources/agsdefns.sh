@@ -3258,6 +3258,8 @@ builtin struct Game {
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Play speech voice-over in non-blocking mode, using certain AudioType settings, and optionally putting it on a particular channel.
+  import static AudioChannel* PlayVoiceClipAsType(Character*, int cue, AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Gets/sets game's running speed, in frames per second.
   import static attribute int Speed;
   /// Gets number of game's ticks (updates) passed since the game start.

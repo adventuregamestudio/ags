@@ -468,6 +468,7 @@ struct GamePlayState
     bool IsNonBlockingVoiceSpeech() const;
     // Speech helpers
     bool ShouldPlayVoiceSpeech() const;
+    bool ShouldPlayVoiceSpeechNonBlocking() const;
 
     //
     // Serialization

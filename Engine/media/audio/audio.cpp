@@ -234,28 +234,12 @@ std::unique_ptr<SoundClip> load_sound_clip(const AudioPlayback &aplay, bool repe
 {
     const ScriptAudioClip *audioClip = aplay.Clip;
     if (!is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
-    {
         return nullptr;
-    }
+    if (audioClip->fileName.IsEmpty())
+        return nullptr;
 
     AssetPath asset_name = get_audio_clip_assetpath(audioClip->bundlingType, audioClip->fileName);
-    const char *ext = "";
-    switch (audioClip->fileType)
-    {
-    case eAudioFileOGG:
-        ext = "ogg"; break;
-    case eAudioFileMP3:
-        ext = "mp3"; break;
-    case eAudioFileWAV:
-    case eAudioFileVOC:
-        ext = "wav"; break;
-    case eAudioFileMIDI:
-        ext = "mid"; break;
-    case eAudioFileMOD:
-        ext = "mod"; break;
-    default:
-        quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);
-    }
+    const char *ext = ScriptAudioClip::GetExtFromAudioFileType(audioClip->fileType);
 
     std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, ext, repeat);
     if (soundClip != nullptr)

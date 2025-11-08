@@ -24,7 +24,9 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-enum AudioFileType {
+enum AudioFileType
+{
+    eAudioFileUndefined = 0,
     eAudioFileOGG = 1,
     eAudioFileMP3 = 2,
     eAudioFileWAV = 3,
@@ -45,16 +47,20 @@ enum AudioClipBundle
 #define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
 #define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
 
-struct ScriptAudioClip {
-    int id = 0;
+struct ScriptAudioClip
+{
+    int id = -1;
     Common::String scriptName;
     Common::String fileName;
     uint8_t bundlingType = kAudioBundle_Undefined;
     uint8_t type = AUDIOTYPE_UNDEFINED;
-    AudioFileType fileType = eAudioFileOGG;
+    AudioFileType fileType = eAudioFileUndefined;
     char defaultRepeat = 0;
     short defaultPriority = 50;
     short defaultVolume = 100;
+
+    static AudioFileType GetAudioFileTypeFromExt(const char *ext);
+    static const char *GetExtFromAudioFileType(AudioFileType filetype);
 
     void ReadFromFile(Common::Stream *in);
 };

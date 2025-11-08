@@ -2496,6 +2496,10 @@ builtin managed struct AudioChannel {
   /// Changes playback to continue from the specified position in milliseconds.
   import void SeekMs(int position);
 #endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v363
+  /// Gets which audio type current played clip is representing, or -1 if no clip is being played.
+  import readonly attribute AudioType PlayingType;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct AudioClip {
@@ -2512,13 +2516,17 @@ builtin managed struct AudioClip {
   /// Plays this audio clip, explicitly putting it on the particular channel.
   import AudioChannel* PlayOnChannel(int chan, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
 #endif // SCRIPT_API_v360
+#ifdef SCRIPT_API_v363
+  /// Plays this audio clip using certain AudioType settings, and optionally putting it on a particular channel.
+  import AudioChannel* PlayAsType(AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+#endif // SCRIPT_API_v363
   /// Stops all currently playing instances of this audio clip.
   import void Stop();
   /// Gets the file type of the sound.
   readonly import attribute AudioFileType FileType;
   /// Checks whether this audio file is available on the player's system.
   readonly import attribute bool IsAvailable;
-  /// Gets the type of audio that this clip contains.
+  /// Gets the audio type that this clip belongs to.
   readonly import attribute AudioType Type;
 #ifdef SCRIPT_API_v350
   /// Gets the clip's ID number.

@@ -91,7 +91,7 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
-    return play_audio_clip_on_channel(chan, clip, priority, repeat, 0);
+    return play_audio_clip_on_channel(clip, chan, priority, repeat);
 }
 
 //=============================================================================

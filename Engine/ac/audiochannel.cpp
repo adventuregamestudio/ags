@@ -85,6 +85,14 @@ ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
     return nullptr;
 }
 
+int AudioChannel_GetPlayingType(ScriptAudioChannel *channel)
+{
+    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    if (ch)
+        return ch->sourceClipType;
+    return AUDIOTYPE_UNDEFINED;
+}
+
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
     auto* ch = AudioChans::GetChannelIfPlaying(channel->id);
@@ -175,7 +183,7 @@ void AudioChannel_Stop(ScriptAudioChannel *channel)
     if (channel->id == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
     else
-        stop_or_fade_out_channel(channel->id, -1, nullptr);
+        stop_or_fade_out_channel(channel->id, -1);
 }
 
 void AudioChannel_Pause(ScriptAudioChannel *channel)

@@ -186,8 +186,8 @@ void Game_StopAudio(int audioType)
         }
         else
         {
-            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-            if ((clip != nullptr) && (clip->type == audioType))
+            int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+            if (play_atype == audioType)
                 stop_or_fade_out_channel(aa);
         }
     }
@@ -205,10 +205,10 @@ int Game_IsAudioPlaying(int audioType)
 
     for (int aa = 0; aa < game.numGameChannels; aa++)
     {
-        ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-        if (clip != nullptr)
+        int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+        if (play_atype >= 0)
         {
-            if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
+            if ((play_atype == audioType) || (audioType == SCR_NO_VALUE))
             {
                 return 1;
             }
@@ -242,8 +242,8 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     {
         for (int aa = 0; aa < game.numGameChannels; aa++)
         {
-            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-            if ((clip != nullptr) && (clip->type == audioType))
+            int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+            if (play_atype == audioType)
             {
                 auto* ch = AudioChans::GetChannel(aa);
                 if (ch)

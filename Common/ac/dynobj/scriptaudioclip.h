@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
 #define __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
 
+#include "ac/common_defines.h"
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -49,7 +50,7 @@ struct ScriptAudioClip {
     Common::String scriptName;
     Common::String fileName;
     uint8_t bundlingType = kAudioBundle_Undefined;
-    uint8_t type = 0;
+    uint8_t type = AUDIOTYPE_UNDEFINED;
     AudioFileType fileType = eAudioFileOGG;
     char defaultRepeat = 0;
     short defaultPriority = 50;

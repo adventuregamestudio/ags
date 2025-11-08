@@ -584,7 +584,8 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
                                          String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
             }
 
-            play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
+            int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
+            play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i,
                 chan_info.Priority, chan_info.Repeat, chan_info.Pos);
         }
         else

@@ -432,15 +432,26 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
         const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
-        if (chan_info.ClipID < 0)
+        if (chan_info.ClipID < 0 && chan_info.FileName.IsEmpty())
             continue;
-        if ((size_t)chan_info.ClipID >= game.audioClips.size())
+
+        if (chan_info.ClipID >= 0)
         {
-            return new SavegameError(kSvgErr_GameObjectInitFailed,
-                String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
+            if ((size_t)chan_info.ClipID >= game.audioClips.size())
+            {
+                return new SavegameError(kSvgErr_GameObjectInitFailed,
+                                         String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
+            }
+
+            play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
+                chan_info.Priority, chan_info.Repeat, chan_info.Pos);
         }
-        play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
-            chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+        else
+        {
+            auto sound = load_sound_clip(chan_info.FileName, chan_info.BundlingType, chan_info.Repeat);
+            if (sound)
+                play_sound_on_channel(std::move(sound), i, chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+        }
 
         auto* ch = AudioChans::GetChannel(i);
         if (ch != nullptr)

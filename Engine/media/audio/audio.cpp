@@ -263,6 +263,21 @@ std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repe
         soundClip->set_volume100(audioClip->defaultVolume);
         soundClip->sourceClipID = audioClip->id;
         soundClip->sourceClipType = audioClip->type;
+        soundClip->fileName = asset_name.Name;
+        soundClip->bundlingType = audioClip->bundlingType;
+    }
+    return soundClip;
+}
+
+std::unique_ptr<SoundClip> load_sound_clip(const String &filename, uint8_t bundleType, bool repeat)
+{
+    AssetPath asset_name = get_audio_clip_assetpath(bundleType, filename);
+    std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, nullptr, repeat);
+    if (soundClip != nullptr)
+    {
+        soundClip->set_volume100(100);
+        soundClip->fileName = asset_name.Name;
+        soundClip->bundlingType = bundleType;
     }
     return soundClip;
 }
@@ -426,6 +441,20 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         apply_volume_drop_to_clip(soundfx.get());
 
     AudioChans::SetChannel(channel, std::move(soundfx));
+    return &scrAudioChannel[channel];
+}
+
+ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset)
+{
+    if (sound->play_from(fromOffset) == 0)
+    {
+        debug_script_log("Failed to play sound file %s", sound->fileName.GetCStr());
+        return nullptr;
+    }
+
+    sound->repeat = repeat;
+    sound->priority = priority;
+    AudioChans::SetChannel(channel, std::move(sound));
     return &scrAudioChannel[channel];
 }
 

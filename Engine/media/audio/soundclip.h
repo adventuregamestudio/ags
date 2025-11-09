@@ -37,6 +37,7 @@
 #ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
 #include "media/audio/audiodefines.h"
+#include "util/string.h"
 
 class SoundClip final
 {
@@ -47,6 +48,9 @@ public:
     // TODO: move these to private
     int sourceClipID;
     int sourceClipType;
+    // Filename and bundling type, in case this is not a common audio clip
+    AGS::Common::String fileName;
+    uint8_t bundlingType;
     int soundType; // legacy sound format type (MUS_*)
     bool repeat;
     int lengthMs;

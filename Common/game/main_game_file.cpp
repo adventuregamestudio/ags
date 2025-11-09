@@ -451,7 +451,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
         {
             clip.scriptName.Format("aMusic%d", temp_number);
             clip.fileName.Format("music%d.%s", temp_number, temp_extension);
-            clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+            clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? kAudioBundle_GamePak : kAudioBundle_AudioVox;
             clip.type = 2;
             clip.defaultRepeat = 1;
         }
@@ -459,7 +459,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
         {
             clip.scriptName.Format("aSound%d", temp_number);
             clip.fileName.Format("sound%d.%s", temp_number, temp_extension);
-            clip.bundlingType = AUCL_BUNDLE_EXE;
+            clip.bundlingType = kAudioBundle_GamePak;
             clip.type = 3;
             clip.defaultRepeat = 0;
         }

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <cmath>
+#include "ac/dynobj/scriptaudioclip.h"
 #include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
@@ -22,6 +23,7 @@ SoundClip::SoundClip(int slot, int snd_type, bool loop)
 {
     sourceClipID = -1;
     sourceClipType = 0;
+    bundlingType = kAudioBundle_Undefined;
     priority = 50;
     vol255 = 0;
     vol100 = 0;

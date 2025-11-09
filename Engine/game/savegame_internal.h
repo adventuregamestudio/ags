@@ -187,6 +187,8 @@ struct RestoredData
     struct ChannelInfo
     {
         int ClipID = -1;
+        String FileName;
+        uint8_t BundlingType = kAudioBundle_Undefined;
         int Flags = 0;
         int Pos = 0;
         int Priority = 0;

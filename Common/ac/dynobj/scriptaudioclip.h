@@ -32,8 +32,14 @@ enum AudioFileType {
     eAudioFileMOD = 6
 };
 
-#define AUCL_BUNDLE_EXE 1
-#define AUCL_BUNDLE_VOX 2
+// TODO: consider turning this into generic "asset bundle type"?
+enum AudioClipBundle
+{
+    kAudioBundle_Undefined = 0,
+    kAudioBundle_GamePak = 1,
+    kAudioBundle_AudioVox = 2,
+    kAudioBundle_SpeechVox = 3
+};
 
 #define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
 #define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
@@ -42,7 +48,7 @@ struct ScriptAudioClip {
     int id = 0;
     Common::String scriptName;
     Common::String fileName;
-    uint8_t bundlingType = AUCL_BUNDLE_EXE;
+    uint8_t bundlingType = kAudioBundle_Undefined;
     uint8_t type = 0;
     AudioFileType fileType = eAudioFileOGG;
     char defaultRepeat = 0;

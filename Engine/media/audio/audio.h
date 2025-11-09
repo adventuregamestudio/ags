@@ -16,11 +16,13 @@
 
 #include <array>
 #include <memory>
-#include "media/audio/audiodefines.h"
+#include "ac/timer.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
+#include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
+#include "util/string.h"
 #include "util/time_util.h"
 
 class AudioChans
@@ -53,7 +55,9 @@ void        update_clip_default_volume(ScriptAudioClip *audioClip);
 void        start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound);
 void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = nullptr);
 std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
+std::unique_ptr<SoundClip> load_sound_clip(const AGS::Common::String &filename, uint8_t bundleType, bool repeat);
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
+ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips

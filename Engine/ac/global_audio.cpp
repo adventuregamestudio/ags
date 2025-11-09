@@ -503,6 +503,8 @@ static bool play_voice_clip_on_channel(const String &voice_name)
 
     std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
     if (voice_clip != nullptr) {
+        voice_clip->fileName = apath.Name;
+        voice_clip->bundlingType = kAudioBundle_SpeechVox;
         voice_clip->set_volume255(play.speech_volume);
         if (!voice_clip->play())
             voice_clip.reset();

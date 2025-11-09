@@ -14,8 +14,48 @@
 
 #include "ac/dynobj/scriptaudioclip.h"
 #include "util/stream.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
+
+/*static*/ AudioFileType ScriptAudioClip::GetAudioFileTypeFromExt(const char *ext)
+{
+    if (ags_stricmp(ext, "mp3") == 0)
+        return eAudioFileMP3;
+    else if (ags_stricmp(ext, "wav") == 0)
+        return eAudioFileWAV;
+    else if (ags_stricmp(ext, "voc") == 0)
+        return eAudioFileVOC;
+    else if (ags_stricmp(ext, "mid") == 0)
+        return eAudioFileMIDI;
+    else if ((ags_stricmp(ext, "mod") == 0) || (ags_stricmp(ext, "xm") == 0)
+             || (ags_stricmp(ext, "s3m") == 0) || (ags_stricmp(ext, "it") == 0))
+        return eAudioFileMOD;
+    else if (ags_stricmp(ext, "ogg") == 0)
+        return eAudioFileOGG;
+    return eAudioFileUndefined;
+}
+
+/*static */ const char *ScriptAudioClip::GetExtFromAudioFileType(AudioFileType filetype)
+{
+    switch (filetype)
+    {
+    case eAudioFileOGG:
+        return "ogg";
+    case eAudioFileMP3:
+        return "mp3";
+    case eAudioFileWAV:
+        return "wav";
+    case eAudioFileVOC:
+        return "voc";
+    case eAudioFileMIDI:
+        return "mid";
+    case eAudioFileMOD:
+        return "mod";
+    default:
+        return "";
+    }
+}
 
 void ScriptAudioClip::ReadFromFile(Stream *in)
 {

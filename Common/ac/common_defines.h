@@ -129,4 +129,10 @@
 // An identifier of a "null font", a pseudo font used when you don't want a text to be drawn
 #define FONT_NULL (-1)
 
+#define AUDIOTYPE_UNDEFINED -1
+#define AUDIOTYPE_SPEECH 0
+#define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
+#define AUDIOTYPE_LEGACY_MUSIC 2
+#define AUDIOTYPE_LEGACY_SOUND 3
+
 #endif // __AC_DEFINES_H

@@ -16,7 +16,7 @@
 
 #include <array>
 #include <memory>
-#include "ac/timer.h"
+#include "ac/common_defines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
@@ -49,21 +49,37 @@ private:
     ~AudioChans() = delete;
 };
 
+// Helper struct, pairing audio clip and playback setting overrides
+struct AudioPlayback
+{
+    const ScriptAudioClip *Clip = nullptr;
+    int AudioType = AUDIOTYPE_UNDEFINED;
+
+    AudioPlayback() = default;
+    AudioPlayback(const ScriptAudioClip *clip)
+        : Clip(clip), AudioType(clip->type) {}
+    AudioPlayback(const ScriptAudioClip *clip, int audio_type)
+        : Clip(clip), AudioType(audio_type) {}
+};
+
 
 void        calculate_reserved_channel_count();
-void        update_clip_default_volume(ScriptAudioClip *audioClip);
-void        start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound);
-void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = nullptr);
-std::unique_ptr<SoundClip> load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
+int         get_playback_start_volume(const AudioPlayback &aplay);
+void        start_fading_in_new_track_if_applicable(int fadeInChannel, const AudioPlayback &aplay);
+void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, const AudioPlayback &aplay = {});
+std::unique_ptr<SoundClip> load_sound_clip(const ScriptAudioClip *audioClip, bool repeat);
 std::unique_ptr<SoundClip> load_sound_clip(const AGS::Common::String &filename, uint8_t bundleType, bool repeat);
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
+std::unique_ptr<SoundClip> load_sound_clip(const AudioPlayback &aplay, bool repeat);
+ScriptAudioChannel *play_audio_clip_on_channel(const ScriptAudioClip *clip, int channel, int priority, int repeat, int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset);
+ScriptAudioChannel *play_audio_clip_direct(const AudioPlayback &aplay, int channel, int priority, int repeat, int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void        update_volume_drop_if_voiceover();
-ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
+ScriptAudioChannel* play_audio_clip(const ScriptAudioClip *clip, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
+ScriptAudioChannel *play_audio_clip(const AudioPlayback &aplay, int channel, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
 void        stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);
 void        stop_and_destroy_channel (int chid);
 // Exports missing AudioChannel objects to script (for importing older saves)
@@ -82,7 +98,7 @@ void        update_ambient_sound_vol ();
 bool        is_audiotype_allowed_to_play(AudioFileType type);
 // Loads sound data referenced by audio clip item, and starts playback;
 // returns NULL on failure
-std::unique_ptr<SoundClip> load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
+std::unique_ptr<SoundClip> load_sound_and_play(const ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
 int         play_sound(int val1);
@@ -112,7 +128,7 @@ void        post_new_music_check();
 // and returns the channel number to use; the channel is guaranteed to be free
 int         prepare_for_new_music ();
 // Gets audio clip from legacy music number, which also may contain queue flag
-ScriptAudioClip *get_audio_clip_for_music(int mnum);
+const ScriptAudioClip *get_audio_clip_for_music(int mnum);
 std::unique_ptr<SoundClip> load_music_from_disk(int mnum, bool doRepeat);
 void        newmusic(int mnum);
 

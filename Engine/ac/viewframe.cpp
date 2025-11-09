@@ -78,7 +78,7 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
   else
   {
     // convert sound number to audio clip
-    ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, newSound);
+    const ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, newSound);
     if (clip == nullptr)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
@@ -137,7 +137,7 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume)
             int &clip_id = views[view].loops[loop].frames[frame].audioclip;
             if (clip_id < 0)
             {
-                ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
+                const ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
                 if (!clip)
                     return;
                 clip_id = clip->id;

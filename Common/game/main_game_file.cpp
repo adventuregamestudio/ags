@@ -425,35 +425,23 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
     int temp_number;
     char temp_extension[10];
 
-    // FIXME: use audio type constants instead of obscure numeric literals
     for (const String &asset : assets)
     {
         if (sscanf(asset.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) != 3)
             continue;
 
-        ScriptAudioClip clip;
-        if (ags_stricmp(temp_extension, "mp3") == 0)
-            clip.fileType = eAudioFileMP3;
-        else if (ags_stricmp(temp_extension, "wav") == 0)
-            clip.fileType = eAudioFileWAV;
-        else if (ags_stricmp(temp_extension, "voc") == 0)
-            clip.fileType = eAudioFileVOC;
-        else if (ags_stricmp(temp_extension, "mid") == 0)
-            clip.fileType = eAudioFileMIDI;
-        else if ((ags_stricmp(temp_extension, "mod") == 0) || (ags_stricmp(temp_extension, "xm") == 0)
-            || (ags_stricmp(temp_extension, "s3m") == 0) || (ags_stricmp(temp_extension, "it") == 0))
-            clip.fileType = eAudioFileMOD;
-        else if (ags_stricmp(temp_extension, "ogg") == 0)
-            clip.fileType = eAudioFileOGG;
-        else
+        AudioFileType file_type = ScriptAudioClip::GetAudioFileTypeFromExt(temp_extension);
+        if (file_type == eAudioFileUndefined)
             continue;
 
+        ScriptAudioClip clip;
+        clip.fileType = file_type;
         if (ags_stricmp(temp_name, "music") == 0)
         {
             clip.scriptName.Format("aMusic%d", temp_number);
             clip.fileName.Format("music%d.%s", temp_number, temp_extension);
             clip.bundlingType = (ags_stricmp(temp_extension, "mid") == 0) ? kAudioBundle_GamePak : kAudioBundle_AudioVox;
-            clip.type = 2;
+            clip.type = AUDIOTYPE_LEGACY_MUSIC;
             clip.defaultRepeat = 1;
         }
         else if (ags_stricmp(temp_name, "sound") == 0)
@@ -461,7 +449,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
             clip.scriptName.Format("aSound%d", temp_number);
             clip.fileName.Format("sound%d.%s", temp_number, temp_extension);
             clip.bundlingType = kAudioBundle_GamePak;
-            clip.type = 3;
+            clip.type = AUDIOTYPE_LEGACY_SOUND;
             clip.defaultRepeat = 0;
         }
         else
@@ -719,7 +707,7 @@ void RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views,
     game.scoreClipID = -1;
     if (game.options[OPT_SCORESOUND] > 0)
     {
-        ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, game.options[OPT_SCORESOUND]);
+        const ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, game.options[OPT_SCORESOUND]);
         if (clip)
             game.scoreClipID = clip->id;
     }

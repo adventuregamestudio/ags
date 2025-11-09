@@ -63,8 +63,5 @@ inline bool IsPlaybackDone(PlaybackState state)
 #define SCHAN_AMBIENT 1
 #define SCHAN_MUSIC   2
 #define SCHAN_NORMAL  3
-#define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
-#define AUDIOTYPE_LEGACY_MUSIC 2
-#define AUDIOTYPE_LEGACY_SOUND 3
 
 #endif // __AC_AUDIODEFINES_H

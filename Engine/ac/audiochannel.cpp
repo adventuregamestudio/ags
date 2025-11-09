@@ -85,6 +85,14 @@ ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
     return nullptr;
 }
 
+int AudioChannel_GetPlayingType(ScriptAudioChannel *channel)
+{
+    auto *ch = AudioChans::GetChannelIfPlaying(channel->id);
+    if (ch)
+        return ch->sourceClipType;
+    return AUDIOTYPE_UNDEFINED;
+}
+
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
     auto* ch = AudioChans::GetChannelIfPlaying(channel->id);
@@ -175,7 +183,7 @@ void AudioChannel_Stop(ScriptAudioChannel *channel)
     if (channel->id == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
     else
-        stop_or_fade_out_channel(channel->id, -1, nullptr);
+        stop_or_fade_out_channel(channel->id, -1);
 }
 
 void AudioChannel_Pause(ScriptAudioChannel *channel)
@@ -278,6 +286,11 @@ RuntimeScriptValue Sc_AudioChannel_GetPlayingClip(void *self, const RuntimeScrip
     API_OBJCALL_OBJ(ScriptAudioChannel, ScriptAudioClip, ccDynamicAudioClip, AudioChannel_GetPlayingClip);
 }
 
+RuntimeScriptValue Sc_AudioChannel_GetPlayingType(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioChannel, AudioChannel_GetPlayingType);
+}
+
 // int | ScriptAudioChannel *channel
 RuntimeScriptValue Sc_AudioChannel_GetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -378,6 +391,7 @@ void RegisterAudioChannelAPI()
         { "AudioChannel::get_Panning",        API_FN_PAIR(AudioChannel_GetPanning) },
         { "AudioChannel::set_Panning",        API_FN_PAIR(AudioChannel_SetPanning) },
         { "AudioChannel::get_PlayingClip",    API_FN_PAIR(AudioChannel_GetPlayingClip) },
+        { "AudioChannel::get_PlayingType",    API_FN_PAIR(AudioChannel_GetPlayingType) },
         { "AudioChannel::get_Position",       API_FN_PAIR(AudioChannel_GetPosition) },
         { "AudioChannel::get_PositionMs",     API_FN_PAIR(AudioChannel_GetPositionMs) },
         { "AudioChannel::get_Volume",         API_FN_PAIR(AudioChannel_GetVolume) },

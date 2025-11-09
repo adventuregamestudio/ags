@@ -268,20 +268,34 @@ TEST(Stream, DataStreamSection) {
 
 #if (AGS_PLATFORM_TEST_FILE_IO)
 
-static const char *DummyFile = "dummy.dat";
-
 class FileBasedTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        File::DeleteFile(DummyFile);
     }
 
     void TearDown() override {
-        File::DeleteFile(DummyFile);
+        for (const auto &fn : _dummyFileNames)
+        {
+            if (!fn.IsEmpty())
+                File::DeleteFile(fn);
+        }
     }
+
+    String AcquireFileName(const String &test_name)
+    {
+        String fn = String::FromFormat("%s.dat", test_name.GetCStr());
+        _dummyFileNames.push_back(fn);
+        return fn;
+    }
+
+private:
+    std::vector<String> _dummyFileNames;
 };
 
 TEST_F(FileBasedTest, BufferedStreamRead) {
+
+    const String DummyFile = AcquireFileName("BufferedStreamRead");
+
     //-------------------------------------------------------------------------
     // Write data into the temp file
     Stream out(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write));
@@ -351,6 +365,9 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
 }
 
 TEST_F(FileBasedTest, BufferedStreamWrite1) {
+
+    const String DummyFile = AcquireFileName("BufferedStreamWrite1");
+
     // Test case 1: simple straight writing, within max buffer size
     //-------------------------------------------------------------------------
     // Write data
@@ -394,6 +411,9 @@ TEST_F(FileBasedTest, BufferedStreamWrite1) {
 }
 
 TEST_F(FileBasedTest, BufferedStreamWrite2) {
+
+    const String DummyFile = AcquireFileName("BufferedStreamWrite2");
+
     // Test case 2: simple straight writing, exceeding max buffer size
     //-------------------------------------------------------------------------
     // fill in to ensure buffered stream reach buffer size
@@ -442,6 +462,9 @@ TEST_F(FileBasedTest, BufferedStreamWrite2) {
 }
 
 TEST_F(FileBasedTest, BufferedStreamWrite3) {
+
+    const String DummyFile = AcquireFileName("BufferedStreamWrite3");
+
     // Test case 3: seek within the max buffer size
     //-------------------------------------------------------------------------
     // Write data
@@ -490,6 +513,9 @@ TEST_F(FileBasedTest, BufferedStreamWrite3) {
 }
 
 TEST_F(FileBasedTest, BufferedStreamWrite4) {
+
+    const String DummyFile = AcquireFileName("BufferedStreamWrite4");
+
     // Test case 4: seek outside the max buffer size
     //-------------------------------------------------------------------------
     // fill in to ensure buffered stream reach buffer size
@@ -539,6 +565,9 @@ TEST_F(FileBasedTest, BufferedStreamWrite4) {
 }
 
 TEST_F(FileBasedTest, BufferedStreamWrite5) {
+
+    const String DummyFile = AcquireFileName("BufferedStreamWrite5");
+
     // Test case 5: write provoking buffer flush, but seek within max buffer size
     //-------------------------------------------------------------------------
     // fill in to ensure buffered stream (almost) reach buffer size
@@ -586,6 +615,9 @@ TEST_F(FileBasedTest, BufferedStreamWrite5) {
 }
 
 TEST_F(FileBasedTest, BufferedSectionStream) {
+
+    const String DummyFile = AcquireFileName("BufferedSectionStream");
+
     //-------------------------------------------------------------------------
     // Write data into the temp file
     Stream out(std::make_unique<FileStream>(DummyFile, kFile_CreateAlways, kStream_Write));

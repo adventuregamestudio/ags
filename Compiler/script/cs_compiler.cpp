@@ -104,7 +104,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
     const size_t loc_module_offset = sym.sections.size();
 
     // Add "no type" with id 0
-    rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
+    rtb.AddType("", 0u, 0u, 0u, 0u, 0u, 0u, 0u);
     // Scan through all the symbols and save type infos,
     // and gather preliminary data on type fields and strings
     for (size_t t = 0; t < sym.entries.size(); ++t)
@@ -120,7 +120,9 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
                 loc_id = ste.section;
             else
                 loc_id = ste.section + loc_module_offset;
-            rtb.AddType(ste.sname, t, loc_id, ste.extends, flags, ste.ssize);
+            // NOTE: old compiler does not support multi-dimensional arrays,
+            // so skip type fields related to the derived types
+            rtb.AddType(ste.sname, t, loc_id, 0u /* base */, ste.extends, flags, ste.ssize, 0u /* dim num */);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
             ((ste.flags & SFLG_PROPERTY) == 0))

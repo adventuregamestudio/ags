@@ -104,6 +104,11 @@ public:
     {
         kType_Struct      = 0x0001,
         kType_Managed     = 0x0002,
+        // Array of T, is a derived type (the base type should be referenced
+        // using respective Type's field), used to represent e.g. elements
+        // of another array (in case of a jagged array, for instance).
+        // If combined with Managed flag this means - dynamic array.
+        kType_Array       = 0x0004,
         // We use "generated" flag to mark types that are created at runtime
         // and are intended to be replaced by "true" types with the same id
         kType_Generated   = 0x80000000
@@ -145,13 +150,15 @@ public:
     struct Type
     {
         friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
-        const static size_t FileSize = 8 * sizeof(uint32_t);
+        const static size_t FileSize = 10 * sizeof(uint32_t);
     public:
         uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
         uint32_t loc_id = 0u; // type location's id (script or header)
         uint32_t parent_id = 0u; // parent type's id
+        uint32_t base_id = 0u; // base type's id (for derived types, such as dynarrays)
         uint32_t flags = 0u; // type flags
         uint32_t size = 0u; // type size in bytes
+        uint32_t dim_num = 0u; // number of array dimensions (reserved field atm)
         uint32_t field_num = 0u; // number of fields, if any
         // Quick-access links
         // Type's name; along with location's name will create a
@@ -160,6 +167,7 @@ public:
         const char *name = nullptr;
         const Location *location = nullptr;
         const Type *parent = nullptr;
+        const Type *base = nullptr;
         const Field *first_field = nullptr;
     private:
         // Internal references
@@ -229,6 +237,13 @@ private:
 class RTTISerializer
 {
 public:
+    enum FormatVersion
+    {
+        kFmtver_Initial = 0,
+        kFmtver_400_22  = 4000022,
+        kFmtver_Latest  = kFmtver_400_22
+    };
+
     // Reads the RTTI collection from the stream
     static RTTI Read(AGS::Common::Stream *in);
     // Writes the RTTI collection to the stream
@@ -246,7 +261,7 @@ public:
     void AddLocation(const std::string &name, uint32_t loc_id, uint32_t flags);
     // Adds a type entry
     void AddType(const std::string &name, uint32_t type_id, uint32_t loc_id,
-        uint32_t parent_id, uint32_t flags, uint32_t size);
+        uint32_t base_id, uint32_t parent_id, uint32_t flags, uint32_t size, uint32_t dim_num);
     // Adds a type's field entry
     void AddField(uint32_t owner_id, const std::string &name, uint32_t offset,
         uint32_t f_typeid, uint32_t flags, uint32_t num_elems);

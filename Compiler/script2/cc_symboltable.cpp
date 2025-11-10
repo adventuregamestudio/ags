@@ -782,6 +782,14 @@ AGS::Symbol AGS::SymbolTable::FindConstructorOfTypeOrParent(Symbol strct) const
     return kKW_NoSymbol;
 }
 
+AGS::Vartype AGS::SymbolTable::GetBaseVartypeIfDynptr(AGS::Vartype vartype) const
+{
+    if (!entries[vartype].VartypeD || entries[vartype].VartypeD->Type != VartypeType::kDynpointer
+        || entries[vartype].VartypeD->BaseVartype == 0)
+        return vartype;
+    return entries[vartype].VartypeD->BaseVartype;
+}
+
 AGS::Vartype AGS::SymbolTable::GetFirstBaseVartype(AGS::Vartype vartype) const
 {
     // TODO: extra safety checks?

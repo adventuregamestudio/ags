@@ -154,6 +154,13 @@ RTTI RTTISerializer::Read(Stream *in)
         t.size = (uint32_t)in->ReadInt32();
         t.field_num = (uint32_t)in->ReadInt32();
         t.field_index = (uint32_t)in->ReadInt32();
+
+        if (format >= FormatVersion::kFmtver_400_22)
+        {
+            t.base_id = (uint32_t)in->ReadInt32();
+            t.dim_num = (uint32_t)in->ReadInt32();
+        }
+
         rtti._types.push_back(t);
     }
 
@@ -212,6 +219,9 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
         out->WriteInt32(t.size);
         out->WriteInt32(t.field_num);
         out->WriteInt32(t.field_index);
+        // kFmtver_400_22
+        out->WriteInt32(t.base_id);
+        out->WriteInt32(t.dim_num);
     }
 
     // Field Infos
@@ -235,7 +245,7 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
     // Finalize, write actual RTTI header
     const soff_t end_soff = out->GetPosition();
     out->Seek(rtti_soff, kSeekBegin);
-    out->WriteInt32(0); // format
+    out->WriteInt32((uint32_t)FormatVersion::kFmtver_Latest); // format
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // header size
     out->WriteInt32((uint32_t)(end_soff - rtti_soff)); // full size
     out->WriteInt32(RTTI::Location::FileSize); // location info size
@@ -302,6 +312,8 @@ void RTTI::CreateQuickRefs()
     {
         ti.name = &_strings[ti.name_stri];
         ti.location = &_locs[ti.loc_id];
+        if (ti.base_id > 0u)
+            ti.base = &_types[typeid_to_type[ti.base_id]];
         if (ti.parent_id > 0u)
             ti.parent = &_types[typeid_to_type[ti.parent_id]];
         if (ti.field_num > 0u)
@@ -330,7 +342,7 @@ void RTTIBuilder::AddLocation(const std::string &name, uint32_t loc_id, uint32_t
 }
 
 void RTTIBuilder::AddType(const std::string &name, uint32_t type_id,
-    uint32_t loc_id, uint32_t parent_id, uint32_t flags, uint32_t size)
+    uint32_t loc_id, uint32_t base_id, uint32_t parent_id, uint32_t flags, uint32_t size, uint32_t dim_num)
 {
     RTTI::Type ti;
     ti.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
@@ -339,6 +351,8 @@ void RTTIBuilder::AddType(const std::string &name, uint32_t type_id,
     ti.parent_id = parent_id;
     ti.flags = flags;
     ti.size = size;
+    ti.base_id = base_id;
+    ti.dim_num = dim_num;
     _rtti._types.push_back(ti);
 }
 
@@ -512,6 +526,8 @@ void JointRTTI::Join(const RTTI &rtti,
     {
         RTTI::Type &type = _types[index];
         type.loc_id = loc_l2g[type.loc_id];
+        if (type.base_id > 0)
+            type.base_id = type_l2g[type.base_id];
         if (type.parent_id > 0)
             type.parent_id = type_l2g[type.parent_id];
         // Resolve fields too
@@ -1050,13 +1066,13 @@ String PrintRTTI(const RTTI &rtti)
     {
         fullstr.AppendFmt("%-12s(%-3u) %s\n", "Type:", ti.this_id, ti.name);
         fullstr.AppendFmt("%-12s(%-3u) %s\n", "Location:", ti.location->id, ti.location->name);
+        if (ti.base_id > 0u)
+        {
+            fullstr.AppendFmt("%-12s(%-3u) %s\n", "Base:", ti.base->this_id, ti.base->name);
+        }
         if (ti.parent_id > 0u)
         {
             fullstr.AppendFmt("%-12s(%-3u) %s\n", "Parent:", ti.parent->this_id, ti.parent->name);
-        }
-        else
-        {
-            fullstr.AppendFmt("%-12snone\n", "Parent:");
         }
 
         if (ti.field_num > 0u)

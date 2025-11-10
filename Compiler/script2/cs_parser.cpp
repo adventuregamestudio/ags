@@ -2089,7 +2089,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     // Choose between "old" and new "new" opcode, depending on RTTI presence
     if (FlagIsSet(_options, SCOPT_RTTIOPS))
     {
-        element_vartype = _sym.GetFirstBaseVartype(element_vartype);
+        element_vartype = _sym.GetBaseVartypeIfDynptr(element_vartype);
         if (with_bracket_expr)
             WriteCmd(SCMD_NEWARRAY2, SREG_AX, element_vartype, element_size);
         else

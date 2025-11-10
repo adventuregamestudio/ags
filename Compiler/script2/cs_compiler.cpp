@@ -41,11 +41,12 @@ void ccGetExtensions2(std::vector<std::string> &exts)
 }
 
 // Convert VartypeFlags to RTTI::TypeFlags
-inline uint32_t VartypeFlagsToRTTIType(const VartypeFlags &vtf_flag)
+inline uint32_t VartypeFlagsToRTTIType(const VartypeType vtt, const VartypeFlags &vtf_flag)
 {
     return 0u
-        | RTTI::kType_Managed * (vtf_flag[VTF::kManaged])
-        | RTTI::kType_Struct * (vtf_flag[VTF::kStruct]);
+        | RTTI::kType_Managed * (vtf_flag[VTF::kManaged] || vtt == VTT::kDynpointer || vtt == VTT::kDynarray)
+        | RTTI::kType_Struct * (vtf_flag[VTF::kStruct])
+        | RTTI::kType_Array * (vtt == VTT::kArray || vtt == VTT::kDynarray);
 }
 
 // Convert VartypeType to RTTI::FieldFlags
@@ -79,27 +80,33 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
     const size_t loc_module_offset = sections.size();
 
     // Add "no type" with id 0
-    rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
+    rtb.AddType("", 0u, 0u, 0u, 0u, 0u, 0u, 0u);
     // Scan through all the symbols and save type infos,
     // and gather preliminary data on type fields and strings
     for (size_t t = 0; t < symt.entries.size(); t++)
     {
         const SymbolTableEntry &ste = symt.entries[t];
 
-        // Detect a declared type, atomic or struct (regular and managed);
-        // ignore all the compound types (derived from "real" types).
-        if (ste.VartypeD && (ste.VartypeD->BaseVartype == 0))
+        // Gather following types:
+        // * atomic
+        // * struct (regular and managed)
+        // * dynamic array derived types, in case there are jagged arrays
+        if (ste.VartypeD && ((ste.VartypeD->Type == VartypeType::kAtomic) || (ste.VartypeD->Type == VartypeType::kDynarray)))
         {
             uint32_t section_id = 0u;
             if (ste.Declared < INT_MAX)
                 section_id = seclist.GetSectionIdAt(ste.Declared);
-            uint32_t flags = VartypeFlagsToRTTIType(ste.VartypeD->Flags);
+            uint32_t flags = VartypeFlagsToRTTIType(ste.VartypeD->Type, ste.VartypeD->Flags);
             uint32_t loc_id = 0u;
             if (modules[section_id].empty())
                 loc_id = section_id;
             else
                 loc_id = section_id + loc_module_offset;
-            rtb.AddType(ste.Name, t, loc_id, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
+
+            // When getting base id, skip the first met dynamic pointer type
+            uint32_t base_id = symt.GetBaseVartypeIfDynptr(ste.VartypeD->BaseVartype);
+            uint32_t dim_num = ste.VartypeD->Dims.size();
+            rtb.AddType(ste.Name, t, loc_id, base_id, ste.VartypeD->Parent, flags, ste.VartypeD->Size, dim_num);
         }
         // Detect a struct's mem field (not function or attribute, etc)
         else if (ste.ComponentD && ste.VariableD)

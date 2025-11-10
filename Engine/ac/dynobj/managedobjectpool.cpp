@@ -154,6 +154,10 @@ void ManagedObjectPool::RunGarbageCollection()
     //
     // Proper GC resolving detached objects and circular dependencies
     //
+    // TODO: search for a way to optimize "persistent object check" inside
+    // the TraverseRefs callbacks: these 'if' checks may potentially slow
+    // things down in case of a very big number of objects.
+    //
     // Step 0: remove objects that have 0 refs already
     // Step 1: copy current ref counts
     for (auto it = gcUsedList.begin(); it != gcUsedList.end(); )
@@ -184,7 +188,8 @@ void ManagedObjectPool::RunGarbageCollection()
         objects[gco.handle].callback->TraverseRefs(obj.addr,
             [&objs](int handle)
         {
-            objs[handle].gcRefCount--;
+            if ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) // not persistent
+                objs[handle].gcRefCount--;
         });
     }
     // Step 3: move all gc objects with 0 remaining counter to the removal list
@@ -208,7 +213,8 @@ void ManagedObjectPool::RunGarbageCollection()
         objects[gco.handle].callback->TraverseRefs(objects[gco.handle].addr,
             [&objs](int handle)
         {
-            objs[handle].gcRefCount++;
+            if ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) // not persistent
+                objs[handle].gcRefCount++;
         });
     }
     // Step 5: move all gc objects with > 0 counter back from the removal list
@@ -228,7 +234,8 @@ void ManagedObjectPool::RunGarbageCollection()
                 objects[test_it->handle].callback->TraverseRefs(objects[test_it->handle].addr,
                     [&objs](int handle)
                 {
-                    objs[handle].gcRefCount++;
+                    if ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) // not persistent
+                        objs[handle].gcRefCount++;
                 });
                 times_moved = 1;
             }

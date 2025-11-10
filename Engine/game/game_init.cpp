@@ -53,6 +53,8 @@
 using namespace Common;
 using namespace Engine;
 
+extern bool logScriptRTTI;
+
 extern ScriptSystem scsystem;
 extern std::vector<ViewStruct> views;
 extern SpriteCache spriteset;
@@ -555,6 +557,12 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
     ApplyAccessibilityOptions();
+
+    // Optionally dump joint RTTI into the log
+    if (logScriptRTTI && RuntimeScript::GetJointRTTI())
+    {
+        Debug::Printf(PrintRTTI(RuntimeScript::GetJointRTTI()->AsConstRTTI()));
+    }
 
     return HGameInitError::None();
 }

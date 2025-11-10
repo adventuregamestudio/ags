@@ -42,12 +42,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\script\cc_error.h">
-      <Filter>Header Files\cs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_options.h">
-      <Filter>Header Files\cs</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
       <Filter>Header Files\cs</Filter>
     </ClInclude>
@@ -74,9 +68,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script2\cs_scanner.h">
       <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\script_common.h">
-      <Filter>Header Files\cs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script2\cs_parser_common.h">
       <Filter>Header Files\script</Filter>

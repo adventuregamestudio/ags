@@ -137,7 +137,7 @@
     <TargetName>Compiler2_md</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'">
-     <TargetName>Compiler2_md_d</TargetName>
+    <TargetName>Compiler2_md_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|x64'">
     <TargetName>Compiler2_md_d</TargetName>
@@ -304,11 +304,8 @@
     <ClCompile Include="..\..\Compiler\script2\cs_scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\script\cc_error.h" />
-    <ClInclude Include="..\..\Common\script\cc_options.h" />
     <ClInclude Include="..\..\Common\script\cc_reflect.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
-    <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\string.h" />
     <ClInclude Include="..\..\Common\util\string_compat.h" />
     <ClInclude Include="..\..\Compiler\script2\cc_compiledscript.h" />

@@ -544,6 +544,12 @@ public:
     // The vartype of the variable, i.e. "int" or "Dynarray *"
     inline AGS::Vartype GetVartype(Symbol s) const
         { return IsVariable(s) ? entries.at(s).VariableD->Vartype : kKW_NoSymbol; }
+    // Returns the base vartype of the given vartype
+    AGS::Vartype GetBaseVartype(AGS::Vartype vartype) const
+        { return entries.at(vartype).VartypeD->BaseVartype; }
+    // If the given vartype is a dynptr, then returns its base vartype,
+    // otherwise returns same vartype.
+    AGS::Vartype GetBaseVartypeIfDynptr(AGS::Vartype vartype) const;
     // Returns the most base vartype that the given vartype originates from
     AGS::Vartype GetFirstBaseVartype(AGS::Vartype vartype) const;
     ScopeType GetScopeType(Symbol s) const;

@@ -22,21 +22,5 @@
 extern char kAgsHeaderString[];
 extern char kAgsHeaderBool[];
 
-// Only use this function for googletests. Scan and tokenize the input.
-extern int cc_scan(
-    std::string const &inpl,        // preprocessed text to be tokenized
-    AGS::SrcList &src,              // store for the tokenized text
-    AGS::ccCompiledScript &scrip,   // repository for the strings in the text
-    AGS::SymbolTable &symt,         // symbol table
-    AGS::MessageHandler &mh);       // warnings and the error
-
-// Only use this function for googletests. Parse the input
-extern int cc_parse(
-    AGS::SrcList &src,              // tokenized text
-    AGS::FlagSet options,           // as defined in cc_options 
-    AGS::ccCompiledScript &scrip,   // result of the compilation
-    AGS::SymbolTable &symt,         // symbol table
-    AGS::MessageHandler &mh);       // warnings and the error 
-
 
 #endif

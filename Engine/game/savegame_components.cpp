@@ -1672,6 +1672,12 @@ HSaveError ReadManagedPool(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, con
     return HSaveError::None();
 }
 
+enum RTTISaveVersion
+{
+    kRTTISvgVer_Initial = 4000000,
+    kRTTISvgVer_400_22  = 4000022,
+};
+
 HSaveError WriteRTTI(Stream *out)
 {
     // Write the minimal necessary RTTI data, enough to resolve types when restoring a save;
@@ -1695,6 +1701,9 @@ HSaveError WriteRTTI(Stream *out)
         out->WriteInt32(type.parent_id);
         out->WriteInt32(type.flags);
         out->WriteInt32(type.size);
+        // kRTTISvgVer_400_22
+        out->WriteInt32(type.base_id);
+        out->WriteInt32(type.dim_num);
         // Managed ptrs offsets
         const auto man_offs = helper->GetManagedOffsetsForType(type.this_id);
         out->WriteInt32(man_offs.second - man_offs.first);
@@ -1725,7 +1734,14 @@ HSaveError ReadRTTI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserve
         uint32_t parent_id = in->ReadInt32();
         uint32_t flags = in->ReadInt32();
         uint32_t size = in->ReadInt32();
-        rb.AddType(buf, i, loc_id, parent_id, flags | RTTI::kType_Generated, size);
+        uint32_t base_id = 0u;
+        uint32_t dim_num = 0u;
+        if (cmp_ver >= kRTTISvgVer_400_22)
+        {
+            base_id = in->ReadInt32();
+            dim_num = in->ReadInt32();
+        }
+        rb.AddType(buf, i, loc_id, base_id, parent_id, flags | RTTI::kType_Generated, size, dim_num);
         // Read managed ptrs offsets and generate pseudo-fields for these
         uint32_t num_offs = in->ReadInt32();
         for (uint32_t oi = 0; oi < num_offs; ++oi)
@@ -1940,8 +1956,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "RTTI",
-        4000000,
-        4000000,
+        kRTTISvgVer_400_22,
+        kRTTISvgVer_Initial,
         kSaveCmp_Scripts, // must go along with scripts
         WriteRTTI,
         ReadRTTI,

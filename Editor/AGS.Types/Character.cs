@@ -12,7 +12,7 @@ namespace AGS.Types
     public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
-        public const string PROPERTY_NAME_DESCRIPTION = "RealName";
+        public const string PROPERTY_NAME_DESCRIPTION = "Name";
         public const string PROPERTY_NAME_STARTINGROOM = "StartingRoom";
         public const int NARRATOR_CHARACTER_ID = 999;
 
@@ -84,7 +84,8 @@ namespace AGS.Types
             set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
-        [Description("The full name of the character")]
+        [DisplayName(PROPERTY_NAME_DESCRIPTION)]
+        [Description("The human-readable name or a description of the character")]
         [Category("Design")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string RealName

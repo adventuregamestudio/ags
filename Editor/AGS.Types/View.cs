@@ -30,6 +30,7 @@ namespace AGS.Types
             set { _id = value; }
         }
 
+        [DisplayName("ScriptName")]
         [Description("The script name of the view")]
         [Category("Design")]
         [BrowsableMultiedit(false)]

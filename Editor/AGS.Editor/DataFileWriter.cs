@@ -1484,8 +1484,10 @@ namespace AGS.Editor
                 int flags = 0;
                 if (game.Fonts[i].PointSize == 0)
                     flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
-                if (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight)
-                    flags |= NativeConstants.FFLG_REPORTNOMINALHEIGHT;
+                if (game.Fonts[i].HeightDefinedBy == FontHeightDefinition.NominalHeight)
+                    flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
+                if (game.Fonts[i].HeightDefinedBy == FontHeightDefinition.CustomValue)
+                    flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
                 if (game.Fonts[i].TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
                     flags |= NativeConstants.FFLG_ASCENDERFIXUP;
                 writer.Write(flags);
@@ -1838,8 +1840,8 @@ namespace AGS.Editor
                 writer.Write((int)game.Fonts[i].AutoOutlineStyle);
                 // Since 3.6.3
                 writer.Write(game.Fonts[i].CharacterSpacing);
+                writer.Write(game.Fonts[i].CustomHeightValue);
                 writer.Write((int)0); // reserved
-                writer.Write((int)0);
                 writer.Write((int)0);
             }
         }

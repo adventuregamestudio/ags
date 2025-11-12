@@ -83,10 +83,13 @@ struct FontMetrics
     // Real font's height, equals to reported ascender + descender.
     // This is what you normally think as a font's height.
     int RealHeight = 0;
-    // Compatible height, equals to either NominalHeight or RealHeight,
+    // Custom height value provided by user.
+    // Meant to be used as a "logical height" in case of bad font data.
+    int CustomHeight = 0;
+    // Logical height, equals to either NominalHeight, RealHeight or CustomHeight,
     // selected depending on the game settings.
     // This property is used in calculating linespace, etc.
-    int CompatHeight = 0;
+    int LogicalHeight = 0;
     // Maximal bounding rectangle of a font's glyph, this tells the actual
     // graphical bounds that may be occupied by any font's glyphs.
     // BBox is given in pixels, relative to our "pen" position (top-left).

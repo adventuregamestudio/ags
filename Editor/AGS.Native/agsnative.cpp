@@ -2232,14 +2232,16 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font_info.YOffset = font->VerticalOffset;
     font_info.LineSpacing = font->LineSpacing;
     font_info.CharacterSpacing = font->CharacterSpacing;
-    if (game->Settings->TTFHeightDefinedBy == FontHeightDefinition::PixelHeight)
-        font_info.Flags &= ~FFLG_REPORTNOMINALHEIGHT;
-    else
-        font_info.Flags |= FFLG_REPORTNOMINALHEIGHT;
-    if (font->TTFMetricsFixup == FontMetricsFixup::None)
-        font_info.Flags &= ~FFLG_ASCENDERFIXUP;
-    else
-        font_info.Flags |= FFLG_ASCENDERFIXUP;
+    int flags = 0;
+    if (font->PointSize == 0)
+        flags |= FFLG_SIZEMULTIPLIER;
+    if (font->HeightDefinedBy == FontHeightDefinition::NominalHeight)
+        flags |= FFLG_LOGICALNOMINALHEIGHT;
+    else if (font->HeightDefinedBy == FontHeightDefinition::CustomValue)
+        flags |= FFLG_LOGICALCUSTOMHEIGHT;
+    if (font->TTFMetricsFixup == FontMetricsFixup::SetAscenderToHeight)
+        flags |= FFLG_ASCENDERFIXUP;
+    font_info.Flags = flags;
     switch (font->OutlineStyle)
     {
     case AGS::Types::FontOutlineStyle::Automatic:
@@ -2268,7 +2270,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     }
 
     font->FamilyName = gcnew String(get_font_name(fontNumber));
-    font->Height = get_font_surface_height(fontNumber);
+    font->Height = get_font_real_height(fontNumber);
 }
 
 void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum, bool draw_outline,

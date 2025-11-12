@@ -179,7 +179,7 @@ void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
     const char *height_test_string = "ZHwypgfjqhkilIK";
     metrics->NominalHeight = GetTextHeight(height_test_string, fontNumber);
     metrics->RealHeight = font->GetHeight() * size_mult;
-    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
+    metrics->LogicalHeight = metrics->NominalHeight; // just set to default here
     metrics->BBox = font->GetBBox() * size_mult;
     metrics->VExtent = std::make_pair(metrics->BBox.Top, metrics->BBox.Bottom);
     // fix it up to be *not less* than realheight

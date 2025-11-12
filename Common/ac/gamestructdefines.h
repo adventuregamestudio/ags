@@ -134,17 +134,20 @@ enum SpeechStyle
 // Contemporary font flags
 #define FFLG_SIZEMULTIPLIER        0x01  // size data means multiplier
 #define FFLG_DEFLINESPACING        0x02  // linespacing derived from the font height
-// Font load flags, primarily for backward compatibility:
-// REPORTNOMINALHEIGHT: get_font_height should return nominal font's height,
-// eq to "font size" parameter, otherwise returns real pixel height.
-#define FFLG_REPORTNOMINALHEIGHT   0x04
-// ASCENDFIXUP: do the TTF ascender fixup, where font's ascender is resized
-// to the nominal font's height.
+// Use nominal font's import size as a font's height in all the game logic.
+// If not set will use real font's height reported by the font file.
+#define FFLG_LOGICALNOMINALHEIGHT   0x04
+// Do the TTF ascender fixup, where font's ascender is resized
+// to the nominal font's height. This is primarily for backwards compatibility
+// with older games.
 #define FFLG_ASCENDERFIXUP         0x08
+// Use a user-provided custom value as a font's height in all the game logic.
+// If not set will use real font's height reported by the font file.
+#define FFLG_LOGICALCUSTOMHEIGHT   0x10
 // Collection of flags defining fully backward compatible TTF fixup
-#define FFLG_TTF_BACKCOMPATMASK   (FFLG_REPORTNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
+#define FFLG_TTF_BACKCOMPATMASK   (FFLG_LOGICALNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
 // Collection of flags defining font's load mode
-#define FFLG_LOADMODEMASK         (FFLG_REPORTNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
+#define FFLG_LOADMODEMASK         (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT | FFLG_ASCENDERFIXUP)
 // Font outline types
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
@@ -306,7 +309,10 @@ struct FontInfo
     int           SizeMultiplier;
     // Outlining font index, or auto-outline flag
     int           Outline;
-    // Custom vertical render offset, used mainly for fixing broken fonts
+    // Custom logical height (referred to when measuring text),
+    // used mainly for handling broken fonts
+    int           CustomHeight;
+    // Custom vertical render offset, used mainly for handling broken fonts
     int           YOffset;
     // Custom line spacing between two lines of text (0 = use font height)
     int           LineSpacing;

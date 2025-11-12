@@ -8,7 +8,9 @@ namespace AGS.Types
     {
         [Description("Nominal height (import size)")]
         NominalHeight,
-        [Description("Full graphical height")]
-        PixelHeight
+        [Description("Real height (reported by font)")]
+        PixelHeight,
+        [Description("User-defined value")]
+        CustomValue
     }
 }

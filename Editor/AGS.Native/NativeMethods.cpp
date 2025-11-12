@@ -868,7 +868,8 @@ namespace AGS
             if (name->Equals("TEXTWINDOW_PADDING_DEFAULT")) return TEXTWINDOW_PADDING_DEFAULT;
             if (name->Equals("GUI_VERSION_CURRENT")) return (int)kGuiVersion_Current;
             if (name->Equals("CUSTOM_PROPERTY_SCHEMA_VERSION")) return (int)AGS::Common::kPropertyVersion_Current;
-            if (name->Equals("FFLG_REPORTNOMINALHEIGHT")) return FFLG_REPORTNOMINALHEIGHT;
+            if (name->Equals("FFLG_LOGICALNOMINALHEIGHT")) return FFLG_LOGICALNOMINALHEIGHT;
+            if (name->Equals("FFLG_LOGICALCUSTOMHEIGHT")) return FFLG_LOGICALCUSTOMHEIGHT;
             if (name->Equals("FFLG_ASCENDERFIXUP")) return FFLG_ASCENDERFIXUP;
             if (name->Equals("OPT_DEBUGMODE")) return safe_cast<Object^>(OPT_DEBUGMODE);
             if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;

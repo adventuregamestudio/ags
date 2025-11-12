@@ -544,6 +544,7 @@ namespace AGS.Editor
                         font.AutoOutlineThickness = font.SizeMultiplier;
                     }
                     font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
+                    font.HeightDefinedBy = FontHeightDefinition.NominalHeight;
                 }
                 game.Settings.ClipGUIControls = false;
             }
@@ -576,6 +577,15 @@ namespace AGS.Editor
             if (xmlVersionIndex < 3060206)
             {
                 game.Settings.GameFPS = 40; // 40 was historical default FPS
+            }
+
+            if (xmlVersionIndex < 3060303)
+            {
+                // HeightDefinedBy moved from global setting to a per-Font individual setting
+                foreach (Font font in game.Fonts)
+                {
+                    font.HeightDefinedBy = game.Settings.TTFHeightDefinedBy;
+                }
             }
 
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);

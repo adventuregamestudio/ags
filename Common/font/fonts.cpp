@@ -156,10 +156,15 @@ static void font_post_init(int font_number)
         font.Metrics.RealHeight = font.Metrics.NominalHeight;
         font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight - 1);
     }
-    // Use either nominal or real pixel height to define font's logical height
+    // Use either nominal, real pixel height or a user-provided value to define font's logical height
     // and default linespacing; logical height = nominal height is compatible with the old games
-    font.Metrics.CompatHeight = (font.Info.Flags & FFLG_REPORTNOMINALHEIGHT) != 0 ?
-        font.Metrics.NominalHeight : font.Metrics.RealHeight;
+    font.Metrics.CustomHeight = font.Info.CustomHeight;
+    if ((font.Info.Flags & FFLG_LOGICALNOMINALHEIGHT) != 0)
+        font.Metrics.LogicalHeight = font.Metrics.NominalHeight;
+    else if ((font.Info.Flags & FFLG_LOGICALCUSTOMHEIGHT) != 0)
+        font.Metrics.LogicalHeight = font.Metrics.CustomHeight;
+    else
+        font.Metrics.LogicalHeight = font.Metrics.RealHeight;
 
     if (font.Info.Outline != FONT_OUTLINE_AUTO)
     {
@@ -182,7 +187,7 @@ static void font_post_init(int font_number)
         {
             // Calculate default linespacing from the font height + outline thickness.
             font.Info.Flags |= FFLG_DEFLINESPACING;
-            font.LineSpacingCalc = font.Metrics.CompatHeight + 2 * font.Info.AutoOutlineThickness;
+            font.LineSpacingCalc = font.Metrics.LogicalHeight + 2 * font.Info.AutoOutlineThickness;
         }
     }
 
@@ -368,7 +373,7 @@ int get_font_height(int font_number)
 {
     if (!assert_font_number(font_number))
         return 0;
-    return fonts[font_number].Metrics.CompatHeight;
+    return fonts[font_number].Metrics.LogicalHeight;
 }
 
 // Returns a max value between the chosen font height (this may be a compat height,
@@ -377,7 +382,7 @@ static int get_font_height_with_outline(int font_number, bool surf_height = fals
 {
     const int self_height = surf_height ?
         fonts[font_number].Metrics.ExtentHeight() :
-        fonts[font_number].Metrics.CompatHeight;
+        fonts[font_number].Metrics.LogicalHeight;
     const int outline = fonts[font_number].Info.Outline;
     if (outline < 0 || static_cast<uint32_t>(outline) >= fonts.size())
     { // FONT_OUTLINE_AUTO or FONT_OUTLINE_NONE
@@ -385,7 +390,7 @@ static int get_font_height_with_outline(int font_number, bool surf_height = fals
     }
     const int outline_height = surf_height ?
         fonts[outline].Metrics.ExtentHeight() :
-        fonts[outline].Metrics.CompatHeight;
+        fonts[outline].Metrics.LogicalHeight;
     return std::max(self_height, outline_height);
 }
 
@@ -394,6 +399,13 @@ int get_font_height_outlined(int font_number)
     if (!assert_font_number(font_number))
         return 0;
     return get_font_height_with_outline(font_number);
+}
+
+int get_font_real_height(int font_number)
+{
+    if (!assert_font_number(font_number))
+        return 0;
+    return fonts[font_number].Metrics.RealHeight;
 }
 
 int get_font_surface_height(int font_number)

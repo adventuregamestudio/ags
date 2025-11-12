@@ -51,7 +51,6 @@ namespace AGS.Editor.Components
                 newItem.PointSize = copyFrom.PointSize;
                 newItem.SourceFilename = Utilities.GetRelativeToProjectPath(copyFrom.SourceFilename);
                 newItem.ProjectFilename = $"agsfnt{newItem.ID}.{Path.GetExtension(copyFrom.ProjectFilename)}";
-                newItem.TTFMetricsFixup = _agsEditor.CurrentGame.Settings.TTFMetricsFixup; // use defaults
                 items.Add(newItem);
                 Utilities.CopyFont(copyFrom.ID, newItem.ID);
                 Factory.NativeProxy.OnFontAdded(_agsEditor.CurrentGame, newItem.ID);

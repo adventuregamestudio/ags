@@ -71,7 +71,8 @@ namespace AGS.Editor
         public static readonly int GOBJ_LISTBOX = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LISTBOX");
         public static readonly int TEXTWINDOW_PADDING_DEFAULT = (int)Factory.NativeProxy.GetNativeConstant("TEXTWINDOW_PADDING_DEFAULT");
 
-        public static readonly int FFLG_REPORTNOMINALHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FFLG_REPORTNOMINALHEIGHT");
+        public static readonly int FFLG_LOGICALNOMINALHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FFLG_LOGICALNOMINALHEIGHT");
+        public static readonly int FFLG_LOGICALCUSTOMHEIGHT = (int)Factory.NativeProxy.GetNativeConstant("FFLG_LOGICALCUSTOMHEIGHT");
         public static readonly int FFLG_ASCENDERFIXUP = (int)Factory.NativeProxy.GetNativeConstant("FFLG_ASCENDERFIXUP");
 
         public class GUIVersion

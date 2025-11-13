@@ -77,11 +77,6 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
 
 void GUISlider::UpdateMetrics()
 {
-    // Clamp Value
-    // TODO: this is necessary here because some Slider fields are still public
-    if (MinValue >= MaxValue)
-        MaxValue = MinValue + 1;
-    Value = Math::Clamp(Value, MinValue, MaxValue);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
     const int handle_im = ((HandleImage > 0) && spriteset.DoesSpriteExist(HandleImage)) ? HandleImage : 0;
 
@@ -271,6 +266,10 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 
     UpdateMetrics();
+    // Clamp value range, in case the data is wrong
+    MaxValue = std::max(MinValue, MaxValue);
+    MinValue = std::min(MinValue, MaxValue);
+    Value = Math::Clamp(Value, MinValue, MaxValue);
 }
 
 void GUISlider::WriteToFile(Stream *out) const
@@ -295,6 +294,10 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     Value = in->ReadInt32();
 
     UpdateMetrics();
+    // Clamp value range, in case the data is wrong
+    MaxValue = std::max(MinValue, MaxValue);
+    MinValue = std::min(MinValue, MaxValue);
+    Value = Math::Clamp(Value, MinValue, MaxValue);
 }
 
 void GUISlider::WriteToSavegame(Stream *out) const

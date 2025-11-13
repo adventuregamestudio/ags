@@ -137,6 +137,7 @@
     <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
+    <Compile Include="Components\CustomPropertiesComponent.cs" />
     <Compile Include="Components\DebugLogComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
     <Compile Include="Components\FileCommandsComponent.cs" />
@@ -732,6 +733,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\customproperties.ico" />
     <EmbeddedResource Include="Resources\wizard-bg.png" />
     <EmbeddedResource Include="Resources\wizard-cup.png" />
     <EmbeddedResource Include="Resources\menu_build_openfolder.over.ico" />

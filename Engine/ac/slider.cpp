@@ -17,18 +17,12 @@
 using namespace AGS::Common;
 
 void Slider_SetMax(GUISlider *guisl, int valn) {
-
     if (valn != guisl->MaxValue) {
         guisl->MaxValue = valn;
-
-        if (guisl->Value > guisl->MaxValue)
-            guisl->Value = guisl->MaxValue;
-        if (guisl->MinValue > guisl->MaxValue)
-            quit("!Slider.Max: minimum cannot be greater than maximum");
-
+        guisl->MinValue = std::min(guisl->MinValue, guisl->MaxValue);
+        guisl->Value = Math::Clamp(guisl->Value, guisl->MinValue, guisl->MaxValue);
         guisl->MarkChanged();
     }
-
 }
 
 int Slider_GetMax(GUISlider *guisl) {
@@ -36,18 +30,12 @@ int Slider_GetMax(GUISlider *guisl) {
 }
 
 void Slider_SetMin(GUISlider *guisl, int valn) {
-
     if (valn != guisl->MinValue) {
         guisl->MinValue = valn;
-
-        if (guisl->Value < guisl->MinValue)
-            guisl->Value = guisl->MinValue;
-        if (guisl->MinValue > guisl->MaxValue)
-            quit("!Slider.Min: minimum cannot be greater than maximum");
-
+        guisl->MaxValue = std::max(guisl->MinValue, guisl->MaxValue);
+        guisl->Value = Math::Clamp(guisl->Value, guisl->MinValue, guisl->MaxValue);
         guisl->MarkChanged();
     }
-
 }
 
 int Slider_GetMin(GUISlider *guisl) {

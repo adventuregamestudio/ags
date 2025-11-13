@@ -100,11 +100,6 @@ void GUISlider::UpdateMetrics()
     assert(GUI::Context.Spriteset);
     SpriteCache &spriteset = *GUI::Context.Spriteset;
 
-    // Clamp Value
-    // TODO: this is necessary here because some Slider fields are still public
-    if (MinValue >= MaxValue)
-        MaxValue = MinValue + 1;
-    Value = Math::Clamp(Value, MinValue, MaxValue);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
     const int handle_im = ((HandleImage > 0) && spriteset.DoesSpriteExist(HandleImage)) ? HandleImage : 0;
 
@@ -301,6 +296,10 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     _cachedBar = Rect();
     _cachedHandle = Rect();
     _handleRange = 0;
+    // Clamp value range, in case the data is wrong
+    MaxValue = std::max(MinValue, MaxValue);
+    MinValue = std::min(MinValue, MaxValue);
+    Value = Math::Clamp(Value, MinValue, MaxValue);
 }
 
 void GUISlider::WriteToFile(Stream *out) const
@@ -328,6 +327,10 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _cachedBar = Rect();
     _cachedHandle = Rect();
     _handleRange = 0;
+    // Clamp value range, in case the data is wrong
+    MaxValue = std::max(MinValue, MaxValue);
+    MinValue = std::min(MinValue, MaxValue);
+    Value = Math::Clamp(Value, MinValue, MaxValue);
 }
 
 void GUISlider::WriteToSavegame(Stream *out) const

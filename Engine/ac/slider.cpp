@@ -13,14 +13,11 @@
 //=============================================================================
 #include "ac/slider.h"
 #include "ac/common.h"
+#include "debug/debug_log.h"
 
 using namespace AGS::Common;
 
 void Slider_SetMax(GUISlider *guisl, int valn) {
-
-    if (guisl->GetMinValue() > valn)
-        quit("!Slider.Max: minimum cannot be greater than maximum");
-
     guisl->SetMaxValue(valn);
 }
 
@@ -29,9 +26,6 @@ int Slider_GetMax(GUISlider *guisl) {
 }
 
 void Slider_SetMin(GUISlider *guisl, int valn) {
-    if (valn > guisl->GetMaxValue())
-        quit("!Slider.Min: minimum cannot be greater than maximum");
-
     guisl->SetMinValue(valn);
 }
 

@@ -1724,7 +1724,7 @@ import int  WaitMouseKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless the mouse is clicked.
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.
-import void SkipWait();
+import void SkipWait(int resultValue = 0);
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v36026
 /// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.

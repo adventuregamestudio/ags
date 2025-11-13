@@ -1129,8 +1129,12 @@ int WaitInput(int input_flags, int nloops) {
     return WaitImpl((input_flags >> SKIP_RESULT_TYPE_SHIFT) | SKIP_AUTOTIMER, nloops);
 }
 
-void SkipWait() {
-    play.wait_counter = 0;
+void SkipWait0() {
+    SkipWait(0);
+}
+
+void SkipWait(int result_value) {
+    play.SetWaitSkipResult(SKIP_NONE /* by script */, result_value);
 }
 
 void scStartRecording(int /*keyToStop*/) {

@@ -420,6 +420,25 @@ void GamePlayState::ClearIgnoreInput()
     _ignoreUserInputUntilTime = Clock::now();
 }
 
+bool GamePlayState::IsInWait() const
+{
+    // wait counter is either
+    // * positive, and then there's a wait with timeout;
+    // * negative, and then there's a wait without timeout;
+    // * zero, which means there's no wait
+    return wait_counter != 0;
+}
+
+int GamePlayState::GetWaitCounter() const
+{
+    return wait_counter;
+}
+
+int GamePlayState::GetWaitSkipType() const
+{
+    return play.key_skip_wait;
+}
+
 void GamePlayState::SetWaitSkipResult(int how, int data)
 {
     wait_counter = 0;

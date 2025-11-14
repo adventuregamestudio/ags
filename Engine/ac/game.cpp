@@ -934,14 +934,33 @@ void Game_SimulateKeyPress(int key)
     ags_simulate_keypress(static_cast<eAGSKeyCode>(key), (game.options[OPT_KEYHANDLEAPI] == 0));
 }
 
+int Game_BlockingWaitCounter()
+{
+    return play.GetWaitCounter();
+}
+
 int Game_BlockingWaitSkipped()
 {
     return play.GetWaitSkipResult();
 }
 
+int Game_BlockingWaitSkipType()
+{
+    // Convert to the InputType flags
+    return play.GetWaitSkipType() << SKIP_RESULT_TYPE_SHIFT;
+}
+
+int Game_InBlockingAction()
+{
+    return IsInBlockingAction();
+}
+
 int Game_InBlockingWait()
 {
-    return IsInWaitMode();
+    // A design mistake in 3.6.2: IsInBlockingWait name was used to report any blocking action state
+    return game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v363 ?
+        play.IsInWait() :
+        IsInBlockingAction();
 }
 
 void Game_PrecacheSprite(int sprnum)
@@ -2123,9 +2142,24 @@ RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, in
     API_SCALL_VOID_PINT(Game_SimulateKeyPress);
 }
 
+RuntimeScriptValue Sc_Game_BlockingWaitCounter(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingWaitCounter);
+}
+
 RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_BlockingWaitSkipped);
+}
+
+RuntimeScriptValue Sc_Game_BlockingWaitSkipType(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingWaitSkipType);
+}
+
+RuntimeScriptValue Sc_Game_InBlockingAction(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Game_InBlockingAction);
 }
 
 RuntimeScriptValue Sc_Game_InBlockingWait(const RuntimeScriptValue *params, int32_t param_count)
@@ -2221,7 +2255,9 @@ void RegisterGameAPI()
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
         { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
+        { "Game::get_BlockingWaitCounter",                API_FN_PAIR(Game_BlockingWaitCounter) },
         { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
+        { "Game::get_BlockingWaitSkipType",               API_FN_PAIR(Game_BlockingWaitSkipType) },
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
         { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
         { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
@@ -2235,6 +2271,7 @@ void RegisterGameAPI()
         { "Game::get_GUICount",                           API_FN_PAIR(Game_GetGUICount) },
         { "Game::get_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_GetIgnoreUserInputAfterTextTimeoutMs) },
         { "Game::set_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_SetIgnoreUserInputAfterTextTimeoutMs) },
+        { "Game::get_InBlockingAction",                   API_FN_PAIR(Game_InBlockingAction) },
         { "Game::get_InBlockingWait",                     API_FN_PAIR(Game_InBlockingWait) },
         { "Game::get_InSkippableCutscene",                API_FN_PAIR(Game_GetInSkippableCutscene) },
         { "Game::get_InventoryItemCount",                 API_FN_PAIR(Game_GetInventoryItemCount) },

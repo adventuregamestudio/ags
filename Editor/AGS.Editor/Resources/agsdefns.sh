@@ -3246,7 +3246,7 @@ builtin struct Game {
   import static int[]  GetSaveSlots(int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
   /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
   import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
-  /// Gets whether the game is currently in a blocking state, that is during a blocking action or a Wait() call.
+  /// Gets whether the game is currently running inside a Wait() call.
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
@@ -3254,6 +3254,12 @@ builtin struct Game {
   import static attribute int Speed;
   /// Gets number of game's ticks (updates) passed since the game start.
   import static readonly attribute int TickCounter;
+  /// Gets whether the game is currently in a blocking state, that is during any blocking action or a Wait() call.
+  import static readonly attribute bool InBlockingAction;
+  /// Gets the current blocking wait's counter, telling how much time is remaining until the waiting ends.
+  import static readonly attribute int BlockingWaitCounter;
+  /// Gets the current blocking wait's skip type.
+  import static readonly attribute InputType BlockingWaitSkipType;
 #endif // SCRIPT_API_v363
 };
 

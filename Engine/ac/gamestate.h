@@ -447,12 +447,15 @@ struct GamePlayState
     // Clears ignore input state
     void ClearIgnoreInput();
 
+    bool IsInWait() const;
     // Set how the last blocking wait was skipped
     void SetWaitSkipResult(int how, int data = 0);
     void SetWaitKeySkip(const KeyInput &kp)
     {
         SetWaitSkipResult(SKIP_KEYPRESS, AGSKeyToScriptKey(kp.Key) | kp.Mod);
     }
+    int GetWaitCounter() const;
+    int GetWaitSkipType() const;
     // Returns the information about how the latest blocking wait was skipped.
     // The information is packed into int32 value like this:
     // | 0xFF       | 0xFF    | 0xF      | 0xFFF                     |

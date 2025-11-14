@@ -154,6 +154,11 @@ bool GUIButton::IsClippingImage() const
     return (_flags & kGUICtrl_Clip) != 0;
 }
 
+bool GUIButton::HasAction() const
+{
+    return _clickAction[kGUIClickLeft] != kGUIAction_None || _clickAction[kGUIClickRight] != kGUIAction_None;
+}
+
 GUIClickAction GUIButton::GetClickAction(GUIClickMouseButton button) const
 {
     if (button < kGUIClickLeft || button >= kNumGUIClicks)
@@ -255,7 +260,12 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
 
 void GUIButton::Draw(Bitmap *ds, int x, int y)
 {
-    const bool draw_disabled = GUI::ShouldDrawDisabled(this);
+    // A non-clickable button is, in effect, just a label.
+    // When the GUI is disabled, the user should not get the message that
+    // the button is now unclickable since it had never been in the first place.
+    bool const has_interaction = IsClickable() || HasAction();
+    const bool draw_disabled = GUI::ShouldDrawDisabled(this)
+        && has_interaction;
     // TODO: should only change properties in reaction to particular events
     if (_currentImage <= 0 || draw_disabled)
         _currentImage = _image;

@@ -93,6 +93,7 @@ public:
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
+    bool HasAction() const;
 
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;

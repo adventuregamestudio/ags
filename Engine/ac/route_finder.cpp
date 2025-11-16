@@ -167,6 +167,10 @@ inline float CalcMoveSpeedAtAngle(float speed_x, float speed_y, float xdist, flo
 // Calculates the X and Y per game loop, for this stage of the movelist
 static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x, float move_speed_y)
 {
+    assert(index < mls.pos.size() && index < mls.permove.size() && index < mls.stageflags.size());
+    if (index < mls.pos.size())
+        return;
+
     // work out the x & y per move. First, opp/adj=tan, so work out the angle
     if (mls.pos[index] == mls.pos[index + 1])
     {
@@ -292,6 +296,7 @@ bool AddWaypointDirect(MoveList &mls, int x, int y, float move_speed_x, float mo
     const float fspeed_y = InputSpeedToVelocity(move_speed_y);
 
     mls.pos.emplace_back( x, y );
+    mls.permove.resize(mls.pos.size());
     mls.stageflags.resize(mls.pos.size(), stage_flag);
     mls.stageflags[mls.GetNumStages() - 2] = stage_flag;
     // Calculate new stage starting from the one before last

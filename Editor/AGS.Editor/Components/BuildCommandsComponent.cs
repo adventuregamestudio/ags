@@ -129,6 +129,7 @@ namespace AGS.Editor.Components
             else
             {
                 _guiController.SetTitleBarPrefix(string.Empty);
+                _guiController.ClearCallStack();
                 _guiController.HideCallStack();
                 _guiController.HideFindSymbolResults();
             }

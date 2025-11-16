@@ -30,6 +30,14 @@ namespace AGS.Editor
 		}
 
         /// <summary>
+        /// Tells whether Debugger is in a active working state.
+        /// </summary>
+        public bool IsActive
+        {
+            get { return _debugState != DebugState.NotRunning; }
+        }
+
+        /// <summary>
         /// Allows more than one instance of the AGS Editor to run simulatenously
         /// </summary>
         public string InstanceIdentifier
@@ -203,23 +211,35 @@ namespace AGS.Editor
 
         public void Resume()
         {
-            SendCommandAndSwitchWindows("RESUME");
+            if (IsActive)
+            {
+                SendCommandAndSwitchWindows("RESUME");
+            }
         }
 
         public void StepInto()
         {
-            SendCommandAndSwitchWindows("STEP");
+            if (IsActive)
+            {
+                SendCommandAndSwitchWindows("STEP");
+            }
         }
 
         public void PauseExecution()
         {
-            // the STEP command will break out at the next line
-            SendCommandAndSwitchWindows("STEP");
+            if (IsActive)
+            {
+                // the STEP command will break out at the next line
+                SendCommandAndSwitchWindows("STEP");
+            }
         }
 
         public void StopDebugging()
         {
-            SendCommandAndSwitchWindows("EXIT");
+            if (IsActive)
+            {
+                SendCommandAndSwitchWindows("EXIT");
+            }
         }
 
         public void EditorShutdown()

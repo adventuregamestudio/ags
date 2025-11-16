@@ -1721,6 +1721,8 @@ namespace AGS.Editor
                 return null; // accessing member of static array, no result
 
             ScriptStruct foundType = FindGlobalType(var.Type);
+            if (foundType == null)
+                return null;
 
             if (var.IsDynamicArray && indexedAccess)
                 foundType = FindGlobalType(foundType.BaseType);

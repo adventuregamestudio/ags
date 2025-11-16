@@ -207,11 +207,11 @@ namespace AGS.Editor
                 }
                 if (script.StartsWith("{"))
                 {
-                    if (state.WordBeforeLast == "enum")
+                    if (state.PreviousWord == "enum")
                     {
                         state.InsideEnumDefinition = new ScriptEnum(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
                     }
-                    else if (state.WordBeforeLast == "extends")
+                    else if (state.PreviousWord == "extends")
                     {
                         // inherited struct
                         foreach (ScriptStruct baseStruct in structsLookup)
@@ -225,7 +225,7 @@ namespace AGS.Editor
                             }
                         }
                     }
-                    else if (state.WordBeforeLast == "struct")
+                    else if (state.PreviousWord == "struct")
                     {
                         state.InsideStructDefinition = new ScriptStruct(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
                         functions = state.InsideStructDefinition.Functions;
@@ -429,7 +429,7 @@ namespace AGS.Editor
 
         private static ScriptStruct CreateInheritedStruct(ScriptStruct baseStruct, AutoCompleteParserState state)
         {
-            ScriptStruct newStruct = new ScriptStruct(state.WordBeforeWordBeforeLast, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
+            ScriptStruct newStruct = new ScriptStruct(state.PreviousWord2, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
             foreach (ScriptFunction func in baseStruct.Functions)
             {
                 if (!func.NoInherit)
@@ -561,34 +561,34 @@ namespace AGS.Editor
         {
             bool succeeded = false;
 
-            if ((state.LastWord.Length > 0) && (state.WordBeforeLast.Length > 0))
+            if ((state.LastWord.Length > 0) && (state.PreviousWord.Length > 0))
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
                     string functionName = state.LastWord;
-                    string type = state.WordBeforeLast;
+                    string type = state.PreviousWord;
                     bool isPointer = false, isNoInherit = false;
                     bool isProtected = false;
                     if (type == "::")
                     {
-                        functionName = state.WordBeforeWordBeforeLast + "::" + functionName;
-                        type = (state.PreviousWords.Length > 3) ? state.PreviousWords[3] : "unknown";
+                        functionName = state.PreviousWord2 + "::" + functionName;
+                        type = (!string.IsNullOrEmpty(state[3])) ? state[3] : "unknown";
                     }
                     if (type == "*")
                     {
                         isPointer = true;
-                        type = state.WordBeforeWordBeforeLast;
+                        type = state.PreviousWord2;
                     }
 					if (type == "[]")
 					{
 						// get the type name and the []
-						type = state.WordBeforeWordBeforeLast + "[]";
+						type = state.PreviousWord2 + "[]";
 					}
-                    if (state.IsWordInPreviousList("static"))
+                    if (state.IsWordInList("static"))
                     {
                         isStatic = true;
                     }
-                    if (state.IsWordInPreviousList("protected"))
+                    if (state.IsWordInList("protected"))
                     {
                         isProtected = true;
                     }
@@ -623,7 +623,7 @@ namespace AGS.Editor
 
         private static void AddVariableDeclaration(List<ScriptVariable> variables, ref FastString script, string thisWord, AutoCompleteParserState state)
         {
-            if ((state.LastWord.Length > 0) && (state.WordBeforeLast.Length > 0))
+            if ((state.LastWord.Length > 0) && (state.PreviousWord.Length > 0))
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
@@ -633,11 +633,11 @@ namespace AGS.Editor
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
                     bool isReadonly = false;
-                    string type = state.WordBeforeLast;
+                    string type = state.PreviousWord;
                     int typeWordIndex = 1;
 					string varName = state.LastWord;
 
-                    isAttribute = state.IsWordInPreviousList("attribute");
+                    isAttribute = state.IsWordInList("attribute");
 
                     if (thisWord == "[")
                     {
@@ -654,8 +654,8 @@ namespace AGS.Editor
                         if (varName == "[]")
                         {
                             // it's appended to the name
-                            varName = state.WordBeforeLast;
-                            type = state.WordBeforeWordBeforeLast;
+                            varName = state.PreviousWord;
+                            type = state.PreviousWord2;
                             typeWordIndex = 2;
                             if (isAttribute)
                             {
@@ -672,7 +672,7 @@ namespace AGS.Editor
                         if (type == "[]")
                         {
                             typeWordIndex++;
-                            type = state.PreviousWords[typeWordIndex];
+                            type = state[typeWordIndex];
                             // it's appended to a type
                             if (isAttribute)
                             {
@@ -691,17 +691,17 @@ namespace AGS.Editor
                     {
                         isPointer = true;
                         typeWordIndex++;
-                        type = state.PreviousWords[typeWordIndex];
+                        type = state[typeWordIndex];
                     }
-                    if (state.IsWordInPreviousList("static"))
+                    if (state.IsWordInList("static"))
                     {
                         isStatic = true;
                     }
-                    if (state.IsWordInPreviousList("protected"))
+                    if (state.IsWordInList("protected"))
                     {
                         isProtected = true;
                     }
-                    if (state.IsWordInPreviousList("readonly"))
+                    if (state.IsWordInList("readonly"))
                     {
                         isReadonly = true;
                     }

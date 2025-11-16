@@ -5,51 +5,43 @@ using System.Text;
 
 namespace AGS.Editor
 {
+    // Parser state remembers words that are part of the declaration.
+    // They include the name of the symbol, all the modifiers, and qualifiers.
+    //
+    // For instance:
+    // protected static readonly attribute Character * [] IndexedAttribName [];
+    // 0         1      2        3         4         5 6  7                 8 
     internal class AutoCompleteParserState
     {
-        // FIXME: this is super ugly; auto complete parser can remember up to N last words
-        // when parsing a declaration. The number of words has to be enough to parse all modifiers.
-        //
-        // protected static readonly attribute Character * [] IndexedAttribName [];
-        // 0         1      2        3         4         5 6  7                 8 
-        private const int MAX_WORDS = 9;
+        // We reserve few dummy words in the list, to simplify access to "Previous word"
+        private int RESERVED_WORDS = 3;
 
         public AutoCompleteParserState()
         {
-            for (int i = 0; i < PreviousWords.Length; i++)
-            {
-                PreviousWords[i] = string.Empty;
-            }
+            ClearPreviousWords();
         }
 
         public void AddNextWord(string word)
         {
-            for (int i = PreviousWords.Length - 2; i >= 0; i--)
-            {
-                PreviousWords[i + 1] = PreviousWords[i];
-            }
-            PreviousWords[0] = word;
+            Words.Add(word);
         }
 
         public void UndoLastWord()
         {
-            for (int i = 0; i < PreviousWords.Length - 1; i++)
-            {
-                PreviousWords[i] = PreviousWords[i + 1];
-            }
-            PreviousWords[PreviousWords.Length - 1] = string.Empty;
+            if (Words.Count > RESERVED_WORDS)
+                Words.RemoveAt(Words.Count - 1);
         }
 
-        public bool IsWordInPreviousList(string lookForWord)
+        public bool IsWordInList(string lookForWord)
         {
-            return FindWordInPreviousList(lookForWord) >= 0;
+            return FindWordInList(lookForWord) >= 0;
         }
 
-        public int FindWordInPreviousList(string lookForWord)
+        public int FindWordInList(string lookForWord)
         {
-            for (int i = 0; i < PreviousWords.Length; i++)
+            for (int i = Words.Count - 1; i >= RESERVED_WORDS; i--)
             {
-                if (PreviousWords[i] == lookForWord)
+                if (Words[i] == lookForWord)
                 {
                     return i;
                 }
@@ -59,28 +51,40 @@ namespace AGS.Editor
 
         public void ClearPreviousWords()
         {
-            for (int i = 0; i < PreviousWords.Length; i++)
-            {
-                PreviousWords[i] = string.Empty;
-            }
+            Words.Clear();
+            // add RESERVED_WORDS dummy slots to simplify "previous word" accessors
+            Words.Add(string.Empty);
+            Words.Add(string.Empty);
+            Words.Add(string.Empty);
         }
 
         public string LastWord
         {
-            get { return PreviousWords[0]; }
+            get { return Words[Words.Count - 1]; }
         }
 
-        public string WordBeforeLast
+        public string PreviousWord
         {
-            get { return PreviousWords[1]; }
+            get { return Words[Words.Count - 2]; }
         }
 
-        public string WordBeforeWordBeforeLast
+        public string PreviousWord2
         {
-            get { return PreviousWords[2]; }
+            get { return Words[Words.Count - 3]; }
         }
 
-        public string[] PreviousWords = new string[MAX_WORDS];
+        /// <summary>
+        /// Returns a word using a backwards index.
+        /// </summary>
+        public string this[int i]
+        {
+            get
+            {
+                return i < Words.Count ? Words[Words.Count - 1 - i] : string.Empty;
+            }
+        }
+
+        private List<string> Words = new List<string>();
         public string InsideIfNDefBlock = null;
         public string InsideIfDefBlock = null;
         public ScriptEnum InsideEnumDefinition = null;

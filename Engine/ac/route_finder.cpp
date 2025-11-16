@@ -168,7 +168,7 @@ inline float CalcMoveSpeedAtAngle(float speed_x, float speed_y, float xdist, flo
 static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x, float move_speed_y)
 {
     assert(index < mls.pos.size() && index < mls.permove.size() && index < mls.stageflags.size());
-    if (index < mls.pos.size())
+    if (index >= mls.pos.size())
         return;
 
     // work out the x & y per move. First, opp/adj=tan, so work out the angle

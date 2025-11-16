@@ -156,6 +156,10 @@ inline fixed CalcMoveSpeedAtAngle(fixed speed_x, fixed speed_y, fixed xdist, fix
 // Calculates the X and Y per game loop, for this stage of the movelist
 void CalculateMoveStage(MoveList &mls, uint32_t stage, fixed move_speed_x, fixed move_speed_y)
 {
+    assert(stage < mls.pos.size() && stage < mls.permove.size() && stage < mls.stageflags.size());
+    if (stage >= mls.pos.size())
+        return;
+
     // work out the x & y per move. First, opp/adj=tan, so work out the angle
     if (mls.pos[stage] == mls.pos[stage + 1])
     {

@@ -2169,16 +2169,19 @@ namespace AGS.Editor
                 callTip += "readonly ";
             }
             callTip += variable.Type;
-            if (variable.IsArray)
-            {
-                callTip += "[ ]";
-            }
             callTip += " ";
             if (owningStruct != null)
             {
                 callTip += owningStruct.Name + ".";
             }
             callTip += variable.VariableName;
+            if (variable.IsArray && !variable.IsDynamicArray)
+            {
+                for (int i = 0; i < variable.ArrayDimensions; ++i)
+                    callTip += "[]";
+            }
+            // Replace all "[]" with "[ ]" because "[]" looks bad in the Calltip's font
+            callTip = callTip.Replace("[]", "[ ]");
             return callTip;
         }
 

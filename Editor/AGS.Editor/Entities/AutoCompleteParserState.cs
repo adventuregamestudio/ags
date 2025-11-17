@@ -58,6 +58,11 @@ namespace AGS.Editor
             Words.Add(string.Empty);
         }
 
+        public int WordCount
+        {
+            get { return Words.Count - RESERVED_WORDS; }
+        }
+
         public string LastWord
         {
             get { return Words[Words.Count - 1]; }
@@ -80,10 +85,12 @@ namespace AGS.Editor
         {
             get
             {
-                return i < Words.Count ? Words[Words.Count - 1 - i] : string.Empty;
+                return (i < Words.Count - RESERVED_WORDS) ? Words[Words.Count - 1 - i] : string.Empty;
             }
         }
 
+        // TODO: this has to be optimized for fast adding/undoing words during parsing;
+        // not certain if List<> is best for this, investigate if there are faster solutions.
         private List<string> Words = new List<string>();
         public string InsideIfNDefBlock = null;
         public string InsideIfDefBlock = null;

@@ -107,9 +107,9 @@ namespace AGS.Editor
             return index == script.Length;
         }
 
-        private static void SkipUntilMatchingClosingBrace(ref FastString script)
+        private static void SkipUntilMatchingClosingBrace(ref FastString script, char openBrace, char closeBrace)
         {
-            int braceIndent = 1, index = 1;
+            int braceIndent = 1, index = 0;
             while ((braceIndent > 0) && (index < script.Length))
             {
                 if (IncrementIndexToSkipAnyComments(script, ref index))
@@ -131,11 +131,11 @@ namespace AGS.Editor
                         index++;
                     }
                 }
-                if (script[index] == '{')
+                if (script[index] == openBrace)
                 {
                     braceIndent++;
                 }
-                else if (script[index] == '}')
+                else if (script[index] == closeBrace)
                 {
                     braceIndent--;
                 }
@@ -235,7 +235,8 @@ namespace AGS.Editor
                     {
                         state.ClearPreviousWords();
 
-                        SkipUntilMatchingClosingBrace(ref script);
+                        GetNextWord(ref script); // skip opening brace, since we know it's there
+                        SkipUntilMatchingClosingBrace(ref script, '{', '}');
 
                         if ((lastFunction != null) && (lastFunction.EndsAtCharacterIndex == 0))
                         {
@@ -268,7 +269,7 @@ namespace AGS.Editor
                             structsLookup.Add(newStruct);
                         }
                     }
-                    if (AddFunctionDeclaration(functionList, ref script, thisWord, state, isExtenderMethod, isStaticExtender, isStaticExtender))
+                    if (AddFunctionDeclaration(functionList, ref script, state, isExtenderMethod, isStaticExtender, isStaticExtender))
                     {
                         lastFunction = functionList[functionList.Count - 1];
                     }
@@ -279,12 +280,17 @@ namespace AGS.Editor
 					GetNextWord(ref script);
 					state.AddNextWord("[]");
 				}
-				else if ((thisWord == "=") || (thisWord == ";") ||
-						 (thisWord == ",") || (thisWord == "["))
+                else if (thisWord == "[")
+                {
+                    SkipUntilMatchingClosingBrace(ref script, '[', ']');
+                    state.AddNextWord("[N]"); // this is to mark a fixed-size array when adding a variable
+                }
+                else if ((thisWord == "=") || (thisWord == ";") ||
+						 (thisWord == ","))
 				{
 					if (state.InsideEnumDefinition != null)
 					{
-						AddEnumValue(state.InsideEnumDefinition, script, state.LastWord, state);
+						AddEnumValue(state.InsideEnumDefinition, script, state);
 
                         if (thisWord == "=")
                         {
@@ -294,7 +300,7 @@ namespace AGS.Editor
 					}
 					else
 					{
-						AddVariableDeclaration(variables, ref script, thisWord, state);
+						AddVariableDeclaration(variables, ref script, state);
 						if (thisWord == "=")
 						{
 							while ((thisWord != ";") && (thisWord != ",") && (script.Length > 0))
@@ -308,17 +314,6 @@ namespace AGS.Editor
 							state.UndoLastWord();
 							continue;
 						}
-						if (thisWord == "[")
-						{
-							// eg. "int a[10], b[10], c[10];"
-							SkipWhitespace(ref script);
-							if (script.StartsWith(","))
-							{
-								GetNextWord(ref script);
-								state.UndoLastWord();
-								continue;
-							}
-						}
 					}
 					state.ClearPreviousWords();
 				}
@@ -327,7 +322,7 @@ namespace AGS.Editor
                     // add the last value (unless it's an empty enum)
                     if (state.LastWord != "{")
                     {
-                        AddEnumValue(state.InsideEnumDefinition, script, state.LastWord, state);
+                        AddEnumValue(state.InsideEnumDefinition, script, state);
                     }
 					enums.Add(state.InsideEnumDefinition);
 					state.InsideEnumDefinition = null;
@@ -382,20 +377,30 @@ namespace AGS.Editor
                 if (!variable.IsDynamicArray)
                     continue;
 
-                string trueType = variable.Type;
-                string fakeStructName = trueType + (variable.IsPointer ? "*[]" : "[]");
-                variable.Type = fakeStructName;
-                if (structsLookup.Find(s => s.Name == fakeStructName) != null)
-                    continue;
+                string baseType = variable.Type;
+                string fakeStructName = baseType + (variable.IsPointer ? "*" : string.Empty);
+                // Add a separate type for each array dimension; i.e.:
+                // * int[]
+                // * int[][]
+                // * int[][][] ... and so forth
+                // Each next dimension will have previous fake type as its base type
+                for (int i = 0; i < variable.ArrayDimensions; ++i, baseType = fakeStructName)
+                {
+                    fakeStructName += "[]";
+                    if (structsLookup.Find(s => s.Name == fakeStructName) != null)
+                        continue;
 
-                ScriptStruct dynArrStruct = new ScriptStruct(fakeStructName);
-                ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, null, null, false, false, false, false, true, 0);
-                lengthVar.Description = "Returns length of this dynamic array.";
-                dynArrStruct.Variables.Add(lengthVar);
-                dynArrStruct.BaseType = trueType;
-                dynArrStruct.FullDefinition = true;
-                structs.Add(dynArrStruct);
-                structsLookup.Add(dynArrStruct);
+                    ScriptStruct dynArrStruct = new ScriptStruct(fakeStructName);
+                    ScriptVariable lengthVar = new ScriptVariable("Length", "int", false, false, false, 0, null, null, false, false, false, false, true, 0);
+                    lengthVar.Description = "Returns length of this dynamic array.";
+                    dynArrStruct.Variables.Add(lengthVar);
+                    dynArrStruct.BaseType = baseType;
+                    dynArrStruct.FullDefinition = true;
+                    structs.Add(dynArrStruct);
+                    structsLookup.Add(dynArrStruct);
+                }
+                // Assign final type name (with all dimensions) to the variable
+                variable.Type = fakeStructName;
             }
         }
 
@@ -514,8 +519,9 @@ namespace AGS.Editor
             state.ClearPreviousWords();
         }
 
-        private static void AddEnumValue(ScriptEnum insideEnumDefinition, FastString script, string lastWord, AutoCompleteParserState state)
+        private static void AddEnumValue(ScriptEnum insideEnumDefinition, FastString script, AutoCompleteParserState state)
         {
+            var lastWord = state.LastWord;
             if ((lastWord.Length > 0) && (Char.IsLetter(lastWord[0])))
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
@@ -557,7 +563,7 @@ namespace AGS.Editor
             return false;
         }
 
-        private static bool AddFunctionDeclaration(List<ScriptFunction> functions, ref FastString script, string thisWord, AutoCompleteParserState state, bool isExtenderMethod, bool isStatic, bool isStaticOnly)
+        private static bool AddFunctionDeclaration(List<ScriptFunction> functions, ref FastString script, AutoCompleteParserState state, bool isExtenderMethod, bool isStatic, bool isStaticOnly)
         {
             bool succeeded = false;
 
@@ -621,7 +627,19 @@ namespace AGS.Editor
             return succeeded;
         }
 
-        private static void AddVariableDeclaration(List<ScriptVariable> variables, ref FastString script, string thisWord, AutoCompleteParserState state)
+        private static int RevertAllArrayDimensions(AutoCompleteParserState state)
+        {
+            int dims = 0;
+            do
+            {
+                state.UndoLastWord();
+                dims++;
+            }
+            while (state.LastWord == "[N]" || state.LastWord == "[]");
+            return dims;
+        }
+
+        private static void AddVariableDeclaration(List<ScriptVariable> variables, ref FastString script, AutoCompleteParserState state)
         {
             if ((state.LastWord.Length > 0) && (state.PreviousWord.Length > 0))
             {
@@ -630,68 +648,78 @@ namespace AGS.Editor
                     bool isAttribute = false;
                     bool isArray = false, isDynamicArray = false;
                     bool isPointer = false;
+                    int arrayDims = 0;
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
                     bool isReadonly = false;
-                    string type = state.PreviousWord;
-                    int typeWordIndex = 1;
-					string varName = state.LastWord;
+                    string varName = state.LastWord;
 
                     isAttribute = state.IsWordInList("attribute");
 
-                    if (thisWord == "[")
+                    // Fixed-sized array (may be multi-dimensional)
+                    if (varName == "[N]")
                     {
-                        while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
+                        // Fixed-size array
                         isArray = true;
+                        // Skip any more dimensions
+                        // TODO: properly support multi-dimensional arrays
+                        arrayDims = RevertAllArrayDimensions(state);
+                        varName = state.LastWord;
                     }
-					else
-					{
-                        // Dynarray brackets may be met in following cases:
+                    else if (varName == "[]")
+                    {
+                        // Dynarray brackets may be met in varname in following cases:
                         // - indexed attribute (attribute type name[])
                         // - dynamic array (type name[])
-                        // - attribute returning dynamic array (attribute type[] name)
-                        // - indexed attribute returning dynamic array (attribute type[] name[])
-                        if (varName == "[]")
-                        {
-                            // it's appended to the name
-                            varName = state.PreviousWord;
-                            type = state.PreviousWord2;
-                            typeWordIndex = 2;
-                            if (isAttribute)
-                            {
-                                // indexed attribute
-                            }
-                            else
-                            {
-                                // regular variable of dynamic array type
-                                isArray = true;
-                                isDynamicArray = true;
-                            }
-                        }
 
-                        if (type == "[]")
+                        // Skip any more dimensions
+                        // TODO: properly support multi-dimensional arrays
+                        arrayDims = RevertAllArrayDimensions(state);
+
+                        // it's appended to the name
+                        varName = state.LastWord;
+                        if (isAttribute)
                         {
-                            typeWordIndex++;
-                            type = state[typeWordIndex];
-                            // it's appended to a type
-                            if (isAttribute)
-                            {
-                                // attribute returning dynamic array
-                                isArray = true;
-                                isDynamicArray = true;
-                            }
-                            else
-                            {
-                                // bad syntax?
-                            }
+                            // indexed attribute
+                            arrayDims = 0;
+                        }
+                        else
+                        {
+                            // regular variable of dynamic array type
+                            isArray = true;
+                            isDynamicArray = true;
+                        }
+                    }
+
+                    // drop varname and go back to typename
+                    state.UndoLastWord();
+                    string type = state.LastWord;
+
+                    // Dynarray brackets may be met in typename in following cases:
+                    // - attribute returning dynamic array (attribute type[] name)
+                    if (type == "[]")
+                    {
+                        int dims = RevertAllArrayDimensions(state);
+                        type = state.LastWord;
+                        // it's appended to a type
+                        if (isAttribute)
+                        {
+                            // attribute returning dynamic array
+                            isArray = true;
+                            isDynamicArray = true;
+                            arrayDims = dims;
+                        }
+                        else
+                        {
+                            // bad syntax?
                         }
                     }
 
                     if (type == "*")
                     {
                         isPointer = true;
-                        typeWordIndex++;
-                        type = state[typeWordIndex];
+                        state.UndoLastWord();
+                        type = state.LastWord;
                     }
                     if (state.IsWordInList("static"))
                     {
@@ -716,8 +744,7 @@ namespace AGS.Editor
                     // ignore "struct GUI;" prototypes
                     if (type != "struct")
                     {
-                        //if (varName == "{") System.Diagnostics.Debugger.Break();
-                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isDynamicArray, isPointer, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, isReadonly, state.CurrentScriptCharacterIndex);
+                        ScriptVariable newVar = new ScriptVariable(varName, type, isArray, isDynamicArray, isPointer, arrayDims, state.InsideIfDefBlock, state.InsideIfNDefBlock, isStatic, isStaticOnly, isNoInherit, isProtected, isReadonly, state.CurrentScriptCharacterIndex);
 
                         if (!string.IsNullOrEmpty(state.PreviousComment))
                         {
@@ -832,11 +859,21 @@ namespace AGS.Editor
                 }
                 int index = param.Length - 1;
 
+                // TODO: merge this with global variable parsing for autocomplete!
+                // FIXME: multidimensional dynamic arrays
                 bool isDynamicArray = false;
+                int arrayDims = 0;
                 if (index >= 0 && param[index] == ']')
                 {
                     isDynamicArray = true;
-                    while (index >= 0 && param[index--] != '[');
+                    // Register multiple array dimensions
+                    do
+                    {
+                        arrayDims++;
+                        while (index >= 0 && param[index--] != '[') ;
+                    }
+                    while (param[index] == ']');
+
                     param = param.Substring(0, index + 1).Trim();
                 }
 
@@ -856,7 +893,8 @@ namespace AGS.Editor
                 }
                 if ((paramName.Length > 0) && (paramType.Length > 0))
                 {
-                    variables.Add(new ScriptVariable(paramName.ToString(), paramType.ToString(), false, isDynamicArray, isPointer, null, null, false, false, false, false, false, func.StartsAtCharacterIndex));
+                    variables.Add(new ScriptVariable(paramName.ToString(), paramType.ToString(), isDynamicArray /* dyn array == array */,
+                        isDynamicArray, isPointer, arrayDims, null, null, false, false, false, false, false, func.StartsAtCharacterIndex));
                 }
             }
             return;
@@ -864,6 +902,7 @@ namespace AGS.Editor
 
         private static void GetLocalVariableDeclarationsFromScriptExtract(string scriptToParse, int relativeCharacterIndex, List<ScriptVariable> variables)
         {
+            // TODO: merge this with global variable parsing for autocomplete!
             FastString script = scriptToParse;
             string lastWord = string.Empty;
             while (script.Length > 0)
@@ -892,20 +931,25 @@ namespace AGS.Editor
                         nextWord = GetNextWord(ref script);
                         bool isArray = false;
                         bool isDynamicArray = false;
-                        if (nextWord == "[") 
+                        int arrayDims = 0;
+                        if (nextWord == "[")
                         {
                             isArray = true;
                             if (PeekNextWord(script) == "]")
                                 isDynamicArray = true;
 
-                            while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
-							nextWord = GetNextWord(ref script);
+                            while (nextWord == "[")
+                            {
+                                arrayDims++;
+                                SkipUntilMatchingClosingBrace(ref script, '[', ']');
+                                nextWord = GetNextWord(ref script);
+                            }
                         }
 
                         if (((nextWord == "=") || (nextWord == ";") || (nextWord == ",")) &&
                             (lastWord != "return") && (lastWord != "else"))
                         {
-							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isDynamicArray, isPointer, null, null, false, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
+                            variables.Add(new ScriptVariable(variableName, lastWord, isArray, isDynamicArray, isPointer, arrayDims, null, null, false, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
                         }
                         if (nextWord != ",")
                         {

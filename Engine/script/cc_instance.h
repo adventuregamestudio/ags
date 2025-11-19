@@ -100,8 +100,6 @@ struct ScriptVariable
     RuntimeScriptValue  RValue;
 };
 
-struct FunctionCallStack;
-
 struct ScriptPosition
 {
     ScriptPosition()
@@ -234,10 +232,6 @@ private:
     // Return stack ptr at given offset from stack tail;
     // Offset is in data bytes; program stack ptr is __not__ changed
     RuntimeScriptValue GetStackPtrOffsetRw(int32_t rw_offset);
-
-    // Function call stack processing
-    void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
-    void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
     // Script execution debug log.
 #if (DEBUG_CC_EXEC)

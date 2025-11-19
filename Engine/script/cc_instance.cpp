@@ -14,6 +14,7 @@
 #include "script/cc_instance.h"
 #include <cstdio>
 #include <deque>
+#include <vector>
 #include <string.h>
 #include "ac/common.h"
 #include "ac/sys_events.h"
@@ -168,30 +169,43 @@ String cc_get_callstack(int max_lines)
 }
 
 
-// Function call stack is used to temporarily store
-// values before passing them to script function
-#define MAX_FUNC_PARAMS 20
-// An inverted parameter stack
+// An inverted parameter stack, internally implemented as a vector,
+// to let us pass a pointer to the parameter sequence.
+// TODO: reorganize this as a generic container in utils.
 struct FunctionCallStack
 {
-    FunctionCallStack()
+    FunctionCallStack(size_t initial_count = 16)
     {
-        Head = MAX_FUNC_PARAMS - 1;
-        Count = 0;
+        initial_count = std::max(1u, initial_count);
+        _entries.resize(initial_count);
+        _head = _entries.data() + initial_count;
     }
 
-    inline RuntimeScriptValue *GetHead()
+    inline RuntimeScriptValue *GetHead() { return _head; }
+    inline const RuntimeScriptValue *GetHead() const { return _head; }
+    inline size_t GetSize() const { return _entries.data() + _entries.size() - _head; }
+
+    inline void Push(const RuntimeScriptValue &value)
     {
-        return &Entries[Head];
-    }
-    inline RuntimeScriptValue *GetTail()
-    {
-        return &Entries[Head + Count];
+        if (_head == _entries.data())
+        {
+            std::vector<RuntimeScriptValue> expansion(_entries.size() * 2);
+            std::copy(_entries.begin(), _entries.begin() + _entries.size(), expansion.begin() + _entries.size());
+            _entries = std::move(expansion);
+            _head = _entries.data() + _entries.size() / 2;
+        }
+        *(--_head) = value;
     }
 
-    RuntimeScriptValue  Entries[MAX_FUNC_PARAMS + 1];
-    int                 Head;
-    int                 Count;
+    inline void PopCount(size_t count)
+    {
+        count = std::min(count, static_cast<size_t>(_entries.data() + _entries.size() - _head));
+        _head += count;
+    }
+
+private:
+    std::vector<RuntimeScriptValue> _entries;
+    RuntimeScriptValue *_head = nullptr;
 };
 
 
@@ -595,7 +609,7 @@ ccInstError ccInstance::Run(int32_t curpc)
     funcstart[0] = _pc;
     ccInstance *codeInst = _runningInst;
     ScriptOperation codeOp;
-    FunctionCallStack func_callstack;
+    FunctionCallStack func_callstack(16);
 #if DEBUG_CC_EXEC
     const bool dump_opcodes = ccGetOption(SCOPT_DEBUGRUN) != 0;
 #endif
@@ -1252,14 +1266,14 @@ ccInstError ccInstance::Run(int32_t curpc)
 
             // If there are nested CALLAS calls, the stack might
             // contain 2 calls worth of parameters, so only
-            // push args for this call
+            // push args for this call (??? - CHECKME)
             if (num_args_to_func < 0)
             {
-                num_args_to_func = func_callstack.Count;
+                num_args_to_func = func_callstack.GetSize();
             }
             ASSERT_STACK_SPACE_VALS(num_args_to_func + 1 /* return address */);
             for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-                prval > func_callstack.GetHead(); --prval)
+                --prval >= func_callstack.GetHead();)
             {
                 PushValueToStack(*prval);
             }
@@ -1295,7 +1309,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             next_call_needs_object = 0;
 
             _pc = oldpc;
-            was_just_callas = func_callstack.Count;
+            was_just_callas = func_callstack.GetSize();
             num_args_to_func = -1;
             POP_CALL_STACK();
             break;
@@ -1308,12 +1322,12 @@ ccInstError ccInstance::Run(int32_t curpc)
             was_just_callas = -1;
             if (num_args_to_func < 0)
             {
-                num_args_to_func = func_callstack.Count;
+                num_args_to_func = func_callstack.GetSize();
             }
 
             // Convert pointer arguments to simple types
             for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-                prval > func_callstack.GetHead(); --prval)
+                --prval >= func_callstack.GetHead();)
             {
                 prval->DirectPtr();
             }
@@ -1326,11 +1340,11 @@ ccInstError ccInstance::Run(int32_t curpc)
                 {
                     RuntimeScriptValue obj_rval = _registers[SREG_OP];
                     obj_rval.DirectPtrObj();
-                    return_value = CallPluginFunction(reg1.Ptr, &obj_rval, func_callstack.GetHead() + 1, num_args_to_func);
+                    return_value = CallPluginFunction(reg1.Ptr, &obj_rval, func_callstack.GetHead(), num_args_to_func);
                 }
                 else
                 {
-                    return_value = CallPluginFunction(reg1.Ptr, nullptr, func_callstack.GetHead() + 1, num_args_to_func);
+                    return_value = CallPluginFunction(reg1.Ptr, nullptr, func_callstack.GetHead(), num_args_to_func);
                 }
             }
             else if (next_call_needs_object)
@@ -1340,7 +1354,7 @@ ccInstError ccInstance::Run(int32_t curpc)
                 {
                     RuntimeScriptValue obj_rval = _registers[SREG_OP];
                     obj_rval.DirectPtrObj();
-                    return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead() + 1, num_args_to_func);
+                    return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead(), num_args_to_func);
                 }
                 else
                 {
@@ -1349,7 +1363,7 @@ ccInstError ccInstance::Run(int32_t curpc)
             }
             else if (reg1.Type == kScValStaticFunction)
             {
-                return_value = reg1.SPfn(func_callstack.GetHead() + 1, num_args_to_func);
+                return_value = reg1.SPfn(func_callstack.GetHead(), num_args_to_func);
             }
             else if (reg1.Type == kScValObjectFunction)
             {
@@ -1373,13 +1387,22 @@ ccInstError ccInstance::Run(int32_t curpc)
         case SCMD_PUSHREAL:
         {
             const auto &reg1 = _registers[codeOp.Arg1i()];
-            PushToFuncCallStack(func_callstack, reg1);
+            func_callstack.Push(reg1);
             break;
         }
         case SCMD_SUBREALSTACK:
         {
+            // Drop arg_lit entries from the func_callstack
+            // TODO: cannot we just clear the func_callstack right after using it in call op?
+            // it does not seem like these values are needed for anything else.
             const auto arg_lit = codeOp.Arg1i();
-            PopFromFuncCallStack(func_callstack, arg_lit);
+            if (func_callstack.GetSize() < static_cast<uint32_t>(arg_lit))
+            {
+                cc_error("function callstack underflow");
+                return kInstErr_Generic;
+            }
+            func_callstack.PopCount(arg_lit);
+
             if (was_just_callas >= 0)
             {
                 ASSERT_STACK_SIZE(arg_lit);
@@ -2137,7 +2160,8 @@ void ccInstance::CopyGlobalData(const std::vector<uint8_t> &data)
     std::copy(data.begin(), data.begin() + copy_sz, _scriptData->globaldata.begin());
 }
 
-RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object, const RuntimeScriptValue *params, int param_count)
+RuntimeScriptValue ccInstance::CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object,
+    const RuntimeScriptValue *params, int param_count)
 {
     assert(fn_addr);
     assert(param_count == 0 || params);
@@ -2328,31 +2352,6 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(const int32_t rw_offset)
     CC_ERROR_IF_RETVAL((total_off > rw_offset) && (stack_entry->Type != kScValData), RuntimeScriptValue,
         "stack offset backward: trying to access stack data inside stack entry, stack corrupted?")
     return stack_ptr;
-}
-
-void ccInstance::PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval)
-{
-    if (func_callstack.Count >= MAX_FUNC_PARAMS)
-    {
-        cc_error("function callstack overflow");
-        return;
-    }
-
-    func_callstack.Entries[func_callstack.Head] = rval;
-    func_callstack.Head--;
-    func_callstack.Count++;
-}
-
-void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries)
-{
-    if (func_callstack.Count == 0)
-    {
-        cc_error("function callstack underflow");
-        return;
-    }
-
-    func_callstack.Head += num_entries;
-    func_callstack.Count -= num_entries;
 }
 
 //-----------------------------------------------------------------------------

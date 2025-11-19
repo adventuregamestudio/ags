@@ -40,7 +40,7 @@ struct SymbolDef {
     int16_t  sscope;  // or num arguments for function
     int32_t  arrsize;
     // return value is at index 0, actual args begin with 1
-    FuncParamInfo funcparams[MAX_FUNCTION_PARAMETERS + 1];
+    std::vector<FuncParamInfo> funcparams;
 };
 
 #endif // __CC_SYMBOLDEF_H

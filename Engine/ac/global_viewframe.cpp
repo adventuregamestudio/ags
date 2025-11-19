@@ -34,7 +34,7 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     }
     else
     {
-        ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
+        const ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
         if (clip == nullptr)
             quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 

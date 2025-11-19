@@ -56,7 +56,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     if ((vol < 1) || (vol > 255))
         quit("!PlayAmbientSound: volume must be 1 to 255");
 
-    ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, sndnum);
+    const ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, sndnum);
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return;
 
@@ -122,7 +122,7 @@ int PlaySoundEx(int val1, int channel) {
     if (debug_flags & DBG_NOSFX)
         return -1;
 
-    ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, val1);
+    const ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, val1);
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return -1; // if sound is off, ignore it
 
@@ -446,13 +446,6 @@ int IsMusicVoxAvailable () {
 
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
-ScriptAudioChannel *PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
-{
-    if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sndid, as_speech))
-        return NULL;
-    return &scrAudioChannel[SCHAN_SPEECH];
-}
-
 // Construct an asset name for the voice-over clip for the given character and cue id
 static String get_cue_filename(int charid, int sndid, bool old_style)
 {
@@ -477,15 +470,11 @@ static String get_cue_filename(int charid, int sndid, bool old_style)
     return Path::ConcatPaths(get_voice_assetpath(), asset_filename);
 }
 
-// Play voice-over clip on the common channel;
-// voice_name should be bare clip name without extension
-static bool play_voice_clip_on_channel(const String &voice_name)
+static AssetPath find_voice_clip(const String &voice_name)
 {
-    stop_and_destroy_channel(SCHAN_SPEECH);
-
     // TODO: perhaps a better algorithm, allow any extension / sound format?
     // e.g. make a hashmap matching a voice name to a asset name
-    std::array<const char*, 3> exts = {{ "mp3", "ogg", "wav" }};
+    std::array<const char *, 3> exts = { { "mp3", "ogg", "wav" } };
     AssetPath apath = get_voice_over_assetpath(voice_name);
     bool found = false;
     for (auto *ext : exts)
@@ -498,8 +487,21 @@ static bool play_voice_clip_on_channel(const String &voice_name)
 
     if (!found) {
         debug_script_warn("Speech file not found: '%s'", voice_name.GetCStr());
-        return false;
+        return AssetPath();
     }
+
+    return apath;
+}
+
+// Play voice-over clip on the common channel;
+// voice_name should be bare clip name without extension
+static bool play_voice_clip_on_channel(const String &voice_name)
+{
+    stop_and_destroy_channel(SCHAN_SPEECH);
+
+    AssetPath apath = find_voice_clip(voice_name);
+    if (!apath)
+        return false;
 
     std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
     if (voice_clip != nullptr) {
@@ -590,14 +592,32 @@ bool play_voice_speech(int charid, int sndid)
 bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
 {
     // don't play voice if we're skipping a cutscene
-    if (!play.ShouldPlayVoiceSpeech())
+    if (!play.ShouldPlayVoiceSpeechNonBlocking())
         return false;
     // don't play voice if there's a blocking speech with voice-over already
-    if (play.IsBlockingVoiceSpeech())
+    if (as_speech && play.IsBlockingVoiceSpeech())
         return false;
 
     String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
     return play_voice_clip_impl(voice_file, as_speech, false);
+}
+
+const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int type, int chan, int priority, int repeat)
+{
+    // don't play voice if we're skipping a cutscene
+    if (!play.ShouldPlayVoiceSpeechNonBlocking())
+        return nullptr;
+
+    String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
+    AssetPath apath = find_voice_clip(voice_file);
+    if (!apath)
+        return nullptr;
+
+    ScriptAudioClip sc_clip; // pass temp dummy clip
+    sc_clip.fileName = apath.Name;
+    sc_clip.fileType = ScriptAudioClip::GetAudioFileTypeFromExt(Path::GetFileExtension(apath.Name).GetCStr());
+    sc_clip.bundlingType = kAudioBundle_SpeechVox;
+    return play_audio_clip(AudioPlayback(&sc_clip, type), chan, priority, repeat, 0, false);
 }
 
 void stop_voice_speech()

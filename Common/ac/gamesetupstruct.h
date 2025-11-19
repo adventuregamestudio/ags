@@ -163,6 +163,6 @@ void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss);
 #endif // OBSOLETE
 
 // Finds an audio clip using legacy convention index
-ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num);
+const ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num);
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCT_H

@@ -44,7 +44,7 @@ void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
     }
 }
 
-ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
+const ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
 {
     String clip_name;
     if (is_music)

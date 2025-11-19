@@ -468,6 +468,7 @@ enum AudioSvgVersion
     kAudioSvgVersion_36009    = 2, // up number of channels
     kAudioSvgVersion_36130    = 3060130, // playback state
     kAudioSvgVersion_36215    = 3060215, // clips referenced by filename
+    kAudioSvgVersion_36303    = 3060303, // explicit audio type
 };
 
 HSaveError WriteAudio(Stream *out)
@@ -512,8 +513,8 @@ HSaveError WriteAudio(Stream *out)
             if (ch->is_paused())
                 playback_flags |= kSvgAudioPaused;
             out->WriteInt32(playback_flags);
-            out->WriteInt32(0); // reserved 3 ints
-            out->WriteInt32(0);
+            out->WriteInt32(ch->sourceClipType);
+            out->WriteInt32(0); // reserved
             out->WriteInt32(0);
         }
         else
@@ -605,9 +606,12 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
             if (cmp_ver >= kAudioSvgVersion_36130)
             {
                 chan_info.Flags = in->ReadInt32();
-                in->ReadInt32(); // reserved 3 ints
+                int audio_type = in->ReadInt32();
+                in->ReadInt32(); // reserved
                 in->ReadInt32();
-                in->ReadInt32();
+
+                // Because 0 is also a valid audiotype index, check the save version explicitly
+                chan_info.AudioType = (cmp_ver >= kAudioSvgVersion_36303) ? audio_type : AUDIOTYPE_UNDEFINED;
             }
         }
     }
@@ -1771,7 +1775,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        kAudioSvgVersion_36215,
+        kAudioSvgVersion_36303,
         kAudioSvgVersion_Initial,
         kSaveCmp_Audio,
         WriteAudio,

@@ -2420,8 +2420,10 @@ builtin managed struct DateTime {
   readonly import attribute int Minute;
   /// Gets the Second (0-59) component of the time.
   readonly import attribute int Second;
-  /// Gets the Milliseconds (0-999) component of the time.
-  readonly import attribute int Milliseconds;
+#ifdef SCRIPT_API_v363
+  /// Gets the Millisecond (0-999) component of the time.
+  readonly import attribute int Millisecond;
+#endif // SCRIPT_API_v363
   /// Gets the raw time value (in seconds), useful for calculating elapsed time periods.
   readonly import attribute int RawTime;
 };

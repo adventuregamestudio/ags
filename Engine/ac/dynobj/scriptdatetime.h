@@ -50,7 +50,7 @@ public:
     inline int Hour() const { return _hour; }
     inline int Minute() const { return _minute; }
     inline int Second() const { return _second; }
-    inline int Milliseconds() const { return _msSinceSecond; }
+    inline int Millisecond() const { return _msSinceSecond; }
 
 private:
     int _year = 0, _month = 0, _day = 0;

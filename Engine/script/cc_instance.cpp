@@ -176,7 +176,7 @@ struct FunctionCallStack
 {
     FunctionCallStack(size_t initial_count = 16)
     {
-        initial_count = std::max(1u, initial_count);
+        initial_count = std::max<size_t>(1u, initial_count);
         _entries.resize(initial_count);
         _head = _entries.data() + initial_count;
     }

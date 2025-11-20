@@ -50,10 +50,12 @@ public:
     inline int Hour() const { return _hour; }
     inline int Minute() const { return _minute; }
     inline int Second() const { return _second; }
+    inline int Milliseconds() const { return _msSinceSecond; }
 
 private:
     int _year = 0, _month = 0, _day = 0;
     int _hour = 0, _minute = 0, _second = 0;
+    int _msSinceSecond = 0;
     int _rawtime = -1;
 
     void SetTime(const ClockTimePoint &time);

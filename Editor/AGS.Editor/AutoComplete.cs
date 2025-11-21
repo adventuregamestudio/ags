@@ -214,11 +214,11 @@ namespace AGS.Editor
                     else if (state.PreviousWord == "extends")
                     {
                         // inherited struct
-                        foreach (ScriptStruct baseStruct in structsLookup)
+                        foreach (ScriptStruct parentStruct in structsLookup)
                         {
-                            if (baseStruct.Name == state.LastWord)
+                            if (parentStruct.Name == state.LastWord)
                             {
-                                state.InsideStructDefinition = CreateInheritedStruct(baseStruct, state);
+                                state.InsideStructDefinition = CreateInheritedStruct(parentStruct, state);
                                 functions = state.InsideStructDefinition.Functions;
                                 variables = state.InsideStructDefinition.Variables;
                                 break;
@@ -227,7 +227,7 @@ namespace AGS.Editor
                     }
                     else if (state.PreviousWord == "struct")
                     {
-                        state.InsideStructDefinition = new ScriptStruct(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
+                        state.InsideStructDefinition = new ScriptStruct(state.LastWord, string.Empty, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
                         functions = state.InsideStructDefinition.Functions;
                         variables = state.InsideStructDefinition.Variables;
                     }
@@ -262,6 +262,10 @@ namespace AGS.Editor
                         // imported script's cache. The struct defs may be duplicated this
                         // way, but that's mostly fine, as these may be merged together;
                         // e.g. see ScintillaWrapper.GetAllStructsWithMatchingName().
+                        //
+                        // TODO: it's been a while since the above comment was added,
+                        // reinvestigate, explain the reasons, and find if it's possible to
+                        // improve this situation.
                         AdjustFunctionListForExtenderFunction(structs, ref functionList, ref newStruct, ref script);
                         if (newStruct != null)
                         {
@@ -434,7 +438,7 @@ namespace AGS.Editor
 
         private static ScriptStruct CreateInheritedStruct(ScriptStruct baseStruct, AutoCompleteParserState state)
         {
-            ScriptStruct newStruct = new ScriptStruct(state.PreviousWord2, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
+            ScriptStruct newStruct = new ScriptStruct(state.PreviousWord2, baseStruct.Name, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
             foreach (ScriptFunction func in baseStruct.Functions)
             {
                 if (!func.NoInherit)

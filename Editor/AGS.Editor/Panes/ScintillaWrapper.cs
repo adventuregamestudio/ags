@@ -2371,7 +2371,9 @@ namespace AGS.Editor
             }
             foreach (ScriptStruct ss in script.AutoCompleteData.Structs)
             {
-                if ((ShouldShowThis(ss, defines)) && (ss.FullDefinition))
+                // Display only basic types that have full definition AND are not derived types,
+                // i.e. not dynamic arrays of T or pointer to T.
+                if ((ShouldShowThis(ss, defines)) && (ss.FullDefinition) && (string.IsNullOrEmpty(ss.BaseType)))
                 {
                     globalsList.Add(ss.Name + "?" + IMAGE_INDEX_STRUCT);
                 }

@@ -1779,8 +1779,26 @@ namespace AGS.Editor
 
             if (foundType != null)
             {
-                ShowAutoComplete(charactersAfterDot.Length, ConstructScintillaAutocompleteList(GetAllStructsWithMatchingName(foundType.Name), staticAccess, isThis, null));
+                // NOTE: we display members not just for 1 struct, but for all registered structs
+                // with the matching names, because of how local script's extender functions are registered:
+                // they are gathered separately into a locally declared struct, which may duplicate existing global struct.
+                var allStructs = GetAllStructs();
+                var forStructs = GetAllStructsWithMatchingName(foundType.Name);
+                ShowAutoComplete(charactersAfterDot.Length, ConstructScintillaAutocompleteList(forStructs, allStructs, staticAccess, isThis, null));
             }
+        }
+
+        private List<ScriptStruct> GetAllStructs()
+        {
+            List<ScriptStruct> allTypes = new List<ScriptStruct>();
+            foreach (IScript script in GetAutoCompleteScriptList())
+            {
+                foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
+                {
+                    allTypes.Add(structDef);
+                }
+            }
+            return allTypes;
         }
 
         private List<ScriptStruct> GetAllStructsWithMatchingName(string structName)
@@ -1972,7 +1990,7 @@ namespace AGS.Editor
                     {
                         needMatch = null;
                     }
-                    ShowAutoComplete(previousWord.Length, ConstructScintillaAutocompleteList(null, false, false, needMatch));
+                    ShowAutoComplete(previousWord.Length, ConstructScintillaAutocompleteList(null, null, false, false, needMatch));
                 }
             }
         }
@@ -2388,17 +2406,22 @@ namespace AGS.Editor
             }
         }
 
-        private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, bool staticOnly, bool isThis)
+        private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool addStatic, bool extenderOnly, bool isThis)
         {
             Dictionary<string, object> alreadyAdded = new Dictionary<string, object>();
+            AddMembersOfStruct(autoCompleteList, alreadyAdded, scriptStructs, allStructsRef, addStatic, extenderOnly, isThis);
+        }
 
+        private void AddMembersOfStruct(List<string> autoCompleteList, Dictionary<string, object> alreadyAdded,
+            List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool addStatic, bool extenderOnly, bool isThis)
+        {
             foreach (ScriptStruct scriptStruct in scriptStructs)
             {
                 foreach (ScriptFunction sf in scriptStruct.Functions)
                 {
-                    if (((sf.IsStatic) || (!staticOnly)) &&
-                        ((!sf.IsStaticOnly) || (staticOnly)) &&
-                        ((!sf.IsProtected) || (isThis)) &&
+                    if (((addStatic && sf.IsStatic) || (!addStatic && !sf.IsStatic)) &&
+                        (!extenderOnly || sf.IsExtenderMethod) &&
+                        (isThis || !sf.IsProtected) &&
                         ShouldShowThis(sf, null) &&
                         !alreadyAdded.ContainsKey(sf.FunctionName))
                     {
@@ -2417,12 +2440,24 @@ namespace AGS.Editor
                 }
                 foreach (ScriptVariable sv in scriptStruct.Variables)
                 {
-                    if (((sv.IsStatic) || (!staticOnly)) &&
-                        ((!sv.IsStaticOnly) || (staticOnly)) &&
-                        ((!sv.IsProtected) || (isThis)) &&
+                    if (((addStatic && sv.IsStatic) || (!addStatic && !sv.IsStatic)) &&
+                        // TODO: support extender attributes here
+                        (!extenderOnly) && // variables cannot be extenders
+                        (isThis || !sv.IsProtected) &&
                         ShouldShowThis(sv, null))
                     {
                         autoCompleteList.Add(sv.VariableName + "?" + (sv.IsStatic ? IMAGE_INDEX_STATIC_PROPERTY : IMAGE_INDEX_PROPERTY));
+                    }
+                }
+
+                // Add extenders of parent types separately, because they are not listed
+                // as child type members when parsing the script.
+                if (!string.IsNullOrEmpty(scriptStruct.ParentType))
+                {
+                    var parentStructs = allStructsRef.FindAll((s) => { return s.Name == scriptStruct.ParentType; });
+                    if (parentStructs.Count > 0)
+                    {
+                        AddMembersOfStruct(autoCompleteList, alreadyAdded, parentStructs, allStructsRef, addStatic, true, isThis);
                     }
                 }
             }
@@ -2512,13 +2547,13 @@ namespace AGS.Editor
             return null;
         }
 
-        private string ConstructScintillaAutocompleteList(List<ScriptStruct> onlyMembersOf, bool staticOnly, bool isThis, string onlyIfMatchForThis)
+        private string ConstructScintillaAutocompleteList(List<ScriptStruct> onlyMembersOf, List<ScriptStruct> allStructsRef, bool staticOnly, bool isThis, string onlyIfMatchForThis)
         {
             List<string> globalsList = new List<string>();
 
             if (onlyMembersOf != null)
             {
-                AddMembersOfStruct(globalsList, onlyMembersOf, staticOnly, isThis);
+                AddMembersOfStruct(globalsList, onlyMembersOf, allStructsRef, staticOnly, false, isThis);
             }
             else
             {

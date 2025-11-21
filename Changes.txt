@@ -9,6 +9,10 @@ Editor:
  - In Default Setup added "Compress saves" option, enabled by default.
  - For the Fonts added CharacterSpacing property that lets define additional spacing between each
    pair of characters.
+ - Moved "TTF fonts height used in the game logic" setting from General Settings to Font, renaming
+   to "Logical height". Added "Logical height value" property for Font. These settings let setup
+   which "height" value each Font will use in game whenever a height is requested by the engine
+   or script. The primary purpose of these is fixing incorrectly designed fonts.
  - In Project Explorer added context menu command "Go to X" for each applicable item type, which
    lets to find an item by its numeric ID.
  - Redesigned Font Preview panel. Now the table of glyphs display all the characters present in the
@@ -18,6 +22,9 @@ Editor:
  - In View Editor added context menu commands for copying, cutting and pasting individual frames
    and frame ranges; commands for reversing a range of frames, and reversing loop.
 
+Compiler:
+ - Removed hard limit of script function parameters.
+
 Script API:
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
@@ -26,6 +33,9 @@ Script API:
    they are not initialized, and engine should go for a default fallback value instead.
  - Added GameInfo struct that contains meta-information about the game, such as developer's name,
    developer's URL, version, and so forth.
+ - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
+   channels.
+ - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
  - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
  - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsFont, OptionsGap,
    OptionsGUI, OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth,
@@ -39,15 +49,28 @@ Script API:
    on screen (only returns overlay when the options are displayed).
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
    (turned off, turned off forever) is disregarded in this case.
+ - Added Game.InBlockingAction, BlockingWaitCounter and BlockingWaitSkipType properties.
+ - Game.InBlockingWait now returns positive only when inside a Wait*() function call, not any
+   blocking action (this is what InBlockingAction is for now).
  - Added Game.Speed property. Get/SetGameSpeed function is deprecated.
+ - Added Game.TickCounter property that tells the number of a logical game tick (update).
+ - Added Game.PlayVoiceClipAsType() which lets to play voice-over clips using arbitrary type's
+   rules and channels. As an effect this also lets play multiple voice-overs at once.
+ - Added Overlay.Visible property.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added System.FPS that lets read current real fps.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
    LeftGraphic, RightGraphic, and so forth.
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
+ - Added "resultValue" parameter to the SkipWait() function. This lets to define a value that
+   will be returned from Wait*() functions or by Game.BlockingWaitSkipped property.
+ - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
+   buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
+   interface is disabled.
 
 Engine:
+ - Support (theoretically) unlimited number of script function parameters.
  - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
    in "misc" section, enabled by default.
  - Always compress a screenshot in game save using Deflate algorithm.
@@ -70,6 +93,7 @@ Compatibility:
    render all colored (no sprite) child controls as fully transparent; and do not render
    the GUI's own background and border color too in that case.
  - Allow a non-closed label macro (such as "@overhotspot") in pre-3.5.1 games.
+ - More thorough simulation of pre-3.6.0 Wait behavior, with edge cases and accidental effects.
  - In pre-2.62 games Wait(0) should be treated as Wait(1).
  - Don't do infinite loop check in scripts in pre-2.56 games.
  - In pre-3.6.1 games with custom dialog options rendering force options redraw each time a 
@@ -92,6 +116,34 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 5, November 2025
+
+Editor:
+ - Fixed 8-bit sprite import with "Leave as-is" option when image file does not use a transparent
+   color. This resulted in regular color in slot 0 becoming a transparent instead.
+ - Fixed Callstack panel not getting cleared when the game is shutdown, and clicking on its items
+   could bring Editor into the wrong state.
+ - Fixed crash occuring under some conditions when the Editor is trying to display a tooltip with
+   the struct's member in script.
+ - Fixed Autocomplete not displaying members of dynamic array's elements (was displaying dynamic
+   array's "Length" property instead).
+ - Fixed Autocomplete mistakes related to multidimensional arrays declared in script. (Although
+   v3.* script compiler does not support multidimensional arrays, this fix prevents strange
+   results if user have these in script for some reason.)
+ - Fixed Autocomplete displaying generated types (dynamic array types), which it should not show
+   to the user.
+ - Fixed Autocomplete not displaying parent type's extender methods for child types.
+ - Fixed script tooltip displaying extra pair of brackets for dynamic array variables.
+
+Engine:
+ - Fixed Slider unexpectedly incremented MaxValue if it appears equal to MinValue.
+ - Fixed Character's speech text's behavior being modified by a non-blocking voice clip run by
+   a Game.PlayVoiceClip() call.
+ - Fixed Game.PlayVoiceClip() not supporting narrator's voice.
+ - Fixed voice clips played by Game.PlayVoiceClip() not resuming after restoring a save.
+   (This is an old mistake present since the PlayVoiceClip function was introduced.)
+
 
 VERSION 3.6.2 - Patch 4, October 2025
 

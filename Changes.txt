@@ -65,15 +65,15 @@ Script API:
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
  - Added "resultValue" parameter to the SkipWait() function. This lets to define a value that
    will be returned from Wait*() functions or by Game.BlockingWaitSkipped property.
- - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
-   buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
-   interface is disabled.
 
 Engine:
  - Support (theoretically) unlimited number of script function parameters.
  - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
    in "misc" section, enabled by default.
  - Always compress a screenshot in game save using Deflate algorithm.
+ - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
+   buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
+   interface is disabled.
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Standard Dialog options now support Right-to-left text mode.

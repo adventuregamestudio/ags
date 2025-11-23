@@ -67,6 +67,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_400     = 4000000, // blend mode, etc
     kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
     kOverSvgVersion_40018   = 4000018, // shaders
+    kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
 };
 
 class ScreenOverlay

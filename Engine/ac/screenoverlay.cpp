@@ -318,7 +318,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         has_bitmap = pic != 0;
     }
     
-    if (cmp_ver < kOverSvgVersion_36303)
+    if ((cmp_ver < kOverSvgVersion_36303) || ((cmp_ver >= kOverSvgVersion_400) && (cmp_ver < kOverSvgVersion_40024)))
     {
         _flags |= kOver_Visible;
     }

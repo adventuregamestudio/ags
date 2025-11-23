@@ -247,7 +247,7 @@ enum AnimatedOverlayFlags
 
 enum AnimOverlaySvgVersion
 {
-    kAnimOverSvgVersion_40023 = 4000023, // initial
+    kAnimOverSvgVersion_40024 = 4000024, // initial
 };
 
 struct ViewFrame;

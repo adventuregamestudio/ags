@@ -50,7 +50,7 @@
 Since then format value is defined as AGS version represented as NN,NN,NN,NN.
 v4.0.0: Raised for org purposes without format changes
 v4.0.0.17: Raised for org purposes, because forgot to rise each time a new ext was added
-v4.0.0.23: Remade events tables
+v4.0.0.24: Remade events tables
 */
 enum RoomFileVersion
 {
@@ -59,9 +59,9 @@ enum RoomFileVersion
     kRoomVersion_399        = 40,
     kRoomVersion_400        = 4000000,
     kRoomVersion_400_17     = 4000017,
-    kRoomVersion_400_23     = 4000023,
+    kRoomVersion_400_24     = 4000024,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_400_23
+    kRoomVersion_Current    = kRoomVersion_400_24
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

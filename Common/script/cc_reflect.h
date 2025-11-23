@@ -46,14 +46,6 @@
 //    size in a separate table or list, and where entries reference each other
 //    by a integer indexes.
 //
-//-----------------------------------------------------------------------------
-//
-// TODOs and FIXMEs:
-//
-// * Because of a design oversight, multi-dimensional arrays are not described
-//   correctly, there's no way to know number of dimensions, and therefore
-//   get an actual type of an element of a jagged array (dyn array of arrs).
-//
 //=============================================================================
 #ifndef __CC_REFLECT_H
 #define __CC_REFLECT_H

@@ -207,9 +207,9 @@ enum LocationType {
   eLocationHotspot = 1,
   eLocationCharacter = 2,
   eLocationObject = 3,
-#ifdef SCRIPT_API_v400_23
+#ifdef SCRIPT_API_v400_24
   eLocationInvItem = 4
-#endif // SCRIPT_API_v400_23
+#endif // SCRIPT_API_v400_24
 };
 
 enum CutsceneSkipType {
@@ -818,10 +818,10 @@ builtin managed struct ViewFrame {
   import attribute int XOffset;
   /// Gets/sets the relative y offset applied to this frame.
   import attribute int YOffset;
-#ifdef SCRIPT_API_v400_23
+#ifdef SCRIPT_API_v400_24
   /// Gets/sets the name of custom event associated with this frame.
   import attribute String EventName;
-#endif // SCRIPT_API_v400_23
+#endif // SCRIPT_API_v400_24
 };
 
 builtin managed struct DrawingSurface {
@@ -1363,7 +1363,7 @@ builtin managed struct Overlay {
 #endif // SCRIPT_API_v400_18
 };
 
-#ifdef SCRIPT_API_v400_23
+#ifdef SCRIPT_API_v400_24
 builtin managed struct AnimatedOverlay extends Overlay
 {
   /// Creates a AnimatedOverlay object on the screen layer, optionally using a initial sprite
@@ -1383,7 +1383,7 @@ builtin managed struct AnimatedOverlay extends Overlay
   /// Gets the current view number during an animation.
   import readonly attribute int  View;
 };
-#endif // SCRIPT_API_v400_23
+#endif // SCRIPT_API_v400_24
 
 #ifdef SCRIPT_API_v400
 enum ColorFormat
@@ -1673,10 +1673,10 @@ builtin managed struct Button extends GUIControl {
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
 #endif // SCRIPT_API_v360
-#ifdef SCRIPT_API_v400_23
+#ifdef SCRIPT_API_v400_24
   // Triggers custom frame event, if this frame has one, and runs registered event handler. Returns if this frame has an event.
   import bool RunFrameEvent(int view, int loop, int frame);
-#endif // #ifdef SCRIPT_API_v400_23
+#endif // #ifdef SCRIPT_API_v400_24
   /// Gets/sets whether the image is clipped to the size of the control.
   import attribute bool ClipImage;
   /// Gets/sets the font used to display text on the button.
@@ -2581,10 +2581,10 @@ builtin managed struct Object {
   /// Gets/sets the shader of this object.
   import attribute ShaderInstance* Shader;
 #endif // SCRIPT_API_v400_18
-#ifdef SCRIPT_API_v400_23
+#ifdef SCRIPT_API_v400_24
   // Triggers custom frame event, if this frame has one, and runs registered event handler. Returns if this frame has an event.
   import bool RunFrameEvent(int view, int loop, int frame);
-#endif // #ifdef SCRIPT_API_v400_23
+#endif // #ifdef SCRIPT_API_v400_24
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 
@@ -2828,10 +2828,10 @@ builtin managed struct Character {
   /// Moves the character along the path, ignoring walkable areas, automatically playing his walking animation.
   import void WalkPath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
 #endif // SCRIPT_API_v400
-#ifdef SCRIPT_API_v400_23
+#ifdef SCRIPT_API_v400_24
   // Triggers custom frame event, if this frame has one, and runs registered event handler. Returns if this frame has an event.
   import bool RunFrameEvent(int view, int loop, int frame);
-#endif // #ifdef SCRIPT_API_v400_23
+#endif // #ifdef SCRIPT_API_v400_24
   /// The character's current X-position.
   import attribute int  x;
   /// The character's current Y-position.

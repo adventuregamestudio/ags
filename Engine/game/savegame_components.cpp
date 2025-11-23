@@ -1075,7 +1075,7 @@ enum ViewSvgVersion
 {
     kViewSvgVersion_Initial = 0,
     kViewSvgVersion_4000018 = 4000018, // view frame offsets
-    kViewSvgVersion_4000023 = 4000023, // view frame events
+    kViewSvgVersion_4000024 = 4000024, // view frame events
 };
 
 HSaveError WriteViews(Stream *out)
@@ -1099,7 +1099,7 @@ HSaveError WriteViews(Stream *out)
                 out->WriteInt16(vf.yoffs);
             }
 
-            // ---- kViewSvgVersion_4000023
+            // ---- kViewSvgVersion_4000024
             for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
             {
                 StrUtil::WriteCStr(views[view].loops[loop].frames[frame].event_name, out);
@@ -1148,7 +1148,7 @@ HSaveError ReadViews(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pre
                 }
             }
 
-            if (cmp_ver >= kViewSvgVersion_4000023)
+            if (cmp_ver >= kViewSvgVersion_4000024)
             {
                 for (uint32_t frame = 0; frame < frames_read; ++frame)
                 {
@@ -1655,7 +1655,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
 
     // modified room masks
     if (((cmp_ver >= kRoomStatSvgVersion_36214) && (cmp_ver < kRoomStatSvgVersion_400)) ||
-        (cmp_ver >= kRoomStatSvgVersion_40023))
+        (cmp_ver >= kRoomStatSvgVersion_40024))
     {
         for (int i = 0; i < kNumRoomAreaTypes; ++i)
         {
@@ -1870,7 +1870,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_400_23,
+        kGSSvgVersion_400_24,
         kGSSvgVersion_400,
         kSaveCmp_GameState,
         WriteGameState,
@@ -1933,7 +1933,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Views",
-        kViewSvgVersion_4000023,
+        kViewSvgVersion_4000024,
         kViewSvgVersion_Initial,
         kSaveCmp_Views,
         WriteViews,
@@ -1970,8 +1970,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "AnimatedOverlays",
-        kAnimOverSvgVersion_40023,
-        kAnimOverSvgVersion_40023,
+        kAnimOverSvgVersion_40024,
+        kAnimOverSvgVersion_40024,
         kSaveCmp_Overlays,
         WriteAnimOverlays,
         ReadAnimOverlays,
@@ -1997,7 +1997,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40023,
+        kRoomStatSvgVersion_40024,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -2006,7 +2006,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40023, // must correspond to "Room States"
+        kRoomStatSvgVersion_40024, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         kSaveCmp_ThisRoom,
         WriteThisRoom,

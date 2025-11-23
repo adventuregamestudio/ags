@@ -819,7 +819,7 @@ namespace AGS.Editor
 
         static void SerializeEventsTable(string scriptModule, string[] events, BinaryWriter writer)
         {
-            writer.Write((int)4000023); // kEventsTable_v400 version
+            writer.Write((int)4000024); // kEventsTable_v400 version
             FilePutString(scriptModule, writer);
             // String map
             writer.Write(events.Length);
@@ -831,7 +831,7 @@ namespace AGS.Editor
 
         static void SerializeEmptyEventsTable(BinaryWriter writer)
         {
-            writer.Write((int)4000023); // kEventsTable_v400 version
+            writer.Write((int)4000024); // kEventsTable_v400 version
             writer.Write((int)0); // empty ScriptModule string
             writer.Write((int)0); // empty strings map
         }
@@ -2213,7 +2213,7 @@ namespace AGS.Editor
             var scriptModuleProp = typeof(T).GetProperty("ScriptModule");
 
             // Events schema
-            writer.Write(4000023); // kEventsTable_v400 version
+            writer.Write(4000024); // kEventsTable_v400 version
             writer.Write(events.Count);
             foreach (var evt in events)
             {

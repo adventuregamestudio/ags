@@ -134,11 +134,11 @@ namespace AGS.Editor
          * 
          * XML_VERSION versions:
          * 4.00.00.20     - start using version string again.
-         * 4.00.00.23     - New event tables; Cursors have "create event" property.
+         * 4.00.00.24     - New event tables; Cursors have "create event" property.
          *                  ViewFrame.EventName, OnFrameEvent.
          *
         */
-        public const string LATEST_XML_VERSION = "4.0.0.23";
+        public const string LATEST_XML_VERSION = "4.0.0.24";
 
         /*
          * FIRST_XML_VERSION is the very first version of the Editor using XML project file.

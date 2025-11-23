@@ -1,6 +1,6 @@
 REVISION HISTORY
 ===================================================================================================
-AGS 4 - Early Alpha
+VERSION 4.0.0 - Alpha, November 2025
 
 Common:
  - Support true 32-bit colors in GUI, text messages and drawing commands in script.
@@ -40,12 +40,22 @@ Editor:
    using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
+ - Object and hotspot events are now visibly divided into common events and "cursor events".
+   Cursor events are no longer hardcoded, but generated following new Cursor settings.
+ - Added CreateEvent, EventLabel and EventFunctionName properties to Cursors. If CreateEvent is
+   set to true, then Editor will generate event for it, EventLabel is used as a "display name"
+   for such event, and EventFunctionName is used as a script function suffix.
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property for Characters, GUI and Room Objects.
  - Added Transparency property for GUIControls.
  - Added Flip property for View Frame, replacing a boolean Flipped property. The new property
    supports all 3 flip variants: horizontal, vertical and both at once.
+ - Added EventName property for ViewFrame, which is an arbitrary string value. This value does not
+   correspond to real script events, but is treated as a custom "event tag". The View Editor will
+   display a "lightning" icon idicating frames with "event names". At runtime, whenever any
+   animating object hits such frame, engine fires a special "OnFrameEvent" event for that object.
+ - Added OnFrameEvent event to Buttons, Characters and Room Objects.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property for AudioClips, for the reference.
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
@@ -78,7 +88,8 @@ Compiler:
 Scripting:
  - Managed structs may have constructors. Constructor is a member function which name is
    identical to the struct's name, and type is "void". Constructor will be called
-   automatically when the managed object is created with "new" command.
+   automatically when the managed object is created with "new" command, but cannot be called
+   directly (except if parent type's constructor is called from the child type's constructor).
  - Support for having regular structs inside any structs (regular or managed); there's
    no nesting limit.
  - Support having managed pointers inside managed structs.
@@ -135,6 +146,11 @@ Script API:
  - All existing Color properties now assume full ARGB values (0xAARRGGBB) in 32-bit games.
    This means that you *must* specify alpha value when assigning a color number directly,
    otherwise the game will treat the color as fully transparent.
+ - Added AnimatedOverlay struct, which is a child type of Overlay, which has Animate command,
+   and readonly properties which describe current animation, similar to other animateable objects
+   (View, Loop, Frame, etc). As Overlays have specific use cases in games (may be part of UI),
+   AnimateOverlay has additional parameter "PauseWithGame", which determines whether this overlay's
+   animation will be paused when the game is paused, or not.
  - Added Joystick struct, meant to handle joystics and gamepads in script.
  - Added ShaderProgram and ShaderInstance structs, meant for the custom shaders support.
  - Added Touch and TouchPointer structs, meant to handle touch controls in script.

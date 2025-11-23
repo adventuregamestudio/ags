@@ -56,6 +56,8 @@ Editor:
    display a "lightning" icon idicating frames with "event names". At runtime, whenever any
    animating object hits such frame, engine fires a special "OnFrameEvent" event for that object.
  - Added OnFrameEvent event to Buttons, Characters and Room Objects.
+ - Removed "Other click on" event from Inventory Items, as items have full range of cursor events
+   now, just like hotspots and objects.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property for AudioClips, for the reference.
  - Added "Source FontFile" property to Fonts, this property lets assign a Font File to the Font.
@@ -186,7 +188,8 @@ Script API:
  - Added Object.MovePath() and Object.GetPath() functions, that work similar to Character's.
  - Added Character.MotionPath and Object.MotionPath properties that let to get active character's
    or object's movement plan.
- - Expanded RepeatStyle with more animation flow styles: eOnceAndReset, eOnceAndBack and
+ - Expanded LocationType enum with eLocationInvItem.
+ - Expanded RepeatStyle enum with more animation flow styles: eOnceAndReset, eOnceAndBack and
    eRepeatAlternate. These styles are currently supported in Animate(), MovePath() and WalkPath()
    commands, and MotionPath struct.
  - Added ColorFormat enum, and optional "color_format" parameter to DynamicSprite's functions:
@@ -224,6 +227,8 @@ Script API:
    pointers respectively. From the user's perspective this is a mere formality, as working with
    these variables and arrays will be syntactically same, but this makes it easier for the engine
    to handle them and objects internally.
+ - "unhandled_event" script function now accepts LocationType and real cursor mode as parameters,
+   instead of arbitarily chosen indexes.
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().

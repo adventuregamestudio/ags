@@ -27,7 +27,6 @@
 #define MAX_QUEUED_MUSIC 10
 #define GLED_INTERACTION 1
 #define GLED_EFFECTS     2 
-#define MAX_AUDIO_TYPES  30
 
 // Common command arguments
 // HISTORICAL NOTE: These numbers were chosen arbitrarily -- the idea is

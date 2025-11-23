@@ -82,6 +82,7 @@ void ScriptDateTime::SetTime(const ClockTimePoint &time)
     }
 
     _rawtime = static_cast<int32_t>(rawtime);
+    _msSinceSecond = std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count() % 1000;
     _hour = newtime->tm_hour;
     _minute = newtime->tm_min;
     _second = newtime->tm_sec;
@@ -104,6 +105,8 @@ void ScriptDateTime::Serialize(const void* /*address*/, Stream *out)
     out->WriteInt32(_minute);
     out->WriteInt32(_second);
     out->WriteInt32(_rawtime);
+    // v3.6.3.3
+    out->WriteInt32(_msSinceSecond);
 }
 
 void ScriptDateTime::Unserialize(int index, Stream *in, size_t /*data_sz*/)
@@ -115,5 +118,7 @@ void ScriptDateTime::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     _minute = in->ReadInt32();
     _second = in->ReadInt32();
     _rawtime = in->ReadInt32();
+    // v3.6.3.3
+    _msSinceSecond = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }

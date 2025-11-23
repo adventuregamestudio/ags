@@ -1325,6 +1325,10 @@ builtin managed struct Overlay {
   /// Changes the size of the overlay.
   import void SetSize(int width, int height);
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets whether this Overlay is visible.
+  import attribute bool Visible;
+#endif // #ifdef SCRIPT_API_v363
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode of this overlay.
   import attribute BlendMode BlendMode;
@@ -1534,7 +1538,7 @@ import int  WaitMouseKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless the mouse is clicked.
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.
-import void SkipWait();
+import void SkipWait(int resultValue = 0);
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v36026
 /// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.
@@ -2243,7 +2247,11 @@ builtin managed struct DateTime {
   readonly import attribute int Minute;
   /// Gets the Second (0-59) component of the time.
   readonly import attribute int Second;
-  /// Gets the raw time value, useful for calculating elapsed time periods.
+#ifdef SCRIPT_API_v363
+  /// Gets the Millisecond (0-999) component of the time.
+  readonly import attribute int Millisecond;
+#endif // SCRIPT_API_v363
+  /// Gets the raw time value (in seconds), useful for calculating elapsed time periods.
   readonly import attribute int RawTime;
 };
 
@@ -2311,6 +2319,10 @@ builtin managed struct AudioChannel {
   /// Changes playback to continue from the specified position in milliseconds.
   import void SeekMs(int position);
 #endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v363
+  /// Gets which audio type current played clip is representing, or -1 if no clip is being played.
+  import readonly attribute AudioType PlayingType;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct AudioClip {
@@ -2327,13 +2339,17 @@ builtin managed struct AudioClip {
   /// Plays this audio clip, explicitly putting it on the particular channel.
   import AudioChannel* PlayOnChannel(int chan, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
 #endif // SCRIPT_API_v360
+#ifdef SCRIPT_API_v363
+  /// Plays this audio clip using certain AudioType settings, and optionally putting it on a particular channel.
+  import AudioChannel* PlayAsType(AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+#endif // SCRIPT_API_v363
   /// Stops all currently playing instances of this audio clip.
   import void Stop();
   /// Gets the file type of the sound.
   readonly import attribute AudioFileType FileType;
   /// Checks whether this audio file is available on the player's system.
   readonly import attribute bool IsAvailable;
-  /// Gets the type of audio that this clip contains.
+  /// Gets the audio type that this clip belongs to.
   readonly import attribute AudioType Type;
 #ifdef SCRIPT_API_v350
   /// Gets the clip's ID number.
@@ -2981,12 +2997,22 @@ builtin struct Game {
   import static int[]  GetSaveSlots(int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
   /// Prescans save slots from "min_slot" to "max_slot" and fills the compatible ones into the provided dynamic array.
   import static void   ScanSaveSlots(int valid_slots[], int min_slot, int max_slot, SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection, int user_param = 0);
-  /// Gets whether the game is currently in a blocking state, that is during a blocking action or a Wait() call.
+  /// Gets whether the game is currently running inside a Wait() call.
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Play speech voice-over in non-blocking mode, using certain AudioType settings, and optionally putting it on a particular channel.
+  import static AudioChannel* PlayVoiceClipAsType(Character*, int cue, AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Gets/sets game's running speed, in frames per second.
   import static attribute int Speed;
+  /// Gets number of game's ticks (updates) passed since the game start.
+  import static readonly attribute int TickCounter;
+  /// Gets whether the game is currently in a blocking state, that is during any blocking action or a Wait() call.
+  import static readonly attribute bool InBlockingAction;
+  /// Gets the current blocking wait's counter, telling how much time is remaining until the waiting ends.
+  import static readonly attribute int BlockingWaitCounter;
+  /// Gets the current blocking wait's skip type.
+  import static readonly attribute InputType BlockingWaitSkipType;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets the AGS Colour Number for the specified RGBA colour.

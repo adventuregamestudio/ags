@@ -946,9 +946,15 @@ String find_assetlib(const String &filename)
     return "";
 }
 
-AssetPath get_audio_clip_assetpath(int /*bundling_type*/, const String &filename)
-{ // NOTE: bundling_type is ignored now
-    return AssetPath(filename, "audio");
+AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
+{
+    switch (bundling_type)
+    {
+    case kAudioBundle_SpeechVox:
+        return AssetPath(filename, "voice");
+    default:
+        return AssetPath(filename, "audio");
+    }
 }
 
 AssetPath get_voice_over_assetpath(const String &filename)

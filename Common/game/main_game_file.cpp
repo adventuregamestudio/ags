@@ -361,6 +361,10 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     {
         game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
     }
+    if (data_ver < kGameVersion_362_12)
+    {
+        game.options[OPT_GAMEFPS] = 40; // default to 40 fps in the older games
+    }
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {
@@ -737,8 +741,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
                 static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
             // since kGameVersion_363
             finfo.CharacterSpacing = in->ReadInt32();
+            finfo.CustomHeight = in->ReadInt32();
             in->ReadInt32(); // reserved
-            in->ReadInt32();
             in->ReadInt32();
         }
     }

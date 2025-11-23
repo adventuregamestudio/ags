@@ -58,7 +58,7 @@ int TTFFontRenderer::GetTextHeight(const char * /*text*/, int fontNumber)
 {
   // Compatibility mode: if we required to return "nominal font height",
   // then ask alfont to return one the font was loaded with
-  if ((_fontData[fontNumber].Params.LoadMode & FFLG_REPORTNOMINALHEIGHT) != 0)
+  if ((_fontData[fontNumber].Params.LoadMode & FFLG_LOGICALNOMINALHEIGHT) != 0)
     return alfont_get_font_height(_fontData[fontNumber].AlFont);
   else
     return alfont_get_font_real_height(_fontData[fontNumber].AlFont);
@@ -127,7 +127,7 @@ static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
 {
     metrics->NominalHeight = alfont_get_font_height(alfptr);
     metrics->RealHeight = alfont_get_font_real_height(alfptr);
-    metrics->CompatHeight = metrics->NominalHeight; // just set to default here
+    metrics->LogicalHeight = metrics->NominalHeight; // just set to default here
     {
         Rect ttf_bbox;
         alfont_get_font_bbox(alfptr, &ttf_bbox.Left, &ttf_bbox.Top, &ttf_bbox.Right, &ttf_bbox.Bottom);

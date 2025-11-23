@@ -691,6 +691,10 @@ int float_to_int_raw(float toconv) {
 }
 
 int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
+    const int arg_idx = numparams % 100;
+    assert(static_cast<uint32_t>(funcsym) < sym.entries.size());
+    assert(static_cast<uint32_t>(arg_idx) < sym.entries[funcsym].funcparams.size());
+
     if (sym.get_type(targ.peeknext()) == SYM_ASSIGN) {
         const char *vartype = sym.get_name(targ.script[targ.pos - 2]);
         // parameter has default value
@@ -739,9 +743,8 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
             }
         }
 
-        sym.entries[funcsym].funcparams[numparams % 100].DefaultValue = defaultValue;
-        sym.entries[funcsym].funcparams[numparams % 100].HasDefaultValue = true;
-
+        sym.entries[funcsym].funcparams[arg_idx].DefaultValue = defaultValue;
+        sym.entries[funcsym].funcparams[arg_idx].HasDefaultValue = true;
     }
 
     return 0;
@@ -890,6 +893,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 
   sym.entries[funcsym].stype = SYM_FUNCTION;
   sym.entries[funcsym].ssize = varsize;  // save return type size
+  sym.entries[funcsym].funcparams.resize(1);
   sym.entries[funcsym].funcparams[0].Type = vtwas;  // return type
 
   if (is_const)
@@ -962,23 +966,21 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     }
     else if (next_type == SYM_VARTYPE) {
       // function parameter
-      if ((numparams % 100) >= MAX_FUNCTION_PARAMETERS) {
-        cc_error("too many parameters defined for function");
-        return -1;
-      }
       if (cursym == sym.normalVoidSym) {
         cc_error("'void' invalid type for function parameter");
         return -1;
       }
       int isPointerParam = 0;
       // save the parameter type (numparams starts from 1)
-      sym.entries[funcsym].funcparams[numparams % 100].Type = cursym;
-      sym.entries[funcsym].funcparams[numparams % 100].DefaultValue = 0;
-      sym.entries[funcsym].funcparams[numparams % 100].HasDefaultValue = false;
-      sym.entries[funcsym].funcparams[numparams % 100].Name = {};
+      const int arg_idx = numparams % 100;
+      sym.entries[funcsym].funcparams.resize(arg_idx + 1);
+      sym.entries[funcsym].funcparams[arg_idx].Type = cursym;
+      sym.entries[funcsym].funcparams[arg_idx].DefaultValue = 0;
+      sym.entries[funcsym].funcparams[arg_idx].HasDefaultValue = false;
+      sym.entries[funcsym].funcparams[arg_idx].Name = {};
 
       if (next_is_const)
-        sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_CONST;
+        sym.entries[funcsym].funcparams[arg_idx].Type |= STYPE_CONST;
 
       functype[strlen(functype)+1] = 0;
       functype[strlen(functype)] = (char)cursym;  // save variable type
@@ -986,7 +988,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         return -1;
       if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
         // pointer
-        sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_POINTER;
+        sym.entries[funcsym].funcparams[arg_idx].Type |= STYPE_POINTER;
         isPointerParam = 1;
         targ.getnext();
         if ((sym.entries[cursym].flags & SFLG_MANAGED) == 0) {
@@ -1001,7 +1003,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
 
       if (sym.entries[cursym].flags & SFLG_AUTOPTR) {
-        sym.entries[funcsym].funcparams[numparams % 100].Type |= STYPE_POINTER;
+        sym.entries[funcsym].funcparams[arg_idx].Type |= STYPE_POINTER;
         isPointerParam = 1;
       }
 
@@ -1071,7 +1073,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
       else if (dynArrayStatus > 0)
       {
-        sym.entries[funcsym].funcparams[(numparams - 1) % 100].Type |= STYPE_DYNARRAY;
+        sym.entries[funcsym].funcparams[arg_idx].Type |= STYPE_DYNARRAY;
         if (createdLocalVar)
         {
           sym.entries[cursym].flags |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
@@ -2821,6 +2823,7 @@ int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
 
     if (num_supplied_args < func_args) {
       // not enough arguments -- see if we can supply default values
+      assert(static_cast<uint32_t>(func_args) < sym.entries[funcsym].funcparams.size());
       for (int ii = func_args; ii > num_supplied_args; ii--) {
 
         if (!sym.entries[funcsym].funcparams[ii].HasDefaultValue) {

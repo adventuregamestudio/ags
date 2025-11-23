@@ -267,7 +267,7 @@ struct GamePlayState
     std::unordered_set<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
-    int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
+    std::vector<int> default_audio_type_volumes;
     // GUI position for dialog options, -1 to use default pos
     int   dialog_options_gui_x = -1;
     // GUI position for dialog options, -1 to use default pos
@@ -421,12 +421,15 @@ struct GamePlayState
     // Clears ignore input state
     void ClearIgnoreInput();
 
+    bool IsInWait() const;
     // Set how the last blocking wait was skipped
     void SetWaitSkipResult(int how, int data = 0);
     void SetWaitKeySkip(const KeyInput &kp)
     {
         SetWaitSkipResult(SKIP_KEYPRESS, AGSKeyToScriptKey(kp.Key) | kp.Mod);
     }
+    int GetWaitCounter() const;
+    int GetWaitSkipType() const;
     // Returns the information about how the latest blocking wait was skipped.
     // The information is packed into int32 value like this:
     // | 0xFF       | 0xFF    | 0xF      | 0xFFF                     |
@@ -442,6 +445,7 @@ struct GamePlayState
     bool IsNonBlockingVoiceSpeech() const;
     // Speech helpers
     bool ShouldPlayVoiceSpeech() const;
+    bool ShouldPlayVoiceSpeechNonBlocking() const;
 
     //
     // Serialization

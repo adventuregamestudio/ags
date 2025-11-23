@@ -72,6 +72,8 @@ struct AssetPath
     String Filter;
 
     AssetPath(const String &name = "", const String &filter = "") : Name(name), Filter(filter) {}
+
+    operator bool() const { return !Name.IsEmpty(); }
 };
 
 // AssetLibEntry describes AssetLibrary registered in the AssetManager,

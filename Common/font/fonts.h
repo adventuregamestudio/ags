@@ -61,11 +61,13 @@ int get_text_width_outlined(const char *text, int font_number);
 // note that this won't be a nominal font's height, but the max of each met glyph's graphical height.
 int get_text_height(const char *text, int font_number);
 // Get font's height; this value is used for logical arrangement of UI elements;
-// note that this is a "formal" font height, that may have different value
-// depending on compatibility mode (used when running old games);
+// note that this value may depend on font settings, and return either nominal
+// import size, or real font's height, or a user-supplied custom value.
 int get_font_height(int font_number);
 // Get the height of the given font with corresponding outlining
 int get_font_height_outlined(int font_number);
+// Get the real dont's height as reported by the font file
+int get_font_real_height(int font_number);
 // Get font's surface height: this always returns the height enough to accomodate
 // any font's letters (glyphs) on a bitmap or a texture
 int get_font_surface_height(int font_number);

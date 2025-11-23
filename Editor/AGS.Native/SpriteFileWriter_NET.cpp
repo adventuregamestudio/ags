@@ -22,7 +22,7 @@ using AGSString = AGS::Common::String;
 using AGSStream = AGS::Common::Stream;
 
 extern AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
-    bool fixColourDepth, bool importAlpha, bool keepTransparency, int *originalColDepth);
+    bool fixColourDepth, bool importAlpha, bool keepTransparency, bool fixPalette, int *originalColDepth);
 extern AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap ^bmp, int spriteImportMethod,
     int transColour, bool remapColours,
     bool useRoomBackgroundColours, bool alphaChannel, int *flags);
@@ -53,7 +53,7 @@ void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image)
 {
     RGB imgPalBuf[256];
     int importedColourDepth;
-    std::unique_ptr<AGSBitmap> native_bmp(CreateBlockFromBitmap(image, imgPalBuf, nullptr, true, true /* FIXME */, true, &importedColourDepth));
+    std::unique_ptr<AGSBitmap> native_bmp(CreateBlockFromBitmap(image, imgPalBuf, nullptr, true, true /* FIXME */, true, true, &importedColourDepth));
     _nativeWriter->WriteBitmap(native_bmp.get());
 }
 

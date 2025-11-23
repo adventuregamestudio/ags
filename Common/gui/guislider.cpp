@@ -37,6 +37,7 @@ void GUISlider::SetMinValue(int minval)
     if (_minValue != minval)
     {
         _minValue = minval;
+        _maxValue = std::max(_minValue, _maxValue);
         _value = Math::Clamp(_value, _minValue, _maxValue);
         MarkChanged();
     }
@@ -47,6 +48,7 @@ void GUISlider::SetMaxValue(int maxval)
     if (_maxValue != maxval)
     {
         _maxValue = maxval;
+        _minValue = std::min(_minValue, _maxValue);
         _value = Math::Clamp(_value, _minValue, _maxValue);
         MarkChanged();
     }
@@ -124,11 +126,6 @@ void GUISlider::UpdateMetrics()
     assert(GUI::Context.Spriteset);
     SpriteCache &spriteset = *GUI::Context.Spriteset;
 
-    // Clamp value
-    // TODO: this is necessary here because some Slider fields are still public
-    if (_minValue >= _maxValue)
-        _maxValue = _minValue + 1;
-    _value = Math::Clamp(_value, _minValue, _maxValue);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
     const int handle_im = ((_handleImage > 0) && spriteset.DoesSpriteExist(_handleImage)) ? _handleImage : 0;
 
@@ -330,6 +327,10 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     _cachedBar = Rect();
     _cachedHandle = Rect();
     _handleRange = 0;
+    // Clamp value range, in case the data is wrong
+    _maxValue = std::max(_minValue, _maxValue);
+    _minValue = std::min(_minValue, _maxValue);
+    _value = Math::Clamp(_value, _minValue, _maxValue);
 
     //UpdateMetrics();
     //UpdateGraphicSpace(); // can't do here, because sprite infos may not be loaded yet
@@ -360,7 +361,11 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _cachedBar = Rect();
     _cachedHandle = Rect();
     _handleRange = 0;
-
+    // Clamp value range, in case the data is wrong
+    _maxValue = std::max(_minValue, _maxValue);
+    _minValue = std::min(_minValue, _maxValue);
+    _value = Math::Clamp(_value, _minValue, _maxValue);
+    
     UpdateMetrics();
     UpdateGraphicSpace();
 }

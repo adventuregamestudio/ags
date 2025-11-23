@@ -148,6 +148,7 @@ Character* arrOfCharacters[] = new Character[100];
 
             ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "int[]");
             Assert.That(strct, Is.Not.Null);
+            Assert.That(strct.BaseType, Is.EqualTo("int"));
             Assert.That(strct.Variables.Count, Is.EqualTo(1));
             ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp, Is.Not.Null);
@@ -157,8 +158,65 @@ Character* arrOfCharacters[] = new Character[100];
 
             ScriptStruct strct2 = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "Character*[]");
             Assert.That(strct2, Is.Not.Null);
+            Assert.That(strct2.BaseType, Is.EqualTo("Character"));
             Assert.That(strct2.Variables.Count, Is.EqualTo(1));
             ScriptVariable lenProp2 = strct2.Variables.FirstOrDefault(v => v.VariableName == "Length");
+            Assert.That(lenProp2, Is.Not.Null);
+            Assert.That(lenProp2.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp2.IsPointer, Is.False);
+            Assert.That(lenProp2.IsArray, Is.False);
+        }
+
+        [Test]
+        public void ContainsMultidimensionalArray()
+        {
+            string scriptCode = $@"
+int multiDimArray[10][20];
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+
+            ScriptVariable variable = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "multiDimArray");
+            Assert.That(variable, Is.Not.Null);
+            Assert.That(variable.Type, Is.EqualTo("int")); // static array type is only base type
+            Assert.That(variable.IsArray, Is.True);
+            Assert.That(variable.IsPointer, Is.False);
+        }
+
+        [Test]
+        public void ContainsMultidimensionalDynamicArray()
+        {
+            string scriptCode = $@"
+int multiDimArray[][];
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(2)); // dynamic array also generates a pseudo-struct, per type
+
+            ScriptVariable var1 = scriptToTest.AutoCompleteData.Variables.FirstOrDefault(v => v.VariableName == "multiDimArray");
+            Assert.That(var1, Is.Not.Null);
+            Assert.That(var1.Type, Is.EqualTo("int[][]")); // we may have to review this at some point but seems sufficient for autocomplete
+            Assert.That(var1.IsArray, Is.True);
+            Assert.That(var1.IsDynamicArray, Is.True);
+            Assert.That(var1.IsPointer, Is.False);
+
+            ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "int[]");
+            Assert.That(strct, Is.Not.Null);
+            Assert.That(strct.BaseType, Is.EqualTo("int"));
+            Assert.That(strct.Variables.Count, Is.EqualTo(1));
+            ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
+            Assert.That(lenProp, Is.Not.Null);
+            Assert.That(lenProp.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp.IsPointer, Is.False);
+            Assert.That(lenProp.IsArray, Is.False);
+
+            ScriptStruct strct2 = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "int[][]");
+            Assert.That(strct2, Is.Not.Null);
+            Assert.That(strct2.BaseType, Is.EqualTo("int[]"));
+            Assert.That(strct2.Variables.Count, Is.EqualTo(1));
+            ScriptVariable lenProp2 = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp2, Is.Not.Null);
             Assert.That(lenProp2.Type, Is.EqualTo("int")); // type of Length attribute
             Assert.That(lenProp2.IsPointer, Is.False);

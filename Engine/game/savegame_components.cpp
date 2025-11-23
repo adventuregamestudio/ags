@@ -447,6 +447,8 @@ enum AudioSvgVersion
     kAudioSvgVersion_35026    = 1, // source position settings
     kAudioSvgVersion_36009    = 2, // up number of channels
     kAudioSvgVersion_36130    = 3060130, // playback state
+    kAudioSvgVersion_36215    = 3060215, // clips referenced by filename
+    kAudioSvgVersion_36303    = 3060303, // explicit audio type
 };
 
 HSaveError WriteAudio(Stream *out)
@@ -463,13 +465,17 @@ HSaveError WriteAudio(Stream *out)
         out->WriteInt32(play.default_audio_type_volumes[i]);
     }
 
-    // Audio clips and crossfade
+    // Audio playbacks (from channels)
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if ((ch != nullptr) && (ch->sourceClipID >= 0))
+        if (ch)
         {
             out->WriteInt32(ch->sourceClipID);
+            // kAudioSvgVersion_36215
+            StrUtil::WriteString(ch->fileName, out);
+            out->WriteInt8(ch->bundlingType);
+            //
             out->WriteInt32(ch->get_pos());
             out->WriteInt32(ch->priority);
             out->WriteInt32(ch->repeat ? 1 : 0);
@@ -487,16 +493,20 @@ HSaveError WriteAudio(Stream *out)
             if (ch->is_paused())
                 playback_flags |= kSvgAudioPaused;
             out->WriteInt32(playback_flags);
-            out->WriteInt32(0); // reserved 3 ints
-            out->WriteInt32(0);
+            out->WriteInt32(ch->sourceClipType);
+            out->WriteInt32(0); // reserved
             out->WriteInt32(0);
         }
         else
         {
-            out->WriteInt32(-1);
+            out->WriteInt32(-1); // no clip id
+            out->WriteInt32(0); // empty string (fileName)
+            out->WriteInt8(kAudioBundle_Undefined);
         }
     }
-    out->WriteInt32(0); // DEPRECATED: legacy crossfade params
+    
+    // DEPRECATED: legacy crossfade params
+    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
@@ -552,7 +562,14 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
         chan_info.Pos = 0;
         chan_info.ClipID = in->ReadInt32();
-        if (chan_info.ClipID >= 0)
+
+        if (cmp_ver >= kAudioSvgVersion_36215)
+        {
+            chan_info.FileName = StrUtil::ReadString(in);
+            chan_info.BundlingType = in->ReadInt8();
+        }
+
+        if (chan_info.ClipID >= 0 || !chan_info.FileName.IsEmpty())
         {
             chan_info.Pos = in->ReadInt32();
             if (chan_info.Pos < 0)
@@ -574,9 +591,12 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
             if (cmp_ver >= kAudioSvgVersion_36130)
             {
                 chan_info.Flags = in->ReadInt32();
-                in->ReadInt32(); // reserved 3 ints
+                int audio_type = in->ReadInt32();
+                in->ReadInt32(); // reserved
                 in->ReadInt32();
-                in->ReadInt32();
+
+                // Because 0 is also a valid audiotype index, check the save version explicitly
+                chan_info.AudioType = (cmp_ver >= kAudioSvgVersion_36303) ? audio_type : AUDIOTYPE_UNDEFINED;
             }
         }
     }
@@ -1879,7 +1899,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        kAudioSvgVersion_36130,
+        kAudioSvgVersion_36303,
         kAudioSvgVersion_Initial,
         kSaveCmp_Audio,
         WriteAudio,

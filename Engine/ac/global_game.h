@@ -127,6 +127,7 @@ int WaitKey(int nloops);
 int WaitMouse(int nloops);
 int WaitMouseKey(int nloops);
 int WaitInput(int input_flags, int nloops);
-void SkipWait();
+void SkipWait0();
+void SkipWait(int result_value);
 
 #endif // __AGS_EE_AC__GLOBALGAME_H

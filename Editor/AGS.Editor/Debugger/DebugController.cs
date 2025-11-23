@@ -369,23 +369,35 @@ namespace AGS.Editor
 
         public void Resume()
         {
-            SendCommandAndSwitchWindows("RESUME");
+            if (IsActive)
+            {
+                SendCommandAndSwitchWindows("RESUME");
+            }
         }
 
         public void StepInto()
         {
-            SendCommandAndSwitchWindows("STEP");
+            if (IsActive)
+            {
+                SendCommandAndSwitchWindows("STEP");
+            }
         }
 
         public void PauseExecution()
         {
-            // the STEP command will break out at the next line
-            SendCommandAndSwitchWindows("STEP");
+            if (IsActive)
+            {
+                // the STEP command will break out at the next line
+                SendCommandAndSwitchWindows("STEP");
+            }
         }
 
         public void StopDebugging()
         {
-            SendCommandAndSwitchWindows("EXIT");
+            if (IsActive)
+            {
+                SendCommandAndSwitchWindows("EXIT");
+            }
         }
 
         public void EditorShutdown()

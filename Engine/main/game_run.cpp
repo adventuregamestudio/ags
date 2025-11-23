@@ -272,7 +272,7 @@ static bool game_loop_check_ground_level_interactions()
     // engine, but result was more or less same by accident, as the number
     // of scheduled callbacks was limited to a very small number.
     // (That was pretty unreliable though.)
-    if (IsInWaitMode() && (loaded_game_file_version >= kGameVersion_362))
+    if (IsInBlockingAction() && (loaded_game_file_version >= kGameVersion_362))
     {
         // NOTE: if we do update play.player_on_region here, then player might
         // trigger "walk on/off region" after finishing blocking walk if
@@ -1382,7 +1382,7 @@ static void UpdateSavedCursorOverLocation()
     }
 }
 
-bool IsInWaitMode()
+bool IsInBlockingAction()
 {
     return restrict_until != nullptr;
 }

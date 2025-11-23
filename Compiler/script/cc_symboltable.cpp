@@ -246,7 +246,6 @@ int symbolTable::add_ex(const char*nta,int typo,char sizee) {
 	entry.sscope = 0;
     entry.arrsize = 0;
     entry.extends = 0;
-	entry.funcparams = std::vector<FuncParamInfo>(MAX_FUNCTION_PARAMETERS + 1);
 	entries.push_back(entry);
 
     symbolTree.addEntry(nta, p_value);

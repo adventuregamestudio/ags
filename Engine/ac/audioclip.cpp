@@ -93,7 +93,24 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
-    return play_audio_clip_on_channel(chan, clip, priority, repeat, 0);
+    return play_audio_clip_on_channel(clip, chan, priority, repeat);
+}
+
+ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int chan, int priority, int repeat)
+{
+    if (type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(type) >= game.audioClipTypes.size())
+        quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u",
+            type, AUDIOTYPE_SPEECH + 1, static_cast<uint32_t>(game.audioClipTypes.size() - 1));
+    if (chan != SCR_NO_VALUE && (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels))
+        quitprintf("!AudioClip.PlayAsType: invalid channel %d, the range is %d - %d",
+            chan, NUM_SPEECH_CHANS, game.numGameChannels - 1);
+    if (chan == SCR_NO_VALUE)
+        chan = -1;
+    if (priority == SCR_NO_VALUE)
+        priority = clip->defaultPriority;
+    if (repeat == SCR_NO_VALUE)
+        repeat = clip->defaultRepeat;
+    return play_audio_clip(AudioPlayback(clip, type), chan, priority, repeat);
 }
 
 int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)
@@ -195,6 +212,11 @@ RuntimeScriptValue Sc_AudioClip_PlayOnChannel(void *self, const RuntimeScriptVal
     API_OBJCALL_OBJ_PINT3(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayOnChannel);
 }
 
+RuntimeScriptValue Sc_AudioClip_PlayAsType(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT4(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayAsType);
+}
+
 RuntimeScriptValue Sc_AudioClip_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(ScriptAudioClip, AudioClip_GetProperty, const char);
@@ -223,6 +245,7 @@ void RegisterAudioClipAPI()
         { "AudioClip::PlayFrom^3",        API_FN_PAIR(AudioClip_PlayFrom) },
         { "AudioClip::PlayQueued^2",      API_FN_PAIR(AudioClip_PlayQueued) },
         { "AudioClip::PlayOnChannel^3",   API_FN_PAIR(AudioClip_PlayOnChannel) },
+        { "AudioClip::PlayAsType^4",      API_FN_PAIR(AudioClip_PlayAsType) },
         { "AudioClip::Stop^0",            API_FN_PAIR(AudioClip_Stop) },
         { "AudioClip::GetProperty^1",     API_FN_PAIR(AudioClip_GetProperty) },
         { "AudioClip::GetTextProperty^1", API_FN_PAIR(AudioClip_GetTextProperty) },

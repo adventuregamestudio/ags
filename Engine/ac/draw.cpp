@@ -2328,6 +2328,7 @@ static void add_roomovers_for_drawing()
     {
         if (over.GetID() < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
+        if (!over.IsVisible()) continue; // not visible
         if (over.GetTransparency() == 255) continue; // skip fully transparent
         over.UpdateGraphicSpace();
         add_to_sprite_list(overtxs[over.GetID()].Ddb, over.GetDrawX(), over.GetDrawY(), over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
@@ -2614,6 +2615,7 @@ void draw_gui_and_overlays()
     {
         if (over.GetID() < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
+        if (!over.IsVisible()) continue; // not visible
         if (over.GetTransparency() == 255) continue; // skip fully transparent
         over.UpdateGraphicSpace();
         add_to_sprite_list(overtxs[over.GetID()].Ddb, over.GetDrawX(), over.GetDrawY(), over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);

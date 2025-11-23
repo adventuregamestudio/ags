@@ -1541,6 +1541,21 @@ namespace AGS.Editor
             return null;
         }
 
+        private ScriptVariable FindGlobalVariableWithName(string name)
+        {
+            foreach (IScript script in GetAutoCompleteScriptList())
+            {
+                foreach (ScriptVariable varDef in script.AutoCompleteData.Variables)
+                {
+                    if (varDef.VariableName == name)
+                    {
+                        return varDef;
+                    }
+                }
+            }
+            return null;
+        }
+
         private ScriptStruct FindGlobalVariableOrType(string type, out bool staticAccess)
         {
             // First try search for a type that has this name
@@ -1552,34 +1567,34 @@ namespace AGS.Editor
             }
 
             // Then, search for a variable that has this name, and try retrieving its type
-            foreach (IScript script in GetAutoCompleteScriptList())
-            {
-                foreach (ScriptVariable varDef in script.AutoCompleteData.Variables)
-                {
-                    if (varDef.VariableName == type)
-                    {
-                        staticAccess = false;
-                        return FindGlobalType(varDef.Type);
-                    }
-                }
-            }
-
             staticAccess = false;
+            ScriptVariable var = FindGlobalVariableWithName(type);
+            if (var != null)
+            {
+                return FindGlobalType(var.Type);
+            }
             return null;
         }
 
-        private string ReadNextWord(ref string pathedExpression, out bool indexedAccess)
+        // FIXME: this function basically parses a variable access, idk why it's called ReadNextWord
+        private string ReadNextWord(ref string pathedExpression, out bool indexedAccess, out int dimAccess)
         {
             string thisWord = string.Empty;
             indexedAccess = false;
+            dimAccess = 0;
             while ((pathedExpression.Length > 0) &&
-                ((Char.IsLetterOrDigit(pathedExpression[0])) || (pathedExpression[0] == '_')))
+                pathedExpression[0].IsScriptWordChar())
             {
                 thisWord += pathedExpression[0];
                 pathedExpression = pathedExpression.Substring(1);
             }
-            if ((pathedExpression.Length > 0) && (pathedExpression[0] == '['))
+            pathedExpression = pathedExpression.TrimStart();
+            // TODO: this ugly code parses multi-dimensional array access;
+            // probably could be merged with similar parsing in autocomplete?
+            while (pathedExpression.Length > 0 && (pathedExpression[0] == '['))
             {
+                indexedAccess = true;
+                dimAccess++;
                 int bracketDepth = 1;
                 int cursorPos = 1;
                 while ((bracketDepth > 0) && (cursorPos < pathedExpression.Length))
@@ -1590,7 +1605,7 @@ namespace AGS.Editor
                     cursorPos++;
                 }
                 pathedExpression = pathedExpression.Substring(cursorPos);
-                indexedAccess = true;
+                pathedExpression = pathedExpression.TrimStart();
             }
             if ((pathedExpression.Length > 0) && (pathedExpression[0] == '.'))
             {
@@ -1666,8 +1681,9 @@ namespace AGS.Editor
             }
 
             bool indexedAccess = false;
+            int dimAccess = 0;
             staticAccess = false;
-            string thisWord = ReadNextWord(ref pathedExpression, out indexedAccess);
+            string thisWord = ReadNextWord(ref pathedExpression, out indexedAccess, out dimAccess);
             ScriptStruct foundType;
 
             if (thisWord == THIS_STRUCT)
@@ -1680,27 +1696,42 @@ namespace AGS.Editor
             }
             else
             {
-                foundType = FindGlobalVariableOrType(thisWord, out staticAccess);
-                if (staticAccess && indexedAccess)
-                    return null; // element access of type? bad syntax...
+                // First try search for a type that has this name
+                foundType = FindGlobalType(thisWord);
+                if (foundType != null)
+                {
+                    if (indexedAccess)
+                        return null; // element access of type? bad syntax...
+                    staticAccess = true;
+                }
+                else
+                {
+                    // Then lookup for a global variable of this name
+                    ScriptVariable var = FindGlobalVariableWithName(thisWord);
+                    if (var != null)
+                    {
+                        foundType = ProcessVariableAccess(var, indexedAccess, dimAccess);
+                    }
+                }
 
+                // Not a type or global variable? try if that's a local variable
                 if ((foundType == null) && (thisWord.Length > 0))
                 {
                     ScriptVariable var = FindLocalVariableWithName(startAtPos, thisWord);
                     if (var != null)
                     {
-                        foundType = ProcessVariableAccess(var, indexedAccess);
+                        foundType = ProcessVariableAccess(var, indexedAccess, dimAccess);
                     }
                 }
             }
 
             while ((pathedExpression.Length > 0) && (foundType != null))
             {
-                thisWord = ReadNextWord(ref pathedExpression, out indexedAccess);
+                thisWord = ReadNextWord(ref pathedExpression, out indexedAccess, out dimAccess);
                 ScriptVariable memberVar = foundType.FindMemberVariable(thisWord);
                 if (memberVar != null)
                 {
-                    foundType = ProcessVariableAccess(memberVar, indexedAccess);
+                    foundType = ProcessVariableAccess(memberVar, indexedAccess, dimAccess);
                     if (foundType == null)
                         return null;
                     staticAccess = false;
@@ -1713,7 +1744,7 @@ namespace AGS.Editor
             return foundType;
         }
 
-        private ScriptStruct ProcessVariableAccess(ScriptVariable var, bool indexedAccess)
+        private ScriptStruct ProcessVariableAccess(ScriptVariable var, bool indexedAccess, int accessDims = 1)
         {
             if (!var.IsArray && indexedAccess)
                 return null; // accessing element of non-array, bad syntax...
@@ -1722,9 +1753,19 @@ namespace AGS.Editor
                 return null; // accessing member of static array, no result
 
             ScriptStruct foundType = FindGlobalType(var.Type);
+            if (foundType == null)
+                return null;
 
+            // Dynamic array variable has a type of T[]; and in case of a
+            // indexed access we have to resolve that to the base type,
+            // following a number of dimensions.
             if (var.IsDynamicArray && indexedAccess)
-                foundType = FindGlobalType(foundType.BaseType);
+            {
+                for (int i = 0; i < accessDims; ++i)
+                {
+                    foundType = FindGlobalType(foundType.BaseType);
+                }
+            }
 
             return foundType;
         }
@@ -1739,8 +1780,26 @@ namespace AGS.Editor
 
             if (foundType != null)
             {
-                ShowAutoComplete(charactersAfterDot.Length, ConstructScintillaAutocompleteList(GetAllStructsWithMatchingName(foundType.Name), staticAccess, isThis, null));
+                // NOTE: we display members not just for 1 struct, but for all registered structs
+                // with the matching names, because of how local script's extender functions are registered:
+                // they are gathered separately into a locally declared struct, which may duplicate existing global struct.
+                var allStructs = GetAllStructs();
+                var forStructs = GetAllStructsWithMatchingName(foundType.Name);
+                ShowAutoComplete(charactersAfterDot.Length, ConstructScintillaAutocompleteList(forStructs, allStructs, staticAccess, isThis, null));
             }
+        }
+
+        private List<ScriptStruct> GetAllStructs()
+        {
+            List<ScriptStruct> allTypes = new List<ScriptStruct>();
+            foreach (IScript script in GetAutoCompleteScriptList())
+            {
+                foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
+                {
+                    allTypes.Add(structDef);
+                }
+            }
+            return allTypes;
         }
 
         private List<ScriptStruct> GetAllStructsWithMatchingName(string structName)
@@ -1932,7 +1991,7 @@ namespace AGS.Editor
                     {
                         needMatch = null;
                     }
-                    ShowAutoComplete(previousWord.Length, ConstructScintillaAutocompleteList(null, false, false, needMatch));
+                    ShowAutoComplete(previousWord.Length, ConstructScintillaAutocompleteList(null, null, false, false, needMatch));
                 }
             }
         }
@@ -2128,16 +2187,19 @@ namespace AGS.Editor
                 callTip += "readonly ";
             }
             callTip += variable.Type;
-            if (variable.IsArray)
-            {
-                callTip += "[ ]";
-            }
             callTip += " ";
             if (owningStruct != null)
             {
                 callTip += owningStruct.Name + ".";
             }
             callTip += variable.VariableName;
+            if (variable.IsArray && !variable.IsDynamicArray)
+            {
+                for (int i = 0; i < variable.ArrayDimensions; ++i)
+                    callTip += "[]";
+            }
+            // Replace all "[]" with "[ ]" because "[]" looks bad in the Calltip's font
+            callTip = callTip.Replace("[]", "[ ]");
             return callTip;
         }
 
@@ -2327,24 +2389,31 @@ namespace AGS.Editor
             }
             foreach (ScriptStruct ss in script.AutoCompleteData.Structs)
             {
-                if ((ShouldShowThis(ss, defines)) && (ss.FullDefinition))
+                // Display only basic types that have full definition AND are not derived types,
+                // i.e. not dynamic arrays of T or pointer to T.
+                if ((ShouldShowThis(ss, defines)) && (ss.FullDefinition) && (string.IsNullOrEmpty(ss.BaseType)))
                 {
                     globalsList.Add(ss.Name + "?" + IMAGE_INDEX_STRUCT);
                 }
             }
         }
 
-        private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, bool staticOnly, bool isThis)
+        private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool addStatic, bool extenderOnly, bool isThis)
         {
             Dictionary<string, object> alreadyAdded = new Dictionary<string, object>();
+            AddMembersOfStruct(autoCompleteList, alreadyAdded, scriptStructs, allStructsRef, addStatic, extenderOnly, isThis);
+        }
 
+        private void AddMembersOfStruct(List<string> autoCompleteList, Dictionary<string, object> alreadyAdded,
+            List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool addStatic, bool extenderOnly, bool isThis)
+        {
             foreach (ScriptStruct scriptStruct in scriptStructs)
             {
                 foreach (ScriptFunction sf in scriptStruct.Functions)
                 {
-                    if (((sf.IsStatic) || (!staticOnly)) &&
-                        ((!sf.IsStaticOnly) || (staticOnly)) &&
-                        ((!sf.IsProtected) || (isThis)) &&
+                    if (((addStatic && sf.IsStatic) || (!addStatic && !sf.IsStatic)) &&
+                        (!extenderOnly || sf.IsExtenderMethod) &&
+                        (isThis || !sf.IsProtected) &&
                         ShouldShowThis(sf, null) &&
                         !alreadyAdded.ContainsKey(sf.FunctionName))
                     {
@@ -2363,12 +2432,24 @@ namespace AGS.Editor
                 }
                 foreach (ScriptVariable sv in scriptStruct.Variables)
                 {
-                    if (((sv.IsStatic) || (!staticOnly)) &&
-                        ((!sv.IsStaticOnly) || (staticOnly)) &&
-                        ((!sv.IsProtected) || (isThis)) &&
+                    if (((addStatic && sv.IsStatic) || (!addStatic && !sv.IsStatic)) &&
+                        // TODO: support extender attributes here
+                        (!extenderOnly) && // variables cannot be extenders
+                        (isThis || !sv.IsProtected) &&
                         ShouldShowThis(sv, null))
                     {
                         autoCompleteList.Add(sv.VariableName + "?" + (sv.IsStatic ? IMAGE_INDEX_STATIC_PROPERTY : IMAGE_INDEX_PROPERTY));
+                    }
+                }
+
+                // Add extenders of parent types separately, because they are not listed
+                // as child type members when parsing the script.
+                if (!string.IsNullOrEmpty(scriptStruct.ParentType))
+                {
+                    var parentStructs = allStructsRef.FindAll((s) => { return s.Name == scriptStruct.ParentType; });
+                    if (parentStructs.Count > 0)
+                    {
+                        AddMembersOfStruct(autoCompleteList, alreadyAdded, parentStructs, allStructsRef, addStatic, true, isThis);
                     }
                 }
             }
@@ -2458,13 +2539,13 @@ namespace AGS.Editor
             return null;
         }
 
-        private string ConstructScintillaAutocompleteList(List<ScriptStruct> onlyMembersOf, bool staticOnly, bool isThis, string onlyIfMatchForThis)
+        private string ConstructScintillaAutocompleteList(List<ScriptStruct> onlyMembersOf, List<ScriptStruct> allStructsRef, bool staticOnly, bool isThis, string onlyIfMatchForThis)
         {
             List<string> globalsList = new List<string>();
 
             if (onlyMembersOf != null)
             {
-                AddMembersOfStruct(globalsList, onlyMembersOf, staticOnly, isThis);
+                AddMembersOfStruct(globalsList, onlyMembersOf, allStructsRef, staticOnly, false, isThis);
             }
             else
             {

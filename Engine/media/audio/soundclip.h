@@ -38,6 +38,7 @@
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
 #include "ac/dynobj/scriptaudioclip.h"
 #include "media/audio/audiodefines.h"
+#include "util/string.h"
 
 class SoundClip final
 {
@@ -48,6 +49,9 @@ public:
     // TODO: move these to private
     int sourceClipID;
     int sourceClipType;
+    // Filename and bundling type, in case this is not a common audio clip
+    AGS::Common::String fileName;
+    uint8_t bundlingType;
     // soundType is used for the reference, and when applying
     // format-dependent seek and position
     AudioFileType soundType;

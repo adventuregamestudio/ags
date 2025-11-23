@@ -201,8 +201,8 @@ void Game_StopAudio(int audioType)
         }
         else
         {
-            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-            if ((clip != nullptr) && (clip->type == audioType))
+            int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+            if (play_atype == audioType)
                 stop_or_fade_out_channel(aa);
         }
     }
@@ -220,10 +220,10 @@ int Game_IsAudioPlaying(int audioType)
 
     for (int aa = 0; aa < game.numGameChannels; aa++)
     {
-        ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-        if (clip != nullptr)
+        int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+        if (play_atype >= 0)
         {
-            if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
+            if ((play_atype == audioType) || (audioType == SCR_NO_VALUE))
             {
                 return 1;
             }
@@ -257,8 +257,8 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     {
         for (int aa = 0; aa < game.numGameChannels; aa++)
         {
-            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-            if ((clip != nullptr) && (clip->type == audioType))
+            int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+            if (play_atype == audioType)
             {
                 auto* ch = AudioChans::GetChannel(aa);
                 if (ch)
@@ -739,6 +739,14 @@ void Game_SetTextReadingSpeed(int newTextSpeed)
         play.text_speed = newTextSpeed;
 }
 
+int Game_GetTickCounter()
+{
+    // Loop counter is uint32, but the script values are int32;
+    // convert uint32 value into a int32 wrapped in the range of 0 - INT32_MAX.
+    uint32_t loopcounter = get_loop_counter();
+    return loopcounter <= INT32_MAX ? static_cast<int32_t>(loopcounter) : static_cast<int32_t>(loopcounter - INT32_MAX);
+}
+
 int Game_GetMinimumTextDisplayTimeMs()
 {
     return play.text_min_display_time_ms;
@@ -928,14 +936,56 @@ void Game_SimulateKeyPress(int key)
     ags_simulate_keypress(static_cast<eAGSKeyCode>(key), (game.options[OPT_KEYHANDLEAPI] == 0));
 }
 
+int Game_BlockingWaitCounter()
+{
+    return play.GetWaitCounter();
+}
+
 int Game_BlockingWaitSkipped()
 {
     return play.GetWaitSkipResult();
 }
 
+int Game_BlockingWaitSkipType()
+{
+    // Convert to the InputType flags
+    return play.GetWaitSkipType() << SKIP_RESULT_TYPE_SHIFT;
+}
+
+int Game_InBlockingAction()
+{
+    return IsInBlockingAction();
+}
+
 int Game_InBlockingWait()
 {
-    return IsInWaitMode();
+    // A design mistake in 3.6.2: IsInBlockingWait name was used to report any blocking action state
+    return game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v363 ?
+        play.IsInWait() :
+        IsInBlockingAction();
+}
+
+ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
+{
+    if (!play_voice_nonblocking(ch ? ch->index_id : -1 /* narrator */, sndid, as_speech))
+        return nullptr;
+    return &scrAudioChannel[SCHAN_SPEECH];
+}
+
+ScriptAudioChannel *Game_PlayVoiceClipAsType(CharacterInfo *ch, int sndid, int audio_type, int chan, int priority, int repeat)
+{
+    if (audio_type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(audio_type) >= game.audioClipTypes.size())
+        quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u",
+                   audio_type, AUDIOTYPE_SPEECH + 1, static_cast<uint32_t>(game.audioClipTypes.size() - 1));
+    if (chan != SCR_NO_VALUE && (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels))
+        quitprintf("!AudioClip.PlayAsType: invalid channel %d, the range is %d - %d",
+                   chan, NUM_SPEECH_CHANS, game.numGameChannels - 1);
+    if (chan == SCR_NO_VALUE)
+        chan = -1;
+
+    if (!play_voice_clip_as_type(ch ? ch->index_id : -1 /* narrator */, sndid, audio_type, chan, priority, repeat))
+        return nullptr;
+    return &scrAudioChannel[SCHAN_SPEECH];
 }
 
 void Game_PrecacheSprite(int sprnum)
@@ -2054,6 +2104,11 @@ RuntimeScriptValue Sc_Game_SetTextReadingSpeed(const RuntimeScriptValue *params,
     API_SCALL_VOID_PINT(Game_SetTextReadingSpeed);
 }
 
+RuntimeScriptValue Sc_Game_GetTickCounter(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetTickCounter);
+}
+
 // const char* ()
 RuntimeScriptValue Sc_Game_GetTranslationFilename(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2088,7 +2143,12 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
 
 RuntimeScriptValue Sc_Game_PlayVoiceClip(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, PlayVoiceClip, CharacterInfo);
+    API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClip, CharacterInfo);
+}
+
+RuntimeScriptValue Sc_Game_PlayVoiceClipAsType(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ_PINT5(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClipAsType, CharacterInfo);
 }
 
 RuntimeScriptValue Sc_Game_GetCamera(const RuntimeScriptValue *params, int32_t param_count)
@@ -2111,9 +2171,24 @@ RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, in
     API_SCALL_VOID_PINT(Game_SimulateKeyPress);
 }
 
+RuntimeScriptValue Sc_Game_BlockingWaitCounter(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingWaitCounter);
+}
+
 RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_BlockingWaitSkipped);
+}
+
+RuntimeScriptValue Sc_Game_BlockingWaitSkipType(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingWaitSkipType);
+}
+
+RuntimeScriptValue Sc_Game_InBlockingAction(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Game_InBlockingAction);
 }
 
 RuntimeScriptValue Sc_Game_InBlockingWait(const RuntimeScriptValue *params, int32_t param_count)
@@ -2224,7 +2299,8 @@ void RegisterGameAPI()
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },
         { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
         { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
-        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
+        { "Game::PlayVoiceClip",                          API_FN_PAIR(Game_PlayVoiceClip) },
+        { "Game::PlayVoiceClipAsType",                    API_FN_PAIR(Game_PlayVoiceClipAsType) },
         { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },
@@ -2233,7 +2309,9 @@ void RegisterGameAPI()
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
         { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
+        { "Game::get_BlockingWaitCounter",                API_FN_PAIR(Game_BlockingWaitCounter) },
         { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
+        { "Game::get_BlockingWaitSkipType",               API_FN_PAIR(Game_BlockingWaitSkipType) },
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
         { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
         { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
@@ -2244,6 +2322,7 @@ void RegisterGameAPI()
         { "Game::get_GUICount",                           API_FN_PAIR(Game_GetGUICount) },
         { "Game::get_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_GetIgnoreUserInputAfterTextTimeoutMs) },
         { "Game::set_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_SetIgnoreUserInputAfterTextTimeoutMs) },
+        { "Game::get_InBlockingAction",                   API_FN_PAIR(Game_InBlockingAction) },
         { "Game::get_InBlockingWait",                     API_FN_PAIR(Game_InBlockingWait) },
         { "Game::get_InSkippableCutscene",                API_FN_PAIR(Game_GetInSkippableCutscene) },
         { "Game::get_InventoryItemCount",                 API_FN_PAIR(Game_GetInventoryItemCount) },
@@ -2265,6 +2344,7 @@ void RegisterGameAPI()
         { "Game::geti_SpriteColorDepth",                  API_FN_PAIR(Game_GetSpriteDepth) },
         { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },
         { "Game::set_TextReadingSpeed",                   API_FN_PAIR(Game_SetTextReadingSpeed) },
+        { "Game::get_TickCounter",                        API_FN_PAIR(Game_GetTickCounter) },
         { "Game::get_TranslationFilename",                API_FN_PAIR(Game_GetTranslationFilename) },
         { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },
 

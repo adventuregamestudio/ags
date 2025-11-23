@@ -53,6 +53,7 @@ enum OverlayFlags
     kOver_AutoPosition     = 0x0010, // autoposition over a linked Character (speech)
     kOver_HasTint          = 0x0020,
     kOver_HasLightLevel    = 0x0040,
+    kOver_Visible          = 0x0100,
 };
 
 enum OverlaySvgVersion
@@ -62,6 +63,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_36008   = 2, // z, transparency
     kOverSvgVersion_36025   = 3, // merged options into flags
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
+    kOverSvgVersion_36303   = 3060303, // visible flag must be on by default
     kOverSvgVersion_400     = 4000000, // blend mode, etc
     kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
     kOverSvgVersion_40018   = 4000018, // shaders
@@ -95,6 +97,7 @@ public:
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
+    bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
     int  GetTransparency() const { return _transparency; }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     Common::GraphicFlip GetFlip() const { return Common::GfxDef::GetFlipFromFlags(_spritetf); }
@@ -124,6 +127,7 @@ public:
         on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
              _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
+    void SetVisible(bool on) { on ? _flags |= kOver_Visible : _flags &= ~kOver_Visible; }
     // Assigns an automatic alignment to the given character's pos
     void SetAutoPosition(int for_character, int x = 0, int y = 0);
     // Assigns a fixed position in the current space (screen or room coordinates)
@@ -202,7 +206,7 @@ private:
 
     // Overlay's ID
     int _id = -1;
-    int _flags = 0; // OverlayFlags
+    int _flags = kOver_Visible; // OverlayFlags
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offx, y + offy;
     int _x = 0;

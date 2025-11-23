@@ -26,6 +26,8 @@ namespace AGS.Types
         private int _autoOutlineThickness = 1;
         private FontAutoOutlineStyle _autoOutlineStyle = FontAutoOutlineStyle.Squared;
         private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.None;
+        private FontHeightDefinition _heightDefinedBy = FontHeightDefinition.NominalHeight;
+        private int _customHeightValue = 0;
 
         public Font()
         {
@@ -70,9 +72,9 @@ namespace AGS.Types
         }
 
         [AGSNoSerialize]
-        [Description("The full graphical height of a font, in pixels")]
-        [Category("Appearance")]
         [DisplayName("Font Height")]
+        [Description("The font's height, in pixels, as reported by the font file")]
+        [Category("Appearance")]
         [ReadOnly(true)]
         public int Height
         {
@@ -219,6 +221,27 @@ namespace AGS.Types
             set { _ttfMetricsFixup = value; }
         }
 
+        [DisplayName("Logical height")]
+        [Description("How the font's height will be defined whenever it is requested by the script or the engine, for purposes such as arrangement of visual elements.")]
+        [Category("Appearance")]
+        [DefaultValue(FontHeightDefinition.NominalHeight)]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public FontHeightDefinition HeightDefinedBy
+        {
+            get { return _heightDefinedBy; }
+            set { _heightDefinedBy = value; }
+        }
+
+        [DisplayName("Logical height value")]
+        [Description("A custom value that will be used in place of a font's height by the script or the engine, when it's arranging visual elements.")]
+        [Category("Appearance")]
+        [DefaultValue(0)]
+        public int CustomHeightValue
+        {
+            get { return _customHeightValue; }
+            set { _customHeightValue = value; }
+        }
+
         [Description("Vertical offset to render font letters at, in pixels (can be negative)")]
         [Category("Appearance")]
         public int VerticalOffset
@@ -334,6 +357,11 @@ namespace AGS.Types
                 else if (property.Name == "OutlineFont")
                 {
                     if (_outlineStyle != FontOutlineStyle.UseOutlineFont)
+                        continue;
+                }
+                else if (property.Name == "CustomHeightValue")
+                {
+                    if (_heightDefinedBy != FontHeightDefinition.CustomValue)
                         continue;
                 }
 

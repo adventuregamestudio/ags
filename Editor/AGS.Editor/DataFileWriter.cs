@@ -564,7 +564,7 @@ namespace AGS.Editor
                 writer.Write((byte)(game.Palette[i].Colour.R));
                 writer.Write((byte)(game.Palette[i].Colour.G));
                 writer.Write((byte)(game.Palette[i].Colour.B));
-                writer.Write((byte)0); // filler
+                writer.Write((byte)255); // opaque
             }
             writer.Write(game.ViewCount);
             writer.Write(game.Characters.Count);
@@ -1542,8 +1542,10 @@ namespace AGS.Editor
                 int flags = 0;
                 if (font.FontFile != null && font.FontFile.FileFormat == FontFileFormat.WFN)
                     flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
-                if (game.Settings.TTFHeightDefinedBy == FontHeightDefinition.NominalHeight)
-                    flags |= NativeConstants.FFLG_REPORTNOMINALHEIGHT;
+                if (font.HeightDefinedBy == FontHeightDefinition.NominalHeight)
+                    flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
+                if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
+                    flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
                 if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
                     flags |= NativeConstants.FFLG_ASCENDERFIXUP;
                 writer.Write(flags);
@@ -1899,8 +1901,8 @@ namespace AGS.Editor
                 writer.Write((int)game.Fonts[i].AutoOutlineStyle);
                 // Since 3.6.3
                 writer.Write(game.Fonts[i].CharacterSpacing);
+                writer.Write(game.Fonts[i].CustomHeightValue);
                 writer.Write((int)0); // reserved
-                writer.Write((int)0);
                 writer.Write((int)0);
             }
         }

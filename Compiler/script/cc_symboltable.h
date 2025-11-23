@@ -38,7 +38,7 @@ struct SymbolTableEntry
     int32_t scope_section_end = 0;
     int32_t arrsize = 0;
     int16_t extends = 0; // inherits another class (classes) / owning class (member vars)
-    // functions only, save types of return value and all parameters
+    // functions only, save types of return value and all parameters;
     // return value is at index 0, actual args begin with 1
     std::vector<FuncParamInfo> funcparams;
 

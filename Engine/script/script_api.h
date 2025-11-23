@@ -365,6 +365,10 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_PARAM_COUNT(FUNCTION, 3); \
     return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue), &RET_MGR)
 
+#define API_SCALL_OBJ_POBJ_PINT5(RET_CLASS, RET_MGR, FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 6); \
+    return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue), &RET_MGR)
+
 #define API_SCALL_OBJ_POBJ2(RET_CLASS, RET_MGR, FUNCTION, P1CLASS, P2CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr), &RET_MGR)
@@ -724,6 +728,10 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
 #define API_OBJCALL_OBJ_PINT3(CLASS, RET_CLASS, RET_MGR, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 3); \
     return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue), &RET_MGR)
+
+#define API_OBJCALL_OBJ_PINT4(CLASS, RET_CLASS, RET_MGR, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 4); \
+    return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue), &RET_MGR)
 
 #define API_OBJCALL_OBJ_PINT4(CLASS, RET_CLASS, RET_MGR, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 4); \

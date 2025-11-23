@@ -116,8 +116,6 @@ String GetGameInitErrorText(GameInitErrorType err)
         return "No error.";
     case kGameInitErr_NoFonts:
         return "No fonts specified to be used in this game.";
-    case kGameInitErr_TooManyAudioTypes:
-        return "Too many audio types for this engine to handle.";
     case kGameInitErr_EntityInitFail:
         return "Failed to initialize game entities.";
     case kGameInitErr_PluginNameInvalid:
@@ -457,8 +455,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     if (game.numfonts == 0)
         return new GameInitError(kGameInitErr_NoFonts);
-    if (game.audioClipTypes.size() > MAX_AUDIO_TYPES)
-        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %zu, max: %zu", game.audioClipTypes.size(), (size_t)MAX_AUDIO_TYPES));
 
     //
     // 3. Allocate and init game objects

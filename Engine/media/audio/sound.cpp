@@ -27,6 +27,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+// FIXME: merge with ScriptAudioClip::GetAudioFileTypeFromExt!
 static AudioFileType GuessSoundTypeFromExt(const String &extension)
 {
     if (extension.CompareNoCase("mp3") == 0) {
@@ -59,7 +60,7 @@ static AudioFileType GuessSoundTypeFromExt(const String &extension)
     else if (extension.CompareNoCase("flac") == 0) {
         return eAudioFileFLAC;
     }
-    return eAudioFileUnknown;
+    return eAudioFileUndefined;
 }
 
 // Sound cache, stores most recent used sounds, tracks use history with MRU list.

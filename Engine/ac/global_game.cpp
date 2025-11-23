@@ -810,18 +810,36 @@ void _sc_AbortGame(const char* text) {
     quit(displbuf);
 }
 
-int WaitImpl(int skip_type, int nloops)
+// Wait* implementation specific to pre-3.6.0 games, which had number of accidental effects.
+static int WaitImplPre360(int skip_type, int nloops)
 {
-    // if skipping cutscene and expecting user input: don't wait at all
-    if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
-        return 0;
-
-    // < 3.6.0 scripts treated negative nloops as "no time";
-    // also old engine let nloops to overflow into neg when assigned to wait_counter...
-    if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
+    // Negative nloops was forbidden in < 3.6.0, but here we just return instantly
+    if (nloops < 0)
     {
-        if (nloops < 0 || nloops > INT16_MAX)
-            nloops = 0;
+        return 0;
+    }
+
+    // < 3.6.0 implementation of Wait* did not have a value range check when assigning
+    // int32 parameter to a int16 wait counter.
+    // Values above INT16_MAX caused wait counter overflow. If the resulting int16 value
+    // appeared negative, then Wait would skip after the very first update,
+    // returning "1", as if it was skipped by a player input (this was not intentional,
+    // but pure accident due to a bad program logic). If the resulting int16 value
+    // appeared positive, then game would wait for that amount normally.
+    // We simulate this here, because, unfortunately, it's required to keep some old games run correctly.
+    bool force_retval1 = false;
+    if (nloops > INT16_MAX)
+    {
+        int16_t overflown_value = static_cast<int16_t>(nloops);
+        if (overflown_value < 0)
+        {
+            nloops = 1;
+            force_retval1 = true;
+        }
+        else
+        {
+            nloops = overflown_value;
+        }
     }
 
     if (nloops == 0)
@@ -829,7 +847,6 @@ int WaitImpl(int skip_type, int nloops)
         return 0;
     }
 
-    // clamp to int16
     play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(nloops, -1, INT16_MAX));
     play.wait_skipped_by = SKIP_NONE;
     play.wait_skipped_by_data = 0;
@@ -837,11 +854,37 @@ int WaitImpl(int skip_type, int nloops)
 
     GameLoopUntilValueIsZero(&play.wait_counter);
 
+    if (force_retval1)
+        return 1;
+
+    // < 3.6.0 return 1 if skipped by user input, otherwise 0
+    return ((play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK)) != 0) ? 1 : 0;
+}
+
+int WaitImpl(int skip_type, int nloops)
+{
+    // if skipping cutscene and expecting user input: don't wait at all
+    if (play.fast_forward && ((skip_type & ~SKIP_AUTOTIMER) != 0))
+        return 0;
+
     if (game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360)
     {
-        // < 3.6.0 return 1 if skipped by user input, otherwise 0
-        return ((play.wait_skipped_by & (SKIP_KEYPRESS | SKIP_MOUSECLICK)) != 0) ? 1 : 0;
+        return WaitImplPre360(skip_type, nloops);
     }
+
+    // Zero loops make no sense, so return instantly
+    if (nloops == 0)
+    {
+        return 0;
+    }
+
+    play.wait_counter = static_cast<int16_t>(Math::Clamp<int>(nloops, -1, INT16_MAX));
+    play.wait_skipped_by = SKIP_NONE;
+    play.wait_skipped_by_data = 0;
+    play.key_skip_wait = skip_type;
+
+    GameLoopUntilValueIsZero(&play.wait_counter);
+
     // >= 3.6.0 return skip (input) type flags with keycode
     return play.GetWaitSkipResult();
 }
@@ -866,6 +909,10 @@ int WaitInput(int input_flags, int nloops) {
     return WaitImpl((input_flags >> SKIP_RESULT_TYPE_SHIFT) | SKIP_AUTOTIMER, nloops);
 }
 
-void SkipWait() {
-    play.wait_counter = 0;
+void SkipWait0() {
+    SkipWait(0);
+}
+
+void SkipWait(int result_value) {
+    play.SetWaitSkipResult(SKIP_NONE /* by script */, result_value);
 }

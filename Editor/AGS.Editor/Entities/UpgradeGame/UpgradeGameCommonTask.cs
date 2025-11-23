@@ -316,6 +316,7 @@ namespace AGS.Editor
                         font.AutoOutlineThickness = font.SizeMultiplier;
                     }
                     font.TTFMetricsFixup = FontMetricsFixup.SetAscenderToHeight;
+                    font.HeightDefinedBy = FontHeightDefinition.NominalHeight;
                 }
                 game.Settings.ClipGUIControls = false;
             }
@@ -340,25 +341,28 @@ namespace AGS.Editor
                 game.Settings.ScaleCharacterSpriteOffsets = false;
             }
 
-            if (xmlVersionIndex < 3060200 || (xmlVersionIndex > 3999900 && xmlVersionIndex < 4000010))
+            if (xmlVersionIndex < 3060200 || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000010))
             {
                 game.Settings.UseOldVoiceClipNaming = true;
             }
 
-            if (xmlVersionIndex < 3060206 || (xmlVersionIndex > 3999900 && xmlVersionIndex < 4000014))
+            if (xmlVersionIndex < 3060206 || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000014))
             {
                 game.Settings.GameFPS = 40; // 40 was historical default FPS
             }
 
-            // Update all the ColourNumber property values in game
-            if (xmlVersionIndex < 4000009)
+            if ((xmlVersionIndex < 3060303) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000024))
             {
-                RemapLegacyColourProperties(game);
+                // HeightDefinedBy moved from global setting to a per-Font individual setting
+                foreach (Font font in game.Fonts)
+                {
+                    font.HeightDefinedBy = game.Settings.TTFHeightDefinedBy;
+                }
             }
-            else if (xmlVersionIndex < 4000014)
-            {
-                RemapOpaqueColourProperties(game);
-            }
+
+            //-----------------------------------------------------------------
+            // v4.0 updates
+            //-----------------------------------------------------------------
 
             // Update ScriptCompiler selection
             if (xmlVersionIndex < 3999900)
@@ -369,6 +373,16 @@ namespace AGS.Editor
             {
                 game.Settings.ScriptCompiler = game.Settings.ExtendedCompiler ?
                     AGSEditor.DEFAULT_SCRIPT_COMPILER : AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
+            }
+
+            // Update all the ColourNumber property values in game
+            if (xmlVersionIndex < 4000009)
+            {
+                RemapLegacyColourProperties(game);
+            }
+            else if (xmlVersionIndex < 4000014)
+            {
+                RemapOpaqueColourProperties(game);
             }
 
             // Update viewframes

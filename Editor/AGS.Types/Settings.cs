@@ -21,7 +21,6 @@ namespace AGS.Types
         public const string PROPERTY_TEXT_FORMAT = "Text format";
         public const string PROPERTY_TEXT_LANGUAGE = "Text language";
         public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
-        public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
         public const string PROPERTY_CLIPGUICONTROLS = "GUI controls clip their contents";
@@ -95,8 +94,6 @@ namespace AGS.Types
         private int _textWindowGUI = 0;
         private bool _alwaysDisplayTextAsSpeech = false;
         private bool _antiAliasFonts = false;
-        private FontHeightDefinition _ttfHeightDefinedBy = FontHeightDefinition.NominalHeight;
-        private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.None;
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
@@ -908,27 +905,18 @@ namespace AGS.Types
             set { _antiAliasFonts = value; }
         }
 
-        [DisplayName(PROPERTY_FONT_HEIGHT_IN_LOGIC)]
-        [Description("How the true-type font height will be defined whenever it is required by the script or game logic.")]
-        [Category("Text output")]
-        [DefaultValue(FontHeightDefinition.NominalHeight)]
-        [TypeConverter(typeof(EnumTypeConverter))]
+        [Obsolete]
+        [Browsable(false)]
         public FontHeightDefinition TTFHeightDefinedBy
         {
-            get { return _ttfHeightDefinedBy; }
-            set { _ttfHeightDefinedBy = value; }
+            get; set;
         }
 
-        [DisplayName("TTF fonts adjustment defaults")]
-        [Description("Automatic adjustment of the true-type font metrics; primarily for backward compatibility." +
-            "\nThis option will be used as a default value for each new imported font, but you may also customize it in the Font's properties.")]
-        [Category("Text output")]
-        [DefaultValue(FontMetricsFixup.None)]
-        [TypeConverter(typeof(EnumTypeConverter))]
+        [Obsolete]
+        [Browsable(false)]
         public FontMetricsFixup TTFMetricsFixup
         {
-            get { return _ttfMetricsFixup; }
-            set { _ttfMetricsFixup = value; }
+            get; set;
         }
 
         [DisplayName("Custom thought bubble GUI")]

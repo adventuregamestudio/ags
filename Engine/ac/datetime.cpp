@@ -80,6 +80,10 @@ int DateTime_GetSecond(ScriptDateTime *sdt) {
     return sdt->Second();
 }
 
+int DateTime_GetMillisecond(ScriptDateTime *sdt) {
+    return sdt->Millisecond();
+}
+
 int DateTime_GetRawTime(ScriptDateTime *sdt) {
     return sdt->RawTime();
 }
@@ -146,6 +150,12 @@ RuntimeScriptValue Sc_DateTime_GetSecond(void *self, const RuntimeScriptValue *p
     API_OBJCALL_INT(ScriptDateTime, DateTime_GetSecond);
 }
 
+RuntimeScriptValue Sc_DateTime_GetMillisecond(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMillisecond);
+}
+
+
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetRawTime(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -161,6 +171,7 @@ void RegisterDateTimeAPI()
 
         { "DateTime::get_DayOfMonth", API_FN_PAIR(DateTime_GetDayOfMonth) },
         { "DateTime::get_Hour",       API_FN_PAIR(DateTime_GetHour) },
+        { "DateTime::get_Millisecond", API_FN_PAIR(DateTime_GetMillisecond) },
         { "DateTime::get_Minute",     API_FN_PAIR(DateTime_GetMinute) },
         { "DateTime::get_Month",      API_FN_PAIR(DateTime_GetMonth) },
         { "DateTime::get_RawTime",    API_FN_PAIR(DateTime_GetRawTime) },

@@ -6,7 +6,8 @@ namespace AGS.Types.AutoComplete
 {
     public class ScriptVariable : ScriptToken
     {
-        public ScriptVariable(string variableName, string type, bool isArray, bool isDynamicArray, bool isPointer, string ifDefOnly, string ifNDefOnly, bool isStatic, bool isStaticOnly, bool noInherit, bool isProtected, bool isReadOnly, int scriptCharacterIndex)
+        public ScriptVariable(string variableName, string type, bool isArray, bool isDynamicArray, bool isPointer, int arrayDimensions,
+            string ifDefOnly, string ifNDefOnly, bool isStatic, bool isStaticOnly, bool noInherit, bool isProtected, bool isReadOnly, int scriptCharacterIndex)
         {
             VariableName = variableName;
             Type = type;
@@ -20,6 +21,7 @@ namespace AGS.Types.AutoComplete
             NoInherit = noInherit;
             IsProtected = isProtected;
             IsReadOnly = isReadOnly;
+            ArrayDimensions = arrayDimensions;
             StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
@@ -33,10 +35,17 @@ namespace AGS.Types.AutoComplete
         public bool IsProtected;
         public bool IsDynamicArray;
         public bool IsReadOnly;
+        public int ArrayDimensions;
 
         public override string ToString()
         {
-            return "VAR: " + (IsStatic ? "static " : "") + Type + (IsPointer && !IsDynamicArray ? "*" : "") + " " + VariableName + (IsArray && !IsDynamicArray ? "[]" : "");
+            string str = $"VAR: {(IsStatic ? "static " : "")}{Type}{(IsPointer && !IsDynamicArray ? "*" : "")} {VariableName}{(IsArray && !IsDynamicArray ? "[]" : "")}";
+            if (!IsDynamicArray && ArrayDimensions > 1)
+            {
+                for (int i = 1; i < ArrayDimensions; ++i)
+                    str = str + "[]";
+            }
+            return str;
         }
     }
 }

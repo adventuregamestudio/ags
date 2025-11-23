@@ -50,8 +50,8 @@ void UpdateCursorAndDrawables();
 // Useful after a major game state change, such as loading new room, in case we expect
 // that a render may occur before a normal game update is performed.
 void SyncDrawablesState();
-// Checks if currently in waiting state (blocking action, or Wait call).
-bool IsInWaitMode();
+// Checks if currently in blocking action state (blocking action, or Wait called from script).
+bool IsInBlockingAction();
 // Checks if currently in waiting state, which is instigated from the script callback
 // (on the main script thread). This function is meant in case we need to know if it's
 // caused by the script command exactly, and we are hanging in script because of that.

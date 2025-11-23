@@ -47,7 +47,8 @@ enum OverlayFlags
     kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
-    kOver_Visible          = 0x0010
+    // 0x0010 to 0x0080 are reserved for future-compat with v4.0
+    kOver_Visible          = 0x0100
 };
 
 enum OverlaySvgVersion

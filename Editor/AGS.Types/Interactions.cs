@@ -17,7 +17,7 @@ namespace AGS.Types
 
         private InteractionSchema _schema;
         private string _scriptModule = string.Empty;
-        // Map event name to a script function
+        // Map interaction (cursor) UID to a script function
         private Dictionary<string, string> _scriptFunctionNames;
         // Event index to function name lookup, for compatibility with old serialization formats
         // FIXME: figure out if it's possible to get rid of these in the class;
@@ -90,12 +90,13 @@ namespace AGS.Types
 
                 int index = SerializeUtils.GetAttributeIntOrDefault(child, "Index", -1);
                 string name = SerializeUtils.GetAttributeStringOrDefault(child, "Name", string.Empty);
+                string uid = SerializeUtils.GetAttributeStringOrDefault(child, "UID", string.Empty);
                 string value = child.InnerText;
 
-                if (!string.IsNullOrEmpty(name))
+                if (!string.IsNullOrEmpty(uid))
                 {
                     if (!string.IsNullOrEmpty(value))
-                        _scriptFunctionNames[name] = value;
+                        _scriptFunctionNames[uid] = value;
                 }
                 else if (index >= 0)
                 {
@@ -117,12 +118,13 @@ namespace AGS.Types
             foreach (var evt in _schema.Events)
             {
                 string value;
-                if (!_scriptFunctionNames.TryGetValue(evt.EventName, out value))
+                if (!_scriptFunctionNames.TryGetValue(evt.UID, out value))
                     continue;
 
                 writer.WriteStartElement("Event");
                 writer.WriteAttributeString("Index", evt.Index.ToString());
                 writer.WriteAttributeString("Name", evt.EventName.ToString());
+                writer.WriteAttributeString("UID", evt.UID.ToString());
                 writer.WriteString(value);
                 writer.WriteEndElement();
             }
@@ -155,23 +157,15 @@ namespace AGS.Types
 
         private void Schema_Changed(object sender, InteractionSchemaChangedEventArgs args)
         {
-            SyncWithSchema(args.EventNameRemap);
+            SyncWithSchema(args.OldEvents, args.NewEvents);
         }
 
-        private void SyncWithSchema(Dictionary<string, string> eventNameRemap)
+        private void SyncWithSchema(InteractionEvent[] oldEvents, InteractionEvent[] newEvents)
         {
-            var oldFunctions = _scriptFunctionNames;
-            _scriptFunctionNames = new Dictionary<string, string>();
-            if (eventNameRemap != null)
-            {
-                foreach (var remap in eventNameRemap)
-                {
-                    if (oldFunctions.ContainsKey(remap.Key))
-                    {
-                        _scriptFunctionNames.Add(remap.Value, oldFunctions[remap.Key]);
-                    }
-                }
-            }
+            // We ignore the change in events themselves here:
+            // - event UIDs will remain regardless of change in interaction name;
+            // - if certain event was disabled, we still keep the function, in
+            //   case it will be enabled within the same program session.
 
             if (_indexedFunctionNames.Count > 0 && _schema != null && _schema.Events.Length > 0)
             {
@@ -188,7 +182,7 @@ namespace AGS.Types
             {
                 var interEvent = _schema.Events.FirstOrDefault(evt => evt.Index == ifn.Key);
                 if (interEvent != null)
-                    _scriptFunctionNames.Add(interEvent.EventName, ifn.Value);
+                    _scriptFunctionNames.Add(interEvent.UID, ifn.Value);
             }
 
             // Drop the indexed functions, we no longer need them, and they are likely not valid anymore

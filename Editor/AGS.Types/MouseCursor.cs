@@ -12,6 +12,7 @@ namespace AGS.Types
         private string _name = string.Empty;
         private bool _standardMode = false;
         private bool _createEvent = false;
+        private string _eventUID = string.Empty;
         private string _eventLabel = string.Empty;
         private string _eventFunctionName = string.Empty;
         private int _id = 0;
@@ -68,6 +69,13 @@ namespace AGS.Types
         {
             get { return _createEvent; }
             set { _createEvent = value; }
+        }
+
+        [Browsable(false)]
+        public string EventUID
+        {
+            get { return _eventUID; }
+            set { _eventUID = value; }
         }
 
         [Description("The label used for this event in the Property Grid. If left empty then cursor's own Name will be used instead")]

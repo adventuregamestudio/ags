@@ -797,7 +797,7 @@ namespace AGS.Editor
                 if (events[eventIndex].Index == index)
                 {
                     string funcName;
-                    if (interactions.ScriptFunctionNames.TryGetValue(events[eventIndex].EventName, out funcName))
+                    if (interactions.ScriptFunctionNames.TryGetValue(events[eventIndex].UID, out funcName))
                         FilePutString(funcName, writer);
                     else
                         writer.Write((int)0); // unassigned slot

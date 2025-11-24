@@ -111,6 +111,7 @@ namespace AGS.Types
 		private string _saveGameExtension = string.Empty;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = AudioClip.FixedIndexBase;
+        private int _cursorUIDIndexer = 0;
         private string _buildTargets = GetBuildTargetsString(DEFAULT_TARGET_NAMES, false);
         private string _androidApplicationId = "com.mystudio.mygame";
         private int _androidAppVersionCode = 1;
@@ -1112,6 +1113,13 @@ namespace AGS.Types
             set { _audioIndexer = value; }
         }
 
+        // This is used to assign fixed event UIDs to Cursors
+        public int CursorEventIndexer
+        {
+            get { return _cursorUIDIndexer; }
+            set { _cursorUIDIndexer = value; }
+        }
+
         [DisplayName(PROPERTY_BUILD_TARGETS)]
         [Description("Sets the platforms to compile your game for.")]
         [Category("Compiler")]
@@ -1227,6 +1235,7 @@ namespace AGS.Types
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _audioIndexer = AudioClip.FixedIndexBase;
+            _cursorUIDIndexer = 0;
             _gameFileName = string.Empty;
 
             SerializeUtils.DeserializeFromXML(this, node);

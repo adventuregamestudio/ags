@@ -585,6 +585,11 @@ namespace AGS.Types
             return ++_settings.AudioIndexer;
         }
 
+        public string GetNextCursorEventUID()
+        {
+            return string.Format($"Curs{++_settings.CursorEventIndexer:0000}");
+        }
+
         public PaletteEntry[] ReadPaletteFromXML(XmlNode parentOfPaletteNode)
         {
             PaletteEntry[] palette = new PaletteEntry[PALETTE_SIZE];

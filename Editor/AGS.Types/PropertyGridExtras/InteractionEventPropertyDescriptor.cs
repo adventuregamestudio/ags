@@ -18,19 +18,19 @@ namespace AGS.Types
     public class InteractionEventPropertyDescriptor : PropertyDescriptor
     {
         private Type _componentType;
-        private string _eventName;
+        private string _eventUID;
 
-        public InteractionEventPropertyDescriptor(object component,
+        public InteractionEventPropertyDescriptor(object component, string eventUID,
             string eventName, string displayName, string category, string functionSuffix, string parameterList)
             :
-            base(eventName, new Attribute[]{new DisplayNameAttribute(displayName), 
+            base(eventName, new Attribute[]{new DisplayNameAttribute(displayName),
                 new EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor)),
                 new CategoryAttribute(category),
                 new DefaultValueAttribute(string.Empty),
                 new ScriptFunctionAttribute(functionSuffix, parameterList)})
         {
             _componentType = component.GetType();
-            _eventName = eventName;
+            _eventUID = eventUID;
         }
 
         public override bool CanResetValue(object component)
@@ -48,7 +48,7 @@ namespace AGS.Types
             PropertyInfo interactionsProperty = component.GetType().GetProperty("Interactions");
             Interactions interactions = (Interactions)interactionsProperty.GetValue(component, null);
             string value = null;
-            interactions.ScriptFunctionNames.TryGetValue(_eventName, out value);
+            interactions.ScriptFunctionNames.TryGetValue(_eventUID, out value);
             return value;
         }
 
@@ -71,7 +71,7 @@ namespace AGS.Types
         {
             PropertyInfo interactionsProperty = component.GetType().GetProperty("Interactions");
             Interactions interactions = (Interactions)interactionsProperty.GetValue(component, null);
-            interactions.ScriptFunctionNames[_eventName] = value.ToString();
+            interactions.ScriptFunctionNames[_eventUID] = value.ToString();
         }
 
         public override bool ShouldSerializeValue(object component)

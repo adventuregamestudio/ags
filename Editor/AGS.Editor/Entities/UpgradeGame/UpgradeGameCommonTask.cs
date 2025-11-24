@@ -425,6 +425,7 @@ namespace AGS.Editor
                     if (cursor.ID < eventDefs.Length)
                     {
                         cursor.CreateEvent = eventDefs[cursor.ID].CreateEvent;
+                        cursor.EventUID = game.GetNextCursorEventUID();
                         cursor.EventLabel = eventDefs[cursor.ID].Label;
                         cursor.EventFunctionName = eventDefs[cursor.ID].FunctionName;
                     }

@@ -80,7 +80,7 @@ namespace AGS.Types
                 var events = schema.Events;
                 foreach (var evt in events)
                 {
-                    propList.Add(new InteractionEventPropertyDescriptor(component,
+                    propList.Add(new InteractionEventPropertyDescriptor(component, evt.UID,
                             evt.EventName, evt.DisplayName, category, evt.FunctionSuffix, functionParameters));
                 }
             }

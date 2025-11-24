@@ -42,6 +42,7 @@ namespace AGS.Editor.Components
                 MouseCursor newItem = new MouseCursor();
                 newItem.ID = items.Count;
                 newItem.Name = "Cursor" + newItem.ID;
+                newItem.EventUID = _agsEditor.CurrentGame.GetNextCursorEventUID();
                 items.Add(newItem);
                 SyncCursorsWithInteractionSchema();
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
@@ -229,7 +230,7 @@ namespace AGS.Editor.Components
                     string eventName = Types.Utilities.RemoveInvalidCharactersFromScriptName(cursor.Name);
                     string displayName = string.IsNullOrWhiteSpace(cursor.EventLabel) ? cursor.Name : cursor.EventLabel;
                     string functionSuffix = string.IsNullOrWhiteSpace(cursor.EventFunctionName) ? eventName : cursor.EventFunctionName;
-                    events.Add(new InteractionEvent(cursor.ID, eventName, displayName, functionSuffix));
+                    events.Add(new InteractionEvent(cursor.ID, cursor.EventUID, eventName, displayName, functionSuffix));
                 }
             }
             schema.Events = events.ToArray();

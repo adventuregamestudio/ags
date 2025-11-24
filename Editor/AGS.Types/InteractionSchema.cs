@@ -5,18 +5,22 @@ namespace AGS.Types
 {
     /// <summary>
     /// InteractionEvent is a definition of a event triggered by a
-    /// particular player interaction. Event has a Name (id) and a DisplayName (label).
+    /// particular player interaction. Event has a UID, Name and a DisplayName (label).
+    /// UID is a programmatically generated id, meant to prevent accidental loss
+    /// of function link during editing session, if user renames a interaction (cursor).
     /// </summary>
     public class InteractionEvent
     {
         private int _index;
+        private string _uid;
         private string _eventName;
         private string _displayName;
         private string _functionSuffix;
 
-        public InteractionEvent(int index, string evtName, string displayName, string functionSuffix)
+        public InteractionEvent(int index, string uid, string evtName, string displayName, string functionSuffix)
         {
             _index = index;
+            _uid = uid;
             _eventName = evtName;
             _displayName = displayName;
             _functionSuffix = functionSuffix;
@@ -26,6 +30,7 @@ namespace AGS.Types
         /// Get a numeric interaction index, matching the Cursor's ID
         /// </summary>
         public int Index { get { return _index; } }
+        public string UID { get { return _uid; } }
         public string EventName { get { return _eventName; } }
         public string DisplayName { get { return _displayName; } }
         public string FunctionSuffix { get { return _functionSuffix; } }
@@ -33,19 +38,23 @@ namespace AGS.Types
 
     public class InteractionSchemaChangedEventArgs
     {
-        Dictionary<string, string> _eventNameRemap;
+        readonly InteractionEvent[] _oldEvents;
+        readonly InteractionEvent[] _newEvents;
 
         public InteractionSchemaChangedEventArgs()
         {
-            _eventNameRemap = new Dictionary<string, string>();
+            _oldEvents = new InteractionEvent[0];
+            _newEvents = new InteractionEvent[0];
         }
 
-        public InteractionSchemaChangedEventArgs(Dictionary<string, string> eventNameRemap)
+        public InteractionSchemaChangedEventArgs(InteractionEvent[] oldEvents, InteractionEvent[] newEvents)
         {
-            _eventNameRemap = eventNameRemap;
+            _oldEvents = oldEvents;
+            _newEvents = newEvents;
         }
 
-        public Dictionary<string, string> EventNameRemap { get { return _eventNameRemap; } }
+        public InteractionEvent[] OldEvents { get { return _oldEvents; } }
+        public InteractionEvent[] NewEvents { get { return _newEvents; } }
     }
 
     /// <summary>
@@ -66,12 +75,9 @@ namespace AGS.Types
             }
             set
             {
+                var oldEvents = _events;
                 _events = value;
-                // TODO: make a proper matching, based on change operation (add/remove/rename)
-                Dictionary<string, string> remap = new Dictionary<string, string>();
-                foreach (var evt in _events)
-                    remap.Add(evt.EventName, evt.EventName);
-                Changed?.Invoke(this, new InteractionSchemaChangedEventArgs(remap));
+                Changed?.Invoke(this, new InteractionSchemaChangedEventArgs(oldEvents, _events));
             }
         }
 

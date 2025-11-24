@@ -10,6 +10,7 @@ namespace AGS.Types
     public class MouseCursor : ICustomTypeDescriptor
     {
         private string _name = string.Empty;
+        private CursorRole _standardRole = CursorRole.None;
         private bool _standardMode = false;
         private bool _createEvent = false;
         private string _eventUID = string.Empty;
@@ -54,12 +55,20 @@ namespace AGS.Types
             set { _hotspotY = value; }
         }
 
-        [Description("This cursor mode should fire interactions via ProcessClick")]
+        [Description("This cursor mode is a part of the cursor cycling and should fire interactions via ProcessClick")]
         [Category("Design")]
         public bool StandardMode
         {
             get { return _standardMode; }
             set { _standardMode = value; }
+        }
+
+        [Description("The standard role this cursor takes, enabling respective automatic behavior in game")]
+        [Category("Design")]
+        public CursorRole StandardRole
+        {
+            get { return _standardRole; }
+            set { _standardRole = value; }
         }
 
         [Description("This cursor mode creates interaction event for characters and other objects.")]

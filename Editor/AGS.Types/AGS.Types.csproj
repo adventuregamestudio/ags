@@ -108,6 +108,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\CursorRole.cs" />
     <Compile Include="InteractionSchema.cs" />
     <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
     <Compile Include="Attributes\AGSSerializeClassAttribute.cs" />

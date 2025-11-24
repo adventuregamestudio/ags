@@ -1911,7 +1911,6 @@ namespace AGS.Editor
         private static void WriteExt_360Cursors(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
             Game game = ents.Game;
-            // adjustable font outlines
             for (int i = 0; i < game.Cursors.Count; ++i)
             {
                 writer.Write((int)game.Cursors[i].AnimationDelay);
@@ -2273,6 +2272,18 @@ namespace AGS.Editor
             SerializeEventsTables(ents.GUIControls.GUISliders, writer);
             SerializeEventsTables(ents.GUIControls.GUITextBoxes, writer);
             SerializeEventsTables(ents.GUIControls.GUIListBoxes, writer);
+
+            // Additional cursor properties required for the updated interaction system
+            writer.Write(ents.Game.Cursors.Count);
+            for (int i = 0; i < ents.Game.Cursors.Count; ++i)
+            {
+                var cursor = ents.Game.Cursors[i];
+                writer.Write((int)cursor.StandardRole);
+                // reserved ints
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
         }
 
         /// <summary>

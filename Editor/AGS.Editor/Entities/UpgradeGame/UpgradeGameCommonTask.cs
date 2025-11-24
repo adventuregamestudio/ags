@@ -86,16 +86,18 @@ namespace AGS.Editor
             // does not have any options
         }
 
-        struct CursorEvent
+        struct CursorDefinition
         {
+            public CursorRole Role;
             public bool CreateEvent;
-            public string Label;
+            public string EventLabel;
             public string FunctionName;
 
-            public CursorEvent(bool create, string label, string functionName)
+            public CursorDefinition(CursorRole role, bool createEvt, string evtLabel, string functionName)
             {
-                CreateEvent = create;
-                Label = label;
+                Role = role;
+                CreateEvent = createEvt;
+                EventLabel = evtLabel;
                 FunctionName = functionName;
             }
         };
@@ -406,28 +408,29 @@ namespace AGS.Editor
                 // This is nasty, but certain standard cursors meanings and function suffixes
                 // have been hardcoded by their INDEX in the object Interactions.
                 // Although the labels were not hardcoded, and taken from the cursor's Name.
-                CursorEvent[] eventDefs = new CursorEvent[]
+                CursorDefinition[] cursorDefs = new CursorDefinition[]
                 {
-                    new CursorEvent(false, string.Empty, string.Empty), // Walk to
-                    new CursorEvent(true, string.Empty, "Look"),
-                    new CursorEvent(true, string.Empty, "Interact"),
-                    new CursorEvent(true, string.Empty, "Talk"),
-                    new CursorEvent(true, "Use inventory on", "UseInv"),
-                    new CursorEvent(true, string.Empty, "PickUp"),
-                    new CursorEvent(false, string.Empty, string.Empty), // Pointer
-                    new CursorEvent(false, string.Empty, string.Empty), // Wait
-                    new CursorEvent(true, string.Empty, "Mode8"),
-                    new CursorEvent(true, string.Empty, "Mode9"),
+                    new CursorDefinition(CursorRole.Walk, false, string.Empty, string.Empty), // Walk to
+                    new CursorDefinition(CursorRole.Look, true, string.Empty, "Look"),
+                    new CursorDefinition(CursorRole.Interact, true, string.Empty, "Interact"),
+                    new CursorDefinition(CursorRole.None, true, string.Empty, "Talk"),
+                    new CursorDefinition(CursorRole.UseInv, true, "Use inventory on", "UseInv"),
+                    new CursorDefinition(CursorRole.None, true, string.Empty, "PickUp"),
+                    new CursorDefinition(CursorRole.Pointer, false, string.Empty, string.Empty), // Pointer
+                    new CursorDefinition(CursorRole.Wait, false, string.Empty, string.Empty), // Wait
+                    new CursorDefinition(CursorRole.None, true, string.Empty, "Mode8"),
+                    new CursorDefinition(CursorRole.None, true, string.Empty, "Mode9"),
                 };
 
                 foreach (var cursor in game.Cursors)
                 {
-                    if (cursor.ID < eventDefs.Length)
+                    if (cursor.ID < cursorDefs.Length)
                     {
-                        cursor.CreateEvent = eventDefs[cursor.ID].CreateEvent;
+                        cursor.StandardRole = cursorDefs[cursor.ID].Role;
+                        cursor.CreateEvent = cursorDefs[cursor.ID].CreateEvent;
                         cursor.EventUID = game.GetNextCursorEventUID();
-                        cursor.EventLabel = eventDefs[cursor.ID].Label;
-                        cursor.EventFunctionName = eventDefs[cursor.ID].FunctionName;
+                        cursor.EventLabel = cursorDefs[cursor.ID].EventLabel;
+                        cursor.EventFunctionName = cursorDefs[cursor.ID].FunctionName;
                     }
                 }
             }

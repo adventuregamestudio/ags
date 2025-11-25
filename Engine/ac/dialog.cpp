@@ -499,7 +499,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     EnableInterface();
     // if we're not about to abort the dialog, switch back to arrow
     if (result != RUN_DIALOG_STOP_DIALOG)
-      set_cursor_look(CURS_ARROW);
+      set_cursor_look(game.GetModePointer());
   }
 
   return result;
@@ -908,7 +908,7 @@ void DialogOptions::Begin()
     }
 
     play.in_conversation++;
-    set_cursor_look(CURS_ARROW);
+    set_cursor_look(game.GetModePointer());
 
     parserActivated = 0;
     if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
@@ -1748,7 +1748,7 @@ void DialogExec::Run()
                 DisableInterface();
                 UpdateGameOnce(); // redraw the screen to make sure it looks right
                 EnableInterface();
-                set_cursor_look(CURS_ARROW);
+                set_cursor_look(game.GetModePointer());
             }
         }
         else if (chose >= 0)

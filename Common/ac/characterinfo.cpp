@@ -31,14 +31,14 @@ void CharacterInfo::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(NUM_STANDARD_VERBS);
     new_interactions.resize(NUM_STANDARD_VERBS);
-    new_interactions[MODE_WALK]    = {};
-    new_interactions[MODE_LOOK]    = old_interactions[0];
-    new_interactions[MODE_HAND]    = old_interactions[1];
-    new_interactions[MODE_TALK]    = old_interactions[2];
-    new_interactions[MODE_USE]     = old_interactions[3];
-    new_interactions[MODE_PICKUP]  = old_interactions[5];
-    new_interactions[MODE_CUSTOM1] = old_interactions[6];
-    new_interactions[MODE_CUSTOM2] = old_interactions[7];
+    new_interactions[STD_MODE_WALK]    = {};
+    new_interactions[STD_MODE_LOOK]    = old_interactions[0];
+    new_interactions[STD_MODE_HAND]    = old_interactions[1];
+    new_interactions[STD_MODE_TALK]    = old_interactions[2];
+    new_interactions[STD_MODE_USE]     = old_interactions[3];
+    new_interactions[STD_MODE_PICKUP]  = old_interactions[5];
+    new_interactions[STD_MODE_CUSTOM1] = old_interactions[6];
+    new_interactions[STD_MODE_CUSTOM2] = old_interactions[7];
 
     _events.SetHandler(kCharacterEvent_AnyClick, old_interactions[4].FunctionName);
     interactions.SetScriptModule(_events.GetScriptModule());

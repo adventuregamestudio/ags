@@ -58,7 +58,7 @@ void start_game_load_savegame_on_startup(const String &load_save)
 
 void start_game() {
     set_room_placeholder();
-    set_cursor_mode(MODE_WALK);
+    set_cursor_mode_with_role(kCursorRole_Walk);
     Mouse::SetPosition(Point(160, 100));
 
     set_our_eip(-42);
@@ -90,7 +90,7 @@ void initialize_start_and_play_game(int override_start_room, const String &load_
 {
     try { // BEGIN try for ALI3DEXception
 
-        set_cursor_mode (MODE_WALK);
+        set_cursor_mode_with_role(kCursorRole_Walk);
 
         if (override_start_room)
             playerchar->room = override_start_room;

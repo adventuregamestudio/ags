@@ -95,11 +95,28 @@ struct GameSetupStruct : public GameSetupStructBase
     // array is calculated based on key spread factor.
     std::vector<SpriteInfo> SpriteInfos;
 
+    // Returns a cursor index with standard Walk mode, or -1 if there's none
+    int GetModeWalk() const { return _roleCursors[kCursorRole_Walk]; }
+    // Returns a cursor index with standard Look mode, or -1 if there's none
+    int GetModeLook() const { return _roleCursors[kCursorRole_Look]; }
+    // Returns a cursor index with standard Interact mode, or -1 if there's none
+    int GetModeInteract() const { return _roleCursors[kCursorRole_Interact]; }
+    // Returns a cursor index with standard Use Inventory mode, or -1 if there's none
+    int GetModeUseInv() const { return _roleCursors[kCursorRole_UseInv]; }
+    // Returns a cursor index with standard Pointer mode, or -1 if there's none
+    int GetModePointer() const { return _roleCursors[kCursorRole_Pointer]; }
+    // Returns a cursor index with standard Wait mode, or -1 if there's none
+    int GetModeWait() const { return _roleCursors[kCursorRole_Wait]; }
+    // Tells if the given cursor has the specific role
+    bool HasCursorRole(int curs, CursorRole role) const { return mcurs[curs].role == role; }
+
     GameSetupStruct() = default;
     GameSetupStruct(GameSetupStruct &&gss) = default;
     ~GameSetupStruct() = default;
 
     GameSetupStruct &operator =(GameSetupStruct &&gss) = default;
+
+    void ResolveStandardModes();
 
     // [IKM] Game struct loading code is moved here from Engine's load_game_file
     // function; for now it is not supposed to be called by Editor; although it
@@ -146,6 +163,9 @@ struct GameSetupStruct : public GameSetupStructBase
 
     void ReadFromSavegame(Common::Stream *in);
     void WriteForSavegame(Common::Stream *out);
+
+private:
+    std::array<int, kNumCursorRoles> _roleCursors = { -1, -1, -1, -1, -1, -1, -1, -1 };
 };
 
 

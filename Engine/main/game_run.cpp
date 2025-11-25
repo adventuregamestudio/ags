@@ -160,7 +160,7 @@ public:
         // (or if it's speech, always change it)
         bool should_update_cursor =
             ((cur_cursor == cur_mode) || (_untilType == UNTIL_NOOVERLAY)) &&
-            (cur_mode != CURS_WAIT);
+            (!is_current_cursor_mode(kCursorRole_Wait));
         DisableInterfaceEx(should_update_cursor);
     }
     // End the state, release all resources

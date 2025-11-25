@@ -907,7 +907,7 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt)
         return;
 
     // No "unhandled event" for walk mode
-    if (evnt == MODE_WALK)
+    if (game.HasCursorRole(evnt, kCursorRole_Walk))
         return;
 
     int loc_type = obj_evt.ObjectTypeID;

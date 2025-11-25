@@ -734,7 +734,7 @@ void RoomProcessClick(int xx,int yy,int mood) {
     xx = vpt.first.X;
     yy = vpt.first.Y;
 
-    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
         if (hsnum<1) ;
         else if (thisroom.Hotspots[hsnum].WalkTo.X<1) ;
@@ -775,7 +775,7 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
     yy = vpt.first.Y;
 
     // You can always walk places
-    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE]==0))
         return 1;
 
     play.check_interaction_only = 1;

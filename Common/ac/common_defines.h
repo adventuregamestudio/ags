@@ -61,20 +61,18 @@
 // An identifier of a "null font", a pseudo font used when you don't want a text to be drawn
 #define FONT_NULL (-1)
 
-// Standard interaction verbs (aka cursor modes)
-#define MODE_NONE      -1
-#define MODE_WALK       0
-#define MODE_LOOK       1
-#define MODE_HAND       2
-#define MODE_TALK       3
-#define MODE_USE        4
-#define MODE_PICKUP     5
-// aka MODE_POINTER
-#define CURS_ARROW      6
-// aka MODE_WAIT
-#define CURS_WAIT       7
-#define MODE_CUSTOM1    8
-#define MODE_CUSTOM2    9
+// Classic standard interaction verbs (aka cursor modes)
+#define STD_MODE_NONE      -1
+#define STD_MODE_WALK       0
+#define STD_MODE_LOOK       1
+#define STD_MODE_HAND       2
+#define STD_MODE_TALK       3
+#define STD_MODE_USE        4
+#define STD_MODE_PICKUP     5
+#define STD_MODE_POINTER    6
+#define STD_MODE_WAIT       7
+#define STD_MODE_CUSTOM1    8
+#define STD_MODE_CUSTOM2    9
 #define NUM_STANDARD_VERBS 10
 
 #define AUDIOTYPE_UNDEFINED -1

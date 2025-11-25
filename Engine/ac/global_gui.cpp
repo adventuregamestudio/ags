@@ -120,7 +120,7 @@ void DisableInterfaceEx(bool update_cursor)
     // because disabled status may had been toggled by internal game logic too
     if (update_cursor)
     {
-        set_cursor_look(CURS_WAIT);
+        set_cursor_look(game.GetModeWait());
     }
 }
 

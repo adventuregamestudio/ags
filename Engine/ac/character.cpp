@@ -769,8 +769,8 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
 
     if ((chap->activeinv == inum) & (chap->inv[inum] < 1)) {
         chap->activeinv = -1;
-        if ((chap == playerchar) && (Mouse_GetCursorMode() == MODE_USE))
-            set_cursor_mode(0);
+        if ((chap == playerchar) && (is_current_cursor_mode(kCursorRole_UseInv)))
+            set_cursor_mode(0); // change to the first enabled mode
     }
 
     int charid = chap->index_id;
@@ -883,7 +883,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
         playerchar->activeinv = -1;
 
     // They had inv selected, so change the cursor
-    if (cur_mode == MODE_USE) {
+    if (is_current_cursor_mode(kCursorRole_UseInv)) {
         if (playerchar->activeinv < 0)
             Mouse_SetNextCursor ();
         else
@@ -1230,7 +1230,7 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
     const int anyclick_evt = kCharacterEvent_AnyClick;
 
     // For USE verb: remember active inventory
-    if (mood == MODE_USE)
+    if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
         play.usedinv = playerchar->activeinv;
     }
@@ -1298,8 +1298,8 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
 
         if (chaa->index_id == game.playercharacter) {
 
-            if (Mouse_GetCursorMode()==MODE_USE)
-                set_cursor_mode(0);
+            if (is_current_cursor_mode(kCursorRole_UseInv))
+                set_cursor_mode(0); // change to the first enabled mode
         }
         GUIE::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
         return;
@@ -1316,7 +1316,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
     if (chaa->index_id == game.playercharacter) {
         // if it's the player character, update mouse cursor
         update_inv_cursor(iit->id);
-        set_cursor_mode(MODE_USE);
+        set_cursor_mode_with_role(kCursorRole_UseInv, -1);
     }
     GUIE::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
 }

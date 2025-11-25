@@ -519,6 +519,12 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_24)
     {
+        // Configure standard cursor roles
+        const std::array<CursorRole, 10> cursor_role = {
+            kCursorRole_Walk, kCursorRole_Look, kCursorRole_Interact, kCursorRole_None /* talk */,
+            kCursorRole_UseInv, kCursorRole_None /* pickup */, kCursorRole_Pointer, kCursorRole_Wait,
+            kCursorRole_None /* mode8 */, kCursorRole_None /* mode9 */
+        };
         // Configure standard cursors that have associated events
         const std::array<bool, 10> cursor_event = {
             false /* walk */, true /* look */, true /* interact */, true /* talk */,
@@ -528,6 +534,7 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 
         for (int i = 0; i < game.numcursors && i < cursor_event.size(); ++i)
         {
+            game.mcurs[i].role = cursor_role[i];
             game.mcurs[i].flags |= MCF_EVENT * cursor_event[i];
         }
     }
@@ -718,6 +725,18 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
     err = ReadScriptEventsTablesForObjects(ents.GuiControls.ListBoxes, "GUI listboxes", in);
     if (!err)
         return err;
+
+    // Additional cursor properties required for the updated interaction system
+    if (!ReadAndAssertCount(in, "Cursors", static_cast<uint32_t>(_ents.Game.mcurs.size()), err))
+        return err;
+    for (MouseCursor &mcur : _ents.Game.mcurs)
+    {
+        mcur.role = static_cast<CursorRole>(in->ReadInt32());
+        // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
     return HError::None();
 }
 
@@ -1064,6 +1083,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeInventoryItems(game, data_ver);
     UpgradeGUI(game, ents, data_ver);
     UpgradeMouseCursors(game, data_ver);
+    game.ResolveStandardModes();
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }

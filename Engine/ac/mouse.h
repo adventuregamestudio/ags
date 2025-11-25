@@ -15,6 +15,7 @@
 #define __AGS_EE_AC__MOUSE_H
 
 #include <memory>
+#include "ac/mousecursor.h"
 #include "ac/dynobj/scriptmouse.h"
 
 void Mouse_SetVisible(int isOn);
@@ -55,6 +56,14 @@ void enable_cursor_mode(int mode);
 void disable_cursor_mode(int mode);
 // Set new current cursor mode
 void set_cursor_mode(int newmode);
+// Set new current cursor mode to the first found mode with the given Role;
+// if none found, then sets to the fallback_mode
+void set_cursor_mode_with_role(CursorRole role, int fallback_mode = 0);
+
+// Tells if current mode has this standard role
+bool is_current_cursor_mode(CursorRole role);
+// Tells if current cursor *look* belongs to a cursor with this standard role
+bool is_current_cursor_look(CursorRole role);
 
 // Changes visual appearance of the current cursor to another cursor's looks
 void set_cursor_look(int newcurs, bool force_update = false);

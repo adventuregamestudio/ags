@@ -30,6 +30,21 @@ void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
     }
 }
 
+void GameSetupStruct::ResolveStandardModes()
+{
+    for (int role = 0; role < kNumCursorRoles; ++role)
+    {
+        for (int i = 0; i < numcursors; ++i)
+        {
+            if (mcurs[i].role == role)
+            {
+                _roleCursors[role] = i;
+                break;
+            }
+        }
+    }
+}
+
 //-----------------------------------------------------------------------------
 // Reading Part 1
 

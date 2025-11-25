@@ -664,7 +664,7 @@ void RunObjectInteraction(int aa, int mood) {
     const int anyclick_evt = kRoomObjectEvent_AnyClick;
 
     // For USE verb: remember active inventory
-    if (mood == MODE_USE)
+    if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
         play.usedinv = playerchar->activeinv;
     }

@@ -147,7 +147,7 @@ void RunInventoryInteraction(int iit, int mood) {
     const int anyclick_evt = kInventoryEvent_AnyClick;
 
     // For USE verb: remember active inventory
-    if (mood == MODE_USE)
+    if (game.HasCursorRole(mood, kCursorRole_UseInv))
     {
         play.usedinv = playerchar->activeinv;
     }
@@ -215,7 +215,7 @@ void set_inv_item_cursorpic(int invItemId, int piccy)
 {
     game.invinfo[invItemId].cursorPic = piccy;
 
-    if ((cur_cursor == MODE_USE) && (playerchar->activeinv == invItemId)) 
+    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == invItemId))
     {
         update_inv_cursor(invItemId);
         set_cursor_look(cur_cursor);

@@ -800,7 +800,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
     set_cursor_mode(r_data.CursorMode);
     set_cursor_look(r_data.CursorID, true);
-    if (r_data.CursorMode == MODE_USE)
+    if (game.HasCursorRole(r_data.CursorID, kCursorRole_UseInv))
         SetActiveInventory(playerchar->activeinv);
     // precache current cursor
     spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);

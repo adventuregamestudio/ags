@@ -26,6 +26,20 @@
 
 #define LEGACY_MAX_CURSOR_NAME_LENGTH 10
 
+// Standard cursor roles.
+// These are used in built-in engine's behavior.
+enum CursorRole
+{
+    kCursorRole_None        = -1,
+    kCursorRole_Walk        = 0,
+    kCursorRole_Look        = 1,
+    kCursorRole_Interact    = 2,
+    kCursorRole_UseInv      = 4,
+    kCursorRole_Pointer     = 6,
+    kCursorRole_Wait        = 7,
+    kNumCursorRoles
+};
+
 enum CursorSvgVersion
 {
     kCursorSvgVersion_Initial = 0,
@@ -34,10 +48,11 @@ enum CursorSvgVersion
 
 struct MouseCursor
 {
+    uint8_t flags = 0;
+    CursorRole role = kCursorRole_None;
     int   pic = 0;
     short hotx = 0, hoty = 0;
     short view = -1;
-    char  flags = 0;
     int   animdelay = 5;
 
     AGS::Common::String name; // script name

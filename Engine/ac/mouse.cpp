@@ -48,7 +48,7 @@ extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;
-int cur_mode,cur_cursor; // current mode, and current cursor look
+int cur_mode = 0, cur_cursor = 0; // current mode, and current cursor look
 int mouse_hotx = 0, mouse_hoty = 0; // in game cursor hotspot offset
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
@@ -125,6 +125,9 @@ void Mouse_SetBounds(int x1, int y1, int x2, int y2)
 
 void set_cursor_look(int newcurs, bool force_update)
 {
+    if (newcurs < 0 || newcurs >= game.numcursors)
+        return;
+
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
     mouse_hotx = hotspotx, mouse_hoty = hotspoty;
 
@@ -149,7 +152,7 @@ void set_cursor_look(int newcurs, bool force_update)
     set_new_cursor_graphic(cur_pic);
 
     // If it's inventory cursor, draw hotspot crosshair sprite upon it
-    if ((newcurs == MODE_USE) && (cur_pic > 0) &&
+    if (game.HasCursorRole(newcurs, kCursorRole_UseInv) && (cur_pic > 0) &&
         ((game.hotdot > 0) || (game.invhotdotsprite > 0)) )
     {
         // If necessary, create a copy of the cursor and put the hotspot dot onto it
@@ -204,7 +207,7 @@ void Mouse_ChangeCursorGraphic (int curs, int newslot) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorGraphic: invalid mouse cursor");
 
-    if ((curs == MODE_USE) && (game.options[OPT_FIXEDINVCURSOR] == 0))
+    if (game.HasCursorRole(curs, kCursorRole_UseInv) && (game.options[OPT_FIXEDINVCURSOR] == 0))
         debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
     if (game.mcurs[curs].pic != newslot)
@@ -268,14 +271,15 @@ void Mouse_SetPreviousCursor() {
     set_cursor_mode(find_previous_enabled_cursor(cur_mode - 1));
 }
 
-void set_cursor_mode(int newmode) {
+void set_cursor_mode(int newmode)
+{
     if ((newmode < 0) || (newmode >= game.numcursors))
-        quit("!SetCursorMode: invalid cursor mode specified");
+        return;
 
     if (game.mcurs[newmode].flags & MCF_DISABLED) {
         find_next_enabled_cursor(newmode);
         return; }
-    if (newmode == MODE_USE) {
+    if (game.HasCursorRole(newmode, kCursorRole_UseInv)) {
         if (playerchar->activeinv == -1) {
             find_next_enabled_cursor(0);
             return;
@@ -286,6 +290,30 @@ void set_cursor_mode(int newmode) {
     set_default_cursor_look();
 
     debug_script_log("Cursor mode set to %d", newmode);
+}
+
+void set_cursor_mode_with_role(CursorRole role, int fallback_mode)
+{
+    for (int i = 0; i < game.numcursors; ++i)
+    {
+        if (game.mcurs[i].role == role)
+        {
+            set_cursor_mode(i);
+            return;
+        }
+    }
+
+    set_cursor_mode(fallback_mode);
+}
+
+bool is_current_cursor_mode(CursorRole role)
+{
+    return game.mcurs[cur_mode].role == role;
+}
+
+bool is_current_cursor_look(CursorRole role)
+{
+    return game.mcurs[cur_cursor].role == role;
 }
 
 void Mouse_SetCursorMode(int newmode)
@@ -370,7 +398,7 @@ int Mouse_IsButtonDown(int which) {
 
 int Mouse_IsModeEnabled(int which) {
     return (which < 0) || (which >= game.numcursors) ? 0 :
-        which == MODE_USE ? playerchar->activeinv > 0 :
+        game.HasCursorRole(which, kCursorRole_UseInv) ? playerchar->activeinv > 0 :
         (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
@@ -445,18 +473,23 @@ void update_inv_cursor(int invnum) {
         if (cursorSprite == 0)
             cursorSprite = game.invinfo[invnum].pic;
 
-        game.mcurs[MODE_USE].pic = cursorSprite;
+        const int useinv_cursor = game.GetModeUseInv();
+        if (useinv_cursor < 0)
+            return; // game has no "use inv" cursor
+
+        auto &mcur = game.mcurs[useinv_cursor];
+        mcur.pic = cursorSprite;
         // all cursor images must be pre-cached
         spriteset.PrecacheSprite(cursorSprite);
 
         if ((game.invinfo[invnum].hotx > 0) || (game.invinfo[invnum].hoty > 0)) {
             // if the hotspot was set (unfortunately 0,0 isn't a valid co-ord)
-            game.mcurs[MODE_USE].hotx=game.invinfo[invnum].hotx;
-            game.mcurs[MODE_USE].hoty=game.invinfo[invnum].hoty;
+            mcur.hotx=game.invinfo[invnum].hotx;
+            mcur.hoty=game.invinfo[invnum].hoty;
         }
         else {
-            game.mcurs[MODE_USE].hotx = game.SpriteInfos[cursorSprite].Width / 2;
-            game.mcurs[MODE_USE].hoty = game.SpriteInfos[cursorSprite].Height / 2;
+            mcur.hotx = game.SpriteInfos[cursorSprite].Width / 2;
+            mcur.hoty = game.SpriteInfos[cursorSprite].Height / 2;
         }
     }
 }
@@ -476,7 +509,7 @@ void set_new_cursor_graphic(int spriteslot)
 bool is_standard_cursor_enabled(int curs) {
     if ((game.mcurs[curs].flags & MCF_DISABLED) == 0) {
         // inventory cursor, and they have an active item
-        if (curs == MODE_USE)
+        if (game.HasCursorRole(curs, kCursorRole_UseInv))
         {
             if (playerchar->activeinv > 0)
                 return true;

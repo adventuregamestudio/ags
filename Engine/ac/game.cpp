@@ -309,7 +309,7 @@ void setup_for_dialog(int use_font) {
     cbuttfont = use_font;
     acdialog_font = use_font;
     oldmouse=cur_cursor;
-    set_cursor_look(CURS_ARROW);
+    set_cursor_look(game.GetModePointer());
 }
 void restore_after_dialog() {
     set_cursor_look(oldmouse);

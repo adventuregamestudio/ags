@@ -564,7 +564,7 @@ void remove_popup_interface(int ifacenum) {
         Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
-        set_cursor_look(CURS_WAIT);
+        set_cursor_look(game.GetModeWait());
     else if (IsInterfaceEnabled())
         set_default_cursor_look();
 
@@ -874,7 +874,7 @@ int gui_on_mouse_move(const int mx, const int my)
             if (play.fast_forward) continue;
 
             if (mousey < guis[guin].GetPopupAtY()) {
-                set_cursor_look(CURS_ARROW);
+                set_cursor_look(game.GetModePointer());
                 guis[guin].SetConceal(false);
                 ifacepopped=guin; PauseGame();
                 break;
@@ -956,9 +956,9 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
                 }
                 else if (wasbutdown == kMouseRight) // right-click is always Look
                 {
-                    RunInventoryInteraction(iit, MODE_LOOK);
+                    RunInventoryInteraction(iit, game.GetModeLook());
                 }
-                else if (cur_mode == MODE_HAND)
+                else if (is_current_cursor_mode(kCursorRole_Interact))
                 {
                     SetActiveInventory(iit);
                 }

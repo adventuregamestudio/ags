@@ -182,6 +182,8 @@ Script API:
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, GUIControl.Rotation,
    Object.GraphicRotation, Overlay.Rotation.
+ - Added Button.RunFrameEvent(), Character.RunFrameEvent() and Object.RunFrameEvent() functions,
+   that trigger "OnFrameEvent" event function for corresponding object.
  - Added Game.GetColorFromRGBA() function that creates a color number for red, green, blue and
    alpha combination.
  - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio

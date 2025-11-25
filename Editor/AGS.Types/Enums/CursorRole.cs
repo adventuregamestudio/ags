@@ -5,18 +5,19 @@ namespace AGS.Types
 {
     public enum CursorRole
     {
+        [Description("Role: None")]
         None = -1,
-        [Description("Walk to")]
+        [Description("Role: Walk to")]
         Walk = 0,
-        [Description("Look at")]
+        [Description("Role: Look at")]
         Look = 1,
-        [Description("Interact")]
+        [Description("Role: Interact")]
         Interact = 2,
-        [Description("Use inventory")]
+        [Description("Role: Use inventory")]
         UseInv = 4,
-        [Description("Pointer")]
+        [Description("Role: Pointer")]
         Pointer = 6,
-        [Description("Wait")]
+        [Description("Role: Wait")]
         Wait = 7
     }
 }

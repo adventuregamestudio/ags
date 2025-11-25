@@ -65,6 +65,7 @@ namespace AGS.Types
 
         [Description("The standard role this cursor takes, enabling respective automatic behavior in game")]
         [Category("Design")]
+        [TypeConverter(typeof(EnumTypeConverter))]
         public CursorRole StandardRole
         {
             get { return _standardRole; }

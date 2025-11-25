@@ -309,10 +309,10 @@ void setup_for_dialog(int use_font) {
     cbuttfont = use_font;
     acdialog_font = use_font;
     oldmouse=cur_cursor;
-    set_mouse_cursor(CURS_ARROW);
+    set_cursor_look(CURS_ARROW);
 }
 void restore_after_dialog() {
-    set_mouse_cursor(oldmouse);
+    set_cursor_look(oldmouse);
     invalidate_screen();
 }
 

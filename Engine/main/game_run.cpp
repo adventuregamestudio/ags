@@ -1376,7 +1376,7 @@ static void UpdateSavedCursorOverLocation()
             {
                 // make sure it changed -- the new mode might have been disabled
                 // in which case don't change the image
-                set_mouse_cursor(play.restore_cursor_image_to);
+                set_cursor_look(play.restore_cursor_image_to);
             }
             debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
     }

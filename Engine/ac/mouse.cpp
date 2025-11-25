@@ -48,7 +48,7 @@ extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;
-int cur_mode,cur_cursor;
+int cur_mode,cur_cursor; // current mode, and current cursor look
 int mouse_hotx = 0, mouse_hoty = 0; // in game cursor hotspot offset
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
@@ -123,8 +123,7 @@ void Mouse_SetBounds(int x1, int y1, int x2, int y2)
     Mouse::SetMoveLimit(play.mbounds);
 }
 
-// set_mouse_cursor: changes visual appearance to specified cursor
-void set_mouse_cursor(int newcurs, bool force_update)
+void set_cursor_look(int newcurs, bool force_update)
 {
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
     mouse_hotx = hotspotx, mouse_hoty = hotspoty;
@@ -180,9 +179,9 @@ void set_mouse_cursor(int newcurs, bool force_update)
     }
 }
 
-// set_default_cursor: resets visual appearance to current mode (walk, look, etc)
-void set_default_cursor() {
-    set_mouse_cursor(cur_mode);
+void set_default_cursor_look()
+{
+    set_cursor_look(cur_mode);
 }
 
 int Mouse_GetCursor()
@@ -192,12 +191,12 @@ int Mouse_GetCursor()
 
 void Mouse_SetCursor(int newcurs)
 {
-    set_mouse_cursor(newcurs);
+    set_cursor_look(newcurs);
 }
 
 void Mouse_SetDefaultCursor()
 {
-    set_default_cursor();
+    set_default_cursor_look();
 }
 
 // permanently change cursor graphic
@@ -215,7 +214,7 @@ void Mouse_ChangeCursorGraphic (int curs, int newslot) {
     }
 
     if (curs == cur_mode)
-        set_mouse_cursor(curs);
+        set_cursor_look(curs);
 }
 
 int Mouse_GetModeGraphic(int curs) {
@@ -231,7 +230,7 @@ void Mouse_ChangeCursorHotspot (int curs, int x, int y) {
     game.mcurs[curs].hotx = x;
     game.mcurs[curs].hoty = y;
     if (curs == cur_cursor)
-        set_mouse_cursor (cur_cursor);
+        set_cursor_look(cur_cursor);
 }
 
 void Mouse_ChangeModeView(int curs, int newview, int delay) {
@@ -269,7 +268,6 @@ void Mouse_SetPreviousCursor() {
     set_cursor_mode(find_previous_enabled_cursor(cur_mode - 1));
 }
 
-// set_cursor_mode: changes mode and appearance
 void set_cursor_mode(int newmode) {
     if ((newmode < 0) || (newmode >= game.numcursors))
         quit("!SetCursorMode: invalid cursor mode specified");
@@ -285,7 +283,7 @@ void set_cursor_mode(int newmode) {
         update_inv_cursor(playerchar->activeinv);
     }
     cur_mode=newmode;
-    set_default_cursor();
+    set_default_cursor_look();
 
     debug_script_log("Cursor mode set to %d", newmode);
 }

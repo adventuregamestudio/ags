@@ -120,7 +120,7 @@ void DisableInterfaceEx(bool update_cursor)
     // because disabled status may had been toggled by internal game logic too
     if (update_cursor)
     {
-        set_mouse_cursor(CURS_WAIT);
+        set_cursor_look(CURS_WAIT);
     }
 }
 
@@ -142,7 +142,7 @@ void EnableInterfaceEx(bool update_cursor)
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         if (update_cursor)
         {
-            set_default_cursor();
+            set_default_cursor_look();
         }
     }
 }

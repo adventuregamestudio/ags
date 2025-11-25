@@ -499,7 +499,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     EnableInterface();
     // if we're not about to abort the dialog, switch back to arrow
     if (result != RUN_DIALOG_STOP_DIALOG)
-      set_mouse_cursor(CURS_ARROW);
+      set_cursor_look(CURS_ARROW);
   }
 
   return result;
@@ -908,7 +908,7 @@ void DialogOptions::Begin()
     }
 
     play.in_conversation++;
-    set_mouse_cursor(CURS_ARROW);
+    set_cursor_look(CURS_ARROW);
 
     parserActivated = 0;
     if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
@@ -1512,7 +1512,7 @@ void DialogOptions::End()
   }
   parserInput.reset();
 
-  set_mouse_cursor(curswas);
+  set_cursor_look(curswas);
   // In case it's the QFG4 style dialog, remove the black screen
   play.in_conversation--;
   remove_screen_overlay(OVER_COMPLETE);
@@ -1748,7 +1748,7 @@ void DialogExec::Run()
                 DisableInterface();
                 UpdateGameOnce(); // redraw the screen to make sure it looks right
                 EnableInterface();
-                set_mouse_cursor(CURS_ARROW);
+                set_cursor_look(CURS_ARROW);
             }
         }
         else if (chose >= 0)
@@ -1804,7 +1804,7 @@ void do_conversation(int dlgnum, int start_opt)
     run_on_event(kScriptEvent_DialogStop, dialogExec->GetDlgNum());
     dialogExec = {};
 
-    set_default_cursor();
+    set_default_cursor_look();
 }
 
 bool is_in_dialog()

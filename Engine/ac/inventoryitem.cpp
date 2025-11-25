@@ -218,7 +218,7 @@ void set_inv_item_cursorpic(int invItemId, int piccy)
     if ((cur_cursor == MODE_USE) && (playerchar->activeinv == invItemId)) 
     {
         update_inv_cursor(invItemId);
-        set_mouse_cursor(cur_cursor);
+        set_cursor_look(cur_cursor);
     }
 }
 

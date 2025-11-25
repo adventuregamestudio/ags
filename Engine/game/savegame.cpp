@@ -799,7 +799,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
 
 
     set_cursor_mode(r_data.CursorMode);
-    set_mouse_cursor(r_data.CursorID, true);
+    set_cursor_look(r_data.CursorID, true);
     if (r_data.CursorMode == MODE_USE)
         SetActiveInventory(playerchar->activeinv);
     // precache current cursor

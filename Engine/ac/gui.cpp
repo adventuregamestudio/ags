@@ -564,9 +564,9 @@ void remove_popup_interface(int ifacenum) {
         Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
-        set_mouse_cursor(CURS_WAIT);
+        set_cursor_look(CURS_WAIT);
     else if (IsInterfaceEnabled())
-        set_default_cursor();
+        set_default_cursor_look();
 
     if (ifacenum==mouse_on_iface) mouse_on_iface=-1;
 }
@@ -874,7 +874,7 @@ int gui_on_mouse_move(const int mx, const int my)
             if (play.fast_forward) continue;
 
             if (mousey < guis[guin].GetPopupAtY()) {
-                set_mouse_cursor(CURS_ARROW);
+                set_cursor_look(CURS_ARROW);
                 guis[guin].SetConceal(false);
                 ifacepopped=guin; PauseGame();
                 break;

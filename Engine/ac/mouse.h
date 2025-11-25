@@ -51,11 +51,15 @@ void Mouse_SimulateClick(int button_id);
 
 //=============================================================================
 
-void set_mouse_cursor(int newcurs, bool force_update = false);
+void enable_cursor_mode(int mode);
+void disable_cursor_mode(int mode);
+// Set new current cursor mode
 void set_cursor_mode(int newmode);
-void set_default_cursor();
-void enable_cursor_mode(int modd);
-void disable_cursor_mode(int modd);
+
+// Changes visual appearance of the current cursor to another cursor's looks
+void set_cursor_look(int newcurs, bool force_update = false);
+// Resets visual appearance to current mode (after it has been changed to something else)
+void set_default_cursor_look();
 
 void update_script_mouse_coords();
 void update_inv_cursor(int invnum);

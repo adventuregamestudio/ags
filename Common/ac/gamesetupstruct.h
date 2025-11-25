@@ -165,7 +165,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void WriteForSavegame(Common::Stream *out);
 
 private:
-    std::array<int, kNumCursorRoles> _roleCursors = { -1, -1, -1, -1, -1, -1, -1, -1 };
+    std::array<int, kNumCursorRoles> _roleCursors = {{ -1, -1, -1, -1, -1, -1, -1, -1 }};
 };
 
 

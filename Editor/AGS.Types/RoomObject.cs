@@ -29,8 +29,8 @@ namespace AGS.Types
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Objects);
         // Game Events
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
-        private string _onAnyClick;
-        private string _onFrameEvent;
+        private string _onAnyClick = string.Empty;
+        private string _onFrameEvent = string.Empty;
         //
         private Room _room;
 

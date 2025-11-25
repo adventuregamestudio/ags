@@ -65,16 +65,16 @@ namespace AGS.Types
         private readonly List<RoomRegion> _regions = new List<RoomRegion>();
         // Game Events
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
-        private string _onLeaveLeft;
-        private string _onLeaveRight;
-        private string _onLeaveBottom;
-        private string _onLeaveTop;
-        private string _onLoad;
-        private string _onFirstTimeEnter;
-        private string _onAfterFadeIn;
-        private string _onBeforeFadeOut;
-        private string _onUnload;
-        private string _onRepExec;
+        private string _onLeaveLeft = string.Empty;
+        private string _onLeaveRight = string.Empty;
+        private string _onLeaveBottom = string.Empty;
+        private string _onLeaveTop = string.Empty;
+        private string _onLoad = string.Empty;
+        private string _onFirstTimeEnter = string.Empty;
+        private string _onAfterFadeIn = string.Empty;
+        private string _onBeforeFadeOut = string.Empty;
+        private string _onUnload = string.Empty;
+        private string _onRepExec = string.Empty;
 
         public Room(int roomNumber) : base(roomNumber)
         {

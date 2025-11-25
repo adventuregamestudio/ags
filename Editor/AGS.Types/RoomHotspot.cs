@@ -21,9 +21,9 @@ namespace AGS.Types
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Hotspots);
         // Game Events
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
-        private string _onAnyClick;
-        private string _onWalkOn;
-        private string _onMouseMove;
+        private string _onAnyClick = string.Empty;
+        private string _onWalkOn = string.Empty;
+        private string _onMouseMove = string.Empty;
         //
         private Room _room;
 

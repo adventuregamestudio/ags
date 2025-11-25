@@ -50,8 +50,8 @@ namespace AGS.Types
         // Game Events
         private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
-        private string _onAnyClick;
-        private string _onFrameEvent;
+        private string _onAnyClick = string.Empty;
+        private string _onFrameEvent = string.Empty;
 
         public Character()
         {

@@ -22,9 +22,9 @@ namespace AGS.Types
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Regions);
         // Game Events
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
-        private string _onStanding;
-        private string _onWalksOnto;
-        private string _onWalksOff;
+        private string _onStanding = string.Empty;
+        private string _onWalksOnto = string.Empty;
+        private string _onWalksOff = string.Empty;
         //
         private Room _room;
 

@@ -45,6 +45,9 @@ Editor:
  - Added CreateEvent, EventLabel and EventFunctionName properties to Cursors. If CreateEvent is
    set to true, then Editor will generate event for it, EventLabel is used as a "display name"
    for such event, and EventFunctionName is used as a script function suffix.
+ - Added StandardRole property to Cursors. This property defines which of the built-in roles
+   this cursor represents in game (or none). The existing roles are: Walk, Look, Interact,
+   Use inventory, Pointer and Wait; these are modes that have predefined behavior in the engine.
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property for Characters, GUI and Room Objects.
@@ -229,6 +232,9 @@ Script API:
    to handle them and objects internally.
  - "unhandled_event" script function now accepts LocationType and real cursor mode as parameters,
    instead of arbitarily chosen indexes.
+ - Deprecated global functions working with walkable areas and walk-behinds, such as:
+   GetWalkableAreaAtScreen, GetWalkableAreaAtRoom, RemoveWalkableArea,
+   RestoreWalkableArea, GetScalingAt, SetAreaScaling, GetWalkBehindBase, SetWalkBehindBase.
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().

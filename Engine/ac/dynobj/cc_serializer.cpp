@@ -228,6 +228,10 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
         ScriptShaderInstance *sc_shinst = new ScriptShaderInstance();
         sc_shinst->Unserialize(index, &mems, data_sz);
     }
+    else if (strcmp(objectType, "AnimatedOverlay") == 0) {
+        ScriptAnimatedOverlay *sc_aover = new ScriptAnimatedOverlay();
+        sc_aover->Unserialize(index, &mems, data_sz);
+    }
     else
     {
         // check if the type is read by a plugin

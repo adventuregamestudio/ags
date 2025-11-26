@@ -322,6 +322,9 @@ void Mouse_SetCursorMode(int newmode)
 }
 
 void enable_cursor_mode(int modd) {
+    if (modd < 0 || modd >= game.numcursors)
+        return;
+
     game.mcurs[modd].flags&=~MCF_DISABLED;
     // now search the interfaces for related buttons to re-enable
     int uu,ww;
@@ -338,6 +341,9 @@ void enable_cursor_mode(int modd) {
 }
 
 void disable_cursor_mode(int modd) {
+    if (modd < 0 || modd >= game.numcursors)
+        return;
+
     game.mcurs[modd].flags|=MCF_DISABLED;
     // now search the interfaces for related buttons to kill
     int uu,ww;

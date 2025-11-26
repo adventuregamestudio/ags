@@ -839,10 +839,10 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     if (forchar!=nullptr) {
         if (thisroom.Options.PlayerCharOff==0) {
             forchar->set_enabled(true);
-            enable_cursor_mode(0); }
+            enable_cursor_mode(game.GetModeWalk()); }
         else {
             forchar->set_enabled(false);
-            disable_cursor_mode(0);
+            disable_cursor_mode(game.GetModeWalk());
             // remember which character we turned off, in case they
             // use SetPlyaerChracter within this room (so we re-enable
             // the correct character when leaving the room)

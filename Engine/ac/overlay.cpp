@@ -689,9 +689,13 @@ void CreateAnimatedOverlay(int over_id, bool pause_with_game)
 
 static void UpdateOverlayState(const AnimatedOverlay &aover)
 {
+    auto &over = screenover[aover.GetOverID()];
     const ViewFrame *vf = aover.GetViewFrame();
     if (vf)
-        screenover[aover.GetOverID()].SetSpriteNum(vf->pic, vf->xoffs, vf->yoffs);
+    {
+        over.SetSpriteNum(vf->pic, vf->xoffs, vf->yoffs);
+        over.SetFlip(GfxDef::GetFlipFromFlags(vf->flags));
+    }
 }
 
 void BeginAnimateOverlay(int over_id, int view, int loop, int frame, const ViewAnimateParams &params)

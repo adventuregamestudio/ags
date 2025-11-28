@@ -134,7 +134,7 @@ namespace AGS.Types
         [Category("Events")]
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
-        [ScriptFunction("WalkOn", "Hotspot *theHotspot")]
+        [ScriptFunction("MouseMove", "Hotspot *theHotspot")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnMouseMove
         {

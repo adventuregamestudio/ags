@@ -3353,7 +3353,7 @@ void convert_interaction_scripts(Interactions ^interactions, ScriptEventHandlers
         if (events[evt_index]->Index == index)
         {
             String ^funcName;
-            if (interactions->ScriptFunctionNames->TryGetValue(events[evt_index]->EventName, funcName))
+            if (interactions->ScriptFunctionNames->TryGetValue(events[evt_index]->UID, funcName))
                 handlers.push_back(TextHelper::ConvertASCII(funcName));
             else
                 handlers.push_back(AGSString()); // unassigned slot

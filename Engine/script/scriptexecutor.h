@@ -73,7 +73,10 @@ public:
     ScriptThread();
     ScriptThread(const String &name);
 
+    typedef RuntimeScriptValue Registers[CC_NUM_REGISTERS];
+
     const String &GetName() const { return _name; }
+    const Registers &GetRegisters() const { return _registers; }
     const std::vector<RuntimeScriptValue> &GetStack() const { return _stack; }
     const std::vector<uint8_t> &GetStackData() const { return _stackdata; }
     std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
@@ -92,6 +95,7 @@ public:
 
     // Save script execution state in the thread object
     void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
+        const Registers &registers,
         size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
     // Resets execution state; this effectively invalidates the thread
     void ResetState();
@@ -101,6 +105,8 @@ private:
 
     // An arbitrary name for this script thread
     String _name;
+    // Saved registers
+    RuntimeScriptValue _registers[CC_NUM_REGISTERS];
     // Data stack, contains function args, local variables, temporary values
     std::vector<RuntimeScriptValue> _stack;
     // An array for keeping stack data; stack entries reference data of variable size from here

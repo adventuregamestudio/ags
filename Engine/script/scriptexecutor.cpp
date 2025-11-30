@@ -94,10 +94,12 @@ String ScriptThread::FormatCallStack(uint32_t max_lines) const
 }
 
 void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
+    const Registers &registers,
     size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off)
 {
     _callstack = callstack;
     _pos = pos;
+    std::copy(registers, registers + CC_NUM_REGISTERS, _registers);
     _stackBeginOff = stack_begin;
     _stackDataBeginOff = stackdata_begin;
     _stackOffset = stack_off;
@@ -324,6 +326,9 @@ void ScriptExecutor::SelectThread(ScriptThread *thread)
         SetCurrentScript(pos.Script);
         _pc = pos.PC;
         _lineNumber = pos.LineNumber;
+        // Restore registers
+        const auto &registers = thread->GetRegisters();
+        std::copy(registers, registers + CC_NUM_REGISTERS, _registers);
         // Restore data stack state
         _stackBegin = thread->GetStack().data() + thread->GetStackBegin();
         _stackdataBegin = thread->GetStackData().data() + thread->GetStackDataBegin();
@@ -342,6 +347,7 @@ void ScriptExecutor::SelectThread(ScriptThread *thread)
 void ScriptExecutor::SaveThreadState()
 {
     _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
+        _registers,
         _stackBegin - _thread->GetStack().data(),
         _stackdataBegin - _thread->GetStackData().data(),
         _registers[SREG_SP].RValue - _stackBegin,

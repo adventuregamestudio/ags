@@ -770,6 +770,7 @@
     <ClInclude Include="..\..\Common\util\memorystream.h" />
     <ClInclude Include="..\..\Common\util\memory_compat.h" />
     <ClInclude Include="..\..\Common\util\multifilelib.h" />
+    <ClInclude Include="..\..\Common\util\indexedobjectpool.h" />
     <ClInclude Include="..\..\Common\util\path.h" />
     <ClInclude Include="..\..\Common\util\resourcecache.h" />
     <ClInclude Include="..\..\Common\util\scaling.h" />

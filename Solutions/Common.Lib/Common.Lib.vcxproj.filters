@@ -844,5 +844,8 @@
     <ClInclude Include="..\..\Common\util\transformstream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\indexedobjectpool.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

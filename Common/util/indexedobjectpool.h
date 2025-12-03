@@ -20,6 +20,9 @@
 // element moves when this is done.
 // This behavior results in fast real-time insertions and removals, while still
 // being able to use indexes for the fast access.
+// 
+// TODO: also keep track of the highest used index. This might optimize
+// iterations over large object pools.
 //
 // IndexedPoolBase is a base class that takes care of free indexes only,
 // but does not store elements themselves. It is picked out from the

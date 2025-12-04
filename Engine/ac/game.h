@@ -156,6 +156,7 @@ void shutdown_game_state();
 // Free all the memory associated with the game
 void unload_game();
 void save_game(int slotn, const Common::String &descript, std::unique_ptr<Common::Bitmap> &&image = nullptr);
+void schedule_save_game(int slotn, const Common::String &descript, int spritenum = -1);
 std::unique_ptr<Common::Bitmap> create_game_screenshot(int width, int height, int layers);
 bool read_savedgame_description(const Common::String &filename, Common::String &description);
 std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &filename);

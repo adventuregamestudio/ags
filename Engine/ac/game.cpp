@@ -446,7 +446,7 @@ void restore_game_dialog2(int min_slot, int max_slot)
     max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
-    if (inside_script) {
+    if (is_inside_script()) {
         get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "RestoreGameDialog"));
         return;
     }
@@ -474,7 +474,7 @@ void save_game_dialog2(int min_slot, int max_slot)
     max_slot = usetup.Override.MaxSaveSlot > 0 ? usetup.Override.MaxSaveSlot : max_slot;
 
     can_run_delayed_command();
-    if (inside_script) {
+    if (is_inside_script()) {
         get_executingscript()->QueueAction(PostScriptAction(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, play.normal_font, "SaveGameDialog"));
         return;
     }
@@ -1056,7 +1056,6 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir)
 }
 
 extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
-extern ExecutingScript *curscript;
 
 void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sort, int sort_dir, int user_param)
 {
@@ -1073,11 +1072,11 @@ void Game_ScanSaveSlots(void *dest_arr, int min_slot, int max_slot, int save_sor
     sort_dir = ValidateSortDirection("Game.ScanSaveSlots", sort_dir);
 
     can_run_delayed_command();
-    if (inside_script)
+    if (is_inside_script())
     {
         int handle = ccGetObjectHandleFromAddress(dest_arr);
         ccAddObjectReference(handle); // add internal handle to prevent disposal
-        curscript->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, save_sort, sort_dir, user_param, "ScanSaveSlots"));
+        get_executingscript()->QueueAction(PostScriptAction(ePSAScanSaves, handle, min_slot, max_slot, save_sort, sort_dir, user_param, "ScanSaveSlots"));
         return;
     }
 

@@ -201,13 +201,12 @@ bool    get_can_run_delayed_command();
 bool    get_script_position(AGS::Engine::ScriptPosition &script_pos);
 String  cc_get_callstack(int max_lines = INT_MAX);
 
+// Tells if there's a script running right now
+bool    is_inside_script();
 // Gets current ExecutingScript object
 ExecutingScript *get_executingscript();
 
-extern int num_scripts; // number of ExecutingScript objects recorded
 extern int post_script_cleanup_stack;
-extern int inside_script;
-extern int no_blocking_functions; // set to 1 while in rep_Exec_always
 
 extern NonBlockingScriptFunction repExecAlways;
 extern NonBlockingScriptFunction lateRepExecAlways;

@@ -92,7 +92,7 @@ void RunDialogOption(int dlg, int opt)
     if (handle_state_change_in_dialog_request("RunDialog", DIALOG_NEWTOPIC + dlg, opt))
         return; // handled
 
-    if (inside_script)
+    if (is_inside_script())
         get_executingscript()->QueueAction(PostScriptAction(ePSARunDialog, dlg, opt, "RunDialog"));
     else
         do_conversation(dlg);
@@ -115,7 +115,7 @@ void StopDialog()
     if (handle_state_change_in_dialog_request("StopDialog", DIALOG_STOP))
         return; // handled
 
-    if (inside_script && get_can_run_delayed_command())
+    if (is_inside_script() && get_can_run_delayed_command())
         get_executingscript()->QueueAction(PostScriptAction(ePSAStopDialog, 0, "StopDialog"));
     else
         schedule_dialog_stop();

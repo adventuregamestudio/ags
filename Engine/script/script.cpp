@@ -13,6 +13,9 @@
 //=============================================================================
 #include <stdio.h>
 #include <string.h>
+#include <memory>
+#include <stack>
+#include <vector>
 #include "script/script.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -53,14 +56,13 @@ extern RoomObject*objs;
 extern CharacterInfo*playerchar;
 extern bool logScriptTOC;
 
-ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-ExecutingScript *curscript = nullptr; // non-owning ptr
+std::stack<std::unique_ptr<ExecutingScript>> executingScripts;
+ExecutingScript *curExecScript = nullptr; // non-owning ptr
 
 PRuntimeScript gamescript;
 PRuntimeScript dialogScriptsScript;
 PRuntimeScript roomscript;
 
-int num_scripts = 0; // number of ExecutingScript objects recorded
 int post_script_cleanup_stack = 0;
 int inside_script = 0;
 int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
@@ -309,7 +311,7 @@ bool LinkGlobalScripts()
 void AbortAllScripts()
 {
     scriptExecutor->Abort();
-    num_scripts = 0;
+    executingScripts = std::stack<std::unique_ptr<ExecutingScript>>();
 }
 
 RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module)
@@ -375,7 +377,7 @@ void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
     if (inside_script)
     {
         // queue the script for the run after current script is finished
-        curscript->RunAnother(sc_type, fn_ref, param_count, params);
+        curExecScript->RunAnother(sc_type, fn_ref, param_count, params);
     }
     else
     {
@@ -429,13 +431,8 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
         cc_error("script is already in execution");
         return kScFnRes_ScriptBusy;
     }
-    ExecutingScript exscript;
-    exscript.Script = script;
-    scripts[num_scripts] = std::move(exscript);
-    curscript = &scripts[num_scripts];
-    num_scripts++;
-    if (num_scripts >= MAX_SCRIPT_AT_ONCE)
-        quit("too many nested text script instances created");
+    executingScripts.push(std::make_unique<ExecutingScript>(script));
+    curExecScript = executingScripts.top().get();
     update_script_mouse_coords();
     inside_script++;
     return kScFnRes_Done;
@@ -476,7 +473,7 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
     }
 
     const ScriptExecError inst_ret = scriptExecutor->Run(scriptThreadMain.get(),
-        curscript->Script, tsname, params, numParam);
+        curExecScript->Script, tsname, params, numParam);
     if ((inst_ret != kScExecErr_None) && (inst_ret != kScExecErr_FuncNotFound) && (inst_ret != kScExecErr_Aborted))
     {
         quit_with_script_error(tsname);
@@ -749,29 +746,26 @@ void post_script_cleanup()
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
 
-    ExecutingScript copyof;
-    if (num_scripts > 0)
-    { // save until the end of function
-        copyof = std::move(scripts[num_scripts - 1]);
-        num_scripts--; // FIXME: store in vector and erase?
+    std::unique_ptr<ExecutingScript> copyof;
+    // save current ExecutingScript until the end of function
+    if (!executingScripts.empty())
+    {
+        copyof = std::move(executingScripts.top());
+        executingScripts.pop();
     }
     inside_script--;
 
-    if (num_scripts > 0)
-        curscript = &scripts[num_scripts-1];
-    else {
-        curscript = nullptr;
-    }
+    curExecScript = !executingScripts.empty() ? executingScripts.top().get() : nullptr;
 
     int old_room_number = displayed_room;
 
     // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
-    if (copyof.PostScriptActions.size() > 0) {
+    if (copyof->PostScriptActions.size() > 0) {
         sync_audio_playback();
     }
 
     // run the queued post-script actions
-    for (const auto &act : copyof.PostScriptActions)
+    for (const auto &act : copyof->PostScriptActions)
     {
         const int data1 = act.Data[0];
         const int data2 = act.Data[1];
@@ -779,15 +773,19 @@ void post_script_cleanup()
         switch (act.Type)
         {
         case ePSANewRoom:
-            // only change rooms when all scripts are done
-            if (num_scripts == 0) {
+            // Only change rooms when all scripts are done;
+            // otherwise - reschedule this action to the previous exec script in stack
+            if (!curExecScript)
+            {
                 new_room(data1, playerchar);
                 // don't allow any pending room scripts from the old room
                 // in run_another to be executed
                 return;
             }
             else
-                curscript->QueueAction(PostScriptAction(ePSANewRoom, data1, "NewRoom"));
+            {
+                curExecScript->QueueAction(PostScriptAction(ePSANewRoom, data1, "NewRoom"));
+            }
             break;
         case ePSARestoreGame:
             AbortAllScripts();
@@ -844,11 +842,11 @@ void post_script_cleanup()
     }
 
 
-    if (copyof.PostScriptActions.size() > 0) {
+    if (copyof->PostScriptActions.size() > 0) {
         sync_audio_playback();
     }
 
-    for (const auto &script : copyof.ScFnQueue)
+    for (const auto &script : copyof->ScFnQueue)
     {
         old_room_number = displayed_room;
 
@@ -922,9 +920,14 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt)
     QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
 }
 
+bool is_inside_script()
+{
+    return inside_script > 0;
+}
+
 ExecutingScript *get_executingscript()
 {
-    return curscript;
+    return curExecScript;
 }
 
 bool get_script_position(ScriptPosition &script_pos)

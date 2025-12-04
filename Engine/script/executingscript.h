@@ -77,10 +77,11 @@ struct PostScriptAction
     int Data[6]{};
     Common::String Name;
     Common::String Text;
-    mutable std::unique_ptr<Common::Bitmap> Image;
+    std::unique_ptr<Common::Bitmap> Image;
     AGS::Engine::ScriptPosition Position;
 
     PostScriptAction() = default;
+    PostScriptAction(PostScriptAction &&act) = default;
     PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &text = {},
         std::unique_ptr<Common::Bitmap> &&image = {})
         : Type(type), Name(name), Text(text), Image(std::move(image)) { Data[0] = data; }

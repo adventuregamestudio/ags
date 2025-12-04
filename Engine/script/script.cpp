@@ -730,6 +730,15 @@ void PostScriptProcessing()
 
     curExecScript = !executingScripts.empty() ? executingScripts.top().get() : nullptr;
 
+    // If there's still a pending script in the callstack (or rather thread stack),
+    // then reschedule post-script actions to the previous exec script in stack, and break
+    if (curExecScript)
+    {
+        for (auto &act : copyof->PostScriptActions)
+            curExecScript->QueueAction(std::move(act));
+        return;
+    }
+
     int old_room_number = displayed_room;
 
     // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
@@ -739,7 +748,7 @@ void PostScriptProcessing()
     }
 
     // run the queued post-script actions
-    for (const auto &act : copyof->PostScriptActions)
+    for (auto &act : copyof->PostScriptActions)
     {
         const int data1 = act.Data[0];
         const int data2 = act.Data[1];
@@ -747,31 +756,19 @@ void PostScriptProcessing()
         switch (act.Type)
         {
         case ePSANewRoom:
-            // Only change rooms when all scripts are done;
-            // otherwise - reschedule this action to the previous exec script in stack
-            if (!curExecScript)
-            {
-                new_room(data1, playerchar);
-                // don't allow any pending room scripts from the old room
-                // in run_another to be executed
-                return;
-            }
-            else
-            {
-                curExecScript->QueueAction(PostScriptAction(ePSANewRoom, data1, "NewRoom"));
-            }
-            break;
+            new_room(data1, playerchar);
+            return; // skip any remaining scheduled actions
         case ePSARestoreGame:
             AbortAllScripts();
             try_restore_save(data1);
-            return;
+            return; // skip any remaining scheduled actions
         case ePSARestoreGameDialog:
             do_restore_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
-            return;
+            return; // skip any remaining scheduled actions
         case ePSARunAGSGame:
             AbortAllScripts();
             load_new_game = data1;
-            return;
+            return; // skip any remaining scheduled actions
         case ePSARunDialog:
             if (is_in_dialog())
             {
@@ -795,13 +792,13 @@ void PostScriptProcessing()
         case ePSARestartGame:
             AbortAllScripts();
             restart_game();
-            return;
+            return; // skip any remaining scheduled actions
         case ePSASaveGame:
             save_game(data1, act.Text, std::move(act.Image));
             break;
         case ePSASaveGameDialog:
             do_save_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
-            break;
+            return; // skip any remaining scheduled actions
         case ePSAScanSaves:
             prescan_save_slots(act.Data[0], act.Data[1], act.Data[2], act.Data[3], act.Data[4], act.Data[5]);
             break;

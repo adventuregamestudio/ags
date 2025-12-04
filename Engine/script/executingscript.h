@@ -67,17 +67,17 @@ struct QueuedScript
 enum PostScriptActionType
 {
     ePSAUndefined,
-    ePSANewRoom,
-    ePSAInvScreen,
-    ePSARestoreGame,
-    ePSARestoreGameDialog,
-    ePSARunAGSGame,
-    ePSARunDialog,
-    ePSARestartGame,
-    ePSASaveGame,
-    ePSASaveGameDialog,
-    ePSAStopDialog,
-    ePSAScanSaves
+    ePSANewRoom,            // Change to another room
+    ePSAInvScreen,          // Display InventoryScreen (built-in) [DEPRECATED]
+    ePSARestoreGame,        // Restore saved game
+    ePSARestoreGameDialog,  // Display Restore Game dialog (built-in)
+    ePSARunAGSGame,         // Load and run another AGS game
+    ePSARunDialog,          // Run Dialog (conversation)
+    ePSARestartGame,        // Restart game (restore autosave slot)
+    ePSASaveGame,           // Save game
+    ePSASaveGameDialog,     // Display Save Game dialog (built-in)
+    ePSAStopDialog,         // Stop Dialog (conversation)
+    ePSAScanSaves           // Scan save slots (results in multiple chained callbacks)
 };
 
 struct PostScriptAction
@@ -102,13 +102,17 @@ struct PostScriptAction
         : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; Data[3] = data4; Data[4] = data5; Data[5] = data6; }
 };
 
+// ExecutingScript stores scheduled actions for the current running script.
+// These actions will be executed after the current script completes.
 struct ExecutingScript
 {
-    const AGS::Engine::RuntimeScript *Script = nullptr;
+    const AGS::Engine::RuntimeScript * const Script = nullptr;
     std::vector<PostScriptAction> PostScriptActions;
     std::vector<QueuedScript> ScFnQueue;
 
     ExecutingScript() = default;
+    ExecutingScript(const AGS::Engine::RuntimeScript *script)
+        : Script(script) {}
     void QueueAction(PostScriptAction &&act);
     void RunAnother(ScriptType scinst, const AGS::Common::String &fn_name,
         size_t param_count, const RuntimeScriptValue *params);

@@ -94,11 +94,11 @@ void NewRoom(int nrnum) {
         setevent(AGSEvent_NewRoom(nrnum));
         return;
     }
-    else if (inside_script == 0) {
+    else if (!is_inside_script()) {
         new_room(nrnum,playerchar);
         return;
     }
-    else if (inside_script) {
+    else if (is_inside_script()) {
         get_executingscript()->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
@@ -130,7 +130,7 @@ int HasPlayerBeenInRoom(int roomnum) {
 void CallRoomScript (int value) {
     can_run_delayed_command();
 
-    if (!inside_script)
+    if (!is_inside_script())
         quit("!CallRoomScript: not inside a script???");
 
     play.roomscript_finished = 0;

@@ -620,13 +620,13 @@ void IAGSEngine::DisableSound() {
 }
 
 int IAGSEngine::CanRunScriptFunctionNow() {
-    if (inside_script)
+    if (is_inside_script())
         return 0;
     return 1;
 }
 
 int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2, intptr_t arg3) {
-    if (inside_script)
+    if (is_inside_script())
         return -300;
 
     RuntimeScript *run_script = GetScriptInstance(globalScript ? kScTypeGame : kScTypeRoom);
@@ -648,7 +648,7 @@ void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*isAlphaBlended*/)
 }
 
 void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2) {
-    if (!inside_script) {
+    if (!is_inside_script()) {
         this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
         return;
     }

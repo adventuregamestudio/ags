@@ -138,7 +138,7 @@ struct GamePlayState
     int  follow_change_room_timer = 0;   // delay before moving following characters into new room
     SkipSpeechStyle skip_display = kSkipSpeechKeyMouse; // how the user can skip normal Display windows
     int  no_multiloop_repeat = 0;   // for backwards compatibility
-    int  roomscript_finished = 0;   // on_call finished in room
+    int  roomscript_finished = 0;   // on_call finished in room; CHECKME: what is its use case?
     int  used_inv_on = 0;           // inv item they clicked on
     int  no_textbg_when_voice = 0;  // no textwindow bgrnd when voice speech is used
     int  max_dialogoption_width = 0; // max width of dialog options text window

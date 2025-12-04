@@ -283,6 +283,8 @@ void ScriptExecutor::PushThread(ScriptThread *thread)
     _thread = thread;
     if (was_thread != _thread)
     {
+        if (_thread)
+            _thread->MarkInUse(true);
         SelectThread(_thread);
     }
 }
@@ -290,12 +292,12 @@ void ScriptExecutor::PushThread(ScriptThread *thread)
 void ScriptExecutor::PopThread()
 {
     assert(_thread);
-    // If the previous thread is not the same thread, then save popped thread's state
-    // NOTE: it's a curious problem, whether the thread should be simply reset here;
-    // it depends on whether we let to run same thread nested with another in the middle...
+    // If the previous thread is not the same thread, then reset popped thread's state
+    // NOTE: same thread may be put multiple times in stack, but only sequentially.
     if (_threadStack.empty() || _threadStack.back() != _thread)
     {
-        SaveThreadState();
+        _thread->MarkInUse(false);
+        ResetThreadState();
     }
     // If there's anything in the thread stack, pop one back and restore the state
     if (_threadStack.empty())
@@ -346,12 +348,19 @@ void ScriptExecutor::SelectThread(ScriptThread *thread)
 
 void ScriptExecutor::SaveThreadState()
 {
+    assert(_thread);
     _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
         _registers,
         _stackBegin - _thread->GetStack().data(),
         _stackdataBegin - _thread->GetStackData().data(),
         _registers[SREG_SP].RValue - _stackBegin,
         _stackdataPtr - _stackdataBegin);
+}
+
+void ScriptExecutor::ResetThreadState()
+{
+    assert(_thread);
+    _thread->ResetState();
 }
 
 void ScriptExecutor::GetScriptPosition(ScriptPosition &script_pos) const

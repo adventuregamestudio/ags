@@ -496,6 +496,7 @@ public:
   // change whether the specified sprite is a 32-bit alpha blended image
   AGSIFUNC(void)   SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended);
   // run the specified script function whenever script engine is available
+  // [DEPRECATED]: will delegate to the CallGameScriptFunction always
   AGSIFUNC(void)   QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1 = 0, intptr_t arg2 = 0);
   // register a new dynamic managed script object
   AGSIFUNC(int)    RegisterManagedObject(void *object, IAGSScriptManagedObject *callback);

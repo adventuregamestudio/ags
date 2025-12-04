@@ -53,16 +53,6 @@ struct ScriptFunctionRef
     operator bool() const { return FuncName.IsEmpty(); }
 };
 
-struct QueuedScript
-{
-    ScriptType         ScType = kScTypeNone;
-    ScriptFunctionRef  Function;
-    size_t             ParamCount = 0u;
-    RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
-
-    QueuedScript() = default;
-};
-
 // Actions that can be scheduled for until the current script completes
 enum PostScriptActionType
 {
@@ -108,16 +98,11 @@ struct ExecutingScript
 {
     const AGS::Engine::RuntimeScript * const Script = nullptr;
     std::vector<PostScriptAction> PostScriptActions;
-    std::vector<QueuedScript> ScFnQueue;
 
     ExecutingScript() = default;
     ExecutingScript(const AGS::Engine::RuntimeScript *script)
         : Script(script) {}
     void QueueAction(PostScriptAction &&act);
-    void RunAnother(ScriptType scinst, const AGS::Common::String &fn_name,
-        size_t param_count, const RuntimeScriptValue *params);
-    void RunAnother(ScriptType scinst, const ScriptFunctionRef &fn_ref,
-        size_t param_count, const RuntimeScriptValue *params);
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

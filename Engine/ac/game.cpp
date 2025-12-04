@@ -1133,6 +1133,26 @@ void save_game(int slotn, const String &descript, std::unique_ptr<Bitmap> &&imag
     run_on_event(kScriptEvent_GameSaved, slotn);
 }
 
+void schedule_save_game(int slotn, const String &descript, int spritenum)
+{
+    // dont allow save in rep_exec_always, because we dont save
+    // the state of blocked scripts
+    can_run_delayed_command();
+
+    // Make a sprite copy, as save process may be scheduled and asynchronous (in theory)
+    std::unique_ptr<Bitmap> image;
+    if (spritenum >= 0)
+        image.reset(BitmapHelper::CreateBitmapCopy(spriteset[spritenum]));
+
+    if (is_inside_script())
+    {
+        get_executingscript()->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript, std::move(image)));
+        return;
+    }
+
+    save_game(slotn, descript, std::move(image));
+}
+
 int gameHasBeenRestored = 0;
 int oldeip;
 

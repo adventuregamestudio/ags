@@ -135,7 +135,8 @@ void CallRoomScript (int value) {
 
     play.roomscript_finished = 0;
     RuntimeScriptValue params[]{ value , RuntimeScriptValue() };
-    get_executingscript()->RunAnother(kScTypeRoom, "on_call", 1, params);
+    RunScriptFunctionAuto(kScTypeRoom, "on_call", 1, params);
+    play.roomscript_finished = 1;
 }
 
 void SetBackgroundFrame(int frnum) {

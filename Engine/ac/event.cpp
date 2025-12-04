@@ -119,7 +119,7 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
 void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, int data4)
 {
     RuntimeScriptValue params[]{ evtype , data1, data2, data3, data4 };
-    QueueScriptFunction(kScTypeGame, "on_event", 5, params);
+    RunScriptFunctionAuto(kScTypeGame, "on_event", 5, params);
 }
 
 void run_room_event(int id)
@@ -165,7 +165,7 @@ void process_event(const AGSEvent *evp)
             return;
         }
         RuntimeScriptValue params[3]{ ts.Arg1, ts.Arg2, ts.Arg3 };
-        QueueScriptFunction(kScTypeGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
+        RunScriptFunctionAuto(kScTypeGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
     }
     else if (evp->Type == kAGSEvent_NewRoom)
     {

@@ -587,18 +587,18 @@ static void run_control_event(GUIControl *control, const String &script_module, 
         {
             RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl),
                 RuntimeScriptValue().SetInt32(mb_param) };
-            QueueScriptFunction(kScTypeGame, fn_ref, 2, params);
+            RunScriptFunctionAuto(kScTypeGame, fn_ref, 2, params);
         }
         else
         {
             RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl) };
-            QueueScriptFunction(kScTypeGame, fn_ref, 1, params);
+            RunScriptFunctionAuto(kScTypeGame, fn_ref, 1, params);
         }
     }
     else if (do_interface_click)
     {
         RuntimeScriptValue params[]{ control->GetParentID(), control->GetID() };
-        QueueScriptFunction(kScTypeGame, "interface_click", 2, params);
+        RunScriptFunctionAuto(kScTypeGame, "interface_click", 2, params);
     }
 }
 
@@ -610,7 +610,7 @@ void process_interface_click(int ifce, int btn, int mbut)
         // click on GUI background
         RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut) };
-        QueueScriptFunction(kScTypeGame, gui.GetScriptModule(), gui.GetEvents().GetHandler(kGUIEvent_OnClick), 2, params);
+        TryRunScriptHandler(kScTypeGame, gui.GetScriptModule(), gui.GetEvents().GetHandler(kGUIEvent_OnClick), 2, params);
         return;
     }
 

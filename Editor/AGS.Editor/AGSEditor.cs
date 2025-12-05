@@ -1173,10 +1173,6 @@ namespace AGS.Editor
 				{
 					errors.Add(new CompileError("Character " + character.ID + " (" + character.RealName + ") has invalid normal view."));
 				}
-				else
-				{
-					EnsureViewHasAtLeast4LoopsAndAFrameInLeftRightLoops(view);
-				}
 			}
 
 			Dictionary<string, AGS.Types.View> viewNames = new Dictionary<string, AGS.Types.View>();
@@ -1203,29 +1199,6 @@ namespace AGS.Editor
                 }
             }
         }
-
-		private void EnsureViewHasAtLeast4LoopsAndAFrameInLeftRightLoops(AGS.Types.View view)
-		{
-			bool viewModified = false;
-			while (view.Loops.Count < 4)
-			{
-				view.Loops.Add(new ViewLoop(view.Loops.Count));
-				viewModified = true;
-			}
-
-			if (view.Loops[1].Frames.Count < 1)
-			{
-				view.Loops[1].Frames.Add(new ViewFrame(0));
-			}
-			if (view.Loops[2].Frames.Count < 1)
-			{
-				view.Loops[2].Frames.Add(new ViewFrame(0));
-			}
-			if (viewModified)
-			{
-				view.NotifyClientsOfUpdate();
-			}
-		}
 
 		private void EnsureViewNamesAreUnique(ViewFolder folder, Dictionary<string, AGS.Types.View> viewNames, CompileMessages errors)
 		{

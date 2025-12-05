@@ -556,7 +556,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
 static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_y, int areawid,
     int bullet_wid, int bullet_spr, int bullet_sprwid,
     int usingfont, int linespacing, int selected_color,
-    const DialogTopic *dtop, int numdisp, int mouseison, const int *disporder, short *dispyp)
+    const DialogTopic *dtop, int numdisp, int mouseison, const std::vector<int> &disporder, std::vector<int> &dispyp)
 {
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
@@ -782,9 +782,9 @@ private:
     // List of displayed options and their precalculated states;
     // NOTE: this is only used in standard options render, not custom render
     // display order of options
-    int disporder[MAXTOPICOPTIONS];
+    std::vector<int> disporder;
     // display Y coordinate of options
-    short dispyp[MAXTOPICOPTIONS];
+    std::vector<int> dispyp;
     // number of displayed options
     int numdisp;
     // last chosen option
@@ -902,6 +902,9 @@ void DialogOptions::Stop()
 
 void DialogOptions::Begin()
 {
+    disporder.resize(dtop->numoptions);
+    dispyp.resize(dtop->numoptions);
+
     doStop = false;
     chose = -1;
     // First of all, decide which options should be displayed this turn
@@ -1099,7 +1102,7 @@ void DialogOptions::Draw()
     ScreenOverlay *options_over = get_overlay(options_overlay_id);
     Bitmap *options_bmp = options_over->GetImage();
 
-    std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
+    std::fill(dispyp.begin(), dispyp.end(), 0);
 
     if (usingCustomRendering)
     {

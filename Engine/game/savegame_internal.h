@@ -135,6 +135,7 @@ struct SaveRestoredDataCounts
     uint32_t AudioClipTypes = 0u;
     uint32_t Characters = 0u;
     uint32_t Dialogs = 0u;
+    std::vector<uint32_t> DialogOptions;
     uint32_t GUIs = 0u;
     std::vector<uint32_t> GUIControls;
     uint32_t InventoryItems = 0u;

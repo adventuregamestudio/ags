@@ -56,6 +56,12 @@ using namespace AGS; // FIXME later
 #define DCHAR_NARRATOR      999
 #define DCHAR_PLAYER        998
 
+enum DialogTopicSvgVersion
+{
+    kDialogTopicSvgVer_Initial  = 0,
+    kDialogTopicSvgVer_363      = 3060304
+};
+
 struct DialogTopic
 {
     struct DialogOption
@@ -80,8 +86,11 @@ struct DialogTopic
     void ReadFromFile_v321(Common::Stream *in);
     void ReadFromFile_v363(Common::Stream *in);
 
-    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
+    void ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count);
     void WriteToSavegame(Common::Stream *out) const;
+
+private:
+    void ReadOptionFromSavegame(DialogOption &opt, Common::Stream *in, DialogTopicSvgVersion svg_ver);
 };
 
 

@@ -765,19 +765,35 @@ HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Prese
     if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
 
+    r_data.DataCounts.DialogOptions.resize(dialogs_read);
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
-        dialog[i].ReadFromSavegame(in, cmp_ver);
+        uint32_t read_opt_count = 0;
+        dialog[i].ReadFromSavegame(in, static_cast<DialogTopicSvgVersion>(cmp_ver), &read_opt_count);
+        if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(),
+                "Options", "Dialog", i, r_data.Result, r_data.DataCounts.DialogOptions[i]))
+            return err;
     }
     return err;
 }
 
-HSaveError PrescanDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
     if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
+
+    r_data.DataCounts.DialogOptions.resize(dialogs_read);
+    DialogTopic dummy;
+    for (uint32_t i = 0; i < dialogs_read; ++i)
+    {
+        uint32_t read_opt_count = 0;
+        dummy.ReadFromSavegame(in, static_cast<DialogTopicSvgVersion>(cmp_ver), &read_opt_count);
+        if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(),
+                "Options", "Dialog", i, r_data.Result, r_data.DataCounts.DialogOptions[i]))
+            return err;
+    }
     return HSaveError::None();
 }
 
@@ -1803,8 +1819,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Dialogs",
-        0,
-        0,
+        kDialogTopicSvgVer_363,
+        kDialogTopicSvgVer_Initial,
         kSaveCmp_Dialogs,
         WriteDialogs,
         ReadDialogs,

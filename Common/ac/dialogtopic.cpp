@@ -68,22 +68,45 @@ void DialogTopic::ReadFromFile_v363(Stream *in)
     }
 }
 
-void DialogTopic::ReadFromSavegame(Common::Stream *in, int cmp_ver)
+void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTopicSvgVersion svg_ver)
+{
+    opt.Flags = in->ReadInt32();
+}
+
+void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
 {
     // FIXME: assert count
-    uint32_t opt_idx = 0;
-    for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
-        Options[opt_idx].Flags = in->ReadInt32();
-    // skip if there's any mismatched count (?)
-    for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
-        in->ReadInt32();
+    if (svg_ver <= kDialogTopicSvgVer_Initial)
+    {
+        uint32_t opt_idx = 0;
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
+            Options[opt_idx].Flags = in->ReadInt32();
+        // skip if there's any mismatched count (?)
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
+            in->ReadInt32();
+
+        if (read_opt_count)
+            *read_opt_count = std::min<uint32_t>(Options.size(), LEGACY_MAXTOPICOPTIONS);
+    }
+    else
+    {
+        uint32_t option_records = in->ReadInt32();
+        uint32_t opt_idx = 0;
+        for (opt_idx = 0; opt_idx < option_records && opt_idx < Options.size(); ++opt_idx)
+            ReadOptionFromSavegame(Options[opt_idx], in, svg_ver);
+        // skip if there's any mismatched count (?)
+        DialogOption dummy;
+        for (; opt_idx < option_records; ++opt_idx)
+            ReadOptionFromSavegame(dummy, in, svg_ver);
+
+        if (read_opt_count)
+            *read_opt_count = option_records;
+    }
 }
 
 void DialogTopic::WriteToSavegame(Common::Stream *out) const
 {
-    uint32_t opt_idx = 0;
-    for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
-        out->WriteInt32(Options[opt_idx].Flags);
-    for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
-        out->WriteInt32(0);
+    out->WriteInt32(Options.size());
+    for (auto &opt : Options)
+        out->WriteInt32(opt.Flags);
 }

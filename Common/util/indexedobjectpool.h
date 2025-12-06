@@ -245,16 +245,16 @@ public:
     TElem &operator [](TIndex index)
     {
         assert(index >= 0u && static_cast<size_t>(index) < _elems.size());
-        _isFree[static_cast<size_t>(index)] = false;
+        assert(!IndexedPoolBase<TIndex>::_isFree[index]);
         return _elems[static_cast<size_t>(index)];
     }
 
     // Returns the count of the used (aka valid) elements
-    size_t GetCount() const { return _count; }
+    size_t GetCount() const { return IndexedPoolBase<TIndex>::_count; }
     // Tells if particular index is free
-    bool IsFree(TIndex index) const { return _isFree[index]; }
+    bool IsFree(TIndex index) const { return IndexedPoolBase<TIndex>::_isFree[index]; }
     // Tells if particular index is being used
-    bool IsInUse(TIndex index) const { return !_isFree[index]; }
+    bool IsInUse(TIndex index) const { return !IndexedPoolBase<TIndex>::_isFree[index]; }
 
     // Adds new element, initialized with default value; returns its index
     TIndex Add()
@@ -305,18 +305,18 @@ public:
     void Set(const std::vector<TElem> &elems, const std::vector<bool> &is_used)
     {
         _elems = elems;
-        if (_elems.size() < _fixedCount)
-            _elems.resize(_fixedCount);
-        InitFreeIndexes(_elems.size(), is_used);
+        if (_elems.size() < IndexedPoolBase<TIndex>::_fixedCount)
+            _elems.resize(IndexedPoolBase<TIndex>::_fixedCount);
+        IndexedPoolBase<TIndex>::InitFreeIndexes(_elems.size(), is_used);
     }
 
     // Initializes whole array of elements, some of the slots may be marked as "in use" and others as "free"
     void Set(std::vector<TElem> &&elems, const std::vector<bool> &is_used)
     {
         _elems = std::move(elems);
-        if (_elems.size() < _fixedCount)
-            _elems.resize(_fixedCount);
-        InitFreeIndexes(_elems.size(), is_used);
+        if (_elems.size() < IndexedPoolBase<TIndex>::_fixedCount)
+            _elems.resize(IndexedPoolBase<TIndex>::_fixedCount);
+        IndexedPoolBase<TIndex>::InitFreeIndexes(_elems.size(), is_used);
     }
 
     // Resets element and marks its index as free
@@ -330,7 +330,7 @@ public:
     void Clear()
     {
         _elems.clear();
-        _elems.resize(_fixedCount);
+        _elems.resize(IndexedPoolBase<TIndex>::_fixedCount);
         IndexedPoolBase<TIndex>::Clear();
     }
 

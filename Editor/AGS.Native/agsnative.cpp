@@ -3666,20 +3666,20 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	{
 		AGS::Types::Dialog ^newDialog = gcnew AGS::Types::Dialog();
 		newDialog->ID = i;
-		for (int j = 0; j < dialog[i].numoptions; j++) 
+		for (int j = 0; j < dialog[i].GetOptionCount(); j++) 
 		{
 			AGS::Types::DialogOption ^newOption = gcnew AGS::Types::DialogOption();
 			newOption->ID = j + 1;
-			newOption->Text = gcnew String(dialog[i].optionnames[j]);
-			newOption->Say = !(dialog[i].optionflags[j] & DFLG_NOREPEAT);
-			newOption->Show = (dialog[i].optionflags[j] & DFLG_ON);
+			newOption->Text = gcnew String(dialog[i].Options[j].Name.GetCStr());
+			newOption->Say = !(dialog[i].Options[j].Flags & DFLG_NOREPEAT);
+			newOption->Show = (dialog[i].Options[j].Flags & DFLG_ON);
 
 			newDialog->Options->Add(newOption);
 		}
 
 		newDialog->Name = TextHelper::ConvertASCII(thisgame.dialogScriptNames[i]);
 		newDialog->Script = tcv->Convert(dlgscript[i]);
-		newDialog->ShowTextParser = (dialog[i].topicFlags & DTFLG_SHOWPARSER);
+		newDialog->ShowTextParser = (dialog[i].Flags & DTFLG_SHOWPARSER);
 
 		game->Dialogs->Add(newDialog);
 	}

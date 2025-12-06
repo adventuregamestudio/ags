@@ -37,7 +37,7 @@ namespace AGS.Editor
         public static readonly int MAX_INV = (int)Factory.NativeProxy.GetNativeConstant("MAX_INV");
         public static readonly int MAXLIPSYNCFRAMES = (int)Factory.NativeProxy.GetNativeConstant("MAXLIPSYNCFRAMES");
         public static readonly int MAXGLOBALMES = (int)Factory.NativeProxy.GetNativeConstant("MAXGLOBALMES");
-        public static readonly int MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("MAXTOPICOPTIONS");
+        public static readonly int LEGACY_MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("LEGACY_MAXTOPICOPTIONS");
         public static readonly short UNIFORM_WALK_SPEED = (short)(int)Factory.NativeProxy.GetNativeConstant("UNIFORM_WALK_SPEED");
         public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
         public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");

@@ -176,8 +176,8 @@ void InitAndRegisterDialogs(GameSetupStruct &game)
         scrDialog[i].reserved = 0;
         ccRegisterManagedObject(&scrDialog[i], &ccDynamicDialog);
 
-        if (!game.dialogScriptNames[i].IsEmpty())
-            ccAddExternalScriptObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
+        if (!dialog[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObject(dialog[i].ScriptName, &scrDialog[i], &ccDynamicDialog);
     }
 }
 

@@ -583,7 +583,7 @@ namespace AGS.Editor
             writer.Write(game.Settings.MaximumScore);
             writer.Write((short)(game.InventoryItems.Count + 1)); // +1 for a dummy item at id 0
             writer.Write(new byte[2]); // alignment padding
-            writer.Write(game.Dialogs.Count);
+            writer.Write(0); // was game.Dialogs.Count, write 0 for old format entries
             writer.Write(0); // numdlgmessage
             writer.Write(game.Fonts.Count);
             writer.Write((int)game.Settings.ColorDepth);
@@ -1677,40 +1677,12 @@ namespace AGS.Editor
                 if (string.IsNullOrEmpty(game.GlobalMessages[i])) continue;
                 WriteStringEncrypted(writer, game.GlobalMessages[i]);
             }
+            /* [DEPRECATED] -- now written as a part of "v363_dialogsnew" extension
             foreach (Dialog curDialog in game.Dialogs)
             {
-                for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
-                {
-                    WriteString(TextProperty(curDialog.Options[i].Text), 150, writer); // optionnames
-                }
-                for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
-                {
-                    WriteString("", 150, writer);
-                }
-                for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
-                {
-                    DialogOption option = curDialog.Options[i];
-                    int flags = 0;
-                    if (!option.Say) flags |= NativeConstants.DFLG_NOREPEAT;
-                    /* --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
-                    // NOTE: we always force "no-say" flag, because "say" checkbox is processed when
-                    // the dialog script is converted into regular script now.
-                    flags |= NativeConstants.DFLG_NOREPEAT;
-                    */
-                    if (option.Show) flags |= NativeConstants.DFLG_ON;
-                    writer.Write(flags); // optionflags
-                }
-                for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
-                {
-                    writer.Write(0);
-                }
-                writer.Write(new byte[4]); // optionscripts
-                writer.Write(new byte[NativeConstants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
-                writer.Write((short)0); // startupentrypoint
-                writer.Write((short)0); // codesize
-                writer.Write(curDialog.Options.Count); // numoptions
-                writer.Write(curDialog.ShowTextParser ? NativeConstants.DTFLG_SHOWPARSER : 0); // topicflags
+                WriteDialog_FormatOld(curDialog, writer);
             }
+            */
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
             if (!WritePluginsToDisk(writer, game, errors))
@@ -1749,10 +1721,12 @@ namespace AGS.Editor
             {
                 FilePutNullTerminatedString(game.InventoryItems[i].Name, writer);
             }
+            /* [DEPRECATED] -- now written as a part of "v363_dialogsnew" extension
             for (int i = 0; i < game.Dialogs.Count; ++i)
             {
                 FilePutNullTerminatedString(game.Dialogs[i].Name, writer);
             }
+            */
             writer.Write(game.AudioClipTypes.Count + 1);
             // hard coded SPEECH audio type 0
             writer.Write(0); // id
@@ -1820,6 +1794,7 @@ namespace AGS.Editor
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
             WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
+            WriteExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1828,6 +1803,43 @@ namespace AGS.Editor
             GC.Collect();
             return true;
         }
+
+        /* [DEPRECATED] -- see "v363_dialogsnew" extension
+        private static void WriteDialog_FormatOld(Dialog dialog, BinaryWriter writer)
+        {
+            for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < dialog.Options.Count); ++i)
+            {
+                WriteString(TextProperty(dialog.Options[i].Text), 150, writer); // optionnames
+            }
+            for (int i = dialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
+            {
+                WriteString("", 150, writer);
+            }
+            for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < dialog.Options.Count); ++i)
+            {
+                DialogOption option = dialog.Options[i];
+                int flags = 0;
+                if (!option.Say) flags |= NativeConstants.DFLG_NOREPEAT;
+                /* --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
+                // NOTE: we always force "no-say" flag, because "say" checkbox is processed when
+                // the dialog script is converted into regular script now.
+                flags |= NativeConstants.DFLG_NOREPEAT;
+                *//*
+                if (option.Show) flags |= NativeConstants.DFLG_ON;
+                writer.Write(flags); // optionflags
+            }
+            for (int i = dialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
+            {
+                writer.Write(0);
+            }
+            writer.Write(new byte[4]); // optionscripts
+            writer.Write(new byte[NativeConstants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
+            writer.Write((short)0); // startupentrypoint
+            writer.Write((short)0); // codesize
+            writer.Write(dialog.Options.Count); // numoptions
+            writer.Write(dialog.ShowTextParser ? NativeConstants.DTFLG_SHOWPARSER : 0); // topicflags
+        }
+        */
 
         // >= 3.6.0: font outline properties
         private static void WriteExt_360Fonts(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
@@ -1961,6 +1973,38 @@ namespace AGS.Editor
             {
                 FilePutString(item.Key, writer);
                 FilePutString(item.Value, writer);
+            }
+        }
+
+        // New dialog topics compiled format
+        private static void WriteExt_363Dialogs(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            Game game = ents.Game;
+            writer.Write(game.Dialogs.Count);
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                // Dialog topic settings
+                FilePutString(dialog.Name, writer);
+                int topic_flags = 0;
+                if (dialog.ShowTextParser) topic_flags |= NativeConstants.DTFLG_SHOWPARSER;
+                writer.Write(topic_flags);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+
+                // Options
+                writer.Write(dialog.Options.Count);
+                foreach (DialogOption option in dialog.Options)
+                {
+                    FilePutString(option.Text, writer);
+                    int option_flags = 0;
+                    if (!option.Say) option_flags |= NativeConstants.DFLG_NOREPEAT;
+                    if (option.Show) option_flags |= NativeConstants.DFLG_ON;
+                    writer.Write(option_flags);
+                    writer.Write((int)0); // reserved
+                    writer.Write((int)0);
+                    writer.Write((int)0);
+                }
             }
         }
 

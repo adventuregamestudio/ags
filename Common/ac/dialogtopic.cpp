@@ -15,8 +15,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-#define LEGACY_MAXTOPICOPTIONS 30
-
 using namespace AGS::Common;
 
 void DialogTopic::ReadFromFile_v321(Stream *in)
@@ -46,6 +44,28 @@ void DialogTopic::ReadFromFile_v321(Stream *in)
     option_count = std::min(option_count, options.size());
     Options.resize(option_count);
     std::copy_n(options.begin(), option_count, Options.begin());
+}
+
+void DialogTopic::ReadFromFile_v363(Stream *in)
+{
+    // Dialog topic settings
+    ScriptName = StrUtil::ReadString(in);
+    Flags = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+
+    // Options
+    uint32_t option_count = in->ReadInt32();
+    Options.resize(option_count);
+    for (auto &opt : Options)
+    {
+        opt.Name = StrUtil::ReadString(in);
+        opt.Flags = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void DialogTopic::ReadFromSavegame(Common::Stream *in, int cmp_ver)

@@ -64,6 +64,8 @@ struct GameSetupStruct : public GameSetupStructBase
     // reference views instead.
     std::vector<Common::String> viewNames;
     Common::String    invScriptNames[MAX_INV];
+    // TODO: move this array out of Game struct, but need to read legacy data
+    // into some sort of a temporary container for post-load upgrading.
     std::vector<Common::String> dialogScriptNames;
     char              guid[MAX_GUID_LENGTH] = { 0 };
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };

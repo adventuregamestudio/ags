@@ -27,6 +27,8 @@ using namespace AGS; // FIXME later
 // Dialog Topic flags
 #define DTFLG_SHOWPARSER    0x0001  // show parser in this topic
 
+#define LEGACY_MAXTOPICOPTIONS 30
+
 // Dialog Options flags
 #define DFLG_ON             0x0001  // currently enabled
 #define DFLG_OFFPERM        0x0002  // off forever (can't be trurned on)
@@ -63,6 +65,7 @@ struct DialogTopic
         int EntryPoint = -1; // old-style dialog script entry point
     };
 
+    Common::String ScriptName;
     int           Flags = 0; // DialogTopic flags (DTFLG_*)
     std::vector<DialogOption> Options;
     int           StartEntryPoint = -1; // old-style dialog script entry point
@@ -75,6 +78,7 @@ struct DialogTopic
     uint32_t GetOptionCount() const { return Options.size(); }
 
     void ReadFromFile_v321(Common::Stream *in);
+    void ReadFromFile_v363(Common::Stream *in);
 
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

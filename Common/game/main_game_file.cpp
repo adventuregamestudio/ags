@@ -523,6 +523,18 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
+void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+{
+    if (data_ver < kGameVersion_363)
+    {
+        for (int i = 0; i < game.numdialog; ++i)
+        {
+            ents.Dialogs[i].ScriptName = game.dialogScriptNames[i];
+        }
+        game.dialogScriptNames = std::vector<String>();
+    }
+}
+
 void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_350)
@@ -959,6 +971,16 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // Read a dictionary of strings
         StrUtil::ReadStringMap(_ents.Game.GameInfo, in);
     }
+    else if (ext_id.CompareNoCase("v363_dialogsnew") == 0)
+    {
+        // NOTE: we do not assert dialog count here, but override,
+        // because the older dialog data format should be skipped completely.
+        uint32_t dialog_count = in->ReadInt32();
+        _ents.Game.numdialog = dialog_count;
+        _ents.Dialogs.resize(dialog_count);
+        for (auto &dlg : _ents.Dialogs)
+            dlg.ReadFromFile_v363(in);
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
@@ -1090,6 +1112,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     GameSetupStruct &game = ents.Game;
     ApplySpriteData(game, ents, data_ver);
     UpgradeGame(game, data_ver);
+    UpgradeDialogs(game, ents, data_ver);
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);

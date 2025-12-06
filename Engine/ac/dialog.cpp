@@ -343,7 +343,7 @@ int Dialog_GetID(ScriptDialog *sd) {
 
 const char *Dialog_GetScriptName(ScriptDialog *sd)
 {
-    return CreateNewScriptString(game.dialogScriptNames[sd->id]);
+    return CreateNewScriptString(dialog[sd->id].ScriptName);
 }
 
 //=============================================================================
@@ -1921,7 +1921,7 @@ bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retva
     else
     {
         debug_script_warn("!%s: more than one NewRoom/RunDialog/StopDialog requests within a dialog '%s' (%d), following one(s) will be ignored\n\tfirst was made in \"%s\", line %d",
-            apiname, game.dialogScriptNames[dialogExec->GetDlgNum()].GetCStr(), dialogExec->GetDlgNum(),
+            apiname, dialog[dialogExec->GetDlgNum()].ScriptName.GetCStr(), dialogExec->GetDlgNum(),
             dialogExec->GetSavedDialogRequestScPos().Section.GetCStr(), dialogExec->GetSavedDialogRequestScPos().Line);
     }
     return true; // handled, state change will be taken care of by a dialog script

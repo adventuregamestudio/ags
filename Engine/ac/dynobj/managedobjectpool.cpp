@@ -34,10 +34,9 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
         return 0;
 
     stats.Removed++;
-    available_ids.push(o.handle);
     handleByAddress.erase(o.addr);
     ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, o.handle);
-    o = ManagedObject();
+    objects.Free(o.handle);
     return 1;
 }
 
@@ -101,7 +100,7 @@ ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, voi
         manager = nullptr;
         return kScValUndefined;
     }
-    auto &o = objects[handle];
+    const auto &o = objects[handle];
     object = (void *)o.addr;  // WARNING: This strips the const from the char* pointer.
     manager = o.callback;
     return o.obj_type;
@@ -133,11 +132,12 @@ void ManagedObjectPool::RunGarbageCollection()
     // But then, 3.* version of the engine and script compiler do not support
     // user managed structs referencing each other. This is only implemented
     // in 4.* engine and script compiler.
-    for (int i = 1; i < nextHandle; i++) {
-        auto & o = objects[i];
+    for (auto &o : objects)
+    {
         if (!o.isUsed()) { continue; }
         assert(o.refCount >= 0); // just to make certain it's not underflow
-        if (o.refCount == 0) {
+        if (o.refCount == 0)
+        {
             stats.RemovedGC += Remove(o);
         }
     }
@@ -160,30 +160,16 @@ int ManagedObjectPool::Add(int handle, void *address, IScriptObject *callback, S
 
 int ManagedObjectPool::AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type) 
 {
-    int32_t handle;
-
-    if (!available_ids.empty()) {
-        handle = available_ids.front();
-        available_ids.pop();
-    } else {
-        handle = nextHandle++;
-        if ((size_t)handle >= objects.size()) {
-           objects.resize(handle + 1024, ManagedObject());
-        }
-    }
-
+    int32_t handle = objects.Add();
     objectCreationCounter++;
-    return Add(handle, address, callback, obj_type);   
+    return Add(handle, address, callback, obj_type);
 }
 
 int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callback,
     ScriptValueType obj_type, int handle) 
 {
     if (handle < 1) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
-    if ((size_t)handle >= objects.size()) {
-        objects.resize(handle + 1024, ManagedObject());
-    }
-
+    objects.Set(handle);
     return Add(handle, address, callback, obj_type);
 }
 
@@ -199,16 +185,16 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     out->WriteInt32(2);  // version
 
     int size = 0;
-    for (int i = 1; i < nextHandle; i++) {
+    for (size_t i = 1; i < objects.size(); i++)
+    {
         auto const & o = objects[i];
-        if (o.isUsed()) { 
-            size += 1;
-        }
+        if (o.isUsed())
+            size++;
     }
     out->WriteInt32(size);
 
-    for (int i = 1; i < nextHandle; i++) {
-        auto const & o = objects[i];
+    for (const auto &o : objects)
+    {
         if (!o.isUsed()) { continue; }
 
         // handle
@@ -243,7 +229,6 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
     serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
     auto version = in->ReadInt32();
-
     switch (version) {
         case 1:
             {
@@ -291,32 +276,17 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
             return -1;
     }
 
-    // re-adjust next handles. (in case saved in random order)
-    available_ids = std::queue<int32_t>();
-    nextHandle = 1;
-
-    for (const auto &o : objects) {
-        if (o.isUsed()) { 
-            nextHandle = o.handle + 1;
-        }
-    }
-    for (int i = 1; i < nextHandle; i++) {
-        if (!objects[i].isUsed()) {
-            available_ids.push(i);
-        }
-    }
-
     return 0;
 }
 
-void ManagedObjectPool::Reset() {
-    for (int i = 1; i < nextHandle; i++) {
-        auto & o = objects[i];
+void ManagedObjectPool::Reset()
+{
+    for (auto &o : objects)
+    {
         if (!o.isUsed()) { continue; }
         Remove(o, true);
     }
-    available_ids = std::queue<int32_t>();
-    nextHandle = 1;
+    objects.Clear();
 
     PrintStats();
 }
@@ -341,16 +311,19 @@ void ManagedObjectPool::PrintStats()
 
 void ManagedObjectPool::TraverseManagedObjects(const String &type, PfnProcessObject proc)
 {
-    for (int i = 1; i < nextHandle; i++)
+    for (const auto &o : objects)
     {
-        auto &o = objects[i];
         if (!o.isUsed() || type != o.callback->GetType())
             continue;
         proc(o.handle, o.callback);
     }
 }
 
-ManagedObjectPool::ManagedObjectPool() : objectCreationCounter(0), nextHandle(1), available_ids(), objects(RESERVED_SIZE, ManagedObject()), handleByAddress() {
+ManagedObjectPool::ManagedObjectPool()
+    : objects(1)
+    , objectCreationCounter(0)
+{
+    objects.Reserve(RESERVED_SIZE);
     handleByAddress.reserve(RESERVED_SIZE);
 }
 

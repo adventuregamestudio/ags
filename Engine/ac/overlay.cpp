@@ -44,10 +44,7 @@ extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
 
-// TODO: consider some kind of a "object pool" template,
-// which handles this kind of storage; share with ManagedPool's handles?
-std::vector<ScreenOverlay> screenover;
-std::queue<int32_t> over_free_ids;
+IndexedObjectPool<ScreenOverlay, int32_t> screenover(OVER_FIRSTFREE);
 
 // Gets an actual ScreenOverlay object from its ScriptOverlay reference,
 // validate object, throw an error on failure
@@ -388,10 +385,7 @@ void remove_screen_overlay(int type)
         ccReleaseObjectReference(over.GetScriptHandle());
     }
 
-    // Don't erase vector elements, instead set invalid and record free index
-    screenover[type] = ScreenOverlay();
-    if (type >= OVER_FIRSTFREE)
-        over_free_ids.push(type);
+    screenover.Free(type);
 
     reset_drawobj_for_overlay(type);
 
@@ -417,22 +411,15 @@ ScreenOverlay *get_overlay(int type)
 size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum,
     std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy, bool has_alpha)
 {
+    // If a custom overlay is requested, then allocate a free slot
     if (type == OVER_CUSTOM)
     {
-        // Find a free ID
-        if (over_free_ids.size() > 0)
-        {
-            type = over_free_ids.front();
-            over_free_ids.pop();
-        }
-        else
-        {
-            type = std::max(static_cast<size_t>(OVER_FIRSTFREE), screenover.size());
-        }
+        type = screenover.Add();
     }
-
-    if (screenover.size() <= static_cast<uint32_t>(type))
-        screenover.resize(type + 1);
+    else
+    {
+        screenover.Set(type);
+    }
 
     ScreenOverlay over(type);
     if (piccy)
@@ -536,8 +523,6 @@ Point get_overlay_position(const ScreenOverlay &over)
 
 void restore_overlays()
 {
-    // Will have to readjust free ids records, as overlays may be restored in any random slots
-    while (!over_free_ids.empty()) { over_free_ids.pop(); }
     for (size_t i = 0; i < screenover.size(); ++i)
     {
         auto &over = screenover[i];
@@ -545,14 +530,10 @@ void restore_overlays()
         {
             over.MarkChanged(); // force recreate texture on next draw
         }
-        else if (i >= OVER_FIRSTFREE)
-        {
-            over_free_ids.push(i);
-        }
     }
 }
 
-std::vector<ScreenOverlay> &get_overlays()
+IndexedObjectPool<ScreenOverlay, int32_t> &get_overlays()
 {
     return screenover;
 }

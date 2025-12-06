@@ -22,6 +22,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "util/geometry.h"
+#include "util/indexedobjectpool.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -54,7 +55,6 @@ void restore_overlays();
 // FIXME: this should be a CONST ref (if any at all), strictly for reading,
 // but unfortunately some batch operations on overlays are currently performed
 // by external code...
-std::vector<ScreenOverlay> &get_overlays();
-
+IndexedObjectPool<ScreenOverlay, int32_t> &get_overlays();
 
 #endif // __AGS_EE_AC__OVERLAY_H

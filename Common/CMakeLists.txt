@@ -139,6 +139,7 @@ target_sources(common
     util/filestream.h
     util/geometry.cpp
     util/geometry.h
+    util/indexedobjectpool.h
     util/ini_util.cpp
     util/ini_util.h
     util/inifile.cpp

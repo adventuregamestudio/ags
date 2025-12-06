@@ -13,6 +13,9 @@
 //=============================================================================
 #include <stdio.h>
 #include <string.h>
+#include <memory>
+#include <stack>
+#include <vector>
 #include "script/script.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -53,15 +56,13 @@ extern RoomObject*objs;
 extern CharacterInfo*playerchar;
 extern bool logScriptTOC;
 
-ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-ExecutingScript *curscript = nullptr; // non-owning ptr
+std::stack<std::unique_ptr<ExecutingScript>> executingScripts;
+ExecutingScript *curExecScript = nullptr; // non-owning ptr
 
 PRuntimeScript gamescript;
 PRuntimeScript dialogScriptsScript;
 PRuntimeScript roomscript;
 
-int num_scripts = 0; // number of ExecutingScript objects recorded
-int post_script_cleanup_stack = 0;
 int inside_script = 0;
 int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
 
@@ -85,6 +86,7 @@ size_t numScriptModules = 0;
 std::unique_ptr<ScriptExecutor> scriptExecutor;
 std::unique_ptr<ScriptThread> scriptThreadMain;
 std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
+std::stack<std::unique_ptr<ScriptThread>> scriptThreadCallbacks;
 
 // Run a script function on a non-blocking script thread
 static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
@@ -177,7 +179,7 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 
     const int room_was = play.room_changes;
 
-    QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
+    RunScriptFunctionAuto(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
         obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
@@ -198,36 +200,12 @@ int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handle
         return 0;
 
     if (!test_interaction_handler(handlers, evnt, obj_evt.ScType == kScTypeRoom))
-    {
         return 0;
-    }
 
     const int room_was = play.room_changes;
 
-    // Following is abusing the convoluted engine logic:
-    // inside_script - means that something is run on main thread,
-    //                 but this may be a normal event or something triggered from rep-exec-always.
-    // no_blocking_functions - means that something is run on non-blocking thread
-    // IsInWaitRunFromScript() - tells if a blocking action was run on main script thread.
-    //
-    // NOTE: if there's a blocking action run on main, and at the same time
-    // the non-blocking thread is occupied, then we can only schedule this new call
-    // to run on main thread AFTER the blocking action finishes. There's no way around that atm.
-    // TODO: redesign this in the future, but will likely require a complete script callback logic overhaul.
-    if (IsInWaitRunFromScript() && !no_blocking_functions)
-    {
-        // Main thread is blocked, but non-blocking thread is free,
-        // then run the requested script on a non-blocking thread.
-        RunScriptFunctionNonBlocking(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
-            obj_evt.ParamCount, obj_evt.Params);
-    }
-    else
-    {
-        // Otherwise try running on the main thread;
-        // if there's another script running on main already, then our function will be queued.
-        QueueScriptFunction(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
-            obj_evt.ParamCount, obj_evt.Params);
-    }
+    RunScriptFunctionAuto(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
+        obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
@@ -309,7 +287,7 @@ bool LinkGlobalScripts()
 void AbortAllScripts()
 {
     scriptExecutor->Abort();
-    num_scripts = 0;
+    executingScripts = std::stack<std::unique_ptr<ExecutingScript>>();
 }
 
 RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module)
@@ -356,32 +334,11 @@ bool DoesScriptFunctionExistInModule(const String &script_module, const String &
     return false;
 }
 
-void QueueScriptFunction(ScriptType sc_type, const String &fn_name,
-    size_t param_count, const RuntimeScriptValue *params)
-{
-    QueueScriptFunction(sc_type, ScriptFunctionRef(fn_name), param_count, params);
-}
-
-void QueueScriptFunction(ScriptType sc_type, const String &script_module, const ScriptEventHandler &handler,
-                            size_t param_count, const RuntimeScriptValue *params)
+void TryRunScriptHandler(ScriptType sc_type, const String &script_module,
+    const ScriptEventHandler &handler, size_t param_count, const RuntimeScriptValue *params)
 {
     if (handler.IsEnabled())
-        QueueScriptFunction(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
-}
-
-void QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
-    size_t param_count, const RuntimeScriptValue *params)
-{
-    if (inside_script)
-    {
-        // queue the script for the run after current script is finished
-        curscript->RunAnother(sc_type, fn_ref, param_count, params);
-    }
-    else
-    {
-        // if no script is currently running, run the requested script right away
-        RunScriptFunctionAuto(sc_type, fn_ref, param_count, params);
-    }
+        RunScriptFunctionAuto(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
 }
 
 // Run a script function on a non-blocking script thread
@@ -417,40 +374,36 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
 {
     assert(script);
     cc_clear_error();
+    if (scriptExecutor->IsBusy())
+    {
+        cc_error("script is currently in execution");
+        return kScFnRes_ScriptBusy;
+    }
     if (!DoesScriptFunctionExist(script, tsname))
     {
         cc_error("no such function in script");
         return kScFnRes_NotFound;
     }
-    // TODO: should be IsBusy instead?
-    // need to figure out and possible adjust the script running rules
-    if (scriptExecutor->IsRunning())
-    {
-        cc_error("script is already in execution");
-        return kScFnRes_ScriptBusy;
-    }
-    ExecutingScript exscript;
-    exscript.Script = script;
-    scripts[num_scripts] = std::move(exscript);
-    curscript = &scripts[num_scripts];
-    num_scripts++;
-    if (num_scripts >= MAX_SCRIPT_AT_ONCE)
-        quit("too many nested text script instances created");
+    executingScripts.push(std::make_unique<ExecutingScript>(script));
+    curExecScript = executingScripts.top().get();
     update_script_mouse_coords();
     inside_script++;
     return kScFnRes_Done;
 }
 
-static void PostScriptProcessing(const String &tsname)
+void PostScriptProcessing();
+
+ScriptThread *AllocateDynamicScriptThread()
 {
-    post_script_cleanup_stack++;
+    scriptThreadCallbacks.push(std::make_unique<ScriptThread>(String::FromFormat("Callback%04zu", scriptThreadCallbacks.size() + 1u)));
+    return scriptThreadCallbacks.top().get();
+}
 
-    if (post_script_cleanup_stack > 50)
-        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname.GetCStr());
-
-    post_script_cleanup();
-
-    post_script_cleanup_stack--;
+void FreeDynamicScriptThread(ScriptThread *script_thread)
+{
+    assert(script_thread == scriptThreadCallbacks.top().get());
+    if (script_thread == scriptThreadCallbacks.top().get())
+        scriptThreadCallbacks.pop();
 }
 
 RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsname, size_t numParam, const RuntimeScriptValue *params)
@@ -475,23 +428,34 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         return res;
     }
 
-    const ScriptExecError inst_ret = scriptExecutor->Run(scriptThreadMain.get(),
-        curscript->Script, tsname, params, numParam);
+    // Choose a script thread. Use main thread by default if it's free
+    // (does not have any script loaded up). Otherwise, create a new dynamic
+    // callback thread and push to stack of threads.
+    ScriptThread *script_thread = scriptThreadMain.get();
+    if (scriptThreadMain->IsBusy())
+    {
+        script_thread = AllocateDynamicScriptThread();
+    }
+
+    const ScriptExecError inst_ret = scriptExecutor->Run(script_thread,
+        curExecScript->Script, tsname, params, numParam);
     if ((inst_ret != kScExecErr_None) && (inst_ret != kScExecErr_FuncNotFound) && (inst_ret != kScExecErr_Aborted))
     {
         quit_with_script_error(tsname);
     }
 
+    if (script_thread != scriptThreadMain.get())
+    {
+        FreeDynamicScriptThread(script_thread);
+    }
+
     // FIXME: here we save the return value of the current called function,
     // because anything scheduled for the post-script processing will be run by the same executor,
-    // and on the same thread, and may replace "return value" field saved in a executor.
+    // and may replace "return value" field saved in a executor.
     // That's ugly. Should revise and redesign this later. BTW, ScriptExecutor keeping
     // last return value is also a hack, used currently only by dialogs. This should be done differently.
     const int ret_value = scriptExecutor->GetReturnValue();
-    if (!scriptThreadMain->IsBusy())
-    {
-        PostScriptProcessing(tsname);
-    }
+    PostScriptProcessing();
     scriptExecutor->SetReturnValue(ret_value); // restore saved ret value
 
     // restore cached error state
@@ -595,6 +559,12 @@ static bool RunClaimableEvent(const String &tsname, size_t param_count, const Ru
     if (eventWasClaimed)
         return true; // suppose if claimed then some function ran successfully
     return RunScriptFunction(gamescript.get(), tsname, param_count, params) == kScFnRes_Done;
+}
+
+bool RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count,
+    const RuntimeScriptValue *params)
+{
+    return RunScriptFunctionAuto(sc_type, ScriptFunctionRef(fn_name), param_count, params);
 }
 
 bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
@@ -743,35 +713,42 @@ String make_interact_func_name(const String &base, int param, int subd)
     return fname;
 }
 
-void post_script_cleanup()
+void PostScriptProcessing()
 {
     // should do any post-script stuff here, like go to new room
     if (cc_has_error())
         quit(cc_get_error().ErrorString);
 
-    ExecutingScript copyof;
-    if (num_scripts > 0)
-    { // save until the end of function
-        copyof = std::move(scripts[num_scripts - 1]);
-        num_scripts--; // FIXME: store in vector and erase?
+    std::unique_ptr<ExecutingScript> copyof;
+    // save current ExecutingScript until the end of function
+    if (!executingScripts.empty())
+    {
+        copyof = std::move(executingScripts.top());
+        executingScripts.pop();
     }
     inside_script--;
 
-    if (num_scripts > 0)
-        curscript = &scripts[num_scripts-1];
-    else {
-        curscript = nullptr;
+    curExecScript = !executingScripts.empty() ? executingScripts.top().get() : nullptr;
+
+    // If there's still a pending script in the callstack (or rather thread stack),
+    // then reschedule post-script actions to the previous exec script in stack, and break
+    if (curExecScript)
+    {
+        for (auto &act : copyof->PostScriptActions)
+            curExecScript->QueueAction(std::move(act));
+        return;
     }
 
     int old_room_number = displayed_room;
 
     // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
-    if (copyof.PostScriptActions.size() > 0) {
+    if (copyof->PostScriptActions.size() > 0)
+    {
         sync_audio_playback();
     }
 
     // run the queued post-script actions
-    for (const auto &act : copyof.PostScriptActions)
+    for (auto &act : copyof->PostScriptActions)
     {
         const int data1 = act.Data[0];
         const int data2 = act.Data[1];
@@ -779,27 +756,19 @@ void post_script_cleanup()
         switch (act.Type)
         {
         case ePSANewRoom:
-            // only change rooms when all scripts are done
-            if (num_scripts == 0) {
-                new_room(data1, playerchar);
-                // don't allow any pending room scripts from the old room
-                // in run_another to be executed
-                return;
-            }
-            else
-                curscript->QueueAction(PostScriptAction(ePSANewRoom, data1, "NewRoom"));
-            break;
+            new_room(data1, playerchar);
+            return; // skip any remaining scheduled actions
         case ePSARestoreGame:
             AbortAllScripts();
             try_restore_save(data1);
-            return;
+            return; // skip any remaining scheduled actions
         case ePSARestoreGameDialog:
             do_restore_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
-            return;
+            return; // skip any remaining scheduled actions
         case ePSARunAGSGame:
             AbortAllScripts();
             load_new_game = data1;
-            return;
+            return; // skip any remaining scheduled actions
         case ePSARunDialog:
             if (is_in_dialog())
             {
@@ -823,13 +792,13 @@ void post_script_cleanup()
         case ePSARestartGame:
             AbortAllScripts();
             restart_game();
-            return;
+            return; // skip any remaining scheduled actions
         case ePSASaveGame:
             save_game(data1, act.Text, std::move(act.Image));
             break;
         case ePSASaveGameDialog:
             do_save_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
-            break;
+            return; // skip any remaining scheduled actions
         case ePSAScanSaves:
             prescan_save_slots(act.Data[0], act.Data[1], act.Data[2], act.Data[3], act.Data[4], act.Data[5]);
             break;
@@ -843,29 +812,10 @@ void post_script_cleanup()
         }
     }
 
-
-    if (copyof.PostScriptActions.size() > 0) {
+    if (copyof->PostScriptActions.size() > 0)
+    {
         sync_audio_playback();
     }
-
-    for (const auto &script : copyof.ScFnQueue)
-    {
-        old_room_number = displayed_room;
-
-        RunScriptFunctionAuto(script.ScType, script.Function, script.ParamCount, script.Params);
-
-        // FIXME: this is some bogus hack for "on_call" event handler
-        // don't use instance + param count, instead find a way to save actual callback name!
-        if (script.ScType == kScTypeRoom && script.ParamCount == 1)
-        {
-            play.roomscript_finished = 1;
-        }
-
-        // if they've changed rooms, cancel any further pending scripts
-        if ((displayed_room != old_room_number) || (load_new_game))
-            break;
-    }
-
 }
 
 void quit_with_script_error(const String &fn_name)
@@ -919,12 +869,17 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt)
 
     can_run_delayed_command();
     RuntimeScriptValue params[] = { loc_type, evnt };
-    QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
+    RunScriptFunctionAuto(kScTypeGame, "unhandled_event", 2, params);
+}
+
+bool is_inside_script()
+{
+    return inside_script > 0;
 }
 
 ExecutingScript *get_executingscript()
 {
-    return curscript;
+    return curExecScript;
 }
 
 bool get_script_position(ScriptPosition &script_pos)

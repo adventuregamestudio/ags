@@ -53,31 +53,21 @@ struct ScriptFunctionRef
     operator bool() const { return FuncName.IsEmpty(); }
 };
 
-struct QueuedScript
-{
-    ScriptType         ScType = kScTypeNone;
-    ScriptFunctionRef  Function;
-    size_t             ParamCount = 0u;
-    RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
-
-    QueuedScript() = default;
-};
-
 // Actions that can be scheduled for until the current script completes
 enum PostScriptActionType
 {
     ePSAUndefined,
-    ePSANewRoom,
-    ePSAInvScreen,
-    ePSARestoreGame,
-    ePSARestoreGameDialog,
-    ePSARunAGSGame,
-    ePSARunDialog,
-    ePSARestartGame,
-    ePSASaveGame,
-    ePSASaveGameDialog,
-    ePSAStopDialog,
-    ePSAScanSaves
+    ePSANewRoom,            // Change to another room
+    ePSAInvScreen,          // Display InventoryScreen (built-in) [DEPRECATED]
+    ePSARestoreGame,        // Restore saved game
+    ePSARestoreGameDialog,  // Display Restore Game dialog (built-in)
+    ePSARunAGSGame,         // Load and run another AGS game
+    ePSARunDialog,          // Run Dialog (conversation)
+    ePSARestartGame,        // Restart game (restore autosave slot)
+    ePSASaveGame,           // Save game
+    ePSASaveGameDialog,     // Display Save Game dialog (built-in)
+    ePSAStopDialog,         // Stop Dialog (conversation)
+    ePSAScanSaves           // Scan save slots (results in multiple chained callbacks)
 };
 
 struct PostScriptAction
@@ -87,10 +77,11 @@ struct PostScriptAction
     int Data[6]{};
     Common::String Name;
     Common::String Text;
-    mutable std::unique_ptr<Common::Bitmap> Image;
+    std::unique_ptr<Common::Bitmap> Image;
     AGS::Engine::ScriptPosition Position;
 
     PostScriptAction() = default;
+    PostScriptAction(PostScriptAction &&act) = default;
     PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &text = {},
         std::unique_ptr<Common::Bitmap> &&image = {})
         : Type(type), Name(name), Text(text), Image(std::move(image)) { Data[0] = data; }
@@ -102,18 +93,17 @@ struct PostScriptAction
         : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; Data[3] = data4; Data[4] = data5; Data[5] = data6; }
 };
 
+// ExecutingScript stores scheduled actions for the current running script.
+// These actions will be executed after the current script completes.
 struct ExecutingScript
 {
-    const AGS::Engine::RuntimeScript *Script = nullptr;
+    const AGS::Engine::RuntimeScript * const Script = nullptr;
     std::vector<PostScriptAction> PostScriptActions;
-    std::vector<QueuedScript> ScFnQueue;
 
     ExecutingScript() = default;
+    ExecutingScript(const AGS::Engine::RuntimeScript *script)
+        : Script(script) {}
     void QueueAction(PostScriptAction &&act);
-    void RunAnother(ScriptType scinst, const AGS::Common::String &fn_name,
-        size_t param_count, const RuntimeScriptValue *params);
-    void RunAnother(ScriptType scinst, const ScriptFunctionRef &fn_ref,
-        size_t param_count, const RuntimeScriptValue *params);
 };
 
 #endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

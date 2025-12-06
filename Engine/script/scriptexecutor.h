@@ -63,6 +63,10 @@ struct ScriptExecPosition
     ScriptExecPosition() = default;
     ScriptExecPosition(const RuntimeScript *script, int pc, int linenumber)
         : Script(script), PC(pc), LineNumber(linenumber) {}
+
+    operator bool() const { return Script != nullptr; }
+
+    bool IsValid() const { return Script != nullptr; }
 };
 
 
@@ -82,8 +86,8 @@ public:
     std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
     std::vector<uint8_t> &GetStackData() { return _stackdata; }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
-    // Tells if the thread is busy, that is - has anything in its callstack
-    bool   IsBusy() const { return _callstack.size() > 0; }
+    // Tells if the thread is busy, that is - used to run a script
+    bool   IsBusy() const { return _inUse; }
     const ScriptExecPosition &GetPosition() const { return _pos; }
     size_t GetStackBegin() const { return _stackBeginOff; }
     size_t GetStackDataBegin() const { return _stackDataBeginOff; }
@@ -92,6 +96,14 @@ public:
 
     // Get the script's execution position and callstack as human-readable text
     String FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
+
+    // Mark this thread as being in use, or free
+    // TODO: this may be not a good choice to have this explicit "in use" flag,
+    // perhaps it would be better to rely on valid script position. The problem is
+    // that current ScriptExecutor's implementation the script thread only gets
+    // the position data when it's "state-saved", which happens when it's pushed
+    // deeper into the callstack, or suspended for any other reason.
+    void MarkInUse(bool in_use) { _inUse = in_use; }
 
     // Save script execution state in the thread object
     void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
@@ -115,6 +127,8 @@ private:
     std::deque<ScriptExecPosition> _callstack; // deque for easier iterating over
     // Latest recorded script position, used when thread gets suspended
     ScriptExecPosition _pos;
+    // Tells if this thread is currently in use
+    bool _inUse = false;
     // Stack state
     size_t _stackBeginOff = 0u;
     size_t _stackDataBeginOff = 0u;
@@ -185,6 +199,8 @@ private:
     void    SelectThread(ScriptThread *thread);
     // Saves ScriptExecutor's state to the active thread
     void    SaveThreadState();
+    // Reset current thread's state
+    void    ResetThreadState();
 
     // Sets current script and fast-access pointers
     void    SetCurrentScript(const RuntimeScript *script);

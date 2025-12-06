@@ -131,35 +131,35 @@ int Dialog_GetOptionState(ScriptDialog *sd, int option) {
 
 int Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (option > dialog[sd->id].numoptions))
+  if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
     quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
   option--;  // option id is 1-based in script, and 0 is entry point
 
-  if (dialog[sd->id].optionflags[option] & DFLG_HASBEENCHOSEN)
+  if (dialog[sd->id].Options[option].Flags & DFLG_HASBEENCHOSEN)
     return 1;
   return 0;
 }
 
 void Dialog_SetHasOptionBeenChosen(ScriptDialog *sd, int option, bool chosen)
 {
-    if (option < 1 || option > dialog[sd->id].numoptions)
+    if (option < 1 || static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount())
     {
         quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
     }
     option--; // option id is 1-based in script, and 0 is entry point
     if (chosen)
     {
-        dialog[sd->id].optionflags[option] |= DFLG_HASBEENCHOSEN;
+        dialog[sd->id].Options[option].Flags |= DFLG_HASBEENCHOSEN;
     }
     else
     {
-        dialog[sd->id].optionflags[option] &= ~DFLG_HASBEENCHOSEN;
+        dialog[sd->id].Options[option].Flags &= ~DFLG_HASBEENCHOSEN;
     }
 }
 
 int Dialog_GetOptionCount(ScriptDialog *sd)
 {
-  return dialog[sd->id].numoptions;
+  return dialog[sd->id].GetOptionCount();
 }
 
 int Dialog_GetOptionsBulletGraphic()
@@ -324,17 +324,17 @@ void Dialog_SetMinOptionsGUIWidth(int width)
 
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
-  return (dialog[sd->id].topicFlags & DTFLG_SHOWPARSER) ? 1 : 0;
+  return (dialog[sd->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
 }
 
 const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (option > dialog[sd->id].numoptions))
+  if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
     quit("!Dialog.GetOptionText: Invalid option number specified");
 
   option--; // option id is 1-based in script, and 0 is entry point
 
-  return CreateNewScriptString(get_translation(dialog[sd->id].optionnames[option]));
+  return CreateNewScriptString(get_translation(dialog[sd->id].Options[option].Name.GetCStr()));
 }
 
 int Dialog_GetID(ScriptDialog *sd) {
@@ -612,7 +612,7 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
     for (int ww = 0; ww < numdisp; ++ww)
     {
         color_t text_color = 0;
-        if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
+        if ((dtop->Options[disporder[ww]].Flags & DFLG_HASBEENCHOSEN) &&
             (play.read_dialog_option_colour >= 0))
         {
             // 'read' colour
@@ -634,7 +634,7 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
                 text_color = ds->GetCompatibleColor(selected_color);
         }
 
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[ww]].Name.GetCStr()));
         // TODO: make the line-splitting container also save line widths!
         break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
         const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
@@ -845,7 +845,7 @@ int DialogOptions::CalcOptionsHeight(int padding)
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Name.GetCStr()));
         break_up_text_into_lines(draw_text, Lines, areawid - (2 * padding + 2 + bullet_wid), usingfont);
         total_lines += Lines.Count();
     }
@@ -902,19 +902,19 @@ void DialogOptions::Stop()
 
 void DialogOptions::Begin()
 {
-    disporder.resize(dtop->numoptions);
-    dispyp.resize(dtop->numoptions);
+    disporder.resize(dtop->GetOptionCount());
+    dispyp.resize(dtop->GetOptionCount());
 
     doStop = false;
     chose = -1;
     // First of all, decide which options should be displayed this turn
     numdisp = 0;
-    for (int i = 0; i < dtop->numoptions; ++i)
+    for (uint32_t i = 0; i < dtop->GetOptionCount(); ++i)
     {
-        if ((dtop->optionflags[i] & DFLG_ON)==0)
+        if ((dtop->Options[i].Flags & DFLG_ON)==0)
             continue; // option is off
 
-        if (strlen(dtop->optionnames[i]) == 0)
+        if (dtop->Options[i].Name.IsEmpty())
             continue; // do not add an empty option name into the display list
 
         // Add this option into the display list
@@ -967,7 +967,7 @@ void DialogOptions::Begin()
     set_mouse_cursor(CURS_ARROW);
 
     parserActivated = 0;
-    if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
+    if ((dtop->Flags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
         parserInput.reset(new GUITextBox());
         parserInput->SetHeight(lineheight + get_fixed_pixel_size(4));
         parserInput->SetShowBorder(true);
@@ -1011,7 +1011,7 @@ void DialogOptions::Begin()
             int max_line_width = 0;
             for (int i = 0; i < numdisp; ++i)
             {
-                const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Name.GetCStr()));
                 break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
                 max_line_width = std::max(max_line_width, longestline);
             }
@@ -1585,15 +1585,15 @@ int run_dialog_entry(int dlgnum)
     DialogTopic *dialog_topic = &dialog[dlgnum];
     // Run global event kScriptEvent_DialogRun for the startup entry (index 0)
     run_on_event(kScriptEvent_DialogRun, dlgnum, 0);
-    return run_dialog_script(dlgnum, dialog_topic->startupentrypoint, 0);
+    return run_dialog_script(dlgnum, dialog_topic->StartEntryPoint, 0);
 }
 
 int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool run_script)
 {
-    assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
     DialogTopic *dialog_topic = &dialog[dlgnum];
-    int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = dialog_topic->optionnames[dialog_choice];
+    assert(dialog_choice >= 0 && static_cast<uint32_t>(dialog_choice) < dialog_topic->GetOptionCount());
+    int &option_flags = dialog_topic->Options[dialog_choice].Flags;
+    const String &option_name = dialog_topic->Options[dialog_choice].Name;
 
     // Run global event kScriptEvent_DialogRun for the new option
     run_on_event(kScriptEvent_DialogRun, dlgnum, dialog_choice + 1);
@@ -1611,11 +1611,11 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
 
     // Optionally "say" the option's text
     if (sayTheOption)
-        DisplaySpeech(get_translation(option_name), game.playercharacter);
+        DisplaySpeech(get_translation(option_name.GetCStr()), game.playercharacter);
 
     // Run the option script
     if (run_script)
-        return run_dialog_script(dlgnum, dialog_topic->entrypoints[dialog_choice], dialog_choice + 1);
+        return run_dialog_script(dlgnum, dialog_topic->Options[dialog_choice].EntryPoint, dialog_choice + 1);
 
     return 0; // no script, bail out
 }
@@ -1634,9 +1634,9 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
   // First test if there are enough valid options to run DialogOptions
   int opt_count = 0;
   int last_opt = -1;
-  for (int i = 0; i < dtop->numoptions; ++i)
+  for (uint32_t i = 0; i < dtop->GetOptionCount(); ++i)
   {
-    if ((dtop->optionflags[i] & DFLG_ON) != 0)
+    if ((dtop->Options[i].Flags & DFLG_ON) != 0)
     {
       last_opt = i;
       opt_count++;
@@ -1649,7 +1649,7 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
     return -1;
   }
   // Don't display the options if there is only one and the parser is not enabled.
-  const bool has_parser = (dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0);
+  const bool has_parser = (dtop->Flags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0);
   if (!has_parser && (opt_count == 1) && !play.show_single_dialog_option)
   {
     return last_opt; // only one choice, so select it

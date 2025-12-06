@@ -758,7 +758,7 @@ HSaveError WriteDialogs(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData &r_data)
+HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
@@ -767,7 +767,7 @@ HSaveError ReadDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const P
 
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
-        dialog[i].ReadFromSavegame(in);
+        dialog[i].ReadFromSavegame(in, cmp_ver);
     }
     return err;
 }

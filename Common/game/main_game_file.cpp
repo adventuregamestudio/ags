@@ -289,7 +289,7 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
     dialog.resize(dlg_count);
     for (int i = 0; i < dlg_count; ++i)
     {
-        dialog[i].ReadFromFile(in);
+        dialog[i].ReadFromFile_v321(in);
     }
 
     if (data_ver > kGameVersion_310)
@@ -300,8 +300,8 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
     for (int i = 0; i < dlg_count; ++i)
     {
         // NOTE: originally this was read into dialog[i].optionscripts
-        old_dialog_scripts[i].resize(dialog[i].codesize);
-        in->Read(old_dialog_scripts[i].data(), dialog[i].codesize);
+        old_dialog_scripts[i].resize(dialog[i].CodeSize);
+        in->Read(old_dialog_scripts[i].data(), dialog[i].CodeSize);
 
         // Encrypted text script
         int script_text_len = in->ReadInt32();

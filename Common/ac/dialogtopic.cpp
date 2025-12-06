@@ -11,30 +11,59 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/dialogtopic.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+#define LEGACY_MAXTOPICOPTIONS 30
 
-void DialogTopic::ReadFromFile(Stream *in)
+using namespace AGS::Common;
+
+void DialogTopic::ReadFromFile_v321(Stream *in)
 {
-    in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
-    in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
-    in->ReadInt32(); // optionscripts 32-bit pointer
-    in->ReadArrayOfInt16(entrypoints, MAXTOPICOPTIONS);
-    startupentrypoint = in->ReadInt16();
-    codesize = in->ReadInt16();
-    numoptions = in->ReadInt32();
-    topicFlags = in->ReadInt32();
+    std::vector<DialogOption> options;
+    options.resize(LEGACY_MAXTOPICOPTIONS);
+    char name[150];
+    for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
+    {
+        in->Read(name, 150);
+        options[i].Name.SetString(name, 150);
+    }
+    for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
+    {
+        options[i].Flags = in->ReadInt32();
+    }
+    in->ReadInt32(); // unused, was optionscripts 32-bit pointer
+    for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
+    {
+        options[i].EntryPoint = in->ReadInt16();
+    }
+    StartEntryPoint = in->ReadInt16();
+    CodeSize = in->ReadInt16();
+    uint32_t option_count = in->ReadInt32();
+    Flags = in->ReadInt32();
+
+    option_count = std::min(option_count, options.size());
+    Options.resize(option_count);
+    std::copy_n(options.begin(), option_count, Options.begin());
 }
 
-void DialogTopic::ReadFromSavegame(Common::Stream *in)
+void DialogTopic::ReadFromSavegame(Common::Stream *in, int cmp_ver)
 {
-    in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
+    // FIXME: assert count
+    uint32_t opt_idx = 0;
+    for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
+        Options[opt_idx].Flags = in->ReadInt32();
+    // skip if there's any mismatched count (?)
+    for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
+        in->ReadInt32();
 }
 
 void DialogTopic::WriteToSavegame(Common::Stream *out) const
 {
-    out->WriteArrayOfInt32(optionflags, MAXTOPICOPTIONS);
+    uint32_t opt_idx = 0;
+    for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
+        out->WriteInt32(Options[opt_idx].Flags);
+    for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
+        out->WriteInt32(0);
 }

@@ -133,7 +133,7 @@ int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOp
 
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
 {
-    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].numoptions;
+    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].GetOptionCount();
     if ((activeOptionID < 0) || (activeOptionID > optionCount))
         quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)", activeOptionID, optionCount);
 

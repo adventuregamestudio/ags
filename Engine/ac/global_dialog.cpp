@@ -70,7 +70,7 @@ void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)
 {
   if ((dlg<0) | (dlg>=game.numdialog))
     quit("!SetDialogOption: Invalid topic number specified");
-  if ((opt<1) | (opt>dialog[dlg].numoptions))
+  if ((opt<1) | (static_cast<uint32_t>(opt) > dialog[dlg].GetOptionCount()))
   {
     // Pre-3.1.1 games had "dialog scripts" that were written in different language and
     // parsed differently; its "option-on/off" commands were more permissive.
@@ -83,23 +83,23 @@ void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)
   }
   opt--;
 
-  dialog[dlg].optionflags[opt]&=~DFLG_ON;
-  if ((onoroff==1) & ((dialog[dlg].optionflags[opt] & DFLG_OFFPERM)==0))
-    dialog[dlg].optionflags[opt]|=DFLG_ON;
+  dialog[dlg].Options[opt].Flags&=~DFLG_ON;
+  if ((onoroff==1) & ((dialog[dlg].Options[opt].Flags & DFLG_OFFPERM)==0))
+    dialog[dlg].Options[opt].Flags |=DFLG_ON;
   else if (onoroff==2)
-    dialog[dlg].optionflags[opt]|=DFLG_OFFPERM;
+    dialog[dlg].Options[opt].Flags |=DFLG_OFFPERM;
 }
 
 int GetDialogOption (int dlg, int opt) {
   if ((dlg<0) | (dlg>=game.numdialog))
     quit("!GetDialogOption: Invalid topic number specified");
-  if ((opt<1) | (opt>dialog[dlg].numoptions))
+  if ((opt<1) | (static_cast<uint32_t>(opt) > dialog[dlg].GetOptionCount()))
     quit("!GetDialogOption: Invalid option number specified");
   opt--;
 
-  if (dialog[dlg].optionflags[opt] & DFLG_OFFPERM)
+  if (dialog[dlg].Options[opt].Flags & DFLG_OFFPERM)
     return 2;
-  if (dialog[dlg].optionflags[opt] & DFLG_ON)
+  if (dialog[dlg].Options[opt].Flags & DFLG_ON)
     return 1;
   return 0;
 }

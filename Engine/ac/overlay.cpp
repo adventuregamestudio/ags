@@ -823,7 +823,7 @@ void RemoveAllAnimatedOverlays()
 
 ScriptAnimatedOverlay *AnimatedOverlay_CreateAnimatedImpl(bool room_layer, int x, int y, int slot, bool pause_with_game)
 {
-    auto *over = Overlay_CreateGraphicCore(false, x, y, slot, false);
+    auto *over = Overlay_CreateGraphicCore(room_layer, x, y, slot, false);
     if (!over)
         return nullptr;
     CreateAnimatedOverlay(over->GetID(), pause_with_game);

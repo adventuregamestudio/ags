@@ -117,8 +117,7 @@ namespace AGS.Types
             set { _y = value; }
         }
 
-        [ReadOnly(true)]
-        [Description("How the control overlaps with other controls (to change, right-click the control)")]
+        [Description("How the control overlaps with other controls. Limited to a range of 0 to (controls count - 1)")]
         [Category("Layout")]
         public int ZOrder
         {

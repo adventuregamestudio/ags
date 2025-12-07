@@ -215,6 +215,13 @@ namespace AGS.Editor
                     UpdateScrollableWindowSize();
                 }
             }
+            if (propertyName == "ZOrder")
+            {
+                if (_selectedControl != null)
+                {
+                    UpdateControlsZOrder(_selectedControl, (int)oldValue, _selectedControl.ZOrder);
+                }
+            }
 
             bgPanel.Invalidate(true);
         }
@@ -763,6 +770,33 @@ namespace AGS.Editor
             }
             Factory.GUIController.RefreshPropertyGrid();
             bgPanel.Invalidate();
+        }
+
+        private void UpdateControlsZOrder(GUIControl thisControl, int oldZorder, int newZorder)
+        {
+            newZorder = MathExtra.Clamp(newZorder, 0, _gui.Controls.Count - 1);
+            if (oldZorder == newZorder)
+                return; // no change
+
+            bool move_back = newZorder < oldZorder; // back is at zero index
+            int left = move_back ? newZorder : oldZorder;
+            int right = move_back ? oldZorder : newZorder;
+            foreach (GUIControl control in  _gui.Controls)
+            {
+                int i_zorder = control.ZOrder;
+                if (control == thisControl)
+                {
+                    control.ZOrder = newZorder; // the control we are moving
+                }
+                else if (i_zorder >= left && i_zorder <= right)
+                {
+                    // controls in between old and new positions shift towards free place
+                    if (move_back)
+                        control.ZOrder = (i_zorder + 1); // move to front
+                    else
+                        control.ZOrder = (i_zorder - 1); // move to back
+                }
+            }
         }
 
         private void SendToBackClick(object sender, EventArgs e)

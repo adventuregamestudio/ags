@@ -1267,7 +1267,7 @@ void RegisterOverlayAPI()
         { "Overlay::set_Visible",         API_FN_PAIR(Overlay_SetVisible) },
         { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
         { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
-        { "Overlay::get_HasLight",        API_FN_PAIR(Overlay_GetHasLight) },
+        { "Overlay::get_HasLightLevel",   API_FN_PAIR(Overlay_GetHasLight) },
         { "Overlay::get_HasTint",         API_FN_PAIR(Overlay_GetHasTint) },
         { "Overlay::get_LightLevel",      API_FN_PAIR(Overlay_GetLightLevel) },
         { "Overlay::get_TintBlue",        API_FN_PAIR(Overlay_GetTintBlue) },

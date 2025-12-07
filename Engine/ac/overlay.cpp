@@ -470,7 +470,7 @@ int Overlay_GetTintSaturation(ScriptOverlay *scover)
 int Overlay_GetTintLuminance(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.TintLuminance", scover);
-    return over->HasTint() ? GfxDef::Value250ToValue100(over->GetTintLevel()) : 0;
+    return over->HasTint() ? GfxDef::Value250ToValue100(over->GetTintLight()) : 0;
 }
 
 //=============================================================================

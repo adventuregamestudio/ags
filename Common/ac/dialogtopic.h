@@ -66,7 +66,7 @@ struct DialogTopic
 {
     struct DialogOption
     {
-        Common::String Name;
+        Common::String Text;
         int Flags = 0;
         int EntryPoint = -1; // old-style dialog script entry point
     };

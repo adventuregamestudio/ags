@@ -2352,6 +2352,8 @@ builtin managed struct Dialog {
   import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
   /// Runs the dialog starting from the certain option's script rather than the entry point
   import void StartOption(int option);
+  /// Sets the text of the specified option in this dialog.
+  import void SetOptionText(int option, const string text);
 #endif // SCRIPT_API_v363
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$

@@ -3670,7 +3670,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		{
 			AGS::Types::DialogOption ^newOption = gcnew AGS::Types::DialogOption();
 			newOption->ID = j + 1;
-			newOption->Text = gcnew String(dialog[i].Options[j].Name.GetCStr());
+			newOption->Text = gcnew String(dialog[i].Options[j].Text.GetCStr());
 			newOption->Say = !(dialog[i].Options[j].Flags & DFLG_NOREPEAT);
 			newOption->Show = (dialog[i].Options[j].Flags & DFLG_ON);
 

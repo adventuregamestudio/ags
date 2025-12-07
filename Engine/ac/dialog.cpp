@@ -324,21 +324,32 @@ void Dialog_SetMinOptionsGUIWidth(int width)
 
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
-  return (dialog[sd->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
+    return (dialog[sd->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
 }
 
 const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
-    quit("!Dialog.GetOptionText: Invalid option number specified");
+    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
+        quit("!Dialog.GetOptionText: Invalid option number specified");
 
-  option--; // option id is 1-based in script, and 0 is entry point
+    option--; // option id is 1-based in script, and 0 is entry point
 
-  return CreateNewScriptString(get_translation(dialog[sd->id].Options[option].Name.GetCStr()));
+    return CreateNewScriptString(get_translation(dialog[sd->id].Options[option].Text.GetCStr()));
 }
 
-int Dialog_GetID(ScriptDialog *sd) {
-  return sd->id;
+void Dialog_SetOptionText(ScriptDialog *sd, int option, const char *text)
+{
+    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
+        quit("!Dialog.GetOptionText: Invalid option number specified");
+
+    option--; // option id is 1-based in script, and 0 is entry point
+
+    dialog[sd->id].Options[option].Text = text;
+}
+
+int Dialog_GetID(ScriptDialog *sd)
+{
+    return sd->id;
 }
 
 const char *Dialog_GetScriptName(ScriptDialog *sd)
@@ -634,7 +645,7 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
                 text_color = ds->GetCompatibleColor(selected_color);
         }
 
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[ww]].Name.GetCStr()));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[ww]].Text.GetCStr()));
         // TODO: make the line-splitting container also save line widths!
         break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
         const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
@@ -845,7 +856,7 @@ int DialogOptions::CalcOptionsHeight(int padding)
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Name.GetCStr()));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
         break_up_text_into_lines(draw_text, Lines, areawid - (2 * padding + 2 + bullet_wid), usingfont);
         total_lines += Lines.Count();
     }
@@ -914,7 +925,7 @@ void DialogOptions::Begin()
         if ((dtop->Options[i].Flags & DFLG_ON)==0)
             continue; // option is off
 
-        if (dtop->Options[i].Name.IsEmpty())
+        if (dtop->Options[i].Text.IsEmpty())
             continue; // do not add an empty option name into the display list
 
         // Add this option into the display list
@@ -1011,7 +1022,7 @@ void DialogOptions::Begin()
             int max_line_width = 0;
             for (int i = 0; i < numdisp; ++i)
             {
-                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Name.GetCStr()));
+                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
                 break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
                 max_line_width = std::max(max_line_width, longestline);
             }
@@ -1593,7 +1604,7 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
     DialogTopic *dialog_topic = &dialog[dlgnum];
     assert(dialog_choice >= 0 && static_cast<uint32_t>(dialog_choice) < dialog_topic->GetOptionCount());
     int &option_flags = dialog_topic->Options[dialog_choice].Flags;
-    const String &option_name = dialog_topic->Options[dialog_choice].Name;
+    const String &option_name = dialog_topic->Options[dialog_choice].Text;
 
     // Run global event kScriptEvent_DialogRun for the new option
     run_on_event(kScriptEvent_DialogRun, dlgnum, dialog_choice + 1);
@@ -2211,6 +2222,11 @@ RuntimeScriptValue Sc_Dialog_GetOptionText(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJ_PINT(ScriptDialog, const char, myScriptStringImpl, Dialog_GetOptionText);
 }
 
+RuntimeScriptValue Sc_Dialog_SetOptionText(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT_POBJ(ScriptDialog, Dialog_SetOptionText, const char);
+}
+
 // int (ScriptDialog *sd, int option)
 RuntimeScriptValue Sc_Dialog_HasOptionBeenChosen(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2285,6 +2301,7 @@ void RegisterDialogAPI()
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },
         { "Dialog::GetOptionState^1",     API_FN_PAIR(Dialog_GetOptionState) },
         { "Dialog::GetOptionText^1",      API_FN_PAIR(Dialog_GetOptionText) },
+        { "Dialog::SetOptionText^2",      API_FN_PAIR(Dialog_SetOptionText) },
         { "Dialog::HasOptionBeenChosen^1", API_FN_PAIR(Dialog_HasOptionBeenChosen) },
         { "Dialog::SetHasOptionBeenChosen^2", API_FN_PAIR(Dialog_SetHasOptionBeenChosen) },
         { "Dialog::SetOptionState^2",     API_FN_PAIR(Dialog_SetOptionState) },

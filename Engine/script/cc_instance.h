@@ -41,7 +41,6 @@ using namespace AGS;
 // Size of stack in bytes (raw data storage)
 #define CC_STACK_DATA_SIZE  (1024 * sizeof(int32_t))
 #define MAX_CALL_STACK      128
-#define MAX_FUNCTION_PARAMS 20
 
 // We use 10 bits to hold instance IDs ORed with op-code
 #define INSTANCE_ID_SHIFT       22LL
@@ -123,7 +122,6 @@ enum ccInstError
     kInstErr_Aborted = 100, // aborted by request
     kInstErr_Generic = -1, // any generic exec error; use cc_get_error()
     kInstErr_FuncNotFound = -2, // requested function is not found in script
-    kInstErr_InvalidArgNum = -3, // invalid number of args (not in supported range)
     kInstErr_Busy = -4, // instance is busy executing script
 };
 

@@ -387,16 +387,10 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     cc_clear_error();
     currentline = 0;
 
-    if (numargs > 0 && !params)
+    if (numargs < 0 || (numargs > 0 && !params))
     {
         cc_error("internal error in ccInstance::CallScriptFunction");
         return kInstErr_Generic;
-    }
-
-    if ((numargs >= MAX_FUNCTION_PARAMS) || (numargs < 0))
-    {
-        cc_error("invalid number of function arguments %d, supported range is %d - %d", numargs, 0, MAX_FUNCTION_PARAMS - 1);
-        return kInstErr_InvalidArgNum;
     }
 
     if (_pc != 0)

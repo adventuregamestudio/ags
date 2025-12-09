@@ -42,7 +42,7 @@ void DialogTopic::ReadFromFile_v321(Stream *in)
     uint32_t option_count = in->ReadInt32();
     Flags = in->ReadInt32();
 
-    option_count = std::min(option_count, options.size());
+    option_count = std::min<uint32_t>(option_count, options.size());
     Options.resize(option_count);
     std::copy_n(options.begin(), option_count, Options.begin());
 }

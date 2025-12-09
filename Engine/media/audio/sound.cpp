@@ -23,40 +23,25 @@
 #include "util/resourcecache.h"
 #include "util/stream.h"
 #include "util/string_types.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-static int GuessSoundTypeFromExt(const String &extension)
+static int GetLegacySoundTypeFromExt(const char *ext)
 {
-    if (extension.CompareNoCase("mp3") == 0) {
+    if (ags_stricmp(ext, "mp3") == 0)
         return MUS_MP3;
-    }
-    else if (extension.CompareNoCase("ogg") == 0) {
-        return MUS_OGG;
-    }
-    else if (extension.CompareNoCase("mid") == 0) {
+    else if (ags_stricmp(ext, "wav") == 0 || ags_stricmp(ext, "voc") == 0)
+        return MUS_WAVE;
+    else if (ags_stricmp(ext, "mid") == 0)
         return MUS_MIDI;
-    }
-    else if (extension.CompareNoCase("wav") == 0) {
-        return MUS_WAVE;
-    }
-    else if (extension.CompareNoCase("voc") == 0) {
-        return MUS_WAVE;
-    }
-    else if (extension.CompareNoCase("mod") == 0) {
+    else if ((ags_stricmp(ext, "mod") == 0) || (ags_stricmp(ext, "xm") == 0)
+             || (ags_stricmp(ext, "s3m") == 0) || (ags_stricmp(ext, "it") == 0))
         return MUS_MOD;
-    }
-    else if (extension.CompareNoCase("s3m") == 0) {
-        return MUS_MOD;
-    }
-    else if (extension.CompareNoCase("it") == 0) {
-        return MUS_MOD;
-    }
-    else if (extension.CompareNoCase("xm") == 0) {
-        return MUS_MOD;
-    }
-    return 0;
+    else if (ags_stricmp(ext, "ogg") == 0)
+        return MUS_OGG;
+    return MUS_UNKNOWN;
 }
 
 // Sound cache, stores most recent used sounds, tracks use history with MRU list.
@@ -157,6 +142,6 @@ std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *e
 
     if (slot < 0) { return nullptr; }
 
-    const auto sound_type = GuessSoundTypeFromExt(ext_hint);
+    const auto sound_type = GetLegacySoundTypeFromExt(ext_hint.GetCStr());
     return std::unique_ptr<SoundClip>(new SoundClip(slot, sound_type, loop));
 }

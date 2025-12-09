@@ -15,6 +15,7 @@
 #ifndef __AC_AUDIODEFINES_H
 #define __AC_AUDIODEFINES_H
 
+#define MUS_UNKNOWN 0
 #define MUS_MIDI 1
 #define MUS_MP3  2
 #define MUS_WAVE 3

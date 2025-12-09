@@ -354,7 +354,7 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder)
 
 void remove_screen_overlay(int type)
 {
-    if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover[type].GetID() < 0)
+    if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover.IsFree(type))
         return; // requested non-existing overlay
 
     ScreenOverlay &over = screenover[type];
@@ -405,7 +405,7 @@ void remove_all_overlays()
 ScreenOverlay *get_overlay(int type)
 {
     return (type >= 0 && static_cast<uint32_t>(type) < screenover.size() &&
-        screenover[type].GetID() >= 0) ? &screenover[type] : nullptr;
+        screenover.IsInUse(type)) ? &screenover[type] : nullptr;
 }
 
 size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum,
@@ -523,8 +523,10 @@ Point get_overlay_position(const ScreenOverlay &over)
 
 void restore_overlays()
 {
+    // TODO: an iterator that goes over only valid elements
     for (size_t i = 0; i < screenover.size(); ++i)
     {
+        if (screenover.IsFree(i)) continue; // empty slot
         auto &over = screenover[i];
         if (over.GetID() >= 0)
         {

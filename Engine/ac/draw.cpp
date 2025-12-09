@@ -2748,10 +2748,11 @@ static void construct_overlays()
             overcache.resize(overs.size(), Point(INT32_MIN, INT32_MIN));
     }
 
+    // TODO: an iterator that goes over only valid elements
     for (size_t i = 0; i < overs.size(); ++i)
     {
+        if (overs.IsFree(i)) continue; // empty slot
         auto &over = overs[i];
-        if (over.GetID() < 0) continue; // empty slot
         if (over.GetTransparency() == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];

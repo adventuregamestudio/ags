@@ -570,6 +570,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
     const auto &overs = get_overlays();
     for (size_t i = 0; i < overs.size(); ++i)
     {
+        if (overs.IsFree(i)) continue; // empty slot
         if (overs[i].GetCharacterRef() == charid)
         {
             remove_screen_overlay(i);

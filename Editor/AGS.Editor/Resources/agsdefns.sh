@@ -2321,7 +2321,7 @@ builtin managed struct Dialog {
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
   import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the font to use when displaying dialog options
-  import static attribute int OptionsFont; // $AUTOCOMPLETESTATICONLY$
+  import static attribute FontType OptionsFont; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the vertical gap between dialog options (in pixels)
   import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look

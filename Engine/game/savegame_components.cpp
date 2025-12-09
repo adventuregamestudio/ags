@@ -1289,8 +1289,10 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
     // Remember that overlay indexes may be non-sequential
     // the vector may be resized during read
     size_t over_count = in->ReadInt32();
-    auto &overs = get_overlays();
-    overs.resize(over_count); // reserve minimal size
+    std::vector<ScreenOverlay> overs;
+    std::vector<bool> used_ids;
+    overs.reserve(over_count); // reserve minimal size
+    used_ids.reserve(over_count);
     for (size_t i = 0; i < over_count; ++i)
     {
         ScreenOverlay over;
@@ -1300,10 +1302,18 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
             continue; // safety abort
         if (has_bitmap)
             r_data.OverlayImages[over.GetID()].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
-        if (overs.size() <= static_cast<uint32_t>(over.GetID()))
-            overs.resize(over.GetID() + 1);
-        overs[over.GetID()] = std::move(over);
+        auto type = over.GetID();
+        if (static_cast<size_t>(type) >= overs.size())
+        {
+            overs.resize(type + 1);
+            used_ids.resize(type + 1);
+        }
+        overs[type] = std::move(over);
+        used_ids[type] = true;
     }
+
+    auto &overlays = get_overlays();
+    overlays.Set(std::move(overs), used_ids);
     return HSaveError::None();
 }
 

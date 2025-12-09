@@ -534,7 +534,7 @@ void unload_game()
     guis.clear();
     scrGui.clear();
 
-    get_overlays().clear();
+    get_overlays().Clear();
 
     resetRoomStatuses();
 

@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
@@ -22,6 +21,7 @@
 #include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
 #include "core/platform.h"
 #include "script/runtimescriptvalue.h"
+#include "util/indexedobjectpool.h"
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}
@@ -45,9 +45,7 @@ private:
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
-    int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
-    std::queue<int32_t> available_ids;
-    std::vector<ManagedObject> objects;
+    IndexedObjectPool<ManagedObject, int32_t> objects;
     std::unordered_map<void*, int32_t> handleByAddress;
 
     int  Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type);

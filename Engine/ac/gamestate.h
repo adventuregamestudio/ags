@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include <unordered_set>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
@@ -63,7 +64,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_350_10    = 3,
     kGSSvgVersion_361_14    = 4,
     kGSSvgVersion_363       = 3060300,
-    kGSSvgVersion_363_02    = 3060302
+    kGSSvgVersion_363_02    = 3060302,
+    kGSSvgVersion_363_04    = 3060304,
 };
 
 // SavedLocationType defines the type of location which
@@ -119,7 +121,7 @@ struct GamePlayState
     int  score = 0;             // player's current score
     int  usedmode = 0;          // set by ProcessClick to last cursor mode used
     int  disabled_user_interface = 0; // >0 while in cutscene/etc
-    int  gscript_timer = 0;     // obsolete
+    int  gscript_timer = 0;     // deprecated "graphical script" timer (use unknown)
     int  debug_mode = 0;        // whether we're in debug mode
     int  globalvars[MAXGLOBALVARS]{}; // obsolete
     int  messagetime = 0;       // time left for auto-remove messages
@@ -237,7 +239,6 @@ struct GamePlayState
     bool  voice_avail = false; // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int   speech_skip_style = 0; // stores SKIP_* flags
-    int   script_timers[MAX_TIMERS]{};
     int   sound_volume = 0;
     int   speech_volume = 0;
     int   normal_font = 0;
@@ -474,6 +475,14 @@ struct GamePlayState
     bool ShouldPlayVoiceSpeechNonBlocking() const;
 
     //
+    // Script Timers
+    //
+    void StartScriptTimer(int timer_id, int timeout);
+    int  GetScriptTimerPos(int timer_id);
+    bool CheckScriptTimer(int timer_id);
+    void UpdateScriptTimers();
+
+    //
     // Serialization
     //
     void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
@@ -512,7 +521,11 @@ private:
     // Tells that room viewports need z-order resort
     bool  _roomViewportZOrderChanged = false;
 
+    // A time point until which the user input will be ignored
     AGS::Engine::Clock::time_point _ignoreUserInputUntilTime{};
+
+    // Script Timers: simple game tick counters with arbitrary ID
+    std::unordered_map<int32_t, int32_t> _scriptTimers;
 };
 
 // Converts legacy alignment type used in script API

@@ -15,29 +15,43 @@
 #include "ac/runtime_defines.h"
 #include "ac/common.h"
 #include "ac/gamestate.h"
+#include "debug/debug_log.h"
 
-
-void SetTimer(int tnum,int timeout)
+bool AssertTimerID(const char *api_name, int tnum)
 {
-    if ((tnum < 1) || (tnum >= MAX_TIMERS))
-        quit("!StartTimer: invalid timer number");
-    play.script_timers[tnum] = timeout;
+    if (tnum < 0)
+    {
+        debug_script_warn("%s: invalid timer id %d, must be a number >= 0", api_name, tnum);
+        return false;
+    }
+    return true;
+}
+
+void SetTimer(int tnum, int timeout)
+{
+    if (!AssertTimerID("SetTimer", tnum))
+        return;
+    if (timeout <= 0)
+    {
+        debug_script_warn("SetTimer: invalid timeout %d, must be a positive number", timeout);
+        return;
+    }
+
+    play.StartScriptTimer(tnum, timeout);
 }
 
 int GetTimerPos(int tnum)
 {
-    if ((tnum < 1) || (tnum >= MAX_TIMERS))
-        quit("!IsTimerExpired: invalid timer number");
-    return play.script_timers[tnum];
+    if (!AssertTimerID("GetTimerPos", tnum))
+        return -1;
+
+    return play.GetScriptTimerPos(tnum);
 }
 
 int IsTimerExpired(int tnum)
 {
-    if ((tnum < 1) || (tnum >= MAX_TIMERS))
-        quit("!IsTimerExpired: invalid timer number");
-    if (play.script_timers[tnum] == 1) {
-        play.script_timers[tnum] = 0;
-        return 1;
-    }
-    return 0;
+    if (!AssertTimerID("IsTimerExpired", tnum))
+        return 0;
+
+    return play.CheckScriptTimer(tnum);
 }

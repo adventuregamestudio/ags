@@ -846,7 +846,6 @@ void engine_init_game_settings()
     GUIE::MarkForFontUpdate(-1);
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
-    memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
     play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!usetup.Translation.IsEmpty())

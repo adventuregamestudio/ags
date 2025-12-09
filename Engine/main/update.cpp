@@ -248,10 +248,11 @@ void restore_movelists()
 
 void update_script_timers()
 {
-  if (play.gscript_timer > 0) play.gscript_timer--;
-  for (int aa=0;aa<MAX_TIMERS;aa++) {
-    if (play.script_timers[aa] > 1) play.script_timers[aa]--;
-    }
+    // Deprecated "graphical script" timer (use unknown)
+    if (play.gscript_timer > 0)
+        play.gscript_timer--;
+
+    play.UpdateScriptTimers();
 }
 
 void update_cycling_views()

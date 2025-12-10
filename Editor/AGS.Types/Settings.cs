@@ -1114,6 +1114,7 @@ namespace AGS.Types
         }
 
         // This is used to assign fixed event UIDs to Cursors
+        [Browsable(false)]
         public int CursorEventIndexer
         {
             get { return _cursorUIDIndexer; }

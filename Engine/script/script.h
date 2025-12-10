@@ -131,19 +131,10 @@ bool    DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const 
 bool    DoesScriptFunctionExistInModules(const String &fn_name);
 // Tests if a function exists in a particular script module (except room script)
 bool    DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name);
-// Queues a script function to be run either called by the engine or from another script;
-// the function is identified by its name, and will be run in time, by RunScriptFunctionAuto().
-void    QueueScriptFunction(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
-// Queues a script function to be run either called by the engine or from another script;
-// the function is identified by its name and script module, and will be run in time,
-// by RunScriptFunctionAuto().
-void    QueueScriptFunction(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
-// Queues a script function to be run either called by the engine or from another script;
-// the function is identified by its name and script module, and will be run in time,
-// by RunScriptFunctionAuto().
-void    QueueScriptFunction(ScriptType sc_type, const AGS::Common::String &script_module,
+// Tries to execute a script handler, which is a script function associated with some event.
+// The function is identified by its name and script module, and will be run by RunScriptFunctionAuto().
+// If the handler was disabled for any reason, then skips execution and returns immediately.
+void    TryRunScriptHandler(ScriptType sc_type, const AGS::Common::String &script_module,
     const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on the main script thread
 RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
@@ -159,6 +150,10 @@ bool    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, co
 // depending on the type may run a claimable callback chain;
 // returns if at least one instance of a function was run successfully.
 bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
+    const RuntimeScriptValue *params = nullptr);
+// Same as above, but the function is identified by the function name only,
+// uses default script module for the given "script type".
+bool   RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a non-blocking thread
 RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
@@ -201,13 +196,10 @@ bool    get_can_run_delayed_command();
 bool    get_script_position(AGS::Engine::ScriptPosition &script_pos);
 String  cc_get_callstack(int max_lines = INT_MAX);
 
+// Tells if there's a script running right now
+bool    is_inside_script();
 // Gets current ExecutingScript object
 ExecutingScript *get_executingscript();
-
-extern int num_scripts; // number of ExecutingScript objects recorded
-extern int post_script_cleanup_stack;
-extern int inside_script;
-extern int no_blocking_functions; // set to 1 while in rep_Exec_always
 
 extern NonBlockingScriptFunction repExecAlways;
 extern NonBlockingScriptFunction lateRepExecAlways;

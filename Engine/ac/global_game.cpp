@@ -68,7 +68,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
@@ -89,10 +88,12 @@ void AbortGame()
     AbortAllScripts();
 }
 
-void restart_game() {
+void restart_game()
+{
     can_run_delayed_command();
-    if (inside_script) {
-        curscript->QueueAction(PostScriptAction(ePSARestartGame, 0, "RestartGame"));
+    if (is_inside_script())
+    {
+        get_executingscript()->QueueAction(PostScriptAction(ePSARestartGame, 0, "RestartGame"));
         return;
     }
     try_restore_save(RESTART_POINT_SAVE_GAME_NUMBER);
@@ -124,8 +125,9 @@ void RestoreGameSlot(int slnum)
         quit("!RestoreGameSlot: a game cannot be restored from within game_start");
 
     can_run_delayed_command();
-    if (inside_script) {
-        curscript->QueueAction(PostScriptAction(ePSARestoreGame, slnum, "RestoreGameSlot"));
+    if (is_inside_script())
+    {
+        get_executingscript()->QueueAction(PostScriptAction(ePSARestoreGame, slnum, "RestoreGameSlot"));
         return;
     }
     try_restore_save(slnum);
@@ -141,22 +143,7 @@ void SaveGameSlot(int slotn, const char *descript, int spritenum)
         return;
     }
 
-    // dont allow save in rep_exec_always, because we dont save
-    // the state of blocked scripts
-    can_run_delayed_command();
-
-    // Make a sprite copy, as save process may be scheduled and asynchronous (in theory)
-    std::unique_ptr<Bitmap> image;
-    if (spritenum >= 0)
-        image.reset(BitmapHelper::CreateBitmapCopy(spriteset[spritenum]));
-
-    if (inside_script)
-    {
-        curscript->QueueAction(PostScriptAction(ePSASaveGame, slotn, "SaveGameSlot", descript, std::move(image)));
-        return;
-    }
-
-    save_game(slotn, descript, std::move(image));
+    schedule_save_game(slotn, descript, spritenum);
 }
 
 void SaveGameSlot2(int slnum, const char *descript)
@@ -306,12 +293,15 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
         play.takeover_data = data;
         load_new_game_restore = -1;
 
-        if (inside_script) {
-            curscript->QueueAction(PostScriptAction(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame"));
+        if (is_inside_script())
+        {
+            get_executingscript()->QueueAction(PostScriptAction(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame"));
             scriptExecutor->Abort();
         }
         else
+        {
             load_new_game = mode | RAGMODE_LOADNOW;
+        }
 
         return 0;
     }
@@ -370,14 +360,9 @@ void QuitGame(int dialog) {
     quit("|You have exited.");
 }
 
-
-
-
 void SetRestartPoint() {
-    save_game(RESTART_POINT_SAVE_GAME_NUMBER, "Restart Game Auto-Save");
+    schedule_save_game(RESTART_POINT_SAVE_GAME_NUMBER, "Restart Game Auto-Save");
 }
-
-
 
 void SetGameSpeed(int newspd)
 {

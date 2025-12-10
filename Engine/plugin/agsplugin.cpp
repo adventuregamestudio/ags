@@ -620,15 +620,10 @@ void IAGSEngine::DisableSound() {
 }
 
 int IAGSEngine::CanRunScriptFunctionNow() {
-    if (inside_script)
-        return 0;
-    return 1;
+    return 1; // always allowed now
 }
 
 int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2, intptr_t arg3) {
-    if (inside_script)
-        return -300;
-
     RuntimeScript *run_script = GetScriptInstance(globalScript ? kScTypeGame : kScTypeRoom);
     RuntimeScriptValue params[] {
         RuntimeScriptValue().SetPluginArgOrPtr(arg1),
@@ -648,18 +643,8 @@ void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*isAlphaBlended*/)
 }
 
 void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, intptr_t arg1, intptr_t arg2) {
-    if (!inside_script) {
-        this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
-        return;
-    }
-
-    if (numArgs < 0 || numArgs > 2)
-        quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
-    RuntimeScriptValue params[] {
-        RuntimeScriptValue().SetPluginArgOrPtr(arg1),
-        RuntimeScriptValue().SetPluginArgOrPtr(arg2)
-    };
-    get_executingscript()->RunAnother(globalScript ? kScTypeGame : kScTypeRoom, name, numArgs, params);
+    // There's no queueing now, function will be run immediately on a separate script thread.
+    this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
 }
 
 int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback) {

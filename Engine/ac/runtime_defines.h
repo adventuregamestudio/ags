@@ -73,7 +73,6 @@
 #define ACTSP_OBJSOFF (MAX_ROOM_OBJECTS)
 // a 1-based movelist index offset for characters
 #define CHMLSOFFS (1 + MAX_ROOM_OBJECTS)
-#define MAX_SCRIPT_AT_ONCE 10
 
 #define EVENT_NONE       0
 #define EVENT_INPROGRESS 1

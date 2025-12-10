@@ -85,8 +85,6 @@ extern int getloctype_index;
 extern bool in_enters_screen;
 extern bool done_as_error;
 extern int in_leaves_screen;
-extern int inside_script;
-extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
 extern int cur_mode;
 extern RoomObject*objs;
@@ -232,7 +230,7 @@ static void game_loop_check_problems_at_start()
         debug_script_warn("Wait() was used in \"Before Fadein\" event; use \"After Fadein\" instead");
         done_as_error = true;
     }
-    if (no_blocking_functions)
+    if (!get_can_run_delayed_command())
         quit("!A blocking function was called from within a non-blocking event such as " REP_EXEC_ALWAYS_NAME);
 }
 
@@ -654,7 +652,7 @@ static void check_keyboard_controls()
         return;
     }
 
-    if (inside_script) {
+    if (is_inside_script()) {
         // Don't queue up another keypress if it can't be run instantly
         debug_script_log("Keypress %d ignored (game blocked)", agskey);
         return;
@@ -787,7 +785,7 @@ static void check_gamepad_controls()
         return;
     }
 
-    if (inside_script) {
+    if (is_inside_script()) {
         // Don't queue up another button press if it can't be run instantly
         debug_script_log("Gamepad button %d ignored (game blocked)", gbn);
         return;
@@ -1485,7 +1483,7 @@ static void GameLoopUntilEvent(int untilwhat, const void* data_ptr = nullptr, in
     std::unique_ptr<GameLoopUntilState> cached_restrict_until = std::move(restrict_until);
     bool cached_restrict_until_in_script = restrict_until_in_script;
 
-    restrict_until_in_script = inside_script;
+    restrict_until_in_script = is_inside_script();
     restrict_until.reset(new GameLoopUntilState(untilwhat, data_ptr, data1, data2));
     restrict_until->Begin();
     while (restrict_until->Run());

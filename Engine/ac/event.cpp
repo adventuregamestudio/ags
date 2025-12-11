@@ -174,18 +174,18 @@ void process_event(const AGSEvent *evp)
     {
         NewRoom(evp->Data.Newroom.RoomID);
     }
-    else if (evp->Type == kAGSEvent_Interaction)
+    else if (evp->Type == kAGSEvent_Object)
     {
-        const auto &inter = evp->Data.Inter;
+        const auto &obj = evp->Data.Object;
         Interaction *obj_inter = nullptr;
         InteractionEvents *obj_events = nullptr;
         ObjectEvent obj_evt;
 
-        switch (inter.IntEvType)
+        switch (obj.ObjEvType)
         {
-        case kIntEventType_Hotspot:
+        case kObjEventType_Hotspot:
         {
-            const int hotspot_id = inter.ObjID;
+            const int hotspot_id = obj.ObjID;
             if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
                 obj_events = thisroom.Hotspots[hotspot_id].EventHandlers.get();
             else
@@ -196,7 +196,7 @@ void process_event(const AGSEvent *evp)
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;
         }
-        case kIntEventType_Room:
+        case kObjEventType_Room:
         {
             if (thisroom.EventHandlers != nullptr)
                 obj_events = thisroom.EventHandlers.get();
@@ -204,17 +204,17 @@ void process_event(const AGSEvent *evp)
                 obj_inter = &croom->intrRoom;
 
             obj_evt = ObjectEvent(kScTypeRoom, "room");
-            if (inter.ObjEvent == kRoomEvent_BeforeFadein)
+            if (obj.ObjEvent == kRoomEvent_BeforeFadein)
             {
                 in_enters_screen = true;
                 run_on_event(kScriptEvent_RoomEnter, displayed_room);
             }
-            else if (inter.ObjEvent == kRoomEvent_FirstEnter)
+            else if (obj.ObjEvent == kRoomEvent_FirstEnter)
             {
                 in_room_transition = false;
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             }
-            else if (inter.ObjEvent == kRoomEvent_AfterFadein)
+            else if (obj.ObjEvent == kRoomEvent_AfterFadein)
             {
                 in_room_transition = false;
                 GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
@@ -233,7 +233,7 @@ void process_event(const AGSEvent *evp)
         // then skip running further interaction scripts
         if (room_was != play.room_changes)
         {
-            if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
+            if ((obj.ObjEvType == kObjEventType_Room) && (obj.ObjEvent == kRoomEvent_BeforeFadein))
                 in_enters_screen = false;
             return;
         }
@@ -241,14 +241,14 @@ void process_event(const AGSEvent *evp)
         assert(obj_inter || obj_events);
         if (obj_events)
         {
-            run_interaction_script(obj_evt, obj_events, inter.ObjEvent);
+            run_interaction_script(obj_evt, obj_events, obj.ObjEvent);
         }
         else
         {
-            run_interaction_event(obj_evt, obj_inter, inter.ObjEvent);
+            run_interaction_event(obj_evt, obj_inter, obj.ObjEvent);
         }
 
-        if ((inter.IntEvType == kIntEventType_Room) && (inter.ObjEvent == kRoomEvent_BeforeFadein))
+        if ((obj.ObjEvType == kObjEventType_Room) && (obj.ObjEvent == kRoomEvent_BeforeFadein))
             in_enters_screen = false;
     }
     else if (evp->Type == kAGSEvent_FadeIn)

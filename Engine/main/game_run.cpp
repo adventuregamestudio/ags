@@ -236,7 +236,7 @@ static void game_loop_do_early_script_update()
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
         setevent(AGSEvent_Script(kTS_Repeat));
-        setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_Repexec));
+        setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_Repexec));
     }
 }
 
@@ -278,7 +278,7 @@ static bool game_loop_check_ground_level_interactions()
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
         // run Stands on Hotspot event
-        setevent(AGSEvent_Interaction(kIntEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
+        setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
 
         // check current region
         int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
@@ -777,7 +777,7 @@ static void check_room_edges(size_t numevents_was)
 
                     for (int ii = 0; ii < 4; ii++) {
                         if (edgesActivated[ii])
-                            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, ii));
+                            setevent(AGSEvent_Object(kObjEventType_Room, 0, ii));
                     }
             }
     }
@@ -946,7 +946,7 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         {
             int onhs = getloctype_index;
 
-            setevent(AGSEvent_Interaction(kIntEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
+            setevent(AGSEvent_Object(kObjEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
         }
     }
 
@@ -968,10 +968,10 @@ static void game_loop_update_events()
         switch (new_room_was)
         {
         case kEnterRoom_FirstTime: // first time enters screen
-            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_FirstEnter));
+            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
             /* fall-through */
         case kEnterRoom_Normal: // enters screen after fadein
-            setevent(AGSEvent_Interaction(kIntEventType_Room, 0, kRoomEvent_AfterFadein));
+            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
             break;
         case kEnterRoom_RestoredSave:
             in_room_transition = false; // room transition ends here

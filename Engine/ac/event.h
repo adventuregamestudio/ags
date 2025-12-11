@@ -34,8 +34,8 @@ enum AGSGameEventType
     kAGSEvent_None              = 0,
     // global script callback (call predefined function in script)
     kAGSEvent_Script            = 1,
-    // interaction callback (run function attached to object event table)
-    kAGSEvent_Interaction       = 2,
+    // object event callback (run function attached to object event table)
+    kAGSEvent_Object            = 2,
     // fade-in event
     kAGSEvent_FadeIn            = 3,
     // gui interaction
@@ -61,11 +61,11 @@ enum ScriptCallbackType
 };
 
 // Interaction event types (more like an object type)
-enum InteractionEventType
+enum ObjectEventType
 {
-    kIntEventType_None          = 0,
-    kIntEventType_Hotspot       = 1,
-    kIntEventType_Room          = 2,
+    kObjEventType_None          = 0,
+    kObjEventType_Room          = 1,
+    kObjEventType_Hotspot       = 2
 };
 
 // Room event sub-types
@@ -137,17 +137,17 @@ struct AGSEvent_Script
         : CbType(cb), Arg1(arg1), Arg2(arg2), Arg3(arg3) {}
 };
 
-// AGSEvent_Interaction describes a scheduled call to a object interaction event
-struct AGSEvent_Interaction
+// AGSEvent_Object describes a scheduled call to a object event
+struct AGSEvent_Object
 {
-    InteractionEventType IntEvType = kIntEventType_None;
+    ObjectEventType ObjEvType = kObjEventType_None;
     int ObjID = 0;
     int ObjEvent = 0; // object event identifier, depends on ObjID
     int Player = -1; // optional player character id, if event requires that
 
-    AGSEvent_Interaction() = default;
-    AGSEvent_Interaction(InteractionEventType inttype, int obj_id, int obj_event, int player = -1)
-        : IntEvType(inttype), ObjID(obj_id), ObjEvent(obj_event), Player(player) {}
+    AGSEvent_Object() = default;
+    AGSEvent_Object(ObjectEventType objtype, int obj_id, int obj_event, int player = -1)
+        : ObjEvType(objtype), ObjID(obj_id), ObjEvent(obj_event), Player(player) {}
 };
 
 // AGSEvent_GUI describes a scheduled call to a GUI interaction event
@@ -180,13 +180,13 @@ struct AGSEvent
     union EventData
     {
         AGSEvent_Script         Script;
-        AGSEvent_Interaction    Inter;
+        AGSEvent_Object         Object;
         AGSEvent_GUI            Gui;
         AGSEvent_NewRoom        Newroom;
 
         EventData() {}
         EventData(const AGSEvent_Script &par) : Script(par) {}
-        EventData(const AGSEvent_Interaction &par) : Inter(par) {}
+        EventData(const AGSEvent_Object &par) : Object(par) {}
         EventData(const AGSEvent_GUI &par) : Gui(par) {}
         EventData(const AGSEvent_NewRoom &par) : Newroom(par) {}
     } Data;
@@ -197,8 +197,8 @@ struct AGSEvent
         : Type(type) {}
     AGSEvent(const AGSEvent_Script &evt)
         : Type(kAGSEvent_Script), Data(evt) {}
-    AGSEvent(const AGSEvent_Interaction &evt)
-        : Type(kAGSEvent_Interaction), Data(evt) {}
+    AGSEvent(const AGSEvent_Object &evt)
+        : Type(kAGSEvent_Object), Data(evt) {}
     AGSEvent(const AGSEvent_GUI &evt)
         : Type(kAGSEvent_GUI), Data(evt) {}
     AGSEvent(const AGSEvent_NewRoom &evt)

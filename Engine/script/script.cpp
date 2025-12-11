@@ -852,8 +852,10 @@ int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandLi
     if (nicl == nullptr)
         return -1;
 
-    const char *evblockbasename = obj_evt.BlockName.GetCStr();
-    const int evblocknum = obj_evt.BlockID;
+    const char *evblockbasename = obj_evt.ObjectName.GetCStr();
+    const int objtype = obj_evt.ObjectTypeID;
+    const int evblocknum = obj_evt.ObjectID;
+
     for (size_t i = 0; i < nicl->Cmds.size(); i++)
     {
         cmdsrun[0] ++;
@@ -868,13 +870,15 @@ int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandLi
         { 
             TempEip tempip(4001);
             RuntimeScriptValue rval_null;
-            if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
+            if ((objtype == LOCTYPE_CHAR) || (objtype == LOCTYPE_INVITEM))
+            {
                 // Character or Inventory (global script)
                 const String torun = make_interact_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
                 // we are already inside the mouseclick event of the script, can't nest calls
                 QueueScriptFunction(kScTypeGame, torun);
             }
-            else {
+            else
+            {
                 // Other (room script)
                 const String torun = make_interact_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
                 QueueScriptFunction(kScTypeRoom, torun);
@@ -1088,25 +1092,31 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
     if (play.check_interaction_only)
         return;
 
-    const char *evblockbasename = obj_evt.BlockName.GetCStr();
-    const int evblocknum = obj_evt.BlockID;
-    int evtype=0;
+    const int objtype = obj_evt.ObjectTypeID;
+    const int evblocknum = obj_evt.ObjectID;
+    int evtype = 0;
 
-    if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
-    else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
-    else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;
-    else if (ags_strnicmp(evblockbasename,"inventory",9)==0) evtype=5;
-    else if (ags_strnicmp(evblockbasename,"region",6)==0)
-        return;  // no unhandled_events for regions
+    // Convert from internal objtype and event id to the weirdly arbitrary
+    // "unhandled_event" arguments
+    switch (objtype)
+    {
+    case LOCTYPE_HOTSPOT: evtype = 1; break;
+    case LOCTYPE_OBJ: evtype = 2; break;
+    case LOCTYPE_CHAR: evtype = 3; break;
+    case LOCTYPE_INVITEM: evtype = 5; break;
+    default: return; // other interaction sources do not have unhandled events
+    }
 
     // clicked Hotspot 0, so change the type code
-    if ((evtype == 1) & (evblocknum == 0) & (evnt != 0) & (evnt != 5) & (evnt != 6))
+    if ((evtype == 1) & (evblocknum == 0) & (evnt != 0) && (evnt != 5) & (evnt != 6))
         evtype = 4;
-    if ((evtype==1) & ((evnt==0) | (evnt==5) | (evnt==6)))
+
+    if ((evtype==1) && ((evnt==0) || (evnt==5) || (evnt==6)))
         ;  // character stands on hotspot, mouse moves over hotspot, any click
-    else if ((evtype==2) & (evnt==4)) ;  // any click on object
-    else if ((evtype==3) & (evnt==4)) ;  // any click on character
-    else if (evtype > 0) {
+    else if ((evtype==2) && (evnt==4)) ;  // any click on object
+    else if ((evtype==3) && (evnt==4)) ;  // any click on character
+    else if (evtype > 0)
+    {
         can_run_delayed_command();
         RuntimeScriptValue params[] = { evtype, evnt };
         QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);

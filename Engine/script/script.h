@@ -16,10 +16,11 @@
 
 #include <memory>
 #include <vector>
-#include "script/cc_instance.h"
-#include "script/executingscript.h"
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "game/interactions.h"
+#include "script/cc_instance.h"
+#include "script/executingscript.h"
 #include "util/string.h"
 
 using AGS::Common::String;
@@ -39,31 +40,34 @@ struct ObjectEvent
     // Script type (i.e. game or room);
     // NOTE: kScTypeGame also may refer to "all modules", not only "globalscript"
     ScriptType ScType = kScTypeNone;
-    // Name of the script block to run, may be used as a formatting string;
-    // has a form of "objecttype%d"
-    String BlockName;
-    // Script block's ID, commonly corresponds to the object's ID
-    int BlockID = 0;
+    // Interacted object type, defined as a LOCTYPE_*;
+    // this is used for running "unhandled event"
+    int ObjectTypeID = LOCTYPE_NOTHING;
+    // Name of the legacy script block to run, may be used as a formatting string;
+    // has a form of "objecttype%d" where '%d' is object's id placeholder
+    String ObjectName;
+    // Interacted object's ID
+    int ObjectID = 0;
     // Event parameters
     size_t ParamCount = 0u;
     RuntimeScriptValue Params[MAX_SCRIPT_EVT_PARAMS];
 
     ObjectEvent() = default;
     // An event without additional parameters
-    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id = 0)
-        : ScType(sc_type), BlockName(block_name), BlockID(block_id) {}
+    ObjectEvent(ScriptType sc_type, const String &obj_name, int objtype_id = LOCTYPE_NOTHING, int obj_id = 0)
+        : ScType(sc_type), ObjectName(obj_name), ObjectTypeID(objtype_id), ObjectID(obj_id) {}
     // An event with a dynamic object reference
-    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id,
+    ObjectEvent(ScriptType sc_type, const String &obj_name, int objtype_id, int obj_id,
         const RuntimeScriptValue &dyn_obj)
-        : ScType(sc_type), BlockName(block_name), BlockID(block_id)
+        : ScType(sc_type), ObjectName(obj_name), ObjectTypeID(objtype_id), ObjectID(obj_id)
     {
         ParamCount = 1u;
         Params[0] = dyn_obj;
     }
     // An event with a dynamic object reference and interaction mode
-    ObjectEvent(ScriptType sc_type, const String &block_name, int block_id,
+    ObjectEvent(ScriptType sc_type, const String &obj_name, int objtype_id, int obj_id,
         const RuntimeScriptValue &dyn_obj, int mode)
-        : ScType(sc_type), BlockName(block_name), BlockID(block_id)
+        : ScType(sc_type), ObjectName(obj_name), ObjectTypeID(objtype_id), ObjectID(obj_id)
     {
         ParamCount = 2u;
         Params[0] = dyn_obj;

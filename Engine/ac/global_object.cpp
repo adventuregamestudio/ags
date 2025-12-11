@@ -457,7 +457,7 @@ void RunObjectInteraction (int aa, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", aa,
+    const auto obj_evt = ObjectEvent(kScTypeRoom, "object%d", LOCTYPE_OBJ, aa,
         RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {

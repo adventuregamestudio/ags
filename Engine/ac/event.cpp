@@ -191,7 +191,7 @@ void process_event(const AGSEvent *evp)
             else
                 obj_inter = &croom->intrHotspot[hotspot_id];
 
-            obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", hotspot_id,
+            obj_evt = ObjectEvent(kScTypeRoom, "hotspot%d", LOCTYPE_HOTSPOT, hotspot_id,
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;

@@ -412,7 +412,7 @@ void RunCharacterInteraction (int cc, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", cc,
+    const auto obj_evt = ObjectEvent(kScTypeGame, "character%d", LOCTYPE_CHAR, cc,
         RuntimeScriptValue().SetScriptObject(&game.chars[cc], &ccDynamicCharacter), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {

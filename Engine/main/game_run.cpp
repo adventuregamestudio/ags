@@ -111,8 +111,6 @@ struct GameTimer
 } static GameTimer;
 
 
-static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
-
 // Kinds of conditions used when "waiting" for something
 #define UNTIL_ANIMEND   1
 #define UNTIL_MOVEEND   2
@@ -255,11 +253,11 @@ static void game_loop_do_late_script_update()
     }
 }
 
-static bool game_loop_check_ground_level_interactions()
+static void game_loop_check_ground_level_interactions()
 {
     // If ground interactions are disabled completely, then bail out
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
-        return true; // continue update
+        return;
 
     // Do not check for ground interactions while in the waiting
     // (a blocking action, or a Wait call from the user script).
@@ -276,19 +274,18 @@ static bool game_loop_check_ground_level_interactions()
         // trigger "walk on/off region" after finishing blocking walk if
         // it was walking back and forth the region and with the last step
         // has crossed the region's border. CHECKME: should we do this...?
-        return true; // continue update
+        return;
     }
     else
     {
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
-        // run Stands on Hotspot event
+        // run Stands on Hotspot event;
+        // NOTE: this runs even for hotspot 0 (no hotspot), in case one has a script function attached
         setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
 
         // check current region
         int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
-        int inRoom = displayed_room;
-
         if (onRegion != play.player_on_region)
         {
             // we need to save this and set play.player_on_region
@@ -298,40 +295,16 @@ static bool game_loop_check_ground_level_interactions()
             play.player_on_region = onRegion;
             // Walks Off last region
             if (oldRegion > 0)
-                RunRegionInteraction(oldRegion, kRegionEvent_WalkOff);
+                setevent(AGSEvent_Object(kObjEventType_Region, oldRegion, kRegionEvent_WalkOff));
             // Walks Onto new region
             if (onRegion > 0)
-                RunRegionInteraction(onRegion, kRegionEvent_WalkOn);
+                setevent(AGSEvent_Object(kObjEventType_Region, onRegion, kRegionEvent_WalkOn));
         }
 
         if (play.player_on_region > 0) // player stands on region
         {
-            RunRegionInteraction(play.player_on_region, kRegionEvent_Standing);
+            setevent(AGSEvent_Object(kObjEventType_Region, play.player_on_region, kRegionEvent_Standing));
         }
-
-        // one of the region interactions sent us to another room
-        if (inRoom != displayed_room)
-        {
-            check_new_room();
-        }
-
-        // if in a Wait loop which is no longer valid (probably
-        // because the Region interaction did a NewRoom), abort
-        // the rest of the loop
-        // CHECKME: research which are the conditions for this to happen, and
-        // if this fixup is actually necessary.
-        // we know that any events, like change room, are scheduled and not run
-        // during blocking action, which means that such room change could only occur
-        // if we entered ground interaction checks while NOT inside a blocking wait.
-        if ((restrict_until) && (!ShouldStayInWaitMode()))
-        {
-            // cancel the Rep Exec and Stands on Hotspot events that
-            // we just added -- otherwise the event queue gets huge
-            events.resize(numEventsAtStartOfFunction);
-            return false; // interrupt update
-        }
-
-        return true; // continue update
     }
 }
 
@@ -1251,8 +1224,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 {
     sys_evt_process_pending();
 
-    numEventsAtStartOfFunction = events.size();
-
     if (want_exit) {
         ProperExit();
     }
@@ -1275,8 +1246,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     set_our_eip(1005);
 
-    if (!game_loop_check_ground_level_interactions())
-        return; // update interrupted
+    game_loop_check_ground_level_interactions();
 
     mouse_on_iface=-1; // FIXME: why is this here? move to a related update function!
 

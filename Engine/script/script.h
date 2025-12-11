@@ -37,7 +37,8 @@ struct ObjectEvent
     // Script type (i.e. game or room);
     // NOTE: kScTypeGame also may refer to "all modules", not only "globalscript"
     ScriptType ScType = kScTypeNone;
-    // Interacted object type, defined as a LOCTYPE_*
+    // Interacted object type, defined as a LOCTYPE_*;
+    // this is used for running "unhandled event"
     int ObjectTypeID = LOCTYPE_NOTHING;
     // Interacted object's ID
     int ObjectID = 0;

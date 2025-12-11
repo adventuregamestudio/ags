@@ -64,8 +64,9 @@ enum ScriptCallbackType
 enum ObjectEventType
 {
     kObjEventType_None          = 0,
-    kObjEventType_Hotspot       = 1,
-    kObjEventType_Room          = 2,
+    kObjEventType_Room,
+    kObjEventType_Hotspot,
+    kObjEventType_Region
 };
 
 // AGS Script events are events reported by a "on_event" callback.

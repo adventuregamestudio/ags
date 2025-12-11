@@ -27,7 +27,7 @@
 // TODO: do not reset mslot in this function, reset externally instead.
 int do_movelist_move(short &mslot, int &pos_x, int &pos_y);
 // Update various things on the game frame (historical code mess...)
-void update_stuff();
+void update_game_objects();
 
 // Tells if a voice lipsyncing is currently active (enabled and speech playing)
 bool has_voice_lipsync();

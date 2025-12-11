@@ -214,7 +214,7 @@ private:
 std::unique_ptr<GameLoopUntilState> restrict_until;
 bool restrict_until_in_script = false;
 
-
+// Schedules a normal exit from the game
 static void ProperExit()
 {
     want_exit = false;
@@ -222,20 +222,39 @@ static void ProperExit()
     quit("||exit!");
 }
 
-static void game_loop_check_problems_at_start()
+// Checks for potential general problems at the start of the game update,
+// that may lead to warnings or game aborts
+static void GameUpdateCheckProblems()
 {
-    if ((in_enters_screen) && (!done_as_error)) {
+    if (displayed_room < 0)
+    {
+        quit("!A blocking function was called before the first room has been loaded");
+    }
+
+    if ((in_enters_screen) && (!done_as_error))
+    {
         debug_script_warn("Wait() was used in \"Before Fadein\" event; use \"After Fadein\" instead");
         done_as_error = true;
     }
+
     if (!get_can_run_delayed_command())
+    {
         quit("!A blocking function was called from within a non-blocking event such as " REP_EXEC_ALWAYS_NAME);
+    }
+
+    // If we're not fading in, don't count the fadeouts
+    // FIXME: find a better place for this fixup, probably should be done
+    // after restoring a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed?
+    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
+        play.screen_is_faded_out = 0;
 }
 
-// Runs rep-exec
-static void game_loop_do_early_script_update()
+// Runs rep-exec-always immediately,
+// schedules global and room's rep-exec events to be run during script event processing.
+static void GameUpdateEarlyRepExec()
 {
-    if (in_new_room == 0) {
+    if (in_new_room == 0)
+    {
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
         setevent(AGSEvent_Script(kTS_RepeatedlyExecute));
@@ -243,8 +262,8 @@ static void game_loop_do_early_script_update()
     }
 }
 
-// Runs late-rep-exec
-static void game_loop_do_late_script_update()
+// Runs late-rep-exec-always
+static void GameUpdateLateRepExec()
 {
     if (in_new_room == 0)
     {
@@ -253,7 +272,9 @@ static void game_loop_do_late_script_update()
     }
 }
 
-static void game_loop_check_ground_level_interactions()
+// Check room's "ground" triggers, such as regions and hotspots with
+// "Stand On" event callbacks.
+static void GameUpdateCheckGroundInteractions()
 {
     // If ground interactions are disabled completely, then bail out
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
@@ -821,9 +842,13 @@ static void check_touch_controls()
     }
 }
 
-// check_controls: checks mouse & keyboard interface
-static void check_controls()
+// Process player input
+static void GameUpdateCheckControls()
 {
+    // don't let the player do anything before the screen fades in
+    if (in_new_room != 0)
+        return;
+
     set_our_eip(1007);
 
     sys_evt_process_pending();
@@ -862,67 +887,80 @@ static void check_controls()
     }
 }
 
-static void check_room_edges(size_t numevents_was)
+// Check room edges triggers
+static void GameUpdateCheckRoomEdges()
 {
-    if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
-        (in_new_room == kEnterRoom_None) && (new_room_was == kEnterRoom_None)) {
-            // Only allow walking off edges if not in wait mode, and
-            // if not in Player Enters Screen (allow walking in from off-screen)
-            int edgesActivated[4] = {0, 0, 0, 0};
-            // Only do it if nothing else has happened (eg. mouseclick)
-            if ((events.size() == numevents_was) &&
-                ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
+    if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) && ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)
+        && (in_new_room == kEnterRoom_None) && (new_room_was == kEnterRoom_None))
+    {
+        // Only allow walking off edges if not in wait mode, and
+        // if not in Player Enters Screen (allow walking in from off-screen)
+        int edgesActivated[4] = {0, 0, 0, 0};
+        if (playerchar->x <= thisroom.Edges.Left)
+            edgesActivated[0] = 1;
+        else if (playerchar->x >= thisroom.Edges.Right)
+            edgesActivated[1] = 1;
+        if (playerchar->y >= thisroom.Edges.Bottom)
+            edgesActivated[2] = 1;
+        else if (playerchar->y <= thisroom.Edges.Top)
+            edgesActivated[3] = 1;
 
-                    if (playerchar->x <= thisroom.Edges.Left)
-                        edgesActivated[0] = 1;
-                    else if (playerchar->x >= thisroom.Edges.Right)
-                        edgesActivated[1] = 1;
-                    if (playerchar->y >= thisroom.Edges.Bottom)
-                        edgesActivated[2] = 1;
-                    else if (playerchar->y <= thisroom.Edges.Top)
-                        edgesActivated[3] = 1;
+        if ((play.entered_edge >= 0) && (play.entered_edge <= 3)) {
+            // once the player is no longer outside the edge, forget the stored edge
+            if (edgesActivated[play.entered_edge] == 0)
+                play.entered_edge = -10;
+            // if we are walking in from off-screen, don't activate edges
+            else
+                edgesActivated[play.entered_edge] = 0;
+        }
 
-                    if ((play.entered_edge >= 0) && (play.entered_edge <= 3)) {
-                        // once the player is no longer outside the edge, forget the stored edge
-                        if (edgesActivated[play.entered_edge] == 0)
-                            play.entered_edge = -10;
-                        // if we are walking in from off-screen, don't activate edges
-                        else
-                            edgesActivated[play.entered_edge] = 0;
-                    }
-
-                    for (int ii = 0; ii < 4; ii++) {
-                        if (edgesActivated[ii])
-                            setevent(AGSEvent_Object(kObjEventType_Room, 0, ii));
-                    }
-            }
-    }
-    set_our_eip(1008);
-
-}
-
-static void game_loop_check_controls(bool checkControls)
-{
-    // don't let the player do anything before the screen fades in
-    if ((in_new_room == 0) && (checkControls)) {
-        int inRoom = displayed_room;
-        size_t numevents_was = events.size();
-        check_controls();
-        check_room_edges(numevents_was);
-        // If an inventory interaction changed the room
-        if (inRoom != displayed_room)
-            check_new_room();
+        for (int ii = 0; ii < 4; ii++)
+        {
+            if (edgesActivated[ii])
+                setevent(AGSEvent_Object(kObjEventType_Room, 0, ii));
+        }
     }
 }
 
-static void game_loop_do_update()
+static void game_loop_update_background_animation()
 {
-    if (debug_flags & DBG_NOUPDATE) ;
-    else if (game_paused==0) update_stuff();
+    if (play.bg_anim_delay > 0) play.bg_anim_delay--;
+    else if (play.bg_frame_locked);
+    else {
+        play.bg_anim_delay = play.anim_background_speed;
+        play.bg_frame++;
+        if ((size_t)play.bg_frame >= thisroom.BgFrameCount)
+            play.bg_frame = 0;
+        if (thisroom.BgFrameCount >= 2) {
+            // get the new frame's palette
+            on_background_frame_change();
+        }
+    }
+}
+
+static void game_loop_update_game_counters()
+{
+    if (play.wait_counter > 0) play.wait_counter--;
+    if (play.shakesc_length > 0) play.shakesc_length--;
+}
+
+static void GameUpdateGameState()
+{
+    if ((debug_flags & DBG_NOUPDATE) == 0)
+    {
+        if (game_paused == 0)
+        {
+            update_game_objects();
+            game_loop_update_background_animation();
+        }
+    }
+
+    // Following global counters are updated during game pause too
+    game_loop_update_game_counters();
 }
 
 // Updated objects that do not auto-pause when the game is paused
-static void game_loop_update_animated_always()
+static void GameUpdatePersistentAnimations()
 {
     // Update animating GUI buttons and overlays
     // The buttons are animated even if the game is paused
@@ -1015,9 +1053,36 @@ static void update_cursor_view()
     }
 }
 
+// Update the "saved cursor until it leaves location" state
+static void UpdateSavedCursorOverLocation()
+{
+    // Call GetLocationName - it will internally force a GUI refresh
+    // if the result it returns has changed from last time
+    // CHECKME: this is also likely called in the main game update function,
+    // so it may be not necessary here.
+    GetLocationName(mousex, mousey);
+
+    if ((play.get_loc_name_save_cursor >= 0) &&
+        (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
+        (mouse_on_iface < 0) && (ifacepopped < 0)) {
+        // we have saved the cursor, but the mouse location has changed
+        // and it's time to restore it
+        play.get_loc_name_save_cursor = kSavedLocType_Undefined;
+        set_cursor_mode(play.restore_cursor_mode_to);
+
+        if (cur_mode == play.restore_cursor_mode_to)
+        {
+            // make sure it changed -- the new mode might have been disabled
+            // in which case don't change the image
+            set_cursor_look(play.restore_cursor_image_to);
+        }
+        debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+    }
+}
+
 // Assign GUI context parameters, read from the game state.
 // This will be required for GUI labels render.
-static void update_gui_context(int mwasatx, int mwasaty)
+static void UpdateGUIContext(int mwasatx, int mwasaty)
 {
     if (play.fast_forward)
         return;
@@ -1084,7 +1149,7 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
     offsetyWas = offsety;
 }
 
-static void update_drawable_object_states(bool do_cursor, int mwasatx, int mwasaty)
+static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
 {
     if (displayed_room < 0)
         return;
@@ -1102,13 +1167,20 @@ static void update_drawable_object_states(bool do_cursor, int mwasatx, int mwasa
     }
 }
 
-static void game_loop_update_events()
+// Process all events scheduled during the last game update
+static void GameUpdateProcessEvents()
 {
     new_room_was = in_new_room;
+    // If we're in the new room (after "room load" event), then schedule "fade in" event,
+    // it will be processed right away
     if (in_new_room != kEnterRoom_None)
+    {
         setevent({ kAGSEvent_FadeIn });
+    }
     in_new_room = kEnterRoom_None;
+
     processallevents();
+
     if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
     {
         // if in a new room, and the room wasn't just changed again in update_events,
@@ -1128,28 +1200,9 @@ static void game_loop_update_events()
     }
 }
 
-static void game_loop_update_background_animation()
-{
-    if (play.bg_anim_delay > 0) play.bg_anim_delay--;
-    else if (play.bg_frame_locked) ;
-    else {
-        play.bg_anim_delay = play.anim_background_speed;
-        play.bg_frame++;
-        if ((size_t)play.bg_frame >= thisroom.BgFrameCount)
-            play.bg_frame=0;
-        if (thisroom.BgFrameCount >= 2) {
-            // get the new frame's palette
-            on_background_frame_change();
-        }
-    }
-}
-
 static void game_loop_update_loop_counter()
 {
     GameTimer.LoopCounter++;
-
-    if (play.wait_counter > 0) play.wait_counter--;
-    if (play.shakesc_length > 0) play.shakesc_length--;
 }
 
 static void game_loop_update_fps()
@@ -1220,41 +1273,69 @@ uint32_t get_runtime_ms()
     return std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - GameTimer.StartTime).count();
 }
 
-void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+//
+// UpdateGameOnce is a primary game update routine.
+//
+// Plan:
+//  * System events (parse and record for further use down the routine).
+//  * Check for exit request.
+//  * Early bad state check
+//  * New room check
+//  * repeatedly_execute_always
+//  * Game state general update
+//  * Player input handling
+//  * late_repeatedly_execute_always
+//  * Process scheduled game events
+//  * Sync video & audio, update drawable objects for render
+//  * Rendering
+//  * Loop counter increment
+//  * Wait for next frame
+//
+void UpdateGameOnce(bool do_controls, AGS::Engine::IDriverDependantBitmap *extra_ddb, int extra_x, int extra_y)
 {
+    set_our_eip(1000);
+
     sys_evt_process_pending();
 
-    if (want_exit) {
+    if (want_exit)
+    {
         ProperExit();
+        return;
     }
 
-    ccNotifyScriptStillAlive ();
-    set_our_eip(1);
+    set_our_eip(1001);
 
-    game_loop_check_problems_at_start();
+    GameUpdateCheckProblems();
 
-    // if we're not fading in, don't count the fadeouts
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
-        play.screen_is_faded_out = 0;
+    set_our_eip(1002);
+
+    // Check "breakpoint" key prior to running any script callbacks
+    check_debug_keys();
+    // Tell scripts that the game is alive
+    ccNotifyScriptStillAlive();
+    // Check if we just entered a new room, and run "before fade-in" script event
+    check_new_room();
+
+    set_our_eip(1003);
+
+    // Run early rep-exec-always, and schedule rep-execs for later
+    GameUpdateEarlyRepExec();
 
     set_our_eip(1004);
 
-    game_loop_do_early_script_update();
-    // run this immediately to make sure it gets done before fade-in
-    // (player enters screen)
-    check_new_room();
+    // Do the overall game state update
+    GameUpdateGameState();
+    GameUpdatePersistentAnimations();
+    // Check edges and ground interactions, after the game objects have updated their positions
+    GameUpdateCheckRoomEdges();
+    GameUpdateCheckGroundInteractions();
 
     set_our_eip(1005);
-
-    game_loop_check_ground_level_interactions();
-
-    mouse_on_iface=-1; // FIXME: why is this here? move to a related update function!
-
-    check_debug_keys();
 
     // Handle player's input
     // remember old mouse pos, needed for update_cursor_over_location() later
     const int mwasatx = mousex, mwasaty = mousey;
+    mouse_on_iface = -1; // FIXME: why is this here? move to a related update function!
     // update mouse position (mousex, mousey)
     ags_domouse();
     // update gui under mouse; this also updates gui control focus;
@@ -1262,57 +1343,57 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // relies on remembering which control was focused by the cursor prior
     update_gui_disabled_status();
     update_cursor_over_gui();
+    UpdateSavedCursorOverLocation();
     // handle actual input (keys, mouse, and so forth)
-    game_loop_check_controls(checkControls);
+    if (do_controls)
+    {
+        GameUpdateCheckControls();
+    }
 
-    set_our_eip(2);
+    set_our_eip(1006);
 
-    // do the overall game state update
-    game_loop_do_update();
+    // Run late rep-exec-always, after all the game was updated
+    GameUpdateLateRepExec();
+    // Then process all the accumulated events for this game tick
+    GameUpdateProcessEvents();
 
-    game_loop_update_animated_always();
+    set_our_eip(1007);
 
-    game_loop_do_late_script_update();
-
-    // After everything else,
-    // update object states necessary for upcoming rendering;
-    // historically this was done right prior to drawing
-    update_gui_context(mwasatx, mwasaty);
-    update_drawable_object_states(true /* cursor-related update */, mwasatx, mwasaty);
-
+    // Sync video and audio with the game logic
     update_video_system_on_game_loop();
     update_audio_system_on_game_loop();
+    // Update drawable object states, which depend on their positions,
+    // room region properties, or other object positions
+    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
 
+    set_our_eip(1008);
+
+    // Record necessary values for the GUI rendering
+    UpdateGUIContext(mwasatx, mwasaty);
     // Only render if we are not skipping a cutscene
     if (!play.fast_forward)
     {
         update_gui_disabled_status(); // in case they changed it in the late script update
-        render_graphics(extraBitmap, extraX, extraY);
+        render_graphics(extra_ddb, extra_x, extra_y);
     }
 
-    set_our_eip(6);
-
-    game_loop_update_events();
-
-    set_our_eip(7);
-
-    update_polled_stuff();
-
-    game_loop_update_background_animation();
+    set_our_eip(1009);
 
     game_loop_update_loop_counter();
+    update_polled_stuff();
+    game_loop_update_fps();
+
+    set_our_eip(1010);
 
     // Immediately start the next frame if we are skipping a cutscene
     if (play.fast_forward)
         return;
 
-    set_our_eip(72);
-
-    game_loop_update_fps();
-
-    update_polled_stuff();
+    set_our_eip(1011);
 
     WaitForNextFrame();
+
+    set_our_eip(1012);
 }
 
 void UpdateGameAudioOnly()
@@ -1321,33 +1402,6 @@ void UpdateGameAudioOnly()
     game_loop_update_loop_counter();
     game_loop_update_fps();
     WaitForNextFrame();
-}
-
-// Update the "saved cursor until it leaves location" state
-static void UpdateSavedCursorOverLocation()
-{
-    // Call GetLocationName - it will internally force a GUI refresh
-    // if the result it returns has changed from last time
-    // CHECKME: this is also likely called in the main game update function,
-    // so it may be not necessary here.
-    GetLocationName(mousex, mousey);
-
-    if ((play.get_loc_name_save_cursor >= 0) &&
-        (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
-        (mouse_on_iface < 0) && (ifacepopped < 0)) {
-            // we have saved the cursor, but the mouse location has changed
-            // and it's time to restore it
-            play.get_loc_name_save_cursor = kSavedLocType_Undefined;
-            set_cursor_mode(play.restore_cursor_mode_to);
-
-            if (cur_mode == play.restore_cursor_mode_to)
-            {
-                // make sure it changed -- the new mode might have been disabled
-                // in which case don't change the image
-                set_cursor_look(play.restore_cursor_image_to);
-            }
-            debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
-    }
 }
 
 bool IsInBlockingAction()
@@ -1433,12 +1487,7 @@ static bool ShouldStayInWaitMode()
 // Run single game iteration; calls UpdateGameOnce() internally
 static void GameTick()
 {
-    if (displayed_room < 0)
-        quit("!A blocking function was called before the first room has been loaded");
-
     UpdateGameOnce(true);
-    // TODO: figure out if it's safe to move this function inside UpdateGameOnce!
-    UpdateSavedCursorOverLocation();
 }
 
 // This function is called from lot of various functions
@@ -1545,12 +1594,12 @@ void UpdateCursorAndDrawables()
     // TODO: following does not have to be called every frame while in a
     // fully blocking state (like Display() func), refactor to only call it
     // once the blocking state begins.
-    update_drawable_object_states(true /* cursor-related update */, mwasatx, mwasaty);
+    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
 }
 
 void SyncDrawablesState()
 {
-    update_drawable_object_states(false /* NO cursor-related update */, -1, -1);
+    UpdateDrawableObjectStates(false /* NO cursor-related update */, -1, -1);
 }
 
 void ShutGameWaitState()

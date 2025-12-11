@@ -960,9 +960,11 @@ void first_room_initialization() {
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;
 }
 
-void check_new_room() {
+void check_new_room()
+{
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
-    if ((in_new_room>0) & (in_new_room!=3)) {
+    if ((in_new_room != kEnterRoom_None) & (in_new_room != kEnterRoom_RestoredSave))
+    {
         AGSEvent evh(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen
         EnterNewRoomState newroom_was = in_new_room;

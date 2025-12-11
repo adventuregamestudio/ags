@@ -154,6 +154,7 @@ typedef std::unique_ptr<InteractionCommandList> UInterCmdList;
 // InteractionCommand represents a single command (action), an item of Command List
 struct InteractionCommand
 {
+    // TODO: investigate, and add constants or enum for Cmd Type
     int                     Type;       // type of action
     InteractionValue        Data[MAX_ACTION_ARGS]; // action arguments
     UInterCmdList           Children;   // list of sub-actions

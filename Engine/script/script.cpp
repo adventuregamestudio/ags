@@ -847,214 +847,222 @@ struct TempEip {
 // the 'cmdsrun' parameter counts how many commands are run.
 // if a 'Inv Item Was Used' check does not pass, it doesn't count
 // so cmdsrun remains 0 if no inventory items matched
-int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int*cmdsrun) {
+int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int *cmdsrun)
+{
     if (nicl == nullptr)
         return -1;
 
     const char *evblockbasename = obj_evt.BlockName.GetCStr();
     const int evblocknum = obj_evt.BlockID;
-    for (size_t i = 0; i < nicl->Cmds.size(); i++) {
+    for (size_t i = 0; i < nicl->Cmds.size(); i++)
+    {
         cmdsrun[0] ++;
         const int room_was = play.room_changes;
 
-        switch (nicl->Cmds[i].Type) {
-      case 0:  // Do nothing
-          break;
-      case 1:  // Run script
-          { 
-              TempEip tempip(4001);
-              RuntimeScriptValue rval_null;
-                  if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
-                      // Character or Inventory (global script)
-                      const String torun = make_interact_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
-                      // we are already inside the mouseclick event of the script, can't nest calls
-                      QueueScriptFunction(kScTypeGame, torun);
-                  }
-                  else {
-                      // Other (room script)
-                      const String torun = make_interact_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
-                      QueueScriptFunction(kScTypeRoom, torun);
-                  }
-                      break;
-          }
-      case 2:  // Add score (first time)
-          if (timesrun[0] > 0)
-              break;
-          timesrun[0] ++;
-      case 3:  // Add score
-          GiveScore (IPARAM1);
-          break;
-      case 4:  // Display Message
-          /*        if (comprdata<0)
-          display_message_aschar=evb->data[ss];*/
-          DisplayMessage(IPARAM1);
-          break;
-      case 5:  // Play Music
-          PlayMusicResetQueue(IPARAM1);
-          break;
-      case 6:  // Stop Music
-          stopmusic ();
-          break;
-      case 7:  // Play Sound
-          play_sound (IPARAM1);
-          break;
-      case 8:  // Play Flic
-          PlayFlic(IPARAM1, IPARAM2);
-          break;
-      case 9:  // Run Dialog
-          RunDialog(IPARAM1);
-          // if they changed room within the dialog script,
-          // the interaction command list is no longer valid
-          if (room_was != play.room_changes)
-              return -1;
-          break;
-      case 10: // Enable Dialog Option
-          SetDialogOption (IPARAM1, IPARAM2, 1);
-          break;
-      case 11: // Disable Dialog Option
-          SetDialogOption (IPARAM1, IPARAM2, 0);
-          break;
-      case 12: // Go To Screen
-          Character_ChangeRoomAutoPosition(playerchar, IPARAM1, IPARAM2);
-          return -1;
-      case 13: // Add Inventory
-          add_inventory (IPARAM1);
-          break;
-      case 14: // Move Object
-          MoveObject (IPARAM1, IPARAM2, IPARAM3, IPARAM4);
-          // if they want to wait until finished, do so
-          if (IPARAM5)
-              GameLoopUntilNotMoving(&objs[IPARAM1].moving);
-          break;
-      case 15: // Object Off
-          ObjectOff (IPARAM1);
-          break;
-      case 16: // Object On
-          ObjectOn (IPARAM1);
-          break;
-      case 17: // Set Object View
-          SetObjectView (IPARAM1, IPARAM2);
-          break;
-      case 18: // Animate Object
-          AnimateObject4(IPARAM1, IPARAM2, IPARAM3, IPARAM4);
-          break;
-      case 19: // Move Character
-          if (IPARAM4)
-              MoveCharacterBlocking (IPARAM1, IPARAM2, IPARAM3, 0);
-          else
-              MoveCharacter (IPARAM1, IPARAM2, IPARAM3);
-          break;
-      case 20: // If Inventory Item was used
-          if (play.usedinv == IPARAM1) {
-              if (game.options[OPT_NOLOSEINV] == 0)
-                  lose_inventory (play.usedinv);
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          }
-          else
-              cmdsrun[0] --;
-          break;
-      case 21: // if player has inventory item
-          if (playerchar->inv[IPARAM1] > 0)
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          break;
-      case 22: // if a character is moving
-          if (game.chars[IPARAM1].walking)
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          break;
-      case 23: // if two variables are equal
-          if (IPARAM1 == IPARAM2)
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          break;
-      case 24: // Stop character walking
-          StopMoving (IPARAM1);
-          break;
-      case 25: // Go to screen at specific co-ordinates
-          NewRoomEx (IPARAM1, IPARAM2, IPARAM3);
-          return -1;
-      case 26: // Move NPC to different room
-          if (!is_valid_character(IPARAM1))
-              quit("!Move NPC to different room: invalid character specified");
-          game.chars[IPARAM1].room = IPARAM2;
-          break;
-      case 27: // Set character view
-          SetCharacterView (IPARAM1, IPARAM2);
-          break;
-      case 28: // Release character view
-          ReleaseCharacterView (IPARAM1);
-          break;
-      case 29: // Follow character
-          FollowCharacter (IPARAM1, IPARAM2);
-          break;
-      case 30: // Stop following
-          FollowCharacter (IPARAM1, -1);
-          break;
-      case 31: // Disable hotspot
-          DisableHotspot (IPARAM1);
-          break;
-      case 32: // Enable hotspot
-          EnableHotspot (IPARAM1);
-          break;
-      case 33: // Set variable value
-          get_interaction_variable(nicl->Cmds[i].Data[0].Value)->Value = IPARAM2;
-          break;
-      case 34: // Run animation
-          AnimateCharacter4(IPARAM1, IPARAM2, IPARAM3, 0);
-          GameLoopUntilValueIsZero(&game.chars[IPARAM1].animating);
-          break;
-      case 35: // Quick animation
-          SetCharacterView (IPARAM1, IPARAM2);
-          AnimateCharacter4(IPARAM1, IPARAM3, IPARAM4, 0);
-          GameLoopUntilValueIsZero(&game.chars[IPARAM1].animating);
-          ReleaseCharacterView (IPARAM1);
-          break;
-      case 36: // Set idle animation
-          SetCharacterIdle (IPARAM1, IPARAM2, IPARAM3);
-          break;
-      case 37: // Disable idle animation
-          SetCharacterIdle (IPARAM1, -1, -1);
-          break;
-      case 38: // Lose inventory item
-          lose_inventory (IPARAM1);
-          break;
-      case 39: // Show GUI
-          InterfaceOn (IPARAM1);
-          break;
-      case 40: // Hide GUI
-          InterfaceOff (IPARAM1);
-          break;
-      case 41: // Stop running more commands
-          return -1;
-      case 42: // Face location
-          FaceLocation (IPARAM1, IPARAM2, IPARAM3);
-          break;
-      case 43: // Pause command processor
-          scrWait (IPARAM1);
-          break;
-      case 44: // Change character view
-          ChangeCharacterView (IPARAM1, IPARAM2);
-          break;
-      case 45: // If player character is
-          if (GetPlayerCharacter() == IPARAM1)
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          break;
-      case 46: // if cursor mode is
-          if (GetCursorMode() == IPARAM1)
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          break;
-      case 47: // if player has been to room
-          if (HasBeenToRoom(IPARAM1))
-              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
-                  return -1;
-          break;
-      default:
-          quit("unknown new interaction command");
-          break;
+        // TODO: use constants for Cmd types
+        switch (nicl->Cmds[i].Type)
+        {
+        case 0:  // Do nothing
+            break;
+        case 1:  // Run script
+        { 
+            TempEip tempip(4001);
+            RuntimeScriptValue rval_null;
+            if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
+                // Character or Inventory (global script)
+                const String torun = make_interact_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
+                // we are already inside the mouseclick event of the script, can't nest calls
+                QueueScriptFunction(kScTypeGame, torun);
+            }
+            else {
+                // Other (room script)
+                const String torun = make_interact_func_name(evblockbasename,evblocknum,nicl->Cmds[i].Data[0].Value);
+                QueueScriptFunction(kScTypeRoom, torun);
+            }
+            break;
+        }
+        case 2:  // Add score (first time)
+            if (timesrun[0] > 0)
+                break;
+            timesrun[0] ++;
+            /* fall-through */
+        case 3:  // Add score
+            GiveScore (IPARAM1);
+            break;
+        case 4:  // Display Message
+            /*        if (comprdata<0)
+            display_message_aschar=evb->data[ss];*/
+            DisplayMessage(IPARAM1);
+            break;
+        case 5:  // Play Music
+            PlayMusicResetQueue(IPARAM1);
+            break;
+        case 6:  // Stop Music
+            stopmusic ();
+            break;
+        case 7:  // Play Sound
+            play_sound (IPARAM1);
+            break;
+        case 8:  // Play Flic
+            PlayFlic(IPARAM1, IPARAM2);
+            break;
+        case 9:  // Run Dialog
+            RunDialog(IPARAM1);
+            // if they changed room within the dialog script,
+            // the interaction command list is no longer valid
+            if (room_was != play.room_changes)
+                return -1;
+            break;
+        case 10: // Enable Dialog Option
+            SetDialogOption (IPARAM1, IPARAM2, 1);
+            break;
+        case 11: // Disable Dialog Option
+            SetDialogOption (IPARAM1, IPARAM2, 0);
+            break;
+        case 12: // Go To Screen
+            Character_ChangeRoomAutoPosition(playerchar, IPARAM1, IPARAM2);
+            return -1;
+        case 13: // Add Inventory
+            add_inventory (IPARAM1);
+            break;
+        case 14: // Move Object
+            MoveObject (IPARAM1, IPARAM2, IPARAM3, IPARAM4);
+            // if they want to wait until finished, do so
+            if (IPARAM5)
+                GameLoopUntilNotMoving(&objs[IPARAM1].moving);
+            break;
+        case 15: // Object Off
+            ObjectOff (IPARAM1);
+            break;
+        case 16: // Object On
+            ObjectOn (IPARAM1);
+            break;
+        case 17: // Set Object View
+            SetObjectView (IPARAM1, IPARAM2);
+            break;
+        case 18: // Animate Object
+            AnimateObject4(IPARAM1, IPARAM2, IPARAM3, IPARAM4);
+            break;
+        case 19: // Move Character
+            if (IPARAM4)
+                MoveCharacterBlocking (IPARAM1, IPARAM2, IPARAM3, 0);
+            else
+                MoveCharacter (IPARAM1, IPARAM2, IPARAM3);
+            break;
+        case 20: // If Inventory Item was used
+            if (play.usedinv == IPARAM1)
+            {
+                if (game.options[OPT_NOLOSEINV] == 0)
+                    lose_inventory (play.usedinv);
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            }
+            else
+            {
+                cmdsrun[0] --;
+            }
+            break;
+        case 21: // if player has inventory item
+            if (playerchar->inv[IPARAM1] > 0)
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            break;
+        case 22: // if a character is moving
+            if (game.chars[IPARAM1].walking)
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            break;
+        case 23: // if two variables are equal
+            if (IPARAM1 == IPARAM2)
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            break;
+        case 24: // Stop character walking
+            StopMoving (IPARAM1);
+            break;
+        case 25: // Go to screen at specific co-ordinates
+            NewRoomEx (IPARAM1, IPARAM2, IPARAM3);
+            return -1;
+        case 26: // Move NPC to different room
+            if (!is_valid_character(IPARAM1))
+                quit("!Move NPC to different room: invalid character specified");
+            game.chars[IPARAM1].room = IPARAM2;
+            break;
+        case 27: // Set character view
+            SetCharacterView (IPARAM1, IPARAM2);
+            break;
+        case 28: // Release character view
+            ReleaseCharacterView (IPARAM1);
+            break;
+        case 29: // Follow character
+            FollowCharacter (IPARAM1, IPARAM2);
+            break;
+        case 30: // Stop following
+            FollowCharacter (IPARAM1, -1);
+            break;
+        case 31: // Disable hotspot
+            DisableHotspot (IPARAM1);
+            break;
+        case 32: // Enable hotspot
+            EnableHotspot (IPARAM1);
+            break;
+        case 33: // Set variable value
+            get_interaction_variable(nicl->Cmds[i].Data[0].Value)->Value = IPARAM2;
+            break;
+        case 34: // Run animation
+            AnimateCharacter4(IPARAM1, IPARAM2, IPARAM3, 0);
+            GameLoopUntilValueIsZero(&game.chars[IPARAM1].animating);
+            break;
+        case 35: // Quick animation
+            SetCharacterView (IPARAM1, IPARAM2);
+            AnimateCharacter4(IPARAM1, IPARAM3, IPARAM4, 0);
+            GameLoopUntilValueIsZero(&game.chars[IPARAM1].animating);
+            ReleaseCharacterView (IPARAM1);
+            break;
+        case 36: // Set idle animation
+            SetCharacterIdle (IPARAM1, IPARAM2, IPARAM3);
+            break;
+        case 37: // Disable idle animation
+            SetCharacterIdle (IPARAM1, -1, -1);
+            break;
+        case 38: // Lose inventory item
+            lose_inventory (IPARAM1);
+            break;
+        case 39: // Show GUI
+            InterfaceOn (IPARAM1);
+            break;
+        case 40: // Hide GUI
+            InterfaceOff (IPARAM1);
+            break;
+        case 41: // Stop running more commands
+            return -1;
+        case 42: // Face location
+            FaceLocation (IPARAM1, IPARAM2, IPARAM3);
+            break;
+        case 43: // Pause command processor
+            scrWait (IPARAM1);
+            break;
+        case 44: // Change character view
+            ChangeCharacterView (IPARAM1, IPARAM2);
+            break;
+        case 45: // If player character is
+            if (GetPlayerCharacter() == IPARAM1)
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            break;
+        case 46: // if cursor mode is
+            if (GetCursorMode() == IPARAM1)
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            break;
+        case 47: // if player has been to room
+            if (HasBeenToRoom(IPARAM1))
+                if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+                    return -1;
+            break;
+        default:
+            quit("unknown new interaction command");
+            break;
         }
 
         // if the room changed within the action, nicl is no longer valid

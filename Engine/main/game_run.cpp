@@ -231,7 +231,8 @@ static void game_loop_check_problems_at_start()
 // Runs rep-exec
 static void game_loop_do_early_script_update()
 {
-    if (in_new_room == 0) {
+    if (in_new_room == kEnterRoom_None)
+    {
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
         setevent(AGSEvent_Script(kTS_Repeat));
@@ -242,7 +243,7 @@ static void game_loop_do_early_script_update()
 // Runs late-rep-exec
 static void game_loop_do_late_script_update()
 {
-    if (in_new_room == 0)
+    if (in_new_room == kEnterRoom_None)
     {
         // Run the room and game script late_repeatedly_execute
         run_function_on_non_blocking_thread(&lateRepExecAlways);
@@ -787,7 +788,7 @@ static void check_room_edges(size_t numevents_was)
 static void game_loop_check_controls(bool checkControls)
 {
     // don't let the player do anything before the screen fades in
-    if ((in_new_room == 0) && (checkControls)) {
+    if ((in_new_room == kEnterRoom_None) && (checkControls)) {
         int inRoom = displayed_room;
         size_t numevents_was = events.size();
         check_controls();

@@ -540,7 +540,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     }
   }
 
-  if (in_new_room > 0)
+  if (in_new_room != kEnterRoom_None)
     return RUN_DIALOG_STOP_DIALOG;
 
   if (said_speech_line > 0) {

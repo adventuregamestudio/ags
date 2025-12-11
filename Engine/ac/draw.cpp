@@ -1747,7 +1747,8 @@ static Bitmap *transform_sprite(std::unique_ptr<Bitmap> &dst, Bitmap *src, bool 
         // 8-bit support: ensure that anti-aliasing routines have a palette
         // to use for mapping while faded out.
         // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
-        const bool do_select_palette = (in_new_room > 0) && play.ShouldAASprites() && (src->GetColorDepth() == 1);
+        const bool do_select_palette = (in_new_room != kEnterRoom_None)
+            && play.ShouldAASprites() && (src->GetColorDepth() == 1);
         if (do_select_palette)
             select_palette(palette);
 
@@ -3025,7 +3026,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         return;
     // Don't render if we've just entered new room and are before fade-in
     // TODO: find out why this is not skipped for 8-bit games
-    if ((in_new_room > 0) & (game.color_depth > 1))
+    if ((in_new_room != kEnterRoom_None) & (game.color_depth > 1))
         return;
 
     // TODO: find out if it's okay to move shake to update function

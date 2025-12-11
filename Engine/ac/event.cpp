@@ -24,7 +24,9 @@
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/scriptregion.h"
 #include "ac/dynobj/cc_hotspot.h"
+#include "ac/dynobj/cc_region.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/cc_common.h"
@@ -50,6 +52,9 @@ extern AGSPlatformDriver *platform;
 extern int displayed_room;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+extern CCRegion ccDynamicRegion;
+
 // FIXME: refactor further to get rid of this extern, maybe move part of the code to screen.cpp?
 extern std::unique_ptr<Bitmap> saved_viewport_bitmap;
 
@@ -195,6 +200,16 @@ void process_event(const AGSEvent *evp)
                 RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;
+        }
+        case kObjEventType_Region:
+        {
+            const int region_id = obj.ObjID;
+            if (thisroom.Regions[region_id].EventHandlers != nullptr)
+                obj_events = thisroom.Regions[region_id].EventHandlers.get();
+            else
+                obj_inter = &croom->intrRegion[region_id];
+            obj_evt = ObjectEvent(kScTypeRoom, "region%d", LOCTYPE_NOTHING, region_id,
+                RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
         }
         case kObjEventType_Room:
         {

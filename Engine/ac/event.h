@@ -65,10 +65,11 @@ enum ObjectEventType
 {
     kObjEventType_None          = 0,
     kObjEventType_Room          = 1,
-    kObjEventType_Hotspot       = 2
+    kObjEventType_Hotspot       = 2,
+    kObjEventType_Region        = 3
 };
 
-// Room event sub-types
+// Room event indexes
 enum RoomEventType
 {
     // room edge crossing
@@ -90,13 +91,21 @@ enum RoomEventType
     kRoomEvent_AfterFadeout     = 9,
 };
 
-// Hotspot event sub-types
-enum HotspotEventSubtype
+// Hotspot event indexes
+enum HotspotEventType
 {
     // player stands on hotspot
     kHotspotEvent_StandOn       = 0,
     // cursor is over hotspot
     kHotspotEvent_MouseOver     = 6,
+};
+
+// Region event indexes
+enum RegionEventID
+{
+    kRegionEvent_Standing       = 0,
+    kRegionEvent_WalkOn         = 1,
+    kRegionEvent_WalkOff        = 2,
 };
 
 // AGS Script events are events reported by a "on_event" callback.

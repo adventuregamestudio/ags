@@ -277,12 +277,16 @@ static bool game_loop_check_ground_level_interactions()
     {
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
-        // run Stands on Hotspot event
+        // run Stands on Hotspot event;
+        // NOTE: this runs even for hotspot 0 (no hotspot), in case one has a script function attached
         setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
 
         // check current region
         int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
-        int inRoom = displayed_room;
+        const int inRoom = displayed_room;
+        // In 3.6.3+ games Region events are scheduled to run consistently with the rest.
+        // In pre-3.6.3 games Region events are run directly from here.
+        const bool schedule_event = (loaded_game_file_version >= kGameVersion_363);
 
         if (onRegion != play.player_on_region)
         {
@@ -293,15 +297,26 @@ static bool game_loop_check_ground_level_interactions()
             play.player_on_region = onRegion;
             // Walks Off last region
             if (oldRegion > 0)
-                RunRegionInteraction (oldRegion, 2);
+            {
+                schedule_event ?
+                    setevent(AGSEvent_Object(kObjEventType_Region, oldRegion, kRegionEvent_WalkOff))
+                    : RunRegionInteraction(oldRegion, kRegionEvent_WalkOff);
+            }
+
             // Walks Onto new region
             if (onRegion > 0)
-                RunRegionInteraction (onRegion, 1);
+            {
+                schedule_event ?
+                    setevent(AGSEvent_Object(kObjEventType_Region, onRegion, kRegionEvent_WalkOn))
+                    : RunRegionInteraction(onRegion, kRegionEvent_Standing);
+            }
         }
 
         if (play.player_on_region > 0) // player stands on region
         {
-            RunRegionInteraction(play.player_on_region, 0);
+            schedule_event ?
+                setevent(AGSEvent_Object(kObjEventType_Region, play.player_on_region, kRegionEvent_Standing))
+                : RunRegionInteraction(play.player_on_region, kRegionEvent_Standing);
         }
 
         // one of the region interactions sent us to another room

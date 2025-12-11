@@ -557,10 +557,8 @@ void update_sierra_speech()
   }
 }
 
-// update_stuff: moves and animates objects, executes repeat scripts, and
-// the like.
-void update_stuff() {
-
+void update_game_objects()
+{
   set_our_eip(20);
 
   update_script_timers();

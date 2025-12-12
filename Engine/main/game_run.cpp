@@ -937,6 +937,34 @@ static void update_cursor_view()
     }
 }
 
+// Update the "saved cursor until it leaves location" state
+static void UpdateSavedCursorOverLocation()
+{
+    // Call GetLocationName - it will internally force a GUI refresh
+    // if the result it returns has changed from last time
+    // CHECKME: this is also likely called in the main game update function,
+    // so it may be not necessary here.
+    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
+
+    if ((play.get_loc_name_save_cursor >= 0) &&
+        (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
+        (mouse_on_iface < 0) && (ifacepopped < 0))
+    {
+        // we have saved the cursor, but the mouse location has changed
+        // and it's time to restore it
+        play.get_loc_name_save_cursor = kSavedLocType_Undefined;
+        set_cursor_mode(play.restore_cursor_mode_to);
+
+        if (cur_mode == play.restore_cursor_mode_to)
+        {
+            // make sure it changed -- the new mode might have been disabled
+            // in which case don't change the image
+            set_mouse_cursor(play.restore_cursor_image_to);
+        }
+        debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+    }
+}
+
 // Assign GUI context parameters, read from the game state.
 // This will be required for GUI labels render.
 static void update_gui_context(int mwasatx, int mwasaty)
@@ -1006,6 +1034,22 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
 
     offsetxWas = offsetx;
     offsetyWas = offsety;
+}
+
+static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
+{
+    if (displayed_room < 0)
+        return;
+
+    // camera positions may be linked to a player character
+    play.UpdateRoomCameras();
+
+    update_objects_scale();
+    if (do_cursor)
+    {
+        update_cursor_over_location(mwasatx, mwasaty);
+        update_cursor_view();
+    }
 }
 
 // Process all events scheduled during the last game update
@@ -1200,15 +1244,15 @@ void UpdateGameOnce(bool do_controls, IDriverDependantBitmap *extra_ddb, int ext
 
     set_our_eip(1008);
 
-    // historically room object and character scaling was updated
-    // right before the drawing
-    update_objects_scale();
-    update_cursor_over_location(mwasatx, mwasaty);
-    update_cursor_view();
+    // Sync audio with the game logic
+    update_audio_system_on_game_loop();
 
     set_our_eip(1009);
 
-    update_audio_system_on_game_loop();
+    // Update drawable object states, which depend on their positions,
+    // room region properties, or other object positions
+    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
+    UpdateSavedCursorOverLocation();
 
     set_our_eip(1010);
 
@@ -1250,33 +1294,6 @@ void UpdateGameAudioOnly()
     game_loop_update_loop_counter();
     game_loop_update_fps();
     WaitForNextFrame();
-}
-
-// Update the "saved cursor until it leaves location" state
-static void UpdateSavedCursorOverLocation()
-{
-    // Call GetLocationName - it will internally force a GUI refresh
-    // if the result it returns has changed from last time
-    // CHECKME: this is also likely called in the main game update function,
-    // so it may be not necessary here.
-    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
-
-    if ((play.get_loc_name_save_cursor >= 0) &&
-        (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
-        (mouse_on_iface < 0) && (ifacepopped < 0)) {
-            // we have saved the cursor, but the mouse location has changed
-            // and it's time to restore it
-            play.get_loc_name_save_cursor = kSavedLocType_Undefined;
-            set_cursor_mode(play.restore_cursor_mode_to);
-
-            if (cur_mode == play.restore_cursor_mode_to)
-            {
-                // make sure it changed -- the new mode might have been disabled
-                // in which case don't change the image
-                set_mouse_cursor(play.restore_cursor_image_to);
-            }
-            debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
-    }
 }
 
 bool IsInBlockingAction()
@@ -1344,8 +1361,6 @@ static bool ShouldStayInWaitMode()
 static void GameTick()
 {
     UpdateGameOnce(true);
-    // TODO: figure out if it's safe to move this function inside UpdateGameOnce!
-    UpdateSavedCursorOverLocation();
 }
 
 // This function is called from lot of various functions
@@ -1431,18 +1446,15 @@ void UpdateCursorAndDrawables()
     const int mwasatx = mousex, mwasaty = mousey;
     ags_domouse();
     update_cursor_over_gui();
-    update_cursor_over_location(mwasatx, mwasaty);
-    update_cursor_view();
     // TODO: following does not have to be called every frame while in a
     // fully blocking state (like Display() func), refactor to only call it
     // once the blocking state begins.
-    update_objects_scale();
+    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
 }
 
 void SyncDrawablesState()
 {
-    // TODO: there's likely more things that could've be done here
-    update_objects_scale();
+    UpdateDrawableObjectStates(false /* NO cursor-related update */, -1, -1);
 }
 
 void ShutGameWaitState()

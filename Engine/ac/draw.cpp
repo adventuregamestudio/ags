@@ -2825,11 +2825,6 @@ void construct_game_scene(bool full_redraw)
     // Overlays may be both in rooms and ui layer, prepare their textures beforehand
     construct_overlays();
 
-    // TODO: move to game update! don't call update during rendering pass!
-    // IMPORTANT: keep the order same because sometimes script may depend on it
-    if (displayed_room >= 0)
-        play.UpdateRoomCameras();
-
     // Begin with the parent scene node, defining global offset and flip
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
         play.GetGlobalTransform(drawstate.FullFrameRedraw),

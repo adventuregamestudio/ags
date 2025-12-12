@@ -229,5 +229,30 @@ namespace AGS.Types
                 return Utilities.UTF8; // UTF-8 w/o BOM
             return Encoding.GetEncoding(name);
         }
+
+        /// <summary>
+        /// Parses the input string as a separated RGBA values.
+        /// Returns resulting Color, or Color.Empty on failure.
+        /// </summary>
+        public static Color ColorFromSeparatedRGBA(string text, char separator)
+        {
+            try
+            {
+                if (text.IndexOf(separator) >= 0)
+                {
+                    var rgba = text.Split(separator);
+                    switch (rgba.Length)
+                    {
+                        case 3: return Color.FromArgb(int.Parse(rgba[0]), int.Parse(rgba[1]), int.Parse(rgba[2]));
+                        case 4: return Color.FromArgb(int.Parse(rgba[3]), int.Parse(rgba[0]), int.Parse(rgba[1]), int.Parse(rgba[2]));
+                        default: return Color.Empty;
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return Color.Empty;
+        }
     }
 }

@@ -117,4 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="label1.Text" xml:space="preserve">
+    <value>You can use the controls below to find the AGS Colour Number for a particular colour. Such color number may be used to set color value into the editor properties, or assign to color variables in script.
+RGB comma separated text may be set into the editor properties in 16/32-bit games, and inserted into the Game.GetColorFromRGB function in script.
+
+NOTE: For historical reasons in AGS v3.* color properties have 16-bit precision, which means that AGS may clamp the RGB values to the nearest allowed.
+
+NOTE: Colours 1-31 are locked to reflect special colours in the 8-bit palette. For shades of blue, set the Green slider to 4.
+</value>
+  </data>
 </root>

@@ -21,6 +21,7 @@ namespace AGS.Editor
         private bool _noUpdates = false;
         private List<int> _selectedIndexes = new List<int>();
         private TabPage _colourFinder;
+        private Color _currentColor = Color.Black;
 
         public PaletteEditor()
         {
@@ -73,19 +74,19 @@ namespace AGS.Editor
         private void trackBarRed_Scroll(object sender, EventArgs e)
         {
             ColourSlidersUpdated();
-            UpdateNumberFromScrollBars();
+            UpdateColorNumber();
         }
 
         private void trackBarGreen_Scroll(object sender, EventArgs e)
         {
             ColourSlidersUpdated();
-            UpdateNumberFromScrollBars();
+            UpdateColorNumber();
         }
 
         private void trackBarBlue_Scroll(object sender, EventArgs e)
         {
             ColourSlidersUpdated();
-            UpdateNumberFromScrollBars();
+            UpdateColorNumber();
         }
 
         private void txtColourNumber_TextChanged(object sender, EventArgs e)
@@ -103,9 +104,34 @@ namespace AGS.Editor
                 trackBarRed.Value = newColor.R;
                 trackBarGreen.Value = newColor.G;
                 trackBarBlue.Value = newColor.B;
-				lblFixedColorsWarning.Visible = ((newVal >= 1) && (newVal <= 31));
-				ColourSlidersUpdated();
+                ColourSlidersUpdated();
             }
+        }
+
+        private void txtRGBColor_TextChanged(object sender, EventArgs e)
+        {
+            if (!_noUpdates)
+            {
+                Color newColor = AGS.Types.Utilities.ColorFromSeparatedRGBA(txtRGBColor.Text, ',');
+                if (newColor.IsEmpty)
+                    newColor = AGS.Types.Utilities.ColorFromSeparatedRGBA(txtRGBColor.Text, ';');
+
+                newColor = GetClampedColor(newColor);
+                _noUpdates = true;
+                txtRGBColor.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}";
+                _noUpdates = false;
+
+                trackBarRed.Value = newColor.R;
+                trackBarGreen.Value = newColor.G;
+                trackBarBlue.Value = newColor.B;
+                ColourSlidersUpdated();
+            }
+        }
+
+        private Color GetClampedColor(Color color)
+        {
+            return AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(
+                AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(color));
         }
 
         private void ColourSlidersUpdated()
@@ -117,22 +143,21 @@ namespace AGS.Editor
             // we'd rather have users see an exact RGB which will be used in game,
             // than to display a desired RGB that is going to be "secretly" clamped at runtime.
             Color rgb = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            rgb = AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(
-                AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(rgb));
+            rgb = GetClampedColor(rgb);
+            _currentColor = rgb;
             lblRedFinal.Text = string.Format($"({rgb.R})");
             lblGreenFinal.Text = string.Format($"({rgb.G})");
             lblBlueFinal.Text = string.Format($"({rgb.B})");
             blockOfColour.Invalidate();
         }
 
-        private void UpdateNumberFromScrollBars()
+        private void UpdateColorNumber()
         {
             _noUpdates = true;
-            var newColor = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(newColor);
+            int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(_currentColor);
             txtColourNumber.Text = newValue.ToString();
+            txtRGBColor.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}";
             _noUpdates = false;
-            lblFixedColorsWarning.Visible = ((newValue >= 1) && (newValue <= 31));
             blockOfColour.Invalidate();
         }
 
@@ -391,8 +416,8 @@ namespace AGS.Editor
 				trackBarRed.Value = dialog.Color.R;
 				trackBarGreen.Value = dialog.Color.G;
 				trackBarBlue.Value = dialog.Color.B;
-				ColourSlidersUpdated();
-				UpdateNumberFromScrollBars();
+                ColourSlidersUpdated();
+				UpdateColorNumber();
 			}
 			dialog.Dispose();
 		}

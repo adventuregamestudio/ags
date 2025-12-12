@@ -3056,6 +3056,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  nslider.SetValue(slider->Value);
 		  nslider.SetHandleImage(slider->HandleImage);
 		  nslider.SetHandleOffset(slider->HandleOffset);
+          nslider.SetHandleColor(slider->HandleColor);
+          nslider.SetShadowColor(slider->ShadowColor);
 		  nslider.SetBgImage(slider->BackgroundImage);
           nslider.SetEventHandler(0, TextHelper::ConvertASCII(slider->OnChange));
           guislider.push_back(nslider);

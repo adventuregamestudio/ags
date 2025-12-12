@@ -25,6 +25,7 @@ namespace AGS.Types
             PaddingY = 2;
             BackgroundColor = 7;
             BorderColor = 15;
+            ShadowColor = 8;
             _clickAction = GUIClickAction.RunScript;
         }
 
@@ -41,6 +42,7 @@ namespace AGS.Types
         private int _mouseoverImage;
         private int _pushedImage;
         private int _font;
+        private int _shadowColor;
         private int _textColor;
         private FrameAlignment _textAlign;
         private bool _wrapText;
@@ -115,6 +117,16 @@ namespace AGS.Types
         {
             get { return PaddingY; }
             set { PaddingY = value; }
+        }
+
+        [Description("Colour of the button's border shadow")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int ShadowColor
+        {
+            get { return _shadowColor; }
+            set { _shadowColor = value; }
         }
 
         [Description("Colour of the button text")]

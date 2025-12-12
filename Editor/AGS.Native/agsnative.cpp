@@ -2995,6 +2995,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  if (button)
 	  {
           Common::GUIButton nbut;
+          nbut.SetShadowColor(button->ShadowColor);
           nbut.SetTextColor(button->TextColor);
           nbut.SetFont(button->Font);
           nbut.SetNormalImage(button->Image);

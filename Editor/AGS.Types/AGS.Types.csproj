@@ -219,6 +219,7 @@
     <Compile Include="Plugins\RequiredAGSVersionAttribute.cs" />
     <Compile Include="PropertyGridExtras\AudioClipSourceFileUIEditor.cs" />
     <Compile Include="PropertyGridExtras\ColorUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\CustomColorConverter.cs" />
     <Compile Include="PropertyGridExtras\CustomPropertiesUIEditor.cs" />
     <Compile Include="PropertyGridExtras\CustomPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\FontFileUIEditor.cs" />

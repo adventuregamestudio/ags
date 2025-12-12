@@ -45,32 +45,15 @@ namespace AGS.Types
             get { return 0; }
         }
 
-        [Description("Background color of the GUI (0 for transparent)")]
+        [Description("Background color for the GUI (0 = transparent)")]
         [Category("Appearance")]
-        [DisplayName("BackgroundColourNumber")]
         [RefreshProperties(RefreshProperties.All)]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int BackgroundColor
         {
             get { return _bgcol; }
             set { _bgcol = value; }
-        }
-
-        [Description("Background color for the GUI (0,0,0 = transparent)")]
-        [Category("Appearance")]
-        [DisplayName("BackgroundColour")]
-        [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color BackgroundColorRGB
-        {
-            get
-            {
-                return new AGSColor(_bgcol).ToRgb();
-            }
-            set
-            {
-                _bgcol = new AGSColor(value).ColorNumber;
-            }
         }
 
         [Description("Background image for the GUI (0 for none)")]

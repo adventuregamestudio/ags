@@ -47,32 +47,15 @@ namespace AGS.Types
             set { _activateEventHandler = value; }
         }
 
-        [Description("AGS Colour Number of the text")]
+        [Description("Colour of the text")]
         [Category("Appearance")]
-        [DisplayName("TextColourNumber")]
         [RefreshProperties(RefreshProperties.All)]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         public int TextColor
         {
             get { return _textColor; }
             set { _textColor = value; }
-        }
-
-        [Description("Colour of the text")]
-        [Category("Appearance")]
-        [DisplayName("TextColor")]
-        [RefreshProperties(RefreshProperties.All)]
-        [AGSNoSerialize]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public Color TextColorRGB
-        {
-            get
-            {
-                return new AGSColor(_textColor).ToRgb();
-            }
-            set
-            {
-                _textColor = new AGSColor(value).ColorNumber;
-            }
         }
 
         [Description("Font to use for the text")]

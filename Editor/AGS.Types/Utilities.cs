@@ -231,6 +231,78 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Converts a string in 0xAARRGGBB notation into a Color.
+        /// Returns Color.Empty on any exception.
+        /// </summary>
+        public static Color ColorFromARGBHex(string hexString)
+        {
+            try
+            {
+                if (hexString.StartsWith("0x") || hexString.StartsWith("0X"))
+                    hexString = hexString.Substring(2);
+
+                return Color.FromArgb(Convert.ToInt32(hexString, 16));
+            }
+            catch
+            {
+                return Color.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Converts a string in HTML #RRGGBBAA notation into a Color.
+        /// NOTE: this method is required because converting using standard .NET
+        /// utilities treat higher byte as a alpha instead.
+        /// Returns Color.Empty on any exception.
+        /// </summary>
+        public static Color ColorFromHTMLHex(string hexString)
+        {
+            try
+            {
+                if (hexString.StartsWith("#"))
+                    hexString = hexString.Substring(1);
+
+                int value = Convert.ToInt32(hexString, 16);
+                if (hexString.Length == 8)
+                {
+                    return Color.FromArgb(value & 0xFF, (value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF);
+                }
+                else
+                {
+                    return Color.FromArgb((value >> 16) & 0xFF, (value >> 8) & 0xFF, (value) & 0xFF);
+                }
+            }
+            catch
+            {
+                return Color.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Parses the input string as a separated RGBA values.
+        /// Returns resulting Color, or Color.Empty on failure.
+        /// </summary>
+        public static Color ColorFromSeparatedRGB(string text, char separator)
+        {
+            try
+            {
+                if (text.IndexOf(separator) >= 0)
+                {
+                    var rgba = text.Split(separator);
+                    switch (rgba.Length)
+                    {
+                        case 3: return Color.FromArgb(int.Parse(rgba[0]), int.Parse(rgba[1]), int.Parse(rgba[2]));
+                        default: return Color.Empty;
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return Color.Empty;
+        }
+
+        /// <summary>
         /// Parses the input string as a separated RGBA values.
         /// Returns resulting Color, or Color.Empty on failure.
         /// </summary>
@@ -253,6 +325,14 @@ namespace AGS.Types
             {
             }
             return Color.Empty;
+        }
+
+        /// <summary>
+        /// Converts ARGB to RGB color, with opaque alpha.
+        /// </summary>
+        public static Color ToRGB(this Color color)
+        {
+            return Color.FromArgb(0xFF, color);
         }
     }
 }

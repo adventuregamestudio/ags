@@ -330,7 +330,7 @@ static bool GameUpdateCheckGroundInteractions()
             {
                 schedule_event ?
                     setevent(AGSEvent_Object(kObjEventType_Region, onRegion, kRegionEvent_WalkOn))
-                    : RunRegionInteraction(onRegion, kRegionEvent_Standing);
+                    : RunRegionInteraction(onRegion, kRegionEvent_WalkOn);
             }
         }
 

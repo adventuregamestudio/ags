@@ -55,6 +55,8 @@ public:
     bool            IsTranslated() const { return (_flags & kGUICtrl_Translated) != 0; }
     bool            IsVisible() const { return (_flags & kGUICtrl_Visible) != 0; }
     bool            IsWrapText() const { return (_flags & kGUICtrl_WrapText) != 0; }
+    bool            IsShowBorder() const { return (_flags & kGUICtrl_ShowBorder) != 0; }
+    bool            IsSolidBackground() const { return (_flags & kGUICtrl_SolidBack) != 0; }
     // overridable routine to determine whether the mouse is over the control
     virtual bool    IsOverControl(int x, int y, int leeway) const;
     int             GetX() const { return _x; }
@@ -80,6 +82,19 @@ public:
     void            SetEnabled(bool on);
     void            SetTranslated(bool on);
     void            SetVisible(bool on);
+    void            SetShowBorder(bool on);
+    void            SetSolidBackground(bool on);
+    int             GetBackColor() const { return _backgroundColor; }
+    void            SetBackColor(int color);
+    int             GetBorderColor() const { return _borderColor; }
+    void            SetBorderColor(int color);
+    int             GetBorderWidth() const { return _borderWidth; }
+    void            SetBorderWidth(int border_size);
+    int             GetPaddingX() const { return _paddingX; }
+    void            SetPaddingX(int padx);
+    int             GetPaddingY() const { return _paddingY; }
+    void            SetPaddingY(int pady);
+
     bool            IsActivated() const { return _isActivated; }
     void            SetActivated(bool on);
 
@@ -100,6 +115,8 @@ public:
     // Returns the (untransformed!) visual rectangle of this control,
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
+    // FIXME: it was a mistake to have coordinate origin as arguments to this method,
+    // as this is bug prone when writing drawing code. Use sub-bitmaps when drawing controls instead.
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
 
     // Events
@@ -138,21 +155,31 @@ public:
     void            ClearChanged();
   
 protected:
+    // Draws control frame box, using common border and background settings
+    void            DrawControlFrame(Bitmap *ds, int x, int y);
+
     int      _id = -1;      // GUI object's identifier
     int      _parentID = -1;// id of parent GUI
     String   _name;         // script name
 
+    uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     int      _x = 0;
     int      _y = 0;
-    int      _zOrder = 0;
-    bool     _isActivated = false; // signals user interaction
-
-    uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     int      _width = 0;
     int      _height = 0;
+    int      _zOrder = 0;
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
-    bool     _hasChanged = false;
+
+    int      _backgroundColor = 0;
+    int      _borderColor = 0;
+    int      _borderWidth = 1;
+    int      _paddingX = 0;
+    int      _paddingY = 0;
+
     std::vector<String> _eventHandlers; // script function names
+
+    bool     _hasChanged = false;
+    bool     _isActivated = false; // signals user interaction
 };
 
 // Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)

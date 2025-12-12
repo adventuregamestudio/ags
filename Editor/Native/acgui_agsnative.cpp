@@ -292,9 +292,10 @@ int GUILabel::PrepareTextToDraw()
     return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, _font, _width);
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
     // print something fake so we can see what it looks like
+    const int text_color = ds->GetCompatibleColor(_textColor);
     wouttext_outline(ds, x + 2, y + 2, _font, text_color, "Text Box Contents");
 }
 
@@ -315,6 +316,8 @@ int  GUIInvWindow::GetCharacterID() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
+    DrawControlFrame(ds, x, y);
+
     color_t draw_color = ds->GetCompatibleColor(15);
     ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
 }
@@ -324,7 +327,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _width - _textPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _width - _paddingX * 2);
     }
     else
     {

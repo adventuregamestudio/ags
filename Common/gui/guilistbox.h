@@ -40,10 +40,15 @@ public:
     HorAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(HorAlignment align);
     bool HasAlphaChannel() const override;
+    // Tells if this list box should display scrollbar (arrows) when
+    // there's more items than can fit into the control
+    bool ShouldShowScrollArrows() const;
+    // Tells if the arrows are shown currently
     bool AreArrowsShown() const;
-    bool IsBorderShown() const;
+    // Tells if the given x coordinate is located over a scrollbar
+    bool IsPosOnScrollbar(int x) const;
+    // Tells if this listbox stores save game indexes
     bool IsSvgIndex() const;
-    bool IsInRightMargin(int x) const;
     uint32_t GetItemCount() const { return _items.size(); }
     String GetItem(int index) const;
     int  GetSavedGameIndex(int index) const;
@@ -56,7 +61,6 @@ public:
     void SetTopItem(int index);
     uint32_t GetVisibleItemCount() const { return _visibleItemCount; }
     void SetShowArrows(bool on);
-    void SetShowBorder(bool on);
     void SetSvgIndex(bool on); // TODO: work around this
     void SetItemText(int index, const String &text);
 
@@ -97,6 +101,8 @@ private:
     color_t                 _selectedBgColor = DefaultSelectBgColor;
     color_t                 _selectedTextColor = DefaultSelectFgColor;
     int                     _rowHeight = 0;
+    int                     _itemTextPaddingX = 0;
+    int                     _itemTextPaddingY = 0;
     uint32_t                _visibleItemCount = 0u;
 
     std::vector<String>     _items;
@@ -115,7 +121,10 @@ private:
     static String EventNames[EventCount];
     static String EventArgs[EventCount];
 
-    // prepared text buffer/cache
+    // Precalculated control regions
+    Rect  _itemsRect; // items region
+    Rect  _scrollbarRect; // arrows / scrollbar region
+    // Prepared text buffer/cache
     String _textToDraw;
 };
 

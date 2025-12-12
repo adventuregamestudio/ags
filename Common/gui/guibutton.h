@@ -79,10 +79,6 @@ public:
     void SetTextColor(int color);
     FrameAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(FrameAlignment align);
-    int  GetTextPaddingHor() const { return _textPaddingHor; }
-    void SetTextPaddingHor(int padding);
-    int  GetTextPaddingVer() const { return _textPaddingVer; }
-    void SetTextPaddingVer(int padding);
 
     bool HasAlphaChannel() const override;
     int  GetCurrentImage() const;
@@ -143,8 +139,6 @@ private:
     int     _font = 0;
     color_t _textColor = 0;
     FrameAlignment _textAlignment = kAlignTopCenter;
-    int     _textPaddingHor = DefaultHorPadding;
-    int     _textPaddingVer = DefaultVerPadding;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     GUIClickAction _clickAction[kNumGUIClicks];

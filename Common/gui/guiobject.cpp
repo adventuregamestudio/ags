@@ -161,9 +161,96 @@ void GUIObject::SetVisible(bool on)
     }
 }
 
+void GUIObject::SetShowBorder(bool on)
+{
+    if (on != ((_flags & kGUICtrl_ShowBorder) != 0))
+    {
+        _flags = (_flags & ~kGUICtrl_ShowBorder) | kGUICtrl_ShowBorder * on;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetSolidBackground(bool on)
+{
+    if (on != ((_flags & kGUICtrl_SolidBack) != 0))
+    {
+        _flags = (_flags & ~kGUICtrl_SolidBack) | kGUICtrl_SolidBack * on;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetBackColor(int color)
+{
+    if (_backgroundColor != color)
+    {
+        _backgroundColor = color;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetBorderColor(int color)
+{
+    if (_borderColor != color)
+    {
+        _borderColor = color;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetBorderWidth(int border_width)
+{
+    if (_borderWidth != border_width)
+    {
+        _borderWidth = border_width;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetPaddingX(int padx)
+{
+    if (_paddingX != padx)
+    {
+        _paddingX = padx;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetPaddingY(int pady)
+{
+    if (_paddingY != pady)
+    {
+        _paddingY = pady;
+        MarkChanged();
+    }
+}
+
 void GUIObject::SetActivated(bool on)
 {
     _isActivated = on;
+}
+
+void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
+{
+    const int bg_color = ds->GetCompatibleColor(_backgroundColor);
+    const int border_color = ds->GetCompatibleColor(_borderColor);
+    const int border_width = _borderWidth *
+        // Pre-3.6.3 the controls would implicitly double the border thickness
+        // for "hi-res" games
+        // FIXME: adjust and save border width when it's assigned instead
+        (((GUI::GameGuiVersion < kGuiVersion_363) && (get_fixed_pixel_size(1) > 1)) ? 2 : 1);
+
+    if (IsSolidBackground())
+    {
+        ds->FillRect(RectWH(x, y, _width, _height), bg_color);
+    }
+
+    if (IsShowBorder())
+    {
+        for (int i = 0; i < border_width; ++i)
+        {
+            ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), border_color);
+        }
+    }
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

@@ -42,6 +42,13 @@
 // 3.5.0      (119): Game data contains GUI properties that previously
 //                   could be set only at runtime.
 // Since then format value is defined as AGS version represented as NN,NN,NN,NN
+// NOTE: unfortunately, the GUI version was not properly incremented between
+//       3.5.0 and 3.6.3, which appear possible because new data was added
+//       as game extensions. There have been at least two amendments:
+//       - script module ref written for GUIs (3.6.2),
+//       - button's text padding properties   (3.6.2)
+// 3.6.3           : Controls have common frame settings
+//                   (back/border color, padding, etc)
 //=============================================================================
 
 enum GuiVersion
@@ -69,7 +76,8 @@ enum GuiVersion
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
     kGuiVersion_350         = 119,
-    kGuiVersion_Current     = kGuiVersion_350,
+    kGuiVersion_363         = 3060304,
+    kGuiVersion_Current     = kGuiVersion_363,
 };
 
 namespace AGS
@@ -143,7 +151,7 @@ enum GUIControlType
 // GUIControl general style and behavior flags
 enum GUIControlFlags
 {
-    kGUICtrl_Default    = 0x0001, // only button
+    kGUICtrl_Default    = 0x0001, // only button (not used in practice)
     kGUICtrl_Cancel     = 0x0002, // unused
     kGUICtrl_Enabled    = 0x0004,
     kGUICtrl_TabStop    = 0x0008, // unused
@@ -152,6 +160,8 @@ enum GUIControlFlags
     kGUICtrl_Clickable  = 0x0040,
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
     kGUICtrl_WrapText   = 0x0100, // 3.6.2
+    kGUICtrl_ShowBorder = 0x0200, // 3.6.3
+    kGUICtrl_SolidBack  = 0x0400, // 3.6.3
     kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
 
     kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable |
@@ -177,7 +187,7 @@ enum GUILabelMacro
 // GUIListBox style and behavior flags
 enum GUIListBoxFlags
 {
-    kListBox_ShowBorder = 0x01,
+    kListBox_ShowBorder = 0x01, // [DEPRECATED], use kGUICtrl_ShowBorder instead
     kListBox_ShowArrows = 0x02,
     kListBox_SvgIndex   = 0x04,
 
@@ -189,7 +199,7 @@ enum GUIListBoxFlags
 // GUITextBox style and behavior flags
 enum GUITextBoxFlags
 {
-    kTextBox_ShowBorder = 0x0001,
+    kTextBox_ShowBorder = 0x0001, // [DEPRECATED], use kGUICtrl_ShowBorder instead
 
     kTextBox_DefFlags   = kTextBox_ShowBorder,
     // flags that had inverse meaning in old formats

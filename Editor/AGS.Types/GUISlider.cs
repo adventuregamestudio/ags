@@ -20,6 +20,8 @@ namespace AGS.Types
             _min = 0;
             _max = 10;
             _value = 0;
+            ShowBorder = true;
+            SolidBackground = true;
         }
 
         public GUISlider(XmlNode node) : base(node)

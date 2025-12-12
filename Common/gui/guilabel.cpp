@@ -88,6 +88,8 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
 
 void GUILabel::Draw(Bitmap *ds, int x, int y)
 {
+    DrawControlFrame(ds, x, y);
+
     // TODO: need to find a way to cache text prior to drawing;
     // but that will require to update all gui controls when translation is changed in game
     if (PrepareTextToDraw() == 0)
@@ -101,7 +103,8 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
-        RectWH(x, y, _width, _height), (FrameAlignment)_textAlignment, limit_by_label_frame);
+        RectWH(x + _paddingX, y + _paddingY, _width - _paddingX * 2, _height - _paddingY * 2),
+        (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
 void GUILabel::SetText(const String &text)

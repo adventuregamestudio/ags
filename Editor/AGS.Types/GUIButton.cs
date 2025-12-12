@@ -18,8 +18,14 @@ namespace AGS.Types
         public GUIButton(int x, int y, int width, int height) : base(x, y, width, height)
         {
             _text = "New Button";
-            _clickAction = GUIClickAction.RunScript;
             _textAlign = FrameAlignment.TopCenter;
+            ShowBorder = true;
+            SolidBackground = true;
+            PaddingX = 2;
+            PaddingY = 2;
+            BackgroundColor = 7;
+            BorderColor = 15;
+            _clickAction = GUIClickAction.RunScript;
         }
 
         public GUIButton(XmlNode node) : base(node)
@@ -38,8 +44,6 @@ namespace AGS.Types
         private int _textColor;
         private FrameAlignment _textAlign;
         private bool _wrapText;
-        private int _paddingHor = 2;
-        private int _paddingVer = 2;
         private bool _clipImage;
         private GUIClickAction _clickAction;
         private int _newModeNumber;
@@ -97,22 +101,20 @@ namespace AGS.Types
             set { _wrapText = value; }
         }
 
-        [Description("The amount of padding, in pixels, restricting the text's alignment from left and right")]
-        [Category("Appearance")]
-        [DefaultValue(2)]
+        [Obsolete]
+        [Browsable(false)]
         public int TextPaddingHorizontal
         {
-            get { return _paddingHor; }
-            set { _paddingHor = value; }
+            get { return PaddingX; }
+            set { PaddingX = value; }
         }
 
-        [Description("The amount of padding, in pixels, restricting the text's alignment from top and bottom")]
-        [Category("Appearance")]
-        [DefaultValue(2)]
+        [Obsolete]
+        [Browsable(false)]
         public int TextPaddingVertical
         {
-            get { return _paddingVer; }
-            set { _paddingVer = value; }
+            get { return PaddingY; }
+            set { PaddingY = value; }
         }
 
         [Description("Colour of the button text")]

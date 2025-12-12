@@ -19,8 +19,10 @@ namespace AGS.Types
             : base(x, y, width, height)
         {
             _text = string.Empty;
-            _showBorder = true;
+            ShowBorder = true; // border is visible by default
             _font = 0;
+            PaddingX = BorderWidth + 1;
+            PaddingY = BorderWidth + 1;
         }
 
         public GUITextBox(XmlNode node) : base(node)
@@ -32,7 +34,6 @@ namespace AGS.Types
         private string _text;
         private int _font;
         private int _textColor;
-        private bool _showBorder;
         private string _activateEventHandler = string.Empty;
 
         [Description("Script function to run when return is pressed in the text box")]
@@ -64,14 +65,6 @@ namespace AGS.Types
         {
             get { return _font; }
             set { _font = value; }
-        }
-
-        [Description("Determines whether the border of the text box is drawn")]
-        [Category("Appearance")]
-        public bool ShowBorder
-        {
-            get { return _showBorder; }
-            set { _showBorder = value; }
         }
 
         public override string ControlType

@@ -3000,8 +3000,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.SetMouseOverImage(button->MouseoverImage);
           nbut.SetPushedImage(button->PushedImage);
           nbut.SetTextAlignment((::FrameAlignment)button->TextAlignment);
-          nbut.SetTextPaddingHor(button->TextPaddingHorizontal);
-          nbut.SetTextPaddingVer(button->TextPaddingVertical);
           nbut.SetWrapText(button->WrapText);
           nbut.SetClickAction(Common::kGUIClickLeft,
             (Common::GUIClickAction)button->ClickAction, button->NewModeNumber);
@@ -3029,7 +3027,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUITextBox ntext;
           ntext.SetTextColor(textbox->TextColor);
           ntext.SetFont(textbox->Font);
-          ntext.SetShowBorder(textbox->ShowBorder);
           ntext.SetEventHandler(0, TextHelper::ConvertASCII(textbox->OnActivate));
           guitext.push_back(ntext);
 
@@ -3044,7 +3041,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nlist.SetSelectedBgColor(listbox->SelectedBackgroundColor);
           nlist.SetTextAlignment((::HorAlignment)listbox->TextAlignment);
           nlist.SetTranslated(listbox->Translated);
-          nlist.SetShowBorder(listbox->ShowBorder);
           nlist.SetShowArrows(listbox->ShowScrollArrows);
           nlist.SetEventHandler(0, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
           guilist.push_back(nlist);
@@ -3092,6 +3088,13 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  newObj->SetID(control->ID);
 	  newObj->SetZOrder(control->ZOrder);
       newObj->SetName(TextHelper::ConvertASCII(control->Name));
+      newObj->SetSolidBackground(control->SolidBackground);
+      newObj->SetShowBorder(control->ShowBorder);
+      newObj->SetBackColor(control->BackgroundColor);
+      newObj->SetBorderColor(control->BorderColor);
+      newObj->SetBorderWidth(control->BorderWidth);
+      newObj->SetPaddingX(control->PaddingX);
+      newObj->SetPaddingY(control->PaddingY);
   }
 
   AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
@@ -3105,6 +3108,12 @@ void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float sca
   guilist.clear();
   guislider.clear();
   guiinv.clear();
+
+  // Setup GUI version
+  AGS::Common::GUI::DataVersion = kGameVersion_Current;
+  AGS::Common::GUI::GameGuiVersion = kGuiVersion_Current;
+
+  // Setup GUI options
 
   // Setup GuiContext
   AGS::Common::GUI::Context.Spriteset = &spriteset;
@@ -3817,8 +3826,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
 					newButton->PushedImage = copyFrom->GetPushedImage();
 					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
-                    newButton->TextPaddingHorizontal = copyFrom->GetTextPaddingHor();
-                    newButton->TextPaddingVertical = copyFrom->GetTextPaddingVer();
                     newButton->WrapText = copyFrom->IsWrapText();
                     newButton->ClickAction = (GUIClickAction)copyFrom->GetClickAction(Common::kGUIClickLeft);
 					newButton->NewModeNumber = copyFrom->GetClickData(Common::kGUIClickLeft);
@@ -3846,7 +3853,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newControl = newTextbox;
 				  newTextbox->TextColor = copyFrom->GetTextColor();
 				  newTextbox->Font = copyFrom->GetFont();
-                  newTextbox->ShowBorder = copyFrom->IsBorderShown();
 				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
 				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
 				  break;
@@ -3861,7 +3867,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newListbox->SelectedTextColor = copyFrom->GetSelectedTextColor();
 				  newListbox->SelectedBackgroundColor = copyFrom->GetSelectedBgColor();
 				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->GetTextAlignment();
-				  newListbox->ShowBorder = copyFrom->IsBorderShown();
+				  newListbox->ShowBorder = copyFrom->IsShowBorder();
 				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
                   newListbox->Translated = copyFrom->IsTranslated();
 				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));

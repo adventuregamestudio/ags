@@ -57,6 +57,10 @@ FrameAlignment ConvertLegacyButtonAlignment(LegacyButtonAlignment align)
 
 GUIButton::GUIButton()
 {
+    _paddingX = DefaultHorPadding;
+    _paddingY = DefaultVerPadding;
+    _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
+
     _clickAction[kGUIClickLeft] = kGUIAction_RunScript;
     _clickAction[kGUIClickRight] = kGUIAction_RunScript;
     _clickData[kGUIClickLeft] = 0;
@@ -86,24 +90,6 @@ void GUIButton::SetTextAlignment(FrameAlignment align)
     if (_textAlignment != align)
     {
         _textAlignment = align;
-        MarkChanged();
-    }
-}
-
-void GUIButton::SetTextPaddingHor(int padding)
-{
-    if (_textPaddingHor != padding)
-    {
-        _textPaddingHor = padding;
-        MarkChanged();
-    }
-}
-
-void GUIButton::SetTextPaddingVer(int padding)
-{
-    if (_textPaddingVer != padding)
-    {
-        _textPaddingVer = padding;
         MarkChanged();
     }
 }
@@ -244,7 +230,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (!IsImageButton() || ((_placeholder == kButtonPlace_None) && !_unnamed))
     {
         PrepareTextToDraw();
-        Rect frame = RectWH(_textPaddingHor, _textPaddingVer, _width - _textPaddingHor * 2, _height - _textPaddingVer * 2);
+        Rect frame = RectWH(_paddingX, _paddingY, _width - _paddingX * 2, _height - _paddingY * 2);
         if (_isPushed && _isMouseOver)
         {
             frame = frame.MoveBy(frame, 1, 1);
@@ -272,8 +258,7 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
 
     if (IsImageButton())
         DrawImageButton(ds, x, y, draw_disabled);
-    // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
-    else if (!_text.IsEmpty())
+    else
         DrawTextButton(ds, x, y, draw_disabled);
 }
 
@@ -502,8 +487,8 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _currentImage = in->ReadInt32();
     if (svg_ver >= kGuiSvgVersion_36202)
     {
-        _textPaddingHor = in->ReadInt32();
-        _textPaddingVer = in->ReadInt32();
+        _paddingX = in->ReadInt32();
+        _paddingY = in->ReadInt32();
         in->ReadInt32(); // reserve 2 ints
         in->ReadInt32();
     }
@@ -524,8 +509,8 @@ void GUIButton::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(GetText(), out);
     out->WriteInt32(_textAlignment);
     out->WriteInt32(_currentImage);
-    out->WriteInt32(_textPaddingHor);
-    out->WriteInt32(_textPaddingVer);
+    out->WriteInt32(_paddingX);
+    out->WriteInt32(_paddingY);
     out->WriteInt32(0); // reserve 2 ints
     out->WriteInt32(0);
 }
@@ -589,7 +574,7 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
-    Rect frame = RectWH(x + _textPaddingHor, y + _textPaddingVer, _width - _textPaddingHor * 2, _height - _textPaddingVer * 2);
+    Rect frame = RectWH(x + _paddingX, y + _paddingY, _width - _paddingX * 2, _height - _paddingY * 2);
     if (_isPushed && _isMouseOver)
     {
         // move the Text a bit while pushed
@@ -608,27 +593,44 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
 {
-    color_t draw_color = ds->GetCompatibleColor(7);
-    ds->FillRect(Rect(x, y, x + _width - 1, y + _height - 1), draw_color);
+    // Buttons have their own, slightly different, logic for background and border,
+    // where they also use "shadow color" to produce pseudo-3D effect.
+    // TODO: use color constants instead of literal numbers.
+    // TODO: move the bw-compat default color selection to Upgrade GUI process.
+    const color_t back_color =
+        (GUI::GameGuiVersion < kGuiVersion_363)
+        ? ds->GetCompatibleColor(7) : ds->GetCompatibleColor(_backgroundColor);
+    const color_t light_color = ds->GetCompatibleColor(15);
+        //(GUI::GameGuiVersion < kGuiVersion_363)
+        //? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_borderColor);
+    const color_t dark_color = ds->GetCompatibleColor(8);
+        //(GUI::GameGuiVersion < kGuiVersion_363)
+        //? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_borderColor);
+
+    // Background rect
+    ds->FillRect(RectWH(x, y, _width, _height), back_color);
+
+    // Default button: draw a rectangle around it (UNUSED in practice)
     if (_flags & kGUICtrl_Default)
     {
-        draw_color = ds->GetCompatibleColor(16);
-        ds->DrawRect(Rect(x - 1, y - 1, x + _width, y + _height), draw_color);
+        const color_t def_frame_color = ds->GetCompatibleColor(16);
+        ds->DrawRect(RectWH(x - 1, y - 1, _width + 2, _height + 2), def_frame_color);
     }
 
-    // TODO: use color constants instead of literal numbers
+    // A composite border with a shadow, for pseudo-3D effect
+    color_t draw_color;
     if (!draw_disabled && _isMouseOver && _isPushed)
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = light_color;
     else
-        draw_color = ds->GetCompatibleColor(8);
+        draw_color = dark_color;
 
     ds->DrawLine(Line(x, y + _height - 1, x + _width - 1, y + _height - 1), draw_color);
     ds->DrawLine(Line(x + _width - 1, y, x + _width - 1, y + _height - 1), draw_color);
 
     if (draw_disabled || (_isMouseOver && _isPushed))
-        draw_color = ds->GetCompatibleColor(8);
+        draw_color = dark_color;
     else
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = light_color;
 
     ds->DrawLine(Line(x, y, x + _width - 1, y), draw_color);
     ds->DrawLine(Line(x, y, x, y + _height - 1), draw_color);

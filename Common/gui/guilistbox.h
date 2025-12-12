@@ -41,7 +41,6 @@ public:
     void SetTextAlignment(HorAlignment align);
     bool HasAlphaChannel() const override;
     bool AreArrowsShown() const;
-    bool IsBorderShown() const;
     bool IsSvgIndex() const;
     bool IsInRightMargin(int x) const;
     uint32_t GetItemCount() const { return _items.size(); }
@@ -56,7 +55,6 @@ public:
     void SetTopItem(int index);
     uint32_t GetVisibleItemCount() const { return _visibleItemCount; }
     void SetShowArrows(bool on);
-    void SetShowBorder(bool on);
     void SetSvgIndex(bool on); // TODO: work around this
     void SetItemText(int index, const String &text);
 
@@ -97,6 +95,8 @@ private:
     color_t                 _selectedBgColor = DefaultSelectBgColor;
     color_t                 _selectedTextColor = DefaultSelectFgColor;
     int                     _rowHeight = 0;
+    int                     _itemTextPaddingX = 0;
+    int                     _itemTextPaddingY = 0;
     uint32_t                _visibleItemCount = 0u;
 
     std::vector<String>     _items;

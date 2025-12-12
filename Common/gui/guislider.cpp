@@ -29,6 +29,10 @@ namespace Common
 
 GUISlider::GUISlider()
 {
+    _backgroundColor = 16;
+    _borderColor = 15;
+    _handleColor = 7;
+    _shadowColor = 8;
     _handleRange = 0;
 }
 
@@ -87,6 +91,24 @@ void GUISlider::SetHandleOffset(int offset)
     if (_handleOffset != offset)
     {
         _handleOffset = offset;
+        MarkChanged();
+    }
+}
+
+void GUISlider::SetHandleColor(int color)
+{
+    if (_handleColor != color)
+    {
+        _handleColor = color;
+        MarkChanged();
+    }
+}
+
+void GUISlider::SetShadowColor(int color)
+{
+    if (_shadowColor != color)
+    {
+        _shadowColor = color;
         MarkChanged();
     }
 }
@@ -222,7 +244,6 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     Rect bar = Rect::MoveBy(_cachedBar, x, y);
     Rect handle = Rect::MoveBy(_cachedHandle, x, y);
 
-    color_t draw_color;
     if (_bgImage > 0)
     {
         // tiled image as slider background
@@ -255,12 +276,12 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     else
     {
         // normal grey background
-        draw_color = ds->GetCompatibleColor(16);
+        color_t draw_color = ds->GetCompatibleColor(_backgroundColor);
         ds->FillRect(bar, draw_color);
-        draw_color = ds->GetCompatibleColor(8);
+        draw_color = ds->GetCompatibleColor(_shadowColor);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Right, bar.Top), draw_color);
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = ds->GetCompatibleColor(_borderColor);
         ds->DrawLine(Line(bar.Right, bar.Top + 1, bar.Right, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Bottom, bar.Right, bar.Bottom), draw_color);
     }
@@ -274,12 +295,12 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     else // handle is a drawn rectangle
     {
         // normal grey tracker handle
-        draw_color = ds->GetCompatibleColor(7);
+        color_t draw_color = ds->GetCompatibleColor(_handleColor);
         ds->FillRect(handle, draw_color);
-        draw_color = ds->GetCompatibleColor(15);
+        draw_color = ds->GetCompatibleColor(_borderColor);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Left, handle.Bottom), draw_color);
-        draw_color = ds->GetCompatibleColor(16);
+        draw_color = ds->GetCompatibleColor(_shadowColor);
         ds->DrawLine(Line(handle.Right, handle.Top + 1, handle.Right, handle.Bottom), draw_color);
         ds->DrawLine(Line(handle.Left + 1, handle.Bottom, handle.Right, handle.Bottom), draw_color);
     }

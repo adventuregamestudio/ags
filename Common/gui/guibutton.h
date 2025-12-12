@@ -75,6 +75,8 @@ public:
     // Properties
     int  GetFont() const { return _font; }
     void SetFont(int font);
+    int  GetShadowColor() const { return _shadowColor; }
+    void SetShadowColor(int color);
     int  GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
     FrameAlignment GetTextAlignment() const { return _textAlignment; }
@@ -137,6 +139,7 @@ private:
     static String EventArgs[EventCount];
 
     int     _font = 0;
+    color_t _shadowColor = 0;
     color_t _textColor = 0;
     FrameAlignment _textAlignment = kAlignTopCenter;
     // Click actions for left and right mouse buttons

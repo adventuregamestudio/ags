@@ -59,6 +59,9 @@ GUIButton::GUIButton()
 {
     _paddingX = DefaultHorPadding;
     _paddingY = DefaultVerPadding;
+    _backgroundColor = 7;
+    _borderColor = 15;
+    _shadowColor = 8;
     _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
 
     _clickAction[kGUIClickLeft] = kGUIAction_RunScript;
@@ -72,6 +75,15 @@ void GUIButton::SetFont(int font)
     if (_font != font)
     {
         _font = font;
+        MarkChanged();
+    }
+}
+
+void GUIButton::SetShadowColor(int color)
+{
+    if (_shadowColor != color)
+    {
+        _shadowColor = color;
         MarkChanged();
     }
 }
@@ -600,40 +612,53 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     const color_t back_color =
         (GUI::GameGuiVersion < kGuiVersion_363)
         ? ds->GetCompatibleColor(7) : ds->GetCompatibleColor(_backgroundColor);
-    const color_t light_color = ds->GetCompatibleColor(15);
-        //(GUI::GameGuiVersion < kGuiVersion_363)
-        //? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_borderColor);
-    const color_t dark_color = ds->GetCompatibleColor(8);
-        //(GUI::GameGuiVersion < kGuiVersion_363)
-        //? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_borderColor);
+    const color_t light_color =
+        (GUI::GameGuiVersion < kGuiVersion_363)
+        ? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_borderColor);
+    const color_t dark_color =
+        (GUI::GameGuiVersion < kGuiVersion_363)
+        ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_shadowColor);
 
     // Background rect
-    ds->FillRect(RectWH(x, y, _width, _height), back_color);
-
-    // Default button: draw a rectangle around it (UNUSED in practice)
-    if (_flags & kGUICtrl_Default)
+    if (IsSolidBackground())
     {
-        const color_t def_frame_color = ds->GetCompatibleColor(16);
-        ds->DrawRect(RectWH(x - 1, y - 1, _width + 2, _height + 2), def_frame_color);
+        ds->FillRect(RectWH(x, y, _width, _height), back_color);
     }
 
-    // A composite border with a shadow, for pseudo-3D effect
-    color_t draw_color;
-    if (!draw_disabled && _isMouseOver && _isPushed)
-        draw_color = light_color;
-    else
-        draw_color = dark_color;
+    // Border frame
+    if (IsShowBorder())
+    {
+        // Default button: draw a rectangle around it (UNUSED in practice)
+        if (_flags & kGUICtrl_Default)
+        {
+            const color_t def_frame_color = ds->GetCompatibleColor(16);
+            ds->DrawRect(RectWH(x - 1, y - 1, _width + 2, _height + 2), def_frame_color);
+        }
 
-    ds->DrawLine(Line(x, y + _height - 1, x + _width - 1, y + _height - 1), draw_color);
-    ds->DrawLine(Line(x + _width - 1, y, x + _width - 1, y + _height - 1), draw_color);
+        // A composite border with a shadow, for pseudo-3D effect
+        color_t draw_color;
+        if (!draw_disabled && _isMouseOver && _isPushed)
+            draw_color = light_color;
+        else
+            draw_color = dark_color;
 
-    if (draw_disabled || (_isMouseOver && _isPushed))
-        draw_color = dark_color;
-    else
-        draw_color = light_color;
+        for (int i = 0; i < _borderWidth; ++i)
+        {
+            ds->DrawLine(Line(x + i, y + _height - 1 - i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+            ds->DrawLine(Line(x + _width - 1 - i, y + i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+        }
 
-    ds->DrawLine(Line(x, y, x + _width - 1, y), draw_color);
-    ds->DrawLine(Line(x, y, x, y + _height - 1), draw_color);
+        if (draw_disabled || (_isMouseOver && _isPushed))
+            draw_color = dark_color;
+        else
+            draw_color = light_color;
+
+        for (int i = 0; i < _borderWidth; ++i)
+        {
+            ds->DrawLine(Line(x + i, y + i, x + _width - 1 - i, y + i), draw_color);
+            ds->DrawLine(Line(x + i, y + i, x + i, y + _height - 1 - i), draw_color);
+        }
+    }
 
     DrawText(ds, x, y, draw_disabled);
 }

@@ -57,6 +57,8 @@ namespace AGS.Editor
         public static readonly int GUIF_CLIP = (int)Factory.NativeProxy.GetNativeConstant("GUIF_CLIP");
         public static readonly int GUIF_TRANSLATED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_TRANSLATED");
         public static readonly int GUIF_WRAPTEXT = (int)Factory.NativeProxy.GetNativeConstant("GUIF_WRAPTEXT");
+        public static readonly int GUIF_SHOWBORDER = (int)Factory.NativeProxy.GetNativeConstant("GUIF_SHOWBORDER");
+        public static readonly int GUIF_SOLIDBACK = (int)Factory.NativeProxy.GetNativeConstant("GUIF_SOLIDBACK");
         public static readonly int GLF_SHOWBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_SHOWBORDER");
         public static readonly int GLF_SHOWARROWS = (int)Factory.NativeProxy.GetNativeConstant("GLF_SHOWARROWS");
         public static readonly int GUI_POPUP_MODAL = (int)Factory.NativeProxy.GetNativeConstant("GUI_POPUP_MODAL");

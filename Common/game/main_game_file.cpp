@@ -852,6 +852,42 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
     return HError::None();
 }
 
+void ReadGUIControlExtLooks_363(GUIObject &obj, Stream *in)
+{
+    obj.SetBackColor(in->ReadInt32());
+    obj.SetBorderColor(in->ReadInt32());
+    obj.SetBorderWidth(in->ReadInt32());
+    obj.SetPaddingX(in->ReadInt32());
+    obj.SetPaddingY(in->ReadInt32());
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+}
+
+void ReadGUIButtonExtLooks_363(GUIButton &btn, Stream *in)
+{
+    ReadGUIControlExtLooks_363(btn, in);
+
+    btn.SetShadowColor(in->ReadInt32());
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+}
+
+void ReadGUISliderExtLooks_363(GUISlider &sld, Stream *in)
+{
+    ReadGUIControlExtLooks_363(sld, in);
+
+    sld.SetHandleColor(in->ReadInt32());
+    sld.SetShadowColor(in->ReadInt32());
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+}
+
 HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
     soff_t /*block_len*/, bool &read_next)
 {
@@ -985,6 +1021,50 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         _ents.Dialogs.resize(dialog_count);
         for (auto &dlg : _ents.Dialogs)
             dlg.ReadFromFile_v363(in);
+    }
+    else if (ext_id.CompareNoCase("v363_guictrls") == 0)
+    {
+        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+            return err;
+        for (GUIButton &but : _ents.GuiControls.Buttons)
+        {
+            ReadGUIButtonExtLooks_363(but, in);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.GuiControls.Labels.size()), err))
+            return err;
+        for (GUILabel &label : _ents.GuiControls.Labels)
+        {
+            ReadGUIControlExtLooks_363(label, in);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.GuiControls.InvWindows.size()), err))
+            return err;
+        for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
+        {
+            ReadGUIControlExtLooks_363(invw, in);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.GuiControls.Sliders.size()), err))
+            return err;
+        for (GUISlider &slider : _ents.GuiControls.Sliders)
+        {
+            ReadGUISliderExtLooks_363(slider, in);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.GuiControls.TextBoxes.size()), err))
+            return err;
+        for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
+        {
+            ReadGUIControlExtLooks_363(textbox, in);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.GuiControls.ListBoxes.size()), err))
+            return err;
+        for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
+        {
+            ReadGUIControlExtLooks_363(listbox, in);
+        }
     }
     else
     {

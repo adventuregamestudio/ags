@@ -213,11 +213,11 @@ void ListBox_SetFont(GUIListBox *listbox, int newfont) {
 }
 
 bool ListBox_GetShowBorder(GUIListBox *listbox) {
-    return listbox->IsBorderShown();
+    return listbox->IsShowBorder();
 }
 
 void ListBox_SetShowBorder(GUIListBox *listbox, bool newValue) {
-    if (listbox->IsBorderShown() != newValue)
+    if (listbox->IsShowBorder() != newValue)
     {
         listbox->SetShowBorder(newValue);
     }

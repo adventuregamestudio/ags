@@ -151,7 +151,7 @@ int GUILabel::PrepareTextToDraw()
     return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, _font, _width);
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
     _textToDraw = _text;
     bool reverse = false;
@@ -163,6 +163,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
+    color_t text_color = ds->GetCompatibleColor(_textColor);
     Line tpos = GUI::CalcTextPositionHor(_textToDraw, _font,
         x + _paddingX, x + _width - 1 - _paddingX, y + _paddingY,
         reverse ? kAlignTopRight : kAlignTopLeft);
@@ -189,7 +190,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _width - _textPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _width - _paddingX * 2);
     }
     else
     {

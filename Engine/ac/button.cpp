@@ -322,22 +322,22 @@ void Button_SetWrapText(GUIButton *butt, bool wrap)
 
 int Button_GetTextPaddingHorizontal(GUIButton *butt)
 {
-    return butt->GetTextPaddingHor();
+    return butt->GetPaddingX();
 }
 
 void Button_SetTextPaddingHorizontal(GUIButton *butt, int pad)
 {
-    butt->SetTextPaddingHor(pad);
+    butt->SetPaddingX(pad);
 }
 
 int Button_GetTextPaddingVertical(GUIButton *butt)
 {
-    return butt->GetTextPaddingVer();
+    return butt->GetPaddingY();
 }
 
 void Button_SetTextPaddingVertical(GUIButton *butt, int pad)
 {
-    butt->SetTextPaddingVer(pad);
+    butt->SetPaddingY(pad);
 }
 
 //=============================================================================

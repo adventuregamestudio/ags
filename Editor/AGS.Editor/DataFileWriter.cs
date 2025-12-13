@@ -1017,6 +1017,16 @@ namespace AGS.Editor
                     }
                 }
 
+                public int ShadowColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.ShadowColor;
+                        return 0;
+                    }
+                }
+
                 public int TextColor
                 {
                     get
@@ -1137,7 +1147,9 @@ namespace AGS.Editor
                 return (control.Clickable ? NativeConstants.GUIF_CLICKABLE : 0) |
                     (control.Enabled ? NativeConstants.GUIF_ENABLED : 0) |
                     (control.Visible ? NativeConstants.GUIF_VISIBLE : 0) |
-                    (control.Translated ? NativeConstants.GUIF_TRANSLATED : 0)
+                    (control.Translated ? NativeConstants.GUIF_TRANSLATED : 0) |
+                    (control.SolidBackground ? NativeConstants.GUIF_SOLIDBACK : 0) |
+                    (control.ShowBorder ? NativeConstants.GUIF_SHOWBORDER : 0)
                     ;
                 ;
             }
@@ -1792,9 +1804,9 @@ namespace AGS.Editor
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
-            WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
             WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
             WriteExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
+            WriteExtension("v363_guictrls", WriteExt_363GUIControls, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1945,18 +1957,6 @@ namespace AGS.Editor
             }
         }
 
-        private static void WriteExt_362GUIControls(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
-        {
-            writer.Write(ents.GUIControls.GUIButtons.Count);
-            foreach (var button in ents.GUIControls.GUIButtons)
-            {
-                writer.Write(button.TextPaddingHorizontal);
-                writer.Write(button.TextPaddingVertical);
-                writer.Write((int)0); // reserved
-                writer.Write((int)0);
-            }
-        }
-
         private static void WriteExt_363GameInfo(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
             var gameinfo = new Dictionary<string, string>();
@@ -2005,6 +2005,66 @@ namespace AGS.Editor
                     writer.Write((int)0);
                     writer.Write((int)0);
                 }
+            }
+        }
+
+        private static void Write_GUIControlLooksExt_363(GUIControl control, BinaryWriter writer)
+        {
+            writer.Write(control.BackgroundColor);
+            writer.Write(control.BorderColor);
+            writer.Write(control.BorderWidth);
+            writer.Write(control.PaddingX);
+            writer.Write(control.PaddingY);
+            writer.Write((int)0); // reserved
+            writer.Write((int)0);
+            writer.Write((int)0);
+            writer.Write((int)0);
+        }
+
+        private static void WriteExt_363GUIControls(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.GUIControls.GUIButtons.Count);
+            foreach (var button in ents.GUIControls.GUIButtons)
+            {
+                Write_GUIControlLooksExt_363(button, writer);
+                // Button's own properties
+                writer.Write(button.ShadowColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+            writer.Write(ents.GUIControls.GUILabels.Count);
+            foreach (var label in ents.GUIControls.GUILabels)
+            {
+                Write_GUIControlLooksExt_363(label, writer);
+            }
+            writer.Write(ents.GUIControls.GUIInvWindows.Count);
+            foreach (var invwindow in ents.GUIControls.GUIInvWindows)
+            {
+                Write_GUIControlLooksExt_363(invwindow, writer);
+            }
+            writer.Write(ents.GUIControls.GUISliders.Count);
+            foreach (var slider in ents.GUIControls.GUISliders)
+            {
+                Write_GUIControlLooksExt_363(slider, writer);
+                // Slider's own properties
+                writer.Write(slider.HandleColor);
+                writer.Write(slider.ShadowColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+            writer.Write(ents.GUIControls.GUITextBoxes.Count);
+            foreach (var textbox in ents.GUIControls.GUITextBoxes)
+            {
+                Write_GUIControlLooksExt_363(textbox, writer);
+            }
+            writer.Write(ents.GUIControls.GUIListBoxes.Count);
+            foreach (var listbox in ents.GUIControls.GUIListBoxes)
+            {
+                Write_GUIControlLooksExt_363(listbox, writer);
             }
         }
 

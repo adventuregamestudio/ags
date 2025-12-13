@@ -853,6 +853,8 @@ namespace AGS
             if (name->Equals("GUIF_CLIP")) return (int)Common::kGUICtrl_Clip;
             if (name->Equals("GUIF_TRANSLATED")) return (int)Common::kGUICtrl_Translated;
             if (name->Equals("GUIF_WRAPTEXT")) return (int)Common::kGUICtrl_WrapText;
+            if (name->Equals("GUIF_SHOWBORDER")) return (int)Common::kGUICtrl_ShowBorder;
+            if (name->Equals("GUIF_SOLIDBACK")) return (int)Common::kGUICtrl_SolidBack;
             if (name->Equals("GLF_SHOWBORDER")) return (int)Common::kListBox_ShowBorder;
             if (name->Equals("GLF_SHOWARROWS")) return (int)Common::kListBox_ShowArrows;
             if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;

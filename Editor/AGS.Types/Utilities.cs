@@ -328,6 +328,30 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Converts a Color into a 32-bit integer value representing color in RGB format.
+        /// </summary>
+        public static int ColorToRGBInt32(Color color)
+        {
+            return (color.B) | (color.G << 8) | (color.R << 16);
+        }
+
+        /// <summary>
+        /// Converts a Color into a 32-bit integer value representing color in ARGB format.
+        /// </summary>
+        public static int ColorToARGBInt32(Color color)
+        {
+            return (color.B) | (color.G << 8) | (color.R << 16) | (color.A << 24);
+        }
+
+        /// <summary>
+        /// Converts a Color into a 32-bit integer value representing color in RGBA format.
+        /// </summary>
+        public static int ColorToRGBAInt32(Color color)
+        {
+            return (color.B << 8) | (color.G << 16) | (color.R << 24) | (color.A);
+        }
+
+        /// <summary>
         /// Converts ARGB to RGB color, with opaque alpha.
         /// </summary>
         public static Color ToRGB(this Color color)

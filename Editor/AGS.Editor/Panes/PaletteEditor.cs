@@ -21,6 +21,7 @@ namespace AGS.Editor
         private bool _noUpdates = false;
         private List<int> _selectedIndexes = new List<int>();
         private TabPage _colourFinder;
+        // Color restricted to the 16-bit range of RGB values
         private Color _currentColor = Color.Black;
 
         public PaletteEditor()
@@ -73,20 +74,17 @@ namespace AGS.Editor
 
         private void trackBarRed_Scroll(object sender, EventArgs e)
         {
-            ColourSlidersUpdated();
-            UpdateColorNumber();
+            UpdateColor(Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value), trackBarRed);
         }
 
         private void trackBarGreen_Scroll(object sender, EventArgs e)
         {
-            ColourSlidersUpdated();
-            UpdateColorNumber();
+            UpdateColor(Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value), trackBarGreen);
         }
 
         private void trackBarBlue_Scroll(object sender, EventArgs e)
         {
-            ColourSlidersUpdated();
-            UpdateColorNumber();
+            UpdateColor(Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value), trackBarBlue);
         }
 
         private void txtColourNumber_TextChanged(object sender, EventArgs e)
@@ -100,11 +98,15 @@ namespace AGS.Editor
                     newVal = 0;
                 }
 
-                Color newColor = AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(newVal);
-                trackBarRed.Value = newColor.R;
-                trackBarGreen.Value = newColor.G;
-                trackBarBlue.Value = newColor.B;
-                ColourSlidersUpdated();
+                UpdateColor(AGSEditor.Instance.ColorMapper.AgsColourNumberToColorDirect(newVal), txtColourNumber);
+            }
+        }
+
+        private void txtWebColor_TextChanged(object sender, EventArgs e)
+        {
+            if (!_noUpdates)
+            {
+                UpdateColor(AGS.Types.Utilities.ColorFromHTMLHex(txtWebColor.Text), txtWebColor);
             }
         }
 
@@ -116,15 +118,7 @@ namespace AGS.Editor
                 if (newColor.IsEmpty)
                     newColor = AGS.Types.Utilities.ColorFromSeparatedRGBA(txtRGBColor.Text, ';');
 
-                newColor = GetClampedColor(newColor);
-                _noUpdates = true;
-                txtRGBColor.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}";
-                _noUpdates = false;
-
-                trackBarRed.Value = newColor.R;
-                trackBarGreen.Value = newColor.G;
-                trackBarBlue.Value = newColor.B;
-                ColourSlidersUpdated();
+                UpdateColor(newColor, txtRGBColor);
             }
         }
 
@@ -134,37 +128,48 @@ namespace AGS.Editor
                 AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(color));
         }
 
-        private void ColourSlidersUpdated()
+        private void UpdateColor(Color color, Control ignoreControl = null)
         {
-            lblRedVal.Text = trackBarRed.Value.ToString();
-            lblGreenVal.Text = trackBarGreen.Value.ToString();
-            lblBlueVal.Text = trackBarBlue.Value.ToString();
-            // Ensure that we also display an honest clamped RGB values;
+            // Slider texts, first ones display a formal RGB selection
+            lblRedVal.Text = color.R.ToString();
+            lblGreenVal.Text = color.G.ToString();
+            lblBlueVal.Text = color.B.ToString();
+            // For the remaining fields we display an honest clamped RGB values;
             // we'd rather have users see an exact RGB which will be used in game,
             // than to display a desired RGB that is going to be "secretly" clamped at runtime.
-            Color rgb = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-            rgb = GetClampedColor(rgb);
-            _currentColor = rgb;
-            lblRedFinal.Text = string.Format($"({rgb.R})");
-            lblGreenFinal.Text = string.Format($"({rgb.G})");
-            lblBlueFinal.Text = string.Format($"({rgb.B})");
-            blockOfColour.Invalidate();
-        }
+            _currentColor = GetClampedColor(color);
+            lblRedFinal.Text = string.Format($"({_currentColor.R})");
+            lblGreenFinal.Text = string.Format($"({_currentColor.G})");
+            lblBlueFinal.Text = string.Format($"({_currentColor.B})");
 
-        private void UpdateColorNumber()
-        {
             _noUpdates = true;
-            int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(_currentColor);
-            txtColourNumber.Text = newValue.ToString();
-            txtRGBColor.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}";
+            if (ignoreControl != txtColourNumber)
+            {
+                int newValue = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(_currentColor);
+                txtColourNumber.Text = newValue.ToString();
+            }
+            if (ignoreControl != txtWebColor)
+            {
+                txtWebColor.Text = AGS.Types.Utilities.ColorToRGBInt32(_currentColor).ToString("X6");
+            }
+            if (ignoreControl != txtRGBColor)
+            {
+                txtRGBColor.Text = $"{_currentColor.R}, {_currentColor.G}, {_currentColor.B}";
+            }
+            if (ignoreControl != trackBarRed && ignoreControl != trackBarGreen && ignoreControl != trackBarBlue)
+            {
+                // Assign original (unclamped) color to the sliders
+                trackBarRed.Value = color.R;
+                trackBarGreen.Value = color.G;
+                trackBarBlue.Value = color.B;
+            }
             _noUpdates = false;
             blockOfColour.Invalidate();
         }
 
         private void blockOfColour_Paint(object sender, PaintEventArgs e)
         {
-            int colourVal = 0;
-            Int32.TryParse(txtColourNumber.Text, out colourVal);
+            int colourVal = AGSEditor.Instance.ColorMapper.ColorToAgsColourNumberDirect(_currentColor);
 
             IntPtr hdc = e.Graphics.GetHdc();
             Factory.NativeProxy.DrawBlockOfColour(hdc, 0, 0, blockOfColour.Width, blockOfColour.Height, colourVal);
@@ -413,11 +418,7 @@ namespace AGS.Editor
 			dialog.FullOpen = true;
 			if (dialog.ShowDialog() == DialogResult.OK)
 			{
-				trackBarRed.Value = dialog.Color.R;
-				trackBarGreen.Value = dialog.Color.G;
-				trackBarBlue.Value = dialog.Color.B;
-                ColourSlidersUpdated();
-				UpdateColorNumber();
+				UpdateColor(dialog.Color);
 			}
 			dialog.Dispose();
 		}

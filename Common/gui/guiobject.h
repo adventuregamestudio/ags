@@ -155,6 +155,10 @@ public:
     void            ClearChanged();
   
 protected:
+    // Reports that any of the basic colors have changed,
+    // to let child control handle this according to their needs
+    virtual void    OnColorsChanged();
+
     // Draws control frame box, using common border and background settings
     void            DrawControlFrame(Bitmap *ds, int x, int y);
 

@@ -25,20 +25,6 @@ namespace AGS
 namespace Common
 {
 
-enum GUIClickMouseButton
-{
-    kGUIClickLeft         = 0,
-    kGUIClickRight        = 1,
-    kNumGUIClicks
-};
-
-enum GUIClickAction
-{
-    kGUIAction_None       = 0,
-    kGUIAction_SetMode    = 1,
-    kGUIAction_RunScript  = 2,
-};
-
 enum LegacyButtonAlignment
 {
     kLegacyButtonAlign_TopCenter = 0,
@@ -62,6 +48,20 @@ enum GUIButtonPlaceholder
     kButtonPlace_InvItemAuto
 };
 
+enum GUIClickMouseButton
+{
+    kGUIClickLeft = 0,
+    kGUIClickRight = 1,
+    kNumGUIClicks
+};
+
+enum GUIClickAction
+{
+    kGUIAction_None = 0,
+    kGUIAction_SetMode = 1,
+    kGUIAction_RunScript = 2,
+};
+
 
 class GUIButton : public GUIObject
 {
@@ -73,12 +73,29 @@ public:
     GUIButton();
 
     // Properties
+    void SetButtonFlags(int flags);
     int  GetFont() const { return _font; }
     void SetFont(int font);
+    bool IsDynamicColors() const { return ((_buttonFlags & kButton_DynamicColors) != 0); }
+    void SetDynamicColors(bool on);
+    bool IsFlatStyle() const { return ((_buttonFlags & kButton_FlatStyle) != 0); }
+    void SetFlatStyle(bool on);
+    int  GetMouseOverBackColor() const { return _mouseOverBackColor; }
+    void SetMouseOverBackColor(int color);
+    int  GetPushedBackColor() const { return _pushedBackColor; }
+    void SetPushedBackColor(int color);
+    int  GetMouseOverBorderColor() const { return _mouseOverBorderColor; }
+    void SetMouseOverBorderColor(int color);
+    int  GetPushedBorderColor() const { return _pushedBorderColor; }
+    void SetPushedBorderColor(int color);
     int  GetShadowColor() const { return _shadowColor; }
     void SetShadowColor(int color);
     int  GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
+    int  GetMouseOverTextColor() const { return _mouseOverTextColor; }
+    void SetMouseOverTextColor(int color);
+    int  GetPushedTextColor() const { return _pushedTextColor; }
+    void SetPushedTextColor(int color);
     FrameAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(FrameAlignment align);
 
@@ -93,6 +110,14 @@ public:
     bool IsClippingImage() const;
     bool HasAction() const;
 
+    void SetClipImage(bool on);
+    void SetMouseOverImage(int image);
+    void SetNormalImage(int image);
+    void SetPushedImage(int image);
+    void SetImages(int normal, int over, int pushed);
+    void SetText(const String &text);
+    void SetWrapText(bool on);
+
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;
     void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
@@ -105,14 +130,6 @@ public:
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
-    void SetClipImage(bool on);
-    void SetCurrentImage(int image);
-    void SetMouseOverImage(int image);
-    void SetNormalImage(int image);
-    void SetPushedImage(int image);
-    void SetImages(int normal, int over, int pushed);
-    void SetText(const String &text);
-    void SetWrapText(bool on);
 
     // Events
     bool OnMouseDown() override;
@@ -127,20 +144,33 @@ public:
     void WriteToSavegame(Common::Stream *out) const override;
 
 private:
+    // Reports that any of the basic colors have changed;
+    // the button will update its current colors depending on its state
+    void OnColorsChanged() override;
+
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void PrepareTextToDraw();
-    // Update current image depending on the button's state
+    // Update current image and colors depending on the button's state
     void UpdateCurrentImage();
+    void SetCurrentImage(int image);
+    void SetCurrentColors(int bg_color, int border_color, int text_color);
 
     static const int EventCount = 1;
     static String EventNames[EventCount];
     static String EventArgs[EventCount];
 
-    int     _font = 0;
+    uint32_t _buttonFlags = 0u;
     color_t _shadowColor = 0;
     color_t _textColor = 0;
+    color_t _mouseOverBackColor = 0;
+    color_t _pushedBackColor = 0;
+    color_t _mouseOverBorderColor = 0;
+    color_t _pushedBorderColor = 0;
+    color_t _mouseOverTextColor = 0;
+    color_t _pushedTextColor = 0;
+    int     _font = 0;
     FrameAlignment _textAlignment = kAlignTopCenter;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
@@ -153,8 +183,12 @@ private:
     int     _image = -1;
     int     _mouseOverImage = -1;
     int     _pushedImage = -1;
-    // Active displayed image
+    // Active displayed image (depends on button state)
     int     _currentImage = -1;
+    // Active colors (depend on button state)
+    color_t _currentBgColor = 0;
+    color_t _currentBorderColor = 0;
+    color_t _currentTextColor = 0;
     // Text property set by user
     String  _text;
     // type of content placeholder, if any

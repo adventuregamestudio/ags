@@ -869,7 +869,14 @@ void ReadGUIButtonExtLooks_363(GUIButton &btn, Stream *in)
 {
     ReadGUIControlExtLooks_363(btn, in);
 
+    btn.SetButtonFlags(in->ReadInt32());
     btn.SetShadowColor(in->ReadInt32());
+    btn.SetMouseOverBackColor(in->ReadInt32());
+    btn.SetPushedBackColor(in->ReadInt32());
+    btn.SetMouseOverBorderColor(in->ReadInt32());
+    btn.SetPushedBorderColor(in->ReadInt32());
+    btn.SetMouseOverTextColor(in->ReadInt32());
+    btn.SetPushedTextColor(in->ReadInt32());
     in->ReadInt32(); // reserved
     in->ReadInt32();
     in->ReadInt32();

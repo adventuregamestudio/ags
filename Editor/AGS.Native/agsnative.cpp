@@ -2997,9 +2997,16 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUIButton nbut;
           nbut.SetShadowColor(button->ShadowColor);
           nbut.SetTextColor(button->TextColor);
+          nbut.SetMouseOverBackColor(button->MouseOverBackgroundColor);
+          nbut.SetPushedBackColor(button->PushedBackgroundColor);
+          nbut.SetMouseOverBorderColor(button->MouseOverBorderColor);
+          nbut.SetPushedBorderColor(button->PushedBorderColor);
+          nbut.SetMouseOverTextColor(button->MouseOverTextColor);
+          nbut.SetPushedTextColor(button->PushedTextColor);
+          nbut.SetDynamicColors(button->ColorStyle == ButtonColorStyle::Dynamic || button->ColorStyle == ButtonColorStyle::DynamicFlat);
+          nbut.SetFlatStyle(button->ColorStyle == ButtonColorStyle::DynamicFlat);
           nbut.SetFont(button->Font);
           nbut.SetNormalImage(button->Image);
-          nbut.SetCurrentImage(button->Image);
           nbut.SetMouseOverImage(button->MouseoverImage);
           nbut.SetPushedImage(button->PushedImage);
           nbut.SetTextAlignment((::FrameAlignment)button->TextAlignment);
@@ -3080,7 +3087,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUIButton nbut;
           nbut.SetNormalImage(textwindowedge->Image);
-          nbut.SetCurrentImage(textwindowedge->Image);
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());

@@ -70,6 +70,15 @@ GUIButton::GUIButton()
     _clickData[kGUIClickRight] = 0;
 }
 
+void GUIButton::SetButtonFlags(int flags)
+{
+    if (_buttonFlags != flags)
+    {
+        _buttonFlags = flags;
+        MarkChanged(); // TODO: only mark changed if flags control the looks
+    }
+}
+
 void GUIButton::SetFont(int font)
 {
     if (_font != font)
@@ -79,22 +88,64 @@ void GUIButton::SetFont(int font)
     }
 }
 
+void GUIButton::SetDynamicColors(bool on)
+{
+    _buttonFlags = (_buttonFlags & ~kButton_DynamicColors) | kButton_DynamicColors * on;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetFlatStyle(bool on)
+{
+    _buttonFlags = (_buttonFlags & ~kButton_FlatStyle) | kButton_FlatStyle * on;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetMouseOverBackColor(int color)
+{
+    _mouseOverBackColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetPushedBackColor(int color)
+{
+    _pushedBackColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetMouseOverBorderColor(int color)
+{
+    _mouseOverBorderColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetPushedBorderColor(int color)
+{
+    _pushedBorderColor = color;
+    UpdateCurrentImage();
+}
+
 void GUIButton::SetShadowColor(int color)
 {
-    if (_shadowColor != color)
-    {
-        _shadowColor = color;
-        MarkChanged();
-    }
+    _shadowColor = color;
+    MarkChanged();
 }
 
 void GUIButton::SetTextColor(int color)
 {
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
+    _textColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetMouseOverTextColor(int color)
+{
+    _mouseOverTextColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetPushedTextColor(int color)
+{
+    _pushedTextColor = color;
+    UpdateCurrentImage();
 }
 
 void GUIButton::SetTextAlignment(FrameAlignment align)
@@ -284,38 +335,20 @@ void GUIButton::SetClipImage(bool on)
         _flags &= ~kGUICtrl_Clip;
 }
 
-void GUIButton::SetCurrentImage(int image)
-{
-    if (_currentImage == image)
-        return;
-    
-    _currentImage = image;
-    MarkChanged();
-}
-
 void GUIButton::SetMouseOverImage(int image)
 {
-    if (_mouseOverImage == image)
-        return;
-
     _mouseOverImage = image;
     UpdateCurrentImage();
 }
 
 void GUIButton::SetNormalImage(int image)
 {
-    if (_image == image)
-        return;
-
     _image = image;
     UpdateCurrentImage();
 }
 
 void GUIButton::SetPushedImage(int image)
 {
-    if (_pushedImage == image)
-        return;
-
     _pushedImage = image;
     UpdateCurrentImage();
 }
@@ -399,9 +432,34 @@ void GUIButton::OnMouseUp()
     UpdateCurrentImage();
 }
 
+void GUIButton::SetCurrentImage(int image)
+{
+    if (_currentImage == image)
+        return;
+
+    _currentImage = image;
+    MarkChanged();
+}
+
+void GUIButton::SetCurrentColors(int bg_color, int border_color, int text_color)
+{
+    if (_currentBgColor == bg_color && _currentBorderColor == border_color && _currentTextColor == text_color)
+        return;
+
+    _currentBgColor = bg_color;
+    _currentBorderColor = border_color;
+    _currentTextColor = text_color;
+    MarkChanged();
+}
+
 void GUIButton::UpdateCurrentImage()
 {
     int new_image = _currentImage;
+    int new_bg_color = _currentBgColor;
+    int new_border_color = _currentBorderColor;
+    int new_text_color = _currentTextColor;
+    const bool is_dynamic_color = IsDynamicColors();
+    const bool is_flat_color = IsFlatStyle();
 
     if (_isPushed && (_pushedImage > 0))
     {
@@ -416,7 +474,27 @@ void GUIButton::UpdateCurrentImage()
         new_image = _image;
     }
 
+    if (_isPushed && is_dynamic_color)
+    {
+        new_bg_color = _pushedBackColor;
+        new_border_color = is_flat_color ? _pushedBorderColor : _borderColor;
+        new_text_color = _pushedTextColor;
+    }
+    else if (_isMouseOver && is_dynamic_color)
+    {
+        new_bg_color = _mouseOverBackColor;
+        new_border_color = is_flat_color ? _mouseOverBorderColor : _borderColor;
+        new_text_color = _mouseOverTextColor;
+    }
+    else
+    {
+        new_bg_color = _backgroundColor;
+        new_border_color = _borderColor;
+        new_text_color = _textColor;
+    }
+
     SetCurrentImage(new_image);
+    SetCurrentColors(new_bg_color, new_border_color, new_text_color);
 }
 
 void GUIButton::WriteToFile(Stream *out) const
@@ -480,7 +558,8 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (_textColor == 0)
         _textColor = 16;
-    _currentImage = _image;
+
+    UpdateCurrentImage();
 }
 
 void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -525,6 +604,11 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(_paddingY);
     out->WriteInt32(0); // reserve 2 ints
     out->WriteInt32(0);
+}
+
+void GUIButton::OnColorsChanged()
+{
+    UpdateCurrentImage();
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -592,13 +676,13 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
         // move the Text a bit while pushed
         frame = frame.MoveBy(frame, 1, 1);
     }
-    color_t text_color = ds->GetCompatibleColor(_textColor);
-    if (draw_disabled)
-        text_color = ds->GetCompatibleColor(8);
+    color_t text_color = draw_disabled ?
+        ds->GetCompatibleColor(8) :
+        ds->GetCompatibleColor(_currentTextColor);
 
     if (IsWrapText())
-        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font), text_color,
-            frame, _textAlignment);
+        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font),
+            text_color, frame, _textAlignment);
     else
         GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, frame, _textAlignment);
 }
@@ -611,10 +695,10 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // TODO: move the bw-compat default color selection to Upgrade GUI process.
     const color_t back_color =
         (GUI::GameGuiVersion < kGuiVersion_363)
-        ? ds->GetCompatibleColor(7) : ds->GetCompatibleColor(_backgroundColor);
+        ? ds->GetCompatibleColor(7) : ds->GetCompatibleColor(_currentBgColor);
     const color_t light_color =
         (GUI::GameGuiVersion < kGuiVersion_363)
-        ? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_borderColor);
+        ? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_currentBorderColor);
     const color_t dark_color =
         (GUI::GameGuiVersion < kGuiVersion_363)
         ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_shadowColor);
@@ -635,28 +719,39 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
             ds->DrawRect(RectWH(x - 1, y - 1, _width + 2, _height + 2), def_frame_color);
         }
 
-        // A composite border with a shadow, for pseudo-3D effect
-        color_t draw_color;
-        if (!draw_disabled && _isMouseOver && _isPushed)
-            draw_color = light_color;
-        else
-            draw_color = dark_color;
-
-        for (int i = 0; i < _borderWidth; ++i)
+        if (IsFlatStyle())
         {
-            ds->DrawLine(Line(x + i, y + _height - 1 - i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
-            ds->DrawLine(Line(x + _width - 1 - i, y + i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+            // Simple border with one color
+            for (int i = 0; i < _borderWidth; ++i)
+            {
+                ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), light_color);
+            }
         }
-
-        if (draw_disabled || (_isMouseOver && _isPushed))
-            draw_color = dark_color;
         else
-            draw_color = light_color;
-
-        for (int i = 0; i < _borderWidth; ++i)
         {
-            ds->DrawLine(Line(x + i, y + i, x + _width - 1 - i, y + i), draw_color);
-            ds->DrawLine(Line(x + i, y + i, x + i, y + _height - 1 - i), draw_color);
+            // A composite border with a shadow, for pseudo-3D effect
+            color_t draw_color;
+            if (!draw_disabled && _isMouseOver && _isPushed)
+                draw_color = light_color;
+            else
+                draw_color = dark_color;
+
+            for (int i = 0; i < _borderWidth; ++i)
+            {
+                ds->DrawLine(Line(x + i, y + _height - 1 - i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+                ds->DrawLine(Line(x + _width - 1 - i, y + i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+            }
+
+            if (draw_disabled || (_isMouseOver && _isPushed))
+                draw_color = dark_color;
+            else
+                draw_color = light_color;
+
+            for (int i = 0; i < _borderWidth; ++i)
+            {
+                ds->DrawLine(Line(x + i, y + i, x + _width - 1 - i, y + i), draw_color);
+                ds->DrawLine(Line(x + i, y + i, x + i, y + _height - 1 - i), draw_color);
+            }
         }
     }
 

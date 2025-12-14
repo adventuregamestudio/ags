@@ -184,7 +184,7 @@ void GUIObject::SetBackColor(int color)
     if (_backgroundColor != color)
     {
         _backgroundColor = color;
-        MarkChanged();
+        OnColorsChanged();
     }
 }
 
@@ -193,7 +193,7 @@ void GUIObject::SetBorderColor(int color)
     if (_borderColor != color)
     {
         _borderColor = color;
-        MarkChanged();
+        OnColorsChanged();
     }
 }
 
@@ -202,7 +202,7 @@ void GUIObject::SetBorderWidth(int border_width)
     if (_borderWidth != border_width)
     {
         _borderWidth = border_width;
-        MarkChanged();
+        OnColorsChanged();
     }
 }
 
@@ -227,6 +227,11 @@ void GUIObject::SetPaddingY(int pady)
 void GUIObject::SetActivated(bool on)
 {
     _isActivated = on;
+}
+
+void GUIObject::OnColorsChanged()
+{
+    MarkChanged();
 }
 
 void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)

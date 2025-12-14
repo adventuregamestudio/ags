@@ -1017,6 +1017,16 @@ namespace AGS.Editor
                     }
                 }
 
+                public ButtonColorStyle ColorStyle
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.ColorStyle;
+                        return 0;
+                    }
+                }
+
                 public int ShadowColor
                 {
                     get
@@ -1033,6 +1043,66 @@ namespace AGS.Editor
                     {
                         GUIButton button = (GUIButton)this;
                         if (button != null) return button.TextColor;
+                        return 0;
+                    }
+                }
+
+                public int MouseOverBackgroundColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.MouseOverBackgroundColor;
+                        return 0;
+                    }
+                }
+
+                public int PushedBackgroundColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.PushedBackgroundColor;
+                        return 0;
+                    }
+                }
+
+                public int MouseOverBorderColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.MouseOverBorderColor;
+                        return 0;
+                    }
+                }
+
+                public int PushedBorderColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.PushedBorderColor;
+                        return 0;
+                    }
+                }
+
+                public int MouseOverTextColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.MouseOverTextColor;
+                        return 0;
+                    }
+                }
+
+                public int PushedTextColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.PushedTextColor;
                         return 0;
                     }
                 }
@@ -1076,26 +1146,6 @@ namespace AGS.Editor
                         GUIButton button = (GUIButton)this;
                         if (button != null) return button.TextAlignment;
                         return FrameAlignment.TopCenter;
-                    }
-                }
-
-                public int TextPaddingHorizontal
-                {
-                    get
-                    {
-                        GUIButton button = (GUIButton)this;
-                        if (button != null) return button.TextPaddingHorizontal;
-                        return 0;
-                    }
-                }
-
-                public int TextPaddingVertical
-                {
-                    get
-                    {
-                        GUIButton button = (GUIButton)this;
-                        if (button != null) return button.TextPaddingVertical;
-                        return 0;
                     }
                 }
 
@@ -2028,7 +2078,18 @@ namespace AGS.Editor
             {
                 Write_GUIControlLooksExt_363(button, writer);
                 // Button's own properties
+                int butflags =
+                    ((button.ColorStyle == ButtonColorStyle.Dynamic || button.ColorStyle == ButtonColorStyle.DynamicFlat)
+                        ? NativeConstants.GBUTF_DYNAMICCOLORS : 0) |
+                    ((button.ColorStyle == ButtonColorStyle.DynamicFlat) ? NativeConstants.GBUTF_FLATSTYLE : 0);
+                writer.Write(butflags);
                 writer.Write(button.ShadowColor);
+                writer.Write(button.MouseOverBackgroundColor);
+                writer.Write(button.PushedBackgroundColor);
+                writer.Write(button.MouseOverBorderColor);
+                writer.Write(button.PushedBorderColor);
+                writer.Write(button.MouseOverTextColor);
+                writer.Write(button.PushedTextColor);
                 writer.Write((int)0); // reserved
                 writer.Write((int)0);
                 writer.Write((int)0);

@@ -153,6 +153,8 @@ public:
     void            ClearChanged();
   
 protected:
+    virtual void    OnColorsChanged();
+
     // Draws control frame box, using common border and background settings
     void            DrawControlFrame(Bitmap *ds, int x, int y);
 

@@ -170,6 +170,14 @@ enum GUIControlFlags
     kGUICtrl_OldFmtXorMask = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
 };
 
+enum GUIButtonFlags
+{
+    // Button colors (text, border, background) change depending on its state
+    kButton_DynamicColors   = 0x01,
+    // Flat (don't use shadow color)
+    kButton_FlatStyle       = 0x02
+};
+
 // Label macro flags, define which macros are present in the Label's Text
 enum GUILabelMacro
 {

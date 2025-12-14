@@ -2133,64 +2133,53 @@ namespace AGS.Editor
             }
         }
 
+        // Reserved for colour options
+        // flags + tint rgbs + light level
+        private static byte[] ReservedColorOptions = new byte[3 * 4];
+        // Reserved for transform options
+        // (see brief list in the engine)
+        private static byte[] ReservedTransformOptions = new byte[11 * 4];
+
+        private static void Write_GUIControlGfxExt_400(GUIControl control, BinaryWriter writer)
+        {
+            writer.Write(control.Transparency);
+            writer.Write((int)control.BlendMode);
+            writer.Write(ReservedColorOptions);
+            writer.Write(ReservedTransformOptions);
+        }
+
         // GUI controls extended graphic properties
         private static void WriteExt_400GUIControlGraphics(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
-            // Reserved for colour options
-            // flags + tint rgbs + light level
-            var reserve_color_options = new byte[3 * 4];
-            // Reserved for transform options
-            // (see brief list in the engine)
-            var reserve_transform_options = new byte[11 * 4];
-
             writer.Write(ents.GUIControls.GUIButtons.Count);
             foreach (var button in ents.GUIControls.GUIButtons)
             {
-                GUIControl control = button;
-                writer.Write(control.Transparency);
-                writer.Write((int)control.BlendMode);
-                writer.Write(reserve_color_options);
-                writer.Write(reserve_transform_options);
+                Write_GUIControlGfxExt_400(button, writer);
             }
             writer.Write(ents.GUIControls.GUILabels.Count);
             foreach (var label in ents.GUIControls.GUILabels)
             {
-                writer.Write(label.Transparency);
-                writer.Write((int)label.BlendMode);
-                writer.Write(reserve_color_options);
-                writer.Write(reserve_transform_options);
+                Write_GUIControlGfxExt_400(label, writer);
             }
             writer.Write(ents.GUIControls.GUIInvWindows.Count);
             foreach (var invw in ents.GUIControls.GUIInvWindows)
             {
-                writer.Write(invw.Transparency);
-                writer.Write((int)invw.BlendMode);
-                writer.Write(reserve_color_options);
-                writer.Write(reserve_transform_options);
+                Write_GUIControlGfxExt_400(invw, writer);
             }
             writer.Write(ents.GUIControls.GUISliders.Count);
             foreach (var slider in ents.GUIControls.GUISliders)
             {
-                writer.Write(slider.Transparency);
-                writer.Write((int)slider.BlendMode);
-                writer.Write(reserve_color_options);
-                writer.Write(reserve_transform_options);
+                Write_GUIControlGfxExt_400(slider, writer);
             }
             writer.Write(ents.GUIControls.GUITextBoxes.Count);
             foreach (var textbox in ents.GUIControls.GUITextBoxes)
             {
-                writer.Write(textbox.Transparency);
-                writer.Write((int)textbox.BlendMode);
-                writer.Write(reserve_color_options);
-                writer.Write(reserve_transform_options);
+                Write_GUIControlGfxExt_400(textbox, writer);
             }
             writer.Write(ents.GUIControls.GUIListBoxes.Count);
             foreach (var listbox in ents.GUIControls.GUIListBoxes)
             {
-                writer.Write(listbox.Transparency);
-                writer.Write((int)listbox.BlendMode);
-                writer.Write(reserve_color_options);
-                writer.Write(reserve_transform_options);
+                Write_GUIControlGfxExt_400(listbox, writer);
             }
         }
 

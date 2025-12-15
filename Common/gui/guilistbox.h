@@ -29,6 +29,7 @@ public:
     GUIListBox();
 
     // Properties
+    int  GetListBoxFlags() const { return _listBoxFlags; }
     int  GetFont() const { return _font; }
     void SetFont(int font);
     int  GetTextColor() const { return _textColor; }
@@ -88,6 +89,9 @@ public:
     void WriteToFile(Stream *out) const override;
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
+
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
 
 private:
     static const color_t DefaultTextColor = 0;

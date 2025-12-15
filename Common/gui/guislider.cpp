@@ -420,5 +420,15 @@ void GUISlider::WriteToSavegame(Stream *out) const
     out->WriteInt32(_value);
 }
 
+void GUISlider::SetDefaultLooksFor363()
+{
+    _flags |= kGUICtrl_SolidBack | kGUICtrl_ShowBorder;
+    _backgroundColor = 16;
+    _borderColor = 15;
+    _handleColor = 7;
+    _shadowColor = 8;
+    MarkChanged();
+}
+
 } // namespace Common
 } // namespace AGS

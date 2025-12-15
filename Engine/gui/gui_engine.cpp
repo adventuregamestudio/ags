@@ -164,7 +164,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
     }
 
     Line tpos = GUI::CalcTextPositionHor(_textToDraw, _font,
-        x + 1 + get_fixed_pixel_size(1), x + _width - 1, y + 1 + get_fixed_pixel_size(1),
+        x + _paddingX, x + _width - 1 - _paddingX, y + _paddingY,
         reverse ? kAlignTopRight : kAlignTopLeft);
     wouttext_outline(ds, tpos.X1, tpos.Y1, _font, text_color, _textToDraw.GetCStr());
 

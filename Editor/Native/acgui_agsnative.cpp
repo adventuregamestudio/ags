@@ -296,7 +296,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
     // print something fake so we can see what it looks like
     const int text_color = ds->GetCompatibleColor(_textColor);
-    wouttext_outline(ds, x + 2, y + 2, _font, text_color, "Text Box Contents");
+    wouttext_outline(ds, x + _paddingX, y + _paddingY, _font, text_color, "Text Box Contents");
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)

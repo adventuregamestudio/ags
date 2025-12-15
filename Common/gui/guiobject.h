@@ -141,6 +141,9 @@ public:
     virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
     virtual void    WriteToSavegame(Common::Stream *out) const;
 
+    // Upgrades the GUI control to default looks for 3.6.3
+    virtual void    SetDefaultLooksFor363() { /* do nothing */ }
+
     // Manually marks GUIObject as graphically changed
     // NOTE: this only matters if control's own graphic changes, but not its
     // logical (visible, clickable, etc) or visual (e.g. transparency) state.

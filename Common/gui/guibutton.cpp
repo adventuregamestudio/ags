@@ -606,6 +606,17 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(0);
 }
 
+void GUIButton::SetDefaultLooksFor363()
+{
+    _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
+    _backgroundColor = 7;
+    _borderColor = 15;
+    _shadowColor = 8;
+    _paddingX = 2;
+    _paddingY = 2;
+    UpdateCurrentImage();
+}
+
 void GUIButton::OnColorsChanged()
 {
     UpdateCurrentImage();

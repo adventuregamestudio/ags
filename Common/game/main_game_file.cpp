@@ -704,6 +704,27 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         for (auto &lbl : ents.GuiControls.Labels)
             lbl.SetTranslated(true); // always translated
     }
+
+    if (data_ver < kGameVersion_363_04)
+    {
+        // Set default color styles for gui controls
+        for (auto &btn : ents.GuiControls.Buttons)
+        {
+            btn.SetDefaultLooksFor363();
+        }
+        for (auto &lbox : ents.GuiControls.ListBoxes)
+        {
+            lbox.SetDefaultLooksFor363();
+        }
+        for (auto &sld : ents.GuiControls.Sliders)
+        {
+            sld.SetDefaultLooksFor363();
+        }
+        for (auto &tbox : ents.GuiControls.TextBoxes)
+        {
+            tbox.SetDefaultLooksFor363();
+        }
+    }
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)

@@ -606,5 +606,16 @@ void GUIListBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_selectedItem);
 }
 
+void GUIListBox::SetDefaultLooksFor363()
+{
+    if ((_listBoxFlags & kListBox_ShowBorder) != 0)
+        _flags |= kGUICtrl_ShowBorder;
+    _borderColor = _textColor;
+    _borderWidth = get_fixed_pixel_size(1);
+    _paddingX = _borderWidth + 1;
+    _paddingY = _borderWidth + 1;
+    MarkChanged();
+}
+
 } // namespace Common
 } // namespace AGS

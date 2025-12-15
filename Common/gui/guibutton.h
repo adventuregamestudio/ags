@@ -143,6 +143,9 @@ public:
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
 
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
+
 private:
     // Reports that any of the basic colors have changed;
     // the button will update its current colors depending on its state

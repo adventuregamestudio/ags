@@ -246,7 +246,6 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
 
     DrawControlFrame(ds, x, y);
 
-    const color_t draw_color = ds->GetCompatibleColor(_textColor);
     int right_hand_edge = (x + _width - 1);
 
     // update the _rowHeight and _visibleItemCount
@@ -257,6 +256,8 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
     bool scrollbar = (_items.size() > _visibleItemCount) && IsShowBorder() && AreArrowsShown();
     if (scrollbar)
     {
+        const color_t draw_color = ds->GetCompatibleColor(_borderColor);
+
         int xstrt, ystrt;
         ds->DrawRect(Rect(x + _width - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + _width) - get_fixed_pixel_size(7), y + _height), draw_color);
         ds->DrawRect(Rect(x + _width - get_fixed_pixel_size(7), y + _height / 2, x + _width, y + _height / 2 + (pixel_size - 1)), draw_color);
@@ -553,6 +554,11 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _textColor = in->ReadInt32();
     }
 
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
+
     // _items
     const uint32_t item_count = in->ReadInt32();
     _items.resize(item_count);
@@ -598,6 +604,16 @@ void GUIListBox::WriteToSavegame(Stream *out) const
             out->WriteInt16(_savedGameIndex[i]);
     out->WriteInt32(_topItem);
     out->WriteInt32(_selectedItem);
+}
+
+void GUIListBox::SetDefaultLooksFor363()
+{
+    if ((_listBoxFlags & kListBox_ShowBorder) != 0)
+        _flags |= kGUICtrl_ShowBorder;
+    _borderColor = _textColor;
+    _borderWidth = get_fixed_pixel_size(1);
+    _paddingX = _borderWidth + 1;
+    _paddingY = _borderWidth + 1;
 }
 
 } // namespace Common

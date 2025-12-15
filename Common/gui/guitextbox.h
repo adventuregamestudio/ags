@@ -29,6 +29,7 @@ public:
     GUITextBox();
 
     // Properties
+    int  GetTextBoxFlags() const { return _textBoxFlags; }
     int  GetFont() const { return _font; }
     void SetFont(int font);
     int  GetTextColor() const { return _textColor; }
@@ -54,6 +55,9 @@ public:
     void WriteToFile(Stream *out) const override;
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;
+
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
 
 private:
     static const uint32_t EventCount = 1;

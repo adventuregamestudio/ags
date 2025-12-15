@@ -710,27 +710,19 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         // Set default color styles for gui controls
         for (auto &btn : ents.GuiControls.Buttons)
         {
-            btn.SetSolidBackground(true);
-            btn.SetShowBorder(true);
-            btn.SetBackColor(7);
-            btn.SetBorderColor(15);
-            btn.SetShadowColor(8);
-            btn.SetPaddingX(2);
-            btn.SetPaddingY(2);
+            btn.SetDefaultLooksFor363();
         }
         for (auto &lbox : ents.GuiControls.ListBoxes)
         {
-            lbox.SetBorderColor(lbox.GetTextColor());
-            lbox.SetBorderWidth(get_fixed_pixel_size(1));
-            lbox.SetPaddingX(lbox.GetBorderWidth() + 1);
-            lbox.SetPaddingY(lbox.GetBorderWidth() + 1);
+            lbox.SetDefaultLooksFor363();
+        }
+        for (auto &sld : ents.GuiControls.Sliders)
+        {
+            sld.SetDefaultLooksFor363();
         }
         for (auto &tbox : ents.GuiControls.TextBoxes)
         {
-            tbox.SetBorderColor(tbox.GetTextColor());
-            tbox.SetBorderWidth(get_fixed_pixel_size(1));
-            tbox.SetPaddingX(tbox.GetBorderWidth() + 1);
-            tbox.SetPaddingY(tbox.GetBorderWidth() + 1);
+            tbox.SetDefaultLooksFor363();
         }
     }
 }

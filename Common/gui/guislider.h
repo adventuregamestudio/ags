@@ -72,6 +72,9 @@ public:
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;
 
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
+
 private:
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();

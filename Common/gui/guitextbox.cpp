@@ -199,6 +199,11 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
         _textBoxFlags = in->ReadInt32();
+
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const
@@ -208,6 +213,16 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textBoxFlags);
+}
+
+void GUITextBox::SetDefaultLooksFor363()
+{
+    if ((_textBoxFlags & kTextBox_ShowBorder) != 0)
+        _flags |= kGUICtrl_ShowBorder;
+    _borderColor = _textColor;
+    _borderWidth = get_fixed_pixel_size(1);
+    _paddingX = _borderWidth + 1;
+    _paddingY = _borderWidth + 1;
 }
 
 } // namespace Common

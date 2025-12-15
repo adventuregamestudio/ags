@@ -588,6 +588,17 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 3060304)
+            {
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl gc in gui.Controls)
+                    {
+                        SetDefaultColors(game, gc);
+                    }
+                }
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
@@ -625,6 +636,53 @@ namespace AGS.Editor
                 (!File.Exists("agsfnt" + fontNumber + ".ttf")))
             {
                 Resources.ResourceManager.CopyFileFromResourcesToDisk("AGSFNT" + fontNumber + ".WFN");
+            }
+        }
+
+        private static void SetDefaultColors(Game game, GUIControl control)
+        {
+            if (control is GUIButton)
+            {
+                GUIButton but = control as GUIButton;
+                but.SolidBackground = true;
+                but.ShowBorder = true;
+                but.BackgroundColor = 7;
+                but.BorderColor = 15;
+                but.ShadowColor = 8;
+                but.PaddingX = 2;
+                but.PaddingY = 2;
+            }
+            else if (control is GUIInventory)
+            {
+            }
+            else if (control is GUILabel)
+            {
+            }
+            else if (control is GUIListBox)
+            {
+                GUIListBox lbox = control as GUIListBox;
+                lbox.BorderColor = lbox.TextColor;
+                lbox.BorderWidth = game.IsHighResolution ? 2 : 1;
+                lbox.PaddingX = lbox.BorderWidth + 1;
+                lbox.PaddingY = lbox.BorderWidth + 1;
+            }
+            else if (control is GUISlider)
+            {
+                GUISlider slider = control as GUISlider;
+                slider.ShowBorder = true;
+                slider.SolidBackground = true;
+                slider.BackgroundColor = 16;
+                slider.BorderColor = 15;
+                slider.HandleColor = 7;
+                slider.ShadowColor = 8;
+            }
+            else if (control is GUITextBox)
+            {
+                GUITextBox tbox = control as GUITextBox;
+                tbox.BorderColor = tbox.TextColor;
+                tbox.BorderWidth = game.IsHighResolution ? 2 : 1;
+                tbox.PaddingX = tbox.BorderWidth + 1;
+                tbox.PaddingY = tbox.BorderWidth + 1;
             }
         }
 

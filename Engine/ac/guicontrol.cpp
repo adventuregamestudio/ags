@@ -202,6 +202,76 @@ void GUIControl_BringToFront(GUIObject *guio) {
   guis[guio->GetParentID()].BringControlToFront(guio->GetID());
 }
 
+int GUIControl_GetBackgroundColor(GUIObject *guio)
+{
+    return guio->GetBackColor();
+}
+
+void GUIControl_SetBackgroundColor(GUIObject *guio, int color)
+{
+    guio->SetBackColor(color);
+}
+
+int GUIControl_GetBorderColor(GUIObject *guio)
+{
+    return guio->GetBorderColor();
+}
+
+void GUIControl_SetBorderColor(GUIObject *guio, int color)
+{
+    guio->SetBorderColor(color);
+}
+
+int GUIControl_GetBorderWidth(GUIObject *guio)
+{
+    return guio->GetBorderWidth();
+}
+
+void GUIControl_SetBorderWidth(GUIObject *guio, int size)
+{
+    guio->SetBorderWidth(size);
+}
+
+int GUIControl_GetPaddingX(GUIObject *guio)
+{
+    return guio->GetPaddingX();
+}
+
+void GUIControl_SetPaddingX(GUIObject *guio, int padding)
+{
+    guio->SetPaddingX(padding);
+}
+
+int GUIControl_GetPaddingY(GUIObject *guio)
+{
+    return guio->GetPaddingY();
+}
+
+void GUIControl_SetPaddingY(GUIObject *guio, int padding)
+{
+    guio->SetPaddingY(padding);
+}
+
+bool GUIControl_GetShowBorder(GUIObject *guio)
+{
+    return guio->IsShowBorder();
+}
+
+void GUIControl_SetShowBorder(GUIObject *guio, bool on)
+{
+    guio->SetShowBorder(on);
+}
+
+bool GUIControl_GetSolidBackground(GUIObject *guio)
+{
+    return guio->IsSolidBackground();
+}
+
+void GUIControl_SetSolidBackground(GUIObject *guio, bool on)
+{
+    guio->SetSolidBackground(on);
+}
+
 int GUIControl_GetTransparency(GUIObject *guio) {
     return GfxDef::LegacyTrans255ToTrans100(guio->GetTransparency());
 }
@@ -422,6 +492,75 @@ RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScript
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetTransparency);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetBackgroundColor);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetBackgroundColor);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetBorderColor);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetBorderColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetBorderColor);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetBorderWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetBorderWidth);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetBorderWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetBorderWidth);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetPaddingX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetPaddingX);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetPaddingX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetPaddingX);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetPaddingY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetPaddingY);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetPaddingY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetPaddingY);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIObject, GUIControl_GetShowBorder);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetShowBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIObject, GUIControl_SetShowBorder);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetSolidBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIObject, GUIControl_GetSolidBackground);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetSolidBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIObject, GUIControl_SetSolidBackground);
+}
 
 
 void RegisterGUIControlAPI()
@@ -461,6 +600,21 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
         { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
+
+        { "GUIControl::get_BackgroundColor", API_FN_PAIR(GUIControl_GetBackgroundColor) },
+        { "GUIControl::set_BackgroundColor", API_FN_PAIR(GUIControl_SetBackgroundColor) },
+        { "GUIControl::get_BorderColor",  API_FN_PAIR(GUIControl_GetBorderColor) },
+        { "GUIControl::set_BorderColor",  API_FN_PAIR(GUIControl_SetBorderColor) },
+        { "GUIControl::get_BorderWidth",  API_FN_PAIR(GUIControl_GetBorderWidth) },
+        { "GUIControl::set_BorderWidth",  API_FN_PAIR(GUIControl_SetBorderWidth) },
+        { "GUIControl::get_PaddingX",     API_FN_PAIR(GUIControl_GetPaddingX) },
+        { "GUIControl::set_PaddingX",     API_FN_PAIR(GUIControl_SetPaddingX) },
+        { "GUIControl::get_PaddingY",     API_FN_PAIR(GUIControl_GetPaddingY) },
+        { "GUIControl::set_PaddingY",     API_FN_PAIR(GUIControl_SetPaddingY) },
+        { "GUIControl::get_ShowBorder",   API_FN_PAIR(GUIControl_GetShowBorder) },
+        { "GUIControl::set_ShowBorder",   API_FN_PAIR(GUIControl_SetShowBorder) },
+        { "GUIControl::get_SolidBackground",  API_FN_PAIR(GUIControl_GetSolidBackground) },
+        { "GUIControl::set_SolidBackground",  API_FN_PAIR(GUIControl_SetSolidBackground) },
     };
 
     ccAddExternalFunctions(guicontrol_api);

@@ -49,7 +49,6 @@ namespace AGS.Types
 
         [Description("Colour of the text")]
         [Category("Appearance")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         public int TextColor

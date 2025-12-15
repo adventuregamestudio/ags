@@ -79,7 +79,6 @@ namespace AGS.Types
 
         [Description("Colour of the text")]
         [Category("Appearance")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         public int TextColor
@@ -90,7 +89,6 @@ namespace AGS.Types
 
         [Description("Selected item's text colour")]
         [Category("Appearance")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         public int SelectedTextColor
@@ -101,7 +99,6 @@ namespace AGS.Types
 
         [Description("Selected item's background colour")]
         [Category("Appearance")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         public int SelectedBackgroundColor

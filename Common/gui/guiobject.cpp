@@ -325,10 +325,21 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_36023)
     {
         _transparency = in->ReadInt32();
-        in->ReadInt32(); // reserve 3 ints
+        // valid since kGuiSvgVersion_36304
+        _backgroundColor = in->ReadInt32();
+        _borderColor = in->ReadInt32();
+        _borderWidth = in->ReadInt32();
+    }
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _paddingX = in->ReadInt32();
+        _paddingY = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
         in->ReadInt32();
         in->ReadInt32();
     }
+    // NOTE: bw-compat frame properties have to be assigned by each control type separately
 }
 
 void GUIObject::WriteToSavegame(Stream *out) const
@@ -342,8 +353,16 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(_zOrder);
     // Dynamic state
     out->WriteBool(_isActivated != 0);
+    // kGuiSvgVersion_36023
     out->WriteInt32(_transparency);
-    out->WriteInt32(0); // reserve 3 ints
+    // valid since kGuiSvgVersion_36304
+    out->WriteInt32(_backgroundColor);
+    out->WriteInt32(_borderColor);
+    out->WriteInt32(_borderWidth);
+    out->WriteInt32(_paddingX);
+    out->WriteInt32(_paddingY);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
 }

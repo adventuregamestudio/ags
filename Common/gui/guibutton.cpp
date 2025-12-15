@@ -576,17 +576,43 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     // CHECKME: possibly this may be avoided, and currentimage updated according
     // to the button state after load
     _currentImage = in->ReadInt32();
+    int old_paddingx = 0, old_paddingy = 0;
     if (svg_ver >= kGuiSvgVersion_36202)
     {
-        _paddingX = in->ReadInt32();
-        _paddingY = in->ReadInt32();
-        in->ReadInt32(); // reserve 2 ints
+        old_paddingx = in->ReadInt32();
+        old_paddingy = in->ReadInt32();
+        // valid since kGuiSvgVersion_36304
+        _buttonFlags = in->ReadInt32();
+        _shadowColor = in->ReadInt32();
+    }
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _mouseOverBackColor = in->ReadInt32();
+        _pushedBackColor = in->ReadInt32();
+        _mouseOverBorderColor = in->ReadInt32();
+        _pushedBorderColor = in->ReadInt32();
+        _mouseOverTextColor = in->ReadInt32();
+        _pushedTextColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
         in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        SetDefaultLooksFor363();
+
+        if (svg_ver >= kGuiSvgVersion_36202)
+        {
+            _paddingX = old_paddingx;
+            _paddingY = old_paddingy;
+        }
     }
 
     // Update current state after reading
     _isPushed = false;
     _isMouseOver = false;
+    UpdateCurrentImage();
 }
 
 void GUIButton::WriteToSavegame(Stream *out) const
@@ -600,9 +626,22 @@ void GUIButton::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(GetText(), out);
     out->WriteInt32(_textAlignment);
     out->WriteInt32(_currentImage);
+    // kGuiSvgVersion_36202
     out->WriteInt32(_paddingX);
     out->WriteInt32(_paddingY);
-    out->WriteInt32(0); // reserve 2 ints
+    // valid since kGuiSvgVersion_36304
+    out->WriteInt32(_buttonFlags);
+    out->WriteInt32(_shadowColor);
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_mouseOverBackColor);
+    out->WriteInt32(_pushedBackColor);
+    out->WriteInt32(_mouseOverBorderColor);
+    out->WriteInt32(_pushedBorderColor);
+    out->WriteInt32(_mouseOverTextColor);
+    out->WriteInt32(_pushedTextColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     out->WriteInt32(0);
 }
 

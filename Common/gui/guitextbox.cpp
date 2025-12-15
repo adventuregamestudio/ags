@@ -199,6 +199,11 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
         _textBoxFlags = in->ReadInt32();
+
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const

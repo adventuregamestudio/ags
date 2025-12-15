@@ -399,6 +399,20 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _maxValue = in->ReadInt32();
     _value = in->ReadInt32();
 
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _handleColor = in->ReadInt32();
+        _shadowColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        SetDefaultLooksFor363();
+    }
+
     // Reset dynamic values
     _cachedBar = Rect();
     _cachedHandle = Rect();
@@ -418,6 +432,13 @@ void GUISlider::WriteToSavegame(Stream *out) const
     out->WriteInt32(_minValue);
     out->WriteInt32(_maxValue);
     out->WriteInt32(_value);
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_handleColor);
+    out->WriteInt32(_shadowColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 void GUISlider::SetDefaultLooksFor363()

@@ -559,6 +559,11 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _textColor = in->ReadInt32();
     }
 
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
+
     // _items
     const uint32_t item_count = in->ReadInt32();
     _items.resize(item_count);

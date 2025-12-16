@@ -1524,7 +1524,9 @@ builtin managed struct Overlay {
   import void SetSize(int width, int height);
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
-  /// Gets/sets whether this Overlay is visible.
+  /// Gets/sets a textual description of this overlay.
+  import attribute String Text;
+  /// Gets/sets whether this overlay is visible.
   import attribute bool Visible;
 #endif // #ifdef SCRIPT_API_v363
 };

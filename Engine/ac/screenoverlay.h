@@ -34,6 +34,7 @@
 #include "ac/dynobj/scriptoverlay.h"
 #include "core/types.h"
 #include "util/geometry.h"
+#include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; class Stream; } }
@@ -58,7 +59,8 @@ enum OverlaySvgVersion
     kOverSvgVersion_36008   = 2, // z, transparency
     kOverSvgVersion_36025   = 3, // merged options into flags
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
-    kOverSvgVersion_36303   = 3060303 // visible flag must be on by default
+    kOverSvgVersion_36303   = 3060303, // visible flag must be on by default
+    kOverSvgVersion_36304   = 3060304, // text property
 };
 
 class ScreenOverlay
@@ -97,6 +99,7 @@ public:
     int  GetSpriteNum() const { return _sprnum; }
     // Get this overlay's graphic's dimensions (unscaled)
     Size GetGraphicSize() const;
+    const Common::String &GetText() const { return _text; }
     int  GetTimeout() const { return _timeout; }
     int  GetCharacterRef() const { return _bgSpeechForChar; }
     int  GetScriptHandle() const { return _scriptHandle; }
@@ -118,6 +121,8 @@ public:
     void SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha = false, int offx = 0, int offy = 0);
     // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
+    // Sets this overlay's description
+    void SetText(const Common::String &text);
     // Assigns a role of background speech
     void SetAsBackgroundSpeech(int char_id, int timeout);
     // Creates a script object associated with this overlay;
@@ -175,6 +180,8 @@ private:
     int _transparency = 0;
     // Timeout for automatic removal, 0 means disabled
     int _timeout = 0;
+    // Optional textual description
+    Common::String _text;
     // Index of a Character whose background speech this overlay represents;
     // TODO: redesign this, store the overlay's reference in character instead,
     // overlay should not have such data as its member.

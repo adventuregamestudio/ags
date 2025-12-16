@@ -105,6 +105,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 
     // Update overlay properties
     over.SetImage(std::move(image), has_alpha, adj_x - dummy_x, adj_y - dummy_y);
+    over.SetText(text);
 }
 
 int Overlay_GetX(ScriptOverlay *scover)
@@ -287,6 +288,18 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 
 ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char* text) {
     return Overlay_CreateTextualImpl(true, x, y, width, font, colour, text);
+}
+
+const char *Overlay_GetTextProperty(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Text", scover);
+    return CreateNewScriptString(over->GetText());
+}
+
+void Overlay_SetTextProperty(ScriptOverlay *scover, const char *text)
+{
+    auto *over = GetOverlayValidate("Overlay.Text", scover);
+    over->SetText(text);
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)
@@ -672,6 +685,16 @@ RuntimeScriptValue Sc_Overlay_GetGraphicHeight(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicHeight);
 }
 
+RuntimeScriptValue Sc_Overlay_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptOverlay, const char, myScriptStringImpl, Overlay_GetTextProperty);
+}
+
+RuntimeScriptValue Sc_Overlay_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptOverlay, Overlay_SetTextProperty, const char);
+}
+
 RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
@@ -766,6 +789,8 @@ void RegisterOverlayAPI()
         { "Overlay::set_Height",          API_FN_PAIR(Overlay_SetHeight) },
         { "Overlay::get_GraphicWidth",    API_FN_PAIR(Overlay_GetGraphicWidth) },
         { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
+        { "Overlay::get_Text",            API_FN_PAIR(Overlay_GetTextProperty) },
+        { "Overlay::set_Text",            API_FN_PAIR(Overlay_SetTextProperty) },
         { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
         { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
         { "Overlay::get_Visible",         API_FN_PAIR(Overlay_GetVisible) },

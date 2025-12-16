@@ -494,6 +494,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     size_t nse = add_screen_overlay(roomlayer, xx, yy, over_id, std::move(text_window_ds),
         adjustedXX - xx, adjustedYY - yy, alphaChannel);
     auto *over = get_overlay(nse); // FIXME: optimize return value
+    over->SetText(text);
 
     // If it's a non-blocking overlay type, then we're done here
     if (disp_type == kDisplayText_NormalOverlay) {

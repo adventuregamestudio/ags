@@ -2033,13 +2033,13 @@ int has_hit_another_character(int sourceChar) {
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
 
-        if (is_char_in_blocking_rect(sourceChar, ww, nullptr, nullptr)) {
+        if (get_char_blocking_rect(ww).IsInside(game.chars[sourceChar].x, game.chars[sourceChar].y))
+        {
             // we are now overlapping character 'ww'
             if ((game.chars[ww].walking) && 
                 ((game.chars[ww].flags & CHF_AWAITINGMOVE) == 0))
                 return ww;
         }
-
     }
     return -1;
 }
@@ -2449,7 +2449,8 @@ int is_pos_on_character(int xx,int yy) {
     return lowestwas;
 }
 
-void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
+Rect get_char_blocking_rect(int charid)
+{
     CharacterInfo *char1 = &game.chars[charid];
     int cwidth, fromx;
 
@@ -2466,40 +2467,7 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
     if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
         cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
 
-    if (x1)
-        *x1 = fromx;
-    if (width)
-        *width = cwidth;
-    if (y1)
-        *y1 = char1->get_blocking_top();
-    if (y2)
-        *y2 = char1->get_blocking_bottom();
-}
-
-// Check whether the source char is standing inside otherChar's blocking rectangle
-int is_char_in_blocking_rect(int sourceChar, int otherChar, int *fromxptr, int *cwidptr)
-{
-    int fromx, cwidth;
-    int y1, y2;
-    get_char_blocking_rect(otherChar, &fromx, &y1, &cwidth, &y2);
-
-    if (fromxptr)
-        fromxptr[0] = fromx;
-    if (cwidptr)
-        cwidptr[0] = cwidth;
-
-    // if the character trying to move is already on top of
-    // this char somehow, allow them through
-    if ((sourceChar >= 0) &&
-        // x/width are left and width co-ords, so they need >= and <
-        (game.chars[sourceChar].x >= fromx) &&
-        (game.chars[sourceChar].x < fromx + cwidth) &&
-        // y1/y2 are the top/bottom co-ords, so they need >= / <=
-        (game.chars[sourceChar].y >= y1 ) &&
-        (game.chars[sourceChar].y <= y2 ))
-        return 1;
-
-    return 0;
+    return Rect(fromx, char1->get_blocking_top(), fromx + cwidth - 1, char1->get_blocking_bottom());
 }
 
 int my_getpixel(Bitmap *blk, int x, int y) {

@@ -563,7 +563,8 @@ void update_object_scale(int objid)
     obj.last_height = scale_height;
 }
 
-void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
+Rect get_object_blocking_rect(int objid)
+{
     RoomObject *tehobj = &objs[objid];
     int cwidth, fromx;
 
@@ -580,27 +581,18 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
     if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
         cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
 
-    if (x1)
-        *x1 = fromx;
-    if (width)
-        *width = cwidth;
-    if (y1) {
-        if (tehobj->blocking_height > 0)
-            *y1 = tehobj->y - tehobj->blocking_height / 2;
-        else
-            *y1 = tehobj->y - 2;
-    }
-    if (y2) {
-        if (tehobj->blocking_height > 0)
-            *y2 = tehobj->y + tehobj->blocking_height / 2;
-        else
-            *y2 = tehobj->y + 3;
-    }
-}
-
-int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
-    if ((mmx>=lf) & (mmx<=rt) & (mmy>=tp) & (mmy<=bt)) return TRUE;
-    else return FALSE;
+    int x1 = fromx;
+    int width = cwidth;
+    int y1, y2;
+    if (tehobj->blocking_height > 0)
+        y1 = tehobj->y - tehobj->blocking_height / 2;
+    else
+        y1 = tehobj->y - 2;
+    if (tehobj->blocking_height > 0)
+        y2 = tehobj->y + tehobj->blocking_height / 2;
+    else
+        y2 = tehobj->y + 3;
+    return RectWH(x1, y1, width, y2 - y1);
 }
 
 // xx,yy is the position in room co-ordinates that we are checking
@@ -611,8 +603,8 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
     if (spww==0) spww = game_to_data_coord(sprit->GetWidth()) - 1;
     if (sphh==0) sphh = game_to_data_coord(sprit->GetHeight()) - 1;
 
-    if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
-        return FALSE;
+    if (!RectWH(arx, ary, spww, sphh).IsInside(xx, yy))
+        return false;
 
     if (game.options[OPT_PIXPERFECT]) 
     {

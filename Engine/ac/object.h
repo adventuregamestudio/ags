@@ -22,6 +22,7 @@
 
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptobject.h"
+#include "util/geometry.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -88,8 +89,7 @@ void    update_object_scale(int objid);
 void    update_object_scale(int &res_zoom, int &res_width, int &res_height,
             int objx, int objy, int sprnum, int own_zoom, bool use_region_scaling);
 void    move_object(int objj,int tox,int toy,int spee,int ignwal);
-void    get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2);
-int     isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt);
+Rect    get_object_blocking_rect(int objid);
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary,spww,sphh are the sprite's bounding box (including sprite scaling);
 // bitmap_original tells whether bitmap is an original sprite, or transformed version

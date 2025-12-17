@@ -118,9 +118,11 @@ void GUISlider::UpdateMetrics()
         handle_range = _width - 4;
         int value_pos = (int)(((float)(Value - MinValue) * (float)handle_range) / (float)(MaxValue - MinValue));
         handle = RectWH((bar.Left + get_fixed_pixel_size(2)) - (handle_sz.Width / 2) + 1 + value_pos - 2,
-            bar.Top + (bar.GetHeight() - 1 - handle_sz.Height) / 2 + get_fixed_pixel_size(1),
+            bar.Top + (bar.GetHeight() - 1 - handle_sz.Height) / 2,
             handle_sz.Width, handle_sz.Height);
-        handle.MoveToY(handle.Top + data_to_game_coord(HandleOffset));
+        handle = Rect::MoveBy(handle, 0, data_to_game_coord(HandleOffset)
+            // Backwards-compatibility: handle graphic had extra 1 pixel offset (2 in hires games)
+            + ((handle_im > 0) ? get_fixed_pixel_size(1) : 0));
     }
     // vertical slider
     else
@@ -128,10 +130,13 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
         handle_range = _height - 4;
         int value_pos = (int)(((float)(MaxValue - Value) * (float)handle_range) / (float)(MaxValue - MinValue));
-        handle = RectWH(bar.Left + (bar.GetWidth() - 1 - handle_sz.Width) / 2 + get_fixed_pixel_size(1),
+        handle = RectWH(bar.Left + (bar.GetWidth() - 1 - handle_sz.Width) / 2,
             (bar.Top + get_fixed_pixel_size(2)) - (handle_sz.Height / 2) + 1 + value_pos - 2,
             handle_sz.Width, handle_sz.Height);
-        handle.MoveToX(handle.Left + data_to_game_coord(HandleOffset));
+        handle = Rect::MoveBy(handle, data_to_game_coord(HandleOffset)
+            // Backwards-compatibility: handle graphic had extra 1 pixel offset (2 in hires games)
+            + ((handle_im > 0) ? get_fixed_pixel_size(1) : 0)
+            , 0);
     }
 
     _cachedBar = bar;

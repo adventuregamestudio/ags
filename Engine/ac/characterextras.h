@@ -59,6 +59,8 @@ struct CharacterExtras
     int   following = -1; // whom do we follow (character id)
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction
+    int   blocking_x = 0; // relative offset of the blocking rect
+    int   blocking_y = 0;
 
     // Following fields are deriatives of the above (calculated from these
     // and other factors), and hence are not serialized.

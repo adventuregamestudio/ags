@@ -425,6 +425,22 @@ int Object_GetBlockingHeight(ScriptObject *objj) {
     return objs[objj->id].blocking_height;
 }
 
+int Object_GetBlockingRectX(ScriptObject *objj) {
+    return objs[objj->id].blocking_x;
+}
+
+void Object_SetBlockingRectX(ScriptObject *objj, int x) {
+    objs[objj->id].blocking_x = x;
+}
+
+int Object_GetBlockingRectY(ScriptObject *objj) {
+    return objs[objj->id].blocking_y;
+}
+
+void Object_SetBlockingRectY(ScriptObject *objj, int y) {
+    objs[objj->id].blocking_y = y;
+}
+
 int Object_GetID(ScriptObject *objj) {
     return objj->id;
 }
@@ -566,23 +582,16 @@ void update_object_scale(int objid)
 Rect get_object_blocking_rect(int objid)
 {
     RoomObject *tehobj = &objs[objid];
-    int cwidth, fromx;
 
+    int width;
     if (tehobj->blocking_width < 1)
-        cwidth = game_to_data_coord(tehobj->last_width) - 4;
+        width = game_to_data_coord(tehobj->last_width) - 4;
     else
-        cwidth = tehobj->blocking_width;
+        width = tehobj->blocking_width;
 
-    fromx = tehobj->x + (game_to_data_coord(tehobj->last_width) / 2) - cwidth / 2;
-    if (fromx < 0) {
-        cwidth += fromx;
-        fromx = 0;
-    }
-    if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
-        cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
+    int x = tehobj->x + (game_to_data_coord(tehobj->last_width) / 2) - width / 2
+        + tehobj->blocking_x;
 
-    int x1 = fromx;
-    int width = cwidth;
     int y1, y2;
     if (tehobj->blocking_height > 0)
         y1 = tehobj->y - tehobj->blocking_height / 2;
@@ -592,7 +601,10 @@ Rect get_object_blocking_rect(int objid)
         y2 = tehobj->y + tehobj->blocking_height / 2;
     else
         y2 = tehobj->y + 3;
-    return RectWH(x1, y1, width, y2 - y1);
+    y1 += tehobj->blocking_y;
+    y2 += tehobj->blocking_y;
+
+    return RectWH(x, y1, width, y2 - y1);
 }
 
 // xx,yy is the position in room co-ordinates that we are checking
@@ -1058,6 +1070,26 @@ RuntimeScriptValue Sc_Object_SetBlockingWidth(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingWidth);
 }
 
+RuntimeScriptValue Sc_Object_GetBlockingRectX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingRectX);
+}
+
+RuntimeScriptValue Sc_Object_SetBlockingRectX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingRectX);
+}
+
+RuntimeScriptValue Sc_Object_GetBlockingRectY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingRectY);
+}
+
+RuntimeScriptValue Sc_Object_SetBlockingRectY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingRectY);
+}
+
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1277,6 +1309,10 @@ void RegisterObjectAPI()
         { "Object::set_BlockingHeight",       API_FN_PAIR(Object_SetBlockingHeight) },
         { "Object::get_BlockingWidth",        API_FN_PAIR(Object_GetBlockingWidth) },
         { "Object::set_BlockingWidth",        API_FN_PAIR(Object_SetBlockingWidth) },
+        { "Object::get_BlockingRectX",        API_FN_PAIR(Object_GetBlockingRectX) },
+        { "Object::set_BlockingRectX",        API_FN_PAIR(Object_SetBlockingRectX) },
+        { "Object::get_BlockingRectY",        API_FN_PAIR(Object_GetBlockingRectY) },
+        { "Object::set_BlockingRectY",        API_FN_PAIR(Object_SetBlockingRectY) },
         { "Object::get_Clickable",            API_FN_PAIR(Object_GetClickable) },
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
         { "Object::get_DestinationX",         API_FN_PAIR(Object_GetDestinationX) },

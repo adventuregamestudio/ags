@@ -2800,6 +2800,12 @@ builtin managed struct Object {
   /// Gets the Y coordinate of the object's final moving destination; or current position if object is not moving.
   readonly import attribute int DestinationY;
 #endif
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the relative x offset of a blocking area of the object.
+  import attribute int  BlockingRectX;
+  /// Gets/sets the relative y offset of a blocking area of the object.
+  import attribute int  BlockingRectY;
+#endif // SCRIPT_API_v363
 
   int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -3073,6 +3079,12 @@ builtin managed struct Character {
   /// Gets the character this character is following
   readonly import attribute Character* Following;
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the relative x offset of a blocking area of the character.
+  import attribute int  BlockingRectX;
+  /// Gets/sets the relative y offset of a blocking area of the character.
+  import attribute int  BlockingRectY;
+#endif // SCRIPT_API_v363
 #ifdef STRICT
   /// The character's current X-position.
   import attribute int  x;

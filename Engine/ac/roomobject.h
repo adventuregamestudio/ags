@@ -43,21 +43,21 @@ struct RoomObject {
 
     int   x,y;
     int   transparent;    // current transparency setting
-    short tint_r, tint_g;   // specific object tint
-    short tint_b, tint_level;
-    short tint_light;
-    short zoom;           // zoom level, either manual or from the current area
-    short last_width, last_height;   // width/height based on a scaled sprite
+    int16_t tint_r, tint_g;   // specific object tint
+    int16_t tint_b, tint_level;
+    int16_t tint_light;
+    int16_t zoom;           // zoom level, either manual or from the current area
+    int16_t last_width, last_height;   // width/height based on a scaled sprite
     uint16_t num;            // sprite slot number
-    short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
+    int16_t baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
     uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
-    short wait,moving;
-    char  cycling;        // stores OBJANIM_* flags and values
-    char  overall_speed;  // animation delay
-    char  on;
-    char  flags;
-    // Down to here is a part of the plugin API
-    short blocking_width, blocking_height;
+    int16_t wait,moving;
+    int8_t  cycling;        // stores OBJANIM_* flags and values
+    int8_t  overall_speed;  // animation delay
+    int8_t  on;
+    int8_t  flags;
+    // -- up from here is a part of the plugin API
+    int16_t blocking_width = 0, blocking_height = 0, blocking_x = 0, blocking_y = 0;
     int   anim_volume = 100; // default animation volume (relative factor)
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     Common::String name;

@@ -140,12 +140,29 @@ void RoomObject::ReadFromSavegame(Stream *in, int save_ver)
     {
         name = StrUtil::ReadString(in);
     }
+
     if (save_ver >= kRoomStatSvgVersion_36025)
     { // anim vols order inverted compared to character, by mistake :(
         cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
         anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
+    }
+    else
+    {
+        cur_anim_volume = 100;
+        anim_volume = 100;
+    }
+
+    if (save_ver >= kRoomStatSvgVersion_36304)
+    {
+        blocking_x = in->ReadInt16();
+        blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        blocking_x = 0;
+        blocking_y = 0;
     }
 }
 
@@ -175,9 +192,14 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt8(flags);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
+    // kRoomStatSvgVersion_36016
     StrUtil::WriteString(name, out);
+    // kRoomStatSvgVersion_36025
     out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
     out->WriteInt8(static_cast<uint8_t>(anim_volume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
+    // kRoomStatSvgVersion_36304
+    out->WriteInt16(blocking_x);
+    out->WriteInt16(blocking_y);
 }

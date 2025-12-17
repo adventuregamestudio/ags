@@ -1301,8 +1301,8 @@ void Character_SetBlinkWhileThinking(CharacterInfo *chaa, int yesOrNo) {
         chaa->flags |= CHF_NOBLINKANDTHINK;
 }
 
-int Character_GetBlockingHeight(CharacterInfo *chaa) {
-
+int Character_GetBlockingHeight(CharacterInfo *chaa)
+{
     return chaa->blocking_height;
 }
 
@@ -1311,14 +1311,34 @@ void Character_SetBlockingHeight(CharacterInfo *chaa, int hit) {
     chaa->blocking_height = hit;
 }
 
-int Character_GetBlockingWidth(CharacterInfo *chaa) {
-
+int Character_GetBlockingWidth(CharacterInfo *chaa)
+{
     return chaa->blocking_width;
 }
 
-void Character_SetBlockingWidth(CharacterInfo *chaa, int wid) {
-
+void Character_SetBlockingWidth(CharacterInfo *chaa, int wid)
+{
     chaa->blocking_width = wid;
+}
+
+int Character_GetBlockingRectX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].blocking_x;
+}
+
+void Character_SetBlockingRectX(CharacterInfo *chaa, int x)
+{
+    charextra[chaa->index_id].blocking_x = x;
+}
+
+int Character_GetBlockingRectY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].blocking_y;
+}
+
+void Character_SetBlockingRectY(CharacterInfo *chaa, int y)
+{
+    charextra[chaa->index_id].blocking_y = y;
 }
 
 int Character_GetDiagonalWalking(CharacterInfo *chaa) {
@@ -2451,23 +2471,19 @@ int is_pos_on_character(int xx,int yy) {
 
 Rect get_char_blocking_rect(int charid)
 {
-    CharacterInfo *char1 = &game.chars[charid];
-    int cwidth, fromx;
+    CharacterInfo *chi = &game.chars[charid];
 
-    if (char1->blocking_width < 1)
-        cwidth = game_to_data_coord(GetCharacterWidth(charid)) - 4;
+    int width;
+    if (chi->blocking_width < 1)
+        width = game_to_data_coord(GetCharacterWidth(charid)) - 4;
     else
-        cwidth = char1->blocking_width;
+        width = chi->blocking_width;
 
-    fromx = char1->x - cwidth/2;
-    if (fromx < 0) {
-        cwidth += fromx;
-        fromx = 0;
-    }
-    if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
-        cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
+    int x = chi->x - width / 2 + charextra[chi->index_id].blocking_x;
+    int y1 = chi->get_blocking_top() + charextra[chi->index_id].blocking_y;
+    int y2 = chi->get_blocking_bottom() + charextra[chi->index_id].blocking_y;
 
-    return Rect(fromx, char1->get_blocking_top(), fromx + cwidth - 1, char1->get_blocking_bottom());
+    return Rect(x, y1, x + width - 1, y2);
 }
 
 int my_getpixel(Bitmap *blk, int x, int y) {
@@ -3628,6 +3644,26 @@ RuntimeScriptValue Sc_Character_SetBlockingWidth(void *self, const RuntimeScript
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlockingWidth);
 }
 
+RuntimeScriptValue Sc_Character_GetBlockingRectX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetBlockingRectX);
+}
+
+RuntimeScriptValue Sc_Character_SetBlockingRectX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlockingRectX);
+}
+
+RuntimeScriptValue Sc_Character_GetBlockingRectY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetBlockingRectY);
+}
+
+RuntimeScriptValue Sc_Character_SetBlockingRectY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlockingRectY);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4144,6 +4180,10 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::set_BlockingHeight",        API_FN_PAIR(Character_SetBlockingHeight) },
         { "Character::get_BlockingWidth",         API_FN_PAIR(Character_GetBlockingWidth) },
         { "Character::set_BlockingWidth",         API_FN_PAIR(Character_SetBlockingWidth) },
+        { "Character::get_BlockingRectX",         API_FN_PAIR(Character_GetBlockingRectX) },
+        { "Character::set_BlockingRectX",         API_FN_PAIR(Character_SetBlockingRectX) },
+        { "Character::get_BlockingRectY",         API_FN_PAIR(Character_GetBlockingRectY) },
+        { "Character::set_BlockingRectY",         API_FN_PAIR(Character_SetBlockingRectY) },
         { "Character::get_Clickable",             API_FN_PAIR(Character_GetClickable) },
         { "Character::set_Clickable",             API_FN_PAIR(Character_SetClickable) },
         { "Character::get_DestinationX",          API_FN_PAIR(Character_GetDestinationX) },

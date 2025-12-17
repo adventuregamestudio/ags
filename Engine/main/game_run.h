@@ -19,6 +19,7 @@
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 
 // Loops game frames until certain event takes place (for blocking actions)
+// FIXME: replace arg types with intX_t types
 void GameLoopUntilValueIsZero(const char *value);
 void GameLoopUntilValueIsZero(const short *value);
 void GameLoopUntilValueIsZero(const int *value);

@@ -99,6 +99,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
     kCharSvgVersion_36115   = 4, // no limit on character name's length
     kCharSvgVersion_36205   = 3060205, // 32-bit "following" parameters
+    kCharSvgVersion_36304   = 3060304, // blocking x,y
 };
 
 

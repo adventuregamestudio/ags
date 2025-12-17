@@ -1810,7 +1810,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_36205,
+        kCharSvgVersion_36304,
         kCharSvgVersion_350, // skip pre-alpha 3.5.0 ver
         kSaveCmp_Characters,
         WriteCharacters,
@@ -1910,7 +1910,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_36214,
+        kRoomStatSvgVersion_36304,
         kRoomStatSvgVersion_350_Mismatch, // support mismatching 3.5.0 ver here
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -1919,7 +1919,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_36214, // must correspond to "Room States"
+        kRoomStatSvgVersion_36304, // must correspond to "Room States"
         kRoomStatSvgVersion_350, // skip pre-alpha 3.5.0 ver
         kSaveCmp_ThisRoom,
         WriteThisRoom,

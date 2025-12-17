@@ -78,11 +78,34 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
     }
+    else
+    {
+        anim_volume = 100;
+        cur_anim_volume = 100;
+    }
+
     if (save_ver >= kCharSvgVersion_36205)
     {
         following = in->ReadInt32();
         follow_dist = in->ReadInt32();
         follow_eagerness = in->ReadInt32();
+    }
+    else
+    {
+        following = -1;
+        follow_dist = 0;
+        follow_eagerness = 0;
+    }
+
+    if (save_ver >= kCharSvgVersion_36304)
+    {
+        blocking_x = in->ReadInt16();
+        blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        blocking_x = 0;
+        blocking_y = 0;
     }
 }
 
@@ -112,4 +135,7 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt32(following);
     out->WriteInt32(follow_dist);
     out->WriteInt32(follow_eagerness);
+    // kCharSvgVersion_36304
+    out->WriteInt16(blocking_x);
+    out->WriteInt16(blocking_y);
 }

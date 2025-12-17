@@ -266,7 +266,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     objs[obn].CheckViewFrame();
 
     if (blocking)
-        GameLoopUntilValueIsZero(&obj.cycling);
+        GameLoopUntilValueIsZero(reinterpret_cast<const char*>(&obj.cycling));
 }
 
 // A legacy variant of AnimateObject implementation: for pre-2.72 scripts;

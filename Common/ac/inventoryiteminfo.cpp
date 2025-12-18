@@ -43,11 +43,16 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteByteCount(0, 3); // alignment padding to int32
 }
 
-void InventoryItemInfo::ReadFromSavegame(Stream *in)
+void InventoryItemInfo::ReadFromSavegame(Stream *in, InvitemSvgVersion svg_ver)
 {
     name = StrUtil::ReadString(in);
     pic = in->ReadInt32();
     cursorPic = in->ReadInt32();
+    if (svg_ver >= kInvitemSvgVersion_36304)
+    {
+        hotx = in->ReadInt16();
+        hoty = in->ReadInt16();
+    }
 }
 
 void InventoryItemInfo::WriteToSavegame(Stream *out) const
@@ -55,4 +60,7 @@ void InventoryItemInfo::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(name, out);
     out->WriteInt32(pic);
     out->WriteInt32(cursorPic);
+    // kInvitemSvgVersion_36304
+    out->WriteInt16(hotx);
+    out->WriteInt16(hoty);
 }

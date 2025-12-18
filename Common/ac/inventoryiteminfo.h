@@ -20,6 +20,12 @@
 #define IFLG_STARTWITH 1
 #define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
+enum InvitemSvgVersion
+{
+    kInvitemSvgVersion_Initial = 0,
+    kInvitemSvgVersion_36304 = 3060304, // hotspot
+};
+
 struct InventoryItemInfo {
     AGS::Common::String name;
     int  pic;
@@ -29,7 +35,7 @@ struct InventoryItemInfo {
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);
-    void ReadFromSavegame(AGS::Common::Stream *in);
+    void ReadFromSavegame(AGS::Common::Stream *in, InvitemSvgVersion svg_ver);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 

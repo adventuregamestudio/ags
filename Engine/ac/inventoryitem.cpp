@@ -33,6 +33,30 @@ extern CharacterInfo*playerchar;
 extern CCInventory ccDynamicInv;
 
 
+void set_inv_item_cursorpic(int invItemId, int piccy)
+{
+    game.invinfo[invItemId].cursorPic = piccy;
+
+    if ((cur_cursor == MODE_USE) && (playerchar->activeinv == invItemId))
+    {
+        update_inv_cursor(invItemId);
+        set_mouse_cursor(cur_cursor);
+    }
+}
+
+void set_inv_item_cursorhotspot(int inv_item, int hx, int hy)
+{
+    game.invinfo[inv_item].hotx = hx;
+    game.invinfo[inv_item].hoty = hy;
+
+    // The cursor image may include hotspot marker, therefore update cursor image
+    if ((cur_cursor == MODE_USE) && (playerchar->activeinv == inv_item))
+    {
+        update_inv_cursor(inv_item);
+        set_mouse_cursor(cur_cursor);
+    }
+}
+
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 
 {
     set_inv_item_cursorpic(iitem->id, newSprite);
@@ -41,6 +65,26 @@ void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite)
 int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem) 
 {
     return game.invinfo[iitem->id].cursorPic;
+}
+
+int InventoryItem_GetCursorHotspotX(ScriptInvItem *iitem)
+{
+    return game.invinfo[iitem->id].hotx;
+}
+
+void InventoryItem_SetCursorHotspotX(ScriptInvItem *iitem, int hotspotx)
+{
+    set_inv_item_cursorhotspot(iitem->id, hotspotx, game.invinfo[iitem->id].hoty);
+}
+
+int InventoryItem_GetCursorHotspotY(ScriptInvItem *iitem)
+{
+    return game.invinfo[iitem->id].hoty;
+}
+
+void InventoryItem_SetCursorHotspotY(ScriptInvItem *iitem, int hotspoty)
+{
+    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, hotspoty);
 }
 
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
@@ -107,19 +151,6 @@ bool InventoryItem_SetProperty(ScriptInvItem *scii, const char *property, int va
 bool InventoryItem_SetTextProperty(ScriptInvItem *scii, const char *property, const char *value)
 {
     return set_text_property(play.invProps[scii->id], property, value);
-}
-
-//=============================================================================
-
-void set_inv_item_cursorpic(int invItemId, int piccy) 
-{
-    game.invinfo[invItemId].cursorPic = piccy;
-
-    if ((cur_cursor == MODE_USE) && (playerchar->activeinv == invItemId)) 
-    {
-        update_inv_cursor(invItemId);
-        set_mouse_cursor(cur_cursor);
-    }
 }
 
 //=============================================================================
@@ -215,6 +246,26 @@ RuntimeScriptValue Sc_InventoryItem_SetCursorGraphic(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorGraphic);
 }
 
+RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotX);
+}
+
+RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorHotspotX);
+}
+
+RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotY);
+}
+
+RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorHotspotY);
+}
+
 // int (ScriptInvItem *iitem)
 RuntimeScriptValue Sc_InventoryItem_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -263,6 +314,10 @@ void RegisterInventoryItemAPI()
         { "InventoryItem::SetName^1",                 API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_CursorGraphic",         API_FN_PAIR(InventoryItem_GetCursorGraphic) },
         { "InventoryItem::set_CursorGraphic",         API_FN_PAIR(InventoryItem_SetCursorGraphic) },
+        { "InventoryItem::get_CursorHotspotX",        API_FN_PAIR(InventoryItem_GetCursorHotspotX) },
+        { "InventoryItem::set_CursorHotspotX",        API_FN_PAIR(InventoryItem_SetCursorHotspotX) },
+        { "InventoryItem::get_CursorHotspotY",        API_FN_PAIR(InventoryItem_GetCursorHotspotY) },
+        { "InventoryItem::set_CursorHotspotY",        API_FN_PAIR(InventoryItem_SetCursorHotspotY) },
         { "InventoryItem::get_Graphic",               API_FN_PAIR(InventoryItem_GetGraphic) },
         { "InventoryItem::set_Graphic",               API_FN_PAIR(InventoryItem_SetGraphic) },
         { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },

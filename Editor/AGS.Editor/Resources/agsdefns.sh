@@ -1471,6 +1471,12 @@ builtin managed struct InventoryItem {
   /// Gets the script name of the inventory item.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the hotspot x position used for the cursor when this item is active
+  import attribute int CursorHotspotX;
+  /// Gets/sets the hotspot y position used for the cursor when this item is active
+  import attribute int CursorHotspotY;
+#endif
 #ifndef STRICT_STRINGS
   import void GetName(string buffer);
   import void GetPropertyText(const string property, string buffer);

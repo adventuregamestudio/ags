@@ -1068,7 +1068,7 @@ HSaveError WriteInventory(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
+HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
     const uint32_t invitems_read = in->ReadInt32();
@@ -1076,7 +1076,7 @@ HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const
         return err;
     for (uint32_t i = 0; i < invitems_read; ++i)
     {
-        game.invinfo[i].ReadFromSavegame(in);
+        game.invinfo[i].ReadFromSavegame(in, static_cast<InvitemSvgVersion>(cmp_ver));
         Properties::ReadValues(play.invProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
             ReadTimesRun272(*game.intrInv[i], in);
@@ -1837,8 +1837,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Inventory Items",
-        0,
-        0,
+        kInvitemSvgVersion_36304,
+        kInvitemSvgVersion_Initial,
         kSaveCmp_InvItems,
         WriteInventory,
         ReadInventory,

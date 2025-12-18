@@ -27,6 +27,7 @@
 #include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -222,6 +223,15 @@ void ChangeCursorHotspot (int curs, int x, int y) {
     game.mcurs[curs].hoty = data_to_game_coord(y);
     if (curs == cur_cursor)
         set_mouse_cursor (cur_cursor);
+}
+
+ScriptUserObject *Mouse_GetModeHotspot(int curs)
+{
+    if ((curs < 0) || (curs >= game.numcursors))
+        quit("!GetModeHotspot: invalid mouse cursor");
+    int x = game_to_data_coord(game.mcurs[curs].hotx);
+    int y = game_to_data_coord(game.mcurs[curs].hoty);
+    return ScriptStructHelpers::CreatePoint(x, y);
 }
 
 void Mouse_ChangeModeView(int curs, int newview, int delay) {
@@ -504,6 +514,11 @@ RuntimeScriptValue Sc_ChangeCursorHotspot(const RuntimeScriptValue *params, int3
     API_SCALL_VOID_PINT3(ChangeCursorHotspot);
 }
 
+RuntimeScriptValue Sc_Mouse_GetModeHotspot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptUserObject, Mouse_GetModeHotspot);
+}
+
 // void (int curs, int newview)
 RuntimeScriptValue Sc_Mouse_ChangeModeView2(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -666,6 +681,7 @@ void RegisterMouseAPI()
         { "Mouse::DisableMode^1",             API_FN_PAIR(disable_cursor_mode) },
         { "Mouse::EnableMode^1",              API_FN_PAIR(enable_cursor_mode) },
         { "Mouse::GetModeGraphic^1",          API_FN_PAIR(Mouse_GetModeGraphic) },
+        { "Mouse::GetModeHotspot^1",          API_FN_PAIR(Mouse_GetModeHotspot) },
         { "Mouse::IsButtonDown^1",            API_FN_PAIR(IsButtonDown) },
         { "Mouse::IsModeEnabled^1",           API_FN_PAIR(IsModeEnabled) },
         { "Mouse::SaveCursorUntilItLeaves^0", API_FN_PAIR(SaveCursorForLocationChange) },

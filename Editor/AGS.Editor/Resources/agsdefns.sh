@@ -1011,6 +1011,10 @@ builtin struct Mouse {
   /// Gets/sets whether the mouse cursor will be automatically locked in the game window.
   import static attribute bool AutoLock;
 #endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v363
+  /// Gets the active hotspot for the specified mouse cursor.
+  import static Point* GetModeHotspot(CursorMode);
+#endif
   /// Gets the current mouse position.
   readonly int  x,y;
 };

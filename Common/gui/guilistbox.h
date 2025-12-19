@@ -41,9 +41,15 @@ public:
     HorAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(HorAlignment align);
     bool HasAlphaChannel() const override;
+    // Tells if this list box should display scrollbar (arrows) when
+    // there's more items than can fit into the control
+    bool ShouldShowScrollArrows() const;
+    // Tells if the arrows are shown currently
     bool AreArrowsShown() const;
+    // Tells if the given x coordinate is located over a scrollbar
+    bool IsPosOnScrollbar(int x) const;
+    // Tells if this listbox stores save game indexes
     bool IsSvgIndex() const;
-    bool IsInRightMargin(int x) const;
     uint32_t GetItemCount() const { return _items.size(); }
     String GetItem(int index) const;
     int  GetSavedGameIndex(int index) const;

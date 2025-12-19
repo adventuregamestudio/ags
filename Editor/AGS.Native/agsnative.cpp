@@ -3877,7 +3877,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  newListbox->SelectedBackgroundColor = copyFrom->GetSelectedBgColor();
 				  newListbox->TextAlignment = (AGS::Types::HorizontalAlignment)copyFrom->GetTextAlignment();
 				  newListbox->ShowBorder = copyFrom->IsShowBorder();
-				  newListbox->ShowScrollArrows = copyFrom->AreArrowsShown();
+				  newListbox->ShowScrollArrows = copyFrom->ShouldShowScrollArrows();
                   newListbox->Translated = copyFrom->IsTranslated();
 				  newListbox->OnSelectionChanged = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));
 				  break;

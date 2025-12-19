@@ -151,7 +151,7 @@ int GUIListBox::GetSavedGameIndex(int index) const
 
 int GUIListBox::GetItemAt(int x, int y) const
 {
-    if (_rowHeight <= 0 || IsInRightMargin(x))
+    if (_rowHeight <= 0 || IsPosOnScrollbar(x))
         return -1;
 
     uint32_t index = y / _rowHeight + _topItem;
@@ -160,21 +160,27 @@ int GUIListBox::GetItemAt(int x, int y) const
     return index;
 }
 
-bool GUIListBox::AreArrowsShown() const
+bool GUIListBox::ShouldShowScrollArrows() const
 {
     return (_listBoxFlags & kListBox_ShowArrows) != 0;
+}
+
+bool GUIListBox::AreArrowsShown() const
+{
+    return IsShowBorder() && ShouldShowScrollArrows() &&
+        _visibleItemCount < _items.size();
+}
+
+bool GUIListBox::IsPosOnScrollbar(int x) const
+{
+    if (AreArrowsShown() && (x >= (_width - get_fixed_pixel_size(6))))
+        return 1;
+    return 0;
 }
 
 bool GUIListBox::IsSvgIndex() const
 {
     return (_listBoxFlags & kListBox_SvgIndex) != 0;
-}
-
-bool GUIListBox::IsInRightMargin(int x) const
-{
-    if (x >= (_width - get_fixed_pixel_size(6)) && IsShowBorder() && AreArrowsShown())
-        return 1;
-    return 0;
 }
 
 Rect GUIListBox::CalcGraphicRect(bool clipped)
@@ -192,7 +198,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     const int pixel_size = get_fixed_pixel_size(1);
     int right_hand_edge = width - pixel_size - 1;
     // calculate the scroll bar's width if necessary
-    if (_items.size() > _visibleItemCount && IsShowBorder() && AreArrowsShown())
+    if (AreArrowsShown())
         right_hand_edge -= get_fixed_pixel_size(7);
     Line max_line;
     for (uint32_t item = 0; (item < _visibleItemCount) && (item + _topItem < _items.size()); ++item)
@@ -253,7 +259,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
     UpdateMetrics();
 
     // draw the scroll bar in if necessary
-    bool scrollbar = (_items.size() > _visibleItemCount) && IsShowBorder() && AreArrowsShown();
+    bool scrollbar = AreArrowsShown();
     if (scrollbar)
     {
         const color_t draw_color = ds->GetCompatibleColor(_borderColor);
@@ -374,7 +380,7 @@ void GUIListBox::SetItemText(int index, const String &text)
 
 bool GUIListBox::OnMouseDown()
 {
-    if (IsInRightMargin(_mousePos.X))
+    if (IsPosOnScrollbar(_mousePos.X))
     {
         int top_item = _topItem;
         if (_mousePos.Y < _height / 2 && _topItem > 0)

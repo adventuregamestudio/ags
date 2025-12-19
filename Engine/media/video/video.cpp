@@ -158,14 +158,15 @@ void BlockingVideoPlayer::Begin()
     }
 
     // Clear the screen before starting playback
-    // TODO: needed for FLIC, but perhaps may be done differently
+    // TODO: for hardware-accelerated drivers, whilst playing FLIC,
+    // we might require to make a screenshot of the last screen,
+    // in order to draw first partial FLIC frames onto that.
     if ((_stateFlags & kVideoState_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             gfxDriver->GetMemoryBackBuffer()->Clear();
         }
-        render_to_screen();
     }
 
     auto video_fps = _player->GetFramerate();
@@ -197,14 +198,12 @@ void BlockingVideoPlayer::End()
     set_game_speed(_oldFps);
 
     // Clear the screen after stopping playback
-    // TODO: needed for FLIC, but perhaps may be done differently
     if ((_stateFlags & kVideoState_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             gfxDriver->GetMemoryBackBuffer()->Clear();
         }
-        render_to_screen();
     }
 
     invalidate_screen();

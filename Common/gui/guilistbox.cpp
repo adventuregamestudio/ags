@@ -32,8 +32,8 @@ namespace Common
 GUIListBox::GUIListBox()
 {
     _flags |= kGUICtrl_ShowBorder;
-    _paddingX = _borderWidth + 1;
-    _paddingY = _borderWidth + 1;
+    _paddingX = _borderWidth;
+    _paddingY = _borderWidth;
 }
 
 void GUIListBox::SetFont(int font)
@@ -194,23 +194,17 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     // - macro value change (score, overhotspot etc)
     Rect rc = RectWH(0, 0, _width, _height);
     UpdateMetrics();
-    const int width = _width - 1;
-    const int pixel_size = get_fixed_pixel_size(1);
-    int right_hand_edge = width - pixel_size - 1;
-    // calculate the scroll bar's width if necessary
-    if (AreArrowsShown())
-        right_hand_edge -= get_fixed_pixel_size(7);
     Line max_line;
     for (uint32_t item = 0; (item < _visibleItemCount) && (item + _topItem < _items.size()); ++item)
     {
-        int at_y = pixel_size + item * _rowHeight;
+        int at_y = _itemsRect.Top + item * _rowHeight;
         uint32_t item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
-        Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, 1 + pixel_size, right_hand_edge, at_y + 1,
+        Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, _itemsRect.Left, _itemsRect.Right, at_y + _itemTextPaddingY,
             (FrameAlignment)_textAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
-    int last_line_y = pixel_size + 1 + (_visibleItemCount - 1) * _rowHeight;
+    int last_line_y = _itemsRect.Top + _itemTextPaddingY + (_visibleItemCount - 1) * _rowHeight;
     // Include font fixes for the first and last text line,
     // in case graphical height is different, and there's a VerticalOffset
     int h_ext = GUI::CalcFontGraphicalHExtent(_font);
@@ -252,51 +246,42 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
 
     DrawControlFrame(ds, x, y);
 
-    int right_hand_edge = (x + _width - 1);
-
     // update the _rowHeight and _visibleItemCount
     // FIXME: find a way to update this whenever relevant things change in the engine
     UpdateMetrics();
 
     // draw the scroll bar in if necessary
-    bool scrollbar = AreArrowsShown();
+    const bool scrollbar = AreArrowsShown();
     if (scrollbar)
     {
         const color_t draw_color = ds->GetCompatibleColor(_borderColor);
 
-        int xstrt, ystrt;
-        ds->DrawRect(Rect(x + _width - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + _width) - get_fixed_pixel_size(7), y + _height), draw_color);
-        ds->DrawRect(Rect(x + _width - get_fixed_pixel_size(7), y + _height / 2, x + _width, y + _height / 2 + (pixel_size - 1)), draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top, x + _scrollbarRect.Right, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2), draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2, x + _scrollbarRect.Right, y + _scrollbarRect.Bottom), draw_color);
 
-        xstrt = (x + _width - get_fixed_pixel_size(6)) + (pixel_size - 1);
-        ystrt = (y + _height - 3) - get_fixed_pixel_size(5);
-
+        const int xstrt = x + _scrollbarRect.Left + 1;
+        // Up arrow
+        int ystrt = y + _scrollbarRect.Top + 3;
+        ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5),
+                xstrt + get_fixed_pixel_size(4),
+                ystrt + get_fixed_pixel_size(5),
+                xstrt + get_fixed_pixel_size(2), ystrt), draw_color);
+        // Down arrow
+        ystrt = (y + _scrollbarRect.Bottom - 3) - get_fixed_pixel_size(5);
         ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
                  xstrt + get_fixed_pixel_size(2),
                  ystrt + get_fixed_pixel_size(5)), draw_color);
-
-        ystrt = y + 3;
-        ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
-                 xstrt + get_fixed_pixel_size(4), 
-                 ystrt + get_fixed_pixel_size(5),
-                 xstrt + get_fixed_pixel_size(2), ystrt), draw_color);
-
-        right_hand_edge -= get_fixed_pixel_size(7);
     }
 
-    // Apply padding to the list items
-    x += _paddingX;
-    right_hand_edge -= _paddingX;
-    y += _paddingY;
-    int bottom_edge = y + _height - 1 - _paddingY;
-
-    Rect old_clip = ds->GetClip();
-    if (scrollbar && GUI::Options.ClipControls)
-        ds->SetClip(Rect(x, y, right_hand_edge, bottom_edge));
+    const Rect old_clip = ds->GetClip();
+    if (GUI::Options.ClipControls)
+        ds->SetClip(Rect::MoveBy(_itemsRect, x, y));
     for (uint32_t item = 0; (item < _visibleItemCount) && (item + _topItem < _items.size()); ++item)
     {
         color_t text_color;
-        int at_y = y + item * _rowHeight;
+        const int at_x = x + _itemsRect.Left;
+        const int right_x = x + _itemsRect.Right;
+        int at_y = y + _itemsRect.Top + item * _rowHeight;
         if (item + _topItem == _selectedItem)
         {
             text_color = ds->GetCompatibleColor(_selectedTextColor);
@@ -304,7 +289,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
             {
                 // draw the _selectedItem item bar (if colour not transparent)
                 const color_t draw_color = ds->GetCompatibleColor(_selectedBgColor);
-                ds->FillRect(Rect(x, at_y, right_hand_edge, at_y + _rowHeight - 1), draw_color);
+                ds->FillRect(Rect(at_x, at_y, right_x, at_y + _rowHeight - 1), draw_color);
             }
         }
         else
@@ -316,7 +301,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         PrepareTextToDraw(_items[item_index]);
 
         GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color,
-            x + _itemTextPaddingX, right_hand_edge - _itemTextPaddingX,
+            at_x + _itemTextPaddingX, right_x - _itemTextPaddingX,
             at_y + _itemTextPaddingY, (FrameAlignment)_textAlignment);
     }
     ds->SetClip(old_clip);
@@ -436,10 +421,25 @@ void GUIListBox::UpdateMetrics()
     _rowHeight = font_height + get_fixed_pixel_size(2); // +1 top/bottom margin
     _itemTextPaddingX = get_fixed_pixel_size(1);
     _itemTextPaddingY = get_fixed_pixel_size(1);
-    const int items_area = _height - _paddingY * 2;
-    _visibleItemCount = items_area / _rowHeight;
+    const int items_height = _height - _paddingY * 2;
+    _visibleItemCount = items_height / _rowHeight;
     if (_items.size() <= _visibleItemCount)
         _topItem = 0; // reset scroll if all items are visible
+
+    int items_right = _width - 1 - _paddingX;
+    if (AreArrowsShown())
+    {
+        // Scrollbar rect includes 1-thin border around it (for convenience of calc & draw),
+        // so we subtract that from the outer border
+        const int scroll_width = get_fixed_pixel_size(7);
+        const int scroll_border = _borderWidth > 0 ? 1 : 0;
+        const int ext_border = _borderWidth - scroll_border;
+        _scrollbarRect = RectWH(_width - ext_border - scroll_width,
+            ext_border, scroll_width, _height - ext_border * 2);
+        items_right = _scrollbarRect.Left - 1;
+    }
+
+    _itemsRect = Rect(_paddingX, _paddingY, items_right, _height - 1 - _paddingY);
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -618,8 +618,11 @@ void GUIListBox::SetDefaultLooksFor363()
         _flags |= kGUICtrl_ShowBorder;
     _borderColor = _textColor;
     _borderWidth = get_fixed_pixel_size(1);
-    _paddingX = _borderWidth + 1;
-    _paddingY = _borderWidth + 1;
+    // NOTE: the actual text padding will be bigger, because items
+    // also have extra padding between item rect and text within
+    _paddingX = _borderWidth;
+    _paddingY = _borderWidth;
+    MarkChanged();
 }
 
 } // namespace Common

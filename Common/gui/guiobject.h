@@ -115,6 +115,8 @@ public:
     // Returns the (untransformed!) visual rectangle of this control,
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
+    // FIXME: it was a mistake to have coordinate origin as arguments to this method,
+    // as this is bug prone when writing drawing code. Use sub-bitmaps when drawing controls instead.
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
 
     // Events

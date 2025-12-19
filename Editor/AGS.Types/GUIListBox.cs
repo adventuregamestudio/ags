@@ -24,8 +24,8 @@ namespace AGS.Types
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;
             _textAlignment = HorizontalAlignment.Left;
-            PaddingX = BorderWidth + 1;
-            PaddingY = BorderWidth + 1;
+            PaddingX = BorderWidth;
+            PaddingY = BorderWidth;
         }
 
         public GUIListBox(XmlNode node) : base(node)

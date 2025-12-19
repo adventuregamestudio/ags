@@ -448,6 +448,7 @@ void GUISlider::SetDefaultLooksFor363()
     _borderColor = 15;
     _handleColor = 7;
     _shadowColor = 8;
+    MarkChanged();
 }
 
 } // namespace Common

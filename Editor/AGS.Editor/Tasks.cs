@@ -663,8 +663,8 @@ namespace AGS.Editor
                 GUIListBox lbox = control as GUIListBox;
                 lbox.BorderColor = lbox.TextColor;
                 lbox.BorderWidth = game.IsHighResolution ? 2 : 1;
-                lbox.PaddingX = lbox.BorderWidth + 1;
-                lbox.PaddingY = lbox.BorderWidth + 1;
+                lbox.PaddingX = lbox.BorderWidth;
+                lbox.PaddingY = lbox.BorderWidth;
             }
             else if (control is GUISlider)
             {

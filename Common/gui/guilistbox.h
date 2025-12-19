@@ -125,7 +125,10 @@ private:
     static String EventNames[EventCount];
     static String EventArgs[EventCount];
 
-    // prepared text buffer/cache
+    // Precalculated control regions
+    Rect  _itemsRect; // items region
+    Rect  _scrollbarRect; // arrows / scrollbar region
+    // Prepared text buffer/cache
     String _textToDraw;
 };
 

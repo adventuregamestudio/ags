@@ -223,6 +223,7 @@ void GUITextBox::SetDefaultLooksFor363()
     _borderWidth = get_fixed_pixel_size(1);
     _paddingX = _borderWidth + 1;
     _paddingY = _borderWidth + 1;
+    MarkChanged();
 }
 
 } // namespace Common

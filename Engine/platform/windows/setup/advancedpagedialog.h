@@ -129,6 +129,8 @@ public:
         , _cfgOut(cfg_out)
     {}
 
+    static bool ShouldDisplayPage(const ConfigTree &cfg_in);
+
     String GetTitle() const override { return "Accessibility"; }
 
     void ResetSetup(const ConfigTree &cfg_from) override;

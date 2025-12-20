@@ -349,6 +349,13 @@ void GameFilesPageDialog::SaveSetup()
 const int AccessibilityPageDialog::TextReadSpeedMin;
 const int AccessibilityPageDialog::TextReadSpeedMax;
 
+bool AccessibilityPageDialog::ShouldDisplayPage(const ConfigTree &cfg_in)
+{
+    // Test if at least one accessibility groups was not disabled in default config
+    return !CfgReadBoolInt(cfg_in, "disabled", "access_skipstyle")
+        ;
+}
+
 INT_PTR AccessibilityPageDialog::OnInitDialog()
 {
     _hEnableAccess          = GetDlgItem(_hwnd, IDC_ACCESSENABLECHECK);

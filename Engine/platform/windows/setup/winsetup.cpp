@@ -132,7 +132,8 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _pages.emplace_back(new BasicPageDialog(_winCfg, _cfgIn));
     _pages.emplace_back(new AdvancedPageDialog(_winCfg, _cfgIn));
     _pages.emplace_back(new GameFilesPageDialog(_winCfg, _cfgIn));
-    _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn, _cfgOut));
+    if (AccessibilityPageDialog::ShouldDisplayPage(_cfgIn))
+        _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn, _cfgOut));
     _pager.reset(new PageControl(_hTabber));
     for (auto &p : _pages)
         _pager->AddPage(p);

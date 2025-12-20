@@ -108,6 +108,16 @@ void main_print_help() {
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
+           "  --audiodriver <id>           Request audio driver. Available options:\n"
+#if AGS_PLATFORM_OS_WINDOWS
+           "                                 default, wasapi, directsound, winmm, disk,\n"
+           "                                 dummy\n"
+#elif AGS_PLATFORM_OS_MACOS
+           "                                 default, coreaudio, disk, dummy\n"
+#else
+           "                                 default, pulseaudio, alsa, arts, esd, jack,\n"
+           "                                 pipewire, dsp, disk, dummy\n"
+#endif
            "  --background                 Keeps game running in background\n"
            "                               (this does not work in exclusive fullscreen)\n"
            "  --clear-cache-on-room-change Clears sprite cache on every room change\n"
@@ -195,7 +205,7 @@ void main_print_help() {
            "\n"
            "Gamefile options:\n"
            "  /dir/path/game/              Launch the game in specified directory\n"
-           "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
+           "  /dir/path/game/penguin.ags   Launch penguin.ags\n"
            "  [nothing]                    Launch the game in the current directory\n"
           //--------------------------------------------------------------------------------|
     );
@@ -322,6 +332,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if ((ags_stricmp(arg, "--display") == 0) && (argc > ee + 1))
             cfg["graphics"]["display"] = argv[++ee];
+        else if ((ags_stricmp(arg, "--audiodriver") == 0) && (argc > ee + 1))
+            cfg["sound"]["driver"] = argv[++ee];
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
             cfg["language"]["translation"] = argv[++ee];
         else if (ags_stricmp(arg, "--no-translation") == 0)

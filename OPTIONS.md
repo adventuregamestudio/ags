@@ -58,11 +58,19 @@ Locations of two latter files differ between running platforms:
   * texture_cache_size = \[integer\] - size of the texture cache, stored in VRAM, in kilobytes. Default is 131072 (128 MB).
 * **\[sound\]** - sound options
   * enabled = \[0; 1\] - enable or disable game audio.
-  * driver = \[string\] - audio driver id, leave empty for default. Driver IDs are provided by SDL2 and are platform-dependent.
+  * driver = \[string\] - audio driver id, leave empty or use 'default' value for using default driver. Driver IDs are provided by SDL2 and are mostly platform-dependent.
+    * For any platform:
+	  * default, disk, dummy
+    * For Android:
+	  * aaudio, android, opensles
     * For Linux:
-      * pulseaudio, alsa, arts, esd, jack, pipewire, disk, dsp, dummy
+      * pulseaudio, alsa, arts, dsp, esd, jack, pipewire
+    * For Mac OSX:
+	  * coreaudio
+    * For Web/Emscripten:
+	  * emscripten
     * For Windows:
-      * wasapi, directsound, winmm, disk, dummy
+      * wasapi, directsound, winmm
   * cache_size = \[integer\] - size of the sound cache, in kilobytes. Default is 32768 (32 MB).
   * stream_threshold = \[integer\] - max size of the sound clip that engine is allowed to load in memory at once, as opposed to continuously streaming one. In the current implementation this also defines the max size of a clip that may be put into the sound cache. Default is 1024 (1 MB).
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).

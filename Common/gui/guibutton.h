@@ -147,6 +147,8 @@ public:
     void SetDefaultLooksFor363() override;
 
 private:
+    // Reports that any of the basic colors have changed;
+    // the button will update its current colors depending on its state
     void OnColorsChanged() override;
 
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);

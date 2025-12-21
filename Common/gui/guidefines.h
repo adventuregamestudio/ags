@@ -195,7 +195,7 @@ enum GUILabelMacro
 // GUIListBox style and behavior flags
 enum GUIListBoxFlags
 {
-    kListBox_ShowBorder = 0x01, // [DEPRECATED], use common control flag instead
+    kListBox_ShowBorder = 0x01, // [DEPRECATED], use kGUICtrl_ShowBorder instead
     kListBox_ShowArrows = 0x02,
     kListBox_SvgIndex   = 0x04,
 
@@ -207,7 +207,7 @@ enum GUIListBoxFlags
 // GUITextBox style and behavior flags
 enum GUITextBoxFlags
 {
-    kTextBox_ShowBorder = 0x0001, // [DEPRECATED], use common control flag instead
+    kTextBox_ShowBorder = 0x0001, // [DEPRECATED], use kGUICtrl_ShowBorder instead
 
     kTextBox_DefFlags   = kTextBox_ShowBorder,
     // flags that had inverse meaning in old formats

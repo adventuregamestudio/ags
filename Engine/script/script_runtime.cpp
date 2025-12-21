@@ -136,3 +136,8 @@ void ccSetDebugHook(new_line_hook_type jibble)
 {
     new_line_hook = jibble;
 }
+
+void ccSetDebugLogging(bool on)
+{
+    ccSetOption(SCOPT_DEBUGRUN, on);
+}

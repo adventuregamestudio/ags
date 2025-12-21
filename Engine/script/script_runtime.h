@@ -85,9 +85,10 @@ void *ccGetSymbolAddressForPlugin(const String &name);
 // Get a registered Script Object, optionally restricting to the given type name
 void *ccGetScriptObjectAddress(const String &name, const String &type);
 
-// DEBUG HOOK
+// Debugging instruments
 typedef void (*new_line_hook_type) (ccInstance *, int);
 void ccSetDebugHook(new_line_hook_type jibble);
+void ccSetDebugLogging(bool on);
 
 // Set the script interpreter timeout values:
 // * sys_poll_timeout - defines the timeout (ms) at which the interpreter will run system events poll;

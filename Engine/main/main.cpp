@@ -182,6 +182,8 @@ void main_print_help() {
            "                               LEVELs are:\n"
            "                                 verbose (1), debug (2), info (3), warn (4),\n"
            "                                 error (5), critical (6)\n"
+           "  --script-log                 Log executed script instructions in 'script.log'\n"
+           "                                 WARNING: extremely verbose, may slow app down\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
@@ -368,6 +370,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             cfg["log"]["sdl"] = arg + 10;
         }
+        else if (ags_stricmp(arg, "--script-log") == 0) debug_flags |= DBG_DBGSCRIPT;
         else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
         else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;
         //

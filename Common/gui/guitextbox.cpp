@@ -34,8 +34,9 @@ namespace Common
 GUITextBox::GUITextBox()
 {
     _flags |= kGUICtrl_ShowBorder;
-    _paddingX = _borderWidth + 1;
-    _paddingY = _borderWidth + 1;
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
 }
 
 void GUITextBox::SetFont(int font)
@@ -221,9 +222,9 @@ void GUITextBox::SetDefaultLooksFor363()
         _flags |= kGUICtrl_ShowBorder;
     _borderColor = _textColor;
     _borderWidth = get_fixed_pixel_size(1);
-    _paddingX = _borderWidth + 1;
-    _paddingY = _borderWidth + 1;
-    MarkChanged();
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
 }
 
 } // namespace Common

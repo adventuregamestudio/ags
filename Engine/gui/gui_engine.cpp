@@ -165,7 +165,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 
     color_t text_color = ds->GetCompatibleColor(_textColor);
     Line tpos = GUI::CalcTextPositionHor(_textToDraw, _font,
-        x + _paddingX, x + _width - 1 - _paddingX, y + _paddingY,
+        _innerRect.Left + x, _innerRect.Right + x, _innerRect.Top + y,
         reverse ? kAlignTopRight : kAlignTopLeft);
     wouttext_outline(ds, tpos.X1, tpos.Y1, _font, text_color, _textToDraw.GetCStr());
 
@@ -174,7 +174,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
         // draw a cursor
         const int cursor_width = get_fixed_pixel_size(5);
         int draw_at_x = reverse ? tpos.X1 - 3 - cursor_width : tpos.X2 + 3;
-        int draw_at_y = y + 1 + get_font_height(_font);
+        int draw_at_y = tpos.Y1 + get_font_height(_font);
         ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + cursor_width, draw_at_y + (get_fixed_pixel_size(1) - 1)), text_color);
     }
 }
@@ -190,7 +190,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _width - _paddingX * 2);
+        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _innerRect.GetWidth());
     }
     else
     {

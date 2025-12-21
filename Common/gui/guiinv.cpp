@@ -33,7 +33,8 @@ void GUIInvWindow::SetItemDimensions(int itemw, int itemh)
     {
         _itemWidth = itemw;
         _itemHeight = itemh;
-        OnResized();
+        CalculateNumCells();
+        MarkChanged();
     }
 }
 
@@ -64,8 +65,8 @@ void GUIInvWindow::OnMouseUp()
 
 void GUIInvWindow::OnResized()
 {
+    GUIObject::OnResized();
     CalculateNumCells();
-    MarkChanged();
 }
 
 void GUIInvWindow::WriteToFile(Stream *out) const

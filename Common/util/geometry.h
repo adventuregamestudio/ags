@@ -270,28 +270,31 @@ struct Size
 
 // TODO: consider making Rect have right-bottom coordinate with +1 offset
 // to comply with many other libraries (i.e. Right - Left == Width)
+// FIXME: protect fields (avoid mailformed rects).
+// TODO: consider a rule where rectangle is fixed, and any changes create
+// a new instance (MoveBy, MoveTo, SetWidth etc).
 struct Rect
 {
-	int Left;
-	int Top;
-	int Right;
-	int Bottom;
+    int Left;
+    int Top;
+    int Right;
+    int Bottom;
 
-	Rect()
-	{
-		Left	= 0;
-		Top		= 0;
-		Right	= -1;
-		Bottom	= -1;
-	}
+    Rect()
+    {
+        Left    = 0;
+        Top     = 0;
+        Right   = -1;
+        Bottom  = -1;
+    }
 
-	Rect(int l, int t, int r, int b)
-	{
-		Left	= l;
-		Top		= t;
-		Right	= r;
-		Bottom	= b;
-	}
+    Rect(int l, int t, int r, int b)
+    {
+        Left    = l;
+        Top     = t;
+        Right   = r;
+        Bottom  = b;
+    }
 
     inline Point GetLT() const
     {
@@ -303,15 +306,15 @@ struct Rect
         return Point(Left + GetWidth() / 2, Top + GetHeight() / 2);
     }
 
-	inline int GetWidth() const
-	{
-		return Right - Left + 1;
-	}
+    inline int GetWidth() const
+    {
+        return Right - Left + 1;
+    }
 
-	inline int GetHeight() const
-	{
-		return Bottom - Top + 1;
-	}
+    inline int GetHeight() const
+    {
+        return Bottom - Top + 1;
+    }
 
     inline Size GetSize() const
     {

@@ -21,8 +21,8 @@ namespace AGS.Types
             _text = string.Empty;
             ShowBorder = true; // border is visible by default
             _font = 0;
-            PaddingX = BorderWidth + 1;
-            PaddingY = BorderWidth + 1;
+            PaddingX = 1;
+            PaddingY = 1;
         }
 
         public GUITextBox(XmlNode node) : base(node)

@@ -123,22 +123,22 @@ void MarkForFontUpdate(int font)
     for (auto &btn : guibuts)
     {
         if (update_all || btn.GetFont() == font)
-            btn.OnResized();
+            btn.MarkChanged();
     }
     for (auto &lbl : guilabels)
     {
         if (update_all || lbl.GetFont() == font)
-            lbl.OnResized();
+            lbl.MarkChanged();
     }
     for (auto &list : guilist)
     {
         if (update_all || list.GetFont() == font)
-            list.OnResized();
+            list.MarkChanged();
     }
     for (auto &tb : guitext)
     {
         if (update_all || tb.GetFont() == font)
-            tb.OnResized();
+            tb.MarkChanged();
     }
 }
 
@@ -566,7 +566,6 @@ void prepare_gui_runtime(bool startup)
         {
             GUIObject *guio = gui.GetControl(i);
             guio->SetActivated(false);
-            guio->OnResized();
         }
     }
     // Reset particular states after loading game data

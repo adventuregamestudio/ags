@@ -63,6 +63,7 @@ GUIButton::GUIButton()
     _borderColor = 15;
     _shadowColor = 8;
     _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
+    UpdateControlRect();
 
     _clickAction[kGUIClickLeft] = kGUIAction_RunScript;
     _clickAction[kGUIClickRight] = kGUIAction_RunScript;
@@ -293,7 +294,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (!IsImageButton() || ((_placeholder == kButtonPlace_None) && !_unnamed))
     {
         PrepareTextToDraw();
-        Rect frame = RectWH(_paddingX, _paddingY, _width - _paddingX * 2, _height - _paddingY * 2);
+        Rect frame = _innerRect;
         if (_isPushed && _isMouseOver)
         {
             frame = frame.MoveBy(frame, 1, 1);
@@ -604,14 +605,15 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
         if (svg_ver >= kGuiSvgVersion_36202)
         {
-            _paddingX = old_paddingx;
-            _paddingY = old_paddingy;
+            _paddingX = std::max(0, old_paddingx - 1);
+            _paddingY = std::max(0, old_paddingy - 1);
         }
     }
 
     // Update current state after reading
     _isPushed = false;
     _isMouseOver = false;
+    UpdateControlRect(); // in case they had old-style padding
     UpdateCurrentImage();
 }
 
@@ -651,8 +653,9 @@ void GUIButton::SetDefaultLooksFor363()
     _backgroundColor = 7;
     _borderColor = 15;
     _shadowColor = 8;
-    _paddingX = 2;
-    _paddingY = 2;
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
     UpdateCurrentImage();
 }
 
@@ -720,7 +723,7 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
-    Rect frame = RectWH(x + _paddingX, y + _paddingY, _width - _paddingX * 2, _height - _paddingY * 2);
+    Rect frame = Rect::MoveBy(_innerRect, x, y);
     if (_isPushed && _isMouseOver)
     {
         // move the Text a bit while pushed

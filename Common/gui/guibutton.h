@@ -67,8 +67,8 @@ class GUIButton : public GUIObject
 {
 public:
     // Default text padding
-    static const int DefaultHorPadding = 2;
-    static const int DefaultVerPadding = 2;
+    static const int DefaultHorPadding = 1;
+    static const int DefaultVerPadding = 1;
 
     GUIButton();
 

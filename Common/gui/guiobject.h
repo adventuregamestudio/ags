@@ -38,7 +38,7 @@ enum LegacyGUIAlignment
 class GUIObject
 {
 public:
-    GUIObject() = default;
+    GUIObject();
     virtual ~GUIObject() = default;
 
     // Properties
@@ -117,6 +117,9 @@ public:
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
     // FIXME: it was a mistake to have coordinate origin as arguments to this method,
     // as this is bug prone when writing drawing code. Use sub-bitmaps when drawing controls instead.
+    // -- there's going to be extra problem with non-clipped controls mode though. In this case
+    // we might need another "bitmap draw mode" where it only offsets coordinates zero, but does not
+    // constraint the drawing (like sub-bitmaps normally do).
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
 
     // Events
@@ -132,8 +135,6 @@ public:
     virtual void    OnMouseMove(int /*x*/, int /*y*/) { }
     // Mouse button up
     virtual void    OnMouseUp() { }
-    // Control was resized
-    virtual void    OnResized() { MarkPositionChanged(true); }
 
     // Serialization
     virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
@@ -161,9 +162,14 @@ protected:
     // Reports that any of the basic colors have changed,
     // to let child control handle this according to their needs
     virtual void    OnColorsChanged();
+    // Control was resized; child controls may override this and implement
+    // their own additional handling
+    virtual void    OnResized();
 
     // Draws control frame box, using common border and background settings
     void            DrawControlFrame(Bitmap *ds, int x, int y);
+    // Updates control's inner region and marks for redraw
+    void            UpdateControlRect();
 
     int      _id = -1;      // GUI object's identifier
     int      _parentID = -1;// id of parent GUI
@@ -182,6 +188,7 @@ protected:
     int      _borderWidth = 1;
     int      _paddingX = 0;
     int      _paddingY = 0;
+    Rect     _innerRect; // control's contents rect (excludes border + padding)
 
     std::vector<String> _eventHandlers; // script function names
 

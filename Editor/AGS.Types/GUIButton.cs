@@ -21,8 +21,8 @@ namespace AGS.Types
             _textAlign = FrameAlignment.TopCenter;
             ShowBorder = true;
             SolidBackground = true;
-            PaddingX = 2;
-            PaddingY = 2;
+            PaddingX = 1;
+            PaddingY = 1;
             BackgroundColor = 7;
             BorderColor = 15;
             ShadowColor = 8;

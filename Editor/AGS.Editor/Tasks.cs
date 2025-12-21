@@ -594,7 +594,7 @@ namespace AGS.Editor
                 {
                     foreach (GUIControl gc in gui.Controls)
                     {
-                        SetDefaultColors(game, gc);
+                        SetDefaultColors(game, gc, xmlVersionIndex);
                     }
                 }
             }
@@ -639,7 +639,7 @@ namespace AGS.Editor
             }
         }
 
-        private static void SetDefaultColors(Game game, GUIControl control)
+        private static void SetDefaultColors(Game game, GUIControl control, int xmlVersionIndex)
         {
             if (control is GUIButton)
             {
@@ -649,8 +649,17 @@ namespace AGS.Editor
                 but.BackgroundColor = 7;
                 but.BorderColor = 15;
                 but.ShadowColor = 8;
-                but.PaddingX = 2;
-                but.PaddingY = 2;
+                if (xmlVersionIndex < 3060202)
+                {
+                    but.PaddingX = 1;
+                    but.PaddingY = 1;
+                }
+                else
+                {
+                    // 3.6.2 TextPadding was an offset from exterior control edge
+                    but.PaddingX = Math.Max(0, but.TextPaddingHorizontal - 1);
+                    but.PaddingY = Math.Max(0, but.TextPaddingVertical - 1);
+                }
             }
             else if (control is GUIInventory)
             {
@@ -663,8 +672,6 @@ namespace AGS.Editor
                 GUIListBox lbox = control as GUIListBox;
                 lbox.BorderColor = lbox.TextColor;
                 lbox.BorderWidth = game.IsHighResolution ? 2 : 1;
-                lbox.PaddingX = lbox.BorderWidth + 1;
-                lbox.PaddingY = lbox.BorderWidth + 1;
             }
             else if (control is GUISlider)
             {
@@ -681,8 +688,8 @@ namespace AGS.Editor
                 GUITextBox tbox = control as GUITextBox;
                 tbox.BorderColor = tbox.TextColor;
                 tbox.BorderWidth = game.IsHighResolution ? 2 : 1;
-                tbox.PaddingX = tbox.BorderWidth + 1;
-                tbox.PaddingY = tbox.BorderWidth + 1;
+                tbox.PaddingX = 1;
+                tbox.PaddingY = 1;
             }
         }
 

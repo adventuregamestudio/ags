@@ -22,6 +22,11 @@ namespace AGS
 namespace Common
 {
 
+GUIObject::GUIObject()
+{
+    UpdateControlRect();
+}
+
 void GUIObject::SetName(const String &name)
 {
     _name = name;
@@ -166,7 +171,7 @@ void GUIObject::SetShowBorder(bool on)
     if (on != ((_flags & kGUICtrl_ShowBorder) != 0))
     {
         _flags = (_flags & ~kGUICtrl_ShowBorder) | kGUICtrl_ShowBorder * on;
-        MarkChanged();
+        UpdateControlRect();
     }
 }
 
@@ -199,28 +204,31 @@ void GUIObject::SetBorderColor(int color)
 
 void GUIObject::SetBorderWidth(int border_width)
 {
+    border_width = std::max(0, border_width);
     if (_borderWidth != border_width)
     {
         _borderWidth = border_width;
-        OnColorsChanged();
+        UpdateControlRect();
     }
 }
 
 void GUIObject::SetPaddingX(int padx)
 {
+    padx = std::max(0, padx);
     if (_paddingX != padx)
     {
         _paddingX = padx;
-        MarkChanged();
+        UpdateControlRect();
     }
 }
 
 void GUIObject::SetPaddingY(int pady)
 {
+    pady = std::max(0, pady);
     if (_paddingY != pady)
     {
         _paddingY = pady;
-        MarkChanged();
+        UpdateControlRect();
     }
 }
 
@@ -232,6 +240,12 @@ void GUIObject::SetActivated(bool on)
 void GUIObject::OnColorsChanged()
 {
     MarkChanged();
+}
+
+void GUIObject::OnResized()
+{
+    UpdateControlRect();
+    MarkPositionChanged(true);
 }
 
 void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
@@ -256,6 +270,18 @@ void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
             ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), border_color);
         }
     }
+}
+
+void GUIObject::UpdateControlRect()
+{
+    if (IsShowBorder())
+        _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY,
+            _width - _borderWidth * 2 - _paddingX * 2, _height - _borderWidth * 2 - _paddingY * 2);
+    else
+        _innerRect = RectWH(_paddingX, _paddingY,
+            _width - _paddingX * 2, _height - _paddingY * 2);
+
+    MarkChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -306,6 +332,8 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
             _eventHandlers[i].Read(in);
         }
     }
+
+    UpdateControlRect();
 }
 
 void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -340,6 +368,8 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         in->ReadInt32();
     }
     // NOTE: bw-compat frame properties have to be assigned by each control type separately
+
+    UpdateControlRect();
 }
 
 void GUIObject::WriteToSavegame(Stream *out) const

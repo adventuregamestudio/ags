@@ -296,7 +296,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
     // print something fake so we can see what it looks like
     const int text_color = ds->GetCompatibleColor(_textColor);
-    wouttext_outline(ds, x + _paddingX, y + _paddingY, _font, text_color, "Text Box Contents");
+    wouttext_outline(ds, _innerRect.Left + x, _innerRect.Top + y, _font, text_color, "Text Box Contents");
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)
@@ -318,8 +318,14 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
     DrawControlFrame(ds, x, y);
 
-    color_t draw_color = ds->GetCompatibleColor(15);
-    ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
+    // Draw a marker border, just to let users see this control in preview
+    // TODO: find a better way, now that we have a way to customize border,
+    // this may cause confusion
+    if (!IsShowBorder() || _borderWidth == 0)
+    {
+        color_t draw_color = ds->GetCompatibleColor(15);
+        ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
+    }
 }
 
 void GUIButton::PrepareTextToDraw()

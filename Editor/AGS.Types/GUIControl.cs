@@ -235,7 +235,7 @@ namespace AGS.Types
         public int PaddingX
         {
             get { return _paddingX; }
-            set { _paddingX = value; }
+            set { _paddingX = Math.Max(0, value); }
         }
 
         [Description("A distance between Control's vertical borders and its interior content, such as text")]
@@ -243,7 +243,7 @@ namespace AGS.Types
         public int PaddingY
         {
             get { return _paddingY; }
-            set { _paddingY = value; }
+            set { _paddingY = Math.Max(0, value); }
         }
 
         [Browsable(false)]

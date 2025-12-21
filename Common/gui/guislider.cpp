@@ -341,8 +341,8 @@ void GUISlider::OnMouseUp()
 
 void GUISlider::OnResized()
 {
+    GUIObject::OnResized();
     UpdateMetrics();
-    MarkPositionChanged(true);
 }
 
 void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -448,7 +448,7 @@ void GUISlider::SetDefaultLooksFor363()
     _borderColor = 15;
     _handleColor = 7;
     _shadowColor = 8;
-    MarkChanged();
+    UpdateControlRect();
 }
 
 } // namespace Common

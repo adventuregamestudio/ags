@@ -32,8 +32,7 @@ namespace Common
 GUIListBox::GUIListBox()
 {
     _flags |= kGUICtrl_ShowBorder;
-    _paddingX = _borderWidth;
-    _paddingY = _borderWidth;
+    UpdateControlRect();
 }
 
 void GUIListBox::SetFont(int font)
@@ -272,15 +271,16 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
                  ystrt + get_fixed_pixel_size(5)), draw_color);
     }
 
+    const Rect items_rc = Rect::MoveBy(_itemsRect, x, y);
     const Rect old_clip = ds->GetClip();
     if (GUI::Options.ClipControls)
-        ds->SetClip(Rect::MoveBy(_itemsRect, x, y));
+        ds->SetClip(items_rc);
     for (uint32_t item = 0; (item < _visibleItemCount) && (item + _topItem < _items.size()); ++item)
     {
         color_t text_color;
-        const int at_x = x + _itemsRect.Left;
-        const int right_x = x + _itemsRect.Right;
-        int at_y = y + _itemsRect.Top + item * _rowHeight;
+        const int at_x = items_rc.Left;
+        const int right_x = items_rc.Right;
+        int at_y = items_rc.Top + item * _rowHeight;
         if (item + _topItem == _selectedItem)
         {
             text_color = ds->GetCompatibleColor(_selectedTextColor);
@@ -400,8 +400,8 @@ void GUIListBox::OnMouseMove(int x_, int y_)
 
 void GUIListBox::OnResized()
 {
+    GUIObject::OnResized();
     UpdateMetrics();
-    MarkChanged();
 }
 
 void GUIListBox::UpdateMetrics()
@@ -411,8 +411,6 @@ void GUIListBox::UpdateMetrics()
         // NOTE: we do this here, because calling get_fixed_pixel_size()
         // may not be safe in constructor
         _borderWidth = get_fixed_pixel_size(1);
-        _paddingX = _borderWidth;
-        _paddingY = _borderWidth;
     }
 
     int font_height = (loaded_game_file_version < kGameVersion_360_21) ?
@@ -420,12 +418,12 @@ void GUIListBox::UpdateMetrics()
     _rowHeight = font_height + get_fixed_pixel_size(2); // +1 top/bottom margin
     _itemTextPaddingX = get_fixed_pixel_size(1);
     _itemTextPaddingY = get_fixed_pixel_size(1);
-    const int items_height = _height - _paddingY * 2;
+    const int items_height = _innerRect.GetHeight();
     _visibleItemCount = items_height / _rowHeight;
     if (_items.size() <= _visibleItemCount)
         _topItem = 0; // reset scroll if all items are visible
 
-    int items_right = _width - 1 - _paddingX;
+    int items_right = _innerRect.Right;
     if (AreArrowsShown())
     {
         // Scrollbar rect includes 1-thin border around it (for convenience of calc & draw),
@@ -438,7 +436,7 @@ void GUIListBox::UpdateMetrics()
         items_right = _scrollbarRect.Left - 1;
     }
 
-    _itemsRect = Rect(_paddingX, _paddingY, items_right, _height - 1 - _paddingY);
+    _itemsRect = Rect(_innerRect.Left, _innerRect.Top, items_right, _innerRect.Bottom);
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -617,9 +615,7 @@ void GUIListBox::SetDefaultLooksFor363()
         _flags |= kGUICtrl_ShowBorder;
     _borderColor = _textColor;
     _borderWidth = get_fixed_pixel_size(1);
-    _paddingX = _borderWidth + 1;
-    _paddingY = _borderWidth + 1;
-    MarkChanged();
+    UpdateControlRect();
 }
 
 } // namespace Common

@@ -333,7 +333,7 @@ void GUIListBox::OnMouseMove(int x_, int y_)
 void GUIListBox::OnResized()
 {
     UpdateMetrics();
-    MarkChanged();
+    MarkPositionChanged(true);
 }
 
 void GUIListBox::UpdateMetrics()

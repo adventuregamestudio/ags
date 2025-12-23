@@ -67,7 +67,7 @@ jobs:
     - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        curl -sLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags3-auto-test.zip
+        curl -sLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags3-auto-test-3.6.2.zip
 
     - name: Unzip auto-test
       if: matrix.platform.shell == 'cmd'

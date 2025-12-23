@@ -91,13 +91,13 @@ void GUIButton::SetFont(int font)
 
 void GUIButton::SetDynamicColors(bool on)
 {
-    _buttonFlags = (_flags & ~kButton_DynamicColors) | kButton_DynamicColors * on;
+    _buttonFlags = (_buttonFlags & ~kButton_DynamicColors) | kButton_DynamicColors * on;
     UpdateCurrentImage();
 }
 
 void GUIButton::SetFlatStyle(bool on)
 {
-    _buttonFlags = (_flags & ~kButton_FlatStyle) | kButton_FlatStyle * on;
+    _buttonFlags = (_buttonFlags & ~kButton_FlatStyle) | kButton_FlatStyle * on;
     UpdateCurrentImage();
 }
 

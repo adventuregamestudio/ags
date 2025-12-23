@@ -242,6 +242,11 @@ void GUIObject::OnColorsChanged()
     MarkChanged();
 }
 
+void GUIObject::OnContentRectChanged()
+{
+    MarkChanged();
+}
+
 void GUIObject::OnResized()
 {
     UpdateControlRect();
@@ -281,7 +286,7 @@ void GUIObject::UpdateControlRect()
         _innerRect = RectWH(_paddingX, _paddingY,
             _width - _paddingX * 2, _height - _paddingY * 2);
 
-    MarkChanged();
+    OnContentRectChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

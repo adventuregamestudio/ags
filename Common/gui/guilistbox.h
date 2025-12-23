@@ -94,6 +94,14 @@ public:
     void SetDefaultLooksFor363() override;
 
 private:
+    // Internal control's region (content region) was resized
+    void OnContentRectChanged() override;
+
+    // Updates dynamic metrics such as row height and others
+    void UpdateMetrics();
+    // Applies translation
+    void PrepareTextToDraw(const String &text);
+
     static const color_t DefaultTextColor = 0;
     static const color_t DefaultSelectFgColor = 7;
     static const color_t DefaultSelectBgColor = 7;
@@ -115,11 +123,6 @@ private:
     int                     _selectedItem = -1;
     int                     _topItem = 0;
     Point                   _mousePos;
-
-    // Updates dynamic metrics such as row height and others
-    void UpdateMetrics();
-    // Applies translation
-    void PrepareTextToDraw(const String &text);
 
     static const int EventCount = 1;
     static String EventNames[EventCount];

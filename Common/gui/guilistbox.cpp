@@ -405,6 +405,12 @@ void GUIListBox::OnResized()
     UpdateMetrics();
 }
 
+void GUIListBox::OnContentRectChanged()
+{
+    UpdateMetrics();
+    MarkChanged();
+}
+
 void GUIListBox::UpdateMetrics()
 {
     if (GUI::GameGuiVersion < kGuiVersion_363)

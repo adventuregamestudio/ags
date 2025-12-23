@@ -162,6 +162,8 @@ protected:
     // Reports that any of the basic colors have changed,
     // to let child control handle this according to their needs
     virtual void    OnColorsChanged();
+    // Internal control's region (content region) was resized
+    virtual void    OnContentRectChanged();
     // Control was resized; child controls may override this and implement
     // their own additional handling
     virtual void    OnResized();

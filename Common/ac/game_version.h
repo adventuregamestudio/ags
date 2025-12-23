@@ -128,6 +128,9 @@ Script module names are written in the game data.
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
 OPT_GUICONTROLMOUSEBUT, game info properties, font character spacing
+3.6.3.4:
+New Dialogs data format,
+Region events are run consistent with other interactions.
 
 */
 

@@ -535,7 +535,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
 
 void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_363)
+    if (data_ver < kGameVersion_363_04)
     {
         for (int i = 0; i < game.numdialog; ++i)
         {

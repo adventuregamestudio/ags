@@ -50,7 +50,7 @@ void CopyPixels(uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px
 }
 
 bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
-    const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch)
+    const int width, const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch)
 {
     if (dst_fmt == src_fmt)
     {
@@ -63,9 +63,10 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
     {
         const uint8_t *src_ptr = src_buffer;
         const uint8_t *src_end = src_buffer + src_pitch * height;
+        const uint32_t src_width = (width + 1) / 2;
         for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
         {
-            for (size_t x = 0; x < src_pitch; ++x)
+            for (size_t x = 0; x < src_width; ++x)
             {
                 uint8_t sp = src_ptr[x];
                 dst_ptr[x * 2]     = ((sp >> 4) & 0xF);
@@ -79,9 +80,10 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
     {
         const uint8_t *src_ptr = src_buffer;
         const uint8_t *src_end = src_buffer + src_pitch * height;
+        const uint32_t src_width = (width + 7) / 8;
         for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
         {
-            for (size_t x = 0; x < src_pitch; ++x)
+            for (size_t x = 0; x < src_width; ++x)
             {
                 uint8_t sp = src_ptr[x];
                 dst_ptr[x * 8]     = ((sp >> 7) & 0x1);

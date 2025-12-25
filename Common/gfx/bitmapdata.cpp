@@ -63,15 +63,20 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
     {
         const uint8_t *src_ptr = src_buffer;
         const uint8_t *src_end = src_buffer + src_pitch * height;
-        const uint32_t src_width = (width + 1) / 2;
+        const uint32_t src_width = width / 2; // number of full sequences of 2 source pixels
         for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
         {
-            for (size_t x = 0; x < src_width; ++x)
+            uint32_t x = 0;
+            for (; x < src_width; ++x)
             {
                 uint8_t sp = src_ptr[x];
                 dst_ptr[x * 2]     = ((sp >> 4) & 0xF);
-                dst_ptr[x * 2 + 1] = (sp & 0xF);
+                dst_ptr[x * 2 + 1] =  (sp       & 0xF);
             }
+
+            // Last pixel (upper half of the source byte)
+            if (src_width * 2 < width)
+                dst_ptr[x * 2] = ((src_ptr[x] >> 4) & 0xF);
         }
         return true;
     }
@@ -80,10 +85,11 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
     {
         const uint8_t *src_ptr = src_buffer;
         const uint8_t *src_end = src_buffer + src_pitch * height;
-        const uint32_t src_width = (width + 7) / 8;
+        const uint32_t src_width = width / 8; // number of full sequences of 8 source pixels
         for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
         {
-            for (size_t x = 0; x < src_width; ++x)
+            uint32_t x = 0;
+            for (; x < src_width; ++x)
             {
                 uint8_t sp = src_ptr[x];
                 dst_ptr[x * 8]     = ((sp >> 7) & 0x1);
@@ -93,8 +99,12 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
                 dst_ptr[x * 8 + 4] = ((sp >> 3) & 0x1);
                 dst_ptr[x * 8 + 5] = ((sp >> 2) & 0x1);
                 dst_ptr[x * 8 + 6] = ((sp >> 1) & 0x1);
-                dst_ptr[x * 8 + 7] = (sp & 0x1);
+                dst_ptr[x * 8 + 7] =  (sp       & 0x1);
             }
+
+            // Last 1-7 pixels (upper portion of the source byte)
+            for (uint32_t dx = src_width * 8, sh = 7; dx < width; ++dx, --sh)
+                dst_ptr[dx] = ((src_ptr[x] >> sh) & 0x1);
         }
         return true;
     }

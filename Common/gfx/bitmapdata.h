@@ -208,7 +208,7 @@ namespace PixelOp
     // WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
     //          add more common conversions later!
     bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
-        const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch);
+        const int width, const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch);
 }
 
 } // namespace Common

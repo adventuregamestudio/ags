@@ -105,7 +105,7 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
         return nullptr;
 
     if (!PixelOp::CopyConvert(bitmap->GetDataForWriting(), ColorDepthToPixelFormat(dst_color_depth),
-            bitmap->GetLineLength(), height, pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch))
+            bitmap->GetLineLength(), width, height, pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch))
         return nullptr;
 
     return bitmap.release();

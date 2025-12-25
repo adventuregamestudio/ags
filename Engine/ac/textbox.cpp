@@ -54,12 +54,12 @@ void TextBox_SetFont(GUITextBox *guit, int fontnum) {
 }
 
 bool TextBox_GetShowBorder(GUITextBox *guit) {
-    return guit->IsBorderShown();
+    return guit->IsShowBorder();
 }
 
 void TextBox_SetShowBorder(GUITextBox *guit, bool on)
 {
-    if (guit->IsBorderShown() != on)
+    if (guit->IsShowBorder() != on)
     {
         guit->SetShowBorder(on);
         guit->MarkChanged();

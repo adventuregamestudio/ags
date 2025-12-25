@@ -29,6 +29,7 @@ public:
     GUITextBox();
 
     // Properties
+    int  GetTextBoxFlags() const { return _textBoxFlags; }
     int  GetFont() const { return _font; }
     void SetFont(int font);
     int  GetTextColor() const { return _textColor; }
@@ -36,7 +37,6 @@ public:
     const String &GetText() const { return _text; }
     void SetText(const String &text);
     bool HasAlphaChannel() const override;
-    bool IsBorderShown() const;
 
     // Script Events
     uint32_t GetEventCount() const override;
@@ -46,7 +46,6 @@ public:
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
-    void SetShowBorder(bool on);
  
     // Events
     bool OnKeyPress(const KeyInput &ki) override;
@@ -56,6 +55,9 @@ public:
     void WriteToFile(Stream *out) const override;
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;
+
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
 
 private:
     static const uint32_t EventCount = 1;
@@ -68,7 +70,7 @@ private:
     int     _textBoxFlags = kTextBox_DefFlags;
     String  _textToDraw;
 
-    void DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color);
+    void DrawTextBoxContents(Bitmap *ds, int x, int y);
 };
 
 } // namespace Common

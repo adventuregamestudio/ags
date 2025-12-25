@@ -187,6 +187,14 @@ enum ScriptSaveGameSortStyle
     kScSaveGameSort_Description = 3, // by save description
 };
 
+// Script API GUIButtonColorStyle
+enum ScriptButtonColorStyle
+{
+    eGUIButtonDefault           = 0,
+    eGUIButtonDynamic           = 1,
+    eGUIButtonDynamicFlat       = 2
+};
+
 enum eScriptSystemOSID
 {
     eOS_Unknown = 0,

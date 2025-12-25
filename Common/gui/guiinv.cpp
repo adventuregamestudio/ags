@@ -33,7 +33,8 @@ void GUIInvWindow::SetItemDimensions(int itemw, int itemh)
     {
         _itemWidth = itemw;
         _itemHeight = itemh;
-        OnResized();
+        CalculateNumCells();
+        MarkChanged();
     }
 }
 
@@ -64,8 +65,8 @@ void GUIInvWindow::OnMouseUp()
 
 void GUIInvWindow::OnResized()
 {
+    GUIObject::OnResized();
     CalculateNumCells();
-    MarkChanged();
 }
 
 void GUIInvWindow::WriteToFile(Stream *out) const
@@ -126,6 +127,12 @@ void GUIInvWindow::WriteToSavegame(Stream *out) const
     out->WriteInt32(_itemHeight);
     out->WriteInt32(_charID);
     out->WriteInt32(_topItem);
+}
+
+void GUIInvWindow::OnContentRectChanged()
+{
+    CalculateNumCells();
+    MarkChanged();
 }
 
 void GUIInvWindow::CalculateNumCells()

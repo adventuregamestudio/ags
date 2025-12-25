@@ -36,10 +36,14 @@ public:
     void SetValue(int value);
     int  GetBgImage() const { return _bgImage; }
     void SetBgImage(int image);
+    int  GetHandleColor() const { return _handleColor; }
+    void SetHandleColor(int color);
     int  GetHandleImage() const { return _handleImage; }
     void SetHandleImage(int image);
     int  GetHandleOffset() const { return _handleOffset; }
     void SetHandleOffset(int offset);
+    int  GetShadowColor() const { return _shadowColor; }
+    void SetShadowColor(int color);
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
     bool IsOverControl(int x, int y, int leeway) const override;
@@ -68,6 +72,9 @@ public:
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;
 
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
+
 private:
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
@@ -82,6 +89,8 @@ private:
     int     _bgImage = 0;
     int     _handleImage = 0;
     int     _handleOffset = 0;
+    int     _handleColor = 0;
+    int     _shadowColor = 0;
     bool    _isMousePressed = false;
     // Cached coordinates of slider bar; in relative coords
     Rect    _cachedBar;

@@ -33,6 +33,10 @@ namespace Common
 
 GUITextBox::GUITextBox()
 {
+    _flags |= kGUICtrl_ShowBorder;
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
 }
 
 void GUITextBox::SetFont(int font)
@@ -65,11 +69,6 @@ void GUITextBox::SetText(const String &text)
 bool GUITextBox::HasAlphaChannel() const
 {
     return is_font_antialiased(_font);
-}
-
-bool GUITextBox::IsBorderShown() const
-{
-    return (_textBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
 uint32_t GUITextBox::GetEventCount() const
@@ -115,17 +114,8 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
 
 void GUITextBox::Draw(Bitmap *ds, int x, int y)
 {
-    color_t text_color = ds->GetCompatibleColor(_textColor);
-    color_t draw_color = ds->GetCompatibleColor(_textColor);
-    if (IsBorderShown())
-    {
-        ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
-        if (get_fixed_pixel_size(1) > 1)
-        {
-            ds->DrawRect(Rect(x + 1, y + 1, x + _width - get_fixed_pixel_size(1), y + _height - get_fixed_pixel_size(1)), draw_color);
-        }
-    }
-    DrawTextBoxContents(ds, x, y, text_color);
+    DrawControlFrame(ds, x, y);
+    DrawTextBoxContents(ds, x, y);
 }
 
 // TODO: a shared utility function
@@ -173,14 +163,6 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
     return true;
 }
 
-void GUITextBox::SetShowBorder(bool on)
-{
-    if (on)
-        _textBoxFlags |= kTextBox_ShowBorder;
-    else
-        _textBoxFlags &= ~kTextBox_ShowBorder;
-}
-
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
 void GUITextBox::WriteToFile(Stream *out) const
@@ -218,6 +200,11 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
         _textBoxFlags = in->ReadInt32();
+
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const
@@ -227,6 +214,17 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textBoxFlags);
+}
+
+void GUITextBox::SetDefaultLooksFor363()
+{
+    if ((_textBoxFlags & kTextBox_ShowBorder) != 0)
+        _flags |= kGUICtrl_ShowBorder;
+    _borderColor = _textColor;
+    _borderWidth = get_fixed_pixel_size(1);
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
 }
 
 } // namespace Common

@@ -2163,13 +2163,13 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;
+  thisgame.options[OPT_NATIVECOORDINATES] = !game->Settings->UseLowResCoordinatesInScript;
+  thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   SetGameResolution(game);
 
-  thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
   thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
-
   AGS::Common::GUI::Options.ClipControls = thisgame.options[OPT_CLIPGUICONTROLS] != 0;
 
   // ensure that the sprite import knows about pal slots 

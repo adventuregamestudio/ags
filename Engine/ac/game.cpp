@@ -1494,6 +1494,27 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     if ((winner == LOCTYPE_HOTSPOT) && (!allowHotspot0) && (hsat == 0))
         winner = 0;
 
+    // Check edges (lowest priority - only if nothing else found)
+    if (winner == 0) {
+        int edge_detected = -1;
+
+        // Check edges using room coordinates (xxx, yyy already converted)
+        if (xxx <= thisroom.Edges.Left)
+            edge_detected = 0; // Left edge
+        else if (xxx >= thisroom.Edges.Right)
+            edge_detected = 1; // Right edge
+        else if (yyy >= thisroom.Edges.Bottom)
+            edge_detected = 2; // Bottom edge
+        else if (yyy <= thisroom.Edges.Top)
+            edge_detected = 3; // Top edge
+
+        if (edge_detected >= 0) {
+            winner = LOCTYPE_EDGE;
+            getloctype_index = edge_detected;
+            return winner;
+        }
+    }
+
     if (winner == LOCTYPE_HOTSPOT)
         getloctype_index = hsat;
     else if (winner == LOCTYPE_CHAR)

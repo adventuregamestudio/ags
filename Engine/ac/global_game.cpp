@@ -942,8 +942,12 @@ void RoomProcessClick(int xx,int yy,int mood) {
     else if (loctype == LOCTYPE_OBJ) {
         if (check_click_on_object(xx,yy,mood)) return;
     }
-    else if (loctype == LOCTYPE_HOTSPOT) 
+    else if (loctype == LOCTYPE_HOTSPOT)
         RunHotspotInteraction (getloctype_index, mood);
+    else if (loctype == LOCTYPE_EDGE) {
+        // Edge clicks can be handled via unhandled_event callback
+        run_unhandled_event(ObjectEvent(kScTypeRoom, "edge", LOCTYPE_EDGE, getloctype_index), mood);
+    }
 }
 
 int IsInteractionAvailable (int xx,int yy,int mood) {

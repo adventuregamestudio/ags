@@ -622,6 +622,8 @@ namespace AGS.Editor
             this.Name = "SpriteImportWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Import Sprite";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SpriteImportWindow_FormClosed);
+            this.Load += new System.EventHandler(this.SpriteImportWindow_Load);
             this.groupImportOptions.ResumeLayout(false);
             this.groupImportOptions.PerformLayout();
             this.groupTransColour.ResumeLayout(false);

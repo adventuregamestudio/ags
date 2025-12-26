@@ -2307,6 +2307,7 @@ void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
 // This must be done, because AGS (or rather Allegro 4) hardcodes transparent color index as 0.
 static void NormalizePaletteTransparency(AGSBitmap *dst, RGB *imgpal, size_t pal_len)
 {
+    assert(dst->GetColorDepth() == 8);
     // Determine actual transparency index in the palette
     int transparency_index = -1;
     for (int i = 0; i < pal_len; ++i)
@@ -2327,7 +2328,7 @@ static void NormalizePaletteTransparency(AGSBitmap *dst, RGB *imgpal, size_t pal
     // some BMPs seem to fill unused palette entries with zeroed ARGB.
     if (transparency_index > 0)
     {
-        const uint8_t *px_ptr = dst->GetDataForWriting();
+        const uint8_t *px_ptr = dst->GetData();
         const uint8_t *px_end = px_ptr + dst->GetDataSize();
         bool found_transparency_index = false;
         for (; px_ptr != px_end; ++px_ptr)
@@ -2358,7 +2359,7 @@ static void NormalizePaletteTransparency(AGSBitmap *dst, RGB *imgpal, size_t pal
         else
         {
             bool used[256] = { 0 };
-            const uint8_t *px_ptr = dst->GetDataForWriting();
+            const uint8_t *px_ptr = dst->GetData();
             const uint8_t *px_end = px_ptr + dst->GetDataSize();
             for (; px_ptr != px_end; ++px_ptr)
             {
@@ -2399,6 +2400,7 @@ static void NormalizePaletteTransparency(AGSBitmap *dst, RGB *imgpal, size_t pal
 static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array<System::Drawing::Color> ^bmpPalette,
     bool normalizeTrans)
 {
+    assert(dst->GetColorDepth() == 8);
     // Copy palette, fixing colors if necessary
     for (int i = 0; i < 256; i++)
     {

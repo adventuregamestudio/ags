@@ -15,26 +15,43 @@ namespace AGS.Editor.Utils
     // and Image objects: their loading, saving, transformation, etc.
     //
 
-    public static class BitmapTransparencyFixUp
+    /// <summary>
+    /// BitmapHelper is a collection of replacements for Bitmap Cloning, Loading,
+    /// and so forth, which improve standard .NET framework behavior in some cases.
+    /// </summary>
+    public static class BitmapHelper
     {
         // methods from https://stackoverflow.com/questions/4803935/free-file-locked-by-new-bitmapfilepath/48170549#48170549
         // and from https://stackoverflow.com/questions/24074641/how-to-read-8-bit-png-image-as-8-bit-png-image-only
 
         /// <summary>
-        /// Clones an image object to free it from any backing resources.
-        /// Code taken from http://stackoverflow.com/a/3661892/ with some extra fixes.
+        /// Clones an image object, freeing the image from any backing
+        /// resources (prevents file lock).
         /// </summary>
         /// <param name="sourceImage">The image to clone</param>
         /// <returns>The cloned image</returns>
         public static Bitmap CloneImage(Bitmap sourceImage)
         {
             Rectangle rect = new Rectangle(0, 0, sourceImage.Width, sourceImage.Height);
-            Bitmap targetImage = new Bitmap(rect.Width, rect.Height, sourceImage.PixelFormat);
+            return CloneImage(sourceImage, rect);
+        }
+
+        /// <summary>
+        /// Clones the portion of the image, freeing the image from any backing
+        /// resources (prevents file lock).
+        /// Code taken from http://stackoverflow.com/a/3661892/ with some extra fixes.
+        /// </summary>
+        /// <param name="sourceImage">The image to clone</param>
+        /// <returns>The cloned image</returns>
+        public static Bitmap CloneImage(Bitmap sourceImage, Rectangle sourceRect)
+        {
+            Rectangle destRect = new Rectangle(0, 0, sourceRect.Width, sourceRect.Height);
+            Bitmap targetImage = new Bitmap(destRect.Width, destRect.Height, sourceImage.PixelFormat);
             targetImage.SetResolution(sourceImage.HorizontalResolution, sourceImage.VerticalResolution);
-            BitmapData sourceData = sourceImage.LockBits(rect, ImageLockMode.ReadOnly, sourceImage.PixelFormat);
-            BitmapData targetData = targetImage.LockBits(rect, ImageLockMode.WriteOnly, targetImage.PixelFormat);
-            Int32 actualDataWidth = ((Image.GetPixelFormatSize(sourceImage.PixelFormat) * rect.Width) + 7) / 8;
-            Int32 h = sourceImage.Height;
+            BitmapData sourceData = sourceImage.LockBits(sourceRect, ImageLockMode.ReadOnly, sourceImage.PixelFormat);
+            BitmapData targetData = targetImage.LockBits(destRect, ImageLockMode.WriteOnly, targetImage.PixelFormat);
+            Int32 actualDataWidth = ((Image.GetPixelFormatSize(sourceImage.PixelFormat) * sourceRect.Width) + 7) / 8;
+            Int32 h = sourceRect.Height;
             Int32 origStride = sourceData.Stride;
             Boolean isFlipped = origStride < 0;
             origStride = Math.Abs(origStride); // Fix for negative stride in BMP format.
@@ -258,7 +275,7 @@ namespace AGS.Editor.Utils
         /// </summary>
         public static Bitmap LoadNonLockedBitmap(string path)
         {
-            return BitmapTransparencyFixUp.LoadBitmap(path);
+            return BitmapHelper.LoadBitmap(path);
         }
 
         /// <summary>
@@ -267,7 +284,7 @@ namespace AGS.Editor.Utils
         /// <returns></returns>
         public static Bitmap LoadBitmapKeepingFormat(Stream stream)
         {
-            return BitmapTransparencyFixUp.LoadBitmap(stream);
+            return BitmapHelper.LoadBitmap(stream);
         }
     }
 }

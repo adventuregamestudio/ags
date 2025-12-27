@@ -1104,6 +1104,7 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
     case LOCTYPE_OBJ: evtype = 2; break;
     case LOCTYPE_CHAR: evtype = 3; break;
     case LOCTYPE_INVITEM: evtype = 5; break;
+    case LOCTYPE_EDGE: evtype = 6; break;
     default: return; // other interaction sources do not have unhandled events
     }
 
@@ -1115,6 +1116,7 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
         ;  // character stands on hotspot, mouse moves over hotspot, any click
     else if ((evtype==2) && (evnt==4)) ;  // any click on object
     else if ((evtype==3) && (evnt==4)) ;  // any click on character
+    else if ((evtype==6) && (evnt==4)) ;  // any click on edge
     else if (evtype > 0)
     {
         can_run_delayed_command();

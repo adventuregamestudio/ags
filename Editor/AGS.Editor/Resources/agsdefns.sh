@@ -201,7 +201,8 @@ enum LocationType {
   eLocationNothing = 0,
   eLocationHotspot = 1,
   eLocationCharacter = 2,
-  eLocationObject = 3
+  eLocationObject = 3,
+  eLocationEdge = 5
 };
 
 enum CutsceneSkipType {

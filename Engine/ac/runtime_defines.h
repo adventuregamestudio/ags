@@ -148,6 +148,7 @@ const int LegacyRoomVolumeFactor            = 30;
 #define LOCTYPE_OBJ     3
 // LOCTYPE_INVITEM is used only internally, not exported to script in AGS 3.*
 #define LOCTYPE_INVITEM 4
+#define LOCTYPE_EDGE    5
 
 #define MAX_DYNAMIC_SURFACES 20
 

@@ -134,7 +134,7 @@ void GUIButton::SetShadowColor(int color)
 void GUIButton::SetTextColor(int color)
 {
     _textColor = color;
-    MarkChanged();
+    UpdateCurrentImage();
 }
 
 void GUIButton::SetMouseOverTextColor(int color)

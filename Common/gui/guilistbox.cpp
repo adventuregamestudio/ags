@@ -255,8 +255,8 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
     {
         const color_t draw_color = ds->GetCompatibleColor(_borderColor);
 
-        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top, x + _scrollbarRect.Right, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2), draw_color);
-        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2, x + _scrollbarRect.Right, y + _scrollbarRect.Bottom), draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top, x + _scrollbarRect.Right, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1), draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1, x + _scrollbarRect.Right, y + _scrollbarRect.Bottom), draw_color);
 
         const int xstrt = x + _scrollbarRect.Left + 1;
         // Up arrow

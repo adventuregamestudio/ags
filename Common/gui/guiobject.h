@@ -19,6 +19,7 @@
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
 #include "util/string.h"
+#include "util/stream.h"
 
 struct KeyInput;
 
@@ -139,10 +140,11 @@ public:
     virtual void    OnMouseUp() { }
 
     // Serialization
-    virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    virtual void    WriteToFile(Common::Stream *out) const;
-    virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
-    virtual void    WriteToSavegame(Common::Stream *out) const;
+    virtual void    ReadFromFile(Stream *in, GuiVersion gui_version);
+    virtual void    ReadFromFile_Ext363(Stream *in, GuiVersion gui_version);
+    virtual void    WriteToFile(Stream *out) const;
+    virtual void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver);
+    virtual void    WriteToSavegame(Stream *out) const;
 
     // Upgrades the GUI control to default looks for 3.6.3
     virtual void    SetDefaultLooksFor363() { /* do nothing */ }

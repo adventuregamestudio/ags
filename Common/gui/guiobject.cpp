@@ -347,6 +347,21 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     UpdateControlRect();
 }
 
+void GUIObject::ReadFromFile_Ext363(Common::Stream *in, GuiVersion gui_version)
+{
+    _backgroundColor = in->ReadInt32();
+    _borderColor = in->ReadInt32();
+    _borderWidth = in->ReadInt32();
+    _paddingX = in->ReadInt32();
+    _paddingY = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+
+    UpdateControlRect();
+}
+
 void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     // Properties

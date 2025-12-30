@@ -69,6 +69,7 @@ public:
 
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void ReadFromFile_Ext363(Stream *in, GuiVersion gui_version) override;
     void WriteToFile(Stream *out) const override;
     void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Stream *out) const override;

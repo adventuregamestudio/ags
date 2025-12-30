@@ -150,6 +150,11 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     _textMacro = GUI::FindLabelMacros(_text);
 }
 
+void GUILabel::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile_Ext363(in, gui_version);
+}
+
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);

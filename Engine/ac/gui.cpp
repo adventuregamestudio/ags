@@ -557,14 +557,13 @@ void update_gui_zorder()
 
 void prepare_gui_runtime(bool startup)
 {
-    // Trigger all guis and controls to recalculate their dynamic state;
-    // here we achieve this by sending "On Resize" event, although there could
-    // be a better way for this.
+    // Trigger all guis and controls to recalculate their dynamic state
     for (auto &gui : guis)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
             GUIObject *guio = gui.GetControl(i);
+            guio->UpdateVisualState();
             guio->SetActivated(false);
         }
     }

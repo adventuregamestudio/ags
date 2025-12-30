@@ -237,6 +237,12 @@ void GUIObject::SetActivated(bool on)
     _isActivated = on;
 }
 
+void GUIObject::UpdateVisualState()
+{
+    UpdateControlRect();
+    MarkPositionChanged(true);
+}
+
 void GUIObject::OnColorsChanged()
 {
     MarkChanged();

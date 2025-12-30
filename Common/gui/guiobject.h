@@ -121,6 +121,8 @@ public:
     // we might need another "bitmap draw mode" where it only offsets coordinates zero, but does not
     // constraint the drawing (like sub-bitmaps normally do).
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
+    // Update visual state forces control to recalculate its elements.
+    virtual void    UpdateVisualState();
 
     // Events
     // Key pressed for control; returns if handled

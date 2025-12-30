@@ -306,6 +306,12 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     }
 }
 
+void GUISlider::UpdateVisualState()
+{
+    UpdateMetrics();
+    MarkPositionChanged(true);
+}
+
 bool GUISlider::OnMouseDown()
 {
     _isMousePressed = true;

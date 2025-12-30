@@ -549,6 +549,11 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
 }
 
+void GUIListBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile_Ext363(in, gui_version);
+}
+
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);

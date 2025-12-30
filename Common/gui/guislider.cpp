@@ -384,6 +384,18 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     _value = Math::Clamp(_value, _minValue, _maxValue);
 }
 
+void GUISlider::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile_Ext363(in, gui_version);
+
+    _handleColor = in->ReadInt32();
+    _shadowColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+}
+
 void GUISlider::WriteToFile(Stream *out) const
 {
     GUIObject::WriteToFile(out);

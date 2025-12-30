@@ -563,6 +563,26 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     UpdateCurrentImage();
 }
 
+void GUIButton::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile_Ext363(in, gui_version);
+
+    _buttonFlags = in->ReadInt32();
+    _shadowColor = in->ReadInt32();
+    _mouseOverBackColor = in->ReadInt32();
+    _pushedBackColor = in->ReadInt32();
+    _mouseOverBorderColor = in->ReadInt32();
+    _pushedBorderColor = in->ReadInt32();
+    _mouseOverTextColor = in->ReadInt32();
+    _pushedTextColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+
+    UpdateCurrentImage();
+}
+
 void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);

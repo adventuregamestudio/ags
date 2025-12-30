@@ -873,49 +873,6 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
     return HError::None();
 }
 
-void ReadGUIControlExtLooks_363(GUIObject &obj, Stream *in)
-{
-    obj.SetBackColor(in->ReadInt32());
-    obj.SetBorderColor(in->ReadInt32());
-    obj.SetBorderWidth(in->ReadInt32());
-    obj.SetPaddingX(in->ReadInt32());
-    obj.SetPaddingY(in->ReadInt32());
-    in->ReadInt32(); // reserved
-    in->ReadInt32();
-    in->ReadInt32();
-    in->ReadInt32();
-}
-
-void ReadGUIButtonExtLooks_363(GUIButton &btn, Stream *in)
-{
-    ReadGUIControlExtLooks_363(btn, in);
-
-    btn.SetButtonFlags(in->ReadInt32());
-    btn.SetShadowColor(in->ReadInt32());
-    btn.SetMouseOverBackColor(in->ReadInt32());
-    btn.SetPushedBackColor(in->ReadInt32());
-    btn.SetMouseOverBorderColor(in->ReadInt32());
-    btn.SetPushedBorderColor(in->ReadInt32());
-    btn.SetMouseOverTextColor(in->ReadInt32());
-    btn.SetPushedTextColor(in->ReadInt32());
-    in->ReadInt32(); // reserved
-    in->ReadInt32();
-    in->ReadInt32();
-    in->ReadInt32();
-}
-
-void ReadGUISliderExtLooks_363(GUISlider &sld, Stream *in)
-{
-    ReadGUIControlExtLooks_363(sld, in);
-
-    sld.SetHandleColor(in->ReadInt32());
-    sld.SetShadowColor(in->ReadInt32());
-    in->ReadInt32(); // reserved
-    in->ReadInt32();
-    in->ReadInt32();
-    in->ReadInt32();
-}
-
 HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
     soff_t /*block_len*/, bool &read_next)
 {
@@ -1056,42 +1013,42 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             return err;
         for (GUIButton &but : _ents.GuiControls.Buttons)
         {
-            ReadGUIButtonExtLooks_363(but, in);
+            but.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
         if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.GuiControls.Labels.size()), err))
             return err;
         for (GUILabel &label : _ents.GuiControls.Labels)
         {
-            ReadGUIControlExtLooks_363(label, in);
+            label.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
         if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.GuiControls.InvWindows.size()), err))
             return err;
         for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
         {
-            ReadGUIControlExtLooks_363(invw, in);
+            invw.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
         if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.GuiControls.Sliders.size()), err))
             return err;
         for (GUISlider &slider : _ents.GuiControls.Sliders)
         {
-            ReadGUISliderExtLooks_363(slider, in);
+            slider.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
         if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.GuiControls.TextBoxes.size()), err))
             return err;
         for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
         {
-            ReadGUIControlExtLooks_363(textbox, in);
+            textbox.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
 
         if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.GuiControls.ListBoxes.size()), err))
             return err;
         for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
         {
-            ReadGUIControlExtLooks_363(listbox, in);
+            listbox.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
         }
     }
     else
@@ -1189,7 +1146,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
     GUIRefCollection guictrl_refs(ents.GuiControls);
-    HError err2 = GUI::ReadGUI(ents.Guis, guictrl_refs, in);
+    HError err2 = GUI::ReadGUI(ents.Guis, ents.LoadedGuiVersion, guictrl_refs, in);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
     game.numgui = ents.Guis.size();

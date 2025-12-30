@@ -90,9 +90,9 @@ void GUIListBox::SetSelectedItem(int index)
         // Automatically update top item to keep selection visible
         if (index >= 0)
         {
-            if (index < _topItem)
+            if ((index < _topItem) || (_visibleItemCount == 0))
                 _topItem = index;
-            else if (static_cast<uint32_t>(index) >= _topItem + _visibleItemCount)
+            else if ((static_cast<uint32_t>(index) >= _topItem + _visibleItemCount))
                 _topItem = (index - _visibleItemCount) + 1;
         }
         MarkChanged();

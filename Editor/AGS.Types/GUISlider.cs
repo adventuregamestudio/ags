@@ -40,7 +40,7 @@ namespace AGS.Types
         [Category("Events")]
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
-        [ScriptFunction("GUIControl *control")]
+        [ScriptFunction("OnChange", "GUIControl *control")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnChange
         {

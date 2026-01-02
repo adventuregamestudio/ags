@@ -52,7 +52,7 @@ namespace AGS.Types
         [Category("Events")]
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
-        [ScriptFunction("GUIControl *control, MouseButton button")]
+        [ScriptFunction("OnClick", "GUIControl *control, MouseButton button")]
         [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string OnClick
         {

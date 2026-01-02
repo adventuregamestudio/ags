@@ -1127,7 +1127,7 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
     return HError::None();
 }
 
-HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in)
+HError ReadGUI(std::vector<GUIMain> &guis, GuiVersion &gui_version, GUIRefCollection &guiobjs, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -1146,6 +1146,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in
     else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);
+    gui_version = GameGuiVersion;
 
     // import the main GUI elements
     for (size_t i = 0; i < gui_count; ++i)

@@ -123,22 +123,22 @@ void MarkForFontUpdate(int font)
     for (auto &btn : guibuts)
     {
         if (update_all || btn.GetFont() == font)
-            btn.OnResized();
+            btn.MarkChanged();
     }
     for (auto &lbl : guilabels)
     {
         if (update_all || lbl.GetFont() == font)
-            lbl.OnResized();
+            lbl.MarkChanged();
     }
     for (auto &list : guilist)
     {
         if (update_all || list.GetFont() == font)
-            list.OnResized();
+            list.MarkChanged();
     }
     for (auto &tb : guitext)
     {
         if (update_all || tb.GetFont() == font)
-            tb.OnResized();
+            tb.MarkChanged();
     }
 }
 
@@ -557,16 +557,14 @@ void update_gui_zorder()
 
 void prepare_gui_runtime(bool startup)
 {
-    // Trigger all guis and controls to recalculate their dynamic state;
-    // here we achieve this by sending "On Resize" event, although there could
-    // be a better way for this.
+    // Trigger all guis and controls to recalculate their dynamic state
     for (auto &gui : guis)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
             GUIObject *guio = gui.GetControl(i);
+            guio->UpdateVisualState();
             guio->SetActivated(false);
-            guio->OnResized();
         }
     }
     // Reset particular states after loading game data

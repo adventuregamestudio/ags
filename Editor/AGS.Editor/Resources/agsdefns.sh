@@ -1829,6 +1829,13 @@ enum GUIPopupStyle {
   eGUIPopupPersistent = 3
 };
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+enum GUIButtonColorStyle {
+  eGUIButtonDefault = 0,
+  eGUIButtonDynamic = 1,
+  eGUIButtonDynamicFlat = 2
+};
+#endif // SCRIPT_API_v363
 
 enum BlockingStyle {
   eBlock = 919,
@@ -1912,6 +1919,22 @@ builtin managed struct GUIControl {
   /// Gets the script name of this control.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the control's background color.
+  import attribute int BackgroundColor;
+  /// Gets/sets the control's border color.
+  import attribute int BorderColor;
+  /// Gets/sets the control's border width (thickness) in pixels.
+  import attribute int BorderWidth;
+  /// Gets/sets whether the control's colored background is drawn.
+  import attribute bool SolidBackground;
+  /// Gets/sets whether the control's border is drawn.
+  import attribute bool ShowBorder;
+  /// Gets/sets the horizontal padding (amount of pixels surrounding inner control's contents from the left and right sides).
+  import attribute int PaddingX;
+  /// Gets/sets the vertical padding (amount of pixels surrounding inner control's contents from the top and bottom sides).
+  import attribute int PaddingY;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1980,11 +2003,31 @@ builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v362
   /// Gets/sets whether the button will wrap its text.
   import attribute bool WrapText;
+#ifdef SCRIPT_COMPAT_v363
   /// Gets/sets amount of padding, restricting the text from left and right
   import attribute int TextPaddingHorizontal;
   /// Gets/sets amount of padding, restricting the text from top and bottom
   import attribute int TextPaddingVertical;
+#endif // SCRIPT_COMPAT_v363
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the button's color style
+  import attribute GUIButtonColorStyle ColorStyle;
+  /// Gets/sets the main button color used when the player moves the mouse over the button
+  import attribute int MouseOverBackgroundColor;
+  /// Gets/sets the main button color used when the button is pressed
+  import attribute int PushedBackgroundColor;
+  /// Gets/sets the button's border color used when the player moves the mouse over the button
+  import attribute int MouseOverBorderColor;
+  /// Gets/sets the button's border color used when the button is pressed
+  import attribute int PushedBorderColor;
+  /// Gets/sets the button's text color used when the player moves the mouse over the button
+  import attribute int MouseOverTextColor;
+  /// Gets/sets the button's text color used when the button is pressed
+  import attribute int PushedTextColor;
+  /// Gets/sets the color used for drawing shadow effect on this control.
+  import attribute int ShadowColor;
+#endif
 };
 
 builtin managed struct Slider extends GUIControl {
@@ -2000,6 +2043,12 @@ builtin managed struct Slider extends GUIControl {
   import attribute int  Min;
   /// Gets/sets the current value of the slider.
   import attribute int  Value;
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the inner color of the slider's handle
+  import attribute int  HandleColor;
+  /// Gets/sets the color used for drawing shadow effect on this control.
+  import attribute int  ShadowColor;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct TextBox extends GUIControl {
@@ -2014,8 +2063,10 @@ builtin managed struct TextBox extends GUIControl {
   /// Gets/sets the color of the text in the text box.
   import attribute int TextColor;
 #ifdef SCRIPT_API_v350
+#ifndef SCRIPT_API_v363
   /// Gets/sets whether the border around the text box is shown.
   import attribute bool ShowBorder;
+#endif // SCRIPT_COMPAT_v363
 #endif // SCRIPT_API_v350
 };
 
@@ -2095,8 +2146,10 @@ builtin managed struct ListBox extends GUIControl {
 	/// Gets/sets the first visible item in the list.
 	import attribute int  TopItem;
 #ifdef SCRIPT_API_v350
+#ifndef SCRIPT_API_v363
 	/// Gets/sets whether the border around the list box is shown.
 	import attribute bool ShowBorder;
+#endif // SCRIPT_COMPAT_v363
 	/// Gets/sets whether the clickable scroll arrows are shown.
 	import attribute bool ShowScrollArrows;
 	/// Gets/sets color of the list item's selection

@@ -22,6 +22,11 @@ namespace AGS
 namespace Common
 {
 
+GUIObject::GUIObject()
+{
+    UpdateControlRect();
+}
+
 void GUIObject::SetName(const String &name)
 {
     _name = name;
@@ -161,9 +166,133 @@ void GUIObject::SetVisible(bool on)
     }
 }
 
+void GUIObject::SetShowBorder(bool on)
+{
+    if (on != ((_flags & kGUICtrl_ShowBorder) != 0))
+    {
+        _flags = (_flags & ~kGUICtrl_ShowBorder) | kGUICtrl_ShowBorder * on;
+        UpdateControlRect();
+    }
+}
+
+void GUIObject::SetSolidBackground(bool on)
+{
+    if (on != ((_flags & kGUICtrl_SolidBack) != 0))
+    {
+        _flags = (_flags & ~kGUICtrl_SolidBack) | kGUICtrl_SolidBack * on;
+        MarkChanged();
+    }
+}
+
+void GUIObject::SetBackColor(int color)
+{
+    if (_backgroundColor != color)
+    {
+        _backgroundColor = color;
+        OnColorsChanged();
+    }
+}
+
+void GUIObject::SetBorderColor(int color)
+{
+    if (_borderColor != color)
+    {
+        _borderColor = color;
+        OnColorsChanged();
+    }
+}
+
+void GUIObject::SetBorderWidth(int border_width)
+{
+    border_width = std::max(0, border_width);
+    if (_borderWidth != border_width)
+    {
+        _borderWidth = border_width;
+        UpdateControlRect();
+    }
+}
+
+void GUIObject::SetPaddingX(int padx)
+{
+    padx = std::max(0, padx);
+    if (_paddingX != padx)
+    {
+        _paddingX = padx;
+        UpdateControlRect();
+    }
+}
+
+void GUIObject::SetPaddingY(int pady)
+{
+    pady = std::max(0, pady);
+    if (_paddingY != pady)
+    {
+        _paddingY = pady;
+        UpdateControlRect();
+    }
+}
+
 void GUIObject::SetActivated(bool on)
 {
     _isActivated = on;
+}
+
+void GUIObject::UpdateVisualState()
+{
+    UpdateControlRect();
+    MarkPositionChanged(true);
+}
+
+void GUIObject::OnColorsChanged()
+{
+    MarkChanged();
+}
+
+void GUIObject::OnContentRectChanged()
+{
+    MarkChanged();
+}
+
+void GUIObject::OnResized()
+{
+    UpdateControlRect();
+    MarkPositionChanged(true);
+}
+
+void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
+{
+    const int bg_color = ds->GetCompatibleColor(_backgroundColor);
+    const int border_color = ds->GetCompatibleColor(_borderColor);
+    const int border_width = _borderWidth *
+        // Pre-3.6.3 the controls would implicitly double the border thickness
+        // for "hi-res" games
+        // FIXME: adjust and save border width when it's assigned instead
+        (((GUI::GameGuiVersion < kGuiVersion_363) && (get_fixed_pixel_size(1) > 1)) ? 2 : 1);
+
+    if (IsSolidBackground())
+    {
+        ds->FillRect(RectWH(x, y, _width, _height), bg_color);
+    }
+
+    if (IsShowBorder())
+    {
+        for (int i = 0; i < border_width; ++i)
+        {
+            ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), border_color);
+        }
+    }
+}
+
+void GUIObject::UpdateControlRect()
+{
+    if (IsShowBorder())
+        _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY,
+            _width - _borderWidth * 2 - _paddingX * 2, _height - _borderWidth * 2 - _paddingY * 2);
+    else
+        _innerRect = RectWH(_paddingX, _paddingY,
+            _width - _paddingX * 2, _height - _paddingY * 2);
+
+    OnContentRectChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -214,6 +343,23 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
             _eventHandlers[i].Read(in);
         }
     }
+
+    UpdateControlRect();
+}
+
+void GUIObject::ReadFromFile_Ext363(Common::Stream *in, GuiVersion gui_version)
+{
+    _backgroundColor = in->ReadInt32();
+    _borderColor = in->ReadInt32();
+    _borderWidth = in->ReadInt32();
+    _paddingX = in->ReadInt32();
+    _paddingY = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+
+    UpdateControlRect();
 }
 
 void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -233,10 +379,23 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_36023)
     {
         _transparency = in->ReadInt32();
-        in->ReadInt32(); // reserve 3 ints
+        // valid since kGuiSvgVersion_36304
+        _backgroundColor = in->ReadInt32();
+        _borderColor = in->ReadInt32();
+        _borderWidth = in->ReadInt32();
+    }
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _paddingX = in->ReadInt32();
+        _paddingY = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
         in->ReadInt32();
         in->ReadInt32();
     }
+    // NOTE: bw-compat frame properties have to be assigned by each control type separately
+
+    UpdateControlRect();
 }
 
 void GUIObject::WriteToSavegame(Stream *out) const
@@ -250,8 +409,16 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(_zOrder);
     // Dynamic state
     out->WriteBool(_isActivated != 0);
+    // kGuiSvgVersion_36023
     out->WriteInt32(_transparency);
-    out->WriteInt32(0); // reserve 3 ints
+    // valid since kGuiSvgVersion_36304
+    out->WriteInt32(_backgroundColor);
+    out->WriteInt32(_borderColor);
+    out->WriteInt32(_borderWidth);
+    out->WriteInt32(_paddingX);
+    out->WriteInt32(_paddingY);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
 }

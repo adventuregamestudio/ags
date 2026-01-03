@@ -177,7 +177,7 @@ namespace AGS.Types
                 if (string.IsNullOrEmpty(_sourceFilename))
                     _projectFilename = string.Empty;
                 else
-                    _projectFilename = $"agsfnt{ID}.{System.IO.Path.GetExtension(_sourceFilename)}";
+                    _projectFilename = $"agsfnt{ID}{System.IO.Path.GetExtension(_sourceFilename)}";
             }
         }
 

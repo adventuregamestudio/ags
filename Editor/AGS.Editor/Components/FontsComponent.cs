@@ -50,7 +50,7 @@ namespace AGS.Editor.Components
                 newItem.OutlineStyle = FontOutlineStyle.None;
                 newItem.PointSize = copyFrom.PointSize;
                 newItem.SourceFilename = Utilities.GetRelativeToProjectPath(copyFrom.SourceFilename);
-                newItem.ProjectFilename = $"agsfnt{newItem.ID}.{Path.GetExtension(copyFrom.ProjectFilename)}";
+                newItem.ProjectFilename = $"agsfnt{newItem.ID}{Path.GetExtension(copyFrom.ProjectFilename)}";
                 items.Add(newItem);
                 Utilities.CopyFont(copyFrom.ID, newItem.ID);
                 Factory.NativeProxy.OnFontAdded(_agsEditor.CurrentGame, newItem.ID);

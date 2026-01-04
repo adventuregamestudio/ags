@@ -346,6 +346,10 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
   int ww;
 
   color_t text_color;
+  // multiple lines are offset by either bullet_wid or min offset
+  const int min_multiline_off = 9;
+  const int multiline_off = std::max(0, min_multiline_off - bullet_wid);
+
   for (ww=0;ww<numdisp;ww++) {
 
     if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
@@ -381,7 +385,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
       wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
     }
     for (size_t cc=0;cc<Lines.Count();cc++) {
-      wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, Lines[cc].GetCStr());
+      wouttext_outline(ds, dlgxp + ((cc==0) ? 0 : multiline_off) + bullet_wid, curyp, usingfont, text_color, Lines[cc].GetCStr());
       curyp+=linespacing;
     }
     if (ww < numdisp-1)

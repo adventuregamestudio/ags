@@ -522,6 +522,10 @@
 		20CC9E0C2E43ADAF001C24E8 /* deflatestream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20CC9E082E43ADAF001C24E8 /* deflatestream.cpp */; };
 		20CC9E0D2E43ADAF001C24E8 /* transformstream.h in Headers */ = {isa = PBXBuildFile; fileRef = 20CC9E092E43ADAF001C24E8 /* transformstream.h */; };
 		20CC9E0E2E43ADAF001C24E8 /* deflatestream.h in Headers */ = {isa = PBXBuildFile; fileRef = 20CC9E072E43ADAF001C24E8 /* deflatestream.h */; };
+		E7680CBF2F09E98800F864E2 /* indexedobjectpool.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CBE2F09E98800F864E2 /* indexedobjectpool.h */; };
+		E7680CCB2F09E99A00F864E2 /* time_util.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CCA2F09E99A00F864E2 /* time_util.h */; };
+		E7680CCE2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CCC2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.h */; };
+		E7680CCF2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E7680CCD2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1970,6 +1974,10 @@
 		20F3EDCE2A6DC96A00C7BD28 /* dynobj_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynobj_manager.cpp; sourceTree = "<group>"; };
 		20F3EDD42A6DC9C100C7BD28 /* resourcecache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resourcecache.h; sourceTree = "<group>"; };
 		20F3EDD62A6DCA3800C7BD28 /* plugin_stubs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_stubs.cpp; sourceTree = "<group>"; };
+		E7680CBE2F09E98800F864E2 /* indexedobjectpool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = indexedobjectpool.h; sourceTree = "<group>"; };
+		E7680CCA2F09E99A00F864E2 /* time_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = time_util.h; sourceTree = "<group>"; };
+		E7680CCC2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gfxfilter_aa_sdl_renderer.h; sourceTree = "<group>"; };
+		E7680CCD2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_aa_sdl_renderer.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3006,6 +3014,7 @@
 		201561CC290DD65E005E5B22 /* util */ = {
 			isa = PBXGroup;
 			children = (
+				E7680CBE2F09E98800F864E2 /* indexedobjectpool.h */,
 				20CC9E072E43ADAF001C24E8 /* deflatestream.h */,
 				20CC9E082E43ADAF001C24E8 /* deflatestream.cpp */,
 				20CC9E092E43ADAF001C24E8 /* transformstream.h */,
@@ -3726,6 +3735,7 @@
 		2015675A290DD949005E5B22 /* util */ = {
 			isa = PBXGroup;
 			children = (
+				E7680CCA2F09E99A00F864E2 /* time_util.h */,
 				2015675B290DD949005E5B22 /* library_windows.h */,
 				2015675C290DD949005E5B22 /* library_dummy.h */,
 				2015675D290DD949005E5B22 /* library.h */,
@@ -3998,6 +4008,8 @@
 		20156836290DD94B005E5B22 /* gfx */ = {
 			isa = PBXGroup;
 			children = (
+				E7680CCC2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.h */,
+				E7680CCD2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.cpp */,
 				20156837290DD94B005E5B22 /* blender.cpp */,
 				20156838290DD94B005E5B22 /* gfxfilter_aaogl.h */,
 				20156839290DD94B005E5B22 /* blender.h */,
@@ -4307,6 +4319,7 @@
 				2092B59A2B9B4DAE00B1AC1B /* openal.h in Headers */,
 				2092B5962B9B4D9400B1AC1B /* audio.h in Headers */,
 				2092B58E2B9B4D6D00B1AC1B /* video.h in Headers */,
+				E7680CCE2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.h in Headers */,
 				2092B58D2B9B4D6800B1AC1B /* videoplayer.h in Headers */,
 				2063B3032E43A67700E37FC0 /* smart_ptr.h in Headers */,
 				2092B5932B9B4D8800B1AC1B /* soundclip.h in Headers */,
@@ -4315,6 +4328,7 @@
 				2063B30D2E43A6E000E37FC0 /* messagebuffer.h in Headers */,
 				20CC9E0D2E43ADAF001C24E8 /* transformstream.h in Headers */,
 				20CC9E0E2E43ADAF001C24E8 /* deflatestream.h in Headers */,
+				E7680CCB2F09E99A00F864E2 /* time_util.h in Headers */,
 				2092B5912B9B4D7A00B1AC1B /* audiodefines.h in Headers */,
 				2092B5992B9B4DA900B1AC1B /* audio_system.h in Headers */,
 				2092B5942B9B4D8C00B1AC1B /* ambientsound.h in Headers */,
@@ -4326,6 +4340,7 @@
 				2092B5952B9B4D9100B1AC1B /* sdldecoder.h in Headers */,
 				2092B5902B9B4D7600B1AC1B /* audioplayer.h in Headers */,
 				2092B5982B9B4DA300B1AC1B /* openalsource.h in Headers */,
+				E7680CBF2F09E98800F864E2 /* indexedobjectpool.h in Headers */,
 				2092B5882B9B4D3A00B1AC1B /* theora_player.h in Headers */,
 				2063B3242E43A95900E37FC0 /* ags_parallax.h in Headers */,
 				2092B5922B9B4D7E00B1AC1B /* sound.h in Headers */,
@@ -4671,6 +4686,7 @@
 				1C96486E2B1E4D9E0034D46A /* speech.cpp in Sources */,
 				1C9648702B1E4D9E0034D46A /* sprite.cpp in Sources */,
 				1C9648722B1E4D9E0034D46A /* string.cpp in Sources */,
+				E7680CCF2F09E9A400F864E2 /* gfxfilter_aa_sdl_renderer.cpp in Sources */,
 				1C9648742B1E4D9E0034D46A /* sys_events.cpp in Sources */,
 				1C9648762B1E4D9E0034D46A /* system.cpp in Sources */,
 				2063B34B2E43A9E100E37FC0 /* ags_palrender.cpp in Sources */,

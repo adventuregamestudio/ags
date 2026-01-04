@@ -727,7 +727,7 @@ if (MACOS)
         MACOSX_BUNDLE_SHORT_VERSION_STRING  # CFBundleShortVersionString
             1.0.0
         MACOSX_BUNDLE_COPYRIGHT             # NSHumanReadableCopyright
-            "Copyright (C) 1999-2011 Chris Jones and 2011-2025 others"
+            "Copyright (C) 1999-2011 Chris Jones and 2011-2026 others"
         MACOSX_BUNDLE_INFO_STRING           # CFBundleGetInfoString
             "Created by Adventure Game Studio"
     )

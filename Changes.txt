@@ -1,5 +1,22 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Patch 13, January 2026
+
+Editor:
+ - Fixed minor visual mismatches in GUI previews occuring for high-res games.
+ - Fixed Callstack panel not getting cleared when the game is shutdown, and clicking on its items
+   could bring Editor into the wrong state.
+
+Engine:
+ - Fixed default Slider's handle drawn with 1 pixel offset mistake. (Regression after Patch 12)
+ - Fixed Slider unexpectedly increasing MaxValue by 1 if it was assigned equal to MinValue.
+ - Fixed multiline dialog options having unnecessary indentation at new lines in case there's
+   already an indentation after option numbering or a "bullet" graphic.
+ - Fixed Character's speech text's behavior being modified by a non-blocking voice clip run by
+   a Game.PlayVoiceClip() call.
+ - Fixed Game.PlayVoiceClip() not supporting narrator's voice.
+
+
 VERSION 3.6.1 - Patch 12, October 2025
 
 Editor:

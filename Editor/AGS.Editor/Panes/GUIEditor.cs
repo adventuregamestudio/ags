@@ -20,6 +20,7 @@ namespace AGS.Editor
         private bool _movingControl = false;
         private bool _resizingControl = false;
         private bool _inResizingArea = false;
+        private ContentAlignment? _resizingBySide = null;
         private bool _drawingSelectionBox = false;
         private int _selectionBoxX, _selectionBoxY;
         private Rectangle _selectionRect;
@@ -118,7 +119,7 @@ namespace AGS.Editor
 
             if (newPropertyObject is GUIControl)
             {
-                _selectedControl = (GUIControl)newPropertyObject;
+                SelectControl((GUIControl)newPropertyObject);
                 if (fromCombo)
                 {
                     _selected.Clear();
@@ -128,7 +129,7 @@ namespace AGS.Editor
             }
             else if (newPropertyObject is GUI)
             {
-                DeSelectControl();
+                SelectControl(null);
                 _selected.Clear();
             }
             bgPanel.Invalidate();
@@ -418,11 +419,12 @@ namespace AGS.Editor
                 _addingControlX = e.X;
                 _addingControlY = e.Y;
             }
-            else if ((_inResizingArea) && (_selectedControl != null) && (!_selectedControl.Locked))
+            else if ((_inResizingArea) && (_resizingBySide.HasValue) && (_selectedControl != null) && (!_selectedControl.Locked))
             {
                 _resizingControl = true;
-                _mouseXOffset = _selectedControl.Width - (mouseX - _selectedControl.Left);
-                _mouseYOffset = _selectedControl.Height - (mouseY - _selectedControl.Top);
+                Point refpt = DragUtils.GetReferencePoint(_selectedControl.GetRectangle(), _resizingBySide.Value);
+                _mouseXOffset = mouseX - refpt.X;
+                _mouseYOffset = mouseY - refpt.Y;
             }
             else
             {
@@ -440,8 +442,8 @@ namespace AGS.Editor
                     _selectionRect = new Rectangle(mouseX, mouseY, 1, 1);
                     _selectionBoxX = mouseX;
                     _selectionBoxY = mouseY;
+                }
             }
-        }
         }
 
         private void MoveControlWithMouse(int mouseX, int mouseY)
@@ -546,12 +548,16 @@ namespace AGS.Editor
                 
                 bgPanel.Invalidate();
             }
-            else if ((_resizingControl) && (_selectedControl != null))
+            else if ((_resizingControl) && (_resizingBySide != null) && (_selectedControl != null))
             {
                 try
                 {
-                    _selectedControl.Width = (mouseX - _selectedControl.Left) + _mouseXOffset;
-                    _selectedControl.Height = (mouseY - _selectedControl.Top) + _mouseYOffset;
+                    Rectangle newRect = DragUtils.ResizeRectangle(_selectedControl.GetRectangle(), _resizingBySide.Value,
+                        new Point(mouseX - _mouseXOffset, mouseY - _mouseYOffset), new Rectangle(0, 0, _gui.EditorWidth - 1, _gui.EditorHeight - 1));
+                    _selectedControl.Left = newRect.Left;
+                    _selectedControl.Top = newRect.Top;
+                    _selectedControl.Width = newRect.Width;
+                    _selectedControl.Height = newRect.Height;
                 }
                 catch (ArgumentException) {}
 
@@ -559,15 +565,8 @@ namespace AGS.Editor
             }
             else if (_selectedControl != null)
             {
-                int bottomRightX = _selectedControl.Left + _selectedControl.Width;
-                int bottomRightY = _selectedControl.Top + _selectedControl.Height;
-                if ((mouseX >= bottomRightX - 2) &&
-                    (mouseX <= bottomRightX + 2) &&
-                    (mouseY >= bottomRightY - 2) &&
-                    (mouseY <= bottomRightY + 2))
-                {
-                    _inResizingArea = true;
-                }
+                _resizingBySide = DragUtils.GetSideFromPosition(_selectedControl.GetRectangle(), mouseX, mouseY, 2);
+                _inResizingArea = _resizingBySide != null;
             }
 
             UpdateCursorImage();
@@ -588,10 +587,7 @@ namespace AGS.Editor
                 }
             }
 
-            _selectedControl = controlFound;
-
             // check for ctrl
-
 
             if (controlFound != null)
             {
@@ -602,10 +598,12 @@ namespace AGS.Editor
                         _selected.Remove(controlFound);
                         if (_selected.Count > 0)
                         {
-                            _selectedControl = _selected[_selected.Count - 1];
+                            SelectControl(_selected[_selected.Count - 1]);
                         }
-                        else _selectedControl = null;
-
+                        else
+                        {
+                            SelectControl(null);
+                        }
                     }
                     else if (!_selected.Contains(controlFound))
                     {
@@ -616,7 +614,12 @@ namespace AGS.Editor
                                 _selected.Add(gc);
                             }
                         }
-                        else _selected.Add(controlFound);
+                        else
+                        {
+                            _selected.Add(controlFound);
+                        }
+
+                        SelectControl(controlFound);
                     }
                 }
                 else
@@ -635,18 +638,13 @@ namespace AGS.Editor
                         else _selected.Add(controlFound);
 
                     }
-                    _selectedControl = controlFound;
+                    SelectControl(controlFound);
                 }
             }
             else if (!Utilities.IsControlPressed())
             {
                 _selected.Clear();
-                _selectedControl = null;
-            }
-
-            if (_selectedControl == null)
-            {
-                DeSelectControl();
+                SelectControl(null);
             }
         }
 
@@ -811,11 +809,13 @@ namespace AGS.Editor
             bgPanel.Invalidate();
         }
 
-        private void DeSelectControl()
+        private void SelectControl(GUIControl control)
         {
-            _selectedControl = null;
+            _selectedControl = control;
             _movingControl = false;
             _resizingControl = false;
+            _inResizingArea = false;
+            _resizingBySide = null;
         }
 
         private void DistributeVertiClick(object sender, EventArgs e)
@@ -939,7 +939,7 @@ namespace AGS.Editor
                 return;
 
             _selected.Clear();
-            _selectedControl = null;
+            SelectControl(null);
             // Paste all the new controls, and add them to the selected list.
             // Relative control positions in the group must be kept.
             int pasteAtX = _state.WindowXToGUI(_currentMouseX);
@@ -962,7 +962,7 @@ namespace AGS.Editor
                 newControl.Top = pasteAtY + (newControl.Top - refControlY); ;
                 _gui.Controls.Add(newControl);
                 _selected.Add(newControl);
-                _selectedControl = newControl;
+                SelectControl(newControl);
 
                 // This event is repeated for each control
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
@@ -999,11 +999,11 @@ namespace AGS.Editor
                 {
                     if (_selected.Count > 0)
                     {
-                        _selectedControl = _selected[_selected.Count - 1];
+                        SelectControl(_selected[_selected.Count - 1]);
                     }
                     else
                     {
-                        _selectedControl = null;
+                        SelectControl(null);
                     }
                 }
             }
@@ -1132,12 +1132,15 @@ namespace AGS.Editor
             }
             else if (_drawingSelectionBox)
             {
-               _drawingSelectionBox = false;
-               foreach (GUIControl _gc in _gui.Controls)
-               {
-                   if (_selectionRect.Contains(_gc.GetRectangle()) && !_selected.Contains(_gc)) _selected.Add(_gc);
-               }
-               if (_selected.Count > 0) _selectedControl = _selected[_selected.Count - 1];
+                _drawingSelectionBox = false;
+                foreach (GUIControl _gc in _gui.Controls)
+                {
+                    if (_selectionRect.Contains(_gc.GetRectangle()) && !_selected.Contains(_gc)) _selected.Add(_gc);
+                }
+                if (_selected.Count > 0)
+                {
+                    SelectControl(_selected[_selected.Count - 1]);
+                }
                 RefreshProperties();
                 bgPanel.Invalidate();
             }
@@ -1182,9 +1185,30 @@ namespace AGS.Editor
             {
                 bgPanel.Cursor = Cursors.Cross;
             }
-            else if ((_inResizingArea) || (_resizingControl))
+            else if ((_inResizingArea) || (_resizingControl) && (_resizingBySide != null))
             {
-                bgPanel.Cursor = Cursors.SizeNWSE;
+                switch (_resizingBySide.Value)
+                {
+                    case ContentAlignment.TopLeft:
+                    case ContentAlignment.BottomRight:
+                        bgPanel.Cursor = Cursors.SizeNWSE;
+                        break;
+                    case ContentAlignment.TopRight:
+                    case ContentAlignment.BottomLeft:
+                        bgPanel.Cursor = Cursors.SizeNESW;
+                        break;
+                    case ContentAlignment.MiddleLeft:
+                    case ContentAlignment.MiddleRight:
+                        bgPanel.Cursor = Cursors.SizeWE;
+                        break;
+                    case ContentAlignment.TopCenter:
+                    case ContentAlignment.BottomCenter:
+                        bgPanel.Cursor = Cursors.SizeNS;
+                        break;
+                    default:
+                        bgPanel.Cursor = Cursors.Default;
+                        break;
+                }
             }
             else 
             {
@@ -1237,7 +1261,7 @@ namespace AGS.Editor
             newControl.Parent = _gui;
             newControl.ID = _gui.Controls.Count;
             _gui.Controls.Add(newControl);
-            _selectedControl = newControl;
+            SelectControl(newControl);
             _selected.Clear();
             _selected.Add(newControl);
 

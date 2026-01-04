@@ -117,7 +117,7 @@ public:
     // Returns maximal size limit of the cache, in bytes; this includes locked size too!
     inline size_t GetMaxCacheSize() const { return ResourceCache::GetMaxCacheSize(); }
     // Get if auto memory freeing is enabled
-    inline bool IsAutoFreeMemEnabled() const { ResourceCache::IsAutoFreeMemEnabled(); }
+    inline bool IsAutoFreeMemEnabled() const { return ResourceCache::IsAutoFreeMemEnabled(); }
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     size_t      GetSpriteSlotCount() const;
     // Tells if the sprite storage still has unoccupied slots to put new sprites in

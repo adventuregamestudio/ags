@@ -188,6 +188,7 @@ Following OPTIONS are supported when running from command line:
   * software - software renderer.
 * --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor.
   * filter names:
+    * none - run in native game size
     * stdscale - nearest-neighbour scaling;
     * linear - anti-aliased scaling; not usable with software renderer.
   * game scaling:
@@ -199,6 +200,7 @@ Following OPTIONS are supported when running from command line:
 * --log-OUTPUT=+GROUPLIST[:LEVEL] - setup logging to the chosen OUTPUT with given log groups and verbosity levels (see explanation for the related config option).
   * Examples:
     * --log-file=all:warn
+    * --log-file=main:warn,game:all
     * --log-stdout=+mg:debug
 * --log-file-path=PATH - define custom path for the log file.
 * --no-message-box - disable alerts as modal message boxes (on platforms that support them in the first place).

@@ -162,6 +162,19 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
+* --audiodriver - request specified audio driver. Driver support varies between platforms:
+  * For any platform:
+	* default, disk, dummy;
+  * For Android:
+	* aaudio, android, opensles;
+  * For Linux:
+    * pulseaudio, alsa, arts, dsp, esd, jack, pipewire;
+  * For Mac OSX:
+	* coreaudio;
+  * For Web/Emscripten:
+	* emscripten;
+  * For Windows:
+    * wasapi, directsound, winmm.
 * --background - keep game running in background (does not work in exclusive fullscreen).
 * --clear-cache-on-room-change - clears sprite cache on every room change.
 * --conf \<FILEPATH\> - specify explicit config file to read on startup.
@@ -197,6 +210,7 @@ Following OPTIONS are supported when running from command line:
 * --noupdate - don't run game update (for test purposes).
 * --novideo - don't play game videos (for test purposes).
 * --rotation \<MODE\> - screen rotation preferences. MODEs are:  unlocked (0), portrait (1), landscape (2).
+* --script-log - log executed script instructions in 'script.log' file. *WARNING:* extremely verbose, may slow app down.
 * --sdl-log=LEVEL - setup SDL's own logging level (see explanation for the related config option).
 * --setup - run integrated setup dialog. Currently only supported by Windows version.
 * --shared-data-dir \<DIR\> - set the shared game data directory. Corresponds to "shared_data_dir" config option.

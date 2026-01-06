@@ -11,6 +11,7 @@ Editor:
 Engine:
  - Support "--audiodriver" command line argument for explicitly selecting an audio driver.
  - Support "--script-log" command line argument, which creates a script execution log.
+ - Fixed SetTextOverlay() script function ignoring new position parameters.
  - Fixed default Slider's handle drawn with 1 pixel offset mistake. (Regression after Patch 5)
  - Fixed multiline dialog options having unnecessary indentation at new lines in case there's
    already an indentation after option numbering or a "bullet" graphic.

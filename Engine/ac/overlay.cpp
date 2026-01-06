@@ -99,15 +99,17 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     draw_text = skip_voiceover_token(draw_text);
 
     // Recreate overlay image
-    int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
+    int adj_x = x, adj_y = y;
     bool has_alpha = false;
     Bitmap *image = create_textual_image(draw_text,
         DisplayTextLooks(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink),
-        text_color, dummy_x, dummy_y, adj_x, adj_y,
+        text_color, x, y, adj_x, adj_y,
         width, fontid, has_alpha, nullptr);
 
     // Update overlay properties
-    over.SetImage(std::unique_ptr<Bitmap>(image), has_alpha, adj_x - dummy_x, adj_y - dummy_y);
+    over.x = x;
+    over.y = y;
+    over.SetImage(std::unique_ptr<Bitmap>(image), has_alpha, adj_x - x, adj_y - y);
 }
 
 int Overlay_GetX(ScriptOverlay *scover)

@@ -32,6 +32,7 @@ James Duong
 Janet Gilbert
 Jochen Schleu
 Joe Lee
+Johan Wigert
 John Steele Scott
 Martin Sedlak
 Matthew Gambrell

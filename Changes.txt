@@ -15,6 +15,7 @@ Engine:
  - Fixed Character's speech text's behavior being modified by a non-blocking voice clip run by
    a Game.PlayVoiceClip() call.
  - Fixed Game.PlayVoiceClip() not supporting narrator's voice.
+ - Fixed SetTextOverlay() script function ignoring new position parameters.
 
 
 VERSION 3.6.1 - Patch 12, October 2025

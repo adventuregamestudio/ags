@@ -23,6 +23,7 @@ namespace AGS.Types
             _font = 0;
             PaddingX = 1;
             PaddingY = 1;
+            _textAlign = FrameAlignment.TopLeft;
         }
 
         public GUITextBox(XmlNode node) : base(node)
@@ -34,6 +35,7 @@ namespace AGS.Types
         private string _text;
         private int _font;
         private int _textColor;
+        private FrameAlignment _textAlign;
         private string _activateEventHandler = string.Empty;
 
         [Description("Script function to run when return is pressed in the text box")]
@@ -65,6 +67,14 @@ namespace AGS.Types
         {
             get { return _font; }
             set { _font = value; }
+        }
+
+        [Description("Position on the control where the text is displayed")]
+        [Category("Appearance")]
+        public FrameAlignment TextAlignment
+        {
+            get { return _textAlign; }
+            set { _textAlign = value; }
         }
 
         public override string ControlType

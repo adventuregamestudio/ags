@@ -294,9 +294,9 @@ int GUILabel::PrepareTextToDraw()
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
-    // print something fake so we can see what it looks like
+    _textToDraw = _text;
     const int text_color = ds->GetCompatibleColor(_textColor);
-    wouttext_outline(ds, _innerRect.Left + x, _innerRect.Top + y, _font, text_color, "Text Box Contents");
+    GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, Rect::MoveBy(_innerRect, x, y), _textAlignment);
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)

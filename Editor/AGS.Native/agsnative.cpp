@@ -3037,6 +3037,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUITextBox ntext;
           ntext.SetTextColor(textbox->TextColor);
           ntext.SetFont(textbox->Font);
+          ntext.SetTextAlignment((::FrameAlignment)textbox->TextAlignment);
           ntext.SetEventHandler(0, TextHelper::ConvertASCII(textbox->OnActivate));
           guitext.push_back(ntext);
 
@@ -3136,6 +3137,11 @@ void drawGUI(HDC hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float sca
       lb.AddItem("Sample selected");
       lb.AddItem("Sample item");
       lb.SetSelectedItem(0);
+  }
+  // Set dummy text to all textboxes, let user preview the fonts
+  for (auto &tb : guitext)
+  {
+      tb.SetText("Text Box Contents");
   }
 
   tempgui.SetHighlightControl(selectedControl);

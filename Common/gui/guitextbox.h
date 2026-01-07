@@ -34,6 +34,8 @@ public:
     void SetFont(int font);
     int  GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
+    FrameAlignment GetTextAlignment() const { return _textAlignment; }
+    void SetTextAlignment(FrameAlignment align);
     const String &GetText() const { return _text; }
     void SetText(const String &text);
     bool HasAlphaChannel() const override;
@@ -68,6 +70,7 @@ private:
     int     _font = 0;
     String  _text;
     color_t _textColor = 0;
+    FrameAlignment _textAlignment = kAlignTopLeft;
     int     _textBoxFlags = kTextBox_DefFlags;
     String  _textToDraw;
 

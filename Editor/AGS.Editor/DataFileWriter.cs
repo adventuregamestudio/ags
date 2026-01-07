@@ -2121,6 +2121,11 @@ namespace AGS.Editor
             foreach (var textbox in ents.GUIControls.GUITextBoxes)
             {
                 Write_GUIControlLooksExt_363(textbox, writer);
+                // Textbox's own properties
+                writer.Write((int)textbox.TextAlignment);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUIListBoxes.Count);
             foreach (var listbox in ents.GUIControls.GUIListBoxes)

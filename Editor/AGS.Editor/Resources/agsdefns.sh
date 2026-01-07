@@ -2068,6 +2068,10 @@ builtin managed struct TextBox extends GUIControl {
   import attribute bool ShowBorder;
 #endif // SCRIPT_COMPAT_v363
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Gets/sets text box's text alignment.
+  import attribute Alignment TextAlignment;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct InvWindow extends GUIControl {

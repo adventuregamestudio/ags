@@ -57,6 +57,15 @@ void GUITextBox::SetTextColor(int color)
     }
 }
 
+void GUITextBox::SetTextAlignment(FrameAlignment align)
+{
+    if (_textAlignment != align)
+    {
+        _textAlignment = align;
+        MarkChanged();
+    }
+}
+
 void GUITextBox::SetText(const String &text)
 {
     if (_text != text)
@@ -195,6 +204,10 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUITextBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile_Ext363(in, gui_version);
+    _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
 }
 
 void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

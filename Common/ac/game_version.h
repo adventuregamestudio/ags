@@ -131,7 +131,7 @@ OPT_GUICONTROLMOUSEBUT, game info properties, font character spacing
 3.6.3.4:
 New Dialogs data format,
 Region events are run consistent with other interactions.
-
+Expanded Color properties for GUI Controls. TextBox's TextAlignment.
 */
 
 enum GameDataVersion

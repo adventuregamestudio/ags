@@ -744,7 +744,7 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     PrepareTextToDraw();
 
     Rect frame = Rect::MoveBy(_innerRect, x, y);
-    if (_isPushed && _isMouseOver)
+    if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
         // move the Text a bit while pushed
         frame = frame.MoveBy(frame, 1, 1);

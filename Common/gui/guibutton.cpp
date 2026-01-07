@@ -462,7 +462,7 @@ void GUIButton::UpdateCurrentImage()
     const bool is_dynamic_color = IsDynamicColors();
     const bool is_flat_color = IsFlatStyle();
 
-    if (_isPushed && (_pushedImage > 0))
+    if (_isMouseOver && _isPushed && (_pushedImage > 0))
     {
         new_image = _pushedImage;
     }
@@ -475,7 +475,7 @@ void GUIButton::UpdateCurrentImage()
         new_image = _image;
     }
 
-    if (_isPushed && is_dynamic_color)
+    if (_isMouseOver && _isPushed && is_dynamic_color)
     {
         new_bg_color = _pushedBackColor;
         new_border_color = is_flat_color ? _pushedBorderColor : _borderColor;

@@ -121,6 +121,8 @@ public:
     // we might need another "bitmap draw mode" where it only offsets coordinates zero, but does not
     // constraint the drawing (like sub-bitmaps normally do).
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
+    // Update visual state forces control to recalculate its elements.
+    virtual void    UpdateVisualState();
 
     // Events
     // Key pressed for control; returns if handled
@@ -162,6 +164,8 @@ protected:
     // Reports that any of the basic colors have changed,
     // to let child control handle this according to their needs
     virtual void    OnColorsChanged();
+    // Internal control's region (content region) was resized
+    virtual void    OnContentRectChanged();
     // Control was resized; child controls may override this and implement
     // their own additional handling
     virtual void    OnResized();

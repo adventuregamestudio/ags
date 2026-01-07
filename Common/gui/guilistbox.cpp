@@ -335,6 +335,11 @@ void GUIListBox::RemoveItem(int index)
     MarkChanged();
 }
 
+void GUIListBox::UpdateVisualState()
+{
+    MarkPositionChanged(true);
+}
+
 void GUIListBox::SetShowArrows(bool on)
 {
     if (on != ((_listBoxFlags & kListBox_ShowArrows) != 0))
@@ -402,6 +407,12 @@ void GUIListBox::OnResized()
 {
     GUIObject::OnResized();
     UpdateMetrics();
+}
+
+void GUIListBox::OnContentRectChanged()
+{
+    UpdateMetrics();
+    MarkChanged();
 }
 
 void GUIListBox::UpdateMetrics()

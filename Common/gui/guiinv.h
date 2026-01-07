@@ -59,6 +59,9 @@ public:
     void WriteToSavegame(Common::Stream *out) const override;
 
 private:
+    // Internal control's region (content region) was resized
+    void OnContentRectChanged() override;
+
     void CalculateNumCells();
 
     static const int DefaultItemWidth = 40;

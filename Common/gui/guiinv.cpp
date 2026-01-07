@@ -129,6 +129,12 @@ void GUIInvWindow::WriteToSavegame(Stream *out) const
     out->WriteInt32(_topItem);
 }
 
+void GUIInvWindow::OnContentRectChanged()
+{
+    CalculateNumCells();
+    MarkChanged();
+}
+
 void GUIInvWindow::CalculateNumCells()
 {
     if (_itemWidth <= 0 || _itemHeight <= 0)

@@ -35,6 +35,16 @@ void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
     texbox->SetText(newtex);
 }
 
+int TextBox_GetTextAlignment(GUITextBox *guit)
+{
+    return guit->GetTextAlignment();
+}
+
+void TextBox_SetTextAlignment(GUITextBox *guit, int align)
+{
+    guit->SetTextAlignment(static_cast<FrameAlignment>(align));
+}
+
 int TextBox_GetTextColor(GUITextBox *guit) {
     return guit->GetTextColor();
 }
@@ -121,6 +131,16 @@ RuntimeScriptValue Sc_TextBox_GetText_New(void *self, const RuntimeScriptValue *
     API_OBJCALL_OBJ(GUITextBox, const char *, myScriptStringImpl, TextBox_GetText_New);
 }
 
+RuntimeScriptValue Sc_TextBox_GetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUITextBox, TextBox_GetTextAlignment);
+}
+
+RuntimeScriptValue Sc_TextBox_SetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextAlignment);
+}
+
 // int (GUITextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -145,6 +165,8 @@ void RegisterTextBoxAPI()
         { "TextBox::set_ShowBorder",  API_FN_PAIR(TextBox_SetShowBorder) },
         { "TextBox::get_Text",        API_FN_PAIR(TextBox_GetText_New) },
         { "TextBox::set_Text",        API_FN_PAIR(TextBox_SetText) },
+        { "TextBox::get_TextAlignment", API_FN_PAIR(TextBox_GetTextAlignment) },
+        { "TextBox::set_TextAlignment", API_FN_PAIR(TextBox_SetTextAlignment) },
         { "TextBox::get_TextColor",   API_FN_PAIR(TextBox_GetTextColor) },
         { "TextBox::set_TextColor",   API_FN_PAIR(TextBox_SetTextColor) },
     };

@@ -115,6 +115,11 @@ void MarkForTranslationUpdate()
         if (list.IsTranslated())
             list.MarkChanged();
     }
+    for (auto &tbox : guitext)
+    {
+        if (tbox.IsTranslated())
+            tbox.MarkChanged();
+    }
 }
 
 void MarkForFontUpdate(int font)

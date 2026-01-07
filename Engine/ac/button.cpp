@@ -423,6 +423,9 @@ int Button_GetTextPaddingHorizontal(GUIButton *butt)
 
 void Button_SetTextPaddingHorizontal(GUIButton *butt, int pad)
 {
+    // Original Button.TextPadding included button's border
+    if (loaded_game_file_version < kGameVersion_363_04)
+        pad--;
     butt->SetPaddingX(pad);
 }
 
@@ -433,6 +436,9 @@ int Button_GetTextPaddingVertical(GUIButton *butt)
 
 void Button_SetTextPaddingVertical(GUIButton *butt, int pad)
 {
+    // Original Button.TextPadding included button's border
+    if (loaded_game_file_version < kGameVersion_363_04)
+        pad--;
     butt->SetPaddingY(pad);
 }
 

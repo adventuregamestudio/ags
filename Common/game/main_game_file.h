@@ -105,6 +105,7 @@ struct MainGameSource
 struct LoadedGameEntities
 {
     GameSetupStruct        &Game; // FIXME: have an object, not ref, and std::move
+    GuiVersion              LoadedGuiVersion;
     std::vector<GUIMain>    Guis;
     GUICollection           GuiControls;
     std::vector<DialogTopic> Dialogs;

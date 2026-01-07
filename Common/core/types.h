@@ -48,6 +48,13 @@
 typedef int64_t soff_t;
 
 typedef int32_t fixed_t; // fixed point type
+// FIXME: this typedef is used inconsistently throughout the engine code,
+// because of a planning mistake during code refactor. Sometimes it's used
+// to mean "color property" (which holds "color index"), and sometimes
+// it's used to mean "resolved bitmap color", which holds RGB in bitmap's
+// compatible format. We must fix this, clarify the purpose of this type,
+// choose to use it for one of those meanings only. Use either "int" or
+// a new distinct type for another case.
 typedef int32_t color_t; // AGS color number type (meaning depends on game's setting)
 
 // TODO: use distinct fixed point class

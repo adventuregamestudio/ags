@@ -71,7 +71,7 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 {
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
 
 }

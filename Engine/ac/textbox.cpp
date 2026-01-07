@@ -39,9 +39,12 @@ int TextBox_GetTextColor(GUITextBox *guit) {
     return guit->GetTextColor();
 }
 
-void TextBox_SetTextColor(GUITextBox *guit, int colr)
+void TextBox_SetTextColor(GUITextBox *guit, int color)
 {
-    guit->SetTextColor(colr);
+    guit->SetTextColor(color);
+    // Prior to 3.6.3 text color was also used for border
+    if (loaded_game_file_version < kGameVersion_363_04)
+        guit->SetBorderColor(color);
 }
 
 int TextBox_GetFont(GUITextBox *guit) {
@@ -54,12 +57,12 @@ void TextBox_SetFont(GUITextBox *guit, int fontnum) {
 }
 
 bool TextBox_GetShowBorder(GUITextBox *guit) {
-    return guit->IsBorderShown();
+    return guit->IsShowBorder();
 }
 
 void TextBox_SetShowBorder(GUITextBox *guit, bool on)
 {
-    if (guit->IsBorderShown() != on)
+    if (guit->IsShowBorder() != on)
     {
         guit->SetShowBorder(on);
         guit->MarkChanged();

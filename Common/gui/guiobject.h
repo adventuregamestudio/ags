@@ -19,6 +19,7 @@
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
 #include "util/string.h"
+#include "util/stream.h"
 
 struct KeyInput;
 
@@ -38,7 +39,7 @@ enum LegacyGUIAlignment
 class GUIObject
 {
 public:
-    GUIObject() = default;
+    GUIObject();
     virtual ~GUIObject() = default;
 
     // Properties
@@ -55,6 +56,8 @@ public:
     bool            IsTranslated() const { return (_flags & kGUICtrl_Translated) != 0; }
     bool            IsVisible() const { return (_flags & kGUICtrl_Visible) != 0; }
     bool            IsWrapText() const { return (_flags & kGUICtrl_WrapText) != 0; }
+    bool            IsShowBorder() const { return (_flags & kGUICtrl_ShowBorder) != 0; }
+    bool            IsSolidBackground() const { return (_flags & kGUICtrl_SolidBack) != 0; }
     // overridable routine to determine whether the mouse is over the control
     virtual bool    IsOverControl(int x, int y, int leeway) const;
     int             GetX() const { return _x; }
@@ -80,6 +83,19 @@ public:
     void            SetEnabled(bool on);
     void            SetTranslated(bool on);
     void            SetVisible(bool on);
+    void            SetShowBorder(bool on);
+    void            SetSolidBackground(bool on);
+    int             GetBackColor() const { return _backgroundColor; }
+    void            SetBackColor(int color);
+    int             GetBorderColor() const { return _borderColor; }
+    void            SetBorderColor(int color);
+    int             GetBorderWidth() const { return _borderWidth; }
+    void            SetBorderWidth(int border_size);
+    int             GetPaddingX() const { return _paddingX; }
+    void            SetPaddingX(int padx);
+    int             GetPaddingY() const { return _paddingY; }
+    void            SetPaddingY(int pady);
+
     bool            IsActivated() const { return _isActivated; }
     void            SetActivated(bool on);
 
@@ -100,7 +116,14 @@ public:
     // Returns the (untransformed!) visual rectangle of this control,
     // in *relative* coordinates, optionally clipped by the logical size
     virtual Rect    CalcGraphicRect(bool /*clipped*/) { return RectWH(0, 0, _width, _height); }
+    // FIXME: it was a mistake to have coordinate origin as arguments to this method,
+    // as this is bug prone when writing drawing code. Use sub-bitmaps when drawing controls instead.
+    // -- there's going to be extra problem with non-clipped controls mode though. In this case
+    // we might need another "bitmap draw mode" where it only offsets coordinates zero, but does not
+    // constraint the drawing (like sub-bitmaps normally do).
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
+    // Update visual state forces control to recalculate its elements.
+    virtual void    UpdateVisualState();
 
     // Events
     // Key pressed for control; returns if handled
@@ -115,14 +138,16 @@ public:
     virtual void    OnMouseMove(int /*x*/, int /*y*/) { }
     // Mouse button up
     virtual void    OnMouseUp() { }
-    // Control was resized
-    virtual void    OnResized() { MarkPositionChanged(true); }
 
     // Serialization
-    virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    virtual void    WriteToFile(Common::Stream *out) const;
-    virtual void    ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver);
-    virtual void    WriteToSavegame(Common::Stream *out) const;
+    virtual void    ReadFromFile(Stream *in, GuiVersion gui_version);
+    virtual void    ReadFromFile_Ext363(Stream *in, GuiVersion gui_version);
+    virtual void    WriteToFile(Stream *out) const;
+    virtual void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver);
+    virtual void    WriteToSavegame(Stream *out) const;
+
+    // Upgrades the GUI control to default looks for 3.6.3
+    virtual void    SetDefaultLooksFor363() { /* do nothing */ }
 
     // Manually marks GUIObject as graphically changed
     // NOTE: this only matters if control's own graphic changes, but not its
@@ -138,21 +163,43 @@ public:
     void            ClearChanged();
   
 protected:
+    // Reports that any of the basic colors have changed,
+    // to let child control handle this according to their needs
+    virtual void    OnColorsChanged();
+    // Internal control's region (content region) was resized
+    virtual void    OnContentRectChanged();
+    // Control was resized; child controls may override this and implement
+    // their own additional handling
+    virtual void    OnResized();
+
+    // Draws control frame box, using common border and background settings
+    void            DrawControlFrame(Bitmap *ds, int x, int y);
+    // Updates control's inner region and marks for redraw
+    void            UpdateControlRect();
+
     int      _id = -1;      // GUI object's identifier
     int      _parentID = -1;// id of parent GUI
     String   _name;         // script name
 
+    uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     int      _x = 0;
     int      _y = 0;
-    int      _zOrder = 0;
-    bool     _isActivated = false; // signals user interaction
-
-    uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     int      _width = 0;
     int      _height = 0;
+    int      _zOrder = 0;
     int      _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
-    bool     _hasChanged = false;
+
+    int      _backgroundColor = 0;
+    int      _borderColor = 0;
+    int      _borderWidth = 1;
+    int      _paddingX = 0;
+    int      _paddingY = 0;
+    Rect     _innerRect; // control's contents rect (excludes border + padding)
+
     std::vector<String> _eventHandlers; // script function names
+
+    bool     _hasChanged = false;
+    bool     _isActivated = false; // signals user interaction
 };
 
 // Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)

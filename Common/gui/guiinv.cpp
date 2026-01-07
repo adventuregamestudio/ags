@@ -33,7 +33,8 @@ void GUIInvWindow::SetItemDimensions(int itemw, int itemh)
     {
         _itemWidth = itemw;
         _itemHeight = itemh;
-        OnResized();
+        CalculateNumCells();
+        MarkChanged();
     }
 }
 
@@ -64,8 +65,8 @@ void GUIInvWindow::OnMouseUp()
 
 void GUIInvWindow::OnResized()
 {
+    GUIObject::OnResized();
     CalculateNumCells();
-    MarkChanged();
 }
 
 void GUIInvWindow::WriteToFile(Stream *out) const
@@ -109,6 +110,11 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     CalculateNumCells();
 }
 
+void GUIInvWindow::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile_Ext363(in, gui_version);
+}
+
 void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIObject::ReadFromSavegame(in, svg_ver);
@@ -126,6 +132,12 @@ void GUIInvWindow::WriteToSavegame(Stream *out) const
     out->WriteInt32(_itemHeight);
     out->WriteInt32(_charID);
     out->WriteInt32(_topItem);
+}
+
+void GUIInvWindow::OnContentRectChanged()
+{
+    CalculateNumCells();
+    MarkChanged();
 }
 
 void GUIInvWindow::CalculateNumCells()

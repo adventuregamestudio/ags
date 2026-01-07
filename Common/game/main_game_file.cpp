@@ -704,6 +704,27 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         for (auto &lbl : ents.GuiControls.Labels)
             lbl.SetTranslated(true); // always translated
     }
+
+    if (data_ver < kGameVersion_363_04)
+    {
+        // Set default color styles for gui controls
+        for (auto &btn : ents.GuiControls.Buttons)
+        {
+            btn.SetDefaultLooksFor363();
+        }
+        for (auto &lbox : ents.GuiControls.ListBoxes)
+        {
+            lbox.SetDefaultLooksFor363();
+        }
+        for (auto &sld : ents.GuiControls.Sliders)
+        {
+            sld.SetDefaultLooksFor363();
+        }
+        for (auto &tbox : ents.GuiControls.TextBoxes)
+        {
+            tbox.SetDefaultLooksFor363();
+        }
+    }
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
@@ -965,8 +986,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (GUIButton &but : _ents.GuiControls.Buttons)
         {
             // button padding
-            but.SetTextPaddingHor(in->ReadInt32());
-            but.SetTextPaddingVer(in->ReadInt32());
+            but.SetPaddingX(in->ReadInt32());
+            but.SetPaddingY(in->ReadInt32());
             in->ReadInt32(); // reserve 2 ints
             in->ReadInt32();
         }
@@ -985,6 +1006,50 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         _ents.Dialogs.resize(dialog_count);
         for (auto &dlg : _ents.Dialogs)
             dlg.ReadFromFile_v363(in);
+    }
+    else if (ext_id.CompareNoCase("v363_guictrls") == 0)
+    {
+        if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
+            return err;
+        for (GUIButton &but : _ents.GuiControls.Buttons)
+        {
+            but.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI labels", static_cast<uint32_t>(_ents.GuiControls.Labels.size()), err))
+            return err;
+        for (GUILabel &label : _ents.GuiControls.Labels)
+        {
+            label.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI invwindows", static_cast<uint32_t>(_ents.GuiControls.InvWindows.size()), err))
+            return err;
+        for (GUIInvWindow &invw : _ents.GuiControls.InvWindows)
+        {
+            invw.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI sliders", static_cast<uint32_t>(_ents.GuiControls.Sliders.size()), err))
+            return err;
+        for (GUISlider &slider : _ents.GuiControls.Sliders)
+        {
+            slider.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI textboxes", static_cast<uint32_t>(_ents.GuiControls.TextBoxes.size()), err))
+            return err;
+        for (GUITextBox &textbox : _ents.GuiControls.TextBoxes)
+        {
+            textbox.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
+        }
+
+        if (!ReadAndAssertCount(in, "GUI listboxes", static_cast<uint32_t>(_ents.GuiControls.ListBoxes.size()), err))
+            return err;
+        for (GUIListBox &listbox : _ents.GuiControls.ListBoxes)
+        {
+            listbox.ReadFromFile_Ext363(in, _ents.LoadedGuiVersion);
+        }
     }
     else
     {
@@ -1081,7 +1146,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
     GUIRefCollection guictrl_refs(ents.GuiControls);
-    HError err2 = GUI::ReadGUI(ents.Guis, guictrl_refs, in);
+    HError err2 = GUI::ReadGUI(ents.Guis, ents.LoadedGuiVersion, guictrl_refs, in);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
     game.numgui = ents.Guis.size();

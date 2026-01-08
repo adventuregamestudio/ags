@@ -2,11 +2,25 @@ REVISION HISTORY
 ================
 VERSION 3.6.3 - Beta
 
+Common:
+ - Removed limit of Dialog's options (was 30).
+
 Editor:
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
    right mouse buttons.
  - In Default Setup added "Compress saves" option, enabled by default.
+ - On Color Finder panel added Web Color and comma-separated RGB color representation.
+ - Merged previously paired "Color" and "Color Number" properties into the single "Color" property
+   each. Color type properties will now display RGB representation in 16/32-bit games and a color
+   number (palette index) in 8-bit games. They will always accept user input in any format (either
+   color number of RGB).
+ - Added new properties to GUI Controls: BackgroundColor, BorderColor, BorderWidth, ShowBorder,
+   SolidBackground, PaddingX and PaddingY properties.
+ - Added new properties to GUI Button: ColorStyle, MouseOverBackgroundColor, MouseOverBorderColor,
+   MouseOverTextColor, PushedBackgroundColor, PushedBorderColor, PushedTextColor, ShadowColor.
+ - Added new properties to GUI Slider: HandleColor, ShadowColor.
+ - Added TextAlignment property to TextBox.
  - For the Fonts added CharacterSpacing property that lets define additional spacing between each
    pair of characters.
  - Moved "TTF fonts height used in the game logic" setting from General Settings to Font, renaming
@@ -19,8 +33,11 @@ Editor:
    font and let jump to a chosen character. Added text preview, where user may input any multiline
    text and see it printed with the current font.
  - Font Preview and GUI Editor now display fonts with their respective outlines.
+ - In GUI Editor allow to resize controls by dragging by any side.
+ - In GUI Editor let set control's ZOrder property directly.
  - In View Editor added context menu commands for copying, cutting and pasting individual frames
    and frame ranges; commands for reversing a range of frames, and reversing loop.
+ - Do not auto-add up to 4 loops to Views assigned as Character's NormalView.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -35,6 +52,10 @@ Script API:
    developer's URL, version, and so forth.
  - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
    channels.
+ - Added GUIButtonColorStyle enum, which defines the Button's dynamic coloring style.
+ - Added Button.ColorStyle, MouseOverBackgroundColor, MouseOverBorderColor, MouseOverTextColor,
+   PushedBackgroundColor, PushedBorderColor, PushedTextColor and ShadowColor properties.
+ - Added Character.BlockingRectX, BlockingRectY, and Object.BlockingRectX, BlockingRectY.
  - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
  - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
  - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsFont, OptionsGap,
@@ -47,19 +68,31 @@ Script API:
    then dialogs should use Game.NormalFont.
  - Added Dialog.OptionsOverlay that lets access a overlay object which represents dialog options
    on screen (only returns overlay when the options are displayed).
+ - Added Dialog.SetOptionText().
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
    (turned off, turned off forever) is disregarded in this case.
  - Added Game.InBlockingAction, BlockingWaitCounter and BlockingWaitSkipType properties.
  - Game.InBlockingWait now returns positive only when inside a Wait*() function call, not any
    blocking action (this is what InBlockingAction is for now).
+ - Added Game.Pause() and Resume() functions, and Game.IsPaused property. PauseGame(),
+   UnPauseGame() and IsGamePaused() functions are deprecated.
  - Added Game.Speed property. Get/SetGameSpeed function is deprecated.
  - Added Game.TickCounter property that tells the number of a logical game tick (update).
  - Added Game.PlayVoiceClipAsType() which lets to play voice-over clips using arbitrary type's
    rules and channels. As an effect this also lets play multiple voice-overs at once.
+ - Made GUI.PopupStyle property settable.
+ - Added GUIControl.BackgroundColor, BorderColor, BorderWidth, SolidBackground, ShowBorder,
+   PaddingX and PaddingY properties.
+ - Added InventoryItem.CursorHotspotX, CursorHotspotY properties.
+ - Added Mouse.GetModeHotspot().
+ - Added Overlay.Text that lets assign an arbitrary overlay tag (description), but also returns
+   a text used to create a textual overlay.
  - Added Overlay.Visible property.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
+ - Added Slider.HandleColor and ShadowColor properties.
  - Added System.FPS that lets read current real fps.
+ - Added TextBox.TextAlignment property.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
    LeftGraphic, RightGraphic, and so forth.
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
@@ -77,6 +110,12 @@ Engine:
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Standard Dialog options now support Right-to-left text mode.
+ - Removed hard limit of Timers (was 20).
+ - Room Region events will now be run consistently with the other game events, scheduled and
+   executed at the end of the game update cycle (was run at the beginning of the game update).
+   The purpose of this change is to make it easier to handle the order of events in game.
+ - Corrected the order of update for the cursor graphic saved for the current location
+   (see Mouse.SaveCursorUntilItLeaves()).
  - Improved video playback's synchronization between video and audio streams.
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.

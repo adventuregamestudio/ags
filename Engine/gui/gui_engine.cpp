@@ -180,12 +180,11 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     const int cursor_width = get_fixed_pixel_size(5);
     const int offset_left = draw_cursor && reverse ? (cursor_width + 3) : 0;
     const int offset_right = draw_cursor && !reverse ? (cursor_width + 3) : 0;
-    const int offset_bottom = 1;
 
     color_t text_color = ds->GetCompatibleColor(_textColor);
     Rect text_rc;
     Point text_at = GUI::CalcTextPosition(_textToDraw, _font,
-        RectWH(_innerRect.Left + x + offset_left, _innerRect.Top + y, _innerRect.GetWidth() - offset_left - offset_right, _innerRect.GetHeight() - offset_bottom),
+        RectWH(_innerRect.Left + x + offset_left, _innerRect.Top + y, _innerRect.GetWidth() - offset_left - offset_right, _innerRect.GetHeight()),
         text_align, &text_rc);
     wouttext_outline(ds, text_at.X, text_at.Y, _font, text_color, _textToDraw.GetCStr());
 
@@ -193,8 +192,8 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     if (draw_cursor)
     {
         int draw_at_x = reverse ? text_rc.Left - 3 - cursor_width : text_rc.Right + 3;
-        int draw_at_y = text_rc.Top + get_font_height(_font);
-        ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + cursor_width, draw_at_y + (get_fixed_pixel_size(1) - 1)), text_color);
+        int draw_at_y = text_rc.Top + get_font_height(_font) - 1;
+        ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + cursor_width, draw_at_y), text_color);
     }
 }
 

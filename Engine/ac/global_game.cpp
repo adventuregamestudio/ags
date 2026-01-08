@@ -202,11 +202,14 @@ void DeleteSaveSlot(int slnum)
     }
 }
 
-void PauseGame() {
+void PauseGame()
+{
     game_paused++;
     debug_script_log("Game paused (%d)", game_paused);
 }
-void UnPauseGame() {
+
+void UnPauseGame()
+{
     if (game_paused > 0)
     {
         game_paused--;

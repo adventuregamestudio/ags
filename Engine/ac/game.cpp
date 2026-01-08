@@ -562,12 +562,14 @@ const char* Game_GetGlobalStrings(int index) {
     return CreateNewScriptString(play.globalstrings[index]);
 }
 
-
-// ** GetGameParameter replacement functions
-
 int Game_GetInventoryItemCount() {
     // because of the dummy item 0, this is always one higher than it should be
     return game.numinvitems - 1;
+}
+
+bool Game_GetIsPaused()
+{
+    return game_paused > 0;
 }
 
 int Game_GetFontCount() {
@@ -961,6 +963,16 @@ int Game_InBlockingWait()
     return game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v363 ?
         play.IsInWait() :
         IsInBlockingAction();
+}
+
+void Game_Pause()
+{
+    PauseGame();
+}
+
+void Game_Resume()
+{
+    UnPauseGame();
 }
 
 ScriptAudioChannel *Game_PlayVoiceClip(CharacterInfo *ch, int sndid, bool as_speech)
@@ -2003,6 +2015,11 @@ RuntimeScriptValue Sc_Game_GetInventoryItemCount(const RuntimeScriptValue *param
     API_SCALL_INT(Game_GetInventoryItemCount);
 }
 
+RuntimeScriptValue Sc_Game_GetIsPaused(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Game_GetIsPaused);
+}
+
 // int ()
 RuntimeScriptValue Sc_Game_GetMinimumTextDisplayTimeMs(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2140,6 +2157,16 @@ RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int3
     API_SCALL_BOOL_POBJ(pl_is_plugin_loaded, const char);
 }
 
+RuntimeScriptValue Sc_Game_Pause(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(Game_Pause);
+}
+
+RuntimeScriptValue Sc_Game_Resume(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(Game_Resume);
+}
+
 RuntimeScriptValue Sc_Game_PlayVoiceClip(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ_PINT_PBOOL(ScriptAudioChannel, ccDynamicAudio, Game_PlayVoiceClip, CharacterInfo);
@@ -2274,12 +2301,14 @@ void RegisterGameAPI()
         { "Game::StopSound^1",                            API_FN_PAIR(StopAllSounds) },
         { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
         { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
+        { "Game::Pause",                                  API_FN_PAIR(Game_Pause) },
         { "Game::PlayVoiceClip",                          API_FN_PAIR(Game_PlayVoiceClip) },
         { "Game::PlayVoiceClipAsType",                    API_FN_PAIR(Game_PlayVoiceClipAsType) },
-        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
-        { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },
         { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
+        { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
+        { "Game::Resume",                                 API_FN_PAIR(Game_Resume) },
+        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::GetSaveSlots^4",                         API_FN_PAIR(Game_GetSaveSlots) },
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
@@ -2304,6 +2333,7 @@ void RegisterGameAPI()
         { "Game::get_InBlockingWait",                     API_FN_PAIR(Game_InBlockingWait) },
         { "Game::get_InSkippableCutscene",                API_FN_PAIR(Game_GetInSkippableCutscene) },
         { "Game::get_InventoryItemCount",                 API_FN_PAIR(Game_GetInventoryItemCount) },
+        { "Game::get_IsPaused",                           API_FN_PAIR(Game_GetIsPaused) },
         { "Game::get_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_GetMinimumTextDisplayTimeMs) },
         { "Game::set_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_SetMinimumTextDisplayTimeMs) },
         { "Game::get_MouseCursorCount",                   API_FN_PAIR(Game_GetMouseCursorCount) },

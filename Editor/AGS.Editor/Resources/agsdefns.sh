@@ -943,8 +943,6 @@ import int  GetViewportX();
 /// Gets the current Y offset of the scrolled viewport.
 import int  GetViewportY();
 #endif // SCRIPT_COMPAT_v350
-/// Returns whether the game is currently paused.
-import int  IsGamePaused();
 /// Disables the player interface and activates the Wait cursor.
 import void DisableInterface();
 /// Re-enables the player interface.
@@ -1722,10 +1720,14 @@ import int  SaveScreenShot(const string filename, int width=0, int height=0, Ren
 /// Saves a screenshot of the current game position to a file.
 import int  SaveScreenShot(const string filename);
 #endif // !SCRIPT_API_v362
+#ifdef SCRIPT_COMPAT_v363
 /// Pauses the game, which stops all animations and movement.
 import void PauseGame();
 /// Resumes the game after it was paused earlier.
 import void UnPauseGame();
+/// Returns whether the game is currently paused.
+import int  IsGamePaused();
+#endif // SCRIPT_COMPAT_v363
 /// Blocks the script for the specified number of game loops.
 import void Wait(int waitLoops);
 /// Blocks the script for the specified number of game loops, unless a key is pressed.
@@ -3347,6 +3349,12 @@ builtin struct Game {
 #ifdef SCRIPT_API_v363
   /// Play speech voice-over in non-blocking mode, using certain AudioType settings, and optionally putting it on a particular channel.
   import static AudioChannel* PlayVoiceClipAsType(Character*, int cue, AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  /// Pauses the game, which stops all animations and movement. Each call to Game.Pause() incremements a "pause" counter.
+  import static void Pause();
+  /// Resumes the game after it was paused earlier. Each call to Game.Resume() decrements a "pause" counter.
+  import static void Resume();
+  /// Returns whether the game is currently paused.
+  import static readonly attribute bool IsPaused;
   /// Gets/sets game's running speed, in frames per second.
   import static attribute int Speed;
   /// Gets number of game's ticks (updates) passed since the game start.

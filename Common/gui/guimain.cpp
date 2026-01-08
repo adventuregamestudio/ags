@@ -784,6 +784,14 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
             ctrl_refs[i].second = ref_packed & 0xFFFF;
         }
     }
+
+    if (svg_version >= kGuiSvgVersion_36304)
+    {
+        _popupStyle = static_cast<GUIPopupStyle>(in->ReadInt32());
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs)
@@ -809,6 +817,11 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
             (*ctrl_refs)[i].first = (GUIControlType)((ref_packed >> 16) & 0xFFFF);
             (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
         }
+    }
+
+    if (svg_version >= kGuiSvgVersion_36304)
+    {
+        in->Seek(4 * sizeof(int32_t));
     }
 }
 
@@ -842,6 +855,11 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
         uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
         out->WriteInt32(ref_packed);
     }
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_popupStyle);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 

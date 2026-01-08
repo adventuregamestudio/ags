@@ -2217,7 +2217,7 @@ builtin managed struct GUI {
   /// If this GUI is a TextWindow, returns the TextWindowGUI interface; otherwise null.
   import readonly attribute TextWindowGUI* AsTextWindow; // $AUTOCOMPLETENOINHERIT$
   /// Gets the style of GUI behavior on screen.
-  import readonly attribute GUIPopupStyle PopupStyle;
+  import attribute GUIPopupStyle PopupStyle;
   /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
   import attribute int  PopupYPos;
 #endif // SCRIPT_API_v350

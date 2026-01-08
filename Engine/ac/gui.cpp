@@ -202,6 +202,43 @@ int GUI_GetPopupStyle(ScriptGUI *tehgui)
     return guis[tehgui->id].GetPopupStyle();
 }
 
+void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
+{
+    const GUIPopupStyle old_style = guis[tehgui->id].GetPopupStyle();
+    if (popup_style == old_style)
+        return;
+
+    GUIMain &g = guis[tehgui->id];
+    g.SetPopupStyle(static_cast<GUIPopupStyle>(popup_style));
+    if (g.IsVisible())
+    {
+        if (popup_style == kGUIPopupMouseY)
+        {
+            g.SetConceal(true);
+        }
+        else if (old_style == kGUIPopupMouseY)
+        {
+            if (g.IsDisplayed())
+                remove_popup_interface(tehgui->id);
+            g.SetConceal(false);
+        }
+
+        if (popup_style == kGUIPopupModal)
+        {
+            PauseGame();
+        }
+        else if (old_style == kGUIPopupModal)
+        {
+            UnPauseGame();
+        }
+
+        if (g.IsDisplayed())
+        {
+            g.Poll(mousex, mousey);
+        }
+    }
+}
+
 void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
   if (isvisible)
     InterfaceOn(tehgui->id);
@@ -481,7 +518,8 @@ void GUI_ProcessClick(int x, int y, int mbut)
 
 void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
-    ifacepopped=-1; UnPauseGame();
+    ifacepopped=-1;
+    UnPauseGame();
     guis[ifacenum].SetConceal(true);
     if (mousey<=guis[ifacenum].GetPopupAtY())
         Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
@@ -709,12 +747,14 @@ int gui_on_mouse_move(const int mx, const int my)
     int mouse_over_gui = -1;
     // If all GUIs are off, skip the loop
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0)) ;
-    else {
+    else
+    {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it
         // CHECKME: not sure why, but we're testing forward draw order here -
         // from farthest to nearest (this was in original code?)
-        for (int guin : play.gui_draw_order) {
+        for (int guin : play.gui_draw_order)
+        {
             if (guis[guin].IsInteractableAt(mx, my)) mouse_over_gui=guin;
 
             if (guis[guin].GetPopupStyle()!=kGUIPopupMouseY) continue;
@@ -724,10 +764,12 @@ int gui_on_mouse_move(const int mx, const int my)
             // Don't allow it to be popped up while skipping cutscene
             if (play.fast_forward) continue;
 
-            if (mousey < guis[guin].GetPopupAtY()) {
+            if (mousey < guis[guin].GetPopupAtY())
+            {
                 set_mouse_cursor(CURS_ARROW);
                 guis[guin].SetConceal(false);
-                ifacepopped=guin; PauseGame();
+                ifacepopped=guin;
+                PauseGame();
                 break;
             }
         }
@@ -1093,6 +1135,11 @@ RuntimeScriptValue Sc_GUI_GetPopupStyle(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(ScriptGUI, GUI_GetPopupStyle);
 }
 
+RuntimeScriptValue Sc_GUI_SetPopupStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetPopupStyle);
+}
+
 RuntimeScriptValue Sc_GUI_Click(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_Click);
@@ -1175,6 +1222,7 @@ void RegisterGUIAPI()
         { "GUI::get_ID",                  API_FN_PAIR(GUI_GetID) },
         { "GUI::get_AsTextWindow",        API_FN_PAIR(GUI_AsTextWindow) },
         { "GUI::get_PopupStyle",          API_FN_PAIR(GUI_GetPopupStyle) },
+        { "GUI::set_PopupStyle",          API_FN_PAIR(GUI_SetPopupStyle) },
         { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
         { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
         { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },

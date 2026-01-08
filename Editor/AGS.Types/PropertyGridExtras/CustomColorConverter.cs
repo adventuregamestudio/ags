@@ -7,6 +7,7 @@ namespace AGS.Types
     public class CustomColorConverter : TypeConverter
     {
         public static GameColorDepth ColorMode = GameColorDepth.TrueColor;
+        public const int SpecialColorSlotCount = 32;
 
         public CustomColorConverter()
         {
@@ -107,15 +108,22 @@ namespace AGS.Types
 
         private int AgsColorNumberFromString(string value)
         {
-            if (ColorMode == GameColorDepth.Palette)
-                return int.Parse(value);
+            // Special slots must be displayed as indexes in any case
+            int colorNumber = 0;
+            bool parsedAsNumber = int.TryParse(value, out colorNumber);
+            if ((ColorMode == GameColorDepth.Palette) || (parsedAsNumber && (colorNumber < SpecialColorSlotCount)))
+            {
+                return colorNumber;
+            }
+
             Color color = ColorFromString(value).ToRGB();
             return AGSColor.ColorMapper.MapRgbColorToAgsColourNumber(color);
         }
 
         private string AgsColorNumberToString(int value)
         {
-            if (ColorMode == GameColorDepth.Palette)
+            // Special slots must be displayed as indexes in any case
+            if ((ColorMode == GameColorDepth.Palette) || (value < SpecialColorSlotCount))
                 return value.ToString();
             return ColorToString(AGSColor.ColorMapper.MapAgsColourNumberToRgbColor(value));
         }

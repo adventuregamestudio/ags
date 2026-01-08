@@ -30,7 +30,7 @@
 
 extern int currentline;
 
-char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2025 others";
+char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2026 others";
 
 int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
 int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, int32_t lilen, int32_t *vnlist, bool insideBracketedDeclaration);

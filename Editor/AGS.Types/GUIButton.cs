@@ -37,7 +37,7 @@ namespace AGS.Types
         {
         }
 
-        private string _text;
+        private string _text = string.Empty;
         private int _image;
         private int _mouseoverImage;
         private int _pushedImage;
@@ -51,7 +51,7 @@ namespace AGS.Types
         private int _pushedBackgroundColor;
         private int _mouseoverBorderColor;
         private int _pushedBorderColor;
-        private FrameAlignment _textAlign;
+        private FrameAlignment _textAlign = FrameAlignment.TopLeft;
         private bool _wrapText;
         private bool _clipImage;
         private GUIClickAction _clickAction;

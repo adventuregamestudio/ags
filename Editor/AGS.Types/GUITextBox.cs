@@ -18,7 +18,6 @@ namespace AGS.Types
         public GUITextBox(int x, int y, int width, int height)
             : base(x, y, width, height)
         {
-            _text = string.Empty;
             ShowBorder = true; // border is visible by default
             _font = 0;
             PaddingX = 1;
@@ -32,10 +31,10 @@ namespace AGS.Types
 
         public GUITextBox() { }
 
-        private string _text;
+        private string _text = string.Empty;
         private int _font;
         private int _textColor;
-        private FrameAlignment _textAlign;
+        private FrameAlignment _textAlign = FrameAlignment.TopLeft;
         private string _activateEventHandler = string.Empty;
 
         [Description("Script function to run when return is pressed in the text box")]

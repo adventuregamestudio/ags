@@ -23,7 +23,6 @@ namespace AGS.Types
             _textColor = 0;
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;
-            _textAlignment = HorizontalAlignment.Left;
         }
 
         public GUIListBox(XmlNode node) : base(node)
@@ -36,7 +35,7 @@ namespace AGS.Types
         private int _textColor;
         private int _selectedTextColor;
         private int _selectedBackgroundColor;
-        private HorizontalAlignment _textAlignment;
+        private HorizontalAlignment _textAlignment = HorizontalAlignment.Left;
         private bool _showScrollArrows;
         private string _selectionChangedEventHandler = string.Empty;
 

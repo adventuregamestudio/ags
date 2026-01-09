@@ -225,7 +225,7 @@ bool GUIMain::IsInteractableAt(int x, int y) const
         return false;
     // The _transparency test was unintentionally added in 3.5.0 as a side effect,
     // and unfortunately there are already games which require it to work.
-    if ((game_compiled_version.AsNumber() == 30500) &&
+    if ((loaded_game_file_version == kGameVersion_350) &&
         (_transparency == 255))
         return false;
     if (!IsClickable())

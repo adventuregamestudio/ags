@@ -187,7 +187,11 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     // rid of it too easily; the easy way is to set it whenever the main
     // game file is opened.
     loaded_game_file_version = src.DataVersion;
-    game_compiled_version.SetFromString(src.CompiledWith);
+    // Generate data version for certain game versions that did not have dedicated index;
+    // rely on CompiledWith field. This lets distinguish some behavior differences.
+    Version compiled_version(src.CompiledWith);
+    if (compiled_version.AsNumber() == 30501)
+        loaded_game_file_version = kGameVersion_351;
     return HGameFileError::None();
 }
 

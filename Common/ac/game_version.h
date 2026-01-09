@@ -176,6 +176,11 @@ enum GameDataVersion
     kGameVersion_341            = 48,
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
+    // Following version numbers were not saved in data, but are generated
+    // by reading "Compiled With" field from the game file's header.
+    kGameVersion_351            = 3050100,
+    //-------------------------------------------------------------------------
+    // Following version numbers are actual versions found in game data.
     kGameVersion_360            = 3060000,
     kGameVersion_360_11         = 3060011,
     kGameVersion_360_16         = 3060016,
@@ -193,7 +198,5 @@ enum GameDataVersion
 
 // Data format version of the loaded game
 extern GameDataVersion loaded_game_file_version;
-// The version of the engine the loaded game was compiled for (if available)
-extern AGS::Common::Version game_compiled_version;
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

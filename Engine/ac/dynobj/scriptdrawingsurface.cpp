@@ -42,7 +42,7 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
         return linkedBitmapOnly;
     else if (roomMaskType > kRoomAreaNone)
         return thisroom.GetMask(roomMaskType);
-    quit("!DrawingSurface: attempted to use surface after Release was called");
+    quit("!DrawingSurface: attempted to use surface after its source image was disposed or DrawingSurface.Release() was called.");
     return nullptr;
 }
 
@@ -113,7 +113,7 @@ void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t /*data_sz*/
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptDrawingSurface::ScriptDrawingSurface() 
+void ScriptDrawingSurface::Invalidate()
 {
     roomBackgroundNumber = -1;
     roomMaskType = kRoomAreaNone;
@@ -121,10 +121,16 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;
     linkedBitmapOnly = nullptr;
+    hasAlphaChannel = 0;
+}
+
+ScriptDrawingSurface::ScriptDrawingSurface() 
+{
+    Invalidate();
+
     currentColour = play.raw_color;
     currentColourScript = 0;
     modified = 0;
-    hasAlphaChannel = 0;
     highResCoordinates = 0;
     // NOTE: Normally in contemporary games coordinates ratio will always be 1:1.
     // But we still support legacy drawing, so have to set this up even for modern games,

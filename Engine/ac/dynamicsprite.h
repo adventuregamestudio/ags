@@ -55,5 +55,7 @@ int     add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, bool has_
 int     add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, bool has_alpha = false, uint32_t extra_flags = 0u);
 // Disposes a dynamic sprite, and frees the slot
 void    free_dynamic_sprite(int slot, bool notify_all = true);
+// Notifies dynamic sprite that its drawing surface was released
+void    on_dynsprite_surface_release(int slot, bool modified);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

@@ -443,6 +443,7 @@ std::vector<SpriteListEntry> sprlist;
 
 // For raw drawing
 std::unique_ptr<Bitmap> raw_saved_screen;
+// Stores cloned surfaces (see DrawingSurface.CreateCopy)
 std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 

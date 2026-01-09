@@ -11,10 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/common.h"
 #include "ac/display.h"
+#include "ac/draw.h"
+#include "ac/dynamicsprite.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -77,13 +78,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     }
     else if (sds->dynamicSpriteNumber >= 0)
     {
-        if (sds->modified)
-        {
-            game_sprite_updated(sds->dynamicSpriteNumber);
-        }
-
-        // FIXME: must track the number of created drawing surface instances in dynamic sprite!
-        game.SpriteInfos[sds->dynamicSpriteNumber].Flags &= ~SPF_SURFACEACQUIRED;
+        on_dynsprite_surface_release(sds->dynamicSpriteNumber, sds->modified);
         sds->dynamicSpriteNumber = -1;
     }
     else if (sds->dynamicSurfaceNumber >= 0)

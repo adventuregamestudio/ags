@@ -33,7 +33,6 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
     int highResCoordinates;
     int modified;
     int hasAlphaChannel;
-    //Common::Bitmap* abufBackup;
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
@@ -46,6 +45,8 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
     void SizeToDataResolution(int *adjustValue);
     void FinishedDrawing();
     void FinishedDrawingReadOnly();
+
+    void Invalidate();
 
     ScriptDrawingSurface();
 

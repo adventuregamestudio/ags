@@ -17,7 +17,8 @@
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 
-struct ScriptDialogOptionsRendering final : AGSCCDynamicObject {
+struct ScriptDialogOptionsRendering final : CCBasicObject
+{
     int x, y, width, height;
     bool hasAlphaChannel;
     int parserTextboxX, parserTextboxY;
@@ -29,17 +30,11 @@ struct ScriptDialogOptionsRendering final : AGSCCDynamicObject {
     bool surfaceAccessed;
     bool needRepaint;
 
-    // return the type name of the object
-    const char *GetType() override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-    void Reset();
     ScriptDialogOptionsRendering();
 
-protected:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const void *address) override;
-    // Write object data into the provided stream
-    void Serialize(const void *address, AGS::Common::Stream *out) override;
+    const char *GetType() override;
+    int Dispose(void *address, bool force) override;
+    void Reset();
 };
 
 

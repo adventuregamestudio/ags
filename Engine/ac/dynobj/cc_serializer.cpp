@@ -40,8 +40,6 @@ extern CCInventory ccDynamicInv;
 extern CCGUI       ccDynamicGUI;
 extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
-extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
-extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern std::vector<PluginObjectReader> pluginReaders;
 
 // *** De-serialization of script objects
@@ -126,15 +124,12 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     else if (strcmp(objectType, "DrawingSurface") == 0) {
         ScriptDrawingSurface *sds = new ScriptDrawingSurface();
         sds->Unserialize(index, &mems, data_sz);
-
-        if (sds->isLinkedBitmapOnly)
-        {
-            dialogOptionsRenderingSurface = sds;
-        }
     }
     else if (strcmp(objectType, "DialogOptionsRendering") == 0)
     {
-        ccDialogOptionsRendering.Unserialize(index, &mems, data_sz);
+        // We do not restore DialogOptionsRendering object, so register a dummy obj instead
+        ScriptDialogOptionsRendering *dopts_render = new ScriptDialogOptionsRendering();
+        ccRegisterUnserializedObject(index, dopts_render, dopts_render);
     }
     else if (strcmp(objectType, "StringDictionary") == 0)
     {

@@ -122,7 +122,8 @@ ScriptDialog* DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRender
 
 ScriptDrawingSurface* DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    dlgOptRender->surfaceAccessed = true;
+    if (dlgOptRender->surfaceToRenderTo)
+        dlgOptRender->surfaceAccessed = true;
     return dlgOptRender->surfaceToRenderTo;
 }
 

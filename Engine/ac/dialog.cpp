@@ -72,8 +72,6 @@ extern std::vector<ScriptGUI> scrGui;
 extern CCGUI ccDynamicGUI;
 
 std::vector<DialogTopic> dialog;
-ScriptDialogOptionsRendering ccDialogOptionsRendering;
-ScriptDrawingSurface* dialogOptionsRenderingSurface;
 std::unique_ptr<DialogExec> dialogExec; // current running dialog state
 std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
 
@@ -700,20 +698,14 @@ void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp
         GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->GetBgImage()], dlgxp, dlgyp);
 }
 
-bool get_custom_dialog_options_dimensions(int dlgnum)
+bool get_custom_dialog_options_dimensions(ScriptDialogOptionsRendering *opt_render, int dlgnum)
 {
-    ccDialogOptionsRendering.Reset();
-    ccDialogOptionsRendering.dialogID = dlgnum;
+    opt_render->Reset();
+    opt_render->dialogID = dlgnum;
 
-    getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+    getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(opt_render, opt_render);
     run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
-
-    if ((ccDialogOptionsRendering.width > 0) &&
-        (ccDialogOptionsRendering.height > 0))
-    {
-        return true;
-    }
-    return false;
+    return ((opt_render->width > 0) && (opt_render->height > 0));
 }
 
 #define DLG_OPTION_PARSER 99
@@ -819,6 +811,8 @@ private:
     int forecol;
 
     int mouseison;
+
+    ScriptDialogOptionsRendering *ccDialogOptionsRendering = nullptr;
 };
 
 DialogOptions::DialogOptions(DialogTopic *dtop_, int dlgnum_, bool runGameLoopsInBackground_)
@@ -996,16 +990,19 @@ void DialogOptions::Begin()
     mouseison = -1;
     usingCustomRendering = false;
 
-    if (get_custom_dialog_options_dimensions(dlgnum))
+    ccDialogOptionsRendering = new ScriptDialogOptionsRendering();
+    ccAddObjectReference(ccRegisterManagedObject(ccDialogOptionsRendering, ccDialogOptionsRendering));
+
+    if (get_custom_dialog_options_dimensions(ccDialogOptionsRendering, dlgnum))
     {
         // Custom dialog options rendering
         usingCustomRendering = true;
         position = RectWH(
-            data_to_game_coord(ccDialogOptionsRendering.x),
-            data_to_game_coord(ccDialogOptionsRendering.y),
-            data_to_game_coord(ccDialogOptionsRendering.width),
-            data_to_game_coord(ccDialogOptionsRendering.height));
-        options_have_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
+            data_to_game_coord(ccDialogOptionsRendering->x),
+            data_to_game_coord(ccDialogOptionsRendering->y),
+            data_to_game_coord(ccDialogOptionsRendering->width),
+            data_to_game_coord(ccDialogOptionsRendering->height));
+        options_have_alpha = ccDialogOptionsRendering->hasAlphaChannel;
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
@@ -1122,26 +1119,34 @@ void DialogOptions::Draw()
         options_bmp->ClearTransparent();
 
         // Custom dialog options rendering
-        ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
-        ccDialogOptionsRendering.surfaceAccessed = false;
-        dialogOptionsRenderingSurface->linkedBitmapOnly = options_bmp;
-        dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
+        ScriptDrawingSurface *dopts_surface = new ScriptDrawingSurface();
+        dopts_surface->isLinkedBitmapOnly = true;
+        ccAddObjectReference(ccRegisterManagedObject(dopts_surface, dopts_surface));
+        ccDialogOptionsRendering->surfaceToRenderTo = dopts_surface;
+        ccDialogOptionsRendering->surfaceAccessed = false;
+        dopts_surface->linkedBitmapOnly = options_bmp;
+        dopts_surface->hasAlphaChannel = ccDialogOptionsRendering->hasAlphaChannel;
 
-        renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        renderDialogOptionsFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
 
-        if (!ccDialogOptionsRendering.surfaceAccessed)
+        if (!ccDialogOptionsRendering->surfaceAccessed)
             debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
 
         if (parserInput)
         {
-            parserInput->SetX(data_to_game_coord(ccDialogOptionsRendering.parserTextboxX));
-            curyp = data_to_game_coord(ccDialogOptionsRendering.parserTextboxY);
-            areawid = data_to_game_coord(ccDialogOptionsRendering.parserTextboxWidth);
+            parserInput->SetX(data_to_game_coord(ccDialogOptionsRendering->parserTextboxX));
+            curyp = data_to_game_coord(ccDialogOptionsRendering->parserTextboxY);
+            areawid = data_to_game_coord(ccDialogOptionsRendering->parserTextboxWidth);
             if (areawid == 0)
                 areawid = options_bmp->GetWidth();
         }
-        ccDialogOptionsRendering.needRepaint = false;
+        ccDialogOptionsRendering->needRepaint = false;
+        ccDialogOptionsRendering->surfaceToRenderTo = nullptr;
+
+        // Invalidate DrawingSurface object in case they saved its reference in script
+        dopts_surface->Invalidate();
+        ccReleaseObjectReference(ccGetObjectHandleFromAddress(dopts_surface));
     }
     else if (is_textwindow)
     {
@@ -1275,7 +1280,7 @@ bool DialogOptions::Run()
     // For >= 3.4.0 custom options rendering: run "dialog_options_repexec"
     if (newCustomRender)
     {
-        runDialogOptionRepExecFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionRepExecFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
 
         // Stop the dialog options if requested from script
@@ -1296,7 +1301,7 @@ bool DialogOptions::Run()
         if (position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
-            getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
             if (!getDialogOptionUnderCursorFunc.AtLeastOneImplementationExists)
@@ -1306,11 +1311,11 @@ bool DialogOptions::Run()
             if (doStop)
                 return false;
 
-            mouseison = ccDialogOptionsRendering.activeOptionID;
+            mouseison = ccDialogOptionsRendering->activeOptionID;
         }
         else
         {
-            ccDialogOptionsRendering.activeOptionID = -1;
+            ccDialogOptionsRendering->activeOptionID = -1;
         }
     }
     else if (Rect(position.Left + inner_position.X,
@@ -1349,7 +1354,7 @@ bool DialogOptions::Run()
     {
         // New-style custom rendering: check its explicit flag;
         // could be set by setting ActiveOptionID, or calling Update()
-        needRedraw |= ccDialogOptionsRendering.needRepaint;
+        needRedraw |= ccDialogOptionsRendering->needRepaint;
     }
 
     if (redrawOnMouseMove)
@@ -1385,10 +1390,10 @@ bool DialogOptions::Run()
     else if (newCustomRender)
     {
         // New custom rendering: see if RunActiveOption was called
-        if (ccDialogOptionsRendering.chosenOptionID >= 0)
+        if (ccDialogOptionsRendering->chosenOptionID >= 0)
         {
-            chose = ccDialogOptionsRendering.chosenOptionID;
-            ccDialogOptionsRendering.chosenOptionID = -1;
+            chose = ccDialogOptionsRendering->chosenOptionID;
+            ccDialogOptionsRendering->chosenOptionID = -1;
         }
     }
 
@@ -1478,14 +1483,14 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     {
         if (old_keyhandle || (ki.UChar == 0))
         { // "dialog_options_key_press"
-            runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionKeyPressHandlerFunc.Params[1].SetInt32(AGSKeyToScriptKey(ki.Key));
             runDialogOptionKeyPressHandlerFunc.Params[2].SetInt32(ki.Mod);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         if (!old_keyhandle && (ki.UChar > 0))
         { // "dialog_options_text_input"
-            runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionTextInputHandlerFunc.Params[1].SetInt32(ki.UChar);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
@@ -1513,7 +1518,7 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         {
             if (usingCustomRendering)
             {
-                runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+                runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
                 runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(mbut);
                 run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
                 needRedraw = runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
@@ -1526,7 +1531,7 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         }
         else if (newCustomRender)
         {
-            runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(mbut);
             runDialogOptionMouseClickHandlerFunc.Params[2].SetInt32(mx);
             runDialogOptionMouseClickHandlerFunc.Params[3].SetInt32(my);
@@ -1549,7 +1554,7 @@ bool DialogOptions::RunMouseWheel(int mwheelz)
 {
     if ((mwheelz != 0) && usingCustomRendering)
     {
-        runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32((mwheelz < 0) ? 9 : 8);
         run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
         needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
@@ -1563,9 +1568,12 @@ void DialogOptions::End()
     // Close custom dialog options
     if (usingCustomRendering)
     {
-        runDialogOptionCloseFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionCloseFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
+
+    ccReleaseObjectReference(ccGetObjectHandleFromAddress(&ccDialogOptionsRendering));
+    ccDialogOptionsRendering = nullptr; // disposed by the managed pool
 
     invalidate_screen();
 

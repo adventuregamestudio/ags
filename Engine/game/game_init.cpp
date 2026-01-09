@@ -73,9 +73,6 @@ extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
-extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
-extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
-
 // Old dialog support (defined in ac/dialog)
 extern std::vector<std::vector<uint8_t>> old_dialog_scripts;
 extern std::vector<String> old_speech_lines;
@@ -181,17 +178,6 @@ void InitAndRegisterDialogs(GameSetupStruct &game)
     }
 }
 
-// Initializes dialog options rendering objects and registers them in the script system
-void InitAndRegisterDialogOptions()
-{
-    ccRegisterManagedObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-
-    dialogOptionsRenderingSurface = new ScriptDrawingSurface();
-    dialogOptionsRenderingSurface->isLinkedBitmapOnly = true;
-    long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
-    ccAddObjectReference(dorsHandle);
-}
-
 // Initializes gui and registers them in the script system
 HError InitAndRegisterGUI(GameSetupStruct &game)
 {
@@ -289,7 +275,6 @@ HError InitAndRegisterGameEntities(GameSetupStruct &game)
     InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(game);
     InitAndRegisterDialogs(game);
-    InitAndRegisterDialogOptions();
     HError err = InitAndRegisterGUI(game);
     if (!err)
         return err;

@@ -82,6 +82,8 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
             game_sprite_updated(sds->dynamicSpriteNumber);
         }
 
+        // FIXME: must track the number of created drawing surface instances in dynamic sprite!
+        game.SpriteInfos[sds->dynamicSpriteNumber].Flags &= ~SPF_SURFACEACQUIRED;
         sds->dynamicSpriteNumber = -1;
     }
     else if (sds->dynamicSurfaceNumber >= 0)

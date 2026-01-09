@@ -261,6 +261,7 @@ enum GameGuiAlphaRenderingStyle
 #define SPF_OBJECTOWNED     0x0100 // owned by a game object (not created in user script)
 #define SPF_HADALPHACHANNEL 0x0200 // sprite in spritefile has alpha channel
                                    // (marked in case we remove alpha when loading a sprite)
+#define SPF_SURFACEACQUIRED 0x0400 // drawing surface acquired (in the process of drawing)
 
 // General information about sprite (properties, size)
 struct SpriteInfo
@@ -277,6 +278,8 @@ struct SpriteInfo
     inline Size GetResolution() const { return Size(Width, Height); }
     // Gets if sprite is created at runtime (by engine, or a script command)
     inline bool IsDynamicSprite() const { return (Flags & SPF_DYNAMICALLOC) != 0; }
+    // Gets if this sprite's bitmap is acquired for drawing at this time
+    inline bool IsSurfaceAcquired() const { return (Flags & SPF_SURFACEACQUIRED) != 0; }
     //
     // Legacy game support
     //

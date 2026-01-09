@@ -58,6 +58,8 @@ void DynamicSprite_Delete(ScriptDynamicSprite *sds) {
 
 ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss)
 {
+    game.SpriteInfos[dss->slot].Flags |= SPF_SURFACEACQUIRED;
+
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->dynamicSpriteNumber = dss->slot;
 

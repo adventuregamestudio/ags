@@ -385,6 +385,10 @@ void GUI_Centre(ScriptGUI *sgui) {
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)
 {
     guis[tehgui->id].SetBgImage(slotn);
+    // Old games hack: always force redraw if this is a dynamic sprite with drawing surface
+    // (in case they assign same sprite id, but forgot to release a drawing surface)
+    if ((loaded_game_file_version < kGameVersion_351) && game.SpriteInfos[slotn].IsSurfaceAcquired())
+        guis[tehgui->id].MarkChanged();
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui)

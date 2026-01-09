@@ -56,6 +56,10 @@ void  compile_room_script();
 void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
+// Notifies room that its background's drawing surface was released
+void  on_room_bg_surface_release(int bgindex, bool modified);
+// Notifies room that its mask's drawing surface was released
+void  on_room_mask_surface_release(RoomAreaMask mask, bool modified);
 void  init_room_pathfinder();
 void  dispose_room_pathfinder();
 // Gets current room's pathfinder object

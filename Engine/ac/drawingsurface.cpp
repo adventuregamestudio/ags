@@ -20,6 +20,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
+#include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
@@ -47,33 +48,12 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
 {
     if (sds->roomBackgroundNumber >= 0)
     {
-        if (sds->modified)
-        {
-            if (sds->roomBackgroundNumber == play.bg_frame)
-            {
-                invalidate_screen();
-                mark_current_background_dirty();
-            }
-            play.room_bg_modified[sds->roomBackgroundNumber] = true;
-        }
-
+        on_room_bg_surface_release(sds->roomBackgroundNumber, sds->modified);
         sds->roomBackgroundNumber = -1;
     }
     else if (sds->roomMaskType > kRoomAreaNone)
     {
-        if (sds->modified)
-        {
-            if (sds->roomMaskType == kRoomAreaWalkBehind)
-            {
-                walkbehinds_recalc();
-            }
-            if (get_room_mask_debugmode() == sds->roomMaskType)
-            {
-                debug_draw_room_mask(sds->roomMaskType);
-            }
-            play.room_mask_modified[sds->roomMaskType] = true;
-        }
-
+        on_room_mask_surface_release(sds->roomMaskType, sds->modified);
         sds->roomMaskType = kRoomAreaNone;
     }
     else if (sds->dynamicSpriteNumber >= 0)

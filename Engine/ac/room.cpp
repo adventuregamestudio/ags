@@ -102,6 +102,10 @@ std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
+// Drawing Surface handles, for backgrounds
+int RoomBgDS[MAX_ROOM_BGFRAMES];
+// Drawing Surface handles, for room masks
+int RoomMaskDS[kNumRoomAreaTypes];
 
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 {
@@ -119,6 +123,13 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
         return nullptr;
     }
 
+    if (RoomBgDS[backgroundNumber] > 0)
+    {
+        ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomBgDS[backgroundNumber]));
+        if (surface)
+            return surface;
+    }
+
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;
     ccRegisterManagedObject(surface, surface);
@@ -129,6 +140,20 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
 {
     if (displayed_room < 0)
         quit("!Room_GetDrawingSurfaceForMask: no room is currently loaded");
+
+    if (mask <= kRoomAreaNone || mask >= kNumRoomAreaTypes)
+    {
+        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", kRoomAreaHotspot, kRoomAreaRegion);
+        return nullptr;
+    }
+
+    if (RoomMaskDS[mask] > 0)
+    {
+        ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomMaskDS[mask]));
+        if (surface)
+            return surface;
+    }
+
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomMaskType = mask;
     ccRegisterManagedObject(surface, surface);
@@ -268,8 +293,30 @@ void convert_room_background_to_game_res()
     thisroom.MaskResolution = data_to_game_coord(thisroom.MaskResolution);
 }
 
+static void invalidate_room_drawingsurfaces()
+{
+    for (const auto &ds_handle : RoomBgDS)
+    {
+        if (ds_handle > 0)
+        {
+            ScriptDrawingSurface *surf = static_cast<ScriptDrawingSurface *>(ccGetObjectAddressFromHandle(ds_handle));
+            if (surf)
+                surf->Invalidate();
+        }
+    }
+    for (const auto &ds_handle : RoomMaskDS)
+    {
+        if (ds_handle > 0)
+        {
+            ScriptDrawingSurface *surf = static_cast<ScriptDrawingSurface *>(ccGetObjectAddressFromHandle(ds_handle));
+            if (surf)
+                surf->Invalidate();
+        }
+    }
+}
 
-void save_room_data_segment () {
+void save_room_data_segment()
+{
     croom->FreeScriptData();
     
     const auto &globaldata = roominst->GetGlobalData();
@@ -313,6 +360,9 @@ void unload_old_room()
         for (int ff = NUM_SPEECH_CHANS; ff < game.numGameChannels; ff++)
             StopAmbientSound(ff);
     }
+
+    // Invalidate any active DrawingSurfaces connected to this room
+    invalidate_room_drawingsurfaces();
 
     cancel_all_scripts();
     events.clear();  // cancel any pending room events
@@ -1126,6 +1176,37 @@ void croom_ptr_clear()
 {
     croom = nullptr;
     objs = nullptr;
+}
+
+void on_room_bg_surface_release(int bgindex, bool modified)
+{
+    if (modified)
+    {
+        if (bgindex == play.bg_frame)
+        {
+            invalidate_screen();
+            mark_current_background_dirty();
+        }
+        play.room_bg_modified[bgindex] = true;
+    }
+    RoomBgDS[bgindex] = 0;
+}
+
+void on_room_mask_surface_release(RoomAreaMask mask, bool modified)
+{
+    if (modified)
+    {
+        if (mask == kRoomAreaWalkBehind)
+        {
+            walkbehinds_recalc();
+        }
+        if (get_room_mask_debugmode() == mask)
+        {
+            debug_draw_room_mask(mask);
+        }
+        play.room_mask_modified[mask] = true;
+    }
+    RoomMaskDS[mask] = 0;
 }
 
 void init_room_pathfinder()

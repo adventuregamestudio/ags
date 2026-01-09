@@ -689,29 +689,31 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
     return curyp;
 }
 
-void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
-  if (guib->GetBgColor() != 0) {
-    color_t draw_color = ds->GetCompatibleColor(guib->GetBgColor());
-    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->GetWidth(), dlgyp + guib->GetHeight()), draw_color);
-  }
-  if (guib->GetBgImage() > 0)
-      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->GetBgImage()], dlgxp, dlgyp);
+void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp)
+{
+    if (guib->GetBgColor() != 0)
+    {
+        color_t draw_color = ds->GetCompatibleColor(guib->GetBgColor());
+        ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->GetWidth(), dlgyp + guib->GetHeight()), draw_color);
+    }
+    if (guib->GetBgImage() > 0)
+        GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->GetBgImage()], dlgxp, dlgyp);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
 {
-  ccDialogOptionsRendering.Reset();
-  ccDialogOptionsRendering.dialogID = dlgnum;
+    ccDialogOptionsRendering.Reset();
+    ccDialogOptionsRendering.dialogID = dlgnum;
 
-  getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-  run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
+    getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+    run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
 
-  if ((ccDialogOptionsRendering.width > 0) &&
-      (ccDialogOptionsRendering.height > 0))
-  {
-    return true;
-  }
-  return false;
+    if ((ccDialogOptionsRendering.width > 0) &&
+        (ccDialogOptionsRendering.height > 0))
+    {
+        return true;
+    }
+    return false;
 }
 
 #define DLG_OPTION_PARSER 99
@@ -1117,112 +1119,112 @@ void DialogOptions::Draw()
 
     if (usingCustomRendering)
     {
-      options_bmp->ClearTransparent();
+        options_bmp->ClearTransparent();
 
-      // Custom dialog options rendering
-      ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
-      ccDialogOptionsRendering.surfaceAccessed = false;
-      dialogOptionsRenderingSurface->linkedBitmapOnly = options_bmp;
-      dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
+        // Custom dialog options rendering
+        ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
+        ccDialogOptionsRendering.surfaceAccessed = false;
+        dialogOptionsRenderingSurface->linkedBitmapOnly = options_bmp;
+        dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
 
-      renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-      run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
+        renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
 
-      if (!ccDialogOptionsRendering.surfaceAccessed)
-          debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
+        if (!ccDialogOptionsRendering.surfaceAccessed)
+            debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
 
-      if (parserInput)
-      {
-        parserInput->SetX(data_to_game_coord(ccDialogOptionsRendering.parserTextboxX));
-        curyp = data_to_game_coord(ccDialogOptionsRendering.parserTextboxY);
-        areawid = data_to_game_coord(ccDialogOptionsRendering.parserTextboxWidth);
-        if (areawid == 0)
-          areawid = options_bmp->GetWidth();
-      }
-      ccDialogOptionsRendering.needRepaint = false;
+        if (parserInput)
+        {
+            parserInput->SetX(data_to_game_coord(ccDialogOptionsRendering.parserTextboxX));
+            curyp = data_to_game_coord(ccDialogOptionsRendering.parserTextboxY);
+            areawid = data_to_game_coord(ccDialogOptionsRendering.parserTextboxWidth);
+            if (areawid == 0)
+                areawid = options_bmp->GetWidth();
+        }
+        ccDialogOptionsRendering.needRepaint = false;
     }
     else if (is_textwindow)
     {
-      // Draw the text window on background
-      options_bmp->Blit(text_window.get());
+        // Draw the text window on background
+        options_bmp->Blit(text_window.get());
 
-      // Text window behind the options
-      const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
-      // Ignore the dialog_options_pad_x/y offsets when using a text window
-      // because it has its own padding + border gfx
-      inner_position = text_window_offset;
-      // NOTE: presumably, txoffs and tyoffs are already offset by padding,
-      // although it's not entirely reliable, because these calculations are done inside draw_text_window.
-      const int opts_areawid = areawid - (2 * padding + 2);
-      curyp = write_dialog_options(options_bmp, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
-                                   bullet_wid, game.dialog_bullet, bullet_picwid,
-                                   usingfont, linespacing, forecol,
-                                   dtop, numdisp, mouseison, disporder, dispyp);
-      if (parserInput)
-        parserInput->SetX(inner_position.X);
+        // Text window behind the options
+        const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
+        // Ignore the dialog_options_pad_x/y offsets when using a text window
+        // because it has its own padding + border gfx
+        inner_position = text_window_offset;
+        // NOTE: presumably, txoffs and tyoffs are already offset by padding,
+        // although it's not entirely reliable, because these calculations are done inside draw_text_window.
+        const int opts_areawid = areawid - (2 * padding + 2);
+        curyp = write_dialog_options(options_bmp, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
+                                    bullet_wid, game.dialog_bullet, bullet_picwid,
+                                    usingfont, linespacing, forecol,
+                                    dtop, numdisp, mouseison, disporder, dispyp);
+        if (parserInput)
+            parserInput->SetX(inner_position.X);
     }
     else
     {
-      // Normal GUI or default surface
-      options_bmp->ClearTransparent();
+        // Normal GUI or default surface
+        options_bmp->ClearTransparent();
 
-      Bitmap *ds = options_bmp;
-      // redraw the background so that anti-alias fonts don't re-alias themselves
-      if (game.options[OPT_DIALOGIFACE] == 0)
-      {
-        // Default surface
-        color_t draw_color = ds->GetCompatibleColor(16);
-        ds->FillRect(RectWH(position.GetSize()), draw_color);
-      }
-      else
-      {
-        // Normal GUI
-        GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        draw_gui_for_dialog_options(ds, guib, 0, 0);
-      }
+        Bitmap *ds = options_bmp;
+        // redraw the background so that anti-alias fonts don't re-alias themselves
+        if (game.options[OPT_DIALOGIFACE] == 0)
+        {
+            // Default surface
+            color_t draw_color = ds->GetCompatibleColor(16);
+            ds->FillRect(RectWH(position.GetSize()), draw_color);
+        }
+        else
+        {
+            // Normal GUI
+            GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
+            draw_gui_for_dialog_options(ds, guib, 0, 0);
+        }
 
-      inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
-      const int opts_areawid = areawid - (2 * linewrap_padding + 2);
-      curyp = inner_position.Y;
-      curyp = write_dialog_options(ds, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
-                                   bullet_wid, game.dialog_bullet, bullet_picwid,
-                                   usingfont, linespacing, forecol,
-                                   dtop, numdisp, mouseison, disporder, dispyp);
+        inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
+        const int opts_areawid = areawid - (2 * linewrap_padding + 2);
+        curyp = inner_position.Y;
+        curyp = write_dialog_options(ds, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
+                                    bullet_wid, game.dialog_bullet, bullet_picwid,
+                                    usingfont, linespacing, forecol,
+                                    dtop, numdisp, mouseison, disporder, dispyp);
 
-      if (parserInput)
-        parserInput->SetX(inner_position.X);
+        if (parserInput)
+            parserInput->SetX(inner_position.X);
     }
 
     if (parserInput)
     {
-      // Set up the text box, if present
-      parserInput->SetY(curyp + data_to_game_coord(game.options[OPT_DIALOGGAP]));
-      parserInput->SetWidth(areawid - get_fixed_pixel_size(10));
-      parserInput->SetTextColor(playerchar->talkcolor);
-      if (mouseison == DLG_OPTION_PARSER)
-        parserInput->SetTextColor(forecol);
+        // Set up the text box, if present
+        parserInput->SetY(curyp + data_to_game_coord(game.options[OPT_DIALOGGAP]));
+        parserInput->SetWidth(areawid - get_fixed_pixel_size(10));
+        parserInput->SetTextColor(playerchar->talkcolor);
+        if (mouseison == DLG_OPTION_PARSER)
+            parserInput->SetTextColor(forecol);
 
-      // Left-to-right text direction flag
-      const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
-          || (loaded_game_file_version < kGameVersion_363);
+        // Left-to-right text direction flag
+        const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
+            || (loaded_game_file_version < kGameVersion_363);
 
-      parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
-      if (ltr_position)
-        parserInput->SetX(parserInput->GetX() + bullet_wid);
+        parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
+        if (ltr_position)
+            parserInput->SetX(parserInput->GetX() + bullet_wid);
 
-      const int parserx = parserInput->GetX();
-      const int parsery = parserInput->GetY();
-      Bitmap *ds = options_bmp;
-      if (game.dialog_bullet)
-      {
-          if (ltr_position)
-            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx - bullet_wid, parsery, options_have_alpha);
-          else
-            draw_gui_sprite_v330(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery, options_have_alpha);
-      }
+        const int parserx = parserInput->GetX();
+        const int parsery = parserInput->GetY();
+        Bitmap *ds = options_bmp;
+        if (game.dialog_bullet)
+        {
+            if (ltr_position)
+                draw_gui_sprite_v330(ds, game.dialog_bullet, parserx - bullet_wid, parsery, options_have_alpha);
+            else
+                draw_gui_sprite_v330(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery, options_have_alpha);
+        }
 
-      parserInput->Draw(ds, parserx, parsery);
-      parserInput->SetActivated(false);
+        parserInput->Draw(ds, parserx, parsery);
+        parserInput->SetActivated(false);
     }
 
     // Mark the overlay's image as changed
@@ -1565,30 +1567,30 @@ void DialogOptions::End()
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
 
-  invalidate_screen();
+    invalidate_screen();
 
-  if (parserActivated) 
-  {
-    assert(parserInput);
-    snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
-    ParseText (parserInput->GetText().GetCStr());
-    chose = CHOSE_TEXTPARSER;
-  }
+    if (parserActivated) 
+    {
+        assert(parserInput);
+        snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
+        ParseText (parserInput->GetText().GetCStr());
+        chose = CHOSE_TEXTPARSER;
+    }
 
-  if (options_overlay_id >= 0)
-  {
-    remove_screen_overlay(options_overlay_id);
-    options_overlay_id = 0;
-  }
-  parserInput.reset();
+    if (options_overlay_id >= 0)
+    {
+        remove_screen_overlay(options_overlay_id);
+        options_overlay_id = 0;
+    }
+    parserInput.reset();
 
-  set_mouse_cursor(curswas);
-  // In case it's the QFG4 style dialog, remove the black screen
-  play.in_conversation--;
-  remove_screen_overlay(OVER_COMPLETE);
+    set_mouse_cursor(curswas);
+    // In case it's the QFG4 style dialog, remove the black screen
+    play.in_conversation--;
+    remove_screen_overlay(OVER_COMPLETE);
 
-  // Re-enabled the game GUI
-  EnableInterfaceEx(false /* don't change cursor */);
+    // Re-enabled the game GUI
+    EnableInterfaceEx(false /* don't change cursor */);
 }
 
 int run_dialog_entry(int dlgnum)

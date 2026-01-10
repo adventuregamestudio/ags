@@ -121,12 +121,17 @@ namespace AGS.Editor
 
             Utilities.TryDeleteFile(templateFileName);
 
-            Factory.NativeProxy.CreateTemplateFile(templateFileName, files.ToArray());
+            CreateTemplateFile(templateFileName, files.ToArray());
 
             foreach (string fileName in filesToDeleteAfterwards)
             {
                 Utilities.TryDeleteFile(fileName);
             }
+        }
+
+        public static void CreateTemplateFile(string templateFileName, string[] fileList)
+        {
+            DataFileWriter.MakeDataFile(fileList, 0, templateFileName);
         }
 
         public bool LoadGameFromDisk(string gameToLoad, bool interactive)

@@ -441,16 +441,6 @@ namespace AGS.Editor
             return _native.GetEmbeddedScriptCompilers();
         }
 
-        public void CreateDebugMiniEXE(string[] fileList, string exeFileName)
-        {
-            DataFileWriter.MakeFlatDataFile(fileList, 0, exeFileName, false);
-        }
-
-        public void CreateTemplateFile(string templateFileName, string[] fileList)
-        {
-            DataFileWriter.MakeDataFile(fileList, 0, templateFileName, false);
-        }
-
         public GameTemplate LoadTemplateFile(string fileName)
         {
             return _native.LoadTemplateFile(fileName);

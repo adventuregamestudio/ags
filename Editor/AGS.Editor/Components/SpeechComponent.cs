@@ -422,7 +422,7 @@ namespace AGS.Editor.Components
                 //      Speech/French/cEgo1.ogg => French/cEgo1.ogg;
                 var assets = filesOnDisk.Select(
                     f => new Tuple<string, string>(f.Substring(SPEECH_DIRECTORY.Length + 1), f)).ToArray();
-                DataFileWriter.MakeDataFile(assets, 0, voxFileName, false);
+                DataFileWriter.MakeDataFile(assets, 0, voxFileName);
             }
         }
 

@@ -322,7 +322,8 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
 
     if (IsImageButton())
         DrawImageButton(ds, x, y, draw_disabled);
-    else
+    // For old versions: do not draw the button frame at all if there's no text
+    else if ((GUI::DataVersion >= kGameVersion_363_04) || !_text.IsEmpty())
         DrawTextButton(ds, x, y, draw_disabled);
 }
 

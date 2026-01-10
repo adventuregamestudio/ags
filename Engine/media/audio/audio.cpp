@@ -618,7 +618,6 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 {
     int distx = playerchar->x - sndX;
     int disty = playerchar->y - sndY;
-    // it uses Allegro's "fix" sqrt without the ::
     int dist = (int)::sqrt((double)(distx*distx + disty*disty));
 
     // if they're quite close, full volume

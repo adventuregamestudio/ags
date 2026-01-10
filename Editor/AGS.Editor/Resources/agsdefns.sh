@@ -2538,7 +2538,7 @@ builtin managed struct AudioChannel {
   /// Changes playback to continue from the specified position. The position units depend on the audio type.
   import void Seek(int position);
   /// Sets the audio to have its location at (x,y); it will get quieter the further away the player is.
-  import void SetRoomLocation(int x, int y);
+  import void SetRoomLocation(int x, int y, int maxDistance = 0);
   /// Stops the sound currently playing on this channel.
   import void Stop();
   /// The channel ID of this channel (for use with legacy script).

@@ -35,6 +35,6 @@ int     AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume);
 void    AudioChannel_Stop(ScriptAudioChannel *channel);
 void    AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition);
 void    AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition);
-void    AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos);
+void    AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos, int maxDist);
 
 #endif // __AGS_EE_AC__AUDIOCHANNEL_H

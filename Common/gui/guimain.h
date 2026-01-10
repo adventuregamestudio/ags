@@ -481,8 +481,9 @@ namespace GUI
     // apply_direction param tells whether text direction setting should be applied
     size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
 
-    // Reads all GUIs and their controls.
-    HError ReadGUI(std::vector<GUIMain> &guis, GuiVersion &gui_version, GUIRefCollection &guiobjs, Stream *in);
+    // Reads all GUIs and their controls. Fills guis, guiobjs arrays and gui_version on success.
+    HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
+        GUIRefCollection &guiobjs, Stream *in);
     // Writes all GUIs and their controls.
     void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties

@@ -98,7 +98,7 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
         _topItem = 0;
     }
 
-    if (loaded_game_file_version >= kGameVersion_270)
+    if (GUI::DataVersion >= kGameVersion_270)
     {
         // ensure that some items are visible
         if (_itemWidth > _width)
@@ -147,7 +147,7 @@ void GUIInvWindow::CalculateNumCells()
         _colCount = 0;
         _rowCount = 0;
     }
-    else if (loaded_game_file_version >= kGameVersion_270)
+    else if (GUI::DataVersion >= kGameVersion_270)
     {
         _colCount = _width / data_to_game_coord(_itemWidth);
         _rowCount = _height / data_to_game_coord(_itemHeight);

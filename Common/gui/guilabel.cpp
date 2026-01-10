@@ -75,11 +75,11 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
     if (PrepareTextToDraw() == 0)
         return rc;
     const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
-        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
+        ((GUI::DataVersion < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
         (get_font_height(_font) + 1) :
         get_font_linespacing(_font);
     // < 2.72 labels did not limit vertical size of text
-    const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
+    const bool limit_by_label_frame = GUI::DataVersion >= kGameVersion_272;
 
     Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, linespacing,
         _innerRect, (FrameAlignment)_textAlignment, limit_by_label_frame);
@@ -97,11 +97,11 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
 
     color_t text_color = ds->GetCompatibleColor(_textColor);
     const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
-        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
+        ((GUI::DataVersion < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
         (get_font_height(_font) + 1) :
         get_font_linespacing(_font);
     // < 2.72 labels did not limit vertical size of text
-    const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
+    const bool limit_by_label_frame = GUI::DataVersion >= kGameVersion_272;
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
         Rect::MoveBy(_innerRect, x, y),
         (FrameAlignment)_textAlignment, limit_by_label_frame);

@@ -235,7 +235,7 @@ void GUIListBox::Clear()
     _topItem = 0;
     // NOTE: backwards compatible behavior is to keep selection at index 0,
     // so that the first item appears selected when added
-    _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
+    _selectedItem = (GUI::DataVersion >= kGameVersion_363) ? -1 : 0;
     MarkChanged();
 }
 
@@ -424,7 +424,7 @@ void GUIListBox::UpdateMetrics()
         _borderWidth = get_fixed_pixel_size(1);
     }
 
-    int font_height = (loaded_game_file_version < kGameVersion_360_21) ?
+    int font_height = (GUI::DataVersion < kGameVersion_360_21) ?
         get_font_height(_font) : get_font_height_outlined(_font);
     _rowHeight = font_height + get_fixed_pixel_size(2); // +1 top/bottom margin
     _itemTextPaddingX = get_fixed_pixel_size(1);
@@ -546,7 +546,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     _topItem = 0;
     // NOTE: backwards compatible behavior is to keep selection at index 0,
     // so that the first item appears selected when added
-    _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
+    _selectedItem = (GUI::DataVersion >= kGameVersion_363) ? -1 : 0;
 }
 
 void GUIListBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)

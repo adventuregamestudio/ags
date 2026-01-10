@@ -144,7 +144,7 @@ int GUIMain::FindControlAt(int atx, int aty, int leeway, bool must_be_clickable)
 
 int GUIMain::FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const
 {
-    if (loaded_game_file_version <= kGameVersion_262)
+    if (GUI::DataVersion <= kGameVersion_262)
     {
         // Ignore draw order On 2.6.2 and lower
         for (size_t i = 0; i < _controls.size(); ++i)
@@ -225,7 +225,7 @@ bool GUIMain::IsInteractableAt(int x, int y) const
         return false;
     // The _transparency test was unintentionally added in 3.5.0 as a side effect,
     // and unfortunately there are already games which require it to work.
-    if ((loaded_game_file_version == kGameVersion_350) &&
+    if ((GUI::DataVersion == kGameVersion_350) &&
         (_transparency == 255))
         return false;
     if (!IsClickable())
@@ -903,9 +903,9 @@ Line CalcFontGraphicalVExtent(int font)
 // 3.6.0.21 onwards: full outlined font's height.
 inline int GetTextHeightForAlign(const String &text, int font, FrameAlignment align)
 {
-    if (loaded_game_file_version < kGameVersion_360)
+    if (GUI::DataVersion < kGameVersion_360)
         return get_text_height(text.GetCStr(), font) + ((align & kMAlignVCenter) ? 1 : 0);
-    else if (loaded_game_file_version < kGameVersion_360_21)
+    else if (GUI::DataVersion < kGameVersion_360_21)
         return get_font_height(font) + ((align & kMAlignVCenter) ? 1 : 0);
     else
         return get_font_height_outlined(font);
@@ -1145,11 +1145,16 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
     return HError::None();
 }
 
-HError ReadGUI(std::vector<GUIMain> &guis, GuiVersion &gui_version, GUIRefCollection &guiobjs, Stream *in)
+HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
+    GUIRefCollection &guiobjs, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
 
+    // Game data version is used during gui control reading / upgrading
+    // TODO: it's possible that all the upgrade code which relies on DataVersion
+    // may be moved into UpgradeGUI; in that case we may init DataVersion there.
+    DataVersion = data_ver;
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
     size_t gui_count;
@@ -1184,7 +1189,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, GuiVersion &gui_version, GUIRefCollec
         if (GameGuiVersion < kGuiVersion_331)
             gui.SetPadding(TEXTWINDOW_PADDING_DEFAULT);
         // fix names for 2.x: "GUI" -> "gGui"
-        if (loaded_game_file_version <= kGameVersion_272)
+        if (GUI::DataVersion <= kGameVersion_272)
             gui.SetName(GUI::FixupGUIName272(gui.GetName()));
 
         // GUI popup style and visibility

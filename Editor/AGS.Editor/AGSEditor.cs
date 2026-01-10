@@ -1065,7 +1065,7 @@ namespace AGS.Editor
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, audioVox, false);
+                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, audioVox);
             }
         }
 

@@ -125,11 +125,8 @@ namespace AGS.Editor
             }
         }
 
-        static MultiFileLibNew ourlib;
-
         static DataFileWriter()
         {
-            ourlib = new MultiFileLibNew();
             TextEncoding = Encoding.Default;
         }
 
@@ -148,27 +145,6 @@ namespace AGS.Editor
             catch
             {
             }
-            return stream;
-        }
-
-        static Stream FindFileInPath(out string buffer, string fileName)
-        {
-            string tomake = fileName;
-            Stream stream = TryFileOpen(tomake, FileAccess.Read);
-            // TODO: get audio and speech paths from a kind of shared config
-            if (stream == null)
-            {
-                // try in the Audio folder if not found
-                tomake = Path.Combine(Components.AudioComponent.AUDIO_CACHE_DIRECTORY, fileName);
-                stream = TryFileOpen(tomake, FileAccess.Read);
-            }
-            if (stream == null)
-            {
-                // no? maybe Speech then, templates include this
-                tomake = Path.Combine(Components.SpeechComponent.SPEECH_DIRECTORY, fileName);
-                stream = TryFileOpen(tomake, FileAccess.Read);
-            }
-            buffer = tomake;
             return stream;
         }
 
@@ -303,7 +279,7 @@ namespace AGS.Editor
         /// Currently corresponds to writing main lib file in chain in format version 30.
         /// </summary>
         /// <param name="writer"></param>
-        static void WriteCLIBHeader(BinaryWriter writer)
+        static void WriteCLIBHeader(MultiFileLibNew ourlib, BinaryWriter writer)
         {
             FilePutInt32(0, writer); // reserved options
             FilePutInt32(ourlib.DataFilenames.Count, writer);
@@ -327,11 +303,12 @@ namespace AGS.Editor
         /// Assets come in tuples, where the first string is the name this asset
         /// is registered by, and the second is the actual filepath.
         /// </summary>
-        public static string MakeDataFile(Tuple<string, string>[] assets, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeDataFile(Tuple<string, string>[] assets, int splitSize, string baseFileName,
+            string outputDir = null, bool appendDataToBaseFile = false)
         {
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
+            MultiFileLibNew ourlib = new MultiFileLibNew();
             ourlib.DataFilenames.Clear();
-            ourlib.Files.Clear();
             ourlib.Files.Capacity = assets.Length;
             int currentDataFile = 0;
             long sizeSoFar = 0;
@@ -368,58 +345,48 @@ namespace AGS.Editor
                 }
                 ourlib.Files.Add(new MultiFileLibNew.MultiFile(assetName, assetFile, (byte)currentDataFile, thisFileSize));
             }
+
+            // Generate output data filenames, depending on the number of data files required
             ourlib.DataFilenames.Capacity = currentDataFile + 1;
-            long startOffset = 0;
-            long mainHeaderOffset = 0;
-            string outputFileName;
-            string firstDataFileFullPath = null;
-            string outputDir = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY);
-            if (makeFileNameAssumptions)
+            for (int i = 0; i <= currentDataFile; ++i)
+            {
+                if (i == 0)
+                {
+                    ourlib.DataFilenames.Add(baseFileName);
+                }
+                else
+                {
+                    ourlib.DataFilenames.Add(Path.ChangeExtension(baseFileName, i.ToString(".D3")));
+                }
+            }
+
+            // Create an output directory if one does not exist
+            if (!string.IsNullOrEmpty(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
             }
-            // First, set up ourlib.data_filenames array with all the filenames
-            // so that write_clib_header will write the correct amount of data
-            for (int i = 0, cap = ourlib.DataFilenames.Capacity; i < cap; ++i)
-            {
-                if (makeFileNameAssumptions)
-                {
-                    ourlib.DataFilenames.Add(baseFileName + "." + 
-                        (i == 0 ? "ags" : i.ToString("D3")));
-                }
-                else
-                {
-                    ourlib.DataFilenames.Add(Path.GetFileName(baseFileName));
-                }
-            }
-            // adjust the file paths if necessary, so that write_clib_header will
-            // write the correct amount of data
-            string tomake;
-            for (int i = 0; i < ourlib.Files.Count; ++i)
-            {
-                using (Stream stream = FindFileInPath(out tomake, ourlib.Files[i].Filename))
-                {
-                    if (stream != null)
-                    {
-                        stream.Close();
-                        if (!makeFileNameAssumptions) ourlib.Files[i].Filename = tomake;
-                    }
-                }
-            }
-            // now, create the actual files
+
+            // Now, create and write the actual data files
+            string outputFileName;
+            string firstDataFileFullPath = null;
+            long startOffset = 0;
+            long mainHeaderOffset = 0;
             for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
             {
-                if (makeFileNameAssumptions)
-                {
+                if (!string.IsNullOrEmpty(outputDir))
                     outputFileName = Path.Combine(outputDir, ourlib.DataFilenames[i]);
-                }
                 else
-                {
                     outputFileName = baseFileName;
+
+                FileMode fm_mode = FileMode.Create;
+                if (i == 0)
+                {
+                    firstDataFileFullPath = outputFileName;
+                    if (appendDataToBaseFile)
+                        fm_mode = FileMode.Append;
                 }
-                if (i == 0) firstDataFileFullPath = outputFileName;
-                using (Stream wout = TryFileOpen(outputFileName,
-                    (makeFileNameAssumptions ? FileMode.Create : FileMode.Append), FileAccess.Write))
+
+                using (Stream wout = TryFileOpen(outputFileName, fm_mode, FileAccess.Write))
                 {
                     if (wout == null) return "ERROR: unable to open file '" + outputFileName + "' for writing";
                     BinaryWriter writer = new BinaryWriter(wout);
@@ -430,15 +397,15 @@ namespace AGS.Editor
                     if (i == 0)
                     {
                         mainHeaderOffset = writer.BaseStream.Position;
-                        WriteCLIBHeader(writer);
+                        WriteCLIBHeader(ourlib, writer);
                     }
-                    string buffer;
+
                     for (int j = 0; j < ourlib.Files.Count; ++j)
                     {
                         if (ourlib.Files[j].Datafile == i)
                         {
                             ourlib.Files[j].Offset = (writer.BaseStream.Position - startOffset);
-                            using (Stream stream = FindFileInPath(out buffer, ourlib.Files[j].Filename))
+                            using (Stream stream = TryFileOpen(ourlib.Files[j].Filename, FileAccess.Read))
                             {
                                 if (stream == null)
                                 {
@@ -468,7 +435,7 @@ namespace AGS.Editor
             using (Stream wout = TryFileOpen(firstDataFileFullPath, FileMode.Open, FileAccess.Write))
             {
                 wout.Seek(mainHeaderOffset, SeekOrigin.Begin);
-                WriteCLIBHeader(new BinaryWriter(wout));
+                WriteCLIBHeader(ourlib, new BinaryWriter(wout));
             }
             return null;
         }
@@ -478,10 +445,11 @@ namespace AGS.Editor
         /// Returns null on success and an error message on error.
         /// Assets will be registered under names equal to their *full* filenames (with parent path).
         /// </summary>
-        public static string MakeDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeDataFile(string[] assetFileNames, int splitSize, string baseFileName,
+            string outputDir = null)
         {
             return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(f, f)).ToArray(),
-                splitSize, baseFileName, makeFileNameAssumptions);
+                splitSize, baseFileName, outputDir);
         }
 
         /// <summary>
@@ -489,10 +457,11 @@ namespace AGS.Editor
         /// Returns null on success and an error message on error.
         /// Assets will be registered under names equal to their *last* filenames (w/o parent path).
         /// </summary>
-        public static string MakeFlatDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeFlatDataFile(string[] assetFileNames, int splitSize, string baseFileName,
+            string outputDir = null, bool appendDataToBaseFile = false)
         {
             return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(Path.GetFileName(f), f)).ToArray(),
-                splitSize, baseFileName, makeFileNameAssumptions);
+                splitSize, baseFileName, outputDir, appendDataToBaseFile);
         }
 
         private static void WriteGameSetupStructBase(BinaryWriter writer, Game game, out long ext_off_pos)

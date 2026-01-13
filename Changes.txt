@@ -50,6 +50,7 @@ Script API:
    they are not initialized, and engine should go for a default fallback value instead.
  - Added GameInfo struct that contains meta-information about the game, such as developer's name,
    developer's URL, version, and so forth.
+ - Added new "maxDistance" parameter to AudioChannel.SetRoomLocation() function.
  - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
    channels.
  - Added GUIButtonColorStyle enum, which defines the Button's dynamic coloring style.
@@ -127,6 +128,10 @@ Compatibility:
    font" setting 
  - Don't outline fonts on standard dialogs in pre-2.56 games.
  - Don't use alpha channel when drawing textwindow gui in pre-3.* games.
+ - Force-update GUI when a BackgroundGraphic is re-assigned with the same dynamic sprite's number,
+   if we can tell that this dynamic sprite has given away its DrawingSurface and it has not
+   been released yet. This fixes some old games that draw upon GUI background but forget to
+   call DrawingSurface.Release() to properly update the sprite on screen.
  - Let very narrow labels to still display a 1 character long text in pre-3.6.0 games.
  - In 32-bit games made by AGS 2.* whenever GUI has a background graphic with alpha channel,
    render all colored (no sprite) child controls as fully transparent; and do not render
@@ -138,8 +143,6 @@ Compatibility:
  - In pre-3.6.1 games with custom dialog options rendering force options redraw each time a 
    mouse was moved (regardless of user script update instruction) to complement for a change
    in engine's behavior.
- - Implemented a stub for AudioChannel.SetRoomLocation() variant with 3 parameters, needed for
-   the "Nefasto's Misadventures" game which used a custom engine.
  - Implemented an accidental return value for FaceCharacter() and FaceLocation() functions that
    they had in 2.* engines; some very old games have used that return value in script.
  - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game

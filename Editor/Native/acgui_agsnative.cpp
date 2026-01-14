@@ -326,6 +326,16 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
         color_t draw_color = ds->GetCompatibleColor(15);
         ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
     }
+
+    // Draw item grid
+    color_t draw_color = ds->GetCompatibleColor(15);
+    for (int at_x = _innerRect.Left; at_x <= _innerRect.Right - _itemWidth + 1; at_x += _itemWidth)
+    {
+        for (int at_y = _innerRect.Top; at_y <= _innerRect.Bottom - _itemHeight + 1; at_y += _itemHeight)
+        {
+            ds->DrawRect(RectWH(x + at_x, y + at_y, _itemWidth, _itemHeight), draw_color);
+        }
+    }
 }
 
 void GUIButton::PrepareTextToDraw()

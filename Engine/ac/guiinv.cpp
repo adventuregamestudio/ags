@@ -58,6 +58,8 @@ int GUIInvWindow::GetCharacterID() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
+    DrawControlFrame(ds, x, y);
+
     const bool draw_disabled = GUI::ShouldDrawDisabled(this);
 
     // backwards compatibility
@@ -72,9 +74,9 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
         _topItem = play.inv_top;
 
     // draw the items
-    const int leftmost_x = x;
-    int at_x = x;
-    int at_y = y;
+    const int leftmost_x = x + _innerRect.Left;
+    int at_x = leftmost_x;
+    int at_y = y + _innerRect.Top;
     int lastItem = _topItem + (_colCount * _rowCount);
     if (lastItem > charextra[GetCharacterID()].invorder_count)
         lastItem = charextra[GetCharacterID()].invorder_count;

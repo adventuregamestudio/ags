@@ -41,6 +41,8 @@ public:
     // This function has distinct implementations in Engine and Editor
     int  GetCharacterID() const;
     void SetCharacterID(int charid);
+    // Returns item *slot* index under the given relative coordinates
+    int  GetItemIndexAt(int at_x, int at_y);
 
     // Operations
     // This function has distinct implementations in Engine and Editor

@@ -33,7 +33,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int mousex, mousey;
-extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern CharacterInfo*playerchar;
 extern ScriptInvItem scrInv[MAX_INV];
 extern CCInventory ccDynamicInv;
@@ -85,12 +84,11 @@ int GetInvAt(int atx, int aty) {
     data_to_game_coords(&atx, &aty);
     int onobj = guis[ongui].FindControlAt(atx, aty);
     GUIObject *guio = guis[ongui].GetControl(onobj);
-    if (guio) {
-      mouse_ifacebut_xoffs = atx - guis[ongui].GetX() - guio->GetX();
-      mouse_ifacebut_yoffs = aty - guis[ongui].GetY() - guio->GetY();
+    if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow)) {
+      const int inv_atx = atx - guis[ongui].GetX() - guio->GetX();
+      const int inv_aty = aty - guis[ongui].GetY() - guio->GetY();
+      return InvWindow_GetItemAtXY((GUIInvWindow *)guio, inv_atx, inv_aty);
     }
-    if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
-      return offset_over_inv((GUIInvWindow*)guio);
   }
   return -1;
 }

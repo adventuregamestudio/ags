@@ -44,7 +44,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern ScriptInvItem scrInv[MAX_INV];
-extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
@@ -130,25 +129,16 @@ ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
   return &scrInv[charextra[guii->GetCharacterID()].invorder[index]];
 }
 
-//=============================================================================
-
-int offset_over_inv(GUIInvWindow *inv) {
-    if (inv->GetItemWidth() <= 0 || inv->GetItemHeight() <= 0)
-        return -1;
-    int mover = mouse_ifacebut_xoffs / data_to_game_coord(inv->GetItemWidth());
-    // if it's off the edge of the visible items, ignore
-    if (mover >= inv->GetColCount())
-        return -1;
-    mover += (mouse_ifacebut_yoffs / data_to_game_coord(inv->GetItemHeight())) * inv->GetColCount();
-    if (mover >= inv->GetColCount() * inv->GetRowCount())
+int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y)
+{
+    int item_index = inv->GetItemIndexAt(game_to_data_coord(at_x), game_to_data_coord(at_y));
+    if ((item_index < 0) || (item_index >= charextra[inv->GetCharacterID()].invorder_count))
         return -1;
 
-    mover += inv->GetTopItem();
-    if ((mover < 0) || (mover >= charextra[inv->GetCharacterID()].invorder_count))
-        return -1;
-
-    return charextra[inv->GetCharacterID()].invorder[mover];
+    return charextra[inv->GetCharacterID()].invorder[item_index];
 }
+
+//=============================================================================
 
 //
 // NOTE: This is an old default inventory screen implementation,

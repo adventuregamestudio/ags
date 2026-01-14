@@ -47,6 +47,18 @@ void GUIInvWindow::SetCharacterID(int charid)
     }
 }
 
+int GUIInvWindow::GetItemIndexAt(int at_x, int at_y)
+{
+    if (_itemWidth <= 0 || _itemHeight <= 0)
+        return -1;
+
+    if (!_innerRect.IsInside(at_x, at_y))
+        return -1;
+
+    return _topItem +
+        ((at_x - _innerRect.Left) / _itemWidth + ((at_y - _innerRect.Top) / _itemHeight) * _colCount);
+}
+
 void GUIInvWindow::OnMouseEnter()
 {
     _isMouseOver = true;

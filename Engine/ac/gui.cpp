@@ -71,7 +71,6 @@ extern CCGUIObject ccDynamicGUIObject;
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface=-1;   // mouse cursor is over this interface
-int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 
 int eip_guinum, eip_guiobj;
 
@@ -835,9 +834,9 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
         else if (cttype == kGUIInvWindow)
         {
             click_handled = true;
-            mouse_ifacebut_xoffs = mx - (guio->GetX()) - guis[wasongui].GetX();
-            mouse_ifacebut_yoffs = my - (guio->GetY()) - guis[wasongui].GetY();
-            int iit = offset_over_inv((GUIInvWindow*)guio);
+            const int at_x = mx - (guio->GetX()) - guis[wasongui].GetX();
+            const int at_y = my - (guio->GetY()) - guis[wasongui].GetY();
+            int iit = InvWindow_GetItemAtXY((GUIInvWindow*)guio, at_x, at_y);
             if (iit >= 0)
             {
                 play.used_inv_on = iit;

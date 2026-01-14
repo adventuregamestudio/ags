@@ -38,10 +38,10 @@ int             InvWindow_GetRowCount(GUIInvWindow *guii);
 void            InvWindow_ScrollDown(GUIInvWindow *guii);
 void            InvWindow_ScrollUp(GUIInvWindow *guii);
 ScriptInvItem*  InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index);
+int             InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y);
 
 //=============================================================================
 
-int				offset_over_inv(GUIInvWindow *inv);
 // NOTE: This function is valid for AGS 2.72 and lower
 int             invscreen();
 

@@ -553,7 +553,7 @@ namespace AGS.Editor
                 try
                 {
                     Rectangle newRect = DragUtils.ResizeRectangle(_selectedControl.GetRectangle(), _resizingBySide.Value,
-                        new Point(mouseX - _mouseXOffset, mouseY - _mouseYOffset), new Rectangle(0, 0, _gui.EditorWidth - 1, _gui.EditorHeight - 1));
+                        new Point(mouseX - _mouseXOffset, mouseY - _mouseYOffset), new Rectangle(0, 0, _gui.EditorWidth, _gui.EditorHeight));
                     _selectedControl.Left = newRect.Left;
                     _selectedControl.Top = newRect.Top;
                     _selectedControl.Width = newRect.Width;

@@ -60,10 +60,13 @@ namespace AGS.Types
 
         public override void PaintValue(PaintValueEventArgs e)
         {
-            Color color = ColorFromPropertyValue(e.Value.GetType(), e.Value);
-            using (SolidBrush brush = new SolidBrush(color))
+            if (e.Value != null)
             {
-                e.Graphics.FillRectangle(brush, e.Bounds);
+                Color color = ColorFromPropertyValue(e.Value.GetType(), e.Value);
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    e.Graphics.FillRectangle(brush, e.Bounds);
+                }
             }
         }
     }

@@ -2427,7 +2427,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  if (button)
 	  {
           Common::GUIButton nbut;
-          nbut.SetShadowColor(button->ShadowColor);
+          nbut.SetBorderShadeColor(button->BorderShadeColor);
           nbut.SetTextColor(button->TextColor);
           nbut.SetMouseOverBackColor(button->MouseOverBackgroundColor);
           nbut.SetPushedBackColor(button->PushedBackgroundColor);
@@ -2499,7 +2499,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  nslider.SetHandleImage(slider->HandleImage);
 		  nslider.SetHandleOffset(slider->HandleOffset);
           nslider.SetHandleColor(slider->HandleColor);
-          nslider.SetShadowColor(slider->ShadowColor);
+          nslider.SetBorderShadeColor(slider->BorderShadeColor);
 		  nslider.SetBgImage(slider->BackgroundImage);
           nslider.SetEventHandler(Common::kSliderEvent_OnChange, TextHelper::ConvertASCII(slider->OnChange));
           guislider.push_back(nslider);

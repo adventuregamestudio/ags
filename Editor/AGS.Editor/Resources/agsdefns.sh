@@ -1773,8 +1773,8 @@ builtin managed struct Button extends GUIControl {
   import attribute int MouseOverTextColor;
   /// Gets/sets the button's text color used when the button is pressed
   import attribute int PushedTextColor;
-  /// Gets/sets the color used for drawing shadow effect on this control.
-  import attribute int ShadowColor;
+  /// Gets/sets the color used for drawing border's shade effect.
+  import attribute int BorderShadeColor;
 #endif
 #ifdef SCRIPT_API_v400
   /// Gets/sets the flip direction of the button's graphic
@@ -1798,8 +1798,8 @@ builtin managed struct Slider extends GUIControl {
 #ifdef SCRIPT_API_v363
   /// Gets/sets the inner color of the slider's handle
   import attribute int  HandleColor;
-  /// Gets/sets the color used for drawing shadow effect on this control.
-  import attribute int  ShadowColor;
+  /// Gets/sets the color used for drawing border's shade effect.
+  import attribute int  BorderShadeColor;
 #endif // SCRIPT_API_v363
 };
 

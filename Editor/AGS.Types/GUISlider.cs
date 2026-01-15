@@ -25,7 +25,7 @@ namespace AGS.Types
             BackgroundColor = 16;
             BorderColor = 15;
             HandleColor = 7;
-            ShadowColor = 8;
+            BorderShadeColor = 8;
         }
 
         public GUISlider(XmlNode node) : base(node)
@@ -38,7 +38,7 @@ namespace AGS.Types
         private int _max;
         private int _value;
         private int _handleColor;
-        private int _shadowColor;
+        private int _borderShadeColor;
         private int _handleImage;
         private int _handleOffset;
         private int _backgroundImage;
@@ -72,10 +72,10 @@ namespace AGS.Types
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
-        public int ShadowColor
+        public int BorderShadeColor
         {
-            get { return _shadowColor; }
-            set { _shadowColor = value; }
+            get { return _borderShadeColor; }
+            set { _borderShadeColor = value; }
         }
 
         [Description("Image to use for the grabbable handle on the slider")]

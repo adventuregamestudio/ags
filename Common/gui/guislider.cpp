@@ -32,7 +32,7 @@ GUISlider::GUISlider()
     _backgroundColor = 16;
     _borderColor = 15;
     _handleColor = 7;
-    _shadowColor = 8;
+    _borderShadeColor = 8;
     _handleRange = 0;
 }
 
@@ -104,11 +104,11 @@ void GUISlider::SetHandleColor(int color)
     }
 }
 
-void GUISlider::SetShadowColor(int color)
+void GUISlider::SetBorderShadeColor(int color)
 {
-    if (_shadowColor != color)
+    if (_borderShadeColor != color)
     {
-        _shadowColor = color;
+        _borderShadeColor = color;
         MarkChanged();
     }
 }
@@ -267,7 +267,7 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
         // normal grey background
         color_t draw_color = ds->GetCompatibleColor(_backgroundColor);
         ds->FillRect(bar, draw_color);
-        draw_color = ds->GetCompatibleColor(_shadowColor);
+        draw_color = ds->GetCompatibleColor(_borderShadeColor);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Right, bar.Top), draw_color);
         draw_color = ds->GetCompatibleColor(_borderColor);
@@ -289,7 +289,7 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
         draw_color = ds->GetCompatibleColor(_borderColor);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Left, handle.Bottom), draw_color);
-        draw_color = ds->GetCompatibleColor(_shadowColor);
+        draw_color = ds->GetCompatibleColor(_borderShadeColor);
         ds->DrawLine(Line(handle.Right, handle.Top + 1, handle.Right, handle.Bottom), draw_color);
         ds->DrawLine(Line(handle.Left + 1, handle.Bottom, handle.Right, handle.Bottom), draw_color);
     }
@@ -371,7 +371,7 @@ void GUISlider::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
     GUIControl::ReadFromFile_Ext363(in, gui_version);
 
     _handleColor = in->ReadInt32();
-    _shadowColor = in->ReadInt32();
+    _borderShadeColor = in->ReadInt32();
     in->ReadInt32(); // reserved
     in->ReadInt32();
     in->ReadInt32();
@@ -403,7 +403,7 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         (svg_ver >= kGuiSvgVersion_40026))
     {
         _handleColor = in->ReadInt32();
-        _shadowColor = in->ReadInt32();
+        _borderShadeColor = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
         in->ReadInt32();
@@ -438,7 +438,7 @@ void GUISlider::WriteToSavegame(Stream *out) const
     out->WriteInt32(_value);
     // kGuiSvgVersion_36304
     out->WriteInt32(_handleColor);
-    out->WriteInt32(_shadowColor);
+    out->WriteInt32(_borderShadeColor);
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
@@ -451,7 +451,7 @@ void GUISlider::SetDefaultLooksFor363()
     _backgroundColor = 16;
     _borderColor = 15;
     _handleColor = 7;
-    _shadowColor = 8;
+    _borderShadeColor = 8;
     UpdateControlRect();
 }
 

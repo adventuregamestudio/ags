@@ -535,7 +535,7 @@ namespace AGS.Editor
                 but.ShowBorder = true;
                 but.BackgroundColor = 7;
                 but.BorderColor = 15;
-                but.ShadowColor = 8;
+                but.BorderShadeColor = 8;
                 if ((xmlVersionIndex < 3060202) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000026))
                 {
                     but.PaddingX = 1;
@@ -552,7 +552,7 @@ namespace AGS.Editor
                 {
                     but.BackgroundColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.BackgroundColor);
                     but.BorderColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.BorderColor);
-                    but.ShadowColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.ShadowColor);
+                    but.BorderShadeColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.BorderShadeColor);
                 }
             }
             else if (control is GUIListBox)
@@ -569,14 +569,14 @@ namespace AGS.Editor
                 slider.BackgroundColor = 16;
                 slider.BorderColor = 15;
                 slider.HandleColor = 7;
-                slider.ShadowColor = 8;
+                slider.BorderShadeColor = 8;
 
                 if (remapOldColors)
                 {
                     slider.BackgroundColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.BackgroundColor);
                     slider.BorderColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.BorderColor);
                     slider.HandleColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.HandleColor);
-                    slider.ShadowColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.ShadowColor);
+                    slider.BorderShadeColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.BorderShadeColor);
                 }
             }
             else if (control is GUITextBox)

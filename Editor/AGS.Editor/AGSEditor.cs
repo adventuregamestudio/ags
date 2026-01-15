@@ -115,6 +115,7 @@ namespace AGS.Editor
          * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton, Font.CharacterSpacing.
          * 3.6.3.3        - Moved FontHeightDefinition property from General Settings to Font.
          * 3.6.3.4        - Expanded Color properties for GUI Controls. TextBox's TextAlignment.
+         * 3.6.3.5        - Renamed BorderShadeColor -> BorderShadeColor.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms

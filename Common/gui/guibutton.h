@@ -82,8 +82,8 @@ public:
     void SetMouseOverBorderColor(int color);
     int  GetPushedBorderColor() const { return _pushedBorderColor; }
     void SetPushedBorderColor(int color);
-    int  GetShadowColor() const { return _shadowColor; }
-    void SetShadowColor(int color);
+    int  GetBorderShadeColor() const { return _borderShadeColor; }
+    void SetBorderShadeColor(int color);
     int  GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
     int  GetMouseOverTextColor() const { return _mouseOverTextColor; }
@@ -165,7 +165,7 @@ private:
     static ScriptEventSchema _eventSchema;
 
     uint32_t _buttonFlags = 0u;
-    color_t _shadowColor = 0;
+    color_t _borderShadeColor = 0;
     color_t _textColor = 0;
     color_t _mouseOverBackColor = 0;
     color_t _pushedBackColor = 0;

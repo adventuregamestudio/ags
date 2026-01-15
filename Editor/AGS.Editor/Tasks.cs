@@ -489,7 +489,7 @@ namespace AGS.Editor
                 GUIButton but = guiControl as GUIButton;
                 but.TextColor = remapColor(but.TextColor);
                 // 3.6.3 colors
-                but.ShadowColor = remapColor(but.ShadowColor);
+                but.BorderShadeColor = remapColor(but.BorderShadeColor);
                 but.MouseOverBackgroundColor = remapColor(but.MouseOverBackgroundColor);
                 but.MouseOverBorderColor = remapColor(but.MouseOverBorderColor);
                 but.MouseOverTextColor = remapColor(but.MouseOverTextColor);
@@ -518,7 +518,7 @@ namespace AGS.Editor
             {
                 GUISlider slider = guiControl as GUISlider;
                 slider.HandleColor = remapColor(slider.HandleColor);
-                slider.ShadowColor = remapColor(slider.ShadowColor);
+                slider.BorderShadeColor = remapColor(slider.BorderShadeColor);
             }
         }
 

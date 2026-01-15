@@ -88,7 +88,7 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     const int linespacing = get_font_linespacing(_font);
     const bool limit_by_label_frame = true;
     const Rect lines_rect = Rect::MoveBy(_innerRect, x, y);
-    if (limit_by_label_frame)
+    if (limit_by_label_frame && GUI::Options.ClipControls)
         ds->SetClip(lines_rect);
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
         lines_rect,

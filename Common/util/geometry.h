@@ -379,6 +379,12 @@ struct Rect
         MoveToY(pt.Y);
     }
 
+    inline void MoveLT(int x, int y)
+    {
+        Left = std::min(Left + x, Right);
+        Top = std::min(Top + y, Bottom);
+    }
+
     inline void SetWidth(int width)
     {
         Right = Left + width - 1;
@@ -387,6 +393,14 @@ struct Rect
     inline void SetHeight(int height)
     {
         Bottom = Top + height - 1;
+    }
+
+    inline static Rect Clamp(const Rect &r, const Rect &bounds)
+    {
+        return Rect(AGSMath::Clamp(r.Left, bounds.Left, bounds.Right),
+                    AGSMath::Clamp(r.Top, bounds.Top, bounds.Bottom),
+                    AGSMath::Clamp(r.Right, bounds.Left, bounds.Right),
+                    AGSMath::Clamp(r.Bottom, bounds.Top, bounds.Bottom));
     }
 
     inline static Rect MoveBy(const Rect &r, int x, int y)

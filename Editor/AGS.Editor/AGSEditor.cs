@@ -117,8 +117,9 @@ namespace AGS.Editor
          * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton, Font.CharacterSpacing.
          * 3.6.3.3        - Moved FontHeightDefinition property from General Settings to Font.
          * 3.6.3.4        - Expanded Color properties for GUI Controls. TextBox's TextAlignment.
+         * 3.6.3.5        - Renamed ShadowColor -> BorderShadeColor.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060304;
+        public const int    LATEST_XML_VERSION_INDEX = 3060305;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

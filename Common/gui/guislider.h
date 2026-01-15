@@ -42,8 +42,8 @@ public:
     void SetHandleImage(int image);
     int  GetHandleOffset() const { return _handleOffset; }
     void SetHandleOffset(int offset);
-    int  GetShadowColor() const { return _shadowColor; }
-    void SetShadowColor(int color);
+    int  GetBorderShadeColor() const { return _borderShadeColor; }
+    void SetBorderShadeColor(int color);
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
     bool IsOverControl(int x, int y, int leeway) const override;
@@ -92,7 +92,7 @@ private:
     int     _handleImage = 0;
     int     _handleOffset = 0;
     int     _handleColor = 0;
-    int     _shadowColor = 0;
+    int     _borderShadeColor = 0;
     bool    _isMousePressed = false;
     // Cached coordinates of slider bar; in relative coords
     Rect    _cachedBar;

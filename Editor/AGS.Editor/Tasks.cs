@@ -653,7 +653,7 @@ namespace AGS.Editor
                 but.ShowBorder = true;
                 but.BackgroundColor = 7;
                 but.BorderColor = 15;
-                but.ShadowColor = 8;
+                but.BorderShadeColor = 8;
                 if (xmlVersionIndex < 3060202)
                 {
                     but.PaddingX = 1;
@@ -686,7 +686,7 @@ namespace AGS.Editor
                 slider.BackgroundColor = 16;
                 slider.BorderColor = 15;
                 slider.HandleColor = 7;
-                slider.ShadowColor = 8;
+                slider.BorderShadeColor = 8;
             }
             else if (control is GUITextBox)
             {

@@ -61,7 +61,7 @@ GUIButton::GUIButton()
     _paddingY = DefaultVerPadding;
     _backgroundColor = 7;
     _borderColor = 15;
-    _shadowColor = 8;
+    _borderShadeColor = 8;
     _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
     UpdateControlRect();
 
@@ -125,9 +125,9 @@ void GUIButton::SetPushedBorderColor(int color)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetShadowColor(int color)
+void GUIButton::SetBorderShadeColor(int color)
 {
-    _shadowColor = color;
+    _borderShadeColor = color;
     MarkChanged();
 }
 
@@ -569,7 +569,7 @@ void GUIButton::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
     GUIObject::ReadFromFile_Ext363(in, gui_version);
 
     _buttonFlags = in->ReadInt32();
-    _shadowColor = in->ReadInt32();
+    _borderShadeColor = in->ReadInt32();
     _mouseOverBackColor = in->ReadInt32();
     _pushedBackColor = in->ReadInt32();
     _mouseOverBorderColor = in->ReadInt32();
@@ -605,7 +605,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         old_paddingy = in->ReadInt32();
         // valid since kGuiSvgVersion_36304
         _buttonFlags = in->ReadInt32();
-        _shadowColor = in->ReadInt32();
+        _borderShadeColor = in->ReadInt32();
     }
     if (svg_ver >= kGuiSvgVersion_36304)
     {
@@ -654,7 +654,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(_paddingY);
     // valid since kGuiSvgVersion_36304
     out->WriteInt32(_buttonFlags);
-    out->WriteInt32(_shadowColor);
+    out->WriteInt32(_borderShadeColor);
     // kGuiSvgVersion_36304
     out->WriteInt32(_mouseOverBackColor);
     out->WriteInt32(_pushedBackColor);
@@ -673,7 +673,7 @@ void GUIButton::SetDefaultLooksFor363()
     _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
     _backgroundColor = 7;
     _borderColor = 15;
-    _shadowColor = 8;
+    _borderShadeColor = 8;
     _paddingX = 1;
     _paddingY = 1;
     UpdateControlRect();
@@ -775,7 +775,7 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
         ? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_currentBorderColor);
     const color_t dark_color =
         (GUI::GameGuiVersion < kGuiVersion_363)
-        ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_shadowColor);
+        ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_borderShadeColor);
 
     // Background rect
     if (IsSolidBackground())

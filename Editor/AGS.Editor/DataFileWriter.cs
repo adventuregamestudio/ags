@@ -996,12 +996,12 @@ namespace AGS.Editor
                     }
                 }
 
-                public int ShadowColor
+                public int BorderShadeColor
                 {
                     get
                     {
                         GUIButton button = (GUIButton)this;
-                        if (button != null) return button.ShadowColor;
+                        if (button != null) return button.BorderShadeColor;
                         return 0;
                     }
                 }
@@ -2052,7 +2052,7 @@ namespace AGS.Editor
                         ? NativeConstants.GBUTF_DYNAMICCOLORS : 0) |
                     ((button.ColorStyle == ButtonColorStyle.DynamicFlat) ? NativeConstants.GBUTF_FLATSTYLE : 0);
                 writer.Write(butflags);
-                writer.Write(button.ShadowColor);
+                writer.Write(button.BorderShadeColor);
                 writer.Write(button.MouseOverBackgroundColor);
                 writer.Write(button.PushedBackgroundColor);
                 writer.Write(button.MouseOverBorderColor);
@@ -2080,7 +2080,7 @@ namespace AGS.Editor
                 Write_GUIControlLooksExt_363(slider, writer);
                 // Slider's own properties
                 writer.Write(slider.HandleColor);
-                writer.Write(slider.ShadowColor);
+                writer.Write(slider.BorderShadeColor);
                 writer.Write((int)0); // reserved
                 writer.Write((int)0);
                 writer.Write((int)0);

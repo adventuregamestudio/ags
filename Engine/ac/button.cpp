@@ -271,14 +271,14 @@ void Button_SetPushedGraphic(GUIButton *butt, int slotn)
     FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
-int Button_GetShadowColor(GUIButton *butt)
+int Button_GetBorderShadeColor(GUIButton *butt)
 {
-    return butt->GetShadowColor();
+    return butt->GetBorderShadeColor();
 }
 
-void Button_SetShadowColor(GUIButton *butt, int color)
+void Button_SetBorderShadeColor(GUIButton *butt, int color)
 {
-    butt->SetShadowColor(color);
+    butt->SetBorderShadeColor(color);
 }
 
 int Button_GetTextColor(GUIButton *butt)
@@ -617,14 +617,14 @@ RuntimeScriptValue Sc_Button_SetPushedGraphic(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedGraphic);
 }
 
-RuntimeScriptValue Sc_Button_GetShadowColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_GetBorderShadeColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetShadowColor);
+    API_OBJCALL_INT(GUIButton, Button_GetBorderShadeColor);
 }
 
-RuntimeScriptValue Sc_Button_SetShadowColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_SetBorderShadeColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetShadowColor);
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetBorderShadeColor);
 }
 
 // int | GUIButton *butt
@@ -751,6 +751,8 @@ void RegisterButtonAPI()
         { "Button::get_Frame",            API_FN_PAIR(Button_GetAnimFrame) },
         { "Button::get_Graphic",          API_FN_PAIR(Button_GetGraphic) },
         { "Button::get_Loop",             API_FN_PAIR(Button_GetAnimLoop) },
+        { "Button::get_BorderShadeColor", API_FN_PAIR(Button_GetBorderShadeColor) },
+        { "Button::set_BorderShadeColor", API_FN_PAIR(Button_SetBorderShadeColor) },
         { "Button::get_MouseOverBackgroundColor", API_FN_PAIR(Button_GetMouseOverBackgroundColor) },
         { "Button::set_MouseOverBackgroundColor", API_FN_PAIR(Button_SetMouseOverBackgroundColor) },
         { "Button::get_PushedBackgroundColor", API_FN_PAIR(Button_GetPushedBackgroundColor) },
@@ -765,8 +767,6 @@ void RegisterButtonAPI()
         { "Button::set_NormalGraphic",    API_FN_PAIR(Button_SetNormalGraphic) },
         { "Button::get_PushedGraphic",    API_FN_PAIR(Button_GetPushedGraphic) },
         { "Button::set_PushedGraphic",    API_FN_PAIR(Button_SetPushedGraphic) },
-        { "Button::get_ShadowColor",      API_FN_PAIR(Button_GetShadowColor) },
-        { "Button::set_ShadowColor",      API_FN_PAIR(Button_SetShadowColor) },
         { "Button::get_Text",             API_FN_PAIR(Button_GetText_New) },
         { "Button::set_Text",             API_FN_PAIR(Button_SetText) },
         { "Button::get_TextColor",        API_FN_PAIR(Button_GetTextColor) },

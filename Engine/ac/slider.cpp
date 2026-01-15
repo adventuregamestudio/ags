@@ -50,6 +50,16 @@ void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage)
     guisl->SetBgImage(newImage);
 }
 
+int Slider_GetBorderShadeColor(GUISlider *guisl)
+{
+    return guisl->GetBorderShadeColor();
+}
+
+void Slider_SetBorderShadeColor(GUISlider *guisl, int color)
+{
+    guisl->SetBorderShadeColor(color);
+}
+
 int Slider_GetHandleColor(GUISlider *guisl)
 {
     return guisl->GetHandleColor();
@@ -78,16 +88,6 @@ void Slider_SetHandleOffset(GUISlider *guisl, int newOffset)
     guisl->SetHandleOffset(newOffset);
 }
 
-int Slider_GetShadowColor(GUISlider *guisl)
-{
-    return guisl->GetShadowColor();
-}
-
-void Slider_SetShadowColor(GUISlider *guisl, int color)
-{
-    guisl->SetShadowColor(color);
-}
-
 //=============================================================================
 //
 // Script API Functions
@@ -108,6 +108,16 @@ RuntimeScriptValue Sc_Slider_GetBackgroundGraphic(void *self, const RuntimeScrip
 RuntimeScriptValue Sc_Slider_SetBackgroundGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetBackgroundGraphic);
+}
+
+RuntimeScriptValue Sc_Slider_GetBorderShadeColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUISlider, Slider_GetBorderShadeColor);
+}
+
+RuntimeScriptValue Sc_Slider_SetBorderShadeColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUISlider, Slider_SetBorderShadeColor);
 }
 
 RuntimeScriptValue Sc_Slider_GetHandleColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -168,16 +178,6 @@ RuntimeScriptValue Sc_Slider_SetMin(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetMin);
 }
 
-RuntimeScriptValue Sc_Slider_GetShadowColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUISlider, Slider_GetShadowColor);
-}
-
-RuntimeScriptValue Sc_Slider_SetShadowColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUISlider, Slider_SetShadowColor);
-}
-
 // int (GUISlider *guisl)
 RuntimeScriptValue Sc_Slider_GetValue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -196,6 +196,8 @@ void RegisterSliderAPI()
     ScFnRegister slider_api[] = {
         { "Slider::get_BackgroundGraphic",    API_FN_PAIR(Slider_GetBackgroundGraphic) },
         { "Slider::set_BackgroundGraphic",    API_FN_PAIR(Slider_SetBackgroundGraphic) },
+        { "Slider::get_BorderShadeColor",     API_FN_PAIR(Slider_GetBorderShadeColor) },
+        { "Slider::set_BorderShadeColor",     API_FN_PAIR(Slider_SetBorderShadeColor) },
         { "Slider::get_HandleColor",          API_FN_PAIR(Slider_GetHandleColor) },
         { "Slider::set_HandleColor",          API_FN_PAIR(Slider_SetHandleColor) },
         { "Slider::get_HandleGraphic",        API_FN_PAIR(Slider_GetHandleGraphic) },
@@ -206,8 +208,6 @@ void RegisterSliderAPI()
         { "Slider::set_Max",                  API_FN_PAIR(Slider_SetMax) },
         { "Slider::get_Min",                  API_FN_PAIR(Slider_GetMin) },
         { "Slider::set_Min",                  API_FN_PAIR(Slider_SetMin) },
-        { "Slider::get_ShadowColor",          API_FN_PAIR(Slider_GetShadowColor) },
-        { "Slider::set_ShadowColor",          API_FN_PAIR(Slider_SetShadowColor) },
         { "Slider::get_Value",                API_FN_PAIR(Slider_GetValue) },
         { "Slider::set_Value",                API_FN_PAIR(Slider_SetValue) },
     };

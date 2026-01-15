@@ -381,6 +381,8 @@ void GUIMain::DrawControls(Bitmap *ds)
         if (objToDraw->GetTransparency() == 0)
         {
             objToDraw->Draw(ds, objx, objy);
+            // Reset clip, in case control does temporary surface clipping
+            ds->ResetClip();
         }
         else
         {

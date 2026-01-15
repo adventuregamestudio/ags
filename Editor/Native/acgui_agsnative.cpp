@@ -289,7 +289,7 @@ bool GUIMain::HasAlphaChannel() const
 int GUILabel::PrepareTextToDraw()
 {
     _textToDraw = _text;
-    return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, _font, _width);
+    return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, _font, _innerRect.GetWidth());
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
@@ -343,7 +343,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _width - _paddingX * 2);
+        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _innerRect.GetWidth());
     }
     else
     {

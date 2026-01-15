@@ -80,7 +80,6 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
         get_font_linespacing(_font);
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = GUI::DataVersion >= kGameVersion_272;
-
     Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, linespacing,
         _innerRect, (FrameAlignment)_textAlignment, limit_by_label_frame);
     return SumRects(rc, text_rc);
@@ -102,8 +101,11 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
         get_font_linespacing(_font);
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = GUI::DataVersion >= kGameVersion_272;
+    const Rect lines_rect = Rect::MoveBy(_innerRect, x, y);
+    if (limit_by_label_frame)
+        ds->SetClip(lines_rect);
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
-        Rect::MoveBy(_innerRect, x, y),
+        lines_rect,
         (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 

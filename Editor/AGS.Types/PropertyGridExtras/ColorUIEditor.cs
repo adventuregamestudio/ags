@@ -58,8 +58,11 @@ namespace AGS.Types
 
         public override void PaintValue(PaintValueEventArgs e)
         {
-            Color color = ColorFromPropertyValue(e.Context, e.Value);
-            Utilities.PaintColorBlock(color, e.Graphics, e.Bounds);
+            if (e.Value != null)
+            {
+                Color color = ColorFromPropertyValue(e.Context, e.Value);
+                Utilities.PaintColorBlock(color, e.Graphics, e.Bounds);
+            }
         }
     }
 }

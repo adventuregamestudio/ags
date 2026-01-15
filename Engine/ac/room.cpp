@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -107,6 +107,10 @@ extern std::vector<int> StaticHotspotArray;
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
+// Drawing Surface handles, for backgrounds
+int RoomBgDS[MAX_ROOM_BGFRAMES];
+// Drawing Surface handles, for room masks
+int RoomMaskDS[kNumRoomAreaTypes];
 
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 {
@@ -124,6 +128,13 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
         return nullptr;
     }
 
+    if (RoomBgDS[backgroundNumber] > 0)
+    {
+        ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomBgDS[backgroundNumber]));
+        if (surface)
+            return surface;
+    }
+
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;
     ccRegisterManagedObject(surface, surface);
@@ -134,6 +145,20 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
 {
     if (displayed_room < 0)
         quit("!Room_GetDrawingSurfaceForMask: no room is currently loaded");
+
+    if (mask <= kRoomAreaNone || mask >= kNumRoomAreaTypes)
+    {
+        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", kRoomAreaHotspot, kRoomAreaRegion);
+        return nullptr;
+    }
+
+    if (RoomMaskDS[mask] > 0)
+    {
+        ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomMaskDS[mask]));
+        if (surface)
+            return surface;
+    }
+
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomMaskType = mask;
     ccRegisterManagedObject(surface, surface);
@@ -308,6 +333,28 @@ ScriptPathfinder* Room_GetPathFinder()
     return RoomPathfinder::Create();
 }
 
+static void invalidate_room_drawingsurfaces()
+{
+    for (const auto &ds_handle : RoomBgDS)
+    {
+        if (ds_handle > 0)
+        {
+            ScriptDrawingSurface *surf = static_cast<ScriptDrawingSurface *>(ccGetObjectAddressFromHandle(ds_handle));
+            if (surf)
+                surf->Invalidate();
+        }
+    }
+    for (const auto &ds_handle : RoomMaskDS)
+    {
+        if (ds_handle > 0)
+        {
+            ScriptDrawingSurface *surf = static_cast<ScriptDrawingSurface *>(ccGetObjectAddressFromHandle(ds_handle));
+            if (surf)
+                surf->Invalidate();
+        }
+    }
+}
+
 //=============================================================================
 
 void save_room_data_segment()
@@ -350,6 +397,9 @@ void unload_old_room()
         objs[ff].moving = 0;
 
     AbortAllScripts();
+    // Invalidate any active DrawingSurfaces connected to this room
+    invalidate_room_drawingsurfaces();
+
     events.clear();  // cancel any pending room events
 
     if (roomBackgroundBmp != nullptr)
@@ -492,6 +542,8 @@ static void init_object_states(size_t start, size_t end)
         crobj.zoom = 100;
         crobj.blocking_width = 0;
         crobj.blocking_height = 0;
+        crobj.blocking_x = 0;
+        crobj.blocking_y = 0;
         crobj.name = trobj.Name;
         if (trobj.Baseline >= 0)
             crobj.baseline = trobj.Baseline;
@@ -967,7 +1019,7 @@ void check_new_room()
     {
         AGSEvent evh(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen
-        EnterNewRoomState newroom_was = in_new_room;
+        const EnterNewRoomState newroom_was = in_new_room;
         in_new_room = kEnterRoom_None;
         DisableInterfaceEx(true /* update cursor */);
         process_event(&evh);
@@ -1025,6 +1077,37 @@ void croom_ptr_clear()
 {
     croom = nullptr;
     objs = nullptr;
+}
+
+void on_room_bg_surface_release(int bgindex, bool modified)
+{
+    if (modified)
+    {
+        if (bgindex == play.bg_frame)
+        {
+            invalidate_screen();
+            mark_current_background_dirty();
+        }
+        play.room_bg_modified[bgindex] = true;
+    }
+    RoomBgDS[bgindex] = 0;
+}
+
+void on_room_mask_surface_release(RoomAreaMask mask, bool modified)
+{
+    if (modified)
+    {
+        if (mask == kRoomAreaWalkBehind)
+        {
+            walkbehinds_recalc();
+        }
+        if (get_room_mask_debugmode() == mask)
+        {
+            debug_draw_room_mask(mask);
+        }
+        play.room_mask_modified[mask] = true;
+    }
+    RoomMaskDS[mask] = 0;
 }
 
 void init_room_pathfinder()

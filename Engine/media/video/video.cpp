@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -136,14 +136,15 @@ void BlockingVideoPlayer::Begin()
     }
 
     // Clear the screen before starting playback
-    // TODO: needed for FLIC, but perhaps may be done differently
+    // TODO: for hardware-accelerated drivers, whilst playing FLIC,
+    // we might require to make a screenshot of the last screen,
+    // in order to draw first partial FLIC frames onto that.
     if ((_stateFlags & kVideoState_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             gfxDriver->GetMemoryBackBuffer()->Clear();
         }
-        render_to_screen();
     }
 
     auto player = video_core_get_player(_playerID);
@@ -206,14 +207,12 @@ void BlockingVideoPlayer::End()
     set_game_speed(_oldFps);
 
     // Clear the screen after stopping playback
-    // TODO: needed for FLIC, but perhaps may be done differently
     if ((_stateFlags & kVideoState_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             gfxDriver->GetMemoryBackBuffer()->Clear();
         }
-        render_to_screen();
     }
 
     invalidate_screen();

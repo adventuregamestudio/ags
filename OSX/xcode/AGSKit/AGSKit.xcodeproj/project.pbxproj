@@ -938,6 +938,10 @@
 		52F5D8611DA1219D006F8F4B /* inventoryiteminfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52F5D8601DA1219D006F8F4B /* inventoryiteminfo.cpp */; };
 		52F5D8641DA121CC006F8F4B /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52F5D8621DA121CC006F8F4B /* version.cpp */; };
 		52F5D8651DA121CC006F8F4B /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 52F5D8631DA121CC006F8F4B /* version.h */; };
+		E7680CB62F09E80D00F864E2 /* indexedobjectpool.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CB52F09E80D00F864E2 /* indexedobjectpool.h */; };
+		E7680CB92F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E7680CB82F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp */; };
+		E7680CBA2F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CB72F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h */; };
+		E7680CBC2F09E88E00F864E2 /* time_util.h in Headers */ = {isa = PBXBuildFile; fileRef = E7680CBB2F09E88E00F864E2 /* time_util.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1887,6 +1891,10 @@
 		52F5D8601DA1219D006F8F4B /* inventoryiteminfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inventoryiteminfo.cpp; sourceTree = "<group>"; };
 		52F5D8621DA121CC006F8F4B /* version.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
 		52F5D8631DA121CC006F8F4B /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
+		E7680CB52F09E80D00F864E2 /* indexedobjectpool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = indexedobjectpool.h; sourceTree = "<group>"; };
+		E7680CB72F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gfxfilter_aa_sdl_renderer.h; sourceTree = "<group>"; };
+		E7680CB82F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_aa_sdl_renderer.cpp; sourceTree = "<group>"; };
+		E7680CBB2F09E88E00F864E2 /* time_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = time_util.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2855,6 +2863,7 @@
 		526F226F1D3B5C4900EF4E1F /* util */ = {
 			isa = PBXGroup;
 			children = (
+				E7680CB52F09E80D00F864E2 /* indexedobjectpool.h */,
 				209EEC662E439EB1009C0C6C /* deflatestream.h */,
 				209EEC672E439EB1009C0C6C /* deflatestream.cpp */,
 				209EEC682E439EB1009C0C6C /* transformstream.h */,
@@ -3233,6 +3242,8 @@
 		526F25301D3B5CC300EF4E1F /* gfx */ = {
 			isa = PBXGroup;
 			children = (
+				E7680CB72F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h */,
+				E7680CB82F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp */,
 				20522A6E28E8F94000589E91 /* gfxfilter_aaogl.cpp */,
 				20522A6F28E8F94000589E91 /* gfxfilter_aaogl.h */,
 				20522A7228E8F94100589E91 /* gfxfilter_sdl_renderer.cpp */,
@@ -3518,6 +3529,7 @@
 		526F26871D3B5CC300EF4E1F /* util */ = {
 			isa = PBXGroup;
 			children = (
+				E7680CBB2F09E88E00F864E2 /* time_util.h */,
 				20522A8828E8FD2B00589E91 /* sdl2_util.cpp */,
 				20522A8728E8FD2B00589E91 /* sdl2_util.h */,
 				526F26881D3B5CC300EF4E1F /* library.h */,
@@ -3578,6 +3590,7 @@
 				20522A0728E8F7FE00589E91 /* cc_internal.h in Headers */,
 				526F27661D3B5CC300EF4E1F /* parser.h in Headers */,
 				526F273D1D3B5CC300EF4E1F /* global_video.h in Headers */,
+				E7680CBA2F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.h in Headers */,
 				2052299928E8EAE700589E91 /* keycode.h in Headers */,
 				20522A7528E8F94100589E91 /* gfxfilter_sdl_renderer.h in Headers */,
 				526F22CE1D3B5C4900EF4E1F /* fonts.h in Headers */,
@@ -3742,6 +3755,7 @@
 				526F26F11D3B5CC300EF4E1F /* scriptviewframe.h in Headers */,
 				20E683D428F20C7200B95C00 /* highlevel.h in Headers */,
 				20E6811728F1C98400B95C00 /* mpg123.h in Headers */,
+				E7680CBC2F09E88E00F864E2 /* time_util.h in Headers */,
 				526F27D91D3B5CC300EF4E1F /* mycontrols.h in Headers */,
 				205229AD28E8EBE500589E91 /* tra_file.h in Headers */,
 				526F27B31D3B5CC300EF4E1F /* ali3dsw.h in Headers */,
@@ -3809,6 +3823,7 @@
 				526F27821D3B5CC300EF4E1F /* speech.h in Headers */,
 				526F27021D3B5CC300EF4E1F /* global_character.h in Headers */,
 				526F27101D3B5CC300EF4E1F /* global_file.h in Headers */,
+				E7680CB62F09E80D00F864E2 /* indexedobjectpool.h in Headers */,
 				526F274C1D3B5CC300EF4E1F /* hotspot.h in Headers */,
 				52D12C211D61C0950077B784 /* savegame_internal.h in Headers */,
 				20E683DB28F20C7200B95C00 /* backends.h in Headers */,
@@ -4236,6 +4251,7 @@
 				20E67D6728F1BDE000B95C00 /* math.c in Sources */,
 				526F28CE1D3B5CC300EF4E1F /* systemimports.cpp in Sources */,
 				20522A7728E8F94100589E91 /* gfxfilter_sdl_renderer.cpp in Sources */,
+				E7680CB92F09E84100F864E2 /* gfxfilter_aa_sdl_renderer.cpp in Sources */,
 				20E6826228F1D2C400B95C00 /* tables.c in Sources */,
 				20E6828128F1D32D00B95C00 /* audio_core.cpp in Sources */,
 				20E683F628F20C7300B95C00 /* mdct.c in Sources */,

@@ -49,9 +49,8 @@ namespace AGS.Types
         [Description("Background color of the GUI (0 = transparent)")]
         [Category("Appearance")]
         [DisplayName("BackgroundColor")]
-        [RefreshProperties(RefreshProperties.All)]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [SerializeAsHex]
         public int BackgroundColor
         {

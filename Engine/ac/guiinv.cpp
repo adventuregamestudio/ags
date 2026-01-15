@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -51,12 +51,14 @@ int GUIInvWindow::GetCharacterID() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
+    DrawControlFrame(ds, x, y);
+
     const bool draw_disabled = GUI::ShouldDrawDisabled(this);
 
     // draw the items
-    const int leftmost_x = x;
-    int at_x = x;
-    int at_y = y;
+    const int leftmost_x = x + _innerRect.Left;
+    int at_x = leftmost_x;
+    int at_y = y + _innerRect.Top;
     int lastItem = _topItem + (_colCount * _rowCount);
     if (lastItem > charextra[GetCharacterID()].invorder_count)
         lastItem = charextra[GetCharacterID()].invorder_count;

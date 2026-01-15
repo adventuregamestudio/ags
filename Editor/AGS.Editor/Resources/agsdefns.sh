@@ -1058,8 +1058,6 @@ import DrawingSurface* GetDrawingSurfaceForWalkbehind();
 #endif // SCRIPT_COMPAT_v399
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
-/// Returns whether the game is currently paused.
-import int  IsGamePaused();
 /// Disables the player interface and activates the Wait cursor.
 import void DisableInterface();
 /// Re-enables the player interface.
@@ -1118,6 +1116,10 @@ builtin struct Mouse {
   /// Gets/sets whether the mouse cursor will be automatically locked in the game window.
   import static attribute bool AutoLock;
 #endif // SCRIPT_API_v36026
+#ifdef SCRIPT_API_v363
+  /// Gets the active hotspot for the specified mouse cursor.
+  import static Point* GetModeHotspot(CursorMode);
+#endif
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader applied to the mouse cursor.
   import static attribute ShaderInstance* CursorShader;
@@ -1273,6 +1275,12 @@ builtin managed struct InventoryItem {
   /// Gets the script name of the inventory item.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the hotspot x position used for the cursor when this item is active
+  import attribute int CursorHotspotX;
+  /// Gets/sets the hotspot y position used for the cursor when this item is active
+  import attribute int CursorHotspotY;
+#endif
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1326,7 +1334,9 @@ builtin managed struct Overlay {
   import void SetSize(int width, int height);
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
-  /// Gets/sets whether this Overlay is visible.
+  /// Gets/sets a textual description of this overlay.
+  import attribute String Text;
+  /// Gets/sets whether this overlay is visible.
   import attribute bool Visible;
 #endif // #ifdef SCRIPT_API_v363
 #ifdef SCRIPT_API_v399
@@ -1524,10 +1534,14 @@ import int  SaveScreenShot(const string filename, int width=0, int height=0, Ren
 /// Saves a screenshot of the current game position to a file.
 import int  SaveScreenShot(const string filename);
 #endif // !SCRIPT_API_v362
+#ifdef SCRIPT_COMPAT_v363
 /// Pauses the game, which stops all animations and movement.
 import void PauseGame();
 /// Resumes the game after it was paused earlier.
 import void UnPauseGame();
+/// Returns whether the game is currently paused.
+import int  IsGamePaused();
+#endif // SCRIPT_COMPAT_v363
 /// Blocks the script for the specified number of game loops.
 import void Wait(int waitLoops);
 /// Blocks the script for the specified number of game loops, unless a key is pressed.
@@ -1565,6 +1579,13 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
 
+#ifdef SCRIPT_API_v363
+enum GUIButtonColorStyle {
+  eGUIButtonDefault = 0,
+  eGUIButtonDynamic = 1,
+  eGUIButtonDynamicFlat = 2
+};
+#endif // SCRIPT_API_v363
 // forward-declare these so that they can be returned by GUIControl class
 builtin managed struct GUI;
 builtin managed struct Label;
@@ -1632,6 +1653,22 @@ builtin managed struct GUIControl {
   /// Gets the script name of this control.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the control's background color.
+  import attribute int BackgroundColor;
+  /// Gets/sets the control's border color.
+  import attribute int BorderColor;
+  /// Gets/sets the control's border width (thickness) in pixels.
+  import attribute int BorderWidth;
+  /// Gets/sets whether the control's colored background is drawn.
+  import attribute bool SolidBackground;
+  /// Gets/sets whether the control's border is drawn.
+  import attribute bool ShowBorder;
+  /// Gets/sets the horizontal padding (amount of pixels surrounding inner control's contents from the left and right sides).
+  import attribute int PaddingX;
+  /// Gets/sets the vertical padding (amount of pixels surrounding inner control's contents from the top and bottom sides).
+  import attribute int PaddingY;
+#endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets an integer custom property for this control.
   import int  GetProperty(const string property);
@@ -1714,11 +1751,31 @@ builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v362
   /// Gets/sets whether the button will wrap its text.
   import attribute bool WrapText;
+#ifdef SCRIPT_COMPAT_v363
   /// Gets/sets amount of padding, restricting the text from left and right
   import attribute int TextPaddingHorizontal;
   /// Gets/sets amount of padding, restricting the text from top and bottom
   import attribute int TextPaddingVertical;
+#endif // SCRIPT_COMPAT_v363
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the button's color style
+  import attribute GUIButtonColorStyle ColorStyle;
+  /// Gets/sets the main button color used when the player moves the mouse over the button
+  import attribute int MouseOverBackgroundColor;
+  /// Gets/sets the main button color used when the button is pressed
+  import attribute int PushedBackgroundColor;
+  /// Gets/sets the button's border color used when the player moves the mouse over the button
+  import attribute int MouseOverBorderColor;
+  /// Gets/sets the button's border color used when the button is pressed
+  import attribute int PushedBorderColor;
+  /// Gets/sets the button's text color used when the player moves the mouse over the button
+  import attribute int MouseOverTextColor;
+  /// Gets/sets the button's text color used when the button is pressed
+  import attribute int PushedTextColor;
+  /// Gets/sets the color used for drawing shadow effect on this control.
+  import attribute int ShadowColor;
+#endif
 #ifdef SCRIPT_API_v400
   /// Gets/sets the flip direction of the button's graphic
   import attribute eFlipDirection GraphicFlip;
@@ -1738,6 +1795,12 @@ builtin managed struct Slider extends GUIControl {
   import attribute int  Min;
   /// Gets/sets the current value of the slider.
   import attribute int  Value;
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the inner color of the slider's handle
+  import attribute int  HandleColor;
+  /// Gets/sets the color used for drawing shadow effect on this control.
+  import attribute int  ShadowColor;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct TextBox extends GUIControl {
@@ -1748,9 +1811,15 @@ builtin managed struct TextBox extends GUIControl {
   /// Gets/sets the color of the text in the text box.
   import attribute int TextColor;
 #ifdef SCRIPT_API_v350
+#ifndef SCRIPT_API_v363
   /// Gets/sets whether the border around the text box is shown.
   import attribute bool ShowBorder;
+#endif // SCRIPT_COMPAT_v363
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Gets/sets text box's text alignment.
+  import attribute Alignment TextAlignment;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct InvWindow extends GUIControl {
@@ -1819,8 +1888,10 @@ builtin managed struct ListBox extends GUIControl {
 	/// Gets/sets the first visible item in the list.
 	import attribute int  TopItem;
 #ifdef SCRIPT_API_v350
+#ifndef SCRIPT_API_v363
 	/// Gets/sets whether the border around the list box is shown.
 	import attribute bool ShowBorder;
+#endif // SCRIPT_COMPAT_v363
 	/// Gets/sets whether the clickable scroll arrows are shown.
 	import attribute bool ShowScrollArrows;
 	/// Gets/sets color of the list item's selection
@@ -1882,7 +1953,7 @@ builtin managed struct GUI {
   /// If this GUI is a TextWindow, returns the TextWindowGUI interface; otherwise null.
   import readonly attribute TextWindowGUI* AsTextWindow; // $AUTOCOMPLETENOINHERIT$
   /// Gets the style of GUI behavior on screen.
-  import readonly attribute GUIPopupStyle PopupStyle;
+  import attribute GUIPopupStyle PopupStyle;
   /// Gets/sets the Y co-ordinate at which the GUI will appear when using MouseYPos popup style.
   import attribute int  PopupYPos;
 #endif // SCRIPT_API_v350
@@ -2143,7 +2214,7 @@ builtin managed struct Dialog {
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
   import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the font to use when displaying dialog options
-  import static attribute int OptionsFont; // $AUTOCOMPLETESTATICONLY$
+  import static attribute FontType OptionsFont; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the vertical gap between dialog options (in pixels)
   import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
@@ -2174,6 +2245,8 @@ builtin managed struct Dialog {
   import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
   /// Runs the dialog starting from the certain option's script rather than the entry point
   import void StartOption(int option);
+  /// Sets the text of the specified option in this dialog.
+  import void SetOptionText(int option, const string text);
 #endif // SCRIPT_API_v363
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
@@ -2286,7 +2359,7 @@ builtin managed struct AudioChannel {
   /// Changes playback to continue from the specified position. The position units depend on the audio type.
   import void Seek(int position);
   /// Sets the audio to have its location at (x,y); it will get quieter the further away the player is.
-  import void SetRoomLocation(int x, int y);
+  import void SetRoomLocation(int x, int y, int maxDistance = 0);
   /// Stops the sound currently playing on this channel.
   import void Stop();
   /// The channel ID of this channel (for use with legacy script).
@@ -2585,6 +2658,12 @@ builtin managed struct Object {
   /// Gets/sets whether the object uses region tinting.
   import attribute bool UseRegionTint;
 #endif
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the relative x offset of a blocking area of the object.
+  import attribute int  BlockingRectX;
+  /// Gets/sets the relative y offset of a blocking area of the object.
+  import attribute int  BlockingRectY;
+#endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Moves the object along the path, ignoring walkable areas.
   import void MovePath(Point*[], int speed, BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
@@ -2838,6 +2917,12 @@ builtin managed struct Character {
   /// Gets the character this character is following
   readonly import attribute Character* Following;
 #endif // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the relative x offset of a blocking area of the character.
+  import attribute int  BlockingRectX;
+  /// Gets/sets the relative y offset of a blocking area of the character.
+  import attribute int  BlockingRectY;
+#endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.
   import void MovePath(Point*[], BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
@@ -3003,6 +3088,12 @@ builtin struct Game {
 #ifdef SCRIPT_API_v363
   /// Play speech voice-over in non-blocking mode, using certain AudioType settings, and optionally putting it on a particular channel.
   import static AudioChannel* PlayVoiceClipAsType(Character*, int cue, AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  /// Pauses the game, which stops all animations and movement. Each call to Game.Pause() incremements a "pause" counter.
+  import static void Pause();
+  /// Resumes the game after it was paused earlier. Each call to Game.Resume() decrements a "pause" counter.
+  import static void Resume();
+  /// Returns whether the game is currently paused.
+  import static readonly attribute bool IsPaused;
   /// Gets/sets game's running speed, in frames per second.
   import static attribute int Speed;
   /// Gets number of game's ticks (updates) passed since the game start.

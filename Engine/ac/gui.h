@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -82,9 +82,6 @@ void    gui_on_mouse_down(const int guin, const int mbut, const int mx, const in
 extern int ifacepopped;
 // index of GUI the cursor was on
 extern int mouse_on_iface;
-// cursor position relative to a focused gui control
-extern int mouse_ifacebut_xoffs;
-extern int mouse_ifacebut_yoffs;
 extern std::vector<AGS::Common::GUIMain> guis;
 extern std::vector<AGS::Common::GUIButton> guibuts;
 extern std::vector<AGS::Common::GUIInvWindow> guiinv;

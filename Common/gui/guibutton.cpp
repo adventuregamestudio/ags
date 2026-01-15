@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -33,9 +33,26 @@ namespace Common
 GUIButton::GUIButton()
     : GUIControl(&GUIButton::_eventSchema)
 {
+    _paddingX = DefaultHorPadding;
+    _paddingY = DefaultVerPadding;
+    _backgroundColor = 7;
+    _borderColor = 15;
+    _shadowColor = 8;
+    _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
+    UpdateControlRect();
+
     _clickAction[kGUIClickLeft] = kGUIAction_RunScript;
     _clickAction[kGUIClickRight] = kGUIAction_RunScript;
     _clickData[kGUIClickLeft] = 0;
+}
+
+void GUIButton::SetButtonFlags(int flags)
+{
+    if (_buttonFlags != flags)
+    {
+        _buttonFlags = flags;
+        MarkChanged(); // TODO: only mark changed if flags control the looks
+    }
 }
 
 void GUIButton::SetFont(int font)
@@ -47,13 +64,64 @@ void GUIButton::SetFont(int font)
     }
 }
 
+void GUIButton::SetDynamicColors(bool on)
+{
+    _buttonFlags = (_buttonFlags & ~kButton_DynamicColors) | kButton_DynamicColors * on;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetFlatStyle(bool on)
+{
+    _buttonFlags = (_buttonFlags & ~kButton_FlatStyle) | kButton_FlatStyle * on;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetMouseOverBackColor(int color)
+{
+    _mouseOverBackColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetPushedBackColor(int color)
+{
+    _pushedBackColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetMouseOverBorderColor(int color)
+{
+    _mouseOverBorderColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetPushedBorderColor(int color)
+{
+    _pushedBorderColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetShadowColor(int color)
+{
+    _shadowColor = color;
+    MarkChanged();
+}
+
 void GUIButton::SetTextColor(int color)
 {
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
+    _textColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetMouseOverTextColor(int color)
+{
+    _mouseOverTextColor = color;
+    UpdateCurrentImage();
+}
+
+void GUIButton::SetPushedTextColor(int color)
+{
+    _pushedTextColor = color;
+    UpdateCurrentImage();
 }
 
 void GUIButton::SetTextAlignment(FrameAlignment align)
@@ -61,24 +129,6 @@ void GUIButton::SetTextAlignment(FrameAlignment align)
     if (_textAlignment != align)
     {
         _textAlignment = align;
-        MarkChanged();
-    }
-}
-
-void GUIButton::SetTextPaddingHor(int padding)
-{
-    if (_textPaddingHor != padding)
-    {
-        _textPaddingHor = padding;
-        MarkChanged();
-    }
-}
-
-void GUIButton::SetTextPaddingVer(int padding)
-{
-    if (_textPaddingVer != padding)
-    {
-        _textPaddingVer = padding;
         MarkChanged();
     }
 }
@@ -214,7 +264,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (!IsImageButton() || ((_placeholder == kButtonPlace_None) && !_unnamed))
     {
         PrepareTextToDraw();
-        Rect frame = RectWH(_textPaddingHor, _textPaddingVer, _width - _textPaddingHor * 2, _height - _textPaddingVer * 2);
+        Rect frame = _innerRect;
         if (_isPushed && _isMouseOver)
         {
             frame = frame.MoveBy(frame, 1, 1);
@@ -244,9 +294,8 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
     // No need to check Image after the assignment directly above
     if (_currentImage > 0)
         DrawImageButton(ds, x, y, draw_disabled);
-
-    // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
-    else if (!_text.IsEmpty())
+    // For old versions: do not draw the button frame at all if there's no text
+    else if ((GUI::DataVersion >= kGameVersion_363_04) || !_text.IsEmpty())
         DrawTextButton(ds, x, y, draw_disabled);
 }
 
@@ -262,27 +311,18 @@ void GUIButton::SetClipImage(bool on)
 
 void GUIButton::SetMouseOverImage(int image)
 {
-    if (_mouseOverImage == image)
-        return;
-
     _mouseOverImage = image;
     UpdateCurrentImage();
 }
 
 void GUIButton::SetNormalImage(int image)
 {
-    if (_image == image)
-        return;
-
     _image = image;
     UpdateCurrentImage();
 }
 
 void GUIButton::SetPushedImage(int image)
 {
-    if (_pushedImage == image)
-        return;
-
     _pushedImage = image;
     UpdateCurrentImage();
 }
@@ -393,13 +433,29 @@ void GUIButton::OnMouseUp()
     UpdateCurrentImage();
 }
 
+void GUIButton::SetCurrentColors(int bg_color, int border_color, int text_color)
+{
+    if (_currentBgColor == bg_color && _currentBorderColor == border_color && _currentTextColor == text_color)
+        return;
+
+    _currentBgColor = bg_color;
+    _currentBorderColor = border_color;
+    _currentTextColor = text_color;
+    MarkChanged();
+}
+
 void GUIButton::UpdateCurrentImage()
 {
     int new_image = _currentImage;
     SpriteTransformFlags new_flags = _imageFlags;
     int new_xoff = 0, new_yoff = 0;
+    int new_bg_color = _currentBgColor;
+    int new_border_color = _currentBorderColor;
+    int new_text_color = _currentTextColor;
+    const bool is_dynamic_color = IsDynamicColors();
+    const bool is_flat_color = IsFlatStyle();
 
-    if (_isPushed && (_pushedImage > 0))
+    if (_isMouseOver && _isPushed && (_pushedImage > 0))
     {
         new_image = _pushedImage;
     }
@@ -414,7 +470,27 @@ void GUIButton::UpdateCurrentImage()
         new_yoff = _imageYOff;
     }
 
+    if (_isMouseOver && _isPushed && is_dynamic_color)
+    {
+        new_bg_color = _pushedBackColor;
+        new_border_color = is_flat_color ? _pushedBorderColor : _borderColor;
+        new_text_color = _pushedTextColor;
+    }
+    else if (_isMouseOver && is_dynamic_color)
+    {
+        new_bg_color = _mouseOverBackColor;
+        new_border_color = is_flat_color ? _mouseOverBorderColor : _borderColor;
+        new_text_color = _mouseOverTextColor;
+    }
+    else
+    {
+        new_bg_color = _backgroundColor;
+        new_border_color = _borderColor;
+        new_text_color = _textColor;
+    }
+
     SetCurrentImage(new_image, new_flags, new_xoff, new_yoff);
+    SetCurrentColors(new_bg_color, new_border_color, new_text_color);
 }
 
 void GUIButton::WriteToFile(Stream *out) const
@@ -453,7 +529,28 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (_textColor == 0)
         _textColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
-    _currentImage = _image;
+
+    UpdateCurrentImage();
+}
+
+void GUIButton::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIControl::ReadFromFile_Ext363(in, gui_version);
+
+    _buttonFlags = in->ReadInt32();
+    _shadowColor = in->ReadInt32();
+    _mouseOverBackColor = in->ReadInt32();
+    _pushedBackColor = in->ReadInt32();
+    _mouseOverBorderColor = in->ReadInt32();
+    _pushedBorderColor = in->ReadInt32();
+    _mouseOverTextColor = in->ReadInt32();
+    _pushedTextColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+
+    UpdateCurrentImage();
 }
 
 void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -470,17 +567,37 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     // CHECKME: possibly this may be avoided, and currentimage updated according
     // to the button state after load
     _currentImage = in->ReadInt32();
+    int old_paddingx = 0, old_paddingy = 0;
     if (svg_ver >= kGuiSvgVersion_36202 && (svg_ver < kGuiSvgVersion_400 || svg_ver >= kGuiSvgVersion_40010))
     {
-        _textPaddingHor = in->ReadInt32();
-        _textPaddingVer = in->ReadInt32();
-        in->ReadInt32(); // reserve 2 ints
+        old_paddingx = in->ReadInt32();
+        old_paddingy = in->ReadInt32();
+        // valid since kGuiSvgVersion_36304
+        _buttonFlags = in->ReadInt32();
+        _shadowColor = in->ReadInt32();
+    }
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _mouseOverBackColor = in->ReadInt32();
+        _pushedBackColor = in->ReadInt32();
+        _mouseOverBorderColor = in->ReadInt32();
+        _pushedBorderColor = in->ReadInt32();
+        _mouseOverTextColor = in->ReadInt32();
+        _pushedTextColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
         in->ReadInt32();
     }
     else
     {
-        _textPaddingHor = DefaultHorPadding;
-        _textPaddingVer = DefaultVerPadding;
+        SetDefaultLooksFor363();
+
+        if (svg_ver >= kGuiSvgVersion_36202)
+        {
+            _paddingX = std::max(0, old_paddingx - 1);
+            _paddingY = std::max(0, old_paddingy - 1);
+        }
     }
 
     if (svg_ver >= kGuiSvgVersion_400)
@@ -495,7 +612,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     // Update current state after reading
     _isPushed = false;
     _isMouseOver = false;
-    _curImageFlags = _imageFlags;
+    UpdateControlRect(); // in case they had old-style padding
     UpdateCurrentImage();
 }
 
@@ -510,12 +627,42 @@ void GUIButton::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(GetText(), out);
     out->WriteInt32(_textAlignment);
     out->WriteInt32(_currentImage);
-    out->WriteInt32(_textPaddingHor);
-    out->WriteInt32(_textPaddingVer);
-    out->WriteInt32(0); // reserve 2 ints
+    // kGuiSvgVersion_36202
+    out->WriteInt32(_paddingX);
+    out->WriteInt32(_paddingY);
+    // valid since kGuiSvgVersion_36304
+    out->WriteInt32(_buttonFlags);
+    out->WriteInt32(_shadowColor);
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_mouseOverBackColor);
+    out->WriteInt32(_pushedBackColor);
+    out->WriteInt32(_mouseOverBorderColor);
+    out->WriteInt32(_pushedBorderColor);
+    out->WriteInt32(_mouseOverTextColor);
+    out->WriteInt32(_pushedTextColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     out->WriteInt32(0);
     //since kGuiSvgVersion_3991
     out->WriteInt32(_imageFlags);
+}
+
+void GUIButton::SetDefaultLooksFor363()
+{
+    _flags |= kGUICtrl_ShowBorder | kGUICtrl_SolidBack;
+    _backgroundColor = 7;
+    _borderColor = 15;
+    _shadowColor = 8;
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
+    UpdateCurrentImage();
+}
+
+void GUIButton::OnColorsChanged()
+{
+    UpdateCurrentImage();
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -583,52 +730,90 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
-    Rect frame = RectWH(x + _textPaddingHor, y + _textPaddingVer, _width - _textPaddingHor * 2, _height - _textPaddingVer * 2);
-    if (_isPushed && _isMouseOver)
+    Rect frame = Rect::MoveBy(_innerRect, x, y);
+    if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
         // move the Text a bit while pushed
         frame = frame.MoveBy(frame, 1, 1);
     }
-    color_t text_color = ds->GetCompatibleColor(_textColor);
-    if (draw_disabled)
-        text_color = GUI::GetStandardColorForBitmap(8);
+    color_t text_color = draw_disabled ?
+        GUI::GetStandardColorForBitmap(8) :
+        ds->GetCompatibleColor(_currentTextColor);
 
     if (IsWrapText())
-        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font), text_color,
-            frame, _textAlignment);
+        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font),
+            text_color, frame, _textAlignment);
     else
         GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, frame, _textAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
 {
-    if (draw_disabled && GUI::Options.DisabledStyle == kGuiDis_Blackout)
-        return; // button should not be shown at all
+    // Buttons have their own, slightly different, logic for background and border,
+    // where they also use "shadow color" to produce pseudo-3D effect.
+    // TODO: use color constants instead of literal numbers.
+    // TODO: move the bw-compat default color selection to Upgrade GUI process.
+    const color_t back_color =
+        (GUI::GameGuiVersion < kGuiVersion_363)
+        ? GUI::GetStandardColorForBitmap(7) : ds->GetCompatibleColor(_currentBgColor);
+    const color_t light_color =
+        (GUI::GameGuiVersion < kGuiVersion_363)
+        ? GUI::GetStandardColorForBitmap(15) : ds->GetCompatibleColor(_currentBorderColor);
+    const color_t dark_color =
+        (GUI::GameGuiVersion < kGuiVersion_363)
+        ? GUI::GetStandardColorForBitmap(8) : ds->GetCompatibleColor(_shadowColor);
 
-    color_t draw_color = GUI::GetStandardColorForBitmap(7);
-    ds->FillRect(Rect(x, y, x + _width - 1, y + _height - 1), draw_color);
-    if (_flags & kGUICtrl_Default)
+    // Background rect
+    if (IsSolidBackground())
     {
-        draw_color = GUI::GetStandardColorForBitmap(16);
-        ds->DrawRect(Rect(x - 1, y - 1, x + _width, y + _height), draw_color);
+        ds->FillRect(RectWH(x, y, _width, _height), back_color);
     }
 
-    // TODO: use color constants instead of literal numbers
-    if (!draw_disabled && _isMouseOver && _isPushed)
-        draw_color = GUI::GetStandardColorForBitmap(15);
-    else
-        draw_color = GUI::GetStandardColorForBitmap(8);
+    // Border frame
+    if (IsShowBorder())
+    {
+        // Default button: draw a rectangle around it (UNUSED in practice)
+        if (_flags & kGUICtrl_Default)
+        {
+            const color_t def_frame_color = GUI::GetStandardColorForBitmap(16);
+            ds->DrawRect(RectWH(x - 1, y - 1, _width + 2, _height + 2), def_frame_color);
+        }
 
-    ds->DrawLine(Line(x, y + _height - 1, x + _width - 1, y + _height - 1), draw_color);
-    ds->DrawLine(Line(x + _width - 1, y, x + _width - 1, y + _height - 1), draw_color);
+        if (IsFlatStyle())
+        {
+            // Simple border with one color
+            for (int i = 0; i < _borderWidth; ++i)
+            {
+                ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), light_color);
+            }
+        }
+        else
+        {
+            // A composite border with a shadow, for pseudo-3D effect
+            color_t draw_color;
+            if (!draw_disabled && _isMouseOver && _isPushed)
+                draw_color = light_color;
+            else
+                draw_color = dark_color;
 
-    if (draw_disabled || (_isMouseOver && _isPushed))
-        draw_color = GUI::GetStandardColorForBitmap(8);
-    else
-        draw_color = GUI::GetStandardColorForBitmap(15);
+            for (int i = 0; i < _borderWidth; ++i)
+            {
+                ds->DrawLine(Line(x + i, y + _height - 1 - i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+                ds->DrawLine(Line(x + _width - 1 - i, y + i, x + _width - 1 - i, y + _height - 1 - i), draw_color);
+            }
 
-    ds->DrawLine(Line(x, y, x + _width - 1, y), draw_color);
-    ds->DrawLine(Line(x, y, x, y + _height - 1), draw_color);
+            if (draw_disabled || (_isMouseOver && _isPushed))
+                draw_color = dark_color;
+            else
+                draw_color = light_color;
+
+            for (int i = 0; i < _borderWidth; ++i)
+            {
+                ds->DrawLine(Line(x + i, y + i, x + _width - 1 - i, y + i), draw_color);
+                ds->DrawLine(Line(x + i, y + i, x + i, y + _height - 1 - i), draw_color);
+            }
+        }
+    }
 
     DrawText(ds, x, y, draw_disabled);
 }

@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -21,7 +21,7 @@
 
 #define INVALID_X  30000
 #define MAX_INVORDER 500
-#define MAX_TIMERS       21
+#define LEGACY_MAX_TIMERS 21
 #define MAX_PARSED_WORDS 15
 
 #define MAX_QUEUED_MUSIC 10
@@ -242,6 +242,14 @@ enum ScriptSaveGameSortStyle
     kScSaveGameSort_Number      = 1, // by slot number
     kScSaveGameSort_Time        = 2, // by last write time
     kScSaveGameSort_Description = 3, // by save description
+};
+
+// Script API GUIButtonColorStyle
+enum ScriptButtonColorStyle
+{
+    eGUIButtonDefault           = 0,
+    eGUIButtonDynamic           = 1,
+    eGUIButtonDynamicFlat       = 2
 };
 
 enum eScriptSystemOSID

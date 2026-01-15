@@ -187,12 +187,17 @@ namespace AGS.Editor
 
             Utilities.TryDeleteFile(templateFileName);
 
-            Factory.NativeProxy.CreateTemplateFile(templateFileName, files.ToArray());
+            CreateTemplateFile(templateFileName, files.ToArray());
 
             foreach (string fileName in filesToDeleteAfterwards)
             {
                 Utilities.TryDeleteFile(fileName);
             }
+        }
+
+        public static void CreateTemplateFile(string templateFileName, string[] fileList)
+        {
+            DataFileWriter.MakeDataFile(fileList, 0, templateFileName);
         }
 
         public bool LoadGameFromDisk(string gameToLoad, bool interactive)
@@ -496,6 +501,63 @@ namespace AGS.Editor
             {
                 GUITextBox textbox = guiControl as GUITextBox;
                 textbox.TextColor = remapColor(textbox.TextColor);
+            }
+        }
+
+        /// <summary>
+        /// Set default colors and control frame properties for GUI controls.
+        /// </summary>
+        public static void SetDefaultColors(Game game, GUIControl control, int xmlVersionIndex)
+        {
+            if (control is GUIButton)
+            {
+                GUIButton but = control as GUIButton;
+                but.SolidBackground = true;
+                but.ShowBorder = true;
+                but.BackgroundColor = 7;
+                but.BorderColor = 15;
+                but.ShadowColor = 8;
+                if (xmlVersionIndex < 3060202)
+                {
+                    but.PaddingX = 1;
+                    but.PaddingY = 1;
+                }
+                else
+                {
+                    // 3.6.2 TextPadding was an offset from exterior control edge
+                    but.PaddingX = Math.Max(0, but.TextPaddingHorizontal - 1);
+                    but.PaddingY = Math.Max(0, but.TextPaddingVertical - 1);
+                }
+            }
+            else if (control is GUIInventory)
+            {
+            }
+            else if (control is GUILabel)
+            {
+            }
+            else if (control is GUIListBox)
+            {
+                GUIListBox lbox = control as GUIListBox;
+                lbox.BorderColor = lbox.TextColor;
+                lbox.BorderWidth = 1;
+            }
+            else if (control is GUISlider)
+            {
+                GUISlider slider = control as GUISlider;
+                slider.ShowBorder = true;
+                slider.SolidBackground = true;
+                slider.BackgroundColor = 16;
+                slider.BorderColor = 15;
+                slider.HandleColor = 7;
+                slider.ShadowColor = 8;
+            }
+            else if (control is GUITextBox)
+            {
+                GUITextBox tbox = control as GUITextBox;
+                tbox.BorderColor = tbox.TextColor;
+                tbox.BorderWidth = 1;
+                tbox.PaddingX = 1;
+                tbox.PaddingY = 1;
             }
         }
 

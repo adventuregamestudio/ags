@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -69,11 +69,16 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteByteCount(0, 3); // alignment padding to int32
 }
 
-void InventoryItemInfo::ReadFromSavegame(Stream *in)
+void InventoryItemInfo::ReadFromSavegame(Stream *in, InvitemSvgVersion svg_ver)
 {
     name = StrUtil::ReadString(in);
     pic = in->ReadInt32();
     cursorPic = in->ReadInt32();
+    if (svg_ver >= kInvitemSvgVersion_36304)
+    {
+        hotx = in->ReadInt16();
+        hoty = in->ReadInt16();
+    }
 }
 
 void InventoryItemInfo::WriteToSavegame(Stream *out) const
@@ -81,4 +86,7 @@ void InventoryItemInfo::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(name, out);
     out->WriteInt32(pic);
     out->WriteInt32(cursorPic);
+    // kInvitemSvgVersion_36304
+    out->WriteInt16(hotx);
+    out->WriteInt16(hoty);
 }

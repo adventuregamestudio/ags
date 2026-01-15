@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -48,12 +48,8 @@ extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
 
-// We store overlays in a container where items are never erased:
-// this makes things optimized for very fast mass object adding/removal.
-// TODO: consider some kind of a "object pool" template,
-// which handles this kind of storage; share with ManagedPool's handles?
-std::vector<ScreenOverlay> screenover;
-std::queue<int32_t> over_free_ids;
+IndexedObjectPool<ScreenOverlay, int32_t> screenover(OVER_FIRSTFREE);
+// TODO: reimplement AnimatedOverlays storage using IndexedObjectPool, just like regular overlays
 std::vector<AnimatedOverlay> animovers;
 std::vector<size_t> over_to_anim; // overlay to animated overlay lookup
 std::queue<size_t> animover_free_ids;
@@ -97,13 +93,15 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     draw_text = skip_voiceover_token(draw_text);
 
     // Recreate overlay image
-    int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
+    int adj_x = x, adj_y = y;
     std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
         DisplayTextLooks(kDisplayTextStyle_TextWindow, text_pos, allow_shrink),
-        text_color, dummy_x, dummy_y, adj_x, adj_y, width, fontid, nullptr);
+        text_color, x, y, adj_x, adj_y, width, fontid, nullptr);
 
     // Update overlay properties
-    over.SetImage(std::move(image), adj_x - dummy_x, adj_y - dummy_y);
+    over.SetFixedPosition(x, y);
+    over.SetImage(std::move(image), adj_x - x, adj_y - y);
+    over.SetText(text);
 }
 
 int Overlay_GetX(ScriptOverlay *scover)
@@ -298,6 +296,18 @@ ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int 
     return Overlay_CreateTextualImpl(true, x, y, width, font, colour, text);
 }
 
+const char *Overlay_GetTextProperty(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.Text", scover);
+    return CreateNewScriptString(over->GetText());
+}
+
+void Overlay_SetTextProperty(ScriptOverlay *scover, const char *text)
+{
+    auto *over = GetOverlayValidate("Overlay.Text", scover);
+    over->SetText(text);
+}
+
 int Overlay_GetBlendMode(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.BlendMode", scover);
@@ -484,7 +494,7 @@ ScriptAnimatedOverlay *create_scriptanimoverlay(ScreenOverlay &over)
 
 void remove_screen_overlay(int type)
 {
-    if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover[type].GetID() < 0)
+    if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover.IsFree(type))
         return; // requested non-existing overlay
 
     ScreenOverlay &over = screenover[type];
@@ -515,10 +525,7 @@ void remove_screen_overlay(int type)
         ccReleaseObjectReference(over.GetScriptHandle());
     }
 
-    // Don't erase vector elements, instead set invalid and record free index
-    screenover[type] = ScreenOverlay();
-    if (type >= OVER_FIRSTFREE)
-        over_free_ids.push(type);
+    screenover.Free(type);
 
     reset_drawobj_for_overlay(type);
 
@@ -538,28 +545,21 @@ void remove_all_overlays()
 ScreenOverlay *get_overlay(int type)
 {
     return (type >= 0 && static_cast<uint32_t>(type) < screenover.size() &&
-        screenover[type].GetID() >= 0) ? &screenover[type] : nullptr;
+        screenover.IsInUse(type)) ? &screenover[type] : nullptr;
 }
 
 static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum,
     std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy)
 {
+    // If a custom overlay is requested, then allocate a free slot
     if (type == OVER_CUSTOM)
     {
-        // Find a free ID
-        if (over_free_ids.size() > 0)
-        {
-            type = over_free_ids.front();
-            over_free_ids.pop();
-        }
-        else
-        {
-            type = std::max(static_cast<size_t>(OVER_FIRSTFREE), screenover.size());
-        }
+        type = screenover.Add();
     }
-
-    if (screenover.size() <= static_cast<uint32_t>(type))
-        screenover.resize(type + 1);
+    else
+    {
+        screenover.Set(type);
+    }
 
     ScreenOverlay over(type);
     if (piccy)
@@ -659,10 +659,10 @@ void autoposition_overlay(ScreenOverlay &over)
 
 void restore_overlays()
 {
-    // Will have to readjust free ids records, as overlays may be restored in any random slots
-    over_free_ids = std::queue<int32_t>();
+    // TODO: an iterator that goes over only valid elements
     for (size_t i = 0; i < screenover.size(); ++i)
     {
+        if (screenover.IsFree(i)) continue; // empty slot
         auto &over = screenover[i];
         if (over.GetID() >= 0)
         {
@@ -670,14 +670,10 @@ void restore_overlays()
                 autoposition_overlay(over);
             over.MarkChanged(); // force recreate texture on next draw
         }
-        else if (i >= OVER_FIRSTFREE)
-        {
-            over_free_ids.push(i);
-        }
     }
 }
 
-std::vector<ScreenOverlay> &get_overlays()
+IndexedObjectPool<ScreenOverlay, int32_t> &get_overlays()
 {
     return screenover;
 }
@@ -1028,6 +1024,16 @@ RuntimeScriptValue Sc_Overlay_GetGraphicHeight(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicHeight);
 }
 
+RuntimeScriptValue Sc_Overlay_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptOverlay, const char, myScriptStringImpl, Overlay_GetTextProperty);
+}
+
+RuntimeScriptValue Sc_Overlay_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptOverlay, Overlay_SetTextProperty, const char);
+}
+
 RuntimeScriptValue Sc_Overlay_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetBlendMode);
@@ -1261,6 +1267,8 @@ void RegisterOverlayAPI()
         { "Overlay::set_Height",          API_FN_PAIR(Overlay_SetHeight) },
         { "Overlay::get_GraphicWidth",    API_FN_PAIR(Overlay_GetGraphicWidth) },
         { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
+        { "Overlay::get_Text",            API_FN_PAIR(Overlay_GetTextProperty) },
+        { "Overlay::set_Text",            API_FN_PAIR(Overlay_SetTextProperty) },
         { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
         { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
         { "Overlay::get_Visible",         API_FN_PAIR(Overlay_GetVisible) },

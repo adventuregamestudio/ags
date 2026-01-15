@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -11,14 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/common.h"
 #include "ac/display.h"
+#include "ac/draw.h"
+#include "ac/dynamicsprite.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
+#include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
@@ -46,42 +48,17 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
 {
     if (sds->roomBackgroundNumber >= 0)
     {
-        if (sds->modified)
-        {
-            if (sds->roomBackgroundNumber == play.bg_frame)
-            {
-                invalidate_screen();
-                mark_current_background_dirty();
-            }
-            play.room_bg_modified[sds->roomBackgroundNumber] = true;
-        }
-
+        on_room_bg_surface_release(sds->roomBackgroundNumber, sds->modified);
         sds->roomBackgroundNumber = -1;
     }
     else if (sds->roomMaskType > kRoomAreaNone)
     {
-        if (sds->modified)
-        {
-            if (sds->roomMaskType == kRoomAreaWalkBehind)
-            {
-                walkbehinds_recalc();
-            }
-            if (get_room_mask_debugmode() == sds->roomMaskType)
-            {
-                debug_draw_room_mask(sds->roomMaskType);
-            }
-            play.room_mask_modified[sds->roomMaskType] = true;
-        }
-
+        on_room_mask_surface_release(sds->roomMaskType, sds->modified);
         sds->roomMaskType = kRoomAreaNone;
     }
     else if (sds->dynamicSpriteNumber >= 0)
     {
-        if (sds->modified)
-        {
-            game_sprite_updated(sds->dynamicSpriteNumber);
-        }
-
+        on_dynsprite_surface_release(sds->dynamicSpriteNumber, sds->modified);
         sds->dynamicSpriteNumber = -1;
     }
     else if (sds->dynamicSurfaceNumber >= 0)

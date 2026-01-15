@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -702,29 +702,45 @@ HSaveError WriteDialogs(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
+HSaveError ReadDialogs(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
     if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
 
-    const DialogSvgVersion svg_ver = (DialogSvgVersion)cmp_ver;
+    const DialogTopicSvgVersion svg_ver = static_cast<DialogTopicSvgVersion>(cmp_ver);
+    r_data.DataCounts.DialogOptions.resize(dialogs_read);
     for (uint32_t i = 0; i < dialogs_read; ++i)
     {
-        dialog[i].ReadFromSavegame(in, svg_ver);
-        if (cmp_ver >= kDialogSvgVersion_40008)
+        uint32_t read_opt_count = 0;
+        dialog[i].ReadFromSavegame(in, svg_ver, &read_opt_count);
+        if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(),
+                "Options", "Dialog", i, r_data.Result, r_data.DataCounts.DialogOptions[i]))
+            return err;
+        if (cmp_ver >= kDialogTopicSvgVer_40008)
             Properties::ReadValues(play.dialogProps[i], in);
     }
     return err;
 }
 
-HSaveError PrescanDialogs(Stream *in, int32_t /*cmp_ver*/, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
+HSaveError PrescanDialogs(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
     const uint32_t dialogs_read = in->ReadInt32();
     if (!AssertGameContent(err, dialogs_read, game.numdialog, "Dialogs", r_data.Result, r_data.DataCounts.Dialogs))
         return err;
+
+    r_data.DataCounts.DialogOptions.resize(dialogs_read);
+    DialogTopic dummy;
+    for (uint32_t i = 0; i < dialogs_read; ++i)
+    {
+        uint32_t read_opt_count = 0;
+        dummy.ReadFromSavegame(in, static_cast<DialogTopicSvgVersion>(cmp_ver), &read_opt_count);
+        if (!AssertGameObjectContent(err, read_opt_count, dialog[i].Options.size(),
+                "Options", "Dialog", i, r_data.Result, r_data.DataCounts.DialogOptions[i]))
+            return err;
+    }
     return HSaveError::None();
 }
 
@@ -1036,7 +1052,7 @@ HSaveError WriteInventory(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
+HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     HSaveError err;
     const uint32_t invitems_read = in->ReadInt32();
@@ -1044,7 +1060,7 @@ HSaveError ReadInventory(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, const
         return err;
     for (uint32_t i = 0; i < invitems_read; ++i)
     {
-        game.invinfo[i].ReadFromSavegame(in);
+        game.invinfo[i].ReadFromSavegame(in, static_cast<InvitemSvgVersion>(cmp_ver));
         Properties::ReadValues(play.invProps[i], in);
     }
     return err;
@@ -1310,8 +1326,10 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
     // Remember that overlay indexes may be non-sequential
     // the vector may be resized during read
     uint32_t over_count = static_cast<uint32_t>(in->ReadInt32());
-    auto &overs = get_overlays();
-    overs.resize(over_count); // reserve minimal size
+    std::vector<ScreenOverlay> overs;
+    std::vector<bool> used_ids;
+    overs.reserve(over_count); // reserve minimal size
+    used_ids.reserve(over_count);
     for (size_t i = 0; i < over_count; ++i)
     {
         ScreenOverlay over;
@@ -1321,10 +1339,18 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
             continue; // safety abort
         if (has_bitmap)
             r_data.OverlayImages[over.GetID()].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
-        if (overs.size() <= static_cast<uint32_t>(over.GetID()))
-            overs.resize(over.GetID() + 1);
-        overs[over.GetID()] = std::move(over);
+        auto type = over.GetID();
+        if (static_cast<size_t>(type) >= overs.size())
+        {
+            overs.resize(type + 1);
+            used_ids.resize(type + 1);
+        }
+        overs[type] = std::move(over);
+        used_ids[type] = true;
     }
+
+    auto &overlays = get_overlays();
+    overlays.Set(std::move(overs), used_ids);
     return HSaveError::None();
 }
 
@@ -1917,8 +1943,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Dialogs",
-        kDialogSvgVersion_40008,
-        kDialogSvgVersion_Initial,
+        kDialogTopicSvgVer_40008,
+        kDialogTopicSvgVer_Initial,
         kSaveCmp_Dialogs,
         WriteDialogs,
         ReadDialogs,
@@ -1935,8 +1961,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Inventory Items",
-        0,
-        0,
+        kInvitemSvgVersion_36304,
+        kInvitemSvgVersion_Initial,
         kSaveCmp_InvItems,
         WriteInventory,
         ReadInventory,

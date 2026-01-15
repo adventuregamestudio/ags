@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -128,6 +128,8 @@ public:
         : WinSetupPageDialog(win_cfg, cfg_in)
         , _cfgOut(cfg_out)
     {}
+
+    static bool ShouldDisplayPage(const ConfigTree &cfg_in);
 
     String GetTitle() const override { return "Accessibility"; }
 

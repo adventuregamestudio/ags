@@ -114,6 +114,7 @@ namespace AGS.Editor
          * 3.6.2.9        - Sprite.TransparentColorIndex (can select transparent palette index).
          * 3.6.3          - Settings.GUIHandleOnlyLeftMouseButton, Font.CharacterSpacing.
          * 3.6.3.3        - Moved FontHeightDefinition property from General Settings to Font.
+         * 3.6.3.4        - Expanded Color properties for GUI Controls. TextBox's TextAlignment.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -1234,7 +1235,7 @@ namespace AGS.Editor
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, audioVox, false);
+                DataFileWriter.MakeFlatDataFile(fileListForVox.ToArray(), 0, audioVox);
             }
         }
 
@@ -1343,10 +1344,6 @@ namespace AGS.Editor
 				{
 					errors.Add(new CompileError("Character " + character.ID + " (" + character.RealName + ") has invalid normal view."));
 				}
-				else
-				{
-					EnsureViewHasAtLeast4LoopsAndAFrameInLeftRightLoops(view);
-				}
 			}
 
 			Dictionary<string, AGS.Types.View> viewNames = new Dictionary<string, AGS.Types.View>();
@@ -1373,29 +1370,6 @@ namespace AGS.Editor
                 }
             }
         }
-
-		private void EnsureViewHasAtLeast4LoopsAndAFrameInLeftRightLoops(AGS.Types.View view)
-		{
-			bool viewModified = false;
-			while (view.Loops.Count < 4)
-			{
-				view.Loops.Add(new ViewLoop(view.Loops.Count));
-				viewModified = true;
-			}
-
-			if (view.Loops[1].Frames.Count < 1)
-			{
-				view.Loops[1].Frames.Add(new ViewFrame(0));
-			}
-			if (view.Loops[2].Frames.Count < 1)
-			{
-				view.Loops[2].Frames.Add(new ViewFrame(0));
-			}
-			if (viewModified)
-			{
-				view.NotifyClientsOfUpdate();
-			}
-		}
 
 		private void EnsureViewNamesAreUnique(ViewFolder folder, Dictionary<string, AGS.Types.View> viewNames, CompileMessages errors)
 		{

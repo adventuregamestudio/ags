@@ -113,8 +113,6 @@ public:
     // Events
     // TODO: get OnKey/Mouse events into this parent class too
     // 
-    // Object was resized
-    virtual void    OnResized();
 
     // Tells if object has graphically changed recently
     bool            HasChanged() const { return _hasChanged; }
@@ -138,6 +136,10 @@ public:
   
 protected:
     GUIObject(const ScriptEventSchema *schema);
+
+    // Object was resized; derived classes may override this and implement
+    // their own additional handling
+    virtual void    OnResized();
 
     int     _id = -1;      // GUI object's identifier
     String  _name;         // script name

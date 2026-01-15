@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -106,6 +106,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
     kCharSvgVersion_36115   = 4, // no limit on character name's length
     kCharSvgVersion_36205   = 3060205, // 32-bit "following" parameters
+    kCharSvgVersion_36304   = 3060304, // blocking x,y
     kCharSvgVersion_400     = 4000000, // extended graphic effects (blend, rotate,...)
     kCharSvgVersion_400_03  = 4000003, // compat with kCharSvgVersion_36115
     kCharSvgVersion_400_09  = 4000009, // 32-bit color properties

@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -59,6 +59,8 @@ struct GameSetupStruct : public GameSetupStructBase
     // reference views instead.
     std::vector<Common::String> viewNames;
     Common::String    invScriptNames[MAX_INV];
+    // TODO: move this array out of Game struct, but need to read legacy data
+    // into some sort of a temporary container for post-load upgrading.
     std::vector<Common::String> dialogScriptNames;
     char              guid[MAX_GUID_LENGTH] = { 0 };
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };

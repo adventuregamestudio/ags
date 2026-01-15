@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -121,7 +121,7 @@ int GUILabel::PrepareTextToDraw()
     return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, _font, _width);
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
     _textToDraw = _text;
     bool reverse = false;
@@ -133,17 +133,36 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
     }
 
-    Line tpos = GUI::CalcTextPositionHor(_textToDraw, _font,
-        x + 2, x + _width - 1, y + 2,
-        reverse ? kAlignTopRight : kAlignTopLeft);
-    wouttext_outline(ds, tpos.X1, tpos.Y1, _font, text_color, _textToDraw.GetCStr());
-
-    if (GUI::IsGUIEnabled(this))
+    FrameAlignment text_align = kAlignTopLeft;
+    // 3.6.1 -> 3.6.2 applied text alignment based on text direction
+    if ((loaded_game_file_version >= kGameVersion_361) && (loaded_game_file_version < kGameVersion_363_04))
     {
-        // draw a cursor
-        const int cursor_width = 5;
-        int draw_at_x = reverse ? tpos.X1 - 3 - cursor_width : tpos.X2 + 3;
-        int draw_at_y = y + 1 + get_font_height(_font);
+        text_align = reverse ? kAlignTopRight : kAlignTopLeft;
+    }
+    // 3.6.3+ have explicit text alignment property
+    else if (loaded_game_file_version >= kGameVersion_363_04)
+    {
+        text_align = _textAlignment;
+    }
+
+    // Cursor is drawn only if textbox is currently enabled
+    const bool draw_cursor = GUI::IsGUIEnabled(this);
+    const int cursor_width = 5;
+    const int offset_left = draw_cursor && reverse ? (cursor_width + 3) : 0;
+    const int offset_right = draw_cursor && !reverse ? (cursor_width + 3) : 0;
+
+    color_t text_color = ds->GetCompatibleColor(_textColor);
+    Rect text_rc;
+    Point text_at = GUI::CalcTextPosition(_textToDraw, _font,
+        RectWH(_innerRect.Left + x + offset_left, _innerRect.Top + y, _innerRect.GetWidth() - offset_left - offset_right, _innerRect.GetHeight()),
+        text_align, &text_rc);
+    wouttext_outline(ds, text_at.X, text_at.Y, _font, text_color, _textToDraw.GetCStr());
+
+    // Draw cursor
+    if (draw_cursor)
+    {
+        int draw_at_x = reverse ? text_rc.Left - 3 - cursor_width : text_rc.Right + 3;
+        int draw_at_y = text_rc.Top + get_font_height(_font) - 1;
         ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + cursor_width, draw_at_y), text_color);
     }
 }
@@ -159,7 +178,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _width - _textPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, Lines, _font, _innerRect.GetWidth());
     }
     else
     {

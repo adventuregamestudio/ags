@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -22,6 +22,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "util/geometry.h"
+#include "util/indexedobjectpool.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -54,7 +55,7 @@ void restore_overlays();
 // FIXME: this should be a CONST ref (if any at all), strictly for reading,
 // but unfortunately some batch operations on overlays are currently performed
 // by external code...
-std::vector<ScreenOverlay> &get_overlays();
+IndexedObjectPool<ScreenOverlay, int32_t> &get_overlays();
 
 void CreateAnimatedOverlay(int over_id, bool pause_with_game);
 size_t AddAnimatedOverlay(AnimatedOverlay &&aover);
@@ -66,5 +67,4 @@ void UpdateOverlayAnimations();
 void StopOverlayAnimation(int over_id);
 void RemoveAnimatedOverlay(int over_id);
 void RemoveAllAnimatedOverlays();
-
 #endif // __AGS_EE_AC__OVERLAY_H

@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -50,6 +50,16 @@ void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage)
     guisl->SetBgImage(newImage);
 }
 
+int Slider_GetHandleColor(GUISlider *guisl)
+{
+    return guisl->GetHandleColor();
+}
+
+void Slider_SetHandleColor(GUISlider *guisl, int color)
+{
+    guisl->SetHandleColor(color);
+}
+
 int Slider_GetHandleGraphic(GUISlider *guisl) {
     return (guisl->GetHandleImage() > 0) ? guisl->GetHandleImage() : 0;
 }
@@ -66,6 +76,16 @@ int Slider_GetHandleOffset(GUISlider *guisl) {
 void Slider_SetHandleOffset(GUISlider *guisl, int newOffset) 
 {
     guisl->SetHandleOffset(newOffset);
+}
+
+int Slider_GetShadowColor(GUISlider *guisl)
+{
+    return guisl->GetShadowColor();
+}
+
+void Slider_SetShadowColor(GUISlider *guisl, int color)
+{
+    guisl->SetShadowColor(color);
 }
 
 //=============================================================================
@@ -88,6 +108,16 @@ RuntimeScriptValue Sc_Slider_GetBackgroundGraphic(void *self, const RuntimeScrip
 RuntimeScriptValue Sc_Slider_SetBackgroundGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetBackgroundGraphic);
+}
+
+RuntimeScriptValue Sc_Slider_GetHandleColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUISlider, Slider_GetHandleColor);
+}
+
+RuntimeScriptValue Sc_Slider_SetHandleColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUISlider, Slider_SetHandleColor);
 }
 
 // int (GUISlider *guisl)
@@ -138,6 +168,16 @@ RuntimeScriptValue Sc_Slider_SetMin(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(GUISlider, Slider_SetMin);
 }
 
+RuntimeScriptValue Sc_Slider_GetShadowColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUISlider, Slider_GetShadowColor);
+}
+
+RuntimeScriptValue Sc_Slider_SetShadowColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUISlider, Slider_SetShadowColor);
+}
+
 // int (GUISlider *guisl)
 RuntimeScriptValue Sc_Slider_GetValue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -156,6 +196,8 @@ void RegisterSliderAPI()
     ScFnRegister slider_api[] = {
         { "Slider::get_BackgroundGraphic",    API_FN_PAIR(Slider_GetBackgroundGraphic) },
         { "Slider::set_BackgroundGraphic",    API_FN_PAIR(Slider_SetBackgroundGraphic) },
+        { "Slider::get_HandleColor",          API_FN_PAIR(Slider_GetHandleColor) },
+        { "Slider::set_HandleColor",          API_FN_PAIR(Slider_SetHandleColor) },
         { "Slider::get_HandleGraphic",        API_FN_PAIR(Slider_GetHandleGraphic) },
         { "Slider::set_HandleGraphic",        API_FN_PAIR(Slider_SetHandleGraphic) },
         { "Slider::get_HandleOffset",         API_FN_PAIR(Slider_GetHandleOffset) },
@@ -164,6 +206,8 @@ void RegisterSliderAPI()
         { "Slider::set_Max",                  API_FN_PAIR(Slider_SetMax) },
         { "Slider::get_Min",                  API_FN_PAIR(Slider_GetMin) },
         { "Slider::set_Min",                  API_FN_PAIR(Slider_SetMin) },
+        { "Slider::get_ShadowColor",          API_FN_PAIR(Slider_GetShadowColor) },
+        { "Slider::set_ShadowColor",          API_FN_PAIR(Slider_SetShadowColor) },
         { "Slider::get_Value",                API_FN_PAIR(Slider_GetValue) },
         { "Slider::set_Value",                API_FN_PAIR(Slider_SetValue) },
     };

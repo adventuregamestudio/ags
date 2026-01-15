@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -89,10 +89,11 @@ void *ccGetScriptObjectAddress(const String &name, const String &type);
 // Get a registered Script Object, optionally restricting to the given list of type names
 void *ccGetScriptObjectAddress(const String &name, const std::vector<String> &types);
 
-// DEBUG HOOK
+// Debugging instruments
 namespace AGS { namespace Engine { class ScriptExecutor; } }
 typedef void (*new_line_hook_type) (AGS::Engine::ScriptExecutor *, int);
 void ccSetDebugHook(new_line_hook_type jibble);
+void ccSetDebugLogging(bool on);
 
 // Set the script interpreter timeout values:
 // * sys_poll_timeout - defines the timeout (ms) at which the interpreter will run system events poll;

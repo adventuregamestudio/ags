@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -18,6 +18,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
+#include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/properties.h"
 #include "ac/runtime_defines.h"
@@ -38,6 +39,42 @@ extern CharacterInfo*playerchar;
 extern CCInventory ccDynamicInv;
 
 
+void set_inv_item_pic(int invi, int piccy)
+{
+    if ((invi < 1) || (invi > game.numinvitems))
+        quit("!SetInvItemPic: invalid inventory item specified");
+
+    if (game.invinfo[invi].pic == piccy)
+        return;
+
+    game.invinfo[invi].pic = piccy;
+    GUIE::MarkInventoryForUpdate(-1, false);
+}
+
+void set_inv_item_cursorpic(int invItemId, int piccy) 
+{
+    game.invinfo[invItemId].cursorPic = piccy;
+
+    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == invItemId))
+    {
+        update_inv_cursor(invItemId);
+        set_cursor_look(cur_cursor);
+    }
+}
+
+void set_inv_item_cursorhotspot(int inv_item, int hx, int hy)
+{
+    game.invinfo[inv_item].hotx = hx;
+    game.invinfo[inv_item].hoty = hy;
+
+    // The cursor image may include hotspot marker, therefore update cursor image
+    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == inv_item))
+    {
+        update_inv_cursor(inv_item);
+        set_cursor_look(cur_cursor);
+    }
+}
+
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 
 {
     set_inv_item_cursorpic(iitem->id, newSprite);
@@ -48,15 +85,24 @@ int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem)
     return game.invinfo[iitem->id].cursorPic;
 }
 
-void set_inv_item_pic(int invi, int piccy) {
-    if ((invi < 1) || (invi > game.numinvitems))
-        quit("!SetInvItemPic: invalid inventory item specified");
+int InventoryItem_GetCursorHotspotX(ScriptInvItem *iitem)
+{
+    return game.invinfo[iitem->id].hotx;
+}
 
-    if (game.invinfo[invi].pic == piccy)
-        return;
+void InventoryItem_SetCursorHotspotX(ScriptInvItem *iitem, int hotspotx)
+{
+    set_inv_item_cursorhotspot(iitem->id, hotspotx, game.invinfo[iitem->id].hoty);
+}
 
-    game.invinfo[invi].pic = piccy;
-    GUIE::MarkInventoryForUpdate(-1, false);
+int InventoryItem_GetCursorHotspotY(ScriptInvItem *iitem)
+{
+    return game.invinfo[iitem->id].hoty;
+}
+
+void InventoryItem_SetCursorHotspotY(ScriptInvItem *iitem, int hotspoty)
+{
+    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, hotspoty);
 }
 
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
@@ -85,38 +131,20 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
     return CreateNewScriptString(game.invScriptNames[scii->id]);
 }
 
-int offset_over_inv(GUIInvWindow *inv) {
-    if (inv->GetItemWidth() <= 0 || inv->GetItemHeight() <= 0)
-        return -1;
-    int mover = mouse_ifacebut_xoffs / inv->GetItemWidth();
-    // if it's off the edge of the visible items, ignore
-    if (mover >= inv->GetColCount())
-        return -1;
-    mover += (mouse_ifacebut_yoffs / inv->GetItemHeight()) * inv->GetColCount();
-    if (mover >= inv->GetColCount() * inv->GetRowCount())
-        return -1;
-
-    mover += inv->GetTopItem();
-    if ((mover < 0) || (mover >= charextra[inv->GetCharacterID()].invorder_count))
-        return -1;
-
-    return charextra[inv->GetCharacterID()].invorder[mover];
-}
-
-int GetInvAt(int scrx, int scry) {
+int GetInvAt(int scrx, int scry)
+{
     int ongui = GetGUIAt(scrx, scry);
-    if (ongui >= 0) {
+    if (ongui >= 0)
+    {
         GUIMain &gui = guis[ongui];
         int onobj = gui.FindControlAt(scrx, scry);
         GUIControl *guio = gui.GetControl(onobj);
-        if (guio) {
+        if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
+        {
             Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
             Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
-            mouse_ifacebut_xoffs = gobjpt.X;
-            mouse_ifacebut_yoffs = gobjpt.Y;
+            return InvWindow_GetItemAtXY((GUIInvWindow *)guio, gobjpt.X, gobjpt.Y);
         }
-        if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
-            return offset_over_inv((GUIInvWindow *)guio);
     }
     return -1;
 }
@@ -210,19 +238,6 @@ bool InventoryItem_SetTextProperty(ScriptInvItem *scii, const char *property, co
 }
 
 //=============================================================================
-
-void set_inv_item_cursorpic(int invItemId, int piccy) 
-{
-    game.invinfo[invItemId].cursorPic = piccy;
-
-    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == invItemId))
-    {
-        update_inv_cursor(invItemId);
-        set_cursor_look(cur_cursor);
-    }
-}
-
-//=============================================================================
 //
 // Script API Functions
 //
@@ -309,6 +324,26 @@ RuntimeScriptValue Sc_InventoryItem_SetCursorGraphic(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorGraphic);
 }
 
+RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotX);
+}
+
+RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorHotspotX);
+}
+
+RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotY);
+}
+
+RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorHotspotY);
+}
+
 // int (ScriptInvItem *iitem)
 RuntimeScriptValue Sc_InventoryItem_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -356,6 +391,10 @@ void RegisterInventoryItemAPI()
         { "InventoryItem::SetName^1",                 API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_CursorGraphic",         API_FN_PAIR(InventoryItem_GetCursorGraphic) },
         { "InventoryItem::set_CursorGraphic",         API_FN_PAIR(InventoryItem_SetCursorGraphic) },
+        { "InventoryItem::get_CursorHotspotX",        API_FN_PAIR(InventoryItem_GetCursorHotspotX) },
+        { "InventoryItem::set_CursorHotspotX",        API_FN_PAIR(InventoryItem_SetCursorHotspotX) },
+        { "InventoryItem::get_CursorHotspotY",        API_FN_PAIR(InventoryItem_GetCursorHotspotY) },
+        { "InventoryItem::set_CursorHotspotY",        API_FN_PAIR(InventoryItem_SetCursorHotspotY) },
         { "InventoryItem::get_Graphic",               API_FN_PAIR(InventoryItem_GetGraphic) },
         { "InventoryItem::set_Graphic",               API_FN_PAIR(InventoryItem_SetGraphic) },
         { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },

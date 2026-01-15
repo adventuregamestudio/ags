@@ -212,10 +212,11 @@ int GUILabel::PrepareTextToDraw()
     return GUI::SplitLinesForDrawing(_textToDraw, false, Lines, _font, _width);
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
-    // print something fake so we can see what it looks like
-    wouttext_outline(ds, x + 2, y + 2, _font, text_color, "Text Box Contents");
+    _textToDraw = _text;
+    const int text_color = ds->GetCompatibleColor(_textColor);
+    GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, Rect::MoveBy(_innerRect, x, y), _textAlignment);
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)
@@ -230,8 +231,26 @@ int  GUIInvWindow::GetCharacterID() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
+    DrawControlFrame(ds, x, y);
+
+    // Draw a marker border, just to let users see this control in preview
+    // TODO: find a better way, now that we have a way to customize border,
+    // this may cause confusion
+    if (!IsShowBorder() || _borderWidth == 0)
+    {
+        color_t draw_color = GUI::GetStandardColorForBitmap(15);
+        ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
+    }
+
+    // Draw item grid
     color_t draw_color = GUI::GetStandardColorForBitmap(15);
-    ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
+    for (int at_x = _innerRect.Left; at_x <= _innerRect.Right - _itemWidth + 1; at_x += _itemWidth)
+    {
+        for (int at_y = _innerRect.Top; at_y <= _innerRect.Bottom - _itemHeight + 1; at_y += _itemHeight)
+        {
+            ds->DrawRect(RectWH(x + at_x, y + at_y, _itemWidth, _itemHeight), draw_color);
+        }
+    }
 }
 
 void GUIButton::PrepareTextToDraw()
@@ -239,7 +258,7 @@ void GUIButton::PrepareTextToDraw()
     if (IsWrapText())
     {
         _textToDraw = _text;
-        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _width - _textPaddingHor * 2);
+        GUI::SplitLinesForDrawing(_text, false, Lines, _font, _width - _paddingX * 2);
     }
     else
     {

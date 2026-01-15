@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -38,9 +38,9 @@ int             InvWindow_GetRowCount(GUIInvWindow *guii);
 void            InvWindow_ScrollDown(GUIInvWindow *guii);
 void            InvWindow_ScrollUp(GUIInvWindow *guii);
 ScriptInvItem*  InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index);
+int             InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y);
 
 //=============================================================================
 
-int				offset_over_inv(GUIInvWindow *inv);
 
 #endif // __AGS_EE_AC__INVWINDOW_H

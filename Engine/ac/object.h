@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -95,8 +95,7 @@ void    update_object_scale(int &res_zoom, int &res_width, int &res_height,
             int objx, int objy, int sprnum, int own_zoom, bool use_region_scaling);
 // Start moving object to the given destination, calculate path using destination and optionally "ignore walls" flag
 void    move_object(int objj, int tox, int toy, int speed, bool ignwal);
-void    get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2);
-int     isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt);
+Rect    get_object_blocking_rect(int objid);
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary,spww,sphh are the sprite's bounding box (including sprite scaling);
 // bitmap_original tells whether bitmap is an original sprite, or transformed version

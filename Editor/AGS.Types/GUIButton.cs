@@ -10,7 +10,7 @@ namespace AGS.Types
     [Serializable]
     [DefaultProperty("Image")]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]    
-    public class GUIButton : GUIControl
+    public class GUIButton : GUIControl, ICustomTypeDescriptor
     {
         public const string CONTROL_DISPLAY_NAME = "Button";
         public const string SCRIPT_CLASS_TYPE = "Button";
@@ -18,8 +18,15 @@ namespace AGS.Types
         public GUIButton(int x, int y, int width, int height) : base(x, y, width, height)
         {
             _text = "New Button";
-            _clickAction = GUIClickAction.RunScript;
             _textAlign = FrameAlignment.TopCenter;
+            ShowBorder = true;
+            SolidBackground = true;
+            PaddingX = 1;
+            PaddingY = 1;
+            BackgroundColor = 7;
+            BorderColor = 15;
+            ShadowColor = 8;
+            _clickAction = GUIClickAction.RunScript;
         }
 
         public GUIButton(XmlNode node) : base(node)
@@ -30,16 +37,22 @@ namespace AGS.Types
         {
         }
 
-        private string _text;
+        private string _text = string.Empty;
         private int _image;
         private int _mouseoverImage;
         private int _pushedImage;
         private int _font;
+        private ButtonColorStyle _colorStyle = ButtonColorStyle.Default;
+        private int _shadowColor;
         private int _textColor;
-        private FrameAlignment _textAlign;
+        private int _mouseoverTextColor;
+        private int _pushedTextColor;
+        private int _mouseoverBackgroundColor;
+        private int _pushedBackgroundColor;
+        private int _mouseoverBorderColor;
+        private int _pushedBorderColor;
+        private FrameAlignment _textAlign = FrameAlignment.TopLeft;
         private bool _wrapText;
-        private int _paddingHor = 2;
-        private int _paddingVer = 2;
         private bool _clipImage;
         private GUIClickAction _clickAction;
         private int _newModeNumber;
@@ -114,28 +127,46 @@ namespace AGS.Types
             set { _wrapText = value; }
         }
 
-        [Description("The amount of padding, in pixels, restricting the text's alignment from left and right")]
-        [Category("Appearance")]
-        [DefaultValue(2)]
+        [Obsolete]
+        [Browsable(false)]
         public int TextPaddingHorizontal
         {
-            get { return _paddingHor; }
-            set { _paddingHor = value; }
+            get { return PaddingX; }
+            set { PaddingX = value; }
         }
 
-        [Description("The amount of padding, in pixels, restricting the text's alignment from top and bottom")]
-        [Category("Appearance")]
-        [DefaultValue(2)]
+        [Obsolete]
+        [Browsable(false)]
         public int TextPaddingVertical
         {
-            get { return _paddingVer; }
-            set { _paddingVer = value; }
+            get { return PaddingY; }
+            set { PaddingY = value; }
+        }
+        
+        [Description("Which style to use for coloring this button")]
+        [Category("Appearance")]
+        [DefaultValue(ButtonColorStyle.Default)]
+        [RefreshProperties(RefreshProperties.All)]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public ButtonColorStyle ColorStyle
+        {
+            get { return _colorStyle; }
+            set { _colorStyle = value; }
+        }
+
+        [Description("Colour of the button's border shadow")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int ShadowColor
+        {
+            get { return _shadowColor; }
+            set { _shadowColor = value; }
         }
 
         [Description("Colour of the button text")]
         [Category("Appearance")]
         [DisplayName("TextColor")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -143,6 +174,66 @@ namespace AGS.Types
         {
             get { return _textColor; }
             set { _textColor = value; }
+        }
+
+        [Description("Colour of the button's background when the player moves their mouse over the button")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int MouseOverBackgroundColor
+        {
+            get { return _mouseoverBackgroundColor; }
+            set { _mouseoverBackgroundColor = value; }
+        }
+
+        [Description("Colour of the button's background when the player clicks the button")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int PushedBackgroundColor
+        {
+            get { return _pushedBackgroundColor; }
+            set { _pushedBackgroundColor = value; }
+        }
+
+        [Description("Colour of the button's border when the player moves their mouse over the button")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int MouseOverBorderColor
+        {
+            get { return _mouseoverBorderColor; }
+            set { _mouseoverBorderColor = value; }
+        }
+
+        [Description("Colour of the button's border when the player clicks the button")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int PushedBorderColor
+        {
+            get { return _pushedBorderColor; }
+            set { _pushedBorderColor = value; }
+        }
+
+        [Description("Colour of the button text when the player moves their mouse over the button")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int MouseOverTextColor
+        {
+            get { return _mouseoverTextColor; }
+            set { _mouseoverTextColor = value; }
+        }
+
+        [Description("Colour of the button text when the player clicks the button")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int PushedTextColor
+        {
+            get { return _pushedTextColor; }
+            set { _pushedTextColor = value; }
         }
 
         [Description("Font to use for the text on this button")]
@@ -219,5 +310,98 @@ namespace AGS.Types
             if (_mouseoverImage > 0) _mouseoverImage = spriteMapping[_mouseoverImage];
             if (_pushedImage > 0) _pushedImage = spriteMapping[_pushedImage];
         }
+
+#region ICustomTypeDescriptor Members
+
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
+
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
+
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
+
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
+
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
+
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
+
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
+
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
+
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
+
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            // Hide certain color state properties, depending on the "ColorStyle" property value
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantProperties = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor property in properties)
+            {
+                bool wantThisProperty = true;
+                if (_colorStyle == ButtonColorStyle.Default)
+                {
+                    if ((property.Name == "MouseOverBackgroundColor") || (property.Name == "PushedBackgroundColor") ||
+                        (property.Name == "MouseOverBorderColor") || (property.Name == "PushedBorderColor") ||
+                        (property.Name == "MouseOverTextColor") || (property.Name == "PushedTextColor"))
+                    {
+                        wantThisProperty = false;
+                    }
+                }
+                else if (_colorStyle == ButtonColorStyle.Dynamic)
+                {
+                    if ((property.Name == "MouseOverBorderColor") || (property.Name == "PushedBorderColor"))
+                    {
+                        wantThisProperty = false;
+                    }
+                }
+
+                if (wantThisProperty)
+                {
+                    wantProperties.Add(property);
+                }
+            }
+            return new PropertyDescriptorCollection(wantProperties.ToArray());
+        }
+
+        public PropertyDescriptorCollection GetProperties()
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, true);
+            return properties;
+        }
+
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
+
+        #endregion
     }
 }

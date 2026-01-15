@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -136,6 +136,7 @@ struct SaveRestoredDataCounts
     uint32_t AudioClipTypes = 0u;
     uint32_t Characters = 0u;
     uint32_t Dialogs = 0u;
+    std::vector<uint32_t> DialogOptions;
     uint32_t GUIs = 0u;
     std::vector<uint32_t> GUIControls;
     uint32_t InventoryItems = 0u;

@@ -10,8 +10,6 @@ namespace AGS.Types
     [DefaultProperty("Name")]
     public class Dialog : IScript, IToXml, IComparable<Dialog>
     {
-        public const int MAX_OPTIONS_PER_DIALOG = 30;
-
         private int _id;
         private string _name;
         private bool _showTextParser;

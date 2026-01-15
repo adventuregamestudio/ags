@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -207,9 +207,7 @@ CharacterInfo *GetCharacterAtScreen(int xx, int yy);
 void update_character_scale(int charid);
 // Get character ID at the given room coordinates
 int is_pos_on_character(int xx,int yy);
-void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);
-// Check whether the source char is standing inside otherChar's blocking rectangle
-int is_char_in_blocking_rect(int sourceChar, int otherChar, int *fromxptr, int *cwidptr);
+Rect get_char_blocking_rect(int charid);
 int my_getpixel(Common::Bitmap *blk, int x, int y);
 int check_click_on_character(int xx, int yy,int mood);
 void DisplaySpeechCore(int chid, const char *displbuf);

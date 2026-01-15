@@ -713,5 +713,23 @@ namespace AGS.Editor
             panelIndex0.BackColor = GetRefPaletteColor(this.TransparentColourIndex);
             radTransColourIndex.Checked = true;
         }
+
+        private void SpriteImportWindow_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.ReadFormPosition(config, "SpriteImportWindow", this);
+            }
+        }
+
+        private void SpriteImportWindow_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (!DesignMode)
+            {
+                var config = GUIController.Instance.WindowConfig;
+                ConfigUtils.WriteFormPosition(config, "SpriteImportWindow", this);
+            }
+        }
     }
 }

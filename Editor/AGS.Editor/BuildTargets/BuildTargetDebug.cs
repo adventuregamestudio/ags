@@ -47,10 +47,15 @@ namespace AGS.Editor
             {
                 return null;
             }
-            Factory.NativeProxy.CreateDebugMiniEXE(new string[] { AGSEditor.COMPILED_DTA_FILE_NAME },
+            CreateDebugMiniEXE(new string[] { AGSEditor.COMPILED_DTA_FILE_NAME },
                 Factory.AGSEditor.BaseGameFileName + ".exe");
             Utilities.TryDeleteFile(AGSEditor.COMPILED_DTA_FILE_NAME);
             return null;
+        }
+
+        private void CreateDebugMiniEXE(string[] fileList, string exeFileName)
+        {
+            DataFileWriter.MakeFlatDataFile(fileList, 0, exeFileName, outputDir: null, appendDataToBaseFile: true);
         }
 
         public override bool Build(CompileMessages errors, bool forceRebuild)

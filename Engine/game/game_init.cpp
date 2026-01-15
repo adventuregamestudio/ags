@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -80,9 +80,6 @@ extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-
-extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
-extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
 // Lipsync
 extern std::vector<SpeechLipSyncLine> splipsync;
@@ -204,19 +201,9 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
         int handle = ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog);
         StaticDialogArray[i] = handle;
 
-        if (!game.dialogScriptNames[i].IsEmpty())
+        if (!dialog[i].ScriptName.IsEmpty())
             ccAddExternalScriptObjectHandle(game.dialogScriptNames[i], &StaticDialogArray[i]);
     }
-}
-
-// Initializes dialog options rendering objects and registers them in the script system
-void InitAndRegisterDialogOptions()
-{
-    ccRegisterPersistentObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering); // add internal ref
-
-    dialogOptionsRenderingSurface = new ScriptDrawingSurface();
-    dialogOptionsRenderingSurface->isLinkedBitmapOnly = true;
-    ccRegisterPersistentObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface); // add internal ref
 }
 
 // Initializes gui and registers them in the script system
@@ -320,7 +307,6 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
     InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(game, ents);
     InitAndRegisterDialogs(game);
-    InitAndRegisterDialogOptions();
     HError err = InitAndRegisterGUI(game);
     if (!err)
         return err;

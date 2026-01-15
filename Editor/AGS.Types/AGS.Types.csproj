@@ -150,6 +150,7 @@
     <Compile Include="EditorFeatures\RoomTemplate.cs" />
     <Compile Include="Enums\AndroidBuildFormat.cs" />
     <Compile Include="Enums\BlendMode.cs" />
+    <Compile Include="Enums\ButtonColorStyle.cs" />
     <Compile Include="Enums\FontFileFormat.cs" />
     <Compile Include="Enums\InputMotionMode.cs" />
     <Compile Include="Enums\SpriteFlipStyle.cs" />

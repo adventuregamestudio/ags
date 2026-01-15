@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -157,11 +157,14 @@ void DeleteSaveSlot(int slnum)
     File::DeleteFile(save_filename);
 }
 
-void PauseGame() {
+void PauseGame()
+{
     game_paused++;
     debug_script_log("Game paused (%d)", game_paused);
 }
-void UnPauseGame() {
+
+void UnPauseGame()
+{
     if (game_paused > 0)
     {
         game_paused--;

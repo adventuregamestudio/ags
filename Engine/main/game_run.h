@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -23,6 +23,7 @@ struct TouchInput;
 
 // Loops game frames until certain event takes place (for blocking actions)
 // TODO: reimplement these using a function pointer?
+// FIXME: replace arg types with intX_t types
 void GameLoopUntilValueIsZero(const char *value);
 void GameLoopUntilValueIsZero(const short *value);
 void GameLoopUntilValueIsZero(const int *value);

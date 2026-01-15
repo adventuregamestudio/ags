@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -31,6 +31,8 @@ namespace Common
 GUIListBox::GUIListBox()
     : GUIControl(&GUIListBox::_eventSchema)
 {
+    _flags |= kGUICtrl_ShowBorder;
+    UpdateControlRect();
 }
 
 void GUIListBox::SetFont(int font)
@@ -91,9 +93,9 @@ void GUIListBox::SetSelectedItem(int index)
         // Automatically update top item to keep selection visible
         if (index >= 0)
         {
-            if (index < _topItem)
+            if ((index < _topItem) || (_visibleItemCount == 0))
                 _topItem = index;
-            else if (static_cast<uint32_t>(index) >= _topItem + _visibleItemCount)
+            else if ((static_cast<uint32_t>(index) >= _topItem + _visibleItemCount))
                 _topItem = (index - _visibleItemCount) + 1;
         }
         MarkChanged();
@@ -125,7 +127,7 @@ int GUIListBox::GetSavedGameIndex(int index) const
 
 int GUIListBox::GetItemAt(int x, int y) const
 {
-    if (_rowHeight <= 0 || IsInRightMargin(x))
+    if (_rowHeight <= 0 || IsPosOnScrollbar(x))
         return -1;
 
     uint32_t index = y / _rowHeight + _topItem;
@@ -134,26 +136,27 @@ int GUIListBox::GetItemAt(int x, int y) const
     return index;
 }
 
-bool GUIListBox::AreArrowsShown() const
+bool GUIListBox::ShouldShowScrollArrows() const
 {
     return (_listBoxFlags & kListBox_ShowArrows) != 0;
 }
 
-bool GUIListBox::IsBorderShown() const
+bool GUIListBox::AreArrowsShown() const
 {
-    return (_listBoxFlags & kListBox_ShowBorder) != 0;
+    return IsShowBorder() && ShouldShowScrollArrows() &&
+        _visibleItemCount < _items.size();
+}
+
+bool GUIListBox::IsPosOnScrollbar(int x) const
+{
+    if (AreArrowsShown() && (x >= (_width - 6)))
+        return 1;
+    return 0;
 }
 
 bool GUIListBox::IsSvgIndex() const
 {
     return (_listBoxFlags & kListBox_SvgIndex) != 0;
-}
-
-bool GUIListBox::IsInRightMargin(int x) const
-{
-    if (x >= (_width - 6) && IsBorderShown() && AreArrowsShown())
-        return 1;
-    return 0;
 }
 
 Rect GUIListBox::CalcGraphicRect(bool clipped)
@@ -167,23 +170,17 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     // - macro value change (overhotspot etc)
     Rect rc = RectWH(0, 0, _width, _height);
     UpdateMetrics();
-    const int width = _width - 1;
-    const int pixel_size = 1;
-    int right_hand_edge = width - pixel_size - 1;
-    // calculate the scroll bar's width if necessary
-    if (_items.size() > _visibleItemCount && IsBorderShown() && AreArrowsShown())
-        right_hand_edge -= 7;
     Line max_line;
     for (uint32_t item = 0; (item < _visibleItemCount) && (item + _topItem < _items.size()); ++item)
     {
-        int at_y = pixel_size + item * _rowHeight;
+        int at_y = _itemsRect.Top + item * _rowHeight;
         uint32_t item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
-        Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, 1 + pixel_size, right_hand_edge, at_y + 1,
+        Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, _itemsRect.Left, _itemsRect.Right, at_y + _itemTextPaddingY,
             (FrameAlignment)_textAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
-    int last_line_y = pixel_size + 1 + (_visibleItemCount - 1) * _rowHeight;
+    int last_line_y = _itemsRect.Top + _itemTextPaddingY + (_visibleItemCount - 1) * _rowHeight;
     // Include font fixes for the first and last text line,
     // in case graphical height is different, and there's a VerticalOffset
     int h_ext = GUI::CalcFontGraphicalHExtent(_font);
@@ -215,74 +212,58 @@ void GUIListBox::Clear()
     _topItem = 0;
     // NOTE: backwards compatible behavior is to keep selection at index 0,
     // so that the first item appears selected when added
-    _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
+    _selectedItem = (GUI::DataVersion >= kGameVersion_363) ? -1 : 0;
     MarkChanged();
 }
 
 void GUIListBox::Draw(Bitmap *ds, int x, int y)
 {
-    const int width  = _width - 1;
-    const int height = _height - 1;
-    const int pixel_size = 1;
-
-    color_t text_color = ds->GetCompatibleColor(_textColor);
-    color_t draw_color = ds->GetCompatibleColor(_textColor);
-    if (IsBorderShown())
-    {
-        ds->DrawRect(Rect(x, y, x + width, y + height), draw_color);
-        if (pixel_size > 1)
-            ds->DrawRect(Rect(x + 1, y + 1, x + width - 1, y + height - 1), draw_color);
-    }
-
-    int right_hand_edge = (x + width) - pixel_size - 1;
+    DrawControlFrame(ds, x, y);
 
     // update the _rowHeight and _visibleItemCount
     // FIXME: find a way to update this whenever relevant things change in the engine
     UpdateMetrics();
 
     // draw the scroll bar in if necessary
-    bool scrollbar = (_items.size() > _visibleItemCount) && IsBorderShown() && AreArrowsShown();
+    const bool scrollbar = AreArrowsShown();
     if (scrollbar)
     {
-        int xstrt, ystrt;
-        ds->DrawRect(Rect(x + width - 7, y, (x + (pixel_size - 1) + width) - 7, y + height), draw_color);
-        ds->DrawRect(Rect(x + width - 7, y + height / 2, x + width, y + height / 2 + (pixel_size - 1)), draw_color);
+        const color_t draw_color = ds->GetCompatibleColor(_borderColor);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top, x + _scrollbarRect.Right, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1), draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1, x + _scrollbarRect.Right, y + _scrollbarRect.Bottom), draw_color);
 
-        xstrt = (x + width - 6) + (pixel_size - 1);
-        ystrt = (y + height - 3) - 5;
-
-        draw_color = ds->GetCompatibleColor(_textColor);
-        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt, 
+        const int xstrt = x + _scrollbarRect.Left + 1;
+        // Up arrow
+        int ystrt = y + _scrollbarRect.Top + 3;
+        ds->DrawTriangle(Triangle(xstrt, ystrt + 5,
+                xstrt + 4,
+                ystrt + 5,
+                xstrt + 2, ystrt), draw_color);
+        // Down arrow
+        ystrt = (y + _scrollbarRect.Bottom - 3) - 5;
+        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt,
                  xstrt + 2,
                  ystrt + 5), draw_color);
-
-        ystrt = y + 3;
-        ds->DrawTriangle(Triangle(xstrt, ystrt + 5, 
-                 xstrt + 4, 
-                 ystrt + 5,
-                 xstrt + 2, ystrt), draw_color);
-
-        right_hand_edge -= 7;
     }
 
-    Rect old_clip = ds->GetClip();
-    if (scrollbar && GUI::Options.ClipControls)
-        ds->SetClip(Rect(x, y, right_hand_edge + 1, y + _height - 1));
+    const Rect items_rc = Rect::MoveBy(_itemsRect, x, y);
+    const Rect old_clip = ds->GetClip();
+    if (GUI::Options.ClipControls)
+        ds->SetClip(items_rc);
     for (uint32_t item = 0; (item < _visibleItemCount) && (item + _topItem < _items.size()); ++item)
     {
-        int at_y = y + pixel_size + item * _rowHeight;
+        color_t text_color;
+        const int at_x = items_rc.Left;
+        const int right_x = items_rc.Right;
+        int at_y = items_rc.Top + item * _rowHeight;
         if (item + _topItem == _selectedItem)
         {
             text_color = ds->GetCompatibleColor(_selectedTextColor);
             if (_selectedBgColor != 0)
             {
-                int stretch_to = (x + width) - pixel_size;
                 // draw the _selectedItem item bar (if colour not transparent)
-                draw_color = ds->GetCompatibleColor(_selectedBgColor);
-                if ((_visibleItemCount < _items.size()) && IsBorderShown() && AreArrowsShown())
-                    stretch_to -= 7;
-
-                ds->FillRect(Rect(x + pixel_size, at_y, stretch_to, at_y + _rowHeight - pixel_size), draw_color);
+                const color_t draw_color = ds->GetCompatibleColor(_selectedBgColor);
+                ds->FillRect(Rect(at_x, at_y, right_x, at_y + _rowHeight - 1), draw_color);
             }
         }
         else
@@ -293,8 +274,9 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         int item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
 
-        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color, x + 1 + pixel_size, right_hand_edge, at_y + 1,
-            (FrameAlignment)_textAlignment);
+        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color,
+            at_x + _itemTextPaddingX, right_x - _itemTextPaddingX,
+            at_y + _itemTextPaddingY, (FrameAlignment)_textAlignment);
     }
     ds->SetClip(old_clip);
 }
@@ -328,6 +310,11 @@ void GUIListBox::RemoveItem(int index)
     MarkChanged();
 }
 
+void GUIListBox::UpdateVisualState()
+{
+    MarkPositionChanged(true, true);
+}
+
 void GUIListBox::SetShowArrows(bool on)
 {
     if (on != ((_listBoxFlags & kListBox_ShowArrows) != 0))
@@ -336,16 +323,6 @@ void GUIListBox::SetShowArrows(bool on)
         _listBoxFlags |= kListBox_ShowArrows;
     else
         _listBoxFlags &= ~kListBox_ShowArrows;
-}
-
-void GUIListBox::SetShowBorder(bool on)
-{
-    if (on != ((_listBoxFlags & kListBox_ShowBorder) != 0))
-        MarkChanged();
-    if (on)
-        _listBoxFlags |= kListBox_ShowBorder;
-    else
-        _listBoxFlags &= ~kListBox_ShowBorder;
 }
 
 void GUIListBox::SetSvgIndex(bool on)
@@ -367,7 +344,7 @@ void GUIListBox::SetItemText(int index, const String &text)
 
 bool GUIListBox::OnMouseDown()
 {
-    if (IsInRightMargin(_mousePos.X))
+    if (IsPosOnScrollbar(_mousePos.X))
     {
         int top_item = _topItem;
         if (_mousePos.Y < _height / 2 && _topItem > 0)
@@ -402,6 +379,12 @@ void GUIListBox::OnMouseMove(int mx, int my)
 
 void GUIListBox::OnResized()
 {
+    GUIControl::OnResized();
+    UpdateMetrics();
+}
+
+void GUIListBox::OnContentRectChanged()
+{
     UpdateMetrics();
     UpdateGraphicSpace();
     MarkChanged();
@@ -411,9 +394,27 @@ void GUIListBox::UpdateMetrics()
 {
     int font_height = get_font_height_outlined(_font);
     _rowHeight = font_height + 2; // +1 top/bottom margin
-    _visibleItemCount = _height / _rowHeight;
+    _itemTextPaddingX = 1;
+    _itemTextPaddingY = 1;
+    const int items_height = _innerRect.GetHeight();
+    _visibleItemCount = items_height / _rowHeight;
     if (_items.size() <= _visibleItemCount)
         _topItem = 0; // reset scroll if all items are visible
+
+    int items_right = _innerRect.Right;
+    if (AreArrowsShown())
+    {
+        // Scrollbar rect includes 1-thin border around it (for convenience of calc & draw),
+        // so we subtract that from the outer border
+        const int scroll_width = 7;
+        const int scroll_border = _borderWidth > 0 ? 1 : 0;
+        const int ext_border = _borderWidth - scroll_border;
+        _scrollbarRect = RectWH(_width - ext_border - scroll_width,
+            ext_border, scroll_width, _height - ext_border * 2);
+        items_right = _scrollbarRect.Left - 1;
+    }
+
+    _itemsRect = Rect(_innerRect.Left, _innerRect.Top, items_right, _innerRect.Bottom);
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -459,11 +460,18 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     // Reset dynamic values
     _rowHeight = 0;
+    _itemTextPaddingX = 0;
+    _itemTextPaddingY = 0;
     _visibleItemCount = 0;
     _topItem = 0;
     // NOTE: backwards compatible behavior is to keep selection at index 0,
     // so that the first item appears selected when added
-    _selectedItem = (loaded_game_file_version >= kGameVersion_363) ? -1 : 0;
+    _selectedItem = (GUI::DataVersion >= kGameVersion_363) ? -1 : 0;
+}
+
+void GUIListBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIControl::ReadFromFile_Ext363(in, gui_version);
 }
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -476,6 +484,11 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _selectedTextColor = in->ReadInt32();
     _textAlignment = (HorAlignment)in->ReadInt32();
     _textColor = in->ReadInt32();
+
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
 
     // _items
     const uint32_t item_count = in->ReadInt32();
@@ -495,6 +508,8 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 
     // Reset dynamic values
     _rowHeight = 0;
+    _itemTextPaddingX = 0;
+    _itemTextPaddingY = 0;
     _visibleItemCount = 0;
     _topItem = 0;
 }
@@ -520,6 +535,15 @@ void GUIListBox::WriteToSavegame(Stream *out) const
             out->WriteInt16(_savedGameIndex[i]);
     out->WriteInt32(_topItem);
     out->WriteInt32(_selectedItem);
+}
+
+void GUIListBox::SetDefaultLooksFor363()
+{
+    if ((_listBoxFlags & kListBox_ShowBorder) != 0)
+        _flags |= kGUICtrl_ShowBorder;
+    _borderColor = _textColor;
+    _borderWidth = 1;
+    UpdateControlRect();
 }
 
 } // namespace Common

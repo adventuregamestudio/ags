@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -492,6 +492,51 @@ bool GamePlayState::ShouldPlayVoiceSpeechNonBlocking() const
     return !play.fast_forward && (play.voice_avail);
 }
 
+void GamePlayState::StartScriptTimer(int timer_id, int timeout)
+{
+    assert(timer_id >= 0);
+    if (timer_id < 0 || timeout <= 0)
+        return;
+
+    _scriptTimers[timer_id] = timeout;
+}
+
+int GamePlayState::GetScriptTimerPos(int timer_id)
+{
+    auto it = _scriptTimers.find(timer_id);
+    if (it != _scriptTimers.end())
+        return it->second;
+    return 0;
+}
+
+bool GamePlayState::CheckScriptTimer(int timer_id)
+{
+    // The timer logic is that it counts down to 1, where stays
+    // *until* user checks for its expiration in script.
+    // Only then the timer is removed.
+    auto it = _scriptTimers.find(timer_id);
+    if (it != _scriptTimers.end())
+    {
+        if (it->second == 1)
+        {
+            _scriptTimers.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
+void GamePlayState::UpdateScriptTimers()
+{
+    // The timer logic is that it counts down to 1, where stays
+    // *until* user checks for its expiration in script.
+    for (auto &timer : _scriptTimers)
+    {
+        if (timer.second > 1)
+            timer.second--;
+    }
+}
+
 void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     in->ReadInt32(); // [DEPRECATED]
@@ -605,7 +650,17 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     entered_edge = in->ReadInt32();
     speech_mode = (SpeechMode)in->ReadInt32();
     speech_skip_style = in->ReadInt32();
-    in->ReadArrayOfInt32(script_timers, MAX_TIMERS);
+    // Old-style timers, limited to 20, with 1-based ID
+    if (svg_ver < kGSSvgVersion_363_04)
+    {
+        int old_script_timers[LEGACY_MAX_TIMERS];
+        in->ReadArrayOfInt32(old_script_timers, LEGACY_MAX_TIMERS);
+        for (int timer_id = 1; timer_id < LEGACY_MAX_TIMERS; ++timer_id)
+        {
+            if (old_script_timers[timer_id] > 0)
+                _scriptTimers[timer_id] = old_script_timers[timer_id];
+        }
+    }
     in->ReadInt32();// [DEPRECATED]
     speech_volume = in->ReadInt32();
     normal_font = in->ReadInt32();
@@ -712,6 +767,20 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     else
     {
         dialog_options_zorder = INT32_MAX;
+    }
+
+    // New-style timers
+    if (svg_ver >= kGSSvgVersion_363_04)
+    {
+        uint32_t timer_count = in->ReadInt32();
+        _scriptTimers.clear();
+        for (uint32_t i = 0; i < timer_count; ++i)
+        {
+            int timer_id = in->ReadInt32();
+            int timer_time = in->ReadInt32();
+            if (timer_id >= 0 && timer_time > 0)
+                _scriptTimers[timer_id] = timer_time;
+        }
     }
 
     if (svg_ver >= kGSSvgVersion_400_03)
@@ -845,7 +914,6 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( entered_edge);
     out->WriteInt32( speech_mode);
     out->WriteInt32( speech_skip_style);
-    out->WriteArrayOfInt32(script_timers, MAX_TIMERS);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( speech_volume);
     out->WriteInt32( normal_font);
@@ -928,6 +996,14 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0); // reserved up to 4 ints
     out->WriteInt32(0);
     out->WriteInt32(0);
+
+    // kGSSvgVersion_363_04
+    out->WriteInt32(_scriptTimers.size());
+    for (const auto &timer : _scriptTimers)
+    {
+        out->WriteInt32(timer.first);
+        out->WriteInt32(timer.second);
+    }
 
     // kGSSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);

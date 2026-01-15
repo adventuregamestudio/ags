@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -11,30 +11,107 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/dialogtopic.h"
+#include <algorithm>
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
-void DialogTopic::ReadFromFile(Stream *in)
+void DialogTopic::ReadFromFile_v321(Stream *in)
 {
-    in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
-    in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
-    in->ReadInt32(); // optionscripts 32-bit pointer
-    in->ReadArrayOfInt16(entrypoints, MAXTOPICOPTIONS);
-    startupentrypoint = in->ReadInt16();
-    codesize = in->ReadInt16();
-    numoptions = in->ReadInt32();
-    topicFlags = in->ReadInt32();
+    std::vector<DialogOption> options;
+    options.resize(LEGACY_MAXTOPICOPTIONS);
+    char name[150];
+    for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
+    {
+        in->Read(name, 150);
+        options[i].Text.SetString(name, 150);
+    }
+    for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
+    {
+        options[i].Flags = in->ReadInt32();
+    }
+    in->ReadInt32(); // unused, was optionscripts 32-bit pointer
+    for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
+    {
+        options[i].EntryPoint = in->ReadInt16();
+    }
+    StartEntryPoint = in->ReadInt16();
+    CodeSize = in->ReadInt16();
+    uint32_t option_count = in->ReadInt32();
+    Flags = in->ReadInt32();
+
+    option_count = std::min<uint32_t>(option_count, options.size());
+    Options.resize(option_count);
+    std::copy_n(options.begin(), option_count, Options.begin());
 }
 
-void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogSvgVersion /*svg_ver*/)
+void DialogTopic::ReadFromFile_v363(Stream *in)
 {
-    in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
+    // Dialog topic settings
+    ScriptName = StrUtil::ReadString(in);
+    Flags = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+
+    // Options
+    uint32_t option_count = in->ReadInt32();
+    Options.resize(option_count);
+    for (auto &opt : Options)
+    {
+        opt.Text = StrUtil::ReadString(in);
+        opt.Flags = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+}
+
+void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTopicSvgVersion svg_ver)
+{
+    opt.Text = StrUtil::ReadString(in);
+    opt.Flags = in->ReadInt32();
+}
+
+void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
+{
+    // FIXME: assert count
+    if (svg_ver <= kDialogTopicSvgVer_Initial)
+    {
+        uint32_t opt_idx = 0;
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS && opt_idx < Options.size(); ++opt_idx)
+            Options[opt_idx].Flags = in->ReadInt32();
+        // skip if there's any mismatched count (?)
+        for (; opt_idx < LEGACY_MAXTOPICOPTIONS; ++opt_idx)
+            in->ReadInt32();
+
+        if (read_opt_count)
+            *read_opt_count = std::min<uint32_t>(Options.size(), LEGACY_MAXTOPICOPTIONS);
+    }
+    else
+    {
+        uint32_t option_records = in->ReadInt32();
+        uint32_t opt_idx = 0;
+        for (opt_idx = 0; opt_idx < option_records && opt_idx < Options.size(); ++opt_idx)
+            ReadOptionFromSavegame(Options[opt_idx], in, svg_ver);
+        // skip if there's any mismatched count (?)
+        DialogOption dummy;
+        for (; opt_idx < option_records; ++opt_idx)
+            ReadOptionFromSavegame(dummy, in, svg_ver);
+
+        if (read_opt_count)
+            *read_opt_count = option_records;
+    }
 }
 
 void DialogTopic::WriteToSavegame(Common::Stream *out) const
 {
-    out->WriteArrayOfInt32(optionflags, MAXTOPICOPTIONS);
+    out->WriteInt32(Options.size());
+    for (auto &opt : Options)
+    {
+        StrUtil::WriteString(opt.Text, out);
+        out->WriteInt32(opt.Flags);
+    }
 }

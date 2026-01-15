@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -76,6 +76,8 @@ public:
     int   following = -1; // whom do we follow (character id)
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction
+    int   blocking_x = 0; // relative offset of the blocking rect
+    int   blocking_y = 0;
     Common::BlendMode blend_mode = Common::kBlend_Normal;
     int   shader_id = 0;
     int   shader_handle = 0; // script shader handle

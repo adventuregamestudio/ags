@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -21,6 +21,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "gfx/bitmap.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -140,6 +141,11 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
     _offy = offy;
     _scaledSize = Size(game.SpriteInfos[sprnum].Width, game.SpriteInfos[sprnum].Height);
     MarkChanged();
+}
+
+void ScreenOverlay::SetText(const String &text)
+{
+    _text = text;
 }
 
 void ScreenOverlay::MarkImageChanged()
@@ -304,6 +310,10 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _scaledSize.Width = in->ReadInt32();
         _scaledSize.Height = in->ReadInt32();
     }
+    if (cmp_ver >= kOverSvgVersion_36304)
+    {
+        _text = StrUtil::ReadString(in);
+    }
 
     // New saves always save overlay images as a part of the dynamicsprite set;
     // old saves could contain images saved along with overlays
@@ -386,6 +396,8 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_transparency);
     out->WriteInt32(_scaledSize.Width);
     out->WriteInt32(_scaledSize.Height);
+    // kOverSvgVersion_36304
+    StrUtil::WriteString(_text, out);
     // since cmp_ver = 10
     out->WriteInt32(_blendMode);
     // Reserved for colour options

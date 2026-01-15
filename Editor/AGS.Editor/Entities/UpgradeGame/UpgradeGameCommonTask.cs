@@ -362,6 +362,17 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 3060304)
+            {
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl gc in gui.Controls)
+                    {
+                        Tasks.SetDefaultColors(game, gc, xmlVersionIndex);
+                    }
+                }
+            }
+
             //-----------------------------------------------------------------
             // v4.0 updates
             //-----------------------------------------------------------------

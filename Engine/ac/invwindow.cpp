@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -125,6 +125,16 @@ ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
   return &scrInv[charextra[guii->GetCharacterID()].invorder[index]];
 }
 
+int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y)
+{
+    int item_index = inv->GetItemIndexAt(at_x, at_y);
+    if ((item_index < 0) || (item_index >= charextra[inv->GetCharacterID()].invorder_count))
+        return -1;
+
+    return charextra[inv->GetCharacterID()].invorder[item_index];
+}
+
+//=============================================================================
 //=============================================================================
 //
 // Script API Functions

@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -835,6 +835,22 @@ int Object_GetBlockingHeight(ScriptObject *objj) {
     return objs[objj->id].blocking_height;
 }
 
+int Object_GetBlockingRectX(ScriptObject *objj) {
+    return objs[objj->id].blocking_x;
+}
+
+void Object_SetBlockingRectX(ScriptObject *objj, int x) {
+    objs[objj->id].blocking_x = x;
+}
+
+int Object_GetBlockingRectY(ScriptObject *objj) {
+    return objs[objj->id].blocking_y;
+}
+
+void Object_SetBlockingRectY(ScriptObject *objj, int y) {
+    objs[objj->id].blocking_y = y;
+}
+
 int Object_GetID(ScriptObject *objj) {
     return objj->id;
 }
@@ -1073,44 +1089,32 @@ void update_object_scale(int objid)
     obj.UpdateGraphicSpace();
 }
 
-void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
+Rect get_object_blocking_rect(int objid)
+{
     RoomObject *tehobj = &objs[objid];
-    int cwidth, fromx;
 
+    int width;
     if (tehobj->blocking_width < 1)
-        cwidth = tehobj->width - 4;
+        width = tehobj->width - 4;
     else
-        cwidth = tehobj->blocking_width;
+        width = tehobj->blocking_width;
 
-    fromx = tehobj->x + (tehobj->width / 2) - cwidth / 2;
-    if (fromx < 0) {
-        cwidth += fromx;
-        fromx = 0;
-    }
-    if (fromx + cwidth >= mask_to_room_coord(walkable_areas_temp->GetWidth()))
-        cwidth = mask_to_room_coord(walkable_areas_temp->GetWidth()) - fromx;
+    int x = tehobj->x + (tehobj->width / 2) - width / 2
+        + tehobj->blocking_x;
 
-    if (x1)
-        *x1 = fromx;
-    if (width)
-        *width = cwidth;
-    if (y1) {
-        if (tehobj->blocking_height > 0)
-            *y1 = tehobj->y - tehobj->blocking_height / 2;
-        else
-            *y1 = tehobj->y - 2;
-    }
-    if (y2) {
-        if (tehobj->blocking_height > 0)
-            *y2 = tehobj->y + tehobj->blocking_height / 2;
-        else
-            *y2 = tehobj->y + 3;
-    }
-}
+    int y1, y2;
+    if (tehobj->blocking_height > 0)
+        y1 = tehobj->y - tehobj->blocking_height / 2;
+    else
+        y1 = tehobj->y - 2;
+    if (tehobj->blocking_height > 0)
+        y2 = tehobj->y + tehobj->blocking_height / 2;
+    else
+        y2 = tehobj->y + 3;
+    y1 += tehobj->blocking_y;
+    y2 += tehobj->blocking_y;
 
-int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
-    if ((mmx>=lf) & (mmx<=rt) & (mmy>=tp) & (mmy<=bt)) return TRUE;
-    else return FALSE;
+    return RectWH(x, y1, width, y2 - y1);
 }
 
 // xx,yy is the position in room co-ordinates that we are checking
@@ -1121,8 +1125,8 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
     if (spww==0) spww = sprit->GetWidth() - 1;
     if (sphh==0) sphh = sprit->GetHeight() - 1;
 
-    if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
-        return FALSE;
+    if (!RectWH(arx, ary, spww, sphh).IsInside(xx, yy))
+        return false;
 
     if (game.options[OPT_PIXPERFECT]) 
     {
@@ -1630,6 +1634,26 @@ RuntimeScriptValue Sc_Object_SetBlockingWidth(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingWidth);
 }
 
+RuntimeScriptValue Sc_Object_GetBlockingRectX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingRectX);
+}
+
+RuntimeScriptValue Sc_Object_SetBlockingRectX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingRectX);
+}
+
+RuntimeScriptValue Sc_Object_GetBlockingRectY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingRectY);
+}
+
+RuntimeScriptValue Sc_Object_SetBlockingRectY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingRectY);
+}
+
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1889,6 +1913,10 @@ void RegisterObjectAPI()
         { "Object::set_BlockingHeight",       API_FN_PAIR(Object_SetBlockingHeight) },
         { "Object::get_BlockingWidth",        API_FN_PAIR(Object_GetBlockingWidth) },
         { "Object::set_BlockingWidth",        API_FN_PAIR(Object_SetBlockingWidth) },
+        { "Object::get_BlockingRectX",        API_FN_PAIR(Object_GetBlockingRectX) },
+        { "Object::set_BlockingRectX",        API_FN_PAIR(Object_SetBlockingRectX) },
+        { "Object::get_BlockingRectY",        API_FN_PAIR(Object_GetBlockingRectY) },
+        { "Object::set_BlockingRectY",        API_FN_PAIR(Object_SetBlockingRectY) },
         { "Object::get_Clickable",            API_FN_PAIR(Object_GetClickable) },
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
         { "Object::get_DestinationX",         API_FN_PAIR(Object_GetDestinationX) },

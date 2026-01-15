@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -49,7 +49,7 @@ void check_debug_keys();
 #define DBG_NOSFX      0x10
 #define DBG_NOMUSIC    0x20
 #define DBG_NOSCRIPT   0x40
-// #define DBG_DBGSCRIPT  0x80 // unused
+#define DBG_DBGSCRIPT  0x80
 #define DBG_DEBUGMODE 0x100
 #define DBG_REGONLY   0x200
 #define DBG_NOVIDEO   0x400

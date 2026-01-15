@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -227,6 +227,7 @@ enum RenderAtScreenRes
 #define SPF_KEEPDEPTH       0x40  // sprite must explicitly retain its original color depth
 // Runtime sprite flags follow
 #define SPF_OBJECTOWNED     0x0100 // owned by a game object (not created in user script)
+#define SPF_SURFACEACQUIRED 0x0400 // drawing surface acquired (in the process of drawing)
 
 // General information about sprite (properties, size)
 struct SpriteInfo
@@ -244,6 +245,8 @@ struct SpriteInfo
     inline Size GetResolution() const { return Size(Width, Height); }
     // Gets if sprite is created at runtime (by engine, or a script command)
     inline bool IsDynamicSprite() const { return (Flags & SPF_DYNAMICALLOC) != 0; }
+    // Gets if this sprite's bitmap is acquired for drawing at this time
+    inline bool IsSurfaceAcquired() const { return (Flags & SPF_SURFACEACQUIRED) != 0; }
 };
 
 // Various font parameters, defining and extending font rendering behavior.

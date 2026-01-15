@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -416,13 +416,14 @@ void engine_init_debug()
 {
     if (usetup.ShowFps)
         display_fps = kFPS_Forced;
-    if ((debug_flags & (~DBG_DEBUGMODE)) >0) {
-        platform->DisplayAlert("Engine debugging enabled.\n"
-            "\nNOTE: You have selected to enable one or more engine debugging options.\n"
-            "These options cause many parts of the game to behave abnormally, and you\n"
-            "may not see the game as you are used to it. The point is to test whether\n"
+    if ((debug_flags & (~(DBG_DEBUGMODE | DBG_DBGSCRIPT))) > 0)
+    {
+        platform->DisplayAlert("Engine debugging mode enabled.\n"
+            "\nNOTE: You have selected to enable one or more engine debugging options. "
+            "These options cause many parts of the game to behave abnormally, and you "
+            "may not see the game as you are used to it. The point is to test whether "
             "the engine passes a point where it is crashing on you normally.\n"
-            "[Debug flags enabled: 0x%02X]",debug_flags);
+            "[Debug flags enabled: 0x%02X]", debug_flags);
     }
 }
 
@@ -821,7 +822,6 @@ void engine_init_game_settings()
     GUIE::MarkForFontUpdate(-1);
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
-    memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
     play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!usetup.Translation.IsEmpty())
@@ -1291,6 +1291,9 @@ int initialize_engine(const ConfigTree &startup_opts)
         platform->DisplayAlert("Could not load sprite set file:\n%s", err->FullMessage().GetCStr());
         return EXIT_ERROR;
     }
+
+    if ((debug_flags & DBG_DBGSCRIPT) != 0)
+        ccSetDebugLogging(true);
 
     // TODO: move *init_game_settings to game init code unit
     engine_init_game_settings();

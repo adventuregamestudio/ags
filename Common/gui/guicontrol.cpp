@@ -21,6 +21,12 @@ namespace AGS
 namespace Common
 {
 
+GUIControl::GUIControl(const ScriptEventSchema *schema)
+    : GUIObject(schema)
+{
+    UpdateControlRect();
+}
+
 void GUIControl::SetParentID(int parent_id)
 {
     _parentID = parent_id;
@@ -73,9 +79,130 @@ void GUIControl::SetVisible(bool on)
     }
 }
 
+void GUIControl::SetShowBorder(bool on)
+{
+    if (on != ((_flags & kGUICtrl_ShowBorder) != 0))
+    {
+        _flags = (_flags & ~kGUICtrl_ShowBorder) | kGUICtrl_ShowBorder * on;
+        UpdateControlRect();
+    }
+}
+
+void GUIControl::SetSolidBackground(bool on)
+{
+    if (on != ((_flags & kGUICtrl_SolidBack) != 0))
+    {
+        _flags = (_flags & ~kGUICtrl_SolidBack) | kGUICtrl_SolidBack * on;
+        MarkChanged();
+    }
+}
+
+void GUIControl::SetBackColor(int color)
+{
+    if (_backgroundColor != color)
+    {
+        _backgroundColor = color;
+        OnColorsChanged();
+    }
+}
+
+void GUIControl::SetBorderColor(int color)
+{
+    if (_borderColor != color)
+    {
+        _borderColor = color;
+        OnColorsChanged();
+    }
+}
+
+void GUIControl::SetBorderWidth(int border_width)
+{
+    border_width = std::max(0, border_width);
+    if (_borderWidth != border_width)
+    {
+        _borderWidth = border_width;
+        UpdateControlRect();
+    }
+}
+
+void GUIControl::SetPaddingX(int padx)
+{
+    padx = std::max(0, padx);
+    if (_paddingX != padx)
+    {
+        _paddingX = padx;
+        UpdateControlRect();
+    }
+}
+
+void GUIControl::SetPaddingY(int pady)
+{
+    pady = std::max(0, pady);
+    if (_paddingY != pady)
+    {
+        _paddingY = pady;
+        UpdateControlRect();
+    }
+}
+
 void GUIControl::SetActivated(bool on)
 {
     _isActivated = on;
+}
+
+void GUIControl::UpdateVisualState()
+{
+    UpdateControlRect();
+    MarkPositionChanged(true, true);
+}
+
+void GUIControl::OnColorsChanged()
+{
+    MarkChanged();
+}
+
+void GUIControl::OnContentRectChanged()
+{
+    MarkChanged();
+}
+
+void GUIControl::OnResized()
+{
+    UpdateControlRect();
+    UpdateGraphicSpace();
+    MarkPositionChanged(true, false);
+}
+
+void GUIControl::DrawControlFrame(Bitmap *ds, int x, int y)
+{
+    const int bg_color = ds->GetCompatibleColor(_backgroundColor);
+    const int border_color = ds->GetCompatibleColor(_borderColor);
+    const int border_width = _borderWidth;
+
+    if (IsSolidBackground())
+    {
+        ds->FillRect(RectWH(x, y, _width, _height), bg_color);
+    }
+
+    if (IsShowBorder())
+    {
+        for (int i = 0; i < border_width; ++i)
+        {
+            ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), border_color);
+        }
+    }
+}
+
+void GUIControl::UpdateControlRect()
+{
+    if (IsShowBorder())
+        _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY,
+                            _width - _borderWidth * 2 - _paddingX * 2, _height - _borderWidth * 2 - _paddingY * 2);
+    else
+        _innerRect = RectWH(_paddingX, _paddingY,
+                            _width - _paddingX * 2, _height - _paddingY * 2);
+
+    OnContentRectChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -110,7 +237,22 @@ void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 
     //UpdateGraphicSpace(); // can't do here, because sprite infos may not be loaded yet
-    MarkChanged();
+    UpdateControlRect();
+}
+
+void GUIControl::ReadFromFile_Ext363(Common::Stream *in, GuiVersion gui_version)
+{
+    _backgroundColor = in->ReadInt32();
+    _borderColor = in->ReadInt32();
+    _borderWidth = in->ReadInt32();
+    _paddingX = in->ReadInt32();
+    _paddingY = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+
+    UpdateControlRect();
 }
 
 void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -128,10 +270,21 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_36023)
     {
         _transparency = in->ReadInt32();
-        in->ReadInt32(); // reserve up to 4 ints
+        // valid since kGuiSvgVersion_36304
+        _backgroundColor = in->ReadInt32();
+        _borderColor = in->ReadInt32();
+        _borderWidth = in->ReadInt32();
+    }
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _paddingX = in->ReadInt32();
+        _paddingY = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
         in->ReadInt32();
         in->ReadInt32();
     }
+    // NOTE: bw-compat frame properties have to be assigned by each control type separately
 
     if (svg_ver >= kGuiSvgVersion_40016)
     {
@@ -172,6 +325,7 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _shaderHandle = 0;
     }
 
+    UpdateControlRect();
     UpdateGraphicSpace();
     MarkChanged();
 }
@@ -189,7 +343,15 @@ void GUIControl::WriteToSavegame(Stream *out) const
     out->WriteBool(_isActivated != 0);
     // kGuiSvgVersion_36023
     out->WriteInt32(_transparency);
-    out->WriteInt32(0); // reserve up to 4 ints
+    // valid since kGuiSvgVersion_36304
+    out->WriteInt32(_backgroundColor);
+    out->WriteInt32(_borderColor);
+    out->WriteInt32(_borderWidth);
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_paddingX);
+    out->WriteInt32(_paddingY);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
     // kGuiSvgVersion_40016

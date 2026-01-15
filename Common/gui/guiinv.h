@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -40,6 +40,8 @@ public:
     // This function has distinct implementations in Engine and Editor
     int  GetCharacterID() const;
     void SetCharacterID(int charid);
+    // Returns item *slot* index under the given relative coordinates
+    int  GetItemIndexAt(int at_x, int at_y);
 
     // Script Events
     // Gets a events schema corresponding to this object's type
@@ -58,11 +60,15 @@ public:
 
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void ReadFromFile_Ext363(Stream *in, GuiVersion gui_version) override;
     void WriteToFile(Stream *out) const override;
     void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
     void WriteToSavegame(Common::Stream *out) const override;
 
 private:
+    // Internal control's region (content region) was resized
+    void OnContentRectChanged() override;
+
     void CalculateNumCells();
 
     static const int DefaultItemWidth = 40;

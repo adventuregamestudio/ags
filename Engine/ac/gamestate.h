@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include <unordered_set>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
@@ -58,6 +59,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_361_14    = 4,
     kGSSvgVersion_363       = 3060300,
     kGSSvgVersion_363_02    = 3060302,
+    kGSSvgVersion_363_04    = 3060304,
     kGSSvgVersion_400       = 4000000,
     kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
@@ -215,7 +217,6 @@ struct GamePlayState
     bool  voice_avail = false;      // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int   speech_skip_style = 0; // stores SKIP_* flags
-    int   script_timers[MAX_TIMERS]{};
     int   speech_volume = 0; // in 0-255 !!
     int   normal_font = 0;
     int   speech_font = 0;
@@ -448,6 +449,14 @@ struct GamePlayState
     bool ShouldPlayVoiceSpeechNonBlocking() const;
 
     //
+    // Script Timers
+    //
+    void StartScriptTimer(int timer_id, int timeout);
+    int  GetScriptTimerPos(int timer_id);
+    bool CheckScriptTimer(int timer_id);
+    void UpdateScriptTimers();
+
+    //
     // Serialization
     //
     void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
@@ -491,7 +500,11 @@ private:
     // Tells that room viewports need z-order resort
     bool  _roomViewportZOrderChanged = false;
 
+    // A time point until which the user input will be ignored
     AGS::Engine::Clock::time_point _ignoreUserInputUntilTime{};
+
+    // Script Timers: simple game tick counters with arbitrary ID
+    std::unordered_map<int32_t, int32_t> _scriptTimers;
 };
 
 extern GamePlayState play;

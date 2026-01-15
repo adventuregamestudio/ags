@@ -39,7 +39,7 @@ namespace AGS.Editor
         public static readonly int MAX_PARSER_WORD_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_PARSER_WORD_LENGTH");
         public static readonly int MAX_INV = (int)Factory.NativeProxy.GetNativeConstant("MAX_INV");
         public static readonly int MAXLIPSYNCFRAMES = (int)Factory.NativeProxy.GetNativeConstant("MAXLIPSYNCFRAMES");
-        public static readonly int MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("MAXTOPICOPTIONS");
+        public static readonly int LEGACY_MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("LEGACY_MAXTOPICOPTIONS");
         public static readonly short UNIFORM_WALK_SPEED = (short)(int)Factory.NativeProxy.GetNativeConstant("UNIFORM_WALK_SPEED");
         public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
         public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
@@ -56,6 +56,10 @@ namespace AGS.Editor
         public static readonly int GUIF_CLIP = (int)Factory.NativeProxy.GetNativeConstant("GUIF_CLIP");
         public static readonly int GUIF_TRANSLATED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_TRANSLATED");
         public static readonly int GUIF_WRAPTEXT = (int)Factory.NativeProxy.GetNativeConstant("GUIF_WRAPTEXT");
+        public static readonly int GUIF_SHOWBORDER = (int)Factory.NativeProxy.GetNativeConstant("GUIF_SHOWBORDER");
+        public static readonly int GUIF_SOLIDBACK = (int)Factory.NativeProxy.GetNativeConstant("GUIF_SOLIDBACK");
+        public static readonly int GBUTF_DYNAMICCOLORS = (int)Factory.NativeProxy.GetNativeConstant("GBUTF_DYNAMICCOLORS");
+        public static readonly int GBUTF_FLATSTYLE = (int)Factory.NativeProxy.GetNativeConstant("GBUTF_FLATSTYLE");
         public static readonly int GLF_SHOWBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_SHOWBORDER");
         public static readonly int GLF_SHOWARROWS = (int)Factory.NativeProxy.GetNativeConstant("GLF_SHOWARROWS");
         public static readonly int GUI_POPUP_MODAL = (int)Factory.NativeProxy.GetNativeConstant("GUI_POPUP_MODAL");

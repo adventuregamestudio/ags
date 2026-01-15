@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -516,7 +516,6 @@ void ScriptExecutor::NotifyAlive()
 ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count)
 {
     const bool is_nested_run = _current != nullptr;
-
     const RuntimeScript *was_running = _current;
     const int oldpc = _pc;
     const int oldlinenum = _lineNumber;

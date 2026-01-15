@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -23,20 +23,6 @@ namespace AGS
 namespace Common
 {
 
-enum GUIClickMouseButton
-{
-    kGUIClickLeft         = 0,
-    kGUIClickRight        = 1,
-    kNumGUIClicks
-};
-
-enum GUIClickAction
-{
-    kGUIAction_None       = 0,
-    kGUIAction_SetMode    = 1,
-    kGUIAction_RunScript  = 2,
-};
-
 // Defines button placeholder mode; the mode is set
 // depending on special tags found in button text
 enum GUIButtonPlaceholder
@@ -45,6 +31,20 @@ enum GUIButtonPlaceholder
     kButtonPlace_InvItemStretch,
     kButtonPlace_InvItemCenter,
     kButtonPlace_InvItemAuto
+};
+
+enum GUIClickMouseButton
+{
+    kGUIClickLeft = 0,
+    kGUIClickRight = 1,
+    kNumGUIClicks
+};
+
+enum GUIClickAction
+{
+    kGUIAction_None = 0,
+    kGUIAction_SetMode = 1,
+    kGUIAction_RunScript = 2,
 };
 
 // Button event indexes;
@@ -61,22 +61,37 @@ class GUIButton : public GUIControl
 {
 public:
     // Default text padding
-    static const int DefaultHorPadding = 2;
-    static const int DefaultVerPadding = 2;
+    static const int DefaultHorPadding = 1;
+    static const int DefaultVerPadding = 1;
 
     GUIButton();
 
     // Properties
+    void SetButtonFlags(int flags);
     int  GetFont() const { return _font; }
     void SetFont(int font);
+    bool IsDynamicColors() const { return ((_buttonFlags & kButton_DynamicColors) != 0); }
+    void SetDynamicColors(bool on);
+    bool IsFlatStyle() const { return ((_buttonFlags & kButton_FlatStyle) != 0); }
+    void SetFlatStyle(bool on);
+    int  GetMouseOverBackColor() const { return _mouseOverBackColor; }
+    void SetMouseOverBackColor(int color);
+    int  GetPushedBackColor() const { return _pushedBackColor; }
+    void SetPushedBackColor(int color);
+    int  GetMouseOverBorderColor() const { return _mouseOverBorderColor; }
+    void SetMouseOverBorderColor(int color);
+    int  GetPushedBorderColor() const { return _pushedBorderColor; }
+    void SetPushedBorderColor(int color);
+    int  GetShadowColor() const { return _shadowColor; }
+    void SetShadowColor(int color);
     int  GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
+    int  GetMouseOverTextColor() const { return _mouseOverTextColor; }
+    void SetMouseOverTextColor(int color);
+    int  GetPushedTextColor() const { return _pushedTextColor; }
+    void SetPushedTextColor(int color);
     FrameAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(FrameAlignment align);
-    int  GetTextPaddingHor() const { return _textPaddingHor; }
-    void SetTextPaddingHor(int padding);
-    int  GetTextPaddingVer() const { return _textPaddingVer; }
-    void SetTextPaddingVer(int padding);
 
     int  GetCurrentImage() const;
     int  GetNormalImage() const;
@@ -92,6 +107,14 @@ public:
     bool IsClippingImage() const;
     bool HasAction() const;
 
+    void SetClipImage(bool on);
+    void SetMouseOverImage(int image);
+    void SetNormalImage(int image);
+    void SetPushedImage(int image);
+    void SetImages(int normal, int over, int pushed);
+    void SetText(const String &text);
+    void SetWrapText(bool on);
+
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;
     void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
@@ -104,16 +127,9 @@ public:
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
-    void SetClipImage(bool on);
-    void SetCurrentImage(int image, SpriteTransformFlags flags = kSprTf_None, int xoff = 0, int yoff = 0);
-    void SetMouseOverImage(int image);
-    void SetNormalImage(int image);
-    void SetPushedImage(int image);
     void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None, int xoff = 0, int yoff = 0);
     void SetImageFlags(SpriteTransformFlags flags);
     void SetImageFlip(GraphicFlip flip);
-    void SetText(const String &text);
-    void SetWrapText(bool on);
 
     // Events
     bool OnMouseDown() override;
@@ -123,30 +139,46 @@ public:
   
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+    void ReadFromFile_Ext363(Stream *in, GuiVersion gui_version) override;
     void WriteToFile(Stream *out) const override;
-    void ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver) override;
-    void WriteToSavegame(Common::Stream *out) const override;
+    void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver) override;
+    void WriteToSavegame(Stream *out) const override;
+
+    // Upgrades the GUI control to default looks for 3.6.3
+    void SetDefaultLooksFor363() override;
 
 private:
+    // Reports that any of the basic colors have changed;
+    // the button will update its current colors depending on its state
+    void OnColorsChanged() override;
+
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void PrepareTextToDraw();
-    // Update current image depending on the button's state
+    // Update current image and colors depending on the button's state
     void UpdateCurrentImage();
+    void SetCurrentImage(int image, SpriteTransformFlags flags, int xoff, int yoff);
+    void SetCurrentColors(int bg_color, int border_color, int text_color);
 
     // Script events schema
     static ScriptEventSchema _eventSchema;
 
-    int     _font = 0;
+    uint32_t _buttonFlags = 0u;
+    color_t _shadowColor = 0;
     color_t _textColor = 0;
+    color_t _mouseOverBackColor = 0;
+    color_t _pushedBackColor = 0;
+    color_t _mouseOverBorderColor = 0;
+    color_t _pushedBorderColor = 0;
+    color_t _mouseOverTextColor = 0;
+    color_t _pushedTextColor = 0;
+    int     _font = 0;
     FrameAlignment _textAlignment = kAlignTopCenter;
     // TODO: flags for each kind of image?
     SpriteTransformFlags _imageFlags = kSprTf_None;
     int     _imageXOff = 0;
     int     _imageYOff = 0;
-    int     _textPaddingHor = DefaultHorPadding;
-    int     _textPaddingVer = DefaultVerPadding;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     GUIClickAction _clickAction[kNumGUIClicks];
@@ -158,11 +190,15 @@ private:
     int     _image = -1;
     int     _mouseOverImage = -1;
     int     _pushedImage = -1;
-    // Active displayed image
+    // Active displayed image (depends on button state)
     int     _currentImage = -1;
     SpriteTransformFlags _curImageFlags = kSprTf_None;
     int     _curImageXOff = 0;
     int     _curImageYOff = 0;
+    // Active colors (depend on button state)
+    color_t _currentBgColor = 0;
+    color_t _currentBorderColor = 0;
+    color_t _currentTextColor = 0;
     // Text property set by user
     String  _text;
     // type of content placeholder, if any

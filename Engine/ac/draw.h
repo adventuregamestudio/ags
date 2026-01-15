@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -240,6 +240,7 @@ Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect
 
 
 // TODO: hide these behind some kind of an interface
+// Stores cloned surfaces (see DrawingSurface.CreateCopy)
 extern std::unique_ptr<Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 #endif // __AGS_EE_AC__DRAW_H

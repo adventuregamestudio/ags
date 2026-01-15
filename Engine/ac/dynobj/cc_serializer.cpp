@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -53,8 +53,6 @@ extern CCGUI       ccDynamicGUI;
 extern CCTextWindowGUI ccDynamicTextWindowGUI;
 extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
-extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
-extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern std::vector<PluginObjectReader> pluginReaders;
 extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
@@ -168,16 +166,13 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     else if (strcmp(objectType, "DrawingSurface") == 0) {
         ScriptDrawingSurface *sds = new ScriptDrawingSurface();
         sds->Unserialize(index, &mems, data_sz);
-
-        if (sds->isLinkedBitmapOnly)
-        {
-            dialogOptionsRenderingSurface = sds;
-        }
     }
     else if (strcmp(objectType, "DialogOptionsRendering") == 0 || // old historical name
              strcmp(objectType, "DialogOptionsRenderingInfo") == 0)
     {
-        ccDialogOptionsRendering.Unserialize(index, &mems, data_sz);
+        // We do not restore DialogOptionsRendering object, so register a dummy obj instead
+        ScriptDialogOptionsRendering *dopts_render = new ScriptDialogOptionsRendering();
+        ccRegisterUnserializedObject(index, dopts_render, dopts_render);
     }
     else if (strcmp(objectType, "StringDictionary") == 0 || // old historical name
              strcmp(objectType, "Dictionary") == 0)

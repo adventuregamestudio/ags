@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -130,7 +130,8 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _pages.emplace_back(new BasicPageDialog(_winCfg, _cfgIn));
     _pages.emplace_back(new AdvancedPageDialog(_winCfg, _cfgIn));
     _pages.emplace_back(new GameFilesPageDialog(_winCfg, _cfgIn));
-    _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn, _cfgOut));
+    if (AccessibilityPageDialog::ShouldDisplayPage(_cfgIn))
+        _pages.emplace_back(new AccessibilityPageDialog(_winCfg, _cfgIn, _cfgOut));
     _pager.reset(new PageControl(_hTabber));
     for (auto &p : _pages)
         _pager->AddPage(p);

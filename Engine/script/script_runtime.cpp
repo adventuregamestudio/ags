@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -182,4 +182,9 @@ void ccNotifyScriptStillAlive ()
 void ccSetDebugHook(new_line_hook_type jibble)
 {
     new_line_hook = jibble;
+}
+
+void ccSetDebugLogging(bool on)
+{
+    ccSetOption(SCOPT_DEBUGRUN, on);
 }

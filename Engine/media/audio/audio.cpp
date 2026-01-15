@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -562,7 +562,6 @@ int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxD
 {
     int distx = playerchar->x - sndX;
     int disty = playerchar->y - sndY;
-    // it uses Allegro's "fix" sqrt without the ::
     int dist = (int)::sqrt((double)(distx*distx + disty*disty));
 
     // if they're quite close, full volume

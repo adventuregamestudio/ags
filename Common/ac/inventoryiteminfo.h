@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -29,6 +29,13 @@ enum InventoryEventID
     kInventoryEvent_AnyClick = 0
 };
 
+enum InvitemSvgVersion
+{
+    kInvitemSvgVersion_Initial = 0,
+    kInvitemSvgVersion_36304 = 3060304, // hotspot
+};
+
+
 struct InventoryItemInfo
 {
     AGS::Common::String name = {};
@@ -49,7 +56,7 @@ struct InventoryItemInfo
 
     void ReadFromFile(AGS::Common::Stream *in);
     void WriteToFile(AGS::Common::Stream *out);
-    void ReadFromSavegame(AGS::Common::Stream *in);
+    void ReadFromSavegame(AGS::Common::Stream *in, InvitemSvgVersion svg_ver);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 
 private:

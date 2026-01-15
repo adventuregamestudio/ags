@@ -18,9 +18,11 @@ namespace AGS.Types
         public GUITextBox(int x, int y, int width, int height)
             : base(x, y, width, height)
         {
-            _text = string.Empty;
-            _showBorder = true;
+            ShowBorder = true; // border is visible by default
             _font = 0;
+            PaddingX = 1;
+            PaddingY = 1;
+            _textAlign = FrameAlignment.TopLeft;
         }
 
         public GUITextBox(XmlNode node) : base(node)
@@ -29,10 +31,10 @@ namespace AGS.Types
 
         public GUITextBox() { }
 
-        private string _text;
+        private string _text = string.Empty;
         private int _font;
         private int _textColor;
-        private bool _showBorder;
+        private FrameAlignment _textAlign = FrameAlignment.TopLeft;
         private string _onActivate = string.Empty;
 
         [Description("Script function to run when return is pressed in the text box")]
@@ -50,7 +52,6 @@ namespace AGS.Types
         [Description("Colour of the text")]
         [Category("Appearance")]
         [DisplayName("TextColor")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -69,12 +70,12 @@ namespace AGS.Types
             set { _font = value; }
         }
 
-        [Description("Determines whether the border of the text box is drawn")]
+        [Description("Position on the control where the text is displayed")]
         [Category("Appearance")]
-        public bool ShowBorder
+        public FrameAlignment TextAlignment
         {
-            get { return _showBorder; }
-            set { _showBorder = value; }
+            get { return _textAlign; }
+            set { _textAlign = value; }
         }
 
         public override string ControlType

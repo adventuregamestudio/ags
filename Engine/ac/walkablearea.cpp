@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -109,29 +109,16 @@ void scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight)
         newheight[0] = 1;
 }
 
-void remove_walkable_areas_from_temp(int fromx, int cwidth, int starty, int endy) {
-    fromx = room_to_mask_coord(fromx);
-    cwidth = room_to_mask_coord(cwidth);
-    starty = room_to_mask_coord(starty);
-    endy = room_to_mask_coord(endy);
-    int yyy;
-    if (endy >= walkable_areas_temp->GetHeight())
-        endy = walkable_areas_temp->GetHeight() - 1;
-    if (starty < 0)
-        starty = 0;
+void remove_walkable_areas_from_temp(const Rect &area)
+{
+    const Rect mask_area = Rect(
+        room_to_mask_coord(area.Left),
+        room_to_mask_coord(area.Top),
+        room_to_mask_coord(area.Right),
+        room_to_mask_coord(area.Bottom)
+    );
 
-    for (; cwidth > 0; cwidth --) {
-        for (yyy = starty; yyy <= endy; yyy++)
-            walkable_areas_temp->PutPixel (fromx, yyy, 0);
-        fromx ++;
-    }
-
-}
-
-int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
-    if ((x >= left) && (x < right) && (y >= top ) && (y <= bottom))
-        return 1;
-    return 0;
+    walkable_areas_temp->FillRect(mask_area, 0);
 }
 
 // TODO: possibly optimize this by caching and/or knowing if walkable area changed since the last call?
@@ -154,14 +141,13 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
         if ((game.chars[ww].y < 0) || (game.chars[ww].x < 0)) continue;
 
         CharacterInfo *char1 = &game.chars[ww];
-        int cwidth, fromx;
-
         // If walking character is already inside that other character's blocking rect,
         // then ignore that blocking rect (otherwise character may get stuck forever)
-        if (is_char_in_blocking_rect(sourceChar, ww, &fromx, &cwidth))
+        const Rect brect = get_char_blocking_rect(ww);
+        if ((sourceChar >= 0) && brect.IsInside(game.chars[sourceChar].x, game.chars[sourceChar].y))
             continue;
 
-        remove_walkable_areas_from_temp(fromx, cwidth, char1->get_blocking_top(), char1->get_blocking_bottom());
+        remove_walkable_areas_from_temp(brect);
     }
 
     // check for any blocking objects in the room, and deal with them as well
@@ -173,17 +159,15 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
         if (room_to_mask_coord(objs[ww].x) >= walkable_areas_temp->GetWidth()) continue;
         if ((objs[ww].y < 0) || (objs[ww].x < 0)) continue;
 
-        int x1, y1, width, y2;
-        get_object_blocking_rect(ww, &x1, &y1, &width, &y2);
+        Rect brect = get_object_blocking_rect(ww);
 
         // if the character is currently standing on the object, ignore
         // it so as to allow him to escape
         if ((sourceChar >= 0) &&
-            (is_point_in_rect(game.chars[sourceChar].x, game.chars[sourceChar].y, 
-            x1, y1, x1 + width, y2)))
+            brect.IsInside(game.chars[sourceChar].x, game.chars[sourceChar].y))
             continue;
 
-        remove_walkable_areas_from_temp(x1, width, y1, y2);
+        remove_walkable_areas_from_temp(brect);
     }
 
     return walkable_areas_temp;

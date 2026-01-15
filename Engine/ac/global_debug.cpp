@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -94,19 +94,23 @@ String GetRuntimeInfo()
 }
 
 void script_debug(int cmdd,int dataa) {
-    if (play.debug_mode==0) return;
-    int rr;
-    if (cmdd==0) {
-        for (rr=1;rr<game.numinvitems;rr++)
-            playerchar->inv[rr]=1;
+    if (play.debug_mode==0)
+        return;
+
+    if (cmdd==0)
+    {
+        for (int i = 1; i < game.numinvitems; ++i)
+            playerchar->inv[i]=1;
         UpdateInventory();
     }
-    else if (cmdd==1) {
+    else if (cmdd==1)
+    {
         String toDisplay = GetRuntimeInfo();
         DisplayMB(toDisplay.GetCStr());
     }
     else if (cmdd==2) 
-    {  // show room mask
+    {
+        // show room mask
         auto mask = static_cast<RoomAreaMask>(dataa);
         if ((mask < kRoomAreaNone) || (mask > kRoomAreaRegion) ||
             (debugLastRoomMask == mask)) // also act like toggling last mask off
@@ -134,16 +138,19 @@ void script_debug(int cmdd,int dataa) {
         if (goToRoom >= 0) 
             NewRoom(goToRoom);
     }
-    else if (cmdd == 4) {
+    else if (cmdd == 4)
+    {
         if (display_fps != kFPS_Forced)
             display_fps = (FPSDisplayMode)dataa;
     }
-    else if (cmdd == 5) {
+    else if (cmdd == 5)
+    {
         // show the given character's pathfinding; act like a on/off toggle
         debugLastMoveChar = dataa == debugLastMoveChar ? -1 : dataa;
         debug_draw_movelist(dataa);
     }
-    else if (cmdd == 99)
-        ccSetOption(SCOPT_DEBUGRUN, dataa);
-    else quit("!Debug: unknown command code");
+    else
+    {
+        debug_script_warn("Debug: unknown command code %d", cmdd);
+    }
 }

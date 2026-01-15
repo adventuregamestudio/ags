@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -35,6 +35,7 @@
 #include "ac/dynobj/scriptoverlay.h"
 #include "core/types.h"
 #include "gfx/gfx_def.h"
+#include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; class Stream; class GraphicSpace; } }
@@ -64,6 +65,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_36025   = 3, // merged options into flags
     kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
     kOverSvgVersion_36303   = 3060303, // visible flag must be on by default
+    kOverSvgVersion_36304   = 3060304, // text property
     kOverSvgVersion_400     = 4000000, // blend mode, etc
     kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
     kOverSvgVersion_40018   = 4000018, // shaders
@@ -116,6 +118,7 @@ public:
     int  GetSpriteNum() const { return _sprnum; }
     // Get this overlay's graphic's dimensions (unscaled)
     Size GetGraphicSize() const;
+    const Common::String &GetText() const { return _text; }
     // Gets shader id
     int  GetShaderID() const { return _shaderID; }
     // Gets script shader's managed handle
@@ -142,6 +145,8 @@ public:
     void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx = 0, int offy = 0);
     // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
+    // Sets this overlay's description
+    void SetText(const Common::String &text);
     // Assigns flip setting
     void SetFlip(Common::GraphicFlip flip);
     // Assigns overlay transparency (0 - 255)
@@ -233,6 +238,8 @@ private:
     int _shaderHandle = 0;
     // Timeout for automatic removal, 0 means disabled
     int _timeout = 0;
+    // Optional textual description
+    Common::String _text;
     // Index of a Character whose speech (blocking or bg) this overlay represents;
     // TODO: redesign this, store the overlay's reference in character instead,
     // overlay should not have such data as its member.

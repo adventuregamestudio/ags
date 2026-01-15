@@ -41,6 +41,13 @@ namespace AGS.Types
         private bool _enabled = true;
         private bool _visible = true;
         private bool _translated = true;
+        private int _backgroundColor = 0;
+        private int _borderColor = 0;
+        private bool _showBorder = false;
+        private bool _solidBackground = false;
+        private int _borderWidth = 1;
+        private int _paddingX = 0;
+        private int _paddingY = 0;
         private int _transparency = 0;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.GUIControls);
 
@@ -119,8 +126,7 @@ namespace AGS.Types
             set { _y = value; }
         }
 
-        [ReadOnly(true)]
-        [Description("How the control overlaps with other controls (to change, right-click the control)")]
+        [Description("How the control overlaps with other controls. Limited to a range of 0 to (controls count - 1)")]
         [Category("Layout")]
         public int ZOrder
         {
@@ -180,6 +186,66 @@ namespace AGS.Types
         {
             get { return _translated; }
             set { _translated = value; }
+        }
+
+        [Description("Background color of the Control")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int BackgroundColor
+        {
+            get { return _backgroundColor; }
+            set { _backgroundColor = value; }
+        }
+
+        [Description("Border color of the Control")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int BorderColor
+        {
+            get { return _borderColor; }
+            set { _borderColor = value; }
+        }
+
+        [Description("Determines whether the border of the Control is drawn")]
+        [Category("Appearance")]
+        public bool ShowBorder
+        {
+            get { return _showBorder; }
+            set { _showBorder = value; }
+        }
+
+        [Description("Determines whether the background of the Control is painted with color")]
+        [Category("Appearance")]
+        public bool SolidBackground
+        {
+            get { return _solidBackground; }
+            set { _solidBackground = value; }
+        }
+
+        [Description("Border width (thickness) of the Control, in pixels")]
+        [Category("Appearance")]
+        public int BorderWidth
+        {
+            get { return _borderWidth; }
+            set { _borderWidth = value; }
+        }
+
+        [Description("A distance between Control's horizontal borders and its interior content, such as text")]
+        [Category("Appearance")]
+        public int PaddingX
+        {
+            get { return _paddingX; }
+            set { _paddingX = Math.Max(0, value); }
+        }
+
+        [Description("A distance between Control's vertical borders and its interior content, such as text")]
+        [Category("Appearance")]
+        public int PaddingY
+        {
+            get { return _paddingY; }
+            set { _paddingY = Math.Max(0, value); }
         }
 
         [Description("The blend mode for the Control")]

@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -470,6 +470,7 @@ std::vector<SpriteListEntry> sprlist;
 
 // For raw drawing
 std::unique_ptr<Bitmap> raw_saved_screen;
+// Stores cloned surfaces (see DrawingSurface.CreateCopy)
 std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
@@ -1843,7 +1844,8 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
         // 8-bit support: ensure that anti-aliasing routines have a palette
         // to use for mapping while faded out.
         // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
-        const bool do_select_palette = (in_new_room > 0) && play.ShouldAASprites() && (src->GetColorDepth() == 1);
+        const bool do_select_palette = (in_new_room != kEnterRoom_None)
+            && play.ShouldAASprites() && (src->GetColorDepth() == 1);
         if (do_select_palette)
             select_palette(palette);
 
@@ -2947,10 +2949,11 @@ static void construct_overlays()
             overcache.resize(overs.size(), Point(INT32_MIN, INT32_MIN));
     }
 
+    // TODO: an iterator that goes over only valid elements
     for (size_t i = 0; i < overs.size(); ++i)
     {
+        if (overs.IsFree(i)) continue; // empty slot
         auto &over = overs[i];
-        if (over.GetID() < 0) continue; // empty slot
         if (over.GetTransparency() == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
@@ -3233,7 +3236,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         return;
     // Don't render if we've just entered new room and are before fade-in
     // TODO: find out why this is not skipped for 8-bit games
-    if ((in_new_room > 0) & (game.color_depth > 1))
+    if ((in_new_room != kEnterRoom_None) & (game.color_depth > 1))
         return;
 
     // TODO: find out if it's okay to move shake to update function

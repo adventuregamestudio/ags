@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -94,10 +94,11 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 
 void update_script_timers()
 {
-  if (play.gscript_timer > 0) play.gscript_timer--;
-  for (int aa=0;aa<MAX_TIMERS;aa++) {
-    if (play.script_timers[aa] > 1) play.script_timers[aa]--;
-    }
+    // Deprecated "graphical script" timer (use unknown)
+    if (play.gscript_timer > 0)
+        play.gscript_timer--;
+
+    play.UpdateScriptTimers();
 }
 
 void update_cycling_views()
@@ -399,7 +400,6 @@ void update_sierra_speech()
   }
 }
 
-// Moves and animates objects, updates timers, etc
 void update_game_objects()
 {
   set_our_eip(20);

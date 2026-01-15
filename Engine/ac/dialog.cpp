@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -71,8 +71,6 @@ extern std::vector<ScriptGUI> scrGui;
 extern CCGUI ccDynamicGUI;
 
 std::vector<DialogTopic> dialog;
-ScriptDialogOptionsRendering ccDialogOptionsRendering;
-ScriptDrawingSurface* dialogOptionsRenderingSurface;
 std::unique_ptr<DialogExec> dialogExec; // current running dialog state
 std::unique_ptr<DialogOptions> dialogOpts; // current running dialog options
 
@@ -123,9 +121,9 @@ void StopDialog()
 
 void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script = false)
 {
-    if ((dlg < 0) | (dlg >= game.numdialog))
+    if ((dlg < 0) || (dlg >= game.numdialog))
         quit("!SetDialogOption: Invalid topic number specified");
-    if ((opt < 1) | (opt > dialog[dlg].numoptions))
+    if ((opt < 1) || (opt > dialog[dlg].GetOptionCount()))
     {
         // Pre-3.1.1 games had "dialog scripts" that were written in different language and
         // parsed differently; its "option-on/off" commands were more permissive.
@@ -138,23 +136,23 @@ void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script = false)
     }
     opt--;
 
-    dialog[dlg].optionflags[opt] &= ~DFLG_ON;
-    if ((onoroff == 1) & ((dialog[dlg].optionflags[opt] & DFLG_OFFPERM) == 0))
-        dialog[dlg].optionflags[opt] |= DFLG_ON;
+    dialog[dlg].Options[opt].Flags &= ~DFLG_ON;
+    if ((onoroff == 1) && ((dialog[dlg].Options[opt].Flags & DFLG_OFFPERM) == 0))
+        dialog[dlg].Options[opt].Flags |= DFLG_ON;
     else if (onoroff == 2)
-        dialog[dlg].optionflags[opt] |= DFLG_OFFPERM;
+        dialog[dlg].Options[opt].Flags |= DFLG_OFFPERM;
 }
 
 int GetDialogOption(int dlg, int opt) {
-    if ((dlg < 0) | (dlg >= game.numdialog))
+    if ((dlg < 0) || (dlg >= game.numdialog))
         quit("!GetDialogOption: Invalid topic number specified");
-    if ((opt < 1) | (opt > dialog[dlg].numoptions))
+    if ((opt < 1) || (opt > dialog[dlg].GetOptionCount()))
         quit("!GetDialogOption: Invalid option number specified");
     opt--;
 
-    if (dialog[dlg].optionflags[opt] & DFLG_OFFPERM)
+    if (dialog[dlg].Options[opt].Flags & DFLG_OFFPERM)
         return 2;
-    if (dialog[dlg].optionflags[opt] & DFLG_ON)
+    if (dialog[dlg].Options[opt].Flags & DFLG_ON)
         return 1;
     return 0;
 }
@@ -201,35 +199,35 @@ int Dialog_GetOptionState(ScriptDialog *sd, int option) {
 
 int Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (option > dialog[sd->id].numoptions))
+  if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
     quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
   option--;  // option id is 1-based in script, and 0 is entry point
 
-  if (dialog[sd->id].optionflags[option] & DFLG_HASBEENCHOSEN)
+  if (dialog[sd->id].Options[option].Flags & DFLG_HASBEENCHOSEN)
     return 1;
   return 0;
 }
 
 void Dialog_SetHasOptionBeenChosen(ScriptDialog *sd, int option, bool chosen)
 {
-    if (option < 1 || option > dialog[sd->id].numoptions)
+    if (option < 1 || static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount())
     {
         quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
     }
     option--; // option id is 1-based in script, and 0 is entry point
     if (chosen)
     {
-        dialog[sd->id].optionflags[option] |= DFLG_HASBEENCHOSEN;
+        dialog[sd->id].Options[option].Flags |= DFLG_HASBEENCHOSEN;
     }
     else
     {
-        dialog[sd->id].optionflags[option] &= ~DFLG_HASBEENCHOSEN;
+        dialog[sd->id].Options[option].Flags &= ~DFLG_HASBEENCHOSEN;
     }
 }
 
 int Dialog_GetOptionCount(ScriptDialog *sd)
 {
-  return dialog[sd->id].numoptions;
+  return dialog[sd->id].GetOptionCount();
 }
 
 int Dialog_GetOptionsBulletGraphic()
@@ -394,26 +392,37 @@ void Dialog_SetMinOptionsGUIWidth(int width)
 
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
-  return (dialog[sd->id].topicFlags & DTFLG_SHOWPARSER) ? 1 : 0;
+    return (dialog[sd->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
 }
 
 const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (option > dialog[sd->id].numoptions))
-    quit("!Dialog.GetOptionText: Invalid option number specified");
+    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
+        quit("!Dialog.GetOptionText: Invalid option number specified");
 
-  option--; // option id is 1-based in script, and 0 is entry point
+    option--; // option id is 1-based in script, and 0 is entry point
 
-  return CreateNewScriptString(dialog[sd->id].optionnames[option]);
+    return CreateNewScriptString(dialog[sd->id].Options[option].Text);
 }
 
-int Dialog_GetID(ScriptDialog *sd) {
-  return sd->id;
+void Dialog_SetOptionText(ScriptDialog *sd, int option, const char *text)
+{
+    if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
+        quit("!Dialog.GetOptionText: Invalid option number specified");
+
+    option--; // option id is 1-based in script, and 0 is entry point
+
+    dialog[sd->id].Options[option].Text = text;
+}
+
+int Dialog_GetID(ScriptDialog *sd)
+{
+    return sd->id;
 }
 
 const char *Dialog_GetScriptName(ScriptDialog *sd)
 {
-    return CreateNewScriptString(game.dialogScriptNames[sd->id]);
+    return CreateNewScriptString(dialog[sd->id].ScriptName);
 }
 
 int Dialog_GetProperty(ScriptDialog *sd, const char *property)
@@ -485,7 +494,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     result = scriptExecutor->GetReturnValue();
   }
 
-  if (in_new_room > 0)
+  if (in_new_room != kEnterRoom_None)
     return RUN_DIALOG_STOP_DIALOG;
 
   if (said_speech_line > 0) {
@@ -512,7 +521,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
 static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
     int bullet_wid, int bullet_spr, int bullet_sprwid,
     int usingfont, int linespacing, int selected_color,
-    const DialogTopic *dtop, int numdisp, int mouseison, const int *disporder, short *dispyp)
+    const DialogTopic *dtop, int numdisp, int mouseison, const std::vector<int> &disporder, std::vector<int> &dispyp)
 {
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
@@ -568,7 +577,7 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
     for (int ww = 0; ww < numdisp; ++ww)
     {
         color_t text_color = 0;
-        if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
+        if ((dtop->Options[disporder[ww]].Flags & DFLG_HASBEENCHOSEN) &&
             (play.read_dialog_option_colour >= 0))
         {
             // 'read' colour
@@ -590,7 +599,7 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
                 text_color = ds->GetCompatibleColor(selected_color);
         }
 
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[ww]].Text.GetCStr()));
         // TODO: make the line-splitting container also save line widths!
         break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
         const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
@@ -634,29 +643,25 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
     return curyp;
 }
 
-void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
-  if (guib->GetBgColor() != 0) {
-    color_t draw_color = ds->GetCompatibleColor(guib->GetBgColor());
-    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->GetWidth(), dlgyp + guib->GetHeight()), draw_color);
-  }
-  if (guib->GetBgImage() > 0)
-      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->GetBgImage()], dlgxp, dlgyp);
+void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp)
+{
+    if (guib->GetBgColor() != 0)
+    {
+        color_t draw_color = ds->GetCompatibleColor(guib->GetBgColor());
+        ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->GetWidth(), dlgyp + guib->GetHeight()), draw_color);
+    }
+    if (guib->GetBgImage() > 0)
+        GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->GetBgImage()], dlgxp, dlgyp);
 }
 
-bool get_custom_dialog_options_dimensions(int dlgnum)
+bool get_custom_dialog_options_dimensions(ScriptDialogOptionsRendering *opt_render, int dlgnum)
 {
-  ccDialogOptionsRendering.Reset();
-  ccDialogOptionsRendering.dialogID = dlgnum;
+    opt_render->Reset();
+    opt_render->dialogID = dlgnum;
 
-  getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-  run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
-
-  if ((ccDialogOptionsRendering.width > 0) &&
-      (ccDialogOptionsRendering.height > 0))
-  {
-    return true;
-  }
-  return false;
+    getDialogOptionsDimensionsFunc.Params[0].SetScriptObject(opt_render, opt_render);
+    run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
+    return ((opt_render->width > 0) && (opt_render->height > 0));
 }
 
 #define DLG_OPTION_PARSER 99
@@ -737,9 +742,9 @@ private:
     // List of displayed options and their precalculated states;
     // NOTE: this is only used in standard options render, not custom render
     // display order of options
-    int disporder[MAXTOPICOPTIONS];
+    std::vector<int> disporder;
     // display Y coordinate of options
-    short dispyp[MAXTOPICOPTIONS];
+    std::vector<int> dispyp;
     // number of displayed options
     int numdisp;
     // last chosen option
@@ -761,6 +766,8 @@ private:
     int forecol;
 
     int mouseison;
+
+    ScriptDialogOptionsRendering *ccDialogOptionsRendering = nullptr;
 };
 
 DialogOptions::DialogOptions(DialogTopic *dtop_, int dlgnum_, bool runGameLoopsInBackground_)
@@ -794,7 +801,7 @@ int DialogOptions::CalcOptionsHeight(int padding)
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
         break_up_text_into_lines(draw_text, Lines, areawid - (2 * padding + 2 + bullet_wid), usingfont);
         total_lines += Lines.Count();
     }
@@ -849,16 +856,19 @@ void DialogOptions::Stop()
 
 void DialogOptions::Begin()
 {
+    disporder.resize(dtop->GetOptionCount());
+    dispyp.resize(dtop->GetOptionCount());
+
     doStop = false;
     chose = -1;
     // First of all, decide which options should be displayed this turn
     numdisp = 0;
-    for (int i = 0; i < dtop->numoptions; ++i)
+    for (uint32_t i = 0; i < dtop->GetOptionCount(); ++i)
     {
-        if ((dtop->optionflags[i] & DFLG_ON)==0)
+        if ((dtop->Options[i].Flags & DFLG_ON)==0)
             continue; // option is off
 
-        if (strlen(dtop->optionnames[i]) == 0)
+        if (dtop->Options[i].Text.IsEmpty())
             continue; // do not add an empty option name into the display list
 
         // Add this option into the display list
@@ -911,7 +921,7 @@ void DialogOptions::Begin()
     set_cursor_look(game.GetModePointer());
 
     parserActivated = 0;
-    if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
+    if ((dtop->Flags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
         parserInput.reset(new GUITextBox());
         parserInput->SetHeight(lineheight + 4);
         parserInput->SetShowBorder(true);
@@ -927,15 +937,18 @@ void DialogOptions::Begin()
     mouseison = -1;
     usingCustomRendering = false;
 
-    if (get_custom_dialog_options_dimensions(dlgnum))
+    ccDialogOptionsRendering = new ScriptDialogOptionsRendering();
+    ccAddObjectReference(ccRegisterManagedObject(ccDialogOptionsRendering, ccDialogOptionsRendering));
+
+    if (get_custom_dialog_options_dimensions(ccDialogOptionsRendering, dlgnum))
     {
         // Custom dialog options rendering
         usingCustomRendering = true;
         position = RectWH(
-            ccDialogOptionsRendering.x,
-            ccDialogOptionsRendering.y,
-            ccDialogOptionsRendering.width,
-            ccDialogOptionsRendering.height);
+            ccDialogOptionsRendering->x,
+            ccDialogOptionsRendering->y,
+            ccDialogOptionsRendering->width,
+            ccDialogOptionsRendering->height);
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
@@ -953,7 +966,7 @@ void DialogOptions::Begin()
             int max_line_width = 0;
             for (int i = 0; i < numdisp; ++i)
             {
-                const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
                 break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
                 max_line_width = std::max(max_line_width, longestline);
             }
@@ -1041,114 +1054,122 @@ void DialogOptions::Draw()
     ScreenOverlay *options_over = get_overlay(options_overlay_id);
     Bitmap *options_bmp = options_over->GetImage();
 
-    std::fill(dispyp, dispyp + MAXTOPICOPTIONS, 0);
+    std::fill(dispyp.begin(), dispyp.end(), 0);
 
     if (usingCustomRendering)
     {
-      options_bmp->ClearTransparent();
+        options_bmp->ClearTransparent();
 
-      // Custom dialog options rendering
-      ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
-      ccDialogOptionsRendering.surfaceAccessed = false;
-      dialogOptionsRenderingSurface->linkedBitmapOnly = options_bmp;
+        // Custom dialog options rendering
+        ScriptDrawingSurface *dopts_surface = new ScriptDrawingSurface();
+        dopts_surface->isLinkedBitmapOnly = true;
+        ccAddObjectReference(ccRegisterManagedObject(dopts_surface, dopts_surface));
+        ccDialogOptionsRendering->surfaceToRenderTo = dopts_surface;
+        ccDialogOptionsRendering->surfaceAccessed = false;
+        dopts_surface->linkedBitmapOnly = options_bmp;
 
-      renderDialogOptionsFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-      run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
+        renderDialogOptionsFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
 
-      if (!ccDialogOptionsRendering.surfaceAccessed)
-          debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
+        if (!ccDialogOptionsRendering->surfaceAccessed)
+            debug_script_warn("dialog_options_get_dimensions was implemented, but no dialog_options_render function drew anything to the surface");
 
-      if (parserInput)
-      {
-        parserInput->SetX(ccDialogOptionsRendering.parserTextboxX);
-        curyp = ccDialogOptionsRendering.parserTextboxY;
-        areawid = ccDialogOptionsRendering.parserTextboxWidth;
-        if (areawid == 0)
-          areawid = options_bmp->GetWidth();
-      }
-      ccDialogOptionsRendering.needRepaint = false;
+        if (parserInput)
+        {
+            parserInput->SetX(ccDialogOptionsRendering->parserTextboxX);
+            curyp = ccDialogOptionsRendering->parserTextboxY;
+            areawid = ccDialogOptionsRendering->parserTextboxWidth;
+            if (areawid == 0)
+                areawid = options_bmp->GetWidth();
+        }
+        ccDialogOptionsRendering->needRepaint = false;
+        ccDialogOptionsRendering->surfaceToRenderTo = nullptr;
+
+        // Invalidate DrawingSurface object in case they saved its reference in script
+        dopts_surface->Invalidate();
+        ccReleaseObjectReference(ccGetObjectHandleFromAddress(dopts_surface));
     }
     else if (is_textwindow)
     {
-      // Draw the text window on background
-      options_bmp->Blit(text_window.get());
+        // Draw the text window on background
+        options_bmp->Blit(text_window.get());
 
-      // Text window behind the options
-      const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
-      // Ignore the dialog_options_pad_x/y offsets when using a text window
-      // because it has its own padding + border gfx
-      inner_position = text_window_offset;
-      // NOTE: presumably, txoffs and tyoffs are already offset by padding,
-      // although it's not entirely reliable, because these calculations are done inside draw_text_window.
-      const int opts_areawid = areawid - (2 * padding + 2);
-      curyp = write_dialog_options(options_bmp, inner_position.X, inner_position.Y, opts_areawid,
-                                   bullet_wid, game.dialog_bullet, bullet_picwid,
-                                   usingfont, linespacing, forecol,
-                                   dtop, numdisp, mouseison, disporder, dispyp);
-      if (parserInput)
-        parserInput->SetX(inner_position.X);
+        // Text window behind the options
+        const int padding = guis[game.options[OPT_DIALOGIFACE]].GetPadding();
+        // Ignore the dialog_options_pad_x/y offsets when using a text window
+        // because it has its own padding + border gfx
+        inner_position = text_window_offset;
+        // NOTE: presumably, txoffs and tyoffs are already offset by padding,
+        // although it's not entirely reliable, because these calculations are done inside draw_text_window.
+        const int opts_areawid = areawid - (2 * padding + 2);
+        curyp = write_dialog_options(options_bmp, inner_position.X, inner_position.Y, opts_areawid,
+                                    bullet_wid, game.dialog_bullet, bullet_picwid,
+                                    usingfont, linespacing, forecol,
+                                    dtop, numdisp, mouseison, disporder, dispyp);
+        if (parserInput)
+            parserInput->SetX(inner_position.X);
     }
     else
     {
-      // Normal GUI or default surface
-      options_bmp->ClearTransparent();
+        // Normal GUI or default surface
+        options_bmp->ClearTransparent();
 
-      Bitmap *ds = options_bmp;
-      // redraw the background so that anti-alias fonts don't re-alias themselves
-      if (game.options[OPT_DIALOGIFACE] == 0)
-      {
-        // Default surface
-        color_t draw_color = GUI::GetStandardColorForBitmap(16);
-        ds->FillRect(RectWH(position.GetSize()), draw_color);
-      }
-      else
-      {
-        // Normal GUI
-        GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        draw_gui_for_dialog_options(ds, guib, 0, 0);
-      }
-      inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
-      const int opts_areawid = areawid - (2 * linewrap_padding + 2);
-      curyp = inner_position.Y;
-      curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawid,
-                                   bullet_wid, game.dialog_bullet, bullet_picwid,
-                                   usingfont, linespacing, forecol,
-                                   dtop, numdisp, mouseison, disporder, dispyp);
+        Bitmap *ds = options_bmp;
+        // redraw the background so that anti-alias fonts don't re-alias themselves
+        if (game.options[OPT_DIALOGIFACE] == 0)
+        {
+            // Default surface
+            color_t draw_color = GUI::GetStandardColorForBitmap(16);
+            ds->FillRect(RectWH(position.GetSize()), draw_color);
+        }
+        else
+        {
+            // Normal GUI
+            GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
+            draw_gui_for_dialog_options(ds, guib, 0, 0);
+        }
+        inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
+        const int opts_areawid = areawid - (2 * linewrap_padding + 2);
+        curyp = inner_position.Y;
+        curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawid,
+                                    bullet_wid, game.dialog_bullet, bullet_picwid,
+                                    usingfont, linespacing, forecol,
+                                    dtop, numdisp, mouseison, disporder, dispyp);
 
-      if (parserInput)
-        parserInput->SetX(inner_position.X);
+        if (parserInput)
+            parserInput->SetX(inner_position.X);
     }
 
     if (parserInput)
     {
-      // Set up the text box, if present
-      parserInput->SetY(curyp + game.options[OPT_DIALOGGAP]);
-      parserInput->SetWidth(areawid - 10);
-      parserInput->SetTextColor(playerchar->talkcolor);
-      if (mouseison == DLG_OPTION_PARSER)
-        parserInput->SetTextColor(forecol);
+        // Set up the text box, if present
+        parserInput->SetY(curyp + game.options[OPT_DIALOGGAP]);
+        parserInput->SetWidth(areawid - 10);
+        parserInput->SetTextColor(playerchar->talkcolor);
+        if (mouseison == DLG_OPTION_PARSER)
+            parserInput->SetTextColor(forecol);
 
-      // Left-to-right text direction flag
-      const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
-          || (loaded_game_file_version < kGameVersion_363);
+        // Left-to-right text direction flag
+        const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
+            || (loaded_game_file_version < kGameVersion_363);
 
-      parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
-      if (ltr_position)
-        parserInput->SetX(parserInput->GetX() + bullet_wid);
+        parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
+        if (ltr_position)
+            parserInput->SetX(parserInput->GetX() + bullet_wid);
 
-      const int parserx = parserInput->GetX();
-      const int parsery = parserInput->GetY();
-      Bitmap *ds = options_bmp;
-      if (game.dialog_bullet)
-      {
-          if (ltr_position)
-            draw_gui_sprite(ds, game.dialog_bullet, parserx - bullet_wid, parsery);
-          else
-            draw_gui_sprite(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery);
-      }
+        const int parserx = parserInput->GetX();
+        const int parsery = parserInput->GetY();
+        Bitmap *ds = options_bmp;
+        if (game.dialog_bullet)
+        {
+            if (ltr_position)
+                draw_gui_sprite(ds, game.dialog_bullet, parserx - bullet_wid, parsery);
+            else
+                draw_gui_sprite(ds, game.dialog_bullet, parserx + parserInput->GetWidth() + (bullet_wid - bullet_picwid + 1), parsery);
+        }
 
-      parserInput->Draw(ds, parserx, parsery);
-      parserInput->SetActivated(false);
+        parserInput->Draw(ds, parserx, parsery);
+        parserInput->SetActivated(false);
     }
 
     // Mark the overlay's image as changed
@@ -1199,7 +1220,7 @@ bool DialogOptions::Run()
     // For >= 3.4.0 custom options rendering: run "dialog_options_repexec"
     if (newCustomRender)
     {
-        runDialogOptionRepExecFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionRepExecFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
 
         // Stop the dialog options if requested from script
@@ -1220,7 +1241,7 @@ bool DialogOptions::Run()
         if (position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
-            getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
             if (!getDialogOptionUnderCursorFunc.AtLeastOneImplementationExists)
@@ -1230,11 +1251,11 @@ bool DialogOptions::Run()
             if (doStop)
                 return false;
 
-            mouseison = ccDialogOptionsRendering.activeOptionID;
+            mouseison = ccDialogOptionsRendering->activeOptionID;
         }
         else
         {
-            ccDialogOptionsRendering.activeOptionID = -1;
+            ccDialogOptionsRendering->activeOptionID = -1;
         }
     }
     else if (Rect(position.Left + inner_position.X,
@@ -1273,7 +1294,7 @@ bool DialogOptions::Run()
     {
         // New-style custom rendering: check its explicit flag;
         // could be set by setting ActiveOptionID, or calling Update()
-        needRedraw |= ccDialogOptionsRendering.needRepaint;
+        needRedraw |= ccDialogOptionsRendering->needRepaint;
     }
 
     if (redrawOnMouseMove)
@@ -1309,10 +1330,10 @@ bool DialogOptions::Run()
     else if (newCustomRender)
     {
         // New custom rendering: see if RunActiveOption was called
-        if (ccDialogOptionsRendering.chosenOptionID >= 0)
+        if (ccDialogOptionsRendering->chosenOptionID >= 0)
         {
-            chose = ccDialogOptionsRendering.chosenOptionID;
-            ccDialogOptionsRendering.chosenOptionID = -1;
+            chose = ccDialogOptionsRendering->chosenOptionID;
+            ccDialogOptionsRendering->chosenOptionID = -1;
         }
     }
 
@@ -1406,14 +1427,14 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     {
         if (old_keyhandle || (ki.UChar == 0))
         { // "dialog_options_key_press"
-            runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionKeyPressHandlerFunc.Params[1].SetInt32(AGSKeyToScriptKey(ki.Key));
             runDialogOptionKeyPressHandlerFunc.Params[2].SetInt32(ki.Mod);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         if (!old_keyhandle && (ki.UChar > 0))
         { // "dialog_options_text_input"
-            runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionTextInputHandlerFunc.Params[1].SetInt32(ki.UChar);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
@@ -1441,7 +1462,7 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         {
             if (usingCustomRendering)
             {
-                runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+                runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
                 runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(mbut);
                 run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
                 needRedraw = runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
@@ -1454,7 +1475,7 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         }
         else if (newCustomRender)
         {
-            runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32(mbut);
             runDialogOptionMouseClickHandlerFunc.Params[2].SetInt32(mx);
             runDialogOptionMouseClickHandlerFunc.Params[3].SetInt32(my);
@@ -1477,7 +1498,7 @@ bool DialogOptions::RunMouseWheel(int mwheelz)
 {
     if ((mwheelz != 0) && usingCustomRendering)
     {
-        runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionMouseClickHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         runDialogOptionMouseClickHandlerFunc.Params[1].SetInt32((mwheelz < 0) ? 9 : 8);
         run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
         needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.AtLeastOneImplementationExists;
@@ -1491,34 +1512,37 @@ void DialogOptions::End()
     // Close custom dialog options
     if (usingCustomRendering)
     {
-        runDialogOptionCloseFunc.Params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionCloseFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
 
-  invalidate_screen();
+    ccReleaseObjectReference(ccGetObjectHandleFromAddress(&ccDialogOptionsRendering));
+    ccDialogOptionsRendering = nullptr; // disposed by the managed pool
 
-  if (parserActivated) 
-  {
-    assert(parserInput);
-    snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
-    ParseText (parserInput->GetText().GetCStr());
-    chose = CHOSE_TEXTPARSER;
-  }
+    invalidate_screen();
 
-  if (options_overlay_id >= 0)
-  {
-    remove_screen_overlay(options_overlay_id);
-    options_overlay_id = 0;
-  }
-  parserInput.reset();
+    if (parserActivated) 
+    {
+        assert(parserInput);
+        snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->GetText().GetCStr());
+        ParseText (parserInput->GetText().GetCStr());
+        chose = CHOSE_TEXTPARSER;
+    }
 
-  set_cursor_look(curswas);
-  // In case it's the QFG4 style dialog, remove the black screen
-  play.in_conversation--;
-  remove_screen_overlay(OVER_COMPLETE);
+    if (options_overlay_id >= 0)
+    {
+        remove_screen_overlay(options_overlay_id);
+        options_overlay_id = 0;
+    }
+    parserInput.reset();
 
-  // Re-enabled the game GUI
-  EnableInterfaceEx(false /* don't change cursor */);
+    set_cursor_look(curswas);
+    // In case it's the QFG4 style dialog, remove the black screen
+    play.in_conversation--;
+    remove_screen_overlay(OVER_COMPLETE);
+
+    // Re-enabled the game GUI
+    EnableInterfaceEx(false /* don't change cursor */);
 }
 
 int run_dialog_entry(int dlgnum)
@@ -1526,15 +1550,15 @@ int run_dialog_entry(int dlgnum)
     DialogTopic *dialog_topic = &dialog[dlgnum];
     // Run global event kScriptEvent_DialogRun for the startup entry (index 0)
     run_on_event(kScriptEvent_DialogRun, dlgnum, 0);
-    return run_dialog_script(dlgnum, dialog_topic->startupentrypoint, 0);
+    return run_dialog_script(dlgnum, dialog_topic->StartEntryPoint, 0);
 }
 
 int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool run_script)
 {
-    assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
     DialogTopic *dialog_topic = &dialog[dlgnum];
-    int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = dialog_topic->optionnames[dialog_choice];
+    assert(dialog_choice >= 0 && static_cast<uint32_t>(dialog_choice) < dialog_topic->GetOptionCount());
+    int &option_flags = dialog_topic->Options[dialog_choice].Flags;
+    const String &option_name = dialog_topic->Options[dialog_choice].Text;
 
     // Run global event kScriptEvent_DialogRun for the new option
     run_on_event(kScriptEvent_DialogRun, dlgnum, dialog_choice + 1);
@@ -1552,11 +1576,11 @@ int run_dialog_option(int dlgnum, int dialog_choice, int sayChosenOption, bool r
 
     // Optionally "say" the option's text
     if (sayTheOption)
-        DisplaySpeech(get_translation(option_name), game.playercharacter);
+        DisplaySpeech(get_translation(option_name.GetCStr()), game.playercharacter);
 
     // Run the option script
     if (run_script)
-        return run_dialog_script(dlgnum, dialog_topic->entrypoints[dialog_choice], dialog_choice + 1);
+        return run_dialog_script(dlgnum, dialog_topic->Options[dialog_choice].EntryPoint, dialog_choice + 1);
 
     return 0; // no script, bail out
 }
@@ -1575,9 +1599,9 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
   // First test if there are enough valid options to run DialogOptions
   int opt_count = 0;
   int last_opt = -1;
-  for (int i = 0; i < dtop->numoptions; ++i)
+  for (uint32_t i = 0; i < dtop->GetOptionCount(); ++i)
   {
-    if ((dtop->optionflags[i] & DFLG_ON) != 0)
+    if ((dtop->Options[i].Flags & DFLG_ON) != 0)
     {
       last_opt = i;
       opt_count++;
@@ -1590,7 +1614,7 @@ int show_dialog_options(int dlgnum, bool runGameLoopsInBackground)
     return -1;
   }
   // Don't display the options if there is only one and the parser is not enabled.
-  const bool has_parser = (dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0);
+  const bool has_parser = (dtop->Flags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0);
   if (!has_parser && (opt_count == 1) && !play.show_single_dialog_option)
   {
     return last_opt; // only one choice, so select it
@@ -1859,7 +1883,7 @@ bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retva
     else
     {
         debug_script_warn("!%s: more than one NewRoom/RunDialog/StopDialog requests within a dialog '%s' (%d), following one(s) will be ignored\n\tfirst was made in \"%s\", line %d",
-            apiname, game.dialogScriptNames[dialogExec->GetDlgNum()].GetCStr(), dialogExec->GetDlgNum(),
+            apiname, dialog[dialogExec->GetDlgNum()].ScriptName.GetCStr(), dialogExec->GetDlgNum(),
             dialogExec->GetSavedDialogRequestScPos().Section.GetCStr(), dialogExec->GetSavedDialogRequestScPos().Line);
     }
     return true; // handled, state change will be taken care of by a dialog script
@@ -2149,6 +2173,11 @@ RuntimeScriptValue Sc_Dialog_GetOptionText(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJ_PINT(ScriptDialog, const char, myScriptStringImpl, Dialog_GetOptionText);
 }
 
+RuntimeScriptValue Sc_Dialog_SetOptionText(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT_POBJ(ScriptDialog, Dialog_SetOptionText, const char);
+}
+
 // int (ScriptDialog *sd, int option)
 RuntimeScriptValue Sc_Dialog_HasOptionBeenChosen(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2243,6 +2272,7 @@ void RegisterDialogAPI()
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },
         { "Dialog::GetOptionState^1",     API_FN_PAIR(Dialog_GetOptionState) },
         { "Dialog::GetOptionText^1",      API_FN_PAIR(Dialog_GetOptionText) },
+        { "Dialog::SetOptionText^2",      API_FN_PAIR(Dialog_SetOptionText) },
         { "Dialog::HasOptionBeenChosen^1", API_FN_PAIR(Dialog_HasOptionBeenChosen) },
         { "Dialog::SetHasOptionBeenChosen^2", API_FN_PAIR(Dialog_SetHasOptionBeenChosen) },
         { "Dialog::SetOptionState^2",     API_FN_PAIR(Dialog_SetOptionState) },

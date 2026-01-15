@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -128,6 +128,10 @@ Script module names are written in the game data.
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
 OPT_GUICONTROLMOUSEBUT, game info properties, font character spacing
+3.6.3.4:
+New Dialogs data format,
+Region events are run consistent with other interactions.
+Expanded Color properties for GUI Controls. TextBox's TextAlignment.
 
 3.9.9 :
 BlendModes
@@ -156,6 +160,11 @@ Remade events tables
 enum GameDataVersion
 {
     kGameVersion_Undefined      = 0,
+    // Following version numbers were not saved in data, but are generated
+    // by reading "Compiled With" field from the game file's header.
+    kGameVersion_351            = 3050100,
+    //-------------------------------------------------------------------------
+    // Following version numbers are actual versions found in game data.
     kGameVersion_360_21         = 3060021,
     kGameVersion_361            = 3060100,
     kGameVersion_361_10         = 3060110,
@@ -164,6 +173,7 @@ enum GameDataVersion
     kGameVersion_362_03         = 3060203,
     kGameVersion_362_12         = 3060212,
     kGameVersion_363            = 3060300,
+    kGameVersion_363_04         = 3060304,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,
@@ -181,7 +191,5 @@ enum GameDataVersion
 
 // Data format version of the loaded game
 extern GameDataVersion loaded_game_file_version;
-// The version of the engine the loaded game was compiled for (if available)
-extern AGS::Common::Version game_compiled_version;
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

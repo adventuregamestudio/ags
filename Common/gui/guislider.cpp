@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -29,6 +29,10 @@ namespace Common
 GUISlider::GUISlider()
     : GUIControl(&GUISlider::_eventSchema)
 {
+    _backgroundColor = 16;
+    _borderColor = 15;
+    _handleColor = 7;
+    _shadowColor = 8;
     _handleRange = 0;
 }
 
@@ -87,6 +91,24 @@ void GUISlider::SetHandleOffset(int offset)
     if (_handleOffset != offset)
     {
         _handleOffset = offset;
+        MarkChanged();
+    }
+}
+
+void GUISlider::SetHandleColor(int color)
+{
+    if (_handleColor != color)
+    {
+        _handleColor = color;
+        MarkChanged();
+    }
+}
+
+void GUISlider::SetShadowColor(int color)
+{
+    if (_shadowColor != color)
+    {
+        _shadowColor = color;
         MarkChanged();
     }
 }
@@ -164,10 +186,11 @@ void GUISlider::UpdateMetrics()
         handle_range = _width - 4;
         int value_pos = (int)(((float)(_value - _minValue) * (float)handle_range) / (float)(_maxValue - _minValue));
         handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + value_pos - 1,
-            bar.Top + (bar.GetHeight() - 1 - handle_sz.Height) / 2 + 1,
+            bar.Top + (bar.GetHeight() - 1 - handle_sz.Height) / 2,
             handle_sz.Width, handle_sz.Height);
-        handle.MoveToY(handle.Top + _handleOffset);
-
+        handle = Rect::MoveBy(handle, 0, _handleOffset
+            // Backwards-compatibility: handle graphic had extra 1 pixel offset (2 in hires games)
+            + ((handle_im > 0) ? 1 : 0));
         handle_gfrange = Rect(
             (bar.Left + 2) - (handle_sz.Width / 2) + 0 - 1,
             handle.Top,
@@ -180,11 +203,13 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
         handle_range = _height - 4;
         int value_pos = (int)(((float)(_maxValue - _value) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH(bar.Left + (bar.GetWidth() - 1 - handle_sz.Width) / 2 + 1,
+        handle = RectWH(bar.Left + (bar.GetWidth() - 1 - handle_sz.Width) / 2,
             (bar.Top + 2) - (handle_sz.Height / 2) + value_pos - 1,
             handle_sz.Width, handle_sz.Height);
-        handle.MoveToX(handle.Left + _handleOffset);
-
+        handle = Rect::MoveBy(handle, _handleOffset
+            // Backwards-compatibility: handle graphic had extra 1 pixel offset
+            + ((handle_im > 0) ? 1 : 0)
+            , 0);
         handle_gfrange = Rect(
             handle.Left,
             (bar.Top + 2) - (handle_sz.Height / 2) + 0 - 1,
@@ -208,7 +233,6 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     Rect bar = Rect::MoveBy(_cachedBar, x, y);
     Rect handle = Rect::MoveBy(_cachedHandle, x, y);
 
-    color_t draw_color;
     if (_bgImage > 0)
     {
         // tiled image as slider background
@@ -241,12 +265,12 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     else
     {
         // normal grey background
-        draw_color = GUI::GetStandardColorForBitmap(16);
+        color_t draw_color = ds->GetCompatibleColor(_backgroundColor);
         ds->FillRect(bar, draw_color);
-        draw_color = GUI::GetStandardColorForBitmap(8);
+        draw_color = ds->GetCompatibleColor(_shadowColor);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Top, bar.Right, bar.Top), draw_color);
-        draw_color = GUI::GetStandardColorForBitmap(15);
+        draw_color = ds->GetCompatibleColor(_borderColor);
         ds->DrawLine(Line(bar.Right, bar.Top + 1, bar.Right, bar.Bottom), draw_color);
         ds->DrawLine(Line(bar.Left, bar.Bottom, bar.Right, bar.Bottom), draw_color);
     }
@@ -260,15 +284,21 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     else // handle is a drawn rectangle
     {
         // normal grey tracker handle
-        draw_color = GUI::GetStandardColorForBitmap(7);
+        color_t draw_color = ds->GetCompatibleColor(_handleColor);
         ds->FillRect(handle, draw_color);
-        draw_color = GUI::GetStandardColorForBitmap(15);
+        draw_color = ds->GetCompatibleColor(_borderColor);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);
         ds->DrawLine(Line(handle.Left, handle.Top, handle.Left, handle.Bottom), draw_color);
-        draw_color = GUI::GetStandardColorForBitmap(16);
+        draw_color = ds->GetCompatibleColor(_shadowColor);
         ds->DrawLine(Line(handle.Right, handle.Top + 1, handle.Right, handle.Bottom), draw_color);
         ds->DrawLine(Line(handle.Left + 1, handle.Bottom, handle.Right, handle.Bottom), draw_color);
     }
+}
+
+void GUISlider::UpdateVisualState()
+{
+    UpdateMetrics();
+    MarkPositionChanged(true, true);
 }
 
 bool GUISlider::OnMouseDown()
@@ -308,9 +338,9 @@ void GUISlider::OnMouseUp()
 
 void GUISlider::OnResized()
 {
+    GUIControl::OnResized();
     UpdateMetrics();
     UpdateGraphicSpace();
-    MarkPositionChanged(true, false);
 }
 
 void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
@@ -336,6 +366,18 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     //UpdateGraphicSpace(); // can't do here, because sprite infos may not be loaded yet
 }
 
+void GUISlider::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIControl::ReadFromFile_Ext363(in, gui_version);
+
+    _handleColor = in->ReadInt32();
+    _shadowColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+}
+
 void GUISlider::WriteToFile(Stream *out) const
 {
     GUIControl::WriteToFile(out);
@@ -356,6 +398,20 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _minValue = in->ReadInt32();
     _maxValue = in->ReadInt32();
     _value = in->ReadInt32();
+
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _handleColor = in->ReadInt32();
+        _shadowColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        SetDefaultLooksFor363();
+    }
 
     // Reset dynamic values
     _cachedBar = Rect();
@@ -379,6 +435,23 @@ void GUISlider::WriteToSavegame(Stream *out) const
     out->WriteInt32(_minValue);
     out->WriteInt32(_maxValue);
     out->WriteInt32(_value);
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_handleColor);
+    out->WriteInt32(_shadowColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+}
+
+void GUISlider::SetDefaultLooksFor363()
+{
+    _flags |= kGUICtrl_SolidBack | kGUICtrl_ShowBorder;
+    _backgroundColor = 16;
+    _borderColor = 15;
+    _handleColor = 7;
+    _shadowColor = 8;
+    UpdateControlRect();
 }
 
 } // namespace Common

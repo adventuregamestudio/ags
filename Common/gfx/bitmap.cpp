@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -105,7 +105,7 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
         return nullptr;
 
     if (!PixelOp::CopyConvert(bitmap->GetDataForWriting(), ColorDepthToPixelFormat(dst_color_depth),
-            bitmap->GetLineLength(), height, pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch))
+            bitmap->GetLineLength(), width, height, pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch))
         return nullptr;
 
     return bitmap.release();

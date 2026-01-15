@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -160,11 +160,6 @@ const std::vector<GUIMain::ControlRef> &GUIMain::GetControlRefs() const
 bool GUIMain::IsInteractableAt(int x, int y) const
 {
     if (!IsDisplayed())
-        return false;
-    // The _transparency test was unintentionally added in 3.5.0 as a side effect,
-    // and unfortunately there are already games which require it to work.
-    if ((game_compiled_version.AsNumber() == 30500) &&
-        (_transparency == 255))
         return false;
     if (!IsClickable())
         return false;
@@ -688,6 +683,14 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
             ctrl_refs[i].second = ref_packed & 0xFFFF;
         }
     }
+    
+    if (svg_version >= kGuiSvgVersion_36304)
+    {
+        _popupStyle = static_cast<GUIPopupStyle>(in->ReadInt32());
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 
     if (svg_version >= kGuiSvgVersion_400)
     {
@@ -757,6 +760,11 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
             (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
         }
     }
+    
+    if (svg_version >= kGuiSvgVersion_36304)
+    {
+        in->Seek(4 * sizeof(int32_t));
+    }
 
     if (svg_version >= kGuiSvgVersion_400)
     {
@@ -798,6 +806,11 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
         uint32_t ref_packed = ((ref.first & 0xFFFF) << 16) | (ref.second & 0xFFFF);
         out->WriteInt32(ref_packed);
     }
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_popupStyle);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     // since version 10 (kGuiSvgVersion_399)
     out->WriteInt32(_blendMode);
     // Reserved for colour options
@@ -1102,11 +1115,16 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
     return HError::None();
 }
 
-HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in)
+HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
+    GUIRefCollection &guiobjs, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
 
+    // Game data version is used during gui control reading / upgrading
+    // TODO: it's possible that all the upgrade code which relies on DataVersion
+    // may be moved into UpgradeGUI; in that case we may init DataVersion there.
+    DataVersion = data_ver;
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
     if (GameGuiVersion < GameGuiVersion, GameGuiVersion > kGuiVersion_Current)
@@ -1115,6 +1133,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in
 
     size_t gui_count = in->ReadInt32();
     guis.resize(gui_count);
+    gui_version = GameGuiVersion;
 
     // import the main GUI elements
     for (size_t i = 0; i < gui_count; ++i)

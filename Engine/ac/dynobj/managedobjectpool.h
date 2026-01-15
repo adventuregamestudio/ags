@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -22,6 +22,7 @@
 #include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
 #include "core/platform.h"
 #include "script/runtimescriptvalue.h"
+#include "util/indexedobjectpool.h"
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}
@@ -52,9 +53,7 @@ private:
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
-    int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
-    std::queue<int32_t> available_ids;
-    std::vector<ManagedObject> objects;
+    IndexedObjectPool<ManagedObject, int32_t> objects;
     std::unordered_map<void*, int32_t> handleByAddress;
     
     // Scan lists for the garbage collection;

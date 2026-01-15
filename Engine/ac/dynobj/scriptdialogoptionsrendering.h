@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -17,7 +17,7 @@
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 
-struct ScriptDialogOptionsRendering final : AGSCCDynamicObject
+struct ScriptDialogOptionsRendering final : CCBasicObject
 {
 public:
     int x, y, width, height;
@@ -30,17 +30,11 @@ public:
     bool surfaceAccessed;
     bool needRepaint;
 
-    // return the type name of the object
-    const char *GetType() override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-    void Reset();
     ScriptDialogOptionsRendering();
 
-protected:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const void *address) override;
-    // Write object data into the provided stream
-    void Serialize(const void *address, AGS::Common::Stream *out) override;
+    const char *GetType() override;
+    int Dispose(void *address, bool force) override;
+    void Reset();
 };
 
 

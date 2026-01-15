@@ -1,5 +1,5 @@
 Adventure Game Studio (AGS)
-Copyright (c) 1999-2011 Chris Jones and 2011-2025 various contributors.
+Copyright (c) 1999-2011 Chris Jones and 2011-2026 various contributors.
 
 Adventure Game Studio was created by Chris Jones. 
 Original Linux port by berolinux (http://gitorious.org/ags); additional code by Bernhard Rosenkraenzer and Christian Morales Vega.
@@ -12,6 +12,7 @@ OSX port created by Edward Rudd.
 
 The latter versions and engine ports to various platforms are product of collaborative work of the following contributors (in alphabetic order): 
 
+adm244
 Alan Van Drake
 Benjamin Penney
 Benoit Pierre
@@ -32,6 +33,7 @@ James Duong
 Janet Gilbert
 Jochen Schleu
 Joe Lee
+Johan Wigert
 John Steele Scott
 KeyserSoSay0
 Martin Sedlak

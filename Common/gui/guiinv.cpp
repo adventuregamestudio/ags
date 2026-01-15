@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -34,7 +34,8 @@ void GUIInvWindow::SetItemDimensions(int itemw, int itemh)
     {
         _itemWidth = itemw;
         _itemHeight = itemh;
-        OnResized();
+        CalculateNumCells();
+        MarkChanged();
     }
 }
 
@@ -45,6 +46,18 @@ void GUIInvWindow::SetCharacterID(int charid)
         _charID = charid;
         MarkChanged();
     }
+}
+
+int GUIInvWindow::GetItemIndexAt(int at_x, int at_y)
+{
+    if (_itemWidth <= 0 || _itemHeight <= 0)
+        return -1;
+
+    if (!_innerRect.IsInside(at_x, at_y))
+        return -1;
+
+    return _topItem +
+        ((at_x - _innerRect.Left) / _itemWidth + ((at_y - _innerRect.Top) / _itemHeight) * _colCount);
 }
 
 void GUIInvWindow::OnMouseEnter()
@@ -65,9 +78,9 @@ void GUIInvWindow::OnMouseUp()
 
 void GUIInvWindow::OnResized()
 {
+    GUIControl::OnResized();
     CalculateNumCells();
     UpdateGraphicSpace();
-    MarkChanged();
 }
 
 void GUIInvWindow::WriteToFile(Stream *out) const
@@ -94,6 +107,11 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     CalculateNumCells();
 }
 
+void GUIInvWindow::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIControl::ReadFromFile_Ext363(in, gui_version);
+}
+
 void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIControl::ReadFromSavegame(in, svg_ver);
@@ -113,6 +131,12 @@ void GUIInvWindow::WriteToSavegame(Stream *out) const
     out->WriteInt32(_topItem);
 }
 
+void GUIInvWindow::OnContentRectChanged()
+{
+    CalculateNumCells();
+    MarkChanged();
+}
+
 void GUIInvWindow::CalculateNumCells()
 {
     if (_itemWidth <= 0 || _itemHeight <= 0)
@@ -122,8 +146,8 @@ void GUIInvWindow::CalculateNumCells()
     }
     else
     {
-        _colCount = _width / _itemWidth;
-        _rowCount = _height / _itemHeight;
+        _colCount = _innerRect.GetWidth() / _itemWidth;
+        _rowCount = _innerRect.GetHeight() / _itemHeight;
     }
 }
 

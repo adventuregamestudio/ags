@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -78,10 +78,6 @@ extern CCGUITextBox ccDynamicGUITextBox;
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 int mouse_on_iface=-1;   // mouse cursor is over this interface
-// cursor position relative to a focused gui control;
-// this is in *local* control's coordinates.
-// FIXME: get rid of these global variables somehow
-int mouse_ifacebut_xoffs =- 1, mouse_ifacebut_yoffs =- 1;
 
 int eip_guinum, eip_guiobj;
 
@@ -125,6 +121,11 @@ void MarkForTranslationUpdate()
         if (list.IsTranslated())
             list.MarkChanged();
     }
+    for (auto &tbox : guitext)
+    {
+        if (tbox.IsTranslated())
+            tbox.MarkChanged();
+    }
 }
 
 void MarkForFontUpdate(int font)
@@ -133,22 +134,22 @@ void MarkForFontUpdate(int font)
     for (auto &btn : guibuts)
     {
         if (update_all || btn.GetFont() == font)
-            btn.OnResized();
+            btn.MarkChanged();
     }
     for (auto &lbl : guilabels)
     {
         if (update_all || lbl.GetFont() == font)
-            lbl.OnResized();
+            lbl.MarkChanged();
     }
     for (auto &list : guilist)
     {
         if (update_all || list.GetFont() == font)
-            list.OnResized();
+            list.MarkChanged();
     }
     for (auto &tb : guitext)
     {
         if (update_all || tb.GetFont() == font)
-            tb.OnResized();
+            tb.MarkChanged();
     }
 }
 
@@ -205,6 +206,43 @@ ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
 int GUI_GetPopupStyle(ScriptGUI *tehgui)
 {
     return guis[tehgui->id].GetPopupStyle();
+}
+
+void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
+{
+    const GUIPopupStyle old_style = guis[tehgui->id].GetPopupStyle();
+    if (popup_style == old_style)
+        return;
+
+    GUIMain &g = guis[tehgui->id];
+    g.SetPopupStyle(static_cast<GUIPopupStyle>(popup_style));
+    if (g.IsVisible())
+    {
+        if (popup_style == kGUIPopupMouseY)
+        {
+            g.SetConceal(true);
+        }
+        else if (old_style == kGUIPopupMouseY)
+        {
+            if (g.IsDisplayed())
+                remove_popup_interface(tehgui->id);
+            g.SetConceal(false);
+        }
+
+        if (popup_style == kGUIPopupModal)
+        {
+            PauseGame();
+        }
+        else if (old_style == kGUIPopupModal)
+        {
+            UnPauseGame();
+        }
+
+        if (g.IsDisplayed())
+        {
+            g.Poll(mousex, mousey);
+        }
+    }
 }
 
 void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
@@ -348,6 +386,10 @@ void GUI_Centre(ScriptGUI *sgui) {
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)
 {
     guis[tehgui->id].SetBgImage(slotn);
+    // Old games hack: always force redraw if this is a dynamic sprite with drawing surface
+    // (in case they assign same sprite id, but forgot to release a drawing surface)
+    if ((loaded_game_file_version < kGameVersion_351) && game.SpriteInfos[slotn].IsSurfaceAcquired())
+        guis[tehgui->id].MarkChanged();
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui)
@@ -558,7 +600,8 @@ bool GUI_SetTextProperty(ScriptGUI *gui, const char *property, const char *value
 
 void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
-    ifacepopped=-1; UnPauseGame();
+    ifacepopped=-1;
+    UnPauseGame();
     guis[ifacenum].SetConceal(true);
     if (mousey<=guis[ifacenum].GetPopupAtY())
         Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
@@ -666,16 +709,14 @@ void update_gui_zorder()
 
 void prepare_gui_runtime(bool startup)
 {
-    // Trigger all guis and controls to recalculate their dynamic state;
-    // here we achieve this by sending "On Resize" event, although there could
-    // be a better way for this.
+    // Trigger all guis and controls to recalculate their dynamic state
     for (auto &gui : guis)
     {
         for (int i = 0; i < gui.GetControlCount(); ++i)
         {
             GUIControl *guio = gui.GetControl(i);
+            guio->UpdateVisualState();
             guio->SetActivated(false);
-            guio->OnResized();
         }
     }
     // Reset particular states after loading game data
@@ -858,12 +899,14 @@ int gui_on_mouse_move(const int mx, const int my)
     int mouse_over_gui = -1;
     // If all GUIs are off, skip the loop
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0)) ;
-    else {
+    else
+    {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it
         // CHECKME: not sure why, but we're testing forward draw order here -
         // from farthest to nearest (this was in original code?)
-        for (int guin : play.gui_draw_order) {
+        for (int guin : play.gui_draw_order)
+        {
             if (guis[guin].IsInteractableAt(mx, my)) mouse_over_gui=guin;
 
             if (guis[guin].GetPopupStyle()!=kGUIPopupMouseY) continue;
@@ -873,10 +916,12 @@ int gui_on_mouse_move(const int mx, const int my)
             // Don't allow it to be popped up while skipping cutscene
             if (play.fast_forward) continue;
 
-            if (mousey < guis[guin].GetPopupAtY()) {
+            if (mousey < guis[guin].GetPopupAtY())
+            {
                 set_cursor_look(game.GetModePointer());
                 guis[guin].SetConceal(false);
-                ifacepopped=guin; PauseGame();
+                ifacepopped=guin;
+                PauseGame();
                 break;
             }
         }
@@ -941,10 +986,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
             click_handled = true;
             Point guipt = gui.GetGraphicSpace().WorldToLocal(mx, my);
             Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
-
-            mouse_ifacebut_xoffs = gobjpt.X;
-            mouse_ifacebut_yoffs = gobjpt.Y;
-            int iit = offset_over_inv((GUIInvWindow*)guio);
+            int iit = InvWindow_GetItemAtXY((GUIInvWindow*)guio, gobjpt.X, gobjpt.Y);
             if (iit >= 0)
             {
                 play.used_inv_on = iit;
@@ -1265,6 +1307,11 @@ RuntimeScriptValue Sc_GUI_GetPopupStyle(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(ScriptGUI, GUI_GetPopupStyle);
 }
 
+RuntimeScriptValue Sc_GUI_SetPopupStyle(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetPopupStyle);
+}
+
 RuntimeScriptValue Sc_GUI_Click(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_Click);
@@ -1440,6 +1487,7 @@ void RegisterGUIAPI()
         { "GUI::get_ID",                  API_FN_PAIR(GUI_GetID) },
         { "GUI::get_AsTextWindow",        API_FN_PAIR(GUI_AsTextWindow) },
         { "GUI::get_PopupStyle",          API_FN_PAIR(GUI_GetPopupStyle) },
+        { "GUI::set_PopupStyle",          API_FN_PAIR(GUI_SetPopupStyle) },
         { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
         { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
         { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },

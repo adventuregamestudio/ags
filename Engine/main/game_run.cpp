@@ -253,7 +253,7 @@ static void GameUpdateCheckProblems()
 // schedules global and room's rep-exec events to be run during script event processing.
 static void GameUpdateEarlyRepExec()
 {
-    if (in_new_room == 0)
+    if (in_new_room == kEnterRoom_None)
     {
         // Run the room and game script repeatedly_execute
         run_function_on_non_blocking_thread(&repExecAlways);
@@ -265,7 +265,7 @@ static void GameUpdateEarlyRepExec()
 // Runs late-rep-exec-always
 static void GameUpdateLateRepExec()
 {
-    if (in_new_room == 0)
+    if (in_new_room == kEnterRoom_None)
     {
         // Run the room and game script late_repeatedly_execute
         run_function_on_non_blocking_thread(&lateRepExecAlways);
@@ -846,7 +846,7 @@ static void check_touch_controls()
 static void GameUpdateCheckControls()
 {
     // don't let the player do anything before the screen fades in
-    if (in_new_room != 0)
+    if (in_new_room != kEnterRoom_None)
         return;
 
     set_our_eip(1007);

@@ -1344,7 +1344,7 @@ namespace AGS.Editor
                     writer.Write(room.Number);
                     writer.Close();
 
-                    Factory.NativeProxy.CreateTemplateFile(filename, ConstructRoomTemplateFileList(room));
+                    Tasks.CreateTemplateFile(filename, ConstructRoomTemplateFileList(room));
                     Utilities.TryDeleteFile(ROOM_TEMPLATE_ID_FILE);
                 }
                 catch (AGSEditorException ex)

@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -111,6 +111,16 @@ void main_print_help() {
         "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
           //--------------------------------------------------------------------------------|
            "Options:\n"
+           "  --audiodriver <id>           Request audio driver. Available options:\n"
+#if AGS_PLATFORM_OS_WINDOWS
+           "                                 default, wasapi, directsound, winmm, disk,\n"
+           "                                 dummy\n"
+#elif AGS_PLATFORM_OS_MACOS
+           "                                 default, coreaudio, disk, dummy\n"
+#else
+           "                                 default, pulseaudio, alsa, arts, esd, jack,\n"
+           "                                 pipewire, dsp, disk, dummy\n"
+#endif
            "  --background                 Keeps game running in background\n"
            "                               (this does not work in exclusive fullscreen)\n"
            "  --clear-cache-on-room-change Clears sprite cache on every room change\n"
@@ -175,6 +185,8 @@ void main_print_help() {
            "                               LEVELs are:\n"
            "                                 verbose (1), debug (2), info (3), warn (4),\n"
            "                                 error (5), critical (6)\n"
+           "  --script-log                 Log executed script instructions in 'script.log'\n"
+           "                                 WARNING: extremely verbose, may slow app down\n"
 #if AGS_PLATFORM_OS_WINDOWS
            "  --setup                      Run setup application\n"
 #endif
@@ -198,7 +210,7 @@ void main_print_help() {
            "\n"
            "Gamefile options:\n"
            "  /dir/path/game/              Launch the game in specified directory\n"
-           "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
+           "  /dir/path/game/penguin.ags   Launch penguin.ags\n"
            "  [nothing]                    Launch the game in the current directory\n"
           //--------------------------------------------------------------------------------|
     );
@@ -317,6 +329,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if ((ags_stricmp(arg, "--display") == 0) && (argc > ee + 1))
             cfg["graphics"]["display"] = argv[++ee];
+        else if ((ags_stricmp(arg, "--audiodriver") == 0) && (argc > ee + 1))
+            cfg["sound"]["driver"] = argv[++ee];
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
             cfg["language"]["translation"] = argv[++ee];
         else if (ags_stricmp(arg, "--no-translation") == 0)
@@ -351,6 +365,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             cfg["log"]["sdl"] = arg + 10;
         }
+        else if (ags_stricmp(arg, "--script-log") == 0) debug_flags |= DBG_DBGSCRIPT;
         else if (ags_stricmp(arg, "--console-attach") == 0) attachToParentConsole = true;
         else if (ags_stricmp(arg, "--no-message-box") == 0) hideMessageBoxes = true;
         else if (ags_stricmp(arg, "--print-rtti") == 0) logScriptRTTI = true;

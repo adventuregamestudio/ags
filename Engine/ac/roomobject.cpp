@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -188,6 +188,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     {
         name = StrUtil::ReadString(in);
     }
+
     int cur_anim_volume = 100;
     if (cmp_ver >= kRoomStatSvgVersion_36025)
     {
@@ -196,6 +197,22 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
+    }
+    else
+    {
+        cur_anim_volume = 100;
+        anim_volume = 100;
+    }
+
+    if (cmp_ver >= kRoomStatSvgVersion_36304)
+    {
+        blocking_x = in->ReadInt16();
+        blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        blocking_x = 0;
+        blocking_y = 0;
     }
 
     if (cmp_ver >= kRoomStatSvgVersion_400)
@@ -306,6 +323,9 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt8(static_cast<uint8_t>(anim_volume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
+    // kRoomStatSvgVersion_36304
+    out->WriteInt16(blocking_x);
+    out->WriteInt16(blocking_y);
     // since version 10
     out->WriteInt32(blend_mode);
     // Reserved for colour options

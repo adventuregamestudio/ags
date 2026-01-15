@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -714,7 +714,7 @@ namespace AGS
             if (name->Equals("MAX_PARSER_WORD_LENGTH")) return MAX_PARSER_WORD_LENGTH;
             if (name->Equals("MAX_INV")) return MAX_INV;
             if (name->Equals("MAXLIPSYNCFRAMES")) return MAXLIPSYNCFRAMES;
-            if (name->Equals("MAXTOPICOPTIONS")) return MAXTOPICOPTIONS;
+            if (name->Equals("LEGACY_MAXTOPICOPTIONS")) return LEGACY_MAXTOPICOPTIONS;
             if (name->Equals("UNIFORM_WALK_SPEED")) return safe_cast<Object^>(UNIFORM_WALK_SPEED);
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
@@ -737,6 +737,10 @@ namespace AGS
             if (name->Equals("GUIF_CLIP")) return (int)Common::kGUICtrl_Clip;
             if (name->Equals("GUIF_TRANSLATED")) return (int)Common::kGUICtrl_Translated;
             if (name->Equals("GUIF_WRAPTEXT")) return (int)Common::kGUICtrl_WrapText;
+            if (name->Equals("GUIF_SHOWBORDER")) return (int)Common::kGUICtrl_ShowBorder;
+            if (name->Equals("GUIF_SOLIDBACK")) return (int)Common::kGUICtrl_SolidBack;
+            if (name->Equals("GBUTF_DYNAMICCOLORS")) return (int)Common::kButton_DynamicColors;
+            if (name->Equals("GBUTF_FLATSTYLE")) return (int)Common::kButton_FlatStyle;
             if (name->Equals("GLF_SHOWBORDER")) return (int)Common::kListBox_ShowBorder;
             if (name->Equals("GLF_SHOWARROWS")) return (int)Common::kListBox_ShowArrows;
             if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;

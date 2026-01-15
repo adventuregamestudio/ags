@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -31,6 +31,10 @@ namespace Common
 GUITextBox::GUITextBox()
     : GUIControl(&GUITextBox::_eventSchema)
 {
+    _flags |= kGUICtrl_ShowBorder;
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
 }
 
 void GUITextBox::SetFont(int font)
@@ -51,6 +55,15 @@ void GUITextBox::SetTextColor(int color)
     }
 }
 
+void GUITextBox::SetTextAlignment(FrameAlignment align)
+{
+    if (_textAlignment != align)
+    {
+        _textAlignment = align;
+        MarkChanged();
+    }
+}
+
 void GUITextBox::SetText(const String &text)
 {
     if (_text != text)
@@ -58,11 +71,6 @@ void GUITextBox::SetText(const String &text)
         _text = text;
         MarkChanged();
     }
-}
-
-bool GUITextBox::IsBorderShown() const
-{
-    return (_textBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
 Rect GUITextBox::CalcGraphicRect(bool clipped)
@@ -89,11 +97,8 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
 
 void GUITextBox::Draw(Bitmap *ds, int x, int y)
 {
-    color_t text_color = ds->GetCompatibleColor(_textColor);
-    color_t draw_color = ds->GetCompatibleColor(_textColor);
-    if (IsBorderShown())
-        ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
-    DrawTextBoxContents(ds, x, y, text_color);
+    DrawControlFrame(ds, x, y);
+    DrawTextBoxContents(ds, x, y);
 }
 
 // TODO: a shared utility function
@@ -141,14 +146,6 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
     return true;
 }
 
-void GUITextBox::SetShowBorder(bool on)
-{
-    if (on)
-        _textBoxFlags |= kTextBox_ShowBorder;
-    else
-        _textBoxFlags &= ~kTextBox_ShowBorder;
-}
-
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
 void GUITextBox::WriteToFile(Stream *out) const
@@ -172,6 +169,15 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         _textColor = 16; // FIXME: adjust this using GetStandardColor where is safe to access GuiContext
 }
 
+void GUITextBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
+{
+    GUIControl::ReadFromFile_Ext363(in, gui_version);
+    _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+}
+
 void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     GUIControl::ReadFromSavegame(in, svg_ver);
@@ -180,6 +186,18 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _text = StrUtil::ReadString(in);
     if (svg_ver >= kGuiSvgVersion_350)
         _textBoxFlags = in->ReadInt32();
+
+    if (svg_ver >= kGuiSvgVersion_36304)
+    {
+        _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        SetDefaultLooksFor363();
+    }
 }
 
 void GUITextBox::WriteToSavegame(Stream *out) const
@@ -189,6 +207,22 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textBoxFlags);
+    // kGuiSvgVersion_36304
+    out->WriteInt32(_textAlignment);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+}
+
+void GUITextBox::SetDefaultLooksFor363()
+{
+    if ((_textBoxFlags & kTextBox_ShowBorder) != 0)
+        _flags |= kGUICtrl_ShowBorder;
+    _borderColor = _textColor;
+    _borderWidth = 1;
+    _paddingX = 1;
+    _paddingY = 1;
+    UpdateControlRect();
 }
 
 } // namespace Common

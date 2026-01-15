@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -43,7 +43,7 @@ Bitmap *ScriptDrawingSurface::GetBitmapSurface()
         return linkedBitmapOnly;
     else if (roomMaskType > kRoomAreaNone)
         return thisroom.GetMask(roomMaskType);
-    quit("!DrawingSurface: attempted to use surface after Release was called");
+    quit("!DrawingSurface: attempted to use surface after its source image was disposed or DrawingSurface.Release() was called.");
     return nullptr;
 }
 
@@ -172,7 +172,7 @@ void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptDrawingSurface::ScriptDrawingSurface() 
+void ScriptDrawingSurface::Invalidate()
 {
     roomBackgroundNumber = -1;
     roomMaskType = kRoomAreaNone;
@@ -185,4 +185,9 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     _currentColor = 0;
     _currentScriptColor = SCR_COLOR_TRANSPARENT;
     _currentBlendMode = kBlend_Normal;
+}
+
+ScriptDrawingSurface::ScriptDrawingSurface() 
+{
+    Invalidate();
 }

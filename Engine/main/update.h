@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -26,7 +26,8 @@
 // TODO: find out what this return value means, and refactor.
 // TODO: do not reset mslot in this function, reset externally instead.
 int do_movelist_move(short &mslot, int &pos_x, int &pos_y);
-// Update various things on the game frame (historical code mess...)
+// Update various things on the game frame:
+// moves and animates objects, updates timers, etc.
 void update_game_objects();
 
 // Tells if a voice lipsyncing is currently active (enabled and speech playing)

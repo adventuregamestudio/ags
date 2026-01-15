@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -35,13 +35,26 @@ void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
     texbox->SetText(newtex);
 }
 
+int TextBox_GetTextAlignment(GUITextBox *guit)
+{
+    return guit->GetTextAlignment();
+}
+
+void TextBox_SetTextAlignment(GUITextBox *guit, int align)
+{
+    guit->SetTextAlignment(static_cast<FrameAlignment>(align));
+}
+
 int TextBox_GetTextColor(GUITextBox *guit) {
     return guit->GetTextColor();
 }
 
-void TextBox_SetTextColor(GUITextBox *guit, int colr)
+void TextBox_SetTextColor(GUITextBox *guit, int color)
 {
-    guit->SetTextColor(colr);
+    guit->SetTextColor(color);
+    // Prior to 3.6.3 text color was also used for border
+    if (loaded_game_file_version < kGameVersion_363_04)
+        guit->SetBorderColor(color);
 }
 
 int TextBox_GetFont(GUITextBox *guit) {
@@ -54,12 +67,12 @@ void TextBox_SetFont(GUITextBox *guit, int fontnum) {
 }
 
 bool TextBox_GetShowBorder(GUITextBox *guit) {
-    return guit->IsBorderShown();
+    return guit->IsShowBorder();
 }
 
 void TextBox_SetShowBorder(GUITextBox *guit, bool on)
 {
-    if (guit->IsBorderShown() != on)
+    if (guit->IsShowBorder() != on)
     {
         guit->SetShowBorder(on);
         guit->MarkChanged();
@@ -118,6 +131,16 @@ RuntimeScriptValue Sc_TextBox_GetText_New(void *self, const RuntimeScriptValue *
     API_OBJCALL_OBJ(GUITextBox, const char *, myScriptStringImpl, TextBox_GetText_New);
 }
 
+RuntimeScriptValue Sc_TextBox_GetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUITextBox, TextBox_GetTextAlignment);
+}
+
+RuntimeScriptValue Sc_TextBox_SetTextAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextAlignment);
+}
+
 // int (GUITextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -142,6 +165,8 @@ void RegisterTextBoxAPI()
         { "TextBox::set_ShowBorder",  API_FN_PAIR(TextBox_SetShowBorder) },
         { "TextBox::get_Text",        API_FN_PAIR(TextBox_GetText_New) },
         { "TextBox::set_Text",        API_FN_PAIR(TextBox_SetText) },
+        { "TextBox::get_TextAlignment", API_FN_PAIR(TextBox_GetTextAlignment) },
+        { "TextBox::set_TextAlignment", API_FN_PAIR(TextBox_SetTextAlignment) },
         { "TextBox::get_TextColor",   API_FN_PAIR(TextBox_GetTextColor) },
         { "TextBox::set_TextColor",   API_FN_PAIR(TextBox_SetTextColor) },
     };

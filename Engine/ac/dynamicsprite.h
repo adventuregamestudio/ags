@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -59,5 +59,7 @@ int     add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, uint32_t 
 int     add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
 // Disposes a dynamic sprite, and frees the slot
 void    free_dynamic_sprite(int slot, bool notify_all = true);
+// Notifies dynamic sprite that its drawing surface was released
+void    on_dynsprite_surface_release(int slot, bool modified);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

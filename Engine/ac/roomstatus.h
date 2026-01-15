@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -36,6 +36,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
     kRoomStatSvgVersion_36214    = 3060214, // serialize current room's changes to masks
+    kRoomStatSvgVersion_36304    = 3060304, // room object's blocking rect x,y
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
     kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
     kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas

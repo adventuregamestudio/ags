@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -112,7 +112,8 @@ ScriptDialog* DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRender
 
 ScriptDrawingSurface* DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    dlgOptRender->surfaceAccessed = true;
+    if (dlgOptRender->surfaceToRenderTo)
+        dlgOptRender->surfaceAccessed = true;
     return dlgOptRender->surfaceToRenderTo;
 }
 
@@ -123,7 +124,7 @@ int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOp
 
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
 {
-    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].numoptions;
+    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].GetOptionCount();
     if ((activeOptionID < 0) || (activeOptionID > optionCount))
         quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)", activeOptionID, optionCount);
 

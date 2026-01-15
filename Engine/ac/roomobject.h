@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -42,21 +42,21 @@ public:
     int   id = 0;
     int   x,y;
     int   transparent;    // current transparency setting
-    short tint_r, tint_g;   // specific object tint
-    short tint_b, tint_level;
-    short tint_light;
-    short zoom;           // zoom level, either manual or from the current area
+    int16_t tint_r, tint_g;   // specific object tint
+    int16_t tint_b, tint_level;
+    int16_t tint_light;
+    int16_t zoom;           // zoom level, either manual or from the current area
     int   spr_width, spr_height; // last used sprite's size
     int   spr_xoff, spr_yoff; // sprite offsets (when using a view)
-    short width, height;  // width/height based on a scaled sprite
+    int16_t width, height;  // width/height based on a scaled sprite
     uint16_t num;            // sprite slot number
-    short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
+    int16_t baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
     uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
-    short wait,moving;
+    int16_t wait,moving;
     ViewAnimateParams anim;
     int   flags; // OBJF_* flags
-    // Down to here is a part of the plugin API
-    short blocking_width, blocking_height;
+    // -- up from here is a part of the plugin API
+    int16_t blocking_width = 0, blocking_height = 0, blocking_x = 0, blocking_y = 0;
     int   anim_volume = 100; // default animation volume (relative factor)
     Common::String name;
     Common::BlendMode blend_mode;

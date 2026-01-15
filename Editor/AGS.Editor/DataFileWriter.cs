@@ -126,11 +126,8 @@ namespace AGS.Editor
             }
         }
 
-        static MultiFileLibNew ourlib;
-
         static DataFileWriter()
         {
-            ourlib = new MultiFileLibNew();
             TextEncoding = Encoding.Default;
         }
 
@@ -149,27 +146,6 @@ namespace AGS.Editor
             catch
             {
             }
-            return stream;
-        }
-
-        static Stream FindFileInPath(out string buffer, string fileName)
-        {
-            string tomake = fileName;
-            Stream stream = TryFileOpen(tomake, FileAccess.Read);
-            // TODO: get audio and speech paths from a kind of shared config
-            if (stream == null)
-            {
-                // try in the Audio folder if not found
-                tomake = Path.Combine(Components.AudioComponent.AUDIO_CACHE_DIRECTORY, fileName);
-                stream = TryFileOpen(tomake, FileAccess.Read);
-            }
-            if (stream == null)
-            {
-                // no? maybe Speech then, templates include this
-                tomake = Path.Combine(Components.SpeechComponent.SPEECH_DIRECTORY, fileName);
-                stream = TryFileOpen(tomake, FileAccess.Read);
-            }
-            buffer = tomake;
             return stream;
         }
 
@@ -304,7 +280,7 @@ namespace AGS.Editor
         /// Currently corresponds to writing main lib file in chain in format version 30.
         /// </summary>
         /// <param name="writer"></param>
-        static void WriteCLIBHeader(BinaryWriter writer)
+        static void WriteCLIBHeader(MultiFileLibNew ourlib, BinaryWriter writer)
         {
             FilePutInt32(0, writer); // reserved options
             FilePutInt32(ourlib.DataFilenames.Count, writer);
@@ -328,11 +304,12 @@ namespace AGS.Editor
         /// Assets come in tuples, where the first string is the name this asset
         /// is registered by, and the second is the actual filepath.
         /// </summary>
-        public static string MakeDataFile(Tuple<string, string>[] assets, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeDataFile(Tuple<string, string>[] assets, int splitSize, string baseFileName,
+            string outputDir = null, bool appendDataToBaseFile = false)
         {
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
+            MultiFileLibNew ourlib = new MultiFileLibNew();
             ourlib.DataFilenames.Clear();
-            ourlib.Files.Clear();
             ourlib.Files.Capacity = assets.Length;
             int currentDataFile = 0;
             long sizeSoFar = 0;
@@ -369,58 +346,48 @@ namespace AGS.Editor
                 }
                 ourlib.Files.Add(new MultiFileLibNew.MultiFile(assetName, assetFile, (byte)currentDataFile, thisFileSize));
             }
+
+            // Generate output data filenames, depending on the number of data files required
             ourlib.DataFilenames.Capacity = currentDataFile + 1;
-            long startOffset = 0;
-            long mainHeaderOffset = 0;
-            string outputFileName;
-            string firstDataFileFullPath = null;
-            string outputDir = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY);
-            if (makeFileNameAssumptions)
+            for (int i = 0; i <= currentDataFile; ++i)
+            {
+                if (i == 0)
+                {
+                    ourlib.DataFilenames.Add(baseFileName);
+                }
+                else
+                {
+                    ourlib.DataFilenames.Add(Path.ChangeExtension(baseFileName, i.ToString(".D3")));
+                }
+            }
+
+            // Create an output directory if one does not exist
+            if (!string.IsNullOrEmpty(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
             }
-            // First, set up ourlib.data_filenames array with all the filenames
-            // so that write_clib_header will write the correct amount of data
-            for (int i = 0, cap = ourlib.DataFilenames.Capacity; i < cap; ++i)
-            {
-                if (makeFileNameAssumptions)
-                {
-                    ourlib.DataFilenames.Add(baseFileName + "." + 
-                        (i == 0 ? "ags" : i.ToString("D3")));
-                }
-                else
-                {
-                    ourlib.DataFilenames.Add(Path.GetFileName(baseFileName));
-                }
-            }
-            // adjust the file paths if necessary, so that write_clib_header will
-            // write the correct amount of data
-            string tomake;
-            for (int i = 0; i < ourlib.Files.Count; ++i)
-            {
-                using (Stream stream = FindFileInPath(out tomake, ourlib.Files[i].Filename))
-                {
-                    if (stream != null)
-                    {
-                        stream.Close();
-                        if (!makeFileNameAssumptions) ourlib.Files[i].Filename = tomake;
-                    }
-                }
-            }
-            // now, create the actual files
+
+            // Now, create and write the actual data files
+            string outputFileName;
+            string firstDataFileFullPath = null;
+            long startOffset = 0;
+            long mainHeaderOffset = 0;
             for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
             {
-                if (makeFileNameAssumptions)
-                {
+                if (!string.IsNullOrEmpty(outputDir))
                     outputFileName = Path.Combine(outputDir, ourlib.DataFilenames[i]);
-                }
                 else
-                {
                     outputFileName = baseFileName;
+
+                FileMode fm_mode = FileMode.Create;
+                if (i == 0)
+                {
+                    firstDataFileFullPath = outputFileName;
+                    if (appendDataToBaseFile)
+                        fm_mode = FileMode.Append;
                 }
-                if (i == 0) firstDataFileFullPath = outputFileName;
-                using (Stream wout = TryFileOpen(outputFileName,
-                    (makeFileNameAssumptions ? FileMode.Create : FileMode.Append), FileAccess.Write))
+
+                using (Stream wout = TryFileOpen(outputFileName, fm_mode, FileAccess.Write))
                 {
                     if (wout == null) return "ERROR: unable to open file '" + outputFileName + "' for writing";
                     BinaryWriter writer = new BinaryWriter(wout);
@@ -431,15 +398,15 @@ namespace AGS.Editor
                     if (i == 0)
                     {
                         mainHeaderOffset = writer.BaseStream.Position;
-                        WriteCLIBHeader(writer);
+                        WriteCLIBHeader(ourlib, writer);
                     }
-                    string buffer;
+
                     for (int j = 0; j < ourlib.Files.Count; ++j)
                     {
                         if (ourlib.Files[j].Datafile == i)
                         {
                             ourlib.Files[j].Offset = (writer.BaseStream.Position - startOffset);
-                            using (Stream stream = FindFileInPath(out buffer, ourlib.Files[j].Filename))
+                            using (Stream stream = TryFileOpen(ourlib.Files[j].Filename, FileAccess.Read))
                             {
                                 if (stream == null)
                                 {
@@ -469,7 +436,7 @@ namespace AGS.Editor
             using (Stream wout = TryFileOpen(firstDataFileFullPath, FileMode.Open, FileAccess.Write))
             {
                 wout.Seek(mainHeaderOffset, SeekOrigin.Begin);
-                WriteCLIBHeader(new BinaryWriter(wout));
+                WriteCLIBHeader(ourlib, new BinaryWriter(wout));
             }
             return null;
         }
@@ -479,10 +446,11 @@ namespace AGS.Editor
         /// Returns null on success and an error message on error.
         /// Assets will be registered under names equal to their *full* filenames (with parent path).
         /// </summary>
-        public static string MakeDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeDataFile(string[] assetFileNames, int splitSize, string baseFileName,
+            string outputDir = null)
         {
             return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(f, f)).ToArray(),
-                splitSize, baseFileName, makeFileNameAssumptions);
+                splitSize, baseFileName, outputDir);
         }
 
         /// <summary>
@@ -490,10 +458,11 @@ namespace AGS.Editor
         /// Returns null on success and an error message on error.
         /// Assets will be registered under names equal to their *last* filenames (w/o parent path).
         /// </summary>
-        public static string MakeFlatDataFile(string[] assetFileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
+        public static string MakeFlatDataFile(string[] assetFileNames, int splitSize, string baseFileName,
+            string outputDir = null, bool appendDataToBaseFile = false)
         {
             return MakeDataFile(assetFileNames.Select(f => new Tuple<string, string>(Path.GetFileName(f), f)).ToArray(),
-                splitSize, baseFileName, makeFileNameAssumptions);
+                splitSize, baseFileName, outputDir, appendDataToBaseFile);
         }
 
         private static void WriteGameSetupStructBase(BinaryWriter writer, Game game, out long ext_off_pos)
@@ -572,7 +541,7 @@ namespace AGS.Editor
             writer.Write(0); // [DEPRECATED]
             writer.Write((short)(game.InventoryItems.Count + 1)); // +1 for a dummy item at id 0
             writer.Write(new byte[2]); // alignment padding
-            writer.Write(game.Dialogs.Count);
+            writer.Write(0); // was game.Dialogs.Count, write 0 for old format entries
             writer.Write(0); // numdlgmessage
             writer.Write(game.Fonts.Count);
             writer.Write((int)game.Settings.ColorDepth);
@@ -1072,12 +1041,92 @@ namespace AGS.Editor
                     }
                 }
 
+                public ButtonColorStyle ColorStyle
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.ColorStyle;
+                        return 0;
+                    }
+                }
+
+                public int ShadowColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.ShadowColor;
+                        return 0;
+                    }
+                }
+
                 public int TextColor
                 {
                     get
                     {
                         GUIButton button = (GUIButton)this;
                         if (button != null) return button.TextColor;
+                        return 0;
+                    }
+                }
+
+                public int MouseOverBackgroundColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.MouseOverBackgroundColor;
+                        return 0;
+                    }
+                }
+
+                public int PushedBackgroundColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.PushedBackgroundColor;
+                        return 0;
+                    }
+                }
+
+                public int MouseOverBorderColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.MouseOverBorderColor;
+                        return 0;
+                    }
+                }
+
+                public int PushedBorderColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.PushedBorderColor;
+                        return 0;
+                    }
+                }
+
+                public int MouseOverTextColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.MouseOverTextColor;
+                        return 0;
+                    }
+                }
+
+                public int PushedTextColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.PushedTextColor;
                         return 0;
                     }
                 }
@@ -1121,26 +1170,6 @@ namespace AGS.Editor
                         GUIButton button = (GUIButton)this;
                         if (button != null) return button.TextAlignment;
                         return FrameAlignment.TopCenter;
-                    }
-                }
-
-                public int TextPaddingHorizontal
-                {
-                    get
-                    {
-                        GUIButton button = (GUIButton)this;
-                        if (button != null) return button.TextPaddingHorizontal;
-                        return 0;
-                    }
-                }
-
-                public int TextPaddingVertical
-                {
-                    get
-                    {
-                        GUIButton button = (GUIButton)this;
-                        if (button != null) return button.TextPaddingVertical;
-                        return 0;
                     }
                 }
 
@@ -1204,7 +1233,9 @@ namespace AGS.Editor
                 return (control.Clickable ? NativeConstants.GUIF_CLICKABLE : 0) |
                     (control.Enabled ? NativeConstants.GUIF_ENABLED : 0) |
                     (control.Visible ? NativeConstants.GUIF_VISIBLE : 0) |
-                    (control.Translated ? NativeConstants.GUIF_TRANSLATED : 0)
+                    (control.Translated ? NativeConstants.GUIF_TRANSLATED : 0) |
+                    (control.SolidBackground ? NativeConstants.GUIF_SOLIDBACK : 0) |
+                    (control.ShowBorder ? NativeConstants.GUIF_SHOWBORDER : 0)
                     ;
                 ;
             }
@@ -1733,40 +1764,12 @@ namespace AGS.Editor
             {
                 WriteString(game.LipSync.CharactersPerFrame[i], 50, writer);
             }
+            /* [DEPRECATED] -- now written as a part of "v363_dialogsnew" extension
             foreach (Dialog curDialog in game.Dialogs)
             {
-                for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
-                {
-                    WriteString(TextProperty(curDialog.Options[i].Text), 150, writer); // optionnames
-                }
-                for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
-                {
-                    WriteString("", 150, writer);
-                }
-                for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
-                {
-                    DialogOption option = curDialog.Options[i];
-                    int flags = 0;
-                    if (!option.Say) flags |= NativeConstants.DFLG_NOREPEAT;
-                    /* --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
-                    // NOTE: we always force "no-say" flag, because "say" checkbox is processed when
-                    // the dialog script is converted into regular script now.
-                    flags |= NativeConstants.DFLG_NOREPEAT;
-                    */
-                    if (option.Show) flags |= NativeConstants.DFLG_ON;
-                    writer.Write(flags); // optionflags
-                }
-                for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
-                {
-                    writer.Write(0);
-                }
-                writer.Write(new byte[4]); // optionscripts
-                writer.Write(new byte[NativeConstants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
-                writer.Write((short)0); // startupentrypoint
-                writer.Write((short)0); // codesize
-                writer.Write(curDialog.Options.Count); // numoptions
-                writer.Write(curDialog.ShowTextParser ? NativeConstants.DTFLG_SHOWPARSER : 0); // topicflags
+                WriteDialog_FormatOld(curDialog, writer);
             }
+            */
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
             if (!WritePluginsToDisk(writer, game, errors))
@@ -1806,10 +1809,12 @@ namespace AGS.Editor
             {
                 FilePutNullTerminatedString(game.InventoryItems[i].Name, writer);
             }
+            /* [DEPRECATED] -- now written as a part of "v363_dialogsnew" extension
             for (int i = 0; i < game.Dialogs.Count; ++i)
             {
                 FilePutNullTerminatedString(game.Dialogs[i].Name, writer);
             }
+            */
             writer.Write(game.AudioClipTypes.Count + 1);
             // hard coded SPEECH audio type 0
             writer.Write(0); // id
@@ -1872,8 +1877,9 @@ namespace AGS.Editor
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
-            WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
             WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
+            WriteExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
+            WriteExtension("v363_guictrls", WriteExt_363GUIControls, writer, gameEnts, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
@@ -1890,6 +1896,43 @@ namespace AGS.Editor
             return true;
         }
         
+        /* [DEPRECATED] -- see "v363_dialogsnew" extension
+        private static void WriteDialog_FormatOld(Dialog dialog, BinaryWriter writer)
+        {
+            for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < dialog.Options.Count); ++i)
+            {
+                WriteString(TextProperty(dialog.Options[i].Text), 150, writer); // optionnames
+            }
+            for (int i = dialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
+            {
+                WriteString("", 150, writer);
+            }
+            for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < dialog.Options.Count); ++i)
+            {
+                DialogOption option = dialog.Options[i];
+                int flags = 0;
+                if (!option.Say) flags |= NativeConstants.DFLG_NOREPEAT;
+                /* --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
+                // NOTE: we always force "no-say" flag, because "say" checkbox is processed when
+                // the dialog script is converted into regular script now.
+                flags |= NativeConstants.DFLG_NOREPEAT;
+                *//*
+                if (option.Show) flags |= NativeConstants.DFLG_ON;
+                writer.Write(flags); // optionflags
+            }
+            for (int i = dialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
+            {
+                writer.Write(0);
+            }
+            writer.Write(new byte[4]); // optionscripts
+            writer.Write(new byte[NativeConstants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
+            writer.Write((short)0); // startupentrypoint
+            writer.Write((short)0); // codesize
+            writer.Write(dialog.Options.Count); // numoptions
+            writer.Write(dialog.ShowTextParser ? NativeConstants.DTFLG_SHOWPARSER : 0); // topicflags
+        }
+        */
+
         // >= 3.6.0: font outline properties
         private static void WriteExt_360Fonts(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
@@ -1993,18 +2036,6 @@ namespace AGS.Editor
             }
         }
         
-        private static void WriteExt_362GUIControls(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
-        {
-            writer.Write(ents.GUIControls.GUIButtons.Count);
-            foreach (var button in ents.GUIControls.GUIButtons)
-            {
-                writer.Write(button.TextPaddingHorizontal);
-                writer.Write(button.TextPaddingVertical);
-                writer.Write((int)0); // reserved
-                writer.Write((int)0);
-            }
-        }
-
         private static void WriteExt_363GameInfo(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
             var gameinfo = new Dictionary<string, string>();
@@ -2021,6 +2052,114 @@ namespace AGS.Editor
             {
                 FilePutString(item.Key, writer);
                 FilePutString(item.Value, writer);
+            }
+        }
+        
+        // New dialog topics compiled format
+        private static void WriteExt_363Dialogs(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            Game game = ents.Game;
+            writer.Write(game.Dialogs.Count);
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                // Dialog topic settings
+                FilePutString(dialog.Name, writer);
+                int topic_flags = 0;
+                if (dialog.ShowTextParser) topic_flags |= NativeConstants.DTFLG_SHOWPARSER;
+                writer.Write(topic_flags);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+
+                // Options
+                writer.Write(dialog.Options.Count);
+                foreach (DialogOption option in dialog.Options)
+                {
+                    FilePutString(option.Text, writer);
+                    int option_flags = 0;
+                    if (!option.Say) option_flags |= NativeConstants.DFLG_NOREPEAT;
+                    if (option.Show) option_flags |= NativeConstants.DFLG_ON;
+                    writer.Write(option_flags);
+                    writer.Write((int)0); // reserved
+                    writer.Write((int)0);
+                    writer.Write((int)0);
+                }
+            }
+        }
+
+        private static void Write_GUIControlLooksExt_363(GUIControl control, BinaryWriter writer)
+        {
+            writer.Write(control.BackgroundColor);
+            writer.Write(control.BorderColor);
+            writer.Write(control.BorderWidth);
+            writer.Write(control.PaddingX);
+            writer.Write(control.PaddingY);
+            writer.Write((int)0); // reserved
+            writer.Write((int)0);
+            writer.Write((int)0);
+            writer.Write((int)0);
+        }
+
+        private static void WriteExt_363GUIControls(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.GUIControls.GUIButtons.Count);
+            foreach (var button in ents.GUIControls.GUIButtons)
+            {
+                Write_GUIControlLooksExt_363(button, writer);
+                // Button's own properties
+                int butflags =
+                    ((button.ColorStyle == ButtonColorStyle.Dynamic || button.ColorStyle == ButtonColorStyle.DynamicFlat)
+                        ? NativeConstants.GBUTF_DYNAMICCOLORS : 0) |
+                    ((button.ColorStyle == ButtonColorStyle.DynamicFlat) ? NativeConstants.GBUTF_FLATSTYLE : 0);
+                writer.Write(butflags);
+                writer.Write(button.ShadowColor);
+                writer.Write(button.MouseOverBackgroundColor);
+                writer.Write(button.PushedBackgroundColor);
+                writer.Write(button.MouseOverBorderColor);
+                writer.Write(button.PushedBorderColor);
+                writer.Write(button.MouseOverTextColor);
+                writer.Write(button.PushedTextColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+            writer.Write(ents.GUIControls.GUILabels.Count);
+            foreach (var label in ents.GUIControls.GUILabels)
+            {
+                Write_GUIControlLooksExt_363(label, writer);
+            }
+            writer.Write(ents.GUIControls.GUIInvWindows.Count);
+            foreach (var invwindow in ents.GUIControls.GUIInvWindows)
+            {
+                Write_GUIControlLooksExt_363(invwindow, writer);
+            }
+            writer.Write(ents.GUIControls.GUISliders.Count);
+            foreach (var slider in ents.GUIControls.GUISliders)
+            {
+                Write_GUIControlLooksExt_363(slider, writer);
+                // Slider's own properties
+                writer.Write(slider.HandleColor);
+                writer.Write(slider.ShadowColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+            writer.Write(ents.GUIControls.GUITextBoxes.Count);
+            foreach (var textbox in ents.GUIControls.GUITextBoxes)
+            {
+                Write_GUIControlLooksExt_363(textbox, writer);
+                // Textbox's own properties
+                writer.Write((int)textbox.TextAlignment);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+            writer.Write(ents.GUIControls.GUIListBoxes.Count);
+            foreach (var listbox in ents.GUIControls.GUIListBoxes)
+            {
+                Write_GUIControlLooksExt_363(listbox, writer);
             }
         }
 

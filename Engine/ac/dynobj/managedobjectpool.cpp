@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -36,10 +36,9 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     stats.RemovedPersistent += ((o.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) != 0);
     o.refCount = 0; // mark as disposing, to avoid any access
     o.callback->Dispose(o.addr, force); // we always dispose and remove now!
-    available_ids.push(o.handle);
     handleByAddress.erase(o.addr);
     ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, o.handle);
-    o = ManagedObject();
+    objects.Free(o.handle);
     return 1;
 }
 
@@ -122,7 +121,7 @@ ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, voi
         manager = nullptr;
         return kScValUndefined;
     }
-    auto &o = objects[handle];
+    const auto &o = objects[handle];
     object = o.addr;
     manager = o.callback;
     return o.obj_type;
@@ -279,18 +278,7 @@ int ManagedObjectPool::Add(int handle, void *address, IScriptObject *callback,
 int ManagedObjectPool::AddObject(void *address, IScriptObject *callback,
     ScriptValueType obj_type, bool persistent)
 {
-    int32_t handle;
-
-    if (!available_ids.empty()) {
-        handle = available_ids.front();
-        available_ids.pop();
-    } else {
-        handle = nextHandle++;
-        if ((size_t)handle >= objects.size()) {
-           objects.resize(handle + 1024, ManagedObject());
-        }
-    }
-
+    int32_t handle = objects.Add();
     return Add(handle, address, callback, obj_type, persistent);
 }
 
@@ -298,10 +286,7 @@ int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callb
     int handle, ScriptValueType obj_type, bool persistent) 
 {
     if (handle < 1) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
-    if ((size_t)handle >= objects.size()) {
-        objects.resize(handle + 1024, ManagedObject());
-    }
-
+    objects.Set(handle);
     return Add(handle, address, callback, obj_type, persistent);
 }
 
@@ -317,16 +302,16 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     out->WriteInt32(OBJECT_CACHE_SAVE_VERSION);
 
     int size = 0;
-    for (int i = 1; i < nextHandle; i++) {
+    for (size_t i = 1; i < objects.size(); i++)
+    {
         auto const & o = objects[i];
-        if (o.isUsed()) { 
-            size += 1;
-        }
+        if (o.isUsed())
+            size++;
     }
     out->WriteInt32(size);
 
-    for (int i = 1; i < nextHandle; i++) {
-        auto const & o = objects[i];
+    for (const auto &o : objects)
+    {
         if (!o.isUsed()) { continue; }
 
         // handle
@@ -383,34 +368,19 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
         ManagedObjectLog("Read handle = %d", objects[i].handle);
     }
 
-    // re-adjust next handles. (in case saved in random order)
-    available_ids = std::queue<int32_t>();
-    nextHandle = 1;
-
-    for (const auto &o : objects) {
-        if (o.isUsed()) { 
-            nextHandle = o.handle + 1;
-        }
-    }
-    for (int i = 1; i < nextHandle; i++) {
-        if (!objects[i].isUsed()) {
-            available_ids.push(i);
-        }
-    }
-
     return 0;
 }
 
-void ManagedObjectPool::Reset() {
-    for (int i = 1; i < nextHandle; i++) {
-        auto & o = objects[i];
+void ManagedObjectPool::Reset()
+{
+    for (auto &o : objects)
+    {
         if (!o.isUsed()) { continue; }
         Remove(o, true);
     }
-    available_ids = std::queue<int32_t>();
+    objects.Clear();
     gcUsedList.clear();
     gcRemList.clear();
-    nextHandle = 1;
 
     PrintStats();
 }
@@ -439,16 +409,19 @@ void ManagedObjectPool::PrintStats()
 
 void ManagedObjectPool::TraverseManagedObjects(const String &type, PfnProcessObject proc)
 {
-    for (int i = 1; i < nextHandle; i++)
+    for (const auto &o : objects)
     {
-        auto &o = objects[i];
         if (!o.isUsed() || type != o.callback->GetType())
             continue;
         proc(o.handle, o.callback);
     }
 }
 
-ManagedObjectPool::ManagedObjectPool() : objectCreationCounter(0), nextHandle(1), available_ids(), objects(RESERVED_SIZE, ManagedObject()), handleByAddress() {
+ManagedObjectPool::ManagedObjectPool()
+    : objects(1)
+    , objectCreationCounter(0)
+{
+    objects.Reserve(RESERVED_SIZE);
     handleByAddress.reserve(RESERVED_SIZE);
 }
 

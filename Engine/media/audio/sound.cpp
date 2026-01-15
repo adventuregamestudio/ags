@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -23,45 +23,10 @@
 #include "util/resourcecache.h"
 #include "util/stream.h"
 #include "util/string_types.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-// FIXME: merge with ScriptAudioClip::GetAudioFileTypeFromExt!
-static AudioFileType GuessSoundTypeFromExt(const String &extension)
-{
-    if (extension.CompareNoCase("mp3") == 0) {
-        return eAudioFileMP3;
-    }
-    else if (extension.CompareNoCase("ogg") == 0) {
-        return eAudioFileOGG;
-    }
-    else if (extension.CompareNoCase("mid") == 0) {
-        return eAudioFileMIDI;
-    }
-    else if (extension.CompareNoCase("wav") == 0) {
-        return eAudioFileWAV;
-    }
-    else if (extension.CompareNoCase("voc") == 0) {
-        return eAudioFileWAV;
-    }
-    else if (extension.CompareNoCase("mod") == 0) {
-        return eAudioFileMOD;
-    }
-    else if (extension.CompareNoCase("s3m") == 0) {
-        return eAudioFileMOD;
-    }
-    else if (extension.CompareNoCase("it") == 0) {
-        return eAudioFileMOD;
-    }
-    else if (extension.CompareNoCase("xm") == 0) {
-        return eAudioFileMOD;
-    }
-    else if (extension.CompareNoCase("flac") == 0) {
-        return eAudioFileFLAC;
-    }
-    return eAudioFileUndefined;
-}
 
 // Sound cache, stores most recent used sounds, tracks use history with MRU list.
 class SoundCache final :
@@ -161,6 +126,6 @@ std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *e
 
     if (slot < 0) { return nullptr; }
 
-    const auto sound_type = GuessSoundTypeFromExt(ext_hint);
+    const auto sound_type = ScriptAudioClip::GetAudioFileTypeFromExt(ext_hint.GetCStr());
     return std::unique_ptr<SoundClip>(new SoundClip(slot, sound_type, loop));
 }

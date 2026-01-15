@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -14,6 +14,7 @@
 #ifndef __AC_AUDIODEFINES_H
 #define __AC_AUDIODEFINES_H
 
+#define MUS_UNKNOWN 0
 // Media playback status
 // FIXME: the PlayStateInitial may be a problem, because it does not let know
 // what is the future player state is, after data finishes loading. Review this!

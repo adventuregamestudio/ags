@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2025 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -29,6 +29,7 @@
 #include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -234,6 +235,15 @@ void Mouse_ChangeCursorHotspot (int curs, int x, int y) {
     game.mcurs[curs].hoty = y;
     if (curs == cur_cursor)
         set_cursor_look(cur_cursor);
+}
+
+ScriptUserObject *Mouse_GetModeHotspot(int curs)
+{
+    if ((curs < 0) || (curs >= game.numcursors))
+        quit("!GetModeHotspot: invalid mouse cursor");
+    int x = game.mcurs[curs].hotx;
+    int y = game.mcurs[curs].hoty;
+    return ScriptStructHelpers::CreatePoint(x, y);
 }
 
 void Mouse_ChangeModeView(int curs, int newview, int delay) {
@@ -583,6 +593,11 @@ RuntimeScriptValue Sc_Mouse_ChangeCursorHotspot(const RuntimeScriptValue *params
     API_SCALL_VOID_PINT3(Mouse_ChangeCursorHotspot);
 }
 
+RuntimeScriptValue Sc_Mouse_GetModeHotspot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptUserObject, Mouse_GetModeHotspot);
+}
+
 // void (int curs, int newview)
 RuntimeScriptValue Sc_Mouse_ChangeModeView2(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -754,6 +769,7 @@ void RegisterMouseAPI()
         { "Mouse::DisableMode^1",             API_FN_PAIR(Mouse_DisableCursorMode) },
         { "Mouse::EnableMode^1",              API_FN_PAIR(Mouse_EnableCursorMode) },
         { "Mouse::GetModeGraphic^1",          API_FN_PAIR(Mouse_GetModeGraphic) },
+        { "Mouse::GetModeHotspot^1",          API_FN_PAIR(Mouse_GetModeHotspot) },
         { "Mouse::IsButtonDown^1",            API_FN_PAIR(Mouse_IsButtonDown) },
         { "Mouse::IsModeEnabled^1",           API_FN_PAIR(Mouse_IsModeEnabled) },
         { "Mouse::SaveCursorUntilItLeaves^0", API_FN_PAIR(Mouse_SaveCursorForLocationChange) },

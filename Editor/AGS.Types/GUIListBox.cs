@@ -18,12 +18,11 @@ namespace AGS.Types
         public GUIListBox(int x, int y, int width, int height)
             : base(x, y, width, height)
         {
-            _showBorder = true;
+            ShowBorder = true; // border is visible by default
             _showScrollArrows = true;
             _textColor = 0;
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;
-            _textAlignment = HorizontalAlignment.Left;
         }
 
         public GUIListBox(XmlNode node) : base(node)
@@ -36,8 +35,7 @@ namespace AGS.Types
         private int _textColor;
         private int _selectedTextColor;
         private int _selectedBackgroundColor;
-        private HorizontalAlignment _textAlignment;
-        private bool _showBorder;
+        private HorizontalAlignment _textAlignment = HorizontalAlignment.Left;
         private bool _showScrollArrows;
         private string _onSelectionChanged = string.Empty;
 
@@ -61,14 +59,6 @@ namespace AGS.Types
             set { _showScrollArrows = value; }
         }
 
-        [Description("Determines whether the listbox border is drawn")]
-        [Category("Appearance")]
-        public bool ShowBorder
-        {
-            get { return _showBorder; }
-            set { _showBorder = value; }
-        }
-
         [Description("Indentation of the text in the listbox")]
         [Category("Appearance")]
         public HorizontalAlignment TextAlignment
@@ -80,7 +70,6 @@ namespace AGS.Types
         [Description("Colour of the text")]
         [Category("Appearance")]
         [DisplayName("TextColor")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -93,7 +82,6 @@ namespace AGS.Types
         [Description("Selected item's text colour")]
         [Category("Appearance")]
         [DisplayName("SelectedTextColor")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -106,7 +94,6 @@ namespace AGS.Types
         [Description("Selected item's background colour")]
         [Category("Appearance")]
         [DisplayName("SelectedBackgroundColor")]
-        [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]

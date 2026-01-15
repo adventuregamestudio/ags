@@ -310,6 +310,8 @@ void GUIMain::DrawControls(Bitmap *ds)
             && objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
         {
             objToDraw->Draw(ds, objx, objy);
+            // Reset clip, in case control does temporary surface clipping
+            ds->ResetClip();
         }
         else
         {

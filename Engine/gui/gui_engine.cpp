@@ -118,7 +118,7 @@ int GUILabel::PrepareTextToDraw()
 {
     const bool is_translated = (_flags & kGUICtrl_Translated) != 0;
     _textToDraw = GUI::ResolveMacroTokens(is_translated ? get_translation(_text.GetCStr()) : _text);
-    return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, _font, _width);
+    return GUI::SplitLinesForDrawing(_textToDraw, is_translated, Lines, _font, _innerRect.GetWidth());
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)

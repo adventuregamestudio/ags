@@ -102,7 +102,7 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = GUI::DataVersion >= kGameVersion_272;
     const Rect lines_rect = Rect::MoveBy(_innerRect, x, y);
-    if (limit_by_label_frame)
+    if (limit_by_label_frame && GUI::Options.ClipControls)
         ds->SetClip(lines_rect);
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
         lines_rect,

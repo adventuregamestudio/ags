@@ -748,11 +748,14 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
         // move the Text a bit while pushed
-        frame = frame.MoveBy(frame, 1, 1);
+        frame.MoveLT(1, 1);
     }
     color_t text_color = draw_disabled ?
         ds->GetCompatibleColor(8) :
         ds->GetCompatibleColor(_currentTextColor);
+
+    if (GUI::Options.ClipControls)
+        ds->SetClip(frame);
 
     if (IsWrapText())
         GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font),

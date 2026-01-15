@@ -354,6 +354,12 @@ struct Rect
         MoveToY(pt.Y);
     }
 
+    inline void MoveLT(int x, int y)
+    {
+        Left = std::min(Left + x, Right);
+        Top = std::min(Top + y, Bottom);
+    }
+
     inline void SetWidth(int width)
     {
         Right = Left + width - 1;

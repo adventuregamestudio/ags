@@ -250,9 +250,8 @@ namespace AGS.Types
 
         [Description("Color of character's speech text")]
         [Category("Appearance")]
-        [DisplayName("SpeechColor")]
-        [TypeConverter(typeof(CustomColorConverter))]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int SpeechColor
         {

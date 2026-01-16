@@ -19,6 +19,7 @@ namespace AGS.Types
             : base(x, y, width, height)
         {
             _text = "New Label";
+            _textColor = 0;
         }
 
         public GUILabel(XmlNode node) : base(node)
@@ -42,7 +43,6 @@ namespace AGS.Types
 
         [Description("Colour of the label text")]
         [Category("Appearance")]
-        [DisplayName("TextColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]

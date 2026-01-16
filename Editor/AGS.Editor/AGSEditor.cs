@@ -138,9 +138,10 @@ namespace AGS.Editor
          * 4.00.00.20     - start using version string again.
          * 4.00.00.24     - New event tables; Cursors have "create event" property.
          *                  ViewFrame.EventName, OnFrameEvent.
+         * 4.00.00.26     - sync with colored gui controls (3.6.3).
          *
         */
-        public const string LATEST_XML_VERSION = "4.0.0.24";
+        public const string LATEST_XML_VERSION = "4.0.0.26";
 
         /*
          * FIRST_XML_VERSION is the very first version of the Editor using XML project file.
@@ -168,6 +169,7 @@ namespace AGS.Editor
         /// </summary>
         public const int    AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS = 3999901;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS = 3999907;
+        public const int    AGS_4_0_0_XML_VERSION_INDEX_COLORS_32BIT = 4000009;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES = 4000010;
 
         /*

@@ -362,13 +362,18 @@ namespace AGS.Editor
                 }
             }
 
-            if (xmlVersionIndex < 3060304)
+            if ((xmlVersionIndex < 3060304) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000026))
             {
+                // Default GUI colors are set as palette indexes. If we are upgrading from
+                // the project version where we already have 32-bit colors, then remap them
+                // to proper colors right away.
+                bool remapNow = xmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_COLORS_32BIT;
+
                 foreach (GUI gui in game.GUIs)
                 {
                     foreach (GUIControl gc in gui.Controls)
                     {
-                        Tasks.SetDefaultColors(game, gc, xmlVersionIndex);
+                        SetDefaultColorsForGUIControls(game, gc, xmlVersionIndex, remapNow);
                     }
                 }
             }
@@ -389,7 +394,7 @@ namespace AGS.Editor
             }
 
             // Update all the ColourNumber property values in game
-            if (xmlVersionIndex < 4000009)
+            if (xmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_COLORS_32BIT)
             {
                 RemapLegacyColourProperties(game);
             }
@@ -512,6 +517,76 @@ namespace AGS.Editor
                 return ColorMapper.MakeOpaque(color, game.Settings.ColorDepth);
             };
             Tasks.RemapColourProperties(game, remapColor);
+        }
+
+        /// <summary>
+        /// Set default colors and control frame properties for GUI controls.
+        /// </summary>
+        private static void SetDefaultColorsForGUIControls(Game game, GUIControl control, int xmlVersionIndex, bool remapOldColors)
+        {
+            // Remap is only necessary if we have a non palette based game
+            remapOldColors &= game.Settings.ColorDepth != GameColorDepth.Palette;
+            var palette = game.Palette;
+
+            if (control is GUIButton)
+            {
+                GUIButton but = control as GUIButton;
+                but.SolidBackground = true;
+                but.ShowBorder = true;
+                but.BackgroundColor = 7;
+                but.BorderColor = 15;
+                but.ShadowColor = 8;
+                if ((xmlVersionIndex < 3060202) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000026))
+                {
+                    but.PaddingX = 1;
+                    but.PaddingY = 1;
+                }
+                else
+                {
+                    // 3.6.2 TextPadding was an offset from exterior control edge
+                    but.PaddingX = Math.Max(0, but.TextPaddingHorizontal - 1);
+                    but.PaddingY = Math.Max(0, but.TextPaddingVertical - 1);
+                }
+
+                if (remapOldColors)
+                {
+                    but.BackgroundColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.BackgroundColor);
+                    but.BorderColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.BorderColor);
+                    but.ShadowColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, but.ShadowColor);
+                }
+            }
+            else if (control is GUIListBox)
+            {
+                GUIListBox lbox = control as GUIListBox;
+                lbox.BorderColor = lbox.TextColor;
+                lbox.BorderWidth = 1;
+            }
+            else if (control is GUISlider)
+            {
+                GUISlider slider = control as GUISlider;
+                slider.ShowBorder = true;
+                slider.SolidBackground = true;
+                slider.BackgroundColor = 16;
+                slider.BorderColor = 15;
+                slider.HandleColor = 7;
+                slider.ShadowColor = 8;
+
+                if (remapOldColors)
+                {
+                    slider.BackgroundColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.BackgroundColor);
+                    slider.BorderColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.BorderColor);
+                    slider.HandleColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.HandleColor);
+                    slider.ShadowColor = ColorMapper.PaletteToToAgsColourNumberDirect(palette, slider.ShadowColor);
+                }
+            }
+            else if (control is GUITextBox)
+            {
+                GUITextBox tbox = control as GUITextBox;
+                tbox.BorderColor = tbox.TextColor;
+                tbox.BorderWidth = 1;
+                tbox.PaddingX = 1;
+                tbox.PaddingY = 1;
+            }
         }
     }
 }

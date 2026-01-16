@@ -66,6 +66,11 @@ namespace AGS.Editor
                 agsColorNumber & 0xff);
         }
 
+        public static int PaletteToToAgsColourNumberDirect(PaletteEntry[] palette, int index)
+        {
+            return ColorToAgsColourNumberDirect(palette[index].Colour);
+        }
+
         /// <summary>
         /// Finds a palette index which color is closest to the given RGB.
         /// Any non-zero alpha value is ignored; any color with zero alpha is treated as the

@@ -379,7 +379,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
 
 void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    if (data_ver < kGameVersion_363_04)
+    if ((data_ver < kGameVersion_363_04) || (data_ver >= kGameVersion_399 && data_ver < kGameVersion_400_26))
     {
         for (int i = 0; i < game.numdialog; ++i)
         {
@@ -479,7 +479,7 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
             lbl.SetTranslated(true); // always translated
     }
 
-    if (data_ver < kGameVersion_363_04)
+    if ((data_ver < kGameVersion_363_04) || (data_ver >= kGameVersion_399 && data_ver < kGameVersion_400_26))
     {
         // Set default color styles for gui controls
         for (auto &btn : ents.GuiControls.Buttons)

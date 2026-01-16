@@ -18,6 +18,7 @@ namespace AGS.Types
         public GUIButton(int x, int y, int width, int height) : base(x, y, width, height)
         {
             _text = "New Button";
+            _textColor = 0;
             _textAlign = FrameAlignment.TopCenter;
             ShowBorder = true;
             SolidBackground = true;
@@ -158,6 +159,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int ShadowColor
         {
             get { return _shadowColor; }
@@ -166,7 +168,6 @@ namespace AGS.Types
 
         [Description("Colour of the button text")]
         [Category("Appearance")]
-        [DisplayName("TextColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -180,6 +181,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int MouseOverBackgroundColor
         {
             get { return _mouseoverBackgroundColor; }
@@ -190,6 +192,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int PushedBackgroundColor
         {
             get { return _pushedBackgroundColor; }
@@ -200,6 +203,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int MouseOverBorderColor
         {
             get { return _mouseoverBorderColor; }
@@ -210,6 +214,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int PushedBorderColor
         {
             get { return _pushedBorderColor; }
@@ -220,6 +225,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int MouseOverTextColor
         {
             get { return _mouseoverTextColor; }
@@ -230,6 +236,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int PushedTextColor
         {
             get { return _pushedTextColor; }

@@ -48,9 +48,8 @@ namespace AGS.Types
 
         [Description("Background color of the GUI (0 = transparent)")]
         [Category("Appearance")]
-        [DisplayName("BackgroundColor")]
-        [TypeConverter(typeof(CustomColorConverter))]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int BackgroundColor
         {

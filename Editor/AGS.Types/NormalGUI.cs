@@ -170,7 +170,6 @@ namespace AGS.Types
 
 		[Description("Colour of the GUI border")]
 		[Category("Appearance")]
-        [DisplayName("BorderColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]

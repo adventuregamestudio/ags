@@ -60,6 +60,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int HandleColor
         {
             get { return _handleColor; }
@@ -70,6 +71,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int ShadowColor
         {
             get { return _shadowColor; }

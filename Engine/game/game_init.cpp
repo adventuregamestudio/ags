@@ -202,7 +202,7 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
         StaticDialogArray[i] = handle;
 
         if (!dialog[i].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(game.dialogScriptNames[i], &StaticDialogArray[i]);
+            ccAddExternalScriptObjectHandle(dialog[i].ScriptName, &StaticDialogArray[i]);
     }
 }
 

@@ -27,6 +27,5 @@ namespace AGS.Types
         {
             return ColorMapper.MapAgsColourNumberToRgbColor(_agsColorNumber);
         }
-
     }
 }

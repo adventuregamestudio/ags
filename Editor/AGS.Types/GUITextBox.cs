@@ -20,6 +20,7 @@ namespace AGS.Types
         {
             ShowBorder = true; // border is visible by default
             _font = 0;
+            _textColor = 0;
             PaddingX = 1;
             PaddingY = 1;
             _textAlign = FrameAlignment.TopLeft;
@@ -51,7 +52,6 @@ namespace AGS.Types
 
         [Description("Colour of the text")]
         [Category("Appearance")]
-        [DisplayName("TextColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]

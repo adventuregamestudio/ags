@@ -192,6 +192,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int BackgroundColor
         {
             get { return _backgroundColor; }
@@ -202,6 +203,7 @@ namespace AGS.Types
         [Category("Appearance")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public int BorderColor
         {
             get { return _borderColor; }

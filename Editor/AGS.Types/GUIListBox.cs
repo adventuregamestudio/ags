@@ -69,7 +69,6 @@ namespace AGS.Types
 
         [Description("Colour of the text")]
         [Category("Appearance")]
-        [DisplayName("TextColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -81,7 +80,6 @@ namespace AGS.Types
 
         [Description("Selected item's text colour")]
         [Category("Appearance")]
-        [DisplayName("SelectedTextColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
@@ -93,7 +91,6 @@ namespace AGS.Types
 
         [Description("Selected item's background colour")]
         [Category("Appearance")]
-        [DisplayName("SelectedBackgroundColor")]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]

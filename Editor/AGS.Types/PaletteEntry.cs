@@ -28,6 +28,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_COLOR_RGB)]
         [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomColorConverter))]
+        [SerializeAsHex]
         public Color Colour
         {
             get { return _color; }

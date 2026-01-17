@@ -153,6 +153,7 @@ void GUIControl::SetActivated(bool on)
 void GUIControl::UpdateVisualState()
 {
     UpdateControlRect();
+    UpdateGraphicSpace();
     MarkPositionChanged(true, true);
 }
 

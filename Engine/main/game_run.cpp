@@ -242,7 +242,6 @@ static void GameUpdateCheckProblems()
     // FIXME: find a better place for this fixup, probably should be done
     // after restoring a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed?
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
         play.screen_is_faded_out = 0;
 }
 
@@ -1196,7 +1195,6 @@ void UpdateGameOnce(bool do_controls, IDriverDependantBitmap *extra_ddb, int ext
 
     set_our_eip(1002);
 
-    set_our_eip(1004);
     numEventsAtStartOfFunction = events.size();
     // Check "breakpoint" key prior to running any script callbacks
     check_debug_keys();

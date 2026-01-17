@@ -77,7 +77,6 @@ void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTo
 
 void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
 {
-    // FIXME: assert count
     if (svg_ver <= kDialogTopicSvgVer_Initial)
     {
         uint32_t opt_idx = 0;

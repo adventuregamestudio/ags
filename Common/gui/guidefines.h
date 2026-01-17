@@ -49,6 +49,9 @@
 //       - button's text padding properties   (3.6.2)
 // 3.6.3           : Controls have common frame settings
 //                   (back/border color, padding, etc)
+//
+// 4.0.0.26        : Updated to sync with 3.6.3, but contains numerous
+//                   additions of its own (blend mode, scaling, etc).
 //=============================================================================
 
 enum GuiVersion
@@ -56,8 +59,9 @@ enum GuiVersion
     kGuiVersion_Undefined   = 0,
     kGuiVersion_350         = 119,
     kGuiVersion_363         = 3060304,
+    kGuiVersion_40026       = 4000026,
     kGuiVersion_LowSupported = kGuiVersion_350,
-    kGuiVersion_Current     = kGuiVersion_363,
+    kGuiVersion_Current     = kGuiVersion_40026,
 };
 
 namespace AGS

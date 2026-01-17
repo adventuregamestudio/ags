@@ -352,7 +352,8 @@ void GUIButton::SetImageFlip(GraphicFlip flip)
 
 void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags, int xoff, int yoff)
 {
-    if (_currentImage == new_image && _curImageFlags == flags)
+    if (_currentImage == new_image && _curImageFlags == flags &&
+            _curImageXOff == xoff && _curImageYOff == yoff)
         return;
 
     _currentImage = new_image;

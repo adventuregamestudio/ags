@@ -815,7 +815,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(0); // reserved
     out->WriteInt32(0);
     out->WriteInt32(0);
-    // since version 10 (kGuiSvgVersion_399)
+    // since kGuiSvgVersion_399
     out->WriteInt32(_blendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags

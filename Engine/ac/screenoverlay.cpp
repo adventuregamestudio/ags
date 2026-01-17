@@ -399,7 +399,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_scaledSize.Height);
     // kOverSvgVersion_36304
     StrUtil::WriteString(_text, out);
-    // since cmp_ver = 10
+    // kOverSvgVersion_400
     out->WriteInt32(_blendMode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags

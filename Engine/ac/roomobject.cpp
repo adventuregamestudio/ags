@@ -327,7 +327,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // kRoomStatSvgVersion_36304
     out->WriteInt16(blocking_x);
     out->WriteInt16(blocking_y);
-    // since version 10
+    // kRoomStatSvgVersion_400
     out->WriteInt32(blend_mode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags

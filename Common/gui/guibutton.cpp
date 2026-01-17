@@ -747,8 +747,10 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     Rect frame = Rect::MoveBy(_innerRect, x, y);
     if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
-        // move the Text a bit while pushed
+        // Move the Text a bit while pushed, but still limit by border bounds
         frame.MoveLT(1, 1);
+        if (IsShowBorder())
+            frame = Rect::Clamp(frame, Rect(x + _borderWidth, y + _borderWidth, x + _width - 1 - _borderWidth, y + _height - 1 + _borderWidth));
     }
     color_t text_color = draw_disabled ?
         ds->GetCompatibleColor(8) :

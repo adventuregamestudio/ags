@@ -370,6 +370,14 @@ struct Rect
         Bottom = Top + height - 1;
     }
 
+    inline static Rect Clamp(const Rect &r, const Rect &bounds)
+    {
+        return Rect(AGSMath::Clamp(r.Left, bounds.Left, bounds.Right),
+                    AGSMath::Clamp(r.Top, bounds.Top, bounds.Bottom),
+                    AGSMath::Clamp(r.Right, bounds.Left, bounds.Right),
+                    AGSMath::Clamp(r.Bottom, bounds.Top, bounds.Bottom));
+    }
+
     inline static Rect MoveBy(const Rect &r, int x, int y)
     {
         return Rect(r.Left + x, r.Top + y, r.Right + x, r.Bottom + y);

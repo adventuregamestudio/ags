@@ -162,7 +162,8 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         follow_eagerness = 0;
     }
 
-    if (save_ver >= kCharSvgVersion_36304)
+    if ((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400) ||
+        (save_ver >= kCharSvgVersion_400_26))
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();

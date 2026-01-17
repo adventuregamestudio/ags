@@ -204,7 +204,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         anim_volume = 100;
     }
 
-    if (cmp_ver >= kRoomStatSvgVersion_36304)
+    if ((cmp_ver >= kRoomStatSvgVersion_36304) && (cmp_ver < kRoomStatSvgVersion_400) ||
+        (cmp_ver >= kRoomStatSvgVersion_40026))
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();

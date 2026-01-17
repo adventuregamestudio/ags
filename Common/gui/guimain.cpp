@@ -643,7 +643,7 @@ void GUIMain::WriteToFile(Stream *out) const
     }
 }
 
-void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs)
+void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> &ctrl_refs)
 {
     // Properties
     _flags = in->ReadInt32();
@@ -655,7 +655,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
     _transparency = in->ReadInt32();
     _zOrder = in->ReadInt32();
 
-    if (svg_version >= kGuiSvgVersion_350)
+    if (svg_ver >= kGuiSvgVersion_350)
     {
         _bgColor = in->ReadInt32();
         _fgColor = in->ReadInt32();
@@ -672,7 +672,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
     _mouseWasAt.Y = in->ReadInt32();
 
     // Control refs
-    if (svg_version >= kGuiSvgVersion_36200 && (svg_version < kGuiSvgVersion_400 || svg_version >= kGuiSvgVersion_40010))
+    if (svg_ver >= kGuiSvgVersion_36200 && (svg_ver < kGuiSvgVersion_400 || svg_ver >= kGuiSvgVersion_40010))
     {
         uint32_t ctrl_count = in->ReadInt32();
         ctrl_refs.resize(ctrl_count);
@@ -684,7 +684,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
         }
     }
     
-    if (svg_version >= kGuiSvgVersion_36304)
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
+        (svg_ver >= kGuiSvgVersion_40026))
     {
         _popupStyle = static_cast<GUIPopupStyle>(in->ReadInt32());
         in->ReadInt32(); // reserved
@@ -692,7 +693,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
         in->ReadInt32();
     }
 
-    if (svg_version >= kGuiSvgVersion_400)
+    if (svg_ver >= kGuiSvgVersion_400)
     {
         _blendMode = (BlendMode)in->ReadInt32();
 
@@ -719,7 +720,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version, st
             _scale.Y = 1.f;
     }
 
-    if (svg_version >= kGuiSvgVersion_40018)
+    if (svg_ver >= kGuiSvgVersion_40018)
     {
         _shaderID = in->ReadInt32();
         _shaderHandle = in->ReadInt32();
@@ -761,7 +762,8 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
         }
     }
     
-    if (svg_version >= kGuiSvgVersion_36304)
+    if ((svg_version >= kGuiSvgVersion_36304) && (svg_version < kGuiSvgVersion_400) ||
+        (svg_version >= kGuiSvgVersion_40026))
     {
         in->Seek(4 * sizeof(int32_t));
     }

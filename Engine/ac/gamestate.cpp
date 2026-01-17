@@ -651,7 +651,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_mode = (SpeechMode)in->ReadInt32();
     speech_skip_style = in->ReadInt32();
     // Old-style timers, limited to 20, with 1-based ID
-    if (svg_ver < kGSSvgVersion_363_04)
+    if ((svg_ver < kGSSvgVersion_363_04) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_26))
     {
         int old_script_timers[LEGACY_MAX_TIMERS];
         in->ReadArrayOfInt32(old_script_timers, LEGACY_MAX_TIMERS);
@@ -770,7 +770,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     }
 
     // New-style timers
-    if (svg_ver >= kGSSvgVersion_363_04)
+    if (((svg_ver >= kGSSvgVersion_363_04) && (svg_ver < kGSSvgVersion_400)) || (svg_ver >= kGSSvgVersion_400_26))
     {
         uint32_t timer_count = in->ReadInt32();
         _scriptTimers.clear();

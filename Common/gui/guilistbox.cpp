@@ -485,7 +485,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _textAlignment = (HorAlignment)in->ReadInt32();
     _textColor = in->ReadInt32();
 
-    if (svg_ver < kGuiSvgVersion_36304)
+    if ((svg_ver < kGuiSvgVersion_36304) || (svg_ver >= kGuiSvgVersion_400 && svg_ver < kGuiSvgVersion_40026))
     {
         SetDefaultLooksFor363();
     }

@@ -67,6 +67,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
     kGSSvgVersion_400_18    = 4000018, // shaders
     kGSSvgVersion_400_24    = 4000024, // sync with kGSSvgVersion_363_02
+    kGSSvgVersion_400_26    = 4000026, // sync with kGSSvgVersion_363_04
 };
 
 // SavedLocationType defines the type of location which

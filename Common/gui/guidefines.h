@@ -193,6 +193,7 @@ enum GuiSvgVersion
     kGuiSvgVersion_40016    = 4000016, // extended graphic properties for controls
     kGuiSvgVersion_40018    = 4000018, // shaders
     kGuiSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
+    kGuiSvgVersion_40026    = 4000026, // sync with kGuiSvgVersion_36304
 };
 
 // Style of GUI drawing in disabled state

@@ -70,6 +70,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
     kOverSvgVersion_40018   = 4000018, // shaders
     kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
+    kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
 };
 
 class ScreenOverlay

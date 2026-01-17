@@ -209,9 +209,9 @@ public:
     // control arrays mismatching current game. This also *potentially* allows the engine
     // to fixup data read from the older saves.
     // Perhaps review this later (maybe when there's a split runtime GUI class).
-    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> &ctrl_refs);
+    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> &ctrl_refs);
     void    WriteToSavegame(Stream *out) const;
-    static void SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<ControlRef> *ctrl_refs);
+    static void SkipSavestate(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> *ctrl_refs);
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);

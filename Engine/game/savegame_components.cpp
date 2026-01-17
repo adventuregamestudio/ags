@@ -1916,7 +1916,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_400_24,
+        kGSSvgVersion_400_26,
         kGSSvgVersion_400,
         kSaveCmp_GameState,
         WriteGameState,
@@ -1934,7 +1934,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_400_20,
+        kCharSvgVersion_400_26,
         kCharSvgVersion_400,
         kSaveCmp_Characters,
         WriteCharacters,
@@ -1943,7 +1943,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Dialogs",
-        kDialogTopicSvgVer_40008,
+        kDialogTopicSvgVer_40026,
         kDialogTopicSvgVer_Initial,
         kSaveCmp_Dialogs,
         WriteDialogs,
@@ -1952,7 +1952,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_40020,
+        kGuiSvgVersion_40026,
         kGuiSvgVersion_Initial,
         kSaveCmp_GUI,
         WriteGUI,
@@ -2007,7 +2007,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        kOverSvgVersion_40024,
+        kOverSvgVersion_40026,
         kOverSvgVersion_Initial,
         kSaveCmp_Overlays,
         WriteOverlays,
@@ -2043,7 +2043,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40024,
+        kRoomStatSvgVersion_40026,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -2052,7 +2052,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40024, // must correspond to "Room States"
+        kRoomStatSvgVersion_40026, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         kSaveCmp_ThisRoom,
         WriteThisRoom,

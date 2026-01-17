@@ -44,6 +44,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_40018    = 4000018, // shaders
     kRoomStatSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
     kRoomStatSvgVersion_40024    = 4000024, // sync with kRoomStatSvgVersion_36214
+    kRoomStatSvgVersion_40026    = 4000026, // sync with kRoomStatSvgVersion_36304
     kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40024
 };
 

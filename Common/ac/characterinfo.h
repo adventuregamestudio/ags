@@ -115,6 +115,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_16  = 4000016, // motion path exposed to script, separate runtime flags, turns
     kCharSvgVersion_400_18  = 4000018, // shaders
     kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
+    kCharSvgVersion_400_26  = 4000026, // sync with kCharSvgVersion_36304
 };
 
 // Character event indexes

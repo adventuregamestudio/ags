@@ -576,7 +576,8 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _buttonFlags = in->ReadInt32();
         _shadowColor = in->ReadInt32();
     }
-    if (svg_ver >= kGuiSvgVersion_36304)
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
+        (svg_ver >= kGuiSvgVersion_40026))
     {
         _mouseOverBackColor = in->ReadInt32();
         _pushedBackColor = in->ReadInt32();

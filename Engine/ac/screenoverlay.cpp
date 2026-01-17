@@ -310,7 +310,8 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _scaledSize.Width = in->ReadInt32();
         _scaledSize.Height = in->ReadInt32();
     }
-    if (cmp_ver >= kOverSvgVersion_36304)
+    if ((cmp_ver >= kOverSvgVersion_36304) && (cmp_ver < kOverSvgVersion_400) ||
+        (cmp_ver >= kOverSvgVersion_40026))
     {
         _text = StrUtil::ReadString(in);
     }

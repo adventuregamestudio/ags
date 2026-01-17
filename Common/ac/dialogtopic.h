@@ -46,6 +46,7 @@ enum DialogTopicSvgVersion
     kDialogTopicSvgVer_Initial  = 0,
     kDialogTopicSvgVer_363      = 3060304, // new save format
     kDialogTopicSvgVer_40008    = 4000008, // custom properties
+    kDialogTopicSvgVer_40026    = 4000026, // sync with kDialogTopicSvgVer_363
 };
 
 struct DialogTopic

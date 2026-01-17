@@ -255,7 +255,7 @@ Classic arrays and Dynarrays, pointers and managed structs:
 // Use '_src.GetPosition()' to track at which point of the source the compiler is.
 extern int currentline;
 
-char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2025 others";
+char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2026 others";
 
 const std::string  AGS::Parser::_builtinSymbolPrefix = BUILTIN_SYMBOL_PREFIX;
 const std::string  AGS::Parser::_builtinDynArrayLength = BUILTIN_DYNAMIC_ARRAY_LENGTH;

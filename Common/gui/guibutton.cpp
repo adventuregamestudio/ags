@@ -744,17 +744,19 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
+    const color_t text_color = draw_disabled ?
+        ds->GetCompatibleColor(8) :
+        ds->GetCompatibleColor(_currentTextColor);
+
     Rect frame = Rect::MoveBy(_innerRect, x, y);
     if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
-        // Move the Text a bit while pushed, but still limit by border bounds
-        frame.MoveLT(1, 1);
+        // Move the Text a bit while pushed, but still limit by border bounds;
+        // when moved down, allow text to appear on padding, but not the border.
+        frame = frame.MoveBy(frame, 1, 1);
         if (IsShowBorder())
             frame = Rect::Clamp(frame, Rect(x + _borderWidth, y + _borderWidth, x + _width - 1 - _borderWidth, y + _height - 1 + _borderWidth));
     }
-    color_t text_color = draw_disabled ?
-        ds->GetCompatibleColor(8) :
-        ds->GetCompatibleColor(_currentTextColor);
 
     if (GUI::Options.ClipControls)
         ds->SetClip(frame);

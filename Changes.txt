@@ -297,9 +297,10 @@ Editor:
    color number of RGB).
  - Added new properties to GUI Controls: BackgroundColor, BorderColor, BorderWidth, ShowBorder,
    SolidBackground, PaddingX and PaddingY properties.
- - Added new properties to GUI Button: ColorStyle, MouseOverBackgroundColor, MouseOverBorderColor,
-   MouseOverTextColor, PushedBackgroundColor, PushedBorderColor, PushedTextColor, ShadowColor.
- - Added new properties to GUI Slider: HandleColor, ShadowColor.
+ - Added new properties to GUI Button: ColorStyle, BorderShadeColor, MouseOverBackgroundColor,
+   MouseOverBorderColor, MouseOverTextColor, PushedBackgroundColor, PushedBorderColor,
+   PushedTextColor.
+ - Added new properties to GUI Slider: BorderShadeColor, HandleColor.
  - Added TextAlignment property to TextBox.
  - For the Fonts added CharacterSpacing property that lets define additional spacing between each
    pair of characters.
@@ -334,8 +335,8 @@ Script API:
  - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
    channels.
  - Added GUIButtonColorStyle enum, which defines the Button's dynamic coloring style.
- - Added Button.ColorStyle, MouseOverBackgroundColor, MouseOverBorderColor, MouseOverTextColor,
-   PushedBackgroundColor, PushedBorderColor, PushedTextColor and ShadowColor properties.
+ - Added Button.ColorStyle, BorderShadeColor, MouseOverBackgroundColor, MouseOverBorderColor,
+   MouseOverTextColor, PushedBackgroundColor, PushedBorderColor, PushedTextColor properties.
  - Added Character.BlockingRectX, BlockingRectY, and Object.BlockingRectX, BlockingRectY.
  - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
  - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
@@ -371,7 +372,7 @@ Script API:
  - Added Overlay.Visible property.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
- - Added Slider.HandleColor and ShadowColor properties.
+ - Added Slider.BorderShadeColor and HandleColor properties.
  - Added System.FPS that lets read current real fps.
  - Added TextBox.TextAlignment property.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:

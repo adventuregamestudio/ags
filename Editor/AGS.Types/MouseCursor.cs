@@ -119,7 +119,8 @@ namespace AGS.Types
             set { _animateDelay = value; }
         }
 
-        [Description("The name of the cursor")]
+        [DisplayName("ScriptName")]
+        [Description("The script name of the cursor")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
         public string Name

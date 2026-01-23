@@ -162,8 +162,6 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         game.chars[i].blinkinterval = 140;
         game.chars[i].blinktimer = game.chars[i].blinkinterval;
         game.chars[i].index_id = i;
-        game.chars[i].blocking_width = 0;
-        game.chars[i].blocking_height = 0;
         game.chars[i].prevroom = -1;
         game.chars[i].loop = 0;
         game.chars[i].frame = 0;

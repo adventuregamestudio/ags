@@ -27,7 +27,13 @@
 // This is also the reason why some classes here are named with the "Info"
 // postfix. For example, RoomObjectInfo is the initial object data, and
 // there is also RoomObject runtime-only class for mutable data.
-//
+// 
+// TODO: have a consistent division between design-time struct (loaded from
+// game data), and runtime class. Need to think how we want to deal with
+// the data saved when the room is unloaded. We may keep everything in the
+// same runtime class, OR have *another* struct for the "cached runtime data",
+// which is written to when the room is unloaded and read from when the room
+// is loaded once again.
 //=============================================================================
 #ifndef __AGS_CN_GAME__ROOMINFO_H
 #define __AGS_CN_GAME__ROOMINFO_H
@@ -243,6 +249,7 @@ struct RoomObjectInfo : public RoomObjectBase
     int32_t         Flags;
     String          Name;
     String          ScriptName;
+    Rect            BlockingRect;
     // Custom properties
     StringIMap      Properties;
     // Interaction events (cursor-based)

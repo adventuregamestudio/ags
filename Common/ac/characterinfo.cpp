@@ -157,6 +157,17 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterInfo2 &chinfo2, Charac
     }
     on = in->ReadInt8();
 
+    if (save_ver >= kCharSvgVersion_36304)
+    {
+        chinfo2.blocking_x = in->ReadInt16();
+        chinfo2.blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        chinfo2.blocking_x = 0;
+        chinfo2.blocking_y = 0;
+    }
+
     //
     // Upgrade restored data
     if (save_ver < kCharSvgVersion_36025)
@@ -172,6 +183,9 @@ void CharacterInfo::WriteToSavegame(Stream *out, const CharacterInfo2 &chinfo2) 
     WriteBaseFields(out);
     StrUtil::WriteString(chinfo2.name_new, out); // kCharSvgVersion_36115
     out->WriteInt8(on);
+    // kCharSvgVersion_36304
+    out->WriteInt16(chinfo2.blocking_x);
+    out->WriteInt16(chinfo2.blocking_y);
 }
 
 #if defined (OBSOLETE)

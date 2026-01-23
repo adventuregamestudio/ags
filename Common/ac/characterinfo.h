@@ -109,12 +109,15 @@ struct CharacterInfo2;
 
 // CharacterInfo is a design-time Character data.
 // Contains original set of character fields.
+// ----------------------------------------------------------------------------
 // IMPORTANT: exposed to script API, and plugin API as AGSCharacter!
 // For older script compatibility the struct also has to maintain its size,
 // and be stored in a plain array to keep the relative memory address offsets
-// between the Character objects!
+// between the Character script objects!
+// ----------------------------------------------------------------------------
 // Do not add or change existing fields, unless planning breaking compatibility.
-// Prefer to use CharacterInfo2 and CharacterExtras structs for any extensions.
+// Prefer to use CharacterInfo2 struct for extended fields that are setup at
+// design-time and CharacterExtras for runtime only extended fields.
 //
 // TODO: must refactor, some parts of it should be in a runtime Character class.
 struct CharacterInfo
@@ -264,6 +267,10 @@ struct CharacterInfo2
     // Unrestricted scriptname and name fields
     AGS::Common::String scrname_new;
     AGS::Common::String name_new;
+
+    // relative offset of the blocking rect
+    int blocking_x = 0;
+    int blocking_y = 0;
 };
 
 

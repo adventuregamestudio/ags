@@ -38,7 +38,8 @@ using namespace AGS; // FIXME later
 // IMPORTANT: exposed to plugin API as AGSObject!
 // keep that in mind if extending this struct, and dont change existing fields
 // unless you plan on adjusting plugin API as well.
-struct RoomObject {
+struct RoomObject
+{
     static const uint16_t NoView = UINT16_MAX;
 
     int   x,y;

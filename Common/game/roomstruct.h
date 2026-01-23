@@ -27,11 +27,13 @@
 // This is also the reason why some classes here are named with the "Info"
 // postfix. For example, RoomObjectInfo is the initial object data, and
 // there is also RoomObject runtime-only class for mutable data.
-//
-// [ivan-mogilko] In my opinion, eventually there should be only one room class
-// and one class per room entity, regardless of whether code is shared with
-// the editor or not. But that would require extensive refactor/rewrite of
-// the engine code, and savegame read/write code.
+// 
+// TODO: have a consistent division between design-time struct (loaded from
+// game data), and runtime class. Need to think how we want to deal with
+// the data saved when the room is unloaded. We may keep everything in the
+// same runtime class, OR have *another* struct for the "cached runtime data",
+// which is written to when the room is unloaded and read from when the room
+// is loaded once again.
 //
 //=============================================================================
 #ifndef __AGS_CN_GAME__ROOMINFO_H
@@ -190,6 +192,7 @@ struct RoomObjectInfo
     int32_t         Flags;
     String          Name;
     String          ScriptName;
+    Rect            BlockingRect;
     // Custom properties
     StringIMap      Properties;
     // Old-style interactions

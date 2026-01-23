@@ -565,10 +565,10 @@ static void init_object_states(size_t start, size_t end)
         crobj.zoom = 100;
         crobj.last_width = 0;
         crobj.last_height = 0;
-        crobj.blocking_width = 0;
-        crobj.blocking_height = 0;
-        crobj.blocking_x = 0;
-        crobj.blocking_y = 0;
+        crobj.blocking_x = trobj.BlockingRect.Left;
+        crobj.blocking_y = trobj.BlockingRect.Top;
+        crobj.blocking_width = trobj.BlockingRect.GetWidth();
+        crobj.blocking_height = trobj.BlockingRect.GetHeight();
         crobj.name = trobj.Name;
         if (trobj.Baseline >= 0)
             crobj.baseline = trobj.Baseline;

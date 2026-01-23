@@ -184,13 +184,27 @@ namespace AGS.Types
                         if (prop.PropertyType == typeof(string))
                         {
                             writer.WriteStartElement(prop.Name);
-							string propValue = prop.GetValue(obj, null).ToString();
+                            string propValue = prop.GetValue(obj, null).ToString();
                             if (propValue.IndexOf(' ') >= 0)
                             {
                                 writer.WriteAttributeString("xml", "space", null, "preserve");
                             }
                             writer.WriteString(propValue);
                             writer.WriteEndElement();
+                        }
+                        else if (prop.PropertyType == typeof(int))
+                        {
+                            if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null)
+                                writer.WriteElementString(prop.Name, $"0x{((int)prop.GetValue(obj, null)).ToString("X8")}");
+                            else
+                                writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
+                        }
+                        else if (prop.PropertyType == typeof(short))
+                        {
+                            if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null)
+                                writer.WriteElementString(prop.Name, $"0x{((short)prop.GetValue(obj, null)).ToString("X4")}");
+                            else
+                                writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
                         }
                         // We must use InvariantCulture for floats and doubles, because their
                         // format depends on local system settings used when the project was saved
@@ -207,7 +221,7 @@ namespace AGS.Types
                             writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
                         }
                         // For compatibility with various Custom Resolution beta builds
-                        // TODO: find a generic solution for doing a conversions like this without
+                        // FIXME: find a generic solution for doing a conversions like this without
                         // using hard-coded property name (some serialization attribute perhaps)
                         else if (prop.PropertyType == typeof(Size) && prop.Name == "CustomResolution")
                         {
@@ -284,11 +298,27 @@ namespace AGS.Types
                 }
                 else if (prop.PropertyType == typeof(int))
                 {
-                    prop.SetValue(obj, Convert.ToInt32(elementValue), null);
+                    if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null &&
+                        elementValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    {
+                        prop.SetValue(obj, Convert.ToInt32(elementValue, 16), null);
+                    }
+                    else
+                    {
+                        prop.SetValue(obj, Convert.ToInt32(elementValue), null);
+                    }
                 }
                 else if (prop.PropertyType == typeof(short))
                 {
-                    prop.SetValue(obj, Convert.ToInt16(elementValue), null);
+                    if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null &&
+                        elementValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    {
+                        prop.SetValue(obj, Convert.ToInt16(elementValue, 16), null);
+                    }
+                    else
+                    {
+                        prop.SetValue(obj, Convert.ToInt16(elementValue), null);
+                    }
                 }
                 // We must use InvariantCulture for floats and doubles, because their
                 // format depends on local system settings used when the project was saved
@@ -304,8 +334,8 @@ namespace AGS.Types
                 {
                     prop.SetValue(obj, elementValue, null);
                 }
-				else if (prop.PropertyType == typeof(DateTime))
-				{
+                else if (prop.PropertyType == typeof(DateTime))
+                {
                     // Must use CultureInfo.InvariantCulture otherwise DateTime.Parse
                     // crashes if the system regional settings short date format has
                     // spaces in it (.NET bug)
@@ -319,8 +349,8 @@ namespace AGS.Types
                     {
                         // Release Date timestamp doesn't store time of the day, and as such it ends up in the else-statement
                         prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
-                    }					                    
-				}
+                    }
+                }
                 else if (prop.PropertyType.IsEnum)
                 {
                     prop.SetValue(obj, Enum.Parse(prop.PropertyType, elementValue), null);
@@ -331,7 +361,7 @@ namespace AGS.Types
                     prop.SetValue(obj, constructor.Invoke(new object[] { child }), null);
                 }
                 // For compatibility with various Custom Resolution beta builds
-                // TODO: find a generic solution for doing a conversions like this without
+                // FIXME: find a generic solution for doing a conversions like this without
                 // using hard-coded property name (some serialization attribute perhaps)
                 else if (prop.PropertyType == typeof(Size) && prop.Name == "CustomResolution")
                 {

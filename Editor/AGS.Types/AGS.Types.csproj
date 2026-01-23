@@ -112,6 +112,7 @@
     <Compile Include="Attributes\AGSSerializeClassAttribute.cs" />
     <Compile Include="Attributes\BrowsableMultieditAttribute.cs" />
     <Compile Include="Attributes\ScriptFunctionParametersAttribute.cs" />
+    <Compile Include="Attributes\SerializeAsHex.cs" />
     <Compile Include="AudioClip.cs" />
     <Compile Include="AudioClipFolder.cs" />
     <Compile Include="Constants.cs" />

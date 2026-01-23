@@ -159,6 +159,9 @@ struct CharacterInfo
                              // also used as a turning counter
     int16_t speech_anim_speed = 0;
     int16_t idle_anim_speed = 0;
+    // relative offset of the blocking rect
+    int16_t blocking_x = 0;
+    int16_t blocking_y = 0;
     int16_t blocking_width = 0;
     int16_t blocking_height = 0;
     int     index_id    = 0; // this character's numeric ID

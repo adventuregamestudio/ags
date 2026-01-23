@@ -186,6 +186,18 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         flags |= CHF_ENABLED | (CHF_VISIBLE) * on;
     }
 
+    if ((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400) ||
+        (save_ver >= kCharSvgVersion_400_26))
+    {
+        blocking_x = in->ReadInt16();
+        blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        blocking_x = 0;
+        blocking_y = 0;
+    }
+
     //
     // Upgrade restored data
     if (save_ver < kCharSvgVersion_36025)
@@ -199,4 +211,7 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     WriteBaseFields(out);
     StrUtil::WriteString(name, out); // kCharSvgVersion_36115
     out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
+    // kCharSvgVersion_36304
+    out->WriteInt16(blocking_x);
+    out->WriteInt16(blocking_y);
 }

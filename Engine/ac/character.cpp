@@ -1419,22 +1419,22 @@ void Character_SetBlockingWidth(CharacterInfo *chaa, int wid)
 
 int Character_GetBlockingRectX(CharacterInfo *chaa)
 {
-    return charextra[chaa->index_id].blocking_x;
+    return game.chars[chaa->index_id].blocking_x;
 }
 
 void Character_SetBlockingRectX(CharacterInfo *chaa, int x)
 {
-    charextra[chaa->index_id].blocking_x = x;
+    game.chars[chaa->index_id].blocking_x = x;
 }
 
 int Character_GetBlockingRectY(CharacterInfo *chaa)
 {
-    return charextra[chaa->index_id].blocking_y;
+    return game.chars[chaa->index_id].blocking_y;
 }
 
 void Character_SetBlockingRectY(CharacterInfo *chaa, int y)
 {
-    charextra[chaa->index_id].blocking_y = y;
+    game.chars[chaa->index_id].blocking_y = y;
 }
 
 int Character_GetDiagonalWalking(CharacterInfo *chaa) {
@@ -2651,9 +2651,9 @@ Rect get_char_blocking_rect(int charid)
     else
         width = chi->blocking_width;
 
-    int x = chi->x - width / 2 + charextra[chi->index_id].blocking_x;
-    int y1 = chi->get_blocking_top() + charextra[chi->index_id].blocking_y;
-    int y2 = chi->get_blocking_bottom() + charextra[chi->index_id].blocking_y;
+    int x = chi->x - width / 2 + game.chars[chi->index_id].blocking_x;
+    int y1 = chi->get_blocking_top() + game.chars[chi->index_id].blocking_y;
+    int y2 = chi->get_blocking_bottom() + game.chars[chi->index_id].blocking_y;
 
     return Rect(x, y1, x + width - 1, y2);
 }

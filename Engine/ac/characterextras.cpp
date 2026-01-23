@@ -162,18 +162,6 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         follow_eagerness = 0;
     }
 
-    if ((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400) ||
-        (save_ver >= kCharSvgVersion_400_26))
-    {
-        blocking_x = in->ReadInt16();
-        blocking_y = in->ReadInt16();
-    }
-    else
-    {
-        blocking_x = 0;
-        blocking_y = 0;
-    }
-
     if (save_ver >= kCharSvgVersion_400)
     {
         blend_mode = (BlendMode)in->ReadInt32();
@@ -265,9 +253,6 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt32(following);
     out->WriteInt32(follow_dist);
     out->WriteInt32(follow_eagerness);
-    // kCharSvgVersion_36304
-    out->WriteInt16(blocking_x);
-    out->WriteInt16(blocking_y);
     // kCharSvgVersion_400
     out->WriteInt32(blend_mode);
     // Reserved for colour options

@@ -45,7 +45,127 @@ void CharacterInfo::RemapOldInteractions()
     interactions.SetHandlers(std::move(new_interactions));
 }
 
-void CharacterInfo::ReadBaseFields(Stream *in)
+void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
+{
+    // Base fields (original game format)
+    // NOTE: some of the fields below are dummy slots,
+    // that are result of a old engine dumping a full data struct into the stream.
+    // Some of the corresponding fields are not supposed to be set at design time.
+    // All of the [UNUSED] may in theory be reused for other purposes.
+
+    defview = in->ReadInt32();
+    talkview = in->ReadInt32();
+    view = in->ReadInt32();
+    room = in->ReadInt32();
+    in->ReadInt32(); // [UNUSED] (prevroom)
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    in->ReadInt32(); // [UNUSED] (wait)
+    flags = in->ReadInt32();
+    in->ReadInt16(); // [UNUSED] (following)
+    in->ReadInt16(); // [UNUSED] (follow_info)
+    idleview = in->ReadInt32();
+    idletime = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] (idleleft)
+    transparency = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] (baseline)
+    in->ReadInt32(); // [UNUSED] (activeinv)
+    talkcolor = in->ReadInt32();
+    thinkview = in->ReadInt32();
+    blinkview = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] blinkinterval
+    in->ReadInt16(); // [UNUSED] blinktimer
+    in->ReadInt16(); // [UNUSED] blinkframe
+    walkspeed_y = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] pic_yoffs
+    in->ReadInt32(); // [UNUSED] z
+    in->ReadInt32(); // [UNUSED] walkwait
+    speech_anim_speed = in->ReadInt16();
+    idle_anim_speed = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] blocking_width
+    in->ReadInt16(); // [UNUSED] blocking_height
+    in->ReadInt32(); // [UNUSED] index_id
+    in->ReadInt16(); // [UNUSED] pic_xoffs
+    in->ReadInt16(); // [UNUSED] walkwaitcounter
+    in->ReadInt16(); // [UNUSED] loop
+    in->ReadInt16(); // [UNUSED] frame
+    in->ReadInt16(); // [UNUSED] walking
+    in->ReadInt16(); // [UNUSED] animating
+    walkspeed = in->ReadInt16();
+    animspeed = in->ReadInt16();
+    in->ReadArrayOfInt16(inv, MAX_INV);
+    in->ReadInt16(); // [UNUSED] actx
+    in->ReadInt16(); // [UNUSED] acty
+
+    name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
+    scrname.ReadCount(in, LEGACY_MAX_SCRIPT_NAME_LEN);
+    uint8_t on = in->ReadInt8(); // old enabled + visible flag
+    // Only treat "on" as a visible flag, otherwise it breaks game logic
+    // when reading older games (i.e. to make character visible you must turn
+    // both enabled and visible properties).
+    flags |= (CHF_VISIBLE) * on;
+    in->ReadInt8(); // alignment padding to int32
+}
+
+void CharacterInfo::WriteToFile(Stream *out) const
+{
+    // Base fields (original game format)
+    // NOTE: some of the fields below are dummy slots,
+    // that are result of a old engine dumping a full data struct into the stream.
+    // Some of the corresponding fields are not supposed to be set at design time.
+    // All of the [UNUSED] may in theory be reused for other purposes.
+
+    out->WriteInt32(defview);
+    out->WriteInt32(talkview);
+    out->WriteInt32(view);
+    out->WriteInt32(room);
+    out->WriteInt32(0); // [UNUSED] (prevroom)
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(0); // [UNUSED] (wait)
+    out->WriteInt32(flags);
+    out->WriteInt16(0); // [UNUSED] (following)
+    out->WriteInt16(0); // [UNUSED] (follow_info)
+    out->WriteInt32(idleview);
+    out->WriteInt16(idletime);
+    out->WriteInt16(0); // [UNUSED] (idleleft)
+    out->WriteInt16(transparency);
+    out->WriteInt16(0); // [UNUSED] (baseline)
+    out->WriteInt32(0); // [UNUSED] (activeinv)
+    out->WriteInt32(talkcolor);
+    out->WriteInt32(thinkview);
+    out->WriteInt16(blinkview);
+    out->WriteInt16(0); // [UNUSED] blinkinterval
+    out->WriteInt16(0); // [UNUSED] blinktimer
+    out->WriteInt16(0); // [UNUSED] blinkframe
+    out->WriteInt16(walkspeed_y);
+    out->WriteInt16(0); // [UNUSED] pic_yoffs
+    out->WriteInt32(0); // [UNUSED] z
+    out->WriteInt32(0); // [UNUSED] walkwait
+    out->WriteInt16(speech_anim_speed);
+    out->WriteInt16(idle_anim_speed);
+    out->WriteInt16(0); // [UNUSED] blocking_width
+    out->WriteInt16(0); // [UNUSED] blocking_height
+    out->WriteInt32(0); // [UNUSED] index_id
+    out->WriteInt16(0); // [UNUSED] pic_xoffs
+    out->WriteInt16(0); // [UNUSED] walkwaitcounter
+    out->WriteInt16(0); // [UNUSED] loop
+    out->WriteInt16(0); // [UNUSED] frame
+    out->WriteInt16(0); // [UNUSED] walking
+    out->WriteInt16(0); // [UNUSED] animating
+    out->WriteInt16(walkspeed);
+    out->WriteInt16(animspeed);
+    out->WriteArrayOfInt16(inv, MAX_INV);
+    out->WriteInt16(0); // [UNUSED] actx
+    out->WriteInt16(0); // [UNUSED] acty
+
+    name.WriteCount(out, LEGACY_MAX_CHAR_NAME_LEN);
+    scrname.WriteCount(out, LEGACY_MAX_SCRIPT_NAME_LEN);
+    out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
+    out->WriteInt8(0); // alignment padding to int32
+}
+
+void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 {
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
@@ -90,80 +210,7 @@ void CharacterInfo::ReadBaseFields(Stream *in)
     in->ReadArrayOfInt16(inv, MAX_INV);
     in->ReadInt16(); // actx__
     in->ReadInt16(); // acty__
-}
 
-void CharacterInfo::WriteBaseFields(Stream *out) const
-{
-    out->WriteInt32(defview);
-    out->WriteInt32(talkview);
-    out->WriteInt32(view);
-    out->WriteInt32(room);
-    out->WriteInt32(prevroom);
-    out->WriteInt32(x);
-    out->WriteInt32(y);
-    out->WriteInt32(wait);
-    out->WriteInt32(flags);
-    out->WriteInt16(0); // legacy following
-    out->WriteInt16(0); // legacy followinfo
-    out->WriteInt32(idleview);
-    out->WriteInt16(idletime);
-    out->WriteInt16(idleleft);
-    out->WriteInt16(transparency);
-    out->WriteInt16(baseline);
-    out->WriteInt32(activeinv);
-    out->WriteInt32(talkcolor);
-    out->WriteInt32(thinkview);
-    out->WriteInt16(blinkview);
-    out->WriteInt16(blinkinterval);
-    out->WriteInt16(blinktimer);
-    out->WriteInt16(blinkframe);
-    out->WriteInt16(walkspeed_y);
-    out->WriteInt16(pic_yoffs);
-    out->WriteInt32(z);
-    out->WriteInt32(walkwait);
-    out->WriteInt16(speech_anim_speed);
-    out->WriteInt16(idle_anim_speed);
-    out->WriteInt16(blocking_width);
-    out->WriteInt16(blocking_height);
-    out->WriteInt32(index_id);
-    out->WriteInt16(pic_xoffs);
-    out->WriteInt16(walkwaitcounter);
-    out->WriteInt16(loop);
-    out->WriteInt16(frame);
-    out->WriteInt16(walking);
-    out->WriteInt16(0); // legacy animating
-    out->WriteInt16(walkspeed);
-    out->WriteInt16(animspeed);
-    out->WriteArrayOfInt16(inv, MAX_INV);
-    out->WriteInt16(0); // actx__
-    out->WriteInt16(0); // acty__
-}
-
-void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
-{
-    ReadBaseFields(in);
-    name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
-    scrname.ReadCount(in, LEGACY_MAX_SCRIPT_NAME_LEN);
-    uint8_t on = in->ReadInt8(); // old enabled + visible flag
-    // Only treat "on" as a visible flag, otherwise it breaks game logic
-    // when reading older games (i.e. to make character visible you must turn
-    // both enabled and visible properties).
-    flags |= (CHF_VISIBLE) * on;
-    in->ReadInt8(); // alignment padding to int32
-}
-
-void CharacterInfo::WriteToFile(Stream *out) const
-{
-    WriteBaseFields(out);
-    name.WriteCount(out, LEGACY_MAX_CHAR_NAME_LEN);
-    scrname.WriteCount(out, LEGACY_MAX_SCRIPT_NAME_LEN);
-    out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
-    out->WriteInt8(0); // alignment padding to int32
-}
-
-void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
-{
-    ReadBaseFields(in);
     if (save_ver < kCharSvgVersion_36115 || (save_ver >= kCharSvgVersion_400 && save_ver < kCharSvgVersion_400_03))
     { // Fixed-size name and scriptname
         name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
@@ -208,7 +255,50 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 
 void CharacterInfo::WriteToSavegame(Stream *out) const
 {
-    WriteBaseFields(out);
+    out->WriteInt32(defview);
+    out->WriteInt32(talkview);
+    out->WriteInt32(view);
+    out->WriteInt32(room);
+    out->WriteInt32(prevroom);
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(wait);
+    out->WriteInt32(flags);
+    out->WriteInt16(0); // legacy following
+    out->WriteInt16(0); // legacy followinfo
+    out->WriteInt32(idleview);
+    out->WriteInt16(idletime);
+    out->WriteInt16(idleleft);
+    out->WriteInt16(transparency);
+    out->WriteInt16(baseline);
+    out->WriteInt32(activeinv);
+    out->WriteInt32(talkcolor);
+    out->WriteInt32(thinkview);
+    out->WriteInt16(blinkview);
+    out->WriteInt16(blinkinterval);
+    out->WriteInt16(blinktimer);
+    out->WriteInt16(blinkframe);
+    out->WriteInt16(walkspeed_y);
+    out->WriteInt16(pic_yoffs);
+    out->WriteInt32(z);
+    out->WriteInt32(walkwait);
+    out->WriteInt16(speech_anim_speed);
+    out->WriteInt16(idle_anim_speed);
+    out->WriteInt16(blocking_width);
+    out->WriteInt16(blocking_height);
+    out->WriteInt32(index_id);
+    out->WriteInt16(pic_xoffs);
+    out->WriteInt16(walkwaitcounter);
+    out->WriteInt16(loop);
+    out->WriteInt16(frame);
+    out->WriteInt16(walking);
+    out->WriteInt16(0); // legacy animating
+    out->WriteInt16(walkspeed);
+    out->WriteInt16(animspeed);
+    out->WriteArrayOfInt16(inv, MAX_INV);
+    out->WriteInt16(0); // actx__
+    out->WriteInt16(0); // acty__
+
     StrUtil::WriteString(name, out); // kCharSvgVersion_36115
     out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
     // kCharSvgVersion_36304

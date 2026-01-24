@@ -250,11 +250,6 @@ struct CharacterInfo
     void WriteToSavegame(Common::Stream *out) const;
 
 private:
-    // Helper functions that read and write first data fields,
-    // common for both game file and save.
-    void ReadBaseFields(Common::Stream *in);
-    void WriteBaseFields(Common::Stream *out) const;
-
     // Script events schema
     static AGS::Common::ScriptEventSchema _eventSchema;
     // Common events

@@ -57,9 +57,10 @@ void CharacterInfo::ReadFromFile(CharacterInfo2 &chinfo2, Stream *in, GameDataVe
     in->ReadInt32(); // [UNUSED] walkwait
     speech_anim_speed = in->ReadInt16();
     idle_anim_speed = in->ReadInt16();
-    in->ReadInt16(); // [UNUSED] blocking_width
-    in->ReadInt16(); // [UNUSED] blocking_height
-    in->ReadInt32(); // [UNUSED] index_id
+    chinfo2.blocking_x = in->ReadInt16();
+    chinfo2.blocking_y = in->ReadInt16();
+    blocking_width = in->ReadInt16();
+    blocking_height = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] pic_xoffs
     in->ReadInt16(); // [UNUSED] walkwaitcounter
     in->ReadInt16(); // [UNUSED] loop
@@ -126,9 +127,10 @@ void CharacterInfo::WriteToFile(const CharacterInfo2 &chinfo2, Stream *out) cons
     out->WriteInt32(0); // [UNUSED] walkwait
     out->WriteInt16(speech_anim_speed);
     out->WriteInt16(idle_anim_speed);
-    out->WriteInt16(0); // [UNUSED] blocking_width
-    out->WriteInt16(0); // [UNUSED] blocking_height
-    out->WriteInt32(0); // [UNUSED] index_id
+    out->WriteInt16(chinfo2.blocking_x);
+    out->WriteInt16(chinfo2.blocking_y);
+    out->WriteInt16(blocking_width);
+    out->WriteInt16(blocking_height);
     out->WriteInt16(0); // [UNUSED] pic_xoffs
     out->WriteInt16(0); // [UNUSED] walkwaitcounter
     out->WriteInt16(0); // [UNUSED] loop

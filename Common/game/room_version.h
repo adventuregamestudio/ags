@@ -46,7 +46,9 @@
 31:  v3.4.1.5 - removed room object and hotspot name length limits
 32:  v3.5.0 - 64-bit file offsets
 33:  v3.5.0.8 - deprecated room resolution, added mask resolution
-Since then format value is defined as AGS version represented as NN,NN,NN,NN.
+Since then format value is defined as AGS version represented as a 
+16-bit N,N,N,NN (because old room format has version as 16-bit!)
+3.6.3.6: object's blocking rect set at design-time
 */
 enum RoomFileVersion
 {
@@ -81,7 +83,13 @@ enum RoomFileVersion
     kRoomVersion_3415 = 31,
     kRoomVersion_350 = 32,
     kRoomVersion_3508 = 33,
-    kRoomVersion_Current = kRoomVersion_3508
+    // NOTE: 3.* format number is restricted to an unsigned 16-bit value;
+    // we keep it like this in 3.* versions, since 3.* room formats are
+    // expected to not change alot once we move main development to 4.*.
+    // But in principle one could backport a new header from 4.*
+    // and use that for future 3.* as well (see ReadRoomHeader() in 4.* code).
+    kRoomVersion_363_06     = 36306,
+    kRoomVersion_Current    = kRoomVersion_363_06
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

@@ -37,6 +37,7 @@ namespace AGS.Types
         private int _speechAnimationDelay = 5;
         private int _speechColor = 12;
         private bool _solid = true;
+        private Rectangle _blockingRect = Rectangle.Empty;
         private bool _clickable = true;
         private bool _useRoomAreaScaling = true;
         private bool _useRoomAreaLighting = true;
@@ -249,14 +250,27 @@ namespace AGS.Types
 
         [Description("If true, this character cannot walk through any other characters marked as Solid")]
         [Category("Movement")]
+        [DefaultValue(true)]
         public bool Solid
         {
             get { return _solid; }
             set { _solid = value; }
         }
 
+        [Description("Defines a rectangle in relative coordinates around the character's position, which prevents other solid characters from walking through.")]
+        [Category("Movement")]
+        public Rectangle BlockingRectangle
+        {
+            get { return _blockingRect; }
+            set { _blockingRect = value; }
+        }
+
+        private void ResetBlockingRectangle() => BlockingRectangle = Rectangle.Empty;
+        private bool ShouldSerializeBlockingRectangle() => BlockingRectangle != Rectangle.Empty;
+
         [Description("If true, this character can be clicked on; otherwise mouse clicks will pass through it")]
         [Category("Design")]
+        [DefaultValue(true)]
         public bool Clickable
         {
             get { return _clickable; }

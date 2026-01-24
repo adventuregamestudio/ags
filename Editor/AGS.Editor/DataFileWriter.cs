@@ -1672,9 +1672,10 @@ namespace AGS.Editor
                 writer.Write(0);                                       // [UNUSED] (walkwait)
                 writer.Write((short)character.SpeechAnimationDelay);   // speech_anim_speed
                 writer.Write((short)character.IdleAnimationDelay);     // idle_anim_speed
-                writer.Write((short)0);                                // [UNUSED] (blocking_width)
-                writer.Write((short)0);                                // [UNUSED] (blocking_height)
-                writer.Write(0);                                       // [UNUSED] (index_id)
+                writer.Write((short)character.BlockingRectangle.X);
+                writer.Write((short)character.BlockingRectangle.Y);
+                writer.Write((short)character.BlockingRectangle.Width);
+                writer.Write((short)character.BlockingRectangle.Height);
                 writer.Write((short)0);                                // [UNUSED] (pic_xoffs)
                 writer.Write((short)0);                                // [UNUSED] (walkwaitcounter)
                 writer.Write((short)0);                                // [UNUSED] (loop)

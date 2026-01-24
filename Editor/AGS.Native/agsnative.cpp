@@ -4016,29 +4016,32 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 
 	for (size_t i = 0; i < rs.Objects.size(); ++i) 
 	{
-		RoomObject ^obj = gcnew RoomObject(room);
-		obj->ID = i;
-		obj->Image = rs.Objects[i].Sprite;
-		obj->StartX = rs.Objects[i].X;
-		obj->StartY = rs.Objects[i].Y;
-		obj->Visible = (rs.Objects[i].IsOn != 0);
-		obj->Clickable = ((rs.Objects[i].Flags & OBJF_NOINTERACT) == 0);
-		obj->Baseline = rs.Objects[i].Baseline;
-		obj->Name = TextHelper::ConvertASCII(rs.Objects[i].ScriptName);
-		obj->Description = tcv->Convert(rs.Objects[i].Name);
-		obj->UseRoomAreaScaling = ((rs.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
-		obj->UseRoomAreaLighting = ((rs.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
-		ConvertCustomProperties(obj->Properties, &rs.Objects[i].Properties);
+        RoomObject ^obj = gcnew RoomObject(room);
+        const auto &robj = rs.Objects[i];
+        obj->ID = i;
+        obj->Image = robj.Sprite;
+        obj->StartX = robj.X;
+        obj->StartY = robj.Y;
+        obj->Visible = (robj.IsOn != 0);
+        obj->Clickable = ((robj.Flags & OBJF_NOINTERACT) == 0);
+        obj->Baseline = robj.Baseline;
+        obj->Solid = (robj.Flags & OBJF_SOLID) != 0;
+        obj->BlockingRectangle = System::Drawing::Rectangle(robj.BlockingRect.Left, robj.BlockingRect.Top, robj.BlockingRect.GetWidth(), robj.BlockingRect.GetHeight());
+        obj->Name = TextHelper::ConvertASCII(robj.ScriptName);
+        obj->Description = tcv->Convert(robj.Name);
+        obj->UseRoomAreaScaling = ((robj.Flags & OBJF_USEROOMSCALING) != 0);
+        obj->UseRoomAreaLighting = ((robj.Flags & OBJF_USEREGIONTINTS) != 0);
+        ConvertCustomProperties(obj->Properties, &robj.Properties);
 
 		if (rs.DataVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "object%zu_", i);
-			ConvertInteractions(obj->Interactions, rs.Objects[i].Interaction.get(), gcnew String(scriptFuncPrefix), nullptr, 2);
+			ConvertInteractions(obj->Interactions, robj.Interaction.get(), gcnew String(scriptFuncPrefix), nullptr, 2);
 		}
 		else 
 		{
-			CopyInteractions(obj->Interactions, rs.Objects[i].EventHandlers.get());
+			CopyInteractions(obj->Interactions, robj.EventHandlers.get());
 		}
         obj->Interactions->ScriptModule = roomScriptName;
 
@@ -4212,20 +4215,24 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.Objects.resize(room->Objects->Count);
 	for (size_t i = 0; i < rs.Objects.size(); ++i)
 	{
-		RoomObject ^obj = room->Objects[i];
-		rs.Objects[i].ScriptName = TextHelper::ConvertASCII(obj->Name);
+        RoomObject ^obj = room->Objects[i];
+        auto &robj = rs.Objects[i];
 
-		rs.Objects[i].Sprite = obj->Image;
-		rs.Objects[i].X = obj->StartX;
-		rs.Objects[i].Y = obj->StartY;
-		rs.Objects[i].IsOn = obj->Visible;
-		rs.Objects[i].Baseline = obj->Baseline;
-		rs.Objects[i].Name = tcv->ConvertTextProperty(obj->Description);
-		rs.Objects[i].Flags = 0;
-		if (obj->UseRoomAreaScaling) rs.Objects[i].Flags |= OBJF_USEROOMSCALING;
-		if (obj->UseRoomAreaLighting) rs.Objects[i].Flags |= OBJF_USEREGIONTINTS;
-		if (!obj->Clickable) rs.Objects[i].Flags |= OBJF_NOINTERACT;
-		CompileCustomProperties(obj->Properties, &rs.Objects[i].Properties);
+        robj.ScriptName = TextHelper::ConvertASCII(obj->Name);
+        robj.Sprite = obj->Image;
+        robj.X = obj->StartX;
+        robj.Y = obj->StartY;
+        robj.IsOn = obj->Visible;
+        robj.Baseline = obj->Baseline;
+        robj.Name = tcv->ConvertTextProperty(obj->Description);
+        robj.Flags = 0;
+        if (obj->UseRoomAreaScaling) robj.Flags |= OBJF_USEROOMSCALING;
+        if (obj->UseRoomAreaLighting) robj.Flags |= OBJF_USEREGIONTINTS;
+        if (!obj->Clickable) robj.Flags |= OBJF_NOINTERACT;
+        if (obj->Solid) robj.Flags |= OBJF_SOLID;
+        robj.BlockingRect = RectWH(obj->BlockingRectangle.Left, obj->BlockingRectangle.Top,
+            obj->BlockingRectangle.Width, obj->BlockingRectangle.Height);
+        CompileCustomProperties(obj->Properties, &robj.Properties);
 	}
 
 	rs.HotspotCount = room->Hotspots->Count;

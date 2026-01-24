@@ -74,7 +74,7 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
 // Read room data header and check that we support this format
 HRoomFileError ReadRoomHeader(RoomDataSource &src)
 {
-    src.DataVersion = (RoomFileVersion)src.InputStream->ReadInt16();
+    src.DataVersion = (RoomFileVersion)static_cast<uint16_t>(src.InputStream->ReadInt16());
     if (src.DataVersion < kRoomVersion_250b || src.DataVersion > kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_250b, kRoomVersion_Current));
     return HRoomFileError::None();

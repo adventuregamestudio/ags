@@ -118,8 +118,9 @@ namespace AGS.Editor
          * 3.6.3.3        - Moved FontHeightDefinition property from General Settings to Font.
          * 3.6.3.4        - Expanded Color properties for GUI Controls. TextBox's TextAlignment.
          * 3.6.3.5        - Renamed ShadowColor -> BorderShadeColor.
+         * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060305;
+        public const int    LATEST_XML_VERSION_INDEX = 3060306;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

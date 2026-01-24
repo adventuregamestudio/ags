@@ -88,6 +88,7 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this hotspot")]
+        [AutoExpand]
         public CustomProperties Properties
         {
             get { return _properties; }

@@ -110,6 +110,45 @@ namespace AGS.Editor
             Marshal.FreeHGlobal(strPtr);
         }
 
+        /// <summary>
+        /// Returns a collection of GridItems for the PropertyGrid.
+        /// Reflection-based solution is taken from:
+        /// https://stackoverflow.com/questions/5169179/how-to-enumerate-propertygrid-items
+        /// </summary>
+        public static GridItemCollection GetPropertyGridItems(PropertyGrid grid)
+        {
+            // First, try getting the root item by traversing up from the selected item
+            var selItem = grid.SelectedGridItem;
+            if (selItem != null)
+            {
+                for (; selItem.Parent != null; selItem = selItem.Parent) ;
+                return selItem.GridItems;
+            }
+
+            // If the above did not work, then try using the reflection.
+            // This, of course, will work so long as the internal implementation did not change.
+            var field = grid.GetType().GetField("gridView", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field == null)
+            {
+                field = grid.GetType().GetField("_gridView", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (field == null)
+                    return null;
+            }
+
+            var view = field.GetValue(grid);
+            if (view == null)
+                return null;
+
+            try
+            {
+                return (GridItemCollection)view.GetType().InvokeMember("GetAllGridEntries", BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance, null, view, null);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         // The PropertyGrid doesn't provide a settable SelectedTab property. Well, it does now.
         public static void SetSelectedTabInPropertyGrid(PropertyGrid propGrid, int selectedTabIndex)
         {

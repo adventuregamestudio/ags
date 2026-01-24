@@ -112,6 +112,7 @@
     <Compile Include="InteractionSchema.cs" />
     <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
     <Compile Include="Attributes\AGSSerializeClassAttribute.cs" />
+    <Compile Include="Attributes\AutoExpandAttribute.cs" />
     <Compile Include="Attributes\BrowsableMultieditAttribute.cs" />
     <Compile Include="Attributes\InteractionsAttribute.cs" />
     <Compile Include="Attributes\ScriptFunctionAttribute.cs" />

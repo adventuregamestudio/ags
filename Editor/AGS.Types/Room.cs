@@ -369,6 +369,7 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this room")]
+        [AutoExpand]
         public CustomProperties Properties
         {
             get { return _properties; }

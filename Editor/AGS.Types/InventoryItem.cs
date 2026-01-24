@@ -131,7 +131,7 @@ namespace AGS.Types
 
         [AGSSerializeClass()]
         [Description("Custom properties for this item")]
-        [Category("Properties")]
+        [AutoExpand]
         public CustomProperties Properties
         {
             get { return _properties; }

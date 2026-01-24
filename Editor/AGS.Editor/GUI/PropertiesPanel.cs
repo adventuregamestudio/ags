@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
-using WeifenLuo.WinFormsUI.Docking;
 using System.Windows.Forms.Design;
+using WeifenLuo.WinFormsUI.Docking;
 using AGS.Types;
 
 namespace AGS.Editor
@@ -108,13 +105,60 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Expands properties that are declared as "automatically expanded".
+        /// </summary>
+        private void AutoExpandProperties()
+        {
+            var items = Hacks.GetPropertyGridItems(propertiesGrid);
+            if (items != null)
+            {
+                AutoExpandProperties(items);
+            }
+        }
+
+        /// <summary>
+        /// Expands properties that are declared as "automatically expanded".
+        /// </summary>
+        private void AutoExpandProperties(GridItemCollection items)
+        {
+            AutoExpandAttribute autoExpandAttr = new AutoExpandAttribute();
+
+            foreach (var item in items)
+            {
+                var gridItem = (GridItem)item;
+                if (gridItem.GridItemType == GridItemType.Property
+                    && gridItem.Expandable)
+                {
+                    var propertyDesc = gridItem.PropertyDescriptor;
+                    if (propertyDesc.Attributes.Contains(autoExpandAttr))
+                    {
+                        gridItem.Expanded = true;
+                    }
+                    else
+                    {
+                        var propertyType = propertyDesc.PropertyType;
+                        if (propertyType.GetCustomAttributes(typeof(AutoExpandAttribute), true).Length > 0)
+                        {
+                            gridItem.Expanded = true;
+                        }
+                    }
+                }
+
+                if (gridItem.GridItems != null)
+                {
+                    AutoExpandProperties(gridItem.GridItems);
+                }
+            }
+        }
+
         public object SelectedObject
         {
             get { return propertiesGrid.SelectedObject; }
             set
             {
                 propertiesGrid.SelectedObject = value;
-                propertiesGrid.ExpandAllGridItems();
+                AutoExpandProperties();
                 propertiesGrid.BrowsableAttributes = null; // reset to defaults
             }
         }
@@ -134,7 +178,7 @@ namespace AGS.Editor
                     propertiesGrid.BrowsableAttributes = new AttributeCollection(
                         new Attribute[] { BrowsableAttribute.Yes, BrowsableMultieditAttribute.Yes });
                 }
-                propertiesGrid.ExpandAllGridItems();
+                AutoExpandProperties();
             }
         }
 

@@ -218,7 +218,7 @@ void GameSetupStruct::ReadCharacters(Stream *in)
 {
     for (int i = 0; i < numcharacters; ++i)
     {
-        chars[i].ReadFromFile(in, chars2[i], loaded_game_file_version);
+        chars[i].ReadFromFile(chars2[i], in, loaded_game_file_version);
     }
 }
 
@@ -226,7 +226,7 @@ void GameSetupStruct::WriteCharacters(Stream *out)
 {
     for (int i = 0; i < numcharacters; ++i)
     {
-        chars[i].WriteToFile(out);
+        chars[i].WriteToFile(chars2[i], out);
     }
 }
 

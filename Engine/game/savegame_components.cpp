@@ -698,7 +698,7 @@ HSaveError WriteCharacters(Stream *out)
     out->WriteInt32(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].WriteToSavegame(out, game.chars2[i]);
+        game.chars[i].WriteToSavegame(game.chars2[i], out);
         charextra[i].WriteToSavegame(out);
         Properties::WriteValues(play.charProps[i], out);
         if (loaded_game_file_version <= kGameVersion_272)
@@ -718,7 +718,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     {
         auto &chi = game.chars[i];
         auto &chex = charextra[i];
-        chi.ReadFromSavegame(in, game.chars2[i], static_cast<CharacterSvgVersion>(cmp_ver));
+        chi.ReadFromSavegame(game.chars2[i], in, static_cast<CharacterSvgVersion>(cmp_ver));
         chex.ReadFromSavegame(in, static_cast<CharacterSvgVersion>(cmp_ver));
         // re-assign legacy following params (for old saves)
         if (cmp_ver < kCharSvgVersion_36205)

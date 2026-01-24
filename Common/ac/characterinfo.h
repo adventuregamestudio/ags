@@ -120,6 +120,9 @@ struct CharacterInfo2;
 // design-time and CharacterExtras for runtime only extended fields.
 //
 // TODO: must refactor, some parts of it should be in a runtime Character class.
+// TODO: as a idea, we might have a data struct for serialization, which has all
+// design-time Character fields, and then a specialized runtime struct for
+// exporting into script API / plugin API.
 struct CharacterInfo
 {
     int     defview     = 0;
@@ -247,21 +250,18 @@ struct CharacterInfo
         }
     }
 
-    void ReadFromFile(Common::Stream *in, CharacterInfo2 &chinfo2, GameDataVersion data_ver);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromFile(CharacterInfo2 &chinfo2, Common::Stream *in, GameDataVersion data_ver);
+    void WriteToFile(const CharacterInfo2 &chinfo2, Common::Stream *out) const;
     // TODO: move to runtime-only class (?)
-    void ReadFromSavegame(Common::Stream *in, CharacterInfo2 &chinfo2, CharacterSvgVersion save_ver);
-    void WriteToSavegame(Common::Stream *out, const CharacterInfo2 &chinfo2) const;
-
-private:
-    // Helper functions that read and write first data fields,
-    // common for both game file and save.
-    void ReadBaseFields(Common::Stream *in);
-    void WriteBaseFields(Common::Stream *out) const;
+    void ReadFromSavegame(CharacterInfo2 &chinfo2, Common::Stream *in, CharacterSvgVersion save_ver);
+    void WriteToSavegame(const CharacterInfo2 &chinfo2, Common::Stream *out) const;
 };
 
 
-// Design-time Character extended fields
+// Design-time Character extended fields.
+// This struct has to be separate from CharacterInfo, because CharacterInfo
+// is exported to script and plugin APIs, and therefore has size constraints.
+// See comments to CharacterInfo for more details.
 struct CharacterInfo2
 {
     // Unrestricted scriptname and name fields

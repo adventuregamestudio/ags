@@ -19,9 +19,138 @@
 
 using namespace AGS::Common;
 
-
-void CharacterInfo::ReadBaseFields(Stream *in)
+void CharacterInfo::ReadFromFile(CharacterInfo2 &chinfo2, Stream *in, GameDataVersion data_ver)
 {
+    //
+    // Base fields (original game format)
+    // NOTE: some of the fields below are dummy slots,
+    // that are result of a old engine dumping a full data struct into the stream.
+    // Some of the corresponding fields are not supposed to be set at design time.
+    // All of the [UNUSED] may in theory be reused for other purposes.
+
+    defview = in->ReadInt32();
+    talkview = in->ReadInt32();
+    view = in->ReadInt32();
+    room = in->ReadInt32();
+    in->ReadInt32(); // [UNUSED] (prevroom)
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    in->ReadInt32(); // [UNUSED] (wait)
+    flags = in->ReadInt32();
+    in->ReadInt16(); // [UNUSED] (following)
+    in->ReadInt16(); // [UNUSED] (follow_info)
+    idleview = in->ReadInt32();
+    idletime = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] (idleleft)
+    in->ReadInt16(); // [UNUSED] (transparency)
+    in->ReadInt16(); // [UNUSED] (baseline)
+    in->ReadInt32(); // [UNUSED] (activeinv)
+    talkcolor = in->ReadInt32();
+    thinkview = in->ReadInt32();
+    blinkview = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] blinkinterval
+    in->ReadInt16(); // [UNUSED] blinktimer
+    in->ReadInt16(); // [UNUSED] blinkframe
+    walkspeed_y = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] pic_yoffs
+    in->ReadInt32(); // [UNUSED] z
+    in->ReadInt32(); // [UNUSED] walkwait
+    speech_anim_speed = in->ReadInt16();
+    idle_anim_speed = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] blocking_width
+    in->ReadInt16(); // [UNUSED] blocking_height
+    in->ReadInt32(); // [UNUSED] index_id
+    in->ReadInt16(); // [UNUSED] pic_xoffs
+    in->ReadInt16(); // [UNUSED] walkwaitcounter
+    in->ReadInt16(); // [UNUSED] loop
+    in->ReadInt16(); // [UNUSED] frame
+    in->ReadInt16(); // [UNUSED] walking
+    in->ReadInt16(); // [UNUSED] animating
+    walkspeed = in->ReadInt16();
+    animspeed = in->ReadInt16();
+    in->ReadArrayOfInt16(inv, MAX_INV);
+    in->ReadInt16(); // [UNUSED] actx
+    in->ReadInt16(); // [UNUSED] acty
+
+    //
+    // Extension fields follow
+    StrUtil::ReadCStrCount(name, in, LEGACY_MAX_CHAR_NAME_LEN);
+    StrUtil::ReadCStrCount(scrname, in, LEGACY_MAX_SCRIPT_NAME_LEN);
+    on = in->ReadInt8();
+    in->ReadInt8(); // alignment padding to int32
+
+    //
+    // Upgrade data
+    if (data_ver < kGameVersion_360_16)
+    {
+        idle_anim_speed = animspeed + 5;
+    }
+    // Assign unrestricted names from legacy fields
+    chinfo2.name_new = name;
+    chinfo2.scrname_new = scrname;
+}
+
+void CharacterInfo::WriteToFile(const CharacterInfo2 &chinfo2, Stream *out) const
+{
+    // NOTE: some of the fields below are dummy slots,
+    // that are result of a old engine dumping a full data struct into the stream.
+    // Some of the corresponding fields are not supposed to be set at design time.
+    // All of the [UNUSED] may in theory be reused for other purposes.
+
+    out->WriteInt32(defview);
+    out->WriteInt32(talkview);
+    out->WriteInt32(view);
+    out->WriteInt32(room);
+    out->WriteInt32(0); // [UNUSED] (prevroom)
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(0); // [UNUSED] (wait)
+    out->WriteInt32(flags);
+    out->WriteInt16(0); // [UNUSED] (following)
+    out->WriteInt16(0); // [UNUSED] (follow_info)
+    out->WriteInt32(idleview);
+    out->WriteInt16(idletime);
+    out->WriteInt16(0); // [UNUSED] (idleleft)
+    out->WriteInt16(0); // [UNUSED] (transparency)
+    out->WriteInt16(0); // [UNUSED] (baseline)
+    out->WriteInt32(0); // [UNUSED] (activeinv)
+    out->WriteInt32(talkcolor);
+    out->WriteInt32(thinkview);
+    out->WriteInt16(blinkview);
+    out->WriteInt16(0); // [UNUSED] blinkinterval
+    out->WriteInt16(0); // [UNUSED] blinktimer
+    out->WriteInt16(0); // [UNUSED] blinkframe
+    out->WriteInt16(walkspeed_y);
+    out->WriteInt16(0); // [UNUSED] pic_yoffs
+    out->WriteInt32(0); // [UNUSED] z
+    out->WriteInt32(0); // [UNUSED] walkwait
+    out->WriteInt16(speech_anim_speed);
+    out->WriteInt16(idle_anim_speed);
+    out->WriteInt16(0); // [UNUSED] blocking_width
+    out->WriteInt16(0); // [UNUSED] blocking_height
+    out->WriteInt32(0); // [UNUSED] index_id
+    out->WriteInt16(0); // [UNUSED] pic_xoffs
+    out->WriteInt16(0); // [UNUSED] walkwaitcounter
+    out->WriteInt16(0); // [UNUSED] loop
+    out->WriteInt16(0); // [UNUSED] frame
+    out->WriteInt16(0); // [UNUSED] walking
+    out->WriteInt16(0); // [UNUSED] animating
+    out->WriteInt16(walkspeed);
+    out->WriteInt16(animspeed);
+    out->WriteArrayOfInt16(inv, MAX_INV);
+    out->WriteInt16(0); // [UNUSED] actx
+    out->WriteInt16(0); // [UNUSED] acty
+
+    out->Write(name, LEGACY_MAX_CHAR_NAME_LEN);
+    out->Write(scrname, LEGACY_MAX_SCRIPT_NAME_LEN);
+    out->WriteInt8(on);
+    out->WriteInt8(0); // alignment padding to int32
+}
+
+void CharacterInfo::ReadFromSavegame(CharacterInfo2 &chinfo2, Stream *in, CharacterSvgVersion save_ver)
+{
+    //
+    // Base fields (original save format)
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
     view = in->ReadInt32();
@@ -65,9 +194,43 @@ void CharacterInfo::ReadBaseFields(Stream *in)
     in->ReadArrayOfInt16(inv, MAX_INV);
     actx = in->ReadInt16();
     acty = in->ReadInt16();
+
+    //
+    // Extension fields follow
+    if (save_ver < kCharSvgVersion_36115)
+    { // Fixed-size name and scriptname
+        chinfo2.name_new.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
+        in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname
+                                              // (don't overwrite static data from save!)
+    }
+    else
+    {
+        chinfo2.name_new = StrUtil::ReadString(in);
+    }
+    on = in->ReadInt8();
+
+    if (save_ver >= kCharSvgVersion_36304)
+    {
+        chinfo2.blocking_x = in->ReadInt16();
+        chinfo2.blocking_y = in->ReadInt16();
+    }
+    else
+    {
+        chinfo2.blocking_x = 0;
+        chinfo2.blocking_y = 0;
+    }
+
+    //
+    // Upgrade restored data
+    if (save_ver < kCharSvgVersion_36025)
+    {
+        idle_anim_speed = animspeed + 5;
+    }
+    // Fill legacy name fields, for compatibility with old scripts and plugins
+    snprintf(name, LEGACY_MAX_CHAR_NAME_LEN, "%s", chinfo2.name_new.GetCStr());
 }
 
-void CharacterInfo::WriteBaseFields(Stream *out) const
+void CharacterInfo::WriteToSavegame(const CharacterInfo2 &chinfo2, Stream *out) const
 {
     out->WriteInt32(defview);
     out->WriteInt32(talkview);
@@ -112,75 +275,7 @@ void CharacterInfo::WriteBaseFields(Stream *out) const
     out->WriteArrayOfInt16(inv, MAX_INV);
     out->WriteInt16(actx);
     out->WriteInt16(acty);
-}
 
-void CharacterInfo::ReadFromFile(Stream *in, CharacterInfo2 &chinfo2, GameDataVersion data_ver)
-{
-    ReadBaseFields(in);
-    StrUtil::ReadCStrCount(name, in, LEGACY_MAX_CHAR_NAME_LEN);
-    StrUtil::ReadCStrCount(scrname, in, LEGACY_MAX_SCRIPT_NAME_LEN);
-    on = in->ReadInt8();
-    in->ReadInt8(); // alignment padding to int32
-
-    //
-    // Upgrade data
-    if (data_ver < kGameVersion_360_16)
-    {
-        idle_anim_speed = animspeed + 5;
-    }
-    // Assign unrestricted names from legacy fields
-    chinfo2.name_new = name;
-    chinfo2.scrname_new = scrname;
-}
-
-void CharacterInfo::WriteToFile(Stream *out) const
-{
-    WriteBaseFields(out);
-    out->Write(name, LEGACY_MAX_CHAR_NAME_LEN);
-    out->Write(scrname, LEGACY_MAX_SCRIPT_NAME_LEN);
-    out->WriteInt8(on);
-    out->WriteInt8(0); // alignment padding to int32
-}
-
-void CharacterInfo::ReadFromSavegame(Stream *in, CharacterInfo2 &chinfo2, CharacterSvgVersion save_ver)
-{
-    ReadBaseFields(in);
-    if (save_ver < kCharSvgVersion_36115)
-    { // Fixed-size name and scriptname
-        chinfo2.name_new.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
-        in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname
-                                              // (don't overwrite static data from save!)
-    }
-    else
-    {
-        chinfo2.name_new = StrUtil::ReadString(in);
-    }
-    on = in->ReadInt8();
-
-    if (save_ver >= kCharSvgVersion_36304)
-    {
-        chinfo2.blocking_x = in->ReadInt16();
-        chinfo2.blocking_y = in->ReadInt16();
-    }
-    else
-    {
-        chinfo2.blocking_x = 0;
-        chinfo2.blocking_y = 0;
-    }
-
-    //
-    // Upgrade restored data
-    if (save_ver < kCharSvgVersion_36025)
-    {
-        idle_anim_speed = animspeed + 5;
-    }
-    // Fill legacy name fields, for compatibility with old scripts and plugins
-    snprintf(name, LEGACY_MAX_CHAR_NAME_LEN, "%s", chinfo2.name_new.GetCStr());
-}
-
-void CharacterInfo::WriteToSavegame(Stream *out, const CharacterInfo2 &chinfo2) const
-{
-    WriteBaseFields(out);
     StrUtil::WriteString(chinfo2.name_new, out); // kCharSvgVersion_36115
     out->WriteInt8(on);
     // kCharSvgVersion_36304

@@ -1637,46 +1637,50 @@ namespace AGS.Editor
                 if (character.TurnWhenFacing) flags |= NativeConstants.CHF_TURNWHENFACE;
                 if (!character.UseRoomAreaLighting) flags |= NativeConstants.CHF_NOLIGHTING;
                 if (!character.UseRoomAreaScaling) flags |= NativeConstants.CHF_MANUALSCALING;
+                // NOTE: some of the fields below are dummy slots,
+                // that are result of a old engine dumping a full data struct into the stream.
+                // Some of the corresponding fields are not supposed to be set at design time.
+                // All of the [UNUSED] may in theory be reused for other purposes.
                 writer.Write(character.NormalView - 1);                // defview
                 writer.Write(character.SpeechView - 1);                // talkview
                 writer.Write(character.NormalView - 1);                // view
                 writer.Write(character.StartingRoom);                  // room
-                writer.Write(0);                                       // prevroom
+                writer.Write(0);                                       // [UNUSED] (prevroom)
                 writer.Write(character.StartX);                        // x
                 writer.Write(character.StartY);                        // y
-                writer.Write(0);                                       // wait
+                writer.Write(0);                                       // [UNUSED] (wait)
                 writer.Write(flags);                                   // flags
-                writer.Write((short)0);                                // following
-                writer.Write((short)0);                                // followinfo
+                writer.Write((short)0);                                // [UNUSED] (following)
+                writer.Write((short)0);                                // [UNUSED] (followinfo)
                 writer.Write(character.IdleView - 1);                  // idleview
                 writer.Write((short)character.IdleDelay);              // idletime
-                writer.Write((short)0);                                // idleleft
-                writer.Write((short)0);                                // transparency
-                writer.Write((short)0);                                // baseline
-                writer.Write(0);                                       // activeinv
+                writer.Write((short)0);                                // [UNUSED] (idleleft)
+                writer.Write((short)0);                                // [UNUSED] (transparency)
+                writer.Write((short)0);                                // [UNUSED] (baseline)
+                writer.Write(0);                                       // [UNUSED] (activeinv)
                 writer.Write(character.SpeechColor);                   // talkcolor
                 writer.Write(character.ThinkingView - 1);              // thinkview
                 writer.Write((short)(character.BlinkingView - 1));     // blinkview
-                writer.Write((short)0);                                // blinkinterval
-                writer.Write((short)0);                                // blinktimer
-                writer.Write((short)0);                                // blinkframe
+                writer.Write((short)0);                                // [UNUSED] (blinkinterval)
+                writer.Write((short)0);                                // [UNUSED] (blinktimer)
+                writer.Write((short)0);                                // [UNUSED] (blinkframe)
                 writer.Write(character.UniformMovementSpeed ?          // walkspeed_y
                     NativeConstants.UNIFORM_WALK_SPEED :
                     (short)character.MovementSpeedY);
-                writer.Write((short)0);                                // pic_yoffs
-                writer.Write(0);                                       // z
-                writer.Write(0);                                       // walkwait
+                writer.Write((short)0);                                // [UNUSED] (pic_yoffs)
+                writer.Write(0);                                       // [UNUSED] (z)
+                writer.Write(0);                                       // [UNUSED] (walkwait)
                 writer.Write((short)character.SpeechAnimationDelay);   // speech_anim_speed
                 writer.Write((short)character.IdleAnimationDelay);     // idle_anim_speed
-                writer.Write((short)0);                                // blocking_width
-                writer.Write((short)0);                                // blocking_height
-                writer.Write(0);                                       // index_id
-                writer.Write((short)0);                                // pic_xoffs
-                writer.Write((short)0);                                // walkwaitcounter
-                writer.Write((short)0);                                // loop
-                writer.Write((short)0);                                // frame
-                writer.Write((short)0);                                // walking
-                writer.Write((short)0);                                // animating
+                writer.Write((short)0);                                // [UNUSED] (blocking_width)
+                writer.Write((short)0);                                // [UNUSED] (blocking_height)
+                writer.Write(0);                                       // [UNUSED] (index_id)
+                writer.Write((short)0);                                // [UNUSED] (pic_xoffs)
+                writer.Write((short)0);                                // [UNUSED] (walkwaitcounter)
+                writer.Write((short)0);                                // [UNUSED] (loop)
+                writer.Write((short)0);                                // [UNUSED] (frame)
+                writer.Write((short)0);                                // [UNUSED] (walking)
+                writer.Write((short)0);                                // [UNUSED] (animating)
                 writer.Write(character.UniformMovementSpeed ?          // walkspeed
                     (short)character.MovementSpeed :
                     (short)character.MovementSpeedX);
@@ -1691,8 +1695,8 @@ namespace AGS.Editor
                 {
                     writer.Write(new byte[(NativeConstants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
                 }
-                writer.Write((short)0);                                // actx
-                writer.Write((short)0);                                // acty
+                writer.Write((short)0);                                // [UNUSED] (actx)
+                writer.Write((short)0);                                // [UNUSED] (acty)
                 // legacy name and scriptname fields of fixed length
                 WriteString(TextProperty(character.RealName), 40, writer); // name
                 WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname

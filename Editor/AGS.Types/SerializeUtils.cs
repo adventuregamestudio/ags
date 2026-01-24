@@ -231,12 +231,13 @@ namespace AGS.Types
                         {
                             writer.WriteElementString(prop.Name, PointToCompactString((Point)prop.GetValue(obj, null)));
                         }
-                        // For compatibility with various Custom Resolution beta builds
-                        // TODO: find a generic solution for doing a conversions like this without
-                        // using hard-coded property name (some serialization attribute perhaps)
-                        else if (prop.PropertyType == typeof(Size) && prop.Name == "CustomResolution")
+                        else if (prop.PropertyType == typeof(Size))
                         {
-                            writer.WriteElementString(prop.Name, ResolutionToCompatString((Size)prop.GetValue(obj, null)));
+                            writer.WriteElementString(prop.Name, SizeToString((Size)prop.GetValue(obj, null)));
+                        }
+                        else if (prop.PropertyType == typeof(Rectangle))
+                        {
+                            writer.WriteElementString(prop.Name, RectToString((Rectangle)prop.GetValue(obj, null)));
                         }
                         else
                         {
@@ -367,12 +368,13 @@ namespace AGS.Types
                     ConstructorInfo constructor = prop.PropertyType.GetConstructor(new Type[] { typeof(XmlNode) });
                     prop.SetValue(obj, constructor.Invoke(new object[] { child }), null);
                 }
-                // For compatibility with various Custom Resolution beta builds
-                // TODO: find a generic solution for doing a conversions like this without
-                // using hard-coded property name (some serialization attribute perhaps)
-                else if (prop.PropertyType == typeof(Size) && prop.Name == "CustomResolution")
+                else if (prop.PropertyType == typeof(Size))
                 {
-                    prop.SetValue(obj, CompatStringToResolution(elementValue), null);
+                    prop.SetValue(obj, StringToSize(elementValue), null);
+                }
+                else if (prop.PropertyType == typeof(Rectangle))
+                {
+                    prop.SetValue(obj, StringToRect(elementValue), null);
                 }
                 else
                 {
@@ -412,18 +414,7 @@ namespace AGS.Types
             }
             return Convert.ToInt32(node.Attributes[attrName].InnerText);
         }
-
-        public static Size CompatStringToResolution(String s)
-        {
-            String[] parts = s.Split(',');
-            return new Size(Int32.Parse(parts[0]), Int32.Parse(parts[1]));
-        }
-
-        public static String ResolutionToCompatString(Size size)
-        {
-            return String.Format("{0},{1}", size.Width, size.Height);
-        }
-
+        
         public static Point CompactStringToPoint(string s)
         {
             string[] parts = s.Split(',');
@@ -432,6 +423,28 @@ namespace AGS.Types
 
         public static string PointToCompactString(Point point) => $"{point.X},{point.Y}";
 
+        public static Size StringToSize(String s)
+        {
+            String[] parts = s.Split(',');
+            return new Size(Int32.Parse(parts[0]), Int32.Parse(parts[1]));
+        }
+
+        public static string SizeToString(Size size)
+        {
+            return string.Format("{0},{1}", size.Width, size.Height);
+        }
+
+        public static Rectangle StringToRect(String s)
+        {
+            String[] parts = s.Split(',');
+            return new Rectangle(Int32.Parse(parts[0]), Int32.Parse(parts[1]), Int32.Parse(parts[2]), Int32.Parse(parts[3]));
+        }
+
+        public static string RectToString(Rectangle rect)
+        {
+            return string.Format("{0},{1},{2},{3}", rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        
         public static XmlDocument ToXmlDocument(this IToXml toXml)
         {
             XmlDocument res = new XmlDocument();

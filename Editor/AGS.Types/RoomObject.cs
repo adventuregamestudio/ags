@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Text;
 using System.Xml;
 
@@ -22,6 +23,8 @@ namespace AGS.Types
         private bool _visible = true;
         private int _baseline;
         private int _effectiveBaseline;
+        private bool _solid = false;
+        private Rectangle _blockingRect = Rectangle.Empty;
         private string _name = string.Empty;
         private string _description = string.Empty;
         private bool _useRoomAreaScaling;
@@ -133,6 +136,26 @@ namespace AGS.Types
             get { return _effectiveBaseline; }
             set { _effectiveBaseline = value; }
         }
+
+        [Description("If true, then this object will be preventing solid characters movement")]
+        [Category("Design")]
+        [DefaultValue(false)]
+        public bool Solid
+        {
+            get { return _solid; }
+            set { _solid = value; }
+        }
+
+        [Description("Defines a rectangle in relative coordinates around the object's position, which prevents solid characters from walking through.")]
+        [Category("Design")]
+        public Rectangle BlockingRectangle
+        {
+            get { return _blockingRect; }
+            set { _blockingRect = value; }
+        }
+
+        private void ResetBlockingRectangle() => BlockingRectangle = Rectangle.Empty;
+        private bool ShouldSerializeBlockingRectangle() => BlockingRectangle != Rectangle.Empty;
 
         [Description("X co-ordinate within the room of the left side of the object")]
         [Category("Design")]

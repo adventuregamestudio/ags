@@ -46,22 +46,28 @@
 31:  v3.4.1.5 - removed room object and hotspot name length limits
 32:  v3.5.0 - 64-bit file offsets
 33:  v3.5.0.8 - deprecated room resolution, added mask resolution
+Since then format value is defined as AGS version represented as a
+16-bit N,N,N,NN (because old room format has version as 16-bit!)
+3.6.3.6: object's blocking rect set at design-time
+
 40:  v3.9.9 - room object blend modes
-Since then format value is defined as AGS version represented as NN,NN,NN,NN.
 v4.0.0: Raised for org purposes without format changes
 v4.0.0.17: Raised for org purposes, because forgot to rise each time a new ext was added
 v4.0.0.24: Remade events tables
+v4.0.0.26: sync with 3.6.3.6
 */
 enum RoomFileVersion
 {
     kRoomVersion_Undefined  = 0,
     kRoomVersion_3508       = 33,
+    kRoomVersion_363_06     = 36306,
     kRoomVersion_399        = 40,
     kRoomVersion_400        = 4000000,
     kRoomVersion_400_17     = 4000017,
     kRoomVersion_400_24     = 4000024,
+    kRoomVersion_400_26     = 4000026,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_400_24
+    kRoomVersion_Current    = kRoomVersion_400_26
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

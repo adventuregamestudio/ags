@@ -132,6 +132,8 @@ OPT_GUICONTROLMOUSEBUT, game info properties, font character spacing
 New Dialogs data format,
 Region events are run consistent with other interactions.
 Expanded Color properties for GUI Controls. TextBox's TextAlignment.
+3.6.3.6:
+Character blocking rectangle set up at design time.
 
 3.9.9 :
 BlendModes
@@ -155,6 +157,8 @@ GUI controls extended graphical properties.
 Fixed historical mistake of 1 vertical pixel for object and character sprite placement.
 4.0.0.24:
 Remade events tables
+4.0.0.26:
+sync with 3.6.3.4/6
 */
 
 enum GameDataVersion
@@ -174,6 +178,7 @@ enum GameDataVersion
     kGameVersion_362_12         = 3060212,
     kGameVersion_363            = 3060300,
     kGameVersion_363_04         = 3060304,
+    kGameVersion_363_06         = 3060306,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,

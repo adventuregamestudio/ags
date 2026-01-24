@@ -116,6 +116,7 @@ namespace AGS.Editor
          * 3.6.3.3        - Moved FontHeightDefinition property from General Settings to Font.
          * 3.6.3.4        - Expanded Color properties for GUI Controls. TextBox's TextAlignment.
          * 3.6.3.5        - Renamed BorderShadeColor -> BorderShadeColor.
+         * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -139,7 +140,8 @@ namespace AGS.Editor
          * 4.00.00.20     - start using version string again.
          * 4.00.00.24     - New event tables; Cursors have "create event" property.
          *                  ViewFrame.EventName, OnFrameEvent.
-         * 4.00.00.26     - sync with colored gui controls (3.6.3).
+         * 4.00.00.26     - sync with colored gui controls (3.6.3),
+         *                  and other properties (BlockingRectangle etc)
          *
         */
         public const string LATEST_XML_VERSION = "4.0.0.26";

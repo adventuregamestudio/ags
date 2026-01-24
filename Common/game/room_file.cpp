@@ -323,6 +323,24 @@ HError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion /*data_
     return HError::None();
 }
 
+HError ReadExt_363_BlockingRects(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver*/)
+{
+    uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
+    if (obj_count != room->Objects.size())
+        return new RoomFileError(kRoomFileErr_InconsistentData,
+            String::FromFormat("Mismatching number of room objects: expected %zu, got %zu", room->Objects.size(), obj_count));
+
+    for (auto &obj : room->Objects)
+    {
+        int x = in->ReadInt16();
+        int y = in->ReadInt16();
+        int w = in->ReadInt16();
+        int h = in->ReadInt16();
+        obj.BlockingRect = RectWH(x, y, w, h);
+    }
+    return HError::None();
+}
+
 // Early development version of "ags4"
 HError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 {
@@ -466,6 +484,10 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     {
         StrUtil::ReadStringMap(room->StrOptions, in);
         return HError::None();
+    }
+    else if (ext_id.CompareNoCase("v363_blkrects") == 0)
+    {
+        return ReadExt_363_BlockingRects(room, in, data_ver);
     }
     // Early development version of "ags4"
     else if (ext_id.CompareNoCase("ext_ags399") == 0)
@@ -753,6 +775,18 @@ void WriteStrOptions(const RoomStruct *room, Stream *out)
     StrUtil::WriteStringMap(room->StrOptions, out);
 }
 
+void WriteExt_363_BlockingRects(const RoomStruct *room, Stream *out)
+{
+    out->WriteInt32(room->Objects.size());
+    for (const auto &obj : room->Objects)
+    {
+        out->WriteInt16(obj.BlockingRect.Left);
+        out->WriteInt16(obj.BlockingRect.Top);
+        out->WriteInt16(obj.BlockingRect.GetWidth());
+        out->WriteInt16(obj.BlockingRect.GetHeight());
+    }
+}
+
 void WriteExt399(const RoomStruct *room, Stream *out)
 {
     // New object properties
@@ -862,6 +896,8 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
 
     // String options
     WriteRoomBlock(room, "ext_sopts", WriteStrOptions, out);
+
+    WriteRoomBlock(room, "v363_blkrects", WriteExt_363_BlockingRects, out);
 
     // Early development version of "ags4"
     WriteRoomBlock(room, "ext_ags399", WriteExt399, out);

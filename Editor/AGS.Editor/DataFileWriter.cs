@@ -1717,7 +1717,7 @@ namespace AGS.Editor
                 writer.Write((short)character.IdleDelay);              // idletime
                 writer.Write((short)0);                                // [UNUSED] (idleleft)
                 writer.Write((short)character.Transparency);           // transparency
-                writer.Write((short)0);                                // [UNUSED] (baseline)
+                writer.Write((short)0);                                // [RESERVED] (baseline)
                 writer.Write(0);                                       // [UNUSED] (activeinv)
                 writer.Write(character.SpeechColor);                   // talkcolor
                 writer.Write(character.ThinkingView - 1);              // thinkview
@@ -1729,15 +1729,15 @@ namespace AGS.Editor
                     NativeConstants.UNIFORM_WALK_SPEED :
                     (short)character.MovementSpeedY);
                 writer.Write((short)0);                                // [UNUSED] (pic_yoffs)
-                writer.Write(0);                                       // [UNUSED] (z)
+                writer.Write(0);                                       // [RESERVED] (z)
                 writer.Write(0);                                       // [UNUSED] (walkwait)
                 writer.Write((short)character.SpeechAnimationDelay);   // speech_anim_speed
                 writer.Write((short)character.IdleAnimationDelay);     // idle_anim_speed
-                writer.Write((short)0);                                // [UNUSED] (blocking_width)
-                writer.Write((short)0);                                // [UNUSED] (blocking_height)
-                writer.Write(0);                                       // [UNUSED] (index_id)
-                writer.Write((short)0);                                // [UNUSED] (pic_xoffs)
-                writer.Write((short)0);                                // [UNUSED] (walkwaitcounter)
+                writer.Write((short)character.BlockingRectangle.Width);// blocking_width
+                writer.Write((short)character.BlockingRectangle.Height);// blocking_height
+                writer.Write(character.ID);                            // index_id
+                writer.Write((short)character.BlockingRectangle.X);    // blocking_x
+                writer.Write((short)character.BlockingRectangle.Y);    // blocking_y
                 writer.Write((short)0);                                // [UNUSED] (loop)
                 writer.Write((short)0);                                // [UNUSED] (frame)
                 writer.Write((short)0);                                // [UNUSED] (walking)

@@ -3134,28 +3134,31 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->BackgroundCount = rs.BgFrameCount;
     room->MaskResolution = rs.MaskResolution;
 
-	for (size_t i = 0; i < rs.Objects.size(); ++i) 
-	{
-		RoomObject ^obj = gcnew RoomObject(room);
-		obj->ID = i;
-		obj->Image = rs.Objects[i].Sprite;
-        obj->BlendMode = (BlendMode)rs.Objects[i].BlendMode;
-		obj->StartX = rs.Objects[i].X;
-		obj->StartY = rs.Objects[i].Y;
-        obj->Enabled = (rs.Objects[i].Flags & OBJF_ENABLED) != 0;
-		obj->Visible = (rs.Objects[i].Flags & OBJF_VISIBLE) != 0;
-		obj->Clickable = ((rs.Objects[i].Flags & OBJF_NOINTERACT) == 0);
-		obj->Baseline = rs.Objects[i].Baseline;
-		obj->Name = TextHelper::ConvertASCII(rs.Objects[i].ScriptName);
-		obj->Description = tcv->Convert(rs.Objects[i].Name);
-		obj->UseRoomAreaScaling = ((rs.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
-		obj->UseRoomAreaLighting = ((rs.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
-		ConvertCustomProperties(obj->Properties, &rs.Objects[i].Properties);
+    for (size_t i = 0; i < rs.Objects.size(); ++i) 
+    {
+        RoomObject ^obj = gcnew RoomObject(room);
+        const auto &robj = rs.Objects[i];
+        obj->ID = i;
+        obj->Image = robj.Sprite;
+        obj->BlendMode = (BlendMode)robj.BlendMode;
+        obj->StartX = robj.X;
+        obj->StartY = robj.Y;
+        obj->Enabled = (robj.Flags & OBJF_ENABLED) != 0;
+        obj->Visible = (robj.Flags & OBJF_VISIBLE) != 0;
+        obj->Clickable = ((robj.Flags & OBJF_NOINTERACT) == 0);
+        obj->Baseline = robj.Baseline;
+        obj->Solid = (robj.Flags & OBJF_SOLID) != 0;
+        obj->BlockingRectangle = System::Drawing::Rectangle(robj.BlockingRect.Left, robj.BlockingRect.Top, robj.BlockingRect.GetWidth(), robj.BlockingRect.GetHeight());
+        obj->Name = TextHelper::ConvertASCII(robj.ScriptName);
+        obj->Description = tcv->Convert(robj.Name);
+        obj->UseRoomAreaScaling = ((robj.Flags & OBJF_USEROOMSCALING) != 0);
+        obj->UseRoomAreaLighting = ((robj.Flags & OBJF_USEREGIONTINTS) != 0);
+        ConvertCustomProperties(obj->Properties, &robj.Properties);
         // FIXME - update to the new events
-        CopyInteractions(obj->Interactions, rs.Objects[i].Interactions);
+        CopyInteractions(obj->Interactions, robj.Interactions);
 
-		room->Objects->Add(obj);
-	}
+        room->Objects->Add(obj);
+    }
 
 	for (size_t i = 0; i < rs.HotspotCount; ++i) 
 	{
@@ -3253,26 +3256,29 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     if (!room->BackgroundAnimationEnabled)
         rs.Options.Flags |= kRoomFlag_BkgFrameLocked;
 
-	rs.Objects.resize(room->Objects->Count);
-	for (size_t i = 0; i < rs.Objects.size(); ++i)
-	{
-		RoomObject ^obj = room->Objects[i];
-		rs.Objects[i].ScriptName = TextHelper::ConvertASCII(obj->Name);
-
-		rs.Objects[i].Sprite = obj->Image;
-        rs.Objects[i].BlendMode = (AGS::Common::BlendMode)obj->BlendMode;
-		rs.Objects[i].X = obj->StartX;
-		rs.Objects[i].Y = obj->StartY;
-		rs.Objects[i].Baseline = obj->Baseline;
-		rs.Objects[i].Name = tcv->ConvertTextProperty(obj->Description);
-        rs.Objects[i].Flags =
+    rs.Objects.resize(room->Objects->Count);
+    for (size_t i = 0; i < rs.Objects.size(); ++i)
+    {
+        RoomObject ^obj = room->Objects[i];
+        auto &robj = rs.Objects[i];
+        robj.ScriptName = TextHelper::ConvertASCII(obj->Name);
+        robj.Sprite = obj->Image;
+        robj.BlendMode = (AGS::Common::BlendMode)obj->BlendMode;
+        robj.X = obj->StartX;
+        robj.Y = obj->StartY;
+        robj.Baseline = obj->Baseline;
+        robj.Name = tcv->ConvertTextProperty(obj->Description);
+        robj.Flags =
             (OBJF_ENABLED * obj->Enabled) |
-            (OBJF_VISIBLE * obj->Visible);
-		if (obj->UseRoomAreaScaling) rs.Objects[i].Flags |= OBJF_USEROOMSCALING;
-		if (obj->UseRoomAreaLighting) rs.Objects[i].Flags |= OBJF_USEREGIONTINTS;
-		if (!obj->Clickable) rs.Objects[i].Flags |= OBJF_NOINTERACT;
-		CompileCustomProperties(obj->Properties, &rs.Objects[i].Properties);
-	}
+            (OBJF_VISIBLE * obj->Visible) |
+            (OBJF_USEROOMSCALING * obj->UseRoomAreaScaling) |
+            (OBJF_USEREGIONTINTS * obj->UseRoomAreaLighting) |
+            (OBJF_NOINTERACT * (!obj->Clickable)) |
+            (OBJF_SOLID * obj->Solid);
+        robj.BlockingRect = RectWH(obj->BlockingRectangle.Left, obj->BlockingRectangle.Top,
+            obj->BlockingRectangle.Width, obj->BlockingRectangle.Height);
+        CompileCustomProperties(obj->Properties, &robj.Properties);
+    }
 
 	rs.HotspotCount = room->Hotspots->Count;
 	for (size_t i = 0; i < rs.HotspotCount; ++i)

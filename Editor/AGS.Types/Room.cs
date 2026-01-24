@@ -31,8 +31,9 @@ namespace AGS.Types
          * 1            - New XML room format introduced
          * 4.00.00.20   - Updated to a X.Y.Z.W version format.
          * 4.00.00.24   - New event tables.
+         * 4.00.00.26   - RoomObject.BlockingRect, etc.
         */
-        public const string LATEST_XML_VERSION = "4.0.0.24";
+        public const string LATEST_XML_VERSION = "4.0.0.26";
 
         private const string FIRST_XML_VERSION = "3.99.99.01";
 

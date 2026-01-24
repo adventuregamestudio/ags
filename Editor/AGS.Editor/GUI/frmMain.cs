@@ -189,7 +189,7 @@ namespace AGS.Editor
                 {
                     if ((itemToSelect.Parent != null) && (!itemToSelect.Parent.Expanded))
                     {
-                        propertiesPanel.ExpandAllGridItems();
+                        PropertiesPanel.ExpandGridItem(itemToSelect.Parent);
                     }
                     propertiesPanel.SelectedGridItem = itemToSelect;
                 }

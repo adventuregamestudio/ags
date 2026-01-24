@@ -97,6 +97,17 @@ namespace AGS.Editor
             propertiesGrid.ExpandAllGridItems();
         }
 
+        /// <summary>
+        /// Recursively expands this and all the parent items in the property grid.
+        /// </summary>
+        public static void ExpandGridItem(GridItem item)
+        {
+            for (GridItem thisItem = item; thisItem != null; thisItem = thisItem.Parent)
+            {
+                item.Expanded = true;
+            }
+        }
+
         public object SelectedObject
         {
             get { return propertiesGrid.SelectedObject; }

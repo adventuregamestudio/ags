@@ -42,39 +42,36 @@ void CharacterInfo::ReadFromFile(CharacterInfo2 &chinfo2, Stream *in, GameDataVe
     idleview = in->ReadInt32();
     idletime = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] (idleleft)
-    in->ReadInt16(); // [UNUSED] (transparency)
-    in->ReadInt16(); // [UNUSED] (baseline)
+    in->ReadInt16(); // [RESERVED] (transparency)
+    in->ReadInt16(); // [RESERVED] (baseline)
     in->ReadInt32(); // [UNUSED] (activeinv)
     talkcolor = in->ReadInt32();
     thinkview = in->ReadInt32();
     blinkview = in->ReadInt16();
-    in->ReadInt16(); // [UNUSED] blinkinterval
-    in->ReadInt16(); // [UNUSED] blinktimer
-    in->ReadInt16(); // [UNUSED] blinkframe
+    in->ReadInt16(); // [UNUSED] (blinkinterval)
+    in->ReadInt16(); // [UNUSED] (blinktimer)
+    in->ReadInt16(); // [UNUSED] (blinkframe)
     walkspeed_y = in->ReadInt16();
-    in->ReadInt16(); // [UNUSED] pic_yoffs
-    in->ReadInt32(); // [UNUSED] z
-    in->ReadInt32(); // [UNUSED] walkwait
+    in->ReadInt16(); // [UNUSED] (pic_yoffs)
+    in->ReadInt32(); // [RESERVED] (z)
+    in->ReadInt32(); // [UNUSED] (walkwait)
     speech_anim_speed = in->ReadInt16();
     idle_anim_speed = in->ReadInt16();
-    chinfo2.blocking_x = in->ReadInt16();
-    chinfo2.blocking_y = in->ReadInt16();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
-    in->ReadInt16(); // [UNUSED] pic_xoffs
-    in->ReadInt16(); // [UNUSED] walkwaitcounter
-    in->ReadInt16(); // [UNUSED] loop
-    in->ReadInt16(); // [UNUSED] frame
-    in->ReadInt16(); // [UNUSED] walking
-    in->ReadInt16(); // [UNUSED] animating
+    index_id = in->ReadInt32(); // e.q. Character.ID, reset by the engine, but reserved here
+    chinfo2.blocking_x = in->ReadInt16();
+    chinfo2.blocking_y = in->ReadInt16();
+    in->ReadInt16(); // [UNUSED] (loop)
+    in->ReadInt16(); // [UNUSED] (frame)
+    in->ReadInt16(); // [UNUSED] (walking)
+    in->ReadInt16(); // [UNUSED] (animating)
     walkspeed = in->ReadInt16();
     animspeed = in->ReadInt16();
     in->ReadArrayOfInt16(inv, MAX_INV);
-    in->ReadInt16(); // [UNUSED] actx
-    in->ReadInt16(); // [UNUSED] acty
+    in->ReadInt16(); // [UNUSED] (actx)
+    in->ReadInt16(); // [UNUSED] (acty)
 
-    //
-    // Extension fields follow
     StrUtil::ReadCStrCount(name, in, LEGACY_MAX_CHAR_NAME_LEN);
     StrUtil::ReadCStrCount(scrname, in, LEGACY_MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
@@ -112,8 +109,8 @@ void CharacterInfo::WriteToFile(const CharacterInfo2 &chinfo2, Stream *out) cons
     out->WriteInt32(idleview);
     out->WriteInt16(idletime);
     out->WriteInt16(0); // [UNUSED] (idleleft)
-    out->WriteInt16(0); // [UNUSED] (transparency)
-    out->WriteInt16(0); // [UNUSED] (baseline)
+    out->WriteInt16(0); // [RESERVED] (transparency)
+    out->WriteInt16(0); // [RESERVED] (baseline)
     out->WriteInt32(0); // [UNUSED] (activeinv)
     out->WriteInt32(talkcolor);
     out->WriteInt32(thinkview);
@@ -123,16 +120,15 @@ void CharacterInfo::WriteToFile(const CharacterInfo2 &chinfo2, Stream *out) cons
     out->WriteInt16(0); // [UNUSED] blinkframe
     out->WriteInt16(walkspeed_y);
     out->WriteInt16(0); // [UNUSED] pic_yoffs
-    out->WriteInt32(0); // [UNUSED] z
+    out->WriteInt32(0); // [RESERVED] z
     out->WriteInt32(0); // [UNUSED] walkwait
     out->WriteInt16(speech_anim_speed);
     out->WriteInt16(idle_anim_speed);
-    out->WriteInt16(chinfo2.blocking_x);
-    out->WriteInt16(chinfo2.blocking_y);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
-    out->WriteInt16(0); // [UNUSED] pic_xoffs
-    out->WriteInt16(0); // [UNUSED] walkwaitcounter
+    out->WriteInt32(index_id); // Character.ID
+    out->WriteInt16(chinfo2.blocking_x);
+    out->WriteInt16(chinfo2.blocking_y);
     out->WriteInt16(0); // [UNUSED] loop
     out->WriteInt16(0); // [UNUSED] frame
     out->WriteInt16(0); // [UNUSED] walking

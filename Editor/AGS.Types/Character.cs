@@ -26,8 +26,10 @@ namespace AGS.Types
         private int _idleAnimationDelay = 4;
         private int _thinkingView;
         private int _blinkingView;
+        private int _transparency = 0;
         private int _startingRoom = 0;
         private int _startX = 160, _startY = 120;
+        private int _baseline = 0;
         private bool _uniformMovementSpeed = true;
         private int _movementSpeed = 3;
         private int _movementSpeedX, _movementSpeedY;
@@ -159,12 +161,13 @@ namespace AGS.Types
             set;
         }
 
-        [Description("This character's transparency")]
+        [Description("This character's transparency (0-100)")]
         [Category("Appearance")]
+        [DefaultValue(0)]
         public int Transparency
         {
-            get;
-            set;
+            get { return _transparency; }
+            set { _transparency = Math.Max(0, Math.Min(100, value)); }
         }
 
         [Description("Room number that the character starts in")]
@@ -190,6 +193,35 @@ namespace AGS.Types
         {
             get { return _startY; }
             set { _startY = value; }
+        }
+
+        [Description("The Y co-ordinate used to determine whether this character is in front of or behind other things. Set as 0 to use own character's Y position as a baseline.")]
+        [Category("Design")]
+        [DefaultValue(0)]
+        public int Baseline
+        {
+            get { return _baseline; }
+            set { _baseline = value; }
+        }
+
+        [Description("Allows you to manually specify this character's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
+        [Category("Design")]
+        [DefaultValue(false)]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool BaselineOverridden
+        {
+            get { return _baseline > 0; }
+            set
+            {
+                if ((value) && (_baseline < 1))
+                {
+                    _baseline = 1;
+                }
+                if ((!value) && (_baseline > 0))
+                {
+                    _baseline = 0;
+                }
+            }
         }
 
         [Description("Whether to move at the same speed for horizontal and vertical directions")]
@@ -539,6 +571,10 @@ namespace AGS.Types
                     wantThisProperty = false;
                 }
                 else if ((!_uniformMovementSpeed) && (property.Name == "MovementSpeed"))
+                {
+                    wantThisProperty = false;
+                }
+                else if ((!BaselineOverridden) && (property.Name == "Baseline"))
                 {
                     wantThisProperty = false;
                 }

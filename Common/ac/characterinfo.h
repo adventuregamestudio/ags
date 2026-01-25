@@ -143,7 +143,7 @@ struct CharacterInfo
     int     idleview    = 0;  // the loop will be randomly picked
     int16_t idletime    = 0;
     int16_t idleleft    = 0; // num seconds idle before playing anim
-    int16_t transparency = 0; // level of transparency (0 - 100)
+    int16_t transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     int16_t baseline    = -1;
     int     activeinv   = -1; // selected inventory item
     int     talkcolor   = 0;

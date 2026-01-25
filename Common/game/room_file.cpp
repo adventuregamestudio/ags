@@ -323,7 +323,7 @@ HError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion /*data_
     return HError::None();
 }
 
-HError ReadExt_363_BlockingRects(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadExt_363_Objects(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
     if (obj_count != room->Objects.size())
@@ -332,11 +332,14 @@ HError ReadExt_363_BlockingRects(RoomStruct *room, Stream *in, RoomFileVersion /
 
     for (auto &obj : room->Objects)
     {
+        obj.Transparency = in->ReadInt16();
+        obj.Baseline = in->ReadInt16();
         int x = in->ReadInt16();
         int y = in->ReadInt16();
         int w = in->ReadInt16();
         int h = in->ReadInt16();
         obj.BlockingRect = RectWH(x, y, w, h);
+        in->ReadInt32(); // reserved
     }
     return HError::None();
 }
@@ -485,9 +488,9 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
         StrUtil::ReadStringMap(room->StrOptions, in);
         return HError::None();
     }
-    else if (ext_id.CompareNoCase("v363_blkrects") == 0)
+    else if (ext_id.CompareNoCase("v363_objects") == 0)
     {
-        return ReadExt_363_BlockingRects(room, in, data_ver);
+        return ReadExt_363_Objects(room, in, data_ver);
     }
     // Early development version of "ags4"
     else if (ext_id.CompareNoCase("ext_ags399") == 0)
@@ -775,15 +778,18 @@ void WriteStrOptions(const RoomStruct *room, Stream *out)
     StrUtil::WriteStringMap(room->StrOptions, out);
 }
 
-void WriteExt_363_BlockingRects(const RoomStruct *room, Stream *out)
+void WriteExt_363_Objects(const RoomStruct *room, Stream *out)
 {
     out->WriteInt32(room->Objects.size());
     for (const auto &obj : room->Objects)
     {
+        out->WriteInt16(obj.Transparency);
+        out->WriteInt16(obj.Baseline);
         out->WriteInt16(obj.BlockingRect.Left);
         out->WriteInt16(obj.BlockingRect.Top);
         out->WriteInt16(obj.BlockingRect.GetWidth());
         out->WriteInt16(obj.BlockingRect.GetHeight());
+        out->WriteInt32(0); // reserved
     }
 }
 
@@ -897,7 +903,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     // String options
     WriteRoomBlock(room, "ext_sopts", WriteStrOptions, out);
 
-    WriteRoomBlock(room, "v363_blkrects", WriteExt_363_BlockingRects, out);
+    WriteRoomBlock(room, "v363_objects", WriteExt_363_Objects, out);
 
     // Early development version of "ags4"
     WriteRoomBlock(room, "ext_ags399", WriteExt399, out);

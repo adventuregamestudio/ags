@@ -68,7 +68,7 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     idletime = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] (idleleft)
     transparency = in->ReadInt16();
-    in->ReadInt16(); // [RESERVED] (baseline)
+    baseline = in->ReadInt16();
     in->ReadInt32(); // [UNUSED] (activeinv)
     talkcolor = in->ReadInt32();
     thinkview = in->ReadInt32();
@@ -130,7 +130,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt16(idletime);
     out->WriteInt16(0); // [UNUSED] (idleleft)
     out->WriteInt16(transparency);
-    out->WriteInt16(0); // [RESERVED] (baseline)
+    out->WriteInt16(baseline);
     out->WriteInt32(0); // [UNUSED] (activeinv)
     out->WriteInt32(talkcolor);
     out->WriteInt32(thinkview);

@@ -105,15 +105,6 @@ namespace AGS.Types
             set { _visible = value; }
         }
 
-        [Description("The Y co-ordinate used to determine whether this object is in front of or behind other things. Set as 0 to use own object's Y position as a baseline.")]
-        [Category("Design")]
-        [DefaultValue(0)]
-        public int Baseline
-        {
-            get { return _baseline; }
-            set { _baseline = value; }
-        }
-
         [Description("Determines whether the object can be clicked on, or whether mouse clicks pass straight through it")]
         [Category("Design")]
         [DefaultValue(true)]
@@ -123,6 +114,17 @@ namespace AGS.Types
             set { _clickable = value; }
         }
 
+        [Description("The Y co-ordinate used to determine whether this object is in front of or behind other things. Set as 0 to use own object's Y position as a baseline.")]
+        [Category("Design")]
+        [DefaultValue(0)]
+        [RefreshProperties(RefreshProperties.All)]
+        public int Baseline
+        {
+            get { return _baseline; }
+            set { _baseline = value; }
+        }
+
+        [AGSNoSerialize]
         [Description("Allows you to manually specify this object's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
         [Category("Design")]
         [DefaultValue(false)]

@@ -42,12 +42,8 @@ namespace AGS.Editor
         public override void Paint(Graphics graphics, RoomEditorState state)
         {
             _objectBaselines.Clear();
-            _objectBaselines.AddRange(_room.Objects.Select(o =>
-            {
-                o.EffectiveBaseline = o.Baseline <= 0 ? o.StartY : o.Baseline;
-                return o;
-            }));
-            _objectBaselines.Sort();
+            _objectBaselines.AddRange(_room.Objects);
+            _objectBaselines.Sort((obj1, obj2) => obj1.EffectiveBaseline.CompareTo(obj2.EffectiveBaseline));
 
             foreach (RoomObject obj in _objectBaselines.Where(o => DesignItems[GetItemID(o)].Visible))
             {

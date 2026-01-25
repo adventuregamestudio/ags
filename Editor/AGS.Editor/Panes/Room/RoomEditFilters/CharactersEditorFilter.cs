@@ -1,11 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using AGS.Types;
 using AgsView = AGS.Types.View;
-using System.Web;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
 
 namespace AGS.Editor
 {
@@ -20,6 +19,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_COPY_CHAR_COORDS = "CopyCharacterCoordinatesToClipboard";
 
         private Game _game = null;
+        private List<Character> _characterBaselines = new List<Character>();
 
         public Character SelectedCharacter { get { return _selectedObject; } }
 
@@ -101,7 +101,12 @@ namespace AGS.Editor
 
         public override void Paint(Graphics graphics, RoomEditorState state)
         {
-            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            _characterBaselines.Clear();
+            _characterBaselines.AddRange(_game.RootCharacterFolder.AllItemsFlat
+                .Where(c => c.StartingRoom == _room.Number));
+            _characterBaselines.Sort((obj1, obj2) => obj1.EffectiveBaseline.CompareTo(obj2.EffectiveBaseline));
+
+            foreach (Character character in _characterBaselines)
             {
                 DesignTimeProperties p;
                 if (DesignItems.TryGetValue(GetItemID(character), out p) && p.Visible)

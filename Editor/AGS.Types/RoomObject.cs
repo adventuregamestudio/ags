@@ -22,8 +22,7 @@ namespace AGS.Types
         private bool _clickable = true;
         private bool _enabled = true;
         private bool _visible = true;
-        private int _baseline;
-        private int _effectiveBaseline;
+        private int _baseline = 0;
         private bool _solid = false;
         private Rectangle _blockingRect = Rectangle.Empty;
         private string _name = string.Empty;
@@ -147,8 +146,7 @@ namespace AGS.Types
         [Browsable(false)]
         public int EffectiveBaseline
         {
-            get { return _effectiveBaseline; }
-            set { _effectiveBaseline = value; }
+            get { return BaselineOverridden ? Baseline : StartY; }
         }
 
         [Description("If true, then this object will be preventing solid characters movement")]
@@ -278,20 +276,28 @@ namespace AGS.Types
 
         #endregion // Game Events
 
+        #region IComparable<RoomObject> Members
+
         public int CompareTo(RoomObject other)
         {
-            return this.EffectiveBaseline.CompareTo(other.EffectiveBaseline);
+            return ID.CompareTo(other.ID);
         }
 
-		void IChangeNotification.ItemModified()
+        #endregion
+
+        #region IChangeNotification Members
+
+        void IChangeNotification.ItemModified()
 		{
             (_room as IChangeNotification).ItemModified();
 		}
 
+        #endregion
 
-		#region ICustomTypeDescriptor Members
 
-		public AttributeCollection GetAttributes()
+        #region ICustomTypeDescriptor Members
+
+        public AttributeCollection GetAttributes()
 		{
 			return TypeDescriptor.GetAttributes(this, true);
 		}

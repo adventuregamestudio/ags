@@ -72,14 +72,22 @@ namespace AGS.Types
             Assert.That(_roomObject.Clickable, Is.EqualTo(clickable));
         }
 
-        [TestCase(0)]
-        [TestCase(5)]
-        [TestCase(int.MaxValue)]
-        [TestCase(int.MinValue)]
-        public void GetsAndSetsEffectiveBaseline(int effectiveBaseline)
+        [TestCase(100)]
+        [TestCase(200)]
+        public void GetsEffectiveBaselineForStartY(int startY)
         {
-            _roomObject.EffectiveBaseline = effectiveBaseline;
-            Assert.That(_roomObject.EffectiveBaseline, Is.EqualTo(effectiveBaseline));
+            _roomObject.Baseline = 0;
+            _roomObject.StartY = startY;
+            Assert.That(_roomObject.EffectiveBaseline, Is.EqualTo(startY));
+        }
+
+        [TestCase(5)]
+        [TestCase(10)]
+        [TestCase(int.MaxValue)]
+        public void GetsEffectiveBaselineForCustomBaseline(int baseline)
+        {
+            _roomObject.Baseline = baseline;
+            Assert.That(_roomObject.EffectiveBaseline, Is.EqualTo(baseline));
         }
 
         [TestCase(0)]

@@ -60,7 +60,8 @@ RoomObjectInfo::RoomObjectInfo()
     , Y(0)
     , Sprite(0)
     , IsOn(false)
-    , Baseline(0xFF)
+    , Baseline(0)
+    , Transparency(0)
     , Flags(0)
 {
 }

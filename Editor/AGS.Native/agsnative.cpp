@@ -4020,6 +4020,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         const auto &robj = rs.Objects[i];
         obj->ID = i;
         obj->Image = robj.Sprite;
+        obj->Transparency = AGS::Common::GfxDef::LegacyTrans255ToTrans100(robj.Transparency);
         obj->StartX = robj.X;
         obj->StartY = robj.Y;
         obj->Visible = (robj.IsOn != 0);
@@ -4220,6 +4221,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 
         robj.ScriptName = TextHelper::ConvertASCII(obj->Name);
         robj.Sprite = obj->Image;
+        robj.Transparency = AGS::Common::GfxDef::Trans100ToLegacyTrans255(obj->Transparency);
         robj.X = obj->StartX;
         robj.Y = obj->StartY;
         robj.IsOn = obj->Visible;

@@ -189,6 +189,7 @@ struct RoomObjectInfo
     bool            IsOn;
     // Object's z-order in the room, or -1 (use Y)
     int32_t         Baseline;
+    int32_t         Transparency;
     int32_t         Flags;
     String          Name;
     String          ScriptName;

@@ -19,6 +19,7 @@ namespace AGS.Types
         private int _image;
         private int _x;
         private int _y;
+        private int _transparency = 0;
         private bool _clickable = true;
         private bool _visible = true;
         private int _baseline;
@@ -68,16 +69,27 @@ namespace AGS.Types
             set { _image = Math.Max(value, 0); }
         }
 
+        [Description("This object's transparency (0-100)")]
+        [Category("Appearance")]
+        [DefaultValue(0)]
+        public int Transparency
+        {
+            get { return _transparency; }
+            set { _transparency = Math.Max(0, Math.Min(100, value)); }
+        }
+
         [Description("Is the object initially visible?")]
         [Category("Design")]
+        [DefaultValue(true)]
         public bool Visible
         {
             get { return _visible; }
             set { _visible = value; }
         }
 
-        [Description("The Y co-ordinate used to determine whether this object is in front of or behind other things.")]
+        [Description("The Y co-ordinate used to determine whether this object is in front of or behind other things. Set as 0 to use own object's Y position as a baseline.")]
         [Category("Design")]
+        [DefaultValue(0)]
         public int Baseline
         {
             get { return _baseline; }
@@ -86,30 +98,32 @@ namespace AGS.Types
 
         [Description("Determines whether the object can be clicked on, or whether mouse clicks pass straight through it")]
         [Category("Design")]
+        [DefaultValue(true)]
         public bool Clickable
         {
             get { return _clickable; }
             set { _clickable = value; }
         }
 
-		[Description("Allows you to manually specify this object's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
-		[Category("Design")]
-		[RefreshProperties(RefreshProperties.All)]
-		public bool BaselineOverridden
-		{
-			get { return _baseline > 0; }
-			set
-			{
-				if ((value) && (_baseline < 1))
-				{
-					_baseline = 1;
-				}
-				if ((!value) && (_baseline > 0))
-				{
-					_baseline = 0;
-				}
-			}
-		}
+        [Description("Allows you to manually specify this object's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
+        [Category("Design")]
+        [DefaultValue(false)]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool BaselineOverridden
+        {
+            get { return _baseline > 0; }
+            set
+            {
+                if ((value) && (_baseline < 1))
+                {
+                    _baseline = 1;
+                }
+                if ((!value) && (_baseline > 0))
+                {
+                    _baseline = 0;
+                }
+            }
+        }
 
         [Browsable(false)]
         public int EffectiveBaseline

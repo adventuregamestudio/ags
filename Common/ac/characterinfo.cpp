@@ -42,8 +42,8 @@ void CharacterInfo::ReadFromFile(CharacterInfo2 &chinfo2, Stream *in, GameDataVe
     idleview = in->ReadInt32();
     idletime = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] (idleleft)
-    in->ReadInt16(); // [RESERVED] (transparency)
-    in->ReadInt16(); // [RESERVED] (baseline)
+    transparency = in->ReadInt16();
+    baseline = in->ReadInt16();
     in->ReadInt32(); // [UNUSED] (activeinv)
     talkcolor = in->ReadInt32();
     thinkview = in->ReadInt32();
@@ -109,8 +109,8 @@ void CharacterInfo::WriteToFile(const CharacterInfo2 &chinfo2, Stream *out) cons
     out->WriteInt32(idleview);
     out->WriteInt16(idletime);
     out->WriteInt16(0); // [UNUSED] (idleleft)
-    out->WriteInt16(0); // [RESERVED] (transparency)
-    out->WriteInt16(0); // [RESERVED] (baseline)
+    out->WriteInt16(transparency);
+    out->WriteInt16(baseline);
     out->WriteInt32(0); // [UNUSED] (activeinv)
     out->WriteInt32(talkcolor);
     out->WriteInt32(thinkview);

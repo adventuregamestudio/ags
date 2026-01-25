@@ -19,6 +19,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_COPY_CHAR_COORDS = "CopyCharacterCoordinatesToClipboard";
 
         private Game _game = null;
+        private List<Character> _characterBaselines = new List<Character>();
 
         public Character SelectedCharacter { get { return _selectedObject; } }
 
@@ -101,7 +102,15 @@ namespace AGS.Editor
 
         public override void PaintToHDC(IntPtr hdc, RoomEditorState state)
         {
+            _characterBaselines.Clear();
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            {
+                if (character.StartingRoom == _room.Number)
+                    _characterBaselines.Add(character);
+            }
+            _characterBaselines.Sort((obj1, obj2) => obj1.EffectiveBaseline.CompareTo(obj2.EffectiveBaseline));
+
+            foreach (Character character in _characterBaselines)
             {
                 DesignTimeProperties p;
                 if (DesignItems.TryGetValue(GetItemID(character), out p) && p.Visible)

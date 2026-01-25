@@ -221,6 +221,12 @@ namespace AGS.Types
             }
         }
 
+        [Browsable(false)]
+        public int EffectiveBaseline
+        {
+            get { return BaselineOverridden ? Baseline : StartY; }
+        }
+
         [Description("Whether to move at the same speed for horizontal and vertical directions")]
         [Category("Movement")]
         [RefreshProperties(RefreshProperties.All)]

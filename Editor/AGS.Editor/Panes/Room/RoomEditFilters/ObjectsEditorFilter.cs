@@ -42,17 +42,9 @@ namespace AGS.Editor
             _objectBaselines.Clear();
             foreach (RoomObject obj in _room.Objects)
             {
-                if (obj.Baseline <= 0)
-                {
-                    obj.EffectiveBaseline = obj.StartY;
-                }
-                else
-                {
-                    obj.EffectiveBaseline = obj.Baseline;
-                }
                 _objectBaselines.Add(obj);
             }
-            _objectBaselines.Sort();
+            _objectBaselines.Sort((obj1, obj2) => obj1.EffectiveBaseline.CompareTo(obj2.EffectiveBaseline));
 
             foreach (RoomObject obj in _objectBaselines)
             {

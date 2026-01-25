@@ -119,6 +119,7 @@ namespace AGS.Editor
          * 3.6.3.4        - Expanded Color properties for GUI Controls. TextBox's TextAlignment.
          * 3.6.3.5        - Renamed ShadowColor -> BorderShadeColor.
          * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
+         *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060306;
         /*

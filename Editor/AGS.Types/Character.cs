@@ -195,12 +195,14 @@ namespace AGS.Types
         [Description("The Y co-ordinate used to determine whether this character is in front of or behind other things. Set as 0 to use own character's Y position as a baseline.")]
         [Category("Design")]
         [DefaultValue(0)]
+        [RefreshProperties(RefreshProperties.All)]
         public int Baseline
         {
             get { return _baseline; }
             set { _baseline = value; }
         }
 
+        [AGSNoSerialize]
         [Description("Allows you to manually specify this character's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
         [Category("Design")]
         [DefaultValue(false)]

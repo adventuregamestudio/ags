@@ -558,10 +558,10 @@ static void init_object_states(size_t start, size_t end)
         crobj.loop = 0;
         crobj.frame = 0;
         crobj.wait = 0;
-        crobj.transparent = 0;
+        crobj.transparent = trobj.Transparency;
         crobj.moving = -1;
         crobj.flags = trobj.Flags;
-        crobj.baseline = -1;
+        crobj.baseline = trobj.Baseline;
         crobj.zoom = 100;
         crobj.last_width = 0;
         crobj.last_height = 0;

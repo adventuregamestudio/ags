@@ -663,8 +663,6 @@ void engine_init_game_settings()
         if (loaded_game_file_version < kGameVersion_360)
             game.chars[ee].idletime=20; // default to 20 seconds
         game.chars[ee].idleleft=game.chars[ee].idletime;
-        game.chars[ee].transparency = 0;
-        game.chars[ee].baseline = -1;
         game.chars[ee].walkwaitcounter = 0;
         game.chars[ee].z = 0;
         charextra[ee].xwas = INVALID_X;

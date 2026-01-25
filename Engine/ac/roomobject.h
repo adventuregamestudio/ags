@@ -43,7 +43,7 @@ struct RoomObject
     static const uint16_t NoView = UINT16_MAX;
 
     int   x,y;
-    int   transparent;    // current transparency setting
+    int   transparent;    // "incorrect" alpha (in legacy 255-range units)
     int16_t tint_r, tint_g;   // specific object tint
     int16_t tint_b, tint_level;
     int16_t tint_light;

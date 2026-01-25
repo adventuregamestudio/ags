@@ -653,7 +653,6 @@ void engine_init_game_settings()
         memset(&game.chars[ee].inv[0],0,MAX_INV*sizeof(short));
         game.chars[ee].activeinv=-1;
         game.chars[ee].idleleft=game.chars[ee].idletime;
-        game.chars[ee].baseline = -1;
         game.chars[ee].walkwaitcounter = 0;
         game.chars[ee].z = 0;
         charextra[ee].xwas = INVALID_X;

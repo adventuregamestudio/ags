@@ -535,10 +535,10 @@ static void init_object_states(size_t start, size_t end)
         crobj.loop = 0u;
         crobj.frame = 0u;
         crobj.wait = 0;
-        crobj.transparent = 0;
+        crobj.transparent = trobj.Transparency;
         crobj.moving = -1;
         crobj.flags = trobj.Flags;
-        crobj.baseline = -1;
+        crobj.baseline = trobj.Baseline;
         crobj.zoom = 100;
         crobj.blocking_x = trobj.BlockingRect.Left;
         crobj.blocking_y = trobj.BlockingRect.Top;

@@ -183,6 +183,7 @@
     <Compile Include="Entities\UpgradeGame\IUpgradeGameTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOptionalTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameUtils.cs" />
     <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using AGS.Types;
 
 namespace AGS.Editor
@@ -387,6 +389,16 @@ namespace AGS.Editor
             {
                 game.Settings.ScriptCompiler = AGSEditor.DEFAULT_LEGACY_SCRIPT_COMPILER;
             }
+            if (xmlVersionIndex < 3999901)
+            {
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl gc in gui.Controls)
+                    {
+                        ConvertLinebreakInTextControl(gc);
+                    }
+                }
+            }
             else if (xmlVersionIndex < 4000010)
             {
                 game.Settings.ScriptCompiler = game.Settings.ExtendedCompiler ?
@@ -586,6 +598,21 @@ namespace AGS.Editor
                 tbox.BorderWidth = 1;
                 tbox.PaddingX = 1;
                 tbox.PaddingY = 1;
+            }
+        }
+
+        private static void ConvertLinebreakInTextControl(GUIControl control)
+        {
+            if (control is GUIButton)
+            {
+                var button = control as GUIButton;
+                if (button.WrapText)
+                    button.Text = UpgradeGameUtils.ConvertOldStyleLinebreak(button.Text);
+            }
+            else if (control is GUILabel)
+            {
+                var label = control as GUILabel;
+                label.Text = UpgradeGameUtils.ConvertOldStyleLinebreak(label.Text);
             }
         }
     }

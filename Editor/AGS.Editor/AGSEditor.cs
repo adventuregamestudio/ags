@@ -120,7 +120,7 @@ namespace AGS.Editor
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
-         * 3.99.99.01     - Open rooms
+         * 3.99.99.01     - Open rooms. Deprecate '[' as a linebreak.
          * 3.99.99.07     - PO translations
          * 4.00.00.00     - Raised for org purposes without project changes
          * 4.00.00.03     - Distinct Character and Object Enabled and Visible properties;

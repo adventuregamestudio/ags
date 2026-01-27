@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
+using AGS.Editor.Components;
 using AGS.Editor.Utils;
 using AGS.Types;
 
@@ -1327,6 +1328,30 @@ namespace AGS.Editor
 
             writer.WriteEndElement();
             writer.Close();
+        }
+
+        public static void ExportCustomPropertiesSchemaToFile(CustomPropertySchema schema, string fileName, Game game)
+        {
+            Utilities.TryDeleteFile(fileName);
+            XmlTextWriter writer = new XmlTextWriter(fileName, game.TextEncoding);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+            writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + game.TextEncoding.WebName + "\"");
+            writer.WriteStartElement(CustomPropertiesComponent.SCHEMA_FILE_ROOT_NODE);
+            writer.WriteAttributeString(AGSEditor.XML_ATTRIBUTE_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION);
+            schema.ToXml(writer);
+            writer.WriteEndElement();
+            writer.Close();
+        }
+
+        public static CustomPropertySchema ImportCustomPropertiesSchemaFromFile(string fileName, Game game)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(fileName);
+            XmlNode node = doc.SelectSingleNode(CustomPropertiesComponent.SCHEMA_FILE_ROOT_NODE);
+            CustomPropertySchema schema = new CustomPropertySchema();
+            schema.FromXml(node);
+            return schema;
         }
 
         private static void ExportAllSpritesOnGUI(GUI gui, XmlTextWriter writer)

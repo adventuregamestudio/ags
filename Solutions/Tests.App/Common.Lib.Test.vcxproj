@@ -29,6 +29,7 @@
     <ClCompile Include="..\..\Common\test\math_test.cpp" />
     <ClCompile Include="..\..\Common\test\memory_test.cpp" />
     <ClCompile Include="..\..\Common\test\path_test.cpp" />
+    <ClCompile Include="..\..\Common\test\splitline_test.cpp" />
     <ClCompile Include="..\..\Common\test\stream_test.cpp" />
     <ClCompile Include="..\..\Common\test\string_test.cpp" />
     <ClCompile Include="..\..\Common\test\utf8_test.cpp" />

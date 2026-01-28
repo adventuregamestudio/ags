@@ -89,6 +89,7 @@
     <Compile Include="Editor\BuildTargets\BuildTargetBaseTests.cs" />
     <Compile Include="Editor\Panes\FreePanControlTests.cs" />
     <Compile Include="Editor\Utilities\IncludeUtilsTests.cs" />
+    <Compile Include="Editor\Utilities\TextUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCompiler\PreprocessorTests.cs" />
     <Compile Include="Types\RuntimeSetupTests.cs" />

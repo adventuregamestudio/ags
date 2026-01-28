@@ -270,7 +270,7 @@ namespace AGS.Editor
         {
             // Escape backslashes before brackets: for '\[' support;
             // this is needed because Unescape will delete '\' in unrecognized sequence.
-            string escapedText = text.Replace("\\[", "\\\\[");
+            string escapedText = TextUtils.PreprocessLineForOldStyleLinebreaks(text);
             return Regex.Unescape(escapedText);
         }
 

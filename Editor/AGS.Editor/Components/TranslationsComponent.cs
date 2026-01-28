@@ -121,16 +121,6 @@ namespace AGS.Editor.Components
             bw.Write(bytes);
         }
 
-        /// <summary>
-        /// This double escapes an escaped '[' character (old-style linebreak,
-        /// which must be escaped by user if they want a literal '[' in text).
-        /// This is required before doing standard unescaping for this line.
-        /// </summary>
-        private string PreprocessLineForOldStyleLinebreaks(string line)
-        {
-            return line.Replace("\\[", "\\\\[");
-        }
-
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
             var load_errors = translation.TryLoadData();
@@ -157,8 +147,8 @@ namespace AGS.Editor.Components
                 {
                     if (translation.TranslatedLines[line].Length > 0)
                     {
-                        string src_line = PreprocessLineForOldStyleLinebreaks(line);
-                        string trs_line = PreprocessLineForOldStyleLinebreaks(translation.TranslatedLines[line]);
+                        string src_line = TextUtils.PreprocessLineForOldStyleLinebreaks(line);
+                        string trs_line = TextUtils.PreprocessLineForOldStyleLinebreaks(translation.TranslatedLines[line]);
                         WriteString(bw, Regex.Unescape(src_line), textEncoding);
                         WriteString(bw, Regex.Unescape(trs_line), textEncoding);
                     }

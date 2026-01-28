@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\Common\test\path_test.cpp" />
     <ClCompile Include="..\..\Common\test\splitline_test.cpp" />
     <ClCompile Include="..\..\Common\test\stream_test.cpp" />
+    <ClCompile Include="..\..\Common\test\strutil_test.cpp" />
     <ClCompile Include="..\..\Common\test\string_test.cpp" />
     <ClCompile Include="..\..\Common\test\utf8_test.cpp" />
     <ClCompile Include="..\..\Common\test\version_test.cpp" />

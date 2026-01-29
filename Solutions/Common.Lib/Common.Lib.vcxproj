@@ -544,6 +544,7 @@
     <ClCompile Include="..\..\Common\font\wfnfont.cpp" />
     <ClCompile Include="..\..\Common\font\wfnfontrenderer.cpp" />
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
+    <ClCompile Include="..\..\Common\game\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\game\interactions.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
@@ -726,6 +727,7 @@
     <ClInclude Include="..\..\Common\font\wfnfont.h" />
     <ClInclude Include="..\..\Common\font\wfnfontrenderer.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
+    <ClInclude Include="..\..\Common\game\data_helpers.h" />
     <ClInclude Include="..\..\Common\game\interactions.h" />
     <ClInclude Include="..\..\Common\game\main_game_file.h" />
     <ClInclude Include="..\..\Common\game\plugininfo.h" />

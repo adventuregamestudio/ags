@@ -15,6 +15,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/ac/wordsdictionary.cpp
         ../Common/core/asset.cpp
         ../Common/debug/debugmanager.cpp
+        ../Common/game/data_helpers.cpp
+        ../Common/game/data_helpers.h
         ../Common/game/room_file_base.cpp
         ../Common/game/tra_file.cpp
         ../Common/util/bufferedstream.cpp
@@ -130,6 +132,7 @@ endif ()
 
 if(AGS_TESTS)
    add_executable(tools_test
+      test/data_helpers_test.cpp
       test/include_utils_test.cpp
    )
    set_target_properties(tools_test PROPERTIES

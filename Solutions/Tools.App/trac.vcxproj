@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
+    <ClCompile Include="..\..\Common\game\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\game\tra_file.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\data_ext.cpp" />
@@ -37,6 +38,7 @@
     <ClCompile Include="..\..\Tools\trac\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\game\data_helpers.h" />
     <ClInclude Include="..\..\Common\game\tra_file.h" />
     <ClInclude Include="..\..\Common\util\textstreamreader.h" />
     <ClInclude Include="..\..\Tools\data\tra_utils.h" />

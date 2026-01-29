@@ -72,6 +72,8 @@ target_sources(common
     font/wfnfontrenderer.h
     game/customproperties.cpp
     game/customproperties.h
+    game/data_helpers.cpp
+    game/data_helpers.h
     game/interactions.cpp
     game/interactions.h
     game/main_game_file.cpp
@@ -245,7 +247,7 @@ if(AGS_TESTS)
         test/splitline_test.cpp
         test/stream_test.cpp
         test/string_test.cpp
-		test/strutil_test.cpp
+        test/strutil_test.cpp
         test/utf8_test.cpp
         test/version_test.cpp
     )

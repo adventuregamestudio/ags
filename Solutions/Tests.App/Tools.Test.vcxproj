@@ -170,6 +170,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\game\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc" />
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
@@ -183,9 +184,11 @@
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
+    <ClCompile Include="..\..\Tools\test\data_helpers_test.cpp" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\game\data_helpers.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />

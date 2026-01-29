@@ -15,6 +15,7 @@
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "debug/out.h"
+#include "game/data_helpers.h"
 #include "util/data_ext.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -210,16 +211,6 @@ void WriteGameID(const Translation &tra, Stream *out)
     std::vector<char> en_buf;
     out->WriteInt32(tra.GameUid);
     StrUtil::WriteString(EncryptText(en_buf, tra.GameName), tra.GameName.GetLength() + 1, out);
-}
-
-// This double escapes an escaped '[' character (old-style linebreak,
-// which must be escaped by user if they want a literal '[' in text).
-// This is required before doing standard unescaping for this line.
-String PreprocessLineForOldStyleLinebreaks(const String &line)
-{
-    String s = line;
-    s.Replace("\\[", "\\\\[");
-    return s;
 }
 
 void WriteDict(const Translation &tra, Stream *out)

@@ -1352,11 +1352,19 @@ builtin managed struct Overlay {
   import void SetLightLevel(int light_level);
   /// Removes an existing colour tint or light level from this overlay.
   import void RemoveTint();
+  /// Gets/sets a graphic anchor X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicAnchorX;
+  /// Gets/sets a graphic anchor Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicAnchorY;
+  /// Gets/sets a X offset of a graphic relative to the overlay's position, in pixels
+  import attribute int GraphicOffsetX;
+  /// Gets/sets a Y offset of a graphic relative to the overlay's position, in pixels
+  import attribute int GraphicOffsetY;
   /// Gets whether the overlay has a tint set.
   readonly import attribute bool HasTint;
   /// Gets whether the overlay has a light level set.
   readonly import attribute bool HasLightLevel;
-  /// Gets the individual light level for this character.
+  /// Gets the individual light level for this overlay.
   readonly import attribute int  LightLevel;
   /// Gets the Blue component of this overlay's colour tint.
   readonly import attribute int  TintBlue;
@@ -2669,6 +2677,14 @@ builtin managed struct Object {
   import void MovePath(Point*[], int speed, BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Gets/sets whether the object will be drawn and updated during the game update.
   import attribute bool Enabled;
+  /// Gets/sets a graphic anchor X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicAnchorX;
+  /// Gets/sets a graphic anchor Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicAnchorY;
+  /// Gets/sets a X offset of a graphic relative to the object's position, in pixels
+  import attribute int GraphicOffsetX;
+  /// Gets/sets a Y offset of a graphic relative to the object's position, in pixels
+  import attribute int GraphicOffsetY;
   /// Gets this object's current MotionPath, or null if it's not moving.
   import readonly attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400
@@ -2954,6 +2970,14 @@ builtin managed struct Character {
   import attribute bool Visible;
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection while Character moves and turns.
   import attribute float FaceDirectionRatio;
+  /// Gets/sets a graphic anchor X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicAnchorX;
+  /// Gets/sets a graphic anchor Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicAnchorY;
+  /// Gets/sets a X offset of a graphic relative to the character's position, in pixels
+  import attribute int GraphicOffsetX;
+  /// Gets/sets a Y offset of a graphic relative to the character's position, in pixels
+  import attribute int GraphicOffsetY;
   /// Gets this character's current MotionPath, or null if it's not moving.
   import readonly attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400

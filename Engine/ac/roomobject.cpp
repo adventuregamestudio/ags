@@ -231,8 +231,9 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         rotation = in->ReadFloat32(); // transform rotate
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
-        in->ReadInt32(); // sprite anchor x
-        in->ReadInt32(); // sprite anchor y
+        float ax = in->ReadFloat32(); // sprite anchor x
+        float ay = in->ReadFloat32(); // sprite anchor y
+        spr_anchor = Pointf(ax, ay);
     }
     else
     {
@@ -270,6 +271,18 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     {
         shader_id = 0;
         shader_handle = 0;
+    }
+
+    if (cmp_ver >= kRoomStatSvgVersion_40026)
+    {
+        int offx = in->ReadInt32();
+        int offy = in->ReadInt32();
+        spr_offset = Point(offx, offy);
+    }
+    else
+    {
+        spr_anchor = Pointf(0.f, 1.f); // default: left-bottom
+        spr_offset = Point();
     }
 
     // Apply animation params either from old or new save
@@ -341,8 +354,8 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteFloat32(rotation); // transform rotate
     out->WriteInt32(0); // sprite pivot x
     out->WriteInt32(0); // sprite pivot y
-    out->WriteInt32(0); // sprite anchor x
-    out->WriteInt32(0); // sprite anchor y
+    out->WriteFloat32(spr_anchor.X); // sprite anchor x
+    out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // kRoomStatSvgVersion_40016
     out->WriteInt32(movelist_handle);
     out->WriteInt32(0); // reserve up to 4 ints
@@ -351,23 +364,26 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // kRoomStatSvgVersion_40018
     out->WriteInt32(shader_id);
     out->WriteInt32(shader_handle);
-    // new anim fields are valid since kCharSvgVersion_400_20
+    // new anim fields are valid since kRoomStatSvgVersion_40020
     out->WriteInt8(anim.Flow);
     out->WriteInt8(anim.InitialDirection);
     out->WriteInt8(anim.Direction);
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt16(anim.Delay);
     out->WriteInt16(0); // reserved to fill int32
+    // kRoomStatSvgVersion_40026
+    out->WriteInt32(spr_offset.X);
+    out->WriteInt32(spr_offset.Y);
 }
 
 void RoomObject::UpdateGraphicSpace()
 {
     _gs = GraphicSpace(
-        x, y, GetOrigin(), // origin
+        x, y, spr_anchor, // origin
         Size(spr_width, spr_height), // source sprite size
         Size(width, height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH(spr_xoff, spr_yoff, spr_width, spr_height),
+        RectWH(spr_xoff + spr_offset.X, spr_yoff + spr_offset.Y, spr_width, spr_height),
         rotation // transforms
     );
 }

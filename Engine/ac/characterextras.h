@@ -52,11 +52,16 @@ enum CharacterRuntimeFlags
 class CharacterExtras
 {
 public:
+    // FIXME: hide the fields under public interface;
+    //        use standard int* types
     short invorder[MAX_INVORDER]{};
     short invorder_count = 0;
+    Point spr_offset;    // fixed sprite offset (translation)
+    Pointf spr_anchor    // graphic anchor (relative alignment)
+        = Pointf(0.5f, 1.f); // default: middle-bottom
     int   spr_width = 0; // current sprite size
     int   spr_height = 0;
-    int   spr_xoff = 0; // current sprite (frame) offset
+    int   spr_xoff = 0; // current sprite offset (frame-based)
     int   spr_yoff = 0;
     short width = 0; // width/height (includes character scaling!)
     short height = 0;
@@ -119,7 +124,6 @@ public:
     // Setups following another character (follow_who)
     void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
 
-    inline Pointf GetOrigin() const { return Pointf(0.5f, 1.f); /* middle-bottom */ }
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
     void UpdateGraphicSpace(const CharacterInfo *chin);

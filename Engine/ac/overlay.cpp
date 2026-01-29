@@ -209,6 +209,54 @@ void Overlay_SetFlip(ScriptOverlay *scover, int flip)
     over->SetFlip(ValidateFlip("Overlay.Flip", flip));
 }
 
+float Overlay_GetGraphicAnchorX(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicAnchorX", scover);
+    return over->GetSpriteAnchor().X;
+}
+
+void Overlay_SetGraphicAnchorX(ScriptOverlay *scover, float x)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicAnchorX", scover);
+    over->SetSpriteAnchor(Pointf(x, over->GetSpriteAnchor().Y));
+}
+
+float Overlay_GetGraphicAnchorY(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicAnchorY", scover);
+    return over->GetSpriteAnchor().Y;
+}
+
+void Overlay_SetGraphicAnchorY(ScriptOverlay *scover, float y)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicAnchorY", scover);
+    over->SetSpriteAnchor(Pointf(over->GetSpriteAnchor().X, y));
+}
+
+int Overlay_GetGraphicOffsetX(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicOffsetX", scover);
+    return over->GetSpriteOffset().X;
+}
+
+void Overlay_SetGraphicOffsetX(ScriptOverlay *scover, int x)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicOffsetX", scover);
+    over->SetSpriteOffset(Point(x, over->GetSpriteOffset().Y));
+}
+
+int Overlay_GetGraphicOffsetY(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicOffsetY", scover);
+    return over->GetSpriteOffset().Y;
+}
+
+void Overlay_SetGraphicOffsetY(ScriptOverlay *scover, int y)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicOffsetY", scover);
+    over->SetSpriteOffset(Point(over->GetSpriteOffset().X, y));
+}
+
 int Overlay_GetValid(ScriptOverlay *scover)
 {
     return get_overlay(scover->GetOverlayID()) != nullptr;
@@ -614,13 +662,6 @@ size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_pt
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy)
 {
     return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::move(piccy), pic_offx, pic_offy);
-}
-
-Point get_overlay_display_pos(const ScreenOverlay &over)
-{
-    // Note: the internal offset is only needed when x,y coordinates are specified
-    // and only in the case where the overlay is using a GUI. See issue #1098
-    return Point(over.GetDrawX(), over.GetDrawY());
 }
 
 // Calculates overlay position above linked character
@@ -1064,6 +1105,46 @@ RuntimeScriptValue Sc_Overlay_SetFlip(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetFlip);
 }
 
+RuntimeScriptValue Sc_Overlay_GetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicOffsetY);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetGraphicOffsetY);
+}
+
 RuntimeScriptValue Sc_Overlay_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetRotation);
@@ -1286,10 +1367,18 @@ void RegisterOverlayAPI()
 
         { "Overlay::get_BlendMode",       API_FN_PAIR(Overlay_GetBlendMode) },
         { "Overlay::set_BlendMode",       API_FN_PAIR(Overlay_SetBlendMode) },
-        { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
-        { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
         { "Overlay::get_Flip",            API_FN_PAIR(Overlay_GetFlip) },
         { "Overlay::set_Flip",            API_FN_PAIR(Overlay_SetFlip) },
+        { "Overlay::get_GraphicAnchorX",  API_FN_PAIR(Overlay_GetGraphicAnchorX) },
+        { "Overlay::set_GraphicAnchorX",  API_FN_PAIR(Overlay_SetGraphicAnchorX) },
+        { "Overlay::get_GraphicAnchorY",  API_FN_PAIR(Overlay_GetGraphicAnchorY) },
+        { "Overlay::set_GraphicAnchorY",  API_FN_PAIR(Overlay_SetGraphicAnchorY) },
+        { "Overlay::get_GraphicOffsetX",  API_FN_PAIR(Overlay_GetGraphicOffsetX) },
+        { "Overlay::set_GraphicOffsetX",  API_FN_PAIR(Overlay_SetGraphicOffsetX) },
+        { "Overlay::get_GraphicOffsetY",  API_FN_PAIR(Overlay_GetGraphicOffsetY) },
+        { "Overlay::set_GraphicOffsetY",  API_FN_PAIR(Overlay_SetGraphicOffsetY) },
+        { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
+        { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
 
         { "Overlay::get_Shader",          API_FN_PAIR(Overlay_GetShader) },
         { "Overlay::set_Shader",          API_FN_PAIR(Overlay_SetShader) },

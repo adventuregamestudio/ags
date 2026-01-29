@@ -35,12 +35,12 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
     _gs = GraphicSpace(
-        chin->x, chin->y, GetOrigin(), // origin
+        chin->x, chin->y, spr_anchor, // origin
         Size(spr_width, spr_height), // source sprite size
         Size(width, height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH((chin->pic_xoffs + spr_xoff),
-               (-chin->z + chin->pic_yoffs + spr_yoff),
+        RectWH((chin->pic_xoffs + spr_xoff + spr_offset.X),
+               (-chin->z + chin->pic_yoffs + spr_yoff + spr_offset.Y),
                spr_width, spr_height),
         rotation // transforms
     );
@@ -177,8 +177,9 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         rotation = in->ReadFloat32(); // transform rotate
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
-        in->ReadInt32(); // sprite anchor x
-        in->ReadInt32(); // sprite anchor y
+        float ax = in->ReadFloat32(); // sprite anchor x
+        float ay = in->ReadFloat32(); // sprite anchor y
+        spr_anchor = Pointf(ax, ay);
     }
     else
     {
@@ -220,6 +221,18 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         shader_id = 0;
         shader_handle = 0;
+    }
+
+    if (save_ver >= kCharSvgVersion_400_26)
+    {
+        int offx = in->ReadInt32();
+        int offy = in->ReadInt32();
+        spr_offset = Point(offx, offy);
+    }
+    else
+    {
+        spr_anchor = Pointf(0.5f, 1.f); // default: middle-bottom
+        spr_offset = Point();
     }
 
     // NOTE: the legacy animating fields from old save fmt are applied externally,
@@ -267,8 +280,8 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteFloat32(rotation); // transform rotate
     out->WriteInt32(0); // sprite pivot x
     out->WriteInt32(0); // sprite pivot y
-    out->WriteInt32(0); // sprite anchor x
-    out->WriteInt32(0); // sprite anchor y
+    out->WriteFloat32(spr_anchor.X); // sprite anchor x
+    out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // -- kCharSvgVersion_400_03
     out->WriteFloat32(face_dir_ratio);
     out->WriteInt32(movelist_handle);
@@ -284,4 +297,7 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt16(anim.Delay);
     out->WriteInt16(0); // reserved to fill int32
+    // kRoomStatSvgVersion_40026
+    out->WriteInt32(spr_offset.X);
+    out->WriteInt32(spr_offset.Y);
 }

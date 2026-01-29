@@ -139,6 +139,9 @@ public:
              g_aabb, sx, sy, rot);
     }
 
+    // Get position of the top-left corner of this object in the world coordinates;
+    // useful when you need to know a position of already transformed sprites.
+    inline Point TopLeft() const { return _AABB.GetLT(); }
     // Get axis-aligned bounding box, in the world coordinates
     inline const Rect &AABB() const { return _AABB; }
 

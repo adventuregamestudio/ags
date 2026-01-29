@@ -74,6 +74,16 @@ void ScreenOverlay::SetFixedPosition(int x, int y)
     _y = y;
 }
 
+void ScreenOverlay::SetSpriteAnchor(const Pointf &anchor)
+{
+    _sprAnchor = Pointf::Clamp(anchor, Pointf(), Pointf(1.f, 1.f));
+}
+
+void ScreenOverlay::SetSpriteOffset(const Point &offset)
+{
+    _sprOffset = offset;
+}
+
 void ScreenOverlay::SetScaledSize(int w, int h)
 {
     if ((w == _scaledSize.Width) && (h == _scaledSize.Height))
@@ -257,14 +267,13 @@ void ScreenOverlay::OnRemove()
 
 void ScreenOverlay::UpdateGraphicSpace()
 {
-    Point pos = Point(GetDrawX(), GetDrawY());
     Bitmap *pic = GetImage();
     _gs = GraphicSpace(
-        pos.X, pos.Y, Pointf(0.f, 0.f), // origin
+        _x, _y, _sprAnchor, // origin
         Size(pic->GetWidth(), pic->GetHeight()), // source sprite size
         Size(_scaledSize.Width, _scaledSize.Height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH(0, 0, pic->GetWidth(), pic->GetHeight()),
+        RectWH(_offx + _sprOffset.X, _offy + _sprOffset.Y, pic->GetWidth(), pic->GetHeight()),
         _rotation // transforms
     );
 }
@@ -355,16 +364,25 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _rotation = in->ReadFloat32(); // transform rotate
         in->ReadInt32(); // sprite pivot x
         in->ReadInt32(); // sprite pivot y
-        in->ReadInt32(); // sprite anchor x
-        in->ReadInt32(); // sprite anchor y
+        float ax = in->ReadFloat32(); // sprite anchor x
+        float ay = in->ReadFloat32(); // sprite anchor y
+        _sprAnchor = Pointf(ax, ay);
     }
 
     if (cmp_ver >= kOverSvgVersion_40018)
     {
         _shaderID = in->ReadInt32();
         _shaderHandle = in->ReadInt32();
-        in->ReadInt32(); // reserved
-        in->ReadInt32();
+        // valid since kRoomStatSvgVersion_40026
+        int offx = in->ReadInt32();
+        int offy = in->ReadInt32();
+        _sprOffset = Point(offx, offy);
+    }
+    else
+    {
+        _shaderID = 0;
+        _shaderHandle = 0;
+        _sprOffset = Point();
     }
 
     // Convert magic x,y values from the older saves
@@ -419,13 +437,13 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteFloat32(_rotation); // transform rotate
     out->WriteInt32(0); // sprite pivot x
     out->WriteInt32(0); // sprite pivot y
-    out->WriteInt32(0); // sprite anchor x
-    out->WriteInt32(0); // sprite anchor y
+    out->WriteFloat32(_sprAnchor.X); // sprite anchor x
+    out->WriteFloat32(_sprAnchor.Y); // sprite anchor y
     // kOverSvgVersion_40018
     out->WriteInt32(_shaderID);
     out->WriteInt32(_shaderHandle);
-    out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
+    out->WriteInt32(_sprOffset.X);
+    out->WriteInt32(_sprOffset.Y);
 }
 
 const ViewFrame *AnimatedOverlay::GetViewFrame() const

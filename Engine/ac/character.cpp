@@ -1820,6 +1820,46 @@ void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
     charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", chaa->scrname.GetCStr(), blend_mode);
 }
 
+float Character_GetGraphicAnchorX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_anchor.X;
+}
+
+void Character_SetGraphicAnchorX(CharacterInfo *chaa, float x)
+{
+    charextra[chaa->index_id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
+}
+
+float Character_GetGraphicAnchorY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_anchor.Y;
+}
+
+void Character_SetGraphicAnchorY(CharacterInfo *chaa, float y)
+{
+    charextra[chaa->index_id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
+}
+
+int Character_GetGraphicOffsetX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_offset.X;
+}
+
+void Character_SetGraphicOffsetX(CharacterInfo *chaa, int x)
+{
+    charextra[chaa->index_id].spr_offset.X = x;
+}
+
+int Character_GetGraphicOffsetY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_offset.Y;
+}
+
+void Character_SetGraphicOffsetY(CharacterInfo *chaa, int y)
+{
+    charextra[chaa->index_id].spr_offset.Y = y;
+}
+
 ScriptShaderInstance *Character_GetShader(CharacterInfo *chaa)
 {
     return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(charextra[chaa->index_id].shader_handle));
@@ -4264,6 +4304,46 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Character_GetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetGraphicOffsetY);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetGraphicOffsetY);
+}
+
 RuntimeScriptValue Sc_Character_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(CharacterInfo, ScriptShaderInstance, Character_GetShader);
@@ -4513,10 +4593,18 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
 
         { "Character::get_BlendMode",             API_FN_PAIR(Character_GetBlendMode) },
         { "Character::set_BlendMode",             API_FN_PAIR(Character_SetBlendMode) },
-        { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
-        { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
+        { "Character::get_GraphicAnchorX",        API_FN_PAIR(Character_GetGraphicAnchorX) },
+        { "Character::set_GraphicAnchorX",        API_FN_PAIR(Character_SetGraphicAnchorX) },
+        { "Character::get_GraphicAnchorY",        API_FN_PAIR(Character_GetGraphicAnchorY) },
+        { "Character::set_GraphicAnchorY",        API_FN_PAIR(Character_SetGraphicAnchorY) },
+        { "Character::get_GraphicOffsetX",        API_FN_PAIR(Character_GetGraphicOffsetX) },
+        { "Character::set_GraphicOffsetX",        API_FN_PAIR(Character_SetGraphicOffsetX) },
+        { "Character::get_GraphicOffsetY",        API_FN_PAIR(Character_GetGraphicOffsetY) },
+        { "Character::set_GraphicOffsetY",        API_FN_PAIR(Character_SetGraphicOffsetY) },
         { "Character::get_GraphicRotation",       API_FN_PAIR(Character_GetRotation) },
         { "Character::set_GraphicRotation",       API_FN_PAIR(Character_SetRotation) },
+        { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
+        { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
 
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },

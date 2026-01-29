@@ -2175,12 +2175,14 @@ void prepare_objects_for_drawing()
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
             Size(obj.width, obj.height), imgx, imgy, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
-            obj.GetOrigin(), obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
+            obj.spr_anchor, obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
-        const int objx = obj.x + (obj.spr_xoff) * obj.zoom / 100;
-        const int objy = obj.y + (obj.spr_yoff) * obj.zoom / 100;
+        // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
+        // why do we have to recalculate these offsets in multiple places?!!
+        const int objx = obj.x + (obj.spr_xoff + obj.spr_offset.X) * obj.zoom / 100;
+        const int objy = obj.y + (obj.spr_yoff + obj.spr_offset.Y) * obj.zoom / 100;
         add_to_sprite_list(actsp.Ddb, objx, objy, aabb, usebasel, actsp.DrawIndex);
     }
 }
@@ -2289,15 +2291,17 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
+            chex.spr_anchor, chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname.GetCStr()));
 #endif
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
-        const int charx = chin.x + (chin.pic_xoffs + chex.spr_xoff) * chex.zoom_offs / 100;
-        const int chary = chin.y + (-chin.z + chin.pic_yoffs + chex.spr_yoff) * chex.zoom_offs / 100;
+        // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
+        // why do we have to recalculate these offsets in multiple places?!!
+        const int charx = chin.x + (chin.pic_xoffs + chex.spr_xoff + chex.spr_offset.X) * chex.zoom_offs / 100;
+        const int chary = chin.y + (-chin.z + chin.pic_yoffs + chex.spr_yoff + chex.spr_offset.Y) * chex.zoom_offs / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
     }
 }
@@ -2332,8 +2336,9 @@ static void add_roomovers_for_drawing()
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (!over.IsVisible()) continue; // not visible
         if (over.GetTransparency() == 255) continue; // skip fully transparent
-        over.UpdateGraphicSpace();
-        add_to_sprite_list(overtxs[over.GetID()].Ddb, over.GetDrawX(), over.GetDrawY(), over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
+        const Point draw_pos = over.GetDrawPos();
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y,
+            over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 }
 
@@ -2619,8 +2624,9 @@ void draw_gui_and_overlays()
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (!over.IsVisible()) continue; // not visible
         if (over.GetTransparency() == 255) continue; // skip fully transparent
-        over.UpdateGraphicSpace();
-        add_to_sprite_list(overtxs[over.GetID()].Ddb, over.GetDrawX(), over.GetDrawY(), over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
+        const Point draw_pos = over.GetDrawPos();
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y,
+            over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 
     // Add GUIs
@@ -2959,12 +2965,13 @@ static void construct_overlays()
 
         auto &overtx = overtxs[i];
         bool has_changed = over.HasChanged();
+        over.UpdateGraphicSpace();
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
         {
-            Point pos = over.GetDrawPos();
-            has_changed |= (pos.X != overcache[i].X || pos.Y != overcache[i].Y);
-            overcache[i].X = pos.X; overcache[i].Y = pos.Y;
+            const Point draw_pos = over.GetGraphicSpace().TopLeft();
+            has_changed |= (draw_pos.X != overcache[i].X || draw_pos.Y != overcache[i].Y);
+            overcache[i].X = draw_pos.X; overcache[i].Y = draw_pos.Y;
         }
 
         // Test if must recache the unloaded sprite in software mode
@@ -2989,7 +2996,8 @@ static void construct_overlays()
                         recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);
                         use_cache->Blit(use_bmp);
                     }
-                    walkbehinds_cropout(use_cache.get(), over.GetDrawX(), over.GetDrawY(), over.GetZOrder());
+                    const Point draw_pos = over.GetGraphicSpace().TopLeft();
+                    walkbehinds_cropout(use_cache.get(), draw_pos.X, draw_pos.Y, over.GetZOrder());
                     use_bmp = use_cache.get();
                 }
                 if (over.HasLightLevel() || over.HasTint())
@@ -3008,7 +3016,7 @@ static void construct_overlays()
 
         assert(overtx.Ddb); // Test for missing texture, might happen if not marked for update
         if (!overtx.Ddb) continue;
-        overtx.Ddb->SetOrigin(0.f, 0.f);
+        overtx.Ddb->SetOrigin(over.GetSpriteAnchor().X, over.GetSpriteAnchor().Y);
         overtx.Ddb->SetStretch(over.GetScaledWidth(), over.GetScaledHeight());
         overtx.Ddb->SetFlip(over.GetFlip());
         overtx.Ddb->SetRotation(over.GetRotation());

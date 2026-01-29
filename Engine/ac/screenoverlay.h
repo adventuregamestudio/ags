@@ -88,12 +88,13 @@ public:
     int  GetID() const { return _id; }
     int  GetX() const { return _x; }
     int  GetY() const { return _y; }
+    // FIXME: align this with custom sprite offset (see _sprOffset)
     int  GetOffsetX() const { return _offx; }
     int  GetOffsetY() const { return _offy; }
     // Get position of a overlay's sprite (may be displayed with an offset relative to overlay's pos)
-    int  GetDrawX() const { return _x + _offx; }
-    int  GetDrawY() const { return _y + _offy; }
-    Point GetDrawPos() const { return Point(GetDrawX(), GetDrawY()); }
+    Point GetDrawPos() const { return Point(_x + _offx + _sprOffset.X, _y + _offy + _sprOffset.Y); }
+    const Pointf &GetSpriteAnchor() const { return _sprAnchor; }
+    const Point &GetSpriteOffset() const { return _sprOffset; }
     const Size &GetScaledSize() const { return _scaledSize; }
     int  GetScaledWidth() const { return _scaledSize.Width; }
     int  GetScaledHeight() const { return _scaledSize.Height; }
@@ -137,6 +138,8 @@ public:
     void SetAutoPosition(int for_character, int x = 0, int y = 0);
     // Assigns a fixed position in the current space (screen or room coordinates)
     void SetFixedPosition(int x, int y);
+    void SetSpriteAnchor(const Pointf &anchor);
+    void SetSpriteOffset(const Point &offset);
     void SetScaledSize(int w, int h);
     void SetRotation(float rotation);
     // Assigns a shader to overlay
@@ -219,10 +222,15 @@ private:
     int _x = 0;
     int _y = 0;
     // Border/padding offset for the tiled text windows
+    // FIXME: align this with sprOffset?
     int _offx = 0;
     int _offy = 0;
     int _sprnum = 0;
     Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
+    // Fixed sprite offset (translation)
+    Point _sprOffset;
+    // Graphic anchor (relative alignment)
+    Pointf _sprAnchor;
     // The size to stretch the texture to
     Size _scaledSize;
     float _rotation = 0.f;

@@ -1308,7 +1308,7 @@ int Character_GetBlockingHeight(CharacterInfo *chaa)
 
 void Character_SetBlockingHeight(CharacterInfo *chaa, int hit) {
 
-    chaa->blocking_height = hit;
+    chaa->blocking_height = static_cast<int16_t>(hit);
 }
 
 int Character_GetBlockingWidth(CharacterInfo *chaa)
@@ -1318,7 +1318,7 @@ int Character_GetBlockingWidth(CharacterInfo *chaa)
 
 void Character_SetBlockingWidth(CharacterInfo *chaa, int wid)
 {
-    chaa->blocking_width = wid;
+    chaa->blocking_width = static_cast<int16_t>(wid);
 }
 
 int Character_GetBlockingRectX(CharacterInfo *chaa)
@@ -1328,7 +1328,7 @@ int Character_GetBlockingRectX(CharacterInfo *chaa)
 
 void Character_SetBlockingRectX(CharacterInfo *chaa, int x)
 {
-    game.chars2[chaa->index_id].blocking_x = x;
+    game.chars2[chaa->index_id].blocking_x = static_cast<int16_t>(x);
 }
 
 int Character_GetBlockingRectY(CharacterInfo *chaa)
@@ -1338,7 +1338,7 @@ int Character_GetBlockingRectY(CharacterInfo *chaa)
 
 void Character_SetBlockingRectY(CharacterInfo *chaa, int y)
 {
-    game.chars2[chaa->index_id].blocking_y = y;
+    game.chars2[chaa->index_id].blocking_y = static_cast<int16_t>(y);
 }
 
 int Character_GetDiagonalWalking(CharacterInfo *chaa) {

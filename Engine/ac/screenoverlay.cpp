@@ -120,24 +120,30 @@ void ScreenOverlay::ResetImage()
     _sprnum = 0;
     _flags &= ~(kOver_SpriteShared);
     _scaledSize = {};
-    _offx = _offy = 0;
 }
 
-void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int offy)
+void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic)
 {
     ResetImage();
 
     if (pic)
     {
-        _offx = offx;
-        _offy = offy;
         _scaledSize = Size(pic->GetWidth(), pic->GetHeight());
         _sprnum = add_dynamic_sprite(std::move(pic), SPF_OBJECTOWNED);
     }
     MarkChanged();
 }
 
-void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
+void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int offy)
+{
+    SetImage(std::move(pic));
+    if (_sprnum > 0)
+    {
+        _sprOffset = Point(offx, offy);
+    }
+}
+
+void ScreenOverlay::SetSpriteNum(int sprnum)
 {
     ResetImage();
 
@@ -147,10 +153,17 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
 
     _flags |= kOver_SpriteShared;
     _sprnum = sprnum;
-    _offx = offx;
-    _offy = offy;
     _scaledSize = Size(game.SpriteInfos[sprnum].Width, game.SpriteInfos[sprnum].Height);
     MarkChanged();
+}
+
+void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
+{
+    SetSpriteNum(sprnum);
+    if (_sprnum > 0)
+    {
+        _sprOffset = Point(offx, offy);
+    }
 }
 
 void ScreenOverlay::SetText(const String &text)
@@ -273,7 +286,7 @@ void ScreenOverlay::UpdateGraphicSpace()
         Size(pic->GetWidth(), pic->GetHeight()), // source sprite size
         Size(_scaledSize.Width, _scaledSize.Height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH(_offx + _sprOffset.X, _offy + _sprOffset.Y, pic->GetWidth(), pic->GetHeight()),
+        RectWH(_sprOffset.X, _sprOffset.Y, pic->GetWidth(), pic->GetHeight()),
         _rotation // transforms
     );
 }
@@ -309,8 +322,9 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
 
     if (cmp_ver >= kOverSvgVersion_35028)
     {
-        _offx = in->ReadInt32();
-        _offy = in->ReadInt32();
+        int offx = in->ReadInt32();
+        int offy = in->ReadInt32();
+        _sprOffset = Point(offx, offy);
     }
     if (cmp_ver >= kOverSvgVersion_36008)
     {
@@ -373,10 +387,8 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     {
         _shaderID = in->ReadInt32();
         _shaderHandle = in->ReadInt32();
-        // valid since kRoomStatSvgVersion_40026
-        int offx = in->ReadInt32();
-        int offy = in->ReadInt32();
-        _sprOffset = Point(offx, offy);
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
     }
     else
     {
@@ -408,8 +420,8 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_scriptHandle);
     out->WriteInt16(_flags);
     // since cmp_ver = 1
-    out->WriteInt32(_offx);
-    out->WriteInt32(_offy);
+    out->WriteInt32(_sprOffset.X);
+    out->WriteInt32(_sprOffset.Y);
     // since cmp_ver = 2
     out->WriteInt32(_zorder);
     out->WriteInt32(_transparency);
@@ -442,8 +454,8 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     // kOverSvgVersion_40018
     out->WriteInt32(_shaderID);
     out->WriteInt32(_shaderHandle);
-    out->WriteInt32(_sprOffset.X);
-    out->WriteInt32(_sprOffset.Y);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
 }
 
 const ViewFrame *AnimatedOverlay::GetViewFrame() const

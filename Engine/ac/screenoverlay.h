@@ -88,11 +88,9 @@ public:
     int  GetID() const { return _id; }
     int  GetX() const { return _x; }
     int  GetY() const { return _y; }
-    // FIXME: align this with custom sprite offset (see _sprOffset)
-    int  GetOffsetX() const { return _offx; }
-    int  GetOffsetY() const { return _offy; }
     // Get position of a overlay's sprite (may be displayed with an offset relative to overlay's pos)
-    Point GetDrawPos() const { return Point(_x + _offx + _sprOffset.X, _y + _offy + _sprOffset.Y); }
+    // FIXME: rethink this method's purpose, as this does not account for full transform (scaling, rotate)
+    Point GetDrawPos() const { return Point(_x + _sprOffset.X, _y + _sprOffset.Y); }
     const Pointf &GetSpriteAnchor() const { return _sprAnchor; }
     const Point &GetSpriteOffset() const { return _sprOffset; }
     const Size &GetScaledSize() const { return _scaledSize; }
@@ -146,9 +144,11 @@ public:
     void SetZOrder(int zorder);
     // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
     // in a sprite cache, but owned by this overlay and therefore disposed at its disposal
-    void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx = 0, int offy = 0);
+    void SetImage(std::unique_ptr<Common::Bitmap> pic);
+    void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int offy);
     // Assigns a shared sprite to this overlay
-    void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
+    void SetSpriteNum(int sprnum);
+    void SetSpriteNum(int sprnum, int offx, int offy);
     // Sets this overlay's description
     void SetText(const Common::String &text);
     // Assigns flip setting
@@ -221,13 +221,10 @@ private:
     // but real drawn position is x + offx, y + offy;
     int _x = 0;
     int _y = 0;
-    // Border/padding offset for the tiled text windows
-    // FIXME: align this with sprOffset?
-    int _offx = 0;
-    int _offy = 0;
     int _sprnum = 0;
     Common::SpriteTransformFlags _spritetf = Common::kSprTf_None;
-    // Fixed sprite offset (translation)
+    // Fixed sprite offset (translation);
+    // also used as a border/padding offset for the tiled text windows
     Point _sprOffset;
     // Graphic anchor (relative alignment)
     Pointf _sprAnchor;

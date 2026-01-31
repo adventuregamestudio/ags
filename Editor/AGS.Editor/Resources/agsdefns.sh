@@ -2980,6 +2980,14 @@ builtin managed struct Character {
   import attribute int GraphicOffsetY;
   /// Gets this character's current MotionPath, or null if it's not moving.
   import readonly attribute MotionPath* MotionPath;
+  /// Gets the effective graphic anchor X in normalized relative coordinates (0.0 - 1.0)
+  import readonly attribute float ViewAnchorX;
+  /// Gets the effective graphic anchor Y in normalized relative coordinates (0.0 - 1.0)
+  import readonly attribute float ViewAnchorY;
+  /// Gets the effective X offset of a graphic relative to the character's position, in pixels
+  import readonly attribute int ViewOffsetX;
+  /// Gets the effective Y offset of a graphic relative to the character's position, in pixels
+  import readonly attribute int ViewOffsetY;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader of this character.

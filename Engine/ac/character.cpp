@@ -1985,6 +1985,26 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
         chaa->flags |= CHF_NOLIGHTING;
 }
 
+float Character_GetViewAnchorX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicAnchor().X;
+}
+
+float Character_GetViewAnchorY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicAnchor().Y;
+}
+
+int Character_GetViewOffsetX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicOffset().X;
+}
+
+int Character_GetViewOffsetY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicOffset().Y;
+}
+
 ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch)
 {
     const int mslot = ch->get_movelist_id();
@@ -4363,6 +4383,26 @@ RuntimeScriptValue Sc_Character_SetUseRegionTint(void *self, const RuntimeScript
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetUseRegionTint);
 }
 
+RuntimeScriptValue Sc_Character_GetViewAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetViewAnchorX);
+}
+
+RuntimeScriptValue Sc_Character_GetViewAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetViewAnchorY);
+}
+
+RuntimeScriptValue Sc_Character_GetViewOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetViewOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_GetViewOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetViewOffsetY);
+}
+
 RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(CharacterInfo, Character_GetRotation);
@@ -4602,6 +4642,10 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_GraphicRotation",       API_FN_PAIR(Character_SetRotation) },
         { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
         { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
+        { "Character::get_ViewAnchorX",           API_FN_PAIR(Character_GetViewAnchorX) },
+        { "Character::get_ViewAnchorY",           API_FN_PAIR(Character_GetViewAnchorY) },
+        { "Character::get_ViewOffsetX",           API_FN_PAIR(Character_GetViewOffsetX) },
+        { "Character::get_ViewOffsetY",           API_FN_PAIR(Character_GetViewOffsetY) },
 
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },

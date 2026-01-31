@@ -35,12 +35,12 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
     _gs = GraphicSpace(
-        chin->x, chin->y, spr_anchor, // origin
+        chin->x, chin->y, eff_anchor, // origin
         Size(spr_width, spr_height), // source sprite size
         Size(width, height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH((chin->pic_xoffs + spr_xoff + spr_offset.X),
-               (-chin->z + chin->pic_yoffs + spr_yoff + spr_offset.Y),
+        RectWH((eff_offset.X + frame_xoff),
+               (-chin->z + eff_offset.Y + frame_yoff),
                spr_width, spr_height),
         rotation // transforms
     );
@@ -74,16 +74,38 @@ void CharacterExtras::ResetAnimating()
     anim = ViewAnimateParams();
 }
 
-int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const
+int CharacterExtras::GetEffectiveY(const CharacterInfo *chi) const
 {
     return chi->y - (chi->z * zoom_offs) / 100;
 }
 
-int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
+int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *chi) const
 {
     return ::CalcFrameSoundVolume(
         anim_volume, anim.AudioVolume,
         (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
+}
+
+void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor, const Point &off)
+{
+    chi->view = view;
+    chi->loop = loop;
+    chi->frame = frame;
+    chi->wait = 0;
+    chi->flags |= CHF_FIXVIEW;
+    chi->view_anchor = anchor;
+    chi->view_offset = off;
+    UpdateEffectiveValues(chi);
+}
+
+void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
+{
+    chi->flags &= ~CHF_FIXVIEW;
+    chi->view = chi->defview;
+    chi->frame = 0;
+    chi->view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
+    chi->view_offset = Point();
+    UpdateEffectiveValues(chi);
 }
 
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
@@ -118,7 +140,13 @@ void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int dista
     }
 }
 
-void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
+void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *chin)
+{
+    eff_offset = chin->is_view_locked() ? chin->view_offset : spr_offset;
+    eff_anchor = chin->is_view_locked() ? chin->view_anchor : spr_anchor;
+}
+
+void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, CharacterSvgVersion save_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -228,6 +256,12 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         int offx = in->ReadInt32();
         int offy = in->ReadInt32();
         spr_offset = Point(offx, offy);
+        float ax = in->ReadFloat32();
+        float ay = in->ReadFloat32();
+        chin->view_anchor = Pointf(ax, ay);
+        offx = in->ReadInt32();
+        offy = in->ReadInt32();
+        chin->view_offset = Point(offx, offy);
     }
     else
     {
@@ -238,9 +272,11 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     // NOTE: the legacy animating fields from old save fmt are applied externally,
     // because they are loaded into deprecated CharacterInfo fields
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
+
+    UpdateEffectiveValues(chin);
 }
 
-void CharacterExtras::WriteToSavegame(Stream *out) const
+void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) const
 {
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);
@@ -300,4 +336,8 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     // kRoomStatSvgVersion_40026
     out->WriteInt32(spr_offset.X);
     out->WriteInt32(spr_offset.Y);
+    out->WriteFloat32(chin->view_anchor.X);
+    out->WriteFloat32(chin->view_anchor.Y);
+    out->WriteInt32(chin->view_offset.X);
+    out->WriteInt32(chin->view_offset.Y);
 }

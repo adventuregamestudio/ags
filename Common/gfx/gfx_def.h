@@ -336,6 +336,29 @@ namespace GfxDef
             return alpha;
         }
     }
+
+    // Convert Alignment to the graphic anchor, which is a
+    // normalized relative coordinates in [0; 1] range
+    inline Pointf GetGraphicAnchorFromAlignment(FrameAlignment align)
+    {
+        float x;
+        if ((align & kMAlignHCenter) != 0)
+            x = 0.5f;
+        else if((align & kMAlignRight) != 0)
+            x = 1.f;
+        else
+            x = 0.f;
+
+        float y;
+        if ((align & kMAlignVCenter) != 0)
+            y = 0.5f;
+        else if ((align & kMAlignBottom) != 0)
+            y = 1.f;
+        else
+            y = 0.f;
+
+        return Pointf(x, y);
+    }
 } // namespace GfxDef
 
 // Sets current blending mode, which will affect any further drawing

@@ -45,7 +45,7 @@ RoomObject::RoomObject()
     tint_light = 0;
     zoom = 100;
     spr_width = spr_height = 0;
-    spr_xoff = spr_yoff = 0;
+    frame_xoff = frame_yoff = 0;
     width = height = 0;
     num = 0;
     baseline = -1;
@@ -383,7 +383,7 @@ void RoomObject::UpdateGraphicSpace()
         Size(spr_width, spr_height), // source sprite size
         Size(width, height), // destination size (scaled)
         // real graphical aabb (maybe with extra offsets)
-        RectWH(spr_xoff + spr_offset.X, spr_yoff + spr_offset.Y, spr_width, spr_height),
+        RectWH(frame_xoff + spr_offset.X, frame_yoff + spr_offset.Y, spr_width, spr_height),
         rotation // transforms
     );
 }

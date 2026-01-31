@@ -59,10 +59,12 @@ public:
     Point spr_offset;    // fixed sprite offset (translation)
     Pointf spr_anchor    // graphic anchor (relative alignment)
         = Pointf(0.5f, 1.f); // default: middle-bottom
+    Point eff_offset;    // effective offset (depends on view state)
+    Pointf eff_anchor;   // effective anchor (depends on view state)
     int   spr_width = 0; // current sprite size
     int   spr_height = 0;
-    int   spr_xoff = 0; // current sprite offset (frame-based)
-    int   spr_yoff = 0;
+    int   frame_xoff = 0; // current frame offset
+    int   frame_yoff = 0;
     short width = 0; // width/height (includes character scaling!)
     short height = 0;
     short zoom = 100;
@@ -112,10 +114,21 @@ public:
     void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 100);
     void ResetAnimating();
 
+    // Get current effective graphic anchor, which may be either a freely assigned anchor
+    // or a offset from the temporarily locked view
+    Pointf GetEffectiveGraphicAnchor() const { return eff_anchor; }
+    // Get current effective graphic offset, which may be either a freely assigned offset
+    // or a offset from the temporarily locked view
+    Point GetEffectiveGraphicOffset() const { return eff_offset; }
     // Get visual Y position, which is calculated as Y - Z (scaled)
-    int GetEffectiveY(CharacterInfo *chi) const; 
+    int GetEffectiveY(const CharacterInfo *chi) const;
     // Calculate wanted frame sound volume based on multiple factors
-    int GetFrameSoundVolume(CharacterInfo *chi) const;
+    int GetFrameSoundVolume(const CharacterInfo *chi) const;
+    // Set locked view with anchor and offset
+    void SetLockedView(CharacterInfo *chi, int view, int loop, int frame,
+                       const Pointf &anchor = Pointf(), const Point &off = Point());
+    // Set unlocked view, revert to common anchor and offset
+    void SetUnlockedView(CharacterInfo *chi);
     // Process the current animation frame for the character:
     // play linked sounds, and so forth.
     void CheckViewFrame(CharacterInfo *chi);
@@ -126,11 +139,12 @@ public:
 
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
+    void UpdateEffectiveValues(const CharacterInfo *chin);
     void UpdateGraphicSpace(const CharacterInfo *chin);
 
     // Read character extra data from saves.
-    void ReadFromSavegame(Common::Stream *in, CharacterSvgVersion save_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromSavegame(CharacterInfo *chin, Common::Stream *in, CharacterSvgVersion save_ver);
+    void WriteToSavegame(const CharacterInfo *chin, Common::Stream *out) const;
 
 private:
     Common::GraphicSpace _gs;

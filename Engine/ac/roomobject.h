@@ -50,7 +50,7 @@ public:
     Pointf spr_anchor       // graphic anchor (relative alignment)
         = Pointf(0.f, 1.f); // default: left-bottom
     int   spr_width, spr_height; // last used sprite's size
-    int   spr_xoff, spr_yoff; // sprite offsets (frame-based, when using a view)
+    int   frame_xoff, frame_yoff; // frame offsets (when using a view)
     int16_t width, height;  // width/height based on a scaled sprite
     uint16_t num;            // sprite slot number
     int16_t baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline

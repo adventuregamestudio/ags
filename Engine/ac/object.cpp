@@ -1121,8 +1121,8 @@ void update_object_scale(int objid)
     obj.spr_height = game.SpriteInfos[obj.num].Height;
     if (obj.is_animating())
     {
-        obj.spr_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
-        obj.spr_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
+        obj.frame_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
+        obj.frame_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
     }
     obj.width = scale_width;
     obj.height = scale_height;

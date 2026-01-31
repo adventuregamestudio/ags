@@ -2181,8 +2181,8 @@ void prepare_objects_for_drawing()
         // also see fixme comment to GraphicSpace struct.
         // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
         // why do we have to recalculate these offsets in multiple places?!!
-        const int objx = obj.x + (obj.spr_xoff + obj.spr_offset.X) * obj.zoom / 100;
-        const int objy = obj.y + (obj.spr_yoff + obj.spr_offset.Y) * obj.zoom / 100;
+        const int objx = obj.x + (obj.frame_xoff + obj.spr_offset.X) * obj.zoom / 100;
+        const int objy = obj.y + (obj.frame_yoff + obj.spr_offset.Y) * obj.zoom / 100;
         add_to_sprite_list(actsp.Ddb, objx, objy, aabb, usebasel, actsp.DrawIndex);
     }
 }
@@ -2291,7 +2291,7 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.spr_anchor, chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
+            chex.eff_anchor, chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname.GetCStr()));
 #endif
@@ -2300,8 +2300,8 @@ void prepare_characters_for_drawing()
         // also see fixme comment to GraphicSpace struct.
         // FIXME: can't we just use anything saved (e.g. when updating GraphicSpace) here?
         // why do we have to recalculate these offsets in multiple places?!!
-        const int charx = chin.x + (chin.pic_xoffs + chex.spr_xoff + chex.spr_offset.X) * chex.zoom_offs / 100;
-        const int chary = chin.y + (-chin.z + chin.pic_yoffs + chex.spr_yoff + chex.spr_offset.Y) * chex.zoom_offs / 100;
+        const int charx = chin.x + (chex.frame_xoff + chex.eff_offset.X) * chex.zoom_offs / 100;
+        const int chary = chin.y + (-chin.z + chex.frame_yoff + chex.eff_offset.Y) * chex.zoom_offs / 100;
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, actsp.DrawIndex);
     }
 }

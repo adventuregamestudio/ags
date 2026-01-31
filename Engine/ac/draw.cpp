@@ -2755,6 +2755,7 @@ static void construct_overlays()
     {
         if (overs.IsFree(i)) continue; // empty slot
         auto &over = overs[i];
+        if (!over.IsVisible()) continue; // not visible
         if (over.GetTransparency() == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];

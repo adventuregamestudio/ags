@@ -2751,7 +2751,7 @@ builtin managed struct Character {
   /// Locks the character to this view, ready for doing animations.
   import void LockView(int view, StopMovementStyle=eStopMoving);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
-  import void LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
+  import void LockViewAligned(int view, int loop, Alignment, StopMovementStyle=eStopMoving);
   /// Locks the character to the specified view frame
   import void LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
@@ -2964,6 +2964,8 @@ builtin managed struct Character {
   import attribute bool UseRegionTint;
 #endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
+  /// Locks the character to this view, using specified anchor and offset for the duration of this lock.
+  import void LockViewAnchored(int view, float xAnchor, float yAnchor, int xOffset=0, int yOffset=0, StopMovementStyle=eStopMoving);
   /// Gets/sets whether the character will be drawn and updated during the game update.
   import attribute bool Enabled;
   /// Gets/sets whether the character is currently visible.

@@ -740,6 +740,13 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
         stopMoving != 0);
 }
 
+void Character_LockViewAnchored(CharacterInfo *chaa, int view, float x_anchor, float y_anchor, int x_off, int y_off, int stop_moving)
+{
+    Character_LockViewImpl(chaa, "Character.LockViewAnchored", view, -1, -1,
+        Pointf(x_anchor, y_anchor), Point(x_off, y_off),
+        stop_moving != 0);
+}
+
 void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
 {
     Character_LockViewImpl(chaa, "Character.LockViewFrame", view, loop, frame,
@@ -3577,6 +3584,13 @@ RuntimeScriptValue Sc_Character_LockViewAlignedEx(void *self, const RuntimeScrip
     API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx);
 }
 
+RuntimeScriptValue Sc_Character_LockViewAnchored(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_OBJ_PARAM_COUNT(Character_LockViewAnchored, 1);
+    Character_LockViewAnchored((CharacterInfo*)self, params[0].IValue, params[1].FValue, params[2].FValue, params[3].IValue, params[4].IValue, params[5].IValue);
+    return RuntimeScriptValue((int32_t)0);
+}
+
 // void (CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewFrameEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4491,6 +4505,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::LockView^1",                API_FN_PAIR(Character_LockView) },
         { "Character::LockView^2",                API_FN_PAIR(Character_LockViewEx) },
         { "Character::LockViewAligned^4",         API_FN_PAIR(Character_LockViewAlignedEx) },
+        { "Character::LockViewAnchored^6",        API_FN_PAIR(Character_LockViewAnchored) },
         { "Character::LockViewFrame^4",           API_FN_PAIR(Character_LockViewFrameEx) },
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },

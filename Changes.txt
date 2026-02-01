@@ -15,6 +15,7 @@ Editor:
    each. Color type properties will now display RGB representation in 16/32-bit games and a color
    number (palette index) in 8-bit games. They will always accept user input in any format (either
    color number of RGB).
+ - Added Baseline, BaselineOverridden, BlockingRectangle and Transparency properties to Characters.
  - Added new properties to GUI Controls: BackgroundColor, BorderColor, BorderWidth, ShowBorder,
    SolidBackground, PaddingX and PaddingY properties.
  - Added new properties to GUI Button: ColorStyle, BorderShadeColor, MouseOverBackgroundColor,
@@ -22,6 +23,7 @@ Editor:
    PushedTextColor.
  - Added new properties to GUI Slider: BorderShadeColor, HandleColor.
  - Added TextAlignment property to TextBox.
+ - Added BlockingRectangle and Transparency properties to Room Object.
  - For the Fonts added CharacterSpacing property that lets define additional spacing between each
    pair of characters.
  - Moved "TTF fonts height used in the game logic" setting from General Settings to Font, renaming
@@ -36,6 +38,8 @@ Editor:
  - Font Preview and GUI Editor now display fonts with their respective outlines.
  - In GUI Editor allow to resize controls by dragging by any side.
  - In GUI Editor let set control's ZOrder property directly.
+ - In Room Editor Characters will be sorted among themselves in accordance to their starting
+   Baseline (NOTE: Characters and Room Objects are still not sorted among each other).
  - In View Editor added context menu commands for copying, cutting and pasting individual frames
    and frame ranges; commands for reversing a range of frames, and reversing loop.
  - Do not auto-add up to 4 loops to Views assigned as Character's NormalView.

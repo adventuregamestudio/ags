@@ -23,7 +23,7 @@ Editor:
    PushedTextColor.
  - Added new properties to GUI Slider: BorderShadeColor, HandleColor.
  - Added TextAlignment property to TextBox.
- - Added BlockingRectangle and Transparency properties to Room Object.
+ - Added BlockingRectangle, Solid and Transparency properties to Room Object.
  - For the Fonts added CharacterSpacing property that lets define additional spacing between each
    pair of characters.
  - Moved "TTF fonts height used in the game logic" setting from General Settings to Font, renaming

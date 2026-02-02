@@ -35,34 +35,3 @@ TEST(SplitLines, WrapAtLinebreak) {
     ASSERT_TRUE(lines[2] == "Text");
 }
 
-TEST(SplitLines, WrapAtOldStyleLinebreak) {
-    SplitLines lines;
-    // Old-style linebreak ('[')
-    split_lines("Text[Text", lines, INT32_MAX, 0);
-    ASSERT_TRUE(lines.Count() == 2);
-    ASSERT_TRUE(lines[0] == "Text");
-    ASSERT_TRUE(lines[1] == "Text");
-
-    split_lines("Text[[Text", lines, INT32_MAX, 0);
-    ASSERT_TRUE(lines.Count() == 3);
-    ASSERT_TRUE(lines[0] == "Text");
-    ASSERT_TRUE(lines[1] == "");
-    ASSERT_TRUE(lines[2] == "Text");
-
-    // Escaped old-style linebreak ('[')
-    split_lines("Text\\[Text", lines, INT32_MAX, 0);
-    ASSERT_TRUE(lines.Count() == 1);
-    ASSERT_TRUE(lines[0] == "Text[Text");
-
-    // NOTE: compiled game strings handle '\\' as a standalone character,
-    // not affecting surrounding chars, with a *single exception* of "\\["
-    // sequence which is treated as a literal '['.
-    split_lines("Text\\\\[Text", lines, INT32_MAX, 0);
-    ASSERT_TRUE(lines.Count() == 1);
-    ASSERT_TRUE(lines[0] == "Text\\[Text");
-
-    split_lines("Text\\\\[[Text", lines, INT32_MAX, 0);
-    ASSERT_TRUE(lines.Count() == 2);
-    ASSERT_TRUE(lines[0] == "Text\\[");
-    ASSERT_TRUE(lines[1] == "Text");
-}

@@ -820,7 +820,7 @@ int Object_GetSolid(ScriptObject *objj) {
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
-    objs[objj->id].blocking_width = bwid;
+    objs[objj->id].blocking_width = static_cast<int16_t>(bwid);
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
@@ -828,7 +828,7 @@ int Object_GetBlockingWidth(ScriptObject *objj) {
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
-    objs[objj->id].blocking_height = bhit;
+    objs[objj->id].blocking_height = static_cast<int16_t>(bhit);
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
@@ -840,7 +840,7 @@ int Object_GetBlockingRectX(ScriptObject *objj) {
 }
 
 void Object_SetBlockingRectX(ScriptObject *objj, int x) {
-    objs[objj->id].blocking_x = x;
+    objs[objj->id].blocking_x = static_cast<int16_t>(x);
 }
 
 int Object_GetBlockingRectY(ScriptObject *objj) {
@@ -848,7 +848,7 @@ int Object_GetBlockingRectY(ScriptObject *objj) {
 }
 
 void Object_SetBlockingRectY(ScriptObject *objj, int y) {
-    objs[objj->id].blocking_y = y;
+    objs[objj->id].blocking_y = static_cast<int16_t>(y);
 }
 
 int Object_GetID(ScriptObject *objj) {

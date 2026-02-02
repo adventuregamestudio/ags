@@ -1404,7 +1404,7 @@ int Character_GetBlockingHeight(CharacterInfo *chaa)
 
 void Character_SetBlockingHeight(CharacterInfo *chaa, int hit) {
 
-    chaa->blocking_height = hit;
+    chaa->blocking_height = static_cast<int16_t>(hit);
 }
 
 int Character_GetBlockingWidth(CharacterInfo *chaa)
@@ -1414,7 +1414,7 @@ int Character_GetBlockingWidth(CharacterInfo *chaa)
 
 void Character_SetBlockingWidth(CharacterInfo *chaa, int wid)
 {
-    chaa->blocking_width = wid;
+    chaa->blocking_width = static_cast<int16_t>(wid);
 }
 
 int Character_GetBlockingRectX(CharacterInfo *chaa)

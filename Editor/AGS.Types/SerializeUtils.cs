@@ -198,7 +198,7 @@ namespace AGS.Types
                         if (prop.PropertyType == typeof(string))
                         {
                             writer.WriteStartElement(prop.Name);
-							string propValue = prop.GetValue(obj, null).ToString();
+                            string propValue = prop.GetValue(obj, null).ToString();
                             if (propValue.IndexOf(' ') >= 0)
                             {
                                 writer.WriteAttributeString("xml", "space", null, "preserve");
@@ -210,6 +210,13 @@ namespace AGS.Types
                         {
                             if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null)
                                 writer.WriteElementString(prop.Name, $"0x{((int)prop.GetValue(obj, null)).ToString("X8")}");
+                            else
+                                writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
+                        }
+                        else if (prop.PropertyType == typeof(short))
+                        {
+                            if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null)
+                                writer.WriteElementString(prop.Name, $"0x{((short)prop.GetValue(obj, null)).ToString("X4")}");
                             else
                                 writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
                         }
@@ -322,7 +329,15 @@ namespace AGS.Types
                 }
                 else if (prop.PropertyType == typeof(short))
                 {
-                    prop.SetValue(obj, Convert.ToInt16(elementValue), null);
+                    if (prop.GetCustomAttribute(typeof(SerializeAsHex), true) != null &&
+                        elementValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    {
+                        prop.SetValue(obj, Convert.ToInt16(elementValue, 16), null);
+                    }
+                    else
+                    {
+                        prop.SetValue(obj, Convert.ToInt16(elementValue), null);
+                    }
                 }
                 // We must use InvariantCulture for floats and doubles, because their
                 // format depends on local system settings used when the project was saved
@@ -338,8 +353,8 @@ namespace AGS.Types
                 {
                     prop.SetValue(obj, elementValue, null);
                 }
-				else if (prop.PropertyType == typeof(DateTime))
-				{
+                else if (prop.PropertyType == typeof(DateTime))
+                {
                     // Must use CultureInfo.InvariantCulture otherwise DateTime.Parse
                     // crashes if the system regional settings short date format has
                     // spaces in it (.NET bug)
@@ -353,8 +368,8 @@ namespace AGS.Types
                     {
                         // Release Date timestamp doesn't store time of the day, and as such it ends up in the else-statement
                         prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
-                    }					                    
-				}
+                    }
+                }
                 else if (prop.PropertyType == typeof(Point))
                 {
                     prop.SetValue(obj, CompactStringToPoint(elementValue));

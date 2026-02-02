@@ -247,8 +247,10 @@ if(AGS_TESTS)
         test/math_test.cpp
         test/memory_test.cpp
         test/path_test.cpp
+        test/splitline_test.cpp
         test/stream_test.cpp
         test/string_test.cpp
+        test/strutil_test.cpp
         test/utf8_test.cpp
         test/version_test.cpp
     )

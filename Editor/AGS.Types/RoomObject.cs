@@ -90,6 +90,7 @@ namespace AGS.Types
 
         [Description("If true, this object will be initially visible and updated during game update.")]
         [Category("Design")]
+        [DefaultValue(true)]
         public bool Enabled
         {
             get { return _enabled; }

@@ -53,7 +53,11 @@ enum FrameAlignment
     kMAlignTop          = kAlignTopLeft | kAlignTopCenter | kAlignTopRight,
     kMAlignBottom       = kAlignBottomLeft | kAlignBottomCenter | kAlignBottomRight,
     kMAlignHCenter      = kAlignTopCenter | kAlignMiddleCenter | kAlignBottomCenter,
-    kMAlignVCenter      = kAlignMiddleLeft | kAlignMiddleCenter | kAlignMiddleRight
+    kMAlignVCenter      = kAlignMiddleLeft | kAlignMiddleCenter | kAlignMiddleRight,
+
+    kMAlignHorizontal   = kMAlignLeft | kMAlignRight | kMAlignHCenter,
+    kMAlignVertical     = kMAlignTop | kMAlignBottom | kMAlignVCenter,
+    kMAlignAny          = kMAlignHorizontal | kMAlignVertical
 };
 
 // Horizontal alignment; based on FrameAlignment, used to restrict alignment

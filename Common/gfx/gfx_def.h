@@ -139,6 +139,9 @@ public:
              g_aabb, sx, sy, rot);
     }
 
+    // Get position of the top-left corner of this object in the world coordinates;
+    // useful when you need to know a position of already transformed sprites.
+    inline Point TopLeft() const { return _AABB.GetLT(); }
     // Get axis-aligned bounding box, in the world coordinates
     inline const Rect &AABB() const { return _AABB; }
 
@@ -332,6 +335,29 @@ namespace GfxDef
             // the rest of the range works as alpha
             return alpha;
         }
+    }
+
+    // Convert Alignment to the graphic anchor, which is a
+    // normalized relative coordinates in [0; 1] range
+    inline Pointf GetGraphicAnchorFromAlignment(FrameAlignment align)
+    {
+        float x;
+        if ((align & kMAlignHCenter) != 0)
+            x = 0.5f;
+        else if((align & kMAlignRight) != 0)
+            x = 1.f;
+        else
+            x = 0.f;
+
+        float y;
+        if ((align & kMAlignVCenter) != 0)
+            y = 0.5f;
+        else if ((align & kMAlignBottom) != 0)
+            y = 1.f;
+        else
+            y = 0.f;
+
+        return Pointf(x, y);
     }
 } // namespace GfxDef
 

@@ -46,8 +46,11 @@ public:
     int16_t tint_b, tint_level;
     int16_t tint_light;
     int16_t zoom;           // zoom level, either manual or from the current area
+    Point spr_offset;       // fixed sprite offset (translation)
+    Pointf spr_anchor       // graphic anchor (relative alignment)
+        = Pointf(0.f, 1.f); // default: left-bottom
     int   spr_width, spr_height; // last used sprite's size
-    int   spr_xoff, spr_yoff; // sprite offsets (when using a view)
+    int   frame_xoff, frame_yoff; // frame offsets (when using a view)
     int16_t width, height;  // width/height based on a scaled sprite
     uint16_t num;            // sprite slot number
     int16_t baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
@@ -92,7 +95,6 @@ public:
         anim = ViewAnimateParams(repeat, dir, delay, anim_volume);
     }
 
-    inline Pointf GetOrigin() const { return Pointf(0.f, 1.f); /* left-bottom */ }
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
     void UpdateGraphicSpace();
 

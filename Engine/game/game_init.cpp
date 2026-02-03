@@ -156,9 +156,10 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
 
     for (int i = 0; i < game.numcharacters; ++i)
     {
+        // TODO: move this to Character's "init" method
         game.chars[i].walking = 0;
-        game.chars[i].pic_xoffs = 0;
-        game.chars[i].pic_yoffs = 0;
+        game.chars[i].view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
+        game.chars[i].view_offset = Point();
         game.chars[i].blinkinterval = 140;
         game.chars[i].blinktimer = game.chars[i].blinkinterval;
         game.chars[i].index_id = i;
@@ -180,7 +181,9 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
     {
         for (int i = 0; i < game.numcharacters; ++i)
         {
+            // TODO: move this to Character's "init" method
             charextra[i].blend_mode = ents.CharEx[i].BlendMode;
+            charextra[i].UpdateEffectiveValues(&game.chars[i]);
         }
     }
 }

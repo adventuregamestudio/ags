@@ -21,6 +21,7 @@
 #include "ac/game_version.h"
 #include "game/scripteventtable.h"
 #include "util/bbop.h"
+#include "util/geometry.h"
 #include "util/string_types.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -153,7 +154,6 @@ struct CharacterInfo
     int16_t blinktimer  = 0;
     int16_t blinkframe  = 0;
     int16_t walkspeed_y = 0;
-    int16_t pic_yoffs   = 0; // this is fixed in screen coordinates
     int     z           = 0; // z-location, for flying etc
     int     walkwait    = 0; // number of frames to wait before advancing a move;
                              // also used as a turning counter
@@ -165,19 +165,22 @@ struct CharacterInfo
     int16_t blocking_width = 0;
     int16_t blocking_height = 0;
     int     index_id    = 0; // this character's numeric ID
-    int16_t pic_xoffs   = 0; // this is fixed in screen coordinates
     int16_t walkwaitcounter = 0;
     uint16_t loop       = 0;
     uint16_t frame      = 0;
     int16_t walking     = 0; // stores movelist index
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
+    Point   view_offset; // fixed view offset (from locked view)
+    Pointf  view_anchor; // view anchor (from locked view)
     int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
     AGS::Common::String scrname = {}; // script name
     AGS::Common::String name = {}; // regular name (aka description)
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
 
+    // Gets default sprite anchor for the character
+    static Pointf GetDefaultSpriteAnchor() { return Pointf(0.5f, 1.f); /* middle-bottom */ }
     // Gets a events schema corresponding to this object's type
     static const AGS::Common::ScriptEventSchema &GetEventSchema() { return CharacterInfo::_eventSchema; }
 
@@ -192,6 +195,7 @@ struct CharacterInfo
     // Tells if the character is actually meant to be displayed on screen;
     // this combines both "enabled" and "visible" factors.
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
+    inline bool is_view_locked() const { return (flags & CHF_FIXVIEW) != 0; }
     // Returns effective x/y walkspeeds for this character
     void get_effective_walkspeeds(int &walk_speed_x, int &walk_speed_y) const
     {
@@ -245,7 +249,7 @@ struct CharacterInfo
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;
-    // TODO: move to runtime-only class (?)
+    // TODO: move to runtime-only class and merge with its respective Read/Write save methods
     void ReadFromSavegame(Common::Stream *in, CharacterSvgVersion save_ver);
     void WriteToSavegame(Common::Stream *out) const;
 

@@ -645,7 +645,7 @@ HSaveError WriteCharacters(Stream *out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].WriteToSavegame(out);
-        charextra[i].WriteToSavegame(out);
+        charextra[i].WriteToSavegame(&game.chars[i], out);
         Properties::WriteValues(play.charProps[i], out);
     }
     return HSaveError::None();
@@ -664,7 +664,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         auto &chi = game.chars[i];
         auto &chex = charextra[i];
         chi.ReadFromSavegame(in, svg_ver);
-        chex.ReadFromSavegame(in, svg_ver);
+        chex.ReadFromSavegame(&chi, in, svg_ver);
         Properties::ReadValues(play.charProps[i], in);
 
         // Upgrade legacy turning mask

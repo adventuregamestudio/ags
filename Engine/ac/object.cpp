@@ -868,6 +868,46 @@ void Object_SetBlendMode(ScriptObject *objj, int blend_mode) {
     objs[objj->id].blend_mode = ValidateBlendMode("Object.BlendMode", thisroom.Objects[objj->id].ScriptName.GetCStr(), blend_mode);
 }
 
+float Object_GetGraphicAnchorX(ScriptObject *objj)
+{
+    return objs[objj->id].spr_anchor.X;
+}
+
+void Object_SetGraphicAnchorX(ScriptObject *objj, float x)
+{
+    objs[objj->id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
+}
+
+float Object_GetGraphicAnchorY(ScriptObject *objj)
+{
+    return objs[objj->id].spr_anchor.Y;
+}
+
+void Object_SetGraphicAnchorY(ScriptObject *objj, float y)
+{
+    objs[objj->id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
+}
+
+int Object_GetGraphicOffsetX(ScriptObject *objj)
+{
+    return objs[objj->id].spr_offset.X;
+}
+
+void Object_SetGraphicOffsetX(ScriptObject *objj, int x)
+{
+    objs[objj->id].spr_offset.X = x;
+}
+
+int Object_GetGraphicOffsetY(ScriptObject *objj)
+{
+    return objs[objj->id].spr_offset.Y;
+}
+
+void Object_SetGraphicOffsetY(ScriptObject *objj, int y)
+{
+    objs[objj->id].spr_offset.Y = y;
+}
+
 ScriptShaderInstance *Object_GetShader(ScriptObject *objj)
 {
     return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(objs[objj->id].shader_handle));
@@ -1081,8 +1121,8 @@ void update_object_scale(int objid)
     obj.spr_height = game.SpriteInfos[obj.num].Height;
     if (obj.is_animating())
     {
-        obj.spr_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
-        obj.spr_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
+        obj.frame_xoff = views[obj.view].loops[obj.loop].frames[obj.frame].xoffs;
+        obj.frame_yoff = views[obj.view].loops[obj.loop].frames[obj.frame].yoffs;
     }
     obj.width = scale_width;
     obj.height = scale_height;
@@ -1837,6 +1877,46 @@ RuntimeScriptValue Sc_Object_SetBlendMode(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Object_GetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptObject, Object_GetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptObject, Object_GetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetGraphicOffsetY);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphicOffsetY);
+}
+
 RuntimeScriptValue Sc_Object_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(ScriptObject, ScriptShaderInstance, Object_GetShader);
@@ -1959,6 +2039,14 @@ void RegisterObjectAPI()
 
         { "Object::get_BlendMode",            API_FN_PAIR(Object_GetBlendMode) },
         { "Object::set_BlendMode",            API_FN_PAIR(Object_SetBlendMode) },
+        { "Object::get_GraphicAnchorX",       API_FN_PAIR(Object_GetGraphicAnchorX) },
+        { "Object::set_GraphicAnchorX",       API_FN_PAIR(Object_SetGraphicAnchorX) },
+        { "Object::get_GraphicAnchorY",       API_FN_PAIR(Object_GetGraphicAnchorY) },
+        { "Object::set_GraphicAnchorY",       API_FN_PAIR(Object_SetGraphicAnchorY) },
+        { "Object::get_GraphicOffsetX",       API_FN_PAIR(Object_GetGraphicOffsetX) },
+        { "Object::set_GraphicOffsetX",       API_FN_PAIR(Object_SetGraphicOffsetX) },
+        { "Object::get_GraphicOffsetY",       API_FN_PAIR(Object_GetGraphicOffsetY) },
+        { "Object::set_GraphicOffsetY",       API_FN_PAIR(Object_SetGraphicOffsetY) },
         { "Object::get_GraphicRotation",      API_FN_PAIR(Object_GetRotation) },
         { "Object::set_GraphicRotation",      API_FN_PAIR(Object_SetRotation) },
         { "Object::get_UseRegionTint",        API_FN_PAIR(Object_GetUseRegionTint) },

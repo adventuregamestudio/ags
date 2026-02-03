@@ -689,72 +689,76 @@ bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
     return (ciwas == 2);
 }
 
-void Character_LockView(CharacterInfo *chap, int vii) {
-    Character_LockViewEx(chap, vii, STOP_MOVING);
-}
+void Character_LockViewImpl(CharacterInfo *chap, const char *api_name,
+    int view, int loop, int frame,
+    const Pointf &anchor, const Point &offset, bool stop_moving)
+{
+    view--; // convert to 0-based
+    AssertView(api_name, chap->scrname.GetCStr(), view);
+    AssertViewHasLoops(api_name, chap->scrname.GetCStr(), view);
 
-void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
-    vii--; // convert to 0-based
-    AssertView("SetCharacterView", chap->scrname.GetCStr(), vii);
-    AssertViewHasLoops("SetCharacterView", chap->scrname.GetCStr(), vii);
+    if (loop >= 0)
+        AssertLoop(api_name, chap->scrname.GetCStr(), chap->view, loop);
+    else
+        loop = 0;
+    if (frame >= 0)
+        AssertFrame(api_name, chap->scrname.GetCStr(), view - 1, loop, frame);
+    else
+        frame = 0;
 
     stop_character_idling(chap);
-    if (stopMoving != KEEP_MOVING)
+    if (stop_moving)
     {
         Character_StopMoving(chap);
     }
-    chap->view=vii;
     stop_character_anim(chap);
+    charextra[chap->index_id].SetLockedView(chap, view, loop, frame, anchor, offset);
     FindReasonableLoopForCharacter(chap);
-    chap->frame=0;
-    chap->wait=0;
-    chap->flags|=CHF_FIXVIEW;
-    chap->pic_xoffs = 0;
-    chap->pic_yoffs = 0;
-    debug_script_log("%s: View locked to %d", chap->scrname.GetCStr(), vii+1);
+    debug_script_log("%s: View locked to %d", chap->scrname.GetCStr(), view + 1);
 }
 
-void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving) {
-    if (chap->view < 0)
-        quit("!Character.LockViewAligned: character has invalid old view number");
-
-    int sppic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
-    int leftSide = chap->x - game.SpriteInfos[sppic].Width / 2;
-
-    Character_LockViewEx(chap, vii, stopMoving);
-
-    AssertLoop("Character.LockViewAligned", chap->scrname.GetCStr(), chap->view, loop);
-
-    chap->loop = loop;
-    chap->frame = 0;
-    int newpic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
-    int newLeft = chap->x - game.SpriteInfos[newpic].Width / 2;
-    int xdiff = 0;
-
-    if (align & kMAlignLeft)
-        xdiff = leftSide - newLeft;
-    else if (align & kMAlignHCenter)
-        xdiff = 0;
-    else if (align & kMAlignRight)
-        xdiff = (leftSide + game.SpriteInfos[sppic].Width) - (newLeft + game.SpriteInfos[newpic].Width);
-    else
-        quit("!Character.LockViewAligned: invalid alignment type specified");
-
-    chap->pic_xoffs = xdiff;
-    chap->pic_yoffs = 0;
+void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving)
+{
+    Character_LockViewImpl(chap, "Character.LockView", vii, -1, -1,
+        CharacterInfo::GetDefaultSpriteAnchor(), Point(), stopMoving != 0);
 }
 
-void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
-    Character_LockViewEx(chaa, view, stopMoving);
-    AssertFrame("Character.LockViewFrame", chaa->scrname.GetCStr(), view - 1, loop, frame);
-    chaa->loop = loop;
-    chaa->frame = frame;
+void Character_LockView(CharacterInfo *chap, int vii)
+{
+    Character_LockViewEx(chap, vii, STOP_MOVING);
 }
 
-void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving) {
-    Character_LockViewEx(chap, vii, stopMoving);
-    chap->pic_xoffs = xoffs;
-    chap->pic_yoffs = yoffs;
+void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving)
+{
+    if ((align & kMAlignAny) == 0)
+    {
+        debug_script_warn("Character.LockViewAligned: invalid alignment type specified");
+    }
+
+    Character_LockViewImpl(chap, "Character.LockViewAligned", vii, loop, -1,
+        GfxDef::GetGraphicAnchorFromAlignment(static_cast<FrameAlignment>(align)), Point(),
+        stopMoving != 0);
+}
+
+void Character_LockViewAnchored(CharacterInfo *chaa, int view, float x_anchor, float y_anchor, int x_off, int y_off, int stop_moving)
+{
+    Character_LockViewImpl(chaa, "Character.LockViewAnchored", view, -1, -1,
+        Pointf(x_anchor, y_anchor), Point(x_off, y_off),
+        stop_moving != 0);
+}
+
+void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
+{
+    Character_LockViewImpl(chaa, "Character.LockViewFrame", view, loop, frame,
+        CharacterInfo::GetDefaultSpriteAnchor(), Point(),
+        stopMoving != 0);
+}
+
+void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving)
+{
+    Character_LockViewImpl(chap, "Character.LockViewOffset", vii, -1, -1,
+        CharacterInfo::GetDefaultSpriteAnchor(), Point(xoffs, yoffs),
+        stopMoving != 0);
 }
 
 void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
@@ -1108,9 +1112,7 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     if (chaa->flags & CHF_FIXVIEW) {
         debug_script_log("%s: Released view back to default", chaa->scrname.GetCStr());
     }
-    chaa->flags &= ~CHF_FIXVIEW;
-    chaa->view = chaa->defview;
-    chaa->frame = 0;
+    charextra[chaa->index_id].SetUnlockedView(chaa);
     if (stopMoving != KEEP_MOVING)
     {
         Character_StopMoving(chaa);
@@ -1122,8 +1124,6 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
         FindReasonableLoopForCharacter(chaa);
     }
     stop_character_anim(chaa);
-    chaa->pic_xoffs = 0;
-    chaa->pic_yoffs = 0;
     // Restart idle timer
     reset_character_idling_time(chaa);
 }
@@ -1820,6 +1820,50 @@ void Character_SetBlendMode(CharacterInfo *chaa, int blend_mode) {
     charextra[chaa->index_id].blend_mode = ValidateBlendMode("Character.BlendMode", chaa->scrname.GetCStr(), blend_mode);
 }
 
+float Character_GetGraphicAnchorX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_anchor.X;
+}
+
+void Character_SetGraphicAnchorX(CharacterInfo *chaa, float x)
+{
+    charextra[chaa->index_id].spr_anchor.X = Math::Clamp(x, 0.f, 1.f);
+    charextra[chaa->index_id].UpdateEffectiveValues(chaa);
+}
+
+float Character_GetGraphicAnchorY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_anchor.Y;
+}
+
+void Character_SetGraphicAnchorY(CharacterInfo *chaa, float y)
+{
+    charextra[chaa->index_id].spr_anchor.Y = Math::Clamp(y, 0.f, 1.f);
+    charextra[chaa->index_id].UpdateEffectiveValues(chaa);
+}
+
+int Character_GetGraphicOffsetX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_offset.X;
+}
+
+void Character_SetGraphicOffsetX(CharacterInfo *chaa, int x)
+{
+    charextra[chaa->index_id].spr_offset.X = x;
+    charextra[chaa->index_id].UpdateEffectiveValues(chaa);
+}
+
+int Character_GetGraphicOffsetY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].spr_offset.Y;
+}
+
+void Character_SetGraphicOffsetY(CharacterInfo *chaa, int y)
+{
+    charextra[chaa->index_id].spr_offset.Y = y;
+    charextra[chaa->index_id].UpdateEffectiveValues(chaa);
+}
+
 ScriptShaderInstance *Character_GetShader(CharacterInfo *chaa)
 {
     return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(charextra[chaa->index_id].shader_handle));
@@ -1946,6 +1990,26 @@ void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
     chaa->flags &= ~CHF_NOLIGHTING;
     if (!yesorno)
         chaa->flags |= CHF_NOLIGHTING;
+}
+
+float Character_GetViewAnchorX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicAnchor().X;
+}
+
+float Character_GetViewAnchorY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicAnchor().Y;
+}
+
+int Character_GetViewOffsetX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicOffset().X;
+}
+
+int Character_GetViewOffsetY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].GetEffectiveGraphicOffset().Y;
 }
 
 ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch)
@@ -2596,8 +2660,8 @@ void update_character_scale(int charid)
     chex.zoom = zoom;
     chex.spr_width = game.SpriteInfos[pic].Width;
     chex.spr_height = game.SpriteInfos[pic].Height;
-    chex.spr_xoff = vf.xoffs;
-    chex.spr_yoff = vf.yoffs;
+    chex.frame_xoff = vf.xoffs;
+    chex.frame_yoff = vf.yoffs;
     chex.width = scale_width;
     chex.height = scale_height;
     chex.zoom_offs = zoom_offs;
@@ -3520,6 +3584,13 @@ RuntimeScriptValue Sc_Character_LockViewAlignedEx(void *self, const RuntimeScrip
     API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx);
 }
 
+RuntimeScriptValue Sc_Character_LockViewAnchored(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_OBJ_PARAM_COUNT(Character_LockViewAnchored, 1);
+    Character_LockViewAnchored((CharacterInfo*)self, params[0].IValue, params[1].FValue, params[2].FValue, params[3].IValue, params[4].IValue, params[5].IValue);
+    return RuntimeScriptValue((int32_t)0);
+}
+
 // void (CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewFrameEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4264,6 +4335,46 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
 }
 
+RuntimeScriptValue Sc_Character_GetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetGraphicAnchorX);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetGraphicAnchorY);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetGraphicOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetGraphicOffsetY);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetGraphicOffsetY);
+}
+
 RuntimeScriptValue Sc_Character_GetShader(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(CharacterInfo, ScriptShaderInstance, Character_GetShader);
@@ -4284,6 +4395,26 @@ RuntimeScriptValue Sc_Character_GetUseRegionTint(void *self, const RuntimeScript
 RuntimeScriptValue Sc_Character_SetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetUseRegionTint);
+}
+
+RuntimeScriptValue Sc_Character_GetViewAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetViewAnchorX);
+}
+
+RuntimeScriptValue Sc_Character_GetViewAnchorY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetViewAnchorY);
+}
+
+RuntimeScriptValue Sc_Character_GetViewOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetViewOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_GetViewOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetViewOffsetY);
 }
 
 RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -4374,6 +4505,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::LockView^1",                API_FN_PAIR(Character_LockView) },
         { "Character::LockView^2",                API_FN_PAIR(Character_LockViewEx) },
         { "Character::LockViewAligned^4",         API_FN_PAIR(Character_LockViewAlignedEx) },
+        { "Character::LockViewAnchored^6",        API_FN_PAIR(Character_LockViewAnchored) },
         { "Character::LockViewFrame^4",           API_FN_PAIR(Character_LockViewFrameEx) },
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
@@ -4513,10 +4645,22 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
 
         { "Character::get_BlendMode",             API_FN_PAIR(Character_GetBlendMode) },
         { "Character::set_BlendMode",             API_FN_PAIR(Character_SetBlendMode) },
-        { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
-        { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
+        { "Character::get_GraphicAnchorX",        API_FN_PAIR(Character_GetGraphicAnchorX) },
+        { "Character::set_GraphicAnchorX",        API_FN_PAIR(Character_SetGraphicAnchorX) },
+        { "Character::get_GraphicAnchorY",        API_FN_PAIR(Character_GetGraphicAnchorY) },
+        { "Character::set_GraphicAnchorY",        API_FN_PAIR(Character_SetGraphicAnchorY) },
+        { "Character::get_GraphicOffsetX",        API_FN_PAIR(Character_GetGraphicOffsetX) },
+        { "Character::set_GraphicOffsetX",        API_FN_PAIR(Character_SetGraphicOffsetX) },
+        { "Character::get_GraphicOffsetY",        API_FN_PAIR(Character_GetGraphicOffsetY) },
+        { "Character::set_GraphicOffsetY",        API_FN_PAIR(Character_SetGraphicOffsetY) },
         { "Character::get_GraphicRotation",       API_FN_PAIR(Character_GetRotation) },
         { "Character::set_GraphicRotation",       API_FN_PAIR(Character_SetRotation) },
+        { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
+        { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
+        { "Character::get_ViewAnchorX",           API_FN_PAIR(Character_GetViewAnchorX) },
+        { "Character::get_ViewAnchorY",           API_FN_PAIR(Character_GetViewAnchorY) },
+        { "Character::get_ViewOffsetX",           API_FN_PAIR(Character_GetViewOffsetX) },
+        { "Character::get_ViewOffsetY",           API_FN_PAIR(Character_GetViewOffsetY) },
 
         { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
         { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },

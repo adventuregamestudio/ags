@@ -79,6 +79,8 @@ Editor:
  - Support importing and keeping sprites as explicitly 8-bit images without converting to the
    game's default color depth. This lets to have chosen sprites used as 8-bit masks in a 16/32-bit
    game.
+ - When upgrading older projects, Editor will replace old-style linebreak ('[') in string
+   properties (Label.Text and similar). The ones in script are not replaced automatically though.
  - When importing room backgrounds of a different size Editor will now let user decide whether
    to reset, keep or rescale room masks.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
@@ -264,6 +266,10 @@ Engine:
  - Allow to run the game even if it has no fonts (log a warning).
  - Allow to continue running the game if any font failed to load on startup.
    Such font will simply not get drawn, unless replaced by a plugin, for example.
+ - All the object interaction events triggered by a script function call will now run immediately,
+   as opposed to being scheduled to run after the current script finishes. This refers to function
+   calls such as ProcessClick and RunInteraction, and also to functions which trigger on_event
+   callback, such as AddInventory.
  - Overlay.X and Y properties of textual screen overlays, such as blocking speech, now treat
    assigned values correctly as screen coordinates and return values set by user consistently.
    They also return the assigned values without any offsets for textual overlays created using

@@ -210,6 +210,7 @@ void process_event(const AGSEvent *evp)
                 obj_inter = &croom->intrRegion[region_id];
             obj_evt = ObjectEvent(kScTypeRoom, "region%d", LOCTYPE_NOTHING, region_id,
                 RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
+            break;
         }
         case kObjEventType_Room:
         {

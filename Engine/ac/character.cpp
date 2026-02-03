@@ -698,11 +698,11 @@ void Character_LockViewImpl(CharacterInfo *chap, const char *api_name,
     AssertViewHasLoops(api_name, chap->scrname.GetCStr(), view);
 
     if (loop >= 0)
-        AssertLoop(api_name, chap->scrname.GetCStr(), chap->view, loop);
+        AssertLoop(api_name, chap->scrname.GetCStr(), view, loop);
     else
         loop = 0;
     if (frame >= 0)
-        AssertFrame(api_name, chap->scrname.GetCStr(), view - 1, loop, frame);
+        AssertFrame(api_name, chap->scrname.GetCStr(), view, loop, frame);
     else
         frame = 0;
 

@@ -391,13 +391,7 @@ namespace AGS.Editor
             }
             if (xmlVersionIndex < 3999901)
             {
-                foreach (GUI gui in game.GUIs)
-                {
-                    foreach (GUIControl gc in gui.Controls)
-                    {
-                        ConvertLinebreakInTextControl(gc);
-                    }
-                }
+                ConvertLinebreakInTextProperties(game);
             }
             else if (xmlVersionIndex < 4000010)
             {
@@ -598,6 +592,25 @@ namespace AGS.Editor
                 tbox.BorderWidth = 1;
                 tbox.PaddingX = 1;
                 tbox.PaddingY = 1;
+            }
+        }
+
+        private static void ConvertLinebreakInTextProperties(Game game)
+        {
+            foreach (GUI gui in game.GUIs)
+            {
+                foreach (GUIControl gc in gui.Controls)
+                {
+                    ConvertLinebreakInTextControl(gc);
+                }
+            }
+
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                foreach (DialogOption option in dialog.Options)
+                {
+                    option.Text = UpgradeGameUtils.ConvertOldStyleLinebreak(option.Text);
+                }
             }
         }
 

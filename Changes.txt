@@ -177,13 +177,20 @@ Script API:
  - Added Button.GraphicFlip property.
  - Added Character.BlendMode, GUI.BlendMode, GUIControl.BlendMode, Object.BlendMode,
    Overlay.BlendMode.
+ - Added GraphicAnchorX, GraphicAnchorY, GraphicOffsetX and GraphicOffsetY properties to
+   Character, Object and Overlay types.
+ - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, GUIControl.Rotation,
+   Object.GraphicRotation, Overlay.Rotation.
  - Added Character.Shader, GUI.Shader, GUIControl.Shader, Object.Shader, Overlay.Shader,
    Camera.Shader, Viewport.Shader, Mouse.CursorShader, Screen.Shader.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
    Character.on is deprecated.
+ - Added Character.ViewAnchorX, ViewAnchorY, ViewOffsetX, ViewOffsetY readonly properties,
+   that report current effective graphic anchor and offset (may be dictated either by the common
+   GraphicAnchor and GraphicOffset properties, or LockView* functions).
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
- - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, GUIControl.Rotation,
-   Object.GraphicRotation, Overlay.Rotation.
+ - Added Character.LockViewAnchored() function.
+ - Character.LockViewAligned now accepts Alignment parameter instead of HorizontalAlignment.
  - Added Button.RunFrameEvent(), Character.RunFrameEvent() and Object.RunFrameEvent() functions,
    that trigger "OnFrameEvent" event function for corresponding object.
  - Added Game.GetColorFromRGBA() function that creates a color number for red, green, blue and

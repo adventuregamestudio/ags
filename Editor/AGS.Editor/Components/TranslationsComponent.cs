@@ -147,12 +147,11 @@ namespace AGS.Editor.Components
                 bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
                 long offsetOfBlockSize = bw.BaseStream.Position;
                 bw.Write((int)0); // placeholder for block size, will be filled later
-                foreach (string line in translation.TranslatedEntries.Keys)
+                foreach (string src_line in translation.TranslatedEntries.Keys)
                 {
-                    if (translation.TranslatedEntries[line].Value.Length > 0)
+                    string trs_line = translation.TranslatedEntries[src_line].Value;
+                    if (!string.IsNullOrEmpty(trs_line))
                     {
-                        string src_line = line;
-                        string trs_line = translation.TranslatedLines[line];
                         WriteString(bw, Regex.Unescape(src_line), textEncoding);
                         WriteString(bw, Regex.Unescape(trs_line), textEncoding);
                     }

@@ -198,6 +198,7 @@ void process_event(const AGSEvent *evp)
             obj_events = &thisroom.Regions[region_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_NOTHING, region_id,
                 RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
+            break;
         }
         case kObjEventType_Room:
         {

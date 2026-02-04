@@ -256,12 +256,12 @@ namespace AGS.Editor
                 }
             }
             //We didn't find any missing node, lets at least select the parent
-            _editAddressBar.CurrentNode = selectedNode;            
+            _editAddressBar.CurrentNode = selectedNode;
         }
 
         private void layer_OnItemsChanged(object sender, EventArgs e)
         {
-            RefreshLayersTree();            
+            RefreshLayersTree();
         }
 
         private void layer_OnSelectedItemChanged(object sender, SelectedRoomItemEventArgs e)
@@ -288,7 +288,23 @@ namespace AGS.Editor
         {
             return layer.DisplayName + itemName;
         }
-                
+
+        public bool TrySelectObjectByName(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name == "Room")
+            {
+                SetPropertyGridObject(_room);
+                return true;
+            }
+
+            foreach (var layer in _layers)
+            {
+                if (layer.TrySelectItemByName(name))
+                    return true;
+            }
+            return false;
+        }
+
         private void RoomSettingsEditor_MouseWheel(object sender, MouseEventArgs e)
 		{
             // Ctrl + Wheel = zoom

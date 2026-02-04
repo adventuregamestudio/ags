@@ -2,7 +2,7 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -22,7 +22,6 @@ namespace AGS.Editor
         {
             // Init a starting list of item references for navigation UI
             InitRoomItemRefs(CollectItemRefs());
-
         }
 
         public override string Name { get { return "Objects"; } }
@@ -322,6 +321,33 @@ namespace AGS.Editor
             {
                 _selectedObject.StartX = newX;
                 _selectedObject.StartY = newY;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to find and select a room item either matching its script name, or,
+        /// if no such matching script name was found, then by its numeric ID,
+        /// embedded in this name (e.g. Object0).
+        /// </summary>
+        public override bool TrySelectItemByName(string name)
+        {
+            var obj = _room.Objects.FirstOrDefault((o) => o.Name == name);
+            if (obj == null)
+            {
+                int id;
+                if (name.StartsWith("Object") && int.TryParse(name.Substring(6), out id)
+                    && (id >= 0) && (id < ItemCount))
+                {
+                    obj = _room.Objects[id];
+                }
+            }
+
+            if (obj != null)
+            {
+                SetSelectedObject(obj);
+                Factory.GUIController.SetPropertyGridObject(_selectedObject);
                 return true;
             }
             return false;

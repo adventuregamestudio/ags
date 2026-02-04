@@ -341,11 +341,16 @@ namespace AGS.Editor
             SelectedEdge edge;
             if (id == null || !RoomItemRefs.TryGetValue(id, out edge))
             {
-                _selectedEdge = SelectedEdge.None;                
+                _selectedEdge = SelectedEdge.None;
                 return;
             }
             _selectedEdge = edge;
             _lastSelectedEdge = _selectedEdge;
+        }
+
+        public bool TrySelectItemByName(string name)
+        {
+            return false;
         }
 
         public Cursor GetCursor(int x, int y, RoomEditorState state)

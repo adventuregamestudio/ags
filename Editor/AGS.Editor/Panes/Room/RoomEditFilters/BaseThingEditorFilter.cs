@@ -250,6 +250,7 @@ namespace AGS.Editor
         public abstract void Paint(Graphics graphics, RoomEditorState state);
         public abstract bool DoubleClick(RoomEditorState state);
         public abstract void CommandClick(string command);
+        public abstract bool TrySelectItemByName(string name);
         public abstract bool AllowClicksInterception();
 
         public abstract event EventHandler OnItemsChanged;

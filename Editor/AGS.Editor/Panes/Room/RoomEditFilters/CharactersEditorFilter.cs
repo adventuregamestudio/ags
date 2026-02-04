@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using AGS.Types;
 using AgsView = AGS.Types.View;
-using System.Web;
-using System.Collections.Generic;
 
 namespace AGS.Editor
 {
@@ -338,6 +338,33 @@ namespace AGS.Editor
             _selectedObject.StartX = newX;
             _selectedObject.StartY = newY;
             // NOTE: do not mark room as modified, as characters are not part of room data
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to find and select a room item either matching its script name, or,
+        /// if no such matching script name was found, then by its numeric ID,
+        /// embedded in this name (e.g. Object0).
+        /// </summary>
+        public override bool TrySelectItemByName(string name)
+        {
+            var character = _game.Characters.FirstOrDefault((c) => c.ScriptName == name);
+            if (character == null)
+            {
+                int id;
+                if (name.StartsWith("Character") && int.TryParse(name.Substring(6), out id)
+                    && (id >= 0) && (id < ItemCount))
+                {
+                    character = _game.CharacterFlatList[id];
+                }
+            }
+
+            if (character != null)
+            {
+                SetSelectedObject(character);
+                Factory.GUIController.SetPropertyGridObject(_selectedObject);
+                return true;
+            }
             return false;
         }
 

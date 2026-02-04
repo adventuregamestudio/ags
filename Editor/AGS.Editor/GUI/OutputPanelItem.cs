@@ -123,7 +123,10 @@ namespace AGS.Editor
                 if (_message is CompileWarningWithGameObject)
                 {
                     var errorWithObject = _message as CompileWarningWithGameObject;
-                    Factory.GUIController.ZoomToComponentObject(errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
+                    if (errorWithObject.RoomNumber >= 0)
+                        Factory.GUIController.ZoomToRoomComponentObject(errorWithObject.RoomNumber, errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
+                    else
+                        Factory.GUIController.ZoomToComponentObject(errorWithObject.TypeName, errorWithObject.ObjectName, errorWithObject.IsObjectEvent);
                 }
             }
         }

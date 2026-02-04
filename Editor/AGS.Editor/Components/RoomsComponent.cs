@@ -832,14 +832,15 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        private void LoadRoom(string controlID)
+        public bool LoadRoomAndShowEditor(int roomNumber)
         {
-            DockData previousDockData = GetPreviousDockData();            
-            UnloadedRoom selectedRoom = FindRoomByID(Convert.ToInt32(controlID.Substring(3)));
+            DockData previousDockData = GetPreviousDockData();
+            UnloadedRoom selectedRoom = FindRoomByID(roomNumber);
             if ((_loadedRoom == null) || (_roomSettings == null) ||
                 (selectedRoom.Number != _loadedRoom.Number))
             {
-                LoadDifferentRoom(selectedRoom);
+                if (!LoadDifferentRoom(selectedRoom))
+                    return false;
             }
             if (_roomSettings != null)
             {
@@ -847,9 +848,15 @@ namespace AGS.Editor.Components
                 {
                     CreateRoomSettings(previousDockData);
                 }
-                _roomSettings.TreeNodeID = controlID;
+                _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + roomNumber;
                 _guiController.AddOrShowPane(_roomSettings);
             }
+            return true;
+        }
+
+        private void LoadRoom(string controlID)
+        {
+            LoadRoomAndShowEditor(Convert.ToInt32(controlID.Substring(3)));
         }
 
         protected override ContentDocument GetDocument(ScriptEditor editor)
@@ -1722,7 +1729,14 @@ namespace AGS.Editor.Components
             return list;
         }
 
-		ILoadedRoom IRoomController.CurrentRoom
+        public int CurrentRoomNumber
+        {
+            get { return _loadedRoom != null ? _loadedRoom.Number : -1; }
+        }
+
+        #region IRoomController methods
+
+        ILoadedRoom IRoomController.CurrentRoom
 		{
 			get { return _loadedRoom; }
 		}
@@ -1772,6 +1786,8 @@ namespace AGS.Editor.Components
 			set { _nativeProxy.GreyOutNonSelectedMasks = value; }
 		}
 
+        #endregion IRoomController
+
         protected override bool CanFolderBeDeleted(UnloadedRoomFolder folder)
         {
             foreach (UnloadedRoom room in folder.AllItemsFlat)
@@ -1804,6 +1820,25 @@ namespace AGS.Editor.Components
         private string GetItemNodeLabel(IRoom room)
         {
             return room.Number.ToString() + ": " + room.Description;
+        }
+
+        public override IList<string> GetManagedScriptElements()
+        {
+            return new string[] { "Room", "Hotspot", "Object", "Region" };
+        }
+
+        /// <summary>
+        /// This does not exactly shows a "pane", but instead selects a respective
+        /// object inside the current room editor.
+        /// </summary>
+        public override bool ShowItemPaneByName(string name)
+        {
+            if (_loadedRoom == null || _roomSettings == null || _roomSettings.Control == null)
+                return false;
+
+            _guiController.AddOrShowPane(_roomSettings);
+            var editor = _roomSettings.Control as RoomSettingsEditor;
+            return editor.TrySelectObjectByName(name);
         }
 
         /// <summary>
@@ -1842,20 +1877,22 @@ namespace AGS.Editor.Components
 
                 if (RoomObject.Room != null)
                 {
-                    TypeName = string.Empty;
+                    TypeName = "Room";
                     ObjName = "Room";
                 }
                 else if (RoomObject.Object != null)
                 {
                     TypeName = "Object";
                     ID = RoomObject.Object.ID;
-                    ObjName = RoomObject.Object.Name;
+                    ObjName = string.IsNullOrEmpty(RoomObject.Object.Name) ?
+                        $"Object{RoomObject.Object.ID}" : RoomObject.Object.Name;
                 }
                 else if (RoomObject.Hotspot != null)
                 {
                     TypeName = "Hotspot";
                     ID = RoomObject.Hotspot.ID;
-                    ObjName = RoomObject.Hotspot.Name;
+                    ObjName = string.IsNullOrEmpty(RoomObject.Hotspot.Name) ?
+                        $"Hotspot{RoomObject.Hotspot.ID}" : RoomObject.Hotspot.Name;
                 }
                 else if (RoomObject.Region != null)
                 {

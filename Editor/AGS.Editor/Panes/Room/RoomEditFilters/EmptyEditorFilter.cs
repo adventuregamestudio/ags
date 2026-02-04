@@ -124,6 +124,11 @@ namespace AGS.Editor
         {
         }
 
+        public bool TrySelectItemByName(string name)
+        {
+            return false;
+        }
+
         public Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             return null;

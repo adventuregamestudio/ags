@@ -2,8 +2,7 @@ using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -53,6 +52,33 @@ namespace AGS.Editor
         protected override string GetItemName(int id)
         {
             return MakeLayerItemName("Hotspot", _room.Hotspots[id].Name, _room.Hotspots[id].Description, id);
+        }
+
+        /// <summary>
+        /// Tries to find and select a room item either matching its script name, or,
+        /// if no such matching script name was found, then by its numeric ID,
+        /// embedded in this name (e.g. Object0).
+        /// </summary>
+        public override bool TrySelectItemByName(string name)
+        {
+            int id = -1;
+            var hotspot = _room.Hotspots.FirstOrDefault((h) => h.Name == name);
+            if (hotspot == null)
+            {
+                if (name.StartsWith("Hotspot") && int.TryParse(name.Substring(6), out id)
+                    && (id >= 0) && (id < ItemCount))
+                {
+                    hotspot = _room.Hotspots[id];
+                }
+            }
+
+            if (hotspot != null)
+            {
+                SelectedArea = hotspot.ID;
+                SelectedAreaChanged(hotspot.ID);
+                return true;
+            }
+            return false;
         }
 
         protected override SortedDictionary<string, int> InitItemRefs()

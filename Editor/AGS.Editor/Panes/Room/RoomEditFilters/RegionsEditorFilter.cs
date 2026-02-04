@@ -38,6 +38,24 @@ namespace AGS.Editor
             return MakeLayerItemName("Region", null, null, id);
         }
 
+        /// <summary>
+        /// Tries to find and select a room item either matching its script name, or,
+        /// if no such matching script name was found, then by its numeric ID,
+        /// embedded in this name (e.g. Object0).
+        /// </summary>
+        public override bool TrySelectItemByName(string name)
+        {
+            int id;
+            if (name.StartsWith("Region") && int.TryParse(name.Substring(6), out id)
+                && (id >= 0) && (id < ItemCount))
+            {
+                SelectedArea = id;
+                SelectedAreaChanged(id);
+                return true;
+            }
+            return false;
+        }
+
         protected override SortedDictionary<string, int> InitItemRefs()
         {
             SortedDictionary<string, int> items = new SortedDictionary<string, int>();

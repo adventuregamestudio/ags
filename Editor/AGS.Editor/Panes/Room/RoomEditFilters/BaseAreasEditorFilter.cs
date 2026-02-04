@@ -635,11 +635,14 @@ namespace AGS.Editor
             if (id != null && RoomItemRefs.TryGetValue(id, out area))
             {
                 _selectedArea = area;
-                SelectedAreaChanged(area);                
-                return;  
+                SelectedAreaChanged(area);
+                return;
             }
             SetPropertyGridObject(_room);
         }
+
+        // Following IRoomEditorFilter members are left for descendants to implement
+        public abstract bool TrySelectItemByName(string name);
 
         public virtual Cursor GetCursor(int x, int y, RoomEditorState state)
         {

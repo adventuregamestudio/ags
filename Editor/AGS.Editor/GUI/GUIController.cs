@@ -618,6 +618,13 @@ namespace AGS.Editor
             }
         }
 
+        public void ZoomToComponentObject(int roomNumber, string typeName, string objectName, bool selectEventsTab = false)
+        {
+            // TODO: load room and implement goind to room's element
+
+            ZoomToComponentObject(typeName, objectName, selectEventsTab);
+        }
+
         public void ZoomToFile(string fileName)
         {
             ZoomToFile(fileName, ZoomToFileZoomType.DoNotMoveCursor, 0, false);

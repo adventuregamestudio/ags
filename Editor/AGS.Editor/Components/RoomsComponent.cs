@@ -1842,6 +1842,7 @@ namespace AGS.Editor.Components
 
                 if (RoomObject.Room != null)
                 {
+                    TypeName = string.Empty;
                     ObjName = "Room";
                 }
                 else if (RoomObject.Object != null)
@@ -1912,11 +1913,13 @@ namespace AGS.Editor.Components
                 {
                     if (roomObject.Room != null)
                     {
-                        errors.Add(new CompileWarning($"Room {room.Number}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
+                        errors.Add(new CompileWarningWithGameObject($"Room {room.Number}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}.",
+                            room.Number, evtRef.TypeName, evtRef.ObjName, true));
                     }
                     else
                     {
-                        errors.Add(new CompileWarning($"Room {room.Number}: {evtRef.TypeName} ({evtRef.ID}) {evtRef.ObjName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}."));
+                        errors.Add(new CompileWarningWithGameObject($"Room {room.Number}: {evtRef.TypeName} ({evtRef.ID}) {evtRef.ObjName}'s event {evtRef.EventName} function \"{evtRef.FunctionName}\" not found in script {room.ScriptFileName}.",
+                            room.Number, evtRef.TypeName, evtRef.ObjName, true));
                     }
                 }
                 // If we don't have an assignment, but has a similar function - report a possible unlinked function

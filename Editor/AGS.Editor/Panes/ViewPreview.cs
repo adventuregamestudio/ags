@@ -23,7 +23,6 @@ namespace AGS.Editor
         private Point _defaultFramePos;
 
         private const int MILLISECONDS_IN_SECOND = 1000;
-        private const int DEFUALT_FRAME_RATE = 40;
 
         public ViewPreview()
         {
@@ -329,7 +328,7 @@ namespace AGS.Editor
                 {
                     _animationTimer = new Timer();
                     _animationTimer.Tick += new EventHandler(_animationTimer_Tick);
-		            _animationTimer.Interval = MILLISECONDS_IN_SECOND / DEFUALT_FRAME_RATE;
+		            _animationTimer.Interval = MILLISECONDS_IN_SECOND / AGSEditor.Instance.CurrentGame.Settings.GameFPS;
                 }
 				UpdateDelayForThisFrame();
                 _animationTimer.Start();

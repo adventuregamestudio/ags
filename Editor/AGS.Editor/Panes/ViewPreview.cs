@@ -21,8 +21,10 @@ namespace AGS.Editor
         private bool _autoResize = false;
         private bool _autoFrameFill = false;
         private Point _defaultFramePos;
+        private List<IAudioPreviewer> _frameAudio = new List<IAudioPreviewer>();
 
         private const int MILLISECONDS_IN_SECOND = 1000;
+        private const int MAX_FRAME_SOUNDS = 2;
 
         public ViewPreview()
         {
@@ -120,7 +122,8 @@ namespace AGS.Editor
 
         public void ReleaseResources()
 		{
-			StopTimer();
+            StopFrameAudio();
+            StopTimer();
 			chkAnimate.Checked = false;
 		}
 
@@ -129,7 +132,7 @@ namespace AGS.Editor
 			UpdateFromView(_view);
 		}
 
-		protected override void OnEnter(EventArgs e)
+        protected override void OnEnter(EventArgs e)
 		{
 			base.OnEnter(e);
 
@@ -152,7 +155,7 @@ namespace AGS.Editor
                 udFrame.Enabled = false;
                 chkAnimate.Enabled = false;
                 chkAnimate.Checked = false;
-                StopTimer();
+                ReleaseResources();
                 previewPanel.Invalidate();
             }
             else
@@ -306,7 +309,89 @@ namespace AGS.Editor
             }
         }
 
-		private void UpdateDelayForThisFrame()
+        private void AdvanceFrame()
+        {
+            if (_dynamicUpdates)
+            {
+                ViewUpdated();
+            }
+
+            if (udFrame.Value < udFrame.Maximum)
+            {
+                udFrame.Value++;
+            }
+            else if ((chkSkipFrame0.Checked) && (udFrame.Maximum >= 1))
+            {
+                udFrame.Value = 1;
+            }
+            else
+            {
+                udFrame.Value = 0;
+            }
+
+            if (chkAudio.Checked)
+            {
+                PlayFrameAudio();
+            }
+
+            UpdateDelayForThisFrame();
+        }
+
+        private void PlayFrameAudio()
+        {
+            int loop = (int)udLoop.Value;
+            int frame = (int)udFrame.Value;
+            if ((loop < _view.Loops.Count) &&
+                (frame < _view.Loops[loop].Frames.Count))
+            {
+                ViewFrame thisFrame = _view.Loops[loop].Frames[frame];
+                if (thisFrame.Sound != AudioClip.FixedIndexNoValue)
+                {
+                    IAudioPreviewer playback = null;
+                    AudioClip clip = AGSEditor.Instance.CurrentGame.GetAudioClipFromFixedIndex(thisFrame.Sound);
+                    if (clip != null)
+                    {
+                        try
+                        {
+                            playback = AudioController.Instance.CreatePlayback(clip);
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        if (playback != null)
+                        {
+                            playback.PlayFinished += Playback_PlayFinished;
+                            if (_frameAudio.Count == MAX_FRAME_SOUNDS)
+                            {
+                                _frameAudio[0].Stop();
+                                _frameAudio.RemoveAt(0);
+                            }
+                            _frameAudio.Add(playback);
+                            playback.Play();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void StopFrameAudio()
+        {
+            foreach (var audio in _frameAudio)
+            {
+                audio.Stop();
+            }
+            _frameAudio.Clear();
+        }
+
+        private void Playback_PlayFinished(IAudioPreviewer playback)
+        {
+            int index = _frameAudio.IndexOf(playback);
+            if (index >= 0)
+                _frameAudio.RemoveAt(index);
+        }
+
+        private void UpdateDelayForThisFrame()
 		{
 			_thisFrameDelay = (int)udDelay.Value;
 
@@ -335,36 +420,21 @@ namespace AGS.Editor
             }
             else
             {
+                StopFrameAudio();
                 StopTimer();
             }
         }
 
         private void _animationTimer_Tick(object sender, EventArgs e)
         {
-			if (_thisFrameDelay > 0)
+            if (_thisFrameDelay <= 0)
+            {
+                AdvanceFrame();
+            }
+			else
 			{
 				_thisFrameDelay--;
-				return;
 			}
-
-			if (_dynamicUpdates)
-			{
-				ViewUpdated();
-			}
-
-            if (udFrame.Value < udFrame.Maximum)
-            {
-                udFrame.Value++;
-            }
-            else if ((chkSkipFrame0.Checked) && (udFrame.Maximum >= 1))
-            {
-                udFrame.Value = 1;
-            }
-            else
-            {
-                udFrame.Value = 0;
-            }
-			UpdateDelayForThisFrame();
         }
 
         private void LoadColorTheme(ColorTheme t)

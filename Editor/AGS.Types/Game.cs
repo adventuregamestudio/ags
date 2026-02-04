@@ -1105,7 +1105,7 @@ namespace AGS.Types
         // that is where we need to know real ordered clip ID. But in universal case
         // the map will have to be updated whenever a sound is added, deleted
         // or have its ID changed.
-        public void UpdateAudioClipMap()    
+        public void UpdateAudioClipMap()
         {
             _audioClipIndexMapping = new Dictionary<int, int>();
             foreach (AudioClip clip in _audioClips)
@@ -1116,6 +1116,11 @@ namespace AGS.Types
 
         public int GetAudioArrayIDFromFixedIndex(int fixedIndex)
         {
+            if (_audioClipIndexMapping == null)
+            {
+                UpdateAudioClipMap();
+            }
+
             int id;
             if (fixedIndex >= AudioClip.FixedIndexBase &&
                 _audioClipIndexMapping.TryGetValue(fixedIndex, out id))
@@ -1123,6 +1128,15 @@ namespace AGS.Types
                 return id;
             }
             return AudioClip.IDNoValue;
+        }
+
+        public AudioClip GetAudioClipFromFixedIndex(int fixedIndex)
+        {
+            int clipID = GetAudioArrayIDFromFixedIndex(fixedIndex);
+            if (clipID == AudioClip.IDNoValue)
+                return null;
+
+            return AudioClipFlatList[clipID];
         }
 
         public byte[] GetPaletteAsRawPAL()

@@ -82,8 +82,10 @@ namespace AGS.Types
             set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
-        // This is a "Fixed Index" that is used as a stable reference the clip,
-        // regardless of any clip list rearrangements.
+        /// <summary>
+        /// This is a "Fixed Index" that is used as a stable reference the clip,
+        /// regardless of any clip list rearrangements.
+        /// </summary>
         [Browsable(false)]
         public int Index
         {

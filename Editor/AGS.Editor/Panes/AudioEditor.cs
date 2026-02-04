@@ -70,14 +70,7 @@ namespace AGS.Editor
 
                 try
                 {
-                    if (this.SelectedClip.FileType == AudioClipFileType.MIDI)
-                    {
-                        _previewer = new MidiPlayer(this.SelectedClip);
-                    }
-                    else
-                    {
-                        _previewer = new IrrklangPlayer(this.SelectedClip);
-                    }
+                    _previewer = AudioController.Instance.CreatePlayback(SelectedClip);
                 }
                 catch (AGSEditorException ex)
                 {
@@ -177,7 +170,7 @@ namespace AGS.Editor
             }
         }
 
-        private void _previewer_PlayFinished(AudioClip clip)
+        private void _previewer_PlayFinished(IAudioPreviewer playback)
         {
             btnPlay.Invoke(new NoParametersDelegate(ResetControlsForSoundFinished));
         }

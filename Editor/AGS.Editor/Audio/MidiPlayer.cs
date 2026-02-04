@@ -34,6 +34,11 @@ namespace AGS.Editor
             mciSendString("set track time format ms", null, 0, IntPtr.Zero);
         }
 
+        public AudioClip Clip
+        {
+            get { return _audioClip; }
+        }
+
         public void Play()
         {
             if (0 != mciSendString("play track", null, 0, IntPtr.Zero))
@@ -52,7 +57,7 @@ namespace AGS.Editor
 
         private void SendStopEventToListeners()
         {
-            PlayFinished?.Invoke(_audioClip);
+            PlayFinished?.Invoke(this);
         }
 
         public bool IsPlaying()

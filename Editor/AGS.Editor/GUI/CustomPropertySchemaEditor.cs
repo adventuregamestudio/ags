@@ -1,5 +1,6 @@
 using AGS.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -36,6 +37,7 @@ namespace AGS.Editor
                 newRow.Tag = item;
                 schemaList.Items.Add(newRow);
             }
+            schemaList.Sort();
         }
 
         private void CustomPropertySchemaEditor_Load(object sender, EventArgs e)

@@ -28,7 +28,7 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
-            this.schemaList = new System.Windows.Forms.ListView();
+            this.schemaList = new AGS.Editor.SortableListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -133,7 +133,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private System.Windows.Forms.ListView schemaList;
+        private AGS.Editor.SortableListView schemaList;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ColumnHeader columnHeader1;

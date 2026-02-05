@@ -245,6 +245,9 @@
     <Compile Include="GUI\ReplaceFolderDialog.Designer.cs">
       <DependentUpon>ReplaceFolderDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\SortableListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="GUI\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>

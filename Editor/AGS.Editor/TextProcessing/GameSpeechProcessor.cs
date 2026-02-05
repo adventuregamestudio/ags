@@ -21,7 +21,7 @@ namespace AGS.Editor
         private bool _processHotspotAndObjectDescriptions;
 
         protected abstract string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType);
-        protected abstract int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract);
+        protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
 
         public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges, bool processHotspotAndObjectDescriptions)
         {
@@ -170,8 +170,8 @@ namespace AGS.Editor
                     {
                         int stringEndIndex = index;
                         string previousFuncCall = GetPreviousCharacters(script, stringStartIndex - 1);
-                        int charID = ParseFunctionCallAndFindCharacterID(previousFuncCall);
-                        if (charID >= 0)
+                        int charID;
+                        if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
                             string scriptAfterString = script.Substring(stringEndIndex);

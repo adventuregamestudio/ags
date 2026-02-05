@@ -131,6 +131,7 @@ namespace AGS.Types
         private AndroidBuildFormat _androidBuildFormat = AndroidBuildFormat.ApkEmbedded;
         private string _translationIncludeScriptPrefix = string.Empty;
         private string _translationExcludeScriptPrefix = string.Empty;
+        private string _translationExcludeFunctionCall = string.Empty;
 
         /// <summary>
         /// Helper function to validate the BuildTargets string. Excludes data file target
@@ -1340,6 +1341,16 @@ namespace AGS.Types
         {
             get { return _translationExcludeScriptPrefix; }
             set { _translationExcludeScriptPrefix = value; }
+        }
+
+        [DisplayName("Exclude script function calls")]
+        [Description("Comma-separated list of script functions, which string arguments should be excluded from Translation file.")]
+        [Category("Translation")]
+        [DefaultValue("")]
+        public string TranslationExcludeFunctionCall
+        {
+            get { return _translationExcludeFunctionCall; }
+            set { _translationExcludeFunctionCall = value; }
         }
 
 

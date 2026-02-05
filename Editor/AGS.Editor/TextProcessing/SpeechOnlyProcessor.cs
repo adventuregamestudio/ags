@@ -16,7 +16,13 @@ namespace AGS.Editor
 			_speechableFunctionCalls = speechableFunctionCalls;
 		}
 
-		protected override int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
+        protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
+        {
+            characterID = ParseFunctionCallAndFindCharacterID(scriptCodeExtract);
+            return characterID >= 0;
+        }
+
+		private int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
 		{
 			foreach (string nameToSearchFor in _speechableFunctionCalls.Keys)
 			{

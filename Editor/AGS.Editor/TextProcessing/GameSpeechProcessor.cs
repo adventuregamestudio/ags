@@ -20,8 +20,8 @@ namespace AGS.Editor
         private bool _makesChanges;
         private bool _processHotspotAndObjectDescriptions;
 
-        protected abstract string CreateSpeechLine(int speakingCharacter, string text);
-        protected abstract int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract);
+        protected abstract string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType);
+        protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
 
         public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges, bool processHotspotAndObjectDescriptions)
         {
@@ -57,7 +57,7 @@ namespace AGS.Editor
             {
                 case GameTextType.DialogOption:
                 case GameTextType.Message:
-                    return CreateSpeechLine(characterID, text);
+                    return CreateSpeechLine(characterID, text, textType);
                 case GameTextType.DialogScript:
                     return ProcessDialogScript(text);
                 case GameTextType.Script:
@@ -65,7 +65,7 @@ namespace AGS.Editor
                 case GameTextType.ItemDescription:
                     if (_processHotspotAndObjectDescriptions)
                     {
-                        return CreateSpeechLine(characterID, text);
+                        return CreateSpeechLine(characterID, text, textType);
                     }
                     break;
             }
@@ -170,13 +170,13 @@ namespace AGS.Editor
                     {
                         int stringEndIndex = index;
                         string previousFuncCall = GetPreviousCharacters(script, stringStartIndex - 1);
-                        int charID = ParseFunctionCallAndFindCharacterID(previousFuncCall);
-                        if (charID >= 0)
+                        int charID;
+                        if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
                             string scriptAfterString = script.Substring(stringEndIndex);
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(charID, mainString);
+                            string modifiedString = CreateSpeechLine(charID, mainString, GameTextType.Script);
                             script = scriptBeforeString + modifiedString + scriptAfterString;
                             index = stringStartIndex + modifiedString.Length + 1;
                         }
@@ -218,7 +218,7 @@ namespace AGS.Editor
                     if (charID >= 0)
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
-                        originalLine = string.Format("{0}: {1}", characterName, CreateSpeechLine(charID, lineText));
+                        originalLine = string.Format("{0}: {1}", characterName, CreateSpeechLine(charID, lineText, GameTextType.DialogScript));
                     }
                 }
 

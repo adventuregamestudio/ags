@@ -1,18 +1,25 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
+using System.Linq;
 
 namespace AGS.Editor
 {
     public class TranslationSourceProcessor : GameSpeechProcessor
     {
         private Dictionary<string, string> _linesProcessed;
+        private string _includeScriptPrefix;
+        private string _excludeScriptPrefix;
+        private string[] _excludeFunctionCalls;
 
         public TranslationSourceProcessor(Game game, CompileMessages errors) 
             : base(game, errors, false, true)
         {
+            _includeScriptPrefix = game.Settings.TranslationIncludeScriptPrefix;
+            _excludeScriptPrefix = game.Settings.TranslationExcludeScriptPrefix;
+            _excludeFunctionCalls = game.Settings.TranslationExcludeFunctionCall.Split(',')
+                .Select((s) => s.Trim()).Where((s) => !string.IsNullOrEmpty(s)).ToArray();
+
             _linesProcessed = new Dictionary<string, string>();
         }
 
@@ -21,25 +28,44 @@ namespace AGS.Editor
             get { return _linesProcessed.Keys; }
         }
 
-        protected override int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
+        protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
         {
             // dummy character ID 0, because we don't really care
-            return 0;
+            characterID = 0;
+
+            foreach (string fn in _excludeFunctionCalls)
+            {
+                if (scriptCodeExtract.Contains(fn))
+                    return false;
+            }
+            return true;
         }
 
-        protected override string CreateSpeechLine(int speakingCharacter, string text)
+        protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
         {
             // ignore blank strings and any that start with // (since they
             // conflict with comments in the translation file)
-            if ((text.Trim().Length > 0) && (!text.StartsWith("//")))
+            if (!string.IsNullOrWhiteSpace(text) && (!text.StartsWith("//")))
             {
-                if (!_linesProcessed.ContainsKey(text))
+                bool include = true;
+                if (textType == GameTextType.Script || textType == GameTextType.DialogScript)
                 {
-                    _linesProcessed.Add(text, text);
+                    if (((_includeScriptPrefix != string.Empty) && !text.StartsWith(_includeScriptPrefix))
+                        || ((_excludeScriptPrefix != string.Empty) && text.StartsWith(_excludeScriptPrefix)))
+                    {
+                        include = false;
+                    }
+                }
+
+                if (include)
+                {
+                    if (!_linesProcessed.ContainsKey(text))
+                    {
+                        _linesProcessed.Add(text, text);
+                    }
                 }
             }
             return text;
         }
-
     }
 }

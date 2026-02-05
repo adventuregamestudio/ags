@@ -39,12 +39,24 @@ namespace AGS.Editor
             ApplySort(0, true);
         }
 
-        protected void ApplySort(int column, bool ascending)
+        public void ApplySort(int column, bool ascending)
         {
             ListViewItemSorter = new ItemComparer(column, ascending);
             _selectedColumn = column;
             _selectedColumnAscending = ascending;
             Sort();
+
+            if (Created)
+            {
+                this.SetSortIcon(_selectedColumn, _selectedColumnAscending ? SortOrder.Ascending : SortOrder.Descending);
+            }
+        }
+
+        protected override void OnCreateControl()
+        {
+            base.OnCreateControl();
+
+            this.SetSortIcon(_selectedColumn, _selectedColumnAscending ? SortOrder.Ascending : SortOrder.Descending);
         }
 
         protected override void OnColumnClick(ColumnClickEventArgs e)

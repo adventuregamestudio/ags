@@ -214,6 +214,7 @@
     <Compile Include="GUI\LineInBetween.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="GUI\ListViewExtensions.cs" />
     <Compile Include="GUI\LogPanel.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -22,7 +22,7 @@ namespace AGS.Editor
             return 0;
         }
 
-        protected override string CreateSpeechLine(int speakingCharacter, string text)
+        protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
         {
             if ((_translationToUse.ContainsKey(text)) &&
                 (_translationToUse[text].Length > 0))

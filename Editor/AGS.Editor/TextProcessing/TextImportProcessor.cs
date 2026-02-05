@@ -16,10 +16,11 @@ namespace AGS.Editor
             _translationToUse = translationToUse;
         }
 
-        protected override int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
+        protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
         {
             // dummy character ID 0, because we don't really care
-            return 0;
+            characterID = 0;
+            return true;
         }
 
         protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)

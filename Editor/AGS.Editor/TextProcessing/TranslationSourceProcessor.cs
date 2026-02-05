@@ -1,8 +1,7 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
+using System.Linq;
 
 namespace AGS.Editor
 {
@@ -11,12 +10,15 @@ namespace AGS.Editor
         private Dictionary<string, string> _linesProcessed;
         private string _includeScriptPrefix;
         private string _excludeScriptPrefix;
+        private string[] _excludeFunctionCalls;
 
         public TranslationSourceProcessor(Game game, CompileMessages errors) 
             : base(game, errors, false, true)
         {
             _includeScriptPrefix = game.Settings.TranslationIncludeScriptPrefix;
             _excludeScriptPrefix = game.Settings.TranslationExcludeScriptPrefix;
+            _excludeFunctionCalls = game.Settings.TranslationExcludeFunctionCall.Split(',')
+                .Select((s) => s.Trim()).Where((s) => !string.IsNullOrEmpty(s)).ToArray();
 
             _linesProcessed = new Dictionary<string, string>();
         }
@@ -26,10 +28,17 @@ namespace AGS.Editor
             get { return _linesProcessed.Keys; }
         }
 
-        protected override int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
+        protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
         {
             // dummy character ID 0, because we don't really care
-            return 0;
+            characterID = 0;
+
+            foreach (string fn in _excludeFunctionCalls)
+            {
+                if (scriptCodeExtract.Contains(fn))
+                    return false;
+            }
+            return true;
         }
 
         protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)

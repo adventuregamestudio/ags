@@ -30,16 +30,14 @@ namespace AGS.Editor
         public GlobalVariablesEditor(Game game)
         {
             InitializeComponent();
-            lvwWords.ListViewItemSorter = new GlobalVariableComparer();
             _game = game;
             _variables = game.GlobalVariables;
 
-            lvwWords.Sorting = SortOrder.Ascending;
             foreach (GlobalVariable variable in _variables.ToList())
             {
-                lvwWords.Items.Add(CreateListItemFromVariable(variable));
+                lvwVars.Items.Add(CreateListItemFromVariable(variable));
             }
-            lvwWords.Sort();
+            lvwVars.Sort();
 
             try
             {
@@ -50,14 +48,14 @@ namespace AGS.Editor
 
         public void SelectGlobalVariable(string variableName)
         {
-            ListViewItem item = lvwWords.FindItemWithText(variableName);
+            ListViewItem item = lvwVars.FindItemWithText(variableName);
             if (item == null)
             {
                 Factory.GUIController.ShowMessage("Did not find " + variableName + "!", MessageBoxIcon.Exclamation);
                 return;
             }
-            lvwWords.FocusedItem = item;
-            lvwWords.TopItem = item;
+            lvwVars.FocusedItem = item;
+            lvwVars.TopItem = item;
             item.Selected = true;
         }
 
@@ -68,9 +66,9 @@ namespace AGS.Editor
         
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
-            if (lvwWords.SelectedItems.Count > 0)
+            if (lvwVars.SelectedItems.Count > 0)
             {
-                UpdateListItemFromVariableObject(lvwWords.SelectedItems[0]);
+                UpdateListItemFromVariableObject(lvwVars.SelectedItems[0]);
             }
         }
 
@@ -136,7 +134,7 @@ namespace AGS.Editor
             if (this.ClientSize.Height > mainFrame.Top + 40)
             {
                 mainFrame.Size = new Size(mainFrame.Width, this.ClientSize.Height - mainFrame.Top - 5);
-                lvwWords.Size = new Size(lvwWords.Width, mainFrame.ClientSize.Height - lvwWords.Top - 10);
+                lvwVars.Size = new Size(lvwVars.Width, mainFrame.ClientSize.Height - lvwVars.Top - 10);
             }
         }
 
@@ -144,9 +142,9 @@ namespace AGS.Editor
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             GlobalVariable selectedVariable = null;
-            if (lvwWords.SelectedItems.Count > 0)
+            if (lvwVars.SelectedItems.Count > 0)
             {
-                selectedVariable = ((GlobalVariable)lvwWords.SelectedItems[0].Tag);
+                selectedVariable = ((GlobalVariable)lvwVars.SelectedItems[0].Tag);
             }
             if ((item.Name == MENU_ITEM_EDIT_WORD) && (selectedVariable != null))
             {
@@ -168,7 +166,7 @@ namespace AGS.Editor
             {
                 if (Factory.GUIController.ShowQuestion("Are you sure you want to remove the variable '" + selectedVariable.Name + "'? If you are using it in your scripts, your game will no longer compile.", MessageBoxIcon.Warning) == DialogResult.Yes)
                 {
-                    lvwWords.Items.RemoveAt(lvwWords.SelectedIndices[0]);
+                    lvwVars.Items.RemoveAt(lvwVars.SelectedIndices[0]);
                     _variables.Remove(selectedVariable);
                     OnGlobalVariableChanged();
                 }
@@ -185,7 +183,7 @@ namespace AGS.Editor
                     _variables.VariableRenamed(variable, nameWas);
                 }
 
-                FillListItemFromVariable(lvwWords.SelectedItems[0], variable);
+                FillListItemFromVariable(lvwVars.SelectedItems[0], variable);
                 OnGlobalVariableChanged();
             }
         }
@@ -201,11 +199,11 @@ namespace AGS.Editor
         {
             _variables.Add(variable);
             int addAtIndex = 0;
-            if (lvwWords.SelectedIndices.Count > 0)
+            if (lvwVars.SelectedIndices.Count > 0)
             {
-                addAtIndex = lvwWords.SelectedIndices[0] + 1;
+                addAtIndex = lvwVars.SelectedIndices[0] + 1;
             }
-            ListViewItem addedItem = lvwWords.Items.Insert(addAtIndex, CreateListItemFromVariable(variable));
+            ListViewItem addedItem = lvwVars.Items.Insert(addAtIndex, CreateListItemFromVariable(variable));
             addedItem.Selected = true;
             addedItem.EnsureVisible();
             OnGlobalVariableChanged();
@@ -215,7 +213,7 @@ namespace AGS.Editor
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
-            if (lvwWords.SelectedItems.Count > 0)
+            if (lvwVars.SelectedItems.Count > 0)
             {
                 menu.Items.Add(new ToolStripMenuItem("Edit...", null, onClick, MENU_ITEM_EDIT_WORD));
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, onClick, MENU_ITEM_DELETE_WORD));
@@ -224,26 +222,18 @@ namespace AGS.Editor
             }
             menu.Items.Add(new ToolStripMenuItem("Add new variable...", null, onClick, MENU_ITEM_ADD_WORD));
 
-            menu.Show(lvwWords, menuPosition);
+            menu.Show(lvwVars, menuPosition);
         }
 
-        private void lvwWords_ItemActivate(object sender, EventArgs e)
+        private void lvwVars_ItemActivate(object sender, EventArgs e)
         {
-            if (lvwWords.SelectedItems.Count > 0)
+            if (lvwVars.SelectedItems.Count > 0)
             {
-                EditSelectedVariable((GlobalVariable)lvwWords.SelectedItems[0].Tag);
+                EditSelectedVariable((GlobalVariable)lvwVars.SelectedItems[0].Tag);
             }
         }
 
-        private class GlobalVariableComparer : IComparer
-        {
-            public int Compare(object x, object y)
-            {
-                return ((GlobalVariable)((ListViewItem)x).Tag).Name.CompareTo(((GlobalVariable)((ListViewItem)y).Tag).Name);
-            }
-        }
-
-        private void lvwWords_MouseUp(object sender, MouseEventArgs e)
+        private void lvwVars_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -255,7 +245,7 @@ namespace AGS.Editor
         {
             t.ControlHelper(this, "global-variables-editor");
             t.GroupBoxHelper(mainFrame, "global-variables-editor/box");
-            t.ListViewHelper(lvwWords, "global-variables-editor/list");
+            t.ListViewHelper(lvwVars, "global-variables-editor/list");
         }
 
         private void GlobalVariablesEditor_Load(object sender, EventArgs e)

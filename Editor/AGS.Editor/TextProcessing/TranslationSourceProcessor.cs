@@ -9,10 +9,15 @@ namespace AGS.Editor
     public class TranslationSourceProcessor : GameSpeechProcessor
     {
         private Dictionary<string, string> _linesProcessed;
+        private string _includeScriptPrefix;
+        private string _excludeScriptPrefix;
 
         public TranslationSourceProcessor(Game game, CompileMessages errors) 
             : base(game, errors, false, true)
         {
+            _includeScriptPrefix = game.Settings.TranslationIncludeScriptPrefix;
+            _excludeScriptPrefix = game.Settings.TranslationExcludeScriptPrefix;
+
             _linesProcessed = new Dictionary<string, string>();
         }
 
@@ -27,19 +32,31 @@ namespace AGS.Editor
             return 0;
         }
 
-        protected override string CreateSpeechLine(int speakingCharacter, string text)
+        protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
         {
             // ignore blank strings and any that start with // (since they
             // conflict with comments in the translation file)
-            if ((text.Trim().Length > 0) && (!text.StartsWith("//")))
+            if (!string.IsNullOrWhiteSpace(text) && (!text.StartsWith("//")))
             {
-                if (!_linesProcessed.ContainsKey(text))
+                bool include = true;
+                if (textType == GameTextType.Script || textType == GameTextType.DialogScript)
                 {
-                    _linesProcessed.Add(text, text);
+                    if (((_includeScriptPrefix != string.Empty) && !text.StartsWith(_includeScriptPrefix))
+                        || ((_excludeScriptPrefix != string.Empty) && text.StartsWith(_excludeScriptPrefix)))
+                    {
+                        include = false;
+                    }
+                }
+
+                if (include)
+                {
+                    if (!_linesProcessed.ContainsKey(text))
+                    {
+                        _linesProcessed.Add(text, text);
+                    }
                 }
             }
             return text;
         }
-
     }
 }

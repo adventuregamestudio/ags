@@ -28,7 +28,7 @@ namespace AGS.Editor
 			_linesInOrder = new List<GameTextLine>();
 		}
 
-		protected override string CreateSpeechLine(int speakingCharacter, string text)
+		protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
 		{
 			if (text.TrimStart().StartsWith("&"))
 			{

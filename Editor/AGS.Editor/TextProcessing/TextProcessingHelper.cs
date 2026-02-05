@@ -34,7 +34,7 @@ namespace AGS.Editor
                 {
                     // Only cause it to flag Modified if we changed it
                     script.Script.Text = newScript;
-                }                
+                }
             }
 
             ProcessPropertySchema(processor, game.PropertySchema, errors);

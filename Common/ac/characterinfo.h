@@ -184,6 +184,9 @@ struct CharacterInfo
     // a path or turning around; the latter may be either turning to face something,
     // or turning between move path segments.
     inline bool is_moving() const { return walking > 0; }
+    // Tells if the character is turning; this may be either just turning on spot,
+    // or turning between move path segments.
+    inline bool is_turning() const { return walking >= TURNING_AROUND; }
     // Tells if the character has a valid move order, meaning it's actually
     // moving along the path (and not e.g. turning on spot to face something).
     inline bool is_moving_onpath() const { return get_movelist_id() > 0; }

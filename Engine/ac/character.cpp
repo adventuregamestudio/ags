@@ -974,7 +974,10 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
 void Character_StopMoving(CharacterInfo *chi)
 {
-    Character_StopMovingEx(chi, chi->is_moving_onpath() && !mls[chi->get_movelist_id()].IsStageDirect());
+    Character_StopMovingEx(chi, chi->is_moving_onpath() && !mls[chi->get_movelist_id()].IsStageDirect()
+        // Backwards compatible hack, required for some old games to not get position glitches:
+        // prevents snapping to walkable area if character was *turning* at a path's corner when the stop occured.
+        && ((loaded_game_file_version >= kGameVersion_362_12) || (!chi->is_turning())));
 }
 
 void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)

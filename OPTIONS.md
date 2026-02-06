@@ -194,7 +194,7 @@ Following OPTIONS are supported when running from command line:
   * game scaling:
     * proportional, round, stretch,
     * or an explicit integer multiplier.
-* --loadsavedgame \<filepath\> - load savegame on startup.
+* --loadsavedgame \<filepath or number\> - load game save on startup.
 * --localuserconf - read and write user config in the game's directory rather than using standard system path. Game directory must be writeable.
 * --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
 * --log-OUTPUT=+GROUPLIST[:LEVEL] - setup logging to the chosen OUTPUT with given log groups and verbosity levels (see explanation for the related config option).

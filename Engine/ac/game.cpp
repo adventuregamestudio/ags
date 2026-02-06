@@ -335,10 +335,30 @@ String get_save_game_path(int slotNum)
     return Path::ConcatPaths(saveGameDirectory, get_save_game_filename(slotNum));
 }
 
-bool get_save_slotnum(const String &filename, int &slot)
+bool get_save_filepath_and_slot(const String &input_savepath, String &filepath, int &slot)
 {
+    if (StrUtil::StringToInt(input_savepath, slot, -1) == StrUtil::kNoError)
+    {
+        filepath = get_save_game_path(slot);
+        return true;
+    }
+
+    const String filename = Path::GetFilename(input_savepath);
     if (filename.CompareLeftNoCase("agssave.") == 0)
-        return sscanf(filename.GetCStr(), "agssave.%03d", &slot) == 1;
+    {
+        if (sscanf(filename.GetCStr(), "agssave.%03d", &slot) == 1)
+        {
+            if (Path::IsOnlyFilename(input_savepath) && !File::IsFile(input_savepath))
+            {
+                filepath = Path::ConcatPaths(saveGameDirectory, input_savepath);
+            }
+            else
+            {
+                filepath = input_savepath;
+            }
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1280,7 +1300,7 @@ bool try_restore_save(const Common::String &path, int slot, bool startup)
         // this is why we tell engine to shutdown if that happened.
         if (data_overwritten)
             quitprintf("%s", error.GetCStr());
-        else
+        else if (!startup)
             Display("%s", error.GetCStr());
         return false;
     }

@@ -155,8 +155,11 @@ Common::String get_save_game_suffix();
 void set_save_game_suffix(const Common::String &suffix);
 // Returns full path to the save for the given slot number
 Common::String get_save_game_path(int slotNum);
-// Parses filename and retrieves save slot number, if present
-bool get_save_slotnum(const Common::String &filename, int &slot);
+// Parses an input filepath and retrieves final path and respective save slot number, if possible.
+// * if input contains an absolute filepath, then uses it directly;
+// * if input contains a relative filename, then tests both cwd and game's save directory;
+// * if input contains a number, then creates a path to the save file with that number
+bool get_save_filepath_and_slot(const Common::String &input_savepath, Common::String &filepath, int &slot);
 // Try calling built-in restore game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void restore_game_dialog();

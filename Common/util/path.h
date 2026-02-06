@@ -66,6 +66,8 @@ namespace Path
     bool    IsSameOrSubDir(const String &parent, const String &path);
     // Tells if the path is relative.
     bool    IsRelativePath(const String &path);
+    // Tells if this path has only filename and no directory parts
+    bool    IsOnlyFilename(const String &path);
 
     // Makes a path have only '/' slashes; this is to make it easier to work
     // with path, knowing it contains only one type of directory separators

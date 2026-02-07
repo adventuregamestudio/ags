@@ -526,14 +526,10 @@ void QuitGame(int dialog) {
     quit("|You have exited.");
 }
 
-
-
-
-void SetRestartPoint() {
-    save_game(RESTART_POINT_SAVE_GAME_NUMBER, "Restart Game Auto-Save");
+void SetRestartPoint()
+{
+    SaveGameSlot2(RESTART_POINT_SAVE_GAME_NUMBER, "Restart Game Auto-Save");
 }
-
-
 
 void SetGameSpeed(int newspd)
 {

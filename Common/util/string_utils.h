@@ -148,6 +148,15 @@ namespace StrUtil
         return def_val;
     }
 
+    // Safely selects a c-string out of array using an arbitrary option index;
+    // returns def_val if index is out of bounds.
+    // TODO: make this a generic <T> function and move to algorithm utils?
+    template<std::size_t SIZE>
+    const char *SelectCStr(const std::array<const char *, SIZE> &arr, int option, const char *def_val = "")
+    {
+        return (option >= 0 && static_cast<size_t>(option) < SIZE) ? arr[option] : def_val;
+    }
+
     // Convert utf-8 string to ascii/ansi representation;
     // writes into out_cstr buffer limited by out_sz bytes; returns bytes written.
     size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz);

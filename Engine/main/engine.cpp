@@ -587,10 +587,16 @@ HError engine_init_sprites()
     }
     auto index_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName);
     HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
-    if (!err) 
+    if (!err)
     {
         return err;
     }
+
+    const char *compress_desc = StrUtil::SelectCStr<kNumSprCompressTypes>(
+        CstrArr<kNumSprCompressTypes>{"none", "rle", "lzw", "deflate"},
+        spriteset.GetSpriteCompression(), "unknown");
+    Debug::Printf("Sprite file info: compression: %s, storage flags: 0x%08x, total sprites: %zu",
+        compress_desc, spriteset.GetStoreFlags(), spriteset.GetSpriteSlotCount());
     if (usetup.SpriteCacheSize > 0)
         spriteset.SetMaxCacheSize(usetup.SpriteCacheSize * 1024);
     Debug::Printf("Sprite cache set: %zu KB", spriteset.GetMaxCacheSize() / 1024);

@@ -1012,8 +1012,6 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
         Character_PlaceOnWalkableArea(chi);
     }
 
-    debug_script_log("%s: stop moving", chi->scrname);
-
     // If the character is currently moving, stop them and reset their state
     if (chi->walking > 0)
     {
@@ -1024,6 +1022,7 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
             chi->frame = 0;
         // Restart idle timer
         reset_character_idling_time(chi);
+        debug_script_log("%s: stop moving", chi->scrname);
     }
 
     // Always clear the move-related flags (for safety)

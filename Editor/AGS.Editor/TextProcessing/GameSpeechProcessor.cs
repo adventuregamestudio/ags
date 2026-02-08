@@ -8,27 +8,26 @@ namespace AGS.Editor
 {
     public abstract class GameSpeechProcessor : IGameTextProcessor
     {
-        private const int LOOKBACK_DISTANCE_FOR_FUNCTION_CALL = 35;
-
         protected const string NARRATOR_NAME = "narrator";
         protected const string PLAYER_NAME = "player";
-        private const char NEWLINE_CHAR_1 = '\n';
-        private const char NEWLINE_CHAR_2 = '\r';
 
         protected Game _game;
         protected CompileMessages _errors;
         private bool _makesChanges;
         private bool _processHotspotAndObjectDescriptions;
+        private bool _lookupForOuterFunctionCalls;
 
         protected abstract string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType);
         protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
 
-        public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges, bool processHotspotAndObjectDescriptions)
+        public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges,
+            bool processHotspotAndObjectDescriptions, bool lookupForOuterFunctionCalls)
         {
             _game = game;
             _errors = errors;
             _makesChanges = makesChanges;
             _processHotspotAndObjectDescriptions = processHotspotAndObjectDescriptions;
+            _lookupForOuterFunctionCalls = lookupForOuterFunctionCalls;
         }
 
         public bool MakesChanges
@@ -87,64 +86,13 @@ namespace AGS.Editor
             return false;
         }
 
-        private string GetPreviousCharacters(string script, int startingFromIndex)
-        {
-            int previousCodeStart = startingFromIndex;
-            for (int i = 0; (i < LOOKBACK_DISTANCE_FOR_FUNCTION_CALL) && (previousCodeStart >= 0); i++)
-            {
-                if ((script[previousCodeStart] == NEWLINE_CHAR_1) ||
-                    (script[previousCodeStart] == NEWLINE_CHAR_2))
-                {
-                    previousCodeStart++;
-                    break;
-                }
-                previousCodeStart--;
-            }
-            if (previousCodeStart < 0)
-            {
-                previousCodeStart = 0;
-            }
-            return script.Substring(previousCodeStart, (startingFromIndex - previousCodeStart) + 1);
-        }
-
-		/// <summary>
-		/// Skip comments in the script that might have speech marks
-		/// in them, which could confuse the parser.
-		/// </summary>
-		private int SkipComments(string script, int index)
-		{
-			if ((index < script.Length - 1) &&
-			    (script[index] == '/') && (script[index + 1] == '/'))
-			{
-				while ((index < script.Length) &&
-					(script[index] != 10) &&
-					(script[index] != 13))
-				{
-					index++;
-				}
-			}
-			if ((index < script.Length - 1) &&
-				(script[index] == '/') && (script[index + 1] == '*'))
-			{
-				index += 2;
-				while (index < script.Length - 1)
-				{
-					if ((script[index] == '*') && (script[index + 1] == '/'))
-					{
-						break;
-					}
-					index++;
-				}
-			}
-			return index;
-		}
-
         private string ProcessScript(string script)
         {
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
             int index = 0;
             while (index < script.Length)
             {
-				index = SkipComments(script, index);
+				index = ScriptParsing.SkipComments(state, index);
 
                 if ((index < script.Length) && 
                     ((script[index] == '"') || (script[index] == '\'')))
@@ -169,7 +117,7 @@ namespace AGS.Editor
                     if (stringTerminator == '"')
                     {
                         int stringEndIndex = index;
-                        string previousFuncCall = GetPreviousCharacters(script, stringStartIndex - 1);
+                        string previousFuncCall = ScriptParsing.GetCurrentFunctionCall(state, stringStartIndex, _lookupForOuterFunctionCalls);
                         int charID;
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
@@ -177,9 +125,9 @@ namespace AGS.Editor
                             string scriptAfterString = script.Substring(stringEndIndex);
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
                             string modifiedString = CreateSpeechLine(charID, mainString, GameTextType.Script);
-                            script = scriptBeforeString + modifiedString + scriptAfterString;
-                            index = stringStartIndex + modifiedString.Length + 1;
-                        }
+                                script = scriptBeforeString + modifiedString + scriptAfterString;
+                                index = stringStartIndex + modifiedString.Length + 1;
+                            }
                     }
                 }
                 index++;

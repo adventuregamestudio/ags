@@ -13,7 +13,7 @@ namespace AGS.Editor
         private string[] _excludeFunctionCalls;
 
         public TranslationSourceProcessor(Game game, CompileMessages errors) 
-            : base(game, errors, false, true)
+            : base(game, errors, makesChanges: false, processHotspotAndObjectDescriptions: true, lookupForOuterFunctionCalls: true)
         {
             _includeScriptPrefix = game.Settings.TranslationIncludeScriptPrefix;
             _excludeScriptPrefix = game.Settings.TranslationExcludeScriptPrefix;

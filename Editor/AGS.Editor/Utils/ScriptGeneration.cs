@@ -9,7 +9,7 @@ namespace AGS.Editor
     /// <summary>
     /// Helper class ScriptGeneration provides methods for automatic script editing.
     /// </summary>
-    public class ScriptGeneration
+    public static class ScriptGeneration
     {
         // Regex pattern for searching for event handlers in script (typeless functions)
         // NOTE: the selection of return types is following:

@@ -856,17 +856,6 @@ namespace AGS.Editor
             return "Room Editor";
         }
 
-		private bool DoesThisPanelHaveFocus()
-		{
-            return this.ActiveControl != null && this.ActiveControl.Focused;
-            /*if (Utilities.IsMonoRunning())
-            {
-                return this.ActiveControl.Focused;
-            }
-			Control focused = Utilities.GetControlThatHasFocus();
-			return (focused == this.ActiveControl);*/
-		}
-
 		private bool ProcessPanKeyPress(Keys keyData)
         {
             switch (keyData)

@@ -13,12 +13,16 @@ namespace AGS.Editor
         private string[] _excludeFunctionCalls;
 
         public TranslationSourceProcessor(Game game, CompileMessages errors) 
-            : base(game, errors, makesChanges: false, processHotspotAndObjectDescriptions: true, lookupForOuterFunctionCalls: true)
+            : base(game, errors, makesChanges: false, processHotspotAndObjectDescriptions: true,
+                  lookupForFunctionCalls: true, lookupForOuterFunctionCalls: true)
         {
             _includeScriptPrefix = game.Settings.TranslationIncludeScriptPrefix;
             _excludeScriptPrefix = game.Settings.TranslationExcludeScriptPrefix;
             _excludeFunctionCalls = game.Settings.TranslationExcludeFunctionCall.Split(',')
                 .Select((s) => s.Trim()).Where((s) => !string.IsNullOrEmpty(s)).ToArray();
+
+            // Only parse function calls if there's a need to exclude any
+            LookupForFunctionCalls = _excludeFunctionCalls.Length > 0;
 
             _linesProcessed = new Dictionary<string, string>();
         }
@@ -32,6 +36,9 @@ namespace AGS.Editor
         {
             // dummy character ID 0, because we don't really care
             characterID = 0;
+
+            if (string.IsNullOrEmpty(scriptCodeExtract))
+                return true; // not a function call, use always
 
             foreach (string fn in _excludeFunctionCalls)
             {

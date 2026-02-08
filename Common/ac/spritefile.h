@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 #include "core/types.h"
+#include "gfx/bitmapdata.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/stream.h"
@@ -34,8 +35,6 @@ namespace AGS
 {
 namespace Common
 {
-
-class Bitmap;
 
 // TODO: research old version differences
 enum SpriteFileVersion
@@ -149,7 +148,7 @@ public:
                                     sprkey_t topmost, std::vector<Size> &metrics);
 
     // Loads an image data and creates a ready bitmap
-    HError      LoadSprite(sprkey_t index, Bitmap *&sprite);
+    HError      LoadSprite(sprkey_t index, PixelBuffer &sprite);
     // Loads a raw sprite element data into the buffer, stores header info separately
     HError      LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
 
@@ -195,7 +194,7 @@ public:
     // optionally hint how many sprites will be written.
     void Begin(int store_flags, SpriteCompression compress, sprkey_t last_slot = -1);
     // Writes a bitmap into file, compressing if necessary
-    void WriteBitmap(const Bitmap *image);
+    void WriteBitmap(const BitmapData &image);
     // Writes an empty slot marker
     void WriteEmptySlot();
     // Writes a raw sprite data without any additional processing
@@ -222,11 +221,11 @@ private:
 
 // Saves all sprites to file; fills in index data for external use.
 // TODO: refactor to be able to save main file and index file separately (separate function for gather data?)
-// Accepts available sprites as pairs of bool and Bitmap pointer, where boolean value
-// tells if sprite exists and Bitmap pointer may be null;
+// Accepts available sprites as pairs of bool and BitmapData buffers, where boolean value
+// tells if sprite exists, and BitmapData may be invalid;
 // If a sprite's bitmap is missing, it will try reading one from the input file stream.
 int SaveSpriteFile(const String &save_to_file,
-    const std::vector<std::pair<bool, Bitmap*>> &sprites,
+    const std::vector<std::pair<bool, BitmapData>> &sprites,
     SpriteFile *read_from_file, // optional file to read missing sprites from
     int store_flags, SpriteCompression compress, SpriteFileIndex &index);
 // Saves sprite index table in a separate file

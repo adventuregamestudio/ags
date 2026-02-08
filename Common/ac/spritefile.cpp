@@ -16,7 +16,6 @@
 #include <array>
 #include <time.h>
 #include "core/assetmanager.h"
-#include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
@@ -61,15 +60,15 @@ static size_t lookup_palette(uint32_t col, uint32_t palette[256], uint32_t ncols
 // Converts a 16/32-bit image into the indexed 8-bit pixel data with palette;
 // NOTE: the palette will contain colors in the same format as the source image.
 // only succeeds if the total number of colors used in the image is < 257.
-static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_data,
+static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &dst_data,
     uint32_t palette[256], uint32_t &pal_count)
 {
-    const int src_bpp = image->GetBPP();
+    const int src_bpp = image.GetBytesPerPixel();
     if (src_bpp < 2) { assert(0); return false; }
-    const size_t src_size = image->GetWidth() * image->GetHeight() * image->GetBPP();
-    const size_t dst_size = image->GetWidth() * image->GetHeight();
+    const size_t src_size = image.GetWidth() * image.GetHeight() * image.GetBytesPerPixel();
+    const size_t dst_size = image.GetWidth() * image.GetHeight();
     dst_data.resize(dst_size);
-    const uint8_t *src = image->GetData(), *src_end = src + src_size;
+    const uint8_t *src = image.GetData(), *src_end = src + src_size;
     uint8_t *dst = &dst_data[0], *dst_end = dst + dst_size;
     pal_count = 0;
 
@@ -103,15 +102,15 @@ static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_d
 
 // Unpacks an indexed image's pixel data into the 16/32-bit image;
 // NOTE: the palette is expected to contain colors in the same format as the destination.
-static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_size,
+static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t data_size,
                                 const std::array<uint32_t, 256> &palette, uint32_t pal_count)
 {
     assert(pal_count > 0 && pal_count <= 256);
     if (pal_count == 0 || pal_count > 256) return; // meaningless
 
-    const uint8_t bpp = static_cast<uint8_t>(image->GetBPP());
-    const size_t dst_size = image->GetWidth() * image->GetHeight() * image->GetBPP();
-    uint8_t *dst = image->GetDataForWriting();
+    const uint8_t bpp = static_cast<uint8_t>(image.GetBytesPerPixel());
+    const size_t dst_size = image.GetWidth() * image.GetHeight() * image.GetBytesPerPixel();
+    uint8_t *dst = image.GetData();
     uint8_t const *dst_end = dst + dst_size;
 
     switch (bpp)
@@ -383,9 +382,9 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<
     return HError::None();
 }
 
-HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
+HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
 {
-    sprite = nullptr;
+    sprite = {};
     if (index < 0 || (size_t)index >= _spriteData.size())
         return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
             index, 0, _spriteData.size() - 1));
@@ -399,14 +398,14 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     SpriteDatHeader hdr;
     ReadSprHeader(hdr, _stream.get(), _version, _compress);
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
-    int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
-    std::unique_ptr<Bitmap> image(BitmapHelper::CreateBitmap(w, h, bpp * 8));
-    if (image == nullptr)
+    const int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
+    PixelBuffer image(w, h, ColorDepthToPixelFormat(bpp * 8));
+    if (!image)
     {
         return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d%d).",
             index, w, h, bpp * 8));
     }
-    ImBufferPtr im_data(image->GetDataForWriting(), w * h * bpp, bpp);
+    ImBufferPtr im_data(image.GetData(), w * h * bpp, bpp);
     // (Optional) Handle storage options, reverse
     std::vector<uint8_t> indexed_buf;
     std::array<uint32_t, 256> palette {};
@@ -472,10 +471,10 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     // Finally revert storage options
     if (pal_bpp > 0)
     {
-        UnpackIndexedBitmap(image.get(), im_data.Buf, im_data.Size, palette, hdr.PalCount);
+        UnpackIndexedBitmap(image, im_data.Buf, im_data.Size, palette, hdr.PalCount);
     }
 
-    sprite = image.release(); // FIXME: pass unique_ptr in this function
+    sprite = std::move(image);
     _curPos = index + 1; // mark correct pos
     return HError::None();
 }
@@ -528,7 +527,7 @@ void SpriteFile::SeekToSprite(sprkey_t index)
 
 
 // Finds the topmost occupied slot index
-static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, Bitmap*>> &sprites)
+static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, BitmapData>> &sprites)
 {
     sprkey_t topmost = -1;
     for (sprkey_t i = 0; i < static_cast<sprkey_t>(sprites.size()); ++i)
@@ -538,7 +537,7 @@ static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, Bitmap*>> &s
 }
 
 int SaveSpriteFile(const String &save_to_file,
-    const std::vector<std::pair<bool, Bitmap*>> &sprites,
+    const std::vector<std::pair<bool, BitmapData>> &sprites,
     SpriteFile *read_from_file,
     int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
@@ -550,7 +549,7 @@ int SaveSpriteFile(const String &save_to_file,
     SpriteFileWriter writer(std::move(output));
     writer.Begin(store_flags, compress, lastslot);
 
-    std::unique_ptr<Bitmap> temp_bmp; // for disposing temp sprites
+    PixelBuffer temp_bmp; // for disposing temp sprites
     std::vector<uint8_t> membuf; // for loading raw sprite data
 
     const bool diff_compress =
@@ -566,19 +565,19 @@ int SaveSpriteFile(const String &save_to_file,
             continue;
         }
 
-        Bitmap *image = sprites[i].second;
+        const BitmapData *image = &sprites[i].second;
         // if compression setting is different, load the sprite into memory
         // (otherwise we will be able to simply copy bytes from one file to another
-        if ((image == nullptr) && diff_compress)
+        if ((!*image) && diff_compress)
         {
-            read_from_file->LoadSprite(i, image);
-            temp_bmp.reset(image);
+            read_from_file->LoadSprite(i, temp_bmp);
+            image = &temp_bmp;
         }
 
         // if managed to load an image - save it according the new compression settings
-        if (image != nullptr)
+        if (*image)
         {
-            writer.WriteBitmap(image);
+            writer.WriteBitmap(*image);
             continue;
         }
         else if (diff_compress)
@@ -663,28 +662,28 @@ void SpriteFileWriter::Begin(int store_flags, SpriteCompression compress, sprkey
     }
 }
 
-void SpriteFileWriter::WriteBitmap(const Bitmap *image)
+void SpriteFileWriter::WriteBitmap(const BitmapData &image)
 {
     if (!_out) return;
-    int bpp = image->GetBPP();
-    int w = image->GetWidth();
-    int h = image->GetHeight();
-    ImBufferCPtr im_data(image->GetData(), w * h * bpp, bpp);
+    const int bpp = image.GetBytesPerPixel();
+    const int w = image.GetWidth();
+    const int h = image.GetHeight();
+    ImBufferCPtr im_data(image.GetData(), w * h * bpp, bpp);
 
     // (Optional) Handle storage options
     std::vector<uint8_t> indexed_buf;
     uint32_t palette[256];
     uint32_t pal_count = 0;
     SpriteFormat sformat = kSprFmt_Undefined;
-    if ((_storeFlags & kSprStore_OptimizeForSize) != 0 && (image->GetBPP() > 1))
+    if ((_storeFlags & kSprStore_OptimizeForSize) != 0 && (bpp > 1))
     { // Try to store this sprite as an indexed bitmap
         uint32_t gen_pal_count;
         if (CreateIndexedBitmap(image, indexed_buf, palette, gen_pal_count) && gen_pal_count > 0)
         { // Test the resulting size, and switch if the paletted image is less
-            if (im_data.Size > (indexed_buf.size() + gen_pal_count * image->GetBPP()))
+            if (im_data.Size > (indexed_buf.size() + gen_pal_count * bpp))
             {
                 im_data = ImBufferCPtr(&indexed_buf[0], indexed_buf.size(), 1);
-                sformat = PaletteFormatForBPP(image->GetBPP());
+                sformat = PaletteFormatForBPP(bpp);
                 pal_count = gen_pal_count;
             }
         }

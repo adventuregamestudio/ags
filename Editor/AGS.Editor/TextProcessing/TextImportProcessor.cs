@@ -11,7 +11,7 @@ namespace AGS.Editor
         private Dictionary<string, string> _translationToUse;
 
         public TextImportProcessor(Game game, CompileMessages errors, Dictionary<string, string> translationToUse)
-            : base(game, errors, true, true)
+            : base(game, errors, makesChanges: true, processHotspotAndObjectDescriptions: true, lookupForOuterFunctionCalls: false)
         {
             _translationToUse = translationToUse;
         }

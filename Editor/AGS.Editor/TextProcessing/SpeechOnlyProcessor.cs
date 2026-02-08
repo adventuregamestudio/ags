@@ -11,7 +11,7 @@ namespace AGS.Editor
 
 		public SpeechOnlyProcessor(Game game, CompileMessages errors, bool makesChanges, bool processHotspotAndObjectDescriptions,
 			Dictionary<string, FunctionCallType> speechableFunctionCalls)
-			: base(game, errors, makesChanges, processHotspotAndObjectDescriptions)
+			: base(game, errors, makesChanges, processHotspotAndObjectDescriptions, lookupForOuterFunctionCalls: false)
 		{
 			_speechableFunctionCalls = speechableFunctionCalls;
 		}

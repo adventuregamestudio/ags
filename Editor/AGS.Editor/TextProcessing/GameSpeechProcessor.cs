@@ -15,24 +15,38 @@ namespace AGS.Editor
         protected CompileMessages _errors;
         private bool _makesChanges;
         private bool _processHotspotAndObjectDescriptions;
+        private bool _lookupForFunctionCalls;
         private bool _lookupForOuterFunctionCalls;
 
         protected abstract string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType);
         protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
 
         public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges,
-            bool processHotspotAndObjectDescriptions, bool lookupForOuterFunctionCalls)
+            bool processHotspotAndObjectDescriptions, bool lookupForFunctionCalls, bool lookupForOuterFunctionCalls)
         {
             _game = game;
             _errors = errors;
             _makesChanges = makesChanges;
             _processHotspotAndObjectDescriptions = processHotspotAndObjectDescriptions;
+            _lookupForFunctionCalls = lookupForFunctionCalls;
             _lookupForOuterFunctionCalls = lookupForOuterFunctionCalls;
         }
 
         public bool MakesChanges
         {
             get { return _makesChanges; }
+        }
+
+        protected bool LookupForFunctionCalls
+        {
+            get { return _lookupForFunctionCalls; }
+            set { _lookupForFunctionCalls = value; }
+        }
+
+        protected bool LookupForOuterFunctionCalls
+        {
+            get { return _lookupForOuterFunctionCalls; }
+            set { _lookupForOuterFunctionCalls = value; }
         }
 
         public string ProcessText(string text, GameTextType textType)
@@ -117,17 +131,26 @@ namespace AGS.Editor
                     if (stringTerminator == '"')
                     {
                         int stringEndIndex = index;
-                        string previousFuncCall = ScriptParsing.GetCurrentFunctionCall(state, stringStartIndex, _lookupForOuterFunctionCalls);
+                        string previousFuncCall = _lookupForFunctionCalls ?
+                            ScriptParsing.GetCurrentFunctionCall(state, stringStartIndex, _lookupForOuterFunctionCalls)
+                            : string.Empty;
                         int charID;
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
-                            string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
-                            string scriptAfterString = script.Substring(stringEndIndex);
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
                             string modifiedString = CreateSpeechLine(charID, mainString, GameTextType.Script);
+                            if (_makesChanges)
+                            {
+                                string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
+                                string scriptAfterString = script.Substring(stringEndIndex);
                                 script = scriptBeforeString + modifiedString + scriptAfterString;
                                 index = stringStartIndex + modifiedString.Length + 1;
                             }
+                            else
+                            {
+                                index = stringStartIndex + mainString.Length + 1;
+                            }
+                        }
                     }
                 }
                 index++;

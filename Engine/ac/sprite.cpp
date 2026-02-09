@@ -51,7 +51,7 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
     {
         sprite_flags |= SPF_ALPHACHANNEL;
     }
-        
+
     // stretch sprites to correct resolution
     Size newsz = get_new_size_for_sprite(image->GetSize(), sprite_flags);
 
@@ -66,11 +66,14 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
         delete image;
     }
 
-    const bool has_alpha = (sprite_flags & SPF_ALPHACHANNEL) != 0;
-    use_bmp = PrepareSpriteForUse(use_bmp, has_alpha);
-    // For non-32 bit games, strip SPF_ALPHACHANNEL flag, but add SPF_HADALPHACHANNEL
+    const bool want_alpha = (sprite_flags & SPF_ALPHACHANNEL) != 0;
+    const bool may_have_alpha = use_bmp->GetColorDepth() == 32;
+    use_bmp = PrepareSpriteForUse(use_bmp, want_alpha && may_have_alpha);
+    // For non-32 bit games strip SPF_ALPHACHANNEL flag, but add SPF_HADALPHACHANNEL
     // in order to record the fact that the asset on disk has alpha channel.
-    if (has_alpha && (game.GetColorDepth() < 32))
+    // Also do this if the image appeared to be non-32-bit, which may
+    // mean a mismatch between the sprite file and sprite flags in game data.
+    if (want_alpha && ((game.GetColorDepth() < 32) || !may_have_alpha))
     {
         sprite_flags &= ~SPF_ALPHACHANNEL;
         sprite_flags |= SPF_HADALPHACHANNEL;

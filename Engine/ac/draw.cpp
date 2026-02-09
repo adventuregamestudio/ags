@@ -475,6 +475,8 @@ Bitmap *PrepareSpriteForUseImpl(Bitmap* bitmap, bool has_alpha, bool keep_mask, 
     const bool conv_to_gamedepth = true;
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
+    // Fixup "has alpha" parameter, judging by the source image format
+    has_alpha &= (bmp_col_depth == 32);
 
     // Palette must be selected if we convert a 8-bit bitmap for a 32-bit game
     const bool must_switch_palette = conv_to_gamedepth && (bitmap->GetColorDepth() == 8) && (game_col_depth > 8);

@@ -685,11 +685,9 @@ bool SavePCX(const BitmapData &bmp, const RGB *pal, Stream *out)
     char runchar;
     char ch;
 
-    PALETTE tmppal;
     /* we really need a palette */
     if (!pal) {
-        get_palette(tmppal);
-        pal = tmppal;
+        return false;
     }
 
     color_depth = bmp.GetColorDepth();

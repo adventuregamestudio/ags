@@ -160,7 +160,6 @@ private:
 //
 // FindFile searches the directory for files or subdirs,
 // using defined sort of directory iteration (flat or recursive), and a match pattern.
-// TODO: accept regex in ctor.
 // TODO: move to its own header? with or w/o DirIterator?
 //
 class FindFile
@@ -173,18 +172,28 @@ public:
     // Open FindFile with the given search parameters
     static FindFile Open(const String &path, const String &wildcard,
         bool do_files, bool do_dirs, size_t max_level = SIZE_MAX);
+    static FindFile Open(const String &path, const std::regex &regex,
+        bool do_files, bool do_dirs, size_t max_level = SIZE_MAX);
     // Search for files, strictly in the given dir
     static FindFile OpenFiles(const String &path, const String &wildcard = "*")
         { return Open(path, wildcard, true, false, 0); }
+    static FindFile OpenFiles(const String &path, const std::regex &regex)
+        { return Open(path, regex, true, false, 0); }
     // Search for directories, strictly in the given dir
     static FindFile OpenDirs(const String &path, const String &wildcard = "*")
         { return Open(path, wildcard, false, true, 0); }
+    static FindFile OpenDirs(const String &path, const std::regex &regex)
+        { return Open(path, regex, false, true, 0); }
     // Search for files, recursively, in the given dir, and all nested subdirs
     static FindFile OpenFilesRecursive(const String &path, const String &wildcard = "*")
         { return Open(path, wildcard, true, false, SIZE_MAX); }
+    static FindFile OpenFilesRecursive(const String &path, const std::regex &regex)
+        { return Open(path, regex, true, false, SIZE_MAX); }
     // Search for directories, recursively, in the given dir, and all nested subdirs
     static FindFile OpenDirsRecursive(const String &path, const String &wildcard = "*")
         { return Open(path, wildcard, false, true, SIZE_MAX); }
+    static FindFile OpenDirsRecursive(const String &path, const std::regex &regex)
+        { return Open(path, regex, false, true, SIZE_MAX); }
 
     bool AtEnd() const { return _di.AtEnd(); }
     void Close() { _di = DirectoryRecursiveIterator(); }
@@ -196,6 +205,9 @@ public:
     FindFile &operator =(FindFile &&ff) = default;
 
 private:
+    static FindFile OpenImpl(const String &path, std::regex &&regex,
+        bool do_files, bool do_dirs, size_t max_level);
+
     FindFile(DirectoryRecursiveIterator &&di, std::regex &&regex, bool files, bool dirs)
         : _di(std::move(di)), _regex(std::move(regex))
         , _doFiles(files), _doDirs(dirs) {}

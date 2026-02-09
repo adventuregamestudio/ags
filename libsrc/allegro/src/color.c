@@ -82,6 +82,24 @@ RGB_MAP *rgb_map = NULL;               /* RGB -> palette entry conversion */
 COLOR_MAP *color_map = NULL;           /* translucency/lighting table */
 
 
+void set_rgb_shifts(int r15, int g15, int b15, int r16, int g16, int b16,
+                    int r24, int g24, int b24, int r32, int g32, int b32, int a32)
+{
+   _rgb_r_shift_15 = r15;
+   _rgb_g_shift_15 = g15;
+   _rgb_b_shift_15 = b15;
+   _rgb_r_shift_16 = r16;
+   _rgb_g_shift_16 = g16;
+   _rgb_b_shift_16 = b16;
+   _rgb_r_shift_24 = r24;
+   _rgb_g_shift_24 = g24;
+   _rgb_b_shift_24 = b24;
+   _rgb_a_shift_32 = a32;
+   _rgb_r_shift_32 = r32;
+   _rgb_g_shift_32 = g32;
+   _rgb_b_shift_32 = b32;
+}
+
 /* makecol_depth:
  *  Converts R, G, and B values (ranging 0-255) to whatever pixel format
  *  is required by the specified color depth.

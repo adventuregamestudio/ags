@@ -70,6 +70,9 @@ AL_ARRAY(int, _rgb_scale_6);
 
 AL_VAR(int *, palette_color);
 
+AL_FUNC(void, set_rgb_shifts, (int r15, int g15, int b15, int r16, int g16, int b16,
+                               int r24, int g24, int b24, int r32, int g32, int b32, int a32));
+
 AL_FUNC(void, set_color, (int idx, AL_CONST RGB *p));
 AL_FUNC(void, set_palette, (AL_CONST PALETTE p));
 AL_FUNC(void, set_palette_range, (AL_CONST PALETTE p, int from, int to, int retracesync));

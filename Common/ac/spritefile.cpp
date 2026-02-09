@@ -80,15 +80,14 @@ static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &d
         {
         case 2:
             col = *((const uint16_t*)src);
-            pal_n = lookup_palette(col, palette, pal_count);
             break;
         case 4:
             col = *((const uint32_t*)src);
-            pal_n = lookup_palette(col, palette, pal_count);
             break;
         default: assert(0); return false;
         }
-        
+
+        pal_n = lookup_palette(col, palette, pal_count);
         if (pal_n == SIZE_MAX)
         {
             if (pal_count == 256) return false;
@@ -165,7 +164,25 @@ SpriteFile::SpriteFile()
 }
 
 HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file)
+{
+    return OpenFileImpl(std::move(sprite_file), std::move(index_file), nullptr, nullptr);
+}
+
+HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
     std::unique_ptr<Stream> &&index_file, std::vector<Size> &metrics)
+{
+    return OpenFileImpl(std::move(sprite_file), std::move(index_file), &metrics, nullptr);
+}
+
+HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file, std::vector<SpriteDatHeader> &metrics)
+{
+    return OpenFileImpl(std::move(sprite_file), std::move(index_file), nullptr, &metrics);
+}
+
+HError SpriteFile::OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file, std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2)
 {
     Close();
 
@@ -175,7 +192,6 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
 
     _stream = std::move(sprite_file);
 
-    soff_t spr_initial_offs = _stream->GetPosition();
     _version = (SpriteFileVersion)_stream->ReadInt16();
     // read the "Sprite File" signature
     char buff[20];
@@ -223,7 +239,10 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
         topmost = 200;
 
     _spriteData.resize(topmost + 1);
-    metrics.resize(topmost + 1);
+    if (metrics)
+        metrics->resize(topmost + 1);
+    if (metrics2)
+        metrics2->resize(topmost + 1);
 
     // Version 12+: read global store flags
     if (_version >= kSprfVersion_StorageFormats)
@@ -234,16 +253,18 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
         _stream->ReadInt8();
     }
 
-    // if there is a sprite index file, use it
-    if (LoadSpriteIndexFile(std::move(index_file), spriteFileID,
-        spr_initial_offs, topmost, metrics))
+    // If there is a sprite index file, then use it,
+    // but only if we are not required to fill full sprite info, because
+    // index contains only basic parameters.
+    if (!metrics2 &&
+        LoadSpriteIndexFile(std::move(index_file), spriteFileID, topmost, metrics))
     {
         // Succeeded
         return HError::None();
     }
 
     // Failed, index file is invalid; index sprites manually
-    return RebuildSpriteIndex(_stream.get(), topmost, metrics);
+    return RebuildSpriteIndex(_stream.get(), topmost, metrics, metrics2);
 }
 
 void SpriteFile::Close()
@@ -268,11 +289,16 @@ SpriteCompression SpriteFile::GetSpriteCompression() const
 
 sprkey_t SpriteFile::GetTopmostSprite() const
 {
-    return (sprkey_t)_spriteData.size() - 1;
+    return _spriteData.size() > 0 ? static_cast<sprkey_t>(_spriteData.size()) - 1 : -1;
+}
+
+size_t SpriteFile::GetSpriteCount() const
+{
+    return _validCount;
 }
 
 bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
-    int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics)
+    int expectedFileID, sprkey_t topmost, std::vector<Size> *metrics)
 {
     if (!fidx)
     {
@@ -314,12 +340,23 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     }
 
     sprkey_t numsprits = topmost_index + 1;
-    std::vector<int16_t> rspritewidths; rspritewidths.resize(numsprits);
-    std::vector<int16_t> rspriteheights; rspriteheights.resize(numsprits);
-    std::vector<soff_t>  spriteoffs; spriteoffs.resize(numsprits);
+    std::vector<int16_t> rspritewidths;
+    std::vector<int16_t> rspriteheights;
+    std::vector<soff_t>  spriteoffs;
 
-    fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
-    fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
+    if (metrics || !fidx->CanSeek())
+    {
+        rspritewidths.resize(numsprits);
+        rspriteheights.resize(numsprits);
+        fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
+        fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
+    }
+    else
+    {
+        fidx->Seek(numsprits * sizeof(int16_t) * 2); // skip 2 arrays of int16
+    }
+
+    spriteoffs.resize(numsprits);
     if (vers <= kSpridxfVersion_Last32bit)
     {
         for (sprkey_t i = 0; i < numsprits; ++i)
@@ -334,9 +371,12 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     {
         if (spriteoffs[i] != 0)
         {
-            _spriteData[i].Offset = spriteoffs[i] + spr_initial_offs;
-            metrics[i].Width = rspritewidths[i];
-            metrics[i].Height = rspriteheights[i];
+            _spriteData[i].Offset = spriteoffs[i];
+            if (metrics)
+            {
+                (*metrics)[i].Width = rspritewidths[i];
+                (*metrics)[i].Height = rspriteheights[i];
+            }
         }
     }
     return true;
@@ -361,9 +401,12 @@ static inline void ReadSprHeader(SpriteDatHeader &hdr, Stream *in,
     hdr = SpriteDatHeader(bpp, sformat, pal_count, compress, w, h);
 }
 
-HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics)
+HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
+    std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2)
 {
     topmost = std::min(topmost, (sprkey_t)_spriteData.size() - 1);
+    _validCount = 0;
+
     for (sprkey_t i = 0; !in->EOS() && (i <= topmost); ++i)
     {
         _spriteData[i].Offset = in->GetPosition();
@@ -376,10 +419,24 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<
             ((_version >= kSprfVersion_StorageFormats) || _compress != kSprCompress_None) ?
             (uint32_t)in->ReadInt32() : hdr.Width * hdr.Height * hdr.BPP;
         in->Seek(data_sz); // skip image data
-        metrics[i].Width = hdr.Width;
-        metrics[i].Height = hdr.Height;
+        if (metrics)
+        {
+            (*metrics)[i].Width = hdr.Width;
+            (*metrics)[i].Height = hdr.Height;
+        }
+        if (metrics2)
+        {
+            (*metrics2)[i] = hdr;
+        }
+        _validCount++;
     }
     return HError::None();
+}
+
+bool SpriteFile::DoesSpriteExist(sprkey_t index)
+{
+    return (index >= 0) && (static_cast<size_t>(index) < _spriteData.size())
+        && (_spriteData[index].Offset > 0);
 }
 
 HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
@@ -515,6 +572,15 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     return HError::None();
 }
 
+HError SpriteFile::LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics)
+{
+    metrics.resize(_spriteData.size());
+    if (_spriteData.size() == 0)
+        return HError::None();
+
+    return RebuildSpriteIndex(_stream.get(), GetTopmostSprite(), nullptr, &metrics);
+}
+
 void SpriteFile::SeekToSprite(sprkey_t index)
 {
     // If we didn't just load the previous sprite, seek to it
@@ -536,14 +602,14 @@ static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, BitmapData>>
     return topmost;
 }
 
-int SaveSpriteFile(const String &save_to_file,
+HError SaveSpriteFile(const String &save_to_file,
     const std::vector<std::pair<bool, BitmapData>> &sprites,
     SpriteFile *read_from_file,
     int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
     std::unique_ptr<Stream> output(File::CreateFile(save_to_file));
     if (output == nullptr)
-        return -1;
+        return new Error("Failed to open a output file for writing");
 
     sprkey_t lastslot = FindTopmostSprite(sprites);
     SpriteFileWriter writer(std::move(output));
@@ -601,15 +667,15 @@ int SaveSpriteFile(const String &save_to_file,
     writer.Finalize();
 
     index = writer.GetIndex();
-    return 0;
+    return HError::None();
 }
 
-int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
+HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
     auto out = File::CreateFile(filename);
     if (!out)
-        return -1;
+        return new Error("Failed to open a output file for writing");
     // write "SPRINDEX" id
     out->WriteArray(spindexid, strlen(spindexid), 1);
     // write version
@@ -625,7 +691,7 @@ int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
         out->WriteArrayOfInt16(&index.Heights[0], index.Heights.size());
         out->WriteArrayOfInt64(&index.Offsets[0], index.Offsets.size());
     }
-    return 0;
+    return HError::None();
 }
 
 
@@ -748,6 +814,7 @@ void SpriteFileWriter::WriteSpriteData(const SpriteDatHeader &hdr,
             break;
         case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteInt32(palette[i]); }
             break;
+        default: assert(0); break;
         }
     }
     // write the image pixel data

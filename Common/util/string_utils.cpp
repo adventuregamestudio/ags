@@ -33,13 +33,23 @@ String StrUtil::IntToString(int d)
     return String::FromFormat("%d", d);
 }
 
-int StrUtil::StringToInt(const String &s, int def_val)
+inline int StringToIntImpl(const String &s, int radix, int def_val)
 {
     if (s.IsEmpty())
         return def_val;
     char *stop_ptr;
-    int val = strtol(s.GetCStr(), &stop_ptr, 0);
+    int val = strtol(s.GetCStr(), &stop_ptr, radix);
     return (stop_ptr == s.GetCStr() + s.GetLength()) ? val : def_val;
+}
+
+int StrUtil::StringToInt(const String &s, int def_val)
+{
+    return StringToIntImpl(s, 0, def_val);
+}
+
+int StrUtil::StringToIntHex(const String &s, int def_val)
+{
+    return StringToIntImpl(s, 16, def_val);
 }
 
 StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def_val)

@@ -395,7 +395,7 @@ void SpriteCache::InitNullSprite(sprkey_t index)
     _spriteData[index] = SpriteData();
 }
 
-int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
+HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
     // Gather a list of sprites;
     // the list contains pairs, where first element tells whether the sprites

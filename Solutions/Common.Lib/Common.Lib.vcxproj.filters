@@ -910,5 +910,8 @@
     <ClInclude Include="..\..\Common\libsrc\freetype-2.1.3\include\freetype\freetype.h">
       <Filter>Library Sources\freetype</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\colblend.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -749,6 +749,10 @@
     <ClInclude Include="..\..\Common\gui\guiobject.h" />
     <ClInclude Include="..\..\Common\gui\guislider.h" />
     <ClInclude Include="..\..\Common\gui\guitextbox.h" />
+    <ClInclude Include="..\..\Common\libsrc\aastr-0.1.1\aastr.h" />
+    <ClInclude Include="..\..\Common\libsrc\aastr-0.1.1\aautil.h" />
+    <ClInclude Include="..\..\Common\libsrc\alfont-2.0.9\alfont.h" />
+    <ClInclude Include="..\..\Common\libsrc\freetype-2.1.3\include\freetype\freetype.h" />
     <ClInclude Include="..\..\Common\platform\windows\windows.h" />
     <ClInclude Include="..\..\Common\script\cc_common.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
@@ -792,6 +796,20 @@
     <ClInclude Include="..\..\Common\util\version.h" />
     <ClInclude Include="..\..\Common\util\wgt2allg.h" />
     <ClInclude Include="..\..\Common\util\deflatestream.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\base.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\color.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\debug.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\draw.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\file.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\fixed.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\fli.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\fmaths.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\gfx.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\palette.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\system.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\unicode.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\winalleg.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cblit.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs15.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs16.h" />
@@ -800,6 +818,7 @@
     <ClInclude Include="..\..\libsrc\allegro\src\c\cdefs8.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cgfx.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cspr.h" />
+    <ClInclude Include="..\..\libsrc\miniz\miniz.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

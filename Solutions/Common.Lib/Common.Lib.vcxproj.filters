@@ -853,5 +853,62 @@
     <ClInclude Include="..\..\Common\game\data_helpers.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\winalleg.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\base.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\color.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\debug.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\draw.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\file.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\fixed.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\fli.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\fmaths.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\gfx.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\palette.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\system.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\unicode.h">
+      <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\libsrc\alfont-2.0.9\alfont.h">
+      <Filter>Library Sources\alfont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\libsrc\aastr-0.1.1\aastr.h">
+      <Filter>Library Sources\aastr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\libsrc\aastr-0.1.1\aautil.h">
+      <Filter>Library Sources\aastr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz\miniz.h">
+      <Filter>Library Sources\miniz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\libsrc\freetype-2.1.3\include\freetype\freetype.h">
+      <Filter>Library Sources\freetype</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

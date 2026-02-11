@@ -81,6 +81,9 @@ static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &d
         case 2:
             col = *((const uint16_t*)src);
             break;
+        case 3:
+            col = src[0] | (src[1] << 8) | (src[2] << 16);
+            break;
         case 4:
             col = *((const uint32_t*)src);
             break;
@@ -121,7 +124,17 @@ static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t 
                 uint32_t color = palette[index];
                 *((uint16_t *) dst) = color;
             }
-        break;
+            break;
+        case 3:
+            for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+                uint8_t index = data[p];
+                assert(index < pal_count);
+                uint32_t color = palette[index];
+                dst[0] = color & 0xFF;
+                dst[1] = (color >> 8) & 0xFF;
+                dst[2] = (color >> 16) & 0xFF;
+            }
+            break;
         case 4:
             for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
                 uint8_t index = data[p];
@@ -129,7 +142,7 @@ static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t 
                 uint32_t color = palette[index];
                 *((uint32_t*)dst) = color;
             }
-        break;
+            break;
         default: assert(0); return;
     }
 }
@@ -141,6 +154,7 @@ static inline SpriteFormat PaletteFormatForBPP(int bpp)
     {
     case 1: return kSprFmt_PaletteRgb888;
     case 2: return kSprFmt_PaletteRgb565;
+    case 3: return kSprFmt_PaletteRgb888;
     case 4: return kSprFmt_PaletteArgb8888;
     default: return kSprFmt_Undefined;
     }
@@ -413,6 +427,11 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
         SpriteDatHeader hdr;
         ReadSprHeader(hdr, _stream.get(), _version, _compress);
         if (hdr.BPP == 0) continue; // empty slot, this is normal
+        if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
+        {
+            return new Error(String::FromFormat("RebuildSpriteIndex: invalid sprite metrics %d (%dx%d %d-bit), cannot deduce pixel data size.",
+                i, hdr.Width, hdr.Height, hdr.BPP * 8));
+        }
         int pal_bpp = GetPaletteBPP(hdr.SFormat);
         if (pal_bpp > 0) in->Seek(hdr.PalCount * pal_bpp); // skip palette
         size_t data_sz =
@@ -455,11 +474,16 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
     SpriteDatHeader hdr;
     ReadSprHeader(hdr, _stream.get(), _version, _compress);
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
+    if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
+    {
+        return new Error(String::FromFormat("LoadSprite: invalid sprite metrics %d (%dx%d %d-bit).",
+            index, hdr.Width, hdr.Height, hdr.BPP * 8));
+    }
     const int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
     PixelBuffer image(w, h, ColorDepthToPixelFormat(bpp * 8));
     if (!image)
     {
-        return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d%d).",
+        return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d %d-bit).",
             index, w, h, bpp * 8));
     }
     ImBufferPtr im_data(image.GetData(), w * h * bpp, bpp);
@@ -472,6 +496,8 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
         switch (pal_bpp)
         {
         case 2: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = _stream->ReadInt16(); }
+            break;
+        case 3: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = _stream->ReadUInt24(); }
             break;
         case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = _stream->ReadInt32(); }
             break;
@@ -510,14 +536,22 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
         }
     }
     // Otherwise (no compression) read directly
+    // CHECKME: using ReadArrayOfN below does not seem right. These methods do endinaness swap.
+    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
+    // and they are to be read using bit masks and shifts.
+    // If ever, then the conversion has to be done when decomposing pixels onto individual RGB parts,
+    // converting to another format, etc.
     else
     {
+        assert((im_data.Size % im_data.BPP) == 0);
         switch (im_data.BPP)
         {
         case 1: _stream->Read(im_data.Buf, im_data.Size);
             break;
         case 2: _stream->ReadArrayOfInt16(
                 reinterpret_cast<int16_t*>(im_data.Buf), im_data.Size / sizeof(int16_t));
+            break;
+        case 3: _stream->ReadArrayOfUInt24(im_data.Buf, im_data.Size / 3);
             break;
         case 4: _stream->ReadArrayOfInt32(
                 reinterpret_cast<int32_t*>(im_data.Buf), im_data.Size / sizeof(int32_t));
@@ -812,6 +846,8 @@ void SpriteFileWriter::WriteSpriteData(const SpriteDatHeader &hdr,
         {
         case 2: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteInt16(palette[i]); }
             break;
+        case 3: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteUInt24(palette[i]); }
+            break;
         case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteInt32(palette[i]); }
             break;
         default: assert(0); break;
@@ -819,12 +855,19 @@ void SpriteFileWriter::WriteSpriteData(const SpriteDatHeader &hdr,
     }
     // write the image pixel data
     _out->WriteInt32(im_data_sz);
+    // CHECKME: using WriteArrayOfN below does not seem right. These methods do endinaness swap.
+    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
+    // and they are to be read using bit masks and shifts.
+    // If ever, then the conversion has to be done when decomposing pixels onto individual RGB parts,
+    // converting to another format, etc.
     switch (im_bpp)
     {
     case 1: _out->Write(im_data, im_data_sz);
         break;
     case 2: _out->WriteArrayOfInt16(reinterpret_cast<const int16_t*>(im_data),
             im_data_sz / sizeof(int16_t));
+        break;
+    case 3: _out->WriteArrayOfUInt24(im_data, im_data_sz / 3);
         break;
     case 4: _out->WriteArrayOfInt32(reinterpret_cast<const int32_t*>(im_data),
             im_data_sz / sizeof(int32_t));

@@ -55,6 +55,19 @@ size_t Stream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
     return count;
 }
 
+size_t Stream::ReadAndConvertArrayOfUInt24(uint8_t *buffer, size_t count)
+{
+    // NOTE: count is number of 3-byte elements
+    count = ReadArray(buffer, sizeof(uint8_t) * 3, count);
+    for (size_t i = 0; i < count; ++i, buffer += 3)
+    {
+        uint8_t temp = buffer[0];
+        buffer[0] = buffer[3];
+        buffer[3] = temp;
+    }
+    return count;
+}
+
 size_t Stream::ReadAndConvertArrayOfFloat32(float *buffer, size_t count)
 {
     count = ReadArray(buffer, sizeof(float), count);
@@ -103,6 +116,24 @@ size_t Stream::WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count)
         int64_t val = *buffer;
         val = BBOp::SwapBytesInt64(val);
         if (Write(&val, sizeof(int64_t)) < sizeof(int64_t))
+        {
+            break;
+        }
+    }
+    return elem;
+}
+
+size_t Stream::WriteAndConvertArrayOfUInt24(const uint8_t *buffer, size_t count)
+{
+    size_t elem;
+    uint8_t elem_buf[3];
+    // NOTE: count is number of 3-byte elements
+    for (elem = 0; elem < count && !EOS(); ++elem, buffer += 3)
+    {
+        elem_buf[0] = buffer[2];
+        elem_buf[1] = buffer[1];
+        elem_buf[2] = buffer[0];
+        if (Write(elem_buf, sizeof(elem_buf)) < sizeof(elem_buf))
         {
             break;
         }

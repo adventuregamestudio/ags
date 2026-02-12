@@ -16,6 +16,7 @@ namespace AGS.Types
         private bool _appliesToObjects = true;
         private bool _appliesToInvItems = true;
         private bool _appliesToRooms = true;
+        private bool _translateValue = false;
 
         public CustomPropertySchemaItem()
         {
@@ -70,6 +71,12 @@ namespace AGS.Types
         {
             get { return _appliesToRooms; }
             set { _appliesToRooms = value; }
+        }
+
+        public bool Translated
+        {
+            get { return _translateValue; }
+            set { _translateValue = value; }
         }
 
         public CustomPropertyType Type
@@ -147,6 +154,7 @@ namespace AGS.Types
             copy.AppliesToInvItems = this.AppliesToInvItems;
             copy.AppliesToObjects = this.AppliesToObjects;
             copy.AppliesToRooms = this.AppliesToRooms;
+            copy.Translated = this.Translated;
             return copy;
         }
     }

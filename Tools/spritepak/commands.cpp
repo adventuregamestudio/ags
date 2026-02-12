@@ -204,7 +204,8 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     }
 
     sprkey_t top_index = -1;
-    std::vector<std::pair<sprkey_t, String>> sorted_files;
+    typedef std::pair<sprkey_t, String> SlotImageFilePair;
+    std::vector<SlotImageFilePair> sorted_files;
     for (const auto &imf : files)
     {
         sprkey_t slot;
@@ -216,7 +217,7 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
         }
     }
     std::sort(sorted_files.begin(), sorted_files.end(),
-        [](const auto &f1, const auto &f2) { return f1.first < f2.first; });
+        [](const SlotImageFilePair &f1, const SlotImageFilePair &f2) { return f1.first < f2.first; });
 
     //-----------------------------------------------------------------------//
     // Write sprite file

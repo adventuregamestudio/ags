@@ -13,7 +13,12 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    // This class is a bit of a mess ... autocomplete is out of control!!
+    /// <summary>
+    /// ScrintillaWrapper is a wrapper around Scintilla editor control.
+    /// Hides some implementation details. Provides additional functionality.
+    /// 
+    /// TODO: move portions of AutoComplete-related code to Utilities.
+    /// </summary>
     public partial class ScintillaWrapper : UserControl, IScriptEditorControl
     {
         public enum WordListType
@@ -2406,20 +2411,25 @@ namespace AGS.Editor
             }
         }
 
-        private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool addStatic, bool extenderOnly, bool isThis)
+        private void AddMembersOfStruct(List<string> autoCompleteList, List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool staticOnly, bool extenderOnly, bool isThis)
         {
             Dictionary<string, object> alreadyAdded = new Dictionary<string, object>();
-            AddMembersOfStruct(autoCompleteList, alreadyAdded, scriptStructs, allStructsRef, addStatic, extenderOnly, isThis);
+            AddMembersOfStruct(autoCompleteList, alreadyAdded, scriptStructs, allStructsRef, staticOnly, extenderOnly, isThis);
         }
 
         private void AddMembersOfStruct(List<string> autoCompleteList, Dictionary<string, object> alreadyAdded,
-            List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool addStatic, bool extenderOnly, bool isThis)
+            List<ScriptStruct> scriptStructs, List<ScriptStruct> allStructsRef, bool staticOnly, bool extenderOnly, bool isThis)
         {
             foreach (ScriptStruct scriptStruct in scriptStructs)
             {
+                /// NOTE: as AGS script allows to call static struct members from the instance,
+                /// autocomplete must display static members for the instance by default, unless
+                /// these are tagged with "$AUTOCOMPLETESTATICONLY$"
+
                 foreach (ScriptFunction sf in scriptStruct.Functions)
                 {
-                    if (((addStatic && sf.IsStatic) || (!addStatic && !sf.IsStatic)) &&
+                    if ((!staticOnly || sf.IsStatic) &&
+                        (staticOnly || !sf.IsStaticOnly) &&
                         (!extenderOnly || sf.IsExtenderMethod) &&
                         (isThis || !sf.IsProtected) &&
                         ShouldShowThis(sf, null) &&
@@ -2440,7 +2450,8 @@ namespace AGS.Editor
                 }
                 foreach (ScriptVariable sv in scriptStruct.Variables)
                 {
-                    if (((addStatic && sv.IsStatic) || (!addStatic && !sv.IsStatic)) &&
+                    if ((!staticOnly || sv.IsStatic) &&
+                        (staticOnly || !sv.IsStaticOnly) &&
                         // TODO: support extender attributes here
                         (!extenderOnly) && // variables cannot be extenders
                         (isThis || !sv.IsProtected) &&
@@ -2457,7 +2468,7 @@ namespace AGS.Editor
                     var parentStructs = allStructsRef.FindAll((s) => { return s.Name == scriptStruct.ParentType; });
                     if (parentStructs.Count > 0)
                     {
-                        AddMembersOfStruct(autoCompleteList, alreadyAdded, parentStructs, allStructsRef, addStatic, true, isThis);
+                        AddMembersOfStruct(autoCompleteList, alreadyAdded, parentStructs, allStructsRef, staticOnly, true, isThis);
                     }
                 }
             }
@@ -2599,7 +2610,7 @@ namespace AGS.Editor
                 }
                 if (!foundMatch)
                 {
-                    return string.Empty;
+                return string.Empty;
                 }
             }
 

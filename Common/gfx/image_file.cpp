@@ -30,9 +30,6 @@ namespace ImageFile
 // Made on top of the work by Seymour Shlien and Jonas Petersen, from Allegro4
 //=============================================================================
 
-#define BMP_INFO_HEADER_SIZE  40
-#define BMP_OS2_INFO_HEADER_SIZE  12
-
 enum BMP_Info_Compression {
     kBI_RGB_None = 0,
     kBI_RLE8 = 1,
@@ -40,20 +37,43 @@ enum BMP_Info_Compression {
     kBI_BitFields = 3
 };
 
-struct BMP_InfoHeader {
-    int bfSize = 0;
-    int offsetBits = 0;
-    int headerSize = 40;
-    int w = 0;
-    int h = 0;
-    int mapSizeImage = 0;
-    int colorsCount = 0;
-    int importantColorsCount = 0;
-    int xPxPerMeter = 0xB12;
-    int yPxPerMeter = 0xB12;
+enum BMP_Info_ColorSpace : uint32_t {
+    kLCS_Windows_Color_Space = 0x57696E20
+};
+
+struct BMP_InfoHeader
+{
+    static const uint32_t BITMAPCOREHEADER_SIZE     = 12u;
+    static const uint32_t BITMAPINFOHEADER_SIZE     = 40u;
+    static const uint32_t BITMAPV2INFOHEADER_SIZE   = 52u;
+    static const uint32_t BITMAPV3INFOHEADER_SIZE   = 56u;
+    static const uint32_t BITMAPV4INFOHEADER_SIZE   = 108u;
+
+    // BM file header
+    uint32_t bfSize = 0u;
+    uint32_t offsetBits = 0u;
+    // BITMAPINFOHEADER
+    uint32_t headerSize = BITMAPINFOHEADER_SIZE;
+    int32_t w = 0u;
+    int32_t h = 0u;
+    uint16_t colorPlanes = 1u;
+    uint16_t bpp = 0u;
     BMP_Info_Compression compression = kBI_RGB_None;
-    int16_t bpp = 0;
-    int16_t colorPlanes = 1;
+    uint32_t mapSizeImage = 0u;
+    int32_t xPxPerMeter = 0xB12;
+    int32_t yPxPerMeter = 0xB12;
+    uint32_t colorsCount = 0u;
+    uint32_t importantColorsCount = 0u;
+    // BITMAPV4HEADER
+    uint32_t rMask = 0u;
+    uint32_t gMask = 0u;
+    uint32_t bMask = 0u;
+    uint32_t aMask = 0u;
+    BMP_Info_ColorSpace csType = kLCS_Windows_Color_Space;
+    int32_t  endpoints[3 * 3] = { 0 };
+    uint32_t gammaRed = 0u;
+    uint32_t gammaGreen = 0u;
+    uint32_t gammaBlue = 0u;
 };
 
 static void bmp_read_palette(int bytes, RGB *pal, Stream *in, bool is_os2)
@@ -410,7 +430,7 @@ static void bmp_read_bitfields_image(Stream *in, PixelBuffer &pxdata, const BMP_
     int k, i, line, height, dir;
     int color_depth;
     int bytes_per_pixel;
-    int red, grn, blu;
+    int red, grn, blu, alpha;
     unsigned int buffer;
 
     height = hdr.h;
@@ -443,13 +463,23 @@ static void bmp_read_bitfields_image(Stream *in, PixelBuffer &pxdata, const BMP_
                          (grn << _rgb_g_shift_16) |
                          (blu << _rgb_b_shift_16);
             }
-            else {
+            else if (color_depth == 24) {
                 red = (buffer >> 16) & 0xff;
                 grn = (buffer >> 8) & 0xff;
                 blu = (buffer) & 0xff;
                 buffer = (red << _rgb_r_shift_32) |
                          (grn << _rgb_g_shift_32) |
                          (blu << _rgb_b_shift_32);
+            }
+            else if (color_depth == 32) {
+                alpha = (buffer >> 24) & 0xff;
+                red = (buffer >> 16) & 0xff;
+                grn = (buffer >> 8) & 0xff;
+                blu = (buffer) & 0xff;
+                buffer = (alpha << _rgb_a_shift_32) |
+                    (red << _rgb_r_shift_32) |
+                    (grn << _rgb_g_shift_32) |
+                    (blu << _rgb_b_shift_32);
             }
 
             unsigned char* current_line = pxdata.GetLine(line);
@@ -467,25 +497,40 @@ static void bmp_read_bitfields_image(Stream *in, PixelBuffer &pxdata, const BMP_
 
 bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
     BMP_InfoHeader hdr;
-
-    int depth;
-    int i, j;
-    int filler;
-    int stride, s;
-
-    // can only save 24bpp or 8bpp
-
     hdr.w = bmp.GetWidth();
     hdr.h = bmp.GetHeight();
-    depth = bmp.GetColorDepth();
-    hdr.bpp = (depth == 8) ? 8 : 24;
-    filler = 3 - ((hdr.w * (hdr.bpp / 8) - 1) & 3);
-    stride = hdr.w * (hdr.bpp/8) + filler;
-    s = (stride >= 0) ? stride : -stride;
+    const int src_depth = bmp.GetColorDepth();
+    switch (src_depth)
+    {
+    case 8:
+        hdr.bpp = 8;
+        break;
+    case 15:
+    case 16:
+    case 24:
+        hdr.bpp = 24;
+        break;
+    case 32:
+        // Must use larger header in order to support alpha channel
+        hdr.headerSize = BMP_InfoHeader::BITMAPV4INFOHEADER_SIZE;
+        hdr.bpp = 32;
+        hdr.compression = kBI_BitFields;
+        break;
+    default:
+        assert(0);
+        return false;
+    }
+    const int filler = 3 - ((hdr.w * (hdr.bpp / 8) - 1) & 3);
+    const int stride = hdr.w * (hdr.bpp/8) + filler;
+    const int s = (stride >= 0) ? stride : -stride;
+    hdr.rMask = 0x00FF0000;
+    hdr.gMask = 0x0000FF00;
+    hdr.bMask = 0x000000FF;
+    hdr.aMask = 0xFF000000;
 
     if (hdr.bpp == 8) {
         hdr.mapSizeImage = (hdr.w + filler) * hdr.h;
-        hdr.bfSize = (54		       /* header */
+        hdr.bfSize = (14 + hdr.headerSize  /* header */
                       + 256*4		       /* palette */
                       + hdr.mapSizeImage); /* image data */
 
@@ -495,9 +540,10 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
     }
     else {
         hdr.mapSizeImage = s * hdr.h;           /* (w*3 + filler) * h */
-        hdr.bfSize = 54 + hdr.mapSizeImage; /* header + image data */
+        hdr.bfSize = (14 + hdr.headerSize       /* header */
+                      + hdr.mapSizeImage);      /* image data */
 
-        hdr.offsetBits = 54;
+        hdr.offsetBits = 14 + hdr.headerSize    /* header */;
         hdr.colorsCount = 0;
         hdr.importantColorsCount = 0;
     }
@@ -524,30 +570,63 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
     out->WriteInt32(hdr.colorsCount);          /* number of colors in the color palette */
     out->WriteInt32(hdr.importantColorsCount);          /* number of important colors used */
 
+    // Bit masks are saved either if compression is BITFIELDS,
+    // or if headerSize >= BITMAPV2INFOHEADER_SIZE
+    if (hdr.compression == kBI_BitFields) {
+        out->WriteInt32(hdr.rMask);
+        out->WriteInt32(hdr.gMask);
+        out->WriteInt32(hdr.bMask);
+    }
+    if (hdr.headerSize >= BMP_InfoHeader::BITMAPV3INFOHEADER_SIZE) {
+        out->WriteInt32(hdr.aMask);
+    }
+    if (hdr.headerSize >= BMP_InfoHeader::BITMAPV4INFOHEADER_SIZE) {
+        out->WriteInt32(hdr.csType);
+        for (int i = 0; i < 3 * 3; ++i) {
+            out->WriteInt32(hdr.endpoints[i]);
+        }
+        out->WriteInt32(hdr.gammaRed);
+        out->WriteInt32(hdr.gammaGreen);
+        out->WriteInt32(hdr.gammaBlue);
+    }
+
+    // Just in case, fill the remaining header size with zeros
+    if (hdr.headerSize > BMP_InfoHeader::BITMAPV4INFOHEADER_SIZE) {
+        out->WriteByteCount(0u, hdr.headerSize - BMP_InfoHeader::BITMAPV4INFOHEADER_SIZE);
+    }
+
     /* palette */
-    for (i=0; i<hdr.colorsCount; i++) {
-        out->WriteInt8(_rgb_scale_6[pal[i].b]);
-        out->WriteInt8(_rgb_scale_6[pal[i].g]);
-        out->WriteInt8(_rgb_scale_6[pal[i].r]);
-        out->WriteInt8(0);
+    if (hdr.colorsCount > 0)
+    {
+        for (uint32_t i = 0; i < hdr.colorsCount; i++) {
+            out->WriteInt8(_rgb_scale_6[pal[i].b]);
+            out->WriteInt8(_rgb_scale_6[pal[i].g]);
+            out->WriteInt8(_rgb_scale_6[pal[i].r]);
+            out->WriteInt8(0);
+        }
     }
 
     /* image data */
     int c;
-    for (i=hdr.h-1; i>=0; i--) {
-        for (j=0; j<hdr.w; j++) {
+    for (int i=hdr.h-1; i>=0; i--) {
+        for (int j=0; j<hdr.w; j++) {
             if (hdr.bpp == 8) {
                 out->WriteInt8(bmp.GetPixel(j, i));
-            }
-            else {
+            } else if (hdr.bpp == 24) {
                 c = bmp.GetPixel(j, i);
-                out->WriteInt8(getb_depth(depth, c));
-                out->WriteInt8(getg_depth(depth, c));
-                out->WriteInt8(getr_depth(depth, c));
+                out->WriteInt8(getb_depth(src_depth, c));
+                out->WriteInt8(getg_depth(src_depth, c));
+                out->WriteInt8(getr_depth(src_depth, c));
+            } else if (hdr.bpp == 32) {
+                c = bmp.GetPixel(j, i);
+                out->WriteInt8(getb_depth(src_depth, c));
+                out->WriteInt8(getg_depth(src_depth, c));
+                out->WriteInt8(getr_depth(src_depth, c));
+                out->WriteInt8(geta_depth(src_depth, c));
             }
         }
 
-        for (j=0; j<filler; j++) {
+        for (int j=0; j<filler; j++) {
             out->WriteInt8(0);
         }
     }
@@ -556,9 +635,6 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
 
 PixelBuffer LoadBMP(Stream *in, RGB *pal) {
     BMP_InfoHeader hdr;
-    int rMask = 0;
-    int gMask = 0;
-    int bMask = 0;
 
     const soff_t format_at = in->GetPosition(); // starting offset
 
@@ -573,12 +649,10 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
         return {};
     }
 
-    int w, h;
-    int16_t bpp;
-
+    const soff_t header_pos = in->GetPosition();
     hdr.headerSize = in->ReadInt32();          /* size of this header, in bytes */
 
-    if (hdr.headerSize == BMP_OS2_INFO_HEADER_SIZE) {
+    if (hdr.headerSize == BMP_InfoHeader::BITMAPCOREHEADER_SIZE) {
         // OS/2 format BMP file header
         hdr.w = in->ReadInt16();                   /* bitmap width in pixels (signed integer)  */
         hdr.h = in->ReadInt16();                   /* bitmap height in pixels (signed integer)  */
@@ -586,14 +660,14 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
         hdr.bpp = in->ReadInt16();                 /* color depth, number of bits per pixel */
         hdr.compression = kBI_RGB_None;
 
-        hdr.mapSizeImage = 0;
+        hdr.mapSizeImage = 0u;
         hdr.xPxPerMeter = 0;
         hdr.yPxPerMeter = 0;
-        hdr.colorsCount = 0;
-        hdr.importantColorsCount = 0;
+        hdr.colorsCount = 0u;
+        hdr.importantColorsCount = 0u;
 
         bmp_read_palette(hdr.offsetBits - 26, pal, in, true);
-    } else if (hdr.headerSize >= BMP_INFO_HEADER_SIZE) {
+    } else if (hdr.headerSize >= BMP_InfoHeader::BITMAPINFOHEADER_SIZE) {
         hdr.w = in->ReadInt32();                   /* bitmap width in pixels (signed integer)  */
         hdr.h = in->ReadInt32();                   /* bitmap height in pixels (signed integer)  */
         hdr.colorPlanes = in->ReadInt16();         /* number of color planes (must be 1)  */
@@ -606,42 +680,74 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
         hdr.colorsCount = in->ReadInt32();          /* number of colors in the color palette */
         hdr.importantColorsCount = in->ReadInt32(); /* number of important colors used */
 
-        if(hdr.compression == kBI_BitFields) {
-            rMask = in->ReadInt32();
-            gMask = in->ReadInt32();
-            bMask = in->ReadInt32();
+        if (hdr.compression == kBI_BitFields) {
+            hdr.rMask = in->ReadInt32();
+            hdr.gMask = in->ReadInt32();
+            hdr.bMask = in->ReadInt32();
+            if (hdr.headerSize >= BMP_InfoHeader::BITMAPV3INFOHEADER_SIZE) {
+                hdr.aMask = in->ReadInt32();
+            }
         } else {
-            bmp_read_palette(hdr.offsetBits - 54, pal, in, false);
+            /* the mask fields are ignored for v2+ headers if not BI_BITFIELD. */
+            if (hdr.headerSize >= BMP_InfoHeader::BITMAPV2INFOHEADER_SIZE) {
+                in->ReadInt32(); // redMask
+                in->ReadInt32(); // greeMask
+                in->ReadInt32(); // blueMask
+            }
+            if (hdr.headerSize >= BMP_InfoHeader::BITMAPV3INFOHEADER_SIZE) {
+                hdr.aMask = in->ReadInt32(); // alphaMask
+            }
         }
+
+        // skip unused fields (if any)
+        in->Seek(header_pos + hdr.headerSize, kSeekBegin);
     } else {
         return {}; // unsupported bitmap type
     }
 
-    bpp = hdr.bpp;
-    w = hdr.w;
-    h = std::abs(hdr.h);
-
-    // Check RGB bit masks.
-    // TODO: normally we should deduce bit shifts and pass this information
-    // further into bmp_read_bitfields_image(), where these will be used
-    if (hdr.compression == kBI_BitFields) {
-        if ((bMask == 0x001f) && (rMask == 0x7C00)) {
-            bpp = 15;
-        } else if ((bMask == 0x001f) && (rMask == 0xF800)) {
-            bpp = 16;
-        } else if ((bMask == 0x0000FF) && (rMask == 0xFF0000)) {
-            bpp = 32;
-        } else {
-            /* Unrecognised bit masks/depth, refuse to load. */
-            return {};
-        }
+    // palette
+    if (hdr.colorsCount > 0)
+    {
+        bmp_read_palette(hdr.offsetBits - 54, pal, in, false);
     }
 
     // NOTE: following reading functions assume that 1-bit and 4-bit pixel data
     // is read and unpacked into 8-bit pixel buffer. So request a minimal 8-bit
     // bpp, unless we support reading 1- and 4-bit data unpacked.
-    if (bpp < 8)
-        bpp = 8;
+    const uint16_t bpp = hdr.bpp < 8 ? 8 : hdr.bpp;
+    const int32_t w = hdr.w;
+    const int32_t h = std::abs(hdr.h);
+
+    // Setup default RGB bit masks in case we did not read these from header.
+    if (hdr.compression == kBI_RGB_None) {
+        switch (hdr.bpp)
+        {
+        case 15:
+            hdr.rMask = 0x7C00;
+            hdr.gMask = 0x03E0;
+            hdr.bMask = 0x001F;
+            break;
+        case 16:
+            hdr.rMask = 0xF800; // CHECKME: SDL2 code has this 0x7C00 too
+            hdr.gMask = 0x03E0;
+            hdr.bMask = 0x001F;
+            break;
+        case 24:
+            // CHECKME: do we need an alternate shifts for big endian engine?
+            hdr.rMask = 0x00FF0000;
+            hdr.gMask = 0x0000FF00;
+            hdr.bMask = 0x000000FF;
+            break;
+        case 32:
+            hdr.aMask = 0xFF000000;
+            hdr.rMask = 0x00FF0000;
+            hdr.gMask = 0x0000FF00;
+            hdr.bMask = 0x000000FF;
+            break;
+        default:
+            return {};
+        }
+    }
 
     PixelBuffer pxdata(w, h, ColorDepthToPixelFormat(bpp));
     if (!pxdata) {

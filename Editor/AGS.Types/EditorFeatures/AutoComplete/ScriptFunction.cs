@@ -28,6 +28,8 @@ namespace AGS.Types.AutoComplete
         public string Type;
         public bool ReturnsPointer;
         public bool IsStatic;
+        // Display this function for static access only;
+        // see $AUTOCOMPLETESTATICONLY$ tag
         public bool IsStaticOnly;
         public bool NoInherit;
         public bool IsProtected;

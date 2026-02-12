@@ -444,3 +444,48 @@ void set_alpha_blender(void)
    set_blender_mode_ex(_blender_black, _blender_black, _blender_black,
 		       f32, f15, f16, f24, 0, 0, 0, 0);
 }
+
+
+
+/* create_blender_table:
+ *  Fills the specified color mapping table with lookup data for doing a 
+ *  paletted equivalent of whatever truecolor blender mode is currently 
+ *  selected.
+ */
+void create_blender_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*callback)(int pos))
+{
+   int x, y, c;
+   int r, g, b;
+   int r1, g1, b1;
+   int r2, g2, b2;
+
+   ASSERT(_blender_func24);
+
+   for (x=0; x<PAL_SIZE; x++) {
+      for (y=0; y<PAL_SIZE; y++) {
+	 r1 = (pal[x].r << 2) | ((pal[x].r & 0x30) >> 4);
+	 g1 = (pal[x].g << 2) | ((pal[x].g & 0x30) >> 4);
+	 b1 = (pal[x].b << 2) | ((pal[x].b & 0x30) >> 4);
+
+	 r2 = (pal[y].r << 2) | ((pal[y].r & 0x30) >> 4);
+	 g2 = (pal[y].g << 2) | ((pal[y].g & 0x30) >> 4);
+	 b2 = (pal[y].b << 2) | ((pal[y].b & 0x30) >> 4);
+
+	 c = _blender_func24(makecol24(r1, g1, b1), makecol24(r2, g2, b2), _blender_alpha);
+
+	 r = getr24(c);
+	 g = getg24(c);
+	 b = getb24(c);
+
+	 if (rgb_map)
+	    table->data[x][y] = rgb_map->data[r>>3][g>>3][b>>3];
+	 else
+	    table->data[x][y] = bestfit_color(pal, r>>2, g>>2, b>>2);
+      }
+
+      if (callback)
+	 (*callback)(x);
+   }
+}
+
+

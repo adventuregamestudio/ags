@@ -12,6 +12,7 @@ target_include_directories(libtools PUBLIC .)
 # we could link to AGS::Common, but this provides much faster LTO times with Release builds
 target_include_directories(libtools PUBLIC ../Common)
 set(TOOLS_COMMON_SOURCES
+        ../Common/ac/spritefile.cpp
         ../Common/ac/wordsdictionary.cpp
         ../Common/core/asset.cpp
         ../Common/debug/debugmanager.cpp
@@ -19,12 +20,16 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/data_helpers.h
         ../Common/game/room_file_base.cpp
         ../Common/game/tra_file.cpp
+        ../Common/gfx/bitmapdata.cpp
+        ../Common/gfx/image_file.cpp
         ../Common/util/bufferedstream.cpp
         ../Common/util/cmdlineopts.cpp
+        ../Common/util/compress.cpp
         ../Common/util/data_ext.cpp
         ../Common/util/directory.cpp
         ../Common/util/file.cpp
         ../Common/util/filestream.cpp
+        ../Common/util/lzw.cpp
         ../Common/util/memorystream.cpp
         ../Common/util/multifilelib.cpp
         ../Common/util/path.cpp
@@ -34,6 +39,33 @@ set(TOOLS_COMMON_SOURCES
         ../Common/util/string_compat.c
         ../Common/util/string_utils.cpp
         ../Common/util/textstreamreader.cpp)
+
+
+#-----------------------------------------------------------------------------#
+# Minimal Allegro config
+#-----------------------------------------------------------------------------#
+
+include(TestBigEndian)
+
+test_big_endian(ALLEGRO_BIG_ENDIAN)
+if(NOT ALLEGRO_BIG_ENDIAN)
+   set(ALLEGRO_LITTLE_ENDIAN 1)
+endif(NOT ALLEGRO_BIG_ENDIAN)
+
+if(CMAKE_COMPILER_IS_GNUCC)
+    set(ALLEGRO_GCC 1)
+endif(CMAKE_COMPILER_IS_GNUCC)
+
+if(MSVC)
+    set(ALLEGRO_MSVC 1)
+endif()
+
+#-----------------------------------------------------------------------------#
+
+target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
+set(TOOLS_MINIMAL_ALLEGRO_SOURCES
+        ../libsrc/allegro/src/color.c)
+target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools
         PRIVATE
@@ -55,8 +87,10 @@ target_sources(libtools
         data/tra_utils.cpp
         data/tra_utils.h
         ${TOOLS_COMMON_SOURCES}
+        ${TOOLS_MINIMAL_ALLEGRO_SOURCES}
         )
-
+        
+target_link_libraries(libtools PUBLIC MiniZ::MiniZ)
 target_link_libraries(libtools PUBLIC TinyXML2::TinyXML2)
 if (WIN32)
     target_link_libraries(libtools PUBLIC shlwapi)
@@ -105,6 +139,17 @@ set_target_properties(crmpak PROPERTIES
         )
 target_link_libraries(crmpak PUBLIC libtools)
 
+#----- spritepak -------------------------------------------------
+add_executable(spritepak spritepak/main.cpp
+        spritepak/commands.h
+        spritepak/commands.cpp
+        )
+set_target_properties(spritepak PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(spritepak PUBLIC libtools)
+
 #----- trac ---------------------------------------------------
 add_executable(trac trac/main.cpp)
 set_target_properties(trac PROPERTIES
@@ -119,6 +164,7 @@ list(APPEND TOOLS_TARGETS
         agspak
         crm2ash
         crmpak
+        spritepak
         trac
         )
 

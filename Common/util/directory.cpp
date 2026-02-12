@@ -459,14 +459,26 @@ bool DirectoryRecursiveIterator::PopDir()
 
 
 FindFile FindFile::Open(const String &path, const String &wildcard,
-        bool do_files, bool do_dirs, size_t max_level)
+    bool do_files, bool do_dirs, size_t max_level)
+{
+    String pattern = StrUtil::WildcardToRegex(wildcard);
+    auto regex = std::regex(pattern.GetCStr(), std::regex_constants::icase);
+    return OpenImpl(path, std::move(regex), do_files, do_dirs, max_level);
+}
+
+FindFile FindFile::Open(const String &path, const std::regex &regex,
+    bool do_files, bool do_dirs, size_t max_level)
+{
+    std::regex regex_copy = regex;
+    return OpenImpl(path, std::move(regex_copy), do_files, do_dirs, max_level);
+}
+
+FindFile FindFile::OpenImpl(const String &path, std::regex &&regex,
+    bool do_files, bool do_dirs, size_t max_level)
 {
     auto di = DirectoryRecursiveIterator::Open(path, max_level);
     if (!di)
         return {}; // fail
-
-    String pattern = StrUtil::WildcardToRegex(wildcard);
-    auto regex = std::regex(pattern.GetCStr(), std::regex_constants::icase);
 
     FindFile ff(std::move(di), std::move(regex), do_files, do_dirs);
     // Try get first valid entry

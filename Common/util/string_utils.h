@@ -41,6 +41,7 @@ namespace StrUtil
     // Tries to convert whole string into integer value;
     // returns def_val on failure
     int             StringToInt(const String &s, int def_val = 0);
+    int             StringToIntHex(const String &s, int def_val = 0);
     int64_t         StringToInt64(const String &s, int64_t def_val = 0);
     uint64_t        StringToUInt64(const String &s, uint64_t def_val = 0);
     // Tries to convert whole string into integer value;

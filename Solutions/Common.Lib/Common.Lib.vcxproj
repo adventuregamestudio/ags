@@ -798,6 +798,7 @@
     <ClInclude Include="..\..\Common\util\deflatestream.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\base.h" />
+    <ClInclude Include="..\..\libsrc\allegro\include\allegro\colblend.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\color.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\debug.h" />
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\draw.h" />

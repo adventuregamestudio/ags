@@ -32,6 +32,7 @@
 #include "allegro/palette.h"
 #include "allegro/gfx.h"
 #include "allegro/color.h"
+#include "allegro/colblend.h"
 #include "allegro/draw.h"
 
 #include "allegro/fli.h"

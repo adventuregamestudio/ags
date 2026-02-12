@@ -92,7 +92,7 @@ public:
     HError      InitFile(std::unique_ptr<Stream> &&sprite_file,
                          std::unique_ptr<Stream> &&index_file);
     // Saves current cache contents to the file
-    int         SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index);
+    HError      SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index);
     // Closes an active sprite file stream
     void        DetachFile();
 

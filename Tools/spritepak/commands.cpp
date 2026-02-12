@@ -48,16 +48,18 @@ SpriteCompression CompressionFromName(const String &compress_name)
         compress_name, CompressionNames, kSprCompress_None);
 }
 
-static void ResolveImageFilePattern(const String &pattern, String &res_pattern, String &regex_pattern)
+static bool ResolveImageFilePattern(const String &pattern, String &res_pattern, String &regex_pattern)
 {
     if (pattern.IsNullOrSpace())
     {
         res_pattern = String::FromFormat("%s.%s", DefaultPattern.GetCStr(), DefaultExtension.GetCStr());
         regex_pattern = String::FromFormat("%s.%s", DefaultRegexPattern.GetCStr(), DefaultExtension.GetCStr());
+        return true;
     }
 
     res_pattern = "";
     regex_pattern = "";
+    bool found_spritenum = false;
     const auto parts = pattern.Split('%');
     // Each second part is assumed a placeholder between two '%'
     for (size_t i = 0; i < parts.size(); ++i)
@@ -70,10 +72,12 @@ static void ResolveImageFilePattern(const String &pattern, String &res_pattern, 
         else if (i < parts.size() - 1)
         {
             // Resolve placeholder
-            if (parts[i] == "N" || parts[i] == "n")
+            if ((parts[i].GetLast() == 'N' || parts[i].GetLast() == 'n')
+                && (parts[i].GetLength() == 2) && std::isdigit(parts[i][0]))
             {
-                res_pattern.Append("%06d");
-                regex_pattern.Append("\\d{6}");
+                res_pattern.AppendFmt("%%0%dd", parts[i][0] - '0');
+                regex_pattern.AppendFmt("\\d{%d}", parts[i][0] - '0');
+                found_spritenum = true;
             }
             else
             {
@@ -83,18 +87,16 @@ static void ResolveImageFilePattern(const String &pattern, String &res_pattern, 
         }
     }
 
+    // We cannot export multiple sprites without a sprite number placeholder
+    if (!found_spritenum)
+        return false;
+
     if (Path::GetFileExtension(res_pattern).IsEmpty())
     {
         res_pattern = String::FromFormat("%s.%s", res_pattern.GetCStr(), DefaultExtension.GetCStr());
         regex_pattern = String::FromFormat("%s.%s", regex_pattern.GetCStr(), DefaultExtension.GetCStr());
     }
-}
-
-static String ResolveImageFilePattern(const String &pattern)
-{
-    String res_pattern, regex_pattern;
-    ResolveImageFilePattern(pattern, res_pattern, regex_pattern);
-    return res_pattern;
+    return true;
 }
 
 static HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, const std::regex &regex)
@@ -176,7 +178,11 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     }
 
     String image_pattern, regex_pattern;
-    ResolveImageFilePattern(opts.ImageFilePattern, image_pattern, regex_pattern);
+    if (!ResolveImageFilePattern(opts.ImageFilePattern, image_pattern, regex_pattern))
+    {
+        printf("Error: image file pattern \"%s\" is not a valid pattern.\n", opts.ImageFilePattern.GetCStr());
+        return -1;
+    }
     printf("Image file pattern: %s\n", image_pattern.GetCStr());
     printf("Sprite file compression: %s\n", GetCompressionName(opts.Compress).GetCStr());
     printf("Sprite file storage flags: 0x%08x\n", opts.StorageFlags);
@@ -264,7 +270,8 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     printf("Sprite file written successfully.\n");
     printf("Imported %zu sprites.\n", import_count);
 
-    SaveIndexFile(opts.IndexFile, writer.GetIndex());
+    if (!opts.IndexFile.IsEmpty())
+        SaveIndexFile(opts.IndexFile, writer.GetIndex());
     printf("Done.\n");
     return 0;
 }
@@ -282,7 +289,12 @@ int Command_Export(const String &src_pak, const String &dst_dir, const CommandOp
         return -1;
     }
 
-    String image_pattern = ResolveImageFilePattern(opts.ImageFilePattern);
+    String image_pattern, regex_pattern;
+    if (!ResolveImageFilePattern(opts.ImageFilePattern, image_pattern, regex_pattern))
+    {
+        printf("Error: image file pattern \"%s\" is not a valid pattern.\n", opts.ImageFilePattern.GetCStr());
+        return -1;
+    }
     printf("Image file pattern: %s\n", image_pattern.GetCStr());
 
     //-----------------------------------------------------------------------//
@@ -406,7 +418,7 @@ int Command_List(const String &src_pak, const CommandOptions &opts)
     return 0;
 }
 
-int Command_Rewrite(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose)
+int Command_Copy(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose)
 {
     printf("Input spritefile: %s\n", src_pak.GetCStr());
     if (!opts.IndexFile.IsEmpty())
@@ -445,6 +457,7 @@ int Command_Rewrite(const String &src_pak, const String &dst_pak, const CommandO
     err = SaveSpriteFile(dst_pak, dummy_sprites, &reader, opts.StorageFlags, opts.Compress, index);
     if (err)
     {
+        printf("Copied over %zu sprites.\n", index.GetCount());
         printf("Sprite file written successfully.\n");
     }
     else
@@ -454,7 +467,8 @@ int Command_Rewrite(const String &src_pak, const String &dst_pak, const CommandO
         return -1;
     }
 
-    SaveIndexFile(opts.OutIndexFile, index);
+    if (!opts.OutIndexFile.IsEmpty())
+        SaveIndexFile(opts.OutIndexFile, index);
     printf("Done.\n");
     return 0;
 }

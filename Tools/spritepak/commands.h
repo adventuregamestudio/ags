@@ -40,7 +40,7 @@ namespace SpritePak
     int Command_Export(const String &src_pak, const String &dst_dir, const CommandOptions &opts, bool verbose);
     int Command_Info(const String &src_pak, const CommandOptions &opts);
     int Command_List(const String &src_pak, const CommandOptions &opts);
-    int Command_Rewrite(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose);
+    int Command_Copy(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose);
 }
 
 #endif // __AGS_TOOL_SPRITEPAK__COMMANDS_H

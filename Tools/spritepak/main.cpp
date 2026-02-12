@@ -35,47 +35,49 @@ const char *HELP_STRING = "Usage:\n"
 "      Options may adjust the operation further.\n"
 "\n"
 "Commands:\n"
-"  -c, --create           create a spritefile, gathering the files from the\n"
-"                         input directory.\n"
-"  -e, --export           export (extract) files from the existing spritefile\n"
-"                         into the output directory.\n"
-"  -l, --list             print spritefile's table of contents.\n"
-"  -q, --info             print quick info about spritefile.\n"
-"  -w, --rewrite          rewrites spritefile contents into another spritefile,\n"
-"                         optionally using different storage options.\n"
+"  -c, --create     create a spritefile, gathering the files from the input\n"
+"                   directory.\n"
+"  -e, --export     export (extract) files from the existing spritefile into\n"
+"                   the output directory.\n"
+"  -l, --list       print spritefile's table of contents.\n"
+"  -q, --info       print quick info about spritefile.\n"
+"  -y, --copy       copies spritefile contents over into another spritefile,\n"
+"                   letting to use different storage options.\n"
 "\n"
 "Command options:\n"
 "  -n, --index <indexfile>\n"
-"                         specifies the index file to read or write, depending\n"
-"                         respectively on the current command.\n"
+"                   specifies the index file to read or write, depending\n"
+"                   respectively on the current command.\n"
 "  --out-index <indexfile>\n"
-"                         when rewriting a spritefile, specifies new index file.\n"
-"  -p, --pattern <file pattern>\n"
-"                         when creating the new spritefile, or exporting one,\n"
-"                         use the given pattern for individual image files,\n"
-"                         either with or without file extension. The pattern\n"
-"                         may contain following placeholders:\n"
-"                           * %N% - sprite number\n"
-"                         If no pattern is provided, the program will use\n"
-"                         \"spr%N%\" pattern by default. If neither pattern\n"
-"                         nor extension is provided, then \".bmp\" will be used.\n"
+"                   when rewriting a spritefile, specifies new index file.\n"
+"  -p, --pattern <name pattern>\n"
+"                   when creating the new spritefile, or extracting one, use the\n"
+"                   given pattern when searching for or creating image files.\n"
+"                   The pattern may be given with or without file extension.\n"
+"                   The pattern may contain following placeholders:\n"
+"                     * %xN% - sprite number, where 'x' may be any single digit\n"
+"                              integer specifying number of padding zeroes,\n"
+"                              e.g. \"%6N%."
+"                   If no pattern is provided, the program will use \"spr%6N%\"\n"
+"                   pattern by default. If no extension is specified in the\n"
+"                   pattern, then \".bmp\" will be used as an extension.\n"
 // TODO: replace default with PNG after PNG read/write support is added to the engine
 "  -s, --storage-flags <flags>\n"
-"                         when creating the new spritefile, use additional\n"
-"                         storage options, defined using a hexadecimal bitset:\n"
-"                           * 0x01 - optimize storage size when possible;\n"
-"                             e.g. write 16/32-bit images as 8-bit images with\n"
-"                             palette (only when this achieves less space).\n"
-"                         default is \"0x01\"\n"
-"  -z, --compress <type>  when creating the new spritefile, use compression:\n"
-"                           * none\n"
-"                           * rle\n"
-"                           * lzw\n"
-"                           * deflate\n"
-"                         default is \"deflate\"\n"
+"                   when creating the new spritefile, use additional storage\n"
+"                   options, defined using a hexadecimal bitset:\n"
+"                     * 0x01 - optimize storage size when possible;\n"
+"                   e.g. write 16/32-bit images as 8-bit images with palette\n"
+"                   (only when this achieves less space). default is \"0x01\"\n"
+"  -z, --compress <type>\n"
+"                   when creating the new spritefile, use compression:\n"
+"                     * none\n"
+"                     * rle\n"
+"                     * lzw\n"
+"                     * deflate\n"
+"                   default is \"deflate\"\n"
 "\n"
 "Other options:\n"
-"  -v, --verbose          print operation details"
+"  -v, --verbose    print operation details"
 ;
 
 
@@ -105,9 +107,9 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'q'; // info
             break;
         }
-        if (opt == "-w" || opt == "--rewrite")
+        if (opt == "-y" || opt == "--copy")
         {
-            command = 'w'; // rewrite
+            command = 'y'; // copy
             break;
         }
     }
@@ -175,11 +177,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             break; // not enough args
         return SpritePak::Command_Info(sprite_file, opts);
     }
-    case 'w': // rewrite
+    case 'y': // copy
     {
         if (cmdargs.PosArgs.size() < 2)
             break; // not enough args
-        return SpritePak::Command_Rewrite(sprite_file, work_file_or_dir, opts, verbose);
+        return SpritePak::Command_Copy(sprite_file, work_file_or_dir, opts, verbose);
     }
     default:
         printf("Error: no valid command is specified\n");

@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../libsrc/miniz
+INCDIR = ../../Common ../../libsrc/miniz ../../libsrc/allegro/include
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -8,6 +8,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+	-DALLEGRO_STATICLINK
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)

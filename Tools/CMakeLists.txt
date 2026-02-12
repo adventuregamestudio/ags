@@ -39,10 +39,33 @@ set(TOOLS_COMMON_SOURCES
         ../Common/util/string_compat.c
         ../Common/util/string_utils.cpp
         ../Common/util/textstreamreader.cpp)
-        
+
+
+#-----------------------------------------------------------------------------#
+# Minimal Allegro config
+#-----------------------------------------------------------------------------#
+
+include(TestBigEndian)
+
+test_big_endian(ALLEGRO_BIG_ENDIAN)
+if(NOT ALLEGRO_BIG_ENDIAN)
+   set(ALLEGRO_LITTLE_ENDIAN 1)
+endif(NOT ALLEGRO_BIG_ENDIAN)
+
+if(CMAKE_COMPILER_IS_GNUCC)
+    set(ALLEGRO_GCC 1)
+endif(CMAKE_COMPILER_IS_GNUCC)
+
+if(MSVC)
+    set(ALLEGRO_MSVC 1)
+endif()
+
+#-----------------------------------------------------------------------------#
+
 target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
 set(TOOLS_MINIMAL_ALLEGRO_SOURCES
         ../libsrc/allegro/src/color.c)
+target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools
         PRIVATE

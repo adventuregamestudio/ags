@@ -28,15 +28,37 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
+            this.btnOK = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             this.schemaList = new AGS.Editor.SortableListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.btnOK = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
+            this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
+            // 
+            // btnOK
+            // 
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnOK.Location = new System.Drawing.Point(12, 274);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Size = new System.Drawing.Size(109, 29);
+            this.btnOK.TabIndex = 1;
+            this.btnOK.Text = "Close";
+            this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(5, 5);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(206, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Right-click below to add or edit properties";
             // 
             // schemaList
             // 
@@ -48,7 +70,8 @@ namespace AGS.Editor
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader4,
-            this.columnHeader5});
+            this.columnHeader5,
+            this.columnHeader6});
             this.schemaList.FullRowSelect = true;
             this.schemaList.HideSelection = false;
             this.schemaList.Location = new System.Drawing.Point(8, 25);
@@ -84,26 +107,10 @@ namespace AGS.Editor
             // 
             this.columnHeader5.Text = "Applies to";
             // 
-            // btnOK
+            // columnHeader6
             // 
-            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOK.Location = new System.Drawing.Point(12, 274);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(109, 29);
-            this.btnOK.TabIndex = 1;
-            this.btnOK.Text = "Close";
-            this.btnOK.UseVisualStyleBackColor = true;
-            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 5);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(206, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Right-click below to add or edit properties";
+            this.columnHeader6.Text = "Translated";
+            this.columnHeader6.Width = 80;
             // 
             // CustomPropertySchemaEditor
             // 
@@ -141,5 +148,6 @@ namespace AGS.Editor
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.ColumnHeader columnHeader5;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
     }
 }

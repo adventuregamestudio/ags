@@ -117,14 +117,14 @@ void stop_character_idling(CharacterInfo *chi)
     if (chi->is_idling())
     {
         Character_UnlockView(chi);
-        chi->idleleft = chi->idletime;
+        chi->idleleft = chi->idledelay;
     }
 }
 
 // Resets idling timer, and marks for immediate update (in case its persistent idling)
 void reset_character_idling_time(CharacterInfo *chi)
 {
-    chi->idleleft = chi->idletime;
+    chi->idleleft = chi->idledelay;
     charextra[chi->index_id].process_idle_this_time = 1;
 }
 
@@ -863,7 +863,7 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
     // make sure they don't appear idle while idle anim is disabled
     if (iview < 1)
         itime = 10;
-    chaa->idletime = itime;
+    chaa->idledelay = itime;
     chaa->idleleft = itime;
 
     // if not currently animating, reset the wait counter
@@ -1391,11 +1391,21 @@ void Character_SetFrame(CharacterInfo *chaa, int newval) {
     chaa->frame = newval;
 }
 
-int Character_GetIdleView(CharacterInfo *chaa) {
+int Character_GetIdleDelay(CharacterInfo *chaa)
+{
+    return chaa->idledelay;
+}
 
+int Character_GetIdleTime(CharacterInfo *chaa)
+{
+    return chaa->idleleft;
+}
+
+int Character_GetIdleView(CharacterInfo *chaa)
+{
+    // convert to a 1-based script view index
     if (chaa->idleview < 1)
         return -1;
-
     return chaa->idleview + 1;
 }
 
@@ -3723,6 +3733,16 @@ RuntimeScriptValue Sc_Character_GetScriptName(void *self, const RuntimeScriptVal
     API_OBJCALL_OBJ(CharacterInfo, const char, myScriptStringImpl, Character_GetScriptName);
 }
 
+RuntimeScriptValue Sc_Character_GetIdleDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetIdleDelay);
+}
+
+RuntimeScriptValue Sc_Character_GetIdleTime(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetIdleTime);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetIdleView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4196,6 +4216,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::get_Frame",                 API_FN_PAIR(Character_GetFrame) },
         { "Character::set_Frame",                 API_FN_PAIR(Character_SetFrame) },
         { "Character::get_ID",                    API_FN_PAIR(Character_GetID) },
+        { "Character::get_IdleDelay",             API_FN_PAIR(Character_GetIdleDelay) },
+        { "Character::get_IdleTime",              API_FN_PAIR(Character_GetIdleTime) },
         { "Character::get_IdleView",              API_FN_PAIR(Character_GetIdleView) },
         { "Character::get_IdleAnimationDelay",    API_FN_PAIR(Character_GetIdleAnimationDelay) },
         { "Character::set_IdleAnimationDelay",    API_FN_PAIR(Character_SetIdleAnimationDelay) },

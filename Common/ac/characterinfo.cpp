@@ -40,7 +40,7 @@ void CharacterInfo::ReadFromFile(CharacterInfo2 &chinfo2, Stream *in, GameDataVe
     in->ReadInt16(); // [UNUSED] (following)
     in->ReadInt16(); // [UNUSED] (follow_info)
     idleview = in->ReadInt32();
-    idletime = in->ReadInt16();
+    idledelay = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] (idleleft)
     transparency = in->ReadInt16();
     baseline = in->ReadInt16();
@@ -107,7 +107,7 @@ void CharacterInfo::WriteToFile(const CharacterInfo2 &chinfo2, Stream *out) cons
     out->WriteInt16(0); // [UNUSED] (following)
     out->WriteInt16(0); // [UNUSED] (follow_info)
     out->WriteInt32(idleview);
-    out->WriteInt16(idletime);
+    out->WriteInt16(idledelay);
     out->WriteInt16(0); // [UNUSED] (idleleft)
     out->WriteInt16(transparency);
     out->WriteInt16(baseline);
@@ -161,7 +161,7 @@ void CharacterInfo::ReadFromSavegame(CharacterInfo2 &chinfo2, Stream *in, Charac
     legacy_following = in->ReadInt16();
     legacy_followinfo = in->ReadInt16();
     idleview = in->ReadInt32();
-    idletime = in->ReadInt16();
+    idledelay = in->ReadInt16();
     idleleft = in->ReadInt16();
     transparency = in->ReadInt16();
     baseline = in->ReadInt16();
@@ -242,7 +242,7 @@ void CharacterInfo::WriteToSavegame(const CharacterInfo2 &chinfo2, Stream *out) 
     out->WriteInt16(0); // legacy_following
     out->WriteInt16(0); // legacy_followinfo
     out->WriteInt32(idleview);
-    out->WriteInt16(idletime);
+    out->WriteInt16(idledelay);
     out->WriteInt16(idleleft);
     out->WriteInt16(transparency);
     out->WriteInt16(baseline);
@@ -298,7 +298,7 @@ void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {
     COPY_CHAR_VAR (following);
     COPY_CHAR_VAR (followinfo);
     COPY_CHAR_VAR (idleview);
-    COPY_CHAR_VAR (idletime);
+    COPY_CHAR_VAR (idledelay);
     COPY_CHAR_VAR (idleleft);
     COPY_CHAR_VAR (transparency);
     COPY_CHAR_VAR (baseline);

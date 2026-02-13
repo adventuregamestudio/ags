@@ -3153,6 +3153,10 @@ builtin managed struct Character {
   import attribute int  BlockingRectX;
   /// Gets/sets the relative y offset of a blocking area of the character.
   import attribute int  BlockingRectY;
+  /// Gets delay before the idle view activates, in seconds
+  import readonly attribute int IdleDelay;
+  /// Gets remaining time before the idle view activates, in seconds
+  import readonly attribute int IdleTime;
 #endif // SCRIPT_API_v363
 #ifdef STRICT
   /// The character's current X-position.

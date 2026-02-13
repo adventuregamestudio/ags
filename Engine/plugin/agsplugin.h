@@ -137,7 +137,7 @@ struct AGSCharacter {
   short following;
   short followinfo;
   int32 idleview;           // the loop will be randomly picked
-  short idletime, idleleft; // num seconds idle before playing anim
+  short idledelay, idleleft; // num seconds idle before playing anim
   short transparency;       // if character is transparent
   short baseline;
   int32 activeinv;

@@ -136,9 +136,10 @@ struct CharacterInfo
     int     flags       = 0;  // CHF_* flags
     int16_t legacy_following = -1;  // deprecated 16-bit values that store follow params
     int16_t legacy_followinfo = 0;  // -- left for the script and plugin compatibility only
-    int     idleview    = 0;  // the loop will be randomly picked
-    int16_t idletime    = 0;
-    int16_t idleleft    = 0; // num seconds idle before playing anim
+    int     idleview    = 0; // idle view number
+    // delay in seconds to wait before switching to idle animation (0 = continuous idling)
+    int16_t idledelay    = 0;
+    int16_t idleleft    = 0; // time in seconds left before switching to idle animation
     int16_t transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     int16_t baseline    = -1;
     int     activeinv   = -1; // selected inventory item
@@ -153,7 +154,7 @@ struct CharacterInfo
     int     z           = 0; // z-location, for flying etc
     int     walkwait    = 0;
     int16_t speech_anim_speed = 0;
-    int16_t idle_anim_speed = 0;
+    int16_t idle_anim_speed = 0; // idle animation delay
     int16_t blocking_width = 0;
     int16_t blocking_height = 0;
     int     index_id    = 0; // this character's numeric ID
@@ -288,7 +289,7 @@ struct OldCharacterInfo {
     short following;
     short followinfo;
     int   idleview;           // the loop will be randomly picked
-    short idletime, idleleft; // num seconds idle before playing anim
+    short idledelay, idleleft; // num seconds idle before playing anim
     short transparency;       // if character is transparent
     short baseline;
     int   activeinv;          // this is an INT to support SeeR (no signed shorts)

@@ -85,7 +85,7 @@ int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
     case 36: return ci->legacy_following;
     case 38: return ci->legacy_followinfo;
     // 40 +1 int32 = 44
-    case 44: return ci->idletime;
+    case 44: return ci->idledelay;
     case 46: return ci->idleleft;
     case 48: return ci->transparency;
     case 50: return ci->baseline;
@@ -145,7 +145,7 @@ void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
         cc_error("ScriptCharacter: attempt to write readonly 'short' variable at offset %d", offset);
         break;
     // 40 +1 int32 = 44
-    case 44: ci->idletime = val; break;
+    case 44: ci->idledelay = val; break;
     case 46: ci->idleleft = val; break;
     case 48: ci->transparency = val; break;
     case 50: ci->baseline = val; break;

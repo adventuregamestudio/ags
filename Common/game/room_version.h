@@ -83,6 +83,7 @@ enum RoomFileVersion
     kRoomVersion_3415 = 31,
     kRoomVersion_350 = 32,
     kRoomVersion_3508 = 33,
+    kRoomVersion_399  = 40, // [UNSUPPORTED] was reserved for early 4.0 alpha
     // NOTE: 3.* format number is restricted to an unsigned 16-bit value;
     // we keep it like this in 3.* versions, since 3.* room formats are
     // expected to not change alot once we move main development to 4.*.

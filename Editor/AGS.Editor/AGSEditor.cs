@@ -120,8 +120,9 @@ namespace AGS.Editor
          * 3.6.3.5        - Renamed ShadowColor -> BorderShadeColor.
          * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
+         * 3.6.3.8        - New Translation settings.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060306;
+        public const int    LATEST_XML_VERSION_INDEX = 3060308;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

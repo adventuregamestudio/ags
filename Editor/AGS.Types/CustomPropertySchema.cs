@@ -7,6 +7,13 @@ namespace AGS.Types
 {
     public class CustomPropertySchema
     {
+        /*
+         * Custom property schema history:
+         * 
+         * 3.00.00.00 - initial 3.* custom properties schema
+        */
+        public const int LATEST_XML_VERSION_INDEX = 3000000;
+
         private List<CustomPropertySchemaItem> _propertyDefinitions = new List<CustomPropertySchemaItem>();
 
         public CustomPropertySchema()

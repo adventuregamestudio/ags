@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
+using AGS.Editor.Components;
 using AGS.Editor.Utils;
 using AGS.Types;
 
@@ -19,14 +20,19 @@ namespace AGS.Editor
         private const string CHARACTER_FILE_SIGNATURE = "AGSCharacter";
 		private const string SINGLE_RUN_SCRIPT_TAG = "$$SINGLE_RUN_SCRIPT$$";
 
-        private const string GUI_XML_ROOT_NODE = "ExportedGUI";
-        private const string GUI_XML_VERSION_ATTRIBUTE = "Version";
         // TODO: split XML versions for base object (GUI/Character) and
         // nested items (like sprites) to allow converting from future versions
         // if only nested items format changed (when still possible)
         // TODO: find a way to make version number maintenance more convenient,
         // because right now it's very easy to forget updating these!
         // Maybe think about this when implementing a uniform method to import/export every project item
+        // TODO: instead of having their own range of versions,
+        // use the versions matching the *latest project version* where this
+        // type had any changes.
+        // Also, of course, use uniform serialization shared with the respective nodes in game project!
+
+        private const string GUI_XML_ROOT_NODE = "ExportedGUI";
+        private const string GUI_XML_VERSION_ATTRIBUTE = "Version";
         // *  1: Initial
         // *  2: Sprites have "real resolution"
         private const int GUI_XML_CURRENT_VERSION = 2;
@@ -1327,6 +1333,29 @@ namespace AGS.Editor
 
             writer.WriteEndElement();
             writer.Close();
+        }
+
+        public static void ExportCustomPropertiesSchemaToFile(CustomPropertySchema schema, string fileName, Game game)
+        {
+            Utilities.TryDeleteFile(fileName);
+            XmlTextWriter writer = new XmlTextWriter(fileName, game.TextEncoding);
+            writer.Formatting = Formatting.Indented;
+            writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + game.TextEncoding.WebName + "\"");
+            writer.WriteStartElement(CustomPropertiesComponent.SCHEMA_FILE_ROOT_NODE);
+            writer.WriteAttributeString(AGSEditor.XML_ATTRIBUTE_VERSION_INDEX, CustomPropertySchema.LATEST_XML_VERSION_INDEX.ToString());
+            schema.ToXml(writer);
+            writer.WriteEndElement();
+            writer.Close();
+        }
+
+        public static CustomPropertySchema ImportCustomPropertiesSchemaFromFile(string fileName, Game game)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(fileName);
+            XmlNode node = doc.SelectSingleNode(CustomPropertiesComponent.SCHEMA_FILE_ROOT_NODE);
+            CustomPropertySchema schema = new CustomPropertySchema();
+            schema.FromXml(node);
+            return schema;
         }
 
         private static void ExportAllSpritesOnGUI(GUI gui, XmlTextWriter writer)

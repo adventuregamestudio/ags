@@ -34,7 +34,7 @@ namespace AGS.Editor
                 {
                     // Only cause it to flag Modified if we changed it
                     script.Script.Text = newScript;
-                }                
+                }
             }
 
             ProcessPropertySchema(processor, game.PropertySchema, errors);
@@ -82,7 +82,8 @@ namespace AGS.Editor
         private static void ProcessPropertySchema(IGameTextProcessor processor, CustomPropertySchema schema,
             CompileMessages errors)
         {
-            foreach (var def in schema.PropertyDefinitions.Where(n => n.Type == CustomPropertyType.Text))
+            foreach (var def in schema.PropertyDefinitions.Where(
+                n => (n.Type == CustomPropertyType.Text) && n.Translated))
             {
                 def.DefaultValue = processor.ProcessText(def.DefaultValue, GameTextType.ItemDescription);
             }
@@ -91,7 +92,8 @@ namespace AGS.Editor
         public static void ProcessProperties(IGameTextProcessor processor, CustomPropertySchema schema,
             CustomProperties props, CompileMessages errors)
         {
-            foreach (var def in schema.PropertyDefinitions.Where(n => n.Type == CustomPropertyType.Text))
+            foreach (var def in schema.PropertyDefinitions.Where(
+                n => (n.Type == CustomPropertyType.Text) && n.Translated))
             {
                 CustomProperty prop;
                 if (props.PropertyValues.TryGetValue(def.Name, out prop))

@@ -11,12 +11,25 @@ namespace AGS.Editor
 
 		public SpeechOnlyProcessor(Game game, CompileMessages errors, bool makesChanges, bool processHotspotAndObjectDescriptions,
 			Dictionary<string, FunctionCallType> speechableFunctionCalls)
-			: base(game, errors, makesChanges, processHotspotAndObjectDescriptions)
+			: base(game, errors, makesChanges, processHotspotAndObjectDescriptions,
+                  lookupForFunctionCalls: true, lookupForOuterFunctionCalls: false)
 		{
 			_speechableFunctionCalls = speechableFunctionCalls;
 		}
 
-		protected override int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
+        protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
+        {
+            if (string.IsNullOrEmpty(scriptCodeExtract))
+            {
+                characterID = -1;
+                return false;
+            }
+
+            characterID = ParseFunctionCallAndFindCharacterID(scriptCodeExtract);
+            return characterID >= 0;
+        }
+
+		private int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
 		{
 			foreach (string nameToSearchFor in _speechableFunctionCalls.Keys)
 			{

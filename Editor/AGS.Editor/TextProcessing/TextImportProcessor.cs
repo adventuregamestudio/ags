@@ -11,18 +11,20 @@ namespace AGS.Editor
         private Dictionary<string, string> _translationToUse;
 
         public TextImportProcessor(Game game, CompileMessages errors, Dictionary<string, string> translationToUse)
-            : base(game, errors, true, true)
+            : base(game, errors, makesChanges: true, processHotspotAndObjectDescriptions: true,
+                  lookupForFunctionCalls: false, lookupForOuterFunctionCalls: false)
         {
             _translationToUse = translationToUse;
         }
 
-        protected override int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract)
+        protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
         {
             // dummy character ID 0, because we don't really care
-            return 0;
+            characterID = 0;
+            return true;
         }
 
-        protected override string CreateSpeechLine(int speakingCharacter, string text)
+        protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
         {
             if ((_translationToUse.ContainsKey(text)) &&
                 (_translationToUse[text].Length > 0))

@@ -16,7 +16,6 @@
 #include <array>
 #include <time.h>
 #include "core/assetmanager.h"
-#include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
@@ -61,15 +60,15 @@ static size_t lookup_palette(uint32_t col, uint32_t palette[256], uint32_t ncols
 // Converts a 16/32-bit image into the indexed 8-bit pixel data with palette;
 // NOTE: the palette will contain colors in the same format as the source image.
 // only succeeds if the total number of colors used in the image is < 257.
-static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_data,
+static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &dst_data,
     uint32_t palette[256], uint32_t &pal_count)
 {
-    const int src_bpp = image->GetBPP();
+    const int src_bpp = image.GetBytesPerPixel();
     if (src_bpp < 2) { assert(0); return false; }
-    const size_t src_size = image->GetWidth() * image->GetHeight() * image->GetBPP();
-    const size_t dst_size = image->GetWidth() * image->GetHeight();
+    const size_t src_size = image.GetWidth() * image.GetHeight() * image.GetBytesPerPixel();
+    const size_t dst_size = image.GetWidth() * image.GetHeight();
     dst_data.resize(dst_size);
-    const uint8_t *src = image->GetData(), *src_end = src + src_size;
+    const uint8_t *src = image.GetData(), *src_end = src + src_size;
     uint8_t *dst = &dst_data[0], *dst_end = dst + dst_size;
     pal_count = 0;
 
@@ -81,15 +80,17 @@ static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_d
         {
         case 2:
             col = *((const uint16_t*)src);
-            pal_n = lookup_palette(col, palette, pal_count);
+            break;
+        case 3:
+            col = src[0] | (src[1] << 8) | (src[2] << 16);
             break;
         case 4:
             col = *((const uint32_t*)src);
-            pal_n = lookup_palette(col, palette, pal_count);
             break;
         default: assert(0); return false;
         }
-        
+
+        pal_n = lookup_palette(col, palette, pal_count);
         if (pal_n == SIZE_MAX)
         {
             if (pal_count == 256) return false;
@@ -103,15 +104,15 @@ static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_d
 
 // Unpacks an indexed image's pixel data into the 16/32-bit image;
 // NOTE: the palette is expected to contain colors in the same format as the destination.
-static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_size,
+static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t data_size,
                                 const std::array<uint32_t, 256> &palette, uint32_t pal_count)
 {
     assert(pal_count > 0 && pal_count <= 256);
     if (pal_count == 0 || pal_count > 256) return; // meaningless
 
-    const uint8_t bpp = static_cast<uint8_t>(image->GetBPP());
-    const size_t dst_size = image->GetWidth() * image->GetHeight() * image->GetBPP();
-    uint8_t *dst = image->GetDataForWriting();
+    const uint8_t bpp = static_cast<uint8_t>(image.GetBytesPerPixel());
+    const size_t dst_size = image.GetWidth() * image.GetHeight() * image.GetBytesPerPixel();
+    uint8_t *dst = image.GetData();
     uint8_t const *dst_end = dst + dst_size;
 
     switch (bpp)
@@ -123,7 +124,17 @@ static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_
                 uint32_t color = palette[index];
                 *((uint16_t *) dst) = color;
             }
-        break;
+            break;
+        case 3:
+            for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+                uint8_t index = data[p];
+                assert(index < pal_count);
+                uint32_t color = palette[index];
+                dst[0] = color & 0xFF;
+                dst[1] = (color >> 8) & 0xFF;
+                dst[2] = (color >> 16) & 0xFF;
+            }
+            break;
         case 4:
             for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
                 uint8_t index = data[p];
@@ -131,7 +142,7 @@ static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_
                 uint32_t color = palette[index];
                 *((uint32_t*)dst) = color;
             }
-        break;
+            break;
         default: assert(0); return;
     }
 }
@@ -143,6 +154,7 @@ static inline SpriteFormat PaletteFormatForBPP(int bpp)
     {
     case 1: return kSprFmt_PaletteRgb888;
     case 2: return kSprFmt_PaletteRgb565;
+    case 3: return kSprFmt_PaletteRgb888;
     case 4: return kSprFmt_PaletteArgb8888;
     default: return kSprFmt_Undefined;
     }
@@ -166,7 +178,25 @@ SpriteFile::SpriteFile()
 }
 
 HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file)
+{
+    return OpenFileImpl(std::move(sprite_file), std::move(index_file), nullptr, nullptr);
+}
+
+HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
     std::unique_ptr<Stream> &&index_file, std::vector<Size> &metrics)
+{
+    return OpenFileImpl(std::move(sprite_file), std::move(index_file), &metrics, nullptr);
+}
+
+HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file, std::vector<SpriteDatHeader> &metrics)
+{
+    return OpenFileImpl(std::move(sprite_file), std::move(index_file), nullptr, &metrics);
+}
+
+HError SpriteFile::OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file, std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2)
 {
     Close();
 
@@ -176,7 +206,6 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
 
     _stream = std::move(sprite_file);
 
-    soff_t spr_initial_offs = _stream->GetPosition();
     _version = (SpriteFileVersion)_stream->ReadInt16();
     // read the "Sprite File" signature
     char buff[20];
@@ -224,7 +253,10 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
         topmost = 200;
 
     _spriteData.resize(topmost + 1);
-    metrics.resize(topmost + 1);
+    if (metrics)
+        metrics->resize(topmost + 1);
+    if (metrics2)
+        metrics2->resize(topmost + 1);
 
     // Version 12+: read global store flags
     if (_version >= kSprfVersion_StorageFormats)
@@ -235,16 +267,18 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
         _stream->ReadInt8();
     }
 
-    // if there is a sprite index file, use it
-    if (LoadSpriteIndexFile(std::move(index_file), spriteFileID,
-        spr_initial_offs, topmost, metrics))
+    // If there is a sprite index file, then use it,
+    // but only if we are not required to fill full sprite info, because
+    // index contains only basic parameters.
+    if (!metrics2 &&
+        LoadSpriteIndexFile(std::move(index_file), spriteFileID, topmost, metrics))
     {
         // Succeeded
         return HError::None();
     }
 
     // Failed, index file is invalid; index sprites manually
-    return RebuildSpriteIndex(_stream.get(), topmost, metrics);
+    return RebuildSpriteIndex(_stream.get(), topmost, metrics, metrics2);
 }
 
 void SpriteFile::Close()
@@ -269,11 +303,16 @@ SpriteCompression SpriteFile::GetSpriteCompression() const
 
 sprkey_t SpriteFile::GetTopmostSprite() const
 {
-    return (sprkey_t)_spriteData.size() - 1;
+    return _spriteData.size() > 0 ? static_cast<sprkey_t>(_spriteData.size()) - 1 : -1;
+}
+
+size_t SpriteFile::GetSpriteCount() const
+{
+    return _validCount;
 }
 
 bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
-    int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics)
+    int expectedFileID, sprkey_t topmost, std::vector<Size> *metrics)
 {
     if (!fidx)
     {
@@ -315,12 +354,23 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     }
 
     sprkey_t numsprits = topmost_index + 1;
-    std::vector<int16_t> rspritewidths; rspritewidths.resize(numsprits);
-    std::vector<int16_t> rspriteheights; rspriteheights.resize(numsprits);
-    std::vector<soff_t>  spriteoffs; spriteoffs.resize(numsprits);
+    std::vector<int16_t> rspritewidths;
+    std::vector<int16_t> rspriteheights;
+    std::vector<soff_t>  spriteoffs;
 
-    fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
-    fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
+    if (metrics || !fidx->CanSeek())
+    {
+        rspritewidths.resize(numsprits);
+        rspriteheights.resize(numsprits);
+        fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
+        fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
+    }
+    else
+    {
+        fidx->Seek(numsprits * sizeof(int16_t) * 2); // skip 2 arrays of int16
+    }
+
+    spriteoffs.resize(numsprits);
     if (vers <= kSpridxfVersion_Last32bit)
     {
         for (sprkey_t i = 0; i < numsprits; ++i)
@@ -335,9 +385,12 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     {
         if (spriteoffs[i] != 0)
         {
-            _spriteData[i].Offset = spriteoffs[i] + spr_initial_offs;
-            metrics[i].Width = rspritewidths[i];
-            metrics[i].Height = rspriteheights[i];
+            _spriteData[i].Offset = spriteoffs[i];
+            if (metrics)
+            {
+                (*metrics)[i].Width = rspritewidths[i];
+                (*metrics)[i].Height = rspriteheights[i];
+            }
         }
     }
     return true;
@@ -362,30 +415,52 @@ static inline void ReadSprHeader(SpriteDatHeader &hdr, Stream *in,
     hdr = SpriteDatHeader(bpp, sformat, pal_count, compress, w, h);
 }
 
-HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics)
+HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
+    std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2)
 {
     topmost = std::min(topmost, (sprkey_t)_spriteData.size() - 1);
+    _validCount = 0;
+
     for (sprkey_t i = 0; !in->EOS() && (i <= topmost); ++i)
     {
         _spriteData[i].Offset = in->GetPosition();
         SpriteDatHeader hdr;
         ReadSprHeader(hdr, _stream.get(), _version, _compress);
         if (hdr.BPP == 0) continue; // empty slot, this is normal
+        if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
+        {
+            return new Error(String::FromFormat("RebuildSpriteIndex: invalid sprite metrics %d (%dx%d %d-bit), cannot deduce pixel data size.",
+                i, hdr.Width, hdr.Height, hdr.BPP * 8));
+        }
         int pal_bpp = GetPaletteBPP(hdr.SFormat);
         if (pal_bpp > 0) in->Seek(hdr.PalCount * pal_bpp); // skip palette
         size_t data_sz =
             ((_version >= kSprfVersion_StorageFormats) || _compress != kSprCompress_None) ?
             (uint32_t)in->ReadInt32() : hdr.Width * hdr.Height * hdr.BPP;
         in->Seek(data_sz); // skip image data
-        metrics[i].Width = hdr.Width;
-        metrics[i].Height = hdr.Height;
+        if (metrics)
+        {
+            (*metrics)[i].Width = hdr.Width;
+            (*metrics)[i].Height = hdr.Height;
+        }
+        if (metrics2)
+        {
+            (*metrics2)[i] = hdr;
+        }
+        _validCount++;
     }
     return HError::None();
 }
 
-HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
+bool SpriteFile::DoesSpriteExist(sprkey_t index)
 {
-    sprite = nullptr;
+    return (index >= 0) && (static_cast<size_t>(index) < _spriteData.size())
+        && (_spriteData[index].Offset > 0);
+}
+
+HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
+{
+    sprite = {};
     if (index < 0 || (size_t)index >= _spriteData.size())
         return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
             index, 0, _spriteData.size() - 1));
@@ -399,14 +474,19 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     SpriteDatHeader hdr;
     ReadSprHeader(hdr, _stream.get(), _version, _compress);
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
-    int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
-    std::unique_ptr<Bitmap> image(BitmapHelper::CreateBitmap(w, h, bpp * 8));
-    if (image == nullptr)
+    if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
     {
-        return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d%d).",
+        return new Error(String::FromFormat("LoadSprite: invalid sprite metrics %d (%dx%d %d-bit).",
+            index, hdr.Width, hdr.Height, hdr.BPP * 8));
+    }
+    const int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
+    PixelBuffer image(w, h, ColorDepthToPixelFormat(bpp * 8));
+    if (!image)
+    {
+        return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d %d-bit).",
             index, w, h, bpp * 8));
     }
-    ImBufferPtr im_data(image->GetDataForWriting(), w * h * bpp, bpp);
+    ImBufferPtr im_data(image.GetData(), w * h * bpp, bpp);
     // (Optional) Handle storage options, reverse
     std::vector<uint8_t> indexed_buf;
     std::array<uint32_t, 256> palette {};
@@ -416,6 +496,8 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
         switch (pal_bpp)
         {
         case 2: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = _stream->ReadInt16(); }
+            break;
+        case 3: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = _stream->ReadUInt24(); }
             break;
         case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = _stream->ReadInt32(); }
             break;
@@ -454,14 +536,22 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
         }
     }
     // Otherwise (no compression) read directly
+    // CHECKME: using ReadArrayOfN below does not seem right. These methods do endinaness swap.
+    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
+    // and they are to be read using bit masks and shifts.
+    // If ever, then the conversion has to be done when decomposing pixels onto individual RGB parts,
+    // converting to another format, etc.
     else
     {
+        assert((im_data.Size % im_data.BPP) == 0);
         switch (im_data.BPP)
         {
         case 1: _stream->Read(im_data.Buf, im_data.Size);
             break;
         case 2: _stream->ReadArrayOfInt16(
                 reinterpret_cast<int16_t*>(im_data.Buf), im_data.Size / sizeof(int16_t));
+            break;
+        case 3: _stream->ReadArrayOfUInt24(im_data.Buf, im_data.Size / 3);
             break;
         case 4: _stream->ReadArrayOfInt32(
                 reinterpret_cast<int32_t*>(im_data.Buf), im_data.Size / sizeof(int32_t));
@@ -472,10 +562,10 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     // Finally revert storage options
     if (pal_bpp > 0)
     {
-        UnpackIndexedBitmap(image.get(), im_data.Buf, im_data.Size, palette, hdr.PalCount);
+        UnpackIndexedBitmap(image, im_data.Buf, im_data.Size, palette, hdr.PalCount);
     }
 
-    sprite = image.release(); // FIXME: pass unique_ptr in this function
+    sprite = std::move(image);
     _curPos = index + 1; // mark correct pos
     return HError::None();
 }
@@ -516,6 +606,15 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     return HError::None();
 }
 
+HError SpriteFile::LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics)
+{
+    metrics.resize(_spriteData.size());
+    if (_spriteData.size() == 0)
+        return HError::None();
+
+    return RebuildSpriteIndex(_stream.get(), GetTopmostSprite(), nullptr, &metrics);
+}
+
 void SpriteFile::SeekToSprite(sprkey_t index)
 {
     // If we didn't just load the previous sprite, seek to it
@@ -528,7 +627,7 @@ void SpriteFile::SeekToSprite(sprkey_t index)
 
 
 // Finds the topmost occupied slot index
-static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, Bitmap*>> &sprites)
+static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, BitmapData>> &sprites)
 {
     sprkey_t topmost = -1;
     for (sprkey_t i = 0; i < static_cast<sprkey_t>(sprites.size()); ++i)
@@ -537,20 +636,20 @@ static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, Bitmap*>> &s
     return topmost;
 }
 
-int SaveSpriteFile(const String &save_to_file,
-    const std::vector<std::pair<bool, Bitmap*>> &sprites,
+HError SaveSpriteFile(const String &save_to_file,
+    const std::vector<std::pair<bool, BitmapData>> &sprites,
     SpriteFile *read_from_file,
     int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
     std::unique_ptr<Stream> output(File::CreateFile(save_to_file));
     if (output == nullptr)
-        return -1;
+        return new Error("Failed to open a output file for writing");
 
     sprkey_t lastslot = FindTopmostSprite(sprites);
     SpriteFileWriter writer(std::move(output));
     writer.Begin(store_flags, compress, lastslot);
 
-    std::unique_ptr<Bitmap> temp_bmp; // for disposing temp sprites
+    PixelBuffer temp_bmp; // for disposing temp sprites
     std::vector<uint8_t> membuf; // for loading raw sprite data
 
     const bool diff_compress =
@@ -566,19 +665,19 @@ int SaveSpriteFile(const String &save_to_file,
             continue;
         }
 
-        Bitmap *image = sprites[i].second;
+        const BitmapData *image = &sprites[i].second;
         // if compression setting is different, load the sprite into memory
         // (otherwise we will be able to simply copy bytes from one file to another
-        if ((image == nullptr) && diff_compress)
+        if ((!*image) && diff_compress)
         {
-            read_from_file->LoadSprite(i, image);
-            temp_bmp.reset(image);
+            read_from_file->LoadSprite(i, temp_bmp);
+            image = &temp_bmp;
         }
 
         // if managed to load an image - save it according the new compression settings
-        if (image != nullptr)
+        if (*image)
         {
-            writer.WriteBitmap(image);
+            writer.WriteBitmap(*image);
             continue;
         }
         else if (diff_compress)
@@ -602,15 +701,15 @@ int SaveSpriteFile(const String &save_to_file,
     writer.Finalize();
 
     index = writer.GetIndex();
-    return 0;
+    return HError::None();
 }
 
-int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
+HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
     auto out = File::CreateFile(filename);
     if (!out)
-        return -1;
+        return new Error("Failed to open a output file for writing");
     // write "SPRINDEX" id
     out->WriteArray(spindexid, strlen(spindexid), 1);
     // write version
@@ -626,7 +725,7 @@ int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
         out->WriteArrayOfInt16(&index.Heights[0], index.Heights.size());
         out->WriteArrayOfInt64(&index.Offsets[0], index.Offsets.size());
     }
-    return 0;
+    return HError::None();
 }
 
 
@@ -663,28 +762,28 @@ void SpriteFileWriter::Begin(int store_flags, SpriteCompression compress, sprkey
     }
 }
 
-void SpriteFileWriter::WriteBitmap(const Bitmap *image)
+void SpriteFileWriter::WriteBitmap(const BitmapData &image)
 {
     if (!_out) return;
-    int bpp = image->GetBPP();
-    int w = image->GetWidth();
-    int h = image->GetHeight();
-    ImBufferCPtr im_data(image->GetData(), w * h * bpp, bpp);
+    const int bpp = image.GetBytesPerPixel();
+    const int w = image.GetWidth();
+    const int h = image.GetHeight();
+    ImBufferCPtr im_data(image.GetData(), w * h * bpp, bpp);
 
     // (Optional) Handle storage options
     std::vector<uint8_t> indexed_buf;
     uint32_t palette[256];
     uint32_t pal_count = 0;
     SpriteFormat sformat = kSprFmt_Undefined;
-    if ((_storeFlags & kSprStore_OptimizeForSize) != 0 && (image->GetBPP() > 1))
+    if ((_storeFlags & kSprStore_OptimizeForSize) != 0 && (bpp > 1))
     { // Try to store this sprite as an indexed bitmap
         uint32_t gen_pal_count;
         if (CreateIndexedBitmap(image, indexed_buf, palette, gen_pal_count) && gen_pal_count > 0)
         { // Test the resulting size, and switch if the paletted image is less
-            if (im_data.Size > (indexed_buf.size() + gen_pal_count * image->GetBPP()))
+            if (im_data.Size > (indexed_buf.size() + gen_pal_count * bpp))
             {
                 im_data = ImBufferCPtr(&indexed_buf[0], indexed_buf.size(), 1);
-                sformat = PaletteFormatForBPP(image->GetBPP());
+                sformat = PaletteFormatForBPP(bpp);
                 pal_count = gen_pal_count;
             }
         }
@@ -747,18 +846,28 @@ void SpriteFileWriter::WriteSpriteData(const SpriteDatHeader &hdr,
         {
         case 2: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteInt16(palette[i]); }
             break;
+        case 3: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteUInt24(palette[i]); }
+            break;
         case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { _out->WriteInt32(palette[i]); }
             break;
+        default: assert(0); break;
         }
     }
     // write the image pixel data
     _out->WriteInt32(im_data_sz);
+    // CHECKME: using WriteArrayOfN below does not seem right. These methods do endinaness swap.
+    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
+    // and they are to be read using bit masks and shifts.
+    // If ever, then the conversion has to be done when decomposing pixels onto individual RGB parts,
+    // converting to another format, etc.
     switch (im_bpp)
     {
     case 1: _out->Write(im_data, im_data_sz);
         break;
     case 2: _out->WriteArrayOfInt16(reinterpret_cast<const int16_t*>(im_data),
             im_data_sz / sizeof(int16_t));
+        break;
+    case 3: _out->WriteArrayOfUInt24(im_data, im_data_sz / 3);
         break;
     case 4: _out->WriteArrayOfInt32(reinterpret_cast<const int32_t*>(im_data),
             im_data_sz / sizeof(int32_t));

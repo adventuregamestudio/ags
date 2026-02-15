@@ -56,22 +56,23 @@ SpriteFileReader::!SpriteFileReader()
 
 System::Drawing::Bitmap ^SpriteFileReader::LoadSprite(int spriteIndex, bool useAlphaChannel)
 {
-    AGSBitmap *sprite;
-    if (!_nativeReader->LoadSprite(spriteIndex, sprite))
+    std::unique_ptr<AGSBitmap> sprite;
+    AGS::Common::PixelBuffer pxbuf;
+    if (!_nativeReader->LoadSprite(spriteIndex, pxbuf))
         return nullptr;
 
-    System::Drawing::Bitmap ^bmp = ConvertBlockToBitmap(sprite, useAlphaChannel);
-    delete sprite;
+    sprite.reset(new AGSBitmap(std::move(pxbuf)));
+    System::Drawing::Bitmap ^bmp = ConvertBlockToBitmap(sprite.get(), useAlphaChannel);
     return bmp;
 }
 
 NativeBitmap ^SpriteFileReader::LoadSpriteAsNativeBitmap(int spriteIndex)
 {
-    AGSBitmap *sprite;
-    if (!_nativeReader->LoadSprite(spriteIndex, sprite))
+    AGS::Common::PixelBuffer pxbuf;
+    if (!_nativeReader->LoadSprite(spriteIndex, pxbuf))
         return nullptr;
 
-    return gcnew NativeBitmap(sprite);
+    return gcnew NativeBitmap(new AGSBitmap(std::move(pxbuf)));
 }
 
 SpriteFile::RawSpriteData ^SpriteFileReader::LoadSpriteAsRawData(int spriteIndex)

@@ -34,6 +34,71 @@
 #include "allegro/internal/aintern.h"
 
 
+int _rgb_r_shift_15 = DEFAULT_RGB_R_SHIFT_15;     /* truecolor pixel format */
+int _rgb_g_shift_15 = DEFAULT_RGB_G_SHIFT_15;
+int _rgb_b_shift_15 = DEFAULT_RGB_B_SHIFT_15;
+int _rgb_r_shift_16 = DEFAULT_RGB_R_SHIFT_16;
+int _rgb_g_shift_16 = DEFAULT_RGB_G_SHIFT_16;
+int _rgb_b_shift_16 = DEFAULT_RGB_B_SHIFT_16;
+int _rgb_r_shift_24 = DEFAULT_RGB_R_SHIFT_24;
+int _rgb_g_shift_24 = DEFAULT_RGB_G_SHIFT_24;
+int _rgb_b_shift_24 = DEFAULT_RGB_B_SHIFT_24;
+int _rgb_r_shift_32 = DEFAULT_RGB_R_SHIFT_32;
+int _rgb_g_shift_32 = DEFAULT_RGB_G_SHIFT_32;
+int _rgb_b_shift_32 = DEFAULT_RGB_B_SHIFT_32;
+int _rgb_a_shift_32 = DEFAULT_RGB_A_SHIFT_32;
+
+
+/* lookup table for scaling 5 bit colors up to 8 bits */
+int _rgb_scale_5[32] =
+{
+   0,   8,   16,  24,  33,  41,  49,  57,
+   66,  74,  82,  90,  99,  107, 115, 123,
+   132, 140, 148, 156, 165, 173, 181, 189,
+   198, 206, 214, 222, 231, 239, 247, 255
+};
+
+
+/* lookup table for scaling 6 bit colors up to 8 bits */
+int _rgb_scale_6[64] =
+{
+   0,   4,   8,   12,  16,  20,  24,  28,
+   32,  36,  40,  44,  48,  52,  56,  60,
+   65,  69,  73,  77,  81,  85,  89,  93,
+   97,  101, 105, 109, 113, 117, 121, 125,
+   130, 134, 138, 142, 146, 150, 154, 158,
+   162, 166, 170, 174, 178, 182, 186, 190,
+   195, 199, 203, 207, 211, 215, 219, 223,
+   227, 231, 235, 239, 243, 247, 251, 255
+};
+
+
+int _color_depth = 8;                  /* how many bits per pixel? */
+
+/* default palette structures */
+PALETTE _current_palette;
+
+RGB_MAP *rgb_map = NULL;               /* RGB -> palette entry conversion */
+COLOR_MAP *color_map = NULL;           /* translucency/lighting table */
+
+
+void set_rgb_shifts(int r15, int g15, int b15, int r16, int g16, int b16,
+                    int r24, int g24, int b24, int r32, int g32, int b32, int a32)
+{
+   _rgb_r_shift_15 = r15;
+   _rgb_g_shift_15 = g15;
+   _rgb_b_shift_15 = b15;
+   _rgb_r_shift_16 = r16;
+   _rgb_g_shift_16 = g16;
+   _rgb_b_shift_16 = b16;
+   _rgb_r_shift_24 = r24;
+   _rgb_g_shift_24 = g24;
+   _rgb_b_shift_24 = b24;
+   _rgb_a_shift_32 = a32;
+   _rgb_r_shift_32 = r32;
+   _rgb_g_shift_32 = g32;
+   _rgb_b_shift_32 = b32;
+}
 
 /* makecol_depth:
  *  Converts R, G, and B values (ranging 0-255) to whatever pixel format
@@ -837,49 +902,6 @@ void create_color_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*blend)(AL
 	    table->data[x][y] = rgb_map->data[c.r>>1][c.g>>1][c.b>>1];
 	 else
 	    table->data[x][y] = bestfit_color(pal, c.r, c.g, c.b);
-      }
-
-      if (callback)
-	 (*callback)(x);
-   }
-}
-
-
-
-/* create_blender_table:
- *  Fills the specified color mapping table with lookup data for doing a 
- *  paletted equivalent of whatever truecolor blender mode is currently 
- *  selected.
- */
-void create_blender_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*callback)(int pos))
-{
-   int x, y, c;
-   int r, g, b;
-   int r1, g1, b1;
-   int r2, g2, b2;
-
-   ASSERT(_blender_func24);
-
-   for (x=0; x<PAL_SIZE; x++) {
-      for (y=0; y<PAL_SIZE; y++) {
-	 r1 = (pal[x].r << 2) | ((pal[x].r & 0x30) >> 4);
-	 g1 = (pal[x].g << 2) | ((pal[x].g & 0x30) >> 4);
-	 b1 = (pal[x].b << 2) | ((pal[x].b & 0x30) >> 4);
-
-	 r2 = (pal[y].r << 2) | ((pal[y].r & 0x30) >> 4);
-	 g2 = (pal[y].g << 2) | ((pal[y].g & 0x30) >> 4);
-	 b2 = (pal[y].b << 2) | ((pal[y].b & 0x30) >> 4);
-
-	 c = _blender_func24(makecol24(r1, g1, b1), makecol24(r2, g2, b2), _blender_alpha);
-
-	 r = getr24(c);
-	 g = getg24(c);
-	 b = getb24(c);
-
-	 if (rgb_map)
-	    table->data[x][y] = rgb_map->data[r>>3][g>>3][b>>3];
-	 else
-	    table->data[x][y] = bestfit_color(pal, r>>2, g>>2, b>>2);
       }
 
       if (callback)

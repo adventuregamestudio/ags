@@ -56,6 +56,7 @@ set(ALLEGRO_SRC_WIN_FILES
 set(ALLEGRO_INCLUDE_ALLEGRO_FILES
         include/allegro/base.h
         include/allegro/color.h
+        include/allegro/colblend.h
         include/allegro/debug.h
         include/allegro/draw.h
         include/allegro/file.h

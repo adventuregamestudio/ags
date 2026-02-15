@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 #include "core/types.h"
+#include "gfx/bitmapdata.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/stream.h"
@@ -34,8 +35,6 @@ namespace AGS
 {
 namespace Common
 {
-
-class Bitmap;
 
 // TODO: research old version differences
 enum SpriteFileVersion
@@ -62,6 +61,7 @@ enum SpriteIndexFileVersion
 // Instructions to how the sprites are allowed to be stored
 enum SpriteStorage
 {
+    kSprStore_None            = 0x00,
     // When possible convert the sprite into another format for less disk space
     // e.g. save 16/32-bit images as 8-bit colormaps with palette
     kSprStore_OptimizeForSize = 0x01
@@ -132,8 +132,17 @@ public:
     SpriteFile();
     // Loads sprite reference information and inits sprite stream
     HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
+                         std::unique_ptr<Stream> &&index_file);
+    // Loads sprite reference information and inits sprite stream;
+    // fills in found sprites's basic metrics.
+    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
                          std::unique_ptr<Stream> &&index_file,
                          std::vector<Size> &metrics);
+    // Loads sprite reference information and inits sprite stream;
+    // fills in found sprites's extended metrics.
+    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
+                         std::unique_ptr<Stream> &&index_file,
+                         std::vector<SpriteDatHeader> &metrics);
     // Closes stream; no reading will be possible unless opened again
     void        Close();
 
@@ -142,20 +151,31 @@ public:
     SpriteCompression GetSpriteCompression() const;
     // Tells the highest known sprite index
     sprkey_t    GetTopmostSprite() const;
+    // Tells the total valid sprite count (remember that sprite
+    // indexes may be not sequential)
+    size_t      GetSpriteCount() const;
 
-    // Loads sprite index file
-    bool        LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file,
-                                    int expectedFileID, soff_t spr_initial_offs,
-                                    sprkey_t topmost, std::vector<Size> &metrics);
-
+    // Tells if the sprite of this index exists in the file
+    bool        DoesSpriteExist(sprkey_t index);
     // Loads an image data and creates a ready bitmap
-    HError      LoadSprite(sprkey_t index, Bitmap *&sprite);
+    HError      LoadSprite(sprkey_t index, PixelBuffer &sprite);
     // Loads a raw sprite element data into the buffer, stores header info separately
     HError      LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
+    // Loads all sprites's available metrics
+    HError      LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics);
 
 private:
+    HError      OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
+                         std::unique_ptr<Stream> &&index_file,
+                         std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2);
+    // Loads sprite index file
+    bool        LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file,
+                        int expectedFileID, sprkey_t topmost, std::vector<Size> *metrics);
+    // Reload sprite metrics, optionally uses ready index, optionally
+    HError      LoadSpriteMetricsImpl(std::vector<SpriteDatHeader> *metrics);
     // Rebuilds sprite index from the main sprite file
-    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics);
+    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost,
+                        std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2);
     // Seek stream to sprite
     void        SeekToSprite(sprkey_t index);
 
@@ -169,6 +189,7 @@ private:
 
     // Array of sprite references
     std::vector<SpriteRef> _spriteData;
+    size_t _validCount = 0u;
     std::unique_ptr<Stream> _stream; // the sprite stream
     SpriteFileVersion _version = kSprfVersion_Current;
     int _storeFlags = 0; // storage flags, specify how sprites may be stored
@@ -195,7 +216,7 @@ public:
     // optionally hint how many sprites will be written.
     void Begin(int store_flags, SpriteCompression compress, sprkey_t last_slot = -1);
     // Writes a bitmap into file, compressing if necessary
-    void WriteBitmap(const Bitmap *image);
+    void WriteBitmap(const BitmapData &image);
     // Writes an empty slot marker
     void WriteEmptySlot();
     // Writes a raw sprite data without any additional processing
@@ -221,16 +242,16 @@ private:
 
 
 // Saves all sprites to file; fills in index data for external use.
-// TODO: refactor to be able to save main file and index file separately (separate function for gather data?)
-// Accepts available sprites as pairs of bool and Bitmap pointer, where boolean value
-// tells if sprite exists and Bitmap pointer may be null;
+// Accepts available sprites as pairs of bool and BitmapData buffers, where boolean value
+// tells if sprite exists, and BitmapData may be invalid;
 // If a sprite's bitmap is missing, it will try reading one from the input file stream.
-int SaveSpriteFile(const String &save_to_file,
-    const std::vector<std::pair<bool, Bitmap*>> &sprites,
+HError SaveSpriteFile(const String &save_to_file,
+    const std::vector<std::pair<bool, BitmapData>> &sprites,
     SpriteFile *read_from_file, // optional file to read missing sprites from
     int store_flags, SpriteCompression compress, SpriteFileIndex &index);
 // Saves sprite index table in a separate file
-int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index);
+// FIXME: return HError!
+HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index);
 
 } // namespace Common
 } // namespace AGS

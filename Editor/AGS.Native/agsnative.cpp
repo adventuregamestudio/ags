@@ -1192,20 +1192,8 @@ void new_font () {
 
 void setup_color_conversions()
 {
-    // RGB shifts for Allegro's pixel data
-    _rgb_a_shift_32 = 24;
-    _rgb_r_shift_32 = 16;
-    _rgb_g_shift_32 = 8;
-    _rgb_b_shift_32 = 0;
-    _rgb_r_shift_24 = 16;
-    _rgb_g_shift_24 = 8;
-    _rgb_b_shift_24 = 0;
-    _rgb_r_shift_16 = 11;
-    _rgb_g_shift_16 = 5;
-    _rgb_b_shift_16 = 0;
-    _rgb_r_shift_15 = 10;
-    _rgb_g_shift_15 = 5;
-    _rgb_b_shift_15 = 0;
+    // Init Allegro RGB shifts; necessary for doing color conversions
+    set_rgb_shifts(10, 5, 0, 11, 5, 0, 16, 8, 0, 16, 8, 0, 24);
 }
 
 bool initialize_native()
@@ -2026,11 +2014,13 @@ void SaveTempSpritefile(int store_flags, AGS::Common::SpriteCompression compress
     AGSString n_temp_spritefile = TextHelper::ConvertUTF8(temp_spritefile);
     AGSString n_temp_indexfile = TextHelper::ConvertUTF8(temp_indexfile);
     AGS::Common::SpriteFileIndex index;
-    if (spriteset.SaveToFile(n_temp_spritefile, store_flags, compressSprites, index) != 0)
-        throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
-            Environment::NewLine, temp_spritefile));
+    HAGSError err = spriteset.SaveToFile(n_temp_spritefile, store_flags, compressSprites, index);
+    if (!err)
+        throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file:{0}{1}{2}Temp path: {1}",
+            Environment::NewLine, gcnew String(err->FullMessage().GetCStr()), Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (AGS::Common::SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    err = AGS::Common::SaveSpriteIndex(n_temp_indexfile, index);
+    if (err)
         saved_indexfile = n_temp_indexfile;
 }
 

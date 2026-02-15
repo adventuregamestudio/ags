@@ -18,6 +18,7 @@
 #include <functional>
 #include <unordered_map>
 
+#include <array>
 #include <vector>
 #include "util/string.h"
 

@@ -297,7 +297,7 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
         FontInfo &finfo = game.fonts[i];
         if (!load_font_size(i, finfo))
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d, file does not exist or no renderer could load a matching file.");
+            Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d, file does not exist or no renderer could load a matching file.", i);
             // Replace this font using the font 0's file to let display the text at least
             bool result = false;
             if (i != 0 && is_font_loaded(0))

@@ -77,10 +77,10 @@ bool init_translation(const String &lang, const String &fallback_lang)
     // Process errors
     if (!err)
     {
-        close_translation();
-        Debug::Printf(kDbgMsg_Error, "Failed to read translation file: %s:\n%s",
+        Debug::Printf(kDbgMsg_Error, "Failed to read translation file %s:\n\t%s",
             trans_filename.GetCStr(),
             err->FullMessage().GetCStr());
+        close_translation();
         if (!fallback_lang.IsEmpty())
         {
             Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());

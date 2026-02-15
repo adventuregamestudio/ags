@@ -77,7 +77,8 @@ static std::unique_ptr<WFNFontRenderer> wfnRenderer;
 
 
 FontInfo::FontInfo()
-    : Flags(0)
+    : FontID(-1)
+    , Flags(0)
     , Size(0)
     , SizeMultiplier(1)
     , Outline(FONT_OUTLINE_NONE)
@@ -87,6 +88,16 @@ FontInfo::FontInfo()
     , AutoOutlineStyle(kSquared)
     , AutoOutlineThickness(0)
 {}
+
+void FontInfo::SetFlags(const uint32_t flags)
+{
+    Flags = flags;
+    if ((flags & FFLG_SIZEMULTIPLIER) != 0)
+    {
+        SizeMultiplier = Size;
+        Size = 0;
+    }
+}
 
 
 void init_font_renderer(AssetManager *amgr)
@@ -638,7 +649,7 @@ String get_font_file(int font_number)
 
 bool load_font_size(int font_number, const FontInfo &font_info)
 {
-    return load_font_size(font_number, String(), font_info);
+    return load_font_size(font_number, font_info.FileName, font_info);
 }
 
 bool load_font_size(int font_number, const String &filename, const FontInfo &font_info)

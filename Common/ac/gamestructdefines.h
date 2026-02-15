@@ -18,8 +18,9 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
-#include "util/geometry.h"
 #include "core/types.h"
+#include "util/geometry.h"
+#include "util/string.h"
 
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
@@ -296,6 +297,9 @@ struct SpriteInfo
 // the strictly determined position on canvas, FontInfo may additionally
 // provide instructions on adjusting drawing position, as well as arranging
 // multiple lines, and similar cases.
+//
+// TODO: some of FontInfo's properties only make sense in combination,
+// therefore it may not be suitable to have them public.
 struct FontInfo
 {
     enum AutoOutlineStyle : int
@@ -304,6 +308,10 @@ struct FontInfo
         kRounded = 1,
     };
 
+    // Font's numeric ID
+    int           FontID;
+    // Font's asset filename, optional (added for consistency with 4.*)
+    AGS::Common::String FileName;
     // General font's loading and rendering flags (FFLG_*)
     uint32_t      Flags;
     // Nominal font import size (in pixels)
@@ -327,6 +335,7 @@ struct FontInfo
     int           AutoOutlineThickness;
 
     FontInfo();
+    void SetFlags(const uint32_t flags);
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

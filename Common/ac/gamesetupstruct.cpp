@@ -34,16 +34,6 @@ void SetFontInfoFromLegacyFlags(FontInfo &finfo, const uint8_t data)
     finfo.Size = data & FFLG_LEGACY_SIZEMASK;
 }
 
-void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
-{
-    finfo.Flags = flags;
-    if ((flags & FFLG_SIZEMULTIPLIER) != 0)
-    {
-        finfo.SizeMultiplier = finfo.Size;
-        finfo.Size = 0;
-    }
-}
-
 const ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
 {
     String clip_name;
@@ -79,7 +69,10 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
     if (data_ver < kGameVersion_350)
     {
         for (int i = 0; i < numfonts; ++i)
+        {
+            fonts[i].FontID = i;
             SetFontInfoFromLegacyFlags(fonts[i], in->ReadInt8());
+        }
         for (int i = 0; i < numfonts; ++i)
             fonts[i].Outline = in->ReadInt8(); // size of char
         if (data_ver < kGameVersion_341)
@@ -95,12 +88,13 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
     {
         for (int i = 0; i < numfonts; ++i)
         {
+            fonts[i].FontID = i;
             uint32_t flags = in->ReadInt32();
             fonts[i].Size = in->ReadInt32();
             fonts[i].Outline = in->ReadInt32();
             fonts[i].YOffset = in->ReadInt32();
             fonts[i].LineSpacing = std::max(0, in->ReadInt32());
-            AdjustFontInfoUsingFlags(fonts[i], flags);
+            fonts[i].SetFlags(flags);
         }
     }
 }

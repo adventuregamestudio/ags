@@ -69,8 +69,11 @@ namespace AGS.Editor.Components
                 MergeToGameSchema(schema, out addCount, out skipCount);
                 // refresh property grid, a property may have been added, changed or removed
                 Factory.GUIController.RefreshPropertyGrid();
-                _guiController.ShowMessage($"Custom properties schema imported successfully. {addCount} properties added, {skipCount} properties skipped because their names match existing ones.",
-                    MessageBoxIcon.Information);
+                string result = $"Custom properties schema imported successfully:\n - {addCount} properties added"
+                    + ((skipCount > 0) ?
+                        $";\n - {skipCount} properties skipped because their names match existing ones." :
+                        ".");
+                _guiController.ShowMessage(result, MessageBoxIcon.Information);
             }
             catch (ApplicationException ex)
             {

@@ -45,6 +45,7 @@ namespace AGS.Editor
             this.chkHotspots = new System.Windows.Forms.CheckBox();
             this.chkObjects = new System.Windows.Forms.CheckBox();
             this.chkCharacters = new System.Windows.Forms.CheckBox();
+            this.chkTranslated = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -121,11 +122,12 @@ namespace AGS.Editor
             this.cmbType.Name = "cmbType";
             this.cmbType.Size = new System.Drawing.Size(146, 21);
             this.cmbType.TabIndex = 6;
+            this.cmbType.SelectedIndexChanged += new System.EventHandler(this.cmbType_SelectedIndexChanged);
             // 
             // btnOK
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnOK.Location = new System.Drawing.Point(15, 209);
+            this.btnOK.Location = new System.Drawing.Point(15, 239);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(92, 26);
             this.btnOK.TabIndex = 8;
@@ -137,7 +139,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(129, 209);
+            this.btnCancel.Location = new System.Drawing.Point(129, 239);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(92, 26);
             this.btnCancel.TabIndex = 9;
@@ -147,8 +149,7 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.chkRooms);
             this.groupBox1.Controls.Add(this.label5);
@@ -156,7 +157,7 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.chkHotspots);
             this.groupBox1.Controls.Add(this.chkObjects);
             this.groupBox1.Controls.Add(this.chkCharacters);
-            this.groupBox1.Location = new System.Drawing.Point(15, 129);
+            this.groupBox1.Location = new System.Drawing.Point(15, 159);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(459, 64);
             this.groupBox1.TabIndex = 11;
@@ -222,13 +223,24 @@ namespace AGS.Editor
             this.chkCharacters.Text = "Characters";
             this.chkCharacters.UseVisualStyleBackColor = true;
             // 
+            // chkTranslated
+            // 
+            this.chkTranslated.AutoSize = true;
+            this.chkTranslated.Location = new System.Drawing.Point(15, 130);
+            this.chkTranslated.Name = "chkTranslated";
+            this.chkTranslated.Size = new System.Drawing.Size(288, 17);
+            this.chkTranslated.TabIndex = 12;
+            this.chkTranslated.Text = "Add Text property values to the game\'s translation file";
+            this.chkTranslated.UseVisualStyleBackColor = true;
+            // 
             // CustomPropertySchemaItemEditor
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(488, 247);
+            this.ClientSize = new System.Drawing.Size(488, 277);
+            this.Controls.Add(this.chkTranslated);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
@@ -242,7 +254,7 @@ namespace AGS.Editor
             this.Controls.Add(this.label1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(65536, 279);
+            this.MaximumSize = new System.Drawing.Size(65536, 800);
             this.MinimizeBox = false;
             this.MinimumSize = new System.Drawing.Size(496, 279);
             this.Name = "CustomPropertySchemaItemEditor";
@@ -277,5 +289,6 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkObjects;
         private System.Windows.Forms.CheckBox chkCharacters;
         private System.Windows.Forms.CheckBox chkRooms;
+        private System.Windows.Forms.CheckBox chkTranslated;
     }
 }

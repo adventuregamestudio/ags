@@ -11,8 +11,9 @@ namespace AGS.Types
          * Custom property schema history:
          * 
          * 3.00.00.00 - initial 3.* custom properties schema
+         * 3.00.00.08 - Translated property in schema items
         */
-        public const int LATEST_XML_VERSION_INDEX = 3000000;
+        public const int LATEST_XML_VERSION_INDEX = 3060308;
 
         private List<CustomPropertySchemaItem> _propertyDefinitions = new List<CustomPropertySchemaItem>();
 

@@ -34,6 +34,7 @@ namespace AGS.Editor
                 newRow.SubItems.Add(item.Type.ToString());
                 newRow.SubItems.Add(item.DefaultValue);
                 newRow.SubItems.Add(item.AppliesToAsString);
+                newRow.SubItems.Add((item.Type == CustomPropertyType.Text) ? (item.Translated ? "Yes" : "No") : "-");
                 newRow.Tag = item;
                 schemaList.Items.Add(newRow);
             }

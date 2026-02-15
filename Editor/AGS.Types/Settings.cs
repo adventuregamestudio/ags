@@ -129,6 +129,9 @@ namespace AGS.Types
         private int _androidAppVersionCode = 1;
         private string _androidAppVersionName = DEFAULT_VERSION;
         private AndroidBuildFormat _androidBuildFormat = AndroidBuildFormat.ApkEmbedded;
+        private string _translationIncludeScriptPrefix = string.Empty;
+        private string _translationExcludeScriptPrefix = string.Empty;
+        private string _translationExcludeFunctionCall = string.Empty;
 
         /// <summary>
         /// Helper function to validate the BuildTargets string. Excludes data file target
@@ -1319,6 +1322,36 @@ namespace AGS.Types
         [Obsolete]
         [Browsable(false)]
         public GraphicsDriver GraphicsDriver { get; }
+
+        [DisplayName("Include script texts with prefix")]
+        [Description("Only text lines in script which have this prefix will be included to Translation file. Leave empty to include all.")]
+        [Category("Translation")]
+        [DefaultValue("")]
+        public string TranslationIncludeScriptPrefix
+        {
+            get { return _translationIncludeScriptPrefix; }
+            set { _translationIncludeScriptPrefix = value; }
+        }
+
+        [DisplayName("Exclude script texts with prefix")]
+        [Description("Any text lines in script which have this prefix will be excluded from Translation file.")]
+        [Category("Translation")]
+        [DefaultValue("")]
+        public string TranslationExcludeScriptPrefix
+        {
+            get { return _translationExcludeScriptPrefix; }
+            set { _translationExcludeScriptPrefix = value; }
+        }
+
+        [DisplayName("Exclude script function calls")]
+        [Description("Comma-separated list of script functions, which string arguments should be excluded from Translation file.")]
+        [Category("Translation")]
+        [DefaultValue("")]
+        public string TranslationExcludeFunctionCall
+        {
+            get { return _translationExcludeFunctionCall; }
+            set { _translationExcludeFunctionCall = value; }
+        }
 
 
         public void ToXml(XmlTextWriter writer)

@@ -8,32 +8,45 @@ namespace AGS.Editor
 {
     public abstract class GameSpeechProcessor : IGameTextProcessor
     {
-        private const int LOOKBACK_DISTANCE_FOR_FUNCTION_CALL = 35;
-
         protected const string NARRATOR_NAME = "narrator";
         protected const string PLAYER_NAME = "player";
-        private const char NEWLINE_CHAR_1 = '\n';
-        private const char NEWLINE_CHAR_2 = '\r';
 
         protected Game _game;
         protected CompileMessages _errors;
         private bool _makesChanges;
         private bool _processHotspotAndObjectDescriptions;
+        private bool _lookupForFunctionCalls;
+        private bool _lookupForOuterFunctionCalls;
 
-        protected abstract string CreateSpeechLine(int speakingCharacter, string text);
-        protected abstract int ParseFunctionCallAndFindCharacterID(string scriptCodeExtract);
+        protected abstract string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType);
+        protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
 
-        public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges, bool processHotspotAndObjectDescriptions)
+        public GameSpeechProcessor(Game game, CompileMessages errors, bool makesChanges,
+            bool processHotspotAndObjectDescriptions, bool lookupForFunctionCalls, bool lookupForOuterFunctionCalls)
         {
             _game = game;
             _errors = errors;
             _makesChanges = makesChanges;
             _processHotspotAndObjectDescriptions = processHotspotAndObjectDescriptions;
+            _lookupForFunctionCalls = lookupForFunctionCalls;
+            _lookupForOuterFunctionCalls = lookupForOuterFunctionCalls;
         }
 
         public bool MakesChanges
         {
             get { return _makesChanges; }
+        }
+
+        protected bool LookupForFunctionCalls
+        {
+            get { return _lookupForFunctionCalls; }
+            set { _lookupForFunctionCalls = value; }
+        }
+
+        protected bool LookupForOuterFunctionCalls
+        {
+            get { return _lookupForOuterFunctionCalls; }
+            set { _lookupForOuterFunctionCalls = value; }
         }
 
         public string ProcessText(string text, GameTextType textType)
@@ -57,7 +70,7 @@ namespace AGS.Editor
             {
                 case GameTextType.DialogOption:
                 case GameTextType.Message:
-                    return CreateSpeechLine(characterID, text);
+                    return CreateSpeechLine(characterID, text, textType);
                 case GameTextType.DialogScript:
                     return ProcessDialogScript(text);
                 case GameTextType.Script:
@@ -65,7 +78,7 @@ namespace AGS.Editor
                 case GameTextType.ItemDescription:
                     if (_processHotspotAndObjectDescriptions)
                     {
-                        return CreateSpeechLine(characterID, text);
+                        return CreateSpeechLine(characterID, text, textType);
                     }
                     break;
             }
@@ -87,64 +100,13 @@ namespace AGS.Editor
             return false;
         }
 
-        private string GetPreviousCharacters(string script, int startingFromIndex)
-        {
-            int previousCodeStart = startingFromIndex;
-            for (int i = 0; (i < LOOKBACK_DISTANCE_FOR_FUNCTION_CALL) && (previousCodeStart >= 0); i++)
-            {
-                if ((script[previousCodeStart] == NEWLINE_CHAR_1) ||
-                    (script[previousCodeStart] == NEWLINE_CHAR_2))
-                {
-                    previousCodeStart++;
-                    break;
-                }
-                previousCodeStart--;
-            }
-            if (previousCodeStart < 0)
-            {
-                previousCodeStart = 0;
-            }
-            return script.Substring(previousCodeStart, (startingFromIndex - previousCodeStart) + 1);
-        }
-
-		/// <summary>
-		/// Skip comments in the script that might have speech marks
-		/// in them, which could confuse the parser.
-		/// </summary>
-		private int SkipComments(string script, int index)
-		{
-			if ((index < script.Length - 1) &&
-			    (script[index] == '/') && (script[index + 1] == '/'))
-			{
-				while ((index < script.Length) &&
-					(script[index] != 10) &&
-					(script[index] != 13))
-				{
-					index++;
-				}
-			}
-			if ((index < script.Length - 1) &&
-				(script[index] == '/') && (script[index + 1] == '*'))
-			{
-				index += 2;
-				while (index < script.Length - 1)
-				{
-					if ((script[index] == '*') && (script[index + 1] == '/'))
-					{
-						break;
-					}
-					index++;
-				}
-			}
-			return index;
-		}
-
         private string ProcessScript(string script)
         {
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
             int index = 0;
             while (index < script.Length)
             {
-				index = SkipComments(script, index);
+				index = ScriptParsing.SkipComments(state, index);
 
                 if ((index < script.Length) && 
                     ((script[index] == '"') || (script[index] == '\'')))
@@ -169,16 +131,25 @@ namespace AGS.Editor
                     if (stringTerminator == '"')
                     {
                         int stringEndIndex = index;
-                        string previousFuncCall = GetPreviousCharacters(script, stringStartIndex - 1);
-                        int charID = ParseFunctionCallAndFindCharacterID(previousFuncCall);
-                        if (charID >= 0)
+                        string previousFuncCall = _lookupForFunctionCalls ?
+                            ScriptParsing.GetCurrentFunctionCall(state, stringStartIndex, _lookupForOuterFunctionCalls)
+                            : string.Empty;
+                        int charID;
+                        if (ParseFunctionCall(previousFuncCall, out charID))
                         {
-                            string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
-                            string scriptAfterString = script.Substring(stringEndIndex);
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(charID, mainString);
-                            script = scriptBeforeString + modifiedString + scriptAfterString;
-                            index = stringStartIndex + modifiedString.Length + 1;
+                            string modifiedString = CreateSpeechLine(charID, mainString, GameTextType.Script);
+                            if (_makesChanges)
+                            {
+                                string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
+                                string scriptAfterString = script.Substring(stringEndIndex);
+                                script = scriptBeforeString + modifiedString + scriptAfterString;
+                                index = stringStartIndex + modifiedString.Length + 1;
+                            }
+                            else
+                            {
+                                index = stringStartIndex + mainString.Length + 1;
+                            }
                         }
                     }
                 }
@@ -218,7 +189,7 @@ namespace AGS.Editor
                     if (charID >= 0)
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
-                        originalLine = string.Format("{0}: {1}", characterName, CreateSpeechLine(charID, lineText));
+                        originalLine = string.Format("{0}: {1}", characterName, CreateSpeechLine(charID, lineText, GameTextType.DialogScript));
                     }
                 }
 

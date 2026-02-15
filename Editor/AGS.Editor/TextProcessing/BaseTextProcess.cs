@@ -15,8 +15,7 @@ namespace AGS.Editor
 			speechableFunctionCalls.Add(".Think", FunctionCallType.ObjectBasedSpeech);
 			if (includeNarrator)
 			{
-				speechableFunctionCalls.Add("Display ", FunctionCallType.GlobalNarrator);
-				speechableFunctionCalls.Add("Display(", FunctionCallType.GlobalNarrator);
+				speechableFunctionCalls.Add("Display", FunctionCallType.GlobalNarrator);
 				speechableFunctionCalls.Add("DisplayAt", FunctionCallType.GlobalNarrator);
 			}
 			return speechableFunctionCalls;

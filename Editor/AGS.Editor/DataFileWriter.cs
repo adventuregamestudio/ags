@@ -1860,13 +1860,13 @@ namespace AGS.Editor
 
             WriteExtEntities gameEnts = new WriteExtEntities(game, guisWriter);
 
-            WriteExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
-            WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
-            WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
-            WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
-            WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
-            WriteExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
-            WriteExtension("v363_guictrls2", WriteExt_363GUIControls, writer, gameEnts, errors);
+            WriteGameExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
+            WriteGameExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
+            WriteGameExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
+            WriteGameExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
+            WriteGameExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
+            WriteGameExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
+            WriteGameExtension("v363_guictrls2", WriteExt_363GUIControls, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2174,31 +2174,58 @@ namespace AGS.Editor
             }
         }
 
-        private delegate void WriteExtensionProc(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors);
+        private delegate void WriteGameExtensionProc(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors);
 
-        private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        private static void WriteGameExtension(string ext_id, WriteGameExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
-            if (string.IsNullOrWhiteSpace(ext_id))
+            WriteExtension(ext_id, 0, DataExtFlags.File64, (w, e) => { proc(w, ents, e); }, writer, errors);
+        }
+
+        [Flags]
+        public enum DataExtFlags
+        {
+            // 32-bit old-style numeric IDs (else - 8-bit)
+            ID32    = 0x0001,
+            // 64-bit file offsets (the distinction exists for old-style numbered blocks ONLY)
+            File64  = 0x0002,
+        }
+
+        public delegate void WriteExtensionProc(BinaryWriter writer, CompileMessages errors);
+
+        public static void WriteExtension(string ext_id, int old_id, DataExtFlags flags, WriteExtensionProc proc, BinaryWriter writer, CompileMessages errors)
+        {
+            if (old_id <= 0 && string.IsNullOrWhiteSpace(ext_id))
                 throw new ArgumentException("Invalid data file extension ID");
             if (ext_id.Length > 16)
                 throw new ArgumentException($"Data file extension ID cannot be longer than 16 characters: {ext_id}");
 
+            bool use_old_id = old_id > 0;
             // The block meta format:
-            //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
+            //    - 1 or 4 bytes - an old-style unsigned numeric ID, for compatibility with room file format:
             //               where 0 would indicate following string ID,
             //               and 0xFF indicates end of extension list.
             //    - 16 bytes - string ID of an extension.
             //    - 8 bytes - length of extension data, in bytes.
-            writer.Write((byte)0); // required for compatibility
-            WriteString(ext_id, 16, writer);
+            if ((flags & DataExtFlags.ID32) != 0)
+                writer.Write((int)old_id); // required for compatibility
+            else
+                writer.Write((byte)old_id); // required for compatibility
+            if (!use_old_id)
+                WriteString(ext_id, 16, writer);
             var data_len_pos = writer.BaseStream.Position;
-            writer.Write((long)0);
+            if (!use_old_id || (flags & DataExtFlags.File64) != 0)
+                writer.Write((long)0);
+            else
+                writer.Write((int)0);
             var start_pos = writer.BaseStream.Position;
-            proc(writer, ents, errors);
+            proc(writer, errors);
             var end_pos = writer.BaseStream.Position;
             var data_len = end_pos - start_pos;
             writer.Seek((int)data_len_pos, SeekOrigin.Begin);
-            writer.Write(data_len);
+            if (!use_old_id || (flags & DataExtFlags.File64) != 0)
+                writer.Write((long)data_len);
+            else
+                writer.Write((int)data_len);
             writer.Seek((int)end_pos, SeekOrigin.Begin);
         }
     }

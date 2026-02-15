@@ -27,6 +27,7 @@ namespace AGS.Editor.Components
         private const int TRANSLATION_BLOCK_GAME_ID = 2;
         private const int TRANSLATION_BLOCK_OPTIONS = 3;
         private const string TRANSLATION_BLOCK_STROPTIONS = "ext_sopts";
+        private const string TRANSLATION_BLOCK_FONTOVERRIDES = "ext_fonts";
         private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
 //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
@@ -121,6 +122,43 @@ namespace AGS.Editor.Components
             bw.Write(bytes);
         }
 
+        private void WriteExtGameID(BinaryWriter bw, Translation translation, CompileMessages error)
+        {
+            bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
+            WriteString(bw, _agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
+        }
+
+        private void WriteExtDictionary(BinaryWriter bw, Translation translation, CompileMessages error)
+        {
+            Encoding textEncoding = translation.Encoding;
+            foreach (string line in translation.TranslatedLines.Keys)
+            {
+                if (translation.TranslatedLines[line].Length > 0)
+                {
+                    string src_line = TextUtils.PreprocessLineForOldStyleLinebreaks(line);
+                    string trs_line = TextUtils.PreprocessLineForOldStyleLinebreaks(translation.TranslatedLines[line]);
+                    WriteString(bw, Regex.Unescape(src_line), textEncoding);
+                    WriteString(bw, Regex.Unescape(trs_line), textEncoding);
+                }
+            }
+            WriteString(bw, string.Empty, textEncoding);
+            WriteString(bw, string.Empty, textEncoding);
+        }
+
+        private void WriteExtTextOptions(BinaryWriter bw, Translation translation, CompileMessages error)
+        {
+            bw.Write(translation.NormalFont ?? -1);
+            bw.Write(translation.SpeechFont ?? -1);
+            bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
+        }
+
+        private void WriteExtStrOptions(BinaryWriter bw, Translation translation, CompileMessages errors)
+        {
+            bw.Write((int)1); // size of key/value table
+            DataFileWriter.FilePutString("encoding", bw);
+            DataFileWriter.FilePutString(translation.EncodingHint, bw);
+        }
+
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
             var load_errors = translation.TryLoadData();
@@ -134,51 +172,21 @@ namespace AGS.Editor.Components
             using (BinaryWriter bw = new BinaryWriter(new FileStream(tempFile, FileMode.Create, FileAccess.Write)))
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
-                bw.Write(TRANSLATION_BLOCK_GAME_ID);
-                byte[] gameName = EncryptStringToBytes(_agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
-                bw.Write(gameName.Length + 4 + 4);
-                bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
-                bw.Write(gameName.Length);
-                bw.Write(gameName);
-                bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
-                long offsetOfBlockSize = bw.BaseStream.Position;
-                bw.Write((int)0); // placeholder for block size, will be filled later
-                foreach (string line in translation.TranslatedLines.Keys)
-                {
-                    if (translation.TranslatedLines[line].Length > 0)
-                    {
-                        string src_line = TextUtils.PreprocessLineForOldStyleLinebreaks(line);
-                        string trs_line = TextUtils.PreprocessLineForOldStyleLinebreaks(translation.TranslatedLines[line]);
-                        WriteString(bw, Regex.Unescape(src_line), textEncoding);
-                        WriteString(bw, Regex.Unescape(trs_line), textEncoding);
-                    }
-                }
-                WriteString(bw, string.Empty, textEncoding);
-                WriteString(bw, string.Empty, textEncoding);
-                long mainBlockSize = (bw.BaseStream.Position - offsetOfBlockSize) - 4;
-                bw.Write(TRANSLATION_BLOCK_OPTIONS);
-                bw.Write((int)12);
-                bw.Write(translation.NormalFont ?? -1);
-                bw.Write(translation.SpeechFont ?? -1);
-                bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
 
-                bw.Write((int)0); // required for compatibility
-                DataFileWriter.WriteString(TRANSLATION_BLOCK_STROPTIONS, 16, bw);
-                var data_len_pos = bw.BaseStream.Position;
-                bw.Write((long)0); // data length placeholder
-                bw.Write((int)1); // size of key/value table
-                DataFileWriter.FilePutString("encoding", bw);
-                DataFileWriter.FilePutString(translation.EncodingHint, bw);
-                var end_pos = bw.BaseStream.Position;
-                var data_len = end_pos - data_len_pos - 8;
-                bw.Seek((int)data_len_pos, SeekOrigin.Begin);
-                bw.Write(data_len);
-                bw.Seek((int)end_pos, SeekOrigin.Begin);
+                DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_GAME_ID, DataFileWriter.DataExtFlags.ID32,
+                    (w, e) => WriteExtGameID(w, translation, e), bw, errors);
+
+                DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_TRANSLATION_DATA, DataFileWriter.DataExtFlags.ID32,
+                    (w, e) => WriteExtDictionary(w, translation, e), bw, errors);
+
+                DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_OPTIONS, DataFileWriter.DataExtFlags.ID32,
+                    (w, e) => WriteExtTextOptions(w, translation, e), bw, errors);
+
+                DataFileWriter.WriteExtension(TRANSLATION_BLOCK_STROPTIONS, 0, DataFileWriter.DataExtFlags.ID32,
+                    (w, e) => WriteExtStrOptions(w, translation, e), bw, errors);
 
                 bw.Write(TRANSLATION_BLOCK_END_OF_FILE);
                 bw.Write((int)0);
-                bw.Seek((int)offsetOfBlockSize, SeekOrigin.Begin);
-                bw.Write((int)mainBlockSize);
                 bw.Close();
             }
 

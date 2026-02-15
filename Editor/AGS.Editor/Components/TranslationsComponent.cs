@@ -158,6 +158,29 @@ namespace AGS.Editor.Components
             DataFileWriter.FilePutString("encoding", bw);
             DataFileWriter.FilePutString(translation.EncodingHint, bw);
         }
+        
+        private void WriteExtFontOverrides(BinaryWriter bw, Translation translation, CompileMessages errors)
+        {
+            bw.Write(translation.FontOverrides.Count);
+            foreach (var fontOverride in translation.FontOverrides)
+            {
+                bw.Write(fontOverride.Key); // font to override
+                var font = fontOverride.Value; // font to override with
+                bw.Write(font.ID);
+                // ID >= 0 means a replacement is another built-in font
+                // ID < 0 means a replacement is a runtime-generated font
+                if (font.ID < 0)
+                {
+                    DataFileWriter.WriteFontInfo(bw, font);
+                    // NOTE: we write 3.6.0 extension right away, because this TRA
+                    // extension is introduced later. But if there will be more
+                    // font extensions, then we must have a distinct ext in TRA as well!
+                    DataFileWriter.WriteFontInfo_Ex360(bw, font);
+                    // Explicit font's filename: this corresponds to 4.* font's FileName.
+                    DataFileWriter.FilePutString(font.ProjectFilename, bw);
+                }
+            }
+        }
 
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
@@ -184,6 +207,12 @@ namespace AGS.Editor.Components
 
                 DataFileWriter.WriteExtension(TRANSLATION_BLOCK_STROPTIONS, 0, DataFileWriter.DataExtFlags.ID32,
                     (w, e) => WriteExtStrOptions(w, translation, e), bw, errors);
+
+                if (translation.FontOverrides.Count > 0)
+                {
+                    DataFileWriter.WriteExtension(TRANSLATION_BLOCK_FONTOVERRIDES, 0, DataFileWriter.DataExtFlags.ID32,
+                        (w, e) => WriteExtFontOverrides(w, translation, e), bw, errors);
+                }
 
                 bw.Write(TRANSLATION_BLOCK_END_OF_FILE);
                 bw.Write((int)0);

@@ -1522,6 +1522,45 @@ namespace AGS.Editor
             return scriptModules;
         }
 
+        public static void WriteFontInfo(BinaryWriter writer, Font font)
+        {
+            int flags = 0;
+            if (font.PointSize == 0)
+                flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
+            if (font.HeightDefinedBy == FontHeightDefinition.NominalHeight)
+                flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
+            if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
+                flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
+            if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
+                flags |= NativeConstants.FFLG_ASCENDERFIXUP;
+            writer.Write(flags);
+            if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
+                writer.Write(font.PointSize * font.SizeMultiplier);
+            else
+                writer.Write(font.SizeMultiplier);
+
+            int outline = -1;
+            if (font.OutlineStyle == FontOutlineStyle.Automatic)
+                outline = NativeConstants.FONT_OUTLINE_AUTO;
+            else if (font.OutlineStyle != FontOutlineStyle.None)
+                outline = font.OutlineFont;
+            writer.Write(outline);
+
+            writer.Write(font.VerticalOffset);
+            writer.Write(font.LineSpacing);
+        }
+
+        public static void WriteFontInfo_Ex360(BinaryWriter writer, Font font)
+        {
+            writer.Write(font.AutoOutlineThickness);
+            writer.Write((int)font.AutoOutlineStyle);
+            // Since 3.6.3
+            writer.Write(font.CharacterSpacing);
+            writer.Write(font.CustomHeightValue);
+            writer.Write((int)0); // reserved
+            writer.Write((int)0);
+        }
+
         public static bool SaveThisGameToFile(string fileName, Game game, CompileMessages errors)
         {
             FileStream ostream = File.Create(fileName);
@@ -1549,30 +1588,7 @@ namespace AGS.Editor
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                int flags = 0;
-                if (game.Fonts[i].PointSize == 0)
-                    flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
-                if (game.Fonts[i].HeightDefinedBy == FontHeightDefinition.NominalHeight)
-                    flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
-                if (game.Fonts[i].HeightDefinedBy == FontHeightDefinition.CustomValue)
-                    flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
-                if (game.Fonts[i].TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
-                    flags |= NativeConstants.FFLG_ASCENDERFIXUP;
-                writer.Write(flags);
-                if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
-                    writer.Write(game.Fonts[i].PointSize * game.Fonts[i].SizeMultiplier);
-                else
-                    writer.Write(game.Fonts[i].SizeMultiplier);
-
-                int outline = -1;
-                if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
-                    outline = NativeConstants.FONT_OUTLINE_AUTO;
-                else if (game.Fonts[i].OutlineStyle != FontOutlineStyle.None)
-                    outline = game.Fonts[i].OutlineFont;
-                writer.Write(outline);
-
-                writer.Write(game.Fonts[i].VerticalOffset);
-                writer.Write(game.Fonts[i].LineSpacing);
+                WriteFontInfo(writer, game.Fonts[i]);
             }
             int topmostSprite;
             byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];
@@ -1920,13 +1936,7 @@ namespace AGS.Editor
             // adjustable font outlines
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                writer.Write(game.Fonts[i].AutoOutlineThickness);
-                writer.Write((int)game.Fonts[i].AutoOutlineStyle);
-                // Since 3.6.3
-                writer.Write(game.Fonts[i].CharacterSpacing);
-                writer.Write(game.Fonts[i].CustomHeightValue);
-                writer.Write((int)0); // reserved
-                writer.Write((int)0);
+                WriteFontInfo_Ex360(writer, game.Fonts[i]);
             }
         }
 

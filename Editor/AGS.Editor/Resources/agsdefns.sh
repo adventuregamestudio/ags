@@ -1558,8 +1558,8 @@ builtin managed struct DynamicSprite {
 #else // !SCRIPT_API_v362
   import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
 #endif // !SCRIPT_API_v362
-  /// Enlarges the size of the sprite, but does not resize the image.
-  import void ChangeCanvasSize(int width, int height, int x, int y);
+  /// Changes the size of the sprite, but does not resize the image.
+  import void ChangeCanvasSize(int width, int height, int x = 0, int y = 0);
   /// Copies the transparency mask and/or alpha channel from the specified sprite onto this dynamic sprite.
   import void CopyTransparencyMask(int fromSpriteSlot);
   /// Reduces the size of the sprite, but does not resize the image.

@@ -172,6 +172,9 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     data_to_game_coords(&width, &height);
 
     Bitmap *sprite = spriteset[sds->slot];
+    if (sprite->GetWidth() == width && sprite->GetHeight() == height && x == 0 && y == 0)
+        return; // same canvas size and no offset: no need to do anything
+
     std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateTransparentBitmap(width, height, sprite->GetColorDepth()));
     // blit it into the enlarged image
     new_pic->Blit(sprite, 0, 0, x, y, sprite->GetWidth(), sprite->GetHeight());
@@ -179,21 +182,24 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
-void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int height) {
+void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x, int y, int width, int height) {
     if ((width < 1) || (height < 1))
         quit("!DynamicSprite.Crop: co-ordinates do not make sense");
     if (sds->slot == 0)
         quit("!DynamicSprite.Crop: sprite has been deleted");
 
-    data_to_game_coords(&x1, &y1);
+    data_to_game_coords(&x, &y);
     data_to_game_coords(&width, &height);
 
     if ((width > game.SpriteInfos[sds->slot].Width) || (height > game.SpriteInfos[sds->slot].Height))
         quit("!DynamicSprite.Crop: requested to crop an area larger than the source");
 
     Bitmap *sprite = spriteset[sds->slot];
+    if (sprite->GetWidth() == width && sprite->GetHeight() == height && x == 0 && y == 0)
+        return; // same canvas size and no offset: no need to do anything
+
     std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth()));
-    new_pic->Blit(sprite, x1, y1, 0, 0, new_pic->GetWidth(), new_pic->GetHeight());
+    new_pic->Blit(sprite, x, y, 0, 0, new_pic->GetWidth(), new_pic->GetHeight());
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);

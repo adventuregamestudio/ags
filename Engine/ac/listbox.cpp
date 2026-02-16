@@ -271,7 +271,7 @@ int ListBox_GetTextAlignment(GUIListBox *listbox) {
 }
 
 void ListBox_SetTextAlignment(GUIListBox *listbox, int align) {
-    listbox->SetTextAlignment(static_cast<HorAlignment>(align));
+    listbox->SetTextAlignment(static_cast<FrameAlignment>(align));
 }
 
 int ListBox_GetTextColor(GUIListBox *listbox) {

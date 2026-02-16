@@ -11,8 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
-#include "ac/common.h" // quit
 #include "gui/guimain.h"
 #include "gui/guiobject.h"
 #include "util/stream.h"

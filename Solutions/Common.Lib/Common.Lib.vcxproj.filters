@@ -524,6 +524,9 @@
     <ClCompile Include="..\..\Common\game\data_helpers.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guitextbasedcontrol.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -912,6 +915,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\allegro\include\allegro\colblend.h">
       <Filter>Library Sources\allegro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guitextbasedcontrol.h">
+      <Filter>Header Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

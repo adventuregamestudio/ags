@@ -3040,7 +3040,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nlist.SetFont(listbox->Font);
           nlist.SetSelectedTextColor(listbox->SelectedTextColor);
           nlist.SetSelectedBgColor(listbox->SelectedBackgroundColor);
-          nlist.SetTextAlignment((::HorAlignment)listbox->TextAlignment);
+          nlist.SetTextAlignment((::FrameAlignment)listbox->TextAlignment);
           nlist.SetTranslated(listbox->Translated);
           nlist.SetShowArrows(listbox->ShowScrollArrows);
           nlist.SetEventHandler(0, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
@@ -3859,6 +3859,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  Common::GUITextBox *copyFrom = (Common::GUITextBox*)curObj;
 				  newControl = newTextbox;
 				  newTextbox->TextColor = copyFrom->GetTextColor();
+                  newTextbox->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
 				  newTextbox->Font = copyFrom->GetFont();
 				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
 				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(0));

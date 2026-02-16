@@ -39,42 +39,6 @@ GUITextBox::GUITextBox()
     UpdateControlRect();
 }
 
-void GUITextBox::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        MarkChanged();
-    }
-}
-
-void GUITextBox::SetTextColor(int color)
-{
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
-}
-
-void GUITextBox::SetTextAlignment(FrameAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
-        MarkChanged();
-    }
-}
-
-void GUITextBox::SetText(const String &text)
-{
-    if (_text != text)
-    {
-        _text = text;
-        MarkChanged();
-    }
-}
-
 bool GUITextBox::HasAlphaChannel() const
 {
     return is_font_antialiased(_font);

@@ -57,6 +57,7 @@ FrameAlignment ConvertLegacyButtonAlignment(LegacyButtonAlignment align)
 
 GUIButton::GUIButton()
 {
+    _textAlignment = kAlignTopCenter;
     _paddingX = DefaultHorPadding;
     _paddingY = DefaultVerPadding;
     _backgroundColor = 7;
@@ -77,15 +78,6 @@ void GUIButton::SetButtonFlags(int flags)
     {
         _buttonFlags = flags;
         MarkChanged(); // TODO: only mark changed if flags control the looks
-    }
-}
-
-void GUIButton::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        MarkChanged();
     }
 }
 
@@ -131,12 +123,6 @@ void GUIButton::SetBorderShadeColor(int color)
     MarkChanged();
 }
 
-void GUIButton::SetTextColor(int color)
-{
-    _textColor = color;
-    UpdateCurrentImage();
-}
-
 void GUIButton::SetMouseOverTextColor(int color)
 {
     _mouseOverTextColor = color;
@@ -147,15 +133,6 @@ void GUIButton::SetPushedTextColor(int color)
 {
     _pushedTextColor = color;
     UpdateCurrentImage();
-}
-
-void GUIButton::SetTextAlignment(FrameAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
-        MarkChanged();
-    }
 }
 
 bool GUIButton::HasAlphaChannel() const
@@ -187,11 +164,6 @@ int GUIButton::GetPushedImage() const
 GUIButtonPlaceholder GUIButton::GetPlaceholder() const
 {
     return _placeholder;
-}
-
-const String &GUIButton::GetText() const
-{
-    return _text;
 }
 
 bool GUIButton::IsImageButton() const
@@ -361,29 +333,6 @@ void GUIButton::SetImages(int normal, int over, int pushed)
     _mouseOverImage = over;
     _pushedImage = pushed;
     UpdateCurrentImage();
-}
-
-void GUIButton::SetText(const String &text)
-{
-    if (_text == text)
-        return;
-    _text = text;
-    // Active inventory item placeholders
-    if (_text.CompareNoCase("(INV)") == 0)
-        // Stretch to fit button
-        _placeholder = kButtonPlace_InvItemStretch;
-    else if (_text.CompareNoCase("(INVNS)") == 0)
-        // Draw at actual size
-        _placeholder = kButtonPlace_InvItemCenter;
-    else if (_text.CompareNoCase("(INVSHR)") == 0)
-        // Stretch if too big, actual size if not
-        _placeholder = kButtonPlace_InvItemAuto;
-    else
-        _placeholder = kButtonPlace_None;
-
-    // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
-    _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
-    MarkChanged();
 }
 
 void GUIButton::SetWrapText(bool on)
@@ -681,6 +630,30 @@ void GUIButton::SetDefaultLooksFor363()
 }
 
 void GUIButton::OnColorsChanged()
+{
+    UpdateCurrentImage();
+}
+
+void GUIButton::OnTextChanged()
+{
+    // Active inventory item placeholders
+    if (_text.CompareNoCase("(INV)") == 0)
+        // Stretch to fit button
+        _placeholder = kButtonPlace_InvItemStretch;
+    else if (_text.CompareNoCase("(INVNS)") == 0)
+        // Draw at actual size
+        _placeholder = kButtonPlace_InvItemCenter;
+    else if (_text.CompareNoCase("(INVSHR)") == 0)
+        // Stretch if too big, actual size if not
+        _placeholder = kButtonPlace_InvItemAuto;
+    else
+        _placeholder = kButtonPlace_None;
+
+    // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
+    _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
+}
+
+void GUIButton::OnTextColorChanged()
 {
     UpdateCurrentImage();
 }

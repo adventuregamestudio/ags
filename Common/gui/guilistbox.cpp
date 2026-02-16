@@ -35,25 +35,6 @@ GUIListBox::GUIListBox()
     UpdateControlRect();
 }
 
-void GUIListBox::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        UpdateMetrics();
-        MarkChanged();
-    }
-}
-
-void GUIListBox::SetTextColor(int color)
-{
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
-}
-
 void GUIListBox::SetSelectedBgColor(int color)
 {
     if (_selectedBgColor != color)
@@ -68,15 +49,6 @@ void GUIListBox::SetSelectedTextColor(int color)
     if (_selectedTextColor != color)
     {
         _selectedTextColor = color;
-        MarkChanged();
-    }
-}
-
-void GUIListBox::SetTextAlignment(HorAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
         MarkChanged();
     }
 }
@@ -200,7 +172,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
         uint32_t item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
         Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, _itemsRect.Left, _itemsRect.Right, at_y + _itemTextPaddingY,
-            (FrameAlignment)_textAlignment);
+            _textAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
     int last_line_y = _itemsRect.Top + _itemTextPaddingY + (_visibleItemCount - 1) * _rowHeight;
@@ -301,7 +273,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
 
         GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color,
             at_x + _itemTextPaddingX, right_x - _itemTextPaddingX,
-            at_y + _itemTextPaddingY, (FrameAlignment)_textAlignment);
+            at_y + _itemTextPaddingY, _textAlignment);
     }
     ds->SetClip(old_clip);
 }
@@ -415,6 +387,11 @@ void GUIListBox::OnContentRectChanged()
     MarkChanged();
 }
 
+void GUIListBox::OnTextFontChanged()
+{
+    UpdateMetrics();
+}
+
 void GUIListBox::UpdateMetrics()
 {
     if (GUI::GameGuiVersion < kGuiVersion_363)
@@ -495,17 +472,17 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     {
         if (gui_version < kGuiVersion_350)
         {
-            _textAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
+            _textAlignment = static_cast<FrameAlignment>(ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32()));
             in->ReadInt32(); // reserved1
         }
         else
         {
-            _textAlignment = (HorAlignment)in->ReadInt32();
+            _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
         }
     }
     else
     {
-        _textAlignment = kHAlignLeft;
+        _textAlignment = kAlignTopLeft;
     }
 
     if (gui_version >= kGuiVersion_unkn_107)
@@ -569,7 +546,7 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     {
         _selectedBgColor = in->ReadInt32();
         _selectedTextColor = in->ReadInt32();
-        _textAlignment = (HorAlignment)in->ReadInt32();
+        _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
         _textColor = in->ReadInt32();
     }
 

@@ -15,29 +15,20 @@
 #define __AC_GUITEXTBOX_H
 
 #include <vector>
-#include "gui/guiobject.h"
-#include "util/string.h"
+#include "gui/guitextbasedcontrol.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class GUITextBox : public GUIObject
+class GUITextBox : public GUITextFieldControl
 {
 public:
     GUITextBox();
 
     // Properties
     int  GetTextBoxFlags() const { return _textBoxFlags; }
-    int  GetFont() const { return _font; }
-    void SetFont(int font);
-    int  GetTextColor() const { return _textColor; }
-    void SetTextColor(int color);
-    FrameAlignment GetTextAlignment() const { return _textAlignment; }
-    void SetTextAlignment(FrameAlignment align);
-    const String &GetText() const { return _text; }
-    void SetText(const String &text);
     bool HasAlphaChannel() const override;
 
     // Script Events
@@ -63,18 +54,13 @@ public:
     void SetDefaultLooksFor363() override;
 
 private:
+    void DrawTextBoxContents(Bitmap *ds, int x, int y);
+
     static const uint32_t EventCount = 1;
     static String EventNames[EventCount];
     static String EventArgs[EventCount];
 
-    int     _font = 0;
-    String  _text;
-    color_t _textColor = 0;
-    FrameAlignment _textAlignment = kAlignTopLeft;
     int     _textBoxFlags = kTextBox_DefFlags;
-    String  _textToDraw;
-
-    void DrawTextBoxContents(Bitmap *ds, int x, int y);
 };
 
 } // namespace Common

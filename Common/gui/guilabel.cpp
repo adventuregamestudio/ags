@@ -30,33 +30,6 @@ GUILabel::GUILabel()
 {
 }
 
-void GUILabel::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        MarkChanged();
-    }
-}
-
-void GUILabel::SetTextColor(int color)
-{
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
-}
-
-void GUILabel::SetTextAlignment(FrameAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
-        MarkChanged();
-    }
-}
-
 bool GUILabel::HasAlphaChannel() const
 {
     return is_font_antialiased(_font);
@@ -109,14 +82,10 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
         (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
-void GUILabel::SetText(const String &text)
+void GUILabel::OnTextChanged()
 {
-    if (text == _text)
-        return;
-    _text = text;
     // Check for macros within text
     _textMacro = GUI::FindLabelMacros(_text);
-    MarkChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

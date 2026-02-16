@@ -388,8 +388,13 @@ bool display_check_user_input(int skip)
             }
             else if ((skip & SKIP_KEYPRESS) && !play.IsIgnoringInput() && !IsAGSServiceKey(ki.Key))
             {
-                play.SetWaitKeySkip(ki);
-                state_handled = true; // stop display
+                // check if it requires a specific keypress
+                if ((play.skip_speech_specific_key == 0) ||
+                    (ki.CompatKey == play.skip_speech_specific_key))
+                {
+                    play.SetWaitKeySkip(ki);
+                    state_handled = true; // stop display
+                }
             }
         }
         else if (type == kInputMouse)

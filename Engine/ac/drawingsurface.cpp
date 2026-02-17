@@ -337,10 +337,11 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
     Bitmap *ds = sds->StartDrawing();
     color_t text_color = sds->currentColour;
+    color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
 
     for (size_t i = 0; i < Lines.Count(); i++)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color,
+        GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, outline_color,
             xx, xx + wid - 1, yy + linespacing*i, (FrameAlignment)alignment);
     }
 

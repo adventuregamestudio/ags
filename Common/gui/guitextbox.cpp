@@ -187,8 +187,9 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_36304)
     {
         _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+        // valid since kGuiSvgVersion_36308
+        _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
-        in->ReadInt32();
         in->ReadInt32();
     }
     else
@@ -206,8 +207,9 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textBoxFlags);
     // kGuiSvgVersion_36304
     out->WriteInt32(_textAlignment);
+    // valid since kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
     out->WriteInt32(0);
 }
 
@@ -219,6 +221,7 @@ void GUITextBox::SetDefaultLooksFor363()
     _borderWidth = get_fixed_pixel_size(1);
     _paddingX = 1;
     _paddingY = 1;
+    _textOutlineColor = 16;
     UpdateControlRect();
 }
 

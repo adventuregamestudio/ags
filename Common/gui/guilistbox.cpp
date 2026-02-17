@@ -556,11 +556,6 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _textColor = in->ReadInt32();
     }
 
-    if (svg_ver < kGuiSvgVersion_36304)
-    {
-        SetDefaultLooksFor363();
-    }
-
     // _items
     const uint32_t item_count = in->ReadInt32();
     _items.resize(item_count);
@@ -576,6 +571,19 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
             _savedGameIndex[i] = in->ReadInt16();
     _topItem = in->ReadInt32();
     _selectedItem = in->ReadInt32();
+
+    if (svg_ver >= kGuiSvgVersion_36308)
+    {
+        _textOutlineColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+
+    if (svg_ver < kGuiSvgVersion_36304)
+    {
+        SetDefaultLooksFor363();
+    }
 
     // Reset dynamic values
     _rowHeight = 0;
@@ -606,6 +614,12 @@ void GUIListBox::WriteToSavegame(Stream *out) const
             out->WriteInt16(_savedGameIndex[i]);
     out->WriteInt32(_topItem);
     out->WriteInt32(_selectedItem);
+
+    // kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 void GUIListBox::SetDefaultLooksFor363()
@@ -614,6 +628,7 @@ void GUIListBox::SetDefaultLooksFor363()
         _flags |= kGUICtrl_ShowBorder;
     _borderColor = _textColor;
     _borderWidth = get_fixed_pixel_size(1);
+    _textOutlineColor = 16;
     UpdateControlRect();
 }
 

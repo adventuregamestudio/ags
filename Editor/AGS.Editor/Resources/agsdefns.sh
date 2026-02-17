@@ -1954,6 +1954,10 @@ builtin managed struct Label extends GUIControl {
   /// Gets/sets label's text alignment.
   import attribute Alignment TextAlignment;
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the colour of the text's outline (used if the text's font has outline).
+  import attribute int  TextOutlineColor;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct Button extends GUIControl {
@@ -2029,6 +2033,8 @@ builtin managed struct Button extends GUIControl {
   import attribute int PushedTextColor;
   /// Gets/sets the color used for drawing border's shade effect.
   import attribute int BorderShadeColor;
+  /// Gets/sets the colour of the text's outline (used if the text's font has outline).
+  import attribute int TextOutlineColor;
 #endif
 };
 
@@ -2073,6 +2079,8 @@ builtin managed struct TextBox extends GUIControl {
 #ifdef SCRIPT_API_v363
   /// Gets/sets text box's text alignment.
   import attribute Alignment TextAlignment;
+  /// Gets/sets the colour of the text's outline (used if the text's font has outline).
+  import attribute int  TextOutlineColor;
 #endif // SCRIPT_API_v363
 };
 
@@ -2100,72 +2108,74 @@ builtin managed struct InvWindow extends GUIControl {
 };
 
 builtin managed struct ListBox extends GUIControl {
-	/// Adds a new item to the bottom of the list with the specified text.
-	import bool AddItem(const string text);
-	/// Removes all the items from the list.
-	import void Clear();
+  /// Adds a new item to the bottom of the list with the specified text.
+  import bool AddItem(const string text);
+  /// Removes all the items from the list.
+  import void Clear();
 #ifdef SCRIPT_API_v362
-	/// Fills the list box with all the filenames that match the specified file mask.
-	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
-	/// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
-	import bool FillSaveGameList(int min_slot = 0, int max_slot = 99, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
-	/// Fills the list box with the current user's saved games using the array of slot indexes.
-	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
+  /// Fills the list box with all the filenames that match the specified file mask.
+  import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
+  /// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
+  import bool FillSaveGameList(int min_slot = 0, int max_slot = 99, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
+  /// Fills the list box with the current user's saved games using the array of slot indexes.
+  import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362
-    /// Fills the list box with all the filenames that match the specified file mask.
-	import void FillDirList(const string fileMask);
-	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList();
+  /// Fills the list box with all the filenames that match the specified file mask.
+  import void FillDirList(const string fileMask);
+  /// Fills the list box with the current user's saved games in the given range of slots.
+  import int  FillSaveGameList();
 #endif // !SCRIPT_API_v362
-	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
-	import int  GetItemAtLocation(int x, int y);
+  /// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
+  import int  GetItemAtLocation(int x, int y);
 #ifndef STRICT_STRINGS
-	import void GetItemText(int listIndex, string buffer);
-	import void SetItemText(int listIndex, const string newText);
+  import void GetItemText(int listIndex, string buffer);
+  import void SetItemText(int listIndex, const string newText);
 #endif // !STRICT_STRINGS
-	/// Inserts a new item before the specified index.
-	import bool InsertItemAt(int listIndex, const string text);
-	/// Removes the specified item from the list.
-	import void RemoveItem(int listIndex);
-	/// Scrolls the list down one row.
-	import void ScrollDown();
-	/// Scrolls the list up one row.
-	import void ScrollUp();
-	/// Gets/sets the font used to draw the list items.
-	import attribute FontType Font;
+  /// Inserts a new item before the specified index.
+  import bool InsertItemAt(int listIndex, const string text);
+  /// Removes the specified item from the list.
+  import void RemoveItem(int listIndex);
+  /// Scrolls the list down one row.
+  import void ScrollDown();
+  /// Scrolls the list up one row.
+  import void ScrollUp();
+  /// Gets/sets the font used to draw the list items.
+  import attribute FontType Font;
 #ifdef SCRIPT_COMPAT_v341
-	/// Gets/sets whether the border around the list box is hidden.
-	import attribute bool HideBorder;
-	/// Gets/sets whether the clickable scroll arrows are hidden.
-	import attribute bool HideScrollArrows;
+  /// Gets/sets whether the border around the list box is hidden.
+  import attribute bool HideBorder;
+  /// Gets/sets whether the clickable scroll arrows are hidden.
+  import attribute bool HideScrollArrows;
 #endif // SCRIPT_COMPAT_v341
-	/// Gets the number of items currently in the list.
-	readonly import attribute int ItemCount;
-	/// Accesses the text for the items in the list.
-	import attribute String Items[];
-	/// Gets the number of visible rows that the listbox can display.
-	readonly import attribute int RowCount;
-	/// Gets the save game number that each row in the list corresponds to, after using FillSaveGameList.
-	readonly import attribute int SaveGameSlots[];
-	/// Gets/sets the currently selected item.
-	import attribute int  SelectedIndex;
-	/// Gets/sets the first visible item in the list.
-	import attribute int  TopItem;
+  /// Gets the number of items currently in the list.
+  readonly import attribute int ItemCount;
+  /// Accesses the text for the items in the list.
+  import attribute String Items[];
+  /// Gets the number of visible rows that the listbox can display.
+  readonly import attribute int RowCount;
+  /// Gets the save game number that each row in the list corresponds to, after using FillSaveGameList.
+  readonly import attribute int SaveGameSlots[];
+  /// Gets/sets the currently selected item.
+  import attribute int  SelectedIndex;
+  /// Gets/sets the first visible item in the list.
+  import attribute int  TopItem;
 #ifdef SCRIPT_API_v350
 #ifndef SCRIPT_API_v363
-	/// Gets/sets whether the border around the list box is shown.
-	import attribute bool ShowBorder;
+  /// Gets/sets whether the border around the list box is shown.
+  import attribute bool ShowBorder;
 #endif // SCRIPT_COMPAT_v363
-	/// Gets/sets whether the clickable scroll arrows are shown.
-	import attribute bool ShowScrollArrows;
-	/// Gets/sets color of the list item's selection
-	import attribute int  SelectedBackColor;
-	/// Gets/sets selected list item's text color
-	import attribute int  SelectedTextColor;
-	/// Gets/sets list item's text alignment.
-	import attribute HorizontalAlignment TextAlignment;
-	/// Gets/sets regular list item's text color
-	import attribute int  TextColor;
+  /// Gets/sets whether the clickable scroll arrows are shown.
+  import attribute bool ShowScrollArrows;
+  /// Gets/sets color of the list item's selection
+  import attribute int  SelectedBackColor;
+  /// Gets/sets selected list item's text color
+  import attribute int  SelectedTextColor;
+  /// Gets/sets list item's text alignment.
+  import attribute HorizontalAlignment TextAlignment;
+  /// Gets/sets regular list item's text color
+  import attribute int  TextColor;
+  /// Gets/sets the colour of the list item text's outline (used if the item's font has outline).
+  import attribute int    TextOutlineColor;
 #endif // SCRIPT_API_v350
 };
 

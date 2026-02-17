@@ -140,6 +140,18 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         _textAlignment = (FrameAlignment)in->ReadInt32();
 
+    if (svg_ver >= kGuiSvgVersion_36308)
+    {
+        _textOutlineColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        SetDefaultLooksFor363();
+    }
+
     _textMacro = GUI::FindLabelMacros(_text);
 }
 
@@ -150,6 +162,16 @@ void GUILabel::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textAlignment);
+    // kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+}
+
+void GUILabel::SetDefaultLooksFor363()
+{
+    _textOutlineColor = 16;
 }
 
 } // namespace Common

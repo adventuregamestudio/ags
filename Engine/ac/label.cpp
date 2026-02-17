@@ -59,12 +59,24 @@ void Label_SetTextAlignment(GUILabel *labl, int align)
     labl->SetTextAlignment(use_align);
 }
 
-int Label_GetColor(GUILabel *labl) {
+int Label_GetTextColor(GUILabel *labl)
+{
     return labl->GetTextColor();
 }
 
-void Label_SetColor(GUILabel *labl, int color) {
+void Label_SetTextColor(GUILabel *labl, int color)
+{
     labl->SetTextColor(color);
+}
+
+int Label_GetTextOutlineColor(GUILabel *labl)
+{
+    return labl->GetTextOutlineColor();
+}
+
+void Label_SetTextOutlineColor(GUILabel *labl, int color)
+{
+    labl->SetTextOutlineColor(color);
 }
 
 int Label_GetFont(GUILabel *labl) {
@@ -128,16 +140,24 @@ RuntimeScriptValue Sc_Label_GetText_New(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_OBJ(GUILabel, const char, myScriptStringImpl, Label_GetText_New);
 }
 
-// int (GUILabel *labl)
-RuntimeScriptValue Sc_Label_GetColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Label_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUILabel, Label_GetColor);
+    API_OBJCALL_INT(GUILabel, Label_GetTextColor);
 }
 
-// void (GUILabel *labl, int colr)
-RuntimeScriptValue Sc_Label_SetColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Label_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUILabel, Label_SetColor);
+    API_OBJCALL_VOID_PINT(GUILabel, Label_SetTextColor);
+}
+
+RuntimeScriptValue Sc_Label_GetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUILabel, Label_GetTextOutlineColor);
+}
+
+RuntimeScriptValue Sc_Label_SetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUILabel, Label_SetTextOutlineColor);
 }
 
 
@@ -153,8 +173,10 @@ void RegisterLabelAPI()
         { "Label::set_Font",      API_FN_PAIR(Label_SetFont) },
         { "Label::get_Text",      API_FN_PAIR(Label_GetText_New) },
         { "Label::set_Text",      API_FN_PAIR(Label_SetText) },
-        { "Label::get_TextColor", API_FN_PAIR(Label_GetColor) },
-        { "Label::set_TextColor", API_FN_PAIR(Label_SetColor) },
+        { "Label::get_TextColor", API_FN_PAIR(Label_GetTextColor) },
+        { "Label::set_TextColor", API_FN_PAIR(Label_SetTextColor) },
+        { "Label::get_TextOutlineColor", API_FN_PAIR(Label_GetTextOutlineColor) },
+        { "Label::set_TextOutlineColor", API_FN_PAIR(Label_SetTextOutlineColor) },
     };
 
     ccAddExternalFunctions(label_api);

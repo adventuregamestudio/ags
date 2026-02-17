@@ -291,6 +291,16 @@ void Button_SetTextColor(GUIButton *butt, int color)
     butt->SetTextColor(color);
 }
 
+int Button_GetTextOutlineColor(GUIButton *butt)
+{
+    return butt->GetTextOutlineColor();
+}
+
+void Button_SetTextOutlineColor(GUIButton *butt, int color)
+{
+    butt->SetTextOutlineColor(color);
+}
+
 int Button_GetMouseOverTextColor(GUIButton *butt)
 {
     return butt->GetMouseOverTextColor();
@@ -627,16 +637,24 @@ RuntimeScriptValue Sc_Button_SetBorderShadeColor(void *self, const RuntimeScript
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetBorderShadeColor);
 }
 
-// int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetTextColor);
 }
 
-// void | GUIButton *butt, int newcol
 RuntimeScriptValue Sc_Button_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextColor);
+}
+
+RuntimeScriptValue Sc_Button_GetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIButton, Button_GetTextOutlineColor);
+}
+
+RuntimeScriptValue Sc_Button_SetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextOutlineColor);
 }
 
 RuntimeScriptValue Sc_Button_GetMouseOverTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -771,6 +789,8 @@ void RegisterButtonAPI()
         { "Button::set_Text",             API_FN_PAIR(Button_SetText) },
         { "Button::get_TextColor",        API_FN_PAIR(Button_GetTextColor) },
         { "Button::set_TextColor",        API_FN_PAIR(Button_SetTextColor) },
+        { "Button::get_TextOutlineColor", API_FN_PAIR(Button_GetTextOutlineColor) },
+        { "Button::set_TextOutlineColor", API_FN_PAIR(Button_SetTextOutlineColor) },
         { "Button::get_MouseOverTextColor", API_FN_PAIR(Button_GetMouseOverTextColor) },
         { "Button::set_MouseOverTextColor", API_FN_PAIR(Button_SetMouseOverTextColor) },
         { "Button::get_PushedTextColor",  API_FN_PAIR(Button_GetPushedTextColor) },

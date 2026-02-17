@@ -564,8 +564,9 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _pushedBorderColor = in->ReadInt32();
         _mouseOverTextColor = in->ReadInt32();
         _pushedTextColor = in->ReadInt32();
+        // valid since kGuiSvgVersion_36308
+        _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
-        in->ReadInt32();
         in->ReadInt32();
         in->ReadInt32();
     }
@@ -611,8 +612,9 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(_pushedBorderColor);
     out->WriteInt32(_mouseOverTextColor);
     out->WriteInt32(_pushedTextColor);
+    // valid since kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
 }
@@ -623,6 +625,7 @@ void GUIButton::SetDefaultLooksFor363()
     _backgroundColor = 7;
     _borderColor = 15;
     _borderShadeColor = 8;
+    _textOutlineColor = 16;
     _paddingX = 1;
     _paddingY = 1;
     UpdateControlRect();

@@ -32,7 +32,7 @@ void SetLabelColor(int guin,int objn, int colr) {
         quit("!SetLabelColor: specified control is not a label");
 
     GUILabel*guil=(GUILabel*)guis[guin].GetControl(objn);
-    Label_SetColor(guil, colr);
+    Label_SetTextColor(guil, colr);
 }
 
 void SetLabelText(int guin,int objn, const char*newtx) {

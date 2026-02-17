@@ -286,6 +286,16 @@ void ListBox_SetTextColor(GUIListBox *listbox, int color)
         listbox->SetBorderColor(color);
 }
 
+int ListBox_GetTextOutlineColor(GUIListBox *listbox)
+{
+    return listbox->GetTextOutlineColor();
+}
+
+void ListBox_SetTextOutlineColor(GUIListBox *listbox, int color)
+{
+    listbox->SetTextOutlineColor(color);
+}
+
 int ListBox_GetSelectedIndex(GUIListBox *listbox) {
     return listbox->GetSelectedItem();
 }
@@ -546,10 +556,19 @@ RuntimeScriptValue Sc_ListBox_GetTextColor(void *self, const RuntimeScriptValue 
     API_OBJCALL_INT(GUIListBox, ListBox_GetTextColor);
 }
 
-// void (GUIListBox *guisl, int newsel)
 RuntimeScriptValue Sc_ListBox_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTextColor);
+}
+
+RuntimeScriptValue Sc_ListBox_GetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetTextOutlineColor);
+}
+
+RuntimeScriptValue Sc_ListBox_SetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTextOutlineColor);
 }
 
 // int (GUIListBox *listbox)
@@ -623,6 +642,8 @@ void RegisterListBoxAPI()
         { "ListBox::set_TextAlignment",   API_FN_PAIR(ListBox_SetTextAlignment) },
         { "ListBox::get_TextColor",       API_FN_PAIR(ListBox_GetTextColor) },
         { "ListBox::set_TextColor",       API_FN_PAIR(ListBox_SetTextColor) },
+        { "ListBox::get_TextOutlineColor", API_FN_PAIR(ListBox_GetTextOutlineColor) },
+        { "ListBox::set_TextOutlineColor", API_FN_PAIR(ListBox_SetTextOutlineColor) },
         { "ListBox::get_TopItem",         API_FN_PAIR(ListBox_GetTopItem) },
         { "ListBox::set_TopItem",         API_FN_PAIR(ListBox_SetTopItem) },
     };

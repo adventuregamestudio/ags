@@ -1828,7 +1828,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_36304,
+        kGuiSvgVersion_36308,
         kGuiSvgVersion_Initial,
         kSaveCmp_GUI,
         WriteGUI,

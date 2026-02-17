@@ -57,6 +57,16 @@ void TextBox_SetTextColor(GUITextBox *guit, int color)
         guit->SetBorderColor(color);
 }
 
+int TextBox_GetTextOutlineColor(GUITextBox *guit)
+{
+    return guit->GetTextOutlineColor();
+}
+
+void TextBox_SetTextOutlineColor(GUITextBox *guit, int color)
+{
+    guit->SetTextOutlineColor(color);
+}
+
 int TextBox_GetFont(GUITextBox *guit) {
     return guit->GetFont();
 }
@@ -141,16 +151,24 @@ RuntimeScriptValue Sc_TextBox_SetTextAlignment(void *self, const RuntimeScriptVa
     API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextAlignment);
 }
 
-// int (GUITextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUITextBox, TextBox_GetTextColor);
 }
 
-// void (GUITextBox *guit, int colr)
 RuntimeScriptValue Sc_TextBox_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextColor);
+}
+
+RuntimeScriptValue Sc_TextBox_GetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUITextBox, TextBox_GetTextOutlineColor);
+}
+
+RuntimeScriptValue Sc_TextBox_SetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextOutlineColor);
 }
 
 
@@ -169,6 +187,8 @@ void RegisterTextBoxAPI()
         { "TextBox::set_TextAlignment", API_FN_PAIR(TextBox_SetTextAlignment) },
         { "TextBox::get_TextColor",   API_FN_PAIR(TextBox_GetTextColor) },
         { "TextBox::set_TextColor",   API_FN_PAIR(TextBox_SetTextColor) },
+        { "TextBox::get_TextOutlineColor", API_FN_PAIR(TextBox_GetTextOutlineColor) },
+        { "TextBox::set_TextOutlineColor", API_FN_PAIR(TextBox_SetTextOutlineColor) },
     };
 
     ccAddExternalFunctions(textbox_api);

@@ -40,6 +40,8 @@ public:
     void SetFont(int font);
     int  GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
+    int  GetTextOutlineColor() const { return _textColor; }
+    void SetTextOutlineColor(int color);
     FrameAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(FrameAlignment align);
 
@@ -51,6 +53,7 @@ protected:
 
     int     _font = 0;
     color_t _textColor = 0;
+    color_t _textOutlineColor = 0;
     FrameAlignment _textAlignment = kAlignTopLeft;
 
     // prepared text buffer/cache

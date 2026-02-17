@@ -1107,6 +1107,16 @@ namespace AGS.Editor
                     }
                 }
 
+                public int TextOutlineColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.TextOutlineColor;
+                        return 0;
+                    }
+                }
+
                 public GUIClickAction ClickAction
                 {
                     get
@@ -1856,7 +1866,7 @@ namespace AGS.Editor
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
             WriteExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
-            WriteExtension("v363_guictrls", WriteExt_363GUIControls, writer, gameEnts, errors);
+            WriteExtension("v363_guictrls2", WriteExt_363GUIControls, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2090,8 +2100,8 @@ namespace AGS.Editor
                 writer.Write(button.PushedBorderColor);
                 writer.Write(button.MouseOverTextColor);
                 writer.Write(button.PushedTextColor);
+                writer.Write(button.TextOutlineColor);
                 writer.Write((int)0); // reserved
-                writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);
             }
@@ -2099,11 +2109,21 @@ namespace AGS.Editor
             foreach (var label in ents.GUIControls.GUILabels)
             {
                 Write_GUIControlLooksExt_363(label, writer);
+                // Label's own properties
+                writer.Write(label.TextOutlineColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUIInvWindows.Count);
             foreach (var invwindow in ents.GUIControls.GUIInvWindows)
             {
                 Write_GUIControlLooksExt_363(invwindow, writer);
+                // InvWindows's own properties
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUISliders.Count);
             foreach (var slider in ents.GUIControls.GUISliders)
@@ -2123,14 +2143,19 @@ namespace AGS.Editor
                 Write_GUIControlLooksExt_363(textbox, writer);
                 // Textbox's own properties
                 writer.Write((int)textbox.TextAlignment);
+                writer.Write(textbox.TextOutlineColor);
                 writer.Write((int)0); // reserved
-                writer.Write((int)0);
                 writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUIListBoxes.Count);
             foreach (var listbox in ents.GUIControls.GUIListBoxes)
             {
                 Write_GUIControlLooksExt_363(listbox, writer);
+                // Listbox's own properties
+                writer.Write((int)listbox.TextOutlineColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
         }
 

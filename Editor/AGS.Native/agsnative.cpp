@@ -2987,6 +2987,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUIButton nbut;
           nbut.SetBorderShadeColor(button->BorderShadeColor);
           nbut.SetTextColor(button->TextColor);
+          nbut.SetTextOutlineColor(button->TextOutlineColor);
           nbut.SetMouseOverBackColor(button->MouseOverBackgroundColor);
           nbut.SetPushedBackColor(button->PushedBackgroundColor);
           nbut.SetMouseOverBorderColor(button->MouseOverBorderColor);
@@ -3014,6 +3015,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUILabel nlabel;
           nlabel.SetTextColor(label->TextColor);
+          nlabel.SetTextOutlineColor(label->TextOutlineColor);
           nlabel.SetFont(label->Font);
           nlabel.SetTextAlignment((::FrameAlignment)label->TextAlignment);
           Common::String text = tcv->ConvertTextProperty(label->Text);
@@ -3026,6 +3028,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUITextBox ntext;
           ntext.SetTextColor(textbox->TextColor);
+          ntext.SetTextOutlineColor(textbox->TextOutlineColor);
           ntext.SetFont(textbox->Font);
           ntext.SetTextAlignment((::FrameAlignment)textbox->TextAlignment);
           ntext.SetEventHandler(0, TextHelper::ConvertASCII(textbox->OnActivate));
@@ -3037,6 +3040,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUIListBox nlist;
           nlist.SetTextColor(listbox->TextColor);
+          nlist.SetTextOutlineColor(listbox->TextOutlineColor);
           nlist.SetFont(listbox->Font);
           nlist.SetSelectedTextColor(listbox->SelectedTextColor);
           nlist.SetSelectedBgColor(listbox->SelectedBackgroundColor);
@@ -3828,6 +3832,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = newButton;
 					newButton->TextColor = copyFrom->GetTextColor();
+                    newButton->TextOutlineColor = copyFrom->GetTextOutlineColor();
 					newButton->Font = copyFrom->GetFont();
 					newButton->Image = copyFrom->GetNormalImage();
 					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
@@ -3848,6 +3853,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				Common::GUILabel *copyFrom = (Common::GUILabel*)curObj;
 				newControl = newLabel;
 				newLabel->TextColor = copyFrom->GetTextColor();
+                newLabel->TextOutlineColor = copyFrom->GetTextOutlineColor();
 				newLabel->Font = copyFrom->GetFont();
 				newLabel->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
 				newLabel->Text = tcv->Convert(copyFrom->GetText());
@@ -3859,6 +3865,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  Common::GUITextBox *copyFrom = (Common::GUITextBox*)curObj;
 				  newControl = newTextbox;
 				  newTextbox->TextColor = copyFrom->GetTextColor();
+                  newTextbox->TextOutlineColor = copyFrom->GetTextOutlineColor();
                   newTextbox->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
 				  newTextbox->Font = copyFrom->GetFont();
 				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
@@ -3871,6 +3878,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  Common::GUIListBox *copyFrom = (Common::GUIListBox*)curObj;
 				  newControl = newListbox;
 				  newListbox->TextColor = copyFrom->GetTextColor();
+                  newListbox->TextOutlineColor = copyFrom->GetTextOutlineColor();
 				  newListbox->Font = copyFrom->GetFont();
 				  newListbox->SelectedTextColor = copyFrom->GetSelectedTextColor();
 				  newListbox->SelectedBackgroundColor = copyFrom->GetSelectedBgColor();

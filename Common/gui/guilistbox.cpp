@@ -267,11 +267,12 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         {
             text_color = ds->GetCompatibleColor(_textColor);
         }
+        const color_t outline_color = ds->GetCompatibleColor(_textOutlineColor);
 
         int item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
 
-        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color,
+        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color, outline_color,
             at_x + _itemTextPaddingX, right_x - _itemTextPaddingX,
             at_y + _itemTextPaddingY, _textAlignment);
     }
@@ -394,7 +395,7 @@ void GUIListBox::OnTextFontChanged()
 
 void GUIListBox::UpdateMetrics()
 {
-    if (GUI::GameGuiVersion < kGuiVersion_363)
+    if (GUI::GameGuiVersion < kGuiVersion_363_03)
     {
         // NOTE: we do this here, because calling get_fixed_pixel_size()
         // may not be safe in constructor
@@ -529,6 +530,11 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUIListBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile_Ext363(in, gui_version);
+
+    _textOutlineColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
 }
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

@@ -461,14 +461,16 @@ namespace GUI
     // Draw standart "shading" effect over rectangle
     void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
     // Draw text aligned inside rectangle
-    void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
+    void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+        const Rect &frame, FrameAlignment align);
     // Draw text aligned horizontally inside given bounds
-    void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+    void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+        int x1, int x2, int y, FrameAlignment align);
     // Draw wrapped text aligned inside rectangle:
     // a block of text is aligned vertically, while each line is aligned horizontally.
     void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
-        int font, int linespace, color_t text_color, const Rect &frame, FrameAlignment align,
-        bool limit_by_frame = true);
+        int font, int linespace, color_t text_color, color_t outline_color,
+        const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
 
     // Parses the string and returns combination of label macro flags
     GUILabelMacro FindLabelMacros(const String &text);

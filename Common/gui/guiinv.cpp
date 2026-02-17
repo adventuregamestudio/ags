@@ -125,6 +125,11 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUIInvWindow::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile_Ext363(in, gui_version);
+
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
 }
 
 void GUIInvWindow::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

@@ -525,8 +525,8 @@ void GUIButton::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
     _pushedBorderColor = in->ReadInt32();
     _mouseOverTextColor = in->ReadInt32();
     _pushedTextColor = in->ReadInt32();
+    _textOutlineColor = in->ReadInt32();
     in->ReadInt32(); // reserved
-    in->ReadInt32();
     in->ReadInt32();
     in->ReadInt32();
 
@@ -720,6 +720,9 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     const color_t text_color = draw_disabled ?
         ds->GetCompatibleColor(8) :
         ds->GetCompatibleColor(_currentTextColor);
+    const color_t outline_color = draw_disabled ?
+        ds->GetCompatibleColor(8) :
+        ds->GetCompatibleColor(_textOutlineColor);
 
     Rect frame = Rect::MoveBy(_innerRect, x, y);
     if (_isPushed && _isMouseOver && !IsFlatStyle())
@@ -736,9 +739,9 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
 
     if (IsWrapText())
         GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font),
-            text_color, frame, _textAlignment);
+            text_color, outline_color, frame, _textAlignment);
     else
-        GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, frame, _textAlignment);
+        GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, outline_color, frame, _textAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -748,13 +751,13 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // TODO: use color constants instead of literal numbers.
     // TODO: move the bw-compat default color selection to Upgrade GUI process.
     const color_t back_color =
-        (GUI::GameGuiVersion < kGuiVersion_363)
+        (GUI::GameGuiVersion < kGuiVersion_363_03)
         ? ds->GetCompatibleColor(7) : ds->GetCompatibleColor(_currentBgColor);
     const color_t light_color =
-        (GUI::GameGuiVersion < kGuiVersion_363)
+        (GUI::GameGuiVersion < kGuiVersion_363_03)
         ? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_currentBorderColor);
     const color_t dark_color =
-        (GUI::GameGuiVersion < kGuiVersion_363)
+        (GUI::GameGuiVersion < kGuiVersion_363_03)
         ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_borderShadeColor);
 
     // Background rect

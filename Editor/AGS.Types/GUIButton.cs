@@ -45,6 +45,7 @@ namespace AGS.Types
         private ButtonColorStyle _colorStyle = ButtonColorStyle.Default;
         private int _borderShadeColor;
         private int _textColor;
+        private int _textOutlineColor;
         private int _mouseoverTextColor;
         private int _pushedTextColor;
         private int _mouseoverBackgroundColor;
@@ -155,6 +156,16 @@ namespace AGS.Types
         {
             get { return _textColor; }
             set { _textColor = value; }
+        }
+
+        [Description("Colour of the button text's outline (applied if the font has one)")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int TextOutlineColor
+        {
+            get { return _textOutlineColor; }
+            set { _textOutlineColor = value; }
         }
 
         [Description("Colour of the button's background when the player moves their mouse over the button")]

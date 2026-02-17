@@ -296,7 +296,8 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 {
     _textToDraw = _text;
     const int text_color = ds->GetCompatibleColor(_textColor);
-    GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, Rect::MoveBy(_innerRect, x, y), _textAlignment);
+    const int outline_color = ds->GetCompatibleColor(_textOutlineColor);
+    GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, outline_color, Rect::MoveBy(_innerRect, x, y), _textAlignment);
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)

@@ -168,9 +168,10 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUITextBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile_Ext363(in, gui_version);
+
     _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+    _textOutlineColor = in->ReadInt32();
     in->ReadInt32(); // reserved
-    in->ReadInt32();
     in->ReadInt32();
 }
 

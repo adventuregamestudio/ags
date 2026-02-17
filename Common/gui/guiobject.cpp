@@ -265,7 +265,7 @@ void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
         // Pre-3.6.3 the controls would implicitly double the border thickness
         // for "hi-res" games
         // FIXME: adjust and save border width when it's assigned instead
-        (((GUI::GameGuiVersion < kGuiVersion_363) && (get_fixed_pixel_size(1) > 1)) ? 2 : 1);
+        (((GUI::GameGuiVersion < kGuiVersion_363_03) && (get_fixed_pixel_size(1) > 1)) ? 2 : 1);
 
     if (IsSolidBackground())
     {

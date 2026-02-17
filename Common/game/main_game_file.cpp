@@ -1011,7 +1011,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (auto &dlg : _ents.Dialogs)
             dlg.ReadFromFile_v363(in);
     }
-    else if (ext_id.CompareNoCase("v363_guictrls") == 0)
+    else if (ext_id.CompareNoCase("v363_guictrls2") == 0)
     {
         if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
             return err;

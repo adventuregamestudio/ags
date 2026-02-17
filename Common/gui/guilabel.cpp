@@ -67,7 +67,8 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     if (PrepareTextToDraw() == 0)
         return;
 
-    color_t text_color = ds->GetCompatibleColor(_textColor);
+    const color_t text_color = ds->GetCompatibleColor(_textColor);
+    const color_t outline_color = ds->GetCompatibleColor(_textOutlineColor);
     const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
         ((GUI::DataVersion < kGameVersion_360) && (get_font_flags(_font) & FFLG_DEFLINESPACING)) ?
         (get_font_height(_font) + 1) :
@@ -78,8 +79,7 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     if (limit_by_label_frame && GUI::Options.ClipControls)
         ds->SetClip(lines_rect);
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
-        lines_rect,
-        (FrameAlignment)_textAlignment, limit_by_label_frame);
+        outline_color, lines_rect, (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
 void GUILabel::OnTextChanged()
@@ -124,6 +124,11 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUILabel::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile_Ext363(in, gui_version);
+
+    _textOutlineColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
 }
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

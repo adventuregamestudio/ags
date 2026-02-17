@@ -38,6 +38,16 @@ void GUITextBasedControl::SetTextColor(int color)
     }
 }
 
+void GUITextBasedControl::SetTextOutlineColor(int color)
+{
+    if (_textOutlineColor != color)
+    {
+        _textOutlineColor = color;
+        OnTextColorChanged();
+        MarkChanged();
+    }
+}
+
 void GUITextBasedControl::SetTextAlignment(FrameAlignment align)
 {
     if (_textAlignment != align)

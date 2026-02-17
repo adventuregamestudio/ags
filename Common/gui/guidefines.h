@@ -47,7 +47,7 @@
 //       as game extensions. There have been at least two amendments:
 //       - script module ref written for GUIs (3.6.2),
 //       - button's text padding properties   (3.6.2)
-// 3.6.3           : Controls have common frame settings
+// 3.6.3.3 / 8    : Controls have common frame settings
 //                   (back/border color, padding, etc)
 //=============================================================================
 
@@ -76,8 +76,9 @@ enum GuiVersion
     kGuiVersion_331         = 117,
     kGuiVersion_340         = 118,
     kGuiVersion_350         = 119,
-    kGuiVersion_363         = 3060304,
-    kGuiVersion_Current     = kGuiVersion_363,
+    kGuiVersion_363_03      = 3060304,
+    kGuiVersion_363_08      = 3060308,
+    kGuiVersion_Current     = kGuiVersion_363_08,
 };
 
 namespace AGS

@@ -993,21 +993,23 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
     }
 }
 
-void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+    const Rect &frame, FrameAlignment align)
 {
     Point pos = CalcTextPosition(text, font, frame, align);
-    wouttext_outline(ds, pos.X, pos.Y, font, text_color, text.GetCStr());
+    wouttext_outline(ds, pos.X, pos.Y, font, text_color, outline_color, text.GetCStr());
 }
 
-void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+    int x1, int x2, int y, FrameAlignment align)
 {
     Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
-    wouttext_outline(ds, line.X1, y, font, text_color, text.GetCStr());
+    wouttext_outline(ds, line.X1, y, font, text_color, outline_color, text.GetCStr());
 }
 
 void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
-    int font, int linespace, color_t text_color, const Rect &frame, FrameAlignment align,
-    bool limit_by_frame)
+    int font, int linespace, color_t text_color, color_t outline_color, const Rect &frame,
+    FrameAlignment align, bool limit_by_frame)
 {
     item_count = std::min(item_count, text.size()); // safety check
     if (item_count <= 0)
@@ -1027,7 +1029,7 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
     for (; (line_idx < item_count) && (!limit_by_frame || at_y < frame.Bottom);
         ++line_idx, at_y += linespace)
     {
-        GUI::DrawTextAlignedHor(ds, text[line_idx], font, text_color, frame.Left, frame.Right, at_y, align);
+        GUI::DrawTextAlignedHor(ds, text[line_idx], font, text_color, outline_color, frame.Left, frame.Right, at_y, align);
     }
 }
 

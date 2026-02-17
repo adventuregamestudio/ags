@@ -20,7 +20,6 @@ namespace AGS.Types
         {
             ShowBorder = true; // border is visible by default
             _showScrollArrows = true;
-            _textColor = 0;
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;
         }
@@ -33,6 +32,7 @@ namespace AGS.Types
 
         private int _font;
         private int _textColor;
+        private int _textOutlineColor;
         private int _selectedTextColor;
         private int _selectedBackgroundColor;
         private HorizontalAlignment _textAlignment = HorizontalAlignment.Left;
@@ -75,6 +75,16 @@ namespace AGS.Types
         {
             get { return _textColor; }
             set { _textColor = value; }
+        }
+
+        [Description("Colour of the text's outline (applied if the font has one)")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int TextOutlineColor
+        {
+            get { return _textOutlineColor; }
+            set { _textOutlineColor = value; }
         }
 
         [Description("Selected item's text colour")]

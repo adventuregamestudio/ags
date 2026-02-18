@@ -112,7 +112,11 @@ public:
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;
     void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
-    
+
+    // State
+    bool IsHighlighted() const { return _isMouseOver; }
+    bool IsPushed() const { return _isMouseOver && _isPushed; }
+
     // Script Events
     uint32_t GetEventCount() const override;
     String GetEventArgs(uint32_t event) const override;

@@ -179,6 +179,16 @@ int Button_GetGraphic(GUIButton *butt) {
     return butt->GetCurrentImage();
 }
 
+bool Button_GetIsHighlighted(GUIButton *butt)
+{
+    return butt->IsHighlighted();
+}
+
+bool Button_GetIsPushed(GUIButton *butt)
+{
+    return butt->IsPushed();
+}
+
 int Button_GetMouseOverBackgroundColor(GUIButton *butt)
 {
     return butt->GetMouseOverBackColor();
@@ -551,6 +561,16 @@ RuntimeScriptValue Sc_Button_GetGraphic(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(GUIButton, Button_GetGraphic);
 }
 
+RuntimeScriptValue Sc_Button_GetIsHighlighted(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIButton, Button_GetIsHighlighted);
+}
+
+RuntimeScriptValue Sc_Button_GetIsPushed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIButton, Button_GetIsPushed);
+}
+
 RuntimeScriptValue Sc_Button_GetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetMouseOverBackgroundColor);
@@ -768,6 +788,8 @@ void RegisterButtonAPI()
         { "Button::set_Font",             API_FN_PAIR(Button_SetFont) },
         { "Button::get_Frame",            API_FN_PAIR(Button_GetAnimFrame) },
         { "Button::get_Graphic",          API_FN_PAIR(Button_GetGraphic) },
+        { "Button::get_IsHighlighted",    API_FN_PAIR(Button_GetIsHighlighted) },
+        { "Button::get_IsPushed",         API_FN_PAIR(Button_GetIsPushed) },
         { "Button::get_Loop",             API_FN_PAIR(Button_GetAnimLoop) },
         { "Button::get_BorderShadeColor", API_FN_PAIR(Button_GetBorderShadeColor) },
         { "Button::set_BorderShadeColor", API_FN_PAIR(Button_SetBorderShadeColor) },

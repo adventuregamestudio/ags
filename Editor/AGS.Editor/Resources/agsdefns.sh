@@ -2035,6 +2035,10 @@ builtin managed struct Button extends GUIControl {
   import attribute int BorderShadeColor;
   /// Gets/sets the colour of the text's outline (used if the text's font has outline).
   import attribute int TextOutlineColor;
+  /// Gets if the button is currently hovered over by the mouse cursor.
+  import readonly attribute bool IsHighlighted;
+  /// Gets if the button is currently pushed down.
+  import readonly attribute bool IsPushed;
 #endif
 };
 

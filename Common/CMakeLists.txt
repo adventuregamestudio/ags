@@ -112,6 +112,8 @@ target_sources(common
     gui/guiobject.h
     gui/guislider.cpp
     gui/guislider.h
+    gui/guitextbasedcontrol.cpp
+    gui/guitextbasedcontrol.h
     gui/guitextbox.cpp
     gui/guitextbox.h
     script/cc_common.cpp

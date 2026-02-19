@@ -784,6 +784,9 @@ void current_fade_in_effect()
         def_speed = get_fixed_pixel_size(16);
     }
 
+    // Update drawables, prepare them for the transition-in
+    // in case this is called after the game state change but before any update was run
+    SyncDrawablesState();
     run_fade_in_effect(trans_style, def_speed);
 }
 

@@ -1068,6 +1068,9 @@ void check_new_room() {
         EnterNewRoomState newroom_was = in_new_room;
         in_new_room = kEnterRoom_None;
         DisableInterfaceEx(true /* update cursor */);
+        // sync drawable object states before running event
+        // in case they access these properties in a script callback
+        SyncDrawablesState();
         process_event(&evh);
         EnableInterfaceEx(true /* update cursor */);
         in_new_room = newroom_was;

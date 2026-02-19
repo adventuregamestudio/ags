@@ -233,6 +233,9 @@ static void game_loop_do_late_script_update()
 {
     if (in_new_room == 0)
     {
+        // sync drawable object states before running event
+        // in case they access these properties in a script callback
+        SyncDrawablesState();
         // Run the room and game script late_repeatedly_execute
         run_function_on_non_blocking_thread(&lateRepExecAlways);
     }
@@ -810,8 +813,6 @@ extern std::vector<ViewStruct> views;
 
 static void update_objects_scale()
 {
-    if (play.fast_forward)
-        return;
     if (displayed_room < 0)
         return;
 
@@ -910,6 +911,22 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
 
     offsetxWas = offsetx;
     offsetyWas = offsety;
+}
+
+static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
+{
+    if (displayed_room < 0)
+        return;
+
+    update_objects_scale();
+    // camera positions may be linked to a player character
+    play.UpdateRoomCameras();
+
+    if (do_cursor)
+    {
+        update_cursor_over_location(mwasatx, mwasaty);
+        update_cursor_view();
+    }
 }
 
 static void game_loop_update_events()
@@ -1054,11 +1071,9 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_script_update();
 
-    // historically room object and character scaling was updated
-    // right before the drawing
-    update_objects_scale();
-    update_cursor_over_location(mwasatx, mwasaty);
-    update_cursor_view();
+    // Update drawable object states, which depend on their positions,
+    // room region properties, or other object positions
+    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
 
     update_audio_system_on_game_loop();
 
@@ -1280,18 +1295,15 @@ void UpdateCursorAndDrawables()
     const int mwasatx = mousex, mwasaty = mousey;
     ags_domouse();
     update_cursor_over_gui();
-    update_cursor_over_location(mwasatx, mwasaty);
-    update_cursor_view();
     // TODO: following does not have to be called every frame while in a
     // fully blocking state (like Display() func), refactor to only call it
     // once the blocking state begins.
-    update_objects_scale();
+    UpdateDrawableObjectStates(true /* cursor-related update */, mwasatx, mwasaty);
 }
 
 void SyncDrawablesState()
 {
-    // TODO: there's likely more things that could've be done here
-    update_objects_scale();
+    UpdateDrawableObjectStates(false /* NO cursor-related update */, -1, -1);
 }
 
 void ShutGameWaitState()

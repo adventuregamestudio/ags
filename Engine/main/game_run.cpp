@@ -275,6 +275,13 @@ static void GameUpdateLateRepExec()
 // "Stand On" event callbacks.
 static bool GameUpdateCheckGroundInteractions()
 {
+    // Do not check for ground interactions if we are in the process of
+    // entering the room (between "load room" and "after fade-in" events).
+    // (For backwards compatibility, skip this condition for older games)
+    if ((loaded_game_file_version >= kGameVersion_363)
+        && (in_new_room != kEnterRoom_None))
+        return true;
+
     // If ground interactions are disabled completely, then bail out
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
         return true; // continue update
@@ -1067,22 +1074,34 @@ static void GameUpdateProcessEvents()
     if (in_new_room != kEnterRoom_None)
     {
         setevent({ kAGSEvent_FadeIn });
+        in_new_room = kEnterRoom_None;
     }
-    in_new_room = kEnterRoom_None;
 
     processallevents();
 
+    // If in a new room, and the room wasn't just changed again in update_events,
+    // then queue the Enters Screen scripts run these next time round, when it's faded in
     if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
     {
-        // if in a new room, and the room wasn't just changed again in update_events,
-        // then queue the Enters Screen scripts run these next time round, when it's faded in
+        // In 3.6.3+ games After-Fade-in event is run immediately at the same
+        // game update right after the Fade-in (transition) event was run (transition).
+        // This ensures that there's no extra updates or redraws in between.
+        // In pre-3.6.3 games this event is scheduled to run on the next update,
+        // which will actually cause some script callbacks to trigger *prior*
+        // "After-Fade-in" (rep-exec-always, ground interactions).
+        const bool schedule_event = (loaded_game_file_version < kGameVersion_363);
+
         switch (new_room_was)
         {
         case kEnterRoom_FirstTime: // first time enters screen
-            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
+            schedule_event ?
+                setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter)) :
+                runevent_now(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
             /* fall-through */
         case kEnterRoom_Normal: // enters screen after fadein
-            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
+            schedule_event ?
+                setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein)) :
+                runevent_now(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
             break;
         case kEnterRoom_RestoredSave:
             in_room_transition = false; // room transition ends here

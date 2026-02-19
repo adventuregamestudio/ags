@@ -141,7 +141,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle("Character", _name, _id); }
+            get { return TypesHelper.MakePropertyGridTitle("Cursor", _name, _id); }
         }
 
         [AGSNoSerialize]

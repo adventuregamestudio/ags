@@ -263,6 +263,9 @@ static void GameUpdateLateRepExec()
 {
     if (in_new_room == kEnterRoom_None)
     {
+        // sync drawable object states before running event
+        // in case they access these properties in a script callback
+        SyncDrawablesState();
         // Run the room and game script late_repeatedly_execute
         run_function_on_non_blocking_thread(&lateRepExecAlways);
     }

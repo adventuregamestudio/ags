@@ -313,6 +313,25 @@ void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
     }
 }
 
+std::pair<String, String> StrUtil::GetKeyValue(const String &s, char key_val_separator)
+{
+    String key, value;
+    const auto at = s.FindChar('=');
+    if (at != String::NoIndex)
+    {
+        key = s.Left(at);
+        key.Trim();
+        value = s.Mid(at + 1);
+        value.Trim();
+    }
+    else
+    {
+        key = s;
+        key.Trim();
+    }
+    return std::make_pair(key, value);
+}
+
 size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz)
 {
     if (out_sz == 0)

@@ -19,6 +19,8 @@
 #define __AGS_EE_AC__GAME_H
 
 #include <memory>
+#include "ac/game_version.h"
+#include "ac/gamestructdefines.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "gfx/bitmap.h"
@@ -215,6 +217,9 @@ void get_message_text (int msnum, char *buffer, char giveErr = 1);
 void game_sprite_updated(int sprnum, bool deleted = false);
 // Precaches sprites for a view, within a selected range of loops.
 void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool with_sounds = false);
+
+// Loads and initializes font at certain index using given properties
+bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ver);
 
 // Global AssetManager instance.
 extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;

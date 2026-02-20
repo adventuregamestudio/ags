@@ -18,8 +18,9 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
-#include "util/geometry.h"
 #include "core/types.h"
+#include "util/geometry.h"
+#include "util/string.h"
 
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
@@ -148,6 +149,8 @@ enum SpeechStyle
 #define FFLG_TTF_BACKCOMPATMASK   (FFLG_LOGICALNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
 // Collection of flags defining font's load mode
 #define FFLG_LOADMODEMASK         (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT | FFLG_ASCENDERFIXUP)
+// Collection of flags defining font's height definition
+#define FFLG_FONTHEIGHTMASK       (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT)
 // Font outline types
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
@@ -296,6 +299,9 @@ struct SpriteInfo
 // the strictly determined position on canvas, FontInfo may additionally
 // provide instructions on adjusting drawing position, as well as arranging
 // multiple lines, and similar cases.
+//
+// TODO: some of FontInfo's properties only make sense in combination,
+// therefore it may not be suitable to have them public.
 struct FontInfo
 {
     enum AutoOutlineStyle : int
@@ -304,29 +310,46 @@ struct FontInfo
         kRounded = 1,
     };
 
+    // Font's numeric ID
+    int           FontID = -1;
+    // Font's asset filename, optional (added for consistency with 4.*)
+    AGS::Common::String FileName;
     // General font's loading and rendering flags (FFLG_*)
-    uint32_t      Flags;
+    uint32_t      Flags = 0u;
     // Nominal font import size (in pixels)
-    int           Size;
+    int           Size = 0;
     // Factor to multiply base font size by
-    int           SizeMultiplier;
+    int           SizeMultiplier = 1;
     // Outlining font index, or auto-outline flag
-    int           Outline;
+    int           Outline = FONT_OUTLINE_NONE;
     // Custom logical height (referred to when measuring text),
     // used mainly for handling broken fonts
-    int           CustomHeight;
+    int           CustomHeight = 0;
     // Custom vertical render offset, used mainly for handling broken fonts
-    int           YOffset;
+    int           YOffset = 0;
     // Custom line spacing between two lines of text (0 = use font height)
-    int           LineSpacing;
+    int           LineSpacing = 0;
     // Horizontal spacing between individual characters, in pixels
-    int           CharacterSpacing;
+    int           CharacterSpacing = 0;
     // When automatic outlining, style of the outline
-    AutoOutlineStyle AutoOutlineStyle;
+    AutoOutlineStyle AutoOutlineStyle = kSquared;
     // When automatic outlining, thickness of the outline (0 = no auto outline)
-    int           AutoOutlineThickness;
+    int           AutoOutlineThickness = 0;
 
-    FontInfo();
+    inline void SetFlags(const uint32_t flags)
+    {
+        Flags = flags;
+        if ((flags & FFLG_SIZEMULTIPLIER) != 0)
+        {
+            SizeMultiplier = Size;
+            Size = 0;
+        }
+    }
+
+    inline void SetHeightFlags(int flags)
+    {
+        Flags = (Flags & ~FFLG_FONTHEIGHTMASK) | (flags & FFLG_FONTHEIGHTMASK);
+    }
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

@@ -76,19 +76,6 @@ static std::unique_ptr<TTFFontRenderer> ttfRenderer;
 static std::unique_ptr<WFNFontRenderer> wfnRenderer;
 
 
-FontInfo::FontInfo()
-    : Flags(0)
-    , Size(0)
-    , SizeMultiplier(1)
-    , Outline(FONT_OUTLINE_NONE)
-    , YOffset(0)
-    , LineSpacing(0)
-    , CharacterSpacing(0)
-    , AutoOutlineStyle(kSquared)
-    , AutoOutlineThickness(0)
-{}
-
-
 void init_font_renderer(AssetManager *amgr)
 {
     ttfRenderer.reset(new TTFFontRenderer(amgr));
@@ -638,7 +625,7 @@ String get_font_file(int font_number)
 
 bool load_font_size(int font_number, const FontInfo &font_info)
 {
-    return load_font_size(font_number, String(), font_info);
+    return load_font_size(font_number, font_info.FileName, font_info);
 }
 
 bool load_font_size(int font_number, const String &filename, const FontInfo &font_info)

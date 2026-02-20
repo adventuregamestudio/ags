@@ -24,6 +24,7 @@
 #include "ac/wordsdictionary.h"
 #include "core/assetmanager.h"
 #include "debug/out.h"
+#include "font/fonts.h"
 #include "game/tra_file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -37,7 +38,51 @@ String trans_filename;
 Translation trans;
 
 
-void close_translation () {
+void init_font_overrides(const Translation &trans)
+{
+    for (const auto &font_override : trans.FontOverrides)
+    {
+        const int font_id = font_override.first;
+        const auto finfo = font_override.second;
+        // If FontID is available, this means we should copy another existing font,
+        // otherwise use FontInfo properties to load a new font
+        const int use_font_id = finfo.FontID;
+        if (use_font_id >= 0)
+        {
+            if (static_cast<uint32_t>(use_font_id) < game.fonts.size())
+            {
+                Debug::Printf("Init font's %d override with default font %d", font_id, use_font_id);
+                load_game_font(font_id, game.fonts[use_font_id], loaded_game_file_version);
+            }
+            else
+            {
+                Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: font %d does not exist", font_id, use_font_id);
+            }
+        }
+        else if (!finfo.FileName.IsEmpty())
+        {
+            Debug::Printf("Init font's %d override using file %s and provided parameters", font_id, finfo.FileName.GetCStr());
+            load_game_font(font_override.first, font_override.second, loaded_game_file_version);
+        }
+    }
+}
+
+void restore_game_fonts(const Translation &old_trans)
+{
+    for (const auto &font_override : trans.FontOverrides)
+    {
+        const int font_id = font_override.first;
+        load_game_font(font_id, game.fonts[font_id], loaded_game_file_version);
+    }
+}
+
+void close_translation ()
+{
+    if (trans.FontOverrides.size() > 0)
+    {
+        restore_game_fonts(trans);
+    }
+
     trans = Translation();
     trans_name = "";
     trans_filename = "";
@@ -77,10 +122,10 @@ bool init_translation(const String &lang, const String &fallback_lang)
     // Process errors
     if (!err)
     {
-        close_translation();
-        Debug::Printf(kDbgMsg_Error, "Failed to read translation file: %s:\n%s",
+        Debug::Printf(kDbgMsg_Error, "Failed to read translation file %s:\n\t%s",
             trans_filename.GetCStr(),
             err->FullMessage().GetCStr());
+        close_translation();
         if (!fallback_lang.IsEmpty())
         {
             Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());
@@ -106,6 +151,13 @@ bool init_translation(const String &lang, const String &fallback_lang)
         play.text_align = kHAlignRight;
         game.options[OPT_RIGHTLEFTWRITE] = 1;
     }
+
+    // Font overrides
+    if (trans.FontOverrides.size() > 0)
+    {
+        init_font_overrides(trans);
+    }
+
     // Setup a text encoding mode depending on the translation data hint
     String encoding = trans.StrOptions["encoding"];
     if (encoding.CompareNoCase("utf-8") == 0)

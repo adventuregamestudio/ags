@@ -71,6 +71,44 @@ HError OpenTraFile(Stream *in)
     return HError::None();
 }
 
+static HError ReadFontOverrides(Translation &tra, Stream *in)
+{
+    uint32_t override_count = static_cast<uint32_t>(in->ReadInt32());
+    for (uint32_t i = 0; i < override_count; ++i)
+    {
+        FontInfo finfo;
+        int override_index = in->ReadInt32();
+        // ID >= 0 means a replacement is another built-in font
+        // ID < 0 means a replacement is a runtime-generated font
+        finfo.FontID = in->ReadInt32();
+        if (finfo.FontID < 0)
+        {
+            // This corresponds to the standard font info format in game data
+            uint32_t flags = in->ReadInt32();
+            finfo.Size = in->ReadInt32();
+            finfo.Outline = in->ReadInt32();
+            finfo.YOffset = in->ReadInt32();
+            finfo.LineSpacing = std::max(0, in->ReadInt32());
+            finfo.SetFlags(flags);
+            // This corresponds to the "v360_fonts" extension in game data
+            // NOTE: we have a 3.6.0 extension right here, because this TRA
+            // extension is introduced later. But if there will be more
+            // font extensions, then we must have a distinct ext in TRA as well!
+            finfo.AutoOutlineThickness = in->ReadInt32();
+            finfo.AutoOutlineStyle =
+                static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+            finfo.CharacterSpacing = in->ReadInt32();
+            finfo.CustomHeight = in->ReadInt32();
+            in->ReadInt32(); // reserved
+            in->ReadInt32();
+            // This is added for consistency with 4.* font extension
+            finfo.FileName = StrUtil::ReadString(in);
+        }
+        tra.FontOverrides[override_index] = finfo;
+    }
+    return HError::None();
+}
+
 HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const String &ext_id, soff_t /*block_len*/)
 {
     switch (block)
@@ -115,6 +153,10 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     {
         StrUtil::ReadStringMap(tra.StrOptions, in);
         return HError::None();
+    }
+    else if (ext_id.CompareNoCase("ext_fonts") == 0)
+    {
+        return ReadFontOverrides(tra, in);
     }
     
     return new TraFileError(kTraFileErr_UnknownBlockType,
@@ -201,6 +243,7 @@ static const char *EncryptText(std::vector<char> &en_buf, const String &s)
 // TODO: perhaps merge with encrypt/decrypt utilities
 static const char *EncryptEmptyString(std::vector<char> &en_buf)
 {
+    en_buf.resize(1);
     en_buf[0] = 0;
     encrypt_text(en_buf.data());
     return en_buf.data();
@@ -245,6 +288,40 @@ void WriteStrOptions(const Translation &tra, Stream *out)
     StrUtil::WriteStringMap(tra.StrOptions, out);
 }
 
+void WriteFontOverrides(const Translation &tra, Stream *out)
+{
+    out->WriteInt32(tra.FontOverrides.size());
+    for (const auto &font_override : tra.FontOverrides)
+    {
+        const FontInfo &finfo = font_override.second;
+        out->WriteInt32(font_override.first);
+        // ID >= 0 means a replacement is another built-in font
+        // ID < 0 means a replacement is a runtime-generated font
+        out->WriteInt32(finfo.FontID);
+        if (finfo.FontID < 0)
+        {
+            // This corresponds to the standard font info format in game data
+            out->WriteInt32(finfo.Flags);
+            out->WriteInt32(finfo.Size);
+            out->WriteInt32(finfo.Outline);
+            out->WriteInt32(finfo.YOffset);
+            out->WriteInt32(finfo.LineSpacing);
+            // This corresponds to the "v360_fonts" extension in game data
+            // NOTE: we have a 3.6.0 extension right here, because this TRA
+            // extension is introduced later. But if there will be more
+            // font extensions, then we must have a distinct ext in TRA as well!
+            out->WriteInt32(finfo.AutoOutlineThickness);
+            static_cast<enum FontInfo::AutoOutlineStyle>(out->WriteInt32(finfo.AutoOutlineStyle));
+            out->WriteInt32(finfo.CharacterSpacing);
+            out->WriteInt32(finfo.CustomHeight);
+            out->WriteInt32(0); // reserved
+            out->WriteInt32(0);
+            // This is added for consistency with 4.* font extension
+            StrUtil::WriteString(finfo.FileName, out);
+        }
+    }
+}
+
 inline void WriteTraBlock(const Translation &tra, TraFileBlock block,
     void(*writer)(const Translation &tra, Stream *out), Stream *out)
 {
@@ -269,6 +346,10 @@ void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)
     WriteTraBlock(tra, kTraFblk_Dict, WriteDict, out.get());
     WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out.get());
     WriteTraBlock(tra, "ext_sopts", WriteStrOptions, out.get());
+    if (tra.FontOverrides.size() > 0)
+    {
+        WriteTraBlock(tra, "ext_fonts", WriteFontOverrides, out.get());
+    }
 
     // Write ending
     out->WriteInt32(kTraFile_EOF);

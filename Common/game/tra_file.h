@@ -12,12 +12,14 @@
 //
 //=============================================================================
 //
-// This unit provides functions for reading compiled translation file.
+// This unit provides functions for reading and writing compiled translation
+// file.
 //
 //=============================================================================
 #ifndef __AGS_CN_GAME_TRAFILE_H
 #define __AGS_CN_GAME_TRAFILE_H
 
+#include "ac/gamestructdefines.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string_types.h"
@@ -66,6 +68,7 @@ struct Translation
     int SpeechFont = -1; // replacement for speech font, or -1 for default
     int RightToLeft = -1; // r2l text mode (1, 2), or -1 for default
     StringMap StrOptions; // to store extended options with string values
+    std::unordered_map<int, FontInfo> FontOverrides;
 };
 
 

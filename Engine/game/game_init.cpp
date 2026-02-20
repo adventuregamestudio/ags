@@ -294,45 +294,11 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        FontInfo &finfo = game.fonts[i];
-        if (!load_font_size(i, finfo))
+        if (load_game_font(i, game.fonts[i], data_ver))
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d, file does not exist or no renderer could load a matching file.");
-            // Replace this font using the font 0's file to let display the text at least
-            bool result = false;
-            if (i != 0 && is_font_loaded(0))
-                result = load_font_size(i, get_font_file(0), finfo);
-            if (!result)
-                continue;
-        }
-
-        const bool is_wfn = is_bitmap_font(i);
-        // Outline thickness corresponds to 1 game pixel by default;
-        // but if it's a scaled up bitmap font, then it equals to scale
-        if (data_ver < kGameVersion_360)
-        {
-            if (is_wfn && (finfo.Outline == FONT_OUTLINE_AUTO))
-            {
-                set_font_outline(i, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(i));
-            }
-        }
-    }
-
-    // Additional fixups - after all the fonts are registered
-    for (int i = 0; i < game.numfonts; ++i)
-    {
-        if (!is_bitmap_font(i))
-        {
-            // Check for the LucasFan font since it comes with an outline font that
-            // is drawn incorrectly with Freetype versions > 2.1.3.
-            // A simple workaround is to disable outline fonts for it and use
-            // automatic outline drawing.
-            const int outline_font = get_font_outline(i);
-            if (outline_font < 0) continue;
-            const char *name = get_font_name(i);
-            const char *outline_name = get_font_name(outline_font);
-            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
-                set_font_outline(i, FONT_OUTLINE_AUTO);
+            // Save resulting font's filename
+            if (game.fonts[i].FileName.IsEmpty())
+                game.fonts[i].FileName = get_font_file(i);
         }
     }
 }

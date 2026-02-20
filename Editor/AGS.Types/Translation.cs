@@ -12,11 +12,11 @@ namespace AGS.Types
         public const string TRANSLATION_SOURCE_FILE_EXTENSION = ".trs";
         public const string TRANSLATION_COMPILED_FILE_EXTENSION = ".tra";
 
-        private const string NORMAL_FONT_TAG = "//#NormalFont=";
-        private const string SPEECH_FONT_TAG = "//#SpeechFont=";
-        private const string TEXT_DIRECTION_TAG = "//#TextDirection=";
-        private const string ENCODING_TAG = "//#Encoding=";
-        private const string FONT_OVERRIDE_TAG = "//#Font"; // dont include '=', as 'Font' is followed by an index
+        private const string NORMAL_FONT_TAG = "NormalFont";
+        private const string SPEECH_FONT_TAG = "SpeechFont";
+        private const string TEXT_DIRECTION_TAG = "TextDirection";
+        private const string ENCODING_TAG = "Encoding";
+        private const string FONT_OVERRIDE_TAG = "Font";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
@@ -228,12 +228,15 @@ namespace AGS.Types
                 {
                     if (line.StartsWith("//"))
                     {
-                        ReadSpecialTags(line);
-                        if (string.Compare(old_encoding, _encodingHint) != 0)
+                        if (line.Length > 2 && line[2] == '#')
                         {
-                            sr.Close();
-                            LoadDataImpl(errors); // try again with the new encoding
-                            return;
+                            ReadSpecialTags(line.Substring(3));
+                            if (string.Compare(old_encoding, _encodingHint) != 0)
+                            {
+                                sr.Close();
+                                LoadDataImpl(errors); // try again with the new encoding
+                                return;
+                            }
                         }
                         continue;
                     }
@@ -254,17 +257,21 @@ namespace AGS.Types
 
         private void ReadSpecialTags(string line)
         {
-            if (line.StartsWith(NORMAL_FONT_TAG))
+            var keyValue = ParseKeyValue(line);
+            var key = keyValue.Item1;
+            var value = keyValue.Item2;
+
+            if (key == NORMAL_FONT_TAG)
             {
-                _normalFont = ReadOptionalInt(line.Substring(NORMAL_FONT_TAG.Length));
+                _normalFont = ReadOptionalInt(value);
             }
-            else if (line.StartsWith(SPEECH_FONT_TAG))
+            else if (key == SPEECH_FONT_TAG)
             {
-                _speechFont = ReadOptionalInt(line.Substring(SPEECH_FONT_TAG.Length));
+                _speechFont = ReadOptionalInt(value);
             }
-            else if (line.StartsWith(TEXT_DIRECTION_TAG))
+            else if (key == TEXT_DIRECTION_TAG)
             {
-                string directionText = line.Substring(TEXT_DIRECTION_TAG.Length);
+                string directionText = value;
                 if (directionText == TAG_DIRECTION_LEFT)
                 {
                     _rightToLeftText = false;
@@ -278,22 +285,18 @@ namespace AGS.Types
                     _rightToLeftText = null;
                 }
             }
-            else if (line.StartsWith(ENCODING_TAG))
+            else if (key == ENCODING_TAG)
             {
-                EncodingHint = line.Substring(ENCODING_TAG.Length);
+                EncodingHint = value;
             }
-            else if (line.StartsWith(FONT_OVERRIDE_TAG))
+            else if (key.StartsWith(FONT_OVERRIDE_TAG))
             {
-                int assignAt = line.IndexOf('=', FONT_OVERRIDE_TAG.Length);
-                if (assignAt > 0)
+                int fontIndex = ParseFontN(key);
+                if (fontIndex >= 0)
                 {
-                    int fontIndex;
-                    if (int.TryParse(line.Substring(FONT_OVERRIDE_TAG.Length, assignAt - FONT_OVERRIDE_TAG.Length), out fontIndex))
+                    if (!FontOverrides.ContainsKey(fontIndex))
                     {
-                        if (!FontOverrides.ContainsKey(fontIndex))
-                        {
-                            FontOverrides.Add(fontIndex, ParseFontOverride(line.Substring(assignAt + 1)));
-                        }
+                        FontOverrides.Add(fontIndex, ParseFontOverride(value));
                     }
                 }
             }
@@ -376,6 +379,22 @@ namespace AGS.Types
             }
         }
 
+        // TODO: move to some utility module?
+        private Tuple<string, string> ParseKeyValue(string line, char separator = '=')
+        {
+            int firstSep = line.IndexOf(separator);
+            if (firstSep >= 0)
+            {
+                return new Tuple<string, string>(
+                    line.Substring(0, firstSep).Trim(),
+                    line.Substring(firstSep + 1).Trim());
+            }
+            else
+            {
+                return new Tuple<string, string>(line.Trim(), string.Empty);
+            }
+        }
+
         /// <summary>
         /// Parses "FontN" kind of string, where N is a font's ID.
         /// </summary>
@@ -389,7 +408,6 @@ namespace AGS.Types
 
         private Font ParseFontOverride(string value)
         {
-            value = value.Trim();
             // Format 1:
             //    FontN
             // Format 2:
@@ -407,11 +425,7 @@ namespace AGS.Types
                 font.ID = -1; // mark it as not one of the game's font
                 var options = value.Split(';').Select(s =>
                     {
-                        var keyValue = s.Split('=');
-                        if (keyValue.Length == 2)
-                            return new Tuple<string, string>(keyValue[0].Trim(), keyValue[1].Trim());
-                        else
-                            return new Tuple<string, string>(string.Empty, string.Empty);
+                        return ParseKeyValue(s);
                     }).ToArray();
                 foreach (var option in options)
                 {

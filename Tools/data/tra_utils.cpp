@@ -255,7 +255,7 @@ HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
         has_translation |= !kv.first.IsEmpty() && !kv.second.IsEmpty();
     }
     if (!has_translation)
-        return new Error("Translation source did not appear to have any translated lines.");
+        printf("WARNING: translation source did not appear to have any translated lines.\n");
 
     // Write translation
     WriteTraData(tra, std::move(out));

@@ -243,6 +243,7 @@ static const char *EncryptText(std::vector<char> &en_buf, const String &s)
 // TODO: perhaps merge with encrypt/decrypt utilities
 static const char *EncryptEmptyString(std::vector<char> &en_buf)
 {
+    en_buf.resize(1);
     en_buf[0] = 0;
     encrypt_text(en_buf.data());
     return en_buf.data();

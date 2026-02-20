@@ -76,30 +76,6 @@ static std::unique_ptr<TTFFontRenderer> ttfRenderer;
 static std::unique_ptr<WFNFontRenderer> wfnRenderer;
 
 
-FontInfo::FontInfo()
-    : FontID(-1)
-    , Flags(0)
-    , Size(0)
-    , SizeMultiplier(1)
-    , Outline(FONT_OUTLINE_NONE)
-    , YOffset(0)
-    , LineSpacing(0)
-    , CharacterSpacing(0)
-    , AutoOutlineStyle(kSquared)
-    , AutoOutlineThickness(0)
-{}
-
-void FontInfo::SetFlags(const uint32_t flags)
-{
-    Flags = flags;
-    if ((flags & FFLG_SIZEMULTIPLIER) != 0)
-    {
-        SizeMultiplier = Size;
-        Size = 0;
-    }
-}
-
-
 void init_font_renderer(AssetManager *amgr)
 {
     ttfRenderer.reset(new TTFFontRenderer(amgr));

@@ -27,11 +27,12 @@ namespace DataUtil
 // TRA - original translation source a in text format
 //-----------------------------------------------------------------------------
 
-const String NORMAL_FONT_TAG("//#NormalFont=");
-const String SPEECH_FONT_TAG("//#SpeechFont=");
-const String TEXT_DIRECTION_TAG("//#TextDirection=");
-const String ENCODING_TAG("//#Encoding=");
-const String GAMEENCODING_TAG("//#GameEncoding=");
+const String NORMAL_FONT_TAG("NormalFont");
+const String SPEECH_FONT_TAG("SpeechFont");
+const String TEXT_DIRECTION_TAG("TextDirection");
+const String ENCODING_TAG("Encoding");
+const String GAMEENCODING_TAG("GameEncoding");
+const String FONT_OVERRIDE_TAG("Font");
 const char *TAG_DEFAULT = "DEFAULT";
 const char *TAG_DIRECTION_LEFT = "LEFT";
 const char *TAG_DIRECTION_RIGHT = "RIGHT";
@@ -43,19 +44,141 @@ static int ReadOptionalInt(const String &text)
     return StrUtil::StringToInt(text, -1);
 }
 
+static int ParseFontN(const String &line)
+{
+    if (line.StartsWith(FONT_OVERRIDE_TAG))
+    {
+        return StrUtil::StringToInt(line.Mid(FONT_OVERRIDE_TAG.GetLength()), -1);
+    }
+    return -1;
+}
+
+static bool ParseFontOverride(const String &line, FontInfo &finfo)
+{
+    // Format 1:
+    //    FontN
+    // Format 2:
+    //    Property1=Value1;Property2=Value2;Property3=Value3;...
+    int re_font_number = ParseFontN(line);
+    if (re_font_number >= 0)
+    {
+        // This is a replacement with existing font
+        finfo.FontID = re_font_number;
+        return true;
+    }
+    else
+    {
+        // This is a new font generation
+        finfo.FontID = -1; // mark it as not one of the game's font
+        const auto sections = line.Split(';');
+        std::vector<std::pair<String, String>> options;
+        for (const auto &sec : sections)
+        {
+            options.push_back(StrUtil::GetKeyValue(sec));
+        }
+        for (const auto &opt : options)
+        {
+            const String &key = opt.first;
+            const String &value = opt.second;
+
+            if (key == "File")
+            {
+                finfo.FileName = value;
+            }
+            else if (key == "Size")
+            {
+                finfo.Size = StrUtil::StringToInt(value);
+            }
+            else if (key == "SizeMultiplier")
+            {
+                finfo.SizeMultiplier = StrUtil::StringToInt(value);
+            }
+            else if (key == "Outline")
+            {
+                if (value == "NONE")
+                {
+                    finfo.Outline = FONT_OUTLINE_NONE;
+                }
+                else if (value == "AUTO")
+                {
+                    finfo.Outline = FONT_OUTLINE_AUTO;
+                }
+                else
+                {
+                    int out_font_id = ParseFontN(value);
+                    if (out_font_id >= 0)
+                    {
+                        finfo.Outline = out_font_id;
+                    }
+                }
+            }
+            else if (key == "AutoOutline")
+            {
+                if (value == "SQUARED")
+                {
+                    finfo.AutoOutlineStyle = FontInfo::kSquared;
+                }
+                else if (value == "ROUND")
+                {
+                    finfo.AutoOutlineStyle = FontInfo::kRounded;
+                }
+            }
+            else if (key == "AutoOutlineThickness")
+            {
+                finfo.AutoOutlineThickness = StrUtil::StringToInt(value);
+            }
+            else if (key == "HeightDefinition")
+            {
+                if (value == "NOMINAL")
+                {
+                    finfo.SetHeightFlags(FFLG_LOGICALNOMINALHEIGHT);
+                }
+                else if (value == "REAL")
+                {
+                    finfo.SetHeightFlags(0 /* use real height */);
+                }
+                else if (value == "CUSTOM")
+                {
+                    finfo.SetHeightFlags(FFLG_LOGICALCUSTOMHEIGHT);
+                }
+            }
+            else if (key == "CustomHeight")
+            {
+                finfo.CustomHeight = StrUtil::StringToInt(value);
+            }
+            else if (key == "VerticalOffset")
+            {
+                finfo.YOffset = StrUtil::StringToInt(value);
+            }
+            else if (key == "LineSpacing")
+            {
+                finfo.LineSpacing = StrUtil::StringToInt(value);
+            }
+            else if (key == "CharacterSpacing")
+            {
+                finfo.CharacterSpacing = StrUtil::StringToInt(value);
+            }
+        }
+        return true;
+    }
+}
+
 static void ReadSpecialTags(Translation &tra, const String &line)
 {
-    if (line.StartsWith(NORMAL_FONT_TAG))
+    const auto key_value = StrUtil::GetKeyValue(line);
+    const String key = key_value.first;
+    const String value = key_value.second;
+    if (key == NORMAL_FONT_TAG)
     {
-        tra.NormalFont = ReadOptionalInt(line.Mid(NORMAL_FONT_TAG.GetLength()));
+        tra.NormalFont = ReadOptionalInt(value);
     }
-    else if (line.StartsWith(SPEECH_FONT_TAG))
+    else if (key == SPEECH_FONT_TAG)
     {
-        tra.SpeechFont = ReadOptionalInt(line.Mid(SPEECH_FONT_TAG.GetLength()));
+        tra.SpeechFont = ReadOptionalInt(value);
     }
-    else if (line.StartsWith(TEXT_DIRECTION_TAG))
+    else if (key == TEXT_DIRECTION_TAG)
     {
-        String directionText = line.Mid(TEXT_DIRECTION_TAG.GetLength());
+        String directionText = value;
         if (directionText == TAG_DIRECTION_LEFT)
         {
             tra.RightToLeft = 1;
@@ -70,13 +193,25 @@ static void ReadSpecialTags(Translation &tra, const String &line)
         }
     }
     // TODO: make a generic dictionary instead and save any option
-    else if (line.StartsWith(ENCODING_TAG))
+    else if (key == ENCODING_TAG)
     {
-        tra.StrOptions["encoding"] = line.Mid(ENCODING_TAG.GetLength());
+        tra.StrOptions["encoding"] = value;
     }
-    else if (line.StartsWith(GAMEENCODING_TAG))
+    else if (key == GAMEENCODING_TAG)
     {
-        tra.StrOptions["gameencoding"] = line.Mid(GAMEENCODING_TAG.GetLength());
+        tra.StrOptions["gameencoding"] = value;
+    }
+    else if (key.StartsWith(FONT_OVERRIDE_TAG))
+    {
+        int font_id = ParseFontN(key);
+        if ((font_id >= 0) && (tra.FontOverrides.count(font_id) == 0))
+        {
+            FontInfo finfo;
+            if (ParseFontOverride(value, finfo))
+            {
+                tra.FontOverrides[font_id] = finfo;
+            }
+        }
     }
 }
 
@@ -89,7 +224,8 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
     {
         if (line.StartsWith("//"))
         {
-            ReadSpecialTags(tra, line);
+            if (line.GetLength() > 2 && line[2] == '#')
+                ReadSpecialTags(tra, line.Mid(3));
             continue;
         }
         String src = line;

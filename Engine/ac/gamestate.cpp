@@ -475,11 +475,19 @@ bool GamePlayState::ShouldPlayVoiceSpeechNonBlocking() const
 
 void GamePlayState::StartScriptTimer(int timer_id, int timeout)
 {
-    assert(timer_id >= 0);
-    if (timer_id < 0 || timeout <= 0)
-        return;
+    assert(timer_id >= 0 && timeout > 0);
+    if (timer_id >= 0 && timeout > 0)
+    {
+        _scriptTimers[timer_id] = timeout;
+    }
+}
 
-    _scriptTimers[timer_id] = timeout;
+void GamePlayState::StopScriptTimer(int timer_id)
+{
+    assert(timer_id >= 0);
+    auto it = _scriptTimers.find(timer_id);
+    if (it != _scriptTimers.end())
+        _scriptTimers.erase(it);
 }
 
 int GamePlayState::GetScriptTimerPos(int timer_id)

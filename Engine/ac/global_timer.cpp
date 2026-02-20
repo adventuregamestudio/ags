@@ -31,13 +31,19 @@ void SetTimer(int tnum, int timeout)
 {
     if (!AssertTimerID("SetTimer", tnum))
         return;
-    if (timeout <= 0)
-    {
-        debug_script_warn("SetTimer: invalid timeout %d, must be a positive number", timeout);
-        return;
-    }
 
-    play.StartScriptTimer(tnum, timeout);
+    if (timeout > 0)
+    {
+        play.StartScriptTimer(tnum, timeout);
+    }
+    else if (timeout == 0)
+    {
+        play.StopScriptTimer(tnum);
+    }
+    else
+    {
+        debug_script_warn("SetTimer: invalid timeout %d for timer id %d, timeout must be a positive number to start the timer, or 0 to stop the timer", timeout, tnum);
+    }
 }
 
 int GetTimerPos(int tnum)

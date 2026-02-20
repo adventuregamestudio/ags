@@ -1069,7 +1069,7 @@ static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
 static void GameUpdateProcessEvents()
 {
     new_room_was = in_new_room;
-    // If we're in the new room (after "room load" event), then schedule "fade in" event,
+    // If we're in the new room (after "room load" event), then queue "fade in" event,
     // it will be processed right away
     if (in_new_room != kEnterRoom_None)
     {
@@ -1080,7 +1080,7 @@ static void GameUpdateProcessEvents()
     processallevents();
 
     // If in a new room, and the room wasn't just changed again in update_events,
-    // then queue the Enters Screen scripts run these next time round, when it's faded in
+    // then queue the Enters Screen scripts run after the room is faded in.
     if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
     {
         // In 3.6.3+ games After-Fade-in event is run immediately at the same
@@ -1089,23 +1089,24 @@ static void GameUpdateProcessEvents()
         // In pre-3.6.3 games this event is scheduled to run on the next update,
         // which will actually cause some script callbacks to trigger *prior*
         // "After-Fade-in" (rep-exec-always, ground interactions).
-        const bool schedule_event = (loaded_game_file_version < kGameVersion_363);
+        const bool run_event_now = (loaded_game_file_version >= kGameVersion_363);
 
         switch (new_room_was)
         {
         case kEnterRoom_FirstTime: // first time enters screen
-            schedule_event ?
-                setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter)) :
-                runevent_now(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
+            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_FirstEnter));
             /* fall-through */
         case kEnterRoom_Normal: // enters screen after fadein
-            schedule_event ?
-                setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein)) :
-                runevent_now(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
+            setevent(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_AfterFadein));
             break;
         case kEnterRoom_RestoredSave:
             in_room_transition = false; // room transition ends here
             break;
+        }
+        
+        if (run_event_now)
+        {
+            processallevents();
         }
     }
 }

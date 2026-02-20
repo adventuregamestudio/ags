@@ -219,9 +219,15 @@ void run_claimable_event(const AGS::Common::String &tsname, bool includeRoom, in
 void run_on_event(AGSScriptEventType evtype, int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0);
 void run_room_event(int id);
 // event list functions
+// schedules event to be run on the next events processing
+// (in the end of the game update)
 void setevent(const AGSEvent &evt);
+// if fired within event processing, then processes this new event
+// right away, nested; otherwise schedules event as normal
+// FIXME: this is kind of a hack, which forces event to be processed even if
+// it was fired from insides of other event processing.
+// The proper solution would be to do the event processing overhaul in AGS.
 void force_event(const AGSEvent &evt);
-void runevent_now(const AGSEvent &evt);
 void process_event(const AGSEvent *evp);
 void processallevents();
 // end event list functions

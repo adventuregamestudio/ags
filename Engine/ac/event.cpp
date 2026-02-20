@@ -142,20 +142,12 @@ void setevent(const AGSEvent &evt)
     events.push_back(evt);
 }
 
-// TODO: this is kind of a hack, which forces event to be processed even if
-// it was fired from insides of other event processing.
-// The proper solution would be to do the event processing overhaul in AGS.
 void force_event(const AGSEvent &evt)
 {
     if (inside_processevent)
-        runevent_now(evt);
+        process_event(&evt);
     else
         setevent(evt);
-}
-
-void runevent_now(const AGSEvent &evt)
-{
-    process_event(&evt);
 }
 
 void process_event(const AGSEvent *evp)

@@ -77,6 +77,7 @@
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -1778,6 +1779,50 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
     Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",
         spcache_before / 1024u, spcache_after / 1024u, txcache_before / 1024u, txcache_after / 1024u);
+}
+
+bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ver)
+{
+    if (!load_font_size(at_index, finfo))
+    {
+        Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d using %s, file does not exist or no renderer could load a matching file.",
+            at_index, finfo.FileName.IsEmpty() ? "available asset(s)" : finfo.FileName.GetCStr());
+        // Replace this font using the font 0's file to let display the text at least
+        bool result = false;
+        if (at_index != 0 && is_font_loaded(0))
+            result = load_font_size(at_index, get_font_file(0), finfo);
+        if (!result)
+            return false;
+    }
+
+    const bool is_wfn = is_bitmap_font(at_index);
+    // Outline thickness corresponds to 1 game pixel by default;
+    // but if it's a scaled up bitmap font, then it equals to scale
+    if (data_ver < kGameVersion_360)
+    {
+        if (is_wfn && (finfo.Outline == FONT_OUTLINE_AUTO))
+        {
+            set_font_outline(at_index, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(at_index));
+        }
+    }
+
+    // Additional fixups
+    if (!is_bitmap_font(at_index))
+    {
+        // Check for the LucasFan font since it comes with an outline font that
+        // is drawn incorrectly with Freetype versions > 2.1.3.
+        // A simple workaround is to disable outline fonts for it and use
+        // automatic outline drawing.
+        const int outline_font = get_font_outline(at_index);
+        if (outline_font >= 0)
+        {
+            const char *name = get_font_name(at_index);
+            const char *outline_name = get_font_name(outline_font);
+            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
+                set_font_outline(at_index, FONT_OUTLINE_AUTO);
+        }
+    }
+    return true;
 }
 
 //=============================================================================

@@ -84,6 +84,15 @@ namespace AGS.Types
             return v;
         }
 
+        public static int ParseIntOrDefault(this string s, int defaultValue = 0)
+        {
+            int value;
+            if (int.TryParse(s, out value))
+                return value;
+            else
+                return defaultValue;
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();

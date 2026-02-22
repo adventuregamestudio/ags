@@ -167,6 +167,16 @@ bool sys_audio_init(const String &driver_name)
         SDL_setenv("SDL_AUDIODRIVER", "", 1);
         res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
     }
+    // Finally, if that failed, also try "dummy" driver. SDL2 does not try that
+    // unless explicitly asked for.
+    if (!res && driver_name.CompareNoCase("dummy") != 0)
+    {
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver suitable for this plaform; error: %s",
+            SDL_GetError());
+        Debug::Printf("Attempt to initialize \"dummy\" audio driver");
+        SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
+        res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+    }
 
     if (res)
         Debug::Printf(kDbgMsg_Info, "Audio driver: %s", SDL_GetCurrentAudioDriver());

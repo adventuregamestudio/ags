@@ -32,14 +32,6 @@ enum InputType
     kInputAny       = 0xFF
 };
 
-// Internal configuration for the system events handler
-struct SysEventsConfig
-{
-    bool OldStyleKeyHandling = false;
-    bool MouseWheel = true;
-    Size DisplayMode;
-};
-
 // Keyboard input handling
 //
 // avoid including SDL.h here, at least for now, because that leads to conflicts with allegro
@@ -161,14 +153,12 @@ void ags_clear_mouse_movement();
 // Events.
 //
 union SDL_Event;
-// Configure the event handling system
-void sys_evt_set_config(const SysEventsConfig &evt_config);
-// Configure the display size reference for the event handling system
-void sys_evt_set_display_size(const Size &mode);
 // Set engine callback for when quit event is received by the backend.
 void sys_evt_set_quit_callback(void(*proc)(void));
 // Set engine callback for when input focus is received or lost by the window.
 void sys_evt_set_focus_callbacks(void(*switch_in)(void), void(*switch_out)(void));
+// Update events filters based on the current system config
+void sys_evt_on_config_set();
 
 // Process single event.
 void sys_evt_process_one(const SDL_Event &event);

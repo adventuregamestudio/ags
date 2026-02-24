@@ -117,7 +117,7 @@ bool engine_init_backend()
             user_hint);
         return false;
     }
-    
+
     // Initialize stripped allegro library
     if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
@@ -145,11 +145,12 @@ void engine_setup_window()
     sys_window_set_title(game.gamename.GetCStr());
     sys_window_set_icon();
 
-    SysEventsConfig evt_cfg;
-    evt_cfg.DisplayMode = static_cast<Size>(gfxDriver->GetDisplayMode());
-    evt_cfg.MouseWheel = game.options[OPT_MOUSEWHEEL] != 0;
-    evt_cfg.OldStyleKeyHandling = game.options[OPT_KEYHANDLEAPI] == 0;
-    sys_evt_set_config(evt_cfg);
+    SystemConfig sys_cfg;
+    sys_cfg.DisplayMode = static_cast<Size>(gfxDriver->GetDisplayMode());
+    sys_cfg.MouseEnabled = usetup.MouseEnabled;
+    sys_cfg.MouseWheel = game.options[OPT_MOUSEWHEEL] != 0;
+    sys_cfg.OldStyleKeyHandling = game.options[OPT_KEYHANDLEAPI] == 0;
+    sys_set_config(sys_cfg);
     sys_evt_set_quit_callback(winclosehook);
     set_our_eip(-197);
 }

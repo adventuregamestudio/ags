@@ -24,10 +24,32 @@
 
 using AGS::Common::String;
 
+// Configuration of the overall system behavior;
+// affects coordination between engine and backend,
+// event handling.
+struct SystemConfig
+{
+    // Allows to disable the mouse device in the engine.
+    // NOTE: this does *not* disable the mouse handling of the window
+    // (moving, resizing, closing), only mouse interaction within the
+    // game window.
+    bool MouseEnabled = true;
+    bool MouseWheel = true;
+    bool OldStyleKeyHandling = false;
+    // Used to tell the current display mode
+    Size DisplayMode;
+};
+
 // Initializes main backend system;
 // should be called before anything else backend related.
 // Returns 0 on success, non-0 on failure.
 int  sys_main_init(/*config*/);
+// Set system config.
+void sys_set_config(const SystemConfig &cfg);
+// Configure the display size reference for the event handling system
+void sys_set_display_size_ref(const Size &mode);
+// Get system config
+const SystemConfig &sys_get_config();
 // Shutdown main backend system;
 // should be called last, after everything else backend related is shutdown.
 void sys_main_shutdown();

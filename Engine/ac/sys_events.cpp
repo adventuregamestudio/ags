@@ -32,7 +32,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-static SysEventsConfig g_evtConfig;
+extern SystemConfig gl_SysConfig;
 
 eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle);
 int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
@@ -347,7 +347,7 @@ int ags_iskeydown(eAGSKeyCode ags_key)
     // left only in case if necessary for some ancient game, but
     // this really may only be required if there's a key waiting loop in
     // script without Wait(1) to let engine poll events in a natural way.
-    if (g_evtConfig.OldStyleKeyHandling)
+    if (gl_SysConfig.OldStyleKeyHandling)
         SDL_PumpEvents();
 
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -466,6 +466,7 @@ volatile int sys_mouse_z = 0; // mouse wheel position
 // Relative x and y deltas
 static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 // ID of a device, which mouse events will be ignored (for easier testing)
+// FIXME: reimplement this using events filter (see sys_evt_filter)
 static int disabled_mouse_device = UINT32_MAX - 10;
 // Cached values, remember old mouse state
 static int mouse_z_was = 0;
@@ -475,16 +476,36 @@ bool ags_misbuttondown(eAGSMouseButton but)
     return (mouse_button_state & MouseButton2Bits[but]) != 0;
 }
 
+static void send_mouse_button_event(int evt_type, int device, int button, int x, int y)
+{
+    SDL_Event evt = {};
+    evt.type = evt_type;
+    evt.button.which = device;
+    evt.button.state = evt_type == SDL_MOUSEBUTTONDOWN ? SDL_PRESSED : SDL_RELEASED;
+    evt.button.button = button;
+    evt.button.x = x;
+    evt.button.y = y;
+    SDL_PushEvent(&evt);
+}
+
+static void send_mouse_motion_event(int device, int x, int y, int xrel, int yrel)
+{
+    SDL_Event evt = {};
+    evt.type = SDL_MOUSEMOTION;
+    evt.motion.which = device;
+    evt.motion.x = x;
+    evt.motion.y = y;
+    evt.motion.xrel = xrel;
+    evt.motion.yrel = yrel;
+    SDL_PushEvent(&evt);
+}
+
 void ags_simulate_mouseclick(eAGSMouseButton but)
 {
-    SDL_Event sdlevent = {};
-    sdlevent.type = SDL_MOUSEBUTTONDOWN;
-    sdlevent.button.button = ags_button_to_sdl(but);
-    sdlevent.button.x = sys_mouse_x; // CHECKME later if this is okay...
-    sdlevent.button.y = sys_mouse_y;
-    SDL_PushEvent(&sdlevent);
-    sdlevent.type = SDL_MOUSEBUTTONUP;
-    SDL_PushEvent(&sdlevent);
+    // Simulate using SDL_TOUCH_MOUSEID pseudo-device, in order to distinguish
+    // from the real mouse device (we may also allocate our own ID if necessary)
+    send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, ags_button_to_sdl(but), sys_mouse_x, sys_mouse_y);
+    send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, ags_button_to_sdl(but), sys_mouse_x, sys_mouse_y);
 }
 
 // Syncs all the emulated mouse devices with the real sys_mouse_* coords
@@ -545,7 +566,7 @@ void ags_domouse()
 
 int ags_check_mouse_wheel()
 {
-    if (!g_evtConfig.MouseWheel)
+    if (!gl_SysConfig.MouseWheel)
         return 0;
     if (sys_mouse_z == mouse_z_was)
         return 0;
@@ -694,30 +715,6 @@ static int tfinger_to_mouse_but(int finger_index)
     }
 }
 
-static void send_mouse_button_event(int evt_type, int button, int x, int y)
-{
-    SDL_Event evt = {};
-    evt.type = evt_type;
-    evt.button.which = SDL_TOUCH_MOUSEID;
-    evt.button.state = evt_type == SDL_MOUSEBUTTONDOWN ? SDL_PRESSED : SDL_RELEASED;
-    evt.button.button = button;
-    evt.button.x = x;
-    evt.button.y = y;
-    SDL_PushEvent(&evt);
-}
-
-static void send_mouse_motion_event(int x, int y, int xrel, int yrel)
-{
-    SDL_Event evt = {};
-    evt.type = SDL_MOUSEMOTION;
-    evt.motion.which = SDL_TOUCH_MOUSEID;
-    evt.motion.x = x;
-    evt.motion.y = y;
-    evt.motion.xrel = xrel;
-    evt.motion.yrel = yrel;
-    SDL_PushEvent(&evt);
-}
-
 // Handles double tap detection (multiple touch downs and ups)
 static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
 {
@@ -753,8 +750,8 @@ static int calc_relative_delta(float value, float scale, float &accum)
 static void set_t2m_pos(float x, float y, float dx, float dy)
 {
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
-    const int w = g_evtConfig.DisplayMode.Width;
-    const int h = g_evtConfig.DisplayMode.Height;
+    const int w = gl_SysConfig.DisplayMode.Width;
+    const int h = gl_SysConfig.DisplayMode.Height;
     // Save real touch pos
     t2m.pos = Point(std::roundf(x * w), std::roundf(y * h));
 
@@ -818,7 +815,7 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         {
             set_t2m_pos(event.x, event.y, 0.f, 0.f);
             t2m.start_pos = t2m.pos;
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but,
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, mouse_but,
                 t2m.emul_pos.X, t2m.emul_pos.Y);
         }
         break;
@@ -830,12 +827,12 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         if ((mouse_but == SDL_BUTTON_LEFT) && (touch.tap_count == 2))
         {
             t2m.drag_down = SDL_BUTTON_LEFT;
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
         }
         // If another finger was down, then unpress the drag
         else if (t2m.drag_down > 0)
         {
-            send_mouse_button_event(SDL_MOUSEBUTTONUP, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
+            send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
             t2m.drag_down = 0;
         }
 
@@ -848,7 +845,7 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
             t2m.drag_dist_accum = 0.f;
             t2m.is_dragging = false;
             // CHECKME: do we have to send dx/dy here (calculate as diff since last sys_mouse_xy?)
-            send_mouse_motion_event(t2m.emul_pos.X, t2m.emul_pos.Y, 0, 0);
+            send_mouse_motion_event(SDL_TOUCH_MOUSEID, t2m.emul_pos.X, t2m.emul_pos.Y, 0, 0);
         }
         // If more than one finger was down, lock the cursor motion,
         // and force any following emulated clicks to RMB,
@@ -880,7 +877,7 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         int mouse_but = tfinger_to_mouse_but(finger_index);
         if (mouse_but == SDL_BUTTON_LEFT)
         {
-            send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
+            send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
             t2m.is_dragging = false;
             t2m.emul_pos_init = false; // force init at the next finger down
         }
@@ -897,15 +894,15 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
             // If was dragging, then only release
             if (t2m.drag_down)
             {
-                send_mouse_button_event(SDL_MOUSEBUTTONUP, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
                 t2m.drag_down = 0;
             }
             // Else, if was not dragging around, then perform a "click"
             // (send both mouse button down and up)
             else if (!t2m.is_dragging)
             {
-                send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
-                send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
             }
         }
         // If all fingers are up, reset the locked mouse motion and forced button
@@ -940,7 +937,7 @@ static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
         {
             // Absolute positioning
             set_t2m_pos(event.x, event.y, event.dx, event.dy);
-            send_mouse_motion_event(t2m.emul_pos.X, t2m.emul_pos.Y, t2m.emul_delta.X, t2m.emul_delta.Y);
+            send_mouse_motion_event(SDL_TOUCH_MOUSEID, t2m.emul_pos.X, t2m.emul_pos.Y, t2m.emul_delta.X, t2m.emul_delta.Y);
             // Test the absolute value of the touch drag so far
             t2m.drag_dist_accum += std::sqrt((event.dx * event.dx) + (event.dy * event.dy));
             if (t2m.drag_dist_accum > t2m.drag_trigger_dist)
@@ -979,12 +976,38 @@ static void(*_on_quit_callback)(void) = nullptr;
 static void(*_on_switchin_callback)(void) = nullptr;
 static void(*_on_switchout_callback)(void) = nullptr;
 
-void sys_evt_set_config(const SysEventsConfig &evt_config) {
-    g_evtConfig = evt_config;
+int sys_evt_filter(void *userdata, SDL_Event *event)
+{
+    const SystemConfig *cfg = static_cast<SystemConfig *>(userdata);
+    if (!cfg->MouseEnabled)
+    {
+        // If mouse device is disabled, then ignore all mouse events,
+        // except ones which belong to the emulated device
+        switch (event->type)
+        {
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+            return event->button.which == SDL_TOUCH_MOUSEID ? 1 : 0;
+        case SDL_MOUSEMOTION:
+            return event->motion.which == SDL_TOUCH_MOUSEID ? 1 : 0;
+        case SDL_MOUSEWHEEL:
+            return event->wheel.which == SDL_TOUCH_MOUSEID ? 1 : 0;
+        default:
+            return 1;
+        }
+    }
+    return 1;
 }
 
-void sys_evt_set_display_size(const Size &mode) {
-    g_evtConfig.DisplayMode = mode;
+void sys_evt_on_config_set() {
+    if (!gl_SysConfig.MouseEnabled)
+    {
+        SDL_SetEventFilter(sys_evt_filter, &gl_SysConfig);
+    }
+    else
+    {
+        SDL_SetEventFilter(nullptr, nullptr);
+    }
 }
 
 void sys_evt_set_quit_callback(void(*proc)(void)) {

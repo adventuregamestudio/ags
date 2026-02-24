@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__SYS_EVENTS_H
 #include <SDL_keyboard.h>
 #include "ac/keycode.h"
+#include "util/geometry.h"
 
 // Internal AGS device and event type, made as flags
 // NOTE: this matches InputType in script (with a 24-bit shift)
@@ -29,6 +30,14 @@ enum InputType
     kInputKeyboard  = 0x02,
     kInputMouse     = 0x04,
     kInputAny       = 0xFF
+};
+
+// Internal configuration for the system events handler
+struct SysEventsConfig
+{
+    bool OldStyleKeyHandling = false;
+    bool MouseWheel = true;
+    Size DisplayMode;
 };
 
 // Keyboard input handling
@@ -152,6 +161,10 @@ void ags_clear_mouse_movement();
 // Events.
 //
 union SDL_Event;
+// Configure the event handling system
+void sys_evt_set_config(const SysEventsConfig &evt_config);
+// Configure the display size reference for the event handling system
+void sys_evt_set_display_size(const Size &mode);
 // Set engine callback for when quit event is received by the backend.
 void sys_evt_set_quit_callback(void(*proc)(void));
 // Set engine callback for when input focus is received or lost by the window.

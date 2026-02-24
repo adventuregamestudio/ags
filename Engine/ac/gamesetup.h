@@ -99,11 +99,12 @@ struct GameConfig
     ScreenRotation Rotation      = kScreenRotation_Unlocked; // how to display the game on mobile screen
 
     // Audio options
-    bool    AudioEnabled         = false;
+    bool    AudioEnabled         = true;
     String  AudioDriverID;
     bool    UseVoicePack         = false;
 
     // Control options
+    bool    MouseEnabled         = true;
     bool    MouseAutoLock        = false;
     float   MouseSpeed           = 1.f;
     // Touch-to-mouse emulation mode (how the touches are handled overall)

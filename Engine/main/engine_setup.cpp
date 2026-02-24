@@ -167,6 +167,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_
         engine_post_gfxmode_draw_setup(dm);
     }
     engine_post_gfxmode_mouse_setup(init_desktop);
+    sys_evt_set_display_size(static_cast<Size>(dm));
 
     // reset multitasking (may be overridden by the current display mode)
     SetMultitasking(usetup.RunInBackground);

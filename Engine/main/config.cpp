@@ -248,6 +248,7 @@ void config_defaults(GameSetup &setup)
     setup.AudioEnabled = true;
     setup.UseVoicePack = true;
 
+    setup.MouseEnabled = true;
     setup.MouseCtrlWhen = kMouseCtrl_Fullscreen;
     setup.MouseCtrlEnabled = true;
     setup.MouseSpeedDef = kMouseSpeed_CurrentDisplay;
@@ -395,8 +396,9 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     setup.UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
     // Mouse options
-    setup.MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
-    setup.MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
+    setup.MouseEnabled = CfgReadBoolInt(cfg, "mouse", "enabled", setup.MouseEnabled);
+    setup.MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock", setup.MouseAutoLock);
+    setup.MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", setup.MouseSpeed);
     if (setup.MouseSpeed <= 0.f)
         setup.MouseSpeed = 1.f;
 

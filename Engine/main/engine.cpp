@@ -144,6 +144,12 @@ void engine_setup_window()
     set_our_eip(-198);
     sys_window_set_title(game.gamename.GetCStr());
     sys_window_set_icon();
+
+    SysEventsConfig evt_cfg;
+    evt_cfg.DisplayMode = static_cast<Size>(gfxDriver->GetDisplayMode());
+    evt_cfg.MouseWheel = game.options[OPT_MOUSEWHEEL] != 0;
+    evt_cfg.OldStyleKeyHandling = game.options[OPT_KEYHANDLEAPI] == 0;
+    sys_evt_set_config(evt_cfg);
     sys_evt_set_quit_callback(winclosehook);
     set_our_eip(-197);
 }

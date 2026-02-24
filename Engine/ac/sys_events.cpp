@@ -18,13 +18,10 @@
 #include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/timer.h"
 #include "device/mousew32.h"
-#include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "main/engine.h"
@@ -35,8 +32,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
-extern IGraphicsDriver *gfxDriver;
+static SysEventsConfig g_evtConfig;
 
 eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle);
 int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
@@ -351,7 +347,7 @@ int ags_iskeydown(eAGSKeyCode ags_key)
     // left only in case if necessary for some ancient game, but
     // this really may only be required if there's a key waiting loop in
     // script without Wait(1) to let engine poll events in a natural way.
-    if (game.options[OPT_KEYHANDLEAPI] == 0)
+    if (g_evtConfig.OldStyleKeyHandling)
         SDL_PumpEvents();
 
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -549,7 +545,7 @@ void ags_domouse()
 
 int ags_check_mouse_wheel()
 {
-    if (game.options[OPT_MOUSEWHEEL] == 0)
+    if (!g_evtConfig.MouseWheel)
         return 0;
     if (sys_mouse_z == mouse_z_was)
         return 0;
@@ -757,8 +753,8 @@ static int calc_relative_delta(float value, float scale, float &accum)
 static void set_t2m_pos(float x, float y, float dx, float dy)
 {
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
-    int w = gfxDriver->GetDisplayMode().Width;
-    int h = gfxDriver->GetDisplayMode().Height;
+    const int w = g_evtConfig.DisplayMode.Width;
+    const int h = g_evtConfig.DisplayMode.Height;
     // Save real touch pos
     t2m.pos = Point(std::roundf(x * w), std::roundf(y * h));
 
@@ -982,6 +978,14 @@ void ags_clear_mouse_movement()
 static void(*_on_quit_callback)(void) = nullptr;
 static void(*_on_switchin_callback)(void) = nullptr;
 static void(*_on_switchout_callback)(void) = nullptr;
+
+void sys_evt_set_config(const SysEventsConfig &evt_config) {
+    g_evtConfig = evt_config;
+}
+
+void sys_evt_set_display_size(const Size &mode) {
+    g_evtConfig.DisplayMode = mode;
+}
 
 void sys_evt_set_quit_callback(void(*proc)(void)) {
     _on_quit_callback = proc;

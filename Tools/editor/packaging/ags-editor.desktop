@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=AGS Editor
+Comment=Adventure Game Studio - Game Editor
+Exec=ags_editor_imgui %f
+Icon=ags-editor
+Terminal=false
+Type=Application
+Categories=Development;Game;
+MimeType=application/x-ags-game;
+Keywords=adventure;game;editor;ags;
+StartupWMClass=ags_editor_imgui

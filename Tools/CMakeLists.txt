@@ -89,7 +89,7 @@ target_sources(libtools
         ${TOOLS_COMMON_SOURCES}
         ${TOOLS_MINIMAL_ALLEGRO_SOURCES}
         )
-        
+
 target_link_libraries(libtools PUBLIC MiniZ::MiniZ)
 target_link_libraries(libtools PUBLIC TinyXML2::TinyXML2)
 if (WIN32)
@@ -157,6 +157,8 @@ set_target_properties(trac PROPERTIES
         CXX_EXTENSIONS NO
         )
 target_link_libraries(trac PUBLIC libtools)
+
+add_subdirectory(editor)
 
 list(APPEND TOOLS_TARGETS
         agf2dlgasc

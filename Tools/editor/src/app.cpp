@@ -575,7 +575,7 @@ void AGSEditorApp::Run()
             ImGui::Text("A test game is still running.");
             ImGui::Text("Do you want to stop the game and quit the editor?");
             ImGui::Spacing();
-            if (ImGui::Button("Stop and Quit", ImVec2(140, 0)))
+            if (ImGui::Button("Stop and Quit", ImVec2(AGSEditor::Dpi(140), 0)))
             {
                 auto* build_pane = ui_->FindPane<AGSEditor::BuildPane>();
                 if (build_pane) build_pane->GetBuildSystem().StopGame();
@@ -583,7 +583,7 @@ void AGSEditorApp::Run()
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Cancel", ImVec2(100, 0)))
+            if (ImGui::Button("Cancel", ImVec2(AGSEditor::Dpi(100), 0)))
                 ImGui::CloseCurrentPopup();
             ImGui::EndPopup();
         }

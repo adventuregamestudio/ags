@@ -2403,38 +2403,6 @@ builtin managed struct Dialog {
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
-  /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
-  import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the font to use when displaying dialog options
-  import static attribute FontType OptionsFont; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the vertical gap between dialog options (in pixels)
-  import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
-  import static attribute GUI* OptionsGUI; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement
-  import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
-  import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the color used to draw the active (selected) dialog option
-  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
-  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
-  import static attribute int OptionsMaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
-  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
-  import static attribute int OptionsMinGUIWidth; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets whether dialog options have numbers before them, and the numeric keys can be used to select them
-  import static attribute DialogOptionsNumbering OptionsNumbering; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
-  import static attribute int OptionsPaddingX; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the vertical offset at which options are drawn on a standard GUI
-  import static attribute int OptionsPaddingY; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
-  import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the horizontal alignment of each dialog option's text
-  import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
-  import static attribute int OptionsZOrder; // $AUTOCOMPLETESTATICONLY$
-  /// Gets overlay that is currently used to display dialog options on screen. Returns null if options are not shown.
-  import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
   /// Runs the dialog starting from the certain option's script rather than the entry point
   import void StartOption(int option);
   /// Sets the text of the specified option in this dialog.
@@ -2443,6 +2411,46 @@ builtin managed struct Dialog {
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
+
+#ifdef SCRIPT_API_v363
+struct DialogOptions
+{
+  /// Gets if the dialog options are currently displayed on screen
+  import static readonly attribute bool AreDisplayed; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
+  import static attribute int BulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the font to use when displaying dialog options
+  import static attribute FontType Font; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement
+  import static attribute int GUIX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
+  import static attribute int GUIY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the active (selected) dialog option
+  import static attribute int HighlightColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical gap between dialog options (in pixels)
+  import static attribute int ItemGap; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets whether dialog options have numbers before them, and the numeric keys can be used to select them
+  import static attribute DialogOptionsNumbering ItemNumbering; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int MaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int MinGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Gets overlay that is currently used to display dialog options on screen. Returns null if options are not shown.
+  import static readonly attribute Overlay* Overlay; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
+  import static attribute int PaddingX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical offset at which options are drawn on a standard GUI
+  import static attribute int PaddingY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
+  import static attribute int ReadColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the GUI that will be used as a template for the dialog options background; set null to use default options look
+  import static attribute GUI* TemplateGUI; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal alignment of each dialog option's text
+  import static attribute HorizontalAlignment TextAlignment; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
+  import static attribute int ZOrder; // $AUTOCOMPLETESTATICONLY$
+};
+#endif // SCRIPT_API_v363
 
 #define IsSpeechVoxAvailable IsVoxAvailable
 //import int IsSpeechVoxAvailable();  // make autocomplete recognise

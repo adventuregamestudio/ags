@@ -16,7 +16,7 @@
 // Engine initialization
 //
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -50,7 +50,7 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"

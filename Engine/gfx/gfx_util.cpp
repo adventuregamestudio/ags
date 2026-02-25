@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "gfx/gfx_util.h"
 #include "gfx/blender.h"
 

@@ -22,6 +22,7 @@ target_sources(common
     ac/common.cpp
     ac/common.h
     ac/common_defines.h
+    ac/def_version.h
     ac/dialogtopic.cpp
     ac/dialogtopic.h
     ac/dynobj/scriptaudioclip.cpp
@@ -49,12 +50,10 @@ target_sources(common
     ac/view.h
     ac/wordsdictionary.cpp
     ac/wordsdictionary.h
-    core/asset.cpp
-    core/asset.h
-    core/assetmanager.cpp
-    core/assetmanager.h
-    core/def_version.h
-    core/types.h
+    data/asset.cpp
+    data/asset.h
+    data/assetmanager.cpp
+    data/assetmanager.h
     debug/assert.h
     debug/debugmanager.cpp
     debug/debugmanager.h
@@ -190,7 +189,9 @@ target_sources(common
     util/string_compat.h
     util/matrix.h
 
-	platform/windows/windows.h
+    platform/platform.h
+    platform/types.h
+    platform/windows/windows.h
 )
 
 target_link_libraries(common PUBLIC

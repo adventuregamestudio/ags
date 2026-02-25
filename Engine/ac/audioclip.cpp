@@ -20,7 +20,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;

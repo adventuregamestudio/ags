@@ -16,7 +16,7 @@
 #include <deque>
 #include <math.h>
 #include <SDL.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "ac/common.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"

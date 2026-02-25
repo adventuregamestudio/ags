@@ -18,7 +18,6 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
-#include "core/types.h"
 #include "util/geometry.h"
 #include "util/string.h"
 

@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Common\core\asset.cpp" />
+    <ClCompile Include="..\..\Common\data\asset.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
     <ClCompile Include="..\..\Common\util\directory.cpp" />

@@ -20,9 +20,8 @@
 #ifndef __AGS_EE_DYNOBJ__DYNOBJMANAGER_H
 #define __AGS_EE_DYNOBJ__DYNOBJMANAGER_H
 
-#include "core/types.h"
-#include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_scriptobject.h"
+#include "script/runtimescriptvalue.h"
 #include "util/string.h"
 
 // Forward declaration

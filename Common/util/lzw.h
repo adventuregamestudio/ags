@@ -18,7 +18,6 @@
 #ifndef __AGS_CN_UTIL__LZW_H
 #define __AGS_CN_UTIL__LZW_H
 
-#include "core/types.h"
 #include "util/stream.h"
 
 bool lzwcompress(AGS::Common::Stream *lzw_in, AGS::Common::Stream *out);

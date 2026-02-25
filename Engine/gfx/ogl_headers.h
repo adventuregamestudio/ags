@@ -16,7 +16,7 @@
 //
 //=============================================================================
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_OPENGL_ES2
 #  include <SDL.h>

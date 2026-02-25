@@ -14,7 +14,7 @@
 #ifndef __AGS_CN_UTIL__STRINGCOMPAT_H
 #define __AGS_CN_UTIL__STRINGCOMPAT_H
 
-#include "core/types.h"
+#include "platform/types.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -14,7 +14,7 @@ target_include_directories(libtools PUBLIC ../Common)
 set(TOOLS_COMMON_SOURCES
         ../Common/ac/spritefile.cpp
         ../Common/ac/wordsdictionary.cpp
-        ../Common/core/asset.cpp
+        ../Common/data/asset.cpp
         ../Common/debug/debugmanager.cpp
         ../Common/game/data_helpers.cpp
         ../Common/game/data_helpers.h

@@ -18,8 +18,8 @@
 #ifndef __AGS_EE_GUI__CSCIDIALOG_H
 #define __AGS_EE_GUI__CSCIDIALOG_H
 
-#include "core/types.h"
 #include "gui/guidialogdefines.h"
+#include "platform/types.h"
 
 int  CSCIGetVersion();
 int  CSCIDrawWindow(int xx, int yy, int wid, int hit);

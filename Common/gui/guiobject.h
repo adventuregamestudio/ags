@@ -15,7 +15,6 @@
 #ifndef __AC_GUIOBJECT_H
 #define __AC_GUIOBJECT_H
 
-#include "core/types.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
 #include "util/string.h"

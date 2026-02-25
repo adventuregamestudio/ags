@@ -22,7 +22,7 @@
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_ANDROID
 #include <regex>
-#include "core/types.h"
+#include "platform/types.h"
 #include "util/string.h"
 
 struct AAssetManager;

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <vector>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <allegro.h>
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"

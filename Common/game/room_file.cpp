@@ -15,7 +15,7 @@
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
 #include "ac/wordsdictionary.h" // TODO: extract string decryption
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
 #include "game/room_file.h"

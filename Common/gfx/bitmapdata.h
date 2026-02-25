@@ -19,8 +19,8 @@
 #define __AGS_CN_GFX__BITMAPDATA_H
 
 #include <memory>
-#include "core/types.h"
 #include "debug/assert.h"
+#include "platform/types.h"
 
 namespace AGS
 {

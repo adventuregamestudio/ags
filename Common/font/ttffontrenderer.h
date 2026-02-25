@@ -15,7 +15,7 @@
 #define __AC_TTFFONTRENDERER_H
 
 #include <map>
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "font/agsfontrenderer.h"
 #include "util/string.h"
 

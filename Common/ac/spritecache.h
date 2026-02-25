@@ -40,9 +40,9 @@
 #include <list>
 #include <memory>
 #include <vector>
-#include "core/platform.h"
 #include "ac/spritefile.h"
 #include "gfx/bitmap.h"
+#include "platform/platform.h"
 #include "util/resourcecache.h"
 
 // Max size of the sprite cache, in bytes

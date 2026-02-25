@@ -536,8 +536,8 @@
     <ClCompile Include="..\..\Common\ac\spritefile.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
-    <ClCompile Include="..\..\Common\core\asset.cpp" />
-    <ClCompile Include="..\..\Common\core\assetmanager.cpp" />
+    <ClCompile Include="..\..\Common\data\asset.cpp" />
+    <ClCompile Include="..\..\Common\data\assetmanager.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\font\fonts.cpp" />
     <ClCompile Include="..\..\Common\font\ttffontrenderer.cpp" />
@@ -712,11 +712,8 @@
     <ClInclude Include="..\..\Common\ac\spritefile.h" />
     <ClInclude Include="..\..\Common\ac\view.h" />
     <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
-    <ClInclude Include="..\..\Common\core\asset.h" />
-    <ClInclude Include="..\..\Common\core\assetmanager.h" />
-    <ClInclude Include="..\..\Common\core\def_version.h" />
-    <ClInclude Include="..\..\Common\core\platform.h" />
-    <ClInclude Include="..\..\Common\core\types.h" />
+    <ClInclude Include="..\..\Common\data\asset.h" />
+    <ClInclude Include="..\..\Common\data\assetmanager.h" />
     <ClInclude Include="..\..\Common\debug\assert.h" />
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
     <ClInclude Include="..\..\Common\debug\messagebuffer.h" />
@@ -755,6 +752,8 @@
     <ClInclude Include="..\..\Common\libsrc\aastr-0.1.1\aautil.h" />
     <ClInclude Include="..\..\Common\libsrc\alfont-2.0.9\alfont.h" />
     <ClInclude Include="..\..\Common\libsrc\freetype-2.1.3\include\freetype\freetype.h" />
+    <ClInclude Include="..\..\Common\platform\platform.h" />
+    <ClInclude Include="..\..\Common\platform\types.h" />
     <ClInclude Include="..\..\Common\platform\windows\windows.h" />
     <ClInclude Include="..\..\Common\script\cc_common.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />

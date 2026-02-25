@@ -51,7 +51,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/path.h"
 #include "util/utf8.h"
 #include "gfx/bitmap.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "NativeUtils.h"
 
 using AGS::Types::AGSEditorException;

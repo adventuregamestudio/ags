@@ -14,7 +14,7 @@
 
 #include "gfx/gfxdriverfactory.h"
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #include "gfx/ali3dsw.h"
 #include "gfx/gfxfilter_sdl_renderer.h"

@@ -29,9 +29,6 @@
     <Filter Include="Source Files\gfx">
       <UniqueIdentifier>{e0c98b5d-5da0-41a8-8800-5d57cb7a22f6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\core">
-      <UniqueIdentifier>{c07445cb-2491-439b-8a76-2309c599f536}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\game">
       <UniqueIdentifier>{16e18385-3cc7-48fb-aa26-6311d7d1ddc6}</UniqueIdentifier>
     </Filter>
@@ -56,9 +53,6 @@
     </Filter>
     <Filter Include="Header Files\script">
       <UniqueIdentifier>{6987358e-c678-4062-a991-337a97c4d4b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\core">
-      <UniqueIdentifier>{794e545d-ee5a-4fbd-a3b8-b06b8c59c839}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\debug">
       <UniqueIdentifier>{3b201c98-3133-440c-8d8d-fe6010570cce}</UniqueIdentifier>
@@ -98,6 +92,12 @@
     </Filter>
     <Filter Include="Library Sources\miniz">
       <UniqueIdentifier>{e2b0e876-0ee0-4a08-a2b9-0e7e889b04e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\data">
+      <UniqueIdentifier>{e022a7d9-4192-4fe8-98cc-0fa84edee576}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\data">
+      <UniqueIdentifier>{09cd86a4-83ba-4514-bdcb-d1d302d930fe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -235,12 +235,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp">
       <Filter>Source Files\gfx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\core\asset.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\core\assetmanager.cpp">
-      <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\game\customproperties.cpp">
       <Filter>Source Files\game</Filter>
@@ -527,6 +521,12 @@
     <ClCompile Include="..\..\Common\gui\guitextbasedcontrol.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\data\asset.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\assetmanager.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -697,18 +697,6 @@
     <ClInclude Include="..\..\Common\script\cc_script.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\core\asset.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\core\assetmanager.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\core\def_version.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\core\types.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\debug\assert.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
@@ -756,9 +744,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stdio_compat.h">
       <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\core\platform.h">
-      <Filter>Header Files\core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\string_compat.h">
       <Filter>Header Files\util</Filter>
@@ -918,6 +903,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\gui\guitextbasedcontrol.h">
       <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\platform\platform.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\platform\types.h">
+      <Filter>Header Files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\asset.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\assetmanager.h">
+      <Filter>Header Files\data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

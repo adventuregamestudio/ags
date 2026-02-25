@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include <algorithm>
 #include <regex>
 #include "util/file.h"

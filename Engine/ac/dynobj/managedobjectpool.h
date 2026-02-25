@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 #include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "script/runtimescriptvalue.h"
 #include "util/indexedobjectpool.h"
 #include "util/string.h"

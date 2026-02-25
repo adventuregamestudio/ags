@@ -15,7 +15,6 @@
 #define __AC_WORDSDICTIONARY_H
 
 #include <vector>
-#include "core/types.h"
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }

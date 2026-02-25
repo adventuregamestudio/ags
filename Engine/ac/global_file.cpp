@@ -19,7 +19,7 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "util/directory.h"
 #include "util/path.h"

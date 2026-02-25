@@ -20,7 +20,6 @@
 
 #include <memory>
 #include <vector>
-#include "core/types.h"
 #include "gfx/bitmapdata.h"
 #include "util/stream.h"
 

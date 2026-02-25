@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <inttypes.h>
 #include <SDL.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "ac/draw.h"
 #include "debug/debugger.h"
 #include "debug/out.h"

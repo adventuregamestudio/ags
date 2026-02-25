@@ -32,7 +32,6 @@
 #include <functional>
 #include <memory>
 #include "ac/dynobj/scriptoverlay.h"
-#include "core/types.h"
 #include "util/geometry.h"
 #include "util/string.h"
 

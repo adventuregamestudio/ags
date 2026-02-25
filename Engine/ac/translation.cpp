@@ -22,7 +22,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/wordsdictionary.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/tra_file.h"

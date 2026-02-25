@@ -19,7 +19,7 @@
 #ifndef __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H
 #define __AGS_EE_PLATFORM__AGSPLATFORM_UNIX_H
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_IS_XDG_UNIX
 

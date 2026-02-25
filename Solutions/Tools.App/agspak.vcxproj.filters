@@ -18,9 +18,6 @@
     <ClCompile Include="..\..\Tools\agspak\main.cpp">
       <Filter>agspak</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\multifilelib.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -67,6 +64,9 @@
       <Filter>agspak</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\data\asset.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\multifilelib.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>

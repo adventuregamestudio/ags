@@ -54,6 +54,14 @@ target_sources(common
     data/asset.h
     data/assetmanager.cpp
     data/assetmanager.h
+    data/data_ext.cpp
+    data/data_ext.h
+    data/data_helpers.cpp
+    data/data_helpers.h
+    data/multifilelib.h
+    data/multifilelib.cpp
+    data/tra_file.cpp
+    data/tra_file.h
     debug/assert.h
     debug/debugmanager.cpp
     debug/debugmanager.h
@@ -71,8 +79,6 @@ target_sources(common
     font/wfnfontrenderer.h
     game/customproperties.cpp
     game/customproperties.h
-    game/data_helpers.cpp
-    game/data_helpers.h
     game/interactions.cpp
     game/interactions.h
     game/main_game_file.cpp
@@ -85,8 +91,6 @@ target_sources(common
     game/room_version.h
     game/roomstruct.cpp
     game/roomstruct.h
-    game/tra_file.cpp
-    game/tra_file.h
     gfx/allegrobitmap.cpp
     gfx/allegrobitmap.h
     gfx/bitmap.cpp
@@ -129,8 +133,6 @@ target_sources(common
     util/cmdlineopts.h
     util/compress.cpp
     util/compress.h
-    util/data_ext.cpp
-    util/data_ext.h
     util/deflatestream.cpp
     util/deflatestream.h
     util/directory.cpp
@@ -154,8 +156,6 @@ target_sources(common
     util/memory_compat.h
     util/memorystream.cpp
     util/memorystream.h
-    util/multifilelib.h
-    util/multifilelib.cpp
     util/path.cpp
     util/path_ex.cpp
     util/path.h

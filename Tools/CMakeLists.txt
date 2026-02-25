@@ -13,32 +13,57 @@ target_include_directories(libtools PUBLIC .)
 target_include_directories(libtools PUBLIC ../Common)
 set(TOOLS_COMMON_SOURCES
         ../Common/ac/spritefile.cpp
+        ../Common/ac/spritefile.h
         ../Common/ac/wordsdictionary.cpp
+        ../Common/ac/wordsdictionary.h
         ../Common/data/asset.cpp
+        ../Common/data/asset.h
+        ../Common/data/data_helpers.cpp
+        ../Common/data/data_helpers.h
+        ../Common/data/data_ext.cpp
+        ../Common/data/data_ext.h
+        ../Common/data/multifilelib.cpp
+        ../Common/data/multifilelib.h
+        ../Common/data/tra_file.cpp
+        ../Common/data/tra_file.h
         ../Common/debug/debugmanager.cpp
-        ../Common/game/data_helpers.cpp
-        ../Common/game/data_helpers.h
+        ../Common/debug/debugmanager.h
         ../Common/game/room_file_base.cpp
-        ../Common/game/tra_file.cpp
+        ../Common/game/room_file_base.h
         ../Common/gfx/bitmapdata.cpp
+        ../Common/gfx/bitmapdata.h
         ../Common/gfx/image_file.cpp
+        ../Common/gfx/image_file.h
         ../Common/util/bufferedstream.cpp
+        ../Common/util/bufferedstream.h
         ../Common/util/cmdlineopts.cpp
+        ../Common/util/cmdlineopts.h
         ../Common/util/compress.cpp
-        ../Common/util/data_ext.cpp
+        ../Common/util/compress.h
         ../Common/util/directory.cpp
+        ../Common/util/directory.h
         ../Common/util/file.cpp
+        ../Common/util/file.h
         ../Common/util/filestream.cpp
+        ../Common/util/filestream.h
         ../Common/util/lzw.cpp
+        ../Common/util/lzw.h
         ../Common/util/memorystream.cpp
-        ../Common/util/multifilelib.cpp
+        ../Common/util/memorystream.h
         ../Common/util/path.cpp
+        ../Common/util/path.h
         ../Common/util/stdio_compat.c
+        ../Common/util/stdio_compat.h
         ../Common/util/stream.cpp
+        ../Common/util/stream.h
         ../Common/util/string.cpp
+        ../Common/util/string.h
         ../Common/util/string_compat.c
+        ../Common/util/string_compat.h
         ../Common/util/string_utils.cpp
-        ../Common/util/textstreamreader.cpp)
+        ../Common/util/string_utils.h
+        ../Common/util/textstreamreader.cpp
+        ../Common/util/textstreamreader.h)
 
 
 #-----------------------------------------------------------------------------#

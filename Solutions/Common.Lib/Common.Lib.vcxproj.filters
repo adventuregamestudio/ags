@@ -197,9 +197,6 @@
     <ClCompile Include="..\..\Common\util\lzw.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\multifilelib.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\path.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -482,12 +479,6 @@
     <ClCompile Include="..\..\Common\util\memorystream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\tra_file.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\data_ext.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\path_ex.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -515,9 +506,6 @@
     <ClCompile Include="..\..\Common\util\transformstream.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\data_helpers.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\gui\guitextbasedcontrol.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
@@ -525,6 +513,18 @@
       <Filter>Source Files\data</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\data\assetmanager.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_ext.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\multifilelib.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\tra_file.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
   </ItemGroup>
@@ -658,9 +658,6 @@
     <ClInclude Include="..\..\Common\util\memory.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\multifilelib.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\path.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -784,12 +781,6 @@
     <ClInclude Include="..\..\Common\util\scaling.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\tra_file.h">
-      <Filter>Header Files\game</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\data_ext.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\platform\windows\windows.h">
       <Filter>Header Files\platform\windows</Filter>
     </ClInclude>
@@ -837,9 +828,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\indexedobjectpool.h">
       <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\game\data_helpers.h">
-      <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\allegro\include\allegro.h">
       <Filter>Library Sources\allegro</Filter>
@@ -914,6 +902,18 @@
       <Filter>Header Files\data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\data\assetmanager.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_ext.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\multifilelib.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\tra_file.h">
       <Filter>Header Files\data</Filter>
     </ClInclude>
   </ItemGroup>

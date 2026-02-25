@@ -2,8 +2,8 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
+#include "data/data_ext.h"
 #include "game/room_file.h"
-#include "util/data_ext.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"

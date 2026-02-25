@@ -22,19 +22,19 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
+#include "data/data_ext.h"
 #include "debug/out.h"
+#include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "script/cc_common.h"
-#include "util/data_ext.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
-#include "font/fonts.h"
 
 namespace AGS
 {

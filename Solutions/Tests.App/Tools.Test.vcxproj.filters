@@ -54,11 +54,11 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc">
       <Filter>Test</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\data_helpers.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Tools\test\data_helpers_test.cpp">
       <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,7 +95,7 @@
     <ClInclude Include="..\..\Common\util\stream.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\data_helpers.h">
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

@@ -55,16 +55,16 @@
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\tra_file.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\util\data_ext.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\path.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\data_helpers.cpp">
+    <ClCompile Include="..\..\Common\data\data_ext.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\tra_file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,10 +75,13 @@
     <ClInclude Include="..\..\Common\util\textstreamreader.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\tra_file.h">
+    <ClInclude Include="..\..\Common\data\data_ext.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\data_helpers.h">
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\tra_file.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

@@ -71,7 +71,7 @@ function rename_apks {
   set -e
   echo "renaming apks..."
   pushd "${SCRIPT_DIR}"
-  version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' ../Common/core/def_version.h)
+  version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' ../Common/ac/def_version.h)
   pushd agsplayer/app/build/outputs/apk/debug/
   for apk in $(find -maxdepth 1 -name "*.apk" -type f); do
     mv -v $apk AGS-${version}-${apk#*-}
@@ -92,7 +92,7 @@ function create_proj_archive {
   set -e
   echo "creating libs archive..."
   pushd "${SCRIPT_DIR}"
-  version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' ../Common/core/def_version.h)
+  version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' ../Common/ac/def_version.h)
   cp -rf agsplayer/app/build/intermediates/stripped_native_libs/debug/out/lib/* package_debug/library/runtime/libs
   cp -rf agsplayer/app/build/intermediates/stripped_native_libs/release/out/lib/* package_release/library/runtime/libs
   ${TAR_CMD} -f ../AGS-${version}-android-proj-debug.zip -acv --strip-components 1 package_debug

@@ -17,7 +17,7 @@
 #include <chrono>
 #include <mutex>
 #include <thread>
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"

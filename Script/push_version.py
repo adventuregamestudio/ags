@@ -41,7 +41,7 @@ def main():
     # -----------------------------------------------------------------------------
     # Engine's version declaration
 
-    path = "../Common/core/def_version.h"
+    path = "../Common/ac/def_version.h"
     encoding = "utf-8"
     data = read_file(path, encoding)
 

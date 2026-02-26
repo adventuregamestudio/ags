@@ -14,7 +14,7 @@
 #ifndef __AGS_EE_GFX__GFXDEFINES_H
 #define __AGS_EE_GFX__GFXDEFINES_H
 
-#include "core/types.h"
+#include "platform/types.h"
 #include "util/geometry.h"
 
 namespace AGS

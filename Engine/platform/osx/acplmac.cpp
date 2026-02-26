@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_MACOS
 

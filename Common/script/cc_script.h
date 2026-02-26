@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "core/types.h"
+#include "platform/types.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

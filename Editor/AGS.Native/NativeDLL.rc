@@ -8,7 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winres.h"
-#include "../../Common/core/def_version.h"
+#include "../../Common/ac/def_version.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -37,7 +37,7 @@ END
 2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
-    "../../Common/core/def_version.h\r\n"
+    "../../Common/ac/def_version.h\r\n"
     "\0"
 END
 

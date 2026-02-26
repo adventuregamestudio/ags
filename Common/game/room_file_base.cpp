@@ -12,8 +12,8 @@
 //
 //=============================================================================
 #include "game/room_file.h"
+#include "data/data_ext.h"
 #include "debug/out.h"
-#include "util/data_ext.h"
 #include "util/file.h"
 
 namespace AGS

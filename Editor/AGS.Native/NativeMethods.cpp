@@ -28,13 +28,13 @@
 #include "ac/mousecursor.h"
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
+#include "data/multifilelib.h"
 #include "font/fonts.h"
 #include "game/customproperties.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/ini_util.h"
-#include "util/multifilelib.h"
 #include "util/string_utils.h"
 // IMPORTANT: NativeMethods.h must be included AFTER native headers,
 // otherwise there will be naming conflicts with System:: and AGS::Types

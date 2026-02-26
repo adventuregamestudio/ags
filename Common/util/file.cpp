@@ -14,7 +14,7 @@
 #include "util/file.h"
 #include <errno.h>
 #include <stdexcept>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/bufferedstream.h"
 #include "util/filestream.h"
 #include "util/path.h"

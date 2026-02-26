@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <regex>
 #include <string.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/math.h"
 #include "util/stream.h"
 #include "util/string_compat.h"

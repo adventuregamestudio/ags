@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <math.h>
 #include <stdio.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -57,7 +57,7 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "main/config.h"
 #include "main/game_file.h"
 #include "util/directory.h"

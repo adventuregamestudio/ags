@@ -14,7 +14,7 @@
 
 #include <ctype.h> // for toupper
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/character.h"
@@ -67,7 +67,7 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "media/audio/audio_system.h"

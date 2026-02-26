@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include <algorithm>
 #include <regex>
+#include "data/multifilelib.h"
 #include "util/file.h"
-#include "util/multifilelib.h"
 #include "util/path.h"
 
 

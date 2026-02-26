@@ -17,7 +17,7 @@
 // TODO: split up later if it gets filled with functions in all categories.
 //
 //=============================================================================
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <vector>
 #include "gfx/gfxdefines.h"
 #include "util/string.h"

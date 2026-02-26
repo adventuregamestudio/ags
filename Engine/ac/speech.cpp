@@ -19,7 +19,7 @@
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptoverlay.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "main/engine.h"
 #include "util/directory.h"

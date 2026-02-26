@@ -14,8 +14,8 @@
 #include "font/ttffontrenderer.h"
 #include <alfont.h>
 #include "ac/game_version.h"
-#include "core/platform.h"
-#include "core/assetmanager.h"
+#include "platform/platform.h"
+#include "data/assetmanager.h"
 #include "font/fonts.h"
 #include "util/stream.h"
 

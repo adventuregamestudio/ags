@@ -34,7 +34,7 @@ endif
 COMMON_subdirs = \
 ../Common/ac \
 ../Common/ac/dynobj \
-../Common/core \
+../Common/data \
 ../Common/debug \
 ../Common/font \
 ../Common/game \

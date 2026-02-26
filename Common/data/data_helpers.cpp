@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "game/data_helpers.h"
+#include "data/data_helpers.h"
 
 namespace AGS
 {

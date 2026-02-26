@@ -21,7 +21,7 @@
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"

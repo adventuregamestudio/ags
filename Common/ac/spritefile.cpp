@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <array>
 #include <time.h>
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <stdarg.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/textstreamwriter.h"
 #include "util/stream.h"
 

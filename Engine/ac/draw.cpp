@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <cmath>
 #include "aastr.h"
-#include "core/platform.h"
 #include "ac/common.h"
 #include "util/compress.h"
 #include "ac/view.h"
@@ -52,6 +51,7 @@
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guiobject.h"
+#include "platform/platform.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"

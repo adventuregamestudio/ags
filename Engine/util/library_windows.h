@@ -15,7 +15,7 @@
 #define __AGS_EE_UTIL__LIBRARY_WINDOWS_H
 
 #include <utility>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "debug/out.h"
 #include "platform/windows/winapi_exclusive.h"
 #include "util/path.h"

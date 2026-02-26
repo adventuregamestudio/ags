@@ -13,7 +13,7 @@
 //=============================================================================
 #include <stdio.h>
 #include <math.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
@@ -35,7 +35,7 @@
 #include "ac/global_audio.h"
 #include <math.h>
 #include "util/stream.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "ac/timer.h"
 #include "main/game_run.h"
 #include "media/audio/audio_core.h"

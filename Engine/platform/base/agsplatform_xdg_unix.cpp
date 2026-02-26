@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_IS_XDG_UNIX
 #include "platform/base/agsplatform_xdg_unix.h"

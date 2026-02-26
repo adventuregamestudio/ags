@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "gtest/gtest.h"
-#include "game/data_helpers.h"
+#include "data/data_helpers.h"
 #include "util/string_utils.h"
 
 using namespace AGS;

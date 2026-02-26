@@ -18,7 +18,6 @@
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
 #define __AGS_EE_AC__ROOMOBJECT_H
 
-#include "core/types.h"
 #include "ac/common_defines.h"
 #include "util/string.h"
 

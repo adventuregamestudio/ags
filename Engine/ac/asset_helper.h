@@ -19,7 +19,7 @@
 #define __AGS_EE_AC__ASSETHELPER_H
 #include <memory>
 #include <utility>
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 
 namespace AGS { namespace Common {class Stream;} }
 using AGS::Common::AssetPath;

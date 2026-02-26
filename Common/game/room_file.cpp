@@ -15,7 +15,8 @@
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
 #include "ac/wordsdictionary.h" // TODO: extract string decryption
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
+#include "data/data_ext.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
 #include "game/room_file.h"
@@ -24,7 +25,6 @@
 #include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
-#include "util/data_ext.h"
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file

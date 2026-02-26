@@ -16,10 +16,10 @@
 #include <vector>
 #include <string>
 #include <map>
+#include "ac/def_version.h"
 #include "util/path.h"
 #include "util/cmdlineopts.h"
 #include "compiler.h"
-#include "core/def_version.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::CmdLineOpts;

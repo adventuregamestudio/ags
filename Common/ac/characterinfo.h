@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <vector>
-#include "core/types.h"
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
 #include "util/bbop.h"

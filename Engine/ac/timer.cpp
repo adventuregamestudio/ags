@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/timer.h"
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <thread>
 #include "ac/sys_events.h"
 #include "platform/base/agsplatformdriver.h"

@@ -18,8 +18,8 @@
 #ifndef __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 #define __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 
-#include "core/types.h"
 #include "ac/runtime_defines.h"
+#include "platform/types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

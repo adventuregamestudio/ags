@@ -43,9 +43,6 @@
     <ClCompile Include="..\..\Common\game\room_file_base.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\data_ext.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\path.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -53,6 +50,9 @@
       <Filter>crmpak</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\memorystream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_ext.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>

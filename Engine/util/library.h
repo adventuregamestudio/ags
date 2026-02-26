@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_UTIL__LIBRARY_H
 #define __AGS_EE_UTIL__LIBRARY_H
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/string.h"
 
 namespace AGS

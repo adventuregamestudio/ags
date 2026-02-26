@@ -21,7 +21,7 @@
 #ifndef __AGS_CN_UTIL__SCALING_H
 #define __AGS_CN_UTIL__SCALING_H
 
-#include "core/types.h"
+#include "platform/types.h"
 #include "util/geometry.h"
 
 namespace AGS

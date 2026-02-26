@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "core/platform.h"
 #include "ac/spritecache.h"
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "gfx/bitmap.h"
+#include "platform/platform.h"
 #include "util/memory_compat.h"
 
 using namespace AGS::Common;

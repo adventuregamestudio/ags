@@ -23,7 +23,7 @@
 #define __CC_SCRIPTOBJECT_H
 
 #include <utility>
-#include "core/types.h"
+#include "platform/types.h"
 
 
 struct IScriptObject;

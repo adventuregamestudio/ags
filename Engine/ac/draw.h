@@ -15,7 +15,6 @@
 #define __AGS_EE_AC__DRAW_H
 
 #include <memory>
-#include "core/types.h"
 #include "ac/common_defines.h"
 #include "ac/runtime_defines.h"
 #include "gfx/bitmap.h"

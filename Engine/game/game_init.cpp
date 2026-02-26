@@ -29,7 +29,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"

@@ -22,7 +22,7 @@
 #include <regex>
 #include <stack>
 #include <vector>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/string.h"
 #include "util/string_utils.h"
 

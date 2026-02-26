@@ -564,13 +564,23 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
 }
 
 // TODO: make this a member of DialogOptions class
+struct DialogOptionItem
+{
+    int  OptionID = -1;
+    Rect Position;
+
+    DialogOptionItem() = default;
+    DialogOptionItem(int option_id) : OptionID(option_id) {}
+};
+
+// TODO: make this a member of DialogOptions class
 // TODO: don't use global variables inside this function
 // TODO: gather parameters into struct(s)
 // TODO: limit by area height too
 static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_y, int areawid,
     int bullet_wid, int bullet_spr, int bullet_sprwid,
     int usingfont, int linespacing, int selected_color,
-    const DialogTopic *dtop, int numdisp, int mouseison, const std::vector<int> &disporder, std::vector<int> &dispyp)
+    const DialogTopic *dtop, int numdisp, int mouseison, std::vector<DialogOptionItem> &items)
 {
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
@@ -626,7 +636,7 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
     for (int ww = 0; ww < numdisp; ++ww)
     {
         color_t text_color = 0;
-        if ((dtop->Options[disporder[ww]].Flags & DFLG_HASBEENCHOSEN) &&
+        if ((dtop->Options[items[ww].OptionID].Flags & DFLG_HASBEENCHOSEN) &&
             (play.read_dialog_option_colour >= 0))
         {
             // 'read' colour
@@ -648,14 +658,15 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
                 text_color = ds->GetCompatibleColor(selected_color);
         }
 
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[ww]].Text.GetCStr()));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[items[ww].OptionID].Text.GetCStr()));
         // TODO: make the line-splitting container also save line widths!
         break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
         const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
         const int first_line_at = AlignInHRange(wrap_range.first, wrap_range.second, 0, first_line_wid, (FrameAlignment)text_align)
             + first_line_off;
 
-        dispyp[ww] = curyp;
+        items[ww].Position = RectWH(wrap_range.first, curyp, wrap_range.second - wrap_range.first + 1,
+            get_text_lines_height(usingfont, Lines.Count()));
         if (bullet_spr > 0)
         {
             if (ltr_position)
@@ -742,6 +753,12 @@ public:
     int GetChosenOption() const { return chose; }
     int GetOverlayHandle() const { return options_overlay_schandle; }
 
+    // Tells if the dialog options are drawn using custom rendering (scripted)
+    bool HasCustomRender() const { return usingCustomRendering; }
+    // Returns list of displayed options.
+    // NOTE: this only has a meaning for the standard options render, not custom render
+    const std::vector<DialogOptionItem> &GetItems() const { return items; }
+
 private:
     int CalcOptionsHeight(int padding);
     void CreateOverlay();
@@ -791,10 +808,8 @@ private:
 
     // List of displayed options and their precalculated states;
     // NOTE: this is only used in standard options render, not custom render
-    // display order of options
-    std::vector<int> disporder;
-    // display Y coordinate of options
-    std::vector<int> dispyp;
+    std::vector<DialogOptionItem> items;
+
     // number of displayed options
     int numdisp;
     // last chosen option
@@ -857,7 +872,7 @@ int DialogOptions::CalcOptionsHeight(int padding)
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[items[i].OptionID].Text.GetCStr()));
         break_up_text_into_lines(draw_text, Lines, areawid - (2 * padding + 2 + bullet_wid), usingfont);
         total_lines += Lines.Count();
     }
@@ -914,8 +929,7 @@ void DialogOptions::Stop()
 
 void DialogOptions::Begin()
 {
-    disporder.resize(dtop->GetOptionCount());
-    dispyp.resize(dtop->GetOptionCount());
+    items.clear();
 
     doStop = false;
     chose = -1;
@@ -930,7 +944,8 @@ void DialogOptions::Begin()
             continue; // do not add an empty option name into the display list
 
         // Add this option into the display list
-        disporder[numdisp++] = i;
+        items.push_back(DialogOptionItem(i));
+        numdisp++;
     }
 
     if (loaded_game_file_version >= kGameVersion_363)
@@ -1026,7 +1041,7 @@ void DialogOptions::Begin()
             int max_line_width = 0;
             for (int i = 0; i < numdisp; ++i)
             {
-                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
+                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[items[i].OptionID].Text.GetCStr()));
                 break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
                 max_line_width = std::max(max_line_width, longestline);
             }
@@ -1117,7 +1132,8 @@ void DialogOptions::Draw()
     ScreenOverlay *options_over = get_overlay(options_overlay_id);
     Bitmap *options_bmp = options_over->GetImage();
 
-    std::fill(dispyp.begin(), dispyp.end(), 0);
+    for (auto &item : items)
+        item.Position = Rect();
 
     if (usingCustomRendering)
     {
@@ -1169,7 +1185,7 @@ void DialogOptions::Draw()
         curyp = write_dialog_options(options_bmp, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
                                     usingfont, linespacing, forecol,
-                                    dtop, numdisp, mouseison, disporder, dispyp);
+                                    dtop, numdisp, mouseison, items);
         if (parserInput)
             parserInput->SetX(inner_position.X);
     }
@@ -1199,7 +1215,7 @@ void DialogOptions::Draw()
         curyp = write_dialog_options(ds, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
                                     usingfont, linespacing, forecol,
-                                    dtop, numdisp, mouseison, disporder, dispyp);
+                                    dtop, numdisp, mouseison, items);
 
         if (parserInput)
             parserInput->SetX(inner_position.X);
@@ -1333,7 +1349,7 @@ bool DialogOptions::Run()
         mouseison = numdisp-1;
         for (int i = 0; i < numdisp; ++i)
         {
-            if (rel_mousey < dispyp[i]) { mouseison=i-1; break; }
+            if (rel_mousey < items[i].Position.Top) { mouseison=i-1; break; }
         }
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
     }
@@ -1508,7 +1524,7 @@ bool DialogOptions::RunKey(const KeyInput &ki)
         int numkey = agskey - '1';
         if (numkey < numdisp)
         {
-            chose = disporder[numkey];
+            chose = items[numkey].OptionID;
             return true; // handled
         }
     }
@@ -1548,7 +1564,7 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         }
         else
         {
-            chose = disporder[mouseison];
+            chose = items[mouseison].OptionID;
         }
         return true; // always treat handled, any mouse button does the same
     }
@@ -1970,7 +1986,63 @@ void shutdown_dialog_state()
 }
 
 // end dialog manager
+//=============================================================================
 
+bool DialogOptions_GetHasCustomRender()
+{
+    if (!dialogOpts)
+        return false;
+
+    return dialogOpts->HasCustomRender();
+}
+
+int DialogOptions_GetItemCount()
+{
+    if (!dialogOpts)
+        return 0;
+
+    return static_cast<int>(dialogOpts->GetItems().size());
+}
+
+int DialogOptions_GetItemOptionID(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].OptionID + 1; // 1-based script index
+}
+
+int DialogOptions_GetItemX(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.Left;
+}
+
+int DialogOptions_GetItemY(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.Top;
+}
+
+int DialogOptions_GetItemWidth(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.GetWidth();
+}
+
+int DialogOptions_GetItemHeight(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.GetHeight();
+}
 
 //=============================================================================
 //
@@ -2275,6 +2347,41 @@ RuntimeScriptValue Sc_DialogOptions_SetMinGUIWidth(const RuntimeScriptValue *par
     API_SCALL_VOID_PINT(DialogOptions_SetMinGUIWidth);
 }
 
+RuntimeScriptValue Sc_DialogOptions_GetHasCustomRender(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(DialogOptions_GetHasCustomRender);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetItemCount);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemOptionID(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemOptionID);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemX);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemY);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemWidth);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemHeight(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemHeight);
+}
+
 void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
@@ -2331,6 +2438,14 @@ void RegisterDialogAPI()
         { "DialogOptions::set_TextAlignment", API_FN_PAIR(DialogOptions_SetTextAlignment) },
         { "DialogOptions::get_ZOrder",    API_FN_PAIR(DialogOptions_GetZOrder) },
         { "DialogOptions::set_ZOrder",    API_FN_PAIR(DialogOptions_SetZOrder) },
+
+        { "DialogOptions::get_HasCustomRender", API_FN_PAIR(DialogOptions_GetHasCustomRender) },
+        { "DialogOptions::get_ItemCount", API_FN_PAIR(DialogOptions_GetItemCount) },
+        { "DialogOptions::geti_ItemOptionID", API_FN_PAIR(DialogOptions_GetItemOptionID) },
+        { "DialogOptions::geti_ItemX",    API_FN_PAIR(DialogOptions_GetItemX) },
+        { "DialogOptions::geti_ItemY",    API_FN_PAIR(DialogOptions_GetItemY) },
+        { "DialogOptions::geti_ItemWidth", API_FN_PAIR(DialogOptions_GetItemWidth) },
+        { "DialogOptions::geti_ItemHeight", API_FN_PAIR(DialogOptions_GetItemHeight) }
     };
 
     ccAddExternalFunctions(dialog_api);

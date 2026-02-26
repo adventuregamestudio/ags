@@ -2449,6 +2449,20 @@ struct DialogOptions
   import static attribute HorizontalAlignment TextAlignment; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
   import static attribute int ZOrder; // $AUTOCOMPLETESTATICONLY$
+  /// Gets whether the dialog options are drawn using custom render (scripted).
+  import static readonly attribute bool HasCustomRender;
+  /// Gets the number of dialog options which are currently displayed on screen. Returns 0 if dialog options are not displayed.
+  import static readonly attribute int ItemCount; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the dialog option ID displayed at particular index. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemOptionID[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the x position of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemX[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the y position of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemY[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the width of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemWidth[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the height of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemHeight[]; // $AUTOCOMPLETESTATICONLY$
 };
 #endif // SCRIPT_API_v363
 

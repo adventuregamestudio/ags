@@ -29,7 +29,6 @@ set(TOOLS_COMMON_SOURCES
         ../Common/debug/debugmanager.cpp
         ../Common/debug/debugmanager.h
         ../Common/game/room_file_base.cpp
-        ../Common/game/room_file_base.h
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
         ../Common/gfx/image_file.cpp

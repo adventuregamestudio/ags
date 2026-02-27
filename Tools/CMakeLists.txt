@@ -69,27 +69,23 @@ set(TOOLS_COMMON_SOURCES
 # Minimal Allegro config
 #-----------------------------------------------------------------------------#
 
-include(TestBigEndian)
+add_library(miniallegro)
 
-test_big_endian(ALLEGRO_BIG_ENDIAN)
-if(NOT ALLEGRO_BIG_ENDIAN)
-   set(ALLEGRO_LITTLE_ENDIAN 1)
-endif(NOT ALLEGRO_BIG_ENDIAN)
+target_include_directories(miniallegro PUBLIC ../libsrc/allegro/include)
+target_compile_definitions(miniallegro PRIVATE ALLEGRO_STATICLINK ALLEGRO_SRC)
+target_sources(miniallegro
+        PRIVATE
+        ../libsrc/allegro/src/color.c
+)
 
-if(CMAKE_COMPILER_IS_GNUCC)
-    set(ALLEGRO_GCC 1)
-endif(CMAKE_COMPILER_IS_GNUCC)
-
-if(MSVC)
-    set(ALLEGRO_MSVC 1)
-endif()
+# for some reason I can't figure it out, if I don't do this I get link errors
+# I am using C++ mode from looking into how alconfig.h works
+set_source_files_properties(
+        ../libsrc/allegro/src/color.c
+        PROPERTIES LANGUAGE CXX
+)
 
 #-----------------------------------------------------------------------------#
-
-target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
-set(TOOLS_MINIMAL_ALLEGRO_SOURCES
-        ../libsrc/allegro/src/color.c)
-target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools
         PRIVATE
@@ -111,9 +107,9 @@ target_sources(libtools
         data/tra_utils.cpp
         data/tra_utils.h
         ${TOOLS_COMMON_SOURCES}
-        ${TOOLS_MINIMAL_ALLEGRO_SOURCES}
         )
-        
+
+target_link_libraries(libtools PUBLIC miniallegro)
 target_link_libraries(libtools PUBLIC MiniZ::MiniZ)
 target_link_libraries(libtools PUBLIC TinyXML2::TinyXML2)
 if (WIN32)

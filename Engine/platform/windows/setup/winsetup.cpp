@@ -840,9 +840,9 @@ void WinSetupDialog::OnGfxModeUpdate()
     DWORD_PTR sel = GetCurItemData(_hGfxModeList);
     switch (sel)
     {
-    case kGfxMode_Desktop:
+    case static_cast<DWORD_PTR>(kGfxMode_Desktop):
         _winCfg.FsSetup = WindowSetup(_desktopSize, kWnd_Fullscreen); break;
-    case kGfxMode_GameRes:
+    case static_cast<DWORD_PTR>(kGfxMode_GameRes):
         _winCfg.FsSetup = WindowSetup(_winCfg.GameResolution, kWnd_Fullscreen); break;
     default:
         {

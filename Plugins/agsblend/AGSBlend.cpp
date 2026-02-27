@@ -16,14 +16,11 @@
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3
 
-#if AGS_PLATFORM_OS_WINDOWS
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <algorithm>
 
 #if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
@@ -42,18 +39,13 @@ typedef unsigned char uint8;
 #define DEFAULT_RGB_B_SHIFT_32  0
 #define DEFAULT_RGB_A_SHIFT_32  24
 
-#if !AGS_PLATFORM_OS_WINDOWS
-#define min(x,y) (((x) < (y)) ? (x) : (y))
-#define max(x,y) (((x) > (y)) ? (x) : (y))
-#endif
-
 #define abs(a)						 ((a)<0 ? -(a) : (a))				 
 #define ChannelBlend_Normal(B,L)     ((uint8)(B))
 #define ChannelBlend_Lighten(B,L)    ((uint8)((L > B) ? L:B))
 #define ChannelBlend_Darken(B,L)     ((uint8)((L > B) ? B:L))
 #define ChannelBlend_Multiply(B,L)   ((uint8)((B * L) / 255))
 #define ChannelBlend_Average(B,L)    ((uint8)((B + L) / 2))
-#define ChannelBlend_Add(B,L)        ((uint8)(min(255, (B + L))))
+#define ChannelBlend_Add(B,L)        ((uint8)(std::min(255, (B + L))))
 #define ChannelBlend_Subtract(B,L)   ((uint8)((B + L < 255) ? 0:(B + L - 255)))
 #define ChannelBlend_Difference(B,L) ((uint8)(abs(B - L)))
 #define ChannelBlend_Negation(B,L)   ((uint8)(255 - abs(255 - B - L)))
@@ -62,17 +54,17 @@ typedef unsigned char uint8;
 #define ChannelBlend_Overlay(B,L)    ((uint8)((L < 128) ? (2 * B * L / 255):(255 - 2 * (255 - B) * (255 - L) / 255)))
 #define ChannelBlend_SoftLight(B,L)  ((uint8)((L < 128)?(2*((B>>1)+64))*((float)L/255):(255-(2*(255-((B>>1)+64))*(float)(255-L)/255))))
 #define ChannelBlend_HardLight(B,L)  (ChannelBlend_Overlay(L,B))
-#define ChannelBlend_ColorDodge(B,L) ((uint8)((L == 255) ? L:min(255, ((B << 8 ) / (255 - L)))))
-#define ChannelBlend_ColorBurn(B,L)  ((uint8)((L == 0) ? L:max(0, (255 - ((255 - B) << 8 ) / L))))
+#define ChannelBlend_ColorDodge(B,L) ((uint8)((L == 255) ? L:std::min(255, ((B << 8 ) / (255 - L)))))
+#define ChannelBlend_ColorBurn(B,L)  ((uint8)((L == 0) ? L:std::max(0, (255 - ((255 - B) << 8 ) / L))))
 #define ChannelBlend_LinearDodge(B,L)(ChannelBlend_Add(B,L))
 #define ChannelBlend_LinearBurn(B,L) (ChannelBlend_Subtract(B,L))
 #define ChannelBlend_LinearLight(B,L)((uint8)(L < 128)?ChannelBlend_LinearBurn(B,(2 * L)):ChannelBlend_LinearDodge(B,(2 * (L - 128))))
 #define ChannelBlend_VividLight(B,L) ((uint8)(L < 128)?ChannelBlend_ColorBurn(B,(2 * L)):ChannelBlend_ColorDodge(B,(2 * (L - 128))))
 #define ChannelBlend_PinLight(B,L)   ((uint8)(L < 128)?ChannelBlend_Darken(B,(2 * L)):ChannelBlend_Lighten(B,(2 * (L - 128))))
 #define ChannelBlend_HardMix(B,L)    ((uint8)((ChannelBlend_VividLight(B,L) < 128) ? 0:255))
-#define ChannelBlend_Reflect(B,L)    ((uint8)((L == 255) ? L:min(255, (B * B / (255 - L)))))
+#define ChannelBlend_Reflect(B,L)    ((uint8)((L == 255) ? L:std::min(255, (B * B / (255 - L)))))
 #define ChannelBlend_Glow(B,L)       (ChannelBlend_Reflect(L,B))
-#define ChannelBlend_Phoenix(B,L)    ((uint8)(min(B,L) - max(B,L) + 255))
+#define ChannelBlend_Phoenix(B,L)    ((uint8)(std::min(B,L) - std::max(B,L) + 255))
 #define ChannelBlend_Alpha(B,L,O)    ((uint8)(O * B + (1 - O) * L))
 #define ChannelBlend_AlphaF(B,L,F,O) (ChannelBlend_Alpha(F(B,L),B,O))
 
@@ -80,6 +72,10 @@ typedef unsigned char uint8;
 #pragma endregion
 
 #if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -238,10 +234,10 @@ int HighPass(int sprite, int threshold){
             int srcr = getb32(srclongbuffer[y][x]); 
             int srcg = getg32(srclongbuffer[y][x]);
             int srcb = getr32(srclongbuffer[y][x]);
-            int tempmaxim = max(srcr, srcg); 
-			int maxim = max(tempmaxim, srcb);                                         
-            int tempmin = min( srcr, srcg);
-            int minim = min( srcb, tempmin);
+            int tempmaxim = std::max(srcr, srcg);
+			int maxim = std::max(tempmaxim, srcb);
+            int tempmin = std::min( srcr, srcg);
+            int minim = std::min( srcb, tempmin);
             int light = (maxim + minim) /2 ;
             if (light < threshold) srclongbuffer[y][x] = makeacol32(0,0,0,0);
          
@@ -874,7 +870,7 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
 }
 
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 
 //==============================================================================
 

@@ -172,11 +172,12 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
 // Clears up animation parameters
 void stop_character_anim(CharacterInfo *chap);
 int  find_looporder_index (int curloop);
-// returns 0 to use diagonal, 1 to not
-int  useDiagonal (CharacterInfo *char1);
+// Tells if character should use diagonal loops;
+// optionally require that diagonal loops have an actual animation (> 1 frame)
+bool should_use_diagloops(CharacterInfo *char1, bool require_animation);
 // returns 1 normally, or 0 if they only have horizontal animations
 int  hasUpDownLoops(CharacterInfo *char1);
-void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal);
+void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloops);
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);

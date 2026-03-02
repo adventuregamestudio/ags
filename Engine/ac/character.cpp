@@ -354,6 +354,8 @@ enum DirectionalLoop
 
 // Internal direction-facing functions
 
+// Get appropriate character loop for the given direction.
+// Note that this requires the loop to have >1 frames so being suitable to animate the character.
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
@@ -367,7 +369,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
                                 ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
     const bool has_right_loop = new_version ||
                                 ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
-    const bool has_diagonal_loops = useDiagonal(chinfo) == 0; // NOTE: useDiagonal returns 0 for "true"
+    const bool has_diagonal_loops = should_use_diagloops(chinfo, true /* require >1 frames in loops */);
 
     const bool want_horizontal = (abs(y_diff) < abs(x_diff)) ||
         (new_version && (!has_down_loop || !has_up_loop) )||
@@ -418,8 +420,8 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
         if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((char1->flags & CHF_TURNWHENFACE) != 0) &&
             (!in_enters_screen))
         {
-            const int no_diagonal = useDiagonal (char1);
-            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrthogonal;
+            const bool use_diagloops = should_use_diagloops(char1, false /* allow 1 frame in loops */);
+            const int highestLoopForTurning = use_diagloops ? kDirLoop_Last : kDirLoop_LastOrthogonal;
             if ((char1->loop <= highestLoopForTurning))
             {
                 // Turn to face new direction
@@ -428,7 +430,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
                 {
                     // only do the turning if the character is not hidden
                     // (otherwise GameLoopUntilNotMoving will never return)
-                    start_character_turning (char1, direction, no_diagonal);
+                    start_character_turning(char1, direction, use_diagloops);
 
                     if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
                         GameLoopUntilNotMoving(&char1->walking);
@@ -1924,15 +1926,15 @@ int find_looporder_index (int curloop) {
     return 0;
 }
 
-// returns 0 to use diagonal, 1 to not
-int useDiagonal (CharacterInfo *char1) {
+bool should_use_diagloops(CharacterInfo *char1, bool require_animation)
+{
     if ((views[char1->view].numLoops < 8) || ((char1->flags & CHF_NODIAGONAL)!=0))
-        return 1;
-    // If they have just provided standing frames for loops 4-7, to
+        return false;
+    // Optionally test if they have just provided standing frames for loops 4-7, to
     // provide smoother turning
-    if (views[char1->view].loops[4].numFrames < 2)
-        return 2;
-    return 0;
+    if (require_animation && (views[char1->view].loops[4].numFrames < 2))
+        return false;
+    return true;
 }
 
 // returns 1 normally, or 0 if they only have horizontal animations
@@ -1949,7 +1951,8 @@ int hasUpDownLoops(CharacterInfo *char1) {
     return 1;
 }
 
-void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal) {
+void start_character_turning (CharacterInfo *chinf, int useloop, bool use_diagloops)
+{
     // work out how far round they have to turn 
     int fromidx = find_looporder_index (chinf->loop);
     int toidx = find_looporder_index (useloop);
@@ -1967,10 +1970,6 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
     else
         go_anticlock = -1;
 
-    // Allow the diagonal frames just for turning
-    if (no_diagonal == 2)
-        no_diagonal = 0;
-
     for (ii = fromidx; ii != toidx; ii -= go_anticlock) {
         // Wrap the loop order into range [0-7]
         if (ii < 0)
@@ -1979,7 +1978,7 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
             ii = 0;
         if (ii == toidx)
             break;
-        if ((turnlooporder[ii] >= 4) && (no_diagonal > 0))
+        if ((turnlooporder[ii] >= 4) && (!use_diagloops))
             continue; // there are no diagonal loops
         if (turnlooporder[ii] >= views[chinf->view].numLoops)
             continue; // no such loop
@@ -2018,8 +2017,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
             chinf->loop = useloop;
             return;
     }
-    const int no_diagonal = useDiagonal (chinf);
-    start_character_turning (chinf, useloop, no_diagonal);
+    start_character_turning(chinf, useloop, should_use_diagloops(chinf, false /* allow 1 frame in loops */));
 }
 
 // Check whether two characters have walked into each other

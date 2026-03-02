@@ -74,6 +74,10 @@ struct OverrideGameConfig
     int   KeyRestoreGame    = eAGSKeyCodeNone;
     // Optional override for the max save slot
     int   MaxSaveSlot       = 0;
+    // Force smooth walking behavior;
+    // this behavior is turned off in the old games by default, because
+    // it may cause random issues with coordinate checks in script.
+    bool  SmoothCharacterWalk = false;
 };
 
 

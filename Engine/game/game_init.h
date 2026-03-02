@@ -56,7 +56,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup);
 // Applies override settings, such as hacks and backwards compatibility fixes
-void ApplyOverrides(GameSetupStruct &game, const GameSetup &setup);
+void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup);
 
 } // namespace Engine
 } // namespace AGS

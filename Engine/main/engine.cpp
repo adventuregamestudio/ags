@@ -850,6 +850,8 @@ void engine_init_game_settings()
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
     play.shake_screen_yoff = 0;
+    // NOTE: unfortunately, some old game scripts might break because of smooth walk transition
+    play.smooth_walk = (loaded_game_file_version >= kGameVersion_361);
 
     GUI::DataVersion = loaded_game_file_version;
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
@@ -880,6 +882,7 @@ void engine_init_game_settings()
     // FIXME: this should be done once in InitGameState, but the code for default game settings
     // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
     ApplyAccessibilityOptions(play, usetup);
+    ApplyOverrides(game, play, usetup);
 }
 
 void engine_setup_scsystem_auxiliary()

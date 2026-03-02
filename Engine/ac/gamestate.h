@@ -233,6 +233,7 @@ struct GamePlayState
     char  walkable_areas_on[MAX_WALK_AREAS]{};
     short screen_flipped = 0;
     bool  enable_antialiasing = false; // enable sprite AA (linear) scaling
+    bool  smooth_walk = true; // enable smooth walk mode
     int   entered_at_x = 0;
     int   entered_at_y = 0;
     int   entered_edge = 0;
@@ -435,6 +436,9 @@ struct GamePlayState
 
     // Tells if engine should apply AA (linear) scaling to the game sprites
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
+    // Tells if the smooth walk mode is enabled for characters
+    // (this means - smooth transition between two separate walks, without stopping)
+    bool ShouldSmoothWalk() const { return smooth_walk; }
 
     //
     // User input management
@@ -448,6 +452,9 @@ struct GamePlayState
     // Clears ignore input state
     void ClearIgnoreInput();
 
+    //
+    // Wait and blocking action state
+    //
     bool IsInWait() const;
     // Set how the last blocking wait was skipped
     void SetWaitSkipResult(int how, int data = 0);

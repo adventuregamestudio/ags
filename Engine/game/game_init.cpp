@@ -555,7 +555,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // may override startup game settings.
     ApplyAccessibilityOptions(play, usetup);
     // Apply override settings, such as hacks and backwards compatibility fixes
-    ApplyOverrides(game, usetup);
+    ApplyOverrides(game, play, usetup);
 
     return HGameInitError::None();
 }
@@ -578,11 +578,16 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
     }
 }
 
-void ApplyOverrides(GameSetupStruct &game, const GameSetup &setup)
+void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
 {
     if (setup.Override.NewKeyHandling)
     {
         game.options[OPT_KEYHANDLEAPI] = 1;
+    }
+
+    if (setup.Override.SmoothCharacterWalk)
+    {
+        play.smooth_walk = true;
     }
 }
 

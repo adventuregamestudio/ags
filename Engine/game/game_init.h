@@ -23,6 +23,10 @@
 #include "game/main_game_file.h"
 #include "util/string.h"
 
+struct GameSetupStruct;
+struct GamePlayState;
+struct GameSetup;
+
 namespace AGS
 {
 namespace Engine
@@ -50,7 +54,9 @@ typedef ErrorHandle<GameInitError> HGameInitError;
 // Sets up game state for play using preloaded data
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
-void ApplyAccessibilityOptions();
+void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup);
+// Applies override settings, such as hacks and backwards compatibility fixes
+void ApplyOverrides(GameSetupStruct &game, const GameSetup &setup);
 
 } // namespace Engine
 } // namespace AGS

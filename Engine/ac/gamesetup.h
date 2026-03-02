@@ -66,6 +66,7 @@ struct OverrideGameConfig
     int8_t Multitasking     = -1; // -1 for none, 0 or 1 to lock in the on/off mode (TODO: make enum)
     bool  NoPlugins         = false; // disable loading plugins
     bool  UpscaleResolution = false; // whether upscale old games that supported that
+    bool  NewKeyHandling    = false; // force new keyhandling mode
     // Optional keys for calling built-in save/restore dialogs;
     // primarily meant for the test runs of the games where save functionality
     // is not implemented (or does not work correctly).

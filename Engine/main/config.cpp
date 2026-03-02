@@ -470,6 +470,7 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     setup.Override.ScriptOS = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
         CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
     setup.Override.UpscaleResolution = CfgReadBoolInt(cfg, "override", "upscale", setup.Override.UpscaleResolution);
+    setup.Override.NewKeyHandling = CfgReadBoolInt(cfg, "override", "new_key_mode", setup.Override.NewKeyHandling);
     setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
     setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
     setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);

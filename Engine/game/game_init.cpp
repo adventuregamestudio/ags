@@ -553,26 +553,36 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
-    ApplyAccessibilityOptions();
+    ApplyAccessibilityOptions(play, usetup);
+    // Apply override settings, such as hacks and backwards compatibility fixes
+    ApplyOverrides(game, usetup);
 
     return HGameInitError::None();
 }
 
-void ApplyAccessibilityOptions()
+void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
 {
-    if (usetup.Access.SpeechSkipStyle != kSkipSpeechNone)
+    if (setup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
-        play.speech_skip_style = user_to_internal_skip_speech(usetup.Access.SpeechSkipStyle);
+        play.speech_skip_style = user_to_internal_skip_speech(setup.Access.SpeechSkipStyle);
     }
-    if (usetup.Access.TextSkipStyle != kSkipSpeechNone)
+    if (setup.Access.TextSkipStyle != kSkipSpeechNone)
     {
-        play.skip_display = usetup.Access.TextSkipStyle;
-        play.skip_timed_display = usetup.Access.TextSkipStyle;
+        play.skip_display = setup.Access.TextSkipStyle;
+        play.skip_timed_display = setup.Access.TextSkipStyle;
     }
-    if (usetup.Access.TextReadSpeed > 0)
+    if (setup.Access.TextReadSpeed > 0)
     {
-        play.text_speed = usetup.Access.TextReadSpeed;
-        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / usetup.Access.TextReadSpeed)), 1000, 3000);
+        play.text_speed = setup.Access.TextReadSpeed;
+        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / setup.Access.TextReadSpeed)), 1000, 3000);
+    }
+}
+
+void ApplyOverrides(GameSetupStruct &game, const GameSetup &setup)
+{
+    if (setup.Override.NewKeyHandling)
+    {
+        game.options[OPT_KEYHANDLEAPI] = 1;
     }
 }
 

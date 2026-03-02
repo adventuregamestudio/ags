@@ -879,7 +879,7 @@ void engine_init_game_settings()
 
     // FIXME: this should be done once in InitGameState, but the code for default game settings
     // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
-    ApplyAccessibilityOptions();
+    ApplyAccessibilityOptions(play, usetup);
 }
 
 void engine_setup_scsystem_auxiliary()

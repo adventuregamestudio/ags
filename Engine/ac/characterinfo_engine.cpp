@@ -488,7 +488,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
         int maxLoops = views[chi->idleview].numLoops;
         // if the char is set to "no diagonal loops", don't try
         // to use diagonal idle loops either
-        if ((maxLoops > 4) && (useDiagonal(chi)))
+        if ((maxLoops > 4) && (!should_use_diagloops(chi, false /* allow 1-frame loops */)))
           maxLoops = 4;
         // If it's not a "swimming"-type idleanim, choose a random loop
         // if there arent enough loops to do the current one.

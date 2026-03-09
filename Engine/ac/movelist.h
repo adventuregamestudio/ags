@@ -74,6 +74,7 @@ public:
 
     bool IsEmpty() const { return pos.empty(); }
     uint32_t GetNumStages() const { return pos.size(); }
+    const Point& GetFirstPos() const { return pos.front(); }
     const Point &GetLastPos() const { return pos.back(); }
     int GetCurrentStageFlags() const { return onstage < stageflags.size() ? stageflags[onstage] : 0; }
     bool IsStageDirect() const { return (GetCurrentStageFlags() & kMoveStage_Direct) != 0; }

@@ -1839,9 +1839,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
 
     StopMoving(chac);
     chin->frame = oldframe;
-    // use toxPassedIn cached variable so the hi-res co-ordinates
-    // are still displayed as such
-    debug_script_log("%s: Start move to %d,%d", chin->scrname, tox, toy);
+    debug_script_log("MoveCharacter: request move %s: %d,%d to %d,%d", chin->scrname, chin->x, chin->y, tox, toy);
 
     int move_speed_x, move_speed_y;
     chin->get_effective_walkspeeds(move_speed_x, move_speed_y);
@@ -1873,6 +1871,12 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         pathfind->SetWalkableArea(prepare_walkable_areas(chac), thisroom.MaskResolution);
         path_result = Pathfinding::FindRoute(mls[mslot], pathfind, src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y, false, ignwal);
     }
+
+    // Double check that the path actually leads to another position;
+    // sometimes pathfinder glitches and returns end point identical to the start point,
+    // and we do not want to "twitch" character's state in such case.
+    if (path_result)
+        path_result &= (mls[mslot].GetFirstPos() != mls[mslot].GetLastPos());
 
     // If successful, then start moving
     if (path_result)

@@ -998,6 +998,10 @@ namespace AGS.Editor
 
                 foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
                 {
+                    // Reload scripts from their files on disk, in case these were modified externally
+                    scripts.Header.LoadFromDisk();
+                    scripts.Script.LoadFromDisk();
+
                     headers.Add(scripts.Header);
                     CompileScript(scripts.Script, headers, errors);
                     _game.ScriptsToCompile.Add(scripts);

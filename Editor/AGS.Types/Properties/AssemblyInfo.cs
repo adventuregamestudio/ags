@@ -23,9 +23,9 @@ namespace AGS.Types
     public class Version
     {
         public static readonly bool IS_BETA_VERSION = false;
-        public const string AGS_EDITOR_DATE = "January 2026";
+        public const string AGS_EDITOR_DATE = "March 2026";
         public const string AGS_EDITOR_FRIENDLY_VERSION = "3.6.2";
-        public const string AGS_EDITOR_VERSION = "3.6.2.16";
+        public const string AGS_EDITOR_VERSION = "3.6.2.17";
         public const string AGS_EDITOR_COPYRIGHT = "Copyright © 2006-2011 Chris Jones and 2011-2026 others.";
         public static readonly string AGS_EDITOR_TARGETNAME =
             IntPtr.Size > 4 ? "64-bit" : "32-bit";

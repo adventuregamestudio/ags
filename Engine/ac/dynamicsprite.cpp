@@ -196,11 +196,11 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x, int y, int width, int h
     data_to_game_coords(&width, &height);
 
     // Clamp the cropped size to the valid area of the original image
-    if ((width > game.SpriteInfos[sds->slot].Width - x) || (height > game.SpriteInfos[sds->slot].Height - y))
+    if ((x < 0) || (y < 0) || (width > game.SpriteInfos[sds->slot].Width - x) || (height > game.SpriteInfos[sds->slot].Height - y))
         debug_script_warn("DynamicSprite.Crop: requested to crop to an area outside of the source image: image is %dx%d, crop area %d,%d %dx%d",
             game.SpriteInfos[sds->slot].Width, game.SpriteInfos[sds->slot].Height, x, y, width, height);
-    width = std::min(width, game.SpriteInfos[sds->slot].Width - x);
-    height = std::min(height, game.SpriteInfos[sds->slot].Height - y);
+    Math::ClampLength(x, width, 0, game.SpriteInfos[sds->slot].Width);
+    Math::ClampLength(y, height, 0, game.SpriteInfos[sds->slot].Height);
 
     if (width <= 0 || height <= 0)
         return; // cannot crop to zero size

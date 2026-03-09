@@ -92,11 +92,12 @@ int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds) {
     return depth;
 }
 
-void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
-    if ((width < 1) || (height < 1))
-        quit("!DynamicSprite.Resize: width and height must be greater than zero");
+void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height)
+{
     if (sds->slot == 0)
         quit("!DynamicSprite.Resize: sprite has been deleted");
+    if ((width < 1) || (height < 1))
+        quit("!DynamicSprite.Resize: width and height must be greater than zero");
 
     data_to_game_coords(&width, &height);
 
@@ -113,11 +114,12 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
-void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
-    if ((direction < 1) || (direction > 3))
-        quit("!DynamicSprite.Flip: invalid direction");
+void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction)
+{
     if (sds->slot == 0)
         quit("!DynamicSprite.Flip: sprite has been deleted");
+    if ((direction < 1) || (direction > 3))
+        quit("!DynamicSprite.Flip: invalid direction");
 
     // resize the sprite to the requested size
     Bitmap *sprite = spriteset[sds->slot];
@@ -130,7 +132,8 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
-void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSprite) {
+void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSprite)
+{
     if (sds->slot == 0)
         quit("!DynamicSprite.CopyTransparencyMask: sprite has been deleted");
 
@@ -166,7 +169,7 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     if (sds->slot == 0)
         quit("!DynamicSprite.ChangeCanvasSize: sprite has been deleted");
     if ((width < 1) || (height < 1))
-        quit("!DynamicSprite.ChangeCanvasSize: new size is too small");
+        quit("!DynamicSprite.ChangeCanvasSize: width and height must be greater than zero");
 
     data_to_game_coords(&x, &y);
     data_to_game_coords(&width, &height);
@@ -176,23 +179,31 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
         return; // same canvas size and no offset: no need to do anything
 
     std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateTransparentBitmap(width, height, sprite->GetColorDepth()));
-    // blit it into the enlarged image
     new_pic->Blit(sprite, 0, 0, x, y, sprite->GetWidth(), sprite->GetHeight());
 
+    // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
-void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x, int y, int width, int height) {
-    if ((width < 1) || (height < 1))
-        quit("!DynamicSprite.Crop: co-ordinates do not make sense");
+void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x, int y, int width, int height)
+{
     if (sds->slot == 0)
         quit("!DynamicSprite.Crop: sprite has been deleted");
+    if ((width < 1) || (height < 1))
+        quit("!DynamicSprite.Crop: width and height must be greater than zero");
 
     data_to_game_coords(&x, &y);
     data_to_game_coords(&width, &height);
 
-    if ((width > game.SpriteInfos[sds->slot].Width) || (height > game.SpriteInfos[sds->slot].Height))
-        quit("!DynamicSprite.Crop: requested to crop an area larger than the source");
+    // Clamp the cropped size to the valid area of the original image
+    if ((width > game.SpriteInfos[sds->slot].Width - x) || (height > game.SpriteInfos[sds->slot].Height - y))
+        debug_script_warn("DynamicSprite.Crop: requested to crop to an area outside of the source image: image is %dx%d, crop area %d,%d %dx%d",
+            game.SpriteInfos[sds->slot].Width, game.SpriteInfos[sds->slot].Height, x, y, width, height);
+    width = std::min(width, game.SpriteInfos[sds->slot].Width - x);
+    height = std::min(height, game.SpriteInfos[sds->slot].Height - y);
+
+    if (width <= 0 || height <= 0)
+        return; // cannot crop to zero size
 
     Bitmap *sprite = spriteset[sds->slot];
     if (sprite->GetWidth() == width && sprite->GetHeight() == height && x == 0 && y == 0)
@@ -205,20 +216,25 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x, int y, int width, int h
     add_dynamic_sprite(sds->slot, std::move(new_pic), (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
-void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int height) {
-    if ((angle < 1) || (angle > 359))
-        quit("!DynamicSprite.Rotate: invalid angle (must be 1-359)");
+void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int height)
+{
     if (sds->slot == 0)
         quit("!DynamicSprite.Rotate: sprite has been deleted");
+    if ((angle < 1) || (angle > 359))
+        quit("!DynamicSprite.Rotate: invalid angle (must be 1-359)");
+    if ((width != SCR_NO_VALUE) && (width < 1) || (height != SCR_NO_VALUE) && (height < 1))
+        quit("!DynamicSprite.Rotate: width and height must be greater than zero");
 
     const int src_width = game.SpriteInfos[sds->slot].Width;
     const int src_height = game.SpriteInfos[sds->slot].Height;
-    if ((width == SCR_NO_VALUE) || (height == SCR_NO_VALUE)) {
+    if ((width == SCR_NO_VALUE) || (height == SCR_NO_VALUE))
+    {
         Size rot_sz = RotateSize(Size(src_width, src_height), angle);
         width = rot_sz.Width;
         height = rot_sz.Height;
     }
-    else {
+    else
+    {
         data_to_game_coords(&width, &height);
     }
 

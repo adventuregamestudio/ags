@@ -29,48 +29,12 @@ namespace Common
     }};
 
 GUITextBox::GUITextBox()
-    : GUIControl(&GUITextBox::_eventSchema)
+    : GUITextFieldControl(&GUITextBox::_eventSchema)
 {
     _flags |= kGUICtrl_ShowBorder;
     _paddingX = 1;
     _paddingY = 1;
     UpdateControlRect();
-}
-
-void GUITextBox::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        MarkChanged();
-    }
-}
-
-void GUITextBox::SetTextColor(int color)
-{
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
-}
-
-void GUITextBox::SetTextAlignment(FrameAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
-        MarkChanged();
-    }
-}
-
-void GUITextBox::SetText(const String &text)
-{
-    if (_text != text)
-    {
-        _text = text;
-        MarkChanged();
-    }
 }
 
 Rect GUITextBox::CalcGraphicRect(bool clipped)
@@ -172,9 +136,10 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUITextBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile_Ext363(in, gui_version);
+
     _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+    _textOutlineColor = in->ReadInt32();
     in->ReadInt32(); // reserved
-    in->ReadInt32();
     in->ReadInt32();
 }
 
@@ -191,8 +156,9 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         (svg_ver >= kGuiSvgVersion_40026))
     {
         _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
+        // valid since kGuiSvgVersion_36308
+        _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
-        in->ReadInt32();
         in->ReadInt32();
     }
     else
@@ -210,8 +176,9 @@ void GUITextBox::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textBoxFlags);
     // kGuiSvgVersion_36304
     out->WriteInt32(_textAlignment);
+    // valid since kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
     out->WriteInt32(0);
 }
 
@@ -223,6 +190,7 @@ void GUITextBox::SetDefaultLooksFor363()
     _borderWidth = 1;
     _paddingX = 1;
     _paddingY = 1;
+    _textOutlineColor = 16;
     UpdateControlRect();
 }
 

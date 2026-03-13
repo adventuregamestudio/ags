@@ -230,172 +230,12 @@ int Dialog_GetOptionCount(ScriptDialog *sd)
   return dialog[sd->id].GetOptionCount();
 }
 
-int Dialog_GetOptionsBulletGraphic()
-{
-    return game.dialog_bullet;
-}
-
-void Dialog_SetOptionsBulletGraphic(int sprite)
-{
-    game.dialog_bullet = sprite;
-}
-
-int Dialog_GetOptionsFont()
-{
-    return play.dialog_options_font;
-}
-
-void Dialog_SetOptionsFont(int fontnum)
-{
-    fontnum = ValidateFontNumber("Dialog.SetOptionsFont", fontnum);
-    play.dialog_options_font = fontnum;
-}
-
-int Dialog_GetOptionsNumbering()
-{
-    return game.options[OPT_DIALOGNUMBERED];
-}
-
-void Dialog_SetOptionsNumbering(int style)
-{
-    game.options[OPT_DIALOGNUMBERED] = style;
-}
-
-int Dialog_GetOptionsHighlightColor()
-{
-    return play.dialog_options_highlight_color;
-}
-
-void Dialog_SetOptionsHighlightColor(int color)
-{
-    play.dialog_options_highlight_color = color;
-}
-
-int Dialog_GetOptionsReadColor()
-{
-    return play.read_dialog_option_colour;
-}
-
-void Dialog_SetOptionsReadColor(int color)
-{
-    play.read_dialog_option_colour = color;
-}
-
-int Dialog_GetOptionsTextAlignment()
-{
-    return play.dialog_options_textalign;
-}
-
-void Dialog_SetOptionsTextAlignment(int align)
-{
-    play.dialog_options_textalign = (HorAlignment)align;
-}
-
-int Dialog_GetOptionsZOrder()
-{
-    return play.dialog_options_zorder;
-}
-
-void Dialog_SetOptionsZOrder(int zorder)
-{
-    play.dialog_options_zorder = zorder;
-}
-
-int Dialog_GetOptionsGap()
-{
-    return game.options[OPT_DIALOGGAP];
-}
-
-void Dialog_SetOptionsGap(int gap)
-{
-    game.options[OPT_DIALOGGAP] = gap;
-}
-
-ScriptGUI *Dialog_GetOptionsGUI()
-{
-    // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
-    if (game.options[OPT_DIALOGIFACE] <= 0 || game.options[OPT_DIALOGIFACE] >= game.numgui)
-        return nullptr;
-    return &scrGui[game.options[OPT_DIALOGIFACE]];
-}
-
-void Dialog_SetOptionsGUI(ScriptGUI *scgui)
-{
-    if (scgui->id == 0)
-    {
-        debug_script_warn("Dialog.SetOptionsGUI: cannot assign GUI with ID 0 to dialog options");
-        return;
-    }
-
-    game.options[OPT_DIALOGIFACE] = scgui->id;
-}
-
-int Dialog_GetOptionsGUIX()
-{
-    return play.dialog_options_gui_x;
-}
-
-void Dialog_SetOptionsGUIX(int x)
-{
-    play.dialog_options_gui_x = x;
-}
-
-int Dialog_GetOptionsGUIY()
-{
-    return play.dialog_options_gui_y;
-}
-
-void Dialog_SetOptionsGUIY(int y)
-{
-    play.dialog_options_gui_y = y;
-}
-
-int Dialog_GetOptionsPaddingX()
-{
-    return play.dialog_options_pad_x;
-}
-
-void Dialog_SetOptionsPaddingX(int x)
-{
-    play.dialog_options_pad_x = x;
-}
-
-int Dialog_GetOptionsPaddingY()
-{
-    return play.dialog_options_pad_y;
-}
-
-void Dialog_SetOptionsPaddingY(int y)
-{
-    play.dialog_options_pad_y = y;
-}
-
-int Dialog_GetMaxOptionsGUIWidth()
-{
-    return play.max_dialogoption_width;
-}
-
-void Dialog_SetMaxOptionsGUIWidth(int width)
-{
-    play.max_dialogoption_width = width;
-}
-
-int Dialog_GetMinOptionsGUIWidth()
-{
-    return play.min_dialogoption_width;
-}
-
-void Dialog_SetMinOptionsGUIWidth(int width)
-{
-    play.min_dialogoption_width = width;
-}
-
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
     return (dialog[sd->id].Flags & DTFLG_SHOWPARSER) ? 1 : 0;
 }
 
-const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
+const char *Dialog_GetOptionText(ScriptDialog *sd, int option)
 {
     if ((option < 1) || (static_cast<uint32_t>(option) > dialog[sd->id].GetOptionCount()))
         quit("!Dialog.GetOptionText: Invalid option number specified");
@@ -423,6 +263,171 @@ int Dialog_GetID(ScriptDialog *sd)
 const char *Dialog_GetScriptName(ScriptDialog *sd)
 {
     return CreateNewScriptString(dialog[sd->id].ScriptName);
+}
+
+int DialogOptions_GetAreDisplayed()
+{
+    return is_in_dialogoptions();
+}
+
+int DialogOptions_GetBulletGraphic()
+{
+    return game.dialog_bullet;
+}
+
+void DialogOptions_SetBulletGraphic(int sprite)
+{
+    game.dialog_bullet = sprite;
+}
+
+int DialogOptions_GetFont()
+{
+    return play.dialog_options_font;
+}
+
+void DialogOptions_SetFont(int fontnum)
+{
+    fontnum = ValidateFontNumber("Dialog.SetOptionsFont", fontnum);
+    play.dialog_options_font = fontnum;
+}
+
+int DialogOptions_GetItemNumbering()
+{
+    return game.options[OPT_DIALOGNUMBERED];
+}
+
+void DialogOptions_SetItemNumbering(int style)
+{
+    game.options[OPT_DIALOGNUMBERED] = style;
+}
+
+int DialogOptions_GetHighlightColor()
+{
+    return play.dialog_options_highlight_color;
+}
+
+void DialogOptions_SetHighlightColor(int color)
+{
+    play.dialog_options_highlight_color = color;
+}
+
+int DialogOptions_GetReadColor()
+{
+    return play.read_dialog_option_colour;
+}
+
+void DialogOptions_SetReadColor(int color)
+{
+    play.read_dialog_option_colour = color;
+}
+
+int DialogOptions_GetTextAlignment()
+{
+    return play.dialog_options_textalign;
+}
+
+void DialogOptions_SetTextAlignment(int align)
+{
+    play.dialog_options_textalign = (HorAlignment)align;
+}
+
+int DialogOptions_GetZOrder()
+{
+    return play.dialog_options_zorder;
+}
+
+void DialogOptions_SetZOrder(int zorder)
+{
+    play.dialog_options_zorder = zorder;
+}
+
+int DialogOptions_GetItemGap()
+{
+    return game.options[OPT_DIALOGGAP];
+}
+
+void DialogOptions_SetItemGap(int gap)
+{
+    game.options[OPT_DIALOGGAP] = gap;
+}
+
+ScriptGUI *DialogOptions_GetTemplateGUI()
+{
+    // NOTE: historically 0 meant "no gui", so gui id 0 cannot be used here
+    if (game.options[OPT_DIALOGIFACE] <= 0 || game.options[OPT_DIALOGIFACE] >= game.numgui)
+        return nullptr;
+    return &scrGui[game.options[OPT_DIALOGIFACE]];
+}
+
+void DialogOptions_SetTemplateGUI(ScriptGUI *scgui)
+{
+    if (scgui->id == 0)
+    {
+        debug_script_warn("Dialog.SetGUI: cannot assign GUI with ID 0 to dialog options");
+        return;
+    }
+
+    game.options[OPT_DIALOGIFACE] = scgui->id;
+}
+
+int DialogOptions_GetGUIX()
+{
+    return play.dialog_options_gui_x;
+}
+
+void DialogOptions_SetGUIX(int x)
+{
+    play.dialog_options_gui_x = x;
+}
+
+int DialogOptions_GetGUIY()
+{
+    return play.dialog_options_gui_y;
+}
+
+void DialogOptions_SetGUIY(int y)
+{
+    play.dialog_options_gui_y = y;
+}
+
+int DialogOptions_GetPaddingX()
+{
+    return play.dialog_options_pad_x;
+}
+
+void DialogOptions_SetPaddingX(int x)
+{
+    play.dialog_options_pad_x = x;
+}
+
+int DialogOptions_GetPaddingY()
+{
+    return play.dialog_options_pad_y;
+}
+
+void DialogOptions_SetPaddingY(int y)
+{
+    play.dialog_options_pad_y = y;
+}
+
+int DialogOptions_GetMaxGUIWidth()
+{
+    return play.max_dialogoption_width;
+}
+
+void DialogOptions_SetMaxGUIWidth(int width)
+{
+    play.max_dialogoption_width = width;
+}
+
+int DialogOptions_GetMinGUIWidth()
+{
+    return play.min_dialogoption_width;
+}
+
+void DialogOptions_SetMinGUIWidth(int width)
+{
+    play.min_dialogoption_width = width;
 }
 
 int Dialog_GetProperty(ScriptDialog *sd, const char *property)
@@ -515,13 +520,23 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
 }
 
 // TODO: make this a member of DialogOptions class
+struct DialogOptionItem
+{
+    int  OptionID = -1;
+    Rect Position;
+
+    DialogOptionItem() = default;
+    DialogOptionItem(int option_id) : OptionID(option_id) {}
+};
+
+// TODO: make this a member of DialogOptions class
 // TODO: don't use global variables inside this function
 // TODO: gather parameters into struct(s)
 // TODO: limit by area height too
 static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
     int bullet_wid, int bullet_spr, int bullet_sprwid,
     int usingfont, int linespacing, int selected_color,
-    const DialogTopic *dtop, int numdisp, int mouseison, const std::vector<int> &disporder, std::vector<int> &dispyp)
+    const DialogTopic *dtop, int numdisp, int mouseison, std::vector<DialogOptionItem> &items)
 {
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
@@ -577,7 +592,7 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
     for (int ww = 0; ww < numdisp; ++ww)
     {
         color_t text_color = 0;
-        if ((dtop->Options[disporder[ww]].Flags & DFLG_HASBEENCHOSEN) &&
+        if ((dtop->Options[items[ww].OptionID].Flags & DFLG_HASBEENCHOSEN) &&
             (play.read_dialog_option_colour >= 0))
         {
             // 'read' colour
@@ -599,14 +614,15 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
                 text_color = ds->GetCompatibleColor(selected_color);
         }
 
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[ww]].Text.GetCStr()));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[items[ww].OptionID].Text.GetCStr()));
         // TODO: make the line-splitting container also save line widths!
         break_up_text_into_lines(draw_text, Lines, wrap_range.second - wrap_range.first + 1, usingfont);
         const int first_line_wid = get_text_width_outlined(Lines[0].GetCStr(), usingfont);
         const int first_line_at = AlignInHRange(wrap_range.first, wrap_range.second, 0, first_line_wid, (FrameAlignment)text_align)
             + first_line_off;
 
-        dispyp[ww] = curyp;
+        items[ww].Position = RectWH(wrap_range.first, curyp, wrap_range.second - wrap_range.first + 1,
+            get_text_lines_height(usingfont, Lines.Count()));
         if (bullet_spr > 0)
         {
             if (ltr_position)
@@ -693,6 +709,12 @@ public:
     int GetChosenOption() const { return chose; }
     int GetOverlayHandle() const { return options_overlay_schandle; }
 
+    // Tells if the dialog options are drawn using custom rendering (scripted)
+    bool HasCustomRender() const { return usingCustomRendering; }
+    // Returns list of displayed options.
+    // NOTE: this only has a meaning for the standard options render, not custom render
+    const std::vector<DialogOptionItem> &GetItems() const { return items; }
+
 private:
     int CalcOptionsHeight(int padding);
     void CreateOverlay();
@@ -741,10 +763,8 @@ private:
 
     // List of displayed options and their precalculated states;
     // NOTE: this is only used in standard options render, not custom render
-    // display order of options
-    std::vector<int> disporder;
-    // display Y coordinate of options
-    std::vector<int> dispyp;
+    std::vector<DialogOptionItem> items;
+
     // number of displayed options
     int numdisp;
     // last chosen option
@@ -801,7 +821,7 @@ int DialogOptions::CalcOptionsHeight(int padding)
     // TODO: cache breaking text into lines, don't repeat the process in Draw
     for (int i = 0; i < numdisp; ++i)
     {
-        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[items[i].OptionID].Text.GetCStr()));
         break_up_text_into_lines(draw_text, Lines, areawid - (2 * padding + 2 + bullet_wid), usingfont);
         total_lines += Lines.Count();
     }
@@ -856,8 +876,7 @@ void DialogOptions::Stop()
 
 void DialogOptions::Begin()
 {
-    disporder.resize(dtop->GetOptionCount());
-    dispyp.resize(dtop->GetOptionCount());
+    items.clear();
 
     doStop = false;
     chose = -1;
@@ -872,7 +891,8 @@ void DialogOptions::Begin()
             continue; // do not add an empty option name into the display list
 
         // Add this option into the display list
-        disporder[numdisp++] = i;
+        items.push_back(DialogOptionItem(i));
+        numdisp++;
     }
 
     if (loaded_game_file_version >= kGameVersion_363)
@@ -966,7 +986,7 @@ void DialogOptions::Begin()
             int max_line_width = 0;
             for (int i = 0; i < numdisp; ++i)
             {
-                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[disporder[i]].Text.GetCStr()));
+                const char *draw_text = skip_voiceover_token(get_translation(dtop->Options[items[i].OptionID].Text.GetCStr()));
                 break_up_text_into_lines(draw_text, Lines, max_width - ((2 * padding + 2) + bullet_wid), usingfont);
                 max_line_width = std::max(max_line_width, longestline);
             }
@@ -1054,7 +1074,8 @@ void DialogOptions::Draw()
     ScreenOverlay *options_over = get_overlay(options_overlay_id);
     Bitmap *options_bmp = options_over->GetImage();
 
-    std::fill(dispyp.begin(), dispyp.end(), 0);
+    for (auto &item : items)
+        item.Position = Rect();
 
     if (usingCustomRendering)
     {
@@ -1105,7 +1126,7 @@ void DialogOptions::Draw()
         curyp = write_dialog_options(options_bmp, inner_position.X, inner_position.Y, opts_areawid,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
                                     usingfont, linespacing, forecol,
-                                    dtop, numdisp, mouseison, disporder, dispyp);
+                                    dtop, numdisp, mouseison, items);
         if (parserInput)
             parserInput->SetX(inner_position.X);
     }
@@ -1134,7 +1155,7 @@ void DialogOptions::Draw()
         curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawid,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
                                     usingfont, linespacing, forecol,
-                                    dtop, numdisp, mouseison, disporder, dispyp);
+                                    dtop, numdisp, mouseison, items);
 
         if (parserInput)
             parserInput->SetX(inner_position.X);
@@ -1268,7 +1289,7 @@ bool DialogOptions::Run()
         mouseison = numdisp-1;
         for (int i = 0; i < numdisp; ++i)
         {
-            if (rel_mousey < dispyp[i]) { mouseison=i-1; break; }
+            if (rel_mousey < items[i].Position.Top) { mouseison=i-1; break; }
         }
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
     }
@@ -1447,7 +1468,7 @@ bool DialogOptions::RunKey(const KeyInput &ki)
         int numkey = agskey - '1';
         if (numkey < numdisp)
         {
-            chose = disporder[numkey];
+            chose = items[numkey].OptionID;
             return true; // handled
         }
     }
@@ -1487,7 +1508,7 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mx, int my)
         }
         else
         {
-            chose = disporder[mouseison];
+            chose = items[mouseison].OptionID;
         }
         return true; // always treat handled, any mouse button does the same
     }
@@ -1906,7 +1927,63 @@ void shutdown_dialog_state()
 }
 
 // end dialog manager
+//=============================================================================
 
+bool DialogOptions_GetHasCustomRender()
+{
+    if (!dialogOpts)
+        return false;
+
+    return dialogOpts->HasCustomRender();
+}
+
+int DialogOptions_GetItemCount()
+{
+    if (!dialogOpts)
+        return 0;
+
+    return static_cast<int>(dialogOpts->GetItems().size());
+}
+
+int DialogOptions_GetItemOptionID(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].OptionID + 1; // 1-based script index
+}
+
+int DialogOptions_GetItemX(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.Left;
+}
+
+int DialogOptions_GetItemY(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.Top;
+}
+
+int DialogOptions_GetItemWidth(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.GetWidth();
+}
+
+int DialogOptions_GetItemHeight(int index)
+{
+    if (!dialogOpts || index < 0 || static_cast<uint32_t>(index) >= dialogOpts->GetItems().size())
+        return 0;
+
+    return dialogOpts->GetItems()[index].Position.GetHeight();
+}
 
 //=============================================================================
 //
@@ -1942,7 +2019,7 @@ int Dialog_GetExecutedOption()
     return dialogExec ? dialogExec->GetExecutedOption() : -1;
 }
 
-ScriptOverlay *Dialog_GetOptionsOverlay()
+ScriptOverlay *DialogOptions_GetOverlay()
 {
     return dialogOpts ? (ScriptOverlay*)ccGetObjectAddressFromHandle(dialogOpts->GetOverlayHandle()) : nullptr;
 }
@@ -1992,161 +2069,6 @@ RuntimeScriptValue Sc_Dialog_GetScriptName(void *self, const RuntimeScriptValue 
 RuntimeScriptValue Sc_Dialog_GetOptionCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialog, Dialog_GetOptionCount);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsGUI(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ(ScriptGUI, ccDynamicGUI, Dialog_GetOptionsGUI);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsGUI(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ(Dialog_SetOptionsGUI, ScriptGUI);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsGUIX);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsGUIX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsGUIX);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsGUIY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsGUIY);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsGUIY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsGUIY);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsPaddingX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsPaddingX);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsPaddingX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingX);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsPaddingY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsPaddingY);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsPaddingY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsPaddingY);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsBulletGraphic);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsBulletGraphic);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsFont(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsFont);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsFont(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsFont);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsNumbering);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsNumbering(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsNumbering);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO(ScriptOverlay, Dialog_GetOptionsOverlay);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsHighlightColor);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsHighlightColor);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsReadColor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsReadColor);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsReadColor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsReadColor);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsTextAlignment);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsTextAlignment);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsZOrder(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsZOrder);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsZOrder(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsZOrder);
-}
-
-RuntimeScriptValue Sc_Dialog_GetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetOptionsGap);
-}
-
-RuntimeScriptValue Sc_Dialog_SetOptionsGap(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetOptionsGap);
-}
-
-RuntimeScriptValue Sc_Dialog_GetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetMaxOptionsGUIWidth);
-}
-
-RuntimeScriptValue Sc_Dialog_SetMaxOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetMaxOptionsGUIWidth);
-}
-
-RuntimeScriptValue Sc_Dialog_GetMinOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Dialog_GetMinOptionsGUIWidth);
-}
-
-RuntimeScriptValue Sc_Dialog_SetMinOptionsGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Dialog_SetMinOptionsGUIWidth);
 }
 
 // int (ScriptDialog *sd)
@@ -2206,6 +2128,201 @@ RuntimeScriptValue Sc_Dialog_StartOption(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PINT(ScriptDialog, Dialog_StartOption);
 }
 
+RuntimeScriptValue Sc_DialogOptions_GetTemplateGUI(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(ScriptGUI, ccDynamicGUI, DialogOptions_GetTemplateGUI);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetTemplateGUI(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(DialogOptions_SetTemplateGUI, ScriptGUI);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetGUIX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetGUIX);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetGUIX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetGUIX);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetGUIY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetGUIY);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetGUIY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetGUIY);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetPaddingX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetPaddingX);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetPaddingX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetPaddingX);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetPaddingY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetPaddingY);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetPaddingY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetPaddingY);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetAreDisplayed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(DialogOptions_GetAreDisplayed);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetBulletGraphic);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetBulletGraphic(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetBulletGraphic);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetFont);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetFont);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemNumbering(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetItemNumbering);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetItemNumbering(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetItemNumbering);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, DialogOptions_GetOverlay);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetHighlightColor);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetHighlightColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetHighlightColor);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetReadColor);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetReadColor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetReadColor);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetTextAlignment);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetTextAlignment);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetZOrder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetZOrder);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetZOrder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetZOrder);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemGap(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetItemGap);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetItemGap(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetItemGap);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetMaxGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetMaxGUIWidth);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetMaxGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetMaxGUIWidth);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetMinGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetMinGUIWidth);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetMinGUIWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetMinGUIWidth);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetHasCustomRender(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(DialogOptions_GetHasCustomRender);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetItemCount);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemOptionID(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemOptionID);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemX(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemX);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemY);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemWidth);
+}
+
+RuntimeScriptValue Sc_DialogOptions_GetItemHeight(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(DialogOptions_GetItemHeight);
+}
+
 RuntimeScriptValue Sc_Dialog_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(ScriptDialog, Dialog_GetProperty, const char);
@@ -2229,6 +2346,7 @@ RuntimeScriptValue Sc_Dialog_SetTextProperty(void *self, const RuntimeScriptValu
 void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
+        // Dialog
         { "Dialog::GetByName",            API_FN_PAIR(Dialog_GetByName) },
         { "Dialog::Stop",                 API_FN_PAIR(Dialog_Stop) },
         { "Dialog::get_CurrentDialog",    API_FN_PAIR(Dialog_GetCurrentDialog) },
@@ -2236,37 +2354,6 @@ void RegisterDialogAPI()
         { "Dialog::get_AreOptionsDisplayed", API_FN_PAIR(Dialog_GetAreOptionsDisplayed) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
-        { "Dialog::get_OptionsBulletGraphic", API_FN_PAIR(Dialog_GetOptionsBulletGraphic) },
-        { "Dialog::set_OptionsBulletGraphic", API_FN_PAIR(Dialog_SetOptionsBulletGraphic) },
-        { "Dialog::get_OptionsFont",      API_FN_PAIR(Dialog_GetOptionsFont) },
-        { "Dialog::set_OptionsFont",      API_FN_PAIR(Dialog_SetOptionsFont) },
-        { "Dialog::get_OptionsGap",       API_FN_PAIR(Dialog_GetOptionsGap) },
-        { "Dialog::set_OptionsGap",       API_FN_PAIR(Dialog_SetOptionsGap) },
-        { "Dialog::get_OptionsGUI",       API_FN_PAIR(Dialog_GetOptionsGUI) },
-        { "Dialog::set_OptionsGUI",       API_FN_PAIR(Dialog_SetOptionsGUI) },
-        { "Dialog::get_OptionsGUIX",      API_FN_PAIR(Dialog_GetOptionsGUIX) },
-        { "Dialog::set_OptionsGUIX",      API_FN_PAIR(Dialog_SetOptionsGUIX) },
-        { "Dialog::get_OptionsGUIY",      API_FN_PAIR(Dialog_GetOptionsGUIY) },
-        { "Dialog::set_OptionsGUIY",      API_FN_PAIR(Dialog_SetOptionsGUIY) },
-        { "Dialog::get_OptionsHighlightColor", API_FN_PAIR(Dialog_GetOptionsHighlightColor) },
-        { "Dialog::set_OptionsHighlightColor", API_FN_PAIR(Dialog_SetOptionsHighlightColor) },
-        { "Dialog::get_OptionsMaxGUIWidth", API_FN_PAIR(Dialog_GetMaxOptionsGUIWidth) },
-        { "Dialog::set_OptionsMaxGUIWidth", API_FN_PAIR(Dialog_SetMaxOptionsGUIWidth) },
-        { "Dialog::get_OptionsMinGUIWidth", API_FN_PAIR(Dialog_GetMinOptionsGUIWidth) },
-        { "Dialog::set_OptionsMinGUIWidth", API_FN_PAIR(Dialog_SetMinOptionsGUIWidth) },
-        { "Dialog::get_OptionsNumbering", API_FN_PAIR(Dialog_GetOptionsNumbering) },
-        { "Dialog::set_OptionsNumbering", API_FN_PAIR(Dialog_SetOptionsNumbering) },
-        { "Dialog::get_OptionsOverlay",   API_FN_PAIR(Dialog_GetOptionsOverlay) },
-        { "Dialog::get_OptionsPaddingX",  API_FN_PAIR(Dialog_GetOptionsPaddingX) },
-        { "Dialog::set_OptionsPaddingX",  API_FN_PAIR(Dialog_SetOptionsPaddingX) },
-        { "Dialog::get_OptionsPaddingY",  API_FN_PAIR(Dialog_GetOptionsPaddingY) },
-        { "Dialog::set_OptionsPaddingY",  API_FN_PAIR(Dialog_SetOptionsPaddingY) },
-        { "Dialog::get_OptionsReadColor",  API_FN_PAIR(Dialog_GetOptionsReadColor) },
-        { "Dialog::set_OptionsReadColor",  API_FN_PAIR(Dialog_SetOptionsReadColor) },
-        { "Dialog::get_OptionsTextAlignment", API_FN_PAIR(Dialog_GetOptionsTextAlignment) },
-        { "Dialog::set_OptionsTextAlignment", API_FN_PAIR(Dialog_SetOptionsTextAlignment) },
-        { "Dialog::get_OptionsZOrder",    API_FN_PAIR(Dialog_GetOptionsZOrder) },
-        { "Dialog::set_OptionsZOrder",    API_FN_PAIR(Dialog_SetOptionsZOrder) },
         { "Dialog::get_ScriptName",       API_FN_PAIR(Dialog_GetScriptName) },
         { "Dialog::get_ShowTextParser",   API_FN_PAIR(Dialog_GetShowTextParser) },
         { "Dialog::DisplayOptions^1",     API_FN_PAIR(Dialog_DisplayOptions) },
@@ -2282,6 +2369,48 @@ void RegisterDialogAPI()
         { "Dialog::GetTextProperty^1",    API_FN_PAIR(Dialog_GetTextProperty) },
         { "Dialog::SetProperty^2",        API_FN_PAIR(Dialog_SetProperty) },
         { "Dialog::SetTextProperty^2",    API_FN_PAIR(Dialog_SetTextProperty) },
+
+        // DialogOptions
+        { "DialogOptions::get_AreDisplayed", API_FN_PAIR(DialogOptions_GetAreDisplayed) },
+        { "DialogOptions::get_BulletGraphic", API_FN_PAIR(DialogOptions_GetBulletGraphic) },
+        { "DialogOptions::set_BulletGraphic", API_FN_PAIR(DialogOptions_SetBulletGraphic) },
+        { "DialogOptions::get_Font",      API_FN_PAIR(DialogOptions_GetFont) },
+        { "DialogOptions::set_Font",      API_FN_PAIR(DialogOptions_SetFont) },
+        { "DialogOptions::get_ItemGap",   API_FN_PAIR(DialogOptions_GetItemGap) },
+        { "DialogOptions::set_ItemGap",   API_FN_PAIR(DialogOptions_SetItemGap) },
+        { "DialogOptions::get_TemplateGUI", API_FN_PAIR(DialogOptions_GetTemplateGUI) },
+        { "DialogOptions::set_TemplateGUI", API_FN_PAIR(DialogOptions_SetTemplateGUI) },
+        { "DialogOptions::get_GUIX",      API_FN_PAIR(DialogOptions_GetGUIX) },
+        { "DialogOptions::set_GUIX",      API_FN_PAIR(DialogOptions_SetGUIX) },
+        { "DialogOptions::get_GUIY",      API_FN_PAIR(DialogOptions_GetGUIY) },
+        { "DialogOptions::set_GUIY",      API_FN_PAIR(DialogOptions_SetGUIY) },
+        { "DialogOptions::get_HighlightColor", API_FN_PAIR(DialogOptions_GetHighlightColor) },
+        { "DialogOptions::set_HighlightColor", API_FN_PAIR(DialogOptions_SetHighlightColor) },
+        { "DialogOptions::get_MaxGUIWidth", API_FN_PAIR(DialogOptions_GetMaxGUIWidth) },
+        { "DialogOptions::set_MaxGUIWidth", API_FN_PAIR(DialogOptions_SetMaxGUIWidth) },
+        { "DialogOptions::get_MinGUIWidth", API_FN_PAIR(DialogOptions_GetMinGUIWidth) },
+        { "DialogOptions::set_MinGUIWidth", API_FN_PAIR(DialogOptions_SetMinGUIWidth) },
+        { "DialogOptions::get_ItemNumbering", API_FN_PAIR(DialogOptions_GetItemNumbering) },
+        { "DialogOptions::set_ItemNumbering", API_FN_PAIR(DialogOptions_SetItemNumbering) },
+        { "DialogOptions::get_Overlay",   API_FN_PAIR(DialogOptions_GetOverlay) },
+        { "DialogOptions::get_PaddingX",  API_FN_PAIR(DialogOptions_GetPaddingX) },
+        { "DialogOptions::set_PaddingX",  API_FN_PAIR(DialogOptions_SetPaddingX) },
+        { "DialogOptions::get_PaddingY",  API_FN_PAIR(DialogOptions_GetPaddingY) },
+        { "DialogOptions::set_PaddingY",  API_FN_PAIR(DialogOptions_SetPaddingY) },
+        { "DialogOptions::get_ReadColor",  API_FN_PAIR(DialogOptions_GetReadColor) },
+        { "DialogOptions::set_ReadColor",  API_FN_PAIR(DialogOptions_SetReadColor) },
+        { "DialogOptions::get_TextAlignment", API_FN_PAIR(DialogOptions_GetTextAlignment) },
+        { "DialogOptions::set_TextAlignment", API_FN_PAIR(DialogOptions_SetTextAlignment) },
+        { "DialogOptions::get_ZOrder",    API_FN_PAIR(DialogOptions_GetZOrder) },
+        { "DialogOptions::set_ZOrder",    API_FN_PAIR(DialogOptions_SetZOrder) },
+
+        { "DialogOptions::get_HasCustomRender", API_FN_PAIR(DialogOptions_GetHasCustomRender) },
+        { "DialogOptions::get_ItemCount", API_FN_PAIR(DialogOptions_GetItemCount) },
+        { "DialogOptions::geti_ItemOptionID", API_FN_PAIR(DialogOptions_GetItemOptionID) },
+        { "DialogOptions::geti_ItemX",    API_FN_PAIR(DialogOptions_GetItemX) },
+        { "DialogOptions::geti_ItemY",    API_FN_PAIR(DialogOptions_GetItemY) },
+        { "DialogOptions::geti_ItemWidth", API_FN_PAIR(DialogOptions_GetItemWidth) },
+        { "DialogOptions::geti_ItemHeight", API_FN_PAIR(DialogOptions_GetItemHeight) }
     };
 
     ccAddExternalFunctions(dialog_api);

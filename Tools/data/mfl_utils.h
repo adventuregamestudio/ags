@@ -15,9 +15,9 @@
 #define __AGS_TOOL_DATA__MFLUTIL_H
 
 #include <functional>
-#include "core/asset.h"
+#include "data/asset.h"
+#include "data/multifilelib.h"
 #include "util/error.h"
-#include "util/multifilelib.h"
 #include "util/stream.h"
 
 namespace AGS

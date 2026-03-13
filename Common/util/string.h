@@ -42,9 +42,9 @@
 #include <vector>
 #include <string> // for converting from and to std::string
 #include <string.h>
-#include "core/platform.h"
-#include "core/types.h"
 #include "debug/assert.h"
+#include "platform/platform.h"
+#include "platform/types.h"
 
 namespace AGS
 {

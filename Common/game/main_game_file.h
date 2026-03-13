@@ -17,7 +17,6 @@
 // options, lists of static game entities and compiled scripts modules.
 //
 //=============================================================================
-
 #ifndef __AGS_CN_GAME__MAINGAMEFILE_H
 #define __AGS_CN_GAME__MAINGAMEFILE_H
 

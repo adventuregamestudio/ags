@@ -129,6 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSEditor.cs" />
+    <Compile Include="Audio\AudioController.cs" />
     <Compile Include="BuildTargets\BuildTargetWeb.cs" />
     <Compile Include="BuildTargets\BuildTargetAndroid.cs" />
     <Compile Include="ColorThemes\ColorTheme.cs" />
@@ -146,6 +147,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Components\CursorsComponent.cs" />
+    <Compile Include="Components\CustomPropertiesComponent.cs" />
     <Compile Include="Components\DebugLogComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
     <Compile Include="Components\FileCommandsComponent.cs" />
@@ -238,6 +240,7 @@
     <Compile Include="GUI\LineInBetween.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="GUI\ListViewExtensions.cs" />
     <Compile Include="GUI\LogPanel.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -301,6 +304,9 @@
     </Compile>
     <Compile Include="GUI\Progress.Designer.cs">
       <DependentUpon>Progress.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\SortableListView.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="GUI\SplashScreen.cs">
       <SubType>Form</SubType>
@@ -520,6 +526,7 @@
     <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\IncludeUtils.cs" />
     <Compile Include="Utils\MathExtra.cs" />
+    <Compile Include="Utils\ScriptParsing.cs" />
     <Compile Include="Utils\PaletteUtilities.cs" />
     <Compile Include="Utils\TextUtils.cs" />
     <Compile Include="Utils\TickOnceTimer.cs">
@@ -820,6 +827,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\customproperties.ico" />
     <EmbeddedResource Include="Resources\room-item-save.ico" />
     <EmbeddedResource Include="Resources\menu_file_save-room.over.ico" />
     <EmbeddedResource Include="Resources\word-wrap.ico" />

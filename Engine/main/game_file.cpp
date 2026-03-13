@@ -27,7 +27,7 @@
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "game/game_init.h"

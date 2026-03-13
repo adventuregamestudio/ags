@@ -14,8 +14,6 @@
 #ifndef __AC_DEFINES_H
 #define __AC_DEFINES_H
 
-#include "core/platform.h"
-
 // Some arbitrary return values, should be replaced with either
 // simple boolean, or HError
 #define EXIT_NORMAL 0

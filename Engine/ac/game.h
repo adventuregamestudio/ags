@@ -19,6 +19,8 @@
 #define __AGS_EE_AC__GAME_H
 
 #include <memory>
+#include "ac/game_version.h"
+#include "ac/gamestructdefines.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "gfx/bitmap.h"
@@ -136,8 +138,11 @@ Common::String get_save_game_suffix();
 void set_save_game_suffix(const Common::String &suffix);
 // Returns full path to the save for the given slot number
 Common::String get_save_game_path(int slotNum);
-// Parses filename and retrieves save slot number, if present
-bool get_save_slotnum(const Common::String &filename, int &slot);
+// Parses an input filepath and retrieves final path and respective save slot number, if possible.
+// * if input contains an absolute filepath, then uses it directly;
+// * if input contains a relative filename, then tests both cwd and game's save directory;
+// * if input contains a number, then creates a path to the save file with that number
+bool get_save_filepath_and_slot(const Common::String &input_savepath, Common::String &filepath, int &slot);
 // Try calling built-in restore game dialog;
 // NOTE: this is a script command; may be aborted according to the game & room settings
 void restore_game_dialog();
@@ -191,6 +196,9 @@ void display_switch_in_resume();
 void game_sprite_updated(int sprnum, bool deleted = false);
 // Precaches sprites for a view, within a selected range of loops.
 void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool with_sounds = false);
+
+// Loads and initializes font at certain index using given properties
+bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ver);
 
 class MoveList;
 // Allocates a movelist slot and moves data over; returns new movelist's index,

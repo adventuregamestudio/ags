@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <ctype.h> // for toupper
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/character.h"
@@ -63,7 +63,7 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "media/audio/audio_system.h"
@@ -1022,6 +1022,9 @@ void check_new_room()
         const EnterNewRoomState newroom_was = in_new_room;
         in_new_room = kEnterRoom_None;
         DisableInterfaceEx(true /* update cursor */);
+        // sync drawable object states before running event
+        // in case they access these properties in a script callback
+        SyncDrawablesState();
         process_event(&evh);
         EnableInterfaceEx(true /* update cursor */);
         in_new_room = newroom_was;

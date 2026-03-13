@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include <cstring>
-#include "core/types.h"
+#include "platform/types.h"
 
 namespace Utf8
 {

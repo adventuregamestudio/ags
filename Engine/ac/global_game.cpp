@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <math.h>
 #include <stdio.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "ac/audiocliptype.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -55,7 +55,7 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "main/config.h"
 #include "main/game_file.h"
 #include "util/directory.h"
@@ -363,7 +363,8 @@ void QuitGame(int dialog) {
     quit("|You have exited.");
 }
 
-void SetRestartPoint() {
+void SetRestartPoint()
+{
     schedule_save_game(RESTART_POINT_SAVE_GAME_NUMBER, "Restart Game Auto-Save");
 }
 

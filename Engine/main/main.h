@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_MAIN__MAIN_H
 #define __AGS_EE_MAIN__MAIN_H
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/version.h"
 
 // Current engine version

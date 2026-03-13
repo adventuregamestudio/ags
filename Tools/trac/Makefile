@@ -24,10 +24,10 @@ CFLAGS   += -Werror=implicit-function-declaration
 
 COMMON_OBJS = \
 	../../Common/ac/wordsdictionary.cpp \
+	../../Common/data/data_ext.cpp \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/game/tra_file.cpp \
 	../../Common/util/bufferedstream.cpp \
-	../../Common/util/data_ext.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/path.cpp \

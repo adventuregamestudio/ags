@@ -14,6 +14,7 @@
 #include "platform/base/sys_main.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
+#include "ac/sys_events.h"
 #include "debug/out.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
@@ -28,6 +29,8 @@ struct SysMainInfo
     // Indicates which subsystems did we initialize
     uint32_t SDLSubsystems = 0u;
 } static gl_SysMainInfo;
+
+SystemConfig gl_SysConfig;
 
 // ----------------------------------------------------------------------------
 // INIT / SHUTDOWN
@@ -60,6 +63,22 @@ int sys_main_init(/*config*/) {
           SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS |
           SDL_INIT_GAMECONTROLLER * controller_res;
     return 0;
+}
+
+void sys_set_config(const SystemConfig &cfg)
+{
+    gl_SysConfig = cfg;
+    sys_evt_on_config_set();
+}
+
+void sys_set_display_size_ref(const Size &mode)
+{
+    gl_SysConfig.DisplayMode = mode;
+}
+
+const SystemConfig &sys_get_config()
+{
+    return gl_SysConfig;
 }
 
 void sys_main_shutdown() {
@@ -172,6 +191,16 @@ bool sys_audio_init(const String &driver_name)
             env_drv, SDL_GetError());
         Debug::Printf("Attempt to initialize any audio driver from the known list");
         SDL_setenv("SDL_AUDIODRIVER", "", 1);
+        res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+    }
+    // Finally, if that failed, also try "dummy" driver. SDL2 does not try that
+    // unless explicitly asked for.
+    if (!res && driver_name.CompareNoCase("dummy") != 0)
+    {
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver suitable for this plaform; error: %s",
+            SDL_GetError());
+        Debug::Printf("Attempt to initialize \"dummy\" audio driver");
+        SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
         res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
     }
 
@@ -312,6 +341,7 @@ bool sys_window_lock_mouse(bool on, const Rect &bounds) {
 
 void sys_window_set_mouse(int x, int y) {
     if (!window) return;
+    if (!gl_SysConfig.MouseEnabled) return;
     SDL_WarpMouseInWindow(window, x, y);
 }
 

@@ -33,12 +33,6 @@ extern void blit_end(void);   /* for LOCK_FUNCTION; defined in blit.c */
 
 int _sub_bitmap_id_count = 1;          /* hash value for sub-bitmaps */
 
-RGB_MAP *rgb_map = NULL;               /* RGB -> palette entry conversion */
-
-COLOR_MAP *color_map = NULL;           /* translucency/lighting table */
-
-int _color_depth = 8;                  /* how many bits per pixel? */
-
 int _color_conv = COLORCONV_TOTAL;     /* which formats to auto convert? */
 
 static int color_conv_set = FALSE;     /* has the user set conversion mode? */
@@ -66,44 +60,6 @@ int _blender_col_24 = 0;
 int _blender_col_32 = 0;
 
 int _blender_alpha = 0;                /* for truecolor translucent drawing */
-
-int _rgb_r_shift_15 = DEFAULT_RGB_R_SHIFT_15;     /* truecolor pixel format */
-int _rgb_g_shift_15 = DEFAULT_RGB_G_SHIFT_15;
-int _rgb_b_shift_15 = DEFAULT_RGB_B_SHIFT_15;
-int _rgb_r_shift_16 = DEFAULT_RGB_R_SHIFT_16;
-int _rgb_g_shift_16 = DEFAULT_RGB_G_SHIFT_16;
-int _rgb_b_shift_16 = DEFAULT_RGB_B_SHIFT_16;
-int _rgb_r_shift_24 = DEFAULT_RGB_R_SHIFT_24;
-int _rgb_g_shift_24 = DEFAULT_RGB_G_SHIFT_24;
-int _rgb_b_shift_24 = DEFAULT_RGB_B_SHIFT_24;
-int _rgb_r_shift_32 = DEFAULT_RGB_R_SHIFT_32;
-int _rgb_g_shift_32 = DEFAULT_RGB_G_SHIFT_32;
-int _rgb_b_shift_32 = DEFAULT_RGB_B_SHIFT_32;
-int _rgb_a_shift_32 = DEFAULT_RGB_A_SHIFT_32;
-
-
-/* lookup table for scaling 5 bit colors up to 8 bits */
-int _rgb_scale_5[32] =
-{
-   0,   8,   16,  24,  33,  41,  49,  57,
-   66,  74,  82,  90,  99,  107, 115, 123,
-   132, 140, 148, 156, 165, 173, 181, 189,
-   198, 206, 214, 222, 231, 239, 247, 255
-};
-
-
-/* lookup table for scaling 6 bit colors up to 8 bits */
-int _rgb_scale_6[64] =
-{
-   0,   4,   8,   12,  16,  20,  24,  28,
-   32,  36,  40,  44,  48,  52,  56,  60,
-   65,  69,  73,  77,  81,  85,  89,  93,
-   97,  101, 105, 109, 113, 117, 121, 125,
-   130, 134, 138, 142, 146, 150, 154, 158,
-   162, 166, 170, 174, 178, 182, 186, 190,
-   195, 199, 203, 207, 211, 215, 219, 223,
-   227, 231, 235, 239, 243, 247, 251, 255
-};
 
 
 /* lock_bitmap:

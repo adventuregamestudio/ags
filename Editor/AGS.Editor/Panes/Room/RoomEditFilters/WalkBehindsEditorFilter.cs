@@ -141,6 +141,16 @@ namespace AGS.Editor
             return MakeLayerItemName("Walk-behind area", null, null, id);
         }
 
+        /// <summary>
+        /// Tries to find and select a room item either matching its script name, or,
+        /// if no such matching script name was found, then by its numeric ID,
+        /// embedded in this name (e.g. Object0).
+        /// </summary>
+        public override bool TrySelectItemByName(string name)
+        {
+            return false;
+        }
+
         protected override SortedDictionary<string, int> InitItemRefs()
         {
             SortedDictionary<string, int> items = new SortedDictionary<string, int>();

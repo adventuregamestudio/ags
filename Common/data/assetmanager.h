@@ -39,7 +39,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
-#include "core/asset.h"
+#include "data/asset.h"
 #include "util/directory.h"
 #include "util/stream.h"
 #include "util/string_types.h"

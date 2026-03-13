@@ -23,13 +23,13 @@ LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
 
 COMMON_OBJS = \
-	../../Common/core/asset.cpp \
+	../../Common/data/asset.cpp \
+	../../Common/data/multifilelib.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/directory.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
-	../../Common/util/multifilelib.cpp \
 	../../Common/util/path.cpp \
 	../../Common/util/stdio_compat.c \
 	../../Common/util/stream.cpp \

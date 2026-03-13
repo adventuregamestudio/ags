@@ -16,7 +16,7 @@
 // Engine initialization
 //
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -49,7 +49,7 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
@@ -118,7 +118,7 @@ bool engine_init_backend()
         return false;
     }
     sys_evt_register_ags_events();
-    
+
     // Initialize stripped allegro library
     if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
@@ -145,6 +145,12 @@ void engine_setup_window()
     set_our_eip(-198);
     sys_window_set_title(game.gamename.GetCStr());
     sys_window_set_icon();
+
+    SystemConfig sys_cfg;
+    sys_cfg.DisplayMode = static_cast<Size>(gfxDriver->GetDisplayMode());
+    sys_cfg.MouseEnabled = usetup.MouseEnabled;
+    sys_cfg.OldStyleKeyHandling = game.options[OPT_KEYHANDLEAPI] == 0;
+    sys_set_config(sys_cfg);
     sys_evt_set_quit_callback(winclosehook);
     set_our_eip(-197);
 }
@@ -580,10 +586,16 @@ HError engine_init_sprites()
     }
     auto index_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName);
     HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
-    if (!err) 
+    if (!err)
     {
         return err;
     }
+
+    const char *compress_desc = StrUtil::SelectCStr<kNumSprCompressTypes>(
+        CstrArr<kNumSprCompressTypes>{"none", "rle", "lzw", "deflate"},
+        spriteset.GetSpriteCompression(), "unknown");
+    Debug::Printf("Sprite file info: compression: %s, storage flags: 0x%08x, total sprites: %zu",
+        compress_desc, spriteset.GetStoreFlags(), spriteset.GetSpriteSlotCount());
     if (usetup.SpriteCacheSize > 0)
         spriteset.SetMaxCacheSize(usetup.SpriteCacheSize * 1024);
     Debug::Printf("Sprite cache set: %zu KB", spriteset.GetMaxCacheSize() / 1024);
@@ -652,7 +664,7 @@ void engine_init_game_settings()
     for (ee=0;ee<game.numcharacters;ee++) {
         memset(&game.chars[ee].inv[0],0,MAX_INV*sizeof(short));
         game.chars[ee].activeinv=-1;
-        game.chars[ee].idleleft=game.chars[ee].idletime;
+        game.chars[ee].idleleft=game.chars[ee].idledelay;
         game.chars[ee].walkwaitcounter = 0;
         game.chars[ee].z = 0;
         charextra[ee].xwas = INVALID_X;
@@ -842,7 +854,8 @@ void engine_init_game_settings()
 
     // FIXME: this should be done once in InitGameState, but the code for default game settings
     // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
-    ApplyAccessibilityOptions();
+    ApplyAccessibilityOptions(play, usetup);
+    ApplyOverrides(game, play, usetup);
 }
 
 void engine_setup_scsystem_auxiliary()

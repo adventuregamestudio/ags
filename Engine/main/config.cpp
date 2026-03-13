@@ -21,7 +21,7 @@
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
 #include "ac/system.h"
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
@@ -195,6 +195,7 @@ void config_defaults(GameSetup &setup)
     setup.AudioEnabled = true;
     setup.UseVoicePack = true;
 
+    setup.MouseEnabled = true;
     setup.MouseCtrlWhen = kMouseCtrl_Fullscreen;
     setup.MouseCtrlEnabled = true;
     setup.MouseSpeedDef = kMouseSpeed_CurrentDisplay;
@@ -247,8 +248,9 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     setup.UseVoicePack = CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
     // Mouse options
-    setup.MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
-    setup.MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
+    setup.MouseEnabled = CfgReadBoolInt(cfg, "mouse", "enabled", setup.MouseEnabled);
+    setup.MouseAutoLock = CfgReadBoolInt(cfg, "mouse", "auto_lock", setup.MouseAutoLock);
+    setup.MouseSpeed = CfgReadFloat(cfg, "mouse", "speed", setup.MouseSpeed);
     if (setup.MouseSpeed <= 0.f)
         setup.MouseSpeed = 1.f;
 
@@ -318,6 +320,7 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     String override_os = CfgReadString(cfg, "override", "os");
     setup.Override.ScriptOS = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
         CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
+    setup.Override.NewKeyHandling = CfgReadBoolInt(cfg, "override", "new_key_mode", setup.Override.NewKeyHandling);
     setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
     setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
     setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);

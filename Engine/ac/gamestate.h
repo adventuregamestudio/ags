@@ -423,6 +423,9 @@ struct GamePlayState
     // Clears ignore input state
     void ClearIgnoreInput();
 
+    //
+    // Wait and blocking action state
+    //
     bool IsInWait() const;
     // Set how the last blocking wait was skipped
     void SetWaitSkipResult(int how, int data = 0);
@@ -453,6 +456,7 @@ struct GamePlayState
     // Script Timers
     //
     void StartScriptTimer(int timer_id, int timeout);
+    void StopScriptTimer(int timer_id);
     int  GetScriptTimerPos(int timer_id);
     bool CheckScriptTimer(int timer_id);
     void UpdateScriptTimers();

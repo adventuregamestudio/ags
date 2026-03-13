@@ -179,6 +179,7 @@ enum GameDataVersion
     kGameVersion_363            = 3060300,
     kGameVersion_363_04         = 3060304,
     kGameVersion_363_06         = 3060306,
+    kGameVersion_363_08         = 3060308,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,

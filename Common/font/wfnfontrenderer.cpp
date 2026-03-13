@@ -14,7 +14,7 @@
 #include "font/wfnfontrenderer.h"
 #include <algorithm>
 #include "ac/common.h" // our_eip
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/out.h"
 #include "font/wfnfont.h"
 #include "gfx/bitmap.h"

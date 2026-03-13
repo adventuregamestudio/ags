@@ -192,5 +192,17 @@ namespace AGS.Editor
         {
             get { return propertiesGrid.SelectedTab; }
         }
+
+        private void copyPropertyNameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (propertiesGrid.SelectedGridItem != null)
+                Clipboard.SetText(propertiesGrid.SelectedGridItem.Label);
+        }
+
+        private void copyPropertyValueToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (propertiesGrid.SelectedGridItem != null)
+                Clipboard.SetText(propertiesGrid.SelectedGridItem.Value.ToString());
+        }
     }
 }

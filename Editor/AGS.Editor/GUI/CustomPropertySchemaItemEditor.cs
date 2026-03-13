@@ -34,6 +34,7 @@ namespace AGS.Editor
             chkGUIControls.DataBindings.Add("Checked", _copyOfItem, "AppliesToGUIControls", true, DataSourceUpdateMode.OnPropertyChanged);
             chkRegions.DataBindings.Add("Checked", _copyOfItem, "AppliesToRegions", true, DataSourceUpdateMode.OnPropertyChanged);
             chkWalkareas.DataBindings.Add("Checked", _copyOfItem, "AppliesToWalkableAreas", true, DataSourceUpdateMode.OnPropertyChanged);
+            chkTranslated.DataBindings.Add("Checked", _copyOfItem, "Translated", true, DataSourceUpdateMode.OnPropertyChanged);
             cmbType.SelectedIndex = ((int)_copyOfItem.Type) - 1;
 
             if (!isNewItem)
@@ -74,6 +75,7 @@ namespace AGS.Editor
             _itemToEdit.DefaultValue = _copyOfItem.DefaultValue;
             _itemToEdit.Type = propertyType;
             _itemToEdit.AppliesTo = _copyOfItem.AppliesTo;
+            _itemToEdit.Translated = _copyOfItem.Translated;
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
@@ -88,6 +90,11 @@ namespace AGS.Editor
         {
             // refresh property grid, a property may have been added, changed or removed
             Factory.GUIController.RefreshPropertyGrid();
+        }
+
+        private void cmbType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            chkTranslated.Enabled = ((CustomPropertyType)(cmbType.SelectedIndex + 1)) == CustomPropertyType.Text;
         }
     }
 }

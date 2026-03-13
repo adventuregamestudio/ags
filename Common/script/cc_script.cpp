@@ -13,10 +13,10 @@
 //=============================================================================
 #include <stdlib.h>
 #include <string.h>
+#include "data/data_ext.h"
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
 #include "script/cc_script.h"
-#include "util/data_ext.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"

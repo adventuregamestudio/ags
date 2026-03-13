@@ -16,7 +16,7 @@
 
 #include <dlfcn.h>
 #include <utility>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "debug/out.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"

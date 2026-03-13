@@ -15,8 +15,7 @@
 #define __AC_GUIBUTTON_H
 
 #include <vector>
-#include "gui/guicontrol.h"
-#include "util/string.h"
+#include "gui/guitextbasedcontrol.h"
 
 namespace AGS
 {
@@ -57,7 +56,7 @@ enum ButonEventID
 };
 
 
-class GUIButton : public GUIControl
+class GUIButton : public GUITextFieldControl
 {
 public:
     // Default text padding
@@ -68,8 +67,6 @@ public:
 
     // Properties
     void SetButtonFlags(int flags);
-    int  GetFont() const { return _font; }
-    void SetFont(int font);
     bool IsDynamicColors() const { return ((_buttonFlags & kButton_DynamicColors) != 0); }
     void SetDynamicColors(bool on);
     bool IsFlatStyle() const { return ((_buttonFlags & kButton_FlatStyle) != 0); }
@@ -84,14 +81,10 @@ public:
     void SetPushedBorderColor(int color);
     int  GetBorderShadeColor() const { return _borderShadeColor; }
     void SetBorderShadeColor(int color);
-    int  GetTextColor() const { return _textColor; }
-    void SetTextColor(int color);
     int  GetMouseOverTextColor() const { return _mouseOverTextColor; }
     void SetMouseOverTextColor(int color);
     int  GetPushedTextColor() const { return _pushedTextColor; }
     void SetPushedTextColor(int color);
-    FrameAlignment GetTextAlignment() const { return _textAlignment; }
-    void SetTextAlignment(FrameAlignment align);
 
     int  GetCurrentImage() const;
     int  GetNormalImage() const;
@@ -102,7 +95,6 @@ public:
     SpriteTransformFlags GetCurrentImageFlags() const;
     GraphicFlip GetCurrentImageFlip() const;
     GUIButtonPlaceholder GetPlaceholder() const;
-    const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
     bool HasAction() const;
@@ -112,12 +104,15 @@ public:
     void SetNormalImage(int image);
     void SetPushedImage(int image);
     void SetImages(int normal, int over, int pushed);
-    void SetText(const String &text);
     void SetWrapText(bool on);
 
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
     int  GetClickData(GUIClickMouseButton button) const;
     void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
+
+    // State
+    bool IsHighlighted() const { return _isMouseOver; }
+    bool IsPushed() const { return _isMouseOver && _isPushed; }
 
     // Script Events
     // Gets a events schema corresponding to this object's type
@@ -151,6 +146,10 @@ private:
     // Reports that any of the basic colors have changed;
     // the button will update its current colors depending on its state
     void OnColorsChanged() override;
+    // Reports that the new text is set
+    void OnTextChanged() override;
+    // Reports that the text color has changed
+    void OnTextColorChanged() override;
 
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
@@ -166,15 +165,12 @@ private:
 
     uint32_t _buttonFlags = 0u;
     color_t _borderShadeColor = 0;
-    color_t _textColor = 0;
     color_t _mouseOverBackColor = 0;
     color_t _pushedBackColor = 0;
     color_t _mouseOverBorderColor = 0;
     color_t _pushedBorderColor = 0;
     color_t _mouseOverTextColor = 0;
     color_t _pushedTextColor = 0;
-    int     _font = 0;
-    FrameAlignment _textAlignment = kAlignTopCenter;
     // TODO: flags for each kind of image?
     SpriteTransformFlags _imageFlags = kSprTf_None;
     int     _imageXOff = 0;
@@ -199,8 +195,6 @@ private:
     color_t _currentBgColor = 0;
     color_t _currentBorderColor = 0;
     color_t _currentTextColor = 0;
-    // Text property set by user
-    String  _text;
     // type of content placeholder, if any
     GUIButtonPlaceholder _placeholder = kButtonPlace_None;
     // A flag indicating unnamed button; this is a convenience trick:

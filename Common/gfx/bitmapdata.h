@@ -19,8 +19,8 @@
 #define __AGS_CN_GFX__BITMAPDATA_H
 
 #include <memory>
-#include "core/types.h"
 #include "debug/assert.h"
+#include "platform/types.h"
 
 namespace AGS
 {
@@ -122,10 +122,15 @@ public:
 
     inline PixelFormat GetFormat() const { return _format; }
     inline bool HasAlphaChannel() const { return _format == kPxFmt_A8R8G8B8; }
+    // Gets color depth in bits per pixel
     inline int GetColorDepth() const { return _bitsPerPixel; }
+    inline int GetBytesPerPixel() const { return (_bitsPerPixel + 7) / 8; }
     inline int GetWidth() const { return _width; }
     inline int GetHeight() const { return _height; }
+    // Gets the total size of the pixel data buffer, in bytes
     inline size_t GetDataSize() const { return _dataSize; }
+    // Gets the length of a single bitmap line, in bytes;
+    // this line may have extra padding beyond the bitmap's width
     inline size_t GetStride() const { return _stride; }
     inline const uint8_t *GetData() const { return _cbuf; }
     inline uint8_t *GetData() { return _buf; }

@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_ANDROID
 #include <ctype.h>

@@ -18,7 +18,7 @@
 #ifndef __AGS_CN_UTIL__AASSET_STREAM_H
 #define __AGS_CN_UTIL__AASSET_STREAM_H
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_ANDROID
 #include <android/asset_manager.h>

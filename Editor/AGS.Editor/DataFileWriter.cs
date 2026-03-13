@@ -1159,6 +1159,16 @@ namespace AGS.Editor
                     }
                 }
 
+                public int TextOutlineColor
+                {
+                    get
+                    {
+                        GUIButton button = (GUIButton)this;
+                        if (button != null) return button.TextOutlineColor;
+                        return 0;
+                    }
+                }
+
                 public GUIClickAction ClickAction
                 {
                     get
@@ -1568,6 +1578,45 @@ namespace AGS.Editor
             return scriptModules;
         }
 
+        public static void WriteFontInfo(BinaryWriter writer, Font font)
+        {
+            int flags = 0;
+            if (font.PointSize == 0)
+                flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
+            if (font.HeightDefinedBy == FontHeightDefinition.NominalHeight)
+                flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
+            if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
+                flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
+            if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
+                flags |= NativeConstants.FFLG_ASCENDERFIXUP;
+            writer.Write(flags);
+            if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
+                writer.Write(font.PointSize * font.SizeMultiplier);
+            else
+                writer.Write(font.SizeMultiplier);
+
+            int outline = -1;
+            if (font.OutlineStyle == FontOutlineStyle.Automatic)
+                outline = NativeConstants.FONT_OUTLINE_AUTO;
+            else if (font.OutlineStyle != FontOutlineStyle.None)
+                outline = font.OutlineFont;
+            writer.Write(outline);
+
+            writer.Write(font.VerticalOffset);
+            writer.Write(font.LineSpacing);
+        }
+
+        public static void WriteFontInfo_Ex360(BinaryWriter writer, Font font)
+        {
+            writer.Write(font.AutoOutlineThickness);
+            writer.Write((int)font.AutoOutlineStyle);
+            // Since 3.6.3
+            writer.Write(font.CharacterSpacing);
+            writer.Write(font.CustomHeightValue);
+            writer.Write((int)0); // reserved
+            writer.Write((int)0);
+        }
+
         public static bool SaveThisGameToFile(string fileName, Game game, CompileMessages errors)
         {
             FileStream ostream = File.Create(fileName);
@@ -1594,30 +1643,7 @@ namespace AGS.Editor
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
             foreach (Font font in game.Fonts)
             {
-                int flags = 0;
-                if (font.FontFile != null && font.FontFile.FileFormat == FontFileFormat.WFN)
-                    flags |= NativeConstants.FFLG_SIZEMULTIPLIER;
-                if (font.HeightDefinedBy == FontHeightDefinition.NominalHeight)
-                    flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
-                if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
-                    flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
-                if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
-                    flags |= NativeConstants.FFLG_ASCENDERFIXUP;
-                writer.Write(flags);
-                if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
-                    writer.Write(font.PointSize * font.SizeMultiplier);
-                else
-                    writer.Write(font.SizeMultiplier);
-
-                int outline = -1;
-                if (font.OutlineStyle == FontOutlineStyle.Automatic)
-                    outline = NativeConstants.FONT_OUTLINE_AUTO;
-                else if (font.OutlineStyle != FontOutlineStyle.None)
-                    outline = font.OutlineFont;
-                writer.Write(outline);
-
-                writer.Write(font.VerticalOffset);
-                writer.Write(font.LineSpacing);
+                WriteFontInfo(writer, font);
             }
             int topmostSprite;
             byte[] spriteFlags = new byte[NativeConstants.MAX_STATIC_SPRITES];
@@ -1901,20 +1927,20 @@ namespace AGS.Editor
 
             WriteExtEntities gameEnts = new WriteExtEntities(game, guisWriter);
 
-            WriteExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
-            WriteExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
-            WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
-            WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
-            WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
-            WriteExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
-            WriteExtension("v363_guictrls", WriteExt_363GUIControls, writer, gameEnts, errors);
-            WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
-            WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
-            WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
-            WriteExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
-            WriteExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
-            WriteExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
-            WriteExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
+            WriteGameExtension("v360_fonts", WriteExt_360Fonts, writer, gameEnts, errors);
+            WriteGameExtension("v360_cursors", WriteExt_360Cursors, writer, gameEnts, errors);
+            WriteGameExtension("v361_objnames", WriteExt_361ObjNames, writer, gameEnts, errors);
+            WriteGameExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
+            WriteGameExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
+            WriteGameExtension("v363_dialogsnew", WriteExt_363Dialogs, writer, gameEnts, errors);
+            WriteGameExtension("v363_guictrls2", WriteExt_363GUIControls, writer, gameEnts, errors);
+            WriteGameExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
+            WriteGameExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
+            WriteGameExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
+            WriteGameExtension("v400_fontfiles", WriteExt_400FontFiles, writer, gameEnts, errors);
+            WriteGameExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
+            WriteGameExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
+            WriteGameExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1968,13 +1994,7 @@ namespace AGS.Editor
             // adjustable font outlines
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                writer.Write(game.Fonts[i].AutoOutlineThickness);
-                writer.Write((int)game.Fonts[i].AutoOutlineStyle);
-                // Since 3.6.3
-                writer.Write(game.Fonts[i].CharacterSpacing);
-                writer.Write(game.Fonts[i].CustomHeightValue);
-                writer.Write((int)0); // reserved
-                writer.Write((int)0);
+                WriteFontInfo_Ex360(writer, game.Fonts[i]);
             }
         }
 
@@ -2147,8 +2167,8 @@ namespace AGS.Editor
                 writer.Write(button.PushedBorderColor);
                 writer.Write(button.MouseOverTextColor);
                 writer.Write(button.PushedTextColor);
+                writer.Write(button.TextOutlineColor);
                 writer.Write((int)0); // reserved
-                writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);
             }
@@ -2156,11 +2176,21 @@ namespace AGS.Editor
             foreach (var label in ents.GUIControls.GUILabels)
             {
                 Write_GUIControlLooksExt_363(label, writer);
+                // Label's own properties
+                writer.Write(label.TextOutlineColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUIInvWindows.Count);
             foreach (var invwindow in ents.GUIControls.GUIInvWindows)
             {
                 Write_GUIControlLooksExt_363(invwindow, writer);
+                // InvWindows's own properties
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUISliders.Count);
             foreach (var slider in ents.GUIControls.GUISliders)
@@ -2180,14 +2210,19 @@ namespace AGS.Editor
                 Write_GUIControlLooksExt_363(textbox, writer);
                 // Textbox's own properties
                 writer.Write((int)textbox.TextAlignment);
+                writer.Write(textbox.TextOutlineColor);
                 writer.Write((int)0); // reserved
-                writer.Write((int)0);
                 writer.Write((int)0);
             }
             writer.Write(ents.GUIControls.GUIListBoxes.Count);
             foreach (var listbox in ents.GUIControls.GUIListBoxes)
             {
                 Write_GUIControlLooksExt_363(listbox, writer);
+                // Listbox's own properties
+                writer.Write((int)listbox.TextOutlineColor);
+                writer.Write((int)0); // reserved
+                writer.Write((int)0);
+                writer.Write((int)0);
             }
         }
 
@@ -2457,31 +2492,58 @@ namespace AGS.Editor
             }
         }
 
-        private delegate void WriteExtensionProc(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors);
+        private delegate void WriteGameExtensionProc(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors);
 
-        private static void WriteExtension(string ext_id, WriteExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        private static void WriteGameExtension(string ext_id, WriteGameExtensionProc proc, BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
         {
-            if (string.IsNullOrWhiteSpace(ext_id))
+            WriteExtension(ext_id, 0, DataExtFlags.File64, (w, e) => { proc(w, ents, e); }, writer, errors);
+        }
+
+        [Flags]
+        public enum DataExtFlags
+        {
+            // 32-bit old-style numeric IDs (else - 8-bit)
+            ID32    = 0x0001,
+            // 64-bit file offsets (the distinction exists for old-style numbered blocks ONLY)
+            File64  = 0x0002,
+        }
+
+        public delegate void WriteExtensionProc(BinaryWriter writer, CompileMessages errors);
+
+        public static void WriteExtension(string ext_id, int old_id, DataExtFlags flags, WriteExtensionProc proc, BinaryWriter writer, CompileMessages errors)
+        {
+            if (old_id <= 0 && string.IsNullOrWhiteSpace(ext_id))
                 throw new ArgumentException("Invalid data file extension ID");
             if (ext_id.Length > 16)
                 throw new ArgumentException($"Data file extension ID cannot be longer than 16 characters: {ext_id}");
 
+            bool use_old_id = old_id > 0;
             // The block meta format:
-            //    - 1 byte - an old-style unsigned numeric ID, for compatibility with room file format:
+            //    - 1 or 4 bytes - an old-style unsigned numeric ID, for compatibility with room file format:
             //               where 0 would indicate following string ID,
             //               and 0xFF indicates end of extension list.
             //    - 16 bytes - string ID of an extension.
             //    - 8 bytes - length of extension data, in bytes.
-            writer.Write((byte)0); // required for compatibility
-            WriteString(ext_id, 16, writer);
+            if ((flags & DataExtFlags.ID32) != 0)
+                writer.Write((int)old_id); // required for compatibility
+            else
+                writer.Write((byte)old_id); // required for compatibility
+            if (!use_old_id)
+                WriteString(ext_id, 16, writer);
             var data_len_pos = writer.BaseStream.Position;
-            writer.Write((long)0);
+            if (!use_old_id || (flags & DataExtFlags.File64) != 0)
+                writer.Write((long)0);
+            else
+                writer.Write((int)0);
             var start_pos = writer.BaseStream.Position;
-            proc(writer, ents, errors);
+            proc(writer, errors);
             var end_pos = writer.BaseStream.Position;
             var data_len = end_pos - start_pos;
             writer.Seek((int)data_len_pos, SeekOrigin.Begin);
-            writer.Write(data_len);
+            if (!use_old_id || (flags & DataExtFlags.File64) != 0)
+                writer.Write((long)data_len);
+            else
+                writer.Write((int)data_len);
             writer.Seek((int)end_pos, SeekOrigin.Begin);
         }
     }

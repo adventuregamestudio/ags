@@ -1574,6 +1574,9 @@
     <ClInclude Include="..\..\Engine\ac\shader_script.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\main\def_version.h">
+      <Filter>Header Files\main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">

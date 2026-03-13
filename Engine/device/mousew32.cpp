@@ -33,7 +33,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-// virtual mouse cursor coordinates
+// virtual mouse cursor coordinates (in game coords)
 int mousex = 0, mousey = 0;
 // real mouse coordinates and bounds (in window coords)
 static int real_mouse_x = 0, real_mouse_y = 0;
@@ -60,6 +60,7 @@ namespace Mouse
     // Converts real window coordinates to native game coords
     void WindowToGame(int &x, int &y);
     // Sets mouse position in system coordinates, syncs with the real mouse cursor
+    // NOTE: real cursor will be updated only if the game window has focus
     void SetSysPosition(int x, int y);
 }
 
@@ -83,8 +84,10 @@ void Mouse::Poll()
     // TODO: [sonneveld] find out where Poll is needed, are events polled before that?
     sys_evt_process_pending();
 
-    if (switched_away)
-        return;
+    // CHECKME: disabled, to let Poll work with emulated mouse movement,
+    // which might also run in background while the window does not has a focus.
+    //if (switched_away)
+        //return;
 
     // Save absolute cursor coordinates provided by system
     // NOTE: relative motion and the speed factor should already be applied by SDL2 or our custom devices.
@@ -111,7 +114,10 @@ void Mouse::SetSysPosition(int x, int y)
     sys_mouse_y = y;
     real_mouse_x = x;
     real_mouse_y = y;
-    sys_window_set_mouse(real_mouse_x, real_mouse_y);
+
+    // move the real system cursor, but only if the game has a focus
+    if (!switched_away)
+        sys_window_set_mouse(real_mouse_x, real_mouse_y);
 }
 
 int Mouse::GetButtonCount()

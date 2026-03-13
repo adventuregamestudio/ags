@@ -118,6 +118,7 @@ namespace AGS.Editor
          * 3.6.3.5        - Renamed ShadowColor -> BorderShadeColor.
          * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
+         * 3.6.3.8        - New Translation settings, TextOutlineColor in GUI controls.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms. Deprecate '[' as a linebreak.
@@ -1139,6 +1140,10 @@ namespace AGS.Editor
             }
             foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
             {
+                    // Reload scripts from their files on disk, in case these were modified externally
+                    scripts.Header.LoadFromDisk();
+                    scripts.Script.LoadFromDisk();
+
                 headers.Add(scripts.Header);
                 compileTasks.Add(new CompileTask(scripts.Script, headers));
                 _game.ScriptsToCompile.Add(scripts);

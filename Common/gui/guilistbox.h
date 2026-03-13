@@ -15,8 +15,7 @@
 #define __AC_GUILISTBOX_H
 
 #include <vector>
-#include "gui/guicontrol.h"
-#include "util/string.h"
+#include "gui/guitextbasedcontrol.h"
 
 namespace AGS
 {
@@ -31,23 +30,17 @@ enum ListBoxEventID
     kNumListBoxEvents
 };
 
-class GUIListBox : public GUIControl
+class GUIListBox : public GUITextBasedControl
 {
 public:
     GUIListBox();
 
     // Properties
     int  GetListBoxFlags() const { return _listBoxFlags; }
-    int  GetFont() const { return _font; }
-    void SetFont(int font);
-    int  GetTextColor() const { return _textColor; }
-    void SetTextColor(int color);
     int  GetSelectedBgColor() const { return _selectedBgColor; }
     void SetSelectedBgColor(int color);
     int  GetSelectedTextColor() const { return _selectedTextColor; }
     void SetSelectedTextColor(int color);
-    HorAlignment GetTextAlignment() const { return _textAlignment; }
-    void SetTextAlignment(HorAlignment align);
     // Tells if this list box should display scrollbar (arrows) when
     // there's more items than can fit into the control
     bool ShouldShowScrollArrows() const;
@@ -105,6 +98,8 @@ public:
 private:
     // Internal control's region (content region) was resized
     void OnContentRectChanged() override;
+    // Reports that the text font has changed
+    void OnTextFontChanged() override;
 
     // Updates dynamic metrics such as row height and others
     void UpdateMetrics();
@@ -119,9 +114,6 @@ private:
     static ScriptEventSchema _eventSchema;
 
     int                     _listBoxFlags = kListBox_DefFlags;
-    int                     _font = 0;
-    color_t                 _textColor = DefaultTextColor;
-    HorAlignment            _textAlignment = kHAlignLeft;
     // FIXME: adjust these colors using GetStandardColor where is safe to access GuiContext
     color_t                 _selectedBgColor = DefaultSelectBgColor;
     color_t                 _selectedTextColor = DefaultSelectFgColor;

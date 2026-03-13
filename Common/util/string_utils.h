@@ -19,6 +19,7 @@
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
 #include <memory>
+#include <utility>
 #include "util/string_types.h"
 
 namespace AGS
@@ -42,6 +43,7 @@ namespace StrUtil
     // Tries to convert whole string into integer value;
     // returns def_val on failure
     int             StringToInt(const String &s, int def_val = 0);
+    int             StringToIntHex(const String &s, int def_val = 0);
     int64_t         StringToInt64(const String &s, int64_t def_val = 0);
     uint64_t        StringToUInt64(const String &s, uint64_t def_val = 0);
     // Tries to convert whole string into integer value;
@@ -151,6 +153,19 @@ namespace StrUtil
                 return static_cast<T>(it->second);
         return def_val;
     }
+
+    // Safely selects a c-string out of array using an arbitrary option index;
+    // returns def_val if index is out of bounds.
+    // TODO: make this a generic <T> function and move to algorithm utils?
+    template<std::size_t SIZE>
+    const char *SelectCStr(const std::array<const char *, SIZE> &arr, int option, const char *def_val = "")
+    {
+        return (option >= 0 && static_cast<size_t>(option) < SIZE) ? arr[option] : def_val;
+    }
+
+    // Reads the string and splits it by key and value, separated by the first found separator char;
+    // if no separator is found, then returns the key as the source string, with empty value.
+    std::pair<String, String> GetKeyValue(const String &s, char key_val_separator = '=');
 
     // Convert utf-8 string to ascii/ansi representation;
     // writes into out_cstr buffer limited by out_sz bytes; returns bytes written.

@@ -123,14 +123,14 @@ void stop_character_idling(CharacterInfo *chi)
     if (chi->is_idling())
     {
         Character_UnlockView(chi);
-        chi->idleleft = chi->idletime;
+        chi->idleleft = chi->idledelay;
     }
 }
 
 // Resets idling timer, and marks for immediate update (in case its persistent idling)
 void reset_character_idling_time(CharacterInfo *chi)
 {
-    chi->idleleft = chi->idletime;
+    chi->idleleft = chi->idledelay;
     charextra[chi->index_id].process_idle_this_time = 1;
 }
 
@@ -367,6 +367,8 @@ float GetFaceDirRatio(CharacterInfo *chinfo)
     return 1.f;
 }
 
+// Get appropriate character loop for the given direction.
+// Note that this requires the loop to have >1 frames so being suitable to animate the character.
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff, bool move_dir_fw = true)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
@@ -388,7 +390,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_
     // NOTE: 3.+ games required left & right loops to be present at all times
 	const bool has_left_loop  = true; // ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
 	const bool has_right_loop = true; // ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
-    const bool has_diagonal_loops = useDiagonal(chinfo) == 0; // NOTE: useDiagonal returns 0 for "true"
+    const bool has_diagonal_loops = should_use_diagloops(chinfo, true /* require >1 frames in loops */);
 
 	const bool want_horizontal = (abs(y_diff) < abs(x_diff)) || (!has_down_loop || !has_up_loop);
 
@@ -437,8 +439,8 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
         if ((game.options[OPT_CHARTURNWHENFACE] != 0) && ((char1->flags & CHF_TURNWHENFACE) != 0) &&
             (!in_enters_screen))
         {
-            const int no_diagonal = useDiagonal (char1);
-            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrthogonal;
+            const bool use_diagloops = should_use_diagloops(char1, false /* allow 1 frame in loops */);
+            const int highestLoopForTurning = use_diagloops ? kDirLoop_Last : kDirLoop_LastOrthogonal;
             if ((char1->loop <= highestLoopForTurning))
             {
                 // Turn to face new direction
@@ -447,7 +449,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
                 {
                     // only do the turning if the character is not hidden
                     // (otherwise GameLoopUntilNotMoving will never return)
-                    start_character_turning (char1, direction, no_diagonal);
+                    start_character_turning(char1, direction, use_diagloops);
 
                     if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
                         GameLoopUntilFlagUnset(&charextra[char1->index_id].flags, kCharf_TurningMask);
@@ -909,7 +911,7 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
     // make sure they don't appear idle while idle anim is disabled
     if (iview < 1)
         itime = 10;
-    chaa->idletime = itime;
+    chaa->idledelay = itime;
     chaa->idleleft = itime;
 
     // if not currently animating, reset the wait counter
@@ -1058,8 +1060,6 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
         Character_PlaceOnWalkableArea(chi);
     }
 
-    debug_script_log("%s: stop moving", chi->scrname.GetCStr());
-
     // If the character is currently moving, stop them and reset their state
     if (chi->walking > 0)
     {
@@ -1071,6 +1071,7 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
             chi->frame = 0;
         // Restart idle timer
         reset_character_idling_time(chi);
+        debug_script_log("%s: stop moving", chi->scrname.GetCStr());
     }
 
     // Always clear the move-related flags (for safety)
@@ -1493,11 +1494,21 @@ void Character_SetFrame(CharacterInfo *chaa, int newval) {
     chaa->frame = newval;
 }
 
-int Character_GetIdleView(CharacterInfo *chaa) {
+int Character_GetIdleDelay(CharacterInfo *chaa)
+{
+    return chaa->idledelay;
+}
 
+int Character_GetIdleTime(CharacterInfo *chaa)
+{
+    return chaa->idleleft;
+}
+
+int Character_GetIdleView(CharacterInfo *chaa)
+{
+    // convert to a 1-based script view index
     if (chaa->idleview < 1)
         return -1;
-
     return chaa->idleview + 1;
 }
 
@@ -2091,7 +2102,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
 
     Character_StopMoving(chin);
     chin->frame = oldframe;
-    debug_script_log("%s: Start move to %d,%d", chin->scrname.GetCStr(), tox, toy);
+    debug_script_log("MoveCharacter: request move %s: %d,%d to %d,%d", chin->scrname.GetCStr(), chin->x, chin->y, tox, toy);
 
     int move_speed_x, move_speed_y;
     chin->get_effective_walkspeeds(move_speed_x, move_speed_y);
@@ -2115,6 +2126,12 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
             move_speed_x, move_speed_y, false, ignwal, run_params);
     }
 
+    // Double check that the path actually leads to another position;
+    // sometimes pathfinder glitches and returns end point identical to the start point,
+    // and we do not want to "twitch" character's state in such case.
+    if (path_result)
+        path_result &= (new_mlist.GetFirstPos() != new_mlist.GetLastPos());
+
     // If path available, then add movelist
     const int movelist = path_result ? add_movelist(std::move(new_mlist)) : 0;
     assert(!path_result || movelist > 0);
@@ -2128,8 +2145,8 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         // Setup new walk state
         chin->walking = movelist;
         MoveList &mlist = *get_movelist(chin->walking);
-        // NOTE: unfortunately, some old game scripts might break because of smooth walk transition
-        if (step_frac_init > 0.f && (loaded_game_file_version >= kGameVersion_361))
+        
+        if (step_frac_init > 0.f)
         {
             mlist.SetPixelUnitFraction(step_frac_init);
         }
@@ -2166,15 +2183,15 @@ int find_looporder_index (int curloop) {
     return 0;
 }
 
-// returns 0 to use diagonal, 1 to not
-int useDiagonal (CharacterInfo *char1) {
+bool should_use_diagloops(CharacterInfo *char1, bool require_animation)
+{
     if ((views[char1->view].numLoops < 8) || ((char1->flags & CHF_NODIAGONAL)!=0))
-        return 1;
-    // If they have just provided standing frames for loops 4-7, to
+        return false;
+    // Optionally test if they have just provided standing frames for loops 4-7, to
     // provide smoother turning
-    if (views[char1->view].loops[4].numFrames < 2)
-        return 2;
-    return 0;
+    if (require_animation && (views[char1->view].loops[4].numFrames < 2))
+        return false;
+    return true;
 }
 
 // returns 1 normally, or 0 if they only have horizontal animations
@@ -2191,7 +2208,7 @@ int hasUpDownLoops(CharacterInfo *char1) {
     return 1;
 }
 
-void start_character_turning(CharacterInfo *chinf, int useloop, int no_diagonal)
+void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloops)
 {
     CharacterExtras &chex = charextra[chinf->index_id];
     // work out how far round they have to turn 
@@ -2207,10 +2224,6 @@ void start_character_turning(CharacterInfo *chinf, int useloop, int no_diagonal)
     if (go_anticlock == 0)
         go_anticlock = -1;
 
-    // Allow the diagonal frames just for turning
-    if (no_diagonal == 2)
-        no_diagonal = 0;
-
     int turns = 0;
     for (ii = fromidx; ii != toidx; ii -= go_anticlock)
     {
@@ -2221,7 +2234,7 @@ void start_character_turning(CharacterInfo *chinf, int useloop, int no_diagonal)
             ii = 0;
         if (ii == toidx)
             break;
-        if ((turnlooporder[ii] >= 4) && (no_diagonal > 0))
+        if ((turnlooporder[ii] >= 4) && (!use_diagloops))
             continue; // there are no diagonal loops
         if (turnlooporder[ii] >= views[chinf->view].numLoops)
             continue; // no such loop
@@ -2264,8 +2277,7 @@ void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
             chinf->loop = useloop;
             return;
     }
-    const int no_diagonal = useDiagonal (chinf);
-    start_character_turning (chinf, useloop, no_diagonal);
+    start_character_turning(chinf, useloop, should_use_diagloops(chinf, false /* allow 1 frame in loops */));
 }
 
 // Check whether two characters have walked into each other
@@ -3986,6 +3998,16 @@ RuntimeScriptValue Sc_Character_GetScriptName(void *self, const RuntimeScriptVal
     API_OBJCALL_OBJ(CharacterInfo, const char, myScriptStringImpl, Character_GetScriptName);
 }
 
+RuntimeScriptValue Sc_Character_GetIdleDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetIdleDelay);
+}
+
+RuntimeScriptValue Sc_Character_GetIdleTime(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetIdleTime);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetIdleView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4571,6 +4593,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_Frame",                 API_FN_PAIR(Character_GetFrame) },
         { "Character::set_Frame",                 API_FN_PAIR(Character_SetFrame) },
         { "Character::get_ID",                    API_FN_PAIR(Character_GetID) },
+        { "Character::get_IdleDelay",             API_FN_PAIR(Character_GetIdleDelay) },
+        { "Character::get_IdleTime",              API_FN_PAIR(Character_GetIdleTime) },
         { "Character::get_IdleView",              API_FN_PAIR(Character_GetIdleView) },
         { "Character::get_IdleAnimationDelay",    API_FN_PAIR(Character_GetIdleAnimationDelay) },
         { "Character::set_IdleAnimationDelay",    API_FN_PAIR(Character_SetIdleAnimationDelay) },

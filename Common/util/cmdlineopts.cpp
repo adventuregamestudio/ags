@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/string_compat.h"
 #include "util/cmdlineopts.h"
 

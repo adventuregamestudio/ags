@@ -25,7 +25,7 @@
 #include <functional>
 #include <unordered_map>
 #include <utility>
-#include "core/types.h"
+#include "platform/types.h"
 
 
 struct IScriptObject;

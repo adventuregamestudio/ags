@@ -17,7 +17,7 @@
 //=============================================================================
 #ifndef __AGS_CN_PLATFORM__WINDOWS_H
 #define __AGS_CN_PLATFORM__WINDOWS_H
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
 #ifndef _WINDOWS_ // do not include if windows.h was included before

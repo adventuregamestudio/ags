@@ -285,6 +285,14 @@ public:
         Read(&val, sizeof(int64_t));
         return BBOp::Int64FromLE(val);
     }
+    // Reads a 3-byte unsigned integer value into uint32 (most significant byte is always zero)
+    uint32_t ReadUInt24()
+    {
+        uint32_t val = 0;
+        Read(&val, 3);
+        // TODO: consider changing BBOp operations to work with uints, with helpers accepting ints
+        return static_cast<uint32_t>(BBOp::Int32FromLE(static_cast<int32_t>(val))); // NOTE: we still swap as 32-bit
+    }
     float ReadFloat32()
     {
         float val = 0.f;
@@ -339,6 +347,13 @@ public:
         val = BBOp::Int64FromLE(val);
         return Write(&val, sizeof(int64_t));
     }
+    // Writes a uint32 value into 3 bytes (most significant byte is discarded!)
+    size_t WriteUInt24(uint32_t val)
+    {
+        // TODO: consider changing BBOp operations to work with uints, with helpers accepting ints
+        val = static_cast<uint32_t>(BBOp::Int32FromLE(static_cast<int32_t>(val))); // NOTE: we still swap as 32-bit
+        return Write(&val, 3);
+    }
     size_t WriteFloat32(float val)
     {
         val = BBOp::Float32FromLE(val);
@@ -386,6 +401,14 @@ public:
         return ReadArray(buffer, sizeof(int64_t), count);
     #endif
     }
+    size_t ReadArrayOfUInt24(uint8_t *buffer, size_t count)
+    {
+#if defined (BITBYTE_BIG_ENDIAN)
+        return ReadAndConvertArrayOfInt24(buffer, count);
+#else
+        return ReadArray(buffer, sizeof(uint8_t) * 3, count);
+#endif
+    }
     size_t ReadArrayOfFloat32(float *buffer, size_t count)
     {
     #if defined (BITBYTE_BIG_ENDIAN)
@@ -427,6 +450,14 @@ public:
         return WriteArray(buffer, sizeof(int64_t), count);
     #endif
     }
+    size_t WriteArrayOfUInt24(const uint8_t *buffer, size_t count)
+    {
+#if defined (BITBYTE_BIG_ENDIAN)
+        return WriteAndConvertArrayOfUInt24(buffer, count);
+#else
+        return WriteArray(buffer, sizeof(uint8_t) * 3, count);
+#endif
+    }
     size_t WriteArrayOfFloat32(const float *buffer, size_t count)
     {
     #if defined (BITBYTE_BIG_ENDIAN)
@@ -450,10 +481,12 @@ private:
     size_t  ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count);
+    size_t  ReadAndConvertArrayOfUInt24(uint8_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfFloat32(float *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count);
+    size_t  WriteAndConvertArrayOfUInt24(const uint8_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfFloat32(const float *buffer, size_t count);
 };
 

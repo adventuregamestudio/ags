@@ -15,8 +15,7 @@
 #define __AC_GUITEXTBOX_H
 
 #include <vector>
-#include "gui/guicontrol.h"
-#include "util/string.h"
+#include "gui/guitextbasedcontrol.h"
 
 namespace AGS
 {
@@ -31,21 +30,13 @@ enum TextBoxEventID
     kNumTextBoxEvents
 };
 
-class GUITextBox : public GUIControl
+class GUITextBox : public GUITextFieldControl
 {
 public:
     GUITextBox();
 
     // Properties
     int  GetTextBoxFlags() const { return _textBoxFlags; }
-    int  GetFont() const { return _font; }
-    void SetFont(int font);
-    int  GetTextColor() const { return _textColor; }
-    void SetTextColor(int color);
-    FrameAlignment GetTextAlignment() const { return _textAlignment; }
-    void SetTextAlignment(FrameAlignment align);
-    const String &GetText() const { return _text; }
-    void SetText(const String &text);
 
     // Script Events
     // Gets a events schema corresponding to this object's type
@@ -70,17 +61,12 @@ public:
     void SetDefaultLooksFor363() override;
 
 private:
+    void DrawTextBoxContents(Bitmap *ds, int x, int y);
+
     // Script events schema
     static ScriptEventSchema _eventSchema;
 
-    int     _font = 0;
-    String  _text;
-    color_t _textColor = 0;
-    FrameAlignment _textAlignment = kAlignTopLeft;
     int     _textBoxFlags = kTextBox_DefFlags;
-    String  _textToDraw;
-
-    void DrawTextBoxContents(Bitmap *ds, int x, int y);
 };
 
 } // namespace Common

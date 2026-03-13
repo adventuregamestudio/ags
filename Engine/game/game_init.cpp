@@ -29,7 +29,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
@@ -326,41 +326,7 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        if (!game.fonts[i].Filename.IsEmpty())
-        {
-            if (!load_font_size(i, game.fonts[i]))
-            {
-                Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d, file does not exist or no renderer could load a matching file.");
-                // Replace this font using the font 0's file to let display the text at least
-                bool result = false;
-                if (i != 0 && is_font_loaded(0))
-                    result = load_font_size(i, get_font_file(0), game.fonts[i]);
-                if (!result)
-                    continue;
-            }
-        }
-        else
-        {
-            Debug::Printf(kDbgMsg_Warn, "Font %d does not have any source filename assigned, won't be loaded on startup.", i);
-        }
-    }
-
-    // Additional fixups - after all the fonts are registered
-    for (int i = 0; i < game.numfonts; ++i)
-    {
-        if (!is_bitmap_font(i))
-        {
-            // Check for the LucasFan font since it comes with an outline font that
-            // is drawn incorrectly with Freetype versions > 2.1.3.
-            // A simple workaround is to disable outline fonts for it and use
-            // automatic outline drawing.
-            const int outline_font = get_font_outline(i);
-            if (outline_font < 0) continue;
-            const char *name = get_font_name(i);
-            const char *outline_name = get_font_name(outline_font);
-            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
-                set_font_outline(i, FONT_OUTLINE_AUTO);
-        }
+        load_game_font(i, game.fonts[i], data_ver);
     }
 }
 
@@ -538,7 +504,9 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
-    ApplyAccessibilityOptions();
+    ApplyAccessibilityOptions(play, usetup);
+    // Apply override settings, such as hacks and backwards compatibility fixes
+    ApplyOverrides(game, play, usetup);
 
     // Optionally dump joint RTTI into the log
     if (logScriptRTTI && RuntimeScript::GetJointRTTI())
@@ -549,20 +517,29 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     return HGameInitError::None();
 }
 
-void ApplyAccessibilityOptions()
+void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
 {
-    if (usetup.Access.SpeechSkipStyle != kSkipSpeechNone)
+    if (setup.Access.SpeechSkipStyle != kSkipSpeechNone)
     {
-        play.speech_skip_style = user_to_internal_skip_speech(usetup.Access.SpeechSkipStyle);
+        play.speech_skip_style = user_to_internal_skip_speech(setup.Access.SpeechSkipStyle);
     }
-    if (usetup.Access.TextSkipStyle != kSkipSpeechNone)
+    if (setup.Access.TextSkipStyle != kSkipSpeechNone)
     {
-        play.skip_display = usetup.Access.TextSkipStyle;
+        play.skip_display = setup.Access.TextSkipStyle;
     }
-    if (usetup.Access.TextReadSpeed > 0)
+    if (setup.Access.TextReadSpeed > 0)
     {
-        play.text_speed = usetup.Access.TextReadSpeed;
-        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / usetup.Access.TextReadSpeed)), 1000, 3000);
+        play.text_speed = setup.Access.TextReadSpeed;
+        play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / setup.Access.TextReadSpeed)), 1000, 3000);
+    }
+}
+
+void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
+{
+    // CLNUP: remove in AGS 4
+    if (setup.Override.NewKeyHandling)
+    {
+        game.options[OPT_KEYHANDLEAPI] = 1;
     }
 }
 

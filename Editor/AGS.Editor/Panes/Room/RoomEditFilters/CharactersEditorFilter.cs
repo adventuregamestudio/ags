@@ -335,6 +335,33 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Tries to find and select a room item either matching its script name, or,
+        /// if no such matching script name was found, then by its numeric ID,
+        /// embedded in this name (e.g. Object0).
+        /// </summary>
+        public override bool TrySelectItemByName(string name)
+        {
+            var character = _game.Characters.FirstOrDefault((c) => c.ScriptName == name);
+            if (character == null)
+            {
+                int id;
+                if (name.StartsWith("Character") && int.TryParse(name.Substring(6), out id)
+                    && (id >= 0) && (id < ItemCount))
+                {
+                    character = _game.CharacterFlatList[id];
+                }
+            }
+
+            if (character != null)
+            {
+                SetSelectedObject(character);
+                Factory.GUIController.SetPropertyGridObject(_selectedObject);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Change object current selection.
         /// </summary>
         protected override void SetSelectedObject(Character obj)

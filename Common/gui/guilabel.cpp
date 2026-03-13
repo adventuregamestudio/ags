@@ -25,35 +25,8 @@ namespace Common
 {
 
 GUILabel::GUILabel()
-    : GUIControl(&ScriptEventTable::DefaultSchema())
+    : GUITextFieldControl(&ScriptEventTable::DefaultSchema())
 {
-}
-
-void GUILabel::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        MarkChanged();
-    }
-}
-
-void GUILabel::SetTextColor(int color)
-{
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
-}
-
-void GUILabel::SetTextAlignment(FrameAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
-        MarkChanged();
-    }
 }
 
 Rect GUILabel::CalcGraphicRect(bool clipped)
@@ -84,25 +57,21 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     if (PrepareTextToDraw() == 0)
         return;
 
-    color_t text_color = ds->GetCompatibleColor(_textColor);
+    const color_t text_color = ds->GetCompatibleColor(_textColor);
+    const color_t outline_color = ds->GetCompatibleColor(_textOutlineColor);
     const int linespacing = get_font_linespacing(_font);
     const bool limit_by_label_frame = true;
     const Rect lines_rect = Rect::MoveBy(_innerRect, x, y);
     if (limit_by_label_frame && GUI::Options.ClipControls)
         ds->SetClip(lines_rect);
     GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
-        lines_rect,
-        (FrameAlignment)_textAlignment, limit_by_label_frame);
+        outline_color, lines_rect, (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
-void GUILabel::SetText(const String &text)
+void GUILabel::OnTextChanged()
 {
-    if (text == _text)
-        return;
-    _text = text;
     // Check for macros within text
     _textMacro = GUI::FindLabelMacros(_text);
-    MarkChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -134,6 +103,11 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUILabel::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile_Ext363(in, gui_version);
+
+    _textOutlineColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
 }
 
 void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -145,6 +119,18 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         _textAlignment = (FrameAlignment)in->ReadInt32();
 
+    if (svg_ver >= kGuiSvgVersion_36308)
+    {
+        _textOutlineColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    else
+    {
+        SetDefaultLooksFor363();
+    }
+
     _textMacro = GUI::FindLabelMacros(_text);
 }
 
@@ -155,6 +141,16 @@ void GUILabel::WriteToSavegame(Stream *out) const
     out->WriteInt32(_textColor);
     StrUtil::WriteString(_text, out);
     out->WriteInt32(_textAlignment);
+    // kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+}
+
+void GUILabel::SetDefaultLooksFor363()
+{
+    _textOutlineColor = 16;
 }
 
 } // namespace Common

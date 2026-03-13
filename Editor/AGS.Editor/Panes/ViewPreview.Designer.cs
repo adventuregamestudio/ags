@@ -13,7 +13,7 @@ namespace AGS.Editor
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            StopTimer();
+            ReleaseResources();
             if (disposing && (components != null))
             {
                 components.Dispose();
@@ -30,6 +30,8 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.mainGroupBox = new System.Windows.Forms.GroupBox();
+            this.panelAutoScroll = new System.Windows.Forms.Panel();
+            this.previewPanel = new AGS.Editor.BufferedPanel();
             this.chkSkipFrame0 = new System.Windows.Forms.CheckBox();
             this.chkCentrePivot = new System.Windows.Forms.CheckBox();
             this.chkAnimate = new System.Windows.Forms.CheckBox();
@@ -39,13 +41,12 @@ namespace AGS.Editor
             this.udFrame = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.udLoop = new System.Windows.Forms.NumericUpDown();
-            this.panelAutoScroll = new System.Windows.Forms.Panel();
-            this.previewPanel = new AGS.Editor.BufferedPanel();
+            this.chkAudio = new System.Windows.Forms.CheckBox();
             this.mainGroupBox.SuspendLayout();
+            this.panelAutoScroll.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udDelay)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFrame)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udLoop)).BeginInit();
-            this.panelAutoScroll.SuspendLayout();
             this.SuspendLayout();
             // 
             // mainGroupBox
@@ -53,6 +54,7 @@ namespace AGS.Editor
             this.mainGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.mainGroupBox.Controls.Add(this.chkAudio);
             this.mainGroupBox.Controls.Add(this.panelAutoScroll);
             this.mainGroupBox.Controls.Add(this.chkSkipFrame0);
             this.mainGroupBox.Controls.Add(this.chkCentrePivot);
@@ -66,10 +68,33 @@ namespace AGS.Editor
             this.mainGroupBox.Location = new System.Drawing.Point(4, 2);
             this.mainGroupBox.MinimumSize = new System.Drawing.Size(264, 321);
             this.mainGroupBox.Name = "mainGroupBox";
-            this.mainGroupBox.Size = new System.Drawing.Size(264, 321);
+            this.mainGroupBox.Size = new System.Drawing.Size(264, 354);
             this.mainGroupBox.TabIndex = 0;
             this.mainGroupBox.TabStop = false;
             this.mainGroupBox.Text = "groupBox1";
+            // 
+            // panelAutoScroll
+            // 
+            this.panelAutoScroll.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelAutoScroll.AutoScroll = true;
+            this.panelAutoScroll.Controls.Add(this.previewPanel);
+            this.panelAutoScroll.Location = new System.Drawing.Point(12, 164);
+            this.panelAutoScroll.Name = "panelAutoScroll";
+            this.panelAutoScroll.Size = new System.Drawing.Size(240, 179);
+            this.panelAutoScroll.TabIndex = 10;
+            this.panelAutoScroll.Resize += new System.EventHandler(this.panelAutoScroll_Resize);
+            // 
+            // previewPanel
+            // 
+            this.previewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.previewPanel.Location = new System.Drawing.Point(0, 0);
+            this.previewPanel.Name = "previewPanel";
+            this.previewPanel.Size = new System.Drawing.Size(240, 179);
+            this.previewPanel.TabIndex = 9;
+            this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
             // 
             // chkSkipFrame0
             // 
@@ -158,26 +183,15 @@ namespace AGS.Editor
             this.udLoop.TabIndex = 0;
             this.udLoop.ValueChanged += new System.EventHandler(this.udLoop_ValueChanged);
             // 
-            // panelAutoScroll
+            // chkAudio
             // 
-            this.panelAutoScroll.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelAutoScroll.AutoScroll = true;
-            this.panelAutoScroll.Controls.Add(this.previewPanel);
-            this.panelAutoScroll.Location = new System.Drawing.Point(12, 131);
-            this.panelAutoScroll.Name = "panelAutoScroll";
-            this.panelAutoScroll.Size = new System.Drawing.Size(240, 179);
-            this.panelAutoScroll.TabIndex = 10;
-            this.panelAutoScroll.Resize += new System.EventHandler(this.panelAutoScroll_Resize);
-            // 
-            // previewPanel
-            // 
-            this.previewPanel.Location = new System.Drawing.Point(0, 0);
-            this.previewPanel.Name = "previewPanel";
-            this.previewPanel.Size = new System.Drawing.Size(240, 179);
-            this.previewPanel.TabIndex = 9;
-            this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
+            this.chkAudio.AutoSize = true;
+            this.chkAudio.Location = new System.Drawing.Point(31, 129);
+            this.chkAudio.Name = "chkAudio";
+            this.chkAudio.Size = new System.Drawing.Size(112, 17);
+            this.chkAudio.TabIndex = 11;
+            this.chkAudio.Text = "Play frame sounds";
+            this.chkAudio.UseVisualStyleBackColor = true;
             // 
             // ViewPreview
             // 
@@ -185,14 +199,14 @@ namespace AGS.Editor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.Controls.Add(this.mainGroupBox);
             this.Name = "ViewPreview";
-            this.Size = new System.Drawing.Size(274, 327);
+            this.Size = new System.Drawing.Size(274, 360);
             this.Load += new System.EventHandler(this.ViewPreview_Load);
             this.mainGroupBox.ResumeLayout(false);
             this.mainGroupBox.PerformLayout();
+            this.panelAutoScroll.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.udDelay)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFrame)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udLoop)).EndInit();
-            this.panelAutoScroll.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -211,5 +225,6 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkSkipFrame0;
         private System.Windows.Forms.CheckBox chkCentrePivot;
         private System.Windows.Forms.Panel panelAutoScroll;
+        private System.Windows.Forms.CheckBox chkAudio;
     }
 }

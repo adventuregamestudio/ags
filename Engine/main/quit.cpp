@@ -16,7 +16,7 @@
 // Quit game procedure
 //
 #include <stdio.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <allegro.h> // find files, allegro_exit
 #include "ac/common.h"
 #include "ac/game.h"
@@ -39,7 +39,7 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"

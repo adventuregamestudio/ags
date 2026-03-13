@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\data\data_ext.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\data_ext.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
     <ClCompile Include="..\..\Common\util\memorystream.cpp" />

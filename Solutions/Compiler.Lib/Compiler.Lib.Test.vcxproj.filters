@@ -51,10 +51,10 @@
     <ClCompile Include="..\..\Common\util\string_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\data_ext.cpp">
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
+    <ClCompile Include="..\..\Common\data\data_ext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

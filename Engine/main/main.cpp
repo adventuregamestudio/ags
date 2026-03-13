@@ -16,15 +16,17 @@
 // Entry point of the application.
 //
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <set>
 #include <stdio.h>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
+#include "ac/def_version.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
-#include "core/def_version.h"
+#include "ac/route_finder.h"
+#include "data/assetmanager.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -33,8 +35,6 @@
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "ac/route_finder.h"
-#include "core/assetmanager.h"
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/string_compat.h"
@@ -146,7 +146,8 @@ void main_print_help() {
            "                                 proportional, round, stretch,\n"
            "                                 or an explicit integer multiplier.\n"
            "  --help                       Print this help message and stop\n"
-           "  --loadsavedgame FILEPATH     Load savegame on startup\n"
+           "  --loadsavedgame <FILEPATH or NUMBER>\n"
+           "                               Load game save on startup\n"
            "  --localuserconf              Read and write user config in the game's \n"
            "                               directory rather than using standard system path.\n"
            "                               Game directory must be writeable.\n"

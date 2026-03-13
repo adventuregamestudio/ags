@@ -51,7 +51,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/path.h"
 #include "util/utf8.h"
 #include "gfx/bitmap.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "NativeUtils.h"
 
 using AGS::Types::AGSEditorException;
@@ -895,20 +895,8 @@ int get_adjusted_spriteheight(int spr) {
 
 void setup_color_conversions()
 {
-    // RGB shifts for Allegro's pixel data
-    _rgb_a_shift_32 = 24;
-    _rgb_r_shift_32 = 16;
-    _rgb_g_shift_32 = 8;
-    _rgb_b_shift_32 = 0;
-    _rgb_r_shift_24 = 16;
-    _rgb_g_shift_24 = 8;
-    _rgb_b_shift_24 = 0;
-    _rgb_r_shift_16 = 11;
-    _rgb_g_shift_16 = 5;
-    _rgb_b_shift_16 = 0;
-    _rgb_r_shift_15 = 10;
-    _rgb_g_shift_15 = 5;
-    _rgb_b_shift_15 = 0;
+    // Init Allegro RGB shifts; necessary for doing color conversions
+    set_rgb_shifts(10, 5, 0, 11, 5, 0, 16, 8, 0, 16, 8, 0, 24);
 }
 
 bool initialize_native()
@@ -1543,11 +1531,13 @@ void SaveTempSpritefile(int store_flags, AGS::Common::SpriteCompression compress
     AGSString n_temp_spritefile = TextHelper::ConvertUTF8(temp_spritefile);
     AGSString n_temp_indexfile = TextHelper::ConvertUTF8(temp_indexfile);
     AGS::Common::SpriteFileIndex index;
-    if (spriteset.SaveToFile(n_temp_spritefile, store_flags, compressSprites, index) != 0)
-        throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file.{0}Temp path: {1}",
-            Environment::NewLine, temp_spritefile));
+    HAGSError err = spriteset.SaveToFile(n_temp_spritefile, store_flags, compressSprites, index);
+    if (!err)
+        throw gcnew AGSEditorException(String::Format("Unable to save the sprites. An error occurred whilst writing the sprite file:{0}{1}{2}Temp path: {1}",
+            Environment::NewLine, gcnew String(err->FullMessage().GetCStr()), Environment::NewLine, temp_spritefile));
     saved_spritefile = n_temp_spritefile;
-    if (AGS::Common::SaveSpriteIndex(n_temp_indexfile, index) == 0)
+    err = AGS::Common::SaveSpriteIndex(n_temp_indexfile, index);
+    if (err)
         saved_indexfile = n_temp_indexfile;
 }
 
@@ -2429,6 +2419,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUIButton nbut;
           nbut.SetBorderShadeColor(button->BorderShadeColor);
           nbut.SetTextColor(button->TextColor);
+          nbut.SetTextOutlineColor(button->TextOutlineColor);
           nbut.SetMouseOverBackColor(button->MouseOverBackgroundColor);
           nbut.SetPushedBackColor(button->PushedBackgroundColor);
           nbut.SetMouseOverBorderColor(button->MouseOverBorderColor);
@@ -2456,6 +2447,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUILabel nlabel;
           nlabel.SetTextColor(label->TextColor);
+          nlabel.SetTextOutlineColor(label->TextOutlineColor);
           nlabel.SetFont(label->Font);
           nlabel.SetTextAlignment((::FrameAlignment)label->TextAlignment);
           Common::String text = tcv->ConvertTextProperty(label->Text);
@@ -2468,6 +2460,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUITextBox ntext;
           ntext.SetTextColor(textbox->TextColor);
+          ntext.SetTextOutlineColor(textbox->TextOutlineColor);
           ntext.SetFont(textbox->Font);
           ntext.SetTextAlignment((::FrameAlignment)textbox->TextAlignment);
           ntext.SetEventHandler(Common::kTextBoxEvent_OnActivate, TextHelper::ConvertASCII(textbox->OnActivate));
@@ -2479,10 +2472,11 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUIListBox nlist;
           nlist.SetTextColor(listbox->TextColor);
+          nlist.SetTextOutlineColor(listbox->TextOutlineColor);
           nlist.SetFont(listbox->Font);
           nlist.SetSelectedTextColor(listbox->SelectedTextColor);
           nlist.SetSelectedBgColor(listbox->SelectedBackgroundColor);
-          nlist.SetTextAlignment((::HorAlignment)listbox->TextAlignment);
+          nlist.SetTextAlignment((::FrameAlignment)listbox->TextAlignment);
           nlist.SetTranslated(listbox->Translated);
           nlist.SetShowArrows(listbox->ShowScrollArrows);
           nlist.SetEventHandler(Common::kListBoxEvent_OnSelChanged, TextHelper::ConvertASCII(listbox->OnSelectionChanged));
@@ -2985,6 +2979,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = newButton;
 					newButton->TextColor = copyFrom->GetTextColor();
+                    newButton->TextOutlineColor = copyFrom->GetTextOutlineColor();
 					newButton->Font = copyFrom->GetFont();
 					newButton->Image = copyFrom->GetNormalImage();
 					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
@@ -3005,6 +3000,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				Common::GUILabel *copyFrom = (Common::GUILabel*)curObj;
 				newControl = newLabel;
 				newLabel->TextColor = copyFrom->GetTextColor();
+                newLabel->TextOutlineColor = copyFrom->GetTextOutlineColor();
 				newLabel->Font = copyFrom->GetFont();
 				newLabel->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
 				newLabel->Text = tcv->Convert(copyFrom->GetText());
@@ -3016,6 +3012,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  Common::GUITextBox *copyFrom = (Common::GUITextBox*)curObj;
 				  newControl = newTextbox;
 				  newTextbox->TextColor = copyFrom->GetTextColor();
+                  newTextbox->TextOutlineColor = copyFrom->GetTextOutlineColor();
+                  newTextbox->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->GetTextAlignment();
 				  newTextbox->Font = copyFrom->GetFont();
 				  newTextbox->Text = tcv->Convert(copyFrom->GetText());
 				  newTextbox->OnActivate = TextHelper::ConvertASCII(copyFrom->GetEventHandler(Common::kTextBoxEvent_OnActivate));
@@ -3027,6 +3025,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 				  Common::GUIListBox *copyFrom = (Common::GUIListBox*)curObj;
 				  newControl = newListbox;
 				  newListbox->TextColor = copyFrom->GetTextColor();
+                  newListbox->TextOutlineColor = copyFrom->GetTextOutlineColor();
 				  newListbox->Font = copyFrom->GetFont();
 				  newListbox->SelectedTextColor = copyFrom->GetSelectedTextColor();
 				  newListbox->SelectedBackgroundColor = copyFrom->GetSelectedBgColor();

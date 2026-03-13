@@ -20,22 +20,22 @@
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
-#include "core/asset.h"
-#include "core/assetmanager.h"
+#include "data/asset.h"
+#include "data/assetmanager.h"
+#include "data/data_ext.h"
+#include "data/data_helpers.h"
 #include "debug/out.h"
-#include "game/data_helpers.h"
+#include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "script/cc_common.h"
-#include "util/data_ext.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
-#include "font/fonts.h"
 
 namespace AGS
 {
@@ -907,7 +907,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         for (auto &dlg : _ents.Dialogs)
             dlg.ReadFromFile_v363(in);
     }
-    else if (ext_id.CompareNoCase("v363_guictrls") == 0)
+    else if (ext_id.CompareNoCase("v363_guictrls2") == 0)
     {
         if (!ReadAndAssertCount(in, "GUI buttons", static_cast<uint32_t>(_ents.GuiControls.Buttons.size()), err))
             return err;

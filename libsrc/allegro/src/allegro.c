@@ -70,7 +70,6 @@ unsigned int _drawing_y_mask = 0;
 
 /* default palette structures */
 PALETTE black_palette;
-PALETTE _current_palette; 
 
 int _current_palette_changed = 0xFFFFFFFF;
 

@@ -71,6 +71,7 @@ public:
     uint32_t GetStage() const { return onstage; }
     float GetStageDoneSteps() const { return onpart; }
     float GetStageProgress() const;
+    const Point& GetFirstPos() const { return pos.front(); }
     const Point &GetLastPos() const { return pos.back(); }
     int GetCurrentStageFlags() const { return onstage < stageflags.size() ? stageflags[onstage] : 0; }
     bool IsStageDirect() const { return (GetCurrentStageFlags() & kMoveStage_Direct) != 0; }

@@ -14,7 +14,7 @@
 #include "media/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"

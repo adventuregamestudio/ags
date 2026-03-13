@@ -78,6 +78,7 @@
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -342,10 +343,30 @@ String get_save_game_path(int slotNum)
     return Path::ConcatPaths(saveGameDirectory, get_save_game_filename(slotNum));
 }
 
-bool get_save_slotnum(const String &filename, int &slot)
+bool get_save_filepath_and_slot(const String &input_savepath, String &filepath, int &slot)
 {
+    if (StrUtil::StringToInt(input_savepath, slot, -1) == StrUtil::kNoError)
+    {
+        filepath = get_save_game_path(slot);
+        return true;
+    }
+
+    const String filename = Path::GetFilename(input_savepath);
     if (filename.CompareLeftNoCase("agssave.") == 0)
-        return sscanf(filename.GetCStr(), "agssave.%03d", &slot) == 1;
+    {
+        if (sscanf(filename.GetCStr(), "agssave.%03d", &slot) == 1)
+        {
+            if (Path::IsOnlyFilename(input_savepath) && !File::IsFile(input_savepath))
+            {
+                filepath = Path::ConcatPaths(saveGameDirectory, input_savepath);
+            }
+            else
+            {
+                filepath = input_savepath;
+            }
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1333,7 +1354,7 @@ bool try_restore_save(const Common::String &path, int slot, bool startup)
         // this is why we tell engine to shutdown if that happened.
         if (data_overwritten)
             quitprintf("%s", error.GetCStr());
-        else
+        else if (!startup)
             Display("%s", error.GetCStr());
         return false;
     }
@@ -1733,6 +1754,46 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
         dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
     Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",
         spcache_before / 1024u, spcache_after / 1024u, txcache_before / 1024u, txcache_after / 1024u);
+}
+
+bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ver)
+{
+    if (finfo.Filename.IsEmpty())
+    {
+        Debug::Printf(kDbgMsg_Warn, "ERROR: Unable to load font %d, because no source filename is assigned", at_index);
+        return false;
+    }
+
+    if (!load_font_size(at_index, finfo))
+    {
+        Debug::Printf(kDbgMsg_Error, "ERROR: Unable to load font %d using %s, file does not exist or no renderer could load a matching file.",
+            at_index, finfo.FileName.IsEmpty() ? "available asset(s)" : finfo.FileName.GetCStr());
+        // Replace this font using the font 0's file to let display the text at least
+        bool result = false;
+        if (at_index != 0 && is_font_loaded(0))
+            result = load_font_size(at_index, get_font_file(0), finfo);
+        if (!result)
+            return false;
+    }
+
+    // Additional fixups
+    // CLNUP: perhaps following is not necessary in AGS 4
+    if (!is_bitmap_font(at_index))
+    {
+        // Check for the LucasFan font since it comes with an outline font that
+        // is drawn incorrectly with Freetype versions > 2.1.3.
+        // A simple workaround is to disable outline fonts for it and use
+        // automatic outline drawing.
+        const int outline_font = get_font_outline(at_index);
+        if (outline_font >= 0)
+        {
+            const char *name = get_font_name(at_index);
+            const char *outline_name = get_font_name(outline_font);
+            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
+                set_font_outline(at_index, FONT_OUTLINE_AUTO);
+        }
+    }
+    return true;
 }
 
 uint32_t add_movelist(MoveList &&mlist)

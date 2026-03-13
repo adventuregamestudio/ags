@@ -15,7 +15,7 @@
 #include <inttypes.h>
 #include <memory>
 #include <stdio.h>
-#include "core/platform.h"
+#include "platform/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
 #endif

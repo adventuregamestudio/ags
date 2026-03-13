@@ -54,7 +54,7 @@ void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image)
     RGB imgPalBuf[256];
     int importedColourDepth;
     std::unique_ptr<AGSBitmap> native_bmp(CreateBlockFromBitmap(image, imgPalBuf, nullptr, true, true /* FIXME */, true, true, &importedColourDepth));
-    _nativeWriter->WriteBitmap(native_bmp.get());
+    _nativeWriter->WriteBitmap(native_bmp->GetBitmapData());
 }
 
 void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image, AGS::Types::SpriteImportTransparency transparency,
@@ -62,12 +62,12 @@ void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image, AGS::Types::S
 {
     std::unique_ptr<AGSBitmap> native_bmp(CreateNativeBitmap(image, (int)transparency, transColour,
         remapColours, useRoomBackgroundColours, alphaChannel, nullptr));
-    _nativeWriter->WriteBitmap(native_bmp.get());
+    _nativeWriter->WriteBitmap(native_bmp->GetBitmapData());
 }
 
 void SpriteFileWriter::WriteNativeBitmap(NativeBitmap ^bitmap)
 {
-    _nativeWriter->WriteBitmap(bitmap->GetNativePtr());
+    _nativeWriter->WriteBitmap(bitmap->GetNativePtr()->GetBitmapData());
 }
 
 void SpriteFileWriter::WriteRawData(RawSpriteData^ data)

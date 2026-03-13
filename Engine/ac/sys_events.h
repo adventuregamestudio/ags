@@ -180,6 +180,8 @@ void sys_evt_register_ags_events();
 void sys_evt_set_quit_callback(void(*proc)(void));
 // Set engine callback for when input focus is received or lost by the window.
 void sys_evt_set_focus_callbacks(void(*switch_in)(void), void(*switch_out)(void));
+// Update events filters based on the current system config
+void sys_evt_on_config_set();
 
 // Process single event.
 void sys_evt_process_one(const SDL_Event &event);

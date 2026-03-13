@@ -5,11 +5,13 @@ using AGS.Types;
 
 namespace AGS.Editor
 {
-    public delegate void PlayFinishedHandler(AudioClip clip);
+    public delegate void PlayFinishedHandler(IAudioPreviewer playback);
 
-    internal interface IAudioPreviewer: IDisposable
+    public interface IAudioPreviewer: IDisposable
     {
         event PlayFinishedHandler PlayFinished;
+
+        AudioClip Clip { get; }
 
         void Play();
         bool IsPlaying();

@@ -35,6 +35,7 @@ namespace AGS.Types
         private string _text = string.Empty;
         private int _font;
         private int _textColor;
+        private int _textOutlineColor;
         private FrameAlignment _textAlign = FrameAlignment.TopLeft;
         private string _onActivate = string.Empty;
 
@@ -59,6 +60,16 @@ namespace AGS.Types
         {
             get { return _textColor; }
             set { _textColor = value; }
+        }
+
+        [Description("Colour of the text's outline (applied if the font has one)")]
+        [Category("Appearance")]
+        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomColorConverter))]
+        public int TextOutlineColor
+        {
+            get { return _textOutlineColor; }
+            set { _textOutlineColor = value; }
         }
 
         [Description("Font to use for the text")]

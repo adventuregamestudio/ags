@@ -15,17 +15,17 @@
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
 #include "ac/wordsdictionary.h" // TODO: extract string decryption
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
+#include "data/data_ext.h"
+#include "data/data_helpers.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
-#include "game/data_helpers.h"
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
-#include "util/data_ext.h"
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file
@@ -224,12 +224,12 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         room->Regions[i].Tint = in->ReadInt32();
 
     // Primary background
-    room->BgFrames[0].Graphic = load_lzw(in, room->BackgroundBPP, &room->Palette);
+    room->BgFrames[0].Graphic = std::make_shared<Bitmap>(load_lzw(in, room->BackgroundBPP, &room->Palette));
     // Area masks
-    room->RegionMask = load_rle_bitmap8(in);
-    room->WalkAreaMask = load_rle_bitmap8(in);
-    room->WalkBehindMask = load_rle_bitmap8(in);
-    room->HotspotMask = load_rle_bitmap8(in);
+    room->RegionMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
+    room->WalkAreaMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
+    room->WalkBehindMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
+    room->HotspotMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
     return HError::None();
 }
 
@@ -298,8 +298,8 @@ HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
-        room->BgFrames[i].Graphic =
-            load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
+        room->BgFrames[i].Graphic = std::make_shared<Bitmap>(
+            load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette));
     }
     return HError::None();
 }
@@ -726,11 +726,11 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt32(room->Regions[i].Tint);
 
-    save_lzw(out, room->BgFrames[0].Graphic.get(), &room->Palette);
-    save_rle_bitmap8(out, room->RegionMask.get());
-    save_rle_bitmap8(out, room->WalkAreaMask.get());
-    save_rle_bitmap8(out, room->WalkBehindMask.get());
-    save_rle_bitmap8(out, room->HotspotMask.get());
+    save_lzw(out, room->BgFrames[0].Graphic->GetBitmapData(), &room->Palette);
+    save_rle_bitmap8(out, room->RegionMask->GetBitmapData());
+    save_rle_bitmap8(out, room->WalkAreaMask->GetBitmapData());
+    save_rle_bitmap8(out, room->WalkBehindMask->GetBitmapData());
+    save_rle_bitmap8(out, room->HotspotMask->GetBitmapData());
 }
 
 void WriteCompSc3Block(const RoomStruct *room, Stream *out)
@@ -760,7 +760,7 @@ void WriteAnimBgBlock(const RoomStruct *room, Stream *out)
     for (size_t i = 0; i < room->BgFrameCount; ++i)
         out->WriteInt8(room->BgFrames[i].IsPaletteShared ? 1 : 0);
     for (size_t i = 1; i < room->BgFrameCount; ++i)
-        save_lzw(out, room->BgFrames[i].Graphic.get(), &room->BgFrames[i].Palette);
+        save_lzw(out, room->BgFrames[i].Graphic->GetBitmapData(), &room->BgFrames[i].Palette);
 }
 
 void WritePropertiesBlock(const RoomStruct *room, Stream *out)

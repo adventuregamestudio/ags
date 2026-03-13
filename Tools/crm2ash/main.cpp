@@ -1,7 +1,7 @@
 #include <stdio.h>
+#include "data/data_ext.h"
 #include "data/room_utils.h"
 #include "data/scriptgen.h"
-#include "util/data_ext.h"
 #include "util/file.h"
 #include "util/string_compat.h"
 

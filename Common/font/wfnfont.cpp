@@ -102,7 +102,12 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
     for (size_t i = 0; i < char_count; ++i)
     {
         const uint16_t off = offset_table[i];
-        if (off < raw_data_offset || off + MinCharDataSize > table_addr)
+        if (off == 0)
+        {
+            // character does not has a glyph, this is allowed
+            continue;
+        }
+        else if (off < raw_data_offset || off + MinCharDataSize > table_addr)
         {
             Debug::Printf("\tWFN: character %d -- bad item offset: %d (%d - %d, +%d)",
                 i, off, raw_data_offset, table_addr, MinCharDataSize);
@@ -141,9 +146,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         const size_t pixel_data_size = _items[i].GetRequiredPixelSize();
         if (pixel_data_size == 0)
         {
-            Debug::Printf("\tWFN: item at off %d -- null size", offs[i]);
-            err = kWFNErr_HasBadCharacters;
-            continue; // just an empty character
+            continue; // just an empty character, this is allowed
         }
         const uint16_t raw_off  = offs[i] - raw_data_offset + MinCharDataSize; // offset in raw array
         size_t src_size = pixel_data_size;

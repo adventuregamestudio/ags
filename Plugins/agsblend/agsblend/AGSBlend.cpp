@@ -11,7 +11,7 @@
 
 #pragma region Defines_and_Includes
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3

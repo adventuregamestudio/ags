@@ -656,6 +656,28 @@ namespace AGS.Editor
             }
         }
 
+        public void ZoomToRoomComponentObject(int roomNumber, string typeName, string objectName, bool selectEventsTab = false)
+        {
+            RoomsComponent roomsComponent = Factory.ComponentController.FindComponent<RoomsComponent>();
+            if (roomsComponent.CurrentRoomNumber != roomNumber)
+            {
+                if (!roomsComponent.LoadRoomAndShowEditor(roomNumber))
+                {
+                    return; // LoadRoom method already displays errors, so display none here
+                }
+            }
+
+            if (roomsComponent.ShowItemPaneByName(objectName))
+            {
+                if (selectEventsTab)
+                    Factory.GUIController.SelectEventsTabInPropertyGrid();
+            }
+            else
+            {
+                Factory.GUIController.ShowMessage($"There was error trying to open an object {objectName} of type {typeName} for editing.", MessageBoxIcon.Information);
+            }
+        }
+
         public void ZoomToFile(string fileName)
         {
             ZoomToFile(fileName, ZoomToFileZoomType.DoNotMoveCursor, 0, false);

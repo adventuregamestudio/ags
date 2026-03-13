@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "core/platform.h"
 #include "ac/spritecache.h"
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "gfx/bitmap.h"
+#include "platform/platform.h"
 #include "util/memory_compat.h"
 
 using namespace AGS::Common;
@@ -338,9 +338,9 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
         return nullptr;
     assert((_spriteData[index].Flags & SPRCACHEFLAG_ISASSET) != 0);
 
-    Bitmap *image{};
-    HError err = _file.LoadSprite(index, image);
-    if (!image)
+    PixelBuffer pxbuf;
+    HError err = _file.LoadSprite(index, pxbuf);
+    if (!pxbuf)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
             "LoadSprite: failed to load sprite %d:\n%s\n - remapping to placeholder.", index,
@@ -350,6 +350,7 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
     }
 
     // Let the external user convert this sprite's image for their needs
+    Bitmap *image = new Bitmap(std::move(pxbuf));
     image = _callbacks.InitSprite(index, image, _sprInfos[index].Flags);
     if (!image)
     {
@@ -396,14 +397,14 @@ void SpriteCache::InitNullSprite(sprkey_t index)
     _spriteData[index] = SpriteData();
 }
 
-int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
+HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
     // Gather a list of sprites;
     // the list contains pairs, where first element tells whether the sprites
     // exists at all (either have a ready image, or found in a input file).
     // SaveSpriteFile will either use a ready image or load missing images
     // before saving to the destination.
-    std::vector<std::pair<bool, Bitmap*>> sprites;
+    std::vector<std::pair<bool, BitmapData>> sprites;
     for (size_t i = 0; i < _spriteData.size(); ++i)
     {
         auto &image = ResourceCache::Get(static_cast<sprkey_t>(i));
@@ -411,7 +412,7 @@ int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompr
             _callbacks.PrewriteSprite(image.get());
         sprites.push_back(std::make_pair(
             (image || _spriteData[i].IsAssetSprite()),
-            image.get()));
+            image->GetBitmapData()));
     }
     return SaveSpriteFile(filename, sprites, &_file, store_flags, compress, index);
 }

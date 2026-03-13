@@ -18,7 +18,6 @@
 #ifndef __AGS_EE_GFX__GFXMODELIST_H
 #define __AGS_EE_GFX__GFXMODELIST_H
 
-#include "core/types.h"
 #include "gfx/gfxdefines.h"
 
 namespace AGS

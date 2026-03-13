@@ -13,7 +13,7 @@
 //=============================================================================
 #include "util/stdio_compat.h"
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>

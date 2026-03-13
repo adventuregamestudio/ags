@@ -66,6 +66,7 @@ struct OverrideGameConfig
     int8_t Multitasking     = -1; // -1 for none, 0 or 1 to lock in the on/off mode (TODO: make enum)
     bool  NoPlugins         = false; // disable loading plugins
     bool  UpscaleResolution = false; // whether upscale old games that supported that
+    bool  NewKeyHandling    = false; // force new keyhandling mode
     // Optional keys for calling built-in save/restore dialogs;
     // primarily meant for the test runs of the games where save functionality
     // is not implemented (or does not work correctly).
@@ -99,11 +100,12 @@ struct GameConfig
     ScreenRotation Rotation      = kScreenRotation_Unlocked; // how to display the game on mobile screen
 
     // Audio options
-    bool    AudioEnabled         = false;
+    bool    AudioEnabled         = true;
     String  AudioDriverID;
     bool    UseVoicePack         = false;
 
     // Control options
+    bool    MouseEnabled         = true;
     bool    MouseAutoLock        = false;
     float   MouseSpeed           = 1.f;
     // Touch-to-mouse emulation mode (how the touches are handled overall)

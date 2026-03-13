@@ -54,7 +54,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "core/types.h"
 #include "util/string.h"
 #include "util/string_types.h"
 

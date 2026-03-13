@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <vector>
-#include "core/types.h"
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
 #include "game/scripteventtable.h"
@@ -141,9 +140,10 @@ struct CharacterInfo
     int     y           = 0;
     int     wait        = 0;
     int     flags       = 0;  // CHF_* flags
-    int     idleview    = 0;  // the loop will be randomly picked
-    int16_t idletime    = 0;
-    int16_t idleleft    = 0; // num seconds idle before playing anim
+    int     idleview    = 0; // idle view number
+    // delay in seconds to wait before switching to idle animation (0 = continuous idling)
+    int16_t idledelay    = 0;
+    int16_t idleleft    = 0; // time in seconds left before switching to idle animation
     int16_t transparency = 0; // "incorrect" alpha (in legacy 255-range units)
     int16_t baseline    = -1;
     int     activeinv   = -1; // selected inventory item
@@ -158,7 +158,7 @@ struct CharacterInfo
     int     walkwait    = 0; // number of frames to wait before advancing a move;
                              // also used as a turning counter
     int16_t speech_anim_speed = 0;
-    int16_t idle_anim_speed = 0;
+    int16_t idle_anim_speed = 0; // idle animation delay
     // relative offset of the blocking rect
     int16_t blocking_x = 0;
     int16_t blocking_y = 0;

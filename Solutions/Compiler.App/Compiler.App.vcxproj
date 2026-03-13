@@ -359,9 +359,9 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\data\data_ext.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\data_ext.cpp" />
     <ClCompile Include="..\..\Common\util\directory.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />

@@ -70,6 +70,9 @@ AL_ARRAY(int, _rgb_scale_6);
 
 AL_VAR(int *, palette_color);
 
+AL_FUNC(void, set_rgb_shifts, (int r15, int g15, int b15, int r16, int g16, int b16,
+                               int r24, int g24, int b24, int r32, int g32, int b32, int a32));
+
 AL_FUNC(void, set_color, (int idx, AL_CONST RGB *p));
 AL_FUNC(void, set_palette, (AL_CONST PALETTE p));
 AL_FUNC(void, set_palette_range, (AL_CONST PALETTE p, int from, int to, int retracesync));
@@ -90,28 +93,6 @@ AL_FUNC(void, create_rgb_table, (RGB_MAP *table, AL_CONST PALETTE pal, AL_METHOD
 AL_FUNC(void, create_light_table, (COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, int b, AL_METHOD(void, callback, (int pos))));
 AL_FUNC(void, create_trans_table, (COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, int b, AL_METHOD(void, callback, (int pos))));
 AL_FUNC(void, create_color_table, (COLOR_MAP *table, AL_CONST PALETTE pal, AL_METHOD(void, blend, (AL_CONST PALETTE pal, int x, int y, RGB *rgb)), AL_METHOD(void, callback, (int pos))));
-AL_FUNC(void, create_blender_table, (COLOR_MAP *table, AL_CONST PALETTE pal, AL_METHOD(void, callback, (int pos))));
-
-typedef AL_METHOD(uint32_t, BLENDER_FUNC, (uint32_t x, uint32_t y, uint32_t n));
-
-AL_FUNC(void, set_blender_mode, (BLENDER_FUNC b15, BLENDER_FUNC b16, BLENDER_FUNC b24, int r, int g, int b, int a));
-AL_FUNC(void, set_blender_mode_ex, (BLENDER_FUNC b15, BLENDER_FUNC b16, BLENDER_FUNC b24, BLENDER_FUNC b32, BLENDER_FUNC b15x, BLENDER_FUNC b16x, BLENDER_FUNC b24x, int r, int g, int b, int a));
-
-AL_FUNC(void, set_alpha_blender, (void));
-AL_FUNC(void, set_write_alpha_blender, (void));
-AL_FUNC(void, set_trans_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_add_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_burn_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_color_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_difference_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_dissolve_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_dodge_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_hue_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_invert_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_luminance_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_multiply_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_saturation_blender, (int r, int g, int b, int a));
-AL_FUNC(void, set_screen_blender, (int r, int g, int b, int a));
 
 AL_FUNC(void, hsv_to_rgb, (float h, float s, float v, int *r, int *g, int *b));
 AL_FUNC(void, rgb_to_hsv, (int r, int g, int b, float *h, float *s, float *v));

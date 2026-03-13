@@ -5,7 +5,7 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 
 */
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if (AGS_PLATFORM_OS_WINDOWS)
 #define WIN32_LEAN_AND_MEAN

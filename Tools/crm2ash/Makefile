@@ -23,10 +23,10 @@ LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
 
 COMMON_OBJS = \
+	../../Common/data/data_ext.cpp \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/game/room_file_base.cpp \
 	../../Common/util/bufferedstream.cpp \
-	../../Common/util/data_ext.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/path.cpp \

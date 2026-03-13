@@ -18,8 +18,6 @@
 #ifndef __AGS_EE_AC__MATH_H
 #define __AGS_EE_AC__MATH_H
 
-#include "core/types.h"
-
 enum RoundDirections {
     eRoundDown = 0,
     eRoundNearest = 1,

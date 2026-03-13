@@ -65,7 +65,7 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     in->ReadInt16(); // [UNUSED] (following)
     in->ReadInt16(); // [UNUSED] (follow_info)
     idleview = in->ReadInt32();
-    idletime = in->ReadInt16();
+    idledelay = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] (idleleft)
     transparency = in->ReadInt16();
     baseline = in->ReadInt16();
@@ -127,7 +127,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt16(0); // [UNUSED] (following)
     out->WriteInt16(0); // [UNUSED] (follow_info)
     out->WriteInt32(idleview);
-    out->WriteInt16(idletime);
+    out->WriteInt16(idledelay);
     out->WriteInt16(0); // [UNUSED] (idleleft)
     out->WriteInt16(transparency);
     out->WriteInt16(baseline);
@@ -179,7 +179,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     in->ReadInt16(); // legacy following
     in->ReadInt16(); // legacy followinginfo
     idleview = in->ReadInt32();
-    idletime = in->ReadInt16();
+    idledelay = in->ReadInt16();
     idleleft = in->ReadInt16();
     transparency = in->ReadInt16();
     baseline = in->ReadInt16();
@@ -267,7 +267,7 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt16(0); // legacy following
     out->WriteInt16(0); // legacy followinfo
     out->WriteInt32(idleview);
-    out->WriteInt16(idletime);
+    out->WriteInt16(idledelay);
     out->WriteInt16(idleleft);
     out->WriteInt16(transparency);
     out->WriteInt16(baseline);

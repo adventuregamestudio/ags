@@ -26,7 +26,7 @@
 #include "ac/path_helper.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "debug/debug_log.h"
 #include "util/directory.h"
 #include "util/path.h"
@@ -265,7 +265,7 @@ int ListBox_GetTextAlignment(GUIListBox *listbox) {
 }
 
 void ListBox_SetTextAlignment(GUIListBox *listbox, int align) {
-    listbox->SetTextAlignment(static_cast<HorAlignment>(align));
+    listbox->SetTextAlignment(static_cast<FrameAlignment>(align));
 }
 
 int ListBox_GetTextColor(GUIListBox *listbox) {
@@ -278,6 +278,16 @@ void ListBox_SetTextColor(GUIListBox *listbox, int color)
     // Prior to 3.6.3 text color was also used for border
     if (loaded_game_file_version < kGameVersion_363_04)
         listbox->SetBorderColor(color);
+}
+
+int ListBox_GetTextOutlineColor(GUIListBox *listbox)
+{
+    return listbox->GetTextOutlineColor();
+}
+
+void ListBox_SetTextOutlineColor(GUIListBox *listbox, int color)
+{
+    listbox->SetTextOutlineColor(color);
 }
 
 int ListBox_GetSelectedIndex(GUIListBox *listbox) {
@@ -516,10 +526,19 @@ RuntimeScriptValue Sc_ListBox_GetTextColor(void *self, const RuntimeScriptValue 
     API_OBJCALL_INT(GUIListBox, ListBox_GetTextColor);
 }
 
-// void (GUIListBox *guisl, int newsel)
 RuntimeScriptValue Sc_ListBox_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTextColor);
+}
+
+RuntimeScriptValue Sc_ListBox_GetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetTextOutlineColor);
+}
+
+RuntimeScriptValue Sc_ListBox_SetTextOutlineColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTextOutlineColor);
 }
 
 // int (GUIListBox *listbox)
@@ -587,6 +606,8 @@ void RegisterListBoxAPI()
         { "ListBox::set_TextAlignment",   API_FN_PAIR(ListBox_SetTextAlignment) },
         { "ListBox::get_TextColor",       API_FN_PAIR(ListBox_GetTextColor) },
         { "ListBox::set_TextColor",       API_FN_PAIR(ListBox_SetTextColor) },
+        { "ListBox::get_TextOutlineColor", API_FN_PAIR(ListBox_GetTextOutlineColor) },
+        { "ListBox::set_TextOutlineColor", API_FN_PAIR(ListBox_SetTextOutlineColor) },
         { "ListBox::get_TopItem",         API_FN_PAIR(ListBox_GetTopItem) },
         { "ListBox::set_TopItem",         API_FN_PAIR(ListBox_SetTopItem) },
     };

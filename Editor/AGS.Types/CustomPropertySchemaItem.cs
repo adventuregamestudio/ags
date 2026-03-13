@@ -12,6 +12,7 @@ namespace AGS.Types
         private string _defaultValue;
         private CustomPropertyType _type;
         private CustomPropertyAppliesTo _appliesTo;
+        private bool _translateValue = false;
 
         public CustomPropertySchemaItem()
         {
@@ -112,6 +113,12 @@ namespace AGS.Types
             set { _appliesTo = value ? (_appliesTo | CustomPropertyAppliesTo.WalkableAreas) : (_appliesTo & ~CustomPropertyAppliesTo.WalkableAreas); }
         }
 
+        public bool Translated
+        {
+            get { return _translateValue; }
+            set { _translateValue = value; }
+        }
+
         public CustomPropertyType Type
         {
             get { return _type; }
@@ -169,6 +176,19 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
+        public void CopyFrom(CustomPropertySchemaItem schemaItem)
+        {
+            this.DefaultValue = schemaItem.DefaultValue;
+            this.Description = schemaItem.Description;
+            this.Name = schemaItem.Name;
+            this.Type = schemaItem.Type;
+            this.AppliesToCharacters = schemaItem.AppliesToCharacters;
+            this.AppliesToHotspots = schemaItem.AppliesToHotspots;
+            this.AppliesToInvItems = schemaItem.AppliesToInvItems;
+            this.AppliesToObjects = schemaItem.AppliesToObjects;
+            this.AppliesToRooms = schemaItem.AppliesToRooms;
+        }
+
         public object Clone()
         {
             CustomPropertySchemaItem copy = new CustomPropertySchemaItem();
@@ -177,6 +197,7 @@ namespace AGS.Types
             copy.Name = this.Name;
             copy.Type = this.Type;
             copy.AppliesTo = this.AppliesTo;
+            copy.Translated = this.Translated;
             return copy;
         }
     }

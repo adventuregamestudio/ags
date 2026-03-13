@@ -13,7 +13,6 @@
 //=============================================================================
 #include "gfx/blender.h"
 #include <allegro.h>
-#include "core/types.h"
 
 extern "C" {
     // Fallback routine for when we don't have anything better to do.

@@ -30,7 +30,7 @@
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
 
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "util/stream.h"
 #include "util/string.h"
 

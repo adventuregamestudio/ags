@@ -14,7 +14,6 @@
 #ifndef __AGS_CN_GUI__GUICONTROL_H
 #define __AGS_CN_GUI__GUICONTROL_H
 
-#include "core/types.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
 #include "gui/guiobject.h"

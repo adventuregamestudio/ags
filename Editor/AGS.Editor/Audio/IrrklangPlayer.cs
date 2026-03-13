@@ -33,6 +33,11 @@ namespace AGS.Editor
             _audioClip = clip;
         }
 
+        public AudioClip Clip
+        {
+            get { return _audioClip; }
+        }
+
         public void Play()
         {
             _soundPlaying = _soundEngine.Play2D(_source, false, false, false);
@@ -101,7 +106,7 @@ namespace AGS.Editor
         void ISoundStopEventReceiver.OnSoundStopped(ISound sound, StopEventCause reason, object userData)
         {
             _soundPlaying = null;
-            PlayFinished?.Invoke(_audioClip);
+            PlayFinished?.Invoke(this);
         }
 
         public void Dispose()

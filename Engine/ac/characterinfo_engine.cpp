@@ -350,7 +350,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
                 // end of idle anim
                 if (chi->is_idling()) {
                     // constant anim, reset (need this cos animating==0)
-                    if (chi->idletime == 0)
+                    if (chi->idledelay == 0)
                         chi->frame = 0;
                     // one-off anim, stop
                     else {
@@ -473,7 +473,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
     // they are moving or animating (or the view is locked), so 
     // reset idle timeout
     else if ((doing_nothing == 0) || ((chi->flags & CHF_FIXVIEW) != 0))
-      chi->idleleft = chi->idletime;
+      chi->idleleft = chi->idledelay;
     // count idle time
     else if ((get_loop_counter() % GetGameSpeed()==0) || (chex->process_idle_this_time == 1)) {
       chi->idleleft--;
@@ -486,11 +486,11 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
         int maxLoops = views[chi->idleview].numLoops;
         // if the char is set to "no diagonal loops", don't try
         // to use diagonal idle loops either
-        if ((maxLoops > 4) && (useDiagonal(chi)))
+        if ((maxLoops > 4) && (!should_use_diagloops(chi, false /* allow 1-frame loops */)))
           maxLoops = 4;
         // If it's not a "swimming"-type idleanim, choose a random loop
         // if there arent enough loops to do the current one.
-        if ((chi->idletime > 0) && (useloop >= maxLoops)) {
+        if ((chi->idledelay > 0) && (useloop >= maxLoops)) {
           do {
             useloop = rand() % maxLoops;
           // don't select a loop which is a continuation of a previous one
@@ -501,7 +501,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
         else if (useloop >= maxLoops)
           useloop = 0;
 
-        animate_character(chi, useloop, chi->idle_anim_speed, (chi->idletime == 0) ? 1 : 0 /* repeat */);
+        animate_character(chi, useloop, chi->idle_anim_speed, (chi->idledelay == 0) ? 1 : 0 /* repeat */);
 
         // don't set Animating while the idle anim plays (TODO: investigate why?)
         chex->anim = ViewAnimateParams();

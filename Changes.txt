@@ -302,6 +302,9 @@ Editor:
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
    right mouse buttons.
+ - In General Settings added Translation settings: "Include script texts with prefix",
+   "Exclude script texts with prefix" and "Exclude script function calls", that let configure
+   selection of the script texts which are added to translation file.
  - In Default Setup added "Compress saves" option, enabled by default.
  - On Color Finder panel added Web Color and comma-separated RGB color representation.
  - Merged previously paired "Color" and "Color Number" properties into the single "Color" property
@@ -311,11 +314,12 @@ Editor:
  - Added Baseline, BaselineOverridden, BlockingRectangle and Transparency properties to Characters.
  - Added new properties to GUI Controls: BackgroundColor, BorderColor, BorderWidth, ShowBorder,
    SolidBackground, PaddingX and PaddingY properties.
- - Added new properties to GUI Button: ColorStyle, BorderShadeColor, MouseOverBackgroundColor,
+ - Added new properties to Button controls: ColorStyle, BorderShadeColor, MouseOverBackgroundColor,
    MouseOverBorderColor, MouseOverTextColor, PushedBackgroundColor, PushedBorderColor,
-   PushedTextColor.
- - Added new properties to GUI Slider: BorderShadeColor, HandleColor.
- - Added TextAlignment property to TextBox.
+   PushedTextColor, TextOutlineColor.
+ - Added TextOutlineColor property to Label and ListBox controls.
+ - Added new properties to Slider controls: BorderShadeColor, HandleColor.
+ - Added TextAlignment and TextOutlineColor properties to TextBox controls.
  - Added BlockingRectangle, Solid and Transparency properties to Room Object.
  - For the Fonts added CharacterSpacing property that lets define additional spacing between each
    pair of characters.
@@ -325,6 +329,12 @@ Editor:
    or script. The primary purpose of these is fixing incorrectly designed fonts.
  - In Project Explorer added context menu command "Go to X" for each applicable item type, which
    lets to find an item by its numeric ID.
+ - Added Custom Properties node in the Project Explorer.
+ - Added commands for importing & exporting Custom Properties Schema.
+ - Custom Properties Schema window and Global Variables list now support different sorting orders,
+   requested by clicking on the table column headers.
+ - Custom Properties Schema now lets specify whether the String property value's should be added
+   to Translation file, or not.
  - Redesigned Font Preview panel. Now the table of glyphs display all the characters present in the
    font and let jump to a chosen character. Added text preview, where user may input any multiline
    text and see it printed with the current font.
@@ -335,7 +345,16 @@ Editor:
    Baseline (NOTE: Characters and Room Objects are still not sorted among each other).
  - In View Editor added context menu commands for copying, cutting and pasting individual frames
    and frame ranges; commands for reversing a range of frames, and reversing loop.
+ - View preview now refers to the game's default FPS setting when displaying animation.
+ - View preview lets to optionally play frame sounds.
  - Do not auto-add up to 4 loops to Views assigned as Character's NormalView.
+ - Properties Grid now has a context menu which lets copy Property's Name or Value to clipboard.
+ - "Go to Definition" command in script editor now works for Room elements too.
+   Also, "missing event function" warnings support double click to go to event pane for Rooms and
+   Room elements as well.
+ - Implemented performance optimization for Translation update process.
+ - Translation compiler now supports "Font override" settings, that let configure custom font
+   overrides for the given Translation file.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -353,23 +372,28 @@ Script API:
    channels.
  - Added GUIButtonColorStyle enum, which defines the Button's dynamic coloring style.
  - Added Button.ColorStyle, BorderShadeColor, MouseOverBackgroundColor, MouseOverBorderColor,
-   MouseOverTextColor, PushedBackgroundColor, PushedBorderColor, PushedTextColor properties.
+   MouseOverTextColor, PushedBackgroundColor, PushedBorderColor, PushedTextColor, TextOutlineColor
+   properties.
+ - Added Button.IsHighlighted and IsPushed readonly properties.
  - Added Character.BlockingRectX, BlockingRectY, and Object.BlockingRectX, BlockingRectY.
+ - Added Character.IdleDelay and Character.IdleTime.
  - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
- - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
- - Added multiple new properties to Dialog type: OptionsBulletGraphic, OptionsFont, OptionsGap,
-   OptionsGUI, OptionsGUIX, OptionsGUIY, OptionsHighlightColor, OptionsMaxGUIWidth,
-   OptionsMinGUIWidth, OptionsNumbering, OptionsPaddingX, OptionsPaddingY, OptionsReadColor,
-   OptionTextAlignment, OptionsZOrder.
-   Most of these are replacing previously existing old-style variables in "game" struct and
-   OPT_* options. OptionsFont, OptionsGUIX/Y, OptionTextAlignment and OptionsZOrder are completely
-   new features. OptionsFont is initialized as eUndefinedFont, meaning that if it's not set,
-   then dialogs should use Game.NormalFont.
- - Added Dialog.OptionsOverlay that lets access a overlay object which represents dialog options
-   on screen (only returns overlay when the options are displayed).
  - Added Dialog.SetOptionText().
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
    (turned off, turned off forever) is disregarded in this case.
+ - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
+ - Added new DialogOptions struct featuring multiple new properties: BulletGraphic, Font, GUIX,
+   GUIY, HighlightColor, ItemGap, ItemNumbering, MaxGUIWidth, MinGUIWidth, PaddingX, PaddingY,
+   ReadColor, TemplateGUI, TextAlignment, ZOrder.
+   Most of these are replacing previously existing old-style variables in "game" struct and
+   OPT_* options. DialogOptions.Font, GUIX/Y, TextAlignment and ZOrder are completely new features.
+   DialogOptions.Font is initialized as eUndefinedFont, meaning that if it's not set, then dialogs
+   should use Game.NormalFont.
+ - Added DialogOptions.HasCustomRender, ItemCount, ItemOptionID, ItemX, ItemY, ItemWidth and ItemHeight
+   readonly properties that let find out the number and location of dialog option items on screen.
+ - Added DialogOptions.Overlay that lets access a overlay object which represents dialog options
+   on screen (only returns overlay when the options are displayed).
+ - In DynamicSprite.ChangeCanvasSize() function made "x" and "y" parameters optional.
  - Added Game.InBlockingAction, BlockingWaitCounter and BlockingWaitSkipType properties.
  - Game.InBlockingWait now returns positive only when inside a Wait*() function call, not any
    blocking action (this is what InBlockingAction is for now).
@@ -383,6 +407,8 @@ Script API:
  - Added GUIControl.BackgroundColor, BorderColor, BorderWidth, SolidBackground, ShowBorder,
    PaddingX and PaddingY properties.
  - Added InventoryItem.CursorHotspotX, CursorHotspotY properties.
+ - Added Label.TextOutlineColor property.
+ - Added ListBox.TextOutlineColor property.
  - Added Mouse.GetModeHotspot().
  - Added Overlay.Text that lets assign an arbitrary overlay tag (description), but also returns
    a text used to create a textual overlay.
@@ -391,7 +417,7 @@ Script API:
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.
  - Added System.FPS that lets read current real fps.
- - Added TextBox.TextAlignment property.
+ - Added TextBox.TextAlignment and TextOutlineColor properties.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
    LeftGraphic, RightGraphic, and so forth.
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
@@ -413,9 +439,26 @@ Engine:
  - Room Region events will now be run consistently with the other game events, scheduled and
    executed at the end of the game update cycle (was run at the beginning of the game update).
    The purpose of this change is to make it easier to handle the order of events in game.
+ - Character and object scaling properties, and auto-tracking Camera positions will now be
+   updated extra time prior to "Room Before Fade-in" and "late_repeatedly_execute_always" events.
+   This is done to ensure that user scripts can read proper up-to-date values during these events.
+ - Ensure that no other events or script callbacks are run in between "Room Before Fade-in" and
+   "Room After Fade-in". Previously it was possible to have "repeatedly_execute_always" function
+   run once between them, and also certain Region's events could run if player character appeared
+   standing on one when entering the room.
  - Corrected the order of update for the cursor graphic saved for the current location
    (see Mouse.SaveCursorUntilItLeaves()).
+ - Speech skip key will also apply to skipping Display messages.
  - Improved video playback's synchronization between video and audio streams.
+ - Support for "Font overrides" instructed by the loaded Translation.
+ - Added "enabled" config option to "mouse" section. It's on by default, but when off, this option
+   tells engine to ignore the real mouse device completely, after which the in-game cursor may only
+   be moved by the respective script commands.
+ - Added "new_key_mode" config option to "override" section, that lets force the new key handling
+   mode while running old games.
+ - Added "smooth_walk" config option to "override" section, that allows smooth walk transitions if
+   running old games (this feature may cause glitches in some of the old games's scripts, so it's
+   normally disabled for them.
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.
 
@@ -456,6 +499,43 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 7, March 2026
+
+Editor:
+ - Restore AutoComplete showing static struct members for the struct's instances. Static members
+   were supposed to be shown for instances too, unless they are tagged by $AUTOCOMPLETESTATICONLY$
+   marker in script. (Broken in earlier 3.6.2 patches)
+ - Fixed bad file created when the new room template is overwriting existing one.
+ - Fixed editor was not loading any script changes done externally when compiling the game.
+ - Fixed Mouse Cursors having "Character" as a type name displayed in the property grid's title.
+
+Engine:
+ - Try initialize a "dummy" audio driver if other known drivers failed. This will not make player
+   hear anything, but prevents typical script errors which might occur when the audio playback
+   is not created.
+ - Optimize DynamicSprite.ChangeCanvasSize() and Crop() functions to not recreate a bitmap in case
+   the sprite's size does not actually change.
+ - Improved "--loadsavedgame" command-line option. Allow to pass a save slot number instead of a
+   exact file name as an argument, and try to find the file both in the game's own directory and
+   saves folder.
+ - Fixed SetRestartPoint() was writing a save immediately instead of waiting until the current
+   script ends, as it should. (Regression in 3.6.2)
+ - Fixed a error in the engine if there was any blocking action run in game_start().
+   (Regression since one of the previous 3.6.2 updates)
+ - Fixed character, who was facing a diagonal loop, unexpectedly switching to an orthogonal loop
+   after idle animation, if the idle view has only 1 frame in its diagonal loops.
+ - Fixed a rare case when a character would interrupt its continuous idle animation when commanded
+   to walk, even though no actual walk takes place, because the character is either at destination
+   or too close to destination for making a step.
+ - Fixed engine was printing "character stop moving" into the log unnecessarily in some cases.
+ - Fixed DynamicSprite.Crop() was letting to "crop" to an invalid region of a source image.
+
+Compatibility:
+ - In pre-3.6.2 games don't snap a character to a walkable area if it stopped moving
+   while turning on a spot. This behavior was accidentally required in some very old
+   games to keep character positions correct.
+
 
 VERSION 3.6.2 - Patch 6, January 2026
 

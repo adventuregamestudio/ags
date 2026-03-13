@@ -29,30 +29,10 @@ namespace Common
     }};
 
 GUIListBox::GUIListBox()
-    : GUIControl(&GUIListBox::_eventSchema)
+    : GUITextBasedControl(&GUIListBox::_eventSchema)
 {
     _flags |= kGUICtrl_ShowBorder;
     UpdateControlRect();
-}
-
-void GUIListBox::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        UpdateMetrics();
-        UpdateGraphicSpace();
-        MarkChanged();
-    }
-}
-
-void GUIListBox::SetTextColor(int color)
-{
-    if (_textColor != color)
-    {
-        _textColor = color;
-        MarkChanged();
-    }
 }
 
 void GUIListBox::SetSelectedBgColor(int color)
@@ -69,15 +49,6 @@ void GUIListBox::SetSelectedTextColor(int color)
     if (_selectedTextColor != color)
     {
         _selectedTextColor = color;
-        MarkChanged();
-    }
-}
-
-void GUIListBox::SetTextAlignment(HorAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
         MarkChanged();
     }
 }
@@ -177,7 +148,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
         uint32_t item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
         Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, _itemsRect.Left, _itemsRect.Right, at_y + _itemTextPaddingY,
-            (FrameAlignment)_textAlignment);
+            _textAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
     int last_line_y = _itemsRect.Top + _itemTextPaddingY + (_visibleItemCount - 1) * _rowHeight;
@@ -270,13 +241,14 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         {
             text_color = ds->GetCompatibleColor(_textColor);
         }
+        const color_t outline_color = ds->GetCompatibleColor(_textOutlineColor);
 
         int item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
 
-        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color,
+        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color, outline_color,
             at_x + _itemTextPaddingX, right_x - _itemTextPaddingX,
-            at_y + _itemTextPaddingY, (FrameAlignment)_textAlignment);
+            at_y + _itemTextPaddingY, _textAlignment);
     }
     ds->SetClip(old_clip);
 }
@@ -390,6 +362,12 @@ void GUIListBox::OnContentRectChanged()
     MarkChanged();
 }
 
+void GUIListBox::OnTextFontChanged()
+{
+    UpdateMetrics();
+    UpdateGraphicSpace();
+}
+
 void GUIListBox::UpdateMetrics()
 {
     int font_height = get_font_height_outlined(_font);
@@ -443,7 +421,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     _textColor = in->ReadInt32();
     _selectedTextColor = in->ReadInt32();
     _listBoxFlags = in->ReadInt32();
-    _textAlignment = (HorAlignment)in->ReadInt32();
+    _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
     _selectedBgColor = in->ReadInt32();
 
     // NOTE: we leave items in game data format as a potential support for defining
@@ -472,6 +450,11 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUIListBox::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
 {
     GUIControl::ReadFromFile_Ext363(in, gui_version);
+
+    _textOutlineColor = in->ReadInt32();
+    in->ReadInt32(); // reserved
+    in->ReadInt32();
+    in->ReadInt32();
 }
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -482,13 +465,8 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _font = in->ReadInt32();
     _selectedBgColor = in->ReadInt32();
     _selectedTextColor = in->ReadInt32();
-    _textAlignment = (HorAlignment)in->ReadInt32();
+    _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
     _textColor = in->ReadInt32();
-
-    if ((svg_ver < kGuiSvgVersion_36304) || (svg_ver >= kGuiSvgVersion_400 && svg_ver < kGuiSvgVersion_40026))
-    {
-        SetDefaultLooksFor363();
-    }
 
     // _items
     const uint32_t item_count = in->ReadInt32();
@@ -505,6 +483,19 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
             _savedGameIndex[i] = in->ReadInt16();
     _topItem = in->ReadInt32();
     _selectedItem = in->ReadInt32();
+
+    if (svg_ver >= kGuiSvgVersion_36308)
+    {
+        _textOutlineColor = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+
+    if ((svg_ver < kGuiSvgVersion_36304) || (svg_ver >= kGuiSvgVersion_400 && svg_ver < kGuiSvgVersion_40026))
+    {
+        SetDefaultLooksFor363();
+    }
 
     // Reset dynamic values
     _rowHeight = 0;
@@ -535,6 +526,12 @@ void GUIListBox::WriteToSavegame(Stream *out) const
             out->WriteInt16(_savedGameIndex[i]);
     out->WriteInt32(_topItem);
     out->WriteInt32(_selectedItem);
+
+    // kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 void GUIListBox::SetDefaultLooksFor363()
@@ -543,6 +540,7 @@ void GUIListBox::SetDefaultLooksFor363()
         _flags |= kGUICtrl_ShowBorder;
     _borderColor = _textColor;
     _borderWidth = 1;
+    _textOutlineColor = 16;
     UpdateControlRect();
 }
 

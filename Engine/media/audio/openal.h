@@ -13,7 +13,7 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA_OPENAL_H__
 #define __AGS_EE_MEDIA_OPENAL_H__
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>

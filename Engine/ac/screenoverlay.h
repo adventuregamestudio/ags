@@ -33,7 +33,6 @@
 #include <memory>
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptoverlay.h"
-#include "core/types.h"
 #include "gfx/gfx_def.h"
 #include "util/string.h"
 

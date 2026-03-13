@@ -31,8 +31,9 @@ namespace Common
     }};
 
 GUIButton::GUIButton()
-    : GUIControl(&GUIButton::_eventSchema)
+    : GUITextFieldControl(&GUIButton::_eventSchema)
 {
+    _textAlignment = kAlignTopCenter;
     _paddingX = DefaultHorPadding;
     _paddingY = DefaultVerPadding;
     _backgroundColor = 7;
@@ -52,15 +53,6 @@ void GUIButton::SetButtonFlags(int flags)
     {
         _buttonFlags = flags;
         MarkChanged(); // TODO: only mark changed if flags control the looks
-    }
-}
-
-void GUIButton::SetFont(int font)
-{
-    if (_font != font)
-    {
-        _font = font;
-        MarkChanged();
     }
 }
 
@@ -106,12 +98,6 @@ void GUIButton::SetBorderShadeColor(int color)
     MarkChanged();
 }
 
-void GUIButton::SetTextColor(int color)
-{
-    _textColor = color;
-    UpdateCurrentImage();
-}
-
 void GUIButton::SetMouseOverTextColor(int color)
 {
     _mouseOverTextColor = color;
@@ -122,15 +108,6 @@ void GUIButton::SetPushedTextColor(int color)
 {
     _pushedTextColor = color;
     UpdateCurrentImage();
-}
-
-void GUIButton::SetTextAlignment(FrameAlignment align)
-{
-    if (_textAlignment != align)
-    {
-        _textAlignment = align;
-        MarkChanged();
-    }
 }
 
 int GUIButton::GetCurrentImage() const
@@ -176,11 +153,6 @@ GraphicFlip GUIButton::GetCurrentImageFlip() const
 GUIButtonPlaceholder GUIButton::GetPlaceholder() const
 {
     return _placeholder;
-}
-
-const String &GUIButton::GetText() const
-{
-    return _text;
 }
 
 bool GUIButton::IsImageButton() const
@@ -363,29 +335,6 @@ void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags, i
     MarkChanged();
 }
 
-void GUIButton::SetText(const String &text)
-{
-    if (_text == text)
-        return;
-    _text = text;
-    // Active inventory item placeholders
-    if (_text.CompareNoCase("(INV)") == 0)
-        // Stretch to fit button
-        _placeholder = kButtonPlace_InvItemStretch;
-    else if (_text.CompareNoCase("(INVNS)") == 0)
-        // Draw at actual size
-        _placeholder = kButtonPlace_InvItemCenter;
-    else if (_text.CompareNoCase("(INVSHR)") == 0)
-        // Stretch if too big, actual size if not
-        _placeholder = kButtonPlace_InvItemAuto;
-    else
-        _placeholder = kButtonPlace_None;
-
-    // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
-    _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
-    MarkChanged();
-}
-
 void GUIButton::SetWrapText(bool on)
 {
     if (on != ((_flags & kGUICtrl_WrapText) != 0))
@@ -546,8 +495,8 @@ void GUIButton::ReadFromFile_Ext363(Stream *in, GuiVersion gui_version)
     _pushedBorderColor = in->ReadInt32();
     _mouseOverTextColor = in->ReadInt32();
     _pushedTextColor = in->ReadInt32();
+    _textOutlineColor = in->ReadInt32();
     in->ReadInt32(); // reserved
-    in->ReadInt32();
     in->ReadInt32();
     in->ReadInt32();
 
@@ -586,8 +535,9 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _pushedBorderColor = in->ReadInt32();
         _mouseOverTextColor = in->ReadInt32();
         _pushedTextColor = in->ReadInt32();
+        // valid since kGuiSvgVersion_36308
+        _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved
-        in->ReadInt32();
         in->ReadInt32();
         in->ReadInt32();
     }
@@ -642,8 +592,9 @@ void GUIButton::WriteToSavegame(Stream *out) const
     out->WriteInt32(_pushedBorderColor);
     out->WriteInt32(_mouseOverTextColor);
     out->WriteInt32(_pushedTextColor);
+    // valid since kGuiSvgVersion_36308
+    out->WriteInt32(_textOutlineColor);
     out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
     //since kGuiSvgVersion_3991
@@ -656,6 +607,7 @@ void GUIButton::SetDefaultLooksFor363()
     _backgroundColor = 7;
     _borderColor = 15;
     _borderShadeColor = 8;
+    _textOutlineColor = 16;
     _paddingX = 1;
     _paddingY = 1;
     UpdateControlRect();
@@ -663,6 +615,30 @@ void GUIButton::SetDefaultLooksFor363()
 }
 
 void GUIButton::OnColorsChanged()
+{
+    UpdateCurrentImage();
+}
+
+void GUIButton::OnTextChanged()
+{
+    // Active inventory item placeholders
+    if (_text.CompareNoCase("(INV)") == 0)
+        // Stretch to fit button
+        _placeholder = kButtonPlace_InvItemStretch;
+    else if (_text.CompareNoCase("(INVNS)") == 0)
+        // Draw at actual size
+        _placeholder = kButtonPlace_InvItemCenter;
+    else if (_text.CompareNoCase("(INVSHR)") == 0)
+        // Stretch if too big, actual size if not
+        _placeholder = kButtonPlace_InvItemAuto;
+    else
+        _placeholder = kButtonPlace_None;
+
+    // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
+    _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
+}
+
+void GUIButton::OnTextColorChanged()
 {
     UpdateCurrentImage();
 }
@@ -732,6 +708,9 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
+    const color_t outline_color = draw_disabled ?
+        ds->GetCompatibleColor(8) :
+        ds->GetCompatibleColor(_textOutlineColor);
     Rect frame = Rect::MoveBy(_innerRect, x, y);
     if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
@@ -751,9 +730,9 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
 
     if (IsWrapText())
         GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font),
-            text_color, frame, _textAlignment);
+            text_color, outline_color, frame, _textAlignment);
     else
-        GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, frame, _textAlignment);
+        GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, outline_color, frame, _textAlignment);
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -763,13 +742,13 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // TODO: use color constants instead of literal numbers.
     // TODO: move the bw-compat default color selection to Upgrade GUI process.
     const color_t back_color =
-        (GUI::GameGuiVersion < kGuiVersion_363)
+        (GUI::GameGuiVersion < kGuiVersion_363_03)
         ? GUI::GetStandardColorForBitmap(7) : ds->GetCompatibleColor(_currentBgColor);
     const color_t light_color =
-        (GUI::GameGuiVersion < kGuiVersion_363)
+        (GUI::GameGuiVersion < kGuiVersion_363_03)
         ? GUI::GetStandardColorForBitmap(15) : ds->GetCompatibleColor(_currentBorderColor);
     const color_t dark_color =
-        (GUI::GameGuiVersion < kGuiVersion_363)
+        (GUI::GameGuiVersion < kGuiVersion_363_03)
         ? GUI::GetStandardColorForBitmap(8) : ds->GetCompatibleColor(_borderShadeColor);
 
     // Background rect

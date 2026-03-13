@@ -49,10 +49,18 @@ void start_game_load_savegame_on_startup(const String &load_save)
 {
     if (!load_save.IsEmpty())
     {
-        int slot = 1000;
-        get_save_slotnum(load_save, slot);
-        current_fade_out_effect();
-        try_restore_save(load_save, slot, true);
+        Debug::Printf(kDbgMsg_Info, "Try restore save on start: %s", load_save.GetCStr());
+        int slot;
+        String save_filepath;
+        if (get_save_filepath_and_slot(load_save, save_filepath, slot))
+        {
+            current_fade_out_effect();
+            try_restore_save(save_filepath, slot, true);
+        }
+        else
+        {
+            Debug::Printf(kDbgMsg_Error, "Not a acceptable save file name: %s", load_save.GetCStr());
+        }
     }
 }
 

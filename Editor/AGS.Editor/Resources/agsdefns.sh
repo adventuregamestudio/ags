@@ -1435,8 +1435,8 @@ builtin managed struct DynamicSprite {
 #else // !SCRIPT_API_v362
   import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
 #endif // !SCRIPT_API_v362
-  /// Enlarges the size of the sprite, but does not resize the image.
-  import void ChangeCanvasSize(int width, int height, int x, int y);
+  /// Changes the size of the sprite, but does not resize the image.
+  import void ChangeCanvasSize(int width, int height, int x = 0, int y = 0);
   /// Copies the transparency mask and/or alpha channel from the specified sprite onto this dynamic sprite.
   import void CopyTransparencyMask(int fromSpriteSlot);
   /// Reduces the size of the sprite, but does not resize the image.
@@ -1715,6 +1715,10 @@ builtin managed struct Label extends GUIControl {
   /// Gets/sets label's text alignment.
   import attribute Alignment TextAlignment;
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Gets/sets the colour of the text's outline (used if the text's font has outline).
+  import attribute int  TextOutlineColor;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct Button extends GUIControl {
@@ -1783,6 +1787,12 @@ builtin managed struct Button extends GUIControl {
   import attribute int PushedTextColor;
   /// Gets/sets the color used for drawing border's shade effect.
   import attribute int BorderShadeColor;
+  /// Gets/sets the colour of the text's outline (used if the text's font has outline).
+  import attribute int TextOutlineColor;
+  /// Gets if the button is currently hovered over by the mouse cursor.
+  import readonly attribute bool IsHighlighted;
+  /// Gets if the button is currently pushed down.
+  import readonly attribute bool IsPushed;
 #endif
 #ifdef SCRIPT_API_v400
   /// Gets/sets the flip direction of the button's graphic
@@ -1827,6 +1837,8 @@ builtin managed struct TextBox extends GUIControl {
 #ifdef SCRIPT_API_v363
   /// Gets/sets text box's text alignment.
   import attribute Alignment TextAlignment;
+  /// Gets/sets the colour of the text's outline (used if the text's font has outline).
+  import attribute int  TextOutlineColor;
 #endif // SCRIPT_API_v363
 };
 
@@ -1854,62 +1866,64 @@ builtin managed struct InvWindow extends GUIControl {
 };
 
 builtin managed struct ListBox extends GUIControl {
-	/// Adds a new item to the bottom of the list with the specified text.
-	import bool AddItem(const string text);
-	/// Removes all the items from the list.
-	import void Clear();
+  /// Adds a new item to the bottom of the list with the specified text.
+  import bool AddItem(const string text);
+  /// Removes all the items from the list.
+  import void Clear();
 #ifdef SCRIPT_API_v362
-	/// Fills the list box with all the filenames that match the specified file mask.
-	import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
-	/// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
-	import bool FillSaveGameList(int min_slot = 0, int max_slot = 99, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
-	/// Fills the list box with the current user's saved games using the array of slot indexes.
-	import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
+  /// Fills the list box with all the filenames that match the specified file mask.
+  import void FillDirList(const string fileMask, FileSortStyle fileSortStyle = eFileSort_Name, SortDirection sortDirection = eSortAscending);
+  /// Fills the list box with the current user's saved games in the given range of slots. Returns true if all slots in range are occupied.
+  import bool FillSaveGameList(int min_slot = 0, int max_slot = 99, SaveGameSortStyle saveSortStyle = eSaveGameSort_Time, SortDirection sortDirection = eSortDescending);
+  /// Fills the list box with the current user's saved games using the array of slot indexes.
+  import void FillSaveGameSlots(int save_slots[], SaveGameSortStyle saveSortStyle = eSaveGameSort_None, SortDirection sortDirection = eSortNoDirection);
 #else // !SCRIPT_API_v362
-    /// Fills the list box with all the filenames that match the specified file mask.
-	import void FillDirList(const string fileMask);
-	/// Fills the list box with the current user's saved games in the given range of slots.
-	import int  FillSaveGameList();
+  /// Fills the list box with all the filenames that match the specified file mask.
+  import void FillDirList(const string fileMask);
+  /// Fills the list box with the current user's saved games in the given range of slots.
+  import int  FillSaveGameList();
 #endif // !SCRIPT_API_v362
-	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
-	import int  GetItemAtLocation(int x, int y);
-	/// Inserts a new item before the specified index.
-	import bool InsertItemAt(int listIndex, const string text);
-	/// Removes the specified item from the list.
-	import void RemoveItem(int listIndex);
-	/// Scrolls the list down one row.
-	import void ScrollDown();
-	/// Scrolls the list up one row.
-	import void ScrollUp();
-	/// Gets/sets the font used to draw the list items.
-	import attribute FontType Font;
-	/// Gets the number of items currently in the list.
-	readonly import attribute int ItemCount;
-	/// Accesses the text for the items in the list.
-	import attribute String Items[];
-	/// Gets the number of visible rows that the listbox can display.
-	readonly import attribute int RowCount;
-	/// Gets the save game number that each row in the list corresponds to, after using FillSaveGameList.
-	readonly import attribute int SaveGameSlots[];
-	/// Gets/sets the currently selected item.
-	import attribute int  SelectedIndex;
-	/// Gets/sets the first visible item in the list.
-	import attribute int  TopItem;
+  /// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
+  import int  GetItemAtLocation(int x, int y);
+  /// Inserts a new item before the specified index.
+  import bool InsertItemAt(int listIndex, const string text);
+  /// Removes the specified item from the list.
+  import void RemoveItem(int listIndex);
+  /// Scrolls the list down one row.
+  import void ScrollDown();
+  /// Scrolls the list up one row.
+  import void ScrollUp();
+  /// Gets/sets the font used to draw the list items.
+  import attribute FontType Font;
+  /// Gets the number of items currently in the list.
+  readonly import attribute int ItemCount;
+  /// Accesses the text for the items in the list.
+  import attribute String Items[];
+  /// Gets the number of visible rows that the listbox can display.
+  readonly import attribute int RowCount;
+  /// Gets the save game number that each row in the list corresponds to, after using FillSaveGameList.
+  readonly import attribute int SaveGameSlots[];
+  /// Gets/sets the currently selected item.
+  import attribute int  SelectedIndex;
+  /// Gets/sets the first visible item in the list.
+  import attribute int  TopItem;
 #ifdef SCRIPT_API_v350
 #ifndef SCRIPT_API_v363
-	/// Gets/sets whether the border around the list box is shown.
-	import attribute bool ShowBorder;
+  /// Gets/sets whether the border around the list box is shown.
+  import attribute bool ShowBorder;
 #endif // SCRIPT_COMPAT_v363
-	/// Gets/sets whether the clickable scroll arrows are shown.
-	import attribute bool ShowScrollArrows;
-	/// Gets/sets color of the list item's selection
-	import attribute int  SelectedBackColor;
-	/// Gets/sets selected list item's text color
-	import attribute int  SelectedTextColor;
-	/// Gets/sets list item's text alignment.
-	import attribute HorizontalAlignment TextAlignment;
-	/// Gets/sets regular list item's text color
-	import attribute int  TextColor;
+  /// Gets/sets whether the clickable scroll arrows are shown.
+  import attribute bool ShowScrollArrows;
+  /// Gets/sets color of the list item's selection
+  import attribute int  SelectedBackColor;
+  /// Gets/sets selected list item's text color
+  import attribute int  SelectedTextColor;
+  /// Gets/sets list item's text alignment.
+  import attribute HorizontalAlignment TextAlignment;
+  /// Gets/sets regular list item's text color
+  import attribute int  TextColor;
+  /// Gets/sets the colour of the list item text's outline (used if the item's font has outline).
+  import attribute int    TextOutlineColor;
 #endif // SCRIPT_API_v350
 };
 
@@ -2208,7 +2222,17 @@ builtin managed struct Dialog {
   /// Gets if the dialog options are currently displayed on screen
   import static readonly attribute bool AreOptionsDisplayed; // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v362
-#ifdef SCRIPT_API_v400
+#ifdef SCRIPT_API_v400 fixme!!!!!!!!!!!
+  /// Runs the dialog starting from the certain option's script rather than the entry point
+  import void StartOption(int option);
+  /// Sets the text of the specified option in this dialog.
+  import void SetOptionText(int option, const string text);
+#endif // SCRIPT_API_v363
+
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+#ifdef SCRIPT_API_v363
   /// Gets an integer custom property for this dialog.
   import int  GetProperty(const string property);
   /// Gets a text custom property for this dialog.
@@ -2218,47 +2242,59 @@ builtin managed struct Dialog {
   /// Sets a text custom property for this dialog.
   import bool SetTextProperty(const string property, const string value);
 #endif // SCRIPT_API_v400
-#ifdef SCRIPT_API_v363 fix move up
+#ifdef SCRIPT_API_v363 fixme????? move up
+struct DialogOptions
+{
+  /// Gets if the dialog options are currently displayed on screen
+  import static readonly attribute bool AreDisplayed; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
-  import static attribute int OptionsBulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  import static attribute int BulletGraphic; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the font to use when displaying dialog options
-  import static attribute FontType OptionsFont; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the vertical gap between dialog options (in pixels)
-  import static attribute int OptionsGap; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the GUI that will be used to display dialog options; set null to use default options look
-  import static attribute GUI* OptionsGUI; // $AUTOCOMPLETESTATICONLY$
+  import static attribute FontType Font; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement
-  import static attribute int OptionsGUIX; // $AUTOCOMPLETESTATICONLY$
+  import static attribute int GUIX; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen Y position of dialog options GUI; set to -1 if it should use default placement
-  import static attribute int OptionsGUIY; // $AUTOCOMPLETESTATICONLY$
+  import static attribute int GUIY; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the color used to draw the active (selected) dialog option
-  import static attribute int OptionsHighlightColor; // $AUTOCOMPLETESTATICONLY$
-  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
-  import static attribute int OptionsMaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
-  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
-  import static attribute int OptionsMinGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  import static attribute int HighlightColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical gap between dialog options (in pixels)
+  import static attribute int ItemGap; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets whether dialog options have numbers before them, and the numeric keys can be used to select them
-  import static attribute DialogOptionsNumbering OptionsNumbering; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
-  import static attribute int OptionsPaddingX; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the vertical offset at which options are drawn on a standard GUI
-  import static attribute int OptionsPaddingY; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
-  import static attribute int OptionsReadColor; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the horizontal alignment of each dialog option's text
-  import static attribute HorizontalAlignment OptionsTextAlignment; // $AUTOCOMPLETESTATICONLY$
-  /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
-  import static attribute int OptionsZOrder; // $AUTOCOMPLETESTATICONLY$
+  import static attribute DialogOptionsNumbering ItemNumbering; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the maximal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int MaxGUIWidth; // $AUTOCOMPLETESTATICONLY$
+  /// Get/sets the minimal width of the auto-resizing GUI on which dialog options are drawn
+  import static attribute int MinGUIWidth; // $AUTOCOMPLETESTATICONLY$
   /// Gets overlay that is currently used to display dialog options on screen. Returns null if options are not shown.
-  import static readonly attribute Overlay* OptionsOverlay; // $AUTOCOMPLETESTATICONLY$
-  /// Runs the dialog starting from the certain option's script rather than the entry point
-  import void StartOption(int option);
-  /// Sets the text of the specified option in this dialog.
-  import void SetOptionText(int option, const string text);
-#endif // SCRIPT_API_v363
-
-  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
+  import static readonly attribute Overlay* Overlay; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal offset at which options are drawn on a standard GUI
+  import static attribute int PaddingX; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the vertical offset at which options are drawn on a standard GUI
+  import static attribute int PaddingY; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the color used to draw the dialog options that have already been selected once; set to -1 for no distinct color
+  import static attribute int ReadColor; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the GUI that will be used as a template for the dialog options background; set null to use default options look
+  import static attribute GUI* TemplateGUI; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the horizontal alignment of each dialog option's text
+  import static attribute HorizontalAlignment TextAlignment; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the z-order of dialog options, relative to GUI and on-screen Overlays.
+  import static attribute int ZOrder; // $AUTOCOMPLETESTATICONLY$
+  /// Gets whether the dialog options are drawn using custom render (scripted).
+  import static readonly attribute bool HasCustomRender;
+  /// Gets the number of dialog options which are currently displayed on screen. Returns 0 if dialog options are not displayed.
+  import static readonly attribute int ItemCount; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the dialog option ID displayed at particular index. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemOptionID[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the x position of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemX[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the y position of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemY[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the width of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemWidth[]; // $AUTOCOMPLETESTATICONLY$
+  /// Gets the height of the particular item in dialog options. The item index is in range from 0 to (ItemCount - 1).
+  import static readonly attribute int ItemHeight[]; // $AUTOCOMPLETESTATICONLY$
 };
+#endif // SCRIPT_API_v363
 
 builtin struct Maths {
   /// Calculates the Arc Cosine of the specified value.
@@ -2938,6 +2974,10 @@ builtin managed struct Character {
   import attribute int  BlockingRectX;
   /// Gets/sets the relative y offset of a blocking area of the character.
   import attribute int  BlockingRectY;
+  /// Gets delay before the idle view activates, in seconds
+  import readonly attribute int IdleDelay;
+  /// Gets remaining time before the idle view activates, in seconds
+  import readonly attribute int IdleTime;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.

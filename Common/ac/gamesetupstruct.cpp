@@ -20,16 +20,6 @@
 using namespace AGS::Common;
 
 
-void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
-{
-    finfo.Flags = flags;
-    if ((flags & FFLG_SIZEMULTIPLIER) != 0)
-    {
-        finfo.SizeMultiplier = finfo.Size;
-        finfo.Size = 0;
-    }
-}
-
 void GameSetupStruct::ResolveStandardModes()
 {
     for (int role = 0; role < kNumCursorRoles; ++role)
@@ -60,12 +50,13 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
     fonts.resize(numfonts);
     for (int i = 0; i < numfonts; ++i)
     {
+        fonts[i].FontID = i;
         uint32_t flags = in->ReadInt32();
         fonts[i].Size = in->ReadInt32();
         fonts[i].Outline = in->ReadInt32();
         fonts[i].YOffset = in->ReadInt32();
         fonts[i].LineSpacing = std::max(0, in->ReadInt32());
-        AdjustFontInfoUsingFlags(fonts[i], flags);
+        fonts[i].SetFlags(flags);
     }
 }
 

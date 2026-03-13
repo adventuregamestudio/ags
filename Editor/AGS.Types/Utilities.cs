@@ -103,6 +103,15 @@ namespace AGS.Types
             return v;
         }
 
+        public static int ParseIntOrDefault(this string s, int defaultValue = 0)
+        {
+            int value;
+            if (int.TryParse(s, out value))
+                return value;
+            else
+                return defaultValue;
+        }
+
         /// <summary>
         /// Parses a nullable int, treating user-provided string constant
         /// as a "null value" indicator.

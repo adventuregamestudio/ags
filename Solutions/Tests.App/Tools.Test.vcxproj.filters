@@ -54,6 +54,9 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\data\include_utils.h">

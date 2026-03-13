@@ -14,7 +14,7 @@
 #ifndef __AGS_EE_SETUP__BASICPAGEDIALOG_H
 #define __AGS_EE_SETUP__BASICPAGEDIALOG_H
 
-#include "core/platform.h"
+#include "platform/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
 

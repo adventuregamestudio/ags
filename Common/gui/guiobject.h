@@ -18,7 +18,6 @@
 #ifndef __AGS_CN_GUI__GUIOBJECT_H
 #define __AGS_CN_GUI__GUIOBJECT_H
 
-#include "core/types.h"
 #include "game/scripteventtable.h"
 #include "gfx/gfx_def.h"
 #include "util/geometry.h"

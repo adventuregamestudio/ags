@@ -15,7 +15,7 @@
 #define __AGS_TOOL_DATA__CRMUTIL_H
 
 #include <memory>
-#include "game/tra_file.h"
+#include "data/tra_file.h"
 #include "util/stream.h"
 
 namespace AGS

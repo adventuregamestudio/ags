@@ -267,6 +267,9 @@ static void GameUpdateLateRepExec()
 {
     if (in_new_room == kEnterRoom_None)
     {
+        // sync drawable object states before running event
+        // in case they access these properties in a script callback
+        SyncDrawablesState();
         // Run the room and game script late_repeatedly_execute
         run_function_on_non_blocking_thread(&lateRepExecAlways);
     }
@@ -276,6 +279,12 @@ static void GameUpdateLateRepExec()
 // "Stand On" event callbacks.
 static void GameUpdateCheckGroundInteractions()
 {
+    // Do not check for ground interactions if we are in the process of
+    // entering the room (between "load room" and "after fade-in" events).
+    // (For backwards compatibility, skip this condition for older games)
+    if (in_new_room != kEnterRoom_None)
+        return;
+
     // If ground interactions are disabled completely, then bail out
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) != 0)
         return;
@@ -573,7 +582,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%s anim:%s follow:%d flags:%X wait:%d zoom:%d)\n",
                 game.chars[chd].scrname.GetCStr(), game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
                 game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
-                game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
+                game.chars[chd].idleview, game.chars[chd].idledelay, game.chars[chd].idleleft,
                 game.chars[chd].is_moving() ? "yes" : "no", charextra[chd].IsAnimating() ? "yes" : "no", charextra[chd].following,
                 game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
         }
@@ -980,6 +989,11 @@ extern std::vector<ViewStruct> views;
 
 static void update_objects_scale()
 {
+    if (play.fast_forward)
+        return;
+    if (displayed_room < 0)
+        return;
+
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
     {
         update_object_scale(objid);
@@ -1171,20 +1185,28 @@ static void UpdateDrawableObjectStates(bool do_cursor, int mwasatx, int mwasaty)
 static void GameUpdateProcessEvents()
 {
     new_room_was = in_new_room;
-    // If we're in the new room (after "room load" event), then schedule "fade in" event,
+    // If we're in the new room (after "room load" event), then queue "fade in" event,
     // it will be processed right away
     if (in_new_room != kEnterRoom_None)
     {
         setevent({ kAGSEvent_FadeIn });
+        in_new_room = kEnterRoom_None;
     }
-    in_new_room = kEnterRoom_None;
 
     processallevents();
 
+    // If in a new room, and the room wasn't just changed again in update_events,
+    // then queue the Enters Screen scripts run after the room is faded in.
     if ((new_room_was != kEnterRoom_None) && (in_new_room == kEnterRoom_None))
     {
-        // if in a new room, and the room wasn't just changed again in update_events,
-        // then queue the Enters Screen scripts run these next time round, when it's faded in
+        // In 3.6.3+ games After-Fade-in event is run immediately at the same
+        // game update right after the Fade-in (transition) event was run (transition).
+        // This ensures that there's no extra updates or redraws in between.
+        // In pre-3.6.3 games this event is scheduled to run on the next update,
+        // which will actually cause some script callbacks to trigger *prior*
+        // "After-Fade-in" (rep-exec-always, ground interactions).
+        const bool run_event_now = (loaded_game_file_version >= kGameVersion_363);
+
         switch (new_room_was)
         {
         case kEnterRoom_FirstTime: // first time enters screen
@@ -1196,6 +1218,11 @@ static void GameUpdateProcessEvents()
         case kEnterRoom_RestoredSave:
             in_room_transition = false; // room transition ends here
             break;
+        }
+        
+        if (run_event_now)
+        {
+            processallevents();
         }
     }
 }

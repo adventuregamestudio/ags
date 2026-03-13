@@ -1,5 +1,6 @@
 using AGS.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -33,9 +34,11 @@ namespace AGS.Editor
                 newRow.SubItems.Add(item.Type.ToString());
                 newRow.SubItems.Add(item.DefaultValue);
                 newRow.SubItems.Add(item.AppliesToAsString);
+                newRow.SubItems.Add((item.Type == CustomPropertyType.Text) ? (item.Translated ? "Yes" : "No") : "-");
                 newRow.Tag = item;
                 schemaList.Items.Add(newRow);
             }
+            schemaList.Sort();
         }
 
         private void CustomPropertySchemaEditor_Load(object sender, EventArgs e)

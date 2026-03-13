@@ -23,7 +23,6 @@
 
 #include <memory>
 #include <allegro.h> // BITMAP
-#include "core/types.h"
 #include "gfx/bitmap.h"
 #include "gfx/bitmapdata.h"
 #include "util/string.h"

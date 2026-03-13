@@ -23,7 +23,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
-#include "core/assetmanager.h"
+#include "data/assetmanager.h"
 #include "game/room_version.h"
 #include "util/error.h"
 #include "util/stream.h"

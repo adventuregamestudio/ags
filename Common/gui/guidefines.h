@@ -52,6 +52,7 @@
 //
 // 4.0.0.26        : Updated to sync with 3.6.3, but contains numerous
 //                   additions of its own (blend mode, scaling, etc).
+// 4.0.0.27        : sync with 3.6.3.8.
 //=============================================================================
 
 enum GuiVersion
@@ -61,8 +62,9 @@ enum GuiVersion
     kGuiVersion_363_03      = 3060304,
     kGuiVersion_363_08      = 3060308,
     kGuiVersion_40026       = 4000026,
+    kGuiVersion_40027       = 4000027,
     kGuiVersion_LowSupported = kGuiVersion_350,
-    kGuiVersion_Current     = kGuiVersion_40026,
+    kGuiVersion_Current     = kGuiVersion_40027,
 };
 
 namespace AGS
@@ -200,6 +202,8 @@ enum GuiSvgVersion
     kGuiSvgVersion_40018    = 4000018, // shaders
     kGuiSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
     kGuiSvgVersion_40026    = 4000026, // sync with kGuiSvgVersion_36304
+    kGuiSvgVersion_40027    = 4000027, // sync with kGuiSvgVersion_36308
+    kGuiSvgVersion_Current  = kGuiSvgVersion_40027
 };
 
 // Style of GUI drawing in disabled state

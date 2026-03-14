@@ -119,7 +119,7 @@ void GUILabel::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         _textAlignment = (FrameAlignment)in->ReadInt32();
 
-    if (svg_ver >= kGuiSvgVersion_36308)
+    if ((svg_ver >= kGuiSvgVersion_36308) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40027))
     {
         _textOutlineColor = in->ReadInt32();
         in->ReadInt32(); // reserved

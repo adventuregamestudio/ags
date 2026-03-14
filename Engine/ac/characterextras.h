@@ -103,6 +103,7 @@ public:
     bool IsTurningCounterClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) != 0; }
     void SetTurning(bool on, bool ccw, int turn_steps);
     void DecrementTurning();
+    void StopTurning() { SetTurning(false, false, 0); }
 
     bool IsAnimating() const { return anim.IsValid(); }
     bool IsAnimatingRepeatedly() const { return anim.IsRepeating(); }

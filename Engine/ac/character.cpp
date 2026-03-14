@@ -371,7 +371,8 @@ float GetFaceDirRatio(CharacterInfo *chinfo)
 // Note that this requires the loop to have >1 frames so being suitable to animate the character.
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff, bool move_dir_fw = true)
 {
-    DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
+    if (x_diff == 0.f && y_diff == 0.f)
+        return static_cast<DirectionalLoop>(chinfo->loop);
 
     if (!move_dir_fw)
     {
@@ -394,6 +395,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_
 
 	const bool want_horizontal = (abs(y_diff) < abs(x_diff)) || (!has_down_loop || !has_up_loop);
 
+    DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
     if (want_horizontal)
     {
         const bool want_diagonal = has_diagonal_loops && (abs(y_diff) > abs(x_diff) / 2);
@@ -431,6 +433,8 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_
 
 void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
 {
+    // Stop any kind of a side activity: turning, idling
+    charextra[char1->index_id].StopTurning();
     stop_character_idling(char1);
 
     // Change facing only if the desired direction is different
@@ -474,12 +478,6 @@ void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 
     const int diffrx = xx - char1->x;
     const int diffry = yy - char1->y;
-
-    if ((diffrx == 0) && (diffry == 0)) {
-        // FaceLocation called on their current position - do nothing
-        return;
-    }
-
     FaceDirectionalLoop(char1, GetDirectionalLoop(char1, diffrx, diffry), blockingStyle);
 }
 
@@ -490,13 +488,10 @@ void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingSt
     if (char1 == nullptr)
         quit("!FaceDirection: invalid character specified");
 
-    if (direction != SCR_NO_VALUE)
-    {
-        if (direction < 0 || direction > kDirLoop_Last)
-            quit("!FaceDirection: invalid direction specified");
+    if (direction < 0 || direction > kDirLoop_Last)
+        quit("!FaceDirection: invalid direction specified");
 
-        FaceDirectionalLoop(char1, direction, blockingStyle);
-    }
+    FaceDirectionalLoop(char1, direction, blockingStyle);
 }
 
 void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
@@ -1060,11 +1055,13 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
         Character_PlaceOnWalkableArea(chi);
     }
 
+    // Always reset any turning
+    chex.StopTurning();
     // If the character is currently moving, stop them and reset their state
     if (chi->walking > 0)
     {
         // Switch character state from walking to standing
-    remove_movelist(chi->get_movelist_id());
+        remove_movelist(chi->get_movelist_id());
         chi->walking = 0;
         // If the character was animating a walk, then reset their frame to standing
         if (chi->is_moving_walkanim())

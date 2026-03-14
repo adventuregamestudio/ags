@@ -730,6 +730,13 @@ void PostScriptProcessing()
 
     curExecScript = !executingScripts.empty() ? executingScripts.top().get() : nullptr;
 
+    // If there was no current executing script, then bail out now
+    // (this might happen if script got stopped and disposed in the midst of run).
+    if (!copyof)
+    {
+        return;
+    }
+
     // If there's still a pending script in the callstack (or rather thread stack),
     // then reschedule post-script actions to the previous exec script in stack, and break
     if (curExecScript)
@@ -739,13 +746,13 @@ void PostScriptProcessing()
         return;
     }
 
-    int old_room_number = displayed_room;
-
     // FIXME: sync audio in case any screen changing or time-consuming post-script actions were scheduled
     if (copyof->PostScriptActions.size() > 0)
     {
         sync_audio_playback();
     }
+
+    const int old_room_number = displayed_room;
 
     // run the queued post-script actions
     for (auto &act : copyof->PostScriptActions)

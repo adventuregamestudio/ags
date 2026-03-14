@@ -61,9 +61,6 @@
     <ClCompile Include="..\..\Common\data\data_ext.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\data\tra_file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -73,9 +70,6 @@
       <Filter>data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\textstreamreader.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\data\data_ext.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\data\tra_file.h">

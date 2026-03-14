@@ -15,7 +15,6 @@
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "data/data_ext.h"
-#include "data/data_helpers.h"
 #include "debug/out.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"

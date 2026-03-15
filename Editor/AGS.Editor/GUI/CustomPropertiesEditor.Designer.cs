@@ -42,7 +42,7 @@ namespace AGS.Editor
             this.propertyGrid.Location = new System.Drawing.Point(7, 26);
             this.propertyGrid.Name = "propertyGrid";
             this.propertyGrid.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
-            this.propertyGrid.Size = new System.Drawing.Size(500, 271);
+            this.propertyGrid.Size = new System.Drawing.Size(500, 274);
             this.propertyGrid.TabIndex = 0;
             this.propertyGrid.ToolbarVisible = false;
             // 

@@ -43,9 +43,9 @@ namespace AGS.Editor
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOK.Location = new System.Drawing.Point(12, 274);
+            this.btnOK.Location = new System.Drawing.Point(7, 306);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(109, 29);
+            this.btnOK.Size = new System.Drawing.Size(102, 29);
             this.btnOK.TabIndex = 1;
             this.btnOK.Text = "Close";
             this.btnOK.UseVisualStyleBackColor = true;
@@ -77,7 +77,7 @@ namespace AGS.Editor
             this.schemaList.Location = new System.Drawing.Point(8, 25);
             this.schemaList.MultiSelect = false;
             this.schemaList.Name = "schemaList";
-            this.schemaList.Size = new System.Drawing.Size(593, 269);
+            this.schemaList.Size = new System.Drawing.Size(593, 275);
             this.schemaList.TabIndex = 0;
             this.schemaList.UseCompatibleStateImageBehavior = false;
             this.schemaList.View = System.Windows.Forms.View.Details;

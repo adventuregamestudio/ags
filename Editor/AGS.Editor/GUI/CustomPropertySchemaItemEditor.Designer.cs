@@ -104,7 +104,7 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDescription.Location = new System.Drawing.Point(96, 45);
             this.txtDescription.Name = "txtDescription";
-            this.txtDescription.Size = new System.Drawing.Size(441, 21);
+            this.txtDescription.Size = new System.Drawing.Size(397, 21);
             this.txtDescription.TabIndex = 5;
             // 
             // txtDefaultValue
@@ -113,7 +113,7 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDefaultValue.Location = new System.Drawing.Point(96, 99);
             this.txtDefaultValue.Name = "txtDefaultValue";
-            this.txtDefaultValue.Size = new System.Drawing.Size(441, 21);
+            this.txtDefaultValue.Size = new System.Drawing.Size(397, 21);
             this.txtDefaultValue.TabIndex = 7;
             // 
             // cmbType
@@ -133,7 +133,7 @@ namespace AGS.Editor
             // btnOK
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnOK.Location = new System.Drawing.Point(15, 239);
+            this.btnOK.Location = new System.Drawing.Point(7, 287);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(92, 26);
             this.btnOK.TabIndex = 8;
@@ -145,7 +145,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(129, 239);
+            this.btnCancel.Location = new System.Drawing.Point(105, 287);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(92, 26);
             this.btnCancel.TabIndex = 9;
@@ -155,7 +155,7 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.chkGUIControls);
             this.groupBox1.Controls.Add(this.chkWalkareas);
@@ -171,7 +171,7 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.chkCharacters);
             this.groupBox1.Location = new System.Drawing.Point(15, 159);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(522, 119);
+            this.groupBox1.Size = new System.Drawing.Size(478, 110);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Applies To";
@@ -311,7 +311,7 @@ namespace AGS.Editor
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(488, 277);
+            this.ClientSize = new System.Drawing.Size(505, 318);
             this.Controls.Add(this.chkTranslated);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
@@ -326,9 +326,9 @@ namespace AGS.Editor
             this.Controls.Add(this.label1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(65536, 800);
+            this.MaximumSize = new System.Drawing.Size(65536, 357);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(496, 279);
+            this.MinimumSize = new System.Drawing.Size(521, 357);
             this.Name = "CustomPropertySchemaItemEditor";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;

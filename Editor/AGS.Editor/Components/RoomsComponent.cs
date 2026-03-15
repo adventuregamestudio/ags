@@ -2093,7 +2093,9 @@ namespace AGS.Editor.Components
 
                 if (_maskCache.ContainsKey(mask))
                 {
+                    var oldMaskImage = _maskCache[mask].Image;
                     _maskCache[mask].Image = ResizeMaskBitmap(_maskCache[mask].Image, mask, doScale, newWidth, newHeight, xOffset, yOffset);
+                    oldMaskImage.Dispose();
                     _maskCache[mask].Modified = true;
                 }
             }
@@ -2529,7 +2531,7 @@ namespace AGS.Editor.Components
             int drawWidth = doScale ? newWidth : originalBitmap.Width;
             int drawHeight = doScale ? newHeight : originalBitmap.Height;
 
-            return BitmapExtensions.ResizeScaleAndOffset(originalBitmap, drawWidth, drawHeight, (int)(newWidth * scale), (int)(newHeight * scale), xOffset, yOffset);
+            return BitmapExtensions.ResizeScaleAndOffset8bpp(originalBitmap, drawWidth, drawHeight, (int)(newWidth * scale), (int)(newHeight * scale), xOffset, yOffset);
         }
 
         private Bitmap LoadMask(RoomAreaMaskType mask) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));

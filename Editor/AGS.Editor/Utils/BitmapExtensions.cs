@@ -208,6 +208,14 @@ namespace AGS.Editor
                 throw new IndexOutOfRangeException("Bad chunk size in png image.");
             return length;
         }
+
+        /// <summary>
+        /// Gets a pixel data stride corresponding to this pixel format.
+        /// </summary>
+        public static int GetStride(int width, PixelFormat pxFormat)
+        {
+            return (int)Math.Floor((Bitmap.GetPixelFormatSize(pxFormat) * width + 31.0) / 32.0) * 4;
+        }
     }
 
     /// <summary>
@@ -488,7 +496,7 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Gives a scaled deep copy of the input image.
+        /// Gives a scaled deep copy of the input 8-bit image.
         /// </summary>
         /// <param name="originalBitmap">The image to copy and scale.</param>
         /// <param name="drawWidth">Scale the image to this width.</param>
@@ -498,7 +506,7 @@ namespace AGS.Editor
         /// <param name="xOffset">Offset the image in the canvas in the x direction by this much.</param>
         /// <param name="yOffset">Offset the image in the canvas in the y direction by this much.</param>
         /// <returns>A resized, scaled, and offset deep copy of the input image.</returns>
-        public static Bitmap ResizeScaleAndOffset(Bitmap originalBitmap, int drawWidth, int drawHeight, int canvasWidth, int canvasHeight, int xOffset, int yOffset)
+        public static Bitmap ResizeScaleAndOffset8bpp(Bitmap originalBitmap, int drawWidth, int drawHeight, int canvasWidth, int canvasHeight, int xOffset, int yOffset)
         {
             if (originalBitmap.PixelFormat != PixelFormat.Format8bppIndexed)
             {
@@ -516,26 +524,24 @@ namespace AGS.Editor
                 graphics.DrawImage(originalBitmap, xOffset, yOffset, drawWidth, drawHeight);
             }
 
-            // Convert resized bitmap back to indexed format
-            Bitmap resizedIndexed = new Bitmap(canvasWidth, canvasHeight, PixelFormat.Format8bppIndexed);
-
-            // Copy the palette from the original bitmap to the resized indexed bitmap
+            // Save the palette from the original bitmap, to be applied to the resized indexed bitmap later
             ColorPalette palette = originalBitmap.Palette;
-            resizedIndexed.Palette = palette;
 
             // Lock bits for read access to the resized non-indexed bitmap and write access to the resized indexed bitmap
             BitmapData resizedNonIndexedData = resizedNonIndexed.LockBits(new Rectangle(0, 0, canvasWidth, canvasHeight), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            BitmapData resizedIndexedData = resizedIndexed.LockBits(new Rectangle(0, 0, canvasWidth, canvasHeight), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed);
-
-            int nonIndexedStride = resizedNonIndexedData.Stride;
-            int indexedStride = resizedIndexedData.Stride;
-
-            byte[] nonIndexedPixels = new byte[nonIndexedStride * canvasHeight];
-            byte[] indexedPixels = new byte[indexedStride * canvasHeight];
 
             // Copy our bmp to an array since we're not compiling with unsafe
+            int nonIndexedStride = resizedNonIndexedData.Stride;
+            byte[] nonIndexedPixels = new byte[nonIndexedStride * canvasHeight];
             Marshal.Copy(resizedNonIndexedData.Scan0, nonIndexedPixels, 0, nonIndexedPixels.Length);
 
+            // Dispose non-indexed unscaled bitmap
+            resizedNonIndexed.UnlockBits(resizedNonIndexedData);
+            resizedNonIndexed.Dispose();
+
+            // Convert non-indexed pixels to indexed pixels, copying between two arrays
+            int indexedStride = BitmapHelper.GetStride(canvasWidth, PixelFormat.Format8bppIndexed);
+            byte[] indexedPixels = new byte[indexedStride * canvasHeight];
             for (int y = 0; y < canvasHeight; y++)
             {
                 for (int x = 0; x < canvasWidth; x++)
@@ -553,11 +559,17 @@ namespace AGS.Editor
                 }
             }
 
+            // Dispose non-indexed pixels array
+            nonIndexedPixels = null;
+
+            // Create a resized indexed bitmap
+            Bitmap resizedIndexed = new Bitmap(canvasWidth, canvasHeight, PixelFormat.Format8bppIndexed);
+            resizedIndexed.Palette = palette;
+            // Copy the converted pixels over to the locked bits, and return finalized bitmap
+            BitmapData resizedIndexedData = resizedIndexed.LockBits(new Rectangle(0, 0, canvasWidth, canvasHeight), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed);
             Marshal.Copy(indexedPixels, 0, resizedIndexedData.Scan0, indexedPixels.Length);
-
-            resizedNonIndexed.UnlockBits(resizedNonIndexedData);
+            indexedPixels = null; // dispose indexed pixels array
             resizedIndexed.UnlockBits(resizedIndexedData);
-
             return resizedIndexed;
         }
 

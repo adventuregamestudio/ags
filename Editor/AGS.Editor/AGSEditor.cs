@@ -280,6 +280,12 @@ namespace AGS.Editor
 
         static AGSEditor()
         {
+            // Enforce Invariant culture for all data parsing & serialization;
+            // and also for all UI, because user might want to copy values between
+            // input fields and script editor (where data representation is strict).
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
                 if (v == ScriptAPIVersion.Highest)

@@ -408,11 +408,18 @@ HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCo
     for (size_t i = 0; i < _spriteData.size(); ++i)
     {
         auto &image = ResourceCache::Get(static_cast<sprkey_t>(i));
-        if (image) // optionally convert a sprite's pixel data for the saving
+        if (image)
+        {
+            // optionally convert a sprite's pixel data for the saving
             _callbacks.PrewriteSprite(image.get());
-        sprites.push_back(std::make_pair(
-            (image || _spriteData[i].IsAssetSprite()),
-            image->GetBitmapData()));
+            sprites.push_back(std::make_pair(
+                true, image->GetBitmapData()));
+        }
+        else
+        {
+            sprites.push_back(std::make_pair(
+                _spriteData[i].IsAssetSprite(), BitmapData()));
+        }
     }
     return SaveSpriteFile(filename, sprites, &_file, store_flags, compress, index);
 }

@@ -2531,7 +2531,14 @@ namespace AGS.Editor.Components
             int drawWidth = doScale ? newWidth : originalBitmap.Width;
             int drawHeight = doScale ? newHeight : originalBitmap.Height;
 
-            return BitmapExtensions.ResizeScaleAndOffset8bpp(originalBitmap, drawWidth, drawHeight, (int)(newWidth * scale), (int)(newHeight * scale), xOffset, yOffset);
+            try
+            {
+                return BitmapExtensions.ResizeScaleAndOffset8bpp(originalBitmap, drawWidth, drawHeight, (int)(newWidth * scale), (int)(newHeight * scale), xOffset, yOffset);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new AGSEditorException("Room mask resize or rescale failed. If the destination size is very big, then this could be a \"out of memory\" problem.", ex);
+            }
         }
 
         private Bitmap LoadMask(RoomAreaMaskType mask) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));

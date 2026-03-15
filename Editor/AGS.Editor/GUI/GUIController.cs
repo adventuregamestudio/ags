@@ -191,7 +191,7 @@ namespace AGS.Editor
         {
             if (ex != null)
             {
-                message = string.Format($"{message}{Environment.NewLine}Error:{ex.Message}{Environment.NewLine}{Environment.NewLine}Error details:{Environment.NewLine}{ex.ToString()}");
+                message = string.Format($"{message}{Environment.NewLine}Error: {ex.Message}{Environment.NewLine}{Environment.NewLine}Error details:{Environment.NewLine}{ex.ToString()}");
             }
             ShowMessage(message, icon);
         }

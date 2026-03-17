@@ -157,6 +157,7 @@ namespace AGS.Editor
             _componentController.AddComponent(new SpriteManagerComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new TextParserComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new LipSyncComponent(_guiController, _agsEditor));
+            _componentController.AddComponent(new CustomPropertiesComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new GuiComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new InventoryComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new DialogsComponent(_guiController, _agsEditor));

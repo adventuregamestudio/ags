@@ -552,7 +552,8 @@ namespace AGS.Editor.Components
                     PreSaveRoom(room, errors);
                 }
 
-				EnsureScriptNamesAreUnique(room, errors);
+                EnsureScriptNamesAreUnique(room, errors);
+                SyncCustomProperties(room);
 
                 if (errors.HasErrors)
                 {
@@ -885,6 +886,7 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified |= HandleObsoleteSettings(_loadedRoom, errors);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
             _loadedRoom.Modified |= AdjustRoomResolution(_loadedRoom);
+            _loadedRoom.Modified |= SyncCustomProperties(_loadedRoom);
             // NOTE: currently the only way to know if the room was not affected by
             // game's settings is to test whether it has game's ID.
             if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
@@ -966,6 +968,16 @@ namespace AGS.Editor.Components
                 return true;
             }
             return false;
+        }
+
+        private bool SyncCustomProperties(Room room)
+        {
+            bool wasModified = room.Properties.SyncWithSchema();
+            foreach (var o in room.Objects)
+                wasModified |= o.Properties.SyncWithSchema();
+            foreach (var h in room.Hotspots)
+                wasModified |= h.Properties.SyncWithSchema();
+            return wasModified;
         }
 
         private bool ApplyDefaultMaskResolution(Room room)

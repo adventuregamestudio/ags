@@ -748,15 +748,6 @@ namespace AGS.Editor
             }
         }
 
-        private static void CompileCustomProperties(CustomProperties convertFrom, CompiledCustomProperties compileInto)
-        {
-            compileInto.Reset();
-            foreach (string key in convertFrom.PropertyValues.Keys)
-            {
-                compileInto.AddProperty(convertFrom.PropertyValues[key].Name, convertFrom.PropertyValues[key].Value);
-            }
-        }
-
         static void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
         {
             writer.Write((int)3060200); // kInterEvents_v362 version

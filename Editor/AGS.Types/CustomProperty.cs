@@ -14,6 +14,12 @@ namespace AGS.Types
         {
         }
 
+        public CustomProperty(string name, string value)
+        {
+            _name = name;
+            _value = value;
+        }
+
         public string Name
         {
             get { return _name; }

@@ -12,7 +12,8 @@ namespace AGS.Types
 
     public class CustomProperties : ICustomTypeDescriptor
     {
-        private Dictionary<string,CustomProperty> _properties = new Dictionary<string,CustomProperty>();
+        private Dictionary<string,CustomProperty> _properties = new Dictionary<string,CustomProperty>(
+            StringComparer.InvariantCultureIgnoreCase);
         private CustomPropertyAppliesTo _appliesTo;
 
         static public CustomPropertySchema Schema;
@@ -44,7 +45,9 @@ namespace AGS.Types
             foreach (XmlNode child in propertiesNode.ChildNodes)
             {
                 CustomProperty newProp = new CustomProperty(child);
-                _properties.Add(newProp.Name, newProp);
+                // Remember that the file might have duplicates (malformed project)
+                if (!_properties.ContainsKey(newProp.Name))
+                    _properties.Add(newProp.Name, newProp);
             }
         }
 

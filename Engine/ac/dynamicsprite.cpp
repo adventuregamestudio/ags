@@ -298,8 +298,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height, int layers) {
 
     // TODO: refactor and merge with create_savegame_screenshot()
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     auto new_pic = create_game_screenshot(width, height, layers);
     if (!new_pic)
@@ -316,8 +317,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot2(int width, int height) 
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel) {
 
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     if (!spriteset.DoesSpriteExist(slot))
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
@@ -336,8 +338,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
 
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     if (width <= 0 || height <= 0)
     {
@@ -372,8 +375,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChannel) 
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     if (width <= 0 || height <= 0)
     {
@@ -404,8 +408,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite_Old(int slot)
 
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height)
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     if (frame == SCR_NO_VALUE) {
         frame = play.bg_frame;

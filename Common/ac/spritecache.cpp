@@ -62,10 +62,13 @@ size_t SpriteCache::GetSpriteSlotCount() const
     return _spriteData.size();
 }
 
+/* // FIXME: this method is not implemented properly, dont use until its fixed.
 bool SpriteCache::HasFreeSlots() const
 {
+    // FIXME: this is entirely wrong!! this does not account for empty slots!!
     return !((_spriteData.size() == SIZE_MAX) || (_spriteData.size() > MAX_SPRITE_INDEX));
 }
+*/
 
 bool SpriteCache::IsAssetSprite(sprkey_t index) const
 {

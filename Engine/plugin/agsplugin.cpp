@@ -606,8 +606,9 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
     if ((width < 1) || (height < 1))
         quit("!IAGSEngine::CreateDynamicSprite: invalid width/height requested by plugin");
 
-    if (!spriteset.HasFreeSlots())
-        return 0;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return 0;
 
     std::unique_ptr<Bitmap> image(BitmapHelper::CreateTransparentBitmap(width, height, coldepth));
     if (!image)

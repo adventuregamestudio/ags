@@ -588,6 +588,14 @@ int SetGameOption (int opt, int newval) {
         // Also update all disabled controls (like buttons), in case they need to update their disabled effect
         GUIE::MarkDisabledGUIForUpdate();
         break;
+    case OPT_FIXEDINVCURSOR:
+        // Update current "use inv" cursor if necessary
+        if ((cur_cursor == MODE_USE) && (playerchar->activeinv >= 0))
+        {
+            update_inv_cursor(playerchar->activeinv);
+            set_mouse_cursor(cur_cursor);
+        }
+        break;
     case OPT_CROSSFADEMUSIC:
         if (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC)
         {

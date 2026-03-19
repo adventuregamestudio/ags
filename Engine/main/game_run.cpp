@@ -989,8 +989,6 @@ extern std::vector<ViewStruct> views;
 
 static void update_objects_scale()
 {
-    if (play.fast_forward)
-        return;
     if (displayed_room < 0)
         return;
 

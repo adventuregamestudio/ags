@@ -79,6 +79,7 @@ public:
         : _maxSize(max_size)
         , _sectionLocked(_mru.end())
     {}
+    virtual ~ResourceCache() = default;
 
     // Get the MRU cache size limit
     inline size_t GetMaxCacheSize() const { return _maxSize; }

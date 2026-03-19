@@ -235,6 +235,7 @@ class TextureCache :
 public:
     TextureCache(SpriteCache &spriteset)
         : _spriteset(spriteset) {}
+    virtual ~TextureCache() = default;
 
     // Gets existing texture from either MRU cache, or short-term cache
     const std::shared_ptr<Texture> Get(const uint32_t &sprite_id)

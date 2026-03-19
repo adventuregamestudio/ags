@@ -495,7 +495,7 @@ static void bmp_read_bitfields_image(Stream *in, PixelBuffer &pxdata, const BMP_
     }
 }
 
-bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
+bool SaveBMP(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out) {
     BMP_InfoHeader hdr;
     hdr.w = bmp.GetWidth();
     hdr.h = bmp.GetHeight();
@@ -511,10 +511,17 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
         hdr.bpp = 24;
         break;
     case 32:
-        // Must use larger header in order to support alpha channel
-        hdr.headerSize = BMP_InfoHeader::BITMAPV4INFOHEADER_SIZE;
-        hdr.bpp = 32;
-        hdr.compression = kBI_BitFields;
+        if (skip_alpha)
+        {
+            hdr.bpp = 24;
+        }
+        else
+        {
+            // Must use larger header in order to support alpha channel
+            hdr.headerSize = BMP_InfoHeader::BITMAPV4INFOHEADER_SIZE;
+            hdr.bpp = 32;
+            hdr.compression = kBI_BitFields;
+        }
         break;
     default:
         assert(0);
@@ -633,7 +640,7 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
     return true;
 }
 
-PixelBuffer LoadBMP(Stream *in, RGB *pal) {
+PixelBuffer LoadBMP(Stream *in, PixelFormat *src_fmt, RGB *pal) {
     BMP_InfoHeader hdr;
     bool hasAlpha = false;
 
@@ -779,6 +786,10 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
             return {}; // unsupported compression type
     }
 
+    if (src_fmt) {
+        *src_fmt = ColorDepthToPixelFormat(hdr.bpp);
+    }
+
     return std::move(pxdata);
 }
 
@@ -787,7 +798,7 @@ PixelBuffer LoadBMP(Stream *in, RGB *pal) {
 // Made on top of the work by Shawn Hargreaves, from Allegro4
 //=============================================================================
 
-bool SavePCX(const BitmapData &bmp, const RGB *pal, Stream *out)
+bool SavePCX(const BitmapData &bmp, bool /* skip_alpha */, const RGB* pal, Stream* out)
 {
     int c;
     int x, y;
@@ -797,6 +808,8 @@ bool SavePCX(const BitmapData &bmp, const RGB *pal, Stream *out)
     char ch;
 
     /* we really need a palette */
+    // FIXME: it seems like hi-color images can be saved without one,
+    // so perhaps provide a dummy palette in this case instead of quitting?
     if (!pal) {
         return false;
     }
@@ -888,7 +901,7 @@ bool SavePCX(const BitmapData &bmp, const RGB *pal, Stream *out)
     return true;
 }
 
-PixelBuffer LoadPCX(Stream *in, RGB *pal) {
+PixelBuffer LoadPCX(Stream *in, PixelFormat* src_fmt, RGB *pal) {
     int width, height;
     int bytes_per_line;
 
@@ -999,12 +1012,19 @@ PixelBuffer LoadPCX(Stream *in, RGB *pal) {
         }
     }
 
+    if (src_fmt) {
+        *src_fmt = ColorDepthToPixelFormat(bpp);
+    }
+
     return bmp;
 }
 
 // A image format read and write function pointer prototypes
-typedef PixelBuffer (*LoadImageFmt)(Stream *in, RGB *pal);
-typedef bool (*SaveImageFmt)(const BitmapData &pxdata, const RGB *pal, Stream *out);
+typedef PixelBuffer (*LoadImageFmt)(Stream *in, PixelFormat* src_fmt, RGB *pal);
+// FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
+// image file size when writing 32-bit sprites without alpha. Normally this
+// should be replaced with a "destination pixel format" parameter.
+typedef bool (*SaveImageFmt)(const BitmapData &pxdata, bool skip_alpha, const RGB *pal, Stream *out);
 
 // An array, mapping file extension(s) to a load/save format procedure
 static struct ImageExtToFmt
@@ -1022,7 +1042,7 @@ static struct ImageExtToFmt
     };
 
 
-PixelBuffer LoadImage(Stream *in, const String &ext, RGB *pal)
+PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat* src_fmt, RGB *pal)
 {
     PALETTE tmppal;
     if (!pal) // palette is required by the format load functions
@@ -1032,13 +1052,13 @@ PixelBuffer LoadImage(Stream *in, const String &ext, RGB *pal)
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
         if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr) {
-            return FormatProcs[i].LoadFmt(in, pal);
+            return FormatProcs[i].LoadFmt(in, src_fmt, pal);
         }
     }
     return {};
 }
 
-bool SaveImage(const BitmapData &pxdata, const RGB *pal, Stream *out, const String &ext)
+bool SaveImage(const BitmapData &pxdata, bool skip_alpha, const RGB *pal, Stream *out, const String &ext)
 {
     PALETTE tmppal;
     if (!pal) // palette is required by the format save functions
@@ -1051,7 +1071,7 @@ bool SaveImage(const BitmapData &pxdata, const RGB *pal, Stream *out, const Stri
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
         if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr) {
-            return FormatProcs[i].SaveFmt(pxdata, pal, out);
+            return FormatProcs[i].SaveFmt(pxdata, skip_alpha, pal, out);
         }
     }
     return false;

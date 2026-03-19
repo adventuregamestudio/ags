@@ -34,7 +34,7 @@ int  Mouse_IsButtonDown(int which);
 void Mouse_SetBounds (int x1, int y1, int x2, int y2);
 void Mouse_Refresh();
 // mouse cursor functions:
-// set_mouse_cursor: changes visual appearance to specified cursor
+// Mouse_SetCursor: changes visual appearance to specified cursor
 void Mouse_SetCursor(int newcurs);
 int  Mouse_GetCursor();
 // set_default_cursor: resets visual appearance to current mode (walk, look, etc);

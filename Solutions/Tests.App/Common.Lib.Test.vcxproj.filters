@@ -49,6 +49,12 @@
     <ClCompile Include="..\..\Common\test\strutil_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\spritecache_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\test\spritefile_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Test">

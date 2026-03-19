@@ -340,7 +340,9 @@ int Command_Export(const String &src_pak, const String &dst_dir, const CommandOp
                 printf("Error: failed to open image file for writing: %s\n", image_file.GetCStr());
                 continue;
             }
-            if (!ImageFile::SaveImage(pxbuf, nullptr, out.get(), file_ext))
+            // TODO: we don't really know if this sprite respects the alpha channel without info from the main game data :(
+            // need to support optinally receiving this information
+            if (!ImageFile::SaveImage(pxbuf, false /* dont skip alpha */, nullptr, out.get(), file_ext))
             {
                 printf("Error: failed to save image file: %s\n", image_file.GetCStr());
                 continue;

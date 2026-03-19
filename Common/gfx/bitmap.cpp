@@ -111,14 +111,14 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
     return bitmap.release();
 }
 
-Bitmap *LoadFromFile(const char *filename, int dst_color_depth)
+Bitmap *LoadFromFile(const char *filename, int dst_color_depth, PixelFormat *src_fmt, RGB *pal)
 {
     std::unique_ptr<Stream> in (
             File::OpenFile(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
     if(!in)
         return nullptr;
 
-    return BitmapHelper::LoadBitmap(in.get(), Path::GetFileExtension(filename), dst_color_depth, nullptr);
+    return BitmapHelper::LoadBitmap(in.get(), Path::GetFileExtension(filename), dst_color_depth, src_fmt, pal);
 }
 
 Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height)
@@ -329,14 +329,14 @@ static Bitmap *BitmapColorDepthFixup(Bitmap *bmp, int dst_color_depth, RGB *pal,
     return bmp;
 }
 
-Bitmap* LoadBitmap(Stream *in, const String& ext, int dst_color_depth, RGB *pal)
+Bitmap* LoadBitmap(Stream *in, const String& ext, int dst_color_depth, PixelFormat *src_fmt, RGB *pal)
 {
     PALETTE tmppal;
     /* we really need a palette */
     if (!pal)
         pal = tmppal;
 
-    PixelBuffer pxbuf = ImageFile::LoadImage(in, ext, pal);
+    PixelBuffer pxbuf = ImageFile::LoadImage(in, ext, src_fmt, pal);
     if (!pxbuf)
         return nullptr;
     Bitmap *bmp = BitmapHelper::CreateBitmap(std::move(pxbuf));
@@ -349,19 +349,19 @@ Bitmap* LoadBitmap(Stream *in, const String& ext, int dst_color_depth, RGB *pal)
     return fixed_bmp;
 }
 
-bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext)
+bool SaveBitmap(const Bitmap *bmp, bool skip_alpha, const RGB* pal, Stream *out, const String& ext)
 {
-    return ImageFile::SaveImage(bmp->GetBitmapData(), pal, out, ext);
+    return ImageFile::SaveImage(bmp->GetBitmapData(), skip_alpha, pal, out, ext);
 }
 
-bool SaveToFile(const Bitmap* bmp, const char *filename, const RGB *pal)
+bool SaveToFile(const Bitmap* bmp, const char *filename, bool skip_alpha, const RGB *pal)
 {
     std::unique_ptr<Stream> out (
             File::OpenFile(filename, FileOpenMode::kFile_CreateAlways, StreamMode::kStream_Write));
     if (!out)
         return false;
 
-    return SaveBitmap(bmp, pal, out.get(), Path::GetFileExtension(filename));
+    return SaveBitmap(bmp, skip_alpha, pal, out.get(), Path::GetFileExtension(filename));
 }
 
 } // namespace BitmapHelper

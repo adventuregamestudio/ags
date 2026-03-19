@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
+#include "ac/gamestructdefines.h"
 #include "ac/keycode.h"
 #include "ac/movelist.h"
 #include "ac/runtime_defines.h"
@@ -48,27 +49,6 @@ using namespace AGS; // FIXME later
 struct ScriptViewport;
 struct ScriptCamera;
 struct ScriptOverlay;
-
-// GameState struct's runtime save format
-enum GameStateSvgVersion
-{
-    kGSSvgVersion_Initial   = 0,
-    kGSSvgVersion_350       = 1,
-    kGSSvgVersion_350_9     = 2,
-    kGSSvgVersion_350_10    = 3,
-    kGSSvgVersion_361_14    = 4,
-    kGSSvgVersion_363       = 3060300,
-    kGSSvgVersion_363_02    = 3060302,
-    kGSSvgVersion_363_04    = 3060304,
-    kGSSvgVersion_400       = 4000000,
-    kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
-    kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
-    kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
-    kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
-    kGSSvgVersion_400_18    = 4000018, // shaders
-    kGSSvgVersion_400_24    = 4000024, // sync with kGSSvgVersion_363_02
-    kGSSvgVersion_400_26    = 4000026, // sync with kGSSvgVersion_363_04
-};
 
 // SavedLocationType defines the type of location which
 // was last hovered by the mouse cursor.

@@ -44,6 +44,14 @@ namespace AGS
 namespace Common
 {
 
+SpriteCache::SpriteCache(std::vector<SpriteInfo>& sprInfos)
+    : ResourceCache(DEFAULTCACHESIZE_KB * 1024u)
+    , _sprInfos(sprInfos)
+{
+    // Generate a placeholder sprite: 1x1 transparent bitmap
+    _placeholder.reset(BitmapHelper::CreateTransparentBitmap(1, 1));
+}
+
 SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks)
     : ResourceCache(DEFAULTCACHESIZE_KB * 1024u)
     , _sprInfos(sprInfos)
@@ -62,10 +70,27 @@ size_t SpriteCache::GetSpriteSlotCount() const
     return _spriteData.size();
 }
 
+sprkey_t SpriteCache::GetTopmostSprite() const
+{
+    if (_spriteData.empty())
+        return -1;
+
+    // FIXME: optimize this, might require keeping record when adding new sprites
+    for (size_t i = _spriteData.size() - 1; i >= 0; ++i)
+    {
+        if (DoesSpriteExist(i))
+            return i;
+    }
+    return -1;
+}
+
+/* // FIXME: this method is not implemented properly, dont use until its fixed.
 bool SpriteCache::HasFreeSlots() const
 {
+    // FIXME: this is entirely wrong!! this does not account for empty slots!!
     return !((_spriteData.size() == SIZE_MAX) || (_spriteData.size() > MAX_SPRITE_INDEX));
 }
+*/
 
 bool SpriteCache::IsAssetSprite(sprkey_t index) const
 {
@@ -397,10 +422,10 @@ void SpriteCache::InitNullSprite(sprkey_t index)
     _spriteData[index] = SpriteData();
 }
 
-HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
+std::vector<std::pair<bool, BitmapData>> SpriteCache::PrepareSpriteData()
 {
     // Gather a list of sprites;
-    // the list contains pairs, where first element tells whether the sprites
+    // the list contains pairs, where first element tells whether the sprite
     // exists at all (either have a ready image, or found in a input file).
     // SaveSpriteFile will either use a ready image or load missing images
     // before saving to the destination.
@@ -421,7 +446,17 @@ HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCo
                 _spriteData[i].IsAssetSprite(), BitmapData()));
         }
     }
-    return SaveSpriteFile(filename, sprites, &_file, store_flags, compress, index);
+    return std::move(sprites);
+}
+
+HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
+{
+    return SaveSpriteFile(filename, PrepareSpriteData(), &_file, store_flags, compress, index);
+}
+
+HError SpriteCache::SaveToFile(std::unique_ptr<Stream>&& out, int store_flags, SpriteCompression compress, SpriteFileIndex& index)
+{
+    return SaveSpriteFile(std::move(out), PrepareSpriteData(), &_file, store_flags, compress, index);
 }
 
 HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,

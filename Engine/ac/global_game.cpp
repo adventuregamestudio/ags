@@ -663,7 +663,7 @@ int SaveScreenShot4(const char *namm, int width, int height, int layers)
     std::unique_ptr<Bitmap> shot = create_game_screenshot(width, height, layers);
     if (!shot)
         return 0; // out of mem or invalid parameters
-    return BitmapHelper::SaveBitmap(shot.get(), palette, out.get(), ext) ? 1 : 0;
+    return BitmapHelper::SaveBitmap(shot.get(), true /* screenshots are opaque */, palette, out.get(), ext) ? 1 : 0;
 }
 
 int SaveScreenShot1(const char *namm) {

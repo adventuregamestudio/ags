@@ -1134,6 +1134,15 @@ namespace AGS.Editor
             RegenerateScriptHeader(null);
             List<Script> headers = GetInternalScriptHeaders();
 
+                // Reload scripts from their files on disk, in case these were modified externally.
+                // Do this prior to any further operations, because some of them may introduce
+                // temporary in-memory modifications to the script texts.
+                foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
+                {
+                    scripts.Header.LoadFromDisk();
+                    scripts.Script.LoadFromDisk();
+                }
+
             Script dialogScripts = CompileDialogs(errors, parameters.RebuildAll);
 
             // Collect the scripts that need to be compiled
@@ -1146,10 +1155,6 @@ namespace AGS.Editor
             }
             foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
             {
-                    // Reload scripts from their files on disk, in case these were modified externally
-                    scripts.Header.LoadFromDisk();
-                    scripts.Script.LoadFromDisk();
-
                 headers.Add(scripts.Header);
                 compileTasks.Add(new CompileTask(scripts.Script, headers));
                 _game.ScriptsToCompile.Add(scripts);

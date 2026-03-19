@@ -85,14 +85,37 @@ namespace BitmapHelper
         const uint8_t *pixels, const int src_col_depth, const int src_pitch);
 
     // Load a bitmap from file; supported formats currently are: BMP, PCX.
-    Bitmap *LoadFromFile(const char *filename, int dst_color_depth = 0);
-    inline Bitmap *LoadFromFile(const String &filename, int dst_color_depth = 0) { return LoadFromFile(filename.GetCStr(), dst_color_depth); }
+    // Optionally instructs to convert to the bitmap of certain color depth.
+    // Optionally assigns a source pixel format, for informational purposes.
+    // Optionally fills in a palette, if one was found in the file.
+    Bitmap* LoadFromFile(const char *filename, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
+    inline Bitmap* LoadFromFile(const String &filename, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+        { return LoadFromFile(filename.GetCStr(), dst_color_depth, src_fmt, pal); }
+    // Load a bitmap from file; supported formats currently are: BMP, PCX.
+    inline Bitmap *LoadFromFile(const char *filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+        { return LoadFromFile(filename, 0, src_fmt, pal); }
+    inline Bitmap *LoadFromFile(const String &filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+        { return LoadFromFile(filename.GetCStr(), 0, src_fmt); }
     // Write a bitmap into a file; supported formats currently are: BMP, PCX.
-    bool SaveToFile(const Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
-    // Reads a bitmap from the stream, possibly with palette
-    Bitmap *LoadBitmap(Stream *in, const String& ext, int dst_color_depth = 0, RGB *pal = nullptr);
-    // Write a bitmap to the stream, optionally along with the palette
-    bool SaveBitmap(const Bitmap *bmp, const RGB* pal, Stream *out, const String& ext);
+    // FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
+    // image file size when writing 32-bit images which are known to be opaque (like screenshots).
+    // Normally this should be replaced with a "destination pixel format OR color depth" parameter.
+    bool SaveToFile(const Bitmap* bmp, const char *filename, bool skip_alpha, const RGB *pal = nullptr);
+    inline bool SaveToFile(const Bitmap* bmp, const char* filename, const RGB* pal = nullptr)
+        { return SaveToFile(bmp, filename, false, pal); }
+    // Reads a bitmap from the stream, using file extension as a format hint;
+    // supported formats currently are : BMP, PCX.
+    // Optionally instructs to convert to the bitmap of certain color depth.
+    // Optionally assigns a source pixel format, for informational purposes.
+    // Optionally fills in a palette, if one was found in the file.
+    Bitmap *LoadBitmap(Stream *in, const String &ext, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
+    inline Bitmap *LoadBitmap(Stream *in, const String &ext, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+        { return LoadBitmap(in, ext, 0, src_fmt, pal); }
+    // Write a bitmap to the stream, optionally along with the palette.
+    // Usese file extension as a format hint. Supported formats currently are: BMP, PCX.
+    bool SaveBitmap(const Bitmap *bmp, bool skip_alpha, const RGB* pal, Stream *out, const String& ext);
+    inline bool SaveBitmap(const Bitmap* bmp, Stream* out, const String& ext)
+         { return SaveBitmap(bmp, false, nullptr, out, ext); }
 
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary.

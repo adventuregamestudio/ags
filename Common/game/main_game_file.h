@@ -153,6 +153,12 @@ void               PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream
 HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
 void               FixupSaveDirectory(GameSetupStruct &game);
+// Remaps color number from legacy to new format:
+// * palette index in 8-bit game,
+// * encoded 32-bit A8R8G8B8 in 32-bit game.
+// is_bg parameter lets differentate the meaning of certain special numeric values
+// between "background" and "foreground" color, depending on a context.
+int RemapFromLegacyColourNumber(const GameSetupStruct& game, int color, bool is_bg = false);
 
 } // namespace Common
 } // namespace AGS

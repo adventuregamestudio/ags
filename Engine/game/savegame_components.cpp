@@ -398,7 +398,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     HSaveError err;
     GameStateSvgVersion svg_ver = (GameStateSvgVersion)cmp_ver;
     // Game base
-    game.ReadFromSavegame(in);
+    game.ReadFromSavegame(in, svg_ver);
     // Game palette
     in->ReadArray(palette, sizeof(RGB), 256);
 
@@ -1916,7 +1916,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_400_26,
+        kGSSvgVersion_Current,
         kGSSvgVersion_400,
         kSaveCmp_GameState,
         WriteGameState,

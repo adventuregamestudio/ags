@@ -3178,6 +3178,18 @@ builtin struct Game {
   import static readonly attribute int BlockingWaitCounter;
   /// Gets the current blocking wait's skip type.
   import static readonly attribute InputType BlockingWaitSkipType;
+  /// Gets/sets whether "use inventory" cursor mode should be using current inventory graphic, or a fixed mode cursor.
+  import static attribute bool UseActiveInventoryGraphicForCursor;
+  /// Gets/sets sprite number used as a inventory cursor's hotspot marker (0 to use none).
+  import static attribute int InventoryCursorHotspotGraphic;
+  /// Gets/sets color number used to draw the inventory cursor's hotspot marker (0 to not draw any marker).
+  import static attribute int InventoryCursorHotspotColor;
+  /// Gets/sets color number used to draw the inventory cursor's hotspot marker's crosshair (0 to not draw a crosshair).
+  import static attribute int InventoryCursorHotspotCrossColor;
+  /// Gets the topmost existing sprite number.
+  import static readonly attribute int TopSpriteNumber;
+  /// Gets whether the given sprite is a dynamic sprite created in script (otherwise it is a regular sprite stored in game data).
+  import static readonly attribute bool IsSpriteDynamic[];
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets the AGS Colour Number for the specified RGBA colour.

@@ -330,7 +330,7 @@ static const uint8_t RGBScale6[64]
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
-static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg = false)
+int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg)
 {
     if (game.color_depth == 1)
         return color; // keep palette index
@@ -372,8 +372,8 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {
-        game.hotdot = RemapFromLegacyColourNumber(game, game.hotdot);
-        game.hotdotouter = RemapFromLegacyColourNumber(game, game.hotdotouter);
+        game.inv_hot_color = RemapFromLegacyColourNumber(game, game.inv_hot_color);
+        game.inv_hot_cross_color = RemapFromLegacyColourNumber(game, game.inv_hot_cross_color);
     }
 }
 

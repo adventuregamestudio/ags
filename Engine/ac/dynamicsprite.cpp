@@ -296,8 +296,9 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
 
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height)
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     auto screenshot = read_savedgame_screenshot(get_save_game_path(sgslot));
     if (!screenshot)
@@ -321,8 +322,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int
 
 ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int color_fmt)
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     std::unique_ptr<Stream> in(
         ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
@@ -346,8 +348,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int colo
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height, int layers)
 {
     // TODO: refactor and merge with create_savegame_screenshot()
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     auto new_pic = create_game_screenshot(width, height, layers);
     if (!new_pic)
@@ -364,8 +367,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot2(int width, int height) 
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt)
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     if (!spriteset.DoesSpriteExist(slot))
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
@@ -385,8 +389,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_
 
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height, int color_fmt) 
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     int dst_color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
 
@@ -419,8 +424,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int color_fmt)
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     int color_depth = ValidateColorFormat("DynamicSprite.Create", static_cast<ScriptColorFormat>(color_fmt));
 
@@ -445,8 +451,9 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int color_fmt)
 
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height)
 {
-    if (!spriteset.HasFreeSlots())
-        return nullptr;
+    // FIXME: disabled HasFreeSlots check because it's not implemented right
+    //if (!spriteset.HasFreeSlots())
+    //    return nullptr;
 
     if (frame == SCR_NO_VALUE) {
         frame = play.bg_frame;

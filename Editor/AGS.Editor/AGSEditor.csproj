@@ -811,9 +811,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\License.txt">
-      <Link>License.txt</Link>
-    </Content>
     <Content Condition="'$(Platform)' == 'x86'" Include="..\References\ikpMP3.dll">
       <Link>ikpMP3.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

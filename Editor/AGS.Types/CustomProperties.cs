@@ -13,7 +13,8 @@ namespace AGS.Types
     [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
     public class CustomProperties : ICloneable, ICustomTypeDescriptor
     {
-        private Dictionary<string, CustomProperty> _properties = new Dictionary<string, CustomProperty>();
+        private Dictionary<string, CustomProperty> _properties = new Dictionary<string,CustomProperty>(
+            StringComparer.InvariantCultureIgnoreCase);
         private CustomPropertyAppliesTo _appliesTo;
 
         static public CustomPropertySchema Schema;
@@ -45,8 +46,51 @@ namespace AGS.Types
             foreach (XmlNode child in propertiesNode.ChildNodes)
             {
                 CustomProperty newProp = new CustomProperty(child);
-                _properties.Add(newProp.Name, newProp);
+                // Remember that the file might have duplicates (malformed project)
+                if (!_properties.ContainsKey(newProp.Name))
+                    _properties.Add(newProp.Name, newProp);
             }
+        }
+
+        /// <summary>
+        /// Forces a dictionary of properties to match the schema:
+        /// removes ones that are not found in schema entries.
+        /// </summary>
+        /// <returns>Returns whether the list of properties was modified in any way.</returns>
+        public bool SyncWithSchema()
+        {
+            bool wasModified = false;
+            if (Schema != null)
+            {
+                var properties = new Dictionary<string, CustomProperty>(StringComparer.InvariantCultureIgnoreCase);
+                foreach (var p in _properties)
+                {
+                    var def = Schema.PropertyDefinitions.Find(item => item.Name.ToLowerInvariant() == p.Key.ToLowerInvariant());
+                    if (def != null)
+                    {
+                        if (def.Name == p.Key) // exact comparison
+                        {
+                            properties.Add(def.Name, p.Value);
+                        }
+                        else
+                        {
+                            wasModified = true; // fixed name
+                            properties.Add(def.Name, new CustomProperty(def.Name, p.Value.Value));
+                        }
+                    }
+                    else
+                    {
+                        wasModified = true; // got removed
+                    }
+                }
+                _properties = properties;
+            }
+            else
+            {
+                wasModified = _properties.Count > 0;
+                _properties.Clear();
+            }
+            return wasModified;
         }
 
         public void ToXml(XmlTextWriter writer)

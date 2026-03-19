@@ -641,17 +641,24 @@ static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, BitmapData>>
     return topmost;
 }
 
-HError SaveSpriteFile(const String &save_to_file,
-    const std::vector<std::pair<bool, BitmapData>> &sprites,
-    SpriteFile *read_from_file,
-    int store_flags, SpriteCompression compress, SpriteFileIndex &index)
+HError SaveSpriteFile(const String& save_to_file,
+    const std::vector<std::pair<bool, BitmapData>>& sprites,
+    SpriteFile* read_from_file,
+    int store_flags, SpriteCompression compress, SpriteFileIndex& index)
 {
-    std::unique_ptr<Stream> output(File::CreateFile(save_to_file));
-    if (output == nullptr)
+    std::unique_ptr<Stream> out(File::CreateFile(save_to_file));
+    if (out == nullptr)
         return new Error("Failed to open a output file for writing");
+    return SaveSpriteFile(std::move(out), sprites, read_from_file, store_flags, compress, index);
+}
 
+HError SaveSpriteFile(std::unique_ptr<Stream>&& out,
+    const std::vector<std::pair<bool, BitmapData>>& sprites,
+    SpriteFile* read_from_file, // optional file to read missing sprites from
+    int store_flags, SpriteCompression compress, SpriteFileIndex& index)
+{
     sprkey_t lastslot = FindTopmostSprite(sprites);
-    SpriteFileWriter writer(std::move(output));
+    SpriteFileWriter writer(std::move(out));
     writer.Begin(store_flags, compress, lastslot);
 
     PixelBuffer temp_bmp; // for disposing temp sprites

@@ -28,6 +28,32 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Custom Properties", ICON_KEY);
         }
 
+        public override string ComponentID
+        {
+            get { return ComponentIDs.CustomProperties; }
+        }
+
+        public override void BeforeSaveGame()
+        {
+            SyncCustomPropertiesWithSchema();
+        }
+
+        public override void RefreshDataFromGame()
+        {
+            SyncCustomPropertiesWithSchema();
+        }
+
+        private void SyncCustomPropertiesWithSchema()
+        {
+            // Note that this syncs only global objects.
+            // Room elements cannot be synced without loading each and every room into memory,
+            // which could be a pretty long process. So they are dealt with separately, by the RoomsComponent.
+            foreach (var c in _agsEditor.CurrentGame.Characters)
+                c.Properties.SyncWithSchema();
+            foreach (var i in _agsEditor.CurrentGame.InventoryItems)
+                i.Properties.SyncWithSchema();
+        }
+
         private void ShowSchemaEditor()
         {
             CustomPropertySchemaEditor schemaEditor = new CustomPropertySchemaEditor(_agsEditor.CurrentGame.PropertySchema);
@@ -128,11 +154,6 @@ namespace AGS.Editor.Components
                 menu.Add(new MenuCommand(COMMAND_EXPORT_CUSTOM_PROPERTIES, "Export schema...", null));
             }
             return menu;
-        }
-
-        public override string ComponentID
-        {
-            get { return ComponentIDs.CustomProperties; }
         }
     }
 }

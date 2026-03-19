@@ -311,4 +311,29 @@ struct FontInfo
     }
 };
 
+// GameSetupStruct and GameState struct's runtime save format
+// TODO: should be declared in the Engine, not Common, but had to place here
+// for now because GameSetupStruct uses this too
+enum GameStateSvgVersion
+{
+    kGSSvgVersion_Initial   = 0,
+    kGSSvgVersion_350       = 1,
+    kGSSvgVersion_350_9     = 2,
+    kGSSvgVersion_350_10    = 3,
+    kGSSvgVersion_361_14    = 4,
+    kGSSvgVersion_363       = 3060300,
+    kGSSvgVersion_363_02    = 3060302,
+    kGSSvgVersion_363_04    = 3060304,
+    kGSSvgVersion_400       = 4000000,
+    kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
+    kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
+    kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
+    kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
+    kGSSvgVersion_400_18    = 4000018, // shaders
+    kGSSvgVersion_400_24    = 4000024, // sync with kGSSvgVersion_363_02
+    kGSSvgVersion_400_26    = 4000026, // sync with kGSSvgVersion_363_04
+    kGSSvgVersion_400_27    = 4000027, // 32-bit inventory cursor hotspot colors
+    kGSSvgVersion_Current   = kGSSvgVersion_400_27
+};
+
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

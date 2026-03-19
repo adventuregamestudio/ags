@@ -94,11 +94,14 @@ typedef int32_t sprkey_t;
 struct SpriteFileIndex
 {
     int SpriteFileIDCheck = 0; // tag matching sprite file and index file
+    // FIXME: these should be hidden behind the getters,
+    // but then we'd need factory methods for SpriteIndex struct
     std::vector<int16_t> Widths;
     std::vector<int16_t> Heights;
     std::vector<int8_t>  Depths;
     std::vector<soff_t>  Offsets;
 
+    // Tells the number of index entries; this does NOT always correspond to a number of valid sprites
     inline size_t GetCount() const { return Offsets.size(); }
     inline sprkey_t GetLastSlot() const { return (sprkey_t)GetCount() - 1; }
 };
@@ -215,6 +218,7 @@ public:
     // Initializes new sprite file format;
     // store_flags are SpriteStorage;
     // optionally hint how many sprites will be written.
+    // FIXME: force to run Begin before any other Write*! otherwise SpriteFile may be missing a header/settings!
     void Begin(int store_flags, SpriteCompression compress, sprkey_t last_slot = -1);
     // Writes a bitmap into file, compressing if necessary
     void WriteBitmap(const BitmapData &image);
@@ -250,8 +254,12 @@ HError SaveSpriteFile(const String &save_to_file,
     const std::vector<std::pair<bool, BitmapData>> &sprites,
     SpriteFile *read_from_file, // optional file to read missing sprites from
     int store_flags, SpriteCompression compress, SpriteFileIndex &index);
+// Saves all sprites into the provided stream; fills an index data for external use.
+HError SaveSpriteFile(std::unique_ptr<Stream> &&out,
+    const std::vector<std::pair<bool, BitmapData>>& sprites,
+    SpriteFile* read_from_file, // optional file to read missing sprites from
+    int store_flags, SpriteCompression compress, SpriteFileIndex& index);
 // Saves sprite index table in a separate file
-// FIXME: return HError!
 HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index);
 
 } // namespace Common

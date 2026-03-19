@@ -571,6 +571,52 @@ void unload_game()
     soundcache_clear();
 }
 
+int Game_GetInventoryCursorHotspotGraphic()
+{
+    return game.inv_hot_sprite;
+}
+
+void Game_SetInventoryCursorHotspotGraphic(int graphic)
+{
+    if (game.inv_hot_sprite != graphic)
+    {
+        game.inv_hot_sprite = graphic;
+        // Update current "use inv" cursor if necessary
+        if (is_current_cursor_look(kCursorRole_UseInv))
+            set_cursor_look(cur_cursor, true);
+    }
+}
+
+int Game_GetInventoryCursorHotspotColor()
+{
+    return game.inv_hot_color;
+}
+
+void Game_SetInventoryCursorHotspotColor(int color)
+{
+    if (game.inv_hot_color != color)
+    {
+        game.inv_hot_color = color;
+        if (is_current_cursor_look(kCursorRole_UseInv))
+            set_cursor_look(cur_cursor, true);
+    }
+}
+
+int Game_GetInventoryCursorHotspotCrossColor()
+{
+    return game.inv_hot_cross_color;
+}
+
+void Game_SetInventoryCursorHotspotCrossColor(int color)
+{
+    if (game.inv_hot_cross_color != color)
+    {
+        game.inv_hot_cross_color = color;
+        if (is_current_cursor_look(kCursorRole_UseInv))
+            set_cursor_look(cur_cursor, true);
+    }
+}
+
 int Game_GetInventoryItemCount() {
     // because of the dummy item 0, this is always one higher than it should be
     return game.numinvitems - 1;
@@ -601,14 +647,37 @@ int Game_GetViewCount() {
     return game.numviews;
 }
 
-int Game_GetSpriteWidth(int spriteNum) {
+bool Game_GetUseActiveInventoryGraphicForCursor()
+{
+    return game.options[OPT_FIXEDINVCURSOR] == 0; // OPT_FIXEDINVCURSOR is inverse
+}
+
+void Game_SetUseActiveInventoryGraphicForCursor(bool use_inv_graphic)
+{
+    game.options[OPT_FIXEDINVCURSOR] = use_inv_graphic ? 0 : 1; // OPT_FIXEDINVCURSOR is inverse
+    // Update current "use inv" cursor if necessary
+    if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv >= 0))
+    {
+        update_inv_cursor(playerchar->activeinv);
+        set_cursor_look(cur_cursor);
+    }
+}
+
+int Game_GetTopSpriteNumber()
+{
+    return spriteset.GetTopmostSprite();
+}
+
+int Game_GetSpriteWidth(int spriteNum)
+{
     if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
     return game.SpriteInfos[spriteNum].Width;
 }
 
-int Game_GetSpriteHeight(int spriteNum) {
+int Game_GetSpriteHeight(int spriteNum)
+{
     if (!spriteset.DoesSpriteExist(spriteNum))
         return 0;
 
@@ -621,6 +690,17 @@ int Game_GetSpriteDepth(int spriteNum) {
 
     // If a sprite's color depth information is missing, then assume it is eq to a game's color depth
     return game.SpriteInfos[spriteNum].ColorDepth > 0 ? game.SpriteInfos[spriteNum].ColorDepth : game.GetColorDepth();
+}
+
+bool Game_GetIsSpriteDynamic(int spriteNum)
+{
+    if (spriteNum < 0)
+        return false;
+
+    if (!spriteset.DoesSpriteExist(spriteNum))
+        return false;
+
+    return game.SpriteInfos[spriteNum].IsDynamicSprite();
 }
 
 ScriptFileSortStyle ValidateFileSort(const char *apiname, int file_sort)
@@ -2093,7 +2173,36 @@ RuntimeScriptValue Sc_Game_GetInSkippableCutscene(const RuntimeScriptValue *para
     API_SCALL_INT(Game_GetInSkippableCutscene);
 }
 
-// int ()
+RuntimeScriptValue Sc_Game_GetInventoryCursorHotspotGraphic(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetInventoryCursorHotspotGraphic);
+}
+
+RuntimeScriptValue Sc_Game_SetInventoryCursorHotspotGraphic(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetInventoryCursorHotspotGraphic);
+}
+
+RuntimeScriptValue Sc_Game_GetInventoryCursorHotspotColor(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetInventoryCursorHotspotColor);
+}
+
+RuntimeScriptValue Sc_Game_SetInventoryCursorHotspotColor(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetInventoryCursorHotspotColor);
+}
+
+RuntimeScriptValue Sc_Game_GetInventoryCursorHotspotCrossColor(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetInventoryCursorHotspotCrossColor);
+}
+
+RuntimeScriptValue Sc_Game_SetInventoryCursorHotspotCrossColor(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetInventoryCursorHotspotCrossColor);
+}
+
 RuntimeScriptValue Sc_Game_GetInventoryItemCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_GetInventoryItemCount);
@@ -2174,13 +2283,16 @@ RuntimeScriptValue Sc_Game_SetSpeed(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT(Game_SetSpeed);
 }
 
-// int (int spriteNum)
+RuntimeScriptValue Sc_Game_GetTopSpriteNumber(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetTopSpriteNumber);
+}
+
 RuntimeScriptValue Sc_Game_GetSpriteWidth(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Game_GetSpriteWidth);
 }
 
-// int (int spriteNum)
 RuntimeScriptValue Sc_Game_GetSpriteHeight(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Game_GetSpriteHeight);
@@ -2189,6 +2301,11 @@ RuntimeScriptValue Sc_Game_GetSpriteHeight(const RuntimeScriptValue *params, int
 RuntimeScriptValue Sc_Game_GetSpriteDepth(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Game_GetSpriteDepth);
+}
+
+RuntimeScriptValue Sc_Game_GetIsSpriteDynamic(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_BOOL_PINT(Game_GetIsSpriteDynamic);
 }
 
 // int ()
@@ -2219,7 +2336,16 @@ RuntimeScriptValue Sc_Game_GetSpeechVoxFilename(const RuntimeScriptValue *params
     API_SCALL_OBJ(const char, myScriptStringImpl, Game_GetSpeechVoxFilename);
 }
 
-// int ()
+RuntimeScriptValue Sc_Game_GetUseActiveInventoryGraphicForCursor(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_BOOL(Game_GetUseActiveInventoryGraphicForCursor);
+}
+
+RuntimeScriptValue Sc_Game_SetUseActiveInventoryGraphicForCursor(const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Game_SetUseActiveInventoryGraphicForCursor);
+}
+
 RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_GetViewCount);
@@ -2436,8 +2562,15 @@ void RegisterGameAPI()
         { "Game::get_InBlockingAction",                   API_FN_PAIR(Game_InBlockingAction) },
         { "Game::get_InBlockingWait",                     API_FN_PAIR(Game_InBlockingWait) },
         { "Game::get_InSkippableCutscene",                API_FN_PAIR(Game_GetInSkippableCutscene) },
+        { "Game::get_InventoryCursorHotspotGraphic",      API_FN_PAIR(Game_GetInventoryCursorHotspotGraphic) },
+        { "Game::set_InventoryCursorHotspotGraphic",      API_FN_PAIR(Game_SetInventoryCursorHotspotGraphic) },
+        { "Game::get_InventoryCursorHotspotColor",        API_FN_PAIR(Game_GetInventoryCursorHotspotColor) },
+        { "Game::set_InventoryCursorHotspotColor",        API_FN_PAIR(Game_SetInventoryCursorHotspotColor) },
+        { "Game::get_InventoryCursorHotspotCrossColor",   API_FN_PAIR(Game_GetInventoryCursorHotspotCrossColor) },
+        { "Game::set_InventoryCursorHotspotCrossColor",   API_FN_PAIR(Game_SetInventoryCursorHotspotCrossColor) },
         { "Game::get_InventoryItemCount",                 API_FN_PAIR(Game_GetInventoryItemCount) },
         { "Game::get_IsPaused",                           API_FN_PAIR(Game_GetIsPaused) },
+        { "Game::geti_IsSpriteDynamic",                   API_FN_PAIR(Game_GetIsSpriteDynamic) },
         { "Game::get_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_GetMinimumTextDisplayTimeMs) },
         { "Game::set_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_SetMinimumTextDisplayTimeMs) },
         { "Game::get_MouseCursorCount",                   API_FN_PAIR(Game_GetMouseCursorCount) },
@@ -2457,7 +2590,10 @@ void RegisterGameAPI()
         { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },
         { "Game::set_TextReadingSpeed",                   API_FN_PAIR(Game_SetTextReadingSpeed) },
         { "Game::get_TickCounter",                        API_FN_PAIR(Game_GetTickCounter) },
+        { "Game::get_TopSpriteNumber",                    API_FN_PAIR(Game_GetTopSpriteNumber) },
         { "Game::get_TranslationFilename",                API_FN_PAIR(Game_GetTranslationFilename) },
+        { "Game::get_UseActiveInventoryGraphicForCursor", API_FN_PAIR(Game_GetUseActiveInventoryGraphicForCursor) },
+        { "Game::set_UseActiveInventoryGraphicForCursor", API_FN_PAIR(Game_SetUseActiveInventoryGraphicForCursor) },
         { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },
 
         { "GameInfo::get_Title",                          API_FN_PAIR(GameInfo_GetTitle) },

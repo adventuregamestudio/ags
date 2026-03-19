@@ -163,7 +163,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void ReadAudioClips(Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver);
     void WriteForSavegame(Common::Stream *out);
 
 private:

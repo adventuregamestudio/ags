@@ -745,7 +745,7 @@ namespace AGS.Editor.Components
                     if (errors.HasErrors)
                         return;
                 }
-				
+
                 try
                 {
                     BusyDialog.Show(pleaseWaitText, new BusyDialog.ProcessingHandler(SaveRoomOnThread), new CompileRoomParameters(room, errors));
@@ -833,9 +833,13 @@ namespace AGS.Editor.Components
             return !errors.HasErrors;
         }
 
+        // CHECKME: is there a need to return number of fixups? perhaps return simply "was modified" bool?
         private int PerformPreSaveChecks(Room room)
         {
             int fixups = 0;
+
+            if (SyncCustomProperties(room))
+                fixups++;
 
             foreach (RoomWalkableArea area in room.WalkableAreas) 
             {
@@ -1101,6 +1105,7 @@ namespace AGS.Editor.Components
 
         private void UpdateLoadedRoomToTheCurrentVersion(CompileMessages errors)
         {
+            _loadedRoom.Modified |= SyncCustomProperties(_loadedRoom);
             _loadedRoom.Modified |= UpgradeRoomFeatures(_loadedRoom, errors);
             if (_loadedRoom.Script.Modified)
             {
@@ -1154,6 +1159,16 @@ namespace AGS.Editor.Components
             }
 
             return modified;
+        }
+
+        private bool SyncCustomProperties(Room room)
+        {
+            bool wasModified = room.Properties.SyncWithSchema();
+            foreach (var o in room.Objects)
+                wasModified |= o.Properties.SyncWithSchema();
+            foreach (var h in room.Hotspots)
+                wasModified |= h.Properties.SyncWithSchema();
+            return wasModified;
         }
 
         private bool ApplyDefaultMaskResolution(Room room)

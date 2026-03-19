@@ -210,9 +210,9 @@ void Bitmap::Destroy()
     _pixelData = {};
 }
 
-bool Bitmap::SaveToFile(const char *filename, const RGB *palette)
+bool Bitmap::SaveToFile(const char *filename, bool skip_alpha, const RGB *palette)
 {
-	return BitmapHelper::SaveToFile(this, filename, palette);
+	return BitmapHelper::SaveToFile(this, filename, skip_alpha, palette);
 }
 
 color_t Bitmap::GetCompatibleColor(int color)

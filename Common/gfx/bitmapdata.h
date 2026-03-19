@@ -81,6 +81,15 @@ inline PixelFormat ColorDepthToPixelFormat(int color_depth, bool alpha_valid = t
     }
 }
 
+inline bool PixelFormatHasAlpha(PixelFormat fmt)
+{
+    switch (fmt)
+    {
+    case kPxFmt_A8R8G8B8:   return true;
+    default:                return false;
+    }
+}
+
 inline size_t GetStrideForPixelFormat(PixelFormat fmt, int width)
 {
     switch (fmt)

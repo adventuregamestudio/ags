@@ -2707,14 +2707,14 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 
-	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
-	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;
-	game->Settings->InventoryHotspotMarker->Image = thisgame.invhotdotsprite;
-	if (thisgame.invhotdotsprite) 
+	game->Settings->InventoryHotspotMarker->DotColor = thisgame.inv_hot_color;
+	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.inv_hot_cross_color;
+	game->Settings->InventoryHotspotMarker->Image = thisgame.inv_hot_sprite;
+	if (thisgame.inv_hot_sprite)
 	{
 		game->Settings->InventoryHotspotMarker->Style = InventoryHotspotMarkerStyle::Sprite;
 	}
-	else if (thisgame.hotdot) 
+	else if (thisgame.inv_hot_color)
 	{
 		game->Settings->InventoryHotspotMarker->Style = InventoryHotspotMarkerStyle::Crosshair;
 	}

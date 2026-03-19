@@ -234,7 +234,7 @@ void GameSetupStruct::ReadAudioClips(Common::Stream *in, size_t count)
     }
 }
 
-void GameSetupStruct::ReadFromSavegame(Stream *in)
+void GameSetupStruct::ReadFromSavegame(Stream *in, GameStateSvgVersion svg_ver)
 {
     // of GameSetupStruct
     in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
@@ -242,10 +242,18 @@ void GameSetupStruct::ReadFromSavegame(Stream *in)
     // of GameSetupStructBase
     playercharacter = in->ReadInt32();
     dialog_bullet = in->ReadInt32();
-    in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hotdot color
-    in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    invhotdotsprite = in->ReadInt32();
+    // legacy uint16 values of a inv cursor hotdot and cross colors
+    inv_hot_color = RemapFromLegacyColourNumber(*this, in->ReadInt16());
+    inv_hot_cross_color = RemapFromLegacyColourNumber(*this, in->ReadInt16());
+    inv_hot_sprite = in->ReadInt32();
     default_lipsync_frame = in->ReadInt32();
+    if (svg_ver >= kGSSvgVersion_400_27)
+    {
+        inv_hot_color = in->ReadInt32();
+        inv_hot_cross_color = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+    }
 }
 
 void GameSetupStruct::WriteForSavegame(Stream *out)
@@ -258,6 +266,11 @@ void GameSetupStruct::WriteForSavegame(Stream *out)
     out->WriteInt32(dialog_bullet);
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
     out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    out->WriteInt32(invhotdotsprite);
+    out->WriteInt32(inv_hot_sprite);
     out->WriteInt32(default_lipsync_frame);
+    // kGSSvgVersion_400_27
+    out->WriteInt32(inv_hot_color);
+    out->WriteInt32(inv_hot_cross_color);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }

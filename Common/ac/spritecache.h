@@ -85,14 +85,17 @@ public:
     };
 
 
+    SpriteCache(std::vector<SpriteInfo>& sprInfos);
     SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks);
-    ~SpriteCache() = default;
+    virtual ~SpriteCache() = default;
 
     // Loads sprite reference information and inits sprite stream
     HError      InitFile(std::unique_ptr<Stream> &&sprite_file,
                          std::unique_ptr<Stream> &&index_file);
     // Saves current cache contents to the file
     HError      SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index);
+    // Saves current cache contents to the provided stream
+    HError      SaveToFile(std::unique_ptr<Stream>&& out, int store_flags, SpriteCompression compress, SpriteFileIndex& index);
     // Closes an active sprite file stream
     void        DetachFile();
 
@@ -122,8 +125,11 @@ public:
     inline bool IsAutoFreeMemEnabled() const { return ResourceCache::IsAutoFreeMemEnabled(); }
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     size_t      GetSpriteSlotCount() const;
+    // Returns the topmost valid sprite number
+    sprkey_t    GetTopmostSprite() const;
     // Tells if the sprite storage still has unoccupied slots to put new sprites in
-    bool        HasFreeSlots() const;
+    // FIXME: this method is not implemented properly, dont use until its fixed.
+    // bool     HasFreeSlots() const;
     // Tells if the given slot is reserved for the asset sprite, that is a "static"
     // sprite cached from the game assets
     bool        IsAssetSprite(sprkey_t index) const;
@@ -198,6 +204,11 @@ private:
     void        RemapSpriteToPlaceholder(sprkey_t index);
     // Initialize the empty sprite slot
     void        InitNullSprite(sprkey_t index);
+    // Prepares bitmap data of all available and known sprites;
+    // returns a list of pairs, where first element tells whether the sprite
+    // exists at all (either in a cache or a sprite file).
+    std::vector<std::pair<bool, BitmapData>> PrepareSpriteData();
+
     //
     // Dummy no-op variants for callbacks
     //

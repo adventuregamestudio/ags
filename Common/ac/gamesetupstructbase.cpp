@@ -69,9 +69,9 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     SetGameResolution(game_size);
 
     default_lipsync_frame = in->ReadInt32();
-    invhotdotsprite = in->ReadInt32();
-    hotdot = in->ReadInt32();
-    hotdotouter = in->ReadInt32();
+    inv_hot_sprite = in->ReadInt32();
+    inv_hot_color = in->ReadInt32();
+    inv_hot_cross_color = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
     info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
 
@@ -114,9 +114,9 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(_gameResolution.Width);
     out->WriteInt32(_gameResolution.Height);
     out->WriteInt32(default_lipsync_frame);
-    out->WriteInt32(invhotdotsprite);
-    out->WriteInt32(hotdot);
-    out->WriteInt32(hotdotouter);
+    out->WriteInt32(inv_hot_sprite);
+    out->WriteInt32(inv_hot_color);
+    out->WriteInt32(inv_hot_cross_color);
     out->WriteArrayOfInt32(reserved, NUM_INTS_RESERVED);
     out->WriteByteCount(0, sizeof(int32_t) * NUM_LEGACY_GLOBALMES);
     out->WriteInt32(dict ? 1 : 0);

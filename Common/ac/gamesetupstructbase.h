@@ -55,13 +55,13 @@ struct GameSetupStructBase
     int               color_depth = 0;      // in bytes per pixel (ie. 1, 2, 4)
     int               target_win = 0;
     int               dialog_bullet = 0;    // 0 for none, otherwise slot num of bullet point
-    int               hotdot = 0;           // inv cursor hotspot dot color
-    int               hotdotouter = 0;      // inv cursor hotspot cross color
+    int               inv_hot_color = 0;    // inv cursor hotspot dot color
+    int               inv_hot_cross_color = 0; // inv cursor hotspot cross color
     int               uniqueid = 0;         // random key identifying the game
     int               numgui = 0;
     int               numcursors = 0;
     int               default_lipsync_frame = 0; // used for unknown chars
-    int               invhotdotsprite = 0;
+    int               inv_hot_sprite = 0;
     int               reserved[NUM_INTS_RESERVED] = { 0 };
     std::unique_ptr<WordsDictionary> dict;
     std::vector<CharacterInfo> chars;

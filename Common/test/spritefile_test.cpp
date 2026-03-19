@@ -87,7 +87,7 @@ TEST(SpriteFileWriter, WriteAndReadMetrics) {
 		WriteSpriteFile(sfw.get());
 	}
 
-	std::vector<Size> metrics;
+	std::vector<GraphicResolution> metrics;
 	auto sf = std::make_unique<SpriteFile>();
 	HError err = sf->OpenFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage)), nullptr, metrics);
 

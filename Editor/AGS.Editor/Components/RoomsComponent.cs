@@ -1096,6 +1096,14 @@ namespace AGS.Editor.Components
 
             UpdateLoadedRoomToTheCurrentVersion(errors);
 
+            // Apply default game settings to this Room
+            // NOTE: currently the only way to know if the room was not affected by
+            // game's settings is to test whether it has game's ID.
+            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            {
+                _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
+            }
+
             // Post-load setup
             LoadImageCache();
             _fileWatchers.Clear();

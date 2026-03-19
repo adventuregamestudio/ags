@@ -426,6 +426,14 @@ int SetGameOption (int opt, int newval) {
         // Also update all disabled controls (like buttons), in case they need to update their disabled effect
         GUIE::MarkDisabledGUIForUpdate();
         break;
+    case OPT_FIXEDINVCURSOR:
+        // Update current "use inv" cursor if necessary
+        if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv >= 0))
+        {
+            update_inv_cursor(playerchar->activeinv);
+            set_cursor_look(cur_cursor);
+        }
+        break;
     case OPT_ANTIALIASFONTS:
         adjust_fonts_for_render_mode(newval != 0);
         break;

@@ -183,6 +183,8 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         {
             // TODO: move this to Character's "init" method
             charextra[i].blend_mode = ents.CharEx[i].BlendMode;
+            charextra[i].spr_anchor = ents.CharEx[i].GraphicAnchor;
+            charextra[i].spr_offset = ents.CharEx[i].GraphicOffset;
             charextra[i].UpdateEffectiveValues(&game.chars[i]);
         }
     }

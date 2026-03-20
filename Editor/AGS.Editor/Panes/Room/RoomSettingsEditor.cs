@@ -831,15 +831,12 @@ namespace AGS.Editor
             SetPropertyGridObject(_room);
             lblTransparency.Visible = _layer.ShowTransparencySlider;
             sldTransparency.Visible = _layer.ShowTransparencySlider;
-            chkCharacterOffset.Visible = _layer is CharactersEditorFilter;
-            chkObjectOffset.Visible = _layer is ObjectsEditorFilter;
+            chkObjectOffset.Visible = _layer is CharactersEditorFilter || _layer is ObjectsEditorFilter;
 
-            if (chkCharacterOffset.Visible)
-                _state.DragFromOrigin = chkCharacterOffset.Checked;
-            else if (chkObjectOffset.Visible)
-                _state.DragFromOrigin = chkObjectOffset.Checked;
+            if (chkObjectOffset.Visible)
+                _state.DragFromAnchor = chkObjectOffset.Checked;
             else
-                _state.DragFromOrigin = false;
+                _state.DragFromAnchor = false;
 
             _layer.FilterOn();
 
@@ -1099,14 +1096,9 @@ namespace AGS.Editor
 			bufferedPanel1.Invalidate();
 		}
 
-		private void chkCharacterOffset_CheckedChanged(object sender, EventArgs e)
-        {
-            _state.DragFromOrigin = chkCharacterOffset.Checked;
-        }
-
         private void chkObjectOffset_CheckedChanged(object sender, EventArgs e)
         {
-            _state.DragFromOrigin = chkObjectOffset.Checked;
+            _state.DragFromAnchor = chkObjectOffset.Checked;
         }
 
         private void RoomSettingsEditor_Load(object sender, EventArgs e)
@@ -1150,7 +1142,7 @@ namespace AGS.Editor
         private Point _scrollOffset;
 
         internal Cursor CurrentCursor;
-        internal bool DragFromOrigin;
+        internal bool DragFromAnchor;
 
         internal RoomEditorState()
         {

@@ -353,7 +353,7 @@ namespace AGS.Editor
             SetSelectedObject(obj);
             if (!DesignItems[GetItemID(obj)].Locked)
             {
-                if (!state.DragFromOrigin)
+                if (!state.DragFromAnchor)
                 {
                     int objX, objY;
                     GetObjectPosition(obj, out objX, out objY);

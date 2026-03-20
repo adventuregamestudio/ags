@@ -36,7 +36,6 @@ namespace AGS.Editor
             this.lblZoomInfo = new System.Windows.Forms.Label();
             this._editAddressBar = new AddressBarExt.Controls.AddressBarExt();
             this.sldZoomLevel = new System.Windows.Forms.TrackBar();
-            this.chkCharacterOffset = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.lblMousePos = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -63,7 +62,6 @@ namespace AGS.Editor
             this.mainFrame.Controls.Add(this.lblZoomInfo);
             this.mainFrame.Controls.Add(this._editAddressBar);
             this.mainFrame.Controls.Add(this.sldZoomLevel);
-            this.mainFrame.Controls.Add(this.chkCharacterOffset);
             this.mainFrame.Controls.Add(this.label3);
             this.mainFrame.Controls.Add(this.lblMousePos);
             this.mainFrame.Controls.Add(this.label2);
@@ -85,9 +83,9 @@ namespace AGS.Editor
             this.chkObjectOffset.AutoSize = true;
             this.chkObjectOffset.Location = new System.Drawing.Point(308, 82);
             this.chkObjectOffset.Name = "chkObjectOffset";
-            this.chkObjectOffset.Size = new System.Drawing.Size(179, 17);
+            this.chkObjectOffset.Size = new System.Drawing.Size(171, 17);
             this.chkObjectOffset.TabIndex = 21;
-            this.chkObjectOffset.Text = "Move Objects From Bottom-Left";
+            this.chkObjectOffset.Text = "Move Objects By Anchor Point";
             this.chkObjectOffset.UseVisualStyleBackColor = true;
             this.chkObjectOffset.Visible = false;
             this.chkObjectOffset.CheckedChanged += new System.EventHandler(this.chkObjectOffset_CheckedChanged);
@@ -162,18 +160,6 @@ namespace AGS.Editor
             this.sldZoomLevel.TabIndex = 12;
             this.sldZoomLevel.Value = 1;
             this.sldZoomLevel.Scroll += new System.EventHandler(this.sldZoomLevel_Scroll);
-            // 
-            // chkCharacterOffset
-            // 
-            this.chkCharacterOffset.AutoSize = true;
-            this.chkCharacterOffset.Location = new System.Drawing.Point(308, 82);
-            this.chkCharacterOffset.Name = "chkCharacterOffset";
-            this.chkCharacterOffset.Size = new System.Drawing.Size(209, 17);
-            this.chkCharacterOffset.TabIndex = 17;
-            this.chkCharacterOffset.Text = "Move Characters From Bottom-Centre";
-            this.chkCharacterOffset.UseVisualStyleBackColor = true;
-            this.chkCharacterOffset.Visible = false;
-            this.chkCharacterOffset.CheckedChanged += new System.EventHandler(this.chkCharacterOffset_CheckedChanged);
             // 
             // label3
             // 
@@ -302,7 +288,6 @@ namespace AGS.Editor
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label lblTransparency;
 		private System.Windows.Forms.TrackBar sldTransparency;
-        private System.Windows.Forms.CheckBox chkCharacterOffset;
         private AddressBarExt.Controls.AddressBarExt _editAddressBar;
         private System.Windows.Forms.Label lblZoomInfo;
         private System.Windows.Forms.Label lblMouse;

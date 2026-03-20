@@ -52,8 +52,8 @@ namespace AGS.Editor
                     continue; // character is not in the room
                 if (!p.Visible) continue;
 
+                // Only hit characters that have proper NormalView
                 AgsView view = _game.FindViewByID(character.NormalView);
-
                 if (view != null && view.Loops.Count > 0)
                 {
                     if (HitTest(x, y, character, view)) return character;
@@ -62,21 +62,50 @@ namespace AGS.Editor
             return null;
         }
 
-        private bool HitTest(int x, int y, Character character, AgsView view)
-        { 
-            int spriteNum = 0;
-
-            if (view.Loops[0].Frames.Count > 0)
+        /// <summary>
+        /// Gets character's rectangle in room coordinates.
+        /// </summary>
+        private Rectangle GetCharacterRectInRoom(Character character, AgsView view = null)
+        {
+            Rectangle bbox;
             {
-                ViewFrame thisFrame = view.Loops[0].Frames[0];
-                spriteNum = thisFrame.Image;
-            }
-            
-            int width, height;
-            Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out width, out height);
+                if (view == null)
+                    view = _game.FindViewByID(character.NormalView);
 
-            return ((x >= character.StartX - (width / 2)) && (x < character.StartX + (width / 2)) &&
-                (y >= character.StartY - height) && (y < character.StartY));          
+                if (view == null || view.Loops.Count == 0)
+                {
+                    bbox = new Rectangle(character.StartX - 5, character.StartY - 5, 10, 10);
+                }
+                else
+                {
+                    ViewFrame thisFrame = view.Loops[0].Frames[0];
+                    int spriteNum = thisFrame.Image;
+                    int width, height;
+                    Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out width, out height);
+                    bbox = Utilities.GetBoundingBox(character.StartX, character.StartY, width, height, character.GraphicAnchor, character.GraphicOffset);
+                }
+            }
+            return bbox;
+        }
+
+        /// <summary>
+        /// Gets character's rectangle in editor window coordinates.
+        /// </summary>
+        private Rectangle GetCharacterRectInWindow(Character character, RoomEditorState state)
+        {
+            var bbox = GetCharacterRectInRoom(character);
+            return new Rectangle(
+                state.RoomXToWindow(bbox.X),
+                state.RoomYToWindow(bbox.Y + 1), // + 1 for compensating minus height (??)
+                state.RoomSizeToWindow(bbox.Width),
+                state.RoomSizeToWindow(bbox.Height)
+                );
+        }
+
+        private bool HitTest(int x, int y, Character character, AgsView view)
+        {
+            var bbox = GetCharacterRectInRoom(character, view);
+            return bbox.Contains(x, y);
         }
 
         private void CharCoordMenuEventHandler(object sender, EventArgs e)
@@ -122,7 +151,7 @@ namespace AGS.Editor
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
             
             {
-                Rectangle rect = GetCharacterRect(_selectedObject, state);
+                Rectangle rect = GetCharacterRectInWindow(_selectedObject, state);
                 graphics.DrawRectangle(pen, rect);
 
                 if (IsMovingObject)
@@ -163,35 +192,9 @@ namespace AGS.Editor
                     spriteNum = thisFrame.Image;
                 }
 
-                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
-                spriteSize.Width = state.RoomSizeToWindow(spriteSize.Width);
-                spriteSize.Height = state.RoomSizeToWindow(spriteSize.Height);
-                int xPos = state.RoomXToWindow(character.StartX) - spriteSize.Width / 2;
-                int yPos = state.RoomYToWindow(character.StartY + 1) - spriteSize.Height;
-
-                Utilities.DrawSpriteOnGraphics(graphics, spriteNum, xPos, yPos, spriteSize.Width, spriteSize.Height);
+                var drawPos = GetCharacterRectInWindow(character, state);
+                Utilities.DrawSpriteOnGraphics(graphics, spriteNum, drawPos.X, drawPos.Y, drawPos.Width, drawPos.Height);
             }
-        }
-
-        private Rectangle GetCharacterRect(Character character, RoomEditorState state)
-        {
-            AgsView view = _game.FindViewByID(character.NormalView);
-            int xPos = state.RoomXToWindow(character.StartX);
-            int yPos = state.RoomYToWindow(character.StartY + 1); // + 1 for compensating minus height
-
-            if (view == null || view.Loops.Count == 0)
-            {
-                return new Rectangle(xPos - 5, yPos - 5, 10, 10);
-            }
-
-            int spriteNum = 0;
-            if (view.Loops[0].Frames.Count > 0)
-                spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;
-            int width, height;
-            Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out width, out height);
-            width = state.RoomSizeToWindow(width);
-            height = state.RoomSizeToWindow(height);
-            return new Rectangle(xPos - width / 2, yPos - height, width, height);
         }
 
         protected override void FilterActivated()

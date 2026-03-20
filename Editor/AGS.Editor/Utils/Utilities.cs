@@ -648,6 +648,15 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Calculates some object's bounding box, given object's position and size,
+        /// and custom anchor and offset.
+        /// </summary>
+        public static Rectangle GetBoundingBox(int x, int y, int width, int height, GraphicAnchor anchor, Point offset)
+        {
+            return new Rectangle(x - (int)Math.Round(width * anchor.X) + offset.X, y - (int)Math.Round(height * anchor.Y) + offset.Y, width, height);
+        }
+
+        /// <summary>
         /// Draws a Sprite on System.Drawing.Graphics (for the room editor)
         /// </summary>
         public static void DrawSpriteOnGraphics(Graphics graphics, int spriteSlot, int x, int y, int width, int height)

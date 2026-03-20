@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace AGS.Editor
 {
@@ -45,13 +46,8 @@ namespace AGS.Editor
 
             foreach (RoomObject obj in _objectBaselines.Where(o => DesignItems[GetItemID(o)].Visible))
             {
-                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(obj.Image);
-                spriteSize.Width = state.RoomSizeToWindow(spriteSize.Width);
-                spriteSize.Height = state.RoomSizeToWindow(spriteSize.Height);
-                int xpos = state.RoomXToWindow(obj.StartX);
-                int ypos = state.RoomYToWindow(obj.StartY + 1) - spriteSize.Height;
-
-                Utilities.DrawSpriteOnGraphics(graphics, obj.Image, xpos, ypos, spriteSize.Width, spriteSize.Height);
+                var drawPos = GetObjectRectInWindow(obj, state);
+                Utilities.DrawSpriteOnGraphics(graphics, obj.Image, drawPos.X, drawPos.Y, drawPos.Width, drawPos.Height);
             }
 
             if (!Enabled || _selectedObject == null)
@@ -61,15 +57,10 @@ namespace AGS.Editor
             if (!design.Visible)
                 return;
 
-            int width, height;
-            Utilities.GetSizeSpriteWillBeRenderedInGame(_selectedObject.Image, out width, out height);
-            width = state.RoomSizeToWindow(width);
-            height = state.RoomSizeToWindow(height);
-            int xPos = state.RoomXToWindow(_selectedObject.StartX);
-            int yPos = state.RoomYToWindow(_selectedObject.StartY + 1) - height;
+            var drawSelPos = GetObjectRectInWindow(_selectedObject, state);
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-            graphics.DrawRectangle(pen, xPos, yPos, width, height);
+            graphics.DrawRectangle(pen, drawSelPos.X, drawSelPos.Y, drawSelPos.Width, drawSelPos.Height);
 
             if (IsMovingObject)
             {
@@ -78,8 +69,8 @@ namespace AGS.Editor
                 string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
                 var textSize = graphics.MeasureString(toDraw, font);
-                int scaledx = xPos + (width / 2) - ((int)textSize.Width / 2);
-                int scaledy = yPos - (int)textSize.Height;
+                int scaledx = drawSelPos.X + (drawSelPos.Width / 2) - ((int)textSize.Width / 2);
+                int scaledy = drawSelPos.Y - (int)textSize.Height;
                 if (scaledx < 0) scaledx = 0;
                 if (scaledy < 0) scaledy = 0;
                 if (scaledx + textSize.Width >= graphics.VisibleClipBounds.Width)
@@ -93,10 +84,7 @@ namespace AGS.Editor
             else if (design.Locked)
             {
                 pen = new Pen(Color.Goldenrod, 2);
-                xPos = state.RoomXToWindow(_selectedObject.StartX) + (width / 2);
-                yPos = state.RoomYToWindow(_selectedObject.StartY) - (height / 2);
-                Point center = new Point(xPos, yPos);
-
+                Point center = new Point(drawSelPos.X + drawSelPos.Width / 2, drawSelPos.Y - drawSelPos.Height / 2);
                 graphics.DrawLine(pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
                 graphics.DrawLine(pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
             }
@@ -114,12 +102,34 @@ namespace AGS.Editor
             return null;
         }
 
-        private bool HitTest(RoomObject obj, int x, int y)
+        /// <summary>
+        /// Gets object's rectangle in room coordinates.
+        /// </summary>
+        private Rectangle GetObjectRectInRoom(RoomObject obj)
         {
             int width, height;
             Utilities.GetSizeSpriteWillBeRenderedInGame(obj.Image, out width, out height);
-            return ((x >= obj.StartX) && (x < obj.StartX + width) &&
-                (y >= obj.StartY - height) && (y < obj.StartY));
+            return Utilities.GetBoundingBox(obj.StartX, obj.StartY, width, height, obj.GraphicAnchor, obj.GraphicOffset);
+        }
+
+        /// <summary>
+        /// Gets object's rectangle in editor window coordinates.
+        /// </summary>
+        private Rectangle GetObjectRectInWindow(RoomObject obj, RoomEditorState state)
+        {
+            var bbox = GetObjectRectInRoom(obj);
+            return new Rectangle(
+                state.RoomXToWindow(bbox.X),
+                state.RoomYToWindow(bbox.Y + 1), // + 1 for compensating minus height (??)
+                state.RoomSizeToWindow(bbox.Width),
+                state.RoomSizeToWindow(bbox.Height)
+                );
+        }
+
+        private bool HitTest(RoomObject obj, int x, int y)
+        {
+            var bbox = GetObjectRectInRoom(obj);
+            return bbox.Contains(x, y);
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)

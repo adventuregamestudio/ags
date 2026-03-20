@@ -1030,10 +1030,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_viewevents") == 0)
     {
-        uint32_t view_count = in->ReadInt32();
-        if (view_count != _ents.Game.numviews)
-            return new Error(String::FromFormat("Mismatching number of views: read %u expected %u", view_count, (uint32_t)_ents.Game.numviews));
-        for (uint32_t view = 0; view < view_count; ++view)
+        if (!ReadAndAssertCount(in, "views", static_cast<uint32_t>(_ents.Game.numviews), err))
+            return err;
+        for (uint32_t view = 0; view < _ents.Game.numviews; ++view)
         {
             auto &view_s = _ents.Views[view];
             uint32_t loop_count = in->ReadInt32();
@@ -1049,6 +1048,22 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
                     view_s.loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
                 }
             }
+        }
+    }
+    else if (ext_id.CompareNoCase("v400_charopts2") == 0)
+    {
+        if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(_ents.Game.numcharacters), err))
+            return err;
+        for (auto &c : _ents.CharEx)
+        {
+            c.GraphicAnchor.X = in->ReadFloat32();
+            c.GraphicAnchor.Y = in->ReadFloat32();
+            c.GraphicOffset.X = in->ReadInt32();
+            c.GraphicOffset.Y = in->ReadInt32();
+            in->ReadInt32(); // reserved
+            in->ReadInt32();
+            in->ReadInt32();
+            in->ReadInt32();
         }
     }
     else

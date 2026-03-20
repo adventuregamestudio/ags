@@ -27,6 +27,8 @@ namespace AGS.Types
         private int _thinkingView;
         private int _blinkingView;
         private int _transparency = 0;
+        private GraphicAnchor _graphicAnchor = new GraphicAnchor(FrameAlignment.BottomCenter);
+        private Point _graphicOffset = new Point();
         private int _startingRoom = 0;
         private int _startX = 160, _startY = 120;
         private int _baseline = 0;
@@ -168,6 +170,26 @@ namespace AGS.Types
         {
             get { return _transparency; }
             set { _transparency = Math.Max(0, Math.Min(100, value)); }
+        }
+
+        [Description("This character's graphic anchor")]
+        [Category("Appearance")]
+        [DefaultValue(typeof(GraphicAnchor), "0.5, 1")]
+        [TypeConverter(typeof(GraphicAnchorPropertyTypeConverter))]
+        [AGSSerializeWithTypeConverter]
+        public GraphicAnchor GraphicAnchor
+        {
+            get { return _graphicAnchor; }
+            set { _graphicAnchor = value; }
+        }
+
+        [Description("This character's graphic offset")]
+        [Category("Appearance")]
+        [DefaultValue(typeof(Point), "0, 0")]
+        public Point GraphicOffset
+        {
+            get { return _graphicOffset; }
+            set { _graphicOffset = value; }
         }
 
         [Description("Room number that the character starts in")]

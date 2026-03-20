@@ -251,6 +251,8 @@ struct RoomObjectInfo : public RoomObjectBase
     String          Name;
     String          ScriptName;
     Rect            BlockingRect;
+    Pointf          GraphicAnchor;
+    Point           GraphicOffset;
     // Custom properties
     StringIMap      Properties;
     // Interaction events (cursor-based)

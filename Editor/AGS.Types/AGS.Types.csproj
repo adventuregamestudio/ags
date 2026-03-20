@@ -108,7 +108,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\AGSSerializeWithTypeConverterAttribute.cs" />
     <Compile Include="Enums\CursorRole.cs" />
+    <Compile Include="GraphicAnchor.cs" />
     <Compile Include="InteractionSchema.cs" />
     <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
     <Compile Include="Attributes\AGSSerializeClassAttribute.cs" />
@@ -235,6 +237,8 @@
     <Compile Include="PropertyGridExtras\FontFileTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontSizeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontSizeUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\GraphicAnchorPropertyTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\GraphicAnchorTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\GUIIndexTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
     <Compile Include="PropertyGridExtras\InteractionEventPropertyDescriptor.cs" />

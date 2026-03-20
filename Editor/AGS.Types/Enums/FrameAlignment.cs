@@ -16,6 +16,7 @@ namespace AGS.Types
     [Flags]
     public enum FrameAlignment
     {
+        None            = 0,
         TopLeft         = 0x0001,
         TopCenter       = 0x0002,
         TopRight        = 0x0004,

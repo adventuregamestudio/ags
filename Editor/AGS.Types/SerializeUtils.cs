@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Collections;
+using System.ComponentModel;
 
 namespace AGS.Types
 {
@@ -181,6 +182,7 @@ namespace AGS.Types
                 if ((prop.CanRead) && (prop.CanWrite))
                 {
                     bool canSerializeClass = prop.GetCustomAttribute(typeof(AGSSerializeClassAttribute), true) != null;
+                    bool canUseTypeConverter = prop.GetCustomAttribute(typeof(AGSSerializeWithTypeConverterAttribute), true) != null;
 
                     if (prop.GetValue(obj, null) == null)
                     {
@@ -190,6 +192,11 @@ namespace AGS.Types
                     }
                     else if ((prop.PropertyType.IsClass) && (canSerializeClass))
                     {
+                        // FIXME: here's the problem: class's ToXml does not know the name of the property
+                        // this object is assigned to. Therefore it may write the name of class, but if there
+                        // are 2+ properties of the same type within the owning object, then we'll have a
+                        // duplicate node (?!). Likely we need to reorganize this, write start element
+                        // here with a property name, and make ToXml implementations write only inner contents.
                         object theClass = prop.GetValue(obj, null);
                         theClass.GetType().GetMethod("ToXml").Invoke(theClass, new object[] { writer });
                     }
@@ -230,6 +237,7 @@ namespace AGS.Types
                         {
                             writer.WriteElementString(prop.Name, ((double)prop.GetValue(obj, null)).ToString(CultureInfo.InvariantCulture));
                         }
+                        // TODO: perhaps use standard TypeConverters for the standard structs
                         else if (prop.PropertyType == typeof(DateTime))
                         {
                             writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
@@ -245,6 +253,15 @@ namespace AGS.Types
                         else if (prop.PropertyType == typeof(Rectangle))
                         {
                             writer.WriteElementString(prop.Name, RectToString((Rectangle)prop.GetValue(obj, null)));
+                        }
+                        else if (canUseTypeConverter)
+                        {
+                            var typeConverter = TypeDescriptor.GetConverter(prop.PropertyType);
+                            if (typeConverter == null)
+                            {
+                                throw new InvalidDataException("Type converter declared but not found for: " + prop.PropertyType.Name);
+                            }
+                            writer.WriteElementString(prop.Name, typeConverter.ConvertToString(prop.GetValue(obj, null)));
                         }
                         else
                         {
@@ -302,7 +319,10 @@ namespace AGS.Types
                         elementValue = conversion.Convert(elementValue);
                     }
                 }
-                
+
+                bool canSerializeClass = prop.GetCustomAttribute(typeof(AGSSerializeClassAttribute), true) != null;
+                bool canUseTypeConverter = prop.GetCustomAttribute(typeof(AGSSerializeWithTypeConverterAttribute), true) != null;
+
                 if (!prop.CanWrite)
                 {
                     // do nothing, read-only
@@ -353,6 +373,7 @@ namespace AGS.Types
                 {
                     prop.SetValue(obj, elementValue, null);
                 }
+                // TODO: perhaps use standard TypeConverters for the standard structs
                 else if (prop.PropertyType == typeof(DateTime))
                 {
                     // Must use CultureInfo.InvariantCulture otherwise DateTime.Parse
@@ -374,15 +395,6 @@ namespace AGS.Types
                 {
                     prop.SetValue(obj, CompactStringToPoint(elementValue));
                 }
-                else if (prop.PropertyType.IsEnum)
-                {
-                    prop.SetValue(obj, Enum.Parse(prop.PropertyType, elementValue), null);
-                }
-                else if (prop.PropertyType.IsClass)
-                {
-                    ConstructorInfo constructor = prop.PropertyType.GetConstructor(new Type[] { typeof(XmlNode) });
-                    prop.SetValue(obj, constructor.Invoke(new object[] { child }), null);
-                }
                 else if (prop.PropertyType == typeof(Size))
                 {
                     prop.SetValue(obj, StringToSize(elementValue), null);
@@ -390,6 +402,24 @@ namespace AGS.Types
                 else if (prop.PropertyType == typeof(Rectangle))
                 {
                     prop.SetValue(obj, StringToRect(elementValue), null);
+                }
+                else if (prop.PropertyType.IsEnum)
+                {
+                    prop.SetValue(obj, Enum.Parse(prop.PropertyType, elementValue), null);
+                }
+                else if (canSerializeClass)
+                {
+                    ConstructorInfo constructor = prop.PropertyType.GetConstructor(new Type[] { typeof(XmlNode) });
+                    prop.SetValue(obj, constructor.Invoke(new object[] { child }), null);
+                }
+                else if (canUseTypeConverter)
+                {
+                    var typeConverter = TypeDescriptor.GetConverter(prop.PropertyType);
+                    if (typeConverter == null)
+                    {
+                        throw new InvalidDataException("Type converter declared but not found for: " + prop.PropertyType.Name);
+                    }
+                    prop.SetValue(obj, typeConverter.ConvertFromString(elementValue), null);
                 }
                 else
                 {

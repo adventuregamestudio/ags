@@ -3153,6 +3153,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         obj->Description = tcv->Convert(robj.Name);
         obj->UseRoomAreaScaling = ((robj.Flags & OBJF_USEROOMSCALING) != 0);
         obj->UseRoomAreaLighting = ((robj.Flags & OBJF_USEREGIONTINTS) != 0);
+        obj->GraphicAnchor = GraphicAnchor(robj.GraphicAnchor.X, robj.GraphicAnchor.Y);
+        obj->GraphicOffset = System::Drawing::Point(robj.GraphicOffset.X, robj.GraphicOffset.Y);
         ConvertCustomProperties(obj->Properties, &robj.Properties);
         // FIXME - update to the new events
         CopyInteractions(obj->Interactions, robj.Interactions);
@@ -3278,6 +3280,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
             (OBJF_SOLID * obj->Solid);
         robj.BlockingRect = RectWH(obj->BlockingRectangle.Left, obj->BlockingRectangle.Top,
             obj->BlockingRectangle.Width, obj->BlockingRectangle.Height);
+        robj.GraphicAnchor = ::Pointf(obj->GraphicAnchor.X, obj->GraphicAnchor.Y);
+        robj.GraphicOffset = ::Point(obj->GraphicOffset.X, obj->GraphicOffset.Y);
         CompileCustomProperties(obj->Properties, &robj.Properties);
     }
 

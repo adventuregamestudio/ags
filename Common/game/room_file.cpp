@@ -448,6 +448,26 @@ HError ReadExt_400_EventTables(RoomStruct *room, Stream *in, RoomFileVersion dat
     return HError::None();
 }
 
+HError ReadExt_400_ObjectOptions2(RoomStruct* room, Stream* in, RoomFileVersion data_ver)
+{
+    HError err;
+    if (!ReadAndAssertCount(in, "objects", room->Objects.size(), err))
+        return err;
+
+    for (auto& obj : room->Objects)
+    {
+        obj.GraphicAnchor.X = in->ReadFloat32();
+        obj.GraphicAnchor.Y = in->ReadFloat32();
+        obj.GraphicOffset.X = in->ReadInt32();
+        obj.GraphicOffset.Y = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    return HError::None();
+}
+
 HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
@@ -512,6 +532,10 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     else if (ext_id.CompareNoCase("v400_eventtables") == 0)
     {
         return ReadExt_400_EventTables(room, in, data_ver);
+    }
+    else if (ext_id.CompareNoCase("v400_objopts2") == 0)
+    {
+        return ReadExt_400_ObjectOptions2(room, in, data_ver);
     }
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
@@ -875,6 +899,22 @@ void WriteExt_400_EventTables(const RoomStruct *room, Stream *out)
     }
 }
 
+void WriteExt_400_ObjectOptions2(const RoomStruct* room, Stream* out)
+{
+    out->WriteInt32(room->Objects.size());
+    for (const auto& obj : room->Objects)
+    {
+        out->WriteFloat32(obj.GraphicAnchor.X);
+        out->WriteFloat32(obj.GraphicAnchor.Y);
+        out->WriteInt32(obj.GraphicOffset.X);
+        out->WriteInt32(obj.GraphicOffset.Y);
+        out->WriteInt32(0); // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+    }
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)
@@ -911,6 +951,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     WriteRoomBlock(room, "v400_customprops", WriteExt_400_CustomProps, out);
     WriteRoomBlock(room, "v400_roomnames", WriteExt_400_RoomNames, out);
     WriteRoomBlock(room, "v400_eventtables", WriteExt_400_EventTables, out);
+    WriteRoomBlock(room, "v400_objopts2", WriteExt_400_ObjectOptions2, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

@@ -90,6 +90,7 @@ RoomObjectInfo::RoomObjectInfo()
     , Transparency(0)
     , Flags(0)
     , BlendMode(kBlend_Normal)
+    , GraphicAnchor(0.f, 1.f) // bottom-left
 {
 }
 

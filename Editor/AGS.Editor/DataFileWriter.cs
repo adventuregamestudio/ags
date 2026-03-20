@@ -1932,6 +1932,7 @@ namespace AGS.Editor
             WriteGameExtension("v400_guictrlgfx", WriteExt_400GUIControlGraphics, writer, gameEnts, errors);
             WriteGameExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
             WriteGameExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
+            WriteGameExtension("v400_charopts2", WriteExt_400CharacterOptions2, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2462,6 +2463,22 @@ namespace AGS.Editor
                 var cursor = ents.Game.Cursors[i];
                 writer.Write((int)cursor.StandardRole);
                 // reserved ints
+                writer.Write((int)0);
+                writer.Write((int)0);
+                writer.Write((int)0);
+            }
+        }
+
+        private static void WriteExt_400CharacterOptions2(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.Game.Characters.Count);
+            foreach (var ch in ents.Game.Characters)
+            {
+                writer.Write((float)ch.GraphicAnchor.X);
+                writer.Write((float)ch.GraphicAnchor.Y);
+                writer.Write((int)ch.GraphicOffset.X);
+                writer.Write((int)ch.GraphicOffset.Y);
+                writer.Write((int)0); // reserved ints
                 writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);

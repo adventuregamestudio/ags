@@ -32,8 +32,9 @@ namespace AGS.Types
          * 4.00.00.20   - Updated to a X.Y.Z.W version format.
          * 4.00.00.24   - New event tables.
          * 4.00.00.26   - RoomObject.BlockingRect, etc.
+         * 4.00.00.27   - RoomObject.GraphicAnchor/Offset.
         */
-        public const string LATEST_XML_VERSION = "4.0.0.26";
+        public const string LATEST_XML_VERSION = "4.0.0.27";
 
         private const string FIRST_XML_VERSION = "3.99.99.01";
 

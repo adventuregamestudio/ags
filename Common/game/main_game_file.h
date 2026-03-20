@@ -102,6 +102,8 @@ struct MainGameSource
 struct CharDataEx
 {
     Common::BlendMode BlendMode = kBlend_Normal;
+    Pointf GraphicAnchor = Pointf(0.5, 1.f);
+    Point GraphicOffset;
 };
 
 // LoadedGameEntities is meant for keeping objects loaded from the game file.

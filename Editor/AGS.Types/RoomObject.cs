@@ -19,6 +19,8 @@ namespace AGS.Types
         private int _x;
         private int _y;
         private int _transparency = 0;
+        private GraphicAnchor _graphicAnchor = new GraphicAnchor(FrameAlignment.BottomLeft);
+        private Point _graphicOffset = new Point();
         private bool _clickable = true;
         private bool _enabled = true;
         private bool _visible = true;
@@ -86,6 +88,26 @@ namespace AGS.Types
         {
             get { return _transparency; }
             set { _transparency = Math.Max(0, Math.Min(100, value)); }
+        }
+
+        [Description("This object's graphic anchor")]
+        [Category("Appearance")]
+        [DefaultValue(typeof(GraphicAnchor), "0, 1")]
+        [TypeConverter(typeof(GraphicAnchorPropertyTypeConverter))]
+        [AGSSerializeWithTypeConverter]
+        public GraphicAnchor GraphicAnchor
+        {
+            get { return _graphicAnchor; }
+            set { _graphicAnchor = value; }
+        }
+
+        [Description("This object's graphic offset")]
+        [Category("Appearance")]
+        [DefaultValue(typeof(Point), "0, 0")]
+        public Point GraphicOffset
+        {
+            get { return _graphicOffset; }
+            set { _graphicOffset = value; }
         }
 
         [Description("If true, this object will be initially visible and updated during game update.")]

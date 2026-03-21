@@ -287,7 +287,10 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
     if (not_found)
         *not_found = "";
 
-    if (file_name.IsEmpty())
+    // If file_name is empty, and we are looking for the file, then fail right away.
+    // If we are looking for the dir, then further code always succeeds at the
+    // very first match test, so long as base_dir exists.
+    if (!is_dir && file_name.IsEmpty())
         return {}; // fail, no filename provided
 
     String directory;

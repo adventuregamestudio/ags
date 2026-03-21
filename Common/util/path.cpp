@@ -99,6 +99,10 @@ String GetDirectoryPath(const String &path)
 
 bool IsRelativePath(const String &path)
 {
+    // Consider empty path relative
+    if (path.IsEmpty())
+        return true;
+
     // All filenames that start with a '.' are relative.
     if (path[0] == '.' )
         return true;

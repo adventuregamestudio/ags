@@ -25,14 +25,15 @@
 // Its purpose is to provide lookup by both full and partial symbol names,
 // which consist of several partitions, some of which considered optional;
 // such as: function name with a number of arguments appended to it.
+// The symbols map supports a list of valid name parts separators, in an
+// order of descending priority. In case there's no direct match to the
+// requested symbol, the closest match with highest priority separator
+// is returned instead.
 class ScriptSymbolsMap
 {
     using String = AGS::Common::String;
 public:
-    ScriptSymbolsMap(char appendage_separator, bool allow_match_expanded)
-        : _appendageSeparator(appendage_separator)
-        , _allowMatchExpanded(allow_match_expanded)
-    {}
+    ScriptSymbolsMap(const char *appendage_separators, bool allow_match_expanded);
 
     // Maps a symbol name to linear index
     void Add(const String &name, uint32_t index);
@@ -40,7 +41,7 @@ public:
     void Remove(const String &name);
     // Clears the map, removes all entries
     void Clear();
-    // Gets an index of a symbol with exact name match;
+    // Gets an index of a symbol with ** exact ** name match;
     // returns UINT32_MAX on failure
     uint32_t GetIndexOf(const String &name) const;
     // Gets an index of a symbol, matching either exactly,
@@ -50,7 +51,7 @@ public:
 
 private:
     // Which char to use as a appendage separator
-    const char _appendageSeparator;
+    std::vector<char> _appendageSeparators;
     // Should we allow to select symbols that have extra appendages
     // compared to the request in case exact match was not found
     // (i.e. requested "func", select "func^2").

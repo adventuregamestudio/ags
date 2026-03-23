@@ -227,7 +227,7 @@ size_t String::FindChar(char c, size_t from) const
 {
     if (c && from < _len)
     {
-        const char * found_cstr = strchr(_cstr + from, c);
+        const char *found_cstr = strchr(_cstr + from, c);
         return found_cstr ? found_cstr - _cstr : NoIndex;
     }
     return NoIndex;
@@ -249,6 +249,16 @@ size_t String::FindCharReverse(char c, size_t from) const
             return seek_ptr - _cstr;
         }
         seek_ptr--;
+    }
+    return NoIndex;
+}
+
+size_t String::FindAnyChar(const char *chars, size_t from) const
+{
+    if (chars && chars[0] && from < _len)
+    {
+        const char *found_cstr = strpbrk(_cstr + from, chars);
+        return found_cstr ? found_cstr - _cstr : NoIndex;
     }
     return NoIndex;
 }

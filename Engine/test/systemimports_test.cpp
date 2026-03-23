@@ -16,9 +16,8 @@
 
 using namespace AGS::Common;
 
-ScriptSymbolsMap sym('^', true);
-
 TEST(SystemImports, ScriptSymbolsMap_GetIndexOf) {
+    ScriptSymbolsMap sym("^", true);
     sym.Add("Function", 0);
     sym.Add("Function^1", 1);
     sym.Add("FunctionLong^5", 2);
@@ -32,6 +31,7 @@ TEST(SystemImports, ScriptSymbolsMap_GetIndexOf) {
 }
 
 TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAny) {
+    ScriptSymbolsMap sym("^", true);
     sym.Add("Func", 0);
     sym.Add("Function", 1);
     sym.Add("Function^1", 2);
@@ -68,4 +68,92 @@ TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAny) {
     ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^1"), UINT32_MAX); // not matching any variant
     ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^123"), 7); // "FunctionWithLongAppendage^123" - exact match
     ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^123456"), UINT32_MAX); // not matching any variant
+}
+
+// Test multiple separator variants, given in one order.
+// NOTE: '$' < '^'
+TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAnyMixed1) {
+    ScriptSymbolsMap sym("$^", true);
+    sym.Add("Function", 0);
+    sym.Add("Function^1", 1);
+    sym.Add("Function$1", 2);
+    sym.Add("FunctionOne^2", 3);
+    sym.Add("FunctionTwo$2", 4);
+    sym.Add("FunctionOverrideA^3", 5);
+    sym.Add("FunctionOverrideA^33", 6);
+    sym.Add("FunctionOverrideA^333", 7);
+    sym.Add("FunctionOverrideA$3", 8);
+    sym.Add("FunctionOverrideA$33", 9);
+    sym.Add("FunctionOverrideA$333", 10);
+    sym.Add("FunctionOverrideB$3", 11);
+    sym.Add("FunctionOverrideB$33", 12);
+    sym.Add("FunctionOverrideB$333", 13);
+    sym.Add("FunctionOverrideB^3", 14);
+    sym.Add("FunctionOverrideB^33", 15);
+    sym.Add("FunctionOverrideB^333", 16);
+
+    // Exact matches always have priority
+    ASSERT_EQ(sym.GetIndexOfAny("Function"), 0);
+    ASSERT_EQ(sym.GetIndexOfAny("Function^1"), 1);
+    ASSERT_EQ(sym.GetIndexOfAny("Function$1"), 2);
+
+    // Request without appendage, matching a variant of a single separator kind
+    // - first found match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne"), 3);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo"), 4);
+
+    // Request without appendage, matching multiple separator kinds
+    // - match of the base name, with the first separator kind in the list ('$') being a priority
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideA"), 8);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideB"), 11);
+
+    // Request with appendage, but without a direct separator match,
+    // has to switch to the variant with a different separator kind, still matching appendage
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne$2"), 3);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo^2"), 4);
+}
+
+// Test multiple separator variants, given in another order;
+// this is necessary, to make sure that the matching is independent
+// of the separate character alphabetic order.
+// NOTE: '$' < '^'
+TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAnyMixed2) {
+    ScriptSymbolsMap sym("^$", true);
+    sym.Add("Function", 0);
+    sym.Add("Function^1", 1);
+    sym.Add("Function$1", 2);
+    sym.Add("FunctionOne^2", 3);
+    sym.Add("FunctionTwo$2", 4);
+    sym.Add("FunctionOverrideA^3", 5);
+    sym.Add("FunctionOverrideA^33", 6);
+    sym.Add("FunctionOverrideA^333", 7);
+    sym.Add("FunctionOverrideA$3", 8);
+    sym.Add("FunctionOverrideA$33", 9);
+    sym.Add("FunctionOverrideA$333", 10);
+    sym.Add("FunctionOverrideB$3", 11);
+    sym.Add("FunctionOverrideB$33", 12);
+    sym.Add("FunctionOverrideB$333", 13);
+    sym.Add("FunctionOverrideB^3", 14);
+    sym.Add("FunctionOverrideB^33", 15);
+    sym.Add("FunctionOverrideB^333", 16);
+
+    // Exact matches always have priority
+    ASSERT_EQ(sym.GetIndexOfAny("Function"), 0);
+    ASSERT_EQ(sym.GetIndexOfAny("Function^1"), 1);
+    ASSERT_EQ(sym.GetIndexOfAny("Function$1"), 2);
+
+    // Request without appendage, matching a variant of a single separator kind
+    // - first found match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne"), 3);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo"), 4);
+
+    // Request without appendage, matching multiple separator kinds
+    // - match of the base name, with the first separator kind in the list ('^') being a priority
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideA"), 5);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideB"), 14);
+
+    // Request with appendage, but without a direct separator match,
+    // has to switch to the variant with a different separator kind, still matching appendage
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne$2"), 3);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo^2"), 4);
 }

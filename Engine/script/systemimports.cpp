@@ -18,6 +18,17 @@
 using namespace AGS::Common;
 
 
+ScriptSymbolsMap::ScriptSymbolsMap(const char *appendage_separators, bool allow_match_expanded)
+    : _allowMatchExpanded(allow_match_expanded)
+{
+    if (appendage_separators && appendage_separators[0])
+    {
+        for (; *appendage_separators ; ++appendage_separators)
+            _appendageSeparators.push_back(*appendage_separators);
+        _appendageSeparators.push_back(0); // we're going to use this vector as a C-string
+    }
+}
+
 void ScriptSymbolsMap::Add(const String &name, uint32_t index)
 {
     _lookup[name] = index;
@@ -51,10 +62,26 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
     //
     // where "type" is the name of a type, "name" is the name of a function,
     // "argnum" is the number of arguments.
+    // The section separator may be one of the _appendageSeparators, but only
+    // one kind is used in a string, and this separator kind is also used to
+    // distinguish between export sources (e.g. engine api vs script api).
+    // If a valid separator was found in the requested name, then this
+    // separator will be a priority when looking for a match. In case of no
+    // direct match we are permitted to match close entries with any valid
+    // separator in them.
+    char req_separator = 0;
+    size_t first_separator_at = String::NoIndex;
+    if (!_appendageSeparators.empty())
+    {
+        first_separator_at = name.FindAnyChar(_appendageSeparators.data());
+        if (first_separator_at != String::NoIndex)
+            req_separator = name[first_separator_at];
+    }
 
-    const size_t argnum_at = std::min(name.GetLength(), name.FindChar(_appendageSeparator));
+    const size_t argnum_at = std::min(name.GetLength(), first_separator_at);
     const size_t append_end = name.GetLength();
-    // TODO: optimize this by supporting string views! or compare methods which let compare with a substring of input
+    // TODO: optimize this by supporting string views! or compare methods which let compare with a substring of input.
+    // Note that if there's no appendage, then substring will return original string, no new string is allocated.
     const String name_only = name.Left(argnum_at);
     const String argnum_only = name.Mid(argnum_at + 1, append_end - argnum_at - 1);
 
@@ -69,6 +96,8 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
     // We know as a fact that in an ordered string container shorter names come first
     // and longer names come after, meaning that symbols without appendage will be met first.
     uint32_t best_match = UINT32_MAX;
+    char best_separator = 0;
+
     for (auto it = _lookup.lower_bound(name_only); it != _lookup.end(); ++it)
     {
         const String &try_sym = it->first;
@@ -77,44 +106,83 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
         if (try_sym.CompareLeft(name_only, argnum_at) != 0)
             break;
 
+        // Search for one of the valid separators in the tested symbol name.
+        char sym_separator = 0;
+        if ((try_sym.GetLength() > argnum_at) && !_appendageSeparators.empty())
+        {
+            const char *sym_sep_ptr = strchr(_appendageSeparators.data(), try_sym[argnum_at]);
+            if (sym_sep_ptr)
+                sym_separator = *sym_sep_ptr;
+
+            // If we had some best match saved, then decide if we want to switch to another separator kind
+            if ((sym_separator != 0) && (best_separator != 0))
+            {
+                // If the best match's separator is already matching the requested one, then skip this symbol;
+                // If we already have the same separator kind saved as the best match, then skip this symbol
+                if ((best_separator == req_separator) || (best_separator == sym_separator))
+                    continue;
+
+                // If this new symbol's separator does not match a requested one,
+                // and the last best match's separator has a priority over new one, then skip this symbol
+                if ((req_separator != sym_separator) &&
+                    (strchr(_appendageSeparators.data(), best_separator) <
+                     strchr(_appendageSeparators.data(), sym_separator)))
+                    continue;
+            }
+        }
+
         // If the symbol is longer, but there's no separator after base name,
-        // then the symbol has a different, longer base name (e.g. "FindChar" vs "FindCharacter")
-        if ((try_sym.GetLength() > name_only.GetLength()) && try_sym[name_only.GetLength()] != _appendageSeparator)
+        // then the symbol has a different, longer base name (e.g. "FindChar" vs "FindCharacter");
+        // or symbol has a different separator kind, not matching the requested name.
+        if ((try_sym.GetLength() > name_only.GetLength()) && (sym_separator == 0))
             continue;
 
-        // Search for appendage separators in the matching symbol
-        const size_t sym_argnum_at = std::min(try_sym.GetLength(), try_sym.FindChar(_appendageSeparator, argnum_at));
+        const size_t sym_argnum_at = argnum_at;
         const size_t sym_append_end = try_sym.GetLength();
 
         //---------------------------------------------------------------------
         // Check the argnum appendage
 
-        // If the symbol does not have any appendages, then:
+        // If the tried symbol does not have any appendages, then:
         // - if request does not have any either, that's the exact match;
-        // - otherwise save it as a best match and continue searching;
+        // - otherwise save it as a best match and continue searching.
         if (sym_argnum_at == try_sym.GetLength())
         {
             if (argnum_at == name.GetLength())
                 return it->second;
+
             best_match = it->second;
+            best_separator = sym_separator;
             continue;
         }
-
-        // If the request is without argnum, then optionally choose the first found symbol
-        // which has at least base name matching
-        if (argnum_at == name.GetLength())
+        // If the request is without argnum, but tried symbol has appendages,
+        // then optionally choose the first found symbol which has at least base name matching.
+        else if (argnum_at == name.GetLength())
         {
             if (_allowMatchExpanded)
-                return it->second;
-            break; // exact base-name match would be first in order, so no reason to continue
+            {
+                best_match = it->second;
+                best_separator = sym_separator;
+                continue;
+            }
+            else
+            {
+                // exact base-name match would be first in order, so no reason to continue
+                break;
+            }
         }
 
         // Compare argnum appendage, and skip on failure
         if ((sym_append_end != append_end) || try_sym.CompareMid(argnum_only, argnum_at + 1) != 0)
             continue;
 
-        // Matched whole appendage, found exact match
-        return it->second;
+        // Matched whole appendage, found exact appendage match;
+        // if separator is also matching, then succeed immediately, otherwise save as best match and continue
+        if (sym_separator == req_separator)
+            return it->second;
+
+        best_match = it->second;
+        best_separator = sym_separator;
     }
     
     // If no exact match was found, then select the closest found match
@@ -127,7 +195,7 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
 
 
 SystemImports::SystemImports()
-    : _lookup('^', true /* allow to match symbols with more appendages */)
+    : _lookup("$^", true /* allow to match symbols with more appendages */)
 {
 }
 

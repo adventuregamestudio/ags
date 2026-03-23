@@ -203,7 +203,7 @@ std::weak_ptr<AGS::Common::TextStreamWriter> ccInstance::_execWriterRef;
 
 
 ccInstance::ResolvedScriptData::ResolvedScriptData()
-    : export_lookup('$', true /* allow to match symbols with more appendages */)
+    : export_lookup("$", true /* allow to match symbols with more appendages */)
 {
 }
 
@@ -2090,7 +2090,6 @@ bool ccInstance::ImportScriptExports(const ccScript *scri)
     for (size_t i = 0; i < scri->exports.size(); i++)
     {
         String name = scri->exports[i];
-        name.Replace('$', '^'); // replace exported name separator with imported name separator
         if (!ccAddExternalScriptSymbol(name, _scriptData->exports[i], this))
         {
             cc_error("Export table overflow at '%s'", scri->exports[i].c_str());

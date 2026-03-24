@@ -275,8 +275,6 @@ private:
         ScriptSymbolsMap        export_lookup;
         // Array of real import indexes used in script
         std::vector<uint32_t>   resolved_imports;
-
-        ResolvedScriptData();
     };
     std::shared_ptr<ResolvedScriptData> _scriptData;
 

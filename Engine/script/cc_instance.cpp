@@ -202,11 +202,6 @@ std::weak_ptr<AGS::Common::TextStreamWriter> ccInstance::_execWriterRef;
 #endif
 
 
-ccInstance::ResolvedScriptData::ResolvedScriptData()
-    : export_lookup("$", true /* allow to match symbols with more appendages */)
-{
-}
-
 ccInstance *ccInstance::GetCurrentInstance()
 {
     return InstThreads.size() > 0 ? InstThreads.back() : nullptr;

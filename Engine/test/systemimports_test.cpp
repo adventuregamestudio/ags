@@ -17,7 +17,7 @@
 using namespace AGS::Common;
 
 TEST(SystemImports, ScriptSymbolsMap_GetIndexOf) {
-    ScriptSymbolsMap sym("^", true);
+    ScriptSymbolsMap sym;
     sym.Add("Function", 0);
     sym.Add("Function^1", 1);
     sym.Add("FunctionLong^5", 2);
@@ -31,129 +31,62 @@ TEST(SystemImports, ScriptSymbolsMap_GetIndexOf) {
 }
 
 TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAny) {
-    ScriptSymbolsMap sym("^", true);
+    ScriptSymbolsMap sym;
+    // Import symbols
     sym.Add("Func", 0);
     sym.Add("Function", 1);
     sym.Add("Function^1", 2);
-    sym.Add("FunctionLong^1", 3);
-    sym.Add("FunctionLong^3", 4);
-    sym.Add("FunctionLong^5", 5);
-    sym.Add("FunctionNoAppendage", 6);
-    sym.Add("FunctionWithLongAppendage^123", 7);
-    sym.Add("FunctionWithLongAppendage^12345", 8);
+    sym.Add("Function^8", 3);
+    sym.Add("FunctionLong^1", 4);
+    sym.Add("FunctionLong^3", 5);
+    sym.Add("FunctionLong^5", 6);
+    sym.Add("FunctionLong^9", 7);
+    sym.Add("FunctionNoAppendage", 8);
+    sym.Add("FunctionWithLongAppendage^123", 9);
+    sym.Add("FunctionWithLongAppendage^12345", 10);
+    // Script export symbols
+    sym.Add("Function$1", 11);
+    sym.Add("Function$9", 12);
+    sym.Add("FunctionLong$1", 13);
+    sym.Add("FunctionLong$3", 14);
+    sym.Add("FunctionLong$5", 15);
+    sym.Add("FunctionLong$7", 16);
+    sym.Add("FunctionWithLongAppendage$123", 17);
+    sym.Add("FunctionWithLongAppendage$12345", 18);
+    sym.Add("FunctionWithLongAppendage$345", 19);
 
+    // Non-existing symbol
     ASSERT_EQ(sym.GetIndexOfAny("Unknown"), UINT32_MAX);
+    ASSERT_EQ(sym.GetIndexOfAny("Functio"), UINT32_MAX);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppe"), UINT32_MAX);
     // Exact matches always have priority
     ASSERT_EQ(sym.GetIndexOfAny("Function"), 1);
     ASSERT_EQ(sym.GetIndexOfAny("Function^1"), 2);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^5"), 5);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage"), 6);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^123"), 7);
-    // Request without appendage
-    // - exact match is the one without appendage,
-    // - otherwise, first found match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("Function"), 1); // "Function" - exact match
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong"), 3); // "FunctionLong^1" - first match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage"), 6); // "FunctionNoAppendage" - exact match
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage"), 7); // "FunctionWithLongAppendage^123" - first match of the base name
-    // Request with appendage
-    // - exact match is the one that matches appendage,
-    // - otherwise, match the one without appendage
-    ASSERT_EQ(sym.GetIndexOfAny("Function^1"), 2); // "Function^1" - exact match
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^5"), 6);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage"), 8);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^123"), 9);
+    ASSERT_EQ(sym.GetIndexOfAny("Function$1"), 11);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong$5"), 15);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage$123"), 17);
+    // Request without appendage, which does not have a direct match
+    // - match the first found script export matching the base name, with any args
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong"), 13); // "FunctionLong$1" - first export match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage"), 17); // "FunctionWithLongAppendage$123" - first export match of the base name
+    // Request import name with appendage, which does not have a direct match
+    // - match the one without appendage, if not then...
+    // - match the script export with the matching appendage
     ASSERT_EQ(sym.GetIndexOfAny("Function^2"), 1); // "Function" - no appendage match found, best match of the base name
     ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^0"), UINT32_MAX); // not matching any variant
     ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^10"), UINT32_MAX); // not matching any variant
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^3"), 4); // "FunctionLong^3" - exact match
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage^5"), 6); // "FunctionNoAppendage" - no appendage match found, best match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^1"), UINT32_MAX); // not matching any variant
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^123"), 7); // "FunctionWithLongAppendage^123" - exact match
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^123456"), UINT32_MAX); // not matching any variant
-}
-
-// Test multiple separator variants, given in one order.
-// NOTE: '$' < '^'
-TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAnyMixed1) {
-    ScriptSymbolsMap sym("$^", true);
-    sym.Add("Function", 0);
-    sym.Add("Function^1", 1);
-    sym.Add("Function$1", 2);
-    sym.Add("FunctionOne^2", 3);
-    sym.Add("FunctionTwo$2", 4);
-    sym.Add("FunctionOverrideA^3", 5);
-    sym.Add("FunctionOverrideA^33", 6);
-    sym.Add("FunctionOverrideA^333", 7);
-    sym.Add("FunctionOverrideA$3", 8);
-    sym.Add("FunctionOverrideA$33", 9);
-    sym.Add("FunctionOverrideA$333", 10);
-    sym.Add("FunctionOverrideB$3", 11);
-    sym.Add("FunctionOverrideB$33", 12);
-    sym.Add("FunctionOverrideB$333", 13);
-    sym.Add("FunctionOverrideB^3", 14);
-    sym.Add("FunctionOverrideB^33", 15);
-    sym.Add("FunctionOverrideB^333", 16);
-
-    // Exact matches always have priority
-    ASSERT_EQ(sym.GetIndexOfAny("Function"), 0);
-    ASSERT_EQ(sym.GetIndexOfAny("Function^1"), 1);
-    ASSERT_EQ(sym.GetIndexOfAny("Function$1"), 2);
-
-    // Request without appendage, matching a variant of a single separator kind
-    // - first found match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne"), 3);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo"), 4);
-
-    // Request without appendage, matching multiple separator kinds
-    // - match of the base name, with the first separator kind in the list ('$') being a priority
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideA"), 8);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideB"), 11);
-
-    // Request with appendage, but without a direct separator match,
-    // has to switch to the variant with a different separator kind, still matching appendage
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne$2"), 3);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo^2"), 4);
-}
-
-// Test multiple separator variants, given in another order;
-// this is necessary, to make sure that the matching is independent
-// of the separate character alphabetic order.
-// NOTE: '$' < '^'
-TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAnyMixed2) {
-    ScriptSymbolsMap sym("^$", true);
-    sym.Add("Function", 0);
-    sym.Add("Function^1", 1);
-    sym.Add("Function$1", 2);
-    sym.Add("FunctionOne^2", 3);
-    sym.Add("FunctionTwo$2", 4);
-    sym.Add("FunctionOverrideA^3", 5);
-    sym.Add("FunctionOverrideA^33", 6);
-    sym.Add("FunctionOverrideA^333", 7);
-    sym.Add("FunctionOverrideA$3", 8);
-    sym.Add("FunctionOverrideA$33", 9);
-    sym.Add("FunctionOverrideA$333", 10);
-    sym.Add("FunctionOverrideB$3", 11);
-    sym.Add("FunctionOverrideB$33", 12);
-    sym.Add("FunctionOverrideB$333", 13);
-    sym.Add("FunctionOverrideB^3", 14);
-    sym.Add("FunctionOverrideB^33", 15);
-    sym.Add("FunctionOverrideB^333", 16);
-
-    // Exact matches always have priority
-    ASSERT_EQ(sym.GetIndexOfAny("Function"), 0);
-    ASSERT_EQ(sym.GetIndexOfAny("Function^1"), 1);
-    ASSERT_EQ(sym.GetIndexOfAny("Function$1"), 2);
-
-    // Request without appendage, matching a variant of a single separator kind
-    // - first found match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne"), 3);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo"), 4);
-
-    // Request without appendage, matching multiple separator kinds
-    // - match of the base name, with the first separator kind in the list ('^') being a priority
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideA"), 5);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOverrideB"), 14);
-
-    // Request with appendage, but without a direct separator match,
-    // has to switch to the variant with a different separator kind, still matching appendage
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionOne$2"), 3);
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionTwo^2"), 4);
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage^5"), 8); // "FunctionNoAppendage" - no appendage match found, best match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("Function^9"), 12); // "Function$9"
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^7"), 16); // "FunctionLong$7"
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^345"), 19); // "FunctionWithLongAppendage$345"
+    // Request export name with appendage, which does not have a direct match
+    // - match the one without appendage
+    ASSERT_EQ(sym.GetIndexOfAny("Function$2"), 1); // "Function" - no appendage match found, best match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("Function$8"), 1); // "Function" - no appendage match found, best match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionExtra$1"), UINT32_MAX); // not matching any variant
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong$9"), UINT32_MAX); // not matching any variant
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage$1"), 8); // "FunctionNoAppendage"
 }

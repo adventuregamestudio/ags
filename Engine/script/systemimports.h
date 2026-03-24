@@ -33,7 +33,11 @@ class ScriptSymbolsMap
 {
     using String = AGS::Common::String;
 public:
-    ScriptSymbolsMap(const char *appendage_separators, bool allow_match_expanded);
+    const char ImportSeparator = '^';
+    const char ScriptExportSeparator = '$';
+    const char *AnySeparator = "$^";
+
+    ScriptSymbolsMap() = default;
 
     // Maps a symbol name to linear index
     void Add(const String &name, uint32_t index);
@@ -50,12 +54,6 @@ public:
     uint32_t GetIndexOfAny(const String &name) const;
 
 private:
-    // Which char to use as a appendage separator
-    std::vector<char> _appendageSeparators;
-    // Should we allow to select symbols that have extra appendages
-    // compared to the request in case exact match was not found
-    // (i.e. requested "func", select "func^2").
-    const bool _allowMatchExpanded;
     // Note we can't use a hash-map here, because we sometimes need to search
     // by partial keys, so sorting is cruicial
     std::map<String, uint32_t> _lookup;
@@ -80,7 +78,7 @@ class SystemImports
 {
     using String = AGS::Common::String;
 public:
-    SystemImports();
+    SystemImports() = default;
 
     // Adds a resolved import under given name
     uint32_t Add(const String &name, const RuntimeScriptValue &value, const ccInstance *inst);

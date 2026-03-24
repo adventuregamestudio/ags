@@ -2353,6 +2353,9 @@ void ScPl_sc_sprintf(char *destt, const char *texx, ...)
 
 void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
+    // NOTE: historically, AGS script compiler did not add number of argument appendix
+    // to the global functions, for unknown reasons. If we add such appendix now,
+    // we still have to keep an old registry entry for old games to link properly.
     ScFnRegister global_api[] = {
         { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
         { "AddInventory",             API_FN_PAIR(add_inventory) },
@@ -2600,6 +2603,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Said",                     API_FN_PAIR(Said) },
         { "SaidUnknownWord",          API_FN_PAIR(SaidUnknownWord) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
+        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot1) },
         { "SaveScreenShot^1",         API_FN_PAIR(SaveScreenShot1) },
         { "SaveScreenShot^4",         API_FN_PAIR(SaveScreenShot4) },
         { "SeekMIDIPosition",         API_FN_PAIR(SeekMIDIPosition) },

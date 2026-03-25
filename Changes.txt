@@ -1,5 +1,32 @@
 REVISION HISTORY
 ================
+VERSION 3.6.2 - Patch 8, March 2026
+
+Editor:
+ - Fixed Editor treating custom properties names as case-sensitive when loading them from the
+   project file, although they are considered case-insensitive everywhere else.
+ - Fixed deleted custom property values were remaining in objects data, apparently forever
+   (they were not visible, unless you re-add the property under same name).
+ - Fixed "dialog_request" not being added automatically to GlobalScript if it's missing.
+   (Regression since 3.6.2 Patch 7.)
+ - Fixed Editor resizing its own application window instead of Help window when Help->Index
+   or Help->Contents menu command was ordered by user.
+
+Engine:
+ - Made sure that characters and room objects scaling, as well as room camera's position
+   are updated prior to room's "Before Fade-in" event, and prior "late_repeatedly_execute_always"
+   callback, so that user scripts can read respective up-to-date values there.
+ - Fixed characters and room objects scaling not being updated while the cutscene is being skipped.
+   (Regression in 3.6.2)
+ - Fixed user script functions that match the existing engine API would not get registered and not
+   called in script (engine functions get called instead). NOTE: such situation may occur if
+   certain deprecated engine API functions were disabled during compilation, and user script
+   have declared functions with names identical to these. (Regression in 3.6.2)
+ - Fixed ListBox.FillDirList() and File.GetFiles() not finding any files if request was made to
+   search right in the game's directory. (Regression in 3.6.2, or possibly earlier version)
+ - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
+
+
 VERSION 3.6.2 - Patch 7, March 2026
 
 Editor:

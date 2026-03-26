@@ -3,6 +3,9 @@ REVISION HISTORY
 VERSION 3.6.2 - Patch 8, March 2026
 
 Editor:
+ - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
+   regardless of the local system settings. This is done primarily to make it easier to share
+   values between property fields and script.
  - Fixed Editor treating custom properties names as case-sensitive when loading them from the
    project file, although they are considered case-insensitive everywhere else.
  - Fixed deleted custom property values were remaining in objects data, apparently forever
@@ -13,9 +16,9 @@ Editor:
    or Help->Contents menu command was ordered by user.
 
 Engine:
- - Made sure that characters and room objects scaling, as well as room camera's position
-   are updated prior to room's "Before Fade-in" event, and prior "late_repeatedly_execute_always"
-   callback, so that user scripts can read respective up-to-date values there.
+ - Character and object scaling properties, and auto-tracking Camera positions will now be
+   updated extra time prior to "Room Before Fade-in" and "late_repeatedly_execute_always" events.
+   This is done to ensure that user scripts can read proper up-to-date values during these events.
  - Fixed characters and room objects scaling not being updated while the cutscene is being skipped.
    (Regression in 3.6.2)
  - Fixed user script functions that match the existing engine API would not get registered and not

@@ -113,6 +113,7 @@ target_sources(libtools
         ${TOOLS_MINIMAL_ALLEGRO_SOURCES}
         )
         
+target_link_libraries(libtools PUBLIC glm::glm)
 target_link_libraries(libtools PUBLIC MiniZ::MiniZ)
 target_link_libraries(libtools PUBLIC TinyXML2::TinyXML2)
 if (WIN32)

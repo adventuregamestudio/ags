@@ -51,6 +51,7 @@ Editor:
  - Added Custom Properties for: Audio Clips, Dialogs, GUI, GUI Controls, Regions, Walkable Areas.
  - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property for Characters, GUI and Room Objects.
+ - Added GraphicAnchor and GraphicOffset properties to Characters and Room Objects.
  - Added Transparency property for GUIControls.
  - Added Flip property for View Frame, replacing a boolean Flipped property. The new property
    supports all 3 flip variants: horizontal, vertical and both at once.

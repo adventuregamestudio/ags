@@ -148,16 +148,6 @@ RuntimeScript *RuntimeScript::_linkedScripts[RuntimeScript::MaxLinkedScripts] = 
 std::unique_ptr<JointRTTI> RuntimeScript::_jointRtti;
 std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
 
-RuntimeScript::RuntimeScript()
-    : _exportLookup('$', true /* allow to match symbols with more appendages */)
-{
-}
-
-RuntimeScript::RuntimeScript(const String &tag)
-    : _exportLookup('$', true /* allow to match symbols with more appendages */)
-{
-}
-
 /* static */ std::unique_ptr<RuntimeScript> RuntimeScript::Create(const ccScript *script)
 {
     if (!script)

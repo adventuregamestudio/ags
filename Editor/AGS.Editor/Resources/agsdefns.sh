@@ -874,6 +874,10 @@ builtin managed struct DrawingSurface {
   readonly import attribute int Height;
   /// Gets the width of the surface.
   readonly import attribute int Width;
+#ifdef SCRIPT_API_v363
+  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
+  import readonly attribute bool Valid;
+#endif
 #ifdef SCRIPT_API_v400
   /// Changes the colour of a single pixel on the surface. This operation ignores drawing settings, and simply sets the color value.
   import void SetPixel(int x, int y, int color);

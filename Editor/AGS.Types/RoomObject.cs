@@ -231,6 +231,7 @@ namespace AGS.Types
 
         [Description("Whether the object should be affected by walkable area scaling")]
         [Category("Appearance")]
+        [DefaultValue(true)]
         public bool UseRoomAreaScaling
         {
             get { return _useRoomAreaScaling; }
@@ -239,6 +240,7 @@ namespace AGS.Types
 
         [Description("Whether the object should be affected by walkable area lighting")]
         [Category("Appearance")]
+        [DefaultValue(true)]
         public bool UseRoomAreaLighting
         {
             get { return _useRoomAreaLighting; }

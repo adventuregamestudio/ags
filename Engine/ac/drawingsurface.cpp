@@ -69,9 +69,21 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     sds->modified = false;
 }
 
+Bitmap *AssertBitmapSurface(Bitmap *bmp, const char *api_name)
+{
+    if (!bmp)
+    {
+        debug_script_warn("%s: attempted to use surface after its source image was disposed or DrawingSurface.Release() was called.",
+            api_name);
+    }
+    return bmp;
+}
+
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 {
-    Bitmap *sourceBitmap = sds->GetBitmapSurface();
+    Bitmap *sourceBitmap = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.CreateCopy");
+    if (!sourceBitmap)
+        return nullptr;
 
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; i++)
     {
@@ -85,7 +97,7 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
         }
     }
 
-    quit("!DrawingSurface.CreateCopy: too many copied surfaces created");
+    debug_script_warn("!DrawingSurface.CreateCopy: too many surface copies created (max is %d)", MAX_DYNAMIC_SURFACES);
     return nullptr;
 }
 
@@ -93,7 +105,10 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
     int dst_x, int dst_y, int trans, BlendMode mode, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height, int sprite_id)
 {
-    Bitmap *ds = sds->GetBitmapSurface();
+    Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.DrawImage");
+    if (!ds)
+        return;
+
     if (src == ds) {} // ignore for now; bitmap lib supports, and may be used for effects
         /* debug_script_warn("DrawingSurface.DrawImage: drawing onto itself"); */
     if (src->GetColorDepth() != ds->GetColorDepth())
@@ -182,7 +197,11 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
     int dst_x, int dst_y, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
-    DrawingSurface_DrawImageImpl(target, source->GetBitmapSurface(), dst_x, dst_y, trans, kBlend_Normal, dst_width, dst_height,
+    Bitmap *source_bmp = AssertBitmapSurface(source->GetBitmapSurface(), "DrawingSurface.DrawSurface");
+    if (!source_bmp)
+        return;
+
+    DrawingSurface_DrawImageImpl(target, source_bmp, dst_x, dst_y, trans, kBlend_Normal, dst_width, dst_height,
         src_x, src_y, src_width, src_height, -1);
 }
 
@@ -190,7 +209,11 @@ void DrawingSurface_BlendSurface(ScriptDrawingSurface* target, ScriptDrawingSurf
     int dst_x, int dst_y, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
-    DrawingSurface_DrawImageImpl(target, source->GetBitmapSurface(), dst_x, dst_y, trans, mode, dst_width, dst_height,
+    Bitmap *source_bmp = AssertBitmapSurface(source->GetBitmapSurface(), "DrawingSurface.BlendSurface");
+    if (!source_bmp)
+        return;
+
+    DrawingSurface_DrawImageImpl(target, source_bmp, dst_x, dst_y, trans, mode, dst_width, dst_height,
         src_x, src_y, src_width, src_height, -1);
 }
 
@@ -216,13 +239,18 @@ int DrawingSurface_GetBlendMode(ScriptDrawingSurface *sds)
 
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
-    Bitmap *ds = sds->GetBitmapSurface();
+    Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.Height");
     return ds ? ds->GetHeight() : 0;
+}
+
+bool DrawingSurface_GetValid(ScriptDrawingSurface *sds) 
+{
+    return sds->IsValid();
 }
 
 int DrawingSurface_GetWidth(ScriptDrawingSurface *sds) 
 {
-    Bitmap *ds = sds->GetBitmapSurface();
+    Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.Width");
     return ds ? ds->GetWidth() : 0;
 }
 
@@ -234,7 +262,10 @@ int DrawingSurface_GetColorDepth(ScriptDrawingSurface *sds)
 
 void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 {
-    Bitmap *ds = sds->StartDrawing(); // clear is always done in solid mode
+    // clear is always done in solid mode
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.Clear");
+    if (!ds)
+        return;
     int allegroColor;
     if (colour == SCR_COLOR_TRANSPARENT)
     {
@@ -250,28 +281,37 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 
 void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radius)
 {
-    Bitmap *ds = sds->StartDrawingWithBrush();
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawCircle");
+    if (!ds)
+        return;
     ds->FillCircle(Circle(x, y, radius), sds->GetRealDrawingColor());
     sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 {
-    Bitmap *ds = sds->StartDrawingWithBrush();
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawRectangle");
+    if (!ds)
+        return;
     ds->FillRect(Rect(x1,y1,x2,y2), sds->GetRealDrawingColor());
     sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
 {
-    Bitmap *ds = sds->StartDrawingWithBrush();
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawTriangle");
+    if (!ds)
+        return;
     ds->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->GetRealDrawingColor());
     sds->FinishedDrawingWithBrush();
 }
 
 void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
 {
-    Bitmap *ds = sds->StartDrawing(); // no need to use "brush", blending is done by font renderer
+    // no need to use "brush", blending is done by font renderer
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.DrawString");
+    if (!ds)
+        return;
     color_t text_color = sds->GetRealDrawingColor();
     String res_str = GUI::ApplyTextDirection(text);
     wouttext_outline(ds, xx, yy, font, text_color, sds->GetBlendMode(), res_str.GetCStr());
@@ -285,7 +325,10 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
-    Bitmap *ds = sds->StartDrawing(); // no need to use "brush", blending is done by font renderer
+    // no need to use "brush", blending is done by font renderer
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.DrawStringWrapped");
+    if (!ds)
+        return;
     color_t text_color = sds->GetRealDrawingColor();
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
 
@@ -299,9 +342,11 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 }
 
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness) {
-    int ii,jj,xx,yy;
-    Bitmap *ds = sds->StartDrawingWithBrush();
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawLine");
+    if (!ds)
+        return;
     // draw several lines to simulate the thickness
+    int ii,jj,xx,yy;
     color_t draw_color = sds->GetRealDrawingColor();
     for (ii = 0; ii < thickness; ii++) 
     {
@@ -316,7 +361,9 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
 }
 
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
-    Bitmap *ds = sds->StartDrawingWithBrush();
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawPixel");
+    if (!ds)
+        return;
     if (sds->IsAlphaBlending())
     {
         ds->BlendPixel(x, y, sds->GetRealDrawingColor());
@@ -329,7 +376,9 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
 }
 
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
-    Bitmap *ds = sds->StartDrawingReadOnly();
+    Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.GetPixel");
+    if (!ds)
+        return 0;
     int rawPixel = ds->GetPixel(x, y);
     int maskColor = ds->GetMaskColor();
     int colDepth = ds->GetColorDepth();
@@ -346,13 +395,12 @@ int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
         rawPixel = Game_GetColorFromRGB(r, g, b);
     }
 
-    sds->FinishedDrawingReadOnly();
     return rawPixel;
 }
 
 void DrawingSurface_SetPixel(ScriptDrawingSurface *sds, int x, int y, int color)
 {
-    Bitmap *ds = sds->StartDrawing();
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.SetPixel");
     ds->PutPixel(x, y, ds->GetCompatibleColor(color));
     sds->FinishedDrawing();
 }
@@ -507,6 +555,11 @@ RuntimeScriptValue Sc_DrawingSurface_GetHeight(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetHeight);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_GetValid(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptDrawingSurface, DrawingSurface_GetValid);
+}
+
 // int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -561,6 +614,7 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
         { "DrawingSurface::set_BlendMode",        API_FN_PAIR(DrawingSurface_SetBlendMode) },
         { "DrawingSurface::get_ColorDepth",       API_FN_PAIR(DrawingSurface_GetColorDepth) },
         { "DrawingSurface::get_Height",           API_FN_PAIR(DrawingSurface_GetHeight) },
+        { "DrawingSurface::get_Valid",            API_FN_PAIR(DrawingSurface_GetValid) },
         { "DrawingSurface::get_Width",            API_FN_PAIR(DrawingSurface_GetWidth) },
 
         { "DrawingSurface::BlendImage^11",        API_FN_PAIR(DrawingSurface_BlendImage) },

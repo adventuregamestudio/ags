@@ -182,6 +182,9 @@ public:
     // and return the index of the (first) character, or NoIndex if nothing found.
     size_t  FindChar(char c, size_t from = 0, size_t to = NoIndex) const;
     size_t  FindCharReverse(char c, size_t from = NoIndex) const;
+    size_t  FindAnyChar(const String &chars, size_t from = 0) const
+                { return FindString(chars._cstr, from); }
+    size_t  FindAnyChar(const char *chars, size_t from = 0) const;
     size_t  FindString(const String &str, size_t from = 0) const
                 { return FindString(str._cstr, from); }
     size_t  FindString(const char *cstr, size_t from = 0) const;

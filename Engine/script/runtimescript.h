@@ -94,8 +94,7 @@ class RuntimeScript
     static const String _noname;
     static const String _unknownSectionName;
 public:
-    RuntimeScript();
-    RuntimeScript(const String &tag);
+    RuntimeScript() = default;
     ~RuntimeScript();
 
     // Create new RuntimeScript instance from the given loaded script data

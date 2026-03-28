@@ -727,6 +727,9 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
 
 void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
+    // NOTE: historically, AGS script compiler did not add number of argument appendix
+    // to the global functions, for unknown reasons. If we add such appendix now,
+    // we still have to keep an old registry entry for old games to link properly.
     ScFnRegister global_api[] = {
         { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
         { "AreThingsOverlapping",     API_FN_PAIR(AreThingsOverlapping) },
@@ -797,6 +800,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
         { "Said",                     API_FN_PAIR(Said) },
+        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot1) },
         { "SaveScreenShot^1",         API_FN_PAIR(SaveScreenShot1) },
         { "SaveScreenShot^4",         API_FN_PAIR(SaveScreenShot4) },
         { "SendEvent",                Sc_SendEvent, run_on_event },
@@ -831,6 +835,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "WaitMouse",                API_FN_PAIR(WaitMouse) },
         { "WaitMouseKey",             API_FN_PAIR(WaitMouseKey) },
         { "WaitInput",                API_FN_PAIR(WaitInput) },
+        { "SkipWait",                 API_FN_PAIR(SkipWait0) },
         { "SkipWait^0",               API_FN_PAIR(SkipWait0) },
         { "SkipWait^1",               API_FN_PAIR(SkipWait) },
     };

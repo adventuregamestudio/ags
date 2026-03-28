@@ -58,85 +58,73 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
     //
     // where "type" is the name of a type, "name" is the name of a function,
     // "argnum" is the number of arguments.
+    // The appendage separator may be an import separator '^', or a script
+    // export separator '$', and only one kind is used in a string.
+    // The direct match of a full symbol name is always a priority.
+    // If no direct match is found, then we search for alternatives:
+    // 
+    // * If the search name does not have any appendages, then we don't know
+    // which arg list to expect, and so lookup for the first found script
+    // export with arg list matching the symbol name.
+    // * If the search name is a import name with arg list, then we first
+    // lookup for the name only without args, and then for a script export
+    // with both matching names and args.
+    // * If the search name is an export name with arg list, then we only
+    // lookup for the name only without args.
 
-    const size_t argnum_at = std::min(name.GetLength(), name.FindChar(_appendageSeparator));
-    const size_t append_end = name.GetLength();
-    // TODO: optimize this by supporting string views! or compare methods which let compare with a substring of input
-    const String name_only = name.Left(argnum_at);
-    const String argnum_only = name.Mid(argnum_at + 1, append_end - argnum_at - 1);
+    // First try direct match
+    auto item = _lookup.find(name);
+    if (item != _lookup.end())
+        return item->second;
 
-    // Scan the range of possible matches, starting with pure name without appendages.
-    // The match logic is this:
-    // * the request is compared one section after another, first base name, then first
-    //   appendage, then second appendage, and so forth (in case we support multiple appendages);
-    // * as we go we save and update the best match: symbol that has only base name,
-    //   symbol that has base name + first appendage, and so forth.
-    // * if no exact match is found, then we use the best saved match.
-    //
-    // We know as a fact that in an ordered string container shorter names come first
-    // and longer names come after, meaning that symbols without appendage will be met first.
-    uint32_t best_match = UINT32_MAX;
-    for (auto it = _lookup.lower_bound(name_only); it != _lookup.end(); ++it)
+    // If direct match failed, then split the request into name and args
+    size_t args_at = name.FindAnyChar(AnySeparator);
+    char args_separator = 0;
+    if (args_at != String::NoIndex)
+        args_separator = name[args_at];
+    else
+        args_at = name.GetLength(); // clamp for simpler algorithm below
+
+    const String name_only = name.Left(args_at);
+    const String argnum_only = name.Mid(args_at + 1);
+
+    // Request has no args, or
+    // Request is an import symbol
+    if ((args_separator == 0) || (args_separator == ImportSeparator))
     {
-        const String &try_sym = it->first;
-        // First - compare base name section
-        // If base name is not matching, then there's no reason to continue the range
-        if (try_sym.CompareLeft(name_only, argnum_at) != 0)
-            break;
-
-        // If the symbol is longer, but there's no separator after base name,
-        // then the symbol has a different, longer base name (e.g. "FindChar" vs "FindCharacter")
-        if ((try_sym.GetLength() > name_only.GetLength()) && try_sym[name_only.GetLength()] != _appendageSeparator)
-            continue;
-
-        // Search for appendage separators in the matching symbol
-        const size_t sym_argnum_at = std::min(try_sym.GetLength(), try_sym.FindChar(_appendageSeparator, argnum_at));
-        const size_t sym_append_end = try_sym.GetLength();
-
-        //---------------------------------------------------------------------
-        // Check the argnum appendage
-
-        // If the symbol does not have any appendages, then:
-        // - if request does not have any either, that's the exact match;
-        // - otherwise save it as a best match and continue searching;
-        if (sym_argnum_at == try_sym.GetLength())
+        // Try lookup a symbol either matching base name
+        // or a script export symbol matching arg list
+        // (or any arg list, if request dont have one).
+        // The script export matching arg list has a priority here.
+        uint32_t name_only_match = UINT32_MAX;
+        for (item = _lookup.lower_bound(name_only); item != _lookup.end(); ++item)
         {
-            if (argnum_at == name.GetLength())
-                return it->second;
-            best_match = it->second;
-            continue;
+            const String &try_sym = item->first;
+            if (try_sym.CompareLeft(name_only, name_only.GetLength()) != 0)
+                break; // base name not matched, no reason to scan further
+
+            if (try_sym.GetLength() == name_only.GetLength())
+                name_only_match = item->second; // save in case we won't find a arg list match
+            // if request had a arg list, then choose a script export with a matching one
+            // if request did not have any arg list, then choose a first found script export with any args
+            else if ((try_sym[args_at] == ScriptExportSeparator) && ((args_separator == 0) || (try_sym.Mid(args_at + 1) == argnum_only)))
+                return item->second;
         }
-
-        // If the request is without argnum, then optionally choose the first found symbol
-        // which has at least base name matching
-        if (argnum_at == name.GetLength())
-        {
-            if (_allowMatchExpanded)
-                return it->second;
-            break; // exact base-name match would be first in order, so no reason to continue
-        }
-
-        // Compare argnum appendage, and skip on failure
-        if ((sym_append_end != append_end) || try_sym.CompareMid(argnum_only, argnum_at + 1) != 0)
-            continue;
-
-        // Matched whole appendage, found exact match
-        return it->second;
+        return name_only_match;
     }
-    
-    // If no exact match was found, then select the closest found match
-    if (best_match != UINT32_MAX)
-        return best_match;
+    // Request is a script export symbol
+    else
+    {
+        // Try lookup a symbol matching base name
+        auto item = _lookup.find(name_only);
+        if (item != _lookup.end())
+            return item->second;
+    }
 
-    // Not found...
+    // Failed to find any acceptable match
     return UINT32_MAX;
 }
 
-
-SystemImports::SystemImports()
-    : _lookup('^', true /* allow to match symbols with more appendages */)
-{
-}
 
 uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script, ScriptValueHint val_hint)
 {

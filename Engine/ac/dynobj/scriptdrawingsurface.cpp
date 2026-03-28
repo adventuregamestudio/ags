@@ -15,9 +15,11 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
+#include "ac/dynamicsprite.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
+#include "ac/room.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "game/roomstruct.h"
@@ -29,6 +31,15 @@ using namespace AGS::Common;
 extern RoomStruct thisroom;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
+
+bool ScriptDrawingSurface::IsValid() const
+{
+    return (roomBackgroundNumber >= 0) ||
+        (roomMaskType > kRoomAreaNone) ||
+        (dynamicSpriteNumber >= 0) ||
+        (dynamicSurfaceNumber >= 0) ||
+        (linkedBitmapOnly != nullptr);
+}
 
 Bitmap *ScriptDrawingSurface::GetBitmapSurface()
 {
@@ -43,7 +54,6 @@ Bitmap *ScriptDrawingSurface::GetBitmapSurface()
         return linkedBitmapOnly;
     else if (roomMaskType > kRoomAreaNone)
         return thisroom.GetMask(roomMaskType);
-    quit("!DrawingSurface: attempted to use surface after its source image was disposed or DrawingSurface.Release() was called.");
     return nullptr;
 }
 
@@ -66,11 +76,6 @@ void ScriptDrawingSurface::SetBlendMode(BlendMode blend_mode)
     _currentBlendMode = blend_mode;
 }
 
-Bitmap *ScriptDrawingSurface::StartDrawing()
-{
-    return GetBitmapSurface();
-}
-
 Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
 {
     Bitmap *ds = GetBitmapSurface();
@@ -84,16 +89,6 @@ Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
     return ds;
 }
 
-Bitmap *ScriptDrawingSurface::StartDrawingReadOnly()
-{
-    return GetBitmapSurface();
-}
-
-void ScriptDrawingSurface::FinishedDrawing()
-{
-    modified = true;
-}
-
 void ScriptDrawingSurface::FinishedDrawingWithBrush()
 {
     if (_alphaBlending)
@@ -101,10 +96,6 @@ void ScriptDrawingSurface::FinishedDrawingWithBrush()
         drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
     }
     modified = true;
-}
-
-void ScriptDrawingSurface::FinishedDrawingReadOnly()
-{
 }
 
 int ScriptDrawingSurface::Dispose(void* /*address*/, bool /*force*/) {
@@ -170,6 +161,13 @@ void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t data_sz)
     }
     _alphaBlending = false;
     ccRegisterUnserializedObject(index, this, this);
+
+    if (roomBackgroundNumber >= 0)
+        attach_room_bg_surface(roomBackgroundNumber, index);
+    else if (roomMaskType > kRoomAreaNone)
+        attach_room_mask_surface(roomMaskType, index);
+    else if (dynamicSpriteNumber > 0)
+        attach_dynsprite_surface(dynamicSpriteNumber, index);
 }
 
 void ScriptDrawingSurface::Invalidate()

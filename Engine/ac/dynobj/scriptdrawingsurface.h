@@ -40,6 +40,7 @@ public:
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+    bool IsValid() const;
     // Tells if DrawingSurface is currently in alpha blending drawing mode
     inline bool IsAlphaBlending() const { return _alphaBlending; }
     int GetRealDrawingColor() const { return _currentColor; }
@@ -48,17 +49,16 @@ public:
     BlendMode GetBlendMode() const { return _currentBlendMode; }
     void SetBlendMode(BlendMode);
 
-    // TODO: review this, may need to hide GetBitmapSurface and use StartDrawingReadOnly instead;
-    // the reason is that the bitmap may have to be "locked" for the duration of use, as it is
-    // not owned by ScriptDrawingSurface. Alternatively, consider using shared ptr,
-    // but this may conflict with other things in the engine.
+    // TODO: review this, may need to replace GetBitmapSurface's return value with a
+    // lockable Bitmap object. The reason is that the bitmap may have to be "locked"
+    // for the duration of use, as it is not owned by ScriptDrawingSurface.
+    // Alternatively, consider using shared ptr, but this may conflict with other
+    // things in the engine.
     Bitmap *GetBitmapSurface();
-    Bitmap *StartDrawing();
+    Bitmap *StartDrawing() { return GetBitmapSurface(); }
     Bitmap *StartDrawingWithBrush();
-    Bitmap *StartDrawingReadOnly();
-    void FinishedDrawing();
+    void FinishedDrawing() { modified = true; }
     void FinishedDrawingWithBrush();
-    void FinishedDrawingReadOnly();
 
     void Invalidate();
 

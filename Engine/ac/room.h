@@ -53,6 +53,20 @@ void  compile_room_script();
 void  on_background_frame_change ();
 // Clear the current room pointer if room status is no longer valid
 void  croom_ptr_clear();
+
+// Retrieves a DrawingSurface object, connected to the given room background.
+ScriptDrawingSurface *get_room_bg_surface(int bgindex);
+// Retrieves a DrawingSurface object, connected to the given room mask.
+ScriptDrawingSurface *get_room_mask_surface(RoomAreaMask mask);
+// Attaches drawing surface handle to the room background.
+// This method is used when unserializing drawing surfaces from the game save.
+void  attach_room_bg_surface(int bgindex, int surface_handle);
+// Attaches drawing surface handle to the room mask.
+// This method is used when unserializing drawing surfaces from the game save.
+void  attach_room_mask_surface(RoomAreaMask mask, int surface_handle);
+// Detaches all drawing surfaces related to the room background and masks.
+// This invalidates DrawingSurface script object(s), and erases a bg-surface reference.
+void  detach_room_bg_surfaces();
 // Notifies room that its background's drawing surface was released
 void  on_room_bg_surface_release(int bgindex, bool modified);
 // Notifies room that its mask's drawing surface was released

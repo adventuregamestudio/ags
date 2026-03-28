@@ -1,12 +1,13 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 
 namespace AGS.Editor.Components
 {
@@ -35,6 +36,8 @@ namespace AGS.Editor.Components
         private static extern bool GetMonitorInfo(IntPtr monitorHandle, ref MonitorInfo info);
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr windowHandle, IntPtr handleInsertAfter, int x, int y, int cx, int cy, uint flags);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool GetWindowRect(IntPtr windowHandle, ref Rect pos);
 
         private const uint MONITOR_DEFAULTTONEAREST = 2;
         private const uint SWP_NOZORDER = 0x0004;
@@ -230,6 +233,13 @@ namespace AGS.Editor.Components
             }
         }
 
+        private enum VersionCheckStatus
+        {
+            Equal,
+            ServerNewer,
+            ThisNewer
+        }
+
         private void CheckForUpdates()
         {
             try
@@ -326,13 +336,17 @@ namespace AGS.Editor.Components
         /// <summary>
         /// The HTML Help API's HtmlHelp method forces the help window to stretch across multiple monitors if it opens at a negative location (-x, -y).
         /// This method resizes the window to the work-space size of the monitor that it is in.
-        /// This method must be called immediately after opening the Help window with the Help class.
         /// </summary>
         private bool AdjustHelpWindowSize()
         {
-            IntPtr helpHandle = Process.GetCurrentProcess().MainWindowHandle; // get the Help window handle
-
+            IntPtr helpHandle = FindHelpWindow();
             if (helpHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            Rect windowPos = new Rect();
+            if (!GetWindowRect(helpHandle, ref windowPos))
             {
                 return false;
             }
@@ -343,15 +357,44 @@ namespace AGS.Editor.Components
             {
                 return false;
             }
-            Rect workSize = monitorInfo.rcWork;
-            return SetWindowPos(helpHandle, IntPtr.Zero, workSize.Left, workSize.Top, workSize.Right - workSize.Left, workSize.Bottom - workSize.Top, SWP_NOZORDER);
+            Rect workRect = monitorInfo.rcWork;
+            if (windowPos.Left < workRect.Left || windowPos.Right > workRect.Right || windowPos.Top < workRect.Top || windowPos.Bottom > workRect.Bottom)
+            {
+                windowPos.Left = Math.Max(windowPos.Left, workRect.Left);
+                windowPos.Right = Math.Min(windowPos.Right, workRect.Right);
+                windowPos.Top = Math.Max(windowPos.Top, workRect.Top);
+                windowPos.Bottom = Math.Min(windowPos.Bottom, workRect.Bottom);
+                return SetWindowPos(helpHandle, IntPtr.Zero, windowPos.Left, windowPos.Top, windowPos.Right - windowPos.Left, windowPos.Bottom - windowPos.Top, SWP_NOZORDER);
+            }
+            return true;
         }
 
-        private enum VersionCheckStatus
+        private const string HelpWindowClassName = "HH Parent";
+
+        /// <summary>
+        /// Based on the code from:
+        /// https://stackoverflow.com/questions/4819570/how-can-i-control-the-size-of-the-help-window-using-system-windows-forms-help-sh
+        /// </summary>
+        private IntPtr FindHelpWindow()
         {
-            Equal,
-            ServerNewer,
-            ThisNewer
+            IntPtr buf = Marshal.AllocHGlobal(Marshal.SizeOf<IntPtr>());
+            Hacks.EnumThreadWndProc callback = (hWnd, lp) => {
+                // Check if this is the help window
+                StringBuilder sb = new StringBuilder(260);
+                Hacks.GetClassName(hWnd, sb, sb.Capacity);
+                if (sb.ToString() != HelpWindowClassName)
+                    return true;
+
+                Marshal.WriteIntPtr(buf, hWnd);
+                return false;
+            };
+            foreach (ProcessThread pth in Process.GetCurrentProcess().Threads)
+            {
+                Hacks.EnumThreadWindows(pth.Id, callback, buf);
+            }
+            IntPtr handle = (IntPtr)Marshal.PtrToStructure(buf, typeof(IntPtr));
+            Marshal.FreeHGlobal(buf);
+            return handle;
         }
     }
 }

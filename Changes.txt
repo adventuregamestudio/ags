@@ -299,6 +299,9 @@ Common:
  - Removed limit of Dialog's options (was 30).
 
 Editor:
+ - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
+   regardless of the local system settings. This is done primarily to make it easier to share
+   values between property fields and script.
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
    right mouse buttons.
@@ -355,6 +358,12 @@ Editor:
  - Implemented performance optimization for Translation update process.
  - Translation compiler now supports "Font override" settings, that let configure custom font
    overrides for the given Translation file.
+ - Fixed Editor treating custom properties names as case-sensitive when loading them from the
+   project file, although they are considered case-insensitive everywhere else.
+ - Fixed deleted custom property values were remaining in objects data, apparently forever
+   (they were not visible, unless you re-add the property under same name).
+ - Fixed Editor resizing its own application window instead of Help window when Help->Index
+   or Help->Contents menu command was ordered by user.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -394,9 +403,13 @@ Script API:
  - Added DialogOptions.Overlay that lets access a overlay object which represents dialog options
    on screen (only returns overlay when the options are displayed).
  - In DynamicSprite.ChangeCanvasSize() function made "x" and "y" parameters optional.
+ - Added DrawingSurface.Valid readonly property.
  - Added Game.InBlockingAction, BlockingWaitCounter and BlockingWaitSkipType properties.
  - Game.InBlockingWait now returns positive only when inside a Wait*() function call, not any
    blocking action (this is what InBlockingAction is for now).
+ - Added Game.IsSpriteDynamic[] and TopSpriteNumber readonly properties.
+ - Added Game.InventoryCursorHotspotGraphic, InventoryCursorHotspotColor,
+   InventoryCursorHotspotCrossColor and UseActiveInventoryGraphicForCursor properties.
  - Added Game.Pause() and Resume() functions, and Game.IsPaused property. PauseGame(),
    UnPauseGame() and IsGamePaused() functions are deprecated.
  - Added Game.Speed property. Get/SetGameSpeed function is deprecated.
@@ -435,6 +448,8 @@ Engine:
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Standard Dialog options now support Right-to-left text mode.
+ - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving 32-bit
+   BMP files with alpha channel.
  - Removed hard limit of Timers (was 20).
  - Room Region events will now be run consistently with the other game events, scheduled and
    executed at the end of the game update cycle (was run at the beginning of the game update).
@@ -461,6 +476,10 @@ Engine:
    normally disabled for them.
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.
+ - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
+ - Fixed that DrawingSurface didn't register when its source image (such as a dynamic sprite or a
+   room background) gets unavailable, which could led to a invalid memory access would user script
+   continue to operate this DrawingSurface object.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.
@@ -499,6 +518,36 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 8, March 2026
+
+Editor:
+ - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
+   regardless of the local system settings. This is done primarily to make it easier to share
+   values between property fields and script.
+ - Fixed Editor treating custom properties names as case-sensitive when loading them from the
+   project file, although they are considered case-insensitive everywhere else.
+ - Fixed deleted custom property values were remaining in objects data, apparently forever
+   (they were not visible, unless you re-add the property under same name).
+ - Fixed "dialog_request" not being added automatically to GlobalScript if it's missing.
+   (Regression since 3.6.2 Patch 7.)
+ - Fixed Editor resizing its own application window instead of Help window when Help->Index
+   or Help->Contents menu command was ordered by user.
+
+Engine:
+ - Character and object scaling properties, and auto-tracking Camera positions will now be
+   updated extra time prior to "Room Before Fade-in" and "late_repeatedly_execute_always" events.
+   This is done to ensure that user scripts can read proper up-to-date values during these events.
+ - Fixed characters and room objects scaling not being updated while the cutscene is being skipped.
+   (Regression in 3.6.2)
+ - Fixed user script functions that match the existing engine API would not get registered and not
+   called in script (engine functions get called instead). NOTE: such situation may occur if
+   certain deprecated engine API functions were disabled during compilation, and user script
+   have declared functions with names identical to these. (Regression in 3.6.2)
+ - Fixed ListBox.FillDirList() and File.GetFiles() not finding any files if request was made to
+   search right in the game's directory. (Regression in 3.6.2, or possibly earlier version)
+ - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
+
 
 VERSION 3.6.2 - Patch 7, March 2026
 

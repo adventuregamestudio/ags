@@ -59,6 +59,14 @@ int     add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, uint32_t 
 int     add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
 // Disposes a dynamic sprite, and frees the slot
 void    free_dynamic_sprite(int slot, bool notify_all = true);
+// Retrieves a DrawingSurface object, connected to the given dynamic sprite.
+ScriptDrawingSurface *get_dynsprite_surface(int slot);
+// Attaches drawing surface handle to the dynamic sprite.
+// This method is used when unserializing drawing surfaces from the game save.
+void    attach_dynsprite_surface(int slot, int surface_handle);
+// Detaches all drawing surfaces related to the given dynamic sprite.
+// This invalidates DrawingSurface script object(s), and erases a sprite-surface reference.
+void    detach_dynsprite_surface(int slot);
 // Notifies dynamic sprite that its drawing surface was released
 void    on_dynsprite_surface_release(int slot, bool modified);
 

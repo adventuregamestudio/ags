@@ -221,5 +221,11 @@ namespace AGS.Editor
                 Marshal.FreeCoTaskMem(nativeFile);
             }
         }
+
+        [DllImport("user32.dll")]
+        public static extern int GetClassName(IntPtr hWnd, StringBuilder buffer, int buflen);
+        public delegate bool EnumThreadWndProc(IntPtr hWnd, IntPtr lp);
+        [DllImport("user32.dll")]
+        public static extern bool EnumThreadWindows(int tid, EnumThreadWndProc callback, IntPtr lp);
     }
 }

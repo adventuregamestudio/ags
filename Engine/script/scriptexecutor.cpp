@@ -176,7 +176,6 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
         cc_error("ScriptExecutor is busy");
         return kScExecErr_Busy;
     }
-
     if (!thread || !script || (param_count > 0) && !params)
     {
         cc_error("bad input arguments in ScriptExecutor::Run");

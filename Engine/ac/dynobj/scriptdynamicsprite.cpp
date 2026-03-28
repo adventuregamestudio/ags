@@ -23,7 +23,10 @@ const char *ScriptDynamicSprite::TypeID = "DynamicSprite";
 int ScriptDynamicSprite::Dispose(void* /*address*/, bool force) {
     // always dispose
     if ((slot) && (!force))
+    {
+        detach_dynsprite_surface(slot);
         free_dynamic_sprite(slot);
+    }
 
     delete this;
     return 1;

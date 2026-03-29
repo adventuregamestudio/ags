@@ -72,16 +72,7 @@ size_t SpriteCache::GetSpriteSlotCount() const
 
 sprkey_t SpriteCache::GetTopmostSprite() const
 {
-    if (_spriteData.empty())
-        return -1;
-
-    // FIXME: optimize this, might require keeping record when adding new sprites
-    for (size_t i = _spriteData.size() - 1; i >= 0; ++i)
-    {
-        if (DoesSpriteExist(i))
-            return i;
-    }
-    return -1;
+    return _topmostSprite;
 }
 
 /* // FIXME: this method is not implemented properly, dont use until its fixed.
@@ -115,6 +106,7 @@ void SpriteCache::Reset()
     _file.Close();
     ResourceCache::Clear();
     _spriteData.clear();
+    _topmostSprite = -1;
 }
 
 bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags)
@@ -138,6 +130,7 @@ bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int f
     _sprInfos[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), image->GetColorDepth(), spf_flags);
     _spriteData[index].Flags = SPRCACHEFLAG_EXTERNAL | SPRCACHEFLAG_LOCKED; // NOT from asset file
     Put(index, std::move(image), kCacheItem_External | kCacheItem_Locked);
+    _topmostSprite = std::max(_topmostSprite, index);
     SprCacheLog("SetSprite: (external) %d", index);
     return true;
 }
@@ -154,6 +147,8 @@ void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
     if (as_asset)
         _spriteData[index].Flags = SPRCACHEFLAG_ISASSET;
     RemapSpriteToPlaceholder(index);
+    _topmostSprite = std::max(_topmostSprite, index);
+    SprCacheLog("SetEmptySprite: %d", index);
 }
 
 std::unique_ptr<Bitmap> SpriteCache::RemoveSprite(sprkey_t index)
@@ -163,6 +158,8 @@ std::unique_ptr<Bitmap> SpriteCache::RemoveSprite(sprkey_t index)
         return nullptr;
     std::unique_ptr<Bitmap> image = ResourceCache::Remove(index);
     InitNullSprite(index);
+    if (_topmostSprite == index)
+        _topmostSprite = TraceTopmostSpriteBack(index);
     SprCacheLog("RemoveSprite: %d", index);
     return image;
 }
@@ -174,6 +171,8 @@ void SpriteCache::DeleteSprite(sprkey_t index)
         return;
     ResourceCache::Dispose(index);
     InitNullSprite(index);
+    if (_topmostSprite == index)
+        _topmostSprite = TraceTopmostSpriteBack(index);
     SprCacheLog("RemoveAndDispose: %d", index);
 }
 
@@ -449,6 +448,16 @@ std::vector<std::pair<bool, BitmapData>> SpriteCache::PrepareSpriteData()
     return std::move(sprites);
 }
 
+sprkey_t SpriteCache::TraceTopmostSpriteBack(sprkey_t start_with)
+{
+    if (_spriteData.size() == 0)
+        return -1;
+    if (start_with < 0)
+        start_with = static_cast<sprkey_t>(_spriteData.size()) - 1;
+    for (; start_with >= 0 && !DoesSpriteExist(start_with); --start_with);
+    return start_with;
+}
+
 HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)
 {
     return SaveSpriteFile(filename, PrepareSpriteData(), &_file, store_flags, compress, index);
@@ -492,6 +501,8 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
             InitNullSprite(static_cast<sprkey_t>(i));
         }
     }
+
+    _topmostSprite = TraceTopmostSpriteBack();
     return HError::None();
 }
 

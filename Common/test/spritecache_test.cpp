@@ -40,6 +40,25 @@ static void FillSpriteCache2(SpriteCache* sc)
 	sc->SetSprite(8, std::make_unique<Bitmap>(8, 8, 32));
 }
 
+TEST(SpriteCache, SpriteCounts) {
+	std::vector<SpriteInfo> spr_infos;
+	auto sc = std::make_unique<SpriteCache>(spr_infos, SpriteCache::Callbacks());
+	FillSpriteCache(sc.get());
+	ASSERT_EQ(sc->GetSpriteSlotCount(), 11);
+	ASSERT_EQ(sc->GetTopmostSprite(), 10);
+	// Empty sprites are also counted as occupied slots, mark them as "assets" to be certain
+	sc->SetEmptySprite(15, true);
+	sc->SetEmptySprite(20, true);
+	ASSERT_EQ(sc->GetSpriteSlotCount(), 21);
+	ASSERT_EQ(sc->GetTopmostSprite(), 20);
+	sc->DeleteSprite(20);
+	// NOTE: sprite slot count is uncertain here, it may be less, or kept at previous max size,
+	// depending on how the SpriteCache's allocation policy works.
+	ASSERT_EQ(sc->GetTopmostSprite(), 15);
+	sc->RemoveSprite(15);
+	ASSERT_EQ(sc->GetTopmostSprite(), 10);
+}
+
 TEST(SpriteCache, SaveToFileOnlyMemoryBitmaps) {
 	std::vector<SpriteInfo> spr_infos;
 	auto sc = std::make_unique<SpriteCache>(spr_infos, SpriteCache::Callbacks());
@@ -98,6 +117,7 @@ TEST(SpriteCache, SaveToFileAndInitBack) {
 
 	ASSERT_TRUE(err);
 	ASSERT_EQ(sc->GetSpriteSlotCount(), 11);
+	ASSERT_EQ(sc->GetTopmostSprite(), 10);
 	ASSERT_EQ(spr_infos.size(), 11);
 	ASSERT_EQ(spr_infos[0].Width, 0);
 	ASSERT_EQ(spr_infos[1].Width, 1);

@@ -208,6 +208,8 @@ private:
     // returns a list of pairs, where first element tells whether the sprite
     // exists at all (either in a cache or a sprite file).
     std::vector<std::pair<bool, BitmapData>> PrepareSpriteData();
+    // Searches back from the starting index, looking for the topmost sprite slot occupied by a valid sprite
+    sprkey_t    TraceTopmostSpriteBack(sprkey_t start_with = -1);
 
     //
     // Dummy no-op variants for callbacks
@@ -243,6 +245,8 @@ private:
     std::vector<SpriteData> _spriteData;
     // Placeholder sprite, returned from operator[] for a non-existing sprite
     std::unique_ptr<Bitmap> _placeholder;
+    // Topmost known occupied sprite slot
+    sprkey_t _topmostSprite = -1;
 
     Callbacks  _callbacks;
     SpriteFile _file;

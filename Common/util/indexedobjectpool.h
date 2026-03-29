@@ -34,6 +34,7 @@
 #ifndef __AGS_CN_UTIL__INDEXEDOBJECTPOOL_H
 #define __AGS_CN_UTIL__INDEXEDOBJECTPOOL_H
 
+#include <limits>
 #include <stack>
 #include <vector>
 
@@ -43,7 +44,7 @@
 // This class is suggested to be used as a parent for the actual storage
 // class.
 //
-template <typename TIndex>
+template <typename TIndex, TIndex NoIndexValue = 0>
 class IndexedPoolBase
 {
 public:
@@ -110,11 +111,19 @@ public:
     }
 
 protected:
+    inline bool CanAllocMore() const
+    {
+        return (_isFree.size() != SIZE_MAX) && (static_cast<TIndex>(_isFree.size()) < std::numeric_limits<TIndex>::max());
+    }
+
     // Returns the next free index, allocates more if necessary
     TIndex GetFreeIndex()
     {
         if (_freeIds.empty())
         {
+            if (!CanAllocMore())
+                return NoIndexValue;
+
             const TIndex index = static_cast<TIndex>(_isFree.size());
             _isFree.resize(static_cast<size_t>(index) + 1);
             return index;
@@ -131,8 +140,11 @@ protected:
     TIndex AcquireFreeSlot()
     {
         const TIndex index = GetFreeIndex();
-        _isFree[index] = false;
-        _count++;
+        if (index != NoIndexValue)
+        {
+            _isFree[index] = false;
+            _count++;
+        }
         return index;
     }
 
@@ -185,7 +197,8 @@ protected:
             const size_t new_size = index + 1;
             for (TIndex free_idx = _isFree.size(); free_idx != index && static_cast<size_t>(free_idx) < new_size; ++free_idx)
                 _freeIds.push(free_idx);
-            _isFree.resize(new_size);
+            _isFree.resize(new_size, true);
+            _isFree[index] = false;
             _count++;
         }
     }
@@ -200,6 +213,8 @@ protected:
         for (size_t idx = 0u; idx < _isFree.size() && idx < is_used.size(); ++idx)
         {
             _isFree[idx] = !is_used[idx];
+            if (!is_used[idx])
+                _freeIds.push(idx);
             _count += static_cast<int>(is_used[idx]);
         }
     }
@@ -214,7 +229,7 @@ protected:
 // IndexedObjectPool provides a element storage and keeps record of free
 // and used indexes.
 //
-template <typename TElem, typename TIndex = size_t>
+template <typename TElem, typename TIndex = size_t, TIndex NoIndexValue = 0>
 class IndexedObjectPool : protected IndexedPoolBase<TIndex>
 {
 public:
@@ -244,7 +259,7 @@ public:
     const TElem &operator [](TIndex index) const { return _elems[static_cast<size_t>(index)]; }
     TElem &operator [](TIndex index)
     {
-        assert(index >= 0u && static_cast<size_t>(index) < _elems.size());
+        assert(index >= 0u && static_cast<size_t>(index) < _elems.size() && index != NoIndexValue);
         assert(!IndexedPoolBase<TIndex>::_isFree[index]);
         return _elems[static_cast<size_t>(index)];
     }
@@ -260,7 +275,8 @@ public:
     TIndex Add()
     {
         TIndex index = AcquireFreeSlot();
-        _elems[index] = {};
+        if (index != NoIndexValue)
+            _elems[index] = {};
         return index;
     }
 
@@ -268,7 +284,8 @@ public:
     TIndex Add(const TElem &elem)
     {
         TIndex index = AcquireFreeSlot();
-        _elems[index] = elem;
+        if (index != NoIndexValue)
+            _elems[index] = elem;
         return index;
     }
 
@@ -276,7 +293,8 @@ public:
     TIndex Add(TElem &&elem)
     {
         TIndex index = AcquireFreeSlot();
-        _elems[index] = std::move(elem);
+        if (index != NoIndexValue)
+            _elems[index] = std::move(elem);
         return index;
     }
 
@@ -347,7 +365,7 @@ private:
     TIndex AcquireFreeSlot()
     {
         const TIndex index = IndexedPoolBase<TIndex>::AcquireFreeSlot();
-        if (static_cast<size_t>(index) >= _elems.size())
+        if ((index != NoIndexValue) && (static_cast<size_t>(index) >= _elems.size()))
             _elems.resize(static_cast<size_t>(index) + 1);
         return index;
     }
@@ -355,7 +373,7 @@ private:
     // Marks certain index as used
     void AcquireSlot(const TIndex &index)
     {
-        assert(index >= 0u);
+        assert(index >= 0u && index != NoIndexValue);
         IndexedPoolBase<TIndex>::AcquireSlot(index);
         if (static_cast<size_t>(index) >= _elems.size())
             _elems.resize(index + 1u);

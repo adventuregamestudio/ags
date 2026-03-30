@@ -730,9 +730,7 @@ static void UpdateOverlayState(const AnimatedOverlay &aover)
     const ViewFrame *vf = aover.GetViewFrame();
     if (vf)
     {
-        const auto old_size = over.GetScaledSize();
         over.SetSpriteNum(vf->pic, vf->xoffs, vf->yoffs);
-        over.SetScaledSize(old_size);
         over.SetFlip(GfxDef::GetFlipFromFlags(vf->flags));
     }
 }

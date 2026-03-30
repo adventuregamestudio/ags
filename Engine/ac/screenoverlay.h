@@ -138,7 +138,6 @@ public:
     void SetSpriteAnchor(const Pointf &anchor);
     void SetSpriteOffset(const Point &offset);
     void SetScaledSize(int w, int h);
-    void SetScaledSize(const Size &size) { SetScaledSize(size.Width, size.Height); }
     void SetRotation(float rotation);
     // Assigns a shader to overlay
     void SetZOrder(int zorder);

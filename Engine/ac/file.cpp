@@ -140,7 +140,11 @@ void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSo
     std::vector<FileEntry> fileents;
     if (rp.AssetMgr)
     {
+        // AssetManager returns asset entries with possibly parent paths,
+        // but FillDirList must return strictly filenames, so we ensure that here.
         AssetMgr->FindAssets(fileents, rp.FullPath, "*");
+        for (auto &fe : fileents)
+            fe.Name = Path::GetFilename(fe.Name);
     }
     else
     {

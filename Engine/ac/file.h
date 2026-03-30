@@ -46,7 +46,10 @@ int     File_Seek(sc_File *fil, int offset, int origin);
 int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 int     File_GetPosition(sc_File *fil);
-// Fills a list of filenames found using given pattern; sorts the resulting list
+// Fills a list of filenames found using given pattern; sorts the resulting list.
+// The filenames *do not* contain any parent paths, strictly names of files.
+// While this function supports parent path in pattern, but it does not support
+// wildcards in parent path, only wildcards in the file name.
 void    FillDirList(std::vector<AGS::Common::String> &files, const AGS::Common::String &pattern, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir);
 
 //=============================================================================

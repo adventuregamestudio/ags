@@ -219,11 +219,13 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
 
         if (IsAssetLibDir(lib))
         {
-            // FIXME: do basedir/getparent(wildcard), getfilename(wildcard) instead?
-            // because FindFile does not support subdirs in wildcard!!
-            for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
+            // TODO: support multipart wildcards (wildcards in each path section)
+            const String pattern_parent = Path::GetParent(wildcard);
+            for (FindFile ff = FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
                  !ff.AtEnd(); ff.Next())
-                assets.push_back(ff.Current());
+            {
+                assets.push_back(Path::ConcatPaths(pattern_parent, ff.Current()));
+            }
         }
         else
         {
@@ -259,11 +261,15 @@ void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wild
         lib_fileents.clear();
         if (IsAssetLibDir(lib))
         {
-            // FIXME: do basedir/getparent(wildcard), getfilename(wildcard) instead?
-            // because FindFile does not support subdirs in wildcard!!
-            for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
+            // TODO: support multipart wildcards (wildcards in each path section)
+            const String pattern_parent = Path::GetParent(wildcard);
+            for (FindFile ff = FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
                  !ff.AtEnd(); ff.Next())
-                lib_fileents.push_back(ff.GetEntry());
+            {
+                FileEntry fe = ff.GetEntry();
+                fe.Name = Path::ConcatPaths(pattern_parent, fe.Name);
+                lib_fileents.push_back(fe);
+            }
         }
         else
         {
@@ -279,13 +285,14 @@ void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wild
         if (assets.empty())
         {
             assets = std::move(lib_fileents);
+            std::sort(assets.begin(), assets.end(), FileEntryCmpByNameCI());
         }
         else
         {
             for (const auto &fe : lib_fileents)
             {
                 auto it_place = std::upper_bound(assets.begin(), assets.end(), fe, FileEntryCmpByNameCI());
-                if (it_place != assets.begin() && (it_place - 1)->Name.CompareNoCase(fe.Name) != 0)
+                if (it_place == assets.begin() || (it_place - 1)->Name.CompareNoCase(fe.Name) != 0)
                     assets.insert(it_place, fe);
             }
         }

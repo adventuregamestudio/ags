@@ -301,12 +301,12 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (lop < 0 || lop >= views[viw].numLoops)
     {
         debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
-                          viw, lop, views[viw].numLoops - 1);
+                          viw, lop, views[viw].GetLastLoop());
         lop = 0;
     }
     if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
     {
-        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra, views[viw].loops[lop].numFrames - 1);
+        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra, views[viw].loops[lop].GetLastFrame());
         fra = 0; // NOTE: we have 1 dummy frame allocated for empty loops
     }
 
@@ -1252,9 +1252,9 @@ void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int
             apiname, objname, view + 1, loop);
     else if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
         debug_script_warn("%s (%s): invalid starting frame number %d for view %d loop %d (range is 0..%d)",
-            apiname, objname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
+            apiname, objname, sframe, view + 1, loop, views[view].loops[loop].GetLastFrame());
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, views[view].loops[loop].numFrames - 1));
+    sframe = std::max(0, std::min(sframe, views[view].loops[loop].GetLastFrame()));
 }
 
 int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir)
@@ -1290,7 +1290,7 @@ static void CycleResetToBegin(const ViewStruct *view, uint16_t &loop, uint16_t &
             while ((loop + 1 < view->numLoops) && view->loops[loop].RunNextLoop())
                 loop++;
         }
-        frame = view->loops[loop].numFrames - 1;
+        frame = view->loops[loop].GetLastFrame();
     }
 }
 
@@ -1337,7 +1337,7 @@ static bool CycleNextFrame(const ViewStruct *view, uint16_t &loop, uint16_t &fra
             if (view->loops[--try_loop].numFrames > 0)
             {
                 loop = try_loop;
-                frame = view->loops[try_loop].numFrames - 1;
+                frame = view->loops[try_loop].GetLastFrame();
                 return true;
             }
         }

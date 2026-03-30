@@ -40,12 +40,15 @@ struct ViewFrame {
 
 struct ViewLoopNew
 {
-    int   numFrames;
-    int   flags;
-    std::vector<ViewFrame> frames;
     // NOTE: we still need numFrames:
     // as we always allocate at least 1 frame for safety, to avoid crashes,
     // but have to report "logical" number of frames for the engine API.
+    int   numFrames;
+    int   flags;
+    std::vector<ViewFrame> frames;
+
+    // Returns last frame, or 0 if there's no frames in this loop
+    int   GetLastFrame() const { return numFrames > 0 ? numFrames - 1 : 0; }
 
     ViewLoopNew();
     void Initialize(int frameCount);
@@ -61,6 +64,9 @@ struct ViewStruct
 {
     int numLoops;
     std::vector<ViewLoopNew> loops;
+
+    // Returns last loop, or 0 if there's no loops in this view
+    int   GetLastLoop() const { return numLoops > 0 ? numLoops - 1 : 0; }
 
     ViewStruct();
     void Initialize(int loopCount);

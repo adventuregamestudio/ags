@@ -692,9 +692,9 @@ void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int
             apiname, objname, view + 1, loop);
     else if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
         debug_script_warn("%s (%s): invalid starting frame number %d for view %d loop %d (range is 0..%d)",
-            apiname, objname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
+            apiname, objname, sframe, view + 1, loop, views[view].loops[loop].GetLastFrame());
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, views[view].loops[loop].numFrames - 1));
+    sframe = std::max(0, std::min(sframe, views[view].loops[loop].GetLastFrame()));
 }
 
 int SetFirstAnimFrame(int view, int loop, int sframe, int direction)
@@ -746,7 +746,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
                 }
                 else
                 { // if ANIM_ONCE, stop at the last frame
-                    frame = aview->loops[loop].numFrames - 1;
+                    frame = aview->loops[loop].GetLastFrame();
                 }
 
                 if (repeat != ANIM_REPEAT) // either ANIM_ONCE or ANIM_ONCERESET
@@ -764,7 +764,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
             {
                 // go to next loop
                 loop--;
-                frame = aview->loops[loop].numFrames - 1;
+                frame = aview->loops[loop].GetLastFrame();
             }
             else
             {
@@ -775,7 +775,7 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
                     if (multi_loop_repeat)
                         while (aview->loops[loop].RunNextLoop())
                             loop++;
-                    frame = aview->loops[loop].numFrames - 1;
+                    frame = aview->loops[loop].GetLastFrame();
                 }
                 else
                 { // if ANIM_ONCE, stop at the first frame

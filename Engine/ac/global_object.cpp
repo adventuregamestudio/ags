@@ -163,12 +163,12 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (lop < 0 || lop >= views[viw].numLoops)
     {
         debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
-            viw, lop, views[viw].numLoops - 1);
+            viw, lop, views[viw].GetLastLoop());
         lop = 0;
     }
     if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
     {
-        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra, views[viw].loops[lop].numFrames - 1);
+        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra, views[viw].loops[lop].GetLastFrame());
         fra = 0; // NOTE: we have 1 dummy frame allocated for empty loops
     }
 

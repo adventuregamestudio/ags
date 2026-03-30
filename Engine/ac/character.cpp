@@ -2309,7 +2309,7 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
             chap->scrname, chap->view + 1, game.numviews, loopn, views[chap->view].numLoops);
     }
     // NOTE: there's always frame 0 allocated for safety
-    sframe = std::max(0, std::min(sframe, views[chap->view].loops[loopn].numFrames - 1));
+    sframe = std::max(0, std::min(sframe, views[chap->view].loops[loopn].GetLastFrame()));
     debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d, frame: %d",
         chap->scrname, chap->view+1, loopn, sppd, rept, sframe);
 

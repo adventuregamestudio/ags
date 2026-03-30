@@ -699,7 +699,7 @@ void AssertLoop(const char *apiname, const char *objname, int view, int loop)
     AssertViewHasLoops(apiname, objname, view);
     if ((loop < 0) || (loop >= views[view].numLoops))
         quitprintf("!%s (%s): invalid loop number %d for view %d (range is 0..%d).",
-            apiname, objname, loop, view + 1, views[view].numLoops - 1);
+            apiname, objname, loop, view + 1, views[view].GetLastLoop());
 }
 
 void AssertFrame(const char *apiname, const char *objname, int view, int loop, int frame)
@@ -709,7 +709,7 @@ void AssertFrame(const char *apiname, const char *objname, int view, int loop, i
         quitprintf("!%s (%s): view %d loop %d does not have any frames", apiname, objname, view + 1, loop);
     if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
         quitprintf("!%s (%s): invalid frame number %d for view %d loop %d (range is 0..%d)",
-            apiname, objname, frame, view + 1, loop, views[view].loops[loop].numFrames - 1);
+            apiname, objname, frame, view + 1, loop, views[view].loops[loop].GetLastFrame());
 }
 
 int Game_GetLoopCountForView(int view) {
@@ -1725,8 +1725,8 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     if (first_loop > last_loop)
         return;
 
-    first_loop = Math::Clamp(first_loop, 0, views[view].numLoops - 1);
-    last_loop = Math::Clamp(last_loop, 0, views[view].numLoops - 1);
+    first_loop = Math::Clamp(first_loop, 0, views[view].GetLastLoop());
+    last_loop = Math::Clamp(last_loop, 0, views[view].GetLastLoop());
 
     // Record cache sizes and timestamps, for diagnostic purposes
     const size_t spcache_before = spriteset.GetCacheSize();

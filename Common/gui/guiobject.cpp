@@ -78,9 +78,13 @@ void GUIObject::SetSize(int width, int height)
 
 void GUIObject::SetScale(float sx, float sy)
 {
-    _scale = Pointf(sx, sy);
-    UpdateGraphicSpace();
-    MarkPositionChanged(false, true);
+    const auto scale = Pointf(sx, sy);
+    if (_scale != scale)
+    {
+        _scale = Pointf(sx, sy);
+        UpdateGraphicSpace();
+        MarkPositionChanged(false, true);
+    }
 }
 
 void GUIObject::SetRotation(float degrees)

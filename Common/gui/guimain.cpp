@@ -715,11 +715,13 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
         in->ReadInt32(); // sprite pivot y
         in->ReadInt32(); // sprite anchor x
         in->ReadInt32(); // sprite anchor y
+    }
 
-        if (_scale.X == 0.f)
-            _scale.X = 1.f;
-        if (_scale.Y == 0.f)
-            _scale.Y = 1.f;
+    // Some of the fields above were not valid in previous versions,
+    // and value 0 cannot be default either.
+    if (svg_ver <= kGuiSvgVersion_400)
+    {
+        _scale = Pointf(1.f, 1.f);
     }
 
     if (svg_ver >= kGuiSvgVersion_40018)

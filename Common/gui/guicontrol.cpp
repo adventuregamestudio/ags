@@ -298,8 +298,8 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         // Reserved for transform options
         in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
-        _scale.X = in->ReadInt32(); // transform scale x
-        _scale.Y = in->ReadInt32(); // transform scale y
+        _scale.X = in->ReadFloat32(); // transform scale x
+        _scale.Y = in->ReadFloat32(); // transform scale y
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         _rotation = in->ReadInt32(); // transform rotate
@@ -311,7 +311,7 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     else
     {
         _rotation = 0.f;
-        _scale = Point(1.f, 1.f);
+        _scale = Pointf(1.f, 1.f);
     }
 
     if (svg_ver >= kGuiSvgVersion_40018)
@@ -365,8 +365,8 @@ void GUIControl::WriteToSavegame(Stream *out) const
     // Reserved for transform options
     out->WriteInt32(0); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2
-    out->WriteInt32(_scale.X); // transform scale x
-    out->WriteInt32(_scale.Y); // transform scale y
+    out->WriteFloat32(_scale.X); // transform scale x
+    out->WriteFloat32(_scale.Y); // transform scale y
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteInt32(_rotation); // transform rotate

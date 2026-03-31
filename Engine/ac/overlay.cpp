@@ -158,13 +158,13 @@ bool Overlay_InRoom(ScriptOverlay *scover)
 int Overlay_GetWidth(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Width", scover);
-    return over->GetScaledWidth();
+    return over->GetDestinationWidth();
 }
 
 int Overlay_GetHeight(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
-    return over->GetScaledHeight();
+    return over->GetDestinationHeight();
 }
 
 int Overlay_GetGraphicWidth(ScriptOverlay *scover)
@@ -183,7 +183,7 @@ void Overlay_SetWidth(ScriptOverlay *scover, int width)
 {
     auto *over = GetOverlayValidate("Overlay.Width", scover);
     if (width > 0)
-        over->SetScaledSize(width, over->GetScaledHeight());
+        over->SetDestinationSize(width, over->GetDestinationHeight());
     else
         debug_script_warn("Overlay.SetWidth: invalid width %d", width);
 }
@@ -192,7 +192,7 @@ void Overlay_SetHeight(ScriptOverlay *scover, int height)
 {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
     if (height > 0)
-        over->SetScaledSize(over->GetScaledWidth(), height);
+        over->SetDestinationSize(over->GetDestinationWidth(), height);
     else
         debug_script_warn("Overlay.SetWidth: invalid height %d", height);
 }
@@ -437,9 +437,9 @@ void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int hei
     // width and height are optional here
     if (width > 0 || height > 0)
     {
-        width = width > 0 ? width : over->GetScaledWidth();
-        height = height > 0 ? height : over->GetScaledHeight();
-        over->SetScaledSize(width, height);
+        width = width > 0 ? width : over->GetDestinationWidth();
+        height = height > 0 ? height : over->GetDestinationHeight();
+        over->SetDestinationSize(width, height);
     }
 }
 
@@ -447,9 +447,39 @@ void Overlay_SetSize(ScriptOverlay *scover, int width, int height)
 {
     auto *over = GetOverlayValidate("Overlay.SetSize", scover);
     if (width > 0 && height > 0)
-        over->SetScaledSize(width, height);
+        over->SetDestinationSize(width, height);
     else
         debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
+}
+
+void Overlay_SetScale(ScriptOverlay *scover, float scalex, float scaley)
+{
+    auto *over = GetOverlayValidate("Overlay.SetScale", scover);
+    over->SetScale(scalex, scaley);
+}
+
+float Overlay_GetScaleX(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.ScaleX", scover);
+    return over->GetScale().X;
+}
+
+void Overlay_SetScaleX(ScriptOverlay *scover, float scalex)
+{
+    auto *over = GetOverlayValidate("Overlay.ScaleX", scover);
+    over->SetScale(scalex, over->GetScale().Y);
+}
+
+float Overlay_GetScaleY(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.ScaleY", scover);
+    return over->GetScale().Y;
+}
+
+void Overlay_SetScaleY(ScriptOverlay *scover, float scaley)
+{
+    auto *over = GetOverlayValidate("Overlay.ScaleY", scover);
+    over->SetScale(over->GetScale().X, scaley);
 }
 
 void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opacity, int luminance)
@@ -1155,6 +1185,26 @@ RuntimeScriptValue Sc_Overlay_SetRotation(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetRotation);
 }
 
+RuntimeScriptValue Sc_Overlay_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetScaleX);
+}
+
+RuntimeScriptValue Sc_Overlay_SetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetScaleX);
+}
+
+RuntimeScriptValue Sc_Overlay_GetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetScaleY);
+}
+
+RuntimeScriptValue Sc_Overlay_SetScaleY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetScaleY);
+}
+
 RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
@@ -1193,6 +1243,11 @@ RuntimeScriptValue Sc_Overlay_SetPosition(void *self, const RuntimeScriptValue *
 RuntimeScriptValue Sc_Overlay_SetSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT2(ScriptOverlay, Overlay_SetSize);
+}
+
+RuntimeScriptValue Sc_Overlay_SetScale(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT2(ScriptOverlay, Overlay_SetScale);
 }
 
 RuntimeScriptValue Sc_Overlay_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1331,6 +1386,7 @@ void RegisterOverlayAPI()
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
         { "Overlay::SetPosition^4",       API_FN_PAIR(Overlay_SetPosition) },
         { "Overlay::SetSize^2",           API_FN_PAIR(Overlay_SetSize) },
+        { "Overlay::SetScale^2",          API_FN_PAIR(Overlay_SetScale) },
         { "Overlay::Tint^5",              API_FN_PAIR(Overlay_Tint) },
         { "Overlay::SetLightLevel^1",     API_FN_PAIR(Overlay_SetLightLevel) },
         { "Overlay::RemoveTint^0",        API_FN_PAIR(Overlay_RemoveTint) },
@@ -1379,6 +1435,10 @@ void RegisterOverlayAPI()
         { "Overlay::set_GraphicOffsetY",  API_FN_PAIR(Overlay_SetGraphicOffsetY) },
         { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
         { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
+        { "Overlay::get_ScaleX",          API_FN_PAIR(Overlay_GetScaleX) },
+        { "Overlay::set_ScaleX",          API_FN_PAIR(Overlay_SetScaleX) },
+        { "Overlay::get_ScaleY",          API_FN_PAIR(Overlay_GetScaleY) },
+        { "Overlay::set_ScaleY",          API_FN_PAIR(Overlay_SetScaleY) },
 
         { "Overlay::get_Shader",          API_FN_PAIR(Overlay_GetShader) },
         { "Overlay::set_Shader",          API_FN_PAIR(Overlay_SetShader) },

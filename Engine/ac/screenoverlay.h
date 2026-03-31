@@ -70,6 +70,8 @@ enum OverlaySvgVersion
     kOverSvgVersion_40018   = 4000018, // shaders
     kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
     kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
+    kOverSvgVersion_40028   = 4000028, // scale field is valid
+    kOverSvgVersion_Current = kOverSvgVersion_40028
 };
 
 class ScreenOverlay
@@ -92,6 +94,10 @@ public:
     Point GetDrawPos() const { return Point(_x + _sprOffset.X, _y + _sprOffset.Y); }
     const Pointf &GetSpriteAnchor() const { return _sprAnchor; }
     const Point &GetSpriteOffset() const { return _sprOffset; }
+    const Size &GetDestinationSize() const { return _destSize; }
+    int  GetDestinationWidth() const { return _destSize.Width; }
+    int  GetDestinationHeight() const { return _destSize.Height; }
+    Pointf GetScale() const { return _scale; }
     const Size &GetScaledSize() const { return _scaledSize; }
     int  GetScaledWidth() const { return _scaledSize.Width; }
     int  GetScaledHeight() const { return _scaledSize.Height; }
@@ -137,7 +143,8 @@ public:
     void SetFixedPosition(int x, int y);
     void SetSpriteAnchor(const Pointf &anchor);
     void SetSpriteOffset(const Point &offset);
-    void SetScaledSize(int w, int h);
+    void SetDestinationSize(int w, int h);
+    void SetScale(float sx, float sy);
     void SetRotation(float rotation);
     // Assigns a shader to overlay
     void SetZOrder(int zorder);
@@ -228,6 +235,11 @@ private:
     // Graphic anchor (relative alignment)
     Pointf _sprAnchor;
     // The size to stretch the texture to
+    // TODO: figure out what to do with this, considering the "scale" property, keep or deprecate?
+    Size _destSize;
+    // at the moment this property is *merged* with the regular scale factor
+    Pointf _scale = Pointf(1.f, 1.f);
+    // Calculated final size, derived from scale & destination size
     Size _scaledSize;
     float _rotation = 0.f;
     int _zorder = INT_MIN;

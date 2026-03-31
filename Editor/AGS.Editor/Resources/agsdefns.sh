@@ -1356,6 +1356,9 @@ builtin managed struct Overlay {
   import void SetLightLevel(int light_level);
   /// Removes an existing colour tint or light level from this overlay.
   import void RemoveTint();
+  /// Sets this overlay's horizontal and vertical scaling
+  import void SetScale(float x, float y);
+
   /// Gets/sets a graphic anchor X in normalized relative coordinates (0.0 - 1.0)
   import attribute float GraphicAnchorX;
   /// Gets/sets a graphic anchor Y in normalized relative coordinates (0.0 - 1.0)
@@ -1382,6 +1385,10 @@ builtin managed struct Overlay {
   readonly import attribute int  TintLuminance;
   /// Gets/sets the flip direction of this overlay.
   import attribute eFlipDirection Flip;
+  /// Gets/sets this overlay's horizontal scaling.
+  import attribute float ScaleX;
+  /// Gets/sets this overlay's vertical scaling.
+  import attribute float ScaleY;
 #endif // SCRIPT_API_v400
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader of this overlay.

@@ -84,12 +84,24 @@ void ScreenOverlay::SetSpriteOffset(const Point &offset)
     _sprOffset = offset;
 }
 
-void ScreenOverlay::SetScaledSize(int w, int h)
+void ScreenOverlay::SetDestinationSize(int w, int h)
 {
-    if ((w == _scaledSize.Width) && (h == _scaledSize.Height))
+    if ((w == _destSize.Width) && (h == _destSize.Height))
         return;
-    _scaledSize = Size(w, h);
+    _destSize = Size(w, h);
+    _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
     MarkChanged();
+}
+
+void ScreenOverlay::SetScale(float sx, float sy)
+{
+    const auto scale = Pointf(sx, sy);
+    if (_scale != scale)
+    {
+        _scale = Pointf(sx, sy);
+        _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
+        MarkChanged();
+    }
 }
 
 void ScreenOverlay::SetRotation(float rotation)
@@ -119,6 +131,7 @@ void ScreenOverlay::ResetImage()
         free_dynamic_sprite(_sprnum, false);
     _sprnum = 0;
     _flags &= ~(kOver_SpriteShared);
+    _destSize = {};
     _scaledSize = {};
 }
 
@@ -128,7 +141,8 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic)
 
     if (pic)
     {
-        _scaledSize = Size(pic->GetWidth(), pic->GetHeight());
+        _destSize = Size(pic->GetWidth(), pic->GetHeight());
+        _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
         _sprnum = add_dynamic_sprite(std::move(pic), SPF_OBJECTOWNED);
     }
     MarkChanged();
@@ -153,7 +167,8 @@ void ScreenOverlay::SetSpriteNum(int sprnum)
 
     _flags |= kOver_SpriteShared;
     _sprnum = sprnum;
-    _scaledSize = Size(game.SpriteInfos[sprnum].Width, game.SpriteInfos[sprnum].Height);
+    _destSize = Size(game.SpriteInfos[sprnum].Width, game.SpriteInfos[sprnum].Height);
+    _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
     MarkChanged();
 }
 
@@ -284,7 +299,7 @@ void ScreenOverlay::UpdateGraphicSpace()
     _gs = GraphicSpace(
         _x, _y, _sprAnchor, // origin
         Size(pic->GetWidth(), pic->GetHeight()), // source sprite size
-        Size(_scaledSize.Width, _scaledSize.Height), // destination size (scaled)
+        _scaledSize,
         // real graphical aabb (maybe with extra offsets)
         RectWH(_sprOffset.X, _sprOffset.Y, pic->GetWidth(), pic->GetHeight()),
         _rotation // transforms
@@ -330,8 +345,8 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     {
         _zorder = in->ReadInt32();
         _transparency = in->ReadInt32();
-        _scaledSize.Width = in->ReadInt32();
-        _scaledSize.Height = in->ReadInt32();
+        _destSize.Width = in->ReadInt32();
+        _destSize.Height = in->ReadInt32();
     }
     if ((cmp_ver >= kOverSvgVersion_36304) && (cmp_ver < kOverSvgVersion_400) ||
         (cmp_ver >= kOverSvgVersion_40026))
@@ -371,8 +386,8 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         // Reserved for transform options
         _spritetf = (SpriteTransformFlags)in->ReadInt32(); // sprite transform flags1
         in->ReadInt32(); // sprite transform flags2
-        in->ReadInt32(); // transform scale x
-        in->ReadInt32(); // transform scale y
+        _scale.X = in->ReadFloat32(); // transform scale x
+        _scale.Y = in->ReadFloat32(); // transform scale y
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         _rotation = in->ReadFloat32(); // transform rotate
@@ -381,6 +396,13 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         float ax = in->ReadFloat32(); // sprite anchor x
         float ay = in->ReadFloat32(); // sprite anchor y
         _sprAnchor = Pointf(ax, ay);
+    }
+
+    // Some of the fields above were not valid in previous versions,
+    // and value 0 cannot be default either.
+    if (cmp_ver < kOverSvgVersion_40028)
+    {
+        _scale = Pointf(1.f, 1.f);
     }
 
     if (cmp_ver >= kOverSvgVersion_40018)
@@ -406,6 +428,9 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
             SetAutoPosition(_y); // character index was stored in y
         }
     }
+
+    // Recalculate derived values
+    _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
 }
 
 void ScreenOverlay::WriteToSavegame(Stream *out) const
@@ -425,8 +450,8 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     // since cmp_ver = 2
     out->WriteInt32(_zorder);
     out->WriteInt32(_transparency);
-    out->WriteInt32(_scaledSize.Width);
-    out->WriteInt32(_scaledSize.Height);
+    out->WriteInt32(_destSize.Width);
+    out->WriteInt32(_destSize.Height);
     // kOverSvgVersion_36304
     StrUtil::WriteString(_text, out);
     // kOverSvgVersion_400
@@ -442,8 +467,8 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     // Reserved for transform options
     out->WriteInt32(_spritetf); // sprite transform flags1
     out->WriteInt32(0); // sprite transform flags2
-    out->WriteInt32(0); // transform scale x
-    out->WriteInt32(0); // transform scale y
+    out->WriteFloat32(_scale.X); // transform scale x
+    out->WriteFloat32(_scale.Y); // transform scale y
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteFloat32(_rotation); // transform rotate

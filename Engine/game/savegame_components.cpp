@@ -2007,7 +2007,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        kOverSvgVersion_40026,
+        kOverSvgVersion_Current,
         kOverSvgVersion_Initial,
         kSaveCmp_Overlays,
         WriteOverlays,

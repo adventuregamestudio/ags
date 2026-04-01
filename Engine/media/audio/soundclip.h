@@ -37,7 +37,10 @@
 #ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
 #include "media/audio/audiodefines.h"
+#include "util/math.h"
 #include "util/string.h"
+
+using namespace AGS::Common;
 
 class SoundClip final
 {
@@ -49,7 +52,7 @@ public:
     int sourceClipID;
     int sourceClipType;
     // Filename and bundling type, in case this is not a common audio clip
-    AGS::Common::String fileName;
+    String fileName;
     uint8_t bundlingType;
     int soundType; // legacy sound format type (MUS_*)
     bool repeat;
@@ -108,6 +111,7 @@ public:
     // Sets the current volume property, as percentage (0 - 100).
     inline void set_volume100(int volume)
     {
+        volume = Math::Clamp(volume, 0, 100);
         vol100 = volume;
         vol255 = (volume * 255) / 100;
         paramsChanged = true;
@@ -115,6 +119,7 @@ public:
     // Sets the current volume property in units of 255
     inline void set_volume255(int volume)
     {
+        volume = Math::Clamp(volume, 0, 255);
         vol255 = volume;
         vol100 = (vol255 * 100) / 255;
         paramsChanged = true;
@@ -123,8 +128,8 @@ public:
     // without calculating it from given percentage.
     inline void set_volume_direct(int vol_percent, int vol_absolute)
     {
-        vol255 = vol_absolute;
-        vol100 = vol_percent;
+        vol255 = Math::Clamp(vol_absolute, 0, 255);
+        vol100 = Math::Clamp(vol_percent, 0, 100);
         paramsChanged = true;
     }
     // Mutes sound clip, while preserving current volume property
@@ -140,7 +145,7 @@ public:
     // (can be both positive and negative).
     inline void apply_volume_modifier(int mod)
     {
-        volModifier = mod;
+        volModifier = Math::Clamp(mod, 0, 255);
         paramsChanged = true;
     }
     // Apply permanent directional volume modifier, in absolute units (0 - 255)
@@ -148,19 +153,19 @@ public:
     // (can be both positive and negative).
     inline void apply_directional_modifier(int mod)
     {
-        directionalVolModifier = mod;
+        directionalVolModifier = Math::Clamp(mod, 0, 255);
         paramsChanged = true;
     }
 
     inline void set_panning(int newPanning)
     {
-        panning = newPanning;
+        panning = Math::Clamp(newPanning, -100, 100);
         paramsChanged = true;
     }
 
     inline void set_speed(int new_speed)
     {
-        speed = new_speed;
+        speed = std::max(0, new_speed);
         paramsChanged = true;
     }
 

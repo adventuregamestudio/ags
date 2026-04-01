@@ -74,7 +74,7 @@ int GetObjectIDAtRoom(int roomx, int roomy)
     int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (uint32_t aa=0;aa<croom->numobj;aa++) {
-        if (objs[aa].on != 1) continue;
+        if (objs[aa].on != OBJ_STATE_ENABLED) continue;
         if (objs[aa].flags & OBJF_NOINTERACT)
             continue;
         int xxx=objs[aa].x,yyy=objs[aa].y;
@@ -308,7 +308,7 @@ void MergeObject(int obn) {
 
     //abuf = oldabuf;
     // mark the sprite as merged
-    objs[obn].on = 2;
+    objs[obn].on = OBJ_STATE_MERGEDTOBACKGROUND;
     debug_script_log("Object %d merged into background", obn);
 }
 
@@ -323,8 +323,8 @@ void StopObjectMoving(int objj) {
 void ObjectOff(int obn) {
     if (!is_valid_object(obn)) quit("!ObjectOff: invalid object specified");
     // don't change it if on == 2 (merged)
-    if (objs[obn].on == 1) {
-        objs[obn].on = 0;
+    if (objs[obn].on == OBJ_STATE_ENABLED) {
+        objs[obn].on = OBJ_STATE_DISABLED;
         debug_script_log("Object %d turned off", obn);
         StopObjectMoving(obn);
     }
@@ -332,8 +332,8 @@ void ObjectOff(int obn) {
 
 void ObjectOn(int obn) {
     if (!is_valid_object(obn)) quit("!ObjectOn: invalid object specified");
-    if (objs[obn].on == 0) {
-        objs[obn].on = 1;
+    if (objs[obn].on == OBJ_STATE_DISABLED) {
+        objs[obn].on = OBJ_STATE_ENABLED;
         debug_script_log("Object %d turned on", obn);
     }
 }
@@ -341,8 +341,7 @@ void ObjectOn(int obn) {
 int IsObjectOn (int objj) {
     if (!is_valid_object(objj)) quit("!IsObjectOn: invalid object number");
 
-    // ==1 is on, ==2 is merged into background
-    if (objs[objj].on == 1)
+    if (objs[objj].on == OBJ_STATE_ENABLED)
         return 1;
 
     return 0;
@@ -499,7 +498,7 @@ static int GetThingRect(int thing, Rect *rect)
     else if (is_valid_object(thing - OVERLAPPING_OBJECT))
     {
         int objid = thing - OVERLAPPING_OBJECT;
-        if (objs[objid].on != 1)
+        if (objs[objid].on != OBJ_STATE_ENABLED)
             return 0;
 
         const int objw = game_to_data_coord(objs[objid].get_width());

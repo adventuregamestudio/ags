@@ -576,7 +576,7 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     if (chin->room != displayed_room)
         return 0;
-    if (objs[objid->id].on != 1)
+    if (objs[objid->id].on != OBJ_STATE_ENABLED)
         return 0;
 
     Bitmap *checkblk = GetObjectImage(objid->id);

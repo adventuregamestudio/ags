@@ -45,7 +45,7 @@ RoomObject::RoomObject()
     wait = moving = 0;
     cycling = 0;
     overall_speed = 0;
-    on = 0;
+    on = OBJ_STATE_DISABLED;
     flags = 0;
     blocking_width = blocking_height = 0;
 }
@@ -70,7 +70,7 @@ int RoomObject::get_baseline() const {
 
 void RoomObject::UpdateCyclingView(int ref_id)
 {
-	if (on != 1) return;
+	if (on != OBJ_STATE_ENABLED) return;
     if (moving>0) {
       do_movelist_move(moving, x, y);
       }

@@ -502,7 +502,7 @@ static void init_object_states(size_t start, size_t end)
         crobj.x = trobj.X;
         crobj.y = trobj.Y;
         crobj.num = Math::InRangeOrDef<uint16_t>(trobj.Sprite, 0);
-        crobj.on = trobj.IsOn;
+        crobj.on = trobj.IsOn ? OBJ_STATE_ENABLED : OBJ_STATE_DISABLED;
         crobj.view = RoomObject::NoView;
         crobj.loop = 0;
         crobj.frame = 0;
@@ -961,7 +961,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     set_our_eip(212);
     invalidate_screen();
     for (uint32_t cc=0;cc<croom->numobj;cc++) {
-        if (objs[cc].on == 2)
+        if (objs[cc].on == OBJ_STATE_MERGEDTOBACKGROUND)
             MergeObject(cc);
     }
     new_room_flags=0;

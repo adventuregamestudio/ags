@@ -2056,7 +2056,7 @@ void prepare_objects_for_drawing()
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
     {
         const RoomObject &obj = objs[objid];
-        if (obj.on != 1) // WARNING: 'on' may have other values than 0 and 1 !!
+        if (obj.on != OBJ_STATE_ENABLED)
             continue; // disabled
         if ((obj.x >= thisroom.Width) || (obj.y < 1))
             continue; // offscreen

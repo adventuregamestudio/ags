@@ -25,6 +25,11 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
+// RoomObject's general state, stored in a "on" field
+#define OBJ_STATE_DISABLED              0
+#define OBJ_STATE_ENABLED               1
+#define OBJ_STATE_MERGEDTOBACKGROUND    2
+
 // RoomObject's internal values, packed in RoomObject::cycling
 // Animates once and stops at the *last* frame
 #define OBJANIM_ONCE      (ANIM_ONCE + 1)
@@ -54,7 +59,7 @@ struct RoomObject {
     short wait,moving;
     char  cycling;        // stores OBJANIM_* flags and values
     char  overall_speed;  // animation delay
-    char  on;
+    char  on;             // enabled state (OBJ_STATE_*)
     char  flags;
     // Down to here is a part of the plugin API
     short blocking_width, blocking_height;

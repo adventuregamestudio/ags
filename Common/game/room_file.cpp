@@ -173,7 +173,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     // NOTE: we add the read flags with the value set by ReadRoomObjectBase
     for (auto &obj : room->Objects)
-        obj.Flags |= in->ReadInt16();
+        obj.Flags |= static_cast<uint16_t>(in->ReadInt16());
 
     // NOTE: we read MaskResolution here, but in old room formats this field
     // corresponds to "legacy resolution". Today we re-apply this value in

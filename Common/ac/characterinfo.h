@@ -31,29 +31,29 @@ using namespace AGS; // FIXME later
 // some older ones have negative (DON'T). TODO: bring them to consistency someday,
 // but remember that this involves updating game file formats and converting
 // after loading game data and restoring older saves.
-#define CHF_MANUALSCALING   1        // Use explicit scaling property rather than area parameters
-#define CHF_FIXVIEW         2        // View locked
-#define CHF_NOINTERACT      4        // Non-interactable (non-clickable)
-#define CHF_NODIAGONAL      8        // Don't use diagonal walking loops
-#define CHF_ALWAYSIDLE      0x10     // [UNUSED] meaning unknown
-#define CHF_NOLIGHTING      0x20     // Ignore Region lighting
-#define CHF_NOTURNWHENWALK  0x40     // Do not turn step-by-step when walking
-#define CHF_NOWALKBEHINDS   0x80     // Ignore walk-behinds (always draw above)
-#define CHF_FLIPSPRITE      0x100    // [UNUSED] meaning unknown
-#define CHF_NOBLOCKING      0x200    // Not solid
-#define CHF_SCALEMOVESPEED  0x400    // Scale move speed with character scaling
-#define CHF_NOBLINKANDTHINK 0x800    // Don't do blink animation when "thinking"
-#define CHF_SCALEVOLUME     0x1000   // Scale animation volume with character scaling
-#define CHF_HASTINT         0x2000   // Use explicit tint rather than region tint
-#define CHF_BEHINDSHEPHERD  0x4000   // [INTERNAL] z-sort behind leader when following another char
-#define CHF_AWAITINGMOVE    0x8000   // [INTERNAL] (meaning not clear, investigate)
-#define CHF_MOVENOTWALK     0x10000  // [INTERNAL] do not play walking animation while moving
-#define CHF_ANTIGLIDE       0x20000  // Link movement to animation
-#define CHF_HASLIGHT        0x40000  // Use explicit lighting rather than region lighting
+#define CHF_MANUALSCALING   0x00000001 // Use explicit scaling property rather than area parameters
+#define CHF_FIXVIEW         0x00000002 // View locked
+#define CHF_NOINTERACT      0x00000004 // Non-interactable (non-clickable)
+#define CHF_NODIAGONAL      0x00000008 // Don't use diagonal walking loops
+#define CHF_ALWAYSIDLE      0x00000010 // [UNUSED] meaning unknown
+#define CHF_NOLIGHTING      0x00000020 // Ignore Region lighting
+#define CHF_NOTURNWHENWALK  0x00000040 // Do not turn step-by-step when walking
+#define CHF_NOWALKBEHINDS   0x00000080 // Ignore walk-behinds (always draw above)
+#define CHF_FLIPSPRITE      0x00000100 // [UNUSED] meaning unknown
+#define CHF_NOBLOCKING      0x00000200 // Not solid
+#define CHF_SCALEMOVESPEED  0x00000400 // Scale move speed with character scaling
+#define CHF_NOBLINKANDTHINK 0x00000800 // Don't do blink animation when "thinking"
+#define CHF_SCALEVOLUME     0x00001000 // Scale animation volume with character scaling
+#define CHF_HASTINT         0x00002000 // Use explicit tint rather than region tint
+#define CHF_BEHINDSHEPHERD  0x00004000 // [INTERNAL] z-sort behind leader when following another char
+#define CHF_AWAITINGMOVE    0x00008000 // [INTERNAL] (meaning not clear, investigate)
+#define CHF_MOVENOTWALK     0x00010000 // [INTERNAL] do not play walking animation while moving
+#define CHF_ANTIGLIDE       0x00020000 // Link movement to animation
+#define CHF_HASLIGHT        0x00040000 // Use explicit lighting rather than region lighting
 #define CHF_TINTLIGHTMASK   (CHF_NOLIGHTING | CHF_HASTINT | CHF_HASLIGHT)
-#define CHF_TURNWHENFACE    0x80000  // Turn step-by-step when changing standing direction
+#define CHF_TURNWHENFACE    0x00080000 // Turn step-by-step when changing standing direction
 // Pre-v2.5 bit mask for when the speechcolor was stored in character flags
-#define OCHF_SPEECHCOL      0xff000000
+#define OCHF_SPEECHCOL      0xFF000000
 #define OCHF_SPEECHCOLSHIFT 24
 // Value of CharacterInfo::walkspeed_y that tells to use walkspeed_x
 #define UNIFORM_WALK_SPEED  0

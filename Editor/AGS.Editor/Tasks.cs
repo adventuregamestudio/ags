@@ -1,14 +1,16 @@
+using AGS.CScript.Compiler;
+using AGS.Editor.Components;
+using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Windows.Forms;
-using AGS.Types;
-using AGS.Editor.Preferences;
-using AGS.Editor.Components;
-using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -1005,26 +1007,58 @@ namespace AGS.Editor
         /// otherwise only scans for the function names actually assigned to the interactions.
         /// Returns null on any error.
         /// </summary>
-        public FunctionLocation?[] FindInteractionHandlers(string objectName, Interactions interactions, bool checkDefaultMatches)
+        public FunctionLocation?[] FindInteractionHandlers(string objectName, Interactions interactions, ScriptAutoCompleteData scriptData,
+            bool checkDefaultMatches, bool isRoom)
         {
             if (string.IsNullOrEmpty(interactions.ScriptModule))
                 return null;
 
             // We generate default function names for those interactions that *DO NOT* have a function linked.
+            string functionPrefix = isRoom ? "Room" : objectName;
             var functionNames = checkDefaultMatches ?
                 interactions.ScriptFunctionNames
-                    .Select((f, i) => { return !string.IsNullOrEmpty(f) ? f : $"{objectName}_{interactions.FunctionSuffixes[i]}"; })
+                    .Select((f, i) => { return !string.IsNullOrEmpty(f) ? f : $"{functionPrefix}_{interactions.FunctionSuffixes[i]}"; })
                     .ToArray()
                 : interactions.ScriptFunctionNames;
 
-            return FindEventHandlers(interactions.ScriptModule, functionNames);
+            if (scriptData != null)
+                return FindEventHandlers(interactions.ScriptModule, scriptData, functionNames);
+            else
+                return FindEventHandlers(interactions.ScriptModule, functionNames);
         }
 
         /// <summary>
-        /// Scans the script module looking for the list of functions.
-        /// Creates an array of FunctionLocations, which indexes correspond to the input function name indexes.
+        /// Scans the script module looking for the list of functions belonging to events.
+        /// Accepts the list of (event name - function name) pairs.
+        /// Creates an array of FunctionLocations, which indexes correspond to the input event indexes.
+        /// If checkDefaultMatches is true, then also scans for the default event function names,
+        /// otherwise only scans for the function names actually assigned to the event list.
         /// Returns null on any error.
-        /// <returns></returns>
+        /// </summary>
+        public FunctionLocation?[] FindEventHandlers(string objectName, string scriptName, Tuple<string, string>[] eventFunctions, bool checkDefaultMatches)
+        {
+            // We generate default function names for those events that *DO NOT* have a function linked.
+            var functionNames = checkDefaultMatches ?
+                eventFunctions
+                    .Select((f) => { return !string.IsNullOrEmpty(f.Item2) ? f.Item2 : $"{objectName}_{f.Item1}"; })
+                    .ToArray()
+                : eventFunctions.Select((fn) => { return fn.Item2; }).Where(fn => !string.IsNullOrEmpty(fn)).ToArray();
+
+            return FindEventHandlers(scriptName, functionNames);
+        }
+
+        public FunctionLocation?[] FindEventHandlers(string objectName, string scriptName, ScriptAutoCompleteData scriptData, Tuple<string, string>[] eventFunctions, bool checkDefaultMatches)
+        {
+            // We generate default function names for those events that *DO NOT* have a function linked.
+            var functionNames = checkDefaultMatches ?
+                eventFunctions
+                    .Select((f) => { return !string.IsNullOrEmpty(f.Item2) ? f.Item2 : $"{objectName}_{f.Item1}"; })
+                    .ToArray()
+                : eventFunctions.Select((fn) => { return fn.Item2; }).Where(fn => !string.IsNullOrEmpty(fn)).ToArray();
+
+            return FindEventHandlers(scriptName, scriptData, functionNames);
+        }
+
         public FunctionLocation?[] FindEventHandlers(string scriptName, string[] functionNames)
         {
             Script script = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.GetScriptByFilename(scriptName);
@@ -1044,6 +1078,103 @@ namespace AGS.Editor
                     return func != null ? new FunctionLocation(f, scriptName, 0) : (FunctionLocation?)null;
                 })
                 .ToArray();
+        }
+
+        /// <summary>
+        /// Scans scripts for the functions matching given interactions list.
+        /// Reports if a linked function is missing, or if a present function looks like
+        /// a event handler, but is not linked to any interaction event.
+        /// </summary>
+        public void ScanAndReportMissingInteractionHandlers(string objectFriendlyName,
+            string objectTypeName, string objScriptName, int objid,
+            Interactions interactions, bool checkDefaultMatches, CompileMessages errors)
+        {
+            ScanAndReportMissingInteractionHandlers(objectTypeName, objectTypeName, objScriptName, objid, -1, interactions, null, checkDefaultMatches, false, errors);
+        }
+
+        /// <summary>
+        /// Scans scripts for the functions matching given interactions list.
+        /// Reports if a linked function is missing, or if a present function looks like
+        /// a event handler, but is not linked to any interaction event.
+        /// </summary>
+        public void ScanAndReportMissingInteractionHandlers(string objectFriendlyName,
+            string objectTypeName, string objScriptName, int objid, int roomNumber,
+            Interactions interactions, ScriptAutoCompleteData scriptData, bool checkDefaultMatches, bool isRoom, CompileMessages errors)
+        {
+            var funcs = FindInteractionHandlers(objScriptName, interactions, scriptData, checkDefaultMatches, isRoom);
+            if (funcs == null || funcs.Length == 0)
+                return;
+
+            var eventList = interactions.FunctionSuffixes.Select((f, i) => new Tuple<string, string>(f, interactions.ScriptFunctionNames[i]))
+                .ToArray();
+            TestAndReportMissingEventHandlers(objectFriendlyName, objectTypeName, objScriptName, objid, roomNumber, null,
+                eventList, interactions.ScriptModule, funcs, errors);
+        }
+
+        /// <summary>
+        /// Scans scripts for the functions matching given event list.
+        /// Reports if a linked function is missing, or if a present function looks like
+        /// a event handler, but is not linked to any event.
+        /// </summary>
+        public void ScanAndReportMissingEventHandlers(
+            string objectTypeName, string scriptName, int objid, string objectContext,
+            string scriptModule, Tuple<string,string>[] eventList, bool checkDefaultMatches, CompileMessages errors)
+        {
+            var funcs = FindEventHandlers(scriptName, scriptModule, eventList, checkDefaultMatches);
+            if (funcs == null || funcs.Length == 0)
+                return;
+
+            TestAndReportMissingEventHandlers(objectTypeName, objectTypeName, scriptName, objid, -1, objectContext, eventList, scriptModule, funcs, errors);
+        }
+
+        /// <summary>
+        /// Tests a found list of functions matching given events list.
+        /// Reports if a linked function is missing, or if a present function looks like
+        /// a event handler, but is not linked to any interaction event.
+        /// </summary>
+        private void TestAndReportMissingEventHandlers(string objectFriendlyName,
+            string objTypeName, string objScriptName, int objid, int roomNumber, string objectContext,
+            Tuple<string, string>[] eventList, string scriptModule, FunctionLocation?[] funcs, CompileMessages errors)
+        {
+            for (int i = 0; i < funcs.Length; ++i)
+            {
+                string eventName = eventList[i].Item1;
+                string linkedFunctionName = eventList[i].Item2;
+                bool has_interaction = !string.IsNullOrEmpty(linkedFunctionName);
+                bool has_function = funcs[i].HasValue;
+                // If we have an assigned interaction function, but the function is not found - report a missing warning
+                if (has_interaction && !has_function)
+                {
+                    if (roomNumber >= 0)
+                    {
+                        if (objScriptName == null)
+                            errors.Add(new CompileWarningWithGameObject($"Room {roomNumber}'s event {eventName} function \"{linkedFunctionName}\" not found in script {scriptModule}.",
+                                roomNumber, objTypeName, objScriptName, true));
+                        else
+                            errors.Add(new CompileWarningWithGameObject($"Room {roomNumber}: {objectFriendlyName} ({objid}) {objScriptName}'s event {eventName} function \"{linkedFunctionName}\" not found in script {scriptModule}.",
+                                roomNumber, objTypeName, objScriptName, true));
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(objectContext))
+                            errors.Add(new CompileWarningWithGameObject($"{objectFriendlyName} ({objid}) {objScriptName}'s event {eventName} function \"{linkedFunctionName}\" not found in script {scriptModule}.",
+                                objTypeName, objScriptName, true));
+                        else
+                            errors.Add(new CompileWarningWithGameObject($"{objectContext}: {objectFriendlyName} ({objid}) {objScriptName}'s event {eventName} function \"{linkedFunctionName}\" not found in script {scriptModule}.",
+                                objTypeName, objScriptName, true));
+                    }
+                }
+                // If we don't have an assignment, but has a similar function - report a possible unlinked function
+                else if (!has_interaction && has_function)
+                {
+                    if (roomNumber >= 0 && objScriptName == null)
+                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Room {roomNumber}'s Event pane",
+                            objTypeName, objScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                    else
+                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {objectFriendlyName} ({objid}) {objScriptName}'s Event pane",
+                            objTypeName, objScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                }
+            }
         }
 
         /// <summary>

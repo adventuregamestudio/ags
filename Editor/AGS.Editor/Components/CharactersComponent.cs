@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
 using AGS.Editor.TextProcessing;
+using System.Linq;
 
 namespace AGS.Editor.Components
 {
@@ -380,27 +381,7 @@ namespace AGS.Editor.Components
             var errors = args.Messages;
             foreach (Character c in _agsEditor.CurrentGame.Characters)
             {
-                var funcs = _agsEditor.Tasks.FindInteractionHandlers(c.ScriptName, c.Interactions, true);
-                if (funcs == null || funcs.Length == 0)
-                    continue;
-
-                for (int i = 0; i < funcs.Length; ++i)
-                {
-                    bool has_interaction = !string.IsNullOrEmpty(c.Interactions.ScriptFunctionNames[i]);
-                    bool has_function = funcs[i].HasValue;
-                    // If we have an assigned interaction function, but the function is not found - report a missing warning
-                    if (has_interaction && !has_function)
-                    {
-                        errors.Add(new CompileWarningWithGameObject($"Character ({c.ID}) {c.ScriptName}'s event {c.Interactions.Schema.FunctionSuffixes[i]} function \"{c.Interactions.ScriptFunctionNames[i]}\" not found in script {c.Interactions.ScriptModule}.",
-                            "Character", c.ScriptName, true));
-                    }
-                    // If we don't have an assignment, but has a similar function - report a possible unlinked function
-                    else if (!has_interaction && has_function)
-                    {
-                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Character ({c.ID}) {c.ScriptName}'s Event pane",
-                            "Character", c.ScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
-                    }
-                }
+                _agsEditor.Tasks.ScanAndReportMissingInteractionHandlers("Character", "Character", c.ScriptName, c.ID, c.Interactions, true, errors);
             }
         }
     }

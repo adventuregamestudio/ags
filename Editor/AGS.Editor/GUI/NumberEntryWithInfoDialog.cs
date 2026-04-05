@@ -18,8 +18,8 @@ namespace AGS.Editor
             lblHeader.Text = headerText;
             lblInfo.Text = infoText;
             udNumber.Minimum = minValue;
-            udNumber.Maximum = maxValue;
-            udNumber.Value = initialValue;
+            udNumber.Maximum = Math.Max(minValue, maxValue);
+            udNumber.Value = MathExtra.Clamp(initialValue, minValue, maxValue);
             udNumber.Select();
             udNumber.Select(0, ((int)udNumber.Value).ToString().Length);
         }

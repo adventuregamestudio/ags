@@ -214,9 +214,12 @@ namespace AGS.Editor.Components
             {
                 int dialogID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogID, true);
-                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change dialog ID", null));
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this dialog", null));
-                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change dialog ID", null));
+                    menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this dialog", null));
+                    menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
+                }
             }
             return menu;
         }

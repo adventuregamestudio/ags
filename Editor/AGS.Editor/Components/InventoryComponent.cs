@@ -232,9 +232,12 @@ namespace AGS.Editor.Components
             {
                 int invID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootInventoryItemFolder.FindInventoryItemByID(invID, true);
-                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change inventory ID", null));
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this item", null));
-                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change inventory ID", null));
+                    menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this item", null));
+                    menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
+                }
             }
             return menu;
         }

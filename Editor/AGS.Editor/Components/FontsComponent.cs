@@ -208,20 +208,29 @@ namespace AGS.Editor.Components
             {
                 string fontFileName = controlID.Substring(FONT_FILE_ITEM_PREFIX.Length);
                 _itemRightClicked = FindFontFileByName(fontFileName);
-                menu.Add(new MenuCommand(COMMAND_NEW_FONT_FOR_FILE, "New Font", null));
-                menu.Add(new MenuCommand(COMMAND_DELETE_FONTFILE, "Delete this font file", null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_NEW_FONT_FOR_FILE, "New Font", null));
+                    menu.Add(new MenuCommand(COMMAND_DELETE_FONTFILE, "Delete this font file", null));
+                }
             }
             else if (controlID.StartsWith(FONT_ITEM_PREFIX))
             {
                 int fontID = Convert.ToInt32(controlID.Substring(FONT_ITEM_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
-                menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
+                }
             }
             else if (controlID.StartsWith(FONT_ITEM_REF_PREFIX))
             {
                 int fontID = Convert.ToInt32(controlID.Substring(FONT_ITEM_REF_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
-                menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
+                }
             }
             return menu;
         }

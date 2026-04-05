@@ -550,13 +550,16 @@ namespace AGS.Editor.Components
                 int translationIndex = Convert.ToInt32(controlID.Substring(3));
                 _itemRightClicked = _agsEditor.CurrentGame.Translations[translationIndex];
                 _commandIDRightClicked = controlID;
-                menu.Add(new MenuCommand(COMMAND_UPDATE_SOURCE, "Update", null));
-                menu.Add(new MenuCommand(COMMAND_COMPILE, "Compile", null));
-                menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_RENAME_ITEM, "Rename", null));
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete", null));
-                menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_MAKE_DEFAULT, "Make default language", null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_UPDATE_SOURCE, "Update", null));
+                    menu.Add(new MenuCommand(COMMAND_COMPILE, "Compile", null));
+                    menu.Add(MenuCommand.Separator);
+                    menu.Add(new MenuCommand(COMMAND_RENAME_ITEM, "Rename", null));
+                    menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete", null));
+                    menu.Add(MenuCommand.Separator);
+                    menu.Add(new MenuCommand(COMMAND_MAKE_DEFAULT, "Make default language", null));
+                }
             }
             return menu;
         }

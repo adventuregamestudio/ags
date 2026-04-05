@@ -79,7 +79,7 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber - 1, newNumber - 1);
+                GetFlatList().Swap(oldNumber - 1, newNumber - 1); // inventory IDs are logically 1-based
                 OnItemIDOrNameChanged(_itemRightClicked, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)

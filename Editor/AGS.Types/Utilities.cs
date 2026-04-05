@@ -21,6 +21,8 @@ namespace AGS.Types
         {
             if (index1 == index2)
                 return;
+            if (index1 < 0 || index1 >= list.Count || index2 < 0 || index2 >= list.Count)
+                return;
 
             var temp = list[index1];
             list[index1] = list[index2];

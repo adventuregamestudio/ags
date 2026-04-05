@@ -238,10 +238,13 @@ namespace AGS.Editor.Components
             {
                 int charID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootCharacterFolder.FindCharacterByID(charID, true);
-                menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change character ID", null));
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this character", null));
-                menu.Add(new MenuCommand(COMMAND_EXPORT, "Export character...", null));
-                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.ScriptName, null));
+                if (_itemRightClicked != null)
+                {
+                    menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change character ID", null));
+                    menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this character", null));
+                    menu.Add(new MenuCommand(COMMAND_EXPORT, "Export character...", null));
+                    menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.ScriptName, null));
+                }
             }
             return menu;
         }

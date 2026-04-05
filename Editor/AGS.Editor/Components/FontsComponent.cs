@@ -181,11 +181,14 @@ namespace AGS.Editor.Components
             {
                 int fontID = Convert.ToInt32(controlID.Substring(3));
                 _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this font", null));
-                if (fontID < BUILT_IN_FONTS)
+                if (_itemRightClicked != null)
                 {
-                    // can't delete built-in fonts
-                    menu[menu.Count - 1].Enabled = false;
+                    menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this font", null));
+                    if (fontID < BUILT_IN_FONTS)
+                    {
+                        // can't delete built-in fonts
+                        menu[menu.Count - 1].Enabled = false;
+                    }
                 }
             }
             return menu;

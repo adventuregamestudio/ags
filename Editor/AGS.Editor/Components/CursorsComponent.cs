@@ -137,11 +137,14 @@ namespace AGS.Editor.Components
             {
                 int cursorID = Convert.ToInt32(controlID.Substring(3));
                 _itemRightClicked = _agsEditor.CurrentGame.Cursors[cursorID];
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this cursor", null));
-                if (cursorID < BUILT_IN_CURSORS)
+                if (_itemRightClicked != null)
                 {
-                    // can't delete built-in cursors
-                    menu[menu.Count - 1].Enabled = false;
+                    menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this cursor", null));
+                    if (cursorID < BUILT_IN_CURSORS)
+                    {
+                        // can't delete built-in cursors
+                        menu[menu.Count - 1].Enabled = false;
+                    }
                 }
             }
             return menu;

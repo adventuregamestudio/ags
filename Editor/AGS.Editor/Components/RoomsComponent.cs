@@ -1770,16 +1770,16 @@ namespace AGS.Editor.Components
             foreach (var obj in room.Objects)
             {
                 _agsEditor.Tasks.ScanAndReportMissingInteractionHandlers("Object", "Object",
-                    obj.Name, obj.ID, room.Number, obj.Interactions, room.Script.AutoCompleteData, true, false, errors);
+                    string.IsNullOrEmpty(obj.Name) ? $"Object{obj.ID}" : obj.Name, obj.ID, room.Number, obj.Interactions, room.Script.AutoCompleteData, true, false, errors);
             }
             foreach (var hot in room.Hotspots)
             {
-                _agsEditor.Tasks.ScanAndReportMissingInteractionHandlers("Object", "Object",
-                    hot.Name, hot.ID, room.Number, hot.Interactions, room.Script.AutoCompleteData, true, false, errors);
+                _agsEditor.Tasks.ScanAndReportMissingInteractionHandlers("Hotspot", "Hotspot",
+                    string.IsNullOrEmpty(hot.Name) ? $"Hotspot{hot.ID}" : hot.Name, hot.ID, room.Number, hot.Interactions, room.Script.AutoCompleteData, true, false, errors);
             }
             foreach (var reg in room.Regions)
             {
-                _agsEditor.Tasks.ScanAndReportMissingInteractionHandlers("Object", "Object",
+                _agsEditor.Tasks.ScanAndReportMissingInteractionHandlers("Region", "Region",
                     $"Region{reg.ID}", reg.ID, room.Number, reg.Interactions, room.Script.AutoCompleteData, true, false, errors);
             }
         }

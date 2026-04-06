@@ -1167,12 +1167,17 @@ namespace AGS.Editor
                 // If we don't have an assignment, but has a similar function - report a possible unlinked function
                 else if (!has_interaction && has_function)
                 {
-                    if (roomNumber >= 0 && objScriptName == null)
-                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Room {roomNumber}'s Event pane",
-                            objTypeName, objScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
-                    else
-                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {objectFriendlyName} ({objid}) {objScriptName}'s Event pane",
-                            objTypeName, objScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                    // ...but first test if this function may accidentally be linked to another event by user's decision
+                    var allLinkedFunctions = eventList.Select(e => e.Item2);
+                    if (!allLinkedFunctions.Contains(funcs[i].Value.Name))
+                    {
+                        if (roomNumber >= 0 && objScriptName == null)
+                            errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on Room {roomNumber}'s Event pane",
+                                objTypeName, objScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                        else
+                            errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[i].Value.Name}\" looks like an event handler, but is not linked on {objectFriendlyName} ({objid}) {objScriptName}'s Event pane",
+                                objTypeName, objScriptName, funcs[i].Value.ScriptName, funcs[i].Value.Name, funcs[i].Value.LineNumber));
+                    }
                 }
             }
         }

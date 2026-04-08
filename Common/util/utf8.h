@@ -64,9 +64,12 @@ inline size_t GetChar(const char *c, size_t clen, Rune *u)
 {
     size_t i, j, len, type;
     Rune udecoded;
-    *u = RuneInvalid;
     if (!clen || !*c)
+    {
+        *u = 0;
         return 0;
+    }
+    *u = RuneInvalid;
     udecoded = DecodeByte(c[0], &len);
     if (len < 1 || len > UtfSz)
         return 1;
@@ -974,28 +977,62 @@ inline Rune ToUpper(Rune c)
 }
 
 // Convert a UTF-8 c-string to uppercase in-place
-inline void CStrToUpper(char *str)
+inline size_t CStrToUpper(const char *src, char *dst)
 {
     Rune r;
-    size_t clen;
-    while ((clen = GetChar(str, UtfSz, &r)) > 0)
+    if (dst)
     {
-        r = ToUpper(r);
-        SetChar(r, str, clen);
-        str += clen;
+        const char *dst_begin = dst;
+        do
+        {
+            src += GetChar(src, UtfSz, &r);
+            r = ToUpper(r);
+            dst += SetChar(r, dst, UtfSz);
+        }
+        while (r > 0);
+        return dst - dst_begin;
+    }
+    else
+    {
+        size_t dst_len = 0u;
+        do
+        {
+            src += GetChar(src, UtfSz, &r);
+            r = ToUpper(r);
+            dst_len += Validate(&r, 0u);
+        }
+        while (r > 0);
+        return dst_len;
     }
 }
 
 // Convert a UTF-8 c-string to lowercase in-place
-inline void CStrToLower(char *str)
+inline size_t CStrToLower(const char *src, char *dst)
 {
     Rune r;
-    size_t clen;
-    while ((clen = GetChar(str, UtfSz, &r)) > 0)
+    if (dst)
     {
-        r = ToLower(r);
-        SetChar(r, str, clen);
-        str += clen;
+        const char *dst_begin = dst;
+        do
+        {
+            src += GetChar(src, UtfSz, &r);
+            r = ToLower(r);
+            dst += SetChar(r, dst, UtfSz);
+        }
+        while (r > 0);
+        return dst - dst_begin;
+    }
+    else
+    {
+        size_t dst_len = 0u;
+        do
+        {
+            src += GetChar(src, UtfSz, &r);
+            r = ToLower(r);
+            dst_len += Validate(&r, 0u);
+        }
+        while (r > 0);
+        return dst_len;
     }
 }
 

@@ -778,8 +778,18 @@ void String::MakeLowerUTF8()
 {
     if (_len != 0)
     {
-        BecomeUnique();
-        Utf8::CStrToLower(_cstr);
+        const size_t newsize = Utf8::CStrToLower(_cstr, nullptr);
+        if (newsize == _len + 1)
+        {
+            BecomeUnique();
+            Utf8::CStrToLower(_cstr, _cstr);
+        }
+        else
+        {
+            String temp = *this; // TODO: we might benefit from a separate StringBuffer object
+            Create(newsize - 1);
+            Utf8::CStrToLower(temp.GetCStr(), _cstr);
+        }
     }
 }
 
@@ -787,8 +797,18 @@ void String::MakeUpperUTF8()
 {
     if (_len != 0)
     {
-        BecomeUnique();
-        Utf8::CStrToUpper(_cstr);
+        const size_t newsize = Utf8::CStrToUpper(_cstr, nullptr);
+        if (newsize == _len + 1)
+        {
+            BecomeUnique();
+            Utf8::CStrToUpper(_cstr, _cstr);
+        }
+        else
+        {
+            String temp = *this; // TODO: we might benefit from a separate StringBuffer object
+            Create(newsize - 1);
+            Utf8::CStrToUpper(temp.GetCStr(), _cstr);
+        }
     }
 }
 

@@ -926,6 +926,7 @@ namespace AGS.Editor
                 }
                 newControl.Left = pasteAtX + (newControl.Left - refControlX);
                 newControl.Top = pasteAtY + (newControl.Top - refControlY); ;
+                newControl.Parent = _gui;
                 _gui.Controls.Add(newControl);
                 _selected.Add(newControl);
                 _selectedControl = newControl;

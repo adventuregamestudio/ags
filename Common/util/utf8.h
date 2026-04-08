@@ -976,8 +976,10 @@ inline Rune ToUpper(Rune c)
     }
 }
 
-// Convert a UTF-8 c-string to uppercase in-place
-inline size_t CStrToUpper(const char *src, char *dst)
+// Convert a UTF-8 c-string to uppercase, writing a result into the provided buffer.
+// If a nullptr passed instead of a buffer, then this function does not do any writing,
+// only calculates the required destination buffer size.
+inline size_t CStrToUpper(const char *src, char *dst, size_t dst_sz)
 {
     Rune r;
     if (dst)
@@ -987,9 +989,11 @@ inline size_t CStrToUpper(const char *src, char *dst)
         {
             src += GetChar(src, UtfSz, &r);
             r = ToUpper(r);
-            dst += SetChar(r, dst, UtfSz);
+            size_t clen = SetChar(r, dst, dst_sz);
+            dst += clen;
+            dst_sz -= clen;
         }
-        while (r > 0);
+        while (r > 0 && r != RuneInvalid && dst_sz > 0u);
         return dst - dst_begin;
     }
     else
@@ -1001,13 +1005,15 @@ inline size_t CStrToUpper(const char *src, char *dst)
             r = ToUpper(r);
             dst_len += Validate(&r, 0u);
         }
-        while (r > 0);
+        while (r > 0 && r != RuneInvalid);
         return dst_len;
     }
 }
 
-// Convert a UTF-8 c-string to lowercase in-place
-inline size_t CStrToLower(const char *src, char *dst)
+// Convert a UTF-8 c-string to lowercase, writing a result into the provided buffer.
+// If a nullptr passed instead of a buffer, then this function does not do any writing,
+// only calculates the required destination buffer size.
+inline size_t CStrToLower(const char *src, char *dst, size_t dst_sz)
 {
     Rune r;
     if (dst)
@@ -1017,9 +1023,11 @@ inline size_t CStrToLower(const char *src, char *dst)
         {
             src += GetChar(src, UtfSz, &r);
             r = ToLower(r);
-            dst += SetChar(r, dst, UtfSz);
+            size_t clen = SetChar(r, dst, dst_sz);
+            dst += clen;
+            dst_sz -= clen;
         }
-        while (r > 0);
+        while (r > 0 && r != RuneInvalid && dst_sz > 0u);
         return dst - dst_begin;
     }
     else
@@ -1031,7 +1039,7 @@ inline size_t CStrToLower(const char *src, char *dst)
             r = ToLower(r);
             dst_len += Validate(&r, 0u);
         }
-        while (r > 0);
+        while (r > 0 && r != RuneInvalid);
         return dst_len;
     }
 }

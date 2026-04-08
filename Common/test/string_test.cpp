@@ -319,6 +319,16 @@ TEST(String, LowerUpperCase) {
     ASSERT_TRUE(strcmp(s3.GetCStr(), "THIS STRING IS TWISTED") == 0);
 }
 
+TEST(String, LowerUpperCaseUTF8) {
+    String s1 = "FußGÄNgeRüBerGÄNGe";
+    String s2 = s1;
+    String s3 = s1;
+    s2.MakeLowerUTF8();
+    s3.MakeUpperUTF8();
+    ASSERT_TRUE(strcmp(s2.GetCStr(), "fußgängerübergänge") == 0);
+    ASSERT_TRUE(strcmp(s3.GetCStr(), "FUßGÄNGERÜBERGÄNGE") == 0);
+}
+
 TEST(String, Prepend) {
     String s1 = "- a string to enlarge";
     s1.Prepend("make it bigger ");

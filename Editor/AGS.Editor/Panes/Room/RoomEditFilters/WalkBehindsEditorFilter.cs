@@ -40,7 +40,8 @@ namespace AGS.Editor
 			Pen pen = (Pen)GetPenForArea(SelectedArea).Clone();
 			pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 
-			for (int i = 0; i < (int)state.Scale; i++)
+            int baseLineThickness = Math.Max(1, (int)state.Scale);
+            for (int i = 0; i < baseLineThickness; i++)
 			{
 				graphics.DrawLine(pen, 0, lineYPos + i, graphics.VisibleClipBounds.Right, lineYPos + i);
 			}

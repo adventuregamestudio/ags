@@ -389,7 +389,7 @@ namespace AGS.Editor.Components
 
         private void ImportAudioFiles(string[] selectedFiles)
         {
-            string lastAddedId = null;
+            string lastAddedNodeId = null;
             foreach (string fileName in selectedFiles)
             {
                 AudioClip newClip = CreateAudioClipForFile(fileName);
@@ -399,13 +399,13 @@ namespace AGS.Editor.Components
                     newClip.BundlingType = parentFolder.DefaultBundlingType;
                     newClip.Type = parentFolder.DefaultType;
                     parentFolder.Items.Add(newClip);
-                    lastAddedId = newClip.ScriptName;
+                    lastAddedNodeId = GetNodeID(newClip);
                 }
             }
 
-            if (lastAddedId != null)
+            if (lastAddedNodeId != null)
             {
-                RePopulateTreeView(ITEM_COMMAND_PREFIX + lastAddedId);
+                RePopulateTreeView(lastAddedNodeId);
                 AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());
             }
         }
@@ -817,10 +817,11 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ShowMessage("This script name is already used by another item.", MessageBoxIconType.Warning);
                     itemBeingEdited.ScriptName = treeItem.LabelTextBeforeLabelEdit;
-                    treeItem.TreeNode.Text = itemBeingEdited.ScriptName;
+                    treeItem.TreeNode.Text = GetNodeLabel(itemBeingEdited);
+                    return;
                 }
 
-                AudioClipTypeConverter.RefreshAudioClipList();
+                OnItemIDOrNameChanged(itemBeingEdited, true);
             }
         }
 
@@ -850,8 +851,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    RePopulateTreeView(GetNodeID(itemBeingEdited));
-                    AudioClipTypeConverter.RefreshAudioClipList();
+                    OnItemIDOrNameChanged(itemBeingEdited, true);
                 }
             }
             else if (propertyName == "Name")

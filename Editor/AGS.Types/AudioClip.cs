@@ -204,6 +204,15 @@ namespace AGS.Types
             }
         }
 
+        // TODO: remove this; should not be a part of the basic type,
+        // but rather a part of the UI component
+        [Browsable(false)]
+        [AGSNoSerialize()]
+        public string NameAndID
+        {
+            get { return _id.ToString() + ": " + _scriptName; }
+        }
+
         public AudioClip(XmlNode node)
         {
             SerializeUtils.DeserializeFromXML(this, node);

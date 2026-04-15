@@ -11,50 +11,58 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AC_WORDSDICTIONARY_H
-#define __AC_WORDSDICTIONARY_H
+#ifndef __AGS_CN_UTIL__WORDSDICTIONARY_H
+#define __AGS_CN_UTIL__WORDSDICTIONARY_H
 
+#include <unordered_map>
 #include <vector>
 #include "util/string.h"
+#include "util/string_types.h"
 
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
+namespace AGS
+{
+namespace Common
+{
 
-#define MAX_PARSER_WORD_LENGTH 30
-#define ANYWORD     29999
-#define RESTOFLINE  30000
+class WordsDictionary
+{
+public:
+    // Special text parser entries
+    static const uint16_t ANYWORD      = 29999;
+    static const uint16_t RESTOFLINE   = 30000;
+    static const uint16_t INVALID      = UINT16_MAX;
 
-struct WordsDictionary {
-    int   num_words;
-    char**word;
-    short*wordnum;
+    WordsDictionary() = default;
 
-    WordsDictionary();
-    ~WordsDictionary();
-    void allocate_memory(int wordCount);
-    void free_memory();
-    void  sort();
-    int   find_index (const char *);
+    uint16_t FindWord(const String &word) const;
+
+    void ReadFromFile(Stream *in);
+    void WriteToFile(Stream *out) const;
+
+private:
+    // Map word to word ID;
+    // Text Parser's dictionary is case-insensitive
+    std::unordered_map<String, uint16_t, HashStrNoCase> _words;
 };
+
+} // Common
+} // AGS
 
 extern const char *passwencstring;
 
 // Decrypts text found in the given buffer, writes back to the same buffer
 void decrypt_text(char *buf, size_t buf_sz);
 // Reads an encrypted string from the stream and decrypts into the provided buffer
-void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
+void read_string_decrypt(AGS::Common::Stream *in, char *buf, size_t buf_sz);
 // Reads an encrypted string from the stream and returns as a string
-Common::String read_string_decrypt(Common::Stream *in);
+AGS::Common::String read_string_decrypt(AGS::Common::Stream *in);
 // Reads an encrypted string from the stream and returns as a string;
 // uses provided vector as a temporary decryption buffer (avoid extra allocs)
-Common::String read_string_decrypt(Common::Stream *in, std::vector<char> &dec_buf);
+AGS::Common::String read_string_decrypt(AGS::Common::Stream *in, std::vector<char> &dec_buf);
 // Skip an encrypted string in stream
-void skip_string_decrypt(Common::Stream *in);
-// Read full words dictionary
-void read_dictionary(WordsDictionary *dict, Common::Stream *in);
+void skip_string_decrypt(AGS::Common::Stream *in);
 
-extern void encrypt_text(char *toenc);
-extern void write_string_encrypt(Common::Stream *out, const char *s);
-extern void write_dictionary (WordsDictionary *dict, Common::Stream *out);
+void encrypt_text(char *toenc);
+void write_string_encrypt(AGS::Common::Stream *out, const char *s);
 
-#endif // __AC_WORDSDICTIONARY_H
+#endif // __AGS_CN_UTIL__WORDSDICTIONARY_H

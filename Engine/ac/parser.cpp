@@ -59,11 +59,10 @@ int find_word_in_dictionary (const char *lookfor) {
     if (game.dict == nullptr)
         return -1;
 
-    for (j = 0; j < game.dict->num_words; j++) {
-        if (ags_stricmp(lookfor, game.dict->word[j]) == 0) {
-            return game.dict->wordnum[j];
-        }
-    }
+    uint16_t word_id = game.dict->FindWord(String::Wrapper(lookfor));
+    if (word_id != WordsDictionary::INVALID)
+        return word_id;
+
     if (lookfor[0] != 0) {
         // If the word wasn't found, but it ends in 'S', see if there's
         // a non-plural version
@@ -144,7 +143,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
     uniform_text.MakeLower();
     const char *text = uniform_text.GetCStr();
     while (1) {
-        if ((compareto != nullptr) && (compareto[comparing] == RESTOFLINE))
+        if ((compareto != nullptr) && (compareto[comparing] == WordsDictionary::RESTOFLINE))
             return 1;
 
         if ((text[0] == ']') && (compareto != nullptr)) {
@@ -181,7 +180,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
             }
 
             // "look rol"
-            if (word == RESTOFLINE)
+            if (word == WordsDictionary::RESTOFLINE)
                 return 1;
             if (compareto) {
                 // check string is longer than user input
@@ -201,7 +200,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                 }
                 if (word <= 0)
                     quitprintf("!Said: supplied word '%s' is not in dictionary or is an ignored word\nText: %s", thisword, src_text);
-                if (word == ANYWORD) { }
+                if (word == WordsDictionary::ANYWORD) { }
                 else if (word != compareto[comparing]) {
                     // words don't match - if a comma then a list of possibles,
                     // so allow retry

@@ -548,6 +548,7 @@
     <ClCompile Include="..\..\Common\font\wfnfontrenderer.cpp" />
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
+    <ClCompile Include="..\..\Common\game\interactions_deprecated.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
@@ -728,6 +729,7 @@
     <ClInclude Include="..\..\Common\font\wfnfontrenderer.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
     <ClInclude Include="..\..\Common\game\scripteventtable.h" />
+    <ClInclude Include="..\..\Common\game\interactions_deprecated.h" />
     <ClInclude Include="..\..\Common\game\main_game_file.h" />
     <ClInclude Include="..\..\Common\game\plugininfo.h" />
     <ClInclude Include="..\..\Common\game\roomstruct.h" />

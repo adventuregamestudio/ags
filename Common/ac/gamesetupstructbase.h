@@ -63,7 +63,7 @@ struct GameSetupStructBase
     int               default_lipsync_frame = 0; // used for unknown chars
     int               inv_hot_sprite = 0;
     int               reserved[NUM_INTS_RESERVED] = { 0 };
-    std::unique_ptr<WordsDictionary> dict;
+    std::unique_ptr<AGS::Common::WordsDictionary> dict;
     std::vector<CharacterInfo> chars;
 
     GameSetupStructBase() = default;

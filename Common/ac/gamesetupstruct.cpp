@@ -96,7 +96,7 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 {
     dict.reset(new WordsDictionary());
-    read_dictionary(dict.get(), in);
+    dict->ReadFromFile(in);
 }
 
 void GameSetupStruct::ReadMouseCursors(Stream *in)

@@ -35,6 +35,8 @@ public:
     WordsDictionary() = default;
 
     uint16_t FindWord(const String &word) const;
+    const std::unordered_map<String, uint16_t, HashStrNoCase> &
+        GetWords() const { return _words; }
 
     void ReadFromFile(Stream *in);
     void WriteToFile(Stream *out) const;

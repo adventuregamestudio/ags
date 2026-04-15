@@ -2813,13 +2813,21 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->PlayerCharacter = game->Characters[thisgame.playercharacter];
 
 	game->TextParser->Words->Clear();
-	for (int i = 0; i < thisgame.dict->num_words; i++) 
+    // Sort words in the order of word ID + alphabetically
+    std::vector<std::pair<uint16_t, AGSString>> sorted_words;
+    for (const auto &word : thisgame.dict->GetWords())
+    {
+        sorted_words.push_back(std::make_pair(word.second, word.first));
+    }
+    std::sort(sorted_words.begin(), sorted_words.end(),
+        [](const auto &w1, const auto &w2) { return (w1.first < w2.first) || ((w1.first == w2.first) && (w1.second.CompareNoCase(w2.second) < 0)); });
+
+	for (const auto &word : sorted_words) 
 	{
 		AGS::Types::TextParserWord ^newWord = gcnew AGS::Types::TextParserWord();
-		newWord->WordGroup = thisgame.dict->wordnum[i];
-		newWord->Word = gcnew String(thisgame.dict->word[i]);
+		newWord->WordGroup = word.first;
+		newWord->Word = gcnew String(word.second.GetCStr());
 		newWord->SetWordTypeFromGroup();
-
 		game->TextParser->Words->Add(newWord);
 	}
 

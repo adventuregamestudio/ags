@@ -19,6 +19,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
+#include "ac/parser.h"
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/wordsdictionary.h"
@@ -93,6 +94,7 @@ void close_translation ()
     else
         set_uformat(U_ASCII);
     play.SetGameTextLanguage(game.GameTextLanguage);
+    CreateGameTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName());
 }
 
 bool init_translation(const String &lang, const String &fallback_lang)
@@ -202,6 +204,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     }
 
     play.SetGameTextLanguage(language);
+    CreateGameTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName());
 
     Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(), encoding_msg.GetCStr());
     return true;

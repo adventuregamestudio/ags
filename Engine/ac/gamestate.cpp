@@ -692,9 +692,12 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     separate_music_lib = in->ReadInt32() != 0;
     in_conversation = in->ReadInt32();
     screen_tint = in->ReadInt32();
-    num_parsed_words = in->ReadInt32();
-    in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
-    bad_parsed_word.ReadCount(in, 100); // CHECKME: does it have to be serialized?
+    // TODO: investigate if parsed words should be serialized at all
+    const size_t parsed_words_count = in->ReadInt32();
+    std::array<uint16_t, MAX_PARSED_WORDS> parsed_words_temp;
+    in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(parsed_words_temp.data()), MAX_PARSED_WORDS);
+    std::copy_n(parsed_words_temp.begin(), parsed_words_count, std::back_inserter(parsed_words));
+    bad_parsed_word.ReadCount(in, 100);
     in->ReadInt32();// [DEPRECATED]
     in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
     mouse_cursor_hidden = in->ReadInt32();
@@ -945,9 +948,12 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( separate_music_lib ? 1 : 0);
     out->WriteInt32( in_conversation);
     out->WriteInt32( screen_tint);
-    out->WriteInt32( num_parsed_words);
-    out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
-    bad_parsed_word.WriteCount(out, 100); // CHECKME: does it have to be serialized?
+    // TODO: investigate if parsed words should be serialized at all
+    out->WriteInt32( parsed_words.size());
+    out->WriteArrayOfInt16( reinterpret_cast<const int16_t*>(parsed_words.data()), std::min<size_t>(parsed_words.size(), MAX_PARSED_WORDS));
+    if (parsed_words.size() < MAX_PARSED_WORDS)
+        out->WriteByteCount(0, MAX_PARSED_WORDS - parsed_words.size());
+    bad_parsed_word.WriteCount(out, 100);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
     out->WriteInt32( mouse_cursor_hidden);

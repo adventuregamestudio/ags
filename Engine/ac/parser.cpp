@@ -11,9 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
-#include <cctype> //isalnum()
 #include <cstdio>
+#include <locale>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -23,6 +22,7 @@
 #include "debug/debug_log.h"
 #include "util/string.h"
 #include "util/string_compat.h"
+#include "util/utf8.h"
 
 using namespace AGS::Common;
 
@@ -30,273 +30,420 @@ extern GameSetupStruct game;
 
 int Parser_FindWordID(const char *wordToFind)
 {
-    return find_word_in_dictionary(wordToFind);
+    uint16_t word_id = FindWordInDictionary(String::Wrapper(wordToFind));
+    return word_id != WordsDictionary::INVALIDWORD ? word_id : -1;
 }
 
-const char* Parser_SaidUnknownWord() {
+const char* Parser_SaidUnknownWord()
+{
     if (play.bad_parsed_word.IsEmpty())
         return nullptr;
     return CreateNewScriptString(play.bad_parsed_word);
 }
 
-void ParseText (const char*text) {
-    parse_sentence (text, &play.num_parsed_words, play.parsed_words, nullptr, 0);
+void ParseText(const char *text)
+{
+    play.parsed_words.clear();
+    play.bad_parsed_word = {};
+    auto *parser = GetGameTextParser();
+    if (parser)
+        parser->ParseSentence(text, play.parsed_words, MAX_PARSED_WORDS, &play.bad_parsed_word);
 }
 
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Parser_Said (const char *checkwords) {
-    int numword = 0;
-    short words[MAX_PARSED_WORDS];
-    return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
-}
+int Parser_Said (const char *checkwords)
+{
+    auto *parser = GetGameTextParser();
+    if (!parser)
+        return 0;
 
-//=============================================================================
-
-int find_word_in_dictionary (const char *lookfor) {
-    int j;
-    if (game.dict == nullptr)
-        return -1;
-
-    uint16_t word_id = game.dict->FindWord(String::Wrapper(lookfor));
-    if (word_id != WordsDictionary::INVALID)
-        return word_id;
-
-    if (lookfor[0] != 0) {
-        // If the word wasn't found, but it ends in 'S', see if there's
-        // a non-plural version
-        const char *ptat = &lookfor[strlen(lookfor)-1];
-        char lastletter = *ptat;
-        if ((lastletter == 's') || (lastletter == 'S') || (lastletter == '\'')) {
-            String singular = lookfor;
-            singular.ClipRight(1);
-            return find_word_in_dictionary(singular.GetCStr());
-        } 
-    }
-    return -1;
-}
-
-int is_valid_word_char(char theChar) {
-    if ((isalnum((unsigned char)theChar)) || (theChar == '\'') || (theChar == '-')) {
-        return 1;
+    ITextParser::ParsedPattern pattern;
+    if (parser->ParsePattern(checkwords, pattern, MAX_PARSED_WORDS, nullptr))
+    {
+        return parser->MatchPattern(play.parsed_words, pattern) ? 1 : 0;
     }
     return 0;
 }
 
-int FindMatchingMultiWordWord(char *thisword, const char **text) {
-    // see if there are any multi-word words
-    // that match -- if so, use them
-    const char *tempptr = *text;
-    char tempword[150] = "";
-    if (thisword != nullptr)
-        strcpy(tempword, thisword);
-
-    int bestMatchFound = -1, word;
-    const char *tempptrAtBestMatch = tempptr;
-
-    do {
-        // extract and concat the next word
-        strcat(tempword, " ");
-        while (tempptr[0] == ' ') tempptr++;
-        char chbuffer[2];
-        while (is_valid_word_char(tempptr[0])) {
-            snprintf(chbuffer, sizeof(chbuffer), "%c", tempptr[0]);
-            strcat(tempword, chbuffer);
-            tempptr++;
-        }
-        // is this it?
-        word = find_word_in_dictionary(tempword);
-        // take the longest match we find
-        if (word >= 0) {
-            bestMatchFound = word;
-            tempptrAtBestMatch = tempptr;
-        }
-
-    } while (tempptr[0] == ' ');
-
-    word = bestMatchFound;
-
-    if (word >= 0) {
-        // yes, a word like "pick up" was found
-        *text = tempptrAtBestMatch;
-        if (thisword != nullptr)
-            strcpy(thisword, tempword);
-    }
-
-    return word;
-}
-
-// parse_sentence: pass compareto as NULL to parse the sentence, or
-// compareto as non-null to check if it matches the passed sentence
-int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*compareto, int comparetonum) {
-    char thisword[150] = "\0";
-    int  i = 0, comparing = 0;
-    char in_optional = 0, do_word_now = 0;
-    int  optional_start = 0;
-
-    numwords[0] = 0;
-    if (compareto == nullptr)
-        play.bad_parsed_word.Empty();
-
-    String uniform_text = src_text;
-    uniform_text.MakeLower();
-    const char *text = uniform_text.GetCStr();
-    while (1) {
-        if ((compareto != nullptr) && (compareto[comparing] == WordsDictionary::RESTOFLINE))
-            return 1;
-
-        if ((text[0] == ']') && (compareto != nullptr)) {
-            if (!in_optional)
-                quitprintf("!Said: unexpected ']'\nText: %s", src_text);
-            do_word_now = 1;
-        }
-
-        if (is_valid_word_char(text[0])) {
-            // Part of a word, add it on
-            thisword[i] = text[0];
-            i++;
-        }
-        else if ((text[0] == '[') && (compareto != nullptr)) {
-            if (in_optional)
-                quitprintf("!Said: nested optional words\nText: %s", src_text);
-
-            in_optional = 1;
-            optional_start = comparing;
-        }
-        else if ((thisword[0] != 0) || ((text[0] == 0) && (i > 0)) || (do_word_now == 1)) {
-            // End of word, so process it
-            thisword[i] = 0;
-            i = 0;
-            int word = -1;
-
-            if (text[0] == ' ') {
-                word = FindMatchingMultiWordWord(thisword, &text);
-            }
-
-            if (word < 0) {
-                // just a normal word
-                word = find_word_in_dictionary(thisword);
-            }
-
-            // "look rol"
-            if (word == WordsDictionary::RESTOFLINE)
-                return 1;
-            if (compareto) {
-                // check string is longer than user input
-                if (comparing >= comparetonum) {
-                    if (in_optional) {
-                        // eg. "exit [door]" - there's no more user input
-                        // but the optional word is still there
-                        if (do_word_now) {
-                            in_optional = 0;
-                            do_word_now = 0;
-                        }
-                        thisword[0] = 0;
-                        text++;
-                        continue;
-                    }
-                    return 0;
-                }
-                if (word <= 0)
-                    quitprintf("!Said: supplied word '%s' is not in dictionary or is an ignored word\nText: %s", thisword, src_text);
-                if (word == WordsDictionary::ANYWORD) { }
-                else if (word != compareto[comparing]) {
-                    // words don't match - if a comma then a list of possibles,
-                    // so allow retry
-                    if (text[0] == ',')
-                        comparing--;
-                    else {
-                        // words don't match
-                        if (in_optional) {
-                            // inside an optional clause, so skip it
-                            while (text[0] != ']') {
-                                if (text[0] == 0)
-                                    quitprintf("!Said: unterminated [optional]\nText: %s", src_text);
-                                text++;
-                            }
-                            // -1 because it's about to be ++'d again
-                            comparing = optional_start - 1;
-                        }
-                        // words don't match outside an optional clause, abort
-                        else
-                            return 0;
-                    }
-                }
-                else if (text[0] == ',') {
-                    // this alternative matched, but there are more
-                    // so skip the other alternatives
-                    int continueSearching = 1;
-                    while (continueSearching) {
-
-                        const char *textStart = ++text; // begin with next char
-
-                        // find where the next word ends
-                        while ((text[0] == ',') || is_valid_word_char(text[0]))
-                        {
-                            // shift beginning of potential multi-word each time we see a comma
-                            if(text[0] == ',')
-                                textStart = ++text;
-                            else
-                                text++;
-                        }
-
-                        continueSearching = 0;
-
-                        if (text[0] == 0 || text[0] == ' ') {
-                            strcpy(thisword, textStart);
-                            thisword[text - textStart] = 0;
-                            // forward past any multi-word alternatives
-                            if (FindMatchingMultiWordWord(thisword, &text) >= 0)
-                            {
-                                if (text[0] == 0)
-                                    break;
-                                continueSearching = 1;
-                            }
-                        }
-                    }
-
-                    if ((text[0] == ']') && (in_optional)) {
-                        // [go,move]  we just matched "go", so skip over "move"
-                        in_optional = 0;
-                        text++;
-                    }
-
-                    // go back cos it'll be ++'d in a minute
-                    text--;
-                }
-                comparing++;
-            }
-            else if (word != 0) {
-                // it's not an ignore word (it's a known word, or an unknown
-                // word, so save its index)
-                wordarray[numwords[0]] = word;
-                numwords[0]++;
-                if (numwords[0] >= MAX_PARSED_WORDS)
-                    return 0;
-                // if it's an unknown word, store it for use in messages like
-                // "you can't use the word 'xxx' in this game"
-                if ((word < 0) && (play.bad_parsed_word.IsEmpty()))
-                    play.bad_parsed_word = thisword;
-            }
-
-            if (do_word_now) {
-                in_optional = 0;
-                do_word_now = 0;
-            }
-
-            thisword[0] = 0;
-        }
-        if (text[0] == 0)
-            break;
-        text++;
-    }
-    // If the user input is longer than the Said string, it's wrong
-    // eg Said("look door") and they type "look door jibble"
-    // rol should be used instead to enable this
-    if (comparing < comparetonum)
+int SaidUnknownWord(char *buffer)
+{
+    VALIDATE_STRING(buffer);
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", play.bad_parsed_word.GetCStr());
+    if (play.bad_parsed_word.IsEmpty())
         return 0;
     return 1;
+}
+
+//=============================================================================
+
+class TextParser : public ITextParser
+{
+public:
+    TextParser(const WordsDictionary *dict, bool is_unicode, const String &locale_name);
+
+    // Parses a simple sentence, e.g. a user input, and converts it to the word ID list
+    bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words, String *bad_parsed_word) override;
+    // Parses input text and converts it into a pattern sequence, that may be matched with a user input
+    bool ParsePattern(const String &src_text, ParsedPattern &pattern, size_t max_words, String *bad_parsed_word) override;
+    // Matches the given pattern with the input sentence
+    bool MatchPattern(const ParsedSentence &input, const ParsedPattern &pattern) override;
+
+private:
+    inline bool IsValidWordChar(int ch) const
+    {
+        return std::isalnum<wchar_t>(ch, _loc)
+            // allow following punctuation chars to be a part of the word:
+            || (ch == '\'') || (ch == '-') || (ch == '_');
+    }
+
+    // TODO: consider refactor & move this class to common utils
+    struct Utf8StringView
+    {
+        const char *Ptr = nullptr;
+        size_t CharIndex = 0u;
+
+        Utf8StringView() = default;
+        Utf8StringView(const char *cstr)
+            : Ptr(cstr)
+            , CharIndex(0u)
+        {}
+    };
+
+    // Returns the next text character
+    int PeekNextChar(Utf8StringView &text_ptr) const;
+    // Scans forward, skip any whitespace characters, advances text pointer to the
+    // character following the last whitespace, returns that character code
+    int SkipWhitespace(Utf8StringView &text_ptr) const;
+    // Scans forward, finds best matching word or multi-word (always chooses the
+    // *longest* matching word), advances text pointer to the character following
+    // the found word, returns the found word.
+    String ScanWordOrMultiWord(Utf8StringView &text_ptr) const;
+    // Reads characters until reaching a non-word character, returns resulting word
+    String ReadWord(Utf8StringView &text_ptr) const;
+
+    // Adds the last parsed word to the words sequence, which may contain 1 or more words
+    void AddToWordSequence();
+    // Finalize current words sequence, convert and record as word IDs
+    void FinalizeWordSequence(bool optional, bool alternate, String *bad_parsed_word);
+
+    const WordsDictionary *_dict;
+    bool _isUnicode = false;
+    std::locale _loc;
+    String _parsedWord;
+    std::vector<String> _wordSequence;
+    ParsedPattern _pattern;
+};
+
+TextParser::TextParser(const WordsDictionary *dict, bool is_unicode, const String &locale_name)
+    : _dict(dict)
+    , _isUnicode(is_unicode)
+    , _loc(GetLocaleSafe(locale_name.GetCStr()))
+{
+}
+
+int TextParser::PeekNextChar(Utf8StringView &text_ptr) const
+{
+    return ugetc(text_ptr.Ptr);
+}
+
+int TextParser::SkipWhitespace(Utf8StringView &text_ptr) const
+{
+    int text_char = 0;
+    Utf8StringView prev_ptr = text_ptr;
+    for (prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex;
+        std::isspace<wchar_t>(text_char, _loc);
+        prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex);
+    text_ptr = prev_ptr;
+    return text_char;
+}
+
+String TextParser::ScanWordOrMultiWord(Utf8StringView &text_ptr) const
+{
+    Utf8StringView after_best_word_ptr = text_ptr;
+    String full_word, best_word;
+    while (*text_ptr.Ptr)
+    {
+        SkipWhitespace(text_ptr);
+        String word = ReadWord(text_ptr);
+        if (word.IsEmpty())
+            break;
+
+        // NOTE: this actually assumes that multi-words must have strictly 1 space between words
+        if (!full_word.IsEmpty())
+            full_word.AppendChar(' ');
+        full_word.Append(word);
+        // if nothing matches, then we'll return the first found word (it will be detected as invalid later);
+        // if something else matches, then record that instead
+        if (best_word.IsEmpty() ||
+            (FindWordInDictionary(full_word) != WordsDictionary::INVALIDWORD))
+        {
+            after_best_word_ptr = text_ptr;
+            best_word = full_word;
+        }
+    }
+    text_ptr = after_best_word_ptr;
+    return best_word;
+}
+
+String TextParser::ReadWord(Utf8StringView &text_ptr) const
+{
+    Utf8StringView begin_ptr = text_ptr;
+    Utf8StringView prev_ptr = text_ptr;
+    int text_char = 0;
+    for (prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex;
+        IsValidWordChar(text_char);
+        prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex);
+    text_ptr = prev_ptr;
+    return String(begin_ptr.Ptr, text_ptr.Ptr - begin_ptr.Ptr);
+}
+
+bool TextParser::ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words, String *bad_parsed_word)
+{
+    // For the purpose of parsing user input, we ignore the advanced constructs,
+    // such as optional or alternative words.
+    ParsedPattern pattern;
+    if (ParsePattern(src_text, pattern, max_words, bad_parsed_word))
+    {
+        for (const auto &item : pattern)
+        {
+            if (item.second & ITextParser::kPatternItemOptional)
+                continue;
+            if (item.second & ITextParser::kPatternItemAltNext)
+                continue;
+            words.push_back(item.first);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool TextParser::ParsePattern(const String &src_text, ParsedPattern &pattern, size_t max_words, String *bad_parsed_word)
+{
+    String uniform_text = src_text;
+    _isUnicode ? uniform_text.MakeLowerUTF8() : uniform_text.MakeLower();
+    Utf8StringView text_ptr(uniform_text.GetCStr());
+    int text_char = 0;
+    bool is_optional = false, is_alternate = false;
+    _pattern = {};
+
+    do
+    {
+        text_char = PeekNextChar(text_ptr);
+        size_t text_char_index = text_ptr.CharIndex;
+        if (std::isspace<wchar_t>(text_char, _loc))
+        {
+            // Finalize accumulated word sequence
+            FinalizeWordSequence(is_optional, is_alternate, bad_parsed_word);
+            is_alternate = false; // finish alternate sequence if there was one
+
+            text_char = SkipWhitespace(text_ptr);
+            text_char_index = text_ptr.CharIndex - 1;
+        }
+
+        // Optional word sequence begin
+        if (text_char == '[')
+        {
+            if (is_optional)
+            {
+                debug_script_warn("TextParser: invalid nested '[' at index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                return false;
+            }
+            // Finalize accumulated word sequence
+            FinalizeWordSequence(is_optional, is_alternate, bad_parsed_word);
+            is_optional = true;
+            is_alternate = false;
+        }
+        // Optional word sequence end
+        else if (text_char == ']')
+        {
+            if (!is_optional)
+            {
+                debug_script_warn("TextParser: unexpected ']' at index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                return false;
+            }
+            else if (_wordSequence.size() == 0)
+            {
+                debug_script_warn("TextParser: empty optional word around index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+            }
+            // Finalize accumulated word sequence
+            FinalizeWordSequence(is_optional, is_alternate, bad_parsed_word);
+            is_optional = false;
+            is_alternate = false;
+        }
+        // Alternate word sequence begin/continue
+        else if (text_char == ',')
+        {
+            if ((_wordSequence.size() == 0) && _parsedWord.IsEmpty())
+            {
+                debug_script_warn("TextParser: unexpected ',' at index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                return false;
+            }
+            // Add previous word to the words sequence
+            AddToWordSequence();
+            is_alternate = true;
+        }
+        // Unsupported non-word char
+        else if (!IsValidWordChar(text_char))
+        {
+            char uch[Utf8::UtfSz + 1]{};
+            usetc(uch, text_char);
+            debug_script_warn("TextParser: unexpected '%s' at index %zu\n\tText: %s", uch, text_char_index, src_text.GetCStr());
+            return false;
+        }
+        // Beginning of the next word
+        else
+        {
+            // Scan forward and find the longest known word or multi-word
+            _parsedWord = ScanWordOrMultiWord(text_ptr);
+            continue; // skip char advance
+        }
+
+        text_ptr.Ptr++;
+        text_ptr.CharIndex++;
+    }
+    while (*text_ptr.Ptr);
+
+    if (is_optional)
+    {
+        debug_script_warn("TextParser: no closing ']' for optional word\n\tText: %s", src_text.GetCStr());
+    }
+
+    // In case we have pending parsed words
+    FinalizeWordSequence(is_optional, is_alternate, bad_parsed_word);
+
+    pattern = _pattern;
+    return true;
+}
+
+bool TextParser::MatchPattern(const ParsedSentence &input, const ParsedPattern &pattern)
+{
+    if (pattern.size() == 0)
+        return false; // there's nothing to match
+
+    size_t pattern_i = 0u;
+    for (const auto &in : input)
+    {
+        if (in == WordsDictionary::IGNOREWORD)
+            continue;
+        // If we have reached a pattern end while not matching all input, this means a failure.
+        if (pattern_i == pattern.size())
+            return false;
+        // ROL means we ignore the rest of the input;
+        // if we got there, we consider the input matching the pattern
+        if (pattern[pattern_i].first == WordsDictionary::RESTOFLINE)
+            return true;
+
+        // Try if we get any matches for this input in the pattern;
+        // note that if there are optional items in the pattern, then we might skip some entries.
+        bool has_match = false;
+        bool try_next = false;
+        do
+        {
+            try_next = false;
+            // Test if next input word matches the next pattern item,
+            // or if next pattern item is ANYWORD
+            has_match = (in == pattern[pattern_i].first) || (pattern[pattern_i].first == WordsDictionary::ANYWORD);
+            // If it failed to match, then try few other options
+            // First try if the pattern has alternatives which may match
+            if (!has_match && (pattern[pattern_i].second & kPatternItemAltFirst))
+            {
+                size_t alt_i = pattern_i;
+                while ((++alt_i < pattern.size()) && (pattern[alt_i].second & kPatternItemAltNext))
+                {
+                    if ((in == pattern[alt_i].first) || (pattern[alt_i].first == WordsDictionary::ANYWORD))
+                    {
+                        has_match = true;
+                        break;
+                    }
+                }
+            }
+            // Second, try if the current pattern item is optional
+            if (!has_match && (pattern[pattern_i].second & kPatternItemOptional))
+            {
+                try_next = true;
+            }
+
+            // Advance to the next pattern item;
+            // skip any alternates for this pattern item (regardless of whether it was optional or not)
+            while ((++pattern_i < pattern.size()) && (pattern[pattern_i].second & kPatternItemAltNext));
+        }
+        while (try_next && pattern_i < pattern.size());
+
+        if (!has_match)
+            return false; // failure
+    }
+
+    // If we have reached a input's end while not matching all the required pattern, - this means a failure.
+    for (; pattern_i < pattern.size(); ++pattern_i)
+    {
+        if ((pattern[pattern_i].first != WordsDictionary::RESTOFLINE) &&
+            ((pattern[pattern_i].second & kPatternItemOptional) == 0))
+            return false;
+    }
+
+    return true; // success
+}
+
+void TextParser::AddToWordSequence()
+{
+    if (!_parsedWord.IsEmpty())
+        _wordSequence.push_back(_parsedWord);
+    _parsedWord.Empty();
+}
+
+void TextParser::FinalizeWordSequence(bool optional, bool alternate, String *bad_parsed_word)
+{
+    // Add last parsed word if it was not added yet
+    if (!_parsedWord.IsEmpty())
+        AddToWordSequence();
+
+    bool next_is_alt = false;
+    for (const auto& word : _wordSequence)
+    {
+        uint16_t word_id = FindWordInDictionary(word);
+        // We add any words to the pattern here, including invalid word id.
+        // The only way invalid words can be matched though is by ANYWORD or ROL.
+        int flags = kPatternItemOptional * optional | (kPatternItemAltFirst * alternate * !next_is_alt)
+            | (kPatternItemAltNext * alternate * next_is_alt);
+        _pattern.push_back(std::make_pair(word_id, static_cast<PatternItemFlags>(flags)));
+        // Remember the first invalid word, in case script will ask about "unknown words"
+        if (word_id == WordsDictionary::INVALIDWORD)
+        {
+            if (bad_parsed_word && bad_parsed_word->IsEmpty())
+                *bad_parsed_word = word;
+        }
+        next_is_alt = alternate;
+    }
+    _wordSequence.clear();
+}
+
+std::unique_ptr<ITextParser> gl_TextParser;
+
+ITextParser *CreateGameTextParser(AGS::Common::WordsDictionary *dict, bool is_unicode, const String &locale_name)
+{
+    if (dict)
+        gl_TextParser.reset(new TextParser(dict, is_unicode, locale_name));
+    else
+        gl_TextParser.reset();
+    return gl_TextParser.get();
+}
+
+ITextParser *GetGameTextParser()
+{
+    return gl_TextParser.get();
+}
+
+uint16_t FindWordInDictionary(const String &lookfor)
+{
+    if (game.dict == nullptr)
+        return WordsDictionary::INVALIDWORD;
+
+    uint16_t word_id = game.dict->FindWord(lookfor);
+    if (word_id != WordsDictionary::INVALIDWORD)
+        return word_id;
+    return WordsDictionary::INVALIDWORD;
 }
 
 //=============================================================================
@@ -330,7 +477,7 @@ RuntimeScriptValue Sc_Parser_SaidUnknownWord(const RuntimeScriptValue *params, i
 
 RuntimeScriptValue Sc_Parser_Said(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(Parser_Said, /*const*/ char);
+    API_SCALL_VOID_POBJ(Parser_Said, const char);
 }
 
 void RegisterParserAPI()

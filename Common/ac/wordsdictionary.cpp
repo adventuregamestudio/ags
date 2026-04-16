@@ -28,7 +28,7 @@ uint16_t WordsDictionary::FindWord(const String &word) const
     const auto it_found = _words.find(word);
     if (it_found != _words.end())
         return it_found->second;
-    return WordsDictionary::INVALID;
+    return WordsDictionary::INVALIDWORD;
 }
 
 void WordsDictionary::ReadFromFile(Stream* in)

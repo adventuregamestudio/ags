@@ -209,8 +209,7 @@ struct GamePlayState
     bool  separate_music_lib = false;
     int   in_conversation = 0;
     int   screen_tint = 0;
-    int   num_parsed_words = 0;
-    short parsed_words[MAX_PARSED_WORDS]{};
+    std::vector<uint16_t> parsed_words;
     Common::String bad_parsed_word;
     // Tells which room background frames were modified by script drawing operations
     bool  room_bg_modified[MAX_ROOM_BGFRAMES]{};

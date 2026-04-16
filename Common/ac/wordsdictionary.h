@@ -28,14 +28,15 @@ class WordsDictionary
 {
 public:
     // Special text parser entries
+    static const uint16_t IGNOREWORD   = 0;
     static const uint16_t ANYWORD      = 29999;
     static const uint16_t RESTOFLINE   = 30000;
-    static const uint16_t INVALID      = UINT16_MAX;
+    static const uint16_t INVALIDWORD  = UINT16_MAX;
 
     WordsDictionary() = default;
 
     uint16_t FindWord(const String &word) const;
-    const std::unordered_map<String, uint16_t, HashStrNoCase> &
+    const std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase> &
         GetWords() const { return _words; }
 
     void ReadFromFile(Stream *in);
@@ -44,7 +45,7 @@ public:
 private:
     // Map word to word ID;
     // Text Parser's dictionary is case-insensitive
-    std::unordered_map<String, uint16_t, HashStrNoCase> _words;
+    std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase> _words;
 };
 
 } // Common

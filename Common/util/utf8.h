@@ -116,6 +116,8 @@ inline const char *BackOneChar(const char *c, const char *front)
     return c;
 }
 
+// FIXME: move the ToLower/ToUpper functions into the cpp file, it's likely that they are too big to inline
+
 // Unicode-aware version of the ANSI tolower() function.
 inline Rune ToLower(Rune c)
 {
@@ -975,6 +977,30 @@ inline Rune ToUpper(Rune c)
             return c;
     }
 }
+
+inline int CStrCompareNoCase(const char *cstr1, const char *cstr2)
+{
+    if (!cstr1 && cstr2)
+        return -1;
+    else if (cstr1 && !cstr2)
+        return 1;
+    else if (!cstr1 && !cstr2)
+        return 0;
+
+    Rune r1, r2;
+    do
+    {
+        cstr1 += GetChar(cstr1, Utf8::UtfSz, &r1);
+        cstr2 += GetChar(cstr2, Utf8::UtfSz, &r2);
+        int diff = ToLower(r2) - ToLower(r1);
+        if (diff != 0)
+            return diff;
+    }
+    while (r1 && r2);
+    return 0;
+}
+
+// FIXME: move the CStrToUpper/ToLower functions into the cpp file, it's unlikely that they may be inlined
 
 // Convert a UTF-8 c-string to uppercase, writing a result into the provided buffer.
 // If a nullptr passed instead of a buffer, then this function does not do any writing,

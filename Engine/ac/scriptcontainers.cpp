@@ -15,7 +15,7 @@
 // Containers script API.
 //
 //=============================================================================
-#include "ac/common.h" // quit
+#include <allegro.h>
 #include "ac/string.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_scriptobject.h"
@@ -38,17 +38,37 @@ ScriptDictBase *Dict_CreateImpl(bool sorted, bool case_sensitive)
     ScriptDictBase *dic;
     if (sorted)
     {
-        if (case_sensitive)
-            dic = new ScriptDict();
+        if (get_uformat() == U_UTF8)
+        {
+            if (case_sensitive)
+                dic = new ScriptDict();
+            else
+                dic = new ScriptDictUtf8CI();
+        }
         else
-            dic = new ScriptDictCI();
+        {
+            if (case_sensitive)
+                dic = new ScriptDict();
+            else
+                dic = new ScriptDictCI();
+        }
     }
     else
     {
-        if (case_sensitive)
-            dic = new ScriptHashDict();
+        if (get_uformat() == U_UTF8)
+        {
+            if (case_sensitive)
+                dic = new ScriptHashDict();
+            else
+                dic = new ScriptHashDictUtf8CI();
+        }
         else
-            dic = new ScriptHashDictCI();
+        {
+            if (case_sensitive)
+                dic = new ScriptHashDict();
+            else
+                dic = new ScriptHashDictCI();
+        }
     }
     return dic;
 }
@@ -199,17 +219,37 @@ ScriptSetBase *Set_CreateImpl(bool sorted, bool case_sensitive)
     ScriptSetBase *set;
     if (sorted)
     {
-        if (case_sensitive)
-            set = new ScriptSet();
+        if (get_uformat() == U_UTF8)
+        {
+            if (case_sensitive)
+                set = new ScriptSet();
+            else
+                set = new ScriptSetUtf8CI();
+        }
         else
-            set = new ScriptSetCI();
+        {
+            if (case_sensitive)
+                set = new ScriptSet();
+            else
+                set = new ScriptSetCI();
+        }
     }
     else
     {
-        if (case_sensitive)
-            set = new ScriptHashSet();
+        if (get_uformat() == U_UTF8)
+        {
+            if (case_sensitive)
+                set = new ScriptHashSet();
+            else
+                set = new ScriptHashSetUtf8CI();
+        }
         else
-            set = new ScriptHashSetCI();
+        {
+            if (case_sensitive)
+                set = new ScriptHashSet();
+            else
+                set = new ScriptHashSetCI();
+        }
     }
     return set;
 }

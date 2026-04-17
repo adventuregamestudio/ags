@@ -17,9 +17,9 @@
 #include <cctype>
 #include <functional>
 #include <unordered_map>
-
 #include <vector>
 #include "util/string.h"
+#include "util/utf8.h"
 
 namespace FNV
 {
@@ -40,6 +40,21 @@ inline size_t Hash_LowerCase(const char *data, const size_t len)
     uint32_t hash = PRIME_NUMBER;
     for (size_t i = 0; i < len; ++i)
         hash = (SECONDARY_NUMBER * hash) ^ (uint8_t)(tolower(data[i]));
+    return hash;
+}
+
+inline size_t Hash_Utf8LowerCase(const char *data, const size_t len)
+{
+    uint32_t hash = PRIME_NUMBER;
+    Utf8::Rune r;
+    char buf[Utf8::UtfSz + 1]{};
+    for (const char *ptr = data; *ptr;)
+    {
+        ptr += Utf8::GetChar(ptr, Utf8::UtfSz, &r);
+        size_t lower_sz = Utf8::SetChar(Utf8::ToLower(r), buf, Utf8::UtfSz);
+        for (size_t i = 0; i < lower_sz; ++i)
+            hash = (SECONDARY_NUMBER * hash) ^ (uint8_t)(buf[i]);
+    }
     return hash;
 }
 
@@ -88,6 +103,15 @@ struct StrEqNoCase
     }
 };
 
+// Test case-insensitive String equality for UTF-8 strings
+struct StrEqUtf8NoCase
+{
+    bool operator()(const String &s1, const String &s2) const
+    {
+        return Utf8::CStrCompareNoCase(s1.GetCStr(), s2.GetCStr()) == 0;
+    }
+};
+
 // Test case-insensitive String equality as a pre-defined unary predicate
 struct StrEqNoCasePred
 {
@@ -112,12 +136,30 @@ struct StrLessNoCase
     }
 };
 
+// Case-insensitive String less for UTF-8 strings
+struct StrLessUtf8NoCase
+{
+    bool operator()(const String &s1, const String &s2) const
+    {
+        return Utf8::CStrCompareNoCase(s1.GetCStr(), s2.GetCStr()) < 0;
+    }
+};
+
 // Compute case-insensitive hash for a String object
 struct HashStrNoCase
 {
     size_t operator ()(const String &key) const
     {
         return FNV::Hash_LowerCase(key.GetCStr(), key.GetLength());
+    }
+};
+
+// Compute case-insensitive hash for a String object containing UTF-8 string
+struct HashStrUtf8NoCase
+{
+    size_t operator ()(const String &key) const
+    {
+        return FNV::Hash_Utf8LowerCase(key.GetCStr(), key.GetLength());
     }
 };
 

@@ -67,12 +67,16 @@ private:
 };
 
 template <typename TDict, bool is_sorted, bool is_casesensitive>
-class ScriptDictImpl final : public ScriptDictBase
+class ScriptDictBaseImpl : public ScriptDictBase
 {
 public:
     typedef typename TDict::const_iterator ConstIterator;
 
-    ScriptDictImpl() = default;
+    ScriptDictBaseImpl() = default;
+    ScriptDictBaseImpl(const TDict &dic)
+        : _dic(dic) { }
+    ScriptDictBaseImpl(TDict &&dic)
+        : _dic(std::move(dic)) { }
 
     bool IsCaseSensitive() const override { return is_casesensitive; }
     bool IsSorted() const override { return is_sorted; }
@@ -172,9 +176,37 @@ private:
     TDict _dic;
 };
 
-typedef ScriptDictImpl< std::map<String, String>, true, true > ScriptDict;
-typedef ScriptDictImpl< std::map<String, String, StrLessNoCase>, true, false > ScriptDictCI;
-typedef ScriptDictImpl< std::unordered_map<String, String>, false, true > ScriptHashDict;
-typedef ScriptDictImpl< std::unordered_map<String, String, HashStrNoCase, StrEqNoCase>, false, false > ScriptHashDictCI;
+template <typename TKey, typename TValue, typename TKeyLess, bool is_casesensitive>
+class ScriptDictStdImpl final : public ScriptDictBaseImpl<std::map<TKey, TValue, TKeyLess>,
+    true, is_casesensitive>
+{
+public:
+    ScriptDictStdImpl() = default;
+    ScriptDictStdImpl(const TKeyLess &less)
+        : ScriptDictBaseImpl<std::map<TKey, TValue, TKeyLess>, true, is_casesensitive>
+        (std::move(std::map<TKey, TValue, TKeyLess>(less)))
+    {
+    }
+};
+
+template <typename TKey, typename TValue, typename TKeyHash, typename TKeyEqual, bool is_casesensitive>
+class ScriptDictStdHashImpl final : public ScriptDictBaseImpl<std::unordered_map<TKey, TValue, TKeyHash, TKeyEqual>,
+    false, is_casesensitive>
+{
+public:
+    ScriptDictStdHashImpl() = default;
+    ScriptDictStdHashImpl(const TKeyHash &hash, const TKeyEqual &equal)
+        : ScriptDictBaseImpl<std::unordered_map<TKey, TValue, TKeyHash, TKeyEqual>, false, is_casesensitive>
+        (std::move(std::unordered_map<TKey, TValue, TKeyHash, TKeyEqual>(hash, equal)))
+    {
+    }
+};
+
+typedef ScriptDictStdImpl< String, String, std::less<String>, true > ScriptDict;
+typedef ScriptDictStdImpl< String, String, StrLessNoCase, false > ScriptDictCI;
+typedef ScriptDictStdImpl< String, String, StrLessUtf8NoCase, false > ScriptDictUtf8CI;
+typedef ScriptDictStdHashImpl< String, String, std::hash<String>, std::equal_to<String>, true > ScriptHashDict;
+typedef ScriptDictStdHashImpl< String, String, HashStrNoCase, StrEqNoCase, false > ScriptHashDictCI;
+typedef ScriptDictStdHashImpl< String, String, HashStrUtf8NoCase, StrEqUtf8NoCase, false > ScriptHashDictUtf8CI;
 
 #endif // __AC_SCRIPTDICT_H

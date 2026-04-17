@@ -78,10 +78,12 @@ struct PropertyDesc
     PropertyDesc(const String &name, PropertyType type, const String &desc, const String &def_value);
 };
 
-// NOTE: AGS has case-insensitive property IDs
 // Schema - a map of property descriptions
+// NOTE: AGS historically has case-insensitive custom property IDs, unfortunately.
+// TODO: do we actually want to support case-insensitive non-latin alphabet here?
+// in which case we must use HashStrUtf8NoCase, BUT in such case we would also have to
+// make a switch between ASCII and UTF-8 versions depending on the game settings (old/new games).
 typedef std::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> PropertySchema;
-
 
 namespace Properties
 {

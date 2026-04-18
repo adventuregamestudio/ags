@@ -222,9 +222,10 @@ struct FileEntryEqByName
 
 struct FileEntryEqByNameCI
 {
-     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
     {
-        return fe1.Name.CompareNoCase(fe2.Name) == 0;
+        // We assume that filenames are in utf-8 always
+        return fe1.Name.CompareUtf8NoCase(fe2.Name) == 0;
     }
 };
 
@@ -240,7 +241,8 @@ struct FileEntryCmpByNameCI
 {
     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
     {
-        return fe1.Name.CompareNoCase(fe2.Name) < 0;
+        // We assume that filenames are in utf-8 always
+        return fe1.Name.CompareUtf8NoCase(fe2.Name) < 0;
     }
 };
 

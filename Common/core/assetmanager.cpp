@@ -292,7 +292,7 @@ void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wild
             for (const auto &fe : lib_fileents)
             {
                 auto it_place = std::upper_bound(assets.begin(), assets.end(), fe, FileEntryCmpByNameCI());
-                if (it_place == assets.begin() || (it_place - 1)->Name.CompareNoCase(fe.Name) != 0)
+                if (it_place == assets.begin() || (it_place - 1)->Name.CompareUtf8NoCase(fe.Name) != 0)
                     assets.insert(it_place, fe);
             }
         }

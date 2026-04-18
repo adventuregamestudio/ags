@@ -36,7 +36,7 @@ int ComparePaths(const String &path1, const String &path2)
 #if defined AGS_CASE_SENSITIVE_FILESYSTEM
         fixed_path1.Compare(fixed_path2);
 #else
-        fixed_path1.CompareNoCase(fixed_path2);
+        fixed_path1.CompareUtf8NoCase(fixed_path2);
 #endif // AGS_CASE_SENSITIVE_FILESYSTEM
     return cmp_result;
 }

@@ -992,7 +992,7 @@ inline int CStrCompareNoCase(const char *cstr1, const char *cstr2)
     {
         cstr1 += GetChar(cstr1, Utf8::UtfSz, &r1);
         cstr2 += GetChar(cstr2, Utf8::UtfSz, &r2);
-        int diff = ToLower(r2) - ToLower(r1);
+        int diff = ToLower(r1) - ToLower(r2);
         if (diff != 0)
             return diff;
     }

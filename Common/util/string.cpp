@@ -181,6 +181,11 @@ int String::CompareNoCase(const char *cstr) const
     return ags_stricmp(_cstr, cstr ? cstr : "");
 }
 
+int String::CompareUtf8NoCase(const char *cstr) const
+{
+    return Utf8::CStrCompareNoCase(_cstr, cstr ? cstr : "");
+}
+
 int String::CompareLeft(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";

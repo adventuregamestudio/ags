@@ -139,6 +139,8 @@ public:
     int     Compare(const char *cstr) const;
     int     CompareNoCase(const String &str) const { return CompareNoCase(str._cstr); }
     int     CompareNoCase(const char *cstr) const;
+    int     CompareUtf8NoCase(const String &str) const { return CompareUtf8NoCase(str._cstr); }
+    int     CompareUtf8NoCase(const char *cstr) const;
     // Compares the leftmost part of this string with given string
     int     CompareLeft(const String &str, size_t count = NoIndex) const
                 { return CompareLeft(str._cstr, count != NoIndex ? count : str._len ); }

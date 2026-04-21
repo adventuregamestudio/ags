@@ -16,6 +16,7 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_translation.h"
 #include "ac/parser.h"
 #include "ac/string.h"
 #include "ac/wordsdictionary.h"
@@ -30,7 +31,10 @@ extern GameSetupStruct game;
 
 int Parser_FindWordID(const char *wordToFind)
 {
-    uint16_t word_id = FindWordInDictionary(String::Wrapper(wordToFind));
+    uint16_t word_id = WordsDictionary::INVALIDWORD;
+    auto *parser = GetBaseTextParser();
+    if (parser)
+        word_id = parser->FindWordInDictionary(String::Wrapper(wordToFind));
     return word_id != WordsDictionary::INVALIDWORD ? word_id : -1;
 }
 
@@ -45,7 +49,8 @@ void ParseText(const char *text)
 {
     play.parsed_words.clear();
     play.bad_parsed_word = {};
-    auto *parser = GetGameTextParser();
+    // We always use a translated text parser here (this may be still a default language parser)
+    auto *parser = GetTranslationTextParser();
     if (parser)
         parser->ParseSentence(text, play.parsed_words, MAX_PARSED_WORDS, &play.bad_parsed_word);
 }
@@ -55,7 +60,20 @@ void ParseText(const char *text)
 // synonyms). Returns 1 if it does, 0 if not.
 int Parser_Said (const char *checkwords)
 {
-    auto *parser = GetGameTextParser();
+    ITextParser *parser = nullptr;
+    // If the Parser.Said input is auto-translated, then we got to parse it using the
+    // dictionary from the translation file. However, if it's not translated, then we
+    // must parse the input using base word dictionary.
+    if (game.options[OPT_AUTOTRANSPARSERSAID])
+    {
+        checkwords = get_translation(checkwords);
+        parser = GetTranslationTextParser();
+    }
+    else
+    {
+        parser = GetBaseTextParser();
+    }
+
     if (!parser)
         return 0;
 
@@ -83,6 +101,7 @@ class TextParser : public ITextParser
 public:
     TextParser(const WordsDictionary *dict, bool is_unicode, const String &locale_name);
 
+    uint16_t FindWordInDictionary(const String &lookfor) const override;
     // Parses a simple sentence, e.g. a user input, and converts it to the word ID list
     bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words, String *bad_parsed_word) override;
     // Parses input text and converts it into a pattern sequence, that may be matched with a user input
@@ -141,6 +160,17 @@ TextParser::TextParser(const WordsDictionary *dict, bool is_unicode, const Strin
     , _isUnicode(is_unicode)
     , _loc(GetLocaleSafe(locale_name.GetCStr()))
 {
+}
+
+uint16_t TextParser::FindWordInDictionary(const String &lookfor) const
+{
+    if (_dict == nullptr)
+        return WordsDictionary::INVALIDWORD;
+
+    uint16_t word_id = _dict->FindWord(lookfor);
+    if (word_id != WordsDictionary::INVALIDWORD)
+        return word_id;
+    return WordsDictionary::INVALIDWORD;
 }
 
 int TextParser::PeekNextChar(Utf8StringView &text_ptr) const
@@ -419,31 +449,53 @@ void TextParser::FinalizeWordSequence(bool optional, bool alternate, String *bad
     _wordSequence.clear();
 }
 
-std::unique_ptr<ITextParser> gl_TextParser;
+std::unique_ptr<ITextParser> gl_BaseTextParser;
+std::unique_ptr<ITextParser> gl_TranslationTextParser;
 
-ITextParser *CreateGameTextParser(AGS::Common::WordsDictionary *dict, bool is_unicode, const String &locale_name)
+std::unique_ptr<ITextParser> CreateTextParser(WordsDictionary *dict, bool is_unicode, const String &locale_name)
 {
-    if (dict)
-        gl_TextParser.reset(new TextParser(dict, is_unicode, locale_name));
-    else
-        gl_TextParser.reset();
-    return gl_TextParser.get();
+    return std::unique_ptr<ITextParser>(new TextParser(dict, is_unicode, locale_name));
 }
 
-ITextParser *GetGameTextParser()
+void SetBaseTextParser(std::unique_ptr<ITextParser> parser)
 {
-    return gl_TextParser.get();
+    gl_BaseTextParser = std::move(parser);
 }
 
-uint16_t FindWordInDictionary(const String &lookfor)
+void SetTranslationTextParser(std::unique_ptr<ITextParser> parser)
 {
-    if (game.dict == nullptr)
-        return WordsDictionary::INVALIDWORD;
+    gl_TranslationTextParser = std::move(parser);
+}
 
-    uint16_t word_id = game.dict->FindWord(lookfor);
-    if (word_id != WordsDictionary::INVALIDWORD)
-        return word_id;
-    return WordsDictionary::INVALIDWORD;
+ITextParser *GetBaseTextParser()
+{
+    return gl_BaseTextParser.get();
+}
+
+ITextParser *GetTranslationTextParser()
+{
+    return gl_TranslationTextParser.get();
+}
+
+void MergeParserDictionary(WordsDictionary *dst_dict, const WordsDictionary *src_dict)
+{
+    std::unordered_map<uint16_t, std::vector<String>> word_lists;
+    for (const auto src_word : src_dict->GetWords())
+    {
+        word_lists[src_word.second].push_back(src_word.first);
+    }
+
+    for (const auto dst_word : dst_dict->GetWords())
+    {
+        if (word_lists.count(dst_word.second) > 0)
+            word_lists.erase(dst_word.second);
+    }
+
+    for (const auto src_word_group : word_lists)
+    {
+        for (const auto src_word : src_word_group.second)
+            dst_dict->GetWords().insert(std::make_pair(src_word, src_word_group.first));
+    }
 }
 
 //=============================================================================

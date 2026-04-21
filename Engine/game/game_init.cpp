@@ -465,7 +465,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
     play.enable_antialiasing = usetup.AntialiasSprites;
     play.SetGameTextLanguage(game.GameTextLanguage);
-    CreateGameTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName());
+    SetBaseTextParser(CreateTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName()));
+    SetTranslationTextParser(CreateTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName()));
 
     //
     // 5. Initialize runtime state of certain game objects

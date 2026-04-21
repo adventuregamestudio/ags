@@ -63,6 +63,8 @@ struct GameSetupStructBase
     int               default_lipsync_frame = 0; // used for unknown chars
     int               inv_hot_sprite = 0;
     int               reserved[NUM_INTS_RESERVED] = { 0 };
+    // Base text parser dictionary, contains parser words in the original game language.
+    // This may be overridden by the parser dictionary read from translation, if one is applied.
     std::unique_ptr<AGS::Common::WordsDictionary> dict;
     std::vector<CharacterInfo> chars;
 
@@ -118,10 +120,10 @@ struct GameSetupStructBase
 
     // Returns a list of game options that must be preserved when restoring a save;
     // NOTE: restricted options are always preserved, so no need to mention them here
-    inline static std::array<int, 1> GetPreservedOptions()
+    inline static std::array<int, 2> GetPreservedOptions()
     {
-        return std::array<int, 1> {{
-            OPT_SAVECOMPONENTSIGNORE
+        return std::array<int, 2> {{
+            OPT_SAVECOMPONENTSIGNORE, OPT_AUTOTRANSPARSERSAID
         }};
     }
 

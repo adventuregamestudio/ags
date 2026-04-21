@@ -336,7 +336,10 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
 }
 
 int IAGSEngine::LookupParserWord (const char *word) {
-    return FindWordInDictionary(String::Wrapper(word));
+    ITextParser *parser = GetBaseTextParser();
+    if (parser)
+        return parser->FindWordInDictionary(String::Wrapper(word));
+    return - 1;
 }
 
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked)

@@ -42,6 +42,7 @@ public:
     typedef std::vector<std::pair<uint16_t, PatternItemFlags>> ParsedPattern;
 
     virtual ~ITextParser() = default;
+    virtual uint16_t FindWordInDictionary(const String &lookfor) const = 0;
     // Parses a simple sentence, e.g. a user input, and converts it to the word ID list
     virtual bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words, String *bad_parsed_word) = 0;
     // Parses input text and converts it into a pattern sequence, that may be matched with a user input
@@ -50,9 +51,13 @@ public:
     virtual bool MatchPattern(const ParsedSentence &input, const ParsedPattern &pattern) = 0;
 };
 
-ITextParser *CreateGameTextParser(AGS::Common::WordsDictionary *dict, bool is_unicode, const String &locale_name);
-ITextParser *GetGameTextParser();
-uint16_t FindWordInDictionary(const String &lookfor);
-//bool parse_sentence(const char *src_text, std::vector<uint16_t> &wordarray, size_t max_words, const std::vector<uint16_t> *compareto, String *bad_parsed_word);
+std::unique_ptr<ITextParser> CreateTextParser(AGS::Common::WordsDictionary *dict, bool is_unicode, const String &locale_name);
+void SetBaseTextParser(std::unique_ptr<ITextParser> parser);
+void SetTranslationTextParser(std::unique_ptr<ITextParser> parser);
+ITextParser *GetBaseTextParser();
+ITextParser *GetTranslationTextParser();
+// Check if src_dict has any word groups that dst_dict does *not* have, and copies them over;
+// does not touch existing word groups in the dst_dict, even if they have different words.
+void MergeParserDictionary(AGS::Common::WordsDictionary *dst_dict, const AGS::Common::WordsDictionary *src_dict);
 
 #endif // __AGS_EE_AC__PARSER_H

@@ -33,11 +33,14 @@ public:
     static const uint16_t RESTOFLINE   = 30000;
     static const uint16_t INVALIDWORD  = UINT16_MAX;
 
+    typedef std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase>
+        MapType;
+
     WordsDictionary() = default;
 
     uint16_t FindWord(const String &word) const;
-    const std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase> &
-        GetWords() const { return _words; }
+    const MapType &GetWords() const { return _words; }
+    MapType &GetWords() { return _words; }
 
     void ReadFromFile(Stream *in);
     void WriteToFile(Stream *out) const;
@@ -45,7 +48,7 @@ public:
 private:
     // Map word to word ID;
     // Text Parser's dictionary is case-insensitive
-    std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase> _words;
+    MapType _words;
 };
 
 } // Common

@@ -1083,7 +1083,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
 {
     if (!apl->library.Load(apl->filename, lookup_dirs))
-        return new Error("Failed to load a dynamic library.");
+        return new Error("Failed to load a dynamic library. (Possible causes: file not found, file not readable, one of the dependencies not found.)");
     
     if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr)
         return new Error("Not a valid AGS plugin, or is an old incompatible version: no 'AGS_PluginV2' function exported.");

@@ -454,11 +454,15 @@ ccInstError ccInstance::CallScriptFunction(const String &funcname, int32_t numar
     if (reterr != kInstErr_None)
         return reterr;
 
-    // NOTE that if proper multithreading is added this will need
-    // to be reconsidered, since the GC could be run in the middle 
-    // of a RET from a function or something where there is an 
-    // object with ref count 0 that is in use
-    pool.RunGarbageCollectionIfAppropriate();
+    // WARNING: we cannot do garbage collection while there are any suspended
+    // scripts, because there are cases when a temporary managed object with
+    // ref count 0 may be waiting on the stack. For example: when a function
+    // call has one argument of managed type, and another is a function that
+    // has a blocking action inside, e.g.: 
+    //    callFunction( doBlockingActionAndReturnResult(), String.Format(...) )
+    //
+    if (InstThreads.size() == 0)
+        pool.RunGarbageCollectionIfAppropriate();
 
     if (new_line_hook)
         new_line_hook(nullptr, 0);

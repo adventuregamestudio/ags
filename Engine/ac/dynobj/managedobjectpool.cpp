@@ -114,7 +114,9 @@ int ManagedObjectPool::RemoveObject(void *address) {
 
 void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 {
-    if (objectCreationCounter <= GARBAGE_COLLECTION_INTERVAL) { return; }
+    if (objectCreationCounter <= GARBAGE_COLLECTION_INTERVAL)
+        return;
+
     RunGarbageCollection();
     objectCreationCounter = 0;
 }

@@ -21,6 +21,7 @@ namespace AGS.Editor
         private TreeViewWithDragDrop _projectTree;
         private TreeNode _lastAddedNode = null;
 		private DateTime _expandedAtTime = DateTime.MinValue;
+        private string _expandedNode = null;
         private string _selectedNode;
 
 
@@ -35,7 +36,6 @@ namespace AGS.Editor
 
             _projectTree.MouseClick += new System.Windows.Forms.MouseEventHandler(this.projectTree_MouseClick);
             _projectTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.projectTree_NodeMouseDoubleClick);
-            _projectTree.DoubleClick += new System.EventHandler(this.projectTree_DoubleClick);
             _projectTree.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.projectTree_AfterLabelEdit);
             _projectTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.projectTree_AfterSelect);
             _projectTree.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.projectTree_KeyPress);
@@ -51,12 +51,14 @@ namespace AGS.Editor
         private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
             _expandedAtTime = DateTime.Now;
+            _expandedNode = e.Node.Name;
 		}
 
 		private void _projectTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
 		{
             _expandedAtTime = DateTime.Now;
-		}
+            _expandedNode = e.Node.Name;
+        }
 
         public void BeginUpdate()
         {
@@ -358,10 +360,6 @@ namespace AGS.Editor
             }
         }
 
-        private void projectTree_DoubleClick(object sender, EventArgs e)
-        {
-        }
-
         private void projectTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
             _selectedNode = e.Node.Name;
@@ -372,19 +370,24 @@ namespace AGS.Editor
             }
         }
 
-		private bool HasANodeJustBeenExpanded()
+		private string HasANodeJustBeenExpanded()
 		{
-			return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200);
-		}
+            return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200) ?
+                _expandedNode : null;
+        }
 
         private void projectTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+            string expandedNode = HasANodeJustBeenExpanded();
+            if (expandedNode != null && expandedNode != e.Node.Name)
+                return; // different node expanded, so dont react on double click
+
             ProjectTreeItem treeItem = e.Node.Tag as ProjectTreeItem;
             bool acceptDoubleClickWhenExpanding = (treeItem != null && treeItem.AllowDoubleClickWhenExpanding);
-			if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
-			{
-				ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
-			}
+            if (acceptDoubleClickWhenExpanding || expandedNode == null)
+            {
+	            ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
+            }
         }
 
         private void projectTree_KeyPress(object sender, KeyPressEventArgs e)

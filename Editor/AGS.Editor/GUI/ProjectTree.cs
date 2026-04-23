@@ -21,6 +21,7 @@ namespace AGS.Editor
         private TreeViewWithDragDrop _projectTree;
         private TreeNode _lastAddedNode = null;
 		private DateTime _expandedAtTime = DateTime.MinValue;
+        private string _expandedNode = null;
         private string _selectedNode;
 
 
@@ -35,7 +36,6 @@ namespace AGS.Editor
 
             _projectTree.MouseClick += projectTree_MouseClick;
             _projectTree.NodeMouseDoubleClick += projectTree_NodeMouseDoubleClick;
-            _projectTree.DoubleClick += projectTree_DoubleClick;
             _projectTree.AfterLabelEdit += projectTree_AfterLabelEdit;
             _projectTree.AfterSelect += projectTree_AfterSelect;
             _projectTree.KeyPress += projectTree_KeyPress;
@@ -52,12 +52,14 @@ namespace AGS.Editor
         private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
             _expandedAtTime = DateTime.Now;
+            _expandedNode = e.Node.Name;
 		}
 
 		private void _projectTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
 		{
             _expandedAtTime = DateTime.Now;
-		}
+            _expandedNode = e.Node.Name;
+        }
 
         public void BeginUpdate()
         {
@@ -359,10 +361,6 @@ namespace AGS.Editor
             }
         }
 
-        private void projectTree_DoubleClick(object sender, EventArgs e)
-        {
-        }
-
         private void projectTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
             _selectedNode = e.Node.Name;
@@ -373,22 +371,28 @@ namespace AGS.Editor
             }
         }
 
-		private bool HasANodeJustBeenExpanded()
+		private string HasANodeJustBeenExpanded()
 		{
-			return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200);
-		}
+            return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200) ?
+                _expandedNode : null;
+        }
 
         private void projectTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            ProjectTreeItem treeItem = _projectTree.SelectedNode.Tag as ProjectTreeItem;
+            ProjectTreeItem treeItem = _projectTree.SelectedNode?.Tag as ProjectTreeItem;
             ProjectTreeItem treeItemReleased = e.Node.Tag as ProjectTreeItem; // this may not be where we started the double click
-            if (treeItem != treeItemReleased) return; // user doubleclicked and dragged away somewhere else, cancel the action
+            if (treeItem != treeItemReleased)
+                return; // user doubleclicked and dragged away somewhere else, cancel the action
+
+            string expandedNode = HasANodeJustBeenExpanded();
+            if (expandedNode != null && expandedNode != e.Node.Name)
+                return; // different node expanded, so dont react on double click
 
             bool acceptDoubleClickWhenExpanding = (treeItem != null && treeItem.AllowDoubleClickWhenExpanding);
-			if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
-			{
-				ProcessClickOnNode(treeItem.TreeNode.Name, MouseButtons.Left);
-			}
+            if (acceptDoubleClickWhenExpanding || expandedNode == null)
+            {
+                ProcessClickOnNode(treeItem.TreeNode.Name, MouseButtons.Left);
+            }
         }
 
         private void projectTree_KeyPress(object sender, KeyPressEventArgs e)

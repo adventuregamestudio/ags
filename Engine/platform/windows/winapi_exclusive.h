@@ -30,12 +30,16 @@ typedef unsigned short      WORD;
 typedef char                CHAR;
 #define CONST               const
 typedef CONST CHAR *LPCSTR, *PCSTR;
+typedef wchar_t             WCHAR;
+typedef WCHAR               *LPWSTR;
+typedef const WCHAR         *LPCWSTR;
 
 #define DECLSPEC_IMPORT __declspec(dllimport)
 #define WINBASEAPI DECLSPEC_IMPORT
 #define WINAPI __stdcall
 
 typedef void *PVOID;
+typedef CONST void *LPCVOID;
 typedef PVOID HANDLE;
 typedef HANDLE HINSTANCE;
 typedef HANDLE HMODULE;

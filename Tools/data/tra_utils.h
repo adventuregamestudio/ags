@@ -29,6 +29,9 @@ using AGS::Common::String;
 using AGS::Common::Translation;
 
 // Parses a TRS format and fills Translation data
+// TODO: Translation is a final runtime data struct, but there have to be a
+// separate struct for representing TRS contents, including list of annotations
+// per trs item, user comments, etc. This would allow to save TRS back as-is.
 HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in);
 HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out);
 

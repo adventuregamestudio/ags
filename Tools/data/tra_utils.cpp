@@ -27,16 +27,20 @@ namespace DataUtil
 // TRA - original translation source a in text format
 //-----------------------------------------------------------------------------
 
-const String NORMAL_FONT_TAG("NormalFont");
-const String SPEECH_FONT_TAG("SpeechFont");
-const String TEXT_DIRECTION_TAG("TextDirection");
-const String ENCODING_TAG("Encoding");
-const String GAMEENCODING_TAG("GameEncoding");
-const String LANGUAGE_TAG("Language");
-const String FONT_OVERRIDE_TAG("Font");
-const char *TAG_DEFAULT = "DEFAULT";
-const char *TAG_DIRECTION_LEFT = "LEFT";
-const char *TAG_DIRECTION_RIGHT = "RIGHT";
+const String NORMAL_FONT_TAG = "NormalFont";
+const String SPEECH_FONT_TAG = "SpeechFont";
+const String TEXT_DIRECTION_TAG = "TextDirection";
+const String AUTO_PARSERSAID_TAG = "AutoTranslateParserSaid";
+const String ENCODING_TAG = "Encoding";
+const String GAMEENCODING_TAG = "GameEncoding";
+const String LANGUAGE_TAG = "Language";
+const String FONT_OVERRIDE_TAG = "Font";
+const String TAG_DEFAULT = "DEFAULT";
+const String TAG_DIRECTION_LEFT = "LEFT";
+const String TAG_DIRECTION_RIGHT = "RIGHT";
+const String TAG_ON = "ON";
+const String TAG_OFF = "OFF";
+const String ANNOTATE_PARSERWORD = "PARSERWORD";
 
 static int ReadOptionalInt(const String &text)
 {
@@ -193,7 +197,10 @@ static void ReadSpecialTags(Translation &tra, const String &line)
             tra.RightToLeft = -1;
         }
     }
-    // TODO: make a generic dictionary instead and save any option
+    else if (key == AUTO_PARSERSAID_TAG)
+    {
+        tra.OptFlags |= kTraOpt_AutoTranslateSaid;
+    }
     else if (key == ENCODING_TAG)
     {
         tra.StrOptions["encoding"] = value;
@@ -220,25 +227,90 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     }
 }
 
+// This is a result of parsing translation item annotations,
+// contains only known item options, no custom annotations are saved
+struct TraItemOptions
+{
+    // Text Parser's word ID, which this translation item corresponds to.
+    // -1 if does not correspond to any.
+    int ParserWordID = -1;
+};
+
+TraItemOptions ParseItemOptions(const std::vector<String> &annotations)
+{
+    TraItemOptions options;
+
+    // Parse for known annotations
+    for (const auto &annotation : annotations)
+    {
+        const auto key_value = StrUtil::GetKeyValue(annotation);
+        const String key = key_value.first;
+        const String value = key_value.second;
+
+        if (key == ANNOTATE_PARSERWORD)
+        {
+            options.ParserWordID = StrUtil::StringToInt(value, -1);
+        }
+    }
+
+    return options;
+}
+
+void AddParserWords(WordsDictionary &dict, const String &line, uint16_t word_id)
+{
+    const auto words = line.Split(',');
+    for (const auto &word : words)
+    {
+        String word_fixed = word;
+        word_fixed.Trim();
+        if (!word_fixed.IsNullOrSpace())
+            dict.GetWords().insert(std::make_pair(word_fixed, word_id));
+    }
+}
+
 HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
 {
-    TextStreamReader sr(std::move(in));
+    // TODO: We meed a separate struct for representing TRS contents, including
+    // list of annotations per trs item, user comments, etc. This would allow
+    // to save TRS back as-is.
 
-    String line;
-    for (line = sr.ReadLine(); !sr.EOS(); line = sr.ReadLine())
+    TextStreamReader sr(std::move(in));
+    std::vector<String> annotate_next_line;
+
+    for (String line = sr.ReadLine(); !sr.EOS(); line = sr.ReadLine())
     {
         if (line.StartsWith("//"))
         {
             if (line.GetLength() > 2 && line[2] == '#')
+            {
                 ReadSpecialTags(tra, line.Mid(3));
+            }
+            else if (line.GetLength() > 2 && line[2] == '$')
+            {
+                annotate_next_line.push_back(line.Mid(3));
+            }
             continue;
         }
+
         String src = line;
         String dst = sr.ReadLine();
-        // TODO: warn about duplicates
-        if (tra.Dict.count(src) == 0)
+        if (!src.IsEmpty() && !dst.IsEmpty())
         {
-            tra.Dict.insert(std::make_pair(src, dst));
+            // Currently doing item split into categories in-place
+            // TODO: save all items + annotations in a TRS contents struct, and split them up
+            // as a conversion between this TRS struct and Translation struct.
+            TraItemOptions options;
+            if (annotate_next_line.size() > 0)
+            {
+                options = ParseItemOptions(annotate_next_line);
+                annotate_next_line.clear();
+            }
+
+            if (options.ParserWordID >= 0)
+                AddParserWords(tra.ParserDict, dst, options.ParserWordID);
+            // TODO: warn about duplicates
+            else if (tra.Dict.count(src) == 0)
+                tra.Dict.insert(std::make_pair(src, dst));
         }
     }
 

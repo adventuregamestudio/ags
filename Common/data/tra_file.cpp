@@ -283,6 +283,11 @@ void WriteDict(const Translation &tra, Stream *out)
     StrUtil::WriteString(EncryptEmptyString(en_buf), 1, out);
 }
 
+void WriteParserDict(const Translation &tra, Stream *out)
+{
+    tra.ParserDict.WriteToFile(out);
+}
+
 void WriteTextOpts(const Translation &tra, Stream *out)
 {
     out->WriteInt32(tra.NormalFont);
@@ -353,6 +358,10 @@ void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)
     // Write all blocks
     WriteTraBlock(tra, kTraFblk_GameID, WriteGameID, out.get());
     WriteTraBlock(tra, kTraFblk_Dict, WriteDict, out.get());
+    if (tra.ParserDict.GetWords().size() > 0)
+    {
+        WriteTraBlock(tra, "ext_parserdict", WriteParserDict, out.get());
+    }
     WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out.get());
     WriteTraBlock(tra, "ext_sopts", WriteStrOptions, out.get());
     if (tra.FontOverrides.size() > 0)

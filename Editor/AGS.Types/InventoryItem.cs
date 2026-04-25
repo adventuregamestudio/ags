@@ -152,7 +152,11 @@ namespace AGS.Types
         public string ScriptModule
         {
             get { return _scriptModule; }
-            set { _scriptModule = value; }
+            set
+            {
+                _scriptModule = value;
+                _interactions.ScriptModule = value;
+            }
         }
 
         [AGSNoSerialize()]

@@ -455,6 +455,18 @@ namespace AGS.Editor
                         cursor.EventFunctionName = cursorDefs[cursor.ID].FunctionName;
                     }
                 }
+
+                // Script Modules were added to object classes directly
+                // (previously were in Interactions class)
+                foreach (Character c in game.Characters)
+                {
+                    c.ScriptModule = c.Interactions.ScriptModule;
+                }
+                foreach (InventoryItem i in game.InventoryItems)
+                {
+                    i.ScriptModule = i.Interactions.ScriptModule;
+                }
+                // GUIs already had ScriptModule in their class, so no update is necessary
             }
 
             if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))

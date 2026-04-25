@@ -2446,7 +2446,7 @@ namespace AGS.Editor
 
             // GUIs collection stores 2 types of guis, one of which does not have any events,
             // so for simplicity sake we construct a list where these are replaced with nulls
-            var onlyNormalGUIs = ents.Game.GUIs.Select(g => g is NormalGUI ? g : null).ToList();
+            var onlyNormalGUIs = ents.Game.GUIs.Select(g => (g is NormalGUI ? g : null) as NormalGUI).ToList();
             SerializeEventsTables(onlyNormalGUIs, writer);
             // GUI controls
             SerializeEventsTables(ents.GUIControls.GUIButtons, writer);

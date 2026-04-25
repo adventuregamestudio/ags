@@ -34,6 +34,7 @@ public:
     // Generates a managed Room object from the room data;
     // this does not include backgrounds and masks, they are retrieved using
     // separate respective methods.
+    // CHECKME: why do we have to pass room number here, does not native room data has a room number?
     AGS::Types::Room^ ConvertToManagedRoom(int roomNumber, System::Text::Encoding ^defEncoding);
     // Gets respective room background as a .NET Bitmap
     System::Drawing::Bitmap ^GetBackground(int bgnum);

@@ -266,6 +266,8 @@ namespace AGS
 
         TextConverter^ NativeMethods::GetGameTextConverter()
         {
+            if (_gameTextConverter == nullptr)
+                _gameTextConverter = gcnew TextConverter(System::Text::Encoding::UTF8);
             return _gameTextConverter;
         }
 

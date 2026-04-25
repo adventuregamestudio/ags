@@ -3127,7 +3127,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
     room->Height = rs.Height;
-    room->ColorDepth = rs.BgFrames[0].Graphic->GetColorDepth();
+    room->ColorDepth = rs.BackgroundBPP * 8; // bytes => bits per pixel
     room->BackgroundAnimationDelay = rs.BgAnimSpeed;
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
@@ -3285,7 +3285,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
         CompileCustomProperties(obj->Properties, &robj.Properties);
     }
 
-	rs.HotspotCount = room->Hotspots->Count;
+	rs.HotspotCount = std::min<int>(room->Hotspots->Count, MAX_ROOM_HOTSPOTS);
 	for (size_t i = 0; i < rs.HotspotCount; ++i)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
@@ -3296,7 +3296,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		CompileCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
 	}
 
-	rs.WalkAreaCount = room->WalkableAreas->Count;
+	rs.WalkAreaCount = std::min<int>(room->WalkableAreas->Count, MAX_WALK_AREAS);
 	for (size_t i = 0; i < rs.WalkAreaCount; ++i)
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
@@ -3317,14 +3317,14 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
         CompileCustomProperties(area->Properties, &rs.WalkAreas[i].Properties);
 	}
 
-	rs.WalkBehindCount = room->WalkBehinds->Count;
+	rs.WalkBehindCount = std::min<int>(room->WalkBehinds->Count, MAX_WALK_BEHINDS);
 	for (size_t i = 0; i < rs.WalkBehindCount; ++i)
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		rs.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
-	rs.RegionCount = room->Regions->Count;
+	rs.RegionCount = std::min<int>(room->Regions->Count, MAX_ROOM_REGIONS);
 	for (size_t i = 0; i < rs.RegionCount; ++i)
 	{
 		RoomRegion ^area = room->Regions[i];
@@ -3420,7 +3420,8 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         rs.GetEvents().SetHandlers(events);
     }
 
-    for (int i = 0; i < room->Hotspots->Count; ++i)
+    const int hotspot_count = std::min<int>(room->Hotspots->Count, MAX_ROOM_HOTSPOTS);
+    for (int i = 0; i < hotspot_count; ++i)
     {
         RoomHotspot ^hotspot = room->Hotspots[i];
         auto &native_hotspot = rs.Hotspots[i];
@@ -3445,7 +3446,8 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
         };
         native_object.GetEvents().SetHandlers(events);
     }
-    for (int i = 0; i < room->Regions->Count; ++i)
+    const int region_count = std::min<int>(room->Regions->Count, MAX_ROOM_REGIONS);
+    for (int i = 0; i < region_count; ++i)
     {
         RoomRegion ^region = room->Regions[i];
         auto &native_region = rs.Regions[i];

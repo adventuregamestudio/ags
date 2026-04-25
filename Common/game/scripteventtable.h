@@ -275,24 +275,16 @@ struct ScriptEventTable : public ScriptEventsBase
     ScriptEventTable &operator =(const ScriptEventTable &events)
     {
         _schema = events._schema;
-        return (*this = static_cast<const ScriptEventsBase&>(events));
+        _scriptModule = events._scriptModule;
+        _handlers = events._handlers;
+        return *this;
     }
 
     ScriptEventTable &operator =(ScriptEventTable &&events)
     {
         _schema = std::move(events._schema);
-        return (*this = std::move(static_cast<ScriptEventsBase&>(events)));
-    }
-
-    ScriptEventTable &operator =(const ScriptEventHandlers &events)
-    {
-        static_cast<ScriptEventsBase&>(*this) = events;
-        return *this;
-    }
- 
-    ScriptEventTable &operator =(ScriptEventHandlers &&events)
-    {
-        static_cast<ScriptEventsBase&>(*this) = std::move(events);
+        _scriptModule = std::move(events._scriptModule);
+        _handlers = std::move(events._handlers);
         return *this;
     }
 
@@ -304,13 +296,16 @@ struct ScriptEventTable : public ScriptEventsBase
     // Assigns a index-based Handlers list, copying from the provided list and keeping indexes;
     // if any index exceeds the schema, these handlers are ignored.
     void SetHandlers(const std::vector<ScriptEventHandler> &handlers);
-    void SetHandlers(const ScriptEventHandlers &handlers)
-    {
-        SetHandlers(handlers.GetHandlers());
-    }
     // Generates a index-based Handlers list based on provided events map,
     // using internal schema to remap handlers to our inner indexes.
     void SetHandlers(const StringMap &evt_handlers);
+    // Assigns a event handlers table, copying both ScriptModule reference, and the list of
+    // script functions, while keeping event indexes.
+    void SetHandlers(const ScriptEventHandlers &handlers)
+    {
+        SetScriptModule(handlers.GetScriptModule());
+        SetHandlers(handlers.GetHandlers());
+    }
 
     // Read the list of event handlers
     HError Read(Stream *in);
@@ -319,7 +314,7 @@ struct ScriptEventTable : public ScriptEventsBase
 private:
     void ResetHandlers();
 
-    const ScriptEventSchema * _schema = nullptr;
+    const ScriptEventSchema *_schema = nullptr;
     static ScriptEventSchema _defaultSchema;
 };
 

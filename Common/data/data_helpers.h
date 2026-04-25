@@ -58,9 +58,9 @@ HError ReadScriptEventsTablesForObjects(TObjIter begin, TObjIter end, const char
     if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(obj_count), err))
         return err;
 
-    ScriptEventHandlers handlers;
     for (size_t i = 0; i < obj_count; ++i)
     {
+        ScriptEventHandlers handlers;
         err = handlers.Read(in);
         if (!err)
             return err;

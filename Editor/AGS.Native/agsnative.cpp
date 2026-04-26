@@ -3132,6 +3132,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
     room->MaskResolution = rs.MaskResolution;
+    room->FaceDirectionRatio = rs.Options.FaceDirectionRatio;
 
     for (size_t i = 0; i < rs.Objects.size(); ++i) 
     {
@@ -3246,17 +3247,19 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.GameID = room->GameID;
 	rs.Edges.Bottom = room->BottomEdgeY;
 	rs.Edges.Left = room->LeftEdgeX;
-	rs.Options.PlayerView = room->PlayerCharacterView;
 	rs.Edges.Right = room->RightEdgeX;
-	rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
 	rs.Edges.Top = room->TopEdgeY;
+    rs.BackgroundBPP = (room->ColorDepth + 7) / 8;
 	rs.Width = room->Width;
 	rs.Height = room->Height;
 	rs.BgAnimSpeed = room->BackgroundAnimationDelay;
 	rs.BgFrameCount = room->BackgroundCount;
     rs.Options.Flags = 0;
+    rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
+    rs.Options.PlayerView = room->PlayerCharacterView;
     if (!room->BackgroundAnimationEnabled)
         rs.Options.Flags |= kRoomFlag_BkgFrameLocked;
+    rs.Options.FaceDirectionRatio = room->FaceDirectionRatio;
 
     rs.Objects.resize(room->Objects->Count);
     for (size_t i = 0; i < rs.Objects.size(); ++i)

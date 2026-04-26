@@ -201,7 +201,7 @@ public:
 
     // Provides a script events table
     const ScriptEventTable &GetEvents() const { return _events; }
-    AGS::Common::ScriptEventTable &GetEvents() { return _events; }
+    ScriptEventTable &GetEvents() { return _events; }
     // Clears all handlers from assigned functions
     void ClearEventHandlers() { _events.ClearHandlers(); }
 

@@ -2635,20 +2635,6 @@ const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game)
 	return charScriptNameBuf;
 }
 
-void CopyInteractions(AGS::Types::Interactions ^destination, const AGS::Common::ScriptEventHandlers &source)
-{
-    //destination->ScriptModule = TextHelper::ConvertASCII(source->ScriptModule);
-    // FIXME: update to the new Interactions struct
-    /*
-    size_t evt_count = std::min(source->Events.size(), (size_t)destination->ScriptFunctionNames->Length);
-    // TODO: add a warning? if warning list would be passed in here
-	for (size_t i = 0; i < evt_count; i++)
-	{
-		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->Events[i].FunctionName);
-	}
-    */
-}
-
 // Load compiled game's main data file and use it to create AGS::Types::Game.
 // TODO: originally this function was meant import strictly 2.72 games;
 // although technically it can now load game files of any version, more work is
@@ -3105,6 +3091,8 @@ System::String ^load_room_script(System::String ^fileName)
 	return gcnew String(scriptText.GetCStr(), 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }
 
+void convert_room_interactions_from_native(const RoomStruct &rs, Room ^room, TextConverter ^tcv);
+
 void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::Encoding ^defEncoding)
 {
     // Use local converter to account for room encoding (could be imported from another game)
@@ -3157,8 +3145,6 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         obj->GraphicAnchor = GraphicAnchor(robj.GraphicAnchor.X, robj.GraphicAnchor.Y);
         obj->GraphicOffset = System::Drawing::Point(robj.GraphicOffset.X, robj.GraphicOffset.Y);
         ConvertCustomProperties(obj->Properties, &robj.Properties);
-        // FIXME - update to the new events
-        CopyInteractions(obj->Interactions, robj.Interactions);
 
         room->Objects->Add(obj);
     }
@@ -3170,8 +3156,6 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		hotspot->Description = tcv->Convert(rs.Hotspots[i].Name);
 		hotspot->Name = TextHelper::ConvertASCII(rs.Hotspots[i].ScriptName);
         hotspot->WalkToPoint = System::Drawing::Point(rs.Hotspots[i].WalkTo.X, rs.Hotspots[i].WalkTo.Y);
-        // FIXME - update to the new events
-		CopyInteractions(hotspot->Interactions, rs.Hotspots[i].Interactions);
         ConvertCustomProperties(hotspot->Properties, &rs.Hotspots[i].Properties);
 	}
 
@@ -3223,12 +3207,11 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
         ConvertCustomProperties(area->Properties, &rs.Regions[i].Properties);
-        // FIXME - update to the new events
-        CopyInteractions(area->Interactions, rs.Regions[i].Interactions);
 	}
 
 	ConvertCustomProperties(room->Properties, &rs.Properties);
-	CopyInteractions(room->Interactions, rs.Interactions);
+
+    convert_room_interactions_from_native(rs, room, tcv);
 }
 
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs);
@@ -3375,7 +3358,7 @@ void save_default_crm_file(Room ^room)
     save_room_file(rs, roomFileName);
 }
 
-void convert_interaction_scripts(Interactions ^interactions, ScriptEventHandlers &native_inter)
+void convert_interaction_scripts_to_native(Interactions ^interactions, ScriptEventHandlers &native_inter)
 {
     native_inter.SetScriptModule(TextHelper::ConvertASCII(interactions->ScriptModule));
     std::vector<AGS::Common::ScriptEventHandler> handlers;
@@ -3404,9 +3387,28 @@ void convert_interaction_scripts(Interactions ^interactions, ScriptEventHandlers
     native_inter.SetHandlers(std::move(handlers));
 }
 
+void convert_interaction_scripts_from_native(const ScriptEventHandlers &native_inter, Interactions ^interactions)
+{
+    interactions->ScriptModule = TextHelper::ConvertASCII(native_inter.GetScriptModule());
+    const auto &handlers = native_inter.GetHandlers();
+
+    cli::array<InteractionEvent ^> ^events = interactions->Schema->Events;
+    for (int cur_index = 0; cur_index < handlers.size(); ++cur_index)
+    {
+        // Find this interaction in a Schema, and assign the function under respective UID to ScriptFunctionNames
+        for (int evt_index = 0; evt_index < events->Length; ++evt_index)
+        {
+            if (events[evt_index]->Index == cur_index)
+            {
+                interactions->ScriptFunctionNames->Add(events[evt_index]->UID, TextHelper::ConvertASCII(handlers[cur_index].FunctionName));
+            }
+        }
+    }
+}
+
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
 {
-    convert_interaction_scripts(room->Interactions, rs.Interactions);
+    convert_interaction_scripts_to_native(room->Interactions, rs.Interactions);
     {
         std::unordered_map<AGSString, AGSString> events = {
             { "OnAfterFadeIn",      TextHelper::ConvertASCII(room->OnAfterFadeIn) },
@@ -3428,7 +3430,7 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
     {
         RoomHotspot ^hotspot = room->Hotspots[i];
         auto &native_hotspot = rs.Hotspots[i];
-        convert_interaction_scripts(hotspot->Interactions, native_hotspot.Interactions);
+        convert_interaction_scripts_to_native(hotspot->Interactions, native_hotspot.Interactions);
 
         std::unordered_map<AGSString, AGSString> events = {
             { "OnAnyClick",         TextHelper::ConvertASCII(hotspot->OnAnyClick) },
@@ -3441,7 +3443,7 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
     {
         RoomObject ^object = room->Objects[i];
         auto &native_object = rs.Objects[i];
-        convert_interaction_scripts(object->Interactions, native_object.Interactions);
+        convert_interaction_scripts_to_native(object->Interactions, native_object.Interactions);
 
         std::unordered_map<AGSString, AGSString> events = {
             { "OnAnyClick",         TextHelper::ConvertASCII(object->OnAnyClick) },
@@ -3454,7 +3456,7 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
     {
         RoomRegion ^region = room->Regions[i];
         auto &native_region = rs.Regions[i];
-        convert_interaction_scripts(region->Interactions, native_region.Interactions);
+        convert_interaction_scripts_to_native(region->Interactions, native_region.Interactions);
 
         std::unordered_map<AGSString, AGSString> events = {
             { "OnStanding",         TextHelper::ConvertASCII(region->OnStanding) },
@@ -3462,6 +3464,69 @@ void convert_room_interactions_to_native(Room ^room, RoomStruct &rs)
             { "OnWalksOnto",        TextHelper::ConvertASCII(region->OnWalksOnto) }
         };
         native_region.GetEvents().SetHandlers(events);
+    }
+}
+
+using AGS::Common::RoomEventID;
+
+inline String^ GetEventFn(const ScriptEventTable &events, int event_id)
+{
+    return TextHelper::ConvertASCII(events.GetHandler(event_id).FunctionName);
+}
+
+void convert_room_interactions_from_native(const RoomStruct &rs, Room ^room, TextConverter ^tcv)
+{
+    convert_interaction_scripts_from_native(rs.Interactions, room->Interactions);
+    {
+        const auto &events = rs.GetEvents();
+        room->OnAfterFadeIn     = GetEventFn(events, AGS::Common::kRoomEvent_AfterFadein);
+        room->OnFirstTimeEnter  = GetEventFn(events, AGS::Common::kRoomEvent_FirstEnter);
+        room->OnLeave           = GetEventFn(events, AGS::Common::kRoomEvent_BeforeFadeout);
+        room->OnLeaveBottom     = GetEventFn(events, AGS::Common::kRoomEvent_EdgeBottom);
+        room->OnLeaveLeft       = GetEventFn(events, AGS::Common::kRoomEvent_EdgeLeft);
+        room->OnLeaveRight      = GetEventFn(events, AGS::Common::kRoomEvent_EdgeRight);
+        room->OnLeaveTop        = GetEventFn(events, AGS::Common::kRoomEvent_EdgeTop);
+        room->OnLoad            = GetEventFn(events, AGS::Common::kRoomEvent_BeforeFadein);
+        room->OnRepExec         = GetEventFn(events, AGS::Common::kRoomEvent_Repexec);
+        room->OnUnload          = GetEventFn(events, AGS::Common::kRoomEvent_AfterFadeout);
+    }
+
+    const int hotspot_count = std::min<int>(room->Hotspots->Count, MAX_ROOM_HOTSPOTS);
+    for (int i = 0; i < hotspot_count; ++i)
+    {
+        RoomHotspot ^hotspot = room->Hotspots[i];
+        auto &native_hotspot = rs.Hotspots[i];
+        convert_interaction_scripts_from_native(native_hotspot.Interactions, hotspot->Interactions);
+        {
+            const auto &events = native_hotspot.GetEvents();
+            hotspot->OnAnyClick = GetEventFn(events, AGS::Common::kHotspotEvent_AnyClick);
+            hotspot->OnMouseMove = GetEventFn(events, AGS::Common::kHotspotEvent_MouseOver);
+            hotspot->OnWalkOn = GetEventFn(events, AGS::Common::kHotspotEvent_StandOn);
+        }
+    }
+    for (int i = 0; i < room->Objects->Count; ++i)
+    {
+        RoomObject ^object = room->Objects[i];
+        auto &native_object = rs.Objects[i];
+        convert_interaction_scripts_from_native(native_object.Interactions, object->Interactions);
+        {
+            const auto &events = native_object.GetEvents();
+            object->OnAnyClick = GetEventFn(events, AGS::Common::kRoomObjectEvent_AnyClick);
+            object->OnFrameEvent = GetEventFn(events, AGS::Common::kRoomObjectEvent_OnFrameEvent);
+        }
+    }
+    const int region_count = std::min<int>(room->Regions->Count, MAX_ROOM_REGIONS);
+    for (int i = 0; i < region_count; ++i)
+    {
+        RoomRegion ^region = room->Regions[i];
+        auto &native_region = rs.Regions[i];
+        convert_interaction_scripts_from_native(native_region.Interactions, region->Interactions);
+        {
+            const auto &events = native_region.GetEvents();
+            region->OnStanding = GetEventFn(events, AGS::Common::kRegionEvent_Standing);
+            region->OnWalksOff = GetEventFn(events, AGS::Common::kRegionEvent_WalkOff);
+            region->OnWalksOnto = GetEventFn(events, AGS::Common::kRegionEvent_WalkOn);
+        }
     }
 }
 

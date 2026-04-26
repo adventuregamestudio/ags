@@ -219,21 +219,9 @@ namespace AGS.Editor.Components
 
         private void SyncCursorsWithInteractionSchema()
         {
-            // TODO: maybe don't reset everything every time, but only do necessary change to the list
             var cursors = _agsEditor.CurrentGame.Cursors;
             var schema = InteractionSchema.Instance;
-            List<InteractionEvent> events = new List<InteractionEvent>();
-            foreach (var cursor in cursors)
-            {
-                if (cursor.CreateEvent)
-                {
-                    string eventName = Types.Utilities.RemoveInvalidCharactersFromScriptName(cursor.Name);
-                    string displayName = string.IsNullOrWhiteSpace(cursor.EventLabel) ? cursor.Name : cursor.EventLabel;
-                    string functionSuffix = string.IsNullOrWhiteSpace(cursor.EventFunctionName) ? eventName : cursor.EventFunctionName;
-                    events.Add(new InteractionEvent(cursor.ID, cursor.EventUID, eventName, displayName, functionSuffix));
-                }
-            }
-            schema.Events = events.ToArray();
+            Tasks.SyncCursorsWithInteractionSchema(cursors, schema);
         }
     }
 }

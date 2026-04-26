@@ -2848,6 +2848,13 @@ namespace AGS.Editor.Components
                 Utilities.SafeMoveDirectoryFiles(UnloadedRoom.ROOM_DIRECTORY, backupRootDir);
             }
 
+            // Must sync the Interactions Schema with the Game Cursors, as conversion from native room format
+            // requires a proper Schema to remap the interaction events.
+            // This of course assumes that the Cursors have been already loaded and upgraded as necessary.
+            var cursors = game.Cursors;
+            var schema = InteractionSchema.Instance;
+            Tasks.SyncCursorsWithInteractionSchema(cursors, schema);
+
             // Now upgrade
             object progressLock = new object();
             int progressCounter = 0;

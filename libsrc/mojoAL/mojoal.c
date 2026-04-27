@@ -1461,6 +1461,11 @@ static ALboolean mix_source_buffer(ALCcontext *ctx, ALsource *src, BufferQueueIt
             const int mixframes = SDL_min(framesneeded, framesavail);
             mix_buffer(src, buffer, src->panning, data, *stream, mixframes);
             src->offset += mixframes * bufferframesize;
+            /* workaround in case remains are less than bufferframesize:
+               in this case it's easier to just skip the remaining sample */
+            if ((src->offset < buffer->len) && ((buffer->len - src->offset) < bufferframesize)) {
+                src->offset = buffer->len;
+            }
             *len -= mixframes * deviceframesize;
             *stream += mixframes * ctx->device->channels;
         }

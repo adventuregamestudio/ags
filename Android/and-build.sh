@@ -5,6 +5,13 @@ set -e
 # if statement, part of a && or || list, or if the command's return status
 # is being inverted using !.
 
+# FIX-ME: turns out tar doesn't actually creates zip file, it is creating
+# a fake zip that is actually a tar file. I need to remake the zip as a
+# function like in and-download-sdk-tools.sh, but figure a different
+# strategy from strip-components, which doesn't exist in the zip tool.
+# For now, just install libarchive-tools on the ubuntu in the ci.
+# This works on Windows because its tar is actually bsdtar.
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 TAR_CMD="bsdtar"
 command -v bsdtar >/dev/null 2>&1 || { TAR_CMD="tar" ; }

@@ -742,7 +742,7 @@ jobs:
         run: |
           mkdir Windows\Installer\Source\Docs
           cd Windows\Installer\Source\Docs
-          curl -fLOJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/${{env.MANUAL_ASSET}} -o ags-help.chm
+          curl -fLJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/${{env.MANUAL_ASSET}} -o ags-help.chm
 
       - name: Download AGS templates
         shell: cmd

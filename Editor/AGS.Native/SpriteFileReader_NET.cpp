@@ -31,21 +31,23 @@ namespace Native
 SpriteFileReader::SpriteFileReader(System::String ^filename)
 {
     AGSString fn = TextHelper::ConvertUTF8(filename);
-    std::unique_ptr<AGSStream> out(AGS::Common::File::OpenFileRead(fn));
+    std::unique_ptr<AGSStream> in(AGS::Common::File::OpenFileRead(fn));
     _nativeReader = new AGS::Common::SpriteFile();
     _metrics = new std::vector<Size>();
-    _nativeReader->OpenFile(std::move(out), std::unique_ptr<AGSStream>(), *_metrics);
+    if (in)
+        _nativeReader->OpenFile(std::move(in), std::unique_ptr<AGSStream>(), *_metrics);
 }
 
 SpriteFileReader::SpriteFileReader(System::String ^spritesetFilename, System::String ^indexFilename)
 {
     AGSString fn = TextHelper::ConvertUTF8(spritesetFilename);
     AGSString index_fn = TextHelper::ConvertUTF8(indexFilename);
-    std::unique_ptr<AGSStream> out_sprfile(AGS::Common::File::OpenFileRead(fn));
-    std::unique_ptr<AGSStream> out_index(AGS::Common::File::OpenFileRead(index_fn));
+    std::unique_ptr<AGSStream> in_sprfile(AGS::Common::File::OpenFileRead(fn));
+    std::unique_ptr<AGSStream> in_index(AGS::Common::File::OpenFileRead(index_fn));
     _nativeReader = new AGS::Common::SpriteFile();
     _metrics = new std::vector<Size>();
-    _nativeReader->OpenFile(std::move(out_sprfile), std::move(out_index), *_metrics);
+    if (in_sprfile)
+        _nativeReader->OpenFile(std::move(in_sprfile), std::move(in_index), *_metrics);
 }
 
 SpriteFileReader::!SpriteFileReader()

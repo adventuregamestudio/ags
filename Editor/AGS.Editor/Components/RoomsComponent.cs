@@ -1745,7 +1745,8 @@ namespace AGS.Editor.Components
 				}
 			}
 
-            UnloadCurrentRoomAndGreyOutTree();
+            if (_loadedRoom != null)
+                _guiController.Invoke(new Action(() => { UnloadCurrentRoomAndGreyOutTree(); }));
 
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {

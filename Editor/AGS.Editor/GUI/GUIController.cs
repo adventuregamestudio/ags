@@ -195,13 +195,30 @@ namespace AGS.Editor
             ShowMessage(message, icon);
         }
 
-        public DialogResult ShowQuestion(string message)
+        public DialogResult ShowQuestion(string message, DialogResult defaultResult = DialogResult.Yes)
         {
-            return ShowQuestion(message, MessageBoxIcon.Question);
+            return ShowQuestion(message, MessageBoxIcon.Question, defaultResult);
         }
 
-        public DialogResult ShowQuestion(string message, MessageBoxIcon icon)
+        public DialogResult ShowQuestion(string message, MessageBoxIcon icon, DialogResult defaultResult = DialogResult.Yes)
         {
+            if (StdConsoleWriter.IsEnabled)
+            {
+                StdConsoleWriter.WriteLine(message);
+                switch (defaultResult)
+                {
+                    case DialogResult.OK:
+                    case DialogResult.Retry:
+                    case DialogResult.Yes:
+                        StdConsoleWriter.WriteLine("\t- Yes");
+                        break;
+                    default:
+                        StdConsoleWriter.WriteLine("\t- No");
+                        break;
+                }
+                return defaultResult;
+            }
+
             return MessageBox.Show(message, "Adventure Game Studio", MessageBoxButtons.YesNo, icon);
         }
 

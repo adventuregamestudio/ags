@@ -8,9 +8,14 @@ namespace AGS.Types
 {
     public class TranslationEntry
     {
+        // FIXME: we're abusing PO Context to mark obsolete entries,
+        // but that's a quick-port from 3.6.3, and must be reimplemented
+        // as a standard PO method of commenting entries out.
+        private const string CONTEXT_OBSOLETE = "OBSOLETE";
         private const string CONTEXT_PARSERWORD = "PARSERWORD";
 
         private string _context = null;
+        private bool _obsolete = false;
         private int _parserWordID = -1;
 
         public TranslationEntry()
@@ -42,7 +47,11 @@ namespace AGS.Types
                 _context = value;
                 if (!string.IsNullOrEmpty(_context))
                 {
-                    if (_context.StartsWith(CONTEXT_PARSERWORD))
+                    if (_context == CONTEXT_OBSOLETE)
+                    {
+                        _obsolete = true;
+                    }
+                    else if (_context.StartsWith(CONTEXT_PARSERWORD))
                     {
                         var keyValue = Utilities.ParseKeyValue(_context, ':');
                         if (keyValue.Key == CONTEXT_PARSERWORD)
@@ -55,6 +64,16 @@ namespace AGS.Types
         }
         public string Key { get; set; }
         public string Value { get; set; }
+
+        public bool IsObsolete
+        {
+            get { return _obsolete; }
+            set
+            {
+                _obsolete = true;
+                _context = "OBSOLETE";
+            }
+        }
 
         /// <summary>
         /// Whether this translation item belongs to the Text Parser's words dictionary.

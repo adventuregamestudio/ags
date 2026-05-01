@@ -265,6 +265,11 @@ namespace AGS.Editor.Components
                 string trsLine = entry.Value;
                 if (!string.IsNullOrEmpty(trsLine))
                 {
+                    // Skip obsolete entries
+                    if (entry.IsObsolete)
+                    {
+                        continue;
+                    }
                     // Words dictionary is written in a separate data section
                     if (entry.IsParserDictionary)
                     {
@@ -307,13 +312,64 @@ namespace AGS.Editor.Components
             List<Translation> translations = (List<Translation>)translationList;
             TranslationGenerator generator = new TranslationGenerator();
             CompileMessages messages = generator.CreateTranslationList(_agsEditor.CurrentGame);
-
             if (messages.HasErrors)
                 return messages; // abort for avoiding corrupting translations
+            // (Optionally) prepare Text Parser's dictionary
+            Dictionary<int, string> parserWordLists = null;
+            if (_agsEditor.CurrentGame.Settings.TranslateTextParser)
+            {
+                parserWordLists = ConstructParserWordsList(_agsEditor.CurrentGame.TextParser);
+                // What we do here: because parser dictionary entry may match some
+                // generic game text (e.g. if it's a item's name), the cheap and dumb solution
+                // that we use is that we prefix the source line with a comma
+                // (this works as it's a comma-separated list).
+                var fixedWordLists = new Dictionary<int, string>();
+                foreach (var wordKey in parserWordLists.Keys)
+                {
+                    fixedWordLists[wordKey] = $",{parserWordLists[wordKey]}";
+                }
+                parserWordLists = fixedWordLists;
+            }
 
-            // Add game texts
+            HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation);
+            if (parserWordLists != null)
+            {
+                foreach (var list in parserWordLists)
+                    keyedTexts.Add(list.Value);
+            }
+
+            // Merge game texts in
             foreach (Translation translation in translations)
             {
+                // Remove or mark as obsolete those texts that are not found in game
+                List<string> removeLines = new List<string>();
+                foreach (var entry in translation.TranslatedEntries.Values)
+                {
+                    if (!keyedTexts.Contains(entry.Key))
+                    {
+                        if (string.IsNullOrEmpty(entry.Value))
+                        {
+                            removeLines.Add(entry.Key);
+                            translation.Modified = true;
+                        }
+                        else
+                        {
+                            if (!entry.IsObsolete)
+                            {
+                                entry.IsObsolete = true;
+                                translation.Modified = true;
+                            }
+                        }
+                    }
+                }
+
+                // Remove obsolete translation lines
+                foreach (var remKey in removeLines)
+                {
+                    translation.TranslatedEntries.Remove(remKey);
+                }
+
+                // Add current game texts
                 foreach (string line in generator.LinesForTranslation)
                 {
                     if (!translation.TranslatedEntries.ContainsKey(line))
@@ -325,23 +381,17 @@ namespace AGS.Editor.Components
             }
 
             // (Optionally) add Text Parser's dictionary
-            if (_agsEditor.CurrentGame.Settings.TranslateTextParser)
+            if (parserWordLists != null)
             {
-                var wordLists = ConstructParserWordsList(_agsEditor.CurrentGame.TextParser);
                 foreach (Translation translation in translations)
                 {
-                    foreach (var list in wordLists)
+                    foreach (var list in parserWordLists)
                     {
-                        // What we do here: because parser dictionary entry may match some
-                        // generic game text (e.g. if it's a item's name), the cheap and dumb solution
-                        // that we use is that we prefix the source line with a comma
-                        // (this works as it's a comma-separated list).
                         // FIXME: this is not good, the PO format allows to have a combined key made of
                         // a msgid + msgctxt pair. Context could serve to distinguish parser words here.
                         // but we'd need to change how translated entries are stored (the keys type?).
                         int wordsKey = list.Key;
-                        string wordsValue = ",{list.Value}";
-                        
+                        string wordsValue = list.Value;
                         if (!translation.TranslatedEntries.ContainsKey(wordsValue))
                         {
                             var entry = new TranslationEntry(wordsValue);

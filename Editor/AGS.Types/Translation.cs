@@ -27,6 +27,7 @@ namespace AGS.Types
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
         private const string TAG_ON = "ON";
         private const string TAG_OFF = "OFF";
+        private const string ANNOTATE_OBSOLETE = "OBSOLETE";
 
         private string _name;
         private string _fileName;

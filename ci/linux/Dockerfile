@@ -3,7 +3,7 @@ ARG FROM_PLATFORM=$BUILDPLATFORM
 FROM --platform=$FROM_PLATFORM $FROM_DEBIAN
 
 # Take default debconf options
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Debian Jessie has been moved to archive
 RUN echo "deb [trusted=yes] http://archive.debian.org/debian jessie main non-free contrib" > /etc/apt/sources.list && \
@@ -63,7 +63,7 @@ RUN apt-get install \
   libxkbcommon-dev 
 
 # Build and install CMake
-ARG CMAKE_VERSION=3.24.1
+ARG CMAKE_VERSION=3.26.6
 RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
   cd /tmp/cmake-$CMAKE_VERSION && \
   ./configure --system-curl && make -j$(getconf _NPROCESSORS_ONLN) && make install && \

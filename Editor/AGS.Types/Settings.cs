@@ -133,7 +133,7 @@ namespace AGS.Types
         private string _translationIncludeScriptPrefix = string.Empty;
         private string _translationExcludeScriptPrefix = string.Empty;
         private string _translationExcludeFunctionCall = string.Empty;
-        private bool _translateTextParser = true;
+        private bool _translateTextParser = false;
 
         /// <summary>
         /// Helper function to validate the BuildTargets string. Excludes data file target
@@ -1369,7 +1369,7 @@ namespace AGS.Types
         [DisplayName("Translate Text Parser")]
         [Description("Will include list of words from the text parser's dictionary into translation. Engine will automatically translate strings passed into Parser.Said().")]
         [Category("Translation")]
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         public bool TranslateTextParser
         {
             get { return _translateTextParser; }

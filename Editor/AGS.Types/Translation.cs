@@ -24,6 +24,7 @@ namespace AGS.Types
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
         private const string TAG_ON = "ON";
         private const string TAG_OFF = "OFF";
+        private const string ANNOTATE_OBSOLETE = "OBSOLETE";
         private const string ANNOTATE_PARSERWORD = "PARSERWORD";
 
         private string _name;
@@ -585,7 +586,11 @@ namespace AGS.Types
                 var key = keyValue.Item1;
                 var value = keyValue.Item2;
 
-                if (key == ANNOTATE_PARSERWORD)
+                if (key == ANNOTATE_OBSOLETE)
+                {
+                    options.IsObsolete = true;
+                }
+                else if (key == ANNOTATE_PARSERWORD)
                 {
                     options.ParserWordID = Utilities.ParseIntOrDefault(value, -1);
                 }

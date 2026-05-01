@@ -12,12 +12,15 @@ namespace AGS.Types
     /// </summary>
     public class TranslationEntryOptions
     {
+        private bool _isObsolete = false;
         private int _parserWordID = -1;
 
         public TranslationEntryOptions()
         {
             Metadata = new List<string>();
         }
+
+        public bool IsObsolete { get { return _isObsolete; } set { _isObsolete = true; } }
 
         /// <summary>
         /// Whether this translation item belongs to the Text Parser's words dictionary.

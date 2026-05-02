@@ -246,12 +246,14 @@ namespace AGS.Types
                 {
                     TranslationEntry entry = _translatedEntries[key];
                     sw.WriteLine("");
+                    if (entry.SourceReference != null)
+                        sw.WriteLine($"#: {entry.SourceReference}");
                     foreach (string metadata in entry.Metadata)
                         sw.WriteLine(metadata);
                     if (entry.Context != null)
-                        sw.WriteLine("msgctxt \"" + entry.Context + "\"");
-                    sw.WriteLine("msgid \"" + entry.Key + "\"");
-                    sw.WriteLine("msgstr \"" + entry.Value + "\"");
+                        sw.WriteLine($"msgctxt \"{entry.Context}\"");
+                    sw.WriteLine($"msgid \"{entry.Key}\"");
+                    sw.WriteLine($"msgstr \"{entry.Value}\"");
                 }
                 sw.WriteLine("");
             }
@@ -346,7 +348,15 @@ namespace AGS.Types
                                 return false;
                             }
                         }
-                        entry.Metadata.Add(line);
+                        else if (line.StartsWith("#:"))
+                        {
+                            entry.SourceReference = line.Substring(2).Trim();
+                        }
+                        else
+                        {
+                            // Any other metadata, for which we do not have a explicit field yet
+                            entry.Metadata.Add(line);
+                        }
                         continue;
                     }
 

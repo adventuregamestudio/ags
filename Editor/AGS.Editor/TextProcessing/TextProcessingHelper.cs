@@ -11,25 +11,26 @@ namespace AGS.Editor
         public static void ProcessAllGameText(IGameTextProcessor processor, Game game, CompileMessages errors)
         {
             // Game info
-            game.Settings.GameName = processor.ProcessText(game.Settings.GameName, GameTextType.ItemDescription);
-            game.Settings.Description = processor.ProcessText(game.Settings.Description, GameTextType.ItemDescription);
-            game.Settings.DeveloperName = processor.ProcessText(game.Settings.DeveloperName, GameTextType.ItemDescription);
-            game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, GameTextType.ItemDescription);
-            game.Settings.Genre = processor.ProcessText(game.Settings.Genre, GameTextType.ItemDescription);
+            game.Settings.GameName = processor.ProcessText(game.Settings.GameName, "Game info", GameTextType.ItemDescription);
+            game.Settings.Description = processor.ProcessText(game.Settings.Description, "Game info", GameTextType.ItemDescription);
+            game.Settings.DeveloperName = processor.ProcessText(game.Settings.DeveloperName, "Game info", GameTextType.ItemDescription);
+            game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, "Game info", GameTextType.ItemDescription);
+            game.Settings.Genre = processor.ProcessText(game.Settings.Genre, "Game info", GameTextType.ItemDescription);
 
             foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
+                string sourceRef = string.IsNullOrEmpty(dialog.Name) ? $"Dialog {dialog.ID}" : $"Dialog {dialog.ID}; {dialog.Name}";
                 foreach (DialogOption option in dialog.Options)
                 {
-                    option.Text = processor.ProcessText(option.Text, GameTextType.DialogOption, game.PlayerCharacter.ID);
+                    option.Text = processor.ProcessText(new GameTextLine(game.PlayerCharacter.ID, option.Text, sourceRef), GameTextType.DialogOption);
                 }
 
-                dialog.Script = processor.ProcessText(dialog.Script, GameTextType.DialogScript);
+                dialog.Script = processor.ProcessText(dialog.Script, sourceRef, GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
             {                                
-                string newScript = processor.ProcessText(script.Script.Text, GameTextType.Script);
+                string newScript = processor.ProcessText(script.Script.Text, script.Script.FileName, GameTextType.Script);
                 if (newScript != script.Script.Text)
                 {
                     // Only cause it to flag Modified if we changed it
@@ -46,14 +47,14 @@ namespace AGS.Editor
                     GUILabel label = control as GUILabel;
                     if (label != null)
                     {
-                        label.Text = processor.ProcessText(label.Text, GameTextType.ItemDescription);
+                        label.Text = processor.ProcessText(label.Text, "GUI", GameTextType.ItemDescription);
                     }
                     else
                     {
                         GUIButton button = control as GUIButton;
                         if (button != null)
                         {
-                            button.Text = processor.ProcessText(button.Text, GameTextType.ItemDescription);
+                            button.Text = processor.ProcessText(button.Text, "GUI", GameTextType.ItemDescription);
                         }
                     }
                 }
@@ -61,14 +62,14 @@ namespace AGS.Editor
 
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
-                character.RealName = processor.ProcessText(character.RealName, GameTextType.ItemDescription);
-                ProcessProperties(processor, game.PropertySchema, character.Properties, errors);
+                character.RealName = processor.ProcessText(character.RealName, "Characters", GameTextType.ItemDescription);
+                ProcessProperties(processor, game.PropertySchema, character.Properties, "Characters", errors);
             }
 
             foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
-                item.Description = processor.ProcessText(item.Description, GameTextType.ItemDescription);
-                ProcessProperties(processor, game.PropertySchema, item.Properties, errors);
+                item.Description = processor.ProcessText(item.Description, "Inventory items", GameTextType.ItemDescription);
+                ProcessProperties(processor, game.PropertySchema, item.Properties, "Inventory items", errors);
             }
 
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, errors);
@@ -80,12 +81,12 @@ namespace AGS.Editor
             foreach (var def in schema.PropertyDefinitions.Where(
                 n => (n.Type == CustomPropertyType.Text) && n.Translated))
             {
-                def.DefaultValue = processor.ProcessText(def.DefaultValue, GameTextType.ItemDescription);
+                def.DefaultValue = processor.ProcessText(def.DefaultValue, "Custom properties", GameTextType.ItemDescription);
             }
         }
 
         public static void ProcessProperties(IGameTextProcessor processor, CustomPropertySchema schema,
-            CustomProperties props, CompileMessages errors)
+            CustomProperties props, string sourceRef, CompileMessages errors)
         {
             foreach (var def in schema.PropertyDefinitions.Where(
                 n => (n.Type == CustomPropertyType.Text) && n.Translated))
@@ -93,7 +94,7 @@ namespace AGS.Editor
                 CustomProperty prop;
                 if (props.PropertyValues.TryGetValue(def.Name, out prop))
                 {
-                    prop.Value = processor.ProcessText(prop.Value, GameTextType.ItemDescription);
+                    prop.Value = processor.ProcessText(prop.Value, sourceRef, GameTextType.ItemDescription);
                 }
             }
         }

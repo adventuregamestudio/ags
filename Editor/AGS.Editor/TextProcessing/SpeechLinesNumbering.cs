@@ -55,7 +55,7 @@ namespace AGS.Editor
                 {
                     if (option.Say)
                     {
-                        option.Text = processor.ProcessText(option.Text, GameTextType.DialogOption, game.PlayerCharacter.ID);
+                        option.Text = processor.ProcessText(new GameTextLine(game.PlayerCharacter.ID, option.Text), GameTextType.DialogOption);
                     }
                 }
 

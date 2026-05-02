@@ -8,8 +8,9 @@ namespace AGS.Editor
     public interface IGameTextProcessor
     {
         string ProcessText(string text, GameTextType textType);
-        string ProcessText(string text, GameTextType textType, int characterID);
+        string ProcessText(string text, string sourceRef, GameTextType textType);
+        string ProcessText(GameTextLine textLine, GameTextType textType);
         // Whether the client needs to use the return value from ProcessText
-        bool MakesChanges { get; } 
+        bool MakesChanges { get; }
     }
 }

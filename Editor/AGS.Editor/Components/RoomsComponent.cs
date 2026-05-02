@@ -1972,24 +1972,26 @@ namespace AGS.Editor.Components
             {
                 Room room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
 
-                room.Script.Text = processor.ProcessText(room.Script.Text, GameTextType.Script);
+                string roomContext = string.IsNullOrEmpty(room.Description) ? $"Room {room.Number}" : $"Room {room.Number}; {room.Description}";
+
+                room.Script.Text = processor.ProcessText(room.Script.Text, roomContext, GameTextType.Script);
                 if (processor.MakesChanges)
                 {
                     room.Script.SaveToDisk();
                 }
 
-                TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, room.Properties, errors);
+                TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, room.Properties, roomContext, errors);
 
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
-                    hotspot.Description = processor.ProcessText(hotspot.Description, GameTextType.ItemDescription);
-                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, errors);
+                    hotspot.Description = processor.ProcessText(hotspot.Description, roomContext, GameTextType.ItemDescription);
+                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, roomContext, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
-                    obj.Description = processor.ProcessText(obj.Description, GameTextType.ItemDescription);
-                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, errors);
+                    obj.Description = processor.ProcessText(obj.Description, roomContext, GameTextType.ItemDescription);
+                    TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, roomContext, errors);
                 }
 
                 if (processor.MakesChanges)

@@ -15,6 +15,7 @@ namespace AGS.Types
         private const string CONTEXT_PARSERWORD = "PARSERWORD";
 
         private string _context = null;
+        private string _sourceRef = null;
         private bool _obsolete = false;
         private int _parserWordID = -1;
 
@@ -62,8 +63,16 @@ namespace AGS.Types
                 }
             }
         }
+
         public string Key { get; set; }
+
         public string Value { get; set; }
+
+        public string SourceReference
+        {
+            get { return _sourceRef; }
+            set { _sourceRef = value; }
+        }
 
         public bool IsObsolete
         {
@@ -98,7 +107,7 @@ namespace AGS.Types
         }
 
         /// <summary>
-        /// Any kind of comments and annotations for this translation item.
+        /// Any kind of additional comments and annotations for this translation item.
         /// </summary>
         public List<string> Metadata { get; set; } 
     }

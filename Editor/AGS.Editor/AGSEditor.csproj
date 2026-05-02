@@ -162,6 +162,7 @@
     <Compile Include="Components\ViewsComponent.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="Config\ConfigUtils.cs" />
+    <Compile Include="Entities\CharacterDescriptionChangedEventArgs.cs" />
     <Compile Include="Entities\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Entities\CompilationStepArgs.cs" />

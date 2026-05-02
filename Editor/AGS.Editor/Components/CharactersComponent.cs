@@ -30,6 +30,7 @@ namespace AGS.Editor.Components
         private Character _itemRightClicked = null;
 
         public event EventHandler<CharacterIDChangedEventArgs> OnCharacterIDChanged;
+        public event EventHandler<CharacterDescriptionChangedEventArgs> OnCharacterDescriptionChanged;
         public event EventHandler<CharacterRoomChangedEventArgs> OnCharacterRoomChanged;
 
         public CharactersComponent(GUIController guiController, AGSEditor agsEditor)
@@ -248,6 +249,10 @@ namespace AGS.Editor.Components
                     OnItemIDOrNameChanged(itemBeingEdited, true);
                     OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(itemBeingEdited, itemBeingEdited.ID));
                 }
+            }
+            else if (propertyName == Character.PROPERTY_NAME_DESCRIPTION)
+            {
+                OnCharacterDescriptionChanged?.Invoke(this, new CharacterDescriptionChangedEventArgs(itemBeingEdited, (string)oldValue));
             }
             else if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
             {

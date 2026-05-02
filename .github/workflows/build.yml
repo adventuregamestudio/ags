@@ -2,13 +2,22 @@ name: GitHub Actions Build
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  packages: read
+
 env:
+  BASE_BRANCH: release-3.6.1
+  MANUAL_ASSET: ags-help.chm
+  AUTO_TEST_RELEASE_ASSET: ags3-auto-test-3.6.1.zip
+  AUTO_TEST_GAME: ags3-auto-test.ags
   BUILD_TYPE: Release
 
 jobs:
-  build:
-    name: ${{ matrix.platform.name }}
+  build-test:
+    name: Test ${{ matrix.platform.name }} Build
     runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 20
     defaults:
       run:
         shell: ${{ matrix.platform.shell }}
@@ -17,32 +26,64 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows,    os: windows-latest, artifact: 'ags-windows', shell: cmd, runbin: ".\\ags.exe", bindir: "Release" }
-        - { name: Ubuntu,     os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh,  runbin: "./ags",      bindir: ""        }
-        - { name: macOS,      os: macos-latest,   artifact: 'ags-macos',   shell: sh,  runbin: "./ags",      bindir: ""        }
+        - { name: Windows,              os: windows-latest,   sys: Windows, gfx: D3D9, artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
+        - { name: Ubuntu-x86_64,        os: ubuntu-latest,    sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
+        - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
+        - { name: macOS,                os: macos-latest,     sys: macOS,   gfx: OGL,  artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
 
     steps:
+    - name: Set up MSYS2
+      if: matrix.platform.shell == 'msys2 {0}'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.platform.msystem }}
+        install: >-
+          ${{ matrix.platform.msys-env }}-cc
+          ${{ matrix.platform.msys-env }}-cmake
+          ${{ matrix.platform.msys-env }}-ninja
+          ${{ matrix.platform.msys-env }}-perl
+          ${{ matrix.platform.msys-env }}-python-pip
+          ${{ matrix.platform.msys-env }}-pkg-config
+          ${{ matrix.platform.msys-env }}-clang-tools-extra
+          unzip
+
+    - name: Set up SDL dependencies on Linux (ensures OpenGL)
+      if: matrix.platform.sys == 'Ubuntu'
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y \
+          gnome-desktop-testing libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev \
+          libusb-1.0-0-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev \
+          libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev
+
     - name: Set up Tappy
       run: pip install tap.py
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
+
+    - name: Cache CMake FetchContent dependencies
+      uses: actions/cache@v5
+      with:
+        path: ${{github.workspace}}/build/_deps
+        key: fetchcontent-${{ runner.os }}-${{ matrix.platform.name }}-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
 
     - name: Configure CMake
       run: |
         cmake --version
-        cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        ${{ matrix.platform.cmakecmd }} -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 2
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 8
 
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+    - name: Upload runtime artifacts
+      uses: actions/upload-artifact@v7
       with:
-        name: ${{ matrix.platform.artifact }}
+        name: runtime-${{ matrix.platform.artifact }}
         path: |
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
@@ -51,7 +92,7 @@ jobs:
     - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        curl -sLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags3-auto-test-3.6.1.zip
+        curl -sLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/${{env.AUTO_TEST_RELEASE_ASSET}}
 
     - name: Unzip auto-test
       if: matrix.platform.shell == 'cmd'
@@ -67,12 +108,697 @@ jobs:
         unzip auto-test.zip
         rm auto-test.zip
 
-    - name: Run auto-test
+    - name: Run auto-test (Hardware GFX)
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ags3-auto-test.ags
+        ${{matrix.platform.runbin}} --gfxdriver ${{matrix.platform.gfx}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ${{env.AUTO_TEST_GAME}}
+        mv agstest.tap agstest_hardware.tap
 
-    - name: Check auto-test  # we are using tap.py so that the pipeline fails if a test fails
+    - name: Check auto-test (Hardware GFX) # we are using tap.py so that the pipeline fails if a test fails
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        tappy agstest.tap
+        tappy agstest_hardware.tap
+
+    - name: Run auto-test (Software GFX)
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        ${{matrix.platform.runbin}} --gfxdriver Software --no-message-box --log-stdout=script:info,main:info --user-data-dir . ${{env.AUTO_TEST_GAME}}
+        mv agstest.tap agstest_software.tap
+
+    - name: Check auto-test (Software GFX) # we are using tap.py so that the pipeline fails if a test fails
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        tappy agstest_software.tap
+
+  build-emscripten-bundle:
+    name: Emscripten
+    runs-on: ubuntu-latest
+    env:
+      EM_VERSION: 3.1.74
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install bsdtar
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - uses: emscripten-core/setup-emsdk@v16
+        with:
+          version: ${{env.EM_VERSION}}
+
+      - name: Cache CMake FetchContent dependencies
+        uses: actions/cache@v5
+        with:
+          path: ${{github.workspace}}/Emscripten/build/_deps
+          key: fetchcontent-${{ runner.os }}-Emscripten-${{ hashFiles('CMakeLists.txt', 'CMake/Fetch*.cmake') }}
+
+      - name: Configure and Build
+        run: |
+          cmake --version
+          cd Emscripten && ./build.sh
+
+      - name: Package Emscripten build
+        run: |
+          cd Emscripten && ./package.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ags-bundle-emscripten
+          path: ags_*_web.tar.gz
+
+  build-android-bundle:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install bsdtar
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - name: Set up Android SDK
+        run: |
+          cd Android && ./and-download-sdk-tools.sh linux
+          echo "${ANDROID_HOME}/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "${ANDROID_HOME}/platform-tools" >> "$GITHUB_PATH"
+          echo "ANDROID_HOME=${ANDROID_HOME}" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=${ANDROID_HOME}" >> "$GITHUB_ENV"
+
+      - name: Install Android NDK r25
+        run: sdkmanager --install "ndk;25.2.9519653" "build-tools;34.0.0"
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Prepare Android build
+        run: cd Android && ./and-build.sh prepare
+
+      - name: Build debug APK
+        run: cd Android && ./and-build.sh build_debug
+
+      - name: Build release APK
+        run: cd Android && ./and-build.sh build_release
+
+      - name: Rename APKs
+        run: cd Android && ./and-build.sh archive_apks
+
+      - name: Create project archive
+        run: cd Android && ./and-build.sh archive_project
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android-apks
+          path: AGS-*.apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ags-bundle-android
+          path: AGS-*-android-proj-*.zip
+
+  windows-deps:
+    name: Windows Dependencies
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: microsoft/setup-msbuild@v3
+
+      - name: Restore cached deps
+        id: cache-win-deps
+        uses: actions/cache@v5
+        with:
+          path: C:\Lib
+          key: win-deps-${{ hashFiles('Windows/setup_ags_build_deps.bat') }}
+
+      - name: Build dependencies
+        if: steps.cache-win-deps.outputs.cache-hit != 'true'
+        shell: cmd
+        run: Windows\setup_ags_build_deps.bat
+
+      - name: Build WinDevDependenciesVS archive
+        shell: cmd
+        run: |
+          pushd "C:\Lib\SDL_sound"
+          if exist build_x86 del /Q /S build_x86\* && rd /Q /S build_x86
+          if exist build_x64 del /Q /S build_x64\* && rd /Q /S build_x64
+          popd
+          tar -f WinDevDependenciesVS.zip -acv --strip-components 2 C:\Lib
+          dir WinDevDependenciesVS.zip
+
+      - name: Upload WinDevDependenciesVS
+        uses: actions/upload-artifact@v7
+        with:
+          # because archive is false, the name is the filename
+          if-no-files-found: error
+          archive: false
+          path: WinDevDependenciesVS.zip
+
+  windows-msvc-tests:
+    name: Windows MSVC Tests
+    runs-on: windows-latest
+    needs: windows-deps
+    timeout-minutes: 40
+    env:
+      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
+      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x86
+      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x86
+      AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
+      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - uses: microsoft/setup-msbuild@v3
+
+      - name: Download Windows dependencies
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          path: C:\Lib
+
+      - name: Build Compiler test runner (x86)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+
+      - name: Run Compiler tests (x86)
+        run: Solutions\.test\Release\Compiler.Lib.Test.exe
+
+      - name: Build AGS test runners (x86)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+
+      - name: Run Common tests (x86)
+        run: Solutions\.test\Release\Common.Lib.Test.exe
+
+      - name: Run Engine tests (x86)
+        run: Solutions\.test\Release\Engine.App.Test.exe
+
+      - name: Clean up
+        shell: cmd
+        run: cd Solutions && rd /s /q .test
+
+      - name: Build Compiler test runner (x64)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+
+      - name: Run Compiler tests (x64)
+        run: Solutions\.test\Release\Compiler.Lib.Test.exe
+
+      - name: Build AGS test runners (x64)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+
+      - name: Run Common tests (x64)
+        run: Solutions\.test\Release\Common.Lib.Test.exe
+
+      - name: Run Engine tests (x64)
+        run: Solutions\.test\Release\Engine.App.Test.exe
+
+  windows-msvc-engine:
+    name: Windows MSVC Engine
+    runs-on: windows-latest
+    needs: windows-deps
+    timeout-minutes: 40
+    env:
+      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
+      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x86
+      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x86
+      AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
+      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: microsoft/setup-msbuild@v3
+
+      - name: Download Windows dependencies
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          path: C:\Lib
+
+      - name: Build Engine (x86 Debug)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=Win32 /maxcpucount /nologo
+
+      - name: Build Tools (x86 Debug)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
+
+      - name: Build Engine (x86 Release)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+
+      - name: Build Tools (x86 Release)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Tools.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
+
+      - name: Upload x86 Engine PDBs
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-engine-pdb-x86
+          include-hidden-files: true
+          path: Solutions/.build/*/acwin.pdb
+
+      - name: Delete x86 PDB / intermediate files
+        shell: cmd
+        run: |
+          cd Solutions\.build
+          del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
+
+      - name: Upload x86 binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-engine-binaries-x86
+          include-hidden-files: true
+          path: Solutions/.build/*/*
+
+      - name: Delete Win32 build output
+        shell: cmd
+        run: cd Solutions && rd /s /q .build
+
+      - name: Build Engine (x64 Release)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+
+      - name: Upload x64 Engine PDBs
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-engine-pdb-x64
+          include-hidden-files: true
+          path: Solutions/.build/*/acwin.pdb
+
+      - name: Delete x64 PDB / intermediate files
+        shell: cmd
+        run: |
+          cd Solutions\.build
+          del /s /q *.pdb *.map *.ilk *.iobj *.ipdb
+
+      - name: Upload x64 binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-engine-binaries-x64
+          include-hidden-files: true
+          path: Solutions/.build/*/*
+
+  windows-msvc-editor:
+    name: Windows MSVC Editor
+    runs-on: windows-latest
+    needs: windows-deps
+    timeout-minutes: 40
+    env:
+      AGS_LIBOGG_LIB:        C:\Lib\Xiph\x86
+      AGS_LIBTHEORA_LIB:     C:\Lib\Xiph\x86
+      AGS_LIBVORBIS_LIB:     C:\Lib\Xiph\x86
+      AGS_SDL_INCLUDE:       C:\Lib\SDL2\include
+      AGS_SDL_LIB:           C:\Lib\SDL2\lib\x86
+      AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
+      AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: microsoft/setup-msbuild@v3
+
+      - name: Download Windows dependencies
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          path: C:\Lib
+
+      - name: Copy irrKlang DLLs to Editor\References
+        shell: pwsh
+        run: |
+          Copy-Item C:\Lib\irrKlang\x86\*.dll Editor\References\
+          New-Item -ItemType Directory -Path Editor\References\x64 -Force
+          Copy-Item C:\Lib\irrKlang\x64\*.dll Editor\References\x64
+
+      - name: Cache NuGet packages
+        id: cache-nuget
+        uses: actions/cache@v5
+        with:
+          path: Solutions\packages
+          key: nuget-${{ hashFiles('Editor/AGS.Editor/packages.config', 'Editor/AGS.Types/packages.config', 'Editor/AGS.Editor.Tests/packages.config') }}
+
+      - name: Restore NuGet packages
+        if: steps.cache-nuget.outputs.cache-hit != 'true'
+        shell: cmd
+        run: nuget restore Solutions\AGS.Editor.Full.sln
+
+      - name: Build Editor (Debug)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=Win32 /maxcpucount /nologo
+
+      - name: Run NUnit tests (Debug)
+        shell: cmd
+        run: |
+          curl -fLOJ https://github.com/nunit/nunit-transforms/raw/master/nunit3-junit/nunit3-junit.xslt
+          pushd Solutions\packages\NUnit.ConsoleRunner.3.*
+          set RUNNER="%CD%\tools\nunit3-console.exe"
+          popd
+          cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+
+      - name: Build Editor (Release)
+        shell: cmd
+        run: |
+          cd Solutions
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+
+      - name: Run NUnit tests (Release)
+        shell: cmd
+        run: |
+          curl -fLOJ https://github.com/nunit/nunit-transforms/raw/master/nunit3-junit/nunit3-junit.xslt
+          pushd Solutions\packages\NUnit.ConsoleRunner.3.*
+          set RUNNER="%CD%\tools\nunit3-console.exe"
+          popd
+          cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: editor-test-results
+          include-hidden-files: true
+          path: TestResult-junit.xml
+
+      - name: Upload Editor PDBs
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-editor-pdb
+          include-hidden-files: true
+          path: |
+            Solutions/.build/*/*.pdb
+            Editor/AGS.Native/*/AGS.Native.pdb
+
+      - name: Delete Editor PDBs and XML docs
+        shell: cmd
+        run: |
+          cd Solutions\.build
+          del /s /q *.pdb *.xml
+
+      - name: Upload Editor Release binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-editor-binaries
+          include-hidden-files: true
+          path: Solutions/.build/Release/*
+
+  package-pdbs:
+    name: PDB Packaging
+    runs-on: ubuntu-latest
+    needs:
+      - windows-msvc-engine
+      - windows-msvc-editor
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download Engine x86 PDBs
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-engine-pdb-x86
+          path: pdbs/
+
+      - name: Download Engine x64 PDBs
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-engine-pdb-x64
+          path: pdbs/
+
+      - name: Download Editor PDBs
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-editor-pdb
+          path: pdbs/
+
+      - name: Install bsdtar
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - name: Create PDB archive
+        run: |
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
+          bsdtar -f "AGS-${version}-pdb.zip" -acv pdbs/
+
+      - name: Upload PDB archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: pdb-archive
+          include-hidden-files: true
+          path: AGS-*-pdb.zip
+
+  linux-binaries-builds:
+    name: Linux (${{ matrix.platform.arch }}, ${{ matrix.platform.rpath && 'Tar.gz' || 'Deb PKG' }})
+    runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 90
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { arch: amd64, rpath: true,  os: ubuntu-latest }
+        - { arch: i386,  rpath: true,  os: ubuntu-latest }
+        - { arch: amd64, rpath: false, os: ubuntu-latest }
+        - { arch: i386,  rpath: false, os: ubuntu-latest }
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run build inside container
+        run: |
+          TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
+          IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"
+          if [ "${{matrix.platform.rpath}}" = "true" ]; then
+            PREFIX=lib
+          else
+            PREFIX=
+          fi
+
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            -e RPATH_PREFIX=$PREFIX \
+            "$IMAGE" \
+            bash debian/build.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-deb-${{ matrix.platform.arch }}${{ matrix.platform.rpath && '-rpath' || '' }}
+          path: ${{ matrix.platform.rpath && 'data_*.tar.gz' || 'ags_*.deb' }}
+
+  build-linux-bundle:
+    name: Linux Bundle
+    needs: linux-binaries-builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install bsdtar
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - name: Download amd64 data archive
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-deb-amd64-rpath
+          path: /tmp/linux-amd64
+
+      - name: Download i386 data archive
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-deb-i386-rpath
+          path: /tmp/linux-i386
+
+      - name: Assemble Linux bundle
+        run: |
+          set -e
+          tmp=$(mktemp -d)
+          mkdir -p $tmp/data
+          bsdtar -f /tmp/linux-amd64/data_amd64.tar.gz -xvzC $tmp/data
+          bsdtar -f /tmp/linux-i386/data_i386.tar.gz   -xvzC $tmp/data
+          cp -v debian/copyright $tmp/data/licenses/ags-copyright
+          cp -v debian/ags+libraries/startgame $tmp/
+          awk 'BEGIN { RS="" } !/make_ags/ { if (NR>1) print RS; print }' debian/ags+libraries/README > $tmp/README
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
+          bsdtar -f ags_${version}_linux.tar.gz -cvzC $tmp data startgame README
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ags-bundle-linux
+          path: ags_*_linux.tar.gz
+
+  windows-packaging:
+    name: Windows Packaging
+    runs-on: windows-latest
+    timeout-minutes: 60
+    needs:
+      - build-emscripten-bundle
+      - build-android-bundle
+      - build-linux-bundle
+      - windows-deps
+      - windows-msvc-editor
+      - windows-msvc-engine
+    env:
+      TEMPLATES_REPOSITORY: adventuregamestudio/ags-templates
+      AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download Windows dependencies
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          path: C:\Lib
+
+      - name: Download Editor binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-editor-binaries
+          path: Windows\Installer\Source\Editor
+
+      - name: Download Engine x86 binary
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-engine-binaries-x86
+          path: Windows\Installer\Source\Engine_tmp
+
+      - name: Copy vcredist, acwin.exe and SDL2.dll
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\Redist
+          mkdir Windows\Installer\Source\Engine
+          copy C:\Lib\VcRedist\vc_redist.x86.exe Windows\Installer\Source\Redist\vc_redist.x86.exe
+          copy Windows\Installer\Source\Engine_tmp\Release\acwin.exe Windows\Installer\Source\Engine\acwin.exe
+          copy %AGS_SDL_LIB%\SDL2.dll Windows\Installer\Source\Engine\SDL2.dll
+
+      - name: Download AGS manual
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\Docs
+          cd Windows\Installer\Source\Docs
+          curl -fLOJ https://github.com/adventuregamestudio/ags-manual/releases/latest/download/${{env.MANUAL_ASSET}}
+
+      - name: Download AGS templates
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\Templates
+          curl -fLSs https://github.com/%TEMPLATES_REPOSITORY%/tarball/${{env.BASE_BRANCH}} | tar -f - -xvzC Windows\Installer\Source\Templates --strip-components 2
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-linux
+          path: _linux_tmp
+
+      - name: Extract Linux bundle
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\Linux
+          call Script\setvar.cmd ACI_VERSION_STR
+          tar -f _linux_tmp\ags_%ACI_VERSION_STR%_linux.tar.gz -xvC Windows\Installer\Source\Linux --strip-components 1
+          rd /s /q _linux_tmp
+
+      - name: Download Emscripten bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-emscripten
+          path: _ems_tmp
+
+      - name: Extract Emscripten files
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\Web
+          call Script\setvar.cmd ACI_VERSION_STR
+          tar -f _ems_tmp\ags_%ACI_VERSION_STR%_web.tar.gz -xvC Windows\Installer\Source\Web
+          rd /s /q _ems_tmp
+
+      - name: Download Android project archive
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-android
+          path: _android_tmp
+
+      - name: Extract Android project
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\Android
+          call Script\setvar.cmd ACI_VERSION_STR
+          tar -f _android_tmp\AGS-%ACI_VERSION_STR%-android-proj-release.zip -xvzC Windows\Installer\Source\Android
+          rd /s /q _android_tmp
+
+      #   NOTE: Inno Setup 6.7.1 comes preinstalled in Windows runners.
+      #   It looks like it is also in PATH already, but our script expects its
+      # path through a parameter.
+      #   I will run it without anything because it should print the version
+      # and information that we can use to monitor what is pre-installed and
+      # if it changes.
+      - name: Run Inno Setup
+        shell: pwsh
+        run: |
+          ISCC.exe
+          Windows\Installer\build.ps1 -IsccPath 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: ags-installer
+          path: Windows\Installer\Output\*.exe
+
+      - name: Build release archive
+        shell: cmd
+        run: |
+          move Windows\Installer\Source\Docs\* Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\Engine\* Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\Licenses Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\Linux     Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\Web       Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\Android   Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\Templates Windows\Installer\Source\Editor\
+          move Windows\Installer\Source\URLs Windows\Installer\Source\Editor\
+          for %%f in (Windows\Installer\Output\*.exe) do tar -f %%~nf.zip -acv --strip-components 4 Windows\Installer\Source\Editor
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: ags-archive
+          path: AGS-*.zip
+

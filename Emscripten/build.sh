@@ -8,13 +8,13 @@ command -v emcc >/dev/null 2>&1 || { echo >&2 "Make sure emsdk is installed and 
 BUILD_CMD="ninja"
 command -v ninja >/dev/null 2>&1 || { BUILD_CMD="make" ; }
 
-mkdir build-release
-pushd build-release
+mkdir build
+pushd build
 
 if [ ${BUILD_CMD} == "ninja" ]; then
-  emcmake cmake -G "Ninja" ../.. -DCMAKE_BUILD_TYPE=Release
+  emcmake cmake -G "Ninja" ../.. -DCMAKE_BUILD_TYPE=Release -DAGS_BUILD_TOOLS=0 -DAGS_TESTS=0
 else 
-  emcmake cmake ../.. -DCMAKE_BUILD_TYPE=Release
+  emcmake cmake ../.. -DCMAKE_BUILD_TYPE=Release -DAGS_BUILD_TOOLS=0 -DAGS_TESTS=0
 fi
 
 if ! ${BUILD_CMD}; then

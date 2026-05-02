@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows,              os: windows-latest,   sys: Windows, gfx: D3D9, artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
+        - { name: Windows,              os: windows-2022,   sys: Windows, gfx: D3D9, artifact: 'ags-windows',      shell: cmd,         runbin: ".\\ags.exe", bindir: "Release", cmakecmd: "cmake" }
         - { name: Ubuntu-x86_64,        os: ubuntu-latest,    sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-x86_64', shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
         - { name: Ubuntu-Arm64,         os: ubuntu-22.04-arm, sys: Ubuntu,  gfx: OGL,  artifact: 'ags-linux-Arm64',  shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
         - { name: macOS,                os: macos-latest,     sys: macOS,   gfx: OGL,  artifact: 'ags-macos',        shell: sh,          runbin: "./ags",      bindir: "",        cmakecmd: "cmake" }
@@ -34,7 +34,7 @@ jobs:
     steps:
     - name: Set up MSYS2
       if: matrix.platform.shell == 'msys2 {0}'
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c #v2
       with:
         msystem: ${{ matrix.platform.msystem }}
         install: >-
@@ -61,6 +61,8 @@ jobs:
       run: pip install tap.py
 
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: Cache CMake FetchContent dependencies
       uses: actions/cache@v5
@@ -83,7 +85,7 @@ jobs:
     - name: Upload runtime artifacts
       uses: actions/upload-artifact@v7
       with:
-        name: runtime-${{ matrix.platform.artifact }}
+        name: runtime-${{ matrix.platform.artifact }}-cmake
         path: |
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
@@ -92,7 +94,7 @@ jobs:
     - name: Download auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        curl -sLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/${{env.AUTO_TEST_RELEASE_ASSET}}
+        curl --fail -sSLo auto-test.zip https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/${{env.AUTO_TEST_RELEASE_ASSET}}
 
     - name: Unzip auto-test
       if: matrix.platform.shell == 'cmd'
@@ -137,11 +139,13 @@ jobs:
       EM_VERSION: 3.1.74
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install bsdtar
         run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
 
-      - uses: emscripten-core/setup-emsdk@v16
+      - uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 #v16
         with:
           version: ${{env.EM_VERSION}}
 
@@ -170,6 +174,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -226,12 +232,35 @@ jobs:
 
   windows-deps:
     name: Windows Dependencies
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: microsoft/setup-msbuild@v3
+
+      - name: Cache .NET Framework 4.6 SDK installer
+        id: cache-netfx46
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}\sdk46setup.exe
+          key: netfx46-sdk-installer-v1
+
+      - name: Download .NET Framework 4.6 SDK installer
+        if: steps.cache-netfx46.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://download.microsoft.com/download/E/1/F/E1F1E61E-F3C6-4420-A916-FB7C47FBC89E/standalonesdk/sdksetup.exe" `
+            -OutFile "$env:RUNNER_TEMP\sdk46setup.exe"
+
+      - name: Upload .NET Framework 4.6 SDK installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: netfx46-sdk-installer
+          path: ${{ runner.temp }}\sdk46setup.exe
 
       - name: Restore cached deps
         id: cache-win-deps
@@ -265,7 +294,7 @@ jobs:
 
   windows-msvc-tests:
     name: Windows MSVC Tests
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: windows-deps
     timeout-minutes: 40
     env:
@@ -279,6 +308,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           submodules: true
 
       - uses: microsoft/setup-msbuild@v3
@@ -337,7 +367,7 @@ jobs:
 
   windows-msvc-engine:
     name: Windows MSVC Engine
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: windows-deps
     timeout-minutes: 40
     env:
@@ -350,6 +380,8 @@ jobs:
       AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: microsoft/setup-msbuild@v3
 
@@ -435,7 +467,7 @@ jobs:
 
   windows-msvc-editor:
     name: Windows MSVC Editor
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: windows-deps
     timeout-minutes: 40
     env:
@@ -448,6 +480,22 @@ jobs:
       AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Download .NET Framework 4.6 SDK installer
+        uses: actions/download-artifact@v8
+        with:
+          name: netfx46-sdk-installer
+          path: ${{ runner.temp }}
+
+      - name: Install .NET Framework 4.6 SDK
+        shell: pwsh
+        run: |
+          $proc = Start-Process `
+            -FilePath "$env:RUNNER_TEMP\sdk46setup.exe" `
+            -ArgumentList "/ceip off /features OptionID.NetFxSoftwareDevelopmentKit /quiet /norestart" `
+            -Wait -PassThru
 
       - uses: microsoft/setup-msbuild@v3
 
@@ -544,6 +592,8 @@ jobs:
       - windows-msvc-editor
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Download Engine x86 PDBs
         uses: actions/download-artifact@v8
@@ -594,9 +644,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -632,6 +684,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install bsdtar
         run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
@@ -668,7 +722,7 @@ jobs:
 
   windows-packaging:
     name: Windows Packaging
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 60
     needs:
       - build-emscripten-bundle
@@ -682,6 +736,8 @@ jobs:
       AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Download Windows dependencies
         uses: actions/download-artifact@v8
@@ -802,3 +858,125 @@ jobs:
           name: ags-archive
           path: AGS-*.zip
 
+  make-release:
+    name: Release Packaging
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - build-emscripten-bundle
+      - build-android-bundle
+      - build-linux-bundle
+      - windows-packaging
+      - package-pdbs
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install dependencies
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - name: Read version string
+        id: version
+        run: |
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Create source archives
+        run: |
+          version=${{ steps.version.outputs.version }}
+          mkdir -p /tmp/github_release
+          for ext in tar.gz zip; do
+            echo "Writing ${ext} archive..."
+            bsdtar -f "/tmp/github_release/ags_${version}_source.${ext}" \
+              -acs "!\./\(.*\)!ags_${version}_source/\1!" \
+              --exclude ".git*" \
+              --exclude ".github" \
+              --exclude ".cirrus.yml" \
+              .
+          done
+
+      - name: Download installer
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-installer
+          path: /tmp/github_release
+
+      - name: Download release archive
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-archive
+          path: /tmp/github_release
+
+      - name: Download WinDevDependenciesVS
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          skip-decompress: true
+          path: /tmp/github_release
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-linux
+          path: /tmp/github_release
+
+      - name: Download Emscripten bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-emscripten
+          path: /tmp/github_release
+
+      - name: Download PDB archive
+        uses: actions/download-artifact@v8
+        with:
+          name: pdb-archive
+          path: /tmp/github_release
+
+      - name: Download Linux .deb packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: linux-deb-{amd64,i386}
+          path: /tmp/github_release
+          merge-multiple: true
+
+      - name: Download Android APKs
+        uses: actions/download-artifact@v8
+        with:
+          name: android-apks
+          path: /tmp/github_release
+
+      - name: Download Android project bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-android
+          path: /tmp/github_release
+
+      - name: Generate SHA-256 checksums
+        run: |
+          cd /tmp/github_release
+          sha256sum * | tee checksums.sha256
+
+      - run: |
+          ls -la /tmp/github_release/*
+
+      - name: Create Release and Upload assets
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+
+          if gh release view "${tag}" > /dev/null 2>&1; then
+            echo "Release ${tag} already exists, skipping creation."
+          else
+            gh release create "${tag}" --title "${tag}"
+          fi
+
+          for fpath in /tmp/github_release/*; do
+            echo "Uploading ${fpath}"
+            gh release upload "${tag}" "${fpath}"
+          done

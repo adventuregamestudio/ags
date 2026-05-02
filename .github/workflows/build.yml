@@ -140,8 +140,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install bsdtar
-        run: |
-          sudo apt-get install -y libarchive-tools
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
 
       - uses: emscripten-core/setup-emsdk@v16
         with:
@@ -180,9 +179,8 @@ jobs:
           java-version: 17
 
       - name: Install bsdtar
-        run: |
-          sudo apt-get install -y libarchive-tools
-  
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
       - name: Set up Android SDK
         run: |
           cd Android && ./and-download-sdk-tools.sh linux
@@ -573,7 +571,7 @@ jobs:
           path: pdbs/
 
       - name: Install bsdtar
-        run: sudo apt-get install -y libarchive-tools
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
 
       - name: Create PDB archive
         run: |

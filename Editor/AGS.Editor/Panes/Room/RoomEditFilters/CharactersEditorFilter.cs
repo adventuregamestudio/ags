@@ -39,6 +39,7 @@ namespace AGS.Editor
             if (cmp != null)
             {
                 cmp.OnCharacterIDChanged += OnCharacterIDChanged;
+                cmp.OnCharacterDescriptionChanged += Cmp_OnCharacterDescriptionChanged;
                 cmp.OnCharacterRoomChanged += OnCharacterRoomChanged;
             }
         }
@@ -394,6 +395,18 @@ namespace AGS.Editor
         private void OnCharacterIDChanged(object sender, CharacterIDChangedEventArgs e)
         {
             UpdateObjectRef(e.Character, GetItemID(e.OldID));
+            OnItemsChanged(this, null);
+            if (Enabled)
+                SetPropertyGridList();
+        }
+
+        // FIXME: Unfortunately, current nav bar implementation uses item labels
+        // when matching menu items; and in case of Characters, their Description
+        // is the part of that label. We'd need to rewrite how this matching works,
+        // in order to avoid using human-readable texts as (parts of) identifiers.
+        private void Cmp_OnCharacterDescriptionChanged(object sender, CharacterDescriptionChangedEventArgs e)
+        {
+            UpdateObjectRef(e.Character, GetItemID(e.Character.ID));
             OnItemsChanged(this, null);
             if (Enabled)
                 SetPropertyGridList();

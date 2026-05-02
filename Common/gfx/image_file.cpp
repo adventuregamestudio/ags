@@ -81,9 +81,10 @@ static void bmp_read_palette(int bytes, RGB *pal, Stream *in, bool is_os2)
     int i, j;
 
     for (i=j=0; (i+3 <= bytes && j < PAL_SIZE); j++) {
-        pal[j].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[j].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[j].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
+        pal[j].b = static_cast<uint8_t>(in->ReadInt8());
+        pal[j].g = static_cast<uint8_t>(in->ReadInt8());
+        pal[j].r = static_cast<uint8_t>(in->ReadInt8());
+        pal[j].a = 0; // filler
 
         i += 3;
 
@@ -606,9 +607,9 @@ bool SaveBMP(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     if (hdr.colorsCount > 0)
     {
         for (uint32_t i = 0; i < hdr.colorsCount; i++) {
-            out->WriteInt8(_rgb_scale_6[pal[i].b]);
-            out->WriteInt8(_rgb_scale_6[pal[i].g]);
-            out->WriteInt8(_rgb_scale_6[pal[i].r]);
+            out->WriteInt8(pal[i].b);
+            out->WriteInt8(pal[i].g);
+            out->WriteInt8(pal[i].r);
             out->WriteInt8(0);
         }
     }
@@ -832,9 +833,9 @@ bool SavePCX(const BitmapData &bmp, bool /* skip_alpha */, const RGB* pal, Strea
     out->WriteInt16(200);                 /* VDpi */
 
     for (c=0; c<16; c++) {
-        out->WriteInt8(_rgb_scale_6[pal[c].r]);
-        out->WriteInt8(_rgb_scale_6[pal[c].g]);
-        out->WriteInt8(_rgb_scale_6[pal[c].b]);
+        out->WriteInt8(pal[c].r);
+        out->WriteInt8(pal[c].g);
+        out->WriteInt8(pal[c].b);
     }
 
     out->WriteInt8(0);                     /* reserved */
@@ -893,9 +894,9 @@ bool SavePCX(const BitmapData &bmp, bool /* skip_alpha */, const RGB* pal, Strea
         out->WriteInt8(12);
 
         for (c=0; c<256; c++) {
-            out->WriteInt8(_rgb_scale_6[pal[c].r]);
-            out->WriteInt8(_rgb_scale_6[pal[c].g]);
-            out->WriteInt8(_rgb_scale_6[pal[c].b]);
+            out->WriteInt8(pal[c].r);
+            out->WriteInt8(pal[c].g);
+            out->WriteInt8(pal[c].b);
         }
     }
     return true;
@@ -921,9 +922,10 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat* src_fmt, RGB *pal) {
     in->ReadInt32();                   /* skip DPI values */
 
     for (int i=0; i<16; i++) {           /* read the 16 color palette */
-        pal[i].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[i].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[i].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
+        pal[i].r = static_cast<uint8_t>(in->ReadInt8());
+        pal[i].g = static_cast<uint8_t>(in->ReadInt8());
+        pal[i].b = static_cast<uint8_t>(in->ReadInt8());
+        pal[i].a = 0; // filler
     }
 
     in->ReadInt8();
@@ -1002,9 +1004,9 @@ PixelBuffer LoadPCX(Stream *in, PixelFormat* src_fmt, RGB *pal) {
         for (int8_t j=0; !in->EOS(); j = in->ReadInt8()) {
             if (j == 12) {
                 for (int i=0; i<256; i++) {
-                    pal[i].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
-                    pal[i].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
-                    pal[i].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
+                    pal[i].r = static_cast<uint8_t>(in->ReadInt8());
+                    pal[i].g = static_cast<uint8_t>(in->ReadInt8());
+                    pal[i].b = static_cast<uint8_t>(in->ReadInt8());
                     pal[i].a = 0; // filler
                 }
                 break;
@@ -1051,8 +1053,20 @@ PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat* src_fmt, RGB *
     String low_ext = ext.Lower(); // FIXME: case-insensitive version of strstr
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
-        if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr) {
-            return FormatProcs[i].LoadFmt(in, src_fmt, pal);
+        if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr)
+        {
+            PixelBuffer pxbuf = FormatProcs[i].LoadFmt(in, src_fmt, pal);
+            if (pxbuf)
+            {
+                // Convert palette to Allegro's 16-bit colors
+                for (int i = 0; i < PAL_SIZE; ++i)
+                {
+                    pal[i].r /= 4;
+                    pal[i].g /= 4;
+                    pal[i].b /= 4;
+                }
+            }
+            return pxbuf;
         }
     }
     return {};
@@ -1070,8 +1084,17 @@ bool SaveImage(const BitmapData &pxdata, bool skip_alpha, const RGB *pal, Stream
     String low_ext = ext.Lower(); // FIXME: case-insensitive version of strstr
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
-        if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr) {
-            return FormatProcs[i].SaveFmt(pxdata, skip_alpha, pal, out);
+        if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr)
+        {
+            // Convert palette from Allegro's 16-bit colors
+            PALETTE finalPal;
+            for (int i = 0; i < PAL_SIZE; ++i)
+            {
+                finalPal[i].r = _rgb_scale_6[pal[i].r];
+                finalPal[i].g = _rgb_scale_6[pal[i].g];
+                finalPal[i].b = _rgb_scale_6[pal[i].b];
+            }
+            return FormatProcs[i].SaveFmt(pxdata, skip_alpha, finalPal, out);
         }
     }
     return false;

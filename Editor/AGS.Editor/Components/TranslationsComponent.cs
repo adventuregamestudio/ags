@@ -374,24 +374,52 @@ namespace AGS.Editor.Components
                 foreach (var remKey in removeLines)
                 {
                     translation.TranslatedLines.Remove(remKey);
+                    foreach (var section in translation.TranslationSections)
+                    {
+                        section.TranslationEntryKeys.Remove(remKey);
+                    }
                 }
 
                 // Add current game texts
+                var sectionsByKey = translation.TranslationSections.ToDictionary((ts) => ts.Name, (ts) => ts);
+                TranslationSection currentSection = null;
                 foreach (var line in generator.LinesForTranslation)
                 {
+                    // If this line is not in the translation, then add it
                     if (!translation.TranslatedLines.ContainsKey(line.Text))
                     {
+                        // Prepare a section for this line
+                        if (currentSection == null || currentSection.Name != line.Context)
+                        {
+                            string context = line.Context ?? string.Empty;
+                            if (sectionsByKey.TryGetValue(context, out currentSection))
+                            {
+                                currentSection.Comment = line.ContextComment;
+                            }
+                            else
+                            {
+                                currentSection = new TranslationSection(context, line.ContextComment);
+                                sectionsByKey.Add(context, currentSection);
+                                translation.TranslationSections.Add(currentSection);
+                            }
+                        }
+
                         translation.TranslatedLines.Add(line.Text, string.Empty);
+                        currentSection.TranslationEntryKeys.Add(line.Text);
                         translation.Modified = true;
                     }
                 }
-            }
 
-            // (Optionally) add Text Parser's dictionary
-            if (parserWordLists != null)
-            {
-                foreach (Translation translation in translations)
+                // (Optionally) add Text Parser's dictionary
+                if (parserWordLists != null)
                 {
+                    TranslationSection parserSection;
+                    if (!sectionsByKey.TryGetValue("Game Text Parser", out parserSection))
+                    {
+                        parserSection = new TranslationSection("Game Text Parser");
+                        translation.TranslationSections.Add(parserSection);
+                    }
+
                     foreach (var list in parserWordLists)
                     {
                         int wordsKey = list.Key;
@@ -404,6 +432,7 @@ namespace AGS.Editor.Components
                             entryOptions.ParserWordID = wordsKey;
                             translation.TranslatedEntryOptions[wordsValue] = entryOptions;
                             translation.Modified = true;
+                            parserSection.TranslationEntryKeys.Add(wordsValue);
                         }
                     }
                 }

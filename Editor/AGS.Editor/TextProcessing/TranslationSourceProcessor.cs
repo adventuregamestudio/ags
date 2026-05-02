@@ -7,7 +7,7 @@ namespace AGS.Editor
 {
     public class TranslationSourceProcessor : GameSpeechProcessor
     {
-        private Dictionary<string, string> _linesProcessed;
+        private Dictionary<string, GameTextLine> _linesProcessed;
         private string _includeScriptPrefix;
         private string _excludeScriptPrefix;
         private string[] _excludeFunctionCalls;
@@ -24,12 +24,12 @@ namespace AGS.Editor
             // Only parse function calls if there's a need to exclude any
             LookupForFunctionCalls = _excludeFunctionCalls.Length > 0;
 
-            _linesProcessed = new Dictionary<string, string>();
+            _linesProcessed = new Dictionary<string, GameTextLine>();
         }
 
-        public ICollection<string> LinesForTranslation
+        public ICollection<GameTextLine> LinesForTranslation
         {
-            get { return _linesProcessed.Keys; }
+            get { return _linesProcessed.Values; }
         }
 
         protected override bool ParseFunctionCall(string scriptCodeExtract, out int characterID)
@@ -48,8 +48,9 @@ namespace AGS.Editor
             return true;
         }
 
-        protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
+        protected override string CreateSpeechLine(GameTextLine textLine, GameTextType textType)
         {
+            var text = textLine.Text;
             // ignore blank strings and any that start with // (since they
             // conflict with comments in the translation file)
             if (!string.IsNullOrWhiteSpace(text) && (!text.StartsWith("//")))
@@ -68,7 +69,7 @@ namespace AGS.Editor
                 {
                     if (!_linesProcessed.ContainsKey(text))
                     {
-                        _linesProcessed.Add(text, text);
+                        _linesProcessed.Add(text, textLine);
                     }
                 }
             }

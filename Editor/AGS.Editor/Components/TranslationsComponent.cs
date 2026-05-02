@@ -331,7 +331,7 @@ namespace AGS.Editor.Components
                 parserWordLists = fixedWordLists;
             }
 
-            HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation);
+            HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation.Select((l) => { return l.Text; }));
             if (parserWordLists != null)
             {
                 foreach (var list in parserWordLists)
@@ -377,11 +377,11 @@ namespace AGS.Editor.Components
                 }
 
                 // Add current game texts
-                foreach (string line in generator.LinesForTranslation)
+                foreach (var line in generator.LinesForTranslation)
                 {
-                    if (!translation.TranslatedLines.ContainsKey(line))
+                    if (!translation.TranslatedLines.ContainsKey(line.Text))
                     {
-                        translation.TranslatedLines.Add(line, string.Empty);
+                        translation.TranslatedLines.Add(line.Text, string.Empty);
                         translation.Modified = true;
                     }
                 }

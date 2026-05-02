@@ -171,7 +171,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-  
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -188,10 +188,10 @@ jobs:
           echo "${ANDROID_HOME}/platform-tools" >> "$GITHUB_PATH"
           echo "ANDROID_HOME=${ANDROID_HOME}" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=${ANDROID_HOME}" >> "$GITHUB_ENV"
-  
+
       - name: Install Android NDK r25
         run: sdkmanager --install "ndk;25.2.9519653" "build-tools;34.0.0"
-  
+
       - name: Cache Gradle dependencies
         uses: actions/cache@v5
         with:
@@ -199,27 +199,27 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-  
+
       - name: Prepare Android build
         run: cd Android && ./and-build.sh prepare
-  
+
       - name: Build debug APK
         run: cd Android && ./and-build.sh build_debug
-  
+
       - name: Build release APK
         run: cd Android && ./and-build.sh build_release
-  
+
       - name: Rename APKs
         run: cd Android && ./and-build.sh archive_apks
-  
+
       - name: Create project archive
         run: cd Android && ./and-build.sh archive_project
-  
+
       - uses: actions/upload-artifact@v7
         with:
           name: android-apks
           path: AGS-*.apk
-  
+
       - uses: actions/upload-artifact@v7
         with:
           name: ags-bundle-android
@@ -470,7 +470,7 @@ jobs:
           Copy-Item C:\Lib\irrKlang\x86\*.dll Editor\References\
           New-Item -ItemType Directory -Path Editor\References\x64 -Force
           Copy-Item C:\Lib\irrKlang\x64\*.dll Editor\References\x64
-      
+
       - name: Cache NuGet packages
         id: cache-nuget
         uses: actions/cache@v5
@@ -512,7 +512,7 @@ jobs:
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
           cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
-        
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -612,7 +612,7 @@ jobs:
       - name: Run build inside container
         run: |
           TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
-          IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"          
+          IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"
           if [ "${{matrix.platform.rpath}}" = "true" ]; then
             PREFIX=lib
           else

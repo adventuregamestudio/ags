@@ -2084,7 +2084,7 @@ namespace AGS.Editor.Components
 
             if (x < 0 || y < 0 || x > mask.Width || y > mask.Height) return 0;
 
-            return mask.GetRawData()[(y * mask.Width) + x];
+            return mask.GetRawData()[(y * mask.GetStride()) + x];
         }
 
         void IRoomController.ResetMasks()

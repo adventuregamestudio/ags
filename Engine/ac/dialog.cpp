@@ -466,7 +466,7 @@ static int run_dialog_request(int parmtr)
     if (play.stop_dialog_at_end == DIALOG_STOP)
     {
         play.stop_dialog_at_end = DIALOG_NONE;
-        return -2;
+        return RUN_DIALOG_STOP_DIALOG;
     }
     if (play.stop_dialog_at_end >= DIALOG_NEWTOPIC)
     {
@@ -479,10 +479,10 @@ static int run_dialog_request(int parmtr)
         int roomnum = play.stop_dialog_at_end - DIALOG_NEWROOM;
         play.stop_dialog_at_end = DIALOG_NONE;
         NewRoom(roomnum);
-        return -2;
+        return RUN_DIALOG_STOP_DIALOG;
     }
     play.stop_dialog_at_end = DIALOG_NONE;
-    return -1;
+    return RUN_DIALOG_STAY;
 }
 
 int run_dialog_script(int dialogID, int offse, int optionIndex)
@@ -1673,17 +1673,19 @@ public:
     // FIXME: this is a hack, see also the comment below
     ScriptPosition &GetSavedDialogRequestScPos() { return _savedDialogRequestScriptPos; }
 
-    // Sets the starting option number for when running the next dialog topic;
-    // TODO: this is a kind of a hack, because there's no direct way to add this
-    // as a new parameter when switching between dialogs while in dialog script;
-    // perhaps a dialog exec redesign may improve the situation.
-    void SetStartOption(int start_opt);
-
     // Runs Dialog state
     void Run();
+    // Requests a start of another dialog after current dialog script is completed.
+    // This request is scheduled and performed as soon as dialog state receives control.
+    // This overrides the dialog script's return value.
+    void GotoDialog(int dlgnum, int start_opt = 0);
+    // Request a return to the previous dialog.
+    // This request is scheduled and performed as soon as dialog state receives control.
+    // This overrides the dialog script's return value.
+    void ReturnToPreviousDialog();
     // Request the Dialog state to stop.
-    // Note that the stopping is scheduled and is performed as soon as
-    // dialog state receives control.
+    // This request is scheduled and performed as soon as dialog state receives control.
+    // This overrides the dialog script's return value.
     void Stop();
 
 private:
@@ -1698,7 +1700,8 @@ private:
     std::stack<int> _topicHist;
     int _executedOption = -1; // option which is currently run (or -1)
     bool _areOptionsDisplayed = false; // if dialog options are displayed on screen
-    bool _doStop = false;
+    int _doRunDialog = -1; // scheduled goto dialog
+    bool _doStop = false; // scheduled stop
 
     // A position in script saved by certain API function calls in "dialog_request" callback;
     // used purely for error reporting when the script has 2+ calls to gamestate-changing
@@ -1708,16 +1711,16 @@ private:
     ScriptPosition _savedDialogRequestScriptPos;
 };
 
-void DialogExec::SetStartOption(int start_opt)
-{
-    _startOpt = start_opt;
-}
-
 int DialogExec::HandleDialogResult(int res)
 {
     // Stop the dialog if requested
     if (_doStop)
         return RUN_DIALOG_STOP_DIALOG;
+
+    if ((_doRunDialog >= 0) || (_doRunDialog == RUN_DIALOG_GOTO_PREVIOUS))
+    {
+        res = _doRunDialog;
+    }
 
     // Handle goto-previous, see if there's any previous dialog in history
     if (res == RUN_DIALOG_GOTO_PREVIOUS)
@@ -1754,6 +1757,7 @@ void DialogExec::Run()
         if (_dlgNum != _dlgWas)
         {
             const int start_opt = _startOpt;
+            _doRunDialog = RUN_DIALOG_STAY;
             _startOpt = 0; // reset starting option
             _executedOption = 0;
             if (start_opt == 0)
@@ -1816,6 +1820,17 @@ void DialogExec::Run()
     }
 }
 
+void DialogExec::GotoDialog(int dlgnum, int start_opt)
+{
+    _doRunDialog = dlgnum;
+    _startOpt = start_opt;
+}
+
+void DialogExec::ReturnToPreviousDialog()
+{
+    _doRunDialog = RUN_DIALOG_GOTO_PREVIOUS;
+}
+
 void DialogExec::Stop()
 {
     _doStop = true;
@@ -1874,8 +1889,7 @@ void set_dialog_result_goto(int dlgnum, int start_opt)
     assert(is_dialog_executing_script());
     if (is_dialog_executing_script())
     {
-        dialogExec->SetStartOption(start_opt);
-        scriptExecutor->SetReturnValue(dlgnum);
+        dialogExec->GotoDialog(dlgnum, start_opt);
     }
 }
 
@@ -1883,7 +1897,9 @@ void set_dialog_result_stop()
 {
     assert(is_dialog_executing_script());
     if (is_dialog_executing_script())
-        scriptExecutor->SetReturnValue(RUN_DIALOG_STOP_DIALOG);
+    {
+        dialogExec->Stop();
+    }
 }
 
 bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retval, int start_opt)
@@ -1899,7 +1915,10 @@ bool handle_state_change_in_dialog_request(const char *apiname, int dlgreq_retva
     {
         play.stop_dialog_at_end = dlgreq_retval;
         get_script_position(dialogExec->GetSavedDialogRequestScPos());
-        dialogExec->SetStartOption(start_opt);
+        if (dlgreq_retval == DIALOG_STOP)
+            dialogExec->Stop();
+        else if (dlgreq_retval >= DIALOG_NEWTOPIC)
+            dialogExec->GotoDialog(dlgreq_retval - DIALOG_NEWTOPIC, start_opt);
     }
     else
     {

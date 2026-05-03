@@ -340,7 +340,6 @@ void RuntimeScript::RegisterExports(SystemImports &simp)
     for (size_t i = 0; i < _exports.size(); i++)
     {
         String name = _exports[i];
-        name.Replace('$', '^'); // replace exported name separator with imported name separator
         ccAddExternalScriptSymbol(name, _resolvedExports[i].Value, this);
     }
 }

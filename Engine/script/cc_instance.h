@@ -155,9 +155,8 @@ public:
     // Get current program pointer (position in bytecode)
     int     GetPC() const { return _pc; }
     // Get latest return value
+    // FIXME: this is a hack, required for dialog script; return this value from RunScriptFunction etc instead
     int     GetReturnValue() const { return _returnValue; }
-    // TODO: this is a hack, required for dialog script; redo this later!
-    void    SetReturnValue(int val) { _returnValue = val; }
 
     // Create a runnable instance of the same script, sharing global memory
     std::unique_ptr<ccInstance> Fork();

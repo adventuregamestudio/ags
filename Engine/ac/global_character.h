@@ -70,7 +70,8 @@ int  GetPlayerCharacter();
 void GetCharacterPropertyText (int item, const char *property, char *bufer);
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha);
-int GetCharIDAtScreen(int xx, int yy);
+int GetCharIDAtScreen(int x, int y, bool only_clickable);
+int GetCharIDAtScreen2(int x, int y);
 
 void SetActiveInventory(int iit);
 void AddInventoryToCharacter(int charid, int inum);

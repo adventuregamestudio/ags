@@ -497,10 +497,9 @@ RuntimeScriptValue Sc_GetButtonPic(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT_PINT3(GetButtonPic);
 }
 
-// int  (int xx, int yy)
-RuntimeScriptValue Sc_GetCharIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetCharIDAtScreen2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetCharIDAtScreen);
+    API_SCALL_INT_PINT2(GetCharIDAtScreen2);
 }
 
 // int  (int cha, const char *property)
@@ -566,9 +565,9 @@ RuntimeScriptValue Sc_GetGraphicalVariable(const RuntimeScriptValue *params, int
 }
 
 // int  (int xx,int yy)
-RuntimeScriptValue Sc_GetGUIAt(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetGUIAt2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetGUIAt);
+    API_SCALL_INT_PINT2(GetGUIAt2);
 }
 
 // int  (int xx, int yy)
@@ -577,10 +576,9 @@ RuntimeScriptValue Sc_GetGUIObjectAt(const RuntimeScriptValue *params, int32_t p
     API_SCALL_INT_PINT2(GetGUIObjectAt);
 }
 
-// int (int xxx,int yyy)
-RuntimeScriptValue Sc_GetHotspotIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetHotspotIDAtScreen2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetHotspotIDAtScreen);
+    API_SCALL_INT_PINT2(GetHotspotIDAtScreen2);
 }
 
 // void (int hotspot, char *buffer)
@@ -614,9 +612,9 @@ RuntimeScriptValue Sc_GetHotspotPropertyText(const RuntimeScriptValue *params, i
 }
 
 // int  (int xxx, int yyy)
-RuntimeScriptValue Sc_GetInvAt(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetInvAt2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetInvAt);
+    API_SCALL_INT_PINT2(GetInvAt2);
 }
 
 // int (int indx)
@@ -673,10 +671,9 @@ RuntimeScriptValue Sc_GetMP3PosMillis(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT(GetMP3PosMillis);
 }
 
-// int (int xx,int yy)
-RuntimeScriptValue Sc_GetObjectIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetObjectIDAtScreen2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetObjectIDAtScreen);
+    API_SCALL_INT_PINT2(GetObjectIDAtScreen2);
 }
 
 // int (int obn)
@@ -2440,7 +2437,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "FollowCharacterEx",        API_FN_PAIR(FollowCharacterEx) },
         { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
         { "GetButtonPic",             API_FN_PAIR(GetButtonPic) },
-        { "GetCharacterAt",           API_FN_PAIR(GetCharIDAtScreen) },
+        { "GetCharacterAt^2",         API_FN_PAIR(GetCharIDAtScreen2) },
         { "GetCharacterProperty",     API_FN_PAIR(GetCharacterProperty) },
         { "GetCharacterPropertyText", API_FN_PAIR(GetCharacterPropertyText) },
         { "GetCurrentMusic",          API_FN_PAIR(GetCurrentMusic) },
@@ -2452,15 +2449,15 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetGlobalInt",             API_FN_PAIR(GetGlobalInt) },
         { "GetGlobalString",          API_FN_PAIR(GetGlobalString) },
         { "GetGraphicalVariable",     API_FN_PAIR(GetGraphicalVariable) },
-        { "GetGUIAt",                 API_FN_PAIR(GetGUIAt) },
-        { "GetGUIObjectAt",           API_FN_PAIR(GetGUIObjectAt) },
-        { "GetHotspotAt",             API_FN_PAIR(GetHotspotIDAtScreen) },
+        { "GetGUIAt^2",               API_FN_PAIR(GetGUIAt2) },
+        { "GetGUIObjectAt^2",         API_FN_PAIR(GetGUIObjectAt) },
+        { "GetHotspotAt^2",           API_FN_PAIR(GetHotspotIDAtScreen2) },
         { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
         { "GetHotspotPointX",         API_FN_PAIR(GetHotspotPointX) },
         { "GetHotspotPointY",         API_FN_PAIR(GetHotspotPointY) },
         { "GetHotspotProperty",       API_FN_PAIR(GetHotspotProperty) },
         { "GetHotspotPropertyText",   API_FN_PAIR(GetHotspotPropertyText) },
-        { "GetInvAt",                 API_FN_PAIR(GetInvAt) },
+        { "GetInvAt^2",               API_FN_PAIR(GetInvAt2) },
         { "GetInvGraphic",            API_FN_PAIR(GetInvGraphic) },
         { "GetInvName",               API_FN_PAIR(GetInvName) },
         { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
@@ -2470,7 +2467,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetMessageText",           API_FN_PAIR(GetMessageText) },
         { "GetMIDIPosition",          API_FN_PAIR(GetMIDIPosition) },
         { "GetMP3PosMillis",          API_FN_PAIR(GetMP3PosMillis) },
-        { "GetObjectAt",              API_FN_PAIR(GetObjectIDAtScreen) },
+        { "GetObjectAt",              API_FN_PAIR(GetObjectIDAtScreen2) },
         { "GetObjectBaseline",        API_FN_PAIR(GetObjectBaseline) },
         { "GetObjectGraphic",         API_FN_PAIR(GetObjectGraphic) },
         { "GetObjectName",            API_FN_PAIR(GetObjectName) },

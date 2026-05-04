@@ -60,22 +60,27 @@ extern CCObject ccDynamicObject;
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;
 
-int GetObjectIDAtScreen(int scrx, int scry)
+int GetObjectIDAtScreen(int scrx, int scry, bool only_clickable)
 {
     // translate screen co-ordinates to room co-ordinates
     VpPoint vpt = play.ScreenToRoomDivDown(scrx, scry);
     if (vpt.second < 0)
         return -1;
-    return GetObjectIDAtRoom(vpt.first.X, vpt.first.Y);
+    return GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, only_clickable);
 }
 
-int GetObjectIDAtRoom(int roomx, int roomy)
+int GetObjectIDAtScreen2(int scrx, int scry)
+{
+    return GetObjectIDAtScreen(scrx, scry, true);
+}
+
+int GetObjectIDAtRoom(int roomx, int roomy, bool only_clickable)
 {
     int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (uint32_t aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != OBJ_STATE_ENABLED) continue;
-        if (objs[aa].flags & OBJF_NOINTERACT)
+        if (only_clickable && (objs[aa].flags & OBJF_NOINTERACT))
             continue;
         int xxx=objs[aa].x,yyy=objs[aa].y;
         int isflipped = 0;
@@ -101,6 +106,11 @@ int GetObjectIDAtRoom(int roomx, int roomy)
     }
     obj_lowest_yp = bestshotyp;
     return bestshotwas;
+}
+
+int GetObjectIDAtRoom2(int roomx, int roomy)
+{
+    return GetObjectIDAtRoom(roomx, roomy, true);
 }
 
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {

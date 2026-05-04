@@ -71,12 +71,24 @@ int Hotspot_GetWalkToY(ScriptHotspot *hss) {
     return GetHotspotPointY(hss->id);
 }
 
-ScriptHotspot *GetHotspotAtScreen(int xx, int yy) {
-    return &scrHotspot[GetHotspotIDAtScreen(xx, yy)];
+ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, bool only_clickable)
+{
+    return &scrHotspot[GetHotspotIDAtScreen(x, y, only_clickable)];
 }
 
-ScriptHotspot *GetHotspotAtRoom(int x, int y) {
-    return &scrHotspot[get_hotspot_at(x, y)];
+ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
+{
+    return Hotspot_GetAtScreenXY(x, y, true);
+}
+
+ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, bool only_clickable)
+{
+    return &scrHotspot[GetHotspotIDAtRoom(x, y, only_clickable)];
+}
+
+ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
+{
+    return Hotspot_GetAtRoomXY(x, y, true);
 }
 
 void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
@@ -135,10 +147,11 @@ bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const cha
     return set_text_property(croom->hsProps[hss->id], property, value);
 }
 
-int get_hotspot_at(int xpp,int ypp) {
+int GetHotspotIDAtRoom(int xpp, int ypp, bool only_clickable)
+{
     int onhs=thisroom.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
     if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS) return 0;
-    if (!croom->hotspot[onhs].Enabled) return 0;
+    if (only_clickable && !croom->hotspot[onhs].Enabled) return 0;
     return onhs;
 }
 
@@ -165,15 +178,24 @@ RuntimeScriptValue Sc_Hotspot_GetByName(const RuntimeScriptValue *params, int32_
     API_SCALL_OBJ_POBJ(ScriptHotspot, ccDynamicHotspot, Hotspot_GetByName, const char);
 }
 
-RuntimeScriptValue Sc_GetHotspotAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Hotspot_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtRoom);
+    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, Hotspot_GetAtRoomXY2);
 }
 
-// ScriptHotspot *(int xx, int yy)
-RuntimeScriptValue Sc_GetHotspotAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Hotspot_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtScreen);
+    API_SCALL_OBJ_PINT3(ScriptHotspot, ccDynamicHotspot, Hotspot_GetAtRoomXY);
+}
+
+RuntimeScriptValue Sc_Hotspot_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, Hotspot_GetAtScreenXY2);
+}
+
+RuntimeScriptValue Sc_Hotspot_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT3(ScriptHotspot, ccDynamicHotspot, Hotspot_GetAtScreenXY);
 }
 
 RuntimeScriptValue Sc_Hotspot_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
@@ -277,8 +299,10 @@ RuntimeScriptValue Sc_Hotspot_GetWalkToY(void *self, const RuntimeScriptValue *p
 void RegisterHotspotAPI()
 {
     ScFnRegister hotspot_api[] = {
-        { "Hotspot::GetAtRoomXY^2",       API_FN_PAIR(GetHotspotAtRoom) },
-        { "Hotspot::GetAtScreenXY^2",     API_FN_PAIR(GetHotspotAtScreen) },
+        { "Hotspot::GetAtRoomXY^2",       API_FN_PAIR(Hotspot_GetAtRoomXY2) },
+        { "Hotspot::GetAtScreenXY^2",     API_FN_PAIR(Hotspot_GetAtScreenXY2) },
+        { "Hotspot::GetAtRoomXY^3",       API_FN_PAIR(Hotspot_GetAtRoomXY) },
+        { "Hotspot::GetAtScreenXY^3",     API_FN_PAIR(Hotspot_GetAtScreenXY) },
         { "Hotspot::GetByName",           API_FN_PAIR(Hotspot_GetByName) },
         { "Hotspot::GetDrawingSurface",   API_FN_PAIR(Hotspot_GetDrawingSurface) },
 

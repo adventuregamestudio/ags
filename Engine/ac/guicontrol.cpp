@@ -29,17 +29,24 @@ extern std::vector<ScriptGUI> scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
 
-GUIObject *GetGUIControlAtLocation(int xx, int yy) {
-    int guinum = GetGUIAt(xx, yy);
+GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, bool gui_clickable, bool controls_clickable)
+{
+    int guinum = GetGUIAt(xx, yy, gui_clickable);
     if (guinum == -1)
         return nullptr;
 
     data_to_game_coords(&xx, &yy);
-    int toret = guis[guinum].FindControlAt(xx, yy, 0, false);
+    int toret = guis[guinum].FindControlAt(xx, yy, 0, controls_clickable);
     if (toret < 0)
         return nullptr;
 
     return guis[guinum].GetControl(toret);
+}
+
+GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
+{
+    // NOTE: historically GUIControl.GetAtScreenXY did not require controls to be clickable (only guis)
+    return GUIControl_GetAtScreenXY(x, y, true, false);
 }
 
 int GUIControl_GetVisible(GUIObject *guio) {
@@ -311,10 +318,14 @@ RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID(GUIObject, GUIControl_BringToFront);
 }
 
-// GUIObject *(int xx, int yy)
-RuntimeScriptValue Sc_GetGUIControlAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUIControl_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIObject, GetGUIControlAtLocation);
+    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIObject, GUIControl_GetAtScreenXY2);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT4(GUIObject, ccDynamicGUIObject, GUIControl_GetAtScreenXY);
 }
 
 // void (GUIObject *guio)
@@ -566,7 +577,8 @@ RuntimeScriptValue Sc_GUIControl_SetSolidBackground(void *self, const RuntimeScr
 void RegisterGUIControlAPI()
 {
     ScFnRegister guicontrol_api[] = {
-        { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GetGUIControlAtLocation) },
+        { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GUIControl_GetAtScreenXY2) },
+        { "GUIControl::GetAtScreenXY^4",  API_FN_PAIR(GUIControl_GetAtScreenXY) },
         { "GUIControl::GetByName",        API_FN_PAIR(GUIControl_GetByName) },
 
         { "GUIControl::BringToFront^0",   API_FN_PAIR(GUIControl_BringToFront) },

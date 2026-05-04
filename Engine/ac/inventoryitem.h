@@ -25,7 +25,6 @@ int  InventoryItem_GetCursorGraphic(ScriptInvItem *iitem);
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy);
 void InventoryItem_SetName(ScriptInvItem *scii, const char *newname);
 int  InventoryItem_GetID(ScriptInvItem *scii);
-ScriptInvItem *GetInvAtLocation(int xx, int yy);
 void InventoryItem_GetName(ScriptInvItem *iitem, char *buff);
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem);
 int  InventoryItem_GetGraphic(ScriptInvItem *iitem);

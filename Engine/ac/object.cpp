@@ -72,19 +72,29 @@ int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
     return AreObjectsColliding(objj->id, obj2->id);
 }
 
-ScriptObject *GetObjectAtScreen(int xx, int yy) {
-    int hsnum = GetObjectIDAtScreen(xx, yy);
+ScriptObject *Object_GetAtScreenXY(int x, int y, bool only_clickable)
+{
+    int hsnum = GetObjectIDAtScreen(x, y, only_clickable);
     if (hsnum < 0)
         return nullptr;
     return &scrObj[hsnum];
 }
 
-ScriptObject *GetObjectAtRoom(int x, int y)
+ScriptObject *Object_GetAtScreenXY2(int x, int y)
 {
-    int hsnum = GetObjectIDAtRoom(x, y);
+    return Object_GetAtScreenXY(x, y, true);
+}
+
+ScriptObject *Object_GetAtRoomXY(int x, int y, bool only_clickable)
+{
+    int hsnum = GetObjectIDAtRoom(x, y, only_clickable);
     if (hsnum < 0)
         return nullptr;
     return &scrObj[hsnum];
+}
+ScriptObject *Object_GetAtRoomXY2(int x, int y)
+{
+    return Object_GetAtRoomXY(x, y, true);
 }
 
 void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance) {
@@ -673,7 +683,7 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
 // X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
 int check_click_on_object(int roomx, int roomy, int mood)
 {
-    int aa = GetObjectIDAtRoom(roomx, roomy);
+    int aa = GetObjectIDAtRoom(roomx, roomy, true);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;
@@ -1030,15 +1040,24 @@ RuntimeScriptValue Sc_Object_Tint(void *self, const RuntimeScriptValue *params, 
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint);
 }
 
-RuntimeScriptValue Sc_GetObjectAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtRoom);
+    API_SCALL_OBJ_PINT3(ScriptObject, ccDynamicObject, Object_GetAtRoomXY);
 }
 
-// ScriptObject *(int xx, int yy)
-RuntimeScriptValue Sc_GetObjectAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtScreen);
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, Object_GetAtRoomXY2);
+}
+
+RuntimeScriptValue Sc_Object_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT3(ScriptObject, ccDynamicObject, Object_GetAtScreenXY);
+}
+
+RuntimeScriptValue Sc_Object_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, Object_GetAtScreenXY2);
 }
 
 // int (ScriptObject *objj)
@@ -1318,8 +1337,10 @@ RuntimeScriptValue Sc_Object_SetY(void *self, const RuntimeScriptValue *params, 
 void RegisterObjectAPI()
 {
     ScFnRegister object_api[] = {
-        { "Object::GetAtRoomXY^2",            API_FN_PAIR(GetObjectAtRoom) },
-        { "Object::GetAtScreenXY^2",          API_FN_PAIR(GetObjectAtScreen) },
+        { "Object::GetAtRoomXY^2",            API_FN_PAIR(Object_GetAtRoomXY2) },
+        { "Object::GetAtScreenXY^2",          API_FN_PAIR(Object_GetAtScreenXY2) },
+        { "Object::GetAtRoomXY^3",            API_FN_PAIR(Object_GetAtRoomXY) },
+        { "Object::GetAtScreenXY^3",          API_FN_PAIR(Object_GetAtScreenXY) },
         { "Object::GetByName",                API_FN_PAIR(Object_GetByName) },
 
         { "Object::Animate^5",                API_FN_PAIR(Object_Animate5) },

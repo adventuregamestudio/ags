@@ -26,7 +26,6 @@ bool    AssertHotspot(const char *apiname, int hot_id);
 void    Hotspot_SetEnabled(ScriptHotspot *hss, int newval);
 int     Hotspot_GetEnabled(ScriptHotspot *hss);
 int     Hotspot_GetID(ScriptHotspot *hss);
-ScriptHotspot *GetHotspotAtScreen(int xx, int yy);
 int     Hotspot_GetWalkToX(ScriptHotspot *hss);;
 int     Hotspot_GetWalkToY(ScriptHotspot *hss);
 void    Hotspot_GetName(ScriptHotspot *hss, char *buffer);
@@ -38,8 +37,11 @@ int     Hotspot_GetProperty (ScriptHotspot *hss, const char *property);
 void    Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer);
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
 
+// Gets hotspot ID at the given screen coordinates;
+// if hotspot is disabled or non-existing, returns 0 (no area)
+int     GetHotspotIDAtScreen2(int x, int y);
 // Gets hotspot ID at the given room coordinates;
 // if hotspot is disabled or non-existing, returns 0 (no area)
-int     get_hotspot_at(int xpp,int ypp);
+int     GetHotspotIDAtRoom(int x, int y, bool only_clickable);
 
 #endif // __AGS_EE_AC__HOTSPOT_H

@@ -1562,7 +1562,7 @@ void stop_fast_forwarding() {
 int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     getloctype_index = 0;
     // If it's not in ProcessClick, then return 0 when over a GUI
-    if ((GetGUIAt(xxx, yyy) >= 0) && (getloctype_throughgui == 0))
+    if ((GetGUIAt(xxx, yyy, true) >= 0) && (getloctype_throughgui == 0))
         return 0;
 
     getloctype_throughgui = 0;
@@ -1579,9 +1579,9 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     // check characters, objects and walkbehinds, work out which is
     // foremost visible to the player
-    int charat = is_pos_on_character(xxx,yyy);
-    int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectIDAtScreen(scrx, scry);
+    int charat = GetCharIDAtRoom(xxx, yyy, true);
+    int hsat = GetHotspotIDAtRoom(xxx, yyy, true);
+    int objat = GetObjectIDAtScreen(scrx, scry, true);
 
     data_to_game_coords(&xxx, &yyy);
 

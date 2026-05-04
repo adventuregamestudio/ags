@@ -498,11 +498,17 @@ int GUI_GetBottomLeftGraphic(ScriptGUI *tehgui)
         get_but_pic(&guis[tehgui->id], kTW_BottomLeft) : 0;
 }
 
-ScriptGUI *GetGUIAtLocation(int xx, int yy) {
-    int guiid = GetGUIAt(xx, yy);
+ScriptGUI *GUI_GetAtScreenXY(int x, int y, bool only_clickable)
+{
+    int guiid = GetGUIAt(x, y, only_clickable);
     if (guiid < 0)
         return nullptr;
     return &scrGui[guiid];
+}
+
+ScriptGUI *GUI_GetAtScreenXY2(int x, int y)
+{
+    return GUI_GetAtScreenXY(x, y, true);
 }
 
 void GUI_Click(ScriptGUI *scgui, int mbut)
@@ -776,7 +782,7 @@ int gui_get_interactable(int x, int y)
 {
     if (GUI::Context.DisabledState == kGuiDis_Off)
         return -1;
-    return GetGUIAt(x, y);
+    return GetGUIAt(x, y, true);
 }
 
 int gui_on_mouse_move(const int mx, const int my)
@@ -963,10 +969,14 @@ RuntimeScriptValue Sc_GUI_Centre(void *self, const RuntimeScriptValue *params, i
     API_OBJCALL_VOID(ScriptGUI, GUI_Centre);
 }
 
-// ScriptGUI *(int xx, int yy)
-RuntimeScriptValue Sc_GetGUIAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUI_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptGUI, ccDynamicGUI, GetGUIAtLocation);
+    API_SCALL_OBJ_PINT2(ScriptGUI, ccDynamicGUI, GUI_GetAtScreenXY2);
+}
+
+RuntimeScriptValue Sc_GUI_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT3(ScriptGUI, ccDynamicGUI, GUI_GetAtScreenXY);
 }
 
 // void (ScriptGUI *tehgui, int xx, int yy)
@@ -1235,7 +1245,8 @@ RuntimeScriptValue Sc_GUI_GetBottomLeftGraphic(void *self, const RuntimeScriptVa
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
-        { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GetGUIAtLocation) },
+        { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY2) },
+        { "GUI::GetAtScreenXY^3",         API_FN_PAIR(GUI_GetAtScreenXY) },
         { "GUI::GetByName",               API_FN_PAIR(GUI_GetByName) },
 
         { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },

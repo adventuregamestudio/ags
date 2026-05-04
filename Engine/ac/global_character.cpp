@@ -465,11 +465,17 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
     get_text_property (game.charProps[item], play.charProps[item], property, bufer);
 }
 
-int GetCharIDAtScreen(int xx, int yy) {
-    VpPoint vpt = play.ScreenToRoomDivDown(xx, yy);
+int GetCharIDAtScreen(int x, int y, bool only_clickable)
+{
+    VpPoint vpt = play.ScreenToRoomDivDown(x, y);
     if (vpt.second < 0)
         return -1;
-    return is_pos_on_character(vpt.first.X, vpt.first.Y);
+    return GetCharIDAtRoom(vpt.first.X, vpt.first.Y, only_clickable);
+}
+
+int GetCharIDAtScreen2(int x, int y)
+{
+    return GetCharIDAtScreen(x, y, true);
 }
 
 void SetActiveInventory(int iit) {

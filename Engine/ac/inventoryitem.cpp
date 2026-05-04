@@ -104,11 +104,17 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
     return CreateNewScriptString(game.invScriptNames[scii->id]);
 }
 
-ScriptInvItem *GetInvAtLocation(int xx, int yy) {
-  int hsnum = GetInvAt(xx, yy);
-  if (hsnum <= 0)
-    return nullptr;
-  return &scrInv[hsnum];
+ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, bool only_clickable)
+{
+    int hsnum = GetInvAt(x, y, only_clickable);
+    if (hsnum <= 0)
+        return nullptr;
+    return &scrInv[hsnum];
+}
+
+ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
+{
+    return InventoryItem_GetAtScreenXY(x, y, true);
 }
 
 void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {
@@ -176,10 +182,14 @@ RuntimeScriptValue Sc_InventoryItem_GetByName(const RuntimeScriptValue *params, 
     API_SCALL_OBJ_POBJ(ScriptInvItem, ccDynamicInv, InventoryItem_GetByName, const char);
 }
 
-// ScriptInvItem *(int xx, int yy)
-RuntimeScriptValue Sc_GetInvAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptInvItem, ccDynamicInv, GetInvAtLocation);
+    API_SCALL_OBJ_PINT3(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY);
+}
+
+RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY2);
 }
 
 // int (ScriptInvItem *iitem, int mood)
@@ -300,7 +310,8 @@ RuntimeScriptValue Sc_InventoryItem_GetName_New(void *self, const RuntimeScriptV
 void RegisterInventoryItemAPI()
 {
     ScFnRegister invitem_api[] = {
-        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(GetInvAtLocation) },
+        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY2) },
+        { "InventoryItem::GetAtScreenXY^3",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
         { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
 
         { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },

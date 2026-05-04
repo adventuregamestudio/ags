@@ -241,22 +241,37 @@ int IsInterfaceEnabled() {
   return (play.disabled_user_interface > 0) ? 0 : 1;
 }
 
-int GetGUIObjectAt (int xx, int yy) {
-    GUIObject *toret = GetGUIControlAtLocation(xx, yy);
+int GetGUIObjectAt (int xx, int yy)
+{
+    // NOTE: historically GUIControl.GetAtScreenXY did not require controls to be clickable (only guis)
+    GUIObject *toret = GUIControl_GetAtScreenXY(xx, yy, true, false);
     if (toret == nullptr)
         return -1;
 
     return toret->GetID();
 }
 
-int GetGUIAt (int xx,int yy) {
-    data_to_game_coords(&xx, &yy);
+int GetGUIAt(int x,int y, bool only_clickable)
+{
+    data_to_game_coords(&x, &y);
     // Test in the opposite order (from closer to further)
-    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g) {
-        if (guis[*g].IsInteractableAt(xx, yy))
-            return *g;
+    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g)
+    {
+        if (guis[*g].IsDisplayed())
+        {
+            if ((only_clickable && guis[*g].IsInteractableAt(x, y) ||
+                (!only_clickable && guis[*g].GetRect().IsInside(x, y))))
+            {
+                return *g;
+            }
+        }
     }
     return -1;
+}
+
+int GetGUIAt2(int x, int y)
+{
+    return GetGUIAt(x, y, true);
 }
 
 void SetTextWindowGUI (int guinum) {

@@ -2399,19 +2399,30 @@ Bitmap *GetCharacterImage(int charid, bool *is_original)
     return spriteset[sppic];
 }
 
-CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
-    int hsnum = GetCharIDAtScreen(xx, yy);
+CharacterInfo *Character_GetAtScreenXY(int x, int y, bool only_clickable)
+{
+    int hsnum = GetCharIDAtScreen(x, y, only_clickable);
     if (hsnum < 0)
         return nullptr;
     return &game.chars[hsnum];
 }
 
-CharacterInfo *GetCharacterAtRoom(int x, int y)
+CharacterInfo *Character_GetAtScreenXY2(int x, int y)
 {
-    int hsnum = is_pos_on_character(x, y);
+    return Character_GetAtScreenXY(x, y, true);
+}
+
+CharacterInfo *Character_GetAtRoomXY(int x, int y, bool only_clickable)
+{
+    int hsnum = GetCharIDAtRoom(x, y, only_clickable);
     if (hsnum < 0)
         return nullptr;
     return &game.chars[hsnum];
+}
+
+CharacterInfo *Character_GetAtRoomXY2(int x, int y)
+{
+    return Character_GetAtRoomXY(x, y, true);
 }
 
 extern int char_lowest_yp, obj_lowest_yp;
@@ -2463,12 +2474,13 @@ void update_character_scale(int charid)
     chex.zoom_offs = zoom_offs;
 }
 
-int is_pos_on_character(int xx,int yy) {
+int GetCharIDAtRoom(int x, int y, bool only_clickable)
+{
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
         if (game.chars[cc].on==0) continue;
-        if (game.chars[cc].flags & CHF_NOINTERACT) continue;
+        if (only_clickable && (game.chars[cc].flags & CHF_NOINTERACT)) continue;
         if (game.chars[cc].view < 0) continue;
         CharacterInfo*chin=&game.chars[cc];
 
@@ -2493,7 +2505,7 @@ int is_pos_on_character(int xx,int yy) {
         if (!is_original)
             mirrored = 0; // transformed image is already flipped
 
-        if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
+        if (is_pos_in_sprite(x, y, xxx, yyy, theImage,
             game_to_data_coord(usewid),
             game_to_data_coord(usehit), mirrored, is_original) == FALSE)
             continue;
@@ -2535,7 +2547,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 }
 
 int check_click_on_character(int xx,int yy,int mood) {
-    int lowestwas=is_pos_on_character(xx,yy);
+    int lowestwas=GetCharIDAtRoom(xx, yy, true);
     if (lowestwas>=0) {
         RunCharacterInteraction (lowestwas, mood);
         return 1;
@@ -3559,15 +3571,24 @@ RuntimeScriptValue Sc_Character_WalkStraight(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_WalkStraight);
 }
 
-RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtRoom);
+    API_SCALL_OBJ_PINT3(CharacterInfo, ccDynamicCharacter, Character_GetAtRoomXY);
 }
 
-// CharacterInfo *(int xx, int yy)
-RuntimeScriptValue Sc_GetCharacterAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtScreen);
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, Character_GetAtRoomXY2);
+}
+
+RuntimeScriptValue Sc_Character_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT3(CharacterInfo, ccDynamicCharacter, Character_GetAtScreenXY);
+}
+
+RuntimeScriptValue Sc_Character_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, Character_GetAtScreenXY2);
 }
 
 // ScriptInvItem* (CharacterInfo *chaa)
@@ -4171,8 +4192,10 @@ void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
 void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister character_api[] = {
-        { "Character::GetAtRoomXY^2",             API_FN_PAIR(GetCharacterAtRoom) },
-        { "Character::GetAtScreenXY^2",           API_FN_PAIR(GetCharacterAtScreen) },
+        { "Character::GetAtRoomXY^2",             API_FN_PAIR(Character_GetAtRoomXY2) },
+        { "Character::GetAtScreenXY^2",           API_FN_PAIR(Character_GetAtScreenXY2) },
+        { "Character::GetAtRoomXY^3",             API_FN_PAIR(Character_GetAtRoomXY) },
+        { "Character::GetAtScreenXY^3",           API_FN_PAIR(Character_GetAtScreenXY) },
         { "Character::GetByName",                 API_FN_PAIR(Character_GetByName) },
 
         { "Character::AddInventory^2",            API_FN_PAIR(Character_AddInventory) },

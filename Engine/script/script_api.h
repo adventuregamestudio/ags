@@ -339,6 +339,10 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue, params[1].IValue), &RET_MGR)
 
+#define API_SCALL_OBJ_PINT3(RET_CLASS, RET_MGR, FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue), &RET_MGR)
+
 #define API_SCALL_OBJ_PINT4(RET_CLASS, RET_MGR, FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 4); \
     return RuntimeScriptValue().SetScriptObject((void*)(RET_CLASS*)FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue), &RET_MGR)

@@ -5,16 +5,18 @@ using System.Text;
 
 namespace AGS.Editor
 {
-	public struct GameTextLine
-	{
-		public string Text;
+    public struct GameTextLine
+    {
+        public string Text;
         public int CharacterID;
+        public int ParserWordID;
         public string SourceRef;
 
         public GameTextLine(string text)
         {
             Text = text;
             CharacterID = -1;
+            ParserWordID = -1;
             SourceRef = string.Empty;
         }
 
@@ -22,21 +24,28 @@ namespace AGS.Editor
         {
             Text = text;
             CharacterID = -1;
+            ParserWordID = -1;
             SourceRef = sourceRef;
         }
 
-        public GameTextLine(int characterID, string text)
-		{
-            Text = text;
-            CharacterID = characterID;
-            SourceRef = string.Empty;
-        }
-
-        public GameTextLine(int characterID, string text, string sourceRef)
+        public static GameTextLine MakeSpeechLine(int characterID, string text)
         {
-            Text = text;
-            CharacterID = characterID;
-            SourceRef = sourceRef;
+            var line = new GameTextLine(text);
+            line.CharacterID = characterID;
+            return line;
+        }
+        public static GameTextLine MakeSpeechLine(int characterID, string text, string sourceRef)
+        {
+            var line = new GameTextLine(text, sourceRef);
+            line.CharacterID = characterID;
+            return line;
+        }
+
+        public static GameTextLine MakeParserWord(int wordID, string text, string sourceRef)
+        {
+            var line = new GameTextLine(text, sourceRef);
+            line.ParserWordID = wordID;
+            return line;
         }
     }
 }

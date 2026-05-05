@@ -57,7 +57,7 @@ namespace AGS.Editor
 
         public string ProcessText(string text, string sourceRef, GameTextType textType)
         {
-            return ProcessText(new GameTextLine(-1, text, sourceRef), textType);
+            return ProcessText(new GameTextLine(text, sourceRef), textType);
         }
 
         public string ProcessText(GameTextLine textLine, GameTextType textType)
@@ -82,6 +82,8 @@ namespace AGS.Editor
                         return CreateSpeechLine(textLine, textType);
                     }
                     break;
+                default:
+                    return CreateSpeechLine(textLine, textType);
             }
             return textLine.Text;
         }
@@ -140,7 +142,7 @@ namespace AGS.Editor
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(new GameTextLine(charID, mainString, scriptName), GameTextType.Script);
+                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, scriptName), GameTextType.Script);
                             if (_makesChanges)
                             {
                                 string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
@@ -193,7 +195,7 @@ namespace AGS.Editor
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
                         originalLine = string.Format("{0}: {1}", characterName,
-                            CreateSpeechLine(new GameTextLine(charID, lineText, scriptName), GameTextType.DialogScript));
+                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, scriptName), GameTextType.DialogScript));
                     }
                 }
 

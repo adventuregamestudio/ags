@@ -1292,13 +1292,13 @@ builtin managed struct InventoryItem {
 builtin managed struct Overlay {
 #ifdef SCRIPT_API_v360
   /// Creates an overlay that displays a sprite.
-  import static Overlay* CreateGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$ $AUTOCOMPLETENOINHERIT$
 #else // !SCRIPT_API_v360
   /// Creates an overlay that displays a sprite.
-  import static Overlay* CreateGraphical(int x, int y, int slot);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateGraphical(int x, int y, int slot);  // $AUTOCOMPLETESTATICONLY$ $AUTOCOMPLETENOINHERIT$
 #endif // !SCRIPT_API_v360
   /// Creates an overlay that displays some text.
-  import static Overlay* CreateTextual(int x, int y, int width, FontType, int colour, __format const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateTextual(int x, int y, int width, FontType, int colour, __format const string text, ...);  // $AUTOCOMPLETESTATICONLY$ $AUTOCOMPLETENOINHERIT$
   /// Changes the text on the overlay.
   import void SetText(int width, FontType, int colour, __format const string text, ...);
   /// Removes the overlay from the screen.
@@ -1311,9 +1311,9 @@ builtin managed struct Overlay {
   import attribute int Y;
 #ifdef SCRIPT_API_v360
   /// Creates an overlay that displays a sprite inside the room.
-  import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$ $AUTOCOMPLETENOINHERIT$
   /// Creates an overlay that displays some text inside the room.
-  import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, __format const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, __format const string text, ...);  // $AUTOCOMPLETESTATICONLY$ $AUTOCOMPLETENOINHERIT$
   /// Gets whether this overlay is located inside the room, as opposed to the screen layer.
   import readonly attribute bool InRoom;
   /// Gets/sets the width of this overlay. Resizing overlay will scale its image.

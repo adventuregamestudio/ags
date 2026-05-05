@@ -19,18 +19,17 @@ namespace AGS.Editor
 
             foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
-                string context = $"Dialog{dialog.ID}";
-                string contextComment = dialog.Name;
+                string context = dialog.Name;
                 foreach (DialogOption option in dialog.Options)
                 {
-                    option.Text = processor.ProcessText(new GameTextLine(game.PlayerCharacter.ID, option.Text, context, contextComment), GameTextType.DialogOption);
+                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, context), GameTextType.DialogOption);
                 }
 
                 dialog.Script = processor.ProcessText(dialog.Script, context, GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
-            {                                
+            {
                 string newScript = processor.ProcessText(script.Script.Text, script.Script.FileName, GameTextType.Script);
                 if (newScript != script.Script.Text)
                 {
@@ -78,6 +77,20 @@ namespace AGS.Editor
 				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], "Global messages", GameTextType.Message);
 			}
 
+            if (game.Settings.TranslateTextParser)
+            {
+                var parserWordLists = ConstructParserWordsList(game.TextParser);
+                // What we do here: because parser dictionary entry may match some
+                // generic game text (e.g. if it's a item's name), the cheap and dumb solution
+                // that we use is that we prefix the source line with a comma
+                // (this works as it's a comma-separated list).
+                foreach (var wordKey in parserWordLists.Keys)
+                {
+                    string word = $",{parserWordLists[wordKey]}";
+                    processor.ProcessText(GameTextLine.MakeParserWord(wordKey, word, "Game Text Parser"), GameTextType.TextParserWord);
+                }
+            }
+
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, errors);
         }
 
@@ -109,6 +122,31 @@ namespace AGS.Editor
                     prop.Value = processor.ProcessText(prop.Value, context, contextComment, GameTextType.ItemDescription);
                 }
             }
+        }
+
+        private static Dictionary<int, string> ConstructParserWordsList(TextParser parser)
+        {
+            var wordsPerID = new Dictionary<int, List<string>>();
+            foreach (var word in parser.Words)
+            {
+                if (!wordsPerID.ContainsKey(word.WordGroup))
+                    wordsPerID[word.WordGroup] = new List<string>();
+                wordsPerID[word.WordGroup].Add(word.Word);
+            }
+
+            var wordLists = new Dictionary<int, string>();
+            foreach (var wordList in wordsPerID)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var word in wordList.Value)
+                {
+                    if (sb.Length > 0)
+                        sb.Append(',');
+                    sb.Append(word);
+                }
+                wordLists[wordList.Key] = sb.ToString();
+            }
+            return wordLists;
         }
     }
 }

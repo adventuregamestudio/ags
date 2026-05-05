@@ -57,12 +57,12 @@ namespace AGS.Editor
 
         public string ProcessText(string text, string context, GameTextType textType)
         {
-            return ProcessText(new GameTextLine(-1, text, context), textType);
+            return ProcessText(new GameTextLine(text, context), textType);
         }
 
         public string ProcessText(string text, string context, string contextComment, GameTextType textType)
         {
-            return ProcessText(new GameTextLine(-1, text, context, contextComment), textType);
+            return ProcessText(new GameTextLine(text, context, contextComment), textType);
         }
 
         public string ProcessText(GameTextLine textLine, GameTextType textType)
@@ -87,6 +87,8 @@ namespace AGS.Editor
                         return CreateSpeechLine(textLine, textType);
                     }
                     break;
+                default:
+                    return CreateSpeechLine(textLine, textType);
             }
             return textLine.Text;
         }
@@ -144,7 +146,7 @@ namespace AGS.Editor
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(new GameTextLine(charID, mainString, context, contextComment), GameTextType.Script);
+                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, context, contextComment), GameTextType.Script);
                             if (_makesChanges)
                             {
                                 string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
@@ -196,7 +198,7 @@ namespace AGS.Editor
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
                         originalLine = string.Format("{0}: {1}", characterName,
-                            CreateSpeechLine(new GameTextLine(charID, lineText, context, contextComment), GameTextType.DialogScript));
+                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, context, contextComment), GameTextType.DialogScript));
                     }
                 }
 

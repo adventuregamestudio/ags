@@ -9,6 +9,7 @@ namespace AGS.Editor
 	{
 		public string Text;
         public int CharacterID;
+        public int ParserWordID;
         public string Context;
 		public string ContextComment;
 
@@ -16,7 +17,17 @@ namespace AGS.Editor
         {
             Text = text;
             CharacterID = -1;
+            ParserWordID = -1;
             Context = string.Empty;
+            ContextComment = string.Empty;
+        }
+
+        public GameTextLine(string text, string context)
+        {
+            Text = text;
+            CharacterID = -1;
+            ParserWordID = -1;
+            Context = context;
             ContextComment = string.Empty;
         }
 
@@ -24,32 +35,37 @@ namespace AGS.Editor
         {
             Text = text;
             CharacterID = -1;
+            ParserWordID = -1;
             Context = context;
             ContextComment = contextComment;
         }
 
-        public GameTextLine(int characterID, string text)
-		{
-            Text = text;
-            CharacterID = characterID;
-			Context = string.Empty;
-            ContextComment = string.Empty;
+        public static GameTextLine MakeSpeechLine(int characterID, string text)
+        {
+            var line = new GameTextLine(text);
+            line.CharacterID = characterID;
+            return line;
         }
 
-        public GameTextLine(int characterID, string text, string context)
+        public static GameTextLine MakeSpeechLine(int characterID, string text, string context)
         {
-            Text = text;
-            CharacterID = characterID;
-            Context = context;
-            ContextComment = string.Empty;
+            var line = new GameTextLine(text, context, string.Empty);
+            line.CharacterID = characterID;
+            return line;
         }
 
-        public GameTextLine(int characterID, string text, string context, string contextComment)
+        public static GameTextLine MakeSpeechLine(int characterID, string text, string context, string contextComment)
         {
-            Text = text;
-            CharacterID = characterID;
-            Context = context;
-            ContextComment = contextComment;
+            var line = new GameTextLine(text, context, contextComment);
+            line.CharacterID = characterID;
+            return line;
+        }
+
+        public static GameTextLine MakeParserWord(int wordID, string text, string context)
+        {
+            var line = new GameTextLine(text, context, string.Empty);
+            line.ParserWordID = wordID;
+            return line;
         }
     }
 }

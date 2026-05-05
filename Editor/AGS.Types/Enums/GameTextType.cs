@@ -11,6 +11,7 @@ namespace AGS.Types
         DialogScript,
         Message,
         DialogOption,
-        ItemDescription
+        ItemDescription,
+        TextParserWord
     }
 }

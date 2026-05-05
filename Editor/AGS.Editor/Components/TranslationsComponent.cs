@@ -282,31 +282,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        private Dictionary<int, string> ConstructParserWordsList(TextParser parser)
-        {
-            var wordsPerID = new Dictionary<int, List<string>>();
-            foreach (var word in parser.Words)
-            {
-                if (!wordsPerID.ContainsKey(word.WordGroup))
-                    wordsPerID[word.WordGroup] = new List<string>();
-                wordsPerID[word.WordGroup].Add(word.Word);
-            }
-
-            var wordLists = new Dictionary<int, string>();
-            foreach (var wordList in wordsPerID)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (var word in wordList.Value)
-                {
-                    if (sb.Length > 0)
-                        sb.Append(',');
-                    sb.Append(word);
-                }
-                wordLists[wordList.Key] = sb.ToString();
-            }
-            return wordLists;
-        }
-
         private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)
         {
             List<Translation> translations = (List<Translation>)translationList;
@@ -314,29 +289,8 @@ namespace AGS.Editor.Components
             CompileMessages messages = generator.CreateTranslationList(_agsEditor.CurrentGame);
             if (messages.HasErrors)
                 return messages; // abort for avoiding corrupting translations
-            // (Optionally) prepare Text Parser's dictionary
-            Dictionary<int, string> parserWordLists = null;
-            if (_agsEditor.CurrentGame.Settings.TranslateTextParser)
-            {
-                parserWordLists = ConstructParserWordsList(_agsEditor.CurrentGame.TextParser);
-                // What we do here: because parser dictionary entry may match some
-                // generic game text (e.g. if it's a item's name), the cheap and dumb solution
-                // that we use is that we prefix the source line with a comma
-                // (this works as it's a comma-separated list).
-                var fixedWordLists = new Dictionary<int, string>();
-                foreach (var wordKey in parserWordLists.Keys)
-                {
-                    fixedWordLists[wordKey] = $",{parserWordLists[wordKey]}";
-                }
-                parserWordLists = fixedWordLists;
-            }
 
             HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation.Select((l) => { return l.Text; }));
-            if (parserWordLists != null)
-            {
-                foreach (var list in parserWordLists)
-                    keyedTexts.Add(list.Value);
-            }
 
             // Merge game texts in
             foreach (Translation translation in translations)
@@ -406,34 +360,17 @@ namespace AGS.Editor.Components
 
                         translation.TranslatedLines.Add(line.Text, string.Empty);
                         currentSection.TranslationEntryKeys.Add(line.Text);
-                        translation.Modified = true;
-                    }
-                }
 
-                // (Optionally) add Text Parser's dictionary
-                if (parserWordLists != null)
-                {
-                    TranslationSection parserSection;
-                    if (!sectionsByKey.TryGetValue("Game Text Parser", out parserSection))
-                    {
-                        parserSection = new TranslationSection("Game Text Parser");
-                        translation.TranslationSections.Add(parserSection);
-                    }
-
-                    foreach (var list in parserWordLists)
-                    {
-                        int wordsKey = list.Key;
-                        string wordsValue = list.Value;
-                        if (!translation.TranslatedLines.ContainsKey(wordsValue))
+                        // For parser words, add respective annotation
+                        if (line.ParserWordID >= 0)
                         {
-                            translation.TranslatedLines.Add(wordsValue, string.Empty);
                             var entryOptions = new TranslationEntryOptions();
-                            entryOptions.Metadata.Add($"PARSERWORD={wordsKey}");
-                            entryOptions.ParserWordID = wordsKey;
-                            translation.TranslatedEntryOptions[wordsValue] = entryOptions;
-                            translation.Modified = true;
-                            parserSection.TranslationEntryKeys.Add(wordsValue);
+                            entryOptions.Metadata.Add($"PARSERWORD={line.ParserWordID}");
+                            entryOptions.ParserWordID = line.ParserWordID;
+                            translation.TranslatedEntryOptions[line.Text] = entryOptions;
                         }
+
+                        translation.Modified = true;
                     }
                 }
             }

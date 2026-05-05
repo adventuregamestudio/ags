@@ -1768,7 +1768,7 @@ namespace AGS.Editor.Components
                     {
                         charId = Character.NARRATOR_CHARACTER_ID;
                     }
-                    message.Text = processor.ProcessText(new GameTextLine(charId, message.Text, roomContext, roomContextComment), GameTextType.Message);
+                    message.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(charId, message.Text, roomContext, roomContextComment), GameTextType.Message);
                 }
 
                 TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, room.Properties, roomContext, roomContextComment, errors);

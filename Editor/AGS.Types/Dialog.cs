@@ -13,7 +13,7 @@ namespace AGS.Types
         private int _id;
         private string _name;
         private bool _showTextParser;
-        private string _script;
+        private DialogScript _script;
         private bool _scriptChangedSinceLastCompile;
         private string _cachedConvertedScript;
         private List<DialogOption> _options = new List<DialogOption>();
@@ -21,9 +21,8 @@ namespace AGS.Types
 
         public Dialog()
         {
-            _script = "// Dialog script file" + Environment.NewLine + 
-                "@S  // Dialog startup entry point" + Environment.NewLine +
-                "return" + Environment.NewLine;
+            // we don't know the filename yet
+            _script = DialogScript.CreateDefault(null);
             _cachedConvertedScript = null;
             _scriptChangedSinceLastCompile = true;
         }
@@ -35,7 +34,12 @@ namespace AGS.Types
         public int ID
         {
             get { return _id; }
-            set { _id = value; }
+            set
+            { 
+                _id = value;
+                // FIX-ME: this is temporary, dialog should have Filename like "dScriptName.asd"
+                _script.FileName = "Dialog" + value;
+            }
         }
 
         [Description("The script name of the dialog")]
@@ -48,10 +52,10 @@ namespace AGS.Types
         }
 
         [Browsable(false)]
-        public string FileName { get { return "Dialog " + ID; } }
+        public string FileName { get { return _script.FileName; } }
 
         [Browsable(false)]
-        public string Text { get { return _script; } }
+        public string Text { get { return _script.Text; } }
 
         [Browsable(false)]
         public ScriptAutoCompleteData AutoCompleteData { get { return null; } }
@@ -67,14 +71,14 @@ namespace AGS.Types
         [Browsable(false)]
         public string Script
         {
-            get { return _script; }
+            get { return _script.Text; }
             set 
             {
-                if (_script != value)
+                if (_script.Text != value)
                 {
                     _scriptChangedSinceLastCompile = true;
                 }
-                _script = value; 
+                _script.Text = value; 
             }
         }
 
@@ -133,7 +137,9 @@ namespace AGS.Types
             _showTextParser = Boolean.Parse(SerializeUtils.GetElementString(node, "ShowTextParser"));
             XmlNode scriptNode = node.SelectSingleNode("Script");
             // Luckily the CDATA section is easy to read back
-            _script = scriptNode.InnerText;
+            // FIX-ME: we will need to figure how to look the .asd file and then if it fails look into the inner text?
+            // or the reverse? Need to think on this
+            _script = new DialogScript("Dialog" + _id, scriptNode.InnerText);
 
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "DialogOptions"))
             {
@@ -148,7 +154,9 @@ namespace AGS.Types
             writer.WriteElementString("Name", _name);
             writer.WriteElementString("ShowTextParser", _showTextParser.ToString());
             writer.WriteStartElement("Script");
-            writer.WriteCData(_script);
+            // FIX-ME: move this out because the writing will be in a file by DialogScript.
+            // For now we keep this so things still work.
+            writer.WriteCData(_script.Text);
             writer.WriteEndElement();
 
             writer.WriteStartElement("DialogOptions");

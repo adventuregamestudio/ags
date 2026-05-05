@@ -42,7 +42,7 @@ namespace AGS.Types
         private Dictionary<int, Font> _fontOverrides = new Dictionary<int, Font>();
         private Dictionary<string, string> _translatedLines = new Dictionary<string, string>();
         private Dictionary<string, TranslationEntryOptions> _entryOptions = new Dictionary<string, TranslationEntryOptions>();
-        private List<TranslationSection> _translationSections = new List<TranslationSection>();
+        private Dictionary<string, TranslationSection> _translationSections = new Dictionary<string, TranslationSection>();
 
         public Translation(string name)
         {
@@ -71,19 +71,32 @@ namespace AGS.Types
             get { return _name + TRANSLATION_COMPILED_FILE_EXTENSION; }
         }
 
+        /// <summary>
+        /// A map of translated lines, where the text in base game language is a key,
+        /// and the text in another language is a value.
+        /// </summary>
         public Dictionary<string, string> TranslatedLines
         {
             get { return _translatedLines; }
             set { _translatedLines = value; }
         }
 
+        /// <summary>
+        /// A map of options per particular lines of text.
+        /// </summary>
         public Dictionary<string, TranslationEntryOptions> TranslatedEntryOptions
         {
             get { return _entryOptions; }
             set { _entryOptions = value; }
         }
 
-        public List<TranslationSection> TranslationSections
+        /// <summary>
+        /// A map of sections per particular lines of text.
+        /// When translation source file is generated, the lines will be split up
+        /// depending on this map. If line does not have a corresponding section,
+        /// such line will be written as a part of the generic no-name section.
+        /// </summary>
+        public Dictionary<string, TranslationSection> TranslationSections
         {
             get { return _translationSections; }
             set { _translationSections = value; }
@@ -183,6 +196,37 @@ namespace AGS.Types
 
         public void SaveData()
         {
+            //
+            // Organize translated lines by sections
+            //
+            var sectionLists = new List<Tuple<TranslationSection, List<string>>>();
+            var sectionIndexByKey = new Dictionary<string, int>();
+            var nonameSection = new TranslationSection(string.Empty);
+            sectionLists.Add(new Tuple<TranslationSection, List<string>>(nonameSection, new List<string>()));
+            sectionIndexByKey.Add(string.Empty, 0);
+            foreach (var line in _translatedLines)
+            {
+                List<string> sectionList = null;
+                TranslationSection section = null;
+                _translationSections.TryGetValue(line.Key, out section);
+                section = (section != null && !string.IsNullOrEmpty(section.Name)) ? section : nonameSection;
+                int sectionIndex = 0;
+                if (sectionIndexByKey.TryGetValue(section.Name, out sectionIndex))
+                {
+                    sectionList = sectionLists[sectionIndex].Item2;
+                }
+                else
+                {
+                    sectionList = new List<string>();
+                    sectionLists.Add(new Tuple<TranslationSection, List<string>>(section, sectionList));
+                    sectionIndexByKey.Add(section.Name, sectionLists.Count - 1);
+                }
+                sectionList.Add(line.Key);
+            }
+
+            //
+            // Write translation source file
+            //
             using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
             {
                 sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
@@ -215,15 +259,20 @@ namespace AGS.Types
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
 
                 TranslationEntryOptions entryOptions = null;
-                foreach (var section in _translationSections)
+                foreach (var sectionList in sectionLists)
                 {
+                    var section = sectionList.Item1;
+                    var lines = sectionList.Item2;
+                    if (lines.Count == 0)
+                        continue;
+
                     sw.WriteLine("//-----------------------------------------------------------------------------");
                     if (string.IsNullOrWhiteSpace(section.Comment))
                         sw.WriteLine($"//$SECTION = {section.Name}");
                     else
                         sw.WriteLine($"//$SECTION = {section.Name}; {section.Comment}");
                     sw.WriteLine("//-----------------------------------------------------------------------------");
-                    foreach (string key in section.TranslationEntryKeys)
+                    foreach (string key in lines)
                     {
                         if (_entryOptions.TryGetValue(key, out entryOptions))
                         {
@@ -236,7 +285,7 @@ namespace AGS.Types
                     }
                 }
             }
-            this.Modified = false;
+            Modified = false;
         }
 
         /// <summary>
@@ -276,7 +325,7 @@ namespace AGS.Types
             _fontOverrides = new Dictionary<int, Font>();
             _translatedLines = new Dictionary<string, string>();
             _entryOptions = new Dictionary<string, TranslationEntryOptions>();
-            _translationSections = new List<TranslationSection>();
+            _translationSections = new Dictionary<string, TranslationSection>();
             List<string> annotateNextLine = new List<string>();
             var sectionsByKey = new Dictionary<string, TranslationSection>();
             string currentSectionKey = string.Empty;
@@ -333,13 +382,14 @@ namespace AGS.Types
                             _entryOptions[originalText] = CreateEntryOptions(annotateNextLine);
                             annotateNextLine.Clear();
                         }
-                        if (!sectionsByKey.ContainsKey(currentSectionKey))
+                        TranslationSection section = null;
+                        if (!sectionsByKey.TryGetValue(currentSectionKey, out section))
                         {
-                            var section = new TranslationSection(currentSectionKey, currentSectionComment);
+                            section = new TranslationSection(currentSectionKey, currentSectionComment);
                             sectionsByKey[currentSectionKey] = section;
-                            _translationSections.Add(section);
+
                         }
-                        sectionsByKey[currentSectionKey].TranslationEntryKeys.Add(originalText);
+                        _translationSections[originalText] = section;
 					}
                 }
             }

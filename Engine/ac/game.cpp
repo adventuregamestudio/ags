@@ -1579,9 +1579,9 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     // check characters, objects and walkbehinds, work out which is
     // foremost visible to the player
-    int charat = GetCharIDAtRoom(xxx, yyy, true);
-    int hsat = GetHotspotIDAtRoom(xxx, yyy, true);
-    int objat = GetObjectIDAtScreen(scrx, scry, true);
+    int charat = GetCharIDAtRoom(xxx, yyy, kHit_Clickable);
+    int hsat = GetHotspotIDAtRoom(xxx, yyy, kHit_Clickable);
+    int objat = GetObjectIDAtScreen(scrx, scry, kHit_Clickable);
 
     data_to_game_coords(&xxx, &yyy);
 

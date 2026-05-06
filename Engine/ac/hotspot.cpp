@@ -71,9 +71,9 @@ int Hotspot_GetWalkToY(ScriptHotspot *hss) {
     return GetHotspotPointY(hss->id);
 }
 
-ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, bool only_clickable)
+ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, int hit_options)
 {
-    return &scrHotspot[GetHotspotIDAtScreen(x, y, only_clickable)];
+    return &scrHotspot[GetHotspotIDAtScreen(x, y, hit_options)];
 }
 
 ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
@@ -81,9 +81,9 @@ ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
     return Hotspot_GetAtScreenXY(x, y, true);
 }
 
-ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, bool only_clickable)
+ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, int hit_options)
 {
-    return &scrHotspot[GetHotspotIDAtRoom(x, y, only_clickable)];
+    return &scrHotspot[GetHotspotIDAtRoom(x, y, hit_options)];
 }
 
 ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
@@ -147,8 +147,9 @@ bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const cha
     return set_text_property(croom->hsProps[hss->id], property, value);
 }
 
-int GetHotspotIDAtRoom(int xpp, int ypp, bool only_clickable)
+int GetHotspotIDAtRoom(int xpp, int ypp, int hit_options)
 {
+    const bool only_clickable = (hit_options & kHit_Clickable) != 0;
     int onhs=thisroom.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
     if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS) return 0;
     if (only_clickable && !croom->hotspot[onhs].Enabled) return 0;

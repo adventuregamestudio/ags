@@ -29,14 +29,14 @@ extern std::vector<ScriptGUI> scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
 
-GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, bool gui_clickable, bool controls_clickable)
+GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, int gui_hitoptions, int ctrl_hitoptions)
 {
-    int guinum = GetGUIAt(xx, yy, gui_clickable);
+    int guinum = GetGUIAt(xx, yy, gui_hitoptions);
     if (guinum == -1)
         return nullptr;
 
     data_to_game_coords(&xx, &yy);
-    int toret = guis[guinum].FindControlAt(xx, yy, 0, controls_clickable);
+    int toret = guis[guinum].FindControlAt(xx, yy, 0, (ctrl_hitoptions & kHit_Clickable));
     if (toret < 0)
         return nullptr;
 
@@ -46,7 +46,7 @@ GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, bool gui_clickable, bool con
 GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
 {
     // NOTE: historically GUIControl.GetAtScreenXY did not require controls to be clickable (only guis)
-    return GUIControl_GetAtScreenXY(x, y, true, false);
+    return GUIControl_GetAtScreenXY(x, y, kHit_Clickable, kHit_Any);
 }
 
 int GUIControl_GetVisible(GUIObject *guio) {

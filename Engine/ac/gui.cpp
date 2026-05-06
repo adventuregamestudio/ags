@@ -498,9 +498,9 @@ int GUI_GetBottomLeftGraphic(ScriptGUI *tehgui)
         get_but_pic(&guis[tehgui->id], kTW_BottomLeft) : 0;
 }
 
-ScriptGUI *GUI_GetAtScreenXY(int x, int y, bool only_clickable)
+ScriptGUI *GUI_GetAtScreenXY(int x, int y, int hit_options)
 {
-    int guiid = GetGUIAt(x, y, only_clickable);
+    int guiid = GetGUIAt(x, y, hit_options);
     if (guiid < 0)
         return nullptr;
     return &scrGui[guiid];
@@ -782,7 +782,7 @@ int gui_get_interactable(int x, int y)
 {
     if (GUI::Context.DisabledState == kGuiDis_Off)
         return -1;
-    return GetGUIAt(x, y, true);
+    return GetGUIAt(x, y, kHit_Clickable);
 }
 
 int gui_on_mouse_move(const int mx, const int my)

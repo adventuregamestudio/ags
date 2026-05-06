@@ -35,7 +35,7 @@ using AGS::Common::GUIListBox;
 using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;
 
-GUIObject	*GUIControl_GetAtScreenXY(int x, int y, bool gui_clickable, bool controls_clickable);
+GUIObject	*GUIControl_GetAtScreenXY(int x, int y, int gui_hitoptions, int ctrl_hitoptions);
 int			GUIControl_GetVisible(GUIObject *guio);
 void		GUIControl_SetVisible(GUIObject *guio, int visible);
 int			GUIControl_GetClickable(GUIObject *guio);

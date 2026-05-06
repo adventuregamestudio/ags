@@ -42,6 +42,6 @@ const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
 int     GetHotspotIDAtScreen2(int x, int y);
 // Gets hotspot ID at the given room coordinates;
 // if hotspot is disabled or non-existing, returns 0 (no area)
-int     GetHotspotIDAtRoom(int x, int y, bool only_clickable);
+int     GetHotspotIDAtRoom(int x, int y, int hit_options);
 
 #endif // __AGS_EE_AC__HOTSPOT_H

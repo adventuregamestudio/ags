@@ -201,7 +201,7 @@ Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
 // calculates resulting sprite size.
 void update_character_scale(int charid);
 // Get character ID at the given room coordinates
-int GetCharIDAtRoom(int x, int y, bool only_clickable);
+int GetCharIDAtRoom(int x, int y, int hit_options);
 Rect get_char_blocking_rect(int charid);
 int my_getpixel(Common::Bitmap *blk, int x, int y);
 int check_click_on_character(int xx, int yy,int mood);

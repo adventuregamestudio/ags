@@ -105,12 +105,12 @@ void SetInvItemName(int invi, const char *newName)
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-int GetInvAt(int atx, int aty, bool only_clickable)
+int GetInvAt(int atx, int aty, int gui_hitoptions, int inv_hitoptions)
 {
-  int ongui = GetGUIAt(atx, aty, only_clickable);
+  int ongui = GetGUIAt(atx, aty, gui_hitoptions);
   if (ongui >= 0) {
     data_to_game_coords(&atx, &aty);
-    int onobj = guis[ongui].FindControlAt(atx, aty, 0, only_clickable);
+    int onobj = guis[ongui].FindControlAt(atx, aty, 0, inv_hitoptions & kHit_Clickable);
     GUIObject *guio = guis[ongui].GetControl(onobj);
     if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow)) {
       const int inv_atx = atx - guis[ongui].GetX() - guio->GetX();
@@ -123,7 +123,7 @@ int GetInvAt(int atx, int aty, bool only_clickable)
 
 int GetInvAt2(int atx, int aty)
 {
-    return GetInvAt(atx, aty, true);
+    return GetInvAt(atx, aty, kHit_Clickable, kHit_Clickable);
 }
 
 void GetInvName(int indx, char*buff)

@@ -104,9 +104,9 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
     return CreateNewScriptString(game.invScriptNames[scii->id]);
 }
 
-ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, bool only_clickable)
+ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, int gui_hitoptions, int inv_hitoptions)
 {
-    int hsnum = GetInvAt(x, y, only_clickable);
+    int hsnum = GetInvAt(x, y, gui_hitoptions, inv_hitoptions);
     if (hsnum <= 0)
         return nullptr;
     return &scrInv[hsnum];
@@ -114,7 +114,7 @@ ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, bool only_clickable)
 
 ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
 {
-    return InventoryItem_GetAtScreenXY(x, y, true);
+    return InventoryItem_GetAtScreenXY(x, y, kHit_Clickable, kHit_Clickable);
 }
 
 void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {
@@ -184,7 +184,7 @@ RuntimeScriptValue Sc_InventoryItem_GetByName(const RuntimeScriptValue *params, 
 
 RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT3(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY);
+    API_SCALL_OBJ_PINT4(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY);
 }
 
 RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
@@ -311,7 +311,7 @@ void RegisterInventoryItemAPI()
 {
     ScFnRegister invitem_api[] = {
         { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY2) },
-        { "InventoryItem::GetAtScreenXY^3",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
+        { "InventoryItem::GetAtScreenXY^4",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
         { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
 
         { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },

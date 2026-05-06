@@ -24,7 +24,7 @@ int  GetHotspotPointX (int hotspot);
 int  GetHotspotPointY (int hotspot);
 // Gets hotspot ID at the given screen coordinates;
 // if hotspot is disabled or non-existing, returns 0 (no area)
-int  GetHotspotIDAtScreen(int x, int y, bool only_clickable);
+int  GetHotspotIDAtScreen(int x, int y, int hit_options);
 int  GetHotspotIDAtScreen2(int x, int y);
 void GetHotspotName(int hotspot, char *buffer);
 void RunHotspotInteraction (int hotspothere, int mood);

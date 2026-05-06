@@ -72,9 +72,9 @@ int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
     return AreObjectsColliding(objj->id, obj2->id);
 }
 
-ScriptObject *Object_GetAtScreenXY(int x, int y, bool only_clickable)
+ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
 {
-    int hsnum = GetObjectIDAtScreen(x, y, only_clickable);
+    int hsnum = GetObjectIDAtScreen(x, y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &scrObj[hsnum];
@@ -85,9 +85,9 @@ ScriptObject *Object_GetAtScreenXY2(int x, int y)
     return Object_GetAtScreenXY(x, y, true);
 }
 
-ScriptObject *Object_GetAtRoomXY(int x, int y, bool only_clickable)
+ScriptObject *Object_GetAtRoomXY(int x, int y, int hit_options)
 {
-    int hsnum = GetObjectIDAtRoom(x, y, only_clickable);
+    int hsnum = GetObjectIDAtRoom(x, y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &scrObj[hsnum];
@@ -683,7 +683,7 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
 // X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
 int check_click_on_object(int roomx, int roomy, int mood)
 {
-    int aa = GetObjectIDAtRoom(roomx, roomy, true);
+    int aa = GetObjectIDAtRoom(roomx, roomy, kHit_Clickable);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;

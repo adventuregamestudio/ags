@@ -51,7 +51,7 @@ void SetGUIObjectEnabled(int guin, int objn, int enabled);
 void SetGUIObjectPosition(int guin, int objn, int xx, int yy);
 int GetGUIObjectAt (int xx, int yy);
 int GetGUIAt2(int xx,int yy);
-int GetGUIAt(int x, int y, bool clickable);
+int GetGUIAt(int x, int y, int hit_options);
 void SetTextWindowGUI (int guinum);
 
 #endif // __AGS_EE_AC__GLOBALGUI_H

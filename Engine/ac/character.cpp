@@ -2399,9 +2399,9 @@ Bitmap *GetCharacterImage(int charid, bool *is_original)
     return spriteset[sppic];
 }
 
-CharacterInfo *Character_GetAtScreenXY(int x, int y, bool only_clickable)
+CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)
 {
-    int hsnum = GetCharIDAtScreen(x, y, only_clickable);
+    int hsnum = GetCharIDAtScreen(x, y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &game.chars[hsnum];
@@ -2412,9 +2412,9 @@ CharacterInfo *Character_GetAtScreenXY2(int x, int y)
     return Character_GetAtScreenXY(x, y, true);
 }
 
-CharacterInfo *Character_GetAtRoomXY(int x, int y, bool only_clickable)
+CharacterInfo *Character_GetAtRoomXY(int x, int y, int hit_options)
 {
-    int hsnum = GetCharIDAtRoom(x, y, only_clickable);
+    int hsnum = GetCharIDAtRoom(x, y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &game.chars[hsnum];
@@ -2474,8 +2474,9 @@ void update_character_scale(int charid)
     chex.zoom_offs = zoom_offs;
 }
 
-int GetCharIDAtRoom(int x, int y, bool only_clickable)
+int GetCharIDAtRoom(int x, int y, int hit_options)
 {
+    const bool only_clickable = (hit_options & kHit_Clickable) != 0;
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
@@ -2547,7 +2548,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 }
 
 int check_click_on_character(int xx,int yy,int mood) {
-    int lowestwas=GetCharIDAtRoom(xx, yy, true);
+    int lowestwas=GetCharIDAtRoom(xx, yy, kHit_Clickable);
     if (lowestwas>=0) {
         RunCharacterInteraction (lowestwas, mood);
         return 1;

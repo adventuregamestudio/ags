@@ -21,10 +21,10 @@
 #include "gfx/bitmap.h"
 
 // Get object at the given screen coordinates
-int  GetObjectIDAtScreen(int x,int y, bool only_clickable);
+int  GetObjectIDAtScreen(int x,int y, int hit_options);
 int  GetObjectIDAtScreen2(int x,int y);
 // Get object at the given room coordinates
-int  GetObjectIDAtRoom(int roomx, int roomy, bool only_clickable);
+int  GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 int  GetObjectIDAtRoom2(int roomx, int roomy);
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance);
 void RemoveObjectTint(int obj);

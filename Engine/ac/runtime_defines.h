@@ -216,6 +216,15 @@ enum ScriptButtonColorStyle
     eGUIButtonDynamicFlat       = 2
 };
 
+// Determines a set of bit-flags for hit-test functions, such as
+// GetAtScreenXY and GetAtRoomXY.
+enum ScriptHitTestOptions
+{
+    kHit_Any                    = 0,
+    // Clickable also means "enabled" depending on a context
+    kHit_Clickable              = 0x0001
+};
+
 enum eScriptSystemOSID
 {
     eOS_Unknown = 0,

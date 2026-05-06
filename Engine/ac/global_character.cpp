@@ -465,17 +465,17 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
     get_text_property (game.charProps[item], play.charProps[item], property, bufer);
 }
 
-int GetCharIDAtScreen(int x, int y, bool only_clickable)
+int GetCharIDAtScreen(int x, int y, int hit_options)
 {
     VpPoint vpt = play.ScreenToRoomDivDown(x, y);
     if (vpt.second < 0)
         return -1;
-    return GetCharIDAtRoom(vpt.first.X, vpt.first.Y, only_clickable);
+    return GetCharIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
 }
 
 int GetCharIDAtScreen2(int x, int y)
 {
-    return GetCharIDAtScreen(x, y, true);
+    return GetCharIDAtScreen(x, y, kHit_Clickable);
 }
 
 void SetActiveInventory(int iit) {

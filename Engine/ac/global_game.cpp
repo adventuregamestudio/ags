@@ -444,8 +444,7 @@ int SetGameOption (int opt, int newval) {
         UpdateInventory();
         break;
     case OPT_PORTRAITSIDE:
-        if (newval == 0)  // set back to Left
-            play.swap_portrait_side = 0;
+        play.swap_portrait_side = (newval == PORTRAIT_ALTERNATE);
         break;
     default:
         break; // do nothing else

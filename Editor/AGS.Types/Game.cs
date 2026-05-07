@@ -21,7 +21,7 @@ namespace AGS.Types
         private const int GLOBAL_MESSAGE_ID_START = 500;
 
         public const int MAX_INV_ITEMS = 300;
-        public const int MAX_SOUND_CHANNELS = 16;
+        public const int MAX_SOUND_CHANNELS = 32;
         public const int MAX_USER_SOUND_CHANNELS = MAX_SOUND_CHANNELS - 1; // 1 reserved for Speech
 
         // TODO: these events are unfortunately a hack. They are not even fired by the

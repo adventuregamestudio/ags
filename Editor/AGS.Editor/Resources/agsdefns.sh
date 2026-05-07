@@ -162,11 +162,13 @@ enum Alignment {
   eAlignMiddleRight   = 32,
   eAlignBottomLeft    = 64,
   eAlignBottomCenter  = 128,
-  eAlignBottomRight   = 256,
+  eAlignBottomRight   = 256
+};
 
-  // Masks are helping to determine whether alignment parameter contains
-  // particular horizontal or vertical component (for example: left side
-  // or bottom side)
+// Masks are helping to determine whether alignment parameter contains
+// particular horizontal or vertical component (for example: left side
+// or bottom side)
+enum AlignmentMask {
   eAlignHasLeft       = 73,
   eAlignHasRight      = 292,
   eAlignHasTop        = 7,

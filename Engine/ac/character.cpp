@@ -136,51 +136,57 @@ bool AssertCharacter(const char *apiname, int char_id)
     return false;
 }
 
-void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex) {
-    int ee;
-
+void Character_AddInventory(CharacterInfo *chi, ScriptInvItem *invi, int at_index)
+{
     if (invi == nullptr)
-        quit("!AddInventoryToCharacter: invalid inventory number");
+        quit("!Character.AddInventory: invalid inventory number");
 
-    int inum = invi->id;
+    if (at_index >= SCR_NO_VALUE)
+        at_index = -1;
 
-    if (chaa->inv[inum] >= 32000)
-        quit("!AddInventory: cannot carry more than 32000 of one inventory item");
+    const int inum = invi->id;
+    if (chi->inv[inum] == INT16_MAX)
+    {
+        debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
+            chi->scrname, game.invScriptNames[inum].GetCStr(), INT16_MAX);
+        return;
+    }
 
-    chaa->inv[inum]++;
+    chi->inv[inum]++;
+    auto &chex = charextra[chi->index_id];
 
-    int charid = chaa->index_id;
-
-    if (game.options[OPT_DUPLICATEINV] == 0) {
+    if (game.options[OPT_DUPLICATEINV] == 0)
+    {
         // Ensure it is only in the list once
-        for (ee = 0; ee < charextra[charid].invorder_count; ee++) {
-            if (charextra[charid].invorder[ee] == inum) {
+        for (const auto &item_id : chex.inventory)
+        {
+            if (item_id == inum)
+            {
                 // They already have the item, so don't add it to the list
-                if (chaa == playerchar)
+                if (chi == playerchar)
                     run_on_event(kScriptEvent_InventoryAdd, inum);
                 return;
             }
         }
     }
-    if (charextra[charid].invorder_count >= MAX_INVORDER)
-        quit("!Too many inventory items added, max 500 display at one time");
 
-    if ((addIndex == SCR_NO_VALUE) ||
-        (addIndex >= charextra[charid].invorder_count) ||
-        (addIndex < 0)) {
-            // add new item at end of list
-            charextra[charid].invorder[charextra[charid].invorder_count] = inum;
+    if (chex.inventory.size() == MAX_CHAR_INVENTORY)
+    {
+        debug_script_warn("Character.AddInventory: char %s, item %s: too many inventory items added, max %d can be stored at once",
+            chi->scrname, game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
+        return;
     }
-    else {
-        // insert new item at index
-        for (ee = charextra[charid].invorder_count - 1; ee >= addIndex; ee--)
-            charextra[charid].invorder[ee + 1] = charextra[charid].invorder[ee];
 
-        charextra[charid].invorder[addIndex] = inum;
+    if ((at_index < 0) || (at_index >= chex.inventory.size()))
+    {
+        chex.inventory.push_back(inum);
     }
-    charextra[charid].invorder_count++;
-    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
-    if (chaa == playerchar)
+    else
+    {
+        chex.inventory.insert(chex.inventory.begin() + at_index, inum);
+    }
+    GUIE::MarkInventoryForUpdate(chi->index_id, chi->index_id == game.playercharacter);
+    if (chi == playerchar)
         run_on_event(kScriptEvent_InventoryAdd, inum);
 }
 
@@ -726,29 +732,30 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     if (invi == nullptr)
         quit("!LoseInventoryFromCharacter: invalid inventory number");
 
-    int inum = invi->id;
-
-    if (chap->inv[inum] > 0)
-        chap->inv[inum]--;
-
-    if ((chap->activeinv == inum) & (chap->inv[inum] < 1)) {
+    const int inum = invi->id;
+    if (chap->inv[inum] == 0)
+    {
+        debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
+            chap->scrname, game.invScriptNames[inum].GetCStr());
+        return;
+    }
+    
+    chap->inv[inum]--;
+    // If this was a selected item, and its quantity drops to zero,
+    // then reset the active inventory and "use inv" cursor
+    if ((chap->activeinv == inum) && (chap->inv[inum] == 0))
+    {
         chap->activeinv = -1;
         if ((chap == playerchar) && (GetCursorMode() == MODE_USE))
             set_cursor_mode(0);
     }
 
     int charid = chap->index_id;
-
-    if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0)) {
-        int xx,tt;
-        for (xx = 0; xx < charextra[charid].invorder_count; xx++) {
-            if (charextra[charid].invorder[xx] == inum) {
-                charextra[charid].invorder_count--;
-                for (tt = xx; tt < charextra[charid].invorder_count; tt++)
-                    charextra[charid].invorder[tt] = charextra[charid].invorder[tt+1];
-                break;
-            }
-        }
+    // Remove one item of this kind (it will be the only item if no duplicates allowed)
+    if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
+    {
+        auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
+        charextra[charid].inventory.erase(it_found);
     }
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 

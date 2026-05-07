@@ -66,7 +66,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     // TODO: find a way to not have this inside GUIInvWindow::Draw!
     play.inv_numinline = _colCount;
     play.inv_numdisp = _rowCount * _colCount;
-    play.inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].inventory.size();
     // if the user changes top_inv_item, switch into backwards compat mode
     if (play.inv_top != 0)
         play.inv_backwards_compatibility = 1;
@@ -78,13 +78,14 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     int at_x = leftmost_x;
     int at_y = y + _innerRect.Top;
     int lastItem = _topItem + (_colCount * _rowCount);
-    if (lastItem > charextra[GetCharacterID()].invorder_count)
-        lastItem = charextra[GetCharacterID()].invorder_count;
+    auto &chex = charextra[GetCharacterID()];
+    if (lastItem > chex.inventory.size())
+        lastItem = chex.inventory.size();
 
     for (int item = _topItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterID()].invorder[item]].pic, at_x, at_y, true);
+        draw_gui_sprite(ds, game.invinfo[chex.inventory[item]].pic, at_x, at_y, true);
         at_x += data_to_game_coord(_itemWidth);
 
         // go to next row when appropriate

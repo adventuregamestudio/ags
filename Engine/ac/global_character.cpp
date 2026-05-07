@@ -489,47 +489,49 @@ void SetActiveInventory(int iit) {
     Character_SetActiveInventory(playerchar, tosend);
 }
 
-void update_invorder() {
-    for (int cc = 0; cc < game.numcharacters; cc++) {
-        charextra[cc].invorder_count = 0;
-        int ff, howmany;
-        // Iterate through all inv items, adding them once (or multiple
-        // times if requested) to the list.
-        for (ff=0;ff < game.numinvitems;ff++) {
-            howmany = game.chars[cc].inv[ff];
-            if ((game.options[OPT_DUPLICATEINV] == 0) && (howmany > 1))
-                howmany = 1;
+void update_invorder()
+{
+    for (int cc = 0; cc < game.numcharacters; cc++)
+    {
+        auto &chex = charextra[cc];
+        chex.inventory.clear();
+        // Iterate through all inv items, adding them once
+        // (or multiple times if requested) to the list.
+        for (int item = 0; (item < game.numinvitems) && (chex.inventory.size() != MAX_CHAR_INVENTORY); ++item)
+        {
+            int item_count = game.chars[cc].inv[item];
+            if ((game.options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
+                item_count = 1;
 
-            for (int ts = 0; ts < howmany; ts++) {
-                if (charextra[cc].invorder_count >= MAX_INVORDER)
-                    quit("!Too many inventory items to display: 500 max");
-
-                charextra[cc].invorder[charextra[cc].invorder_count] = ff;
-                charextra[cc].invorder_count++;
+            for (int i = 0; (i < item_count) && (chex.inventory.size() != MAX_CHAR_INVENTORY); ++i)
+            {
+                chex.inventory.push_back(item);
             }
         }
     }
     // backwards compatibility
-    play.inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].inventory.size();
     GUIE::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
-void add_inventory(int inum) {
+void add_inventory(int inum)
+{
     if ((inum < 0) || (inum >= MAX_INV))
         quit("!AddInventory: invalid inventory number");
 
     Character_AddInventory(playerchar, &scrInv[inum], SCR_NO_VALUE);
 
-    play.inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].inventory.size();
 }
 
-void lose_inventory(int inum) {
+void lose_inventory(int inum)
+{
     if ((inum < 0) || (inum >= MAX_INV))
         quit("!LoseInventory: invalid inventory number");
 
     Character_LoseInventory(playerchar, &scrInv[inum]);
 
-    play.inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].inventory.size();
 }
 
 void AddInventoryToCharacter(int charid, int inum) {

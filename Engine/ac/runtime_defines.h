@@ -23,7 +23,11 @@
 #define INVALID_X  30000
 #define MAXGSVALUES 500
 #define MAXGLOBALSTRINGS 51
-#define MAX_INVORDER 500
+#define LEGACY_MAX_CHAR_INVENTORY 500
+// Max character inventory capacity is limited by SCR_NO_VALUE,
+// because that was AddInventory's index parameter's default value.
+// May up to INT32_MAX in AGS 4.x, but keep here for backwards compatibility.
+#define MAX_CHAR_INVENTORY 31998
 #define LEGACY_MAX_TIMERS 21
 #define MAX_PARSED_WORDS 15
 

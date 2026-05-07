@@ -56,8 +56,23 @@ void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int dista
 
 void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 {
-    in->ReadArrayOfInt16(invorder, MAX_INVORDER);
-    invorder_count = in->ReadInt16();
+    if (save_ver < kCharSvgVersion_36310)
+    {
+        int16_t invorder[LEGACY_MAX_CHAR_INVENTORY];
+        in->ReadArrayOfInt16(invorder, LEGACY_MAX_CHAR_INVENTORY);
+        int invorder_count = in->ReadInt16();
+        inventory.resize(invorder_count);
+        std::copy(invorder, invorder + invorder_count, inventory.begin());
+    }
+    else
+    {
+        uint32_t inv_count = in->ReadInt32();
+        inventory.resize(inv_count);
+        in->ReadArrayOfInt32(inventory.data(), inv_count);
+        if (inv_count > MAX_CHAR_INVENTORY)
+            inventory.resize(MAX_CHAR_INVENTORY);
+    }
+    
     width = in->ReadInt16();
     height = in->ReadInt16();
     zoom = in->ReadInt16();
@@ -109,8 +124,8 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 
 void CharacterExtras::WriteToSavegame(Stream *out) const
 {
-    out->WriteArrayOfInt16(invorder, MAX_INVORDER);
-    out->WriteInt16(invorder_count);
+    out->WriteInt32(static_cast<uint32_t>(inventory.size()));
+    out->WriteArrayOfInt32(inventory.data(), inventory.size());
     out->WriteInt16(width);
     out->WriteInt16(height);
     out->WriteInt16(zoom);

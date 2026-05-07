@@ -26,6 +26,7 @@
 #ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
 #define __AGS_EE_AC__CHARACTEREXTRAS_H
 
+#include <vector>
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 
@@ -37,8 +38,6 @@ using namespace AGS; // FIXME later
 // and plugin API, therefore new stuff has to go here
 struct CharacterExtras
 {
-    short invorder[MAX_INVORDER]{};
-    short invorder_count = 0;
     // TODO: implement full AABB and keep updated, so that engine could rely on these cached values all time;
     // TODO: consider having both fixed AABB and volatile one that changes with animation frame (unless you change how anims work)
     short width = 0;
@@ -61,6 +60,9 @@ struct CharacterExtras
     int   following = -1; // whom do we follow (character id)
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction
+    // Character's inventory, stores item IDs in the order in which items were added.
+    // This may include item duplicates if OPT_DUPLICATEINV is enabled.
+    std::vector<int> inventory;
 
     // Following fields are deriatives of the above (calculated from these
     // and other factors), and hence are not serialized.

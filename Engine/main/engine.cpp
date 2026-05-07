@@ -691,7 +691,6 @@ void engine_init_game_settings()
                 game.chars[ee].loop = 1;
         }
         charextra[ee].process_idle_this_time = 0;
-        charextra[ee].invorder_count = 0;
         charextra[ee].slow_move_counter = 0;
         charextra[ee].animwait = 0;
     }

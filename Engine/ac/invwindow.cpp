@@ -103,7 +103,7 @@ int InvWindow_GetItemsPerRow(GUIInvWindow *guii) {
 }
 
 int InvWindow_GetItemCount(GUIInvWindow *guii) {
-  return charextra[guii->GetCharacterID()].invorder_count;
+  return charextra[guii->GetCharacterID()].inventory.size();
 }
 
 int InvWindow_GetRowCount(GUIInvWindow *guii) {
@@ -111,7 +111,7 @@ int InvWindow_GetRowCount(GUIInvWindow *guii) {
 }
 
 void InvWindow_ScrollDown(GUIInvWindow *guii) {
-  if ((charextra[guii->GetCharacterID()].invorder_count) >
+  if ((charextra[guii->GetCharacterID()].inventory.size()) >
       (guii->GetTopItem() + (guii->GetColCount() * guii->GetRowCount()))) { 
     guii->SetTopItem(guii->GetTopItem() + guii->GetColCount());
   }
@@ -124,18 +124,18 @@ void InvWindow_ScrollUp(GUIInvWindow *guii) {
 }
 
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
-  if ((index < 0) || (index >= charextra[guii->GetCharacterID()].invorder_count))
+  if ((index < 0) || (index >= charextra[guii->GetCharacterID()].inventory.size()))
     return nullptr;
-  return &scrInv[charextra[guii->GetCharacterID()].invorder[index]];
+  return &scrInv[charextra[guii->GetCharacterID()].inventory[index]];
 }
 
 int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y)
 {
     int item_index = inv->GetItemIndexAt(game_to_data_coord(at_x), game_to_data_coord(at_y));
-    if ((item_index < 0) || (item_index >= charextra[inv->GetCharacterID()].invorder_count))
+    if ((item_index < 0) || (item_index >= charextra[inv->GetCharacterID()].inventory.size()))
         return -1;
 
-    return charextra[inv->GetCharacterID()].invorder[item_index];
+    return charextra[inv->GetCharacterID()].inventory[item_index];
 }
 
 //=============================================================================
@@ -241,14 +241,14 @@ void InventoryScreen::Begin()
 
 bool InventoryScreen::CheckExitCondition()
 {
-    if (charextra[game.playercharacter].invorder_count < 0)
-        update_invorder();
-    if (charextra[game.playercharacter].invorder_count == 0) {
+    if (charextra[game.playercharacter].inventory.size() == 0)
+    {
         DisplayMessage(996);
         return false;
     }
 
-    if (inv_screen_newroom >= 0) {
+    if (inv_screen_newroom >= 0)
+    {
         NewRoom(inv_screen_newroom);
         return false;
     }
@@ -268,24 +268,27 @@ bool InventoryScreen::UpdateAndDraw()
 
 void InventoryScreen::Draw()
 {
-    if (charextra[game.playercharacter].invorder_count <= 0)
+    auto &chex = charextra[game.playercharacter];
+    if (chex.inventory.size() == 0)
         return; // something is wrong, update needed?
 
     numitems = 0;
     widest = 0;
     highest = 0;
 
-    for (int i = 0; i < charextra[game.playercharacter].invorder_count; ++i) {
-        if (!game.invinfo[charextra[game.playercharacter].invorder[i]].name.IsEmpty()) {
-            dii[numitems].num = charextra[game.playercharacter].invorder[i];
-            dii[numitems].sprnum = game.invinfo[charextra[game.playercharacter].invorder[i]].pic;
+    for (const auto item : chex.inventory)
+    {
+        if (!game.invinfo[item].name.IsEmpty())
+        {
+            dii[numitems].num = item;
+            dii[numitems].sprnum = game.invinfo[item].pic;
             int snn=dii[numitems].sprnum;
             if (game.SpriteInfos[snn].Width > widest) widest=game.SpriteInfos[snn].Width;
             if (game.SpriteInfos[snn].Height > highest) highest= game.SpriteInfos[snn].Height;
             numitems++;
         }
     }
-    if (numitems != charextra[game.playercharacter].invorder_count)
+    if (numitems != charextra[game.playercharacter].inventory.size())
         quit("inconsistent inventory calculations");
 
     widest += get_fixed_pixel_size(4);

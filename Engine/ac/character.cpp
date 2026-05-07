@@ -177,7 +177,7 @@ void Character_AddInventory(CharacterInfo *chi, ScriptInvItem *invi, int at_inde
         return;
     }
 
-    if ((at_index < 0) || (at_index >= chex.inventory.size()))
+    if ((at_index < 0) || (static_cast<uint32_t>(at_index) >= chex.inventory.size()))
     {
         chex.inventory.push_back(inum);
     }
@@ -1516,6 +1516,22 @@ void Character_SetIgnoreWalkbehinds(CharacterInfo *chaa, int yesorno) {
     chaa->flags &= ~CHF_NOWALKBEHINDS;
     if (yesorno)
         chaa->flags |= CHF_NOWALKBEHINDS;
+}
+
+int Character_GetInventoryCount(CharacterInfo* chi)
+{
+    return charextra[chi->index_id].inventory.size();
+}
+
+ScriptInvItem* Character_GetInventory(CharacterInfo* chi, int index)
+{
+    auto &chex = charextra[chi->index_id];
+    if (index < 0 || static_cast<uint32_t>(index) >= chex.inventory.size())
+    {
+        debug_script_warn("Character.Inventory[]: char %s: index %d is out of valid range, current inventory is 0..%d", chi->scrname, index, (int)chex.inventory.size());
+        return nullptr;
+    }
+    return &scrInv[charextra[chi->index_id].inventory[index]];
 }
 
 int Character_GetMovementLinkedToAnimation(CharacterInfo *chaa) {
@@ -3872,6 +3888,16 @@ RuntimeScriptValue Sc_Character_SetIgnoreWalkbehinds(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIgnoreWalkbehinds);
 }
 
+RuntimeScriptValue Sc_Character_GetInventoryCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetInventoryCount);
+}
+
+RuntimeScriptValue Sc_Character_GetInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT(CharacterInfo, ScriptInvItem, ccDynamicInv, Character_GetInventory);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4312,6 +4338,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::set_IgnoreScaling",         API_FN_PAIR(Character_SetIgnoreScaling) },
         { "Character::get_IgnoreWalkbehinds",     API_FN_PAIR(Character_GetIgnoreWalkbehinds) },
         { "Character::set_IgnoreWalkbehinds",     API_FN_PAIR(Character_SetIgnoreWalkbehinds) },
+        { "Character::get_InventoryCount",        API_FN_PAIR(Character_GetInventoryCount) },
+        { "Character::geti_Inventory",            API_FN_PAIR(Character_GetInventory) },
         { "Character::get_Loop",                  API_FN_PAIR(Character_GetLoop) },
         { "Character::set_Loop",                  API_FN_PAIR(Character_SetLoop) },
         { "Character::get_ManualScaling",         API_FN_PAIR(Character_GetIgnoreScaling) },

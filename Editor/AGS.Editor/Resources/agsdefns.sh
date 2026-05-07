@@ -2968,14 +2968,14 @@ enum StopMovementStyle
 
 builtin managed struct Character {
   /// Adds the specified item to the character's inventory.
-  import void AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
+  import void AddInventory(InventoryItem *item, int addAtIndex=-1);
   /// Manually adds a waypoint to the character's movement path.
   import void AddWaypoint(int x, int y);
   /// Animates the character using its current locked view.
   import void Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
     , int frame=0
-#endif  
+#endif
 #ifdef SCRIPT_API_v360
     , int volume=100
 #endif
@@ -3244,6 +3244,10 @@ builtin managed struct Character {
   import readonly attribute int IdleDelay;
   /// Gets remaining time before the idle view activates, in seconds
   import readonly attribute int IdleTime;
+  /// Gets how many items are currently in the character's inventory. This counts duplicates too if "Display multiple icons for multiple items" option is enabled.
+  import readonly attribute int InventoryCount;
+  /// Gets inventory items which character has in its inventory.
+  import readonly attribute InventoryItem* Inventory[];
 #endif // SCRIPT_API_v363
 #ifdef STRICT
   /// The character's current X-position.

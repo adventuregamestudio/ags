@@ -121,7 +121,7 @@ namespace AGS.Editor
          * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
          * 3.6.3.8        - Font Overrides in Translation, TextOutlineColor in GUI controls.
-         * 3.6.3.10       - GameTextLanguage, TranslateTextParser
+         * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption
         */
         public const int    LATEST_XML_VERSION_INDEX = 3060310;
         /*

@@ -825,7 +825,7 @@ void engine_init_game_settings()
     play.fade_to_red = 0;
     play.fade_to_green = 0;
     play.fade_to_blue = 0;
-    play.show_single_dialog_option = 0;
+    play.show_single_dialog_option = game.options[OPT_DISPLAYSINGLEDIALOGOPTION];
     play.keep_screen_during_instant_transition = 0;
     play.read_dialog_option_colour = -1;
     play.stop_dialog_at_end = DIALOG_NONE;

@@ -549,7 +549,8 @@ int GetGameSpeed()
     return game.options[OPT_GAMEFPS];
 }
 
-int SetGameOption (int opt, int newval) {
+int SetGameOption (int opt, int newval)
+{
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
         debug_script_warn("SetGameOption: invalid option specified: %d", opt);
@@ -620,6 +621,9 @@ int SetGameOption (int opt, int newval) {
         break;
     case OPT_PORTRAITSIDE:
         play.swap_portrait_side = (newval == PORTRAIT_ALTERNATE);
+        break;
+    case OPT_DISPLAYSINGLEDIALOGOPTION:
+        play.show_single_dialog_option = newval;
         break;
     default:
         break; // do nothing else

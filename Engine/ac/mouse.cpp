@@ -154,7 +154,7 @@ void set_cursor_look(int newcurs, bool force_update)
 
     // If it's inventory cursor, draw hotspot crosshair sprite upon it
     if (game.HasCursorRole(newcurs, kCursorRole_UseInv) && (cur_pic > 0) &&
-        ((game.inv_hot_color > 0) || (game.inv_hot_sprite > 0)) )
+        ((game.inv_hot_color != 0) || (game.inv_hot_sprite > 0)) )
     {
         // If necessary, create a copy of the cursor and put the hotspot dot onto it
         std::unique_ptr<Bitmap> gen_cursor(BitmapHelper::CreateBitmapCopy(spriteset[cur_pic]));
@@ -169,7 +169,7 @@ void set_cursor_look(int newcurs, bool force_update)
         else
         {
             gen_cursor->PutPixel(hotspotx, hotspoty, MakeColor(game.inv_hot_color));
-            if (game.inv_hot_cross_color > 0)
+            if (game.inv_hot_cross_color != 0)
             {
                 const int outercol = MakeColor(game.inv_hot_cross_color);
                 gen_cursor->PutPixel(hotspotx + 1, hotspoty, outercol);

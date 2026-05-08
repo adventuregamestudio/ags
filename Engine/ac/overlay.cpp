@@ -575,6 +575,10 @@ void remove_screen_overlay(int type)
     if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover.IsFree(type))
         return; // requested non-existing overlay
 
+    // Remove animation instance if one exists for this overlay
+    if (IsOverlayAnimating(type))
+        RemoveAnimatedOverlay(type);
+
     ScreenOverlay &over = screenover[type];
     // Dispose overlay's resources and try dispose a script object (if one exists)
     over.OnRemove();
@@ -757,8 +761,8 @@ void CreateAnimatedOverlay(int over_id, bool pause_with_game)
 
 static void UpdateOverlayState(const AnimatedOverlay &aover)
 {
-    assert(aover.GetOverID() >= 0 && aover.GetOverID() <= screenover.size());
-    if (aover.GetOverID() < 0 || aover.GetOverID() >= screenover.size())
+    assert(aover.GetOverID() >= 0 && aover.GetOverID() <= screenover.size() && screenover.IsInUse(aover.GetOverID()));
+    if (aover.GetOverID() < 0 || aover.GetOverID() >= screenover.size() || !screenover.IsInUse(aover.GetOverID()))
         return;
 
     auto &over = screenover[aover.GetOverID()];

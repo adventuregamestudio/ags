@@ -55,9 +55,9 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
-                Dialog newItem = new Dialog();
+                string name = _agsEditor.GetFirstAvailableScriptName("dDialog");
+                Dialog newItem = new Dialog(name);
                 newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-                newItem.Name = _agsEditor.GetFirstAvailableScriptName("dDialog");
                 string newNodeID = AddSingleItem(newItem);
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
 				ShowPaneForDialog(newItem);

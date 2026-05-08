@@ -74,14 +74,36 @@ namespace AGS.Types
         public string FileName
         {
             get { return _fileName; }
-            set { _fileName = value; }
+            set
+            {
+                string newFileName = value;
+                if (_fileName == newFileName)
+                    return;
+
+                // handle the file being renamed
+                if(!string.IsNullOrEmpty(_fileName) &&
+                   !string.IsNullOrEmpty(newFileName) &&
+                    File.Exists(_fileName))
+                {
+                    // lets guarantee the Dialogs directory exists
+                    string dir = Path.GetDirectoryName(newFileName);
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+                    File.Move(_fileName, newFileName);
+                }                    
+
+                _fileName = newFileName;
+            }
         }
 
         [Browsable(false)]
         public bool Modified
         {
             get { return _modified; }
-            set { _modified = value; }
+            // set { _modified = value; }
         }
 
         [Browsable(false)]
@@ -100,8 +122,15 @@ namespace AGS.Types
             if (_modified || force)
             {
                 _isBeingSaved = true;
+
+                if (!Directory.Exists(Path.GetDirectoryName(_fileName)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(_fileName));
+                }
+
                 try
                 {
+
                     byte[] bytes = TextEncoding.GetBytes(_text);
                     using (BinaryWriter binWriter = new BinaryWriter(File.Open(_fileName, FileMode.Create)))
                     {

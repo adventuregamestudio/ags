@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Text;
 using System.Xml;
 using AGS.Types.Interfaces;
@@ -19,10 +20,10 @@ namespace AGS.Types
         private List<DialogOption> _options = new List<DialogOption>();
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Dialogs);
 
-        public Dialog()
+        public Dialog(string name)
         {
-            // we don't know the filename yet
-            _script = DialogScript.CreateDefault(null);
+            _name = Utilities.ValidateScriptName(name);
+            _script = DialogScript.CreateDefault(_name);
             _cachedConvertedScript = null;
             _scriptChangedSinceLastCompile = true;
         }
@@ -37,8 +38,6 @@ namespace AGS.Types
             set
             { 
                 _id = value;
-                // FIX-ME: this is temporary, dialog should have Filename like "dScriptName.asd"
-                _script.FileName = "Dialog" + value;
             }
         }
 
@@ -48,7 +47,10 @@ namespace AGS.Types
         public string Name
         {
             get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            set {
+                _name = Utilities.ValidateScriptName(value);
+                _script.FileName = DialogScript.GetFileName(_name);
+            }
         }
 
         [Browsable(false)]
@@ -139,7 +141,25 @@ namespace AGS.Types
             // Luckily the CDATA section is easy to read back
             // FIX-ME: we will need to figure how to look the .asd file and then if it fails look into the inner text?
             // or the reverse? Need to think on this
-            _script = new DialogScript("Dialog" + _id, scriptNode.InnerText);
+            String fileName = DialogScript.GetFileName(_name);
+
+            if (File.Exists(fileName))
+            {
+                // read from .asd file
+                _script = new DialogScript(fileName, "");
+                _script.LoadFromDisk();
+            }
+            else if (!string.IsNullOrEmpty(scriptNode.InnerText))
+            {
+                // try the CData?
+                _script = new DialogScript(fileName, scriptNode.InnerText);
+            }
+            else
+            {
+                // I don't think we should be here???
+                _script = DialogScript.CreateDefault(fileName);
+            }
+            _script.FileName = fileName;
 
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "DialogOptions"))
             {
@@ -149,14 +169,19 @@ namespace AGS.Types
 
         public void ToXml(XmlTextWriter writer)
         {
+            // lets save the .asd file
+            _script.SaveToDisk(true);
+
             writer.WriteStartElement("Dialog");
             writer.WriteElementString("ID", ID.ToString());
             writer.WriteElementString("Name", _name);
             writer.WriteElementString("ShowTextParser", _showTextParser.ToString());
             writer.WriteStartElement("Script");
+            // Actually I am commenting this
             // FIX-ME: move this out because the writing will be in a file by DialogScript.
             // For now we keep this so things still work.
-            writer.WriteCData(_script.Text);
+            // writer.WriteCData(_script.Text);
+            writer.WriteCData(string.Empty);
             writer.WriteEndElement();
 
             writer.WriteStartElement("DialogOptions");

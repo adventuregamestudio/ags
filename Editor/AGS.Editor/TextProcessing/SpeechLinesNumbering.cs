@@ -55,7 +55,7 @@ namespace AGS.Editor
                 {
                     if (option.Say)
                     {
-                        option.Text = processor.ProcessText(option.Text, GameTextType.DialogOption, game.PlayerCharacter.ID);
+                        option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text), GameTextType.DialogOption);
                     }
                 }
 
@@ -69,7 +69,7 @@ namespace AGS.Editor
 
 			for (int i = 0; i < game.GlobalMessages.Length; i++)
 			{
-				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message, Character.NARRATOR_CHARACTER_ID);
+				game.GlobalMessages[i] = processor.ProcessText(GameTextLine.MakeSpeechLine(Character.NARRATOR_CHARACTER_ID, game.GlobalMessages[i]), GameTextType.Message);
 			}
 
             if (_errors.HasErrors)

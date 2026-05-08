@@ -35,8 +35,11 @@ namespace AGS.Editor
             }
         }
 
-        protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
+        protected override string CreateSpeechLine(GameTextLine textLine, GameTextType textType)
         {
+            var speakingCharacter = textLine.CharacterID;
+            var text = textLine.Text;
+
             if ((speakingCharacter == Character.NARRATOR_CHARACTER_ID) && (!_includeNarrator))
             {
                 return text;

@@ -8,9 +8,9 @@ namespace AGS.Editor
 {
     public class TranslationGenerator
     {
-        private ICollection<string> _linesForTranslation;
+        private ICollection<GameTextLine> _linesForTranslation;
 
-        public ICollection<string> LinesForTranslation
+        public ICollection<GameTextLine> LinesForTranslation
         {
             get { return _linesForTranslation; }
         }

@@ -282,31 +282,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        private Dictionary<int, string> ConstructParserWordsList(TextParser parser)
-        {
-            var wordsPerID = new Dictionary<int, List<string>>();
-            foreach (var word in parser.Words)
-            {
-                if (!wordsPerID.ContainsKey(word.WordGroup))
-                    wordsPerID[word.WordGroup] = new List<string>();
-                wordsPerID[word.WordGroup].Add(word.Word);
-            }
-
-            var wordLists = new Dictionary<int, string>();
-            foreach (var wordList in wordsPerID)
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (var word in wordList.Value)
-                {
-                    if (sb.Length > 0)
-                        sb.Append(',');
-                    sb.Append(word);
-                }
-                wordLists[wordList.Key] = sb.ToString();
-            }
-            return wordLists;
-        }
-
         private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)
         {
             List<Translation> translations = (List<Translation>)translationList;
@@ -314,99 +289,11 @@ namespace AGS.Editor.Components
             CompileMessages messages = generator.CreateTranslationList(_agsEditor.CurrentGame);
             if (messages.HasErrors)
                 return messages; // abort for avoiding corrupting translations
-            // (Optionally) prepare Text Parser's dictionary
-            Dictionary<int, string> parserWordLists = null;
-            if (_agsEditor.CurrentGame.Settings.TranslateTextParser)
-            {
-                parserWordLists = ConstructParserWordsList(_agsEditor.CurrentGame.TextParser);
-                // What we do here: because parser dictionary entry may match some
-                // generic game text (e.g. if it's a item's name), the cheap and dumb solution
-                // that we use is that we prefix the source line with a comma
-                // (this works as it's a comma-separated list).
-                var fixedWordLists = new Dictionary<int, string>();
-                foreach (var wordKey in parserWordLists.Keys)
-                {
-                    fixedWordLists[wordKey] = $",{parserWordLists[wordKey]}";
-                }
-                parserWordLists = fixedWordLists;
-            }
-
-            HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation);
-            if (parserWordLists != null)
-            {
-                foreach (var list in parserWordLists)
-                    keyedTexts.Add(list.Value);
-            }
 
             // Merge game texts in
             foreach (Translation translation in translations)
             {
-                // Remove or mark as obsolete those texts that are not found in game
-                List<string> removeLines = new List<string>();
-                foreach (var entry in translation.TranslatedLines)
-                {
-                    if (!keyedTexts.Contains(entry.Key))
-                    {
-                        if (string.IsNullOrEmpty(entry.Value))
-                        {
-                            removeLines.Add(entry.Key);
-                            translation.Modified = true;
-                        }
-                        else
-                        {
-                            TranslationEntryOptions entryOptions = null;
-                            if (translation.TranslatedEntryOptions.ContainsKey(entry.Key))
-                                entryOptions = translation.TranslatedEntryOptions[entry.Key];
-                            else
-                                entryOptions = new TranslationEntryOptions();
-                            if (!entryOptions.IsObsolete)
-                            {
-                                entryOptions.IsObsolete = true;
-                                entryOptions.Metadata.Add("OBSOLETE");
-                                translation.TranslatedEntryOptions[entry.Key] = entryOptions;
-                                translation.Modified = true;
-                            }
-                        }
-                    }
-                }
-
-                // Remove obsolete translation lines
-                foreach (var remKey in removeLines)
-                {
-                    translation.TranslatedLines.Remove(remKey);
-                }
-
-                // Add current game texts
-                foreach (string line in generator.LinesForTranslation)
-                {
-                    if (!translation.TranslatedLines.ContainsKey(line))
-                    {
-                        translation.TranslatedLines.Add(line, string.Empty);
-                        translation.Modified = true;
-                    }
-                }
-            }
-
-            // (Optionally) add Text Parser's dictionary
-            if (parserWordLists != null)
-            {
-                foreach (Translation translation in translations)
-                {
-                    foreach (var list in parserWordLists)
-                    {
-                        int wordsKey = list.Key;
-                        string wordsValue = list.Value;
-                        if (!translation.TranslatedLines.ContainsKey(wordsValue))
-                        {
-                            translation.TranslatedLines.Add(wordsValue, string.Empty);
-                            var entryOptions = new TranslationEntryOptions();
-                            entryOptions.Metadata.Add($"PARSERWORD={wordsKey}");
-                            entryOptions.ParserWordID = wordsKey;
-                            translation.TranslatedEntryOptions[wordsValue] = entryOptions;
-                            translation.Modified = true;
-                        }
-                    }
-                }
+                UpdateSingleTranslationProcess(translation, generator.LinesForTranslation, messages);
             }
 
             foreach (Translation translation in translations)
@@ -420,6 +307,96 @@ namespace AGS.Editor.Components
                 }
             }
             return messages;
+        }
+
+        private void UpdateSingleTranslationProcess(Translation translation, ICollection<GameTextLine> gameTexts, CompileMessages messages)
+        {
+            var oldLines = translation.TranslatedLines;
+            var oldOptions = translation.TranslatedEntryOptions;
+            var oldSections = translation.TranslationSections;
+
+            translation.TranslatedLines = new Dictionary<string, string>();
+            translation.TranslatedEntryOptions = new Dictionary<string, TranslationEntryOptions>();
+            translation.TranslationSections = new Dictionary<string, TranslationSection>();
+
+            // Add current game texts
+            var sectionByKey = new Dictionary<string, TranslationSection>();
+            TranslationSection currentSection = null;
+            bool translationModified = false;
+            foreach (var line in gameTexts)
+            {
+                // Prepare a section for this line
+                if (currentSection == null || currentSection.Name != line.Context)
+                {
+                    string context = line.Context ?? string.Empty;
+                    if (!sectionByKey.TryGetValue(context, out currentSection))
+                    {
+                        currentSection = new TranslationSection(context, line.ContextComment);
+                        sectionByKey.Add(context, currentSection);
+                    }
+                }
+
+                string translatedLine = string.Empty;
+                bool existingLine = oldLines.TryGetValue(line.Text, out translatedLine);
+                bool modified = !existingLine;
+
+                translation.TranslatedLines.Add(line.Text, translatedLine);
+                translation.TranslationSections.Add(line.Text, currentSection);
+
+                // For parser words, add respective annotation
+                if (line.ParserWordID >= 0)
+                {
+                    var entryOptions = new TranslationEntryOptions();
+                    entryOptions.Metadata.Add($"PARSERWORD={line.ParserWordID}");
+                    entryOptions.ParserWordID = line.ParserWordID;
+                    translation.TranslatedEntryOptions[line.Text] = entryOptions;
+
+                    if (!modified)
+                        modified = !oldOptions.ContainsKey(line.Text) || !oldOptions[line.Text].IsParserDictionary;
+                }
+
+                if (existingLine)
+                {
+                    oldLines.Remove(line.Text);
+                    // Also check if section has changed
+                    if (!modified)
+                        modified = !oldSections.ContainsKey(line.Text) || (oldSections[line.Text].Name != currentSection.Name);
+                }
+
+                translationModified |= modified;
+            }
+
+            // Handle the obsolete entries, remaining from an old translation file.
+            // If they contain translated lines - then keep them but mark as OBSOLETE.
+            // If they do not, then simply erase these.
+            translationModified |= oldLines.Count > 0;
+            foreach (var line in oldLines)
+            {
+                if (!string.IsNullOrEmpty(line.Value))
+                {
+                    TranslationSection section = null;
+                    oldSections.TryGetValue(line.Key, out section);
+                    if (!sectionByKey.TryGetValue(section != null ? section.Name : string.Empty, out currentSection))
+                    {
+                        currentSection = section ?? new TranslationSection(string.Empty);
+                        sectionByKey.Add(currentSection.Name, currentSection);
+                    }
+
+                    translation.TranslatedLines.Add(line.Key, line.Value);
+                    translation.TranslationSections.Add(line.Key, currentSection);
+                    TranslationEntryOptions entryOptions = null;
+                    if (!oldOptions.TryGetValue(line.Key, out entryOptions))
+                        entryOptions = new TranslationEntryOptions();
+                    if (!entryOptions.IsObsolete)
+                    {
+                        entryOptions.IsObsolete = true;
+                        entryOptions.Metadata.Add("OBSOLETE");
+                    }
+                    translation.TranslatedEntryOptions[line.Key] = entryOptions;
+                }
+            }
+
+            translation.Modified = translationModified;
         }
 
         private void DoTranslationUpdate(IList<Translation> translations)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using static System.Collections.Specialized.BitVector32;
 
 namespace AGS.Types
 {
@@ -24,6 +25,7 @@ namespace AGS.Types
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
         private const string TAG_ON = "ON";
         private const string TAG_OFF = "OFF";
+        private const string ANNOTATE_SECTION = "SECTION";
         private const string ANNOTATE_OBSOLETE = "OBSOLETE";
         private const string ANNOTATE_PARSERWORD = "PARSERWORD";
 
@@ -38,8 +40,9 @@ namespace AGS.Types
         private Encoding _encoding;
         private string _language;
         private Dictionary<int, Font> _fontOverrides = new Dictionary<int, Font>();
-        private Dictionary<string, string> _translatedLines;
-        private Dictionary<string, TranslationEntryOptions> _entryOptions;
+        private Dictionary<string, string> _translatedLines = new Dictionary<string, string>();
+        private Dictionary<string, TranslationEntryOptions> _entryOptions = new Dictionary<string, TranslationEntryOptions>();
+        private Dictionary<string, TranslationSection> _translationSections = new Dictionary<string, TranslationSection>();
 
         public Translation(string name)
         {
@@ -68,16 +71,35 @@ namespace AGS.Types
             get { return _name + TRANSLATION_COMPILED_FILE_EXTENSION; }
         }
 
+        /// <summary>
+        /// A map of translated lines, where the text in base game language is a key,
+        /// and the text in another language is a value.
+        /// </summary>
         public Dictionary<string, string> TranslatedLines
         {
             get { return _translatedLines; }
             set { _translatedLines = value; }
         }
 
+        /// <summary>
+        /// A map of options per particular lines of text.
+        /// </summary>
         public Dictionary<string, TranslationEntryOptions> TranslatedEntryOptions
         {
             get { return _entryOptions; }
             set { _entryOptions = value; }
+        }
+
+        /// <summary>
+        /// A map of sections per particular lines of text.
+        /// When translation source file is generated, the lines will be split up
+        /// depending on this map. If line does not have a corresponding section,
+        /// such line will be written as a part of the generic no-name section.
+        /// </summary>
+        public Dictionary<string, TranslationSection> TranslationSections
+        {
+            get { return _translationSections; }
+            set { _translationSections = value; }
         }
 
         public int? NormalFont
@@ -174,6 +196,37 @@ namespace AGS.Types
 
         public void SaveData()
         {
+            //
+            // Organize translated lines by sections
+            //
+            var sectionLists = new List<Tuple<TranslationSection, List<string>>>();
+            var sectionIndexByKey = new Dictionary<string, int>();
+            var nonameSection = new TranslationSection(string.Empty);
+            sectionLists.Add(new Tuple<TranslationSection, List<string>>(nonameSection, new List<string>()));
+            sectionIndexByKey.Add(string.Empty, 0);
+            foreach (var line in _translatedLines)
+            {
+                List<string> sectionList = null;
+                TranslationSection section = null;
+                _translationSections.TryGetValue(line.Key, out section);
+                section = (section != null && !string.IsNullOrEmpty(section.Name)) ? section : nonameSection;
+                int sectionIndex = 0;
+                if (sectionIndexByKey.TryGetValue(section.Name, out sectionIndex))
+                {
+                    sectionList = sectionLists[sectionIndex].Item2;
+                }
+                else
+                {
+                    sectionList = new List<string>();
+                    sectionLists.Add(new Tuple<TranslationSection, List<string>>(section, sectionList));
+                    sectionIndexByKey.Add(section.Name, sectionLists.Count - 1);
+                }
+                sectionList.Add(line.Key);
+            }
+
+            //
+            // Write translation source file
+            //
             using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
             {
                 sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
@@ -206,19 +259,33 @@ namespace AGS.Types
                 sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
 
                 TranslationEntryOptions entryOptions = null;
-                foreach (string key in _translatedLines.Keys)
+                foreach (var sectionList in sectionLists)
                 {
-                    if (_entryOptions.TryGetValue(key, out entryOptions))
-                    {
-                        foreach (var a in entryOptions.Metadata)
-                            sw.WriteLine($"//${a}");
-                    }
+                    var section = sectionList.Item1;
+                    var lines = sectionList.Item2;
+                    if (lines.Count == 0)
+                        continue;
 
-                    sw.WriteLine(key);
-                    sw.WriteLine(_translatedLines[key]);
+                    sw.WriteLine("//-----------------------------------------------------------------------------");
+                    if (string.IsNullOrWhiteSpace(section.Comment))
+                        sw.WriteLine($"//$SECTION = {section.Name}");
+                    else
+                        sw.WriteLine($"//$SECTION = {section.Name}; {section.Comment}");
+                    sw.WriteLine("//-----------------------------------------------------------------------------");
+                    foreach (string key in lines)
+                    {
+                        if (_entryOptions.TryGetValue(key, out entryOptions))
+                        {
+                            foreach (var a in entryOptions.Metadata)
+                                sw.WriteLine($"//${a}");
+                        }
+
+                        sw.WriteLine(key);
+                        sw.WriteLine(_translatedLines[key]);
+                    }
                 }
             }
-            this.Modified = false;
+            Modified = false;
         }
 
         /// <summary>
@@ -258,7 +325,11 @@ namespace AGS.Types
             _fontOverrides = new Dictionary<int, Font>();
             _translatedLines = new Dictionary<string, string>();
             _entryOptions = new Dictionary<string, TranslationEntryOptions>();
+            _translationSections = new Dictionary<string, TranslationSection>();
             List<string> annotateNextLine = new List<string>();
+            var sectionsByKey = new Dictionary<string, TranslationSection>();
+            string currentSectionKey = string.Empty;
+            string currentSectionComment = string.Empty;
             string old_encoding = _encodingHint;
 
             using (StreamReader sr = new StreamReader(FileName, _encoding))
@@ -280,7 +351,18 @@ namespace AGS.Types
                         }
                         else if (line.Length > 2 && line[2] == '$')
                         {
-                            annotateNextLine.Add(line.Substring(3));
+                            string annotation = line.Substring(3);
+                            var keyValue = ParseKeyValue(annotation);
+                            if (keyValue.Item1 == ANNOTATE_SECTION)
+                            {
+                                int splitAt = keyValue.Item2.IndexOf(';');
+                                currentSectionKey = keyValue.Item2.Substring(0, splitAt >= 0 ? splitAt : keyValue.Item2.Length).Trim();
+                                currentSectionComment = splitAt >= 0 ? keyValue.Item2.Substring(splitAt + 1).Trim() : string.Empty;
+                            }
+                            else
+                            {
+                                annotateNextLine.Add(annotation);
+                            }
                         }
                         continue;
                     }
@@ -300,6 +382,14 @@ namespace AGS.Types
                             _entryOptions[originalText] = CreateEntryOptions(annotateNextLine);
                             annotateNextLine.Clear();
                         }
+                        TranslationSection section = null;
+                        if (!sectionsByKey.TryGetValue(currentSectionKey, out section))
+                        {
+                            section = new TranslationSection(currentSectionKey, currentSectionComment);
+                            sectionsByKey[currentSectionKey] = section;
+
+                        }
+                        _translationSections[originalText] = section;
 					}
                 }
             }

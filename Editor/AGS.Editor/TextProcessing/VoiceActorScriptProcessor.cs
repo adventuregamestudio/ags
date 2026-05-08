@@ -28,9 +28,12 @@ namespace AGS.Editor
 			_linesInOrder = new List<GameTextLine>();
 		}
 
-		protected override string CreateSpeechLine(int speakingCharacter, string text, GameTextType textType)
+		protected override string CreateSpeechLine(GameTextLine textLine, GameTextType textType)
 		{
-			if (text.TrimStart().StartsWith("&"))
+			var speakingCharacter = textLine.CharacterID;
+			var text = textLine.Text;
+
+            if (text.TrimStart().StartsWith("&"))
 			{
 				if (speakingCharacter == -1)
 				{
@@ -46,10 +49,9 @@ namespace AGS.Editor
 					_linesByCharacter[speakingCharacter].Add(text, text);
 				}
 
-				_linesInOrder.Add(new GameTextLine(speakingCharacter, text));
+				_linesInOrder.Add(textLine);
 			}
 			return text;
 		}
-
 	}
 }

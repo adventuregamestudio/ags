@@ -235,6 +235,27 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v3
 
+      - name: Cache .NET Framework 4.6 SDK installer
+        id: cache-netfx46
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}\sdk46setup.exe
+          key: netfx46-sdk-installer-v1
+
+      - name: Download .NET Framework 4.6 SDK installer
+        if: steps.cache-netfx46.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://download.microsoft.com/download/E/1/F/E1F1E61E-F3C6-4420-A916-FB7C47FBC89E/standalonesdk/sdksetup.exe" `
+            -OutFile "$env:RUNNER_TEMP\sdk46setup.exe"
+
+      - name: Upload .NET Framework 4.6 SDK installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: netfx46-sdk-installer
+          path: ${{ runner.temp }}\sdk46setup.exe
+
       - name: Restore cached deps
         id: cache-win-deps
         uses: actions/cache@v5
@@ -450,6 +471,20 @@ jobs:
       AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
     steps:
       - uses: actions/checkout@v6
+
+      - name: Download .NET Framework 4.6 SDK installer
+        uses: actions/download-artifact@v8
+        with:
+          name: netfx46-sdk-installer
+          path: ${{ runner.temp }}
+
+      - name: Install .NET Framework 4.6 SDK
+        shell: pwsh
+        run: |
+          $proc = Start-Process `
+            -FilePath "$env:RUNNER_TEMP\sdk46setup.exe" `
+            -ArgumentList "/ceip off /features OptionID.NetFxSoftwareDevelopmentKit /quiet /norestart" `
+            -Wait -PassThru
 
       - uses: microsoft/setup-msbuild@v3
 

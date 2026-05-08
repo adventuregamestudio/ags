@@ -616,6 +616,7 @@ void remove_screen_overlay(int type)
 
 void remove_all_overlays()
 {
+    RemoveAllAnimatedOverlays();
     for (auto &over : screenover)
         remove_screen_overlay(over.GetID());
 }
@@ -756,6 +757,10 @@ void CreateAnimatedOverlay(int over_id, bool pause_with_game)
 
 static void UpdateOverlayState(const AnimatedOverlay &aover)
 {
+    assert(aover.GetOverID() >= 0 && aover.GetOverID() <= screenover.size());
+    if (aover.GetOverID() < 0 || aover.GetOverID() >= screenover.size())
+        return;
+
     auto &over = screenover[aover.GetOverID()];
     const ViewFrame *vf = aover.GetViewFrame();
     if (vf)

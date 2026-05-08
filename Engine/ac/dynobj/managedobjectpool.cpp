@@ -187,7 +187,7 @@ void ManagedObjectPool::RunGarbageCollection()
         objects[gco.handle].callback->TraverseRefs(obj.addr,
             [&objs](int handle)
         {
-            if ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) // not persistent
+            if ((handle != 0) && ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0)) // not persistent
                 objs[handle].gcRefCount--;
         });
     }
@@ -212,7 +212,7 @@ void ManagedObjectPool::RunGarbageCollection()
         objects[gco.handle].callback->TraverseRefs(objects[gco.handle].addr,
             [&objs](int handle)
         {
-            if ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) // not persistent
+            if ((handle != 0) && ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0)) // not persistent
                 objs[handle].gcRefCount++;
         });
     }
@@ -233,7 +233,7 @@ void ManagedObjectPool::RunGarbageCollection()
                 objects[test_it->handle].callback->TraverseRefs(objects[test_it->handle].addr,
                     [&objs](int handle)
                 {
-                    if ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0) // not persistent
+                    if ((handle != 0) && ((objs[handle].gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0)) // not persistent
                         objs[handle].gcRefCount++;
                 });
                 times_moved = 1;

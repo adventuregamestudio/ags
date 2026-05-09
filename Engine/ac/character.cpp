@@ -1455,14 +1455,53 @@ int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
     return (chaa->inv[invi->id] > 0) ? 1 : 0;
 }
 
-void Character_SetIInventoryQuantity(CharacterInfo *chaa, int index, int quant) {
+void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
+{
     if ((index < 1) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
-    if ((quant < 0) || (quant > 32000))
-        quitprintf("!Character.InventoryQuantity: invalid quantity %d", quant);
+    if ((quant < 0) || (quant > INT16_MAX))
+    {
+        debug_script_warn("Character.InventoryQuantity: char %s, item %s: invalid quantity %d, valid range is 0..%d",
+            chi->scrname, game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
+        quant = Math::Clamp<int>(quant, 0, INT16_MAX);
+    }
 
-    chaa->inv[index] = quant;
+    int old_quant = chi->inv[index];
+    chi->inv[index] = quant;
+
+    if ((quant == old_quant) || (loaded_game_file_version < kGameVersion_363_10))
+        return;
+
+    auto &chex = charextra[chi->index_id];
+    if (game.options[OPT_DUPLICATEINV] != 0)
+    {
+        if (quant > old_quant)
+        {
+            for (int i = old_quant; i < quant; ++i)
+                chex.inventory.push_back(index);
+        }
+        else
+        {
+            int cur_quant = old_quant;
+            for (size_t last_found = 0; (cur_quant > quant) && (last_found != chex.inventory.size()); --cur_quant)
+            {
+                auto it_found = std::find(chex.inventory.begin() + last_found, chex.inventory.end(), index);
+                last_found = it_found - chex.inventory.begin();
+                chex.inventory.erase(it_found);
+            }
+        }
+    }
+
+    if (chi == playerchar)
+    {
+        if (quant > old_quant)
+            run_on_event(kScriptEvent_InventoryAdd, index);
+        else
+            run_on_event(kScriptEvent_InventoryLose, index);
+    }
+
+    GUIE::MarkInventoryForUpdate(chi->index_id, chi->index_id == game.playercharacter);
 }
 
 int Character_GetIgnoreLighting(CharacterInfo *chaa) {

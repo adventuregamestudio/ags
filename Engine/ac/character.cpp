@@ -1492,6 +1492,18 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
             }
         }
     }
+    else
+    {
+        if (quant > 0 && old_quant == 0)
+        {
+            chex.inventory.push_back(index);
+        }
+        else if (quant == 0 && old_quant > 0)
+        {
+            auto it_found = std::find(chex.inventory.begin(), chex.inventory.end(), index);
+            chex.inventory.erase(it_found);
+        }
+    }
 
     if (chi == playerchar)
     {

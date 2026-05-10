@@ -36,7 +36,7 @@ GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, int gui_hitoptions, int ctrl
         return nullptr;
 
     data_to_game_coords(&xx, &yy);
-    int toret = guis[guinum].FindControlAt(xx, yy, 0, (ctrl_hitoptions & kHit_Clickable));
+    int toret = guis[guinum].FindControlAt(xx, yy, 0, (ctrl_hitoptions & kHit_Interactable));
     if (toret < 0)
         return nullptr;
 
@@ -46,7 +46,7 @@ GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, int gui_hitoptions, int ctrl
 GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
 {
     // NOTE: historically GUIControl.GetAtScreenXY did not require controls to be clickable (only guis)
-    return GUIControl_GetAtScreenXY(x, y, kHit_Clickable, kHit_Any);
+    return GUIControl_GetAtScreenXY(x, y, kHit_Interactable, kHit_Any);
 }
 
 int GUIControl_GetVisible(GUIObject *guio) {

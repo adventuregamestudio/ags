@@ -730,10 +730,9 @@ RuntimeScriptValue Sc_GetRawTime(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT(GetRawTime);
 }
 
-// int  (int xxx, int yyy)
-RuntimeScriptValue Sc_GetRegionIDAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetRegionIDAtRoom2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetRegionIDAtRoom);
+    API_SCALL_INT_PINT2(GetRegionIDAtRoom2);
 }
 
 // void  (const char *property, char *bufer)
@@ -2477,7 +2476,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetObjectY",               API_FN_PAIR(GetObjectY) },
         { "GetPlayerCharacter",       API_FN_PAIR(GetPlayerCharacter) },
         { "GetRawTime",               API_FN_PAIR(GetRawTime) },
-        { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
+        { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom2) },
         { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
         { "GetRoomPropertyText",      API_FN_PAIR(GetRoomPropertyText) },
         { "GetSaveSlotDescription",   API_FN_PAIR(GetSaveSlotDescription) },

@@ -844,7 +844,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     if (displayed_room != playerchar->room)
         NewRoom(playerchar->room);
     else   // make sure it doesn't run the region interactions
-        play.player_on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y);
+        play.player_on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
 
     if ((playerchar->activeinv >= 0) && (playerchar->inv[playerchar->activeinv] < 1))
         playerchar->activeinv = -1;
@@ -2550,7 +2550,7 @@ void update_character_scale(int charid)
 
 int GetCharIDAtRoom(int x, int y, int hit_options)
 {
-    const bool only_clickable = (hit_options & kHit_Clickable) != 0;
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
@@ -2622,7 +2622,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 }
 
 int check_click_on_character(int xx,int yy,int mood) {
-    int lowestwas=GetCharIDAtRoom(xx, yy, kHit_Clickable);
+    int lowestwas=GetCharIDAtRoom(xx, yy, kHit_Interactable);
     if (lowestwas>=0) {
         RunCharacterInteraction (lowestwas, mood);
         return 1;

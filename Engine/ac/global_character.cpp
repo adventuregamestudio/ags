@@ -475,7 +475,7 @@ int GetCharIDAtScreen(int x, int y, int hit_options)
 
 int GetCharIDAtScreen2(int x, int y)
 {
-    return GetCharIDAtScreen(x, y, kHit_Clickable);
+    return GetCharIDAtScreen(x, y, kHit_Interactable);
 }
 
 void SetActiveInventory(int iit) {

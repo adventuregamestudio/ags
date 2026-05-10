@@ -84,7 +84,7 @@ int GetHotspotIDAtScreen(int scrx, int scry, int hit_options)
 
 int GetHotspotIDAtScreen2(int scrx, int scry)
 {
-    return GetHotspotIDAtScreen(scrx, scry, kHit_Clickable);
+    return GetHotspotIDAtScreen(scrx, scry, kHit_Interactable);
 }
 
 void GetHotspotName(int hotspot, char *buffer) {

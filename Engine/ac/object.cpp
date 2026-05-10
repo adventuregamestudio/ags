@@ -683,7 +683,7 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
 // X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
 int check_click_on_object(int roomx, int roomy, int mood)
 {
-    int aa = GetObjectIDAtRoom(roomx, roomy, kHit_Clickable);
+    int aa = GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;

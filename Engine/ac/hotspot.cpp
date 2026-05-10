@@ -149,7 +149,7 @@ bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const cha
 
 int GetHotspotIDAtRoom(int xpp, int ypp, int hit_options)
 {
-    const bool only_clickable = (hit_options & kHit_Clickable) != 0;
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int onhs=thisroom.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
     if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS) return 0;
     if (only_clickable && !croom->hotspot[onhs].Enabled) return 0;

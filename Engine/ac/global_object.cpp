@@ -71,12 +71,12 @@ int GetObjectIDAtScreen(int scrx, int scry, int hit_options)
 
 int GetObjectIDAtScreen2(int scrx, int scry)
 {
-    return GetObjectIDAtScreen(scrx, scry, kHit_Clickable);
+    return GetObjectIDAtScreen(scrx, scry, kHit_Interactable);
 }
 
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 {
-    const bool only_clickable = (hit_options & kHit_Clickable) != 0;
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (uint32_t aa=0;aa<croom->numobj;aa++) {
@@ -111,7 +111,7 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 
 int GetObjectIDAtRoom2(int roomx, int roomy)
 {
-    return GetObjectIDAtRoom(roomx, roomy, kHit_Clickable);
+    return GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
 }
 
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {

@@ -225,8 +225,7 @@ enum ScriptButtonColorStyle
 enum ScriptHitTestOptions
 {
     kHit_Any                    = 0,
-    // Clickable also means "enabled" depending on a context
-    kHit_Clickable              = 0x0001
+    kHit_Interactable           = 0x0001
 };
 
 enum eScriptSystemOSID

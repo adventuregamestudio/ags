@@ -782,7 +782,7 @@ int gui_get_interactable(int x, int y)
 {
     if (GUI::Context.DisabledState == kGuiDis_Off)
         return -1;
-    return GetGUIAt(x, y, kHit_Clickable);
+    return GetGUIAt(x, y, kHit_Interactable);
 }
 
 int gui_on_mouse_move(const int mx, const int my)

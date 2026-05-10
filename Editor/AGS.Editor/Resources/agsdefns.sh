@@ -575,8 +575,7 @@ enum DialogOptionsNumbering
 enum HitTestOptions
 {
   eHit_Any              = 0,
-  // Clickable also means "enabled" depending on a context
-  eHit_Clickable        = 0x0001
+  eHit_Interactable     = 0x0001
 };
 #endif // SCRIPT_API_v363
 
@@ -1468,7 +1467,7 @@ builtin managed struct File {
 
 builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
-  import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Clickable, HitTestOptions invHitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions invHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -1902,7 +1901,7 @@ builtin managed struct GUIControl {
   /// Brings this control to the front of the z-order, in front of all other controls.
   import void BringToFront();
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
-  import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Clickable, HitTestOptions controlHitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
+  import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions controlHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
 #ifdef SCRIPT_API_v361
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2222,7 +2221,7 @@ builtin managed struct GUI {
   /// Moves the GUI to be centred on the screen.
   import void Centre();
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
-  import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2313,7 +2312,7 @@ builtin managed struct TextWindowGUI extends GUI {
 
 builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
-  import static Hotspot* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static Hotspot* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifndef STRICT_STRINGS
   import void GetName(string buffer);
   import void GetPropertyText(const string property, string buffer);
@@ -2347,7 +2346,7 @@ builtin managed struct Hotspot {
 #endif // SCRIPT_API_v340
 #ifdef SCRIPT_API_v3507
   /// Returns the hotspot at the specified position within this room.
-  import static Hotspot* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static Hotspot* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
   /// Gets the drawing surface for the 8-bit hotspots mask
@@ -2363,7 +2362,7 @@ builtin managed struct Hotspot {
 
 builtin managed struct Region {
   /// Returns the region at the specified position within this room.
-  import static Region* GetAtRoomXY(int x, int y); // $AUTOCOMPLETESTATICONLY$
+  import static Region* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
   /// Sets the region tint which will apply to characters that are standing on the region.
@@ -2388,7 +2387,7 @@ builtin managed struct Region {
   readonly import attribute int  TintLuminance;
 #ifdef SCRIPT_API_v3507
   /// Returns the region at the specified position on the screen.
-  import static Region* GetAtScreenXY(int x, int y); // $AUTOCOMPLETESTATICONLY$
+  import static Region* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
   /// Gets the drawing surface for the 8-bit regions mask
@@ -2811,7 +2810,7 @@ builtin managed struct Object {
 #endif
   );
   /// Gets the object that is on the screen at the specified co-ordinates.
-  import static Object* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static Object* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifndef STRICT_STRINGS
   import void GetName(string buffer);
   import void GetPropertyText(const string property, string buffer);
@@ -2920,7 +2919,7 @@ builtin managed struct Object {
 #endif // SCRIPT_API_v341
 #ifdef SCRIPT_API_v3507
   /// Returns the object at the specified position within this room.
-  import static Object* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static Object* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
   /// Gets/sets whether the object uses manually specified scaling instead of using walkable area scaling.
@@ -3000,7 +2999,7 @@ builtin managed struct Character {
   /// Starts this character following the other character.
   import void FollowCharacter(Character*, int dist=10, int eagerness=97);
   /// Returns the character that is at the specified position on the screen.
-  import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -3207,7 +3206,7 @@ builtin managed struct Character {
 #endif // SCRIPT_API_v341
 #ifdef SCRIPT_API_v3507
   /// Returns the character at the specified position within this room.
-  import static Character* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Clickable); // $AUTOCOMPLETESTATICONLY$
+  import static Character* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
 #ifdef SCRIPT_COMPAT_v363

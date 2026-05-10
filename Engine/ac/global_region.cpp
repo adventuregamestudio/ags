@@ -32,7 +32,8 @@ extern RoomStatus*croom;
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern CCRegion ccDynamicRegion;
 
-int GetRegionIDAtRoom(int xxx, int yyy) {
+int GetRegionIDAtRoom(int xxx, int yyy, int hit_options)
+{
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
@@ -53,8 +54,13 @@ int GetRegionIDAtRoom(int xxx, int yyy) {
 
     int hsthere = thisroom.RegionMask->GetPixel (xxx, yyy);
     if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS) return 0;
-    if (croom->region_enabled[hsthere] == 0) return 0;
+    if (((hit_options & kHit_Interactable) != 0) && (croom->region_enabled[hsthere] == 0)) return 0;
     return hsthere;
+}
+
+int GetRegionIDAtRoom2(int x, int y)
+{
+    return GetRegionIDAtRoom(x, y, kHit_Interactable);
 }
 
 void SetAreaLightLevel(int area, int brightness) {

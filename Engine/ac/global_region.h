@@ -20,7 +20,8 @@
 
 // Gets region ID at the given room coordinates;
 // if region is disabled or non-existing, returns 0 (no area)
-int  GetRegionIDAtRoom(int xxx, int yyy);
+int  GetRegionIDAtRoom(int x, int y, int hit_options);
+int  GetRegionIDAtRoom2(int x, int y);
 void SetAreaLightLevel(int area, int brightness);
 void SetRegionTint (int area, int red, int green, int blue, int amount, int luminance = 100);
 void DisableRegion(int hsnum);

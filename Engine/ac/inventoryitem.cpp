@@ -114,7 +114,7 @@ ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, int gui_hitoptions, int
 
 ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
 {
-    return InventoryItem_GetAtScreenXY(x, y, kHit_Clickable, kHit_Clickable);
+    return InventoryItem_GetAtScreenXY(x, y, kHit_Interactable, kHit_Interactable);
 }
 
 void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {

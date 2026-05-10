@@ -244,7 +244,7 @@ int IsInterfaceEnabled() {
 int GetGUIObjectAt(int xx, int yy)
 {
     // NOTE: historically GUIControl.GetAtScreenXY did not require controls to be clickable (only guis)
-    GUIObject *toret = GUIControl_GetAtScreenXY(xx, yy, kHit_Clickable, kHit_Any);
+    GUIObject *toret = GUIControl_GetAtScreenXY(xx, yy, kHit_Interactable, kHit_Any);
     if (toret == nullptr)
         return -1;
 
@@ -253,7 +253,7 @@ int GetGUIObjectAt(int xx, int yy)
 
 int GetGUIAt(int x,int y, int hit_options)
 {
-    const bool only_clickable = (hit_options & kHit_Clickable) != 0;
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     data_to_game_coords(&x, &y);
     // Test in the opposite order (from closer to further)
     for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g)
@@ -272,7 +272,7 @@ int GetGUIAt(int x,int y, int hit_options)
 
 int GetGUIAt2(int x, int y)
 {
-    return GetGUIAt(x, y, kHit_Clickable);
+    return GetGUIAt(x, y, kHit_Interactable);
 }
 
 void SetTextWindowGUI (int guinum) {

@@ -35,16 +35,27 @@ extern RGB palette[256];
 extern CCRegion ccDynamicRegion;
 
 
-ScriptRegion *Region_GetAtRoomXY(int xx, int yy) {
-    return &scrRegion[GetRegionIDAtRoom(xx, yy)];
+ScriptRegion *Region_GetAtRoomXY(int x, int y, int hit_options)
+{
+    return &scrRegion[GetRegionIDAtRoom(x, y, hit_options)];
 }
 
-ScriptRegion *Region_GetAtScreenXY(int x, int y)
+ScriptRegion *Region_GetAtRoomXY2(int x, int y)
+{
+    return Region_GetAtRoomXY(x, y, kHit_Interactable);
+}
+
+ScriptRegion *Region_GetAtScreenXY(int x, int y, int hit_options)
 {
     VpPoint vpt = play.ScreenToRoomDivDown(x, y);
     if (vpt.second < 0)
         return &scrRegion[0]; // return region[0] for consistency and backwards compatibility
-    return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y);
+    return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y, hit_options);
+}
+
+ScriptRegion *Region_GetAtScreenXY2(int x, int y)
+{
+    return Region_GetAtScreenXY(x, y, kHit_Interactable);
 }
 
 void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
@@ -136,15 +147,24 @@ void generate_light_table()
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// ScriptRegion *(int xx, int yy)
+RuntimeScriptValue Sc_Region_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY2);
+}
+
 RuntimeScriptValue Sc_Region_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY);
+    API_SCALL_OBJ_PINT3(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY);
+}
+
+RuntimeScriptValue Sc_Region_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY2);
 }
 
 RuntimeScriptValue Sc_Region_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY);
+    API_SCALL_OBJ_PINT3(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY);
 }
 
 RuntimeScriptValue Sc_Region_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
@@ -239,8 +259,10 @@ RuntimeScriptValue Sc_Region_GetTintLuminance(void *self, const RuntimeScriptVal
 void RegisterRegionAPI()
 {
     ScFnRegister region_api[] = {
-        { "Region::GetAtRoomXY^2",        API_FN_PAIR(Region_GetAtRoomXY) },
-        { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY) },
+        { "Region::GetAtRoomXY^2",        API_FN_PAIR(Region_GetAtRoomXY2) },
+        { "Region::GetAtRoomXY^3",        API_FN_PAIR(Region_GetAtRoomXY) },
+        { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY2) },
+        { "Region::GetAtScreenXY^3",      API_FN_PAIR(Region_GetAtScreenXY) },
         { "Region::GetDrawingSurface",    API_FN_PAIR(Region_GetDrawingSurface) },
 
         { "Region::Tint^4",               API_FN_PAIR(Region_TintNoLum) },

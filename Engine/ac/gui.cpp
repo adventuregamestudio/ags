@@ -209,19 +209,21 @@ void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
 
     GUIMain &g = guis[tehgui->id];
     g.SetPopupStyle(static_cast<GUIPopupStyle>(popup_style));
+    
+    // Conceal or un-conceal when changing to or from PopupAtY
+    if (popup_style == kGUIPopupMouseY)
+    {
+        g.SetConceal(true);
+    }
+    else if (old_style == kGUIPopupMouseY)
+    {
+        if (g.IsDisplayed())
+            remove_popup_interface(tehgui->id);
+        g.SetConceal(false);
+    }
+
     if (g.IsVisible())
     {
-        if (popup_style == kGUIPopupMouseY)
-        {
-            g.SetConceal(true);
-        }
-        else if (old_style == kGUIPopupMouseY)
-        {
-            if (g.IsDisplayed())
-                remove_popup_interface(tehgui->id);
-            g.SetConceal(false);
-        }
-
         if (popup_style == kGUIPopupModal)
         {
             PauseGame();

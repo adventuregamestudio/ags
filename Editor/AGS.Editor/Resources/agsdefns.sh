@@ -1341,8 +1341,10 @@ import int  GetFontHeight(FontType);
 import int  GetFontLineSpacing(FontType);
 /// Adds to the player's score and plays the score sound, if set.
 import void GiveScore(int points);
+#ifdef SCRIPT_COMPAT_v363
 /// Refreshes the on-screen inventory display.
 import void UpdateInventory();
+#endif // SCRIPT_COMPAT_v363
 /// From within dialog_request, tells AGS not to return to the dialog after this function ends.
 import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.

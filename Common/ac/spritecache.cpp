@@ -109,7 +109,7 @@ void SpriteCache::Reset()
     _topmostSprite = -1;
 }
 
-bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags)
+bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> &&image, int flags)
 {
     assert(index >= 0); // out of positive range indexes are valid to fail
     assert(image);
@@ -463,7 +463,7 @@ HError SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCo
     return SaveSpriteFile(filename, PrepareSpriteData(), &_file, store_flags, compress, index);
 }
 
-HError SpriteCache::SaveToFile(std::unique_ptr<Stream>&& out, int store_flags, SpriteCompression compress, SpriteFileIndex& index)
+HError SpriteCache::SaveToFile(std::unique_ptr<Stream> &&out, int store_flags, SpriteCompression compress, SpriteFileIndex& index)
 {
     return SaveSpriteFile(std::move(out), PrepareSpriteData(), &_file, store_flags, compress, index);
 }

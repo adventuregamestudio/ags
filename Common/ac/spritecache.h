@@ -96,7 +96,7 @@ public:
     // Saves current cache contents to the file
     HError      SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index);
     // Saves current cache contents to the provided stream
-    HError      SaveToFile(std::unique_ptr<Stream>&& out, int store_flags, SpriteCompression compress, SpriteFileIndex& index);
+    HError      SaveToFile(std::unique_ptr<Stream> &&out, int store_flags, SpriteCompression compress, SpriteFileIndex& index);
     // Closes an active sprite file stream
     void        DetachFile();
 
@@ -141,7 +141,7 @@ public:
     // Assigns a new sprite at the first found free index; this sprite won't be auto disposed.
     // "flags" are optional SPF_* constants that define sprite's behavior in game.
     // Returns the new sprite's index, or -1 if operation failed for any reason.
-    sprkey_t    AddSprite(std::unique_ptr<Bitmap> image, int flags = 0);
+    sprkey_t    AddSprite(std::unique_ptr<Bitmap> &&image, int flags = 0);
     // Loads sprite using SpriteFile if such index is known,
     // frees the space if cache size reaches the limit
     void        PrecacheSprite(sprkey_t index);
@@ -180,7 +180,7 @@ public:
     // Assigns new sprite for the given index; this sprite won't be auto disposed.
     // *Deletes* the previous sprite if one was found at the same index.
     // "flags" are optional SPF_* constants that define sprite's behavior in game.
-    bool        SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags = 0);
+    bool        SetSprite(sprkey_t index, std::unique_ptr<Bitmap> &&image, int flags = 0);
     // Assigns new dummy sprite for the given index, silently remapping it to placeholder;
     // optionally marks it as an asset placeholder.
     // *Deletes* the previous sprite if one was found at the same index.

@@ -36,7 +36,7 @@ jobs:
     steps:
     - name: Set up MSYS2
       if: matrix.platform.shell == 'msys2 {0}'
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c #v2
       with:
         msystem: ${{ matrix.platform.msystem }}
         install: >-
@@ -63,6 +63,8 @@ jobs:
       run: pip install tap.py
 
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: Cache CMake FetchContent dependencies
       uses: actions/cache@v5
@@ -139,11 +141,13 @@ jobs:
       EM_VERSION: 3.1.74
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install bsdtar
         run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
 
-      - uses: emscripten-core/setup-emsdk@v16
+      - uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 #v16
         with:
           version: ${{env.EM_VERSION}}
 
@@ -172,6 +176,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -232,6 +238,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: microsoft/setup-msbuild@v3
 
@@ -302,6 +310,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           submodules: true
 
       - uses: microsoft/setup-msbuild@v3
@@ -373,6 +382,8 @@ jobs:
       AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: microsoft/setup-msbuild@v3
 
@@ -471,6 +482,8 @@ jobs:
       AGS_SDL_SOUND_LIB:     C:\Lib\SDL_sound\lib\x86
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Download .NET Framework 4.6 SDK installer
         uses: actions/download-artifact@v8
@@ -581,6 +594,8 @@ jobs:
       - windows-msvc-editor
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Download Engine x86 PDBs
         uses: actions/download-artifact@v8
@@ -631,9 +646,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -669,6 +686,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Install bsdtar
         run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
@@ -719,6 +738,8 @@ jobs:
       AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Download Windows dependencies
         uses: actions/download-artifact@v8

@@ -186,14 +186,14 @@ Common::Bitmap *get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
-int AddNewSprite(AGSBitmap *sprit, int flags) {
-    int slot = spriteset.AddSprite(std::unique_ptr<AGSBitmap>(sprit), flags);
+int AddNewSprite(std::unique_ptr<AGSBitmap> &sprit, int flags) {
+    int slot = spriteset.AddSprite(std::move(sprit), flags);
     spritesModified = true;
     return slot;
 }
 
-void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
-  spriteset.SetSprite(slot, std::unique_ptr<AGSBitmap>(sprit), flags);
+void SetNewSprite(int slot, std::unique_ptr<AGSBitmap> &sprit, int flags) {
+  spriteset.SetSprite(slot, std::move(sprit), flags);
   spritesModified = true;
 }
 
@@ -2711,20 +2711,20 @@ static bool DoesBitmapHaveAlpha(System::Drawing::Bitmap ^bm)
     return false;
 }
 
-Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, int transColour,
+AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, int transColour,
     bool remapColours, bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     // Safety check: if requested alpha channel, test if bitmap contains one
     alphaChannel = alphaChannel && (thisgame.color_depth == 4) && DoesBitmapHaveAlpha(bmp);
 
     RGB imgPalBuf[256];
-    int importedColourDepth;
+    int importedColourDepth = 0;
     const bool keep_trans = (spriteImportMethod != SIMP_NONE);
     const bool fix_palette = (spriteImportMethod != SIMP_INDEX0) && (spriteImportMethod != SIMP_INDEX);
     AGSBitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true,
         alphaChannel, keep_trans, fix_palette, &importedColourDepth);
 
-    int transcol;
+    int transcol = 0;
     sort_out_transparency(tempsprite, spriteImportMethod, transColour, imgPalBuf, importedColourDepth, transcol);
     if (thisgame.color_depth == 1)
     {
@@ -2754,9 +2754,9 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
 SpriteImportResult AddNewSpriteFromBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod,
     int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
-    int flags;
-    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, transColour,
-        remapColours, useRoomBackgroundColours, alphaChannel, &flags);
+    int flags = 0;
+    std::unique_ptr<AGSBitmap> tempsprite(CreateNativeBitmap(bmp, spriteImportMethod, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, &flags));
 
     int slot = AddNewSprite(tempsprite, flags);
     return SpriteImportResult(slot, AGS::Types::SpriteImportResolution::Real);
@@ -2765,9 +2765,9 @@ SpriteImportResult AddNewSpriteFromBitmap(System::Drawing::Bitmap^ bmp, int spri
 SpriteImportResult SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
     int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
-    int flags;
-    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, transColour,
-        remapColours, useRoomBackgroundColours, alphaChannel, &flags);
+    int flags = 0;
+    std::unique_ptr<AGSBitmap> tempsprite(CreateNativeBitmap(bmp, spriteImportMethod, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, &flags));
 
 	SetNewSprite(slot, tempsprite, flags);
 

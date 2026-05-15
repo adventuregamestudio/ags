@@ -371,13 +371,14 @@ public:
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
-    // Sets bitmap for the particular mask layer;
-    // WARNING: takes the ownership of the given bitmap
-    void    SetMask(RoomAreaMask mask, Bitmap *bmp);
+    // Assigns bitmap for the particular mask layer
+    void    SetMask(RoomAreaMask mask, std::unique_ptr<Bitmap> &&bmp);
+    // Copies contents of a provided bitmap onto the particular mask layer;
+    // this is done by blitting; if bitmap is of different size than the room's mask,
+    // then it's either cropped or remaining unfilled parts are erased to zero.
+    void    CopyMask(RoomAreaMask mask, const Bitmap *bitmap);
     // Gets mask's scale relative to the room's background size
     float   GetMaskScale(RoomAreaMask mask) const;
-    // Replaces contents of a bitmap for the particular mask layer
-    void    SetMask(RoomAreaMask mask, const Bitmap *bitmap);
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set

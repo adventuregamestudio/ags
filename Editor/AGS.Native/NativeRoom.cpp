@@ -13,6 +13,7 @@
 //=============================================================================
 #include "NativeRoom.h"
 #include "NativeUtils.h"
+#include "gfx/bitmap.h"
 #include "game/room_file.h"
 
 using AGSBitmap = AGS::Common::Bitmap;
@@ -128,9 +129,9 @@ void NativeRoom::SetAreaMask(AGS::Types::RoomAreaMaskType maskType, SysBitmap ^b
     bmp->Palette = palette;
 
     RGB pal[256]; // dummy, used as a return value from CreateBlockFromBitmap
-    AGSBitmap* newMask = CreateOpaqueNativeBitmap(bmp, pal, false, false, nullptr);
-    validate_mask(newMask, "imported", (nativeType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : MAX_WALK_AREAS);
-    _rs->SetMask(nativeType, newMask);
+    std::unique_ptr<AGSBitmap> newMask(CreateOpaqueNativeBitmap(bmp, pal, false, false, nullptr));
+    validate_mask(newMask.get(), "imported", (nativeType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : MAX_WALK_AREAS);
+    _rs->SetMask(nativeType, std::move(newMask));
 }
 
 void NativeRoom::SaveToFile(System::String ^filename)

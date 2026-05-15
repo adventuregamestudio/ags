@@ -818,6 +818,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             if (r_data.RoomBkgScene[i])
             {
                 // Blit, don't replace image, in case we restored a image of different size
+                thisroom.BgFrames[i].Graphic->Clear(0);
                 thisroom.BgFrames[i].Graphic->Blit(r_data.RoomBkgScene[i].get());
             }
         }
@@ -826,8 +827,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         {
             if (r_data.RoomMask[i])
             {
-                // Blit, don't replace image, in case we restored a image of different size
-                thisroom.SetMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
+                // Blit, don't replace mask, in case we restored a mask of different size
+                thisroom.CopyMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
             }
         }
 

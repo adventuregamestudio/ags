@@ -205,6 +205,27 @@ Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const
     default: return nullptr;
     }
 }
+void RoomStruct::SetMask(RoomAreaMask mask, std::unique_ptr<Bitmap> &&bmp)
+{
+    switch (mask)
+    {
+    case kRoomAreaHotspot: HotspotMask.reset(bmp.release()); break;
+    case kRoomAreaWalkBehind: WalkBehindMask.reset(bmp.release()); break;
+    case kRoomAreaWalkable: WalkAreaMask.reset(bmp.release()); break;
+    case kRoomAreaRegion: RegionMask.reset(bmp.release()); break;
+    default: assert(0); break;
+    }
+}
+
+void RoomStruct::CopyMask(RoomAreaMask mask, const Bitmap *bitmap)
+{
+    Bitmap *room_mask = GetMask(mask);
+    if (room_mask)
+    {
+        room_mask->Clear(0); // in case sizes are different
+        room_mask->Blit(bitmap);
+    }
+}
 
 float RoomStruct::GetMaskScale(RoomAreaMask mask) const
 {
@@ -217,13 +238,6 @@ float RoomStruct::GetMaskScale(RoomAreaMask mask) const
         return 1.f / MaskResolution;
     default: return 0.f;
     }
-}
-
-void RoomStruct::SetMask(RoomAreaMask mask, const Bitmap *bitmap)
-{
-    Bitmap *room_mask = GetMask(mask);
-    if (room_mask)
-        room_mask->Blit(bitmap);
 }
 
 bool RoomStruct::HasRegionLightLevel(int id) const

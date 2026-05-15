@@ -54,6 +54,7 @@ enum OverlayFlags
     kOver_HasTint          = 0x0020,
     kOver_HasLightLevel    = 0x0040,
     kOver_Visible          = 0x0100,
+    kOver_AutoSize         = 0x0200  // autoresize whenever the graphic changes
 };
 
 enum OverlaySvgVersion
@@ -70,7 +71,7 @@ enum OverlaySvgVersion
     kOverSvgVersion_40018   = 4000018, // shaders
     kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
     kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
-    kOverSvgVersion_40028   = 4000028, // scale field is valid
+    kOverSvgVersion_40028   = 4000028, // autosize flag, scale field is valid
     kOverSvgVersion_Current = kOverSvgVersion_40028
 };
 
@@ -104,6 +105,7 @@ public:
     float GetRotation() const { return _rotation; }
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
+    bool IsAutoSize() const  { return (_flags & kOver_AutoSize) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
     int  GetTransparency() const { return _transparency; }
@@ -141,6 +143,8 @@ public:
     void SetAutoPosition(int for_character, int x = 0, int y = 0);
     // Assigns a fixed position in the current space (screen or room coordinates)
     void SetFixedPosition(int x, int y);
+    // Sets whether the overlay should resize itself whenever the graphic changes
+    void SetAutoSize(bool auto_size);
     void SetSpriteAnchor(const Pointf &anchor);
     void SetSpriteOffset(const Point &offset);
     void SetDestinationSize(int w, int h);
@@ -211,7 +215,8 @@ public:
     void WriteToSavegame(Common::Stream *out) const;
 
 private:
-    void ResetImage();
+    void ResetImage(bool reset_size);
+    void ResizeToImage();
     // Disposes an associated script object, if one was created earlier;
     // releases internal reference if one was made
     // (script object may exist while there are user refs)
@@ -222,7 +227,7 @@ private:
 
     // Overlay's ID
     int _id = -1;
-    int _flags = kOver_Visible; // OverlayFlags
+    int _flags = kOver_Visible | kOver_AutoSize; // OverlayFlags
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offx, y + offy;
     int _x = 0;

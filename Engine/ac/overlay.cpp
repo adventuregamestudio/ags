@@ -132,6 +132,18 @@ void Overlay_SetY(ScriptOverlay *scover, int newy)
     over->SetFixedPosition(over->GetX(), newy);
 }
 
+bool Overlay_GetAutoSize(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.AutoSize", scover);
+    return over->IsAutoSize();
+}
+
+void Overlay_SetAutoSize(ScriptOverlay *scover, bool auto_size)
+{
+    auto *over = GetOverlayValidate("Overlay.AutoSize", scover);
+    over->SetAutoSize(auto_size);
+}
+
 int Overlay_GetGraphic(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Graphic", scover);
@@ -1059,6 +1071,16 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
+RuntimeScriptValue Sc_Overlay_GetAutoSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetAutoSize);
+}
+
+RuntimeScriptValue Sc_Overlay_SetAutoSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetAutoSize);
+}
+
 RuntimeScriptValue Sc_Overlay_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphic);
@@ -1404,6 +1426,8 @@ void RegisterOverlayAPI()
         { "Overlay::set_X",               API_FN_PAIR(Overlay_SetX) },
         { "Overlay::get_Y",               API_FN_PAIR(Overlay_GetY) },
         { "Overlay::set_Y",               API_FN_PAIR(Overlay_SetY) },
+        { "Overlay::get_AutoSize",        API_FN_PAIR(Overlay_GetAutoSize) },
+        { "Overlay::set_AutoSize",        API_FN_PAIR(Overlay_SetAutoSize) },
         { "Overlay::get_Graphic",         API_FN_PAIR(Overlay_GetGraphic) },
         { "Overlay::set_Graphic",         API_FN_PAIR(Overlay_SetGraphic) },
         { "Overlay::get_InRoom",          API_FN_PAIR(Overlay_InRoom) },

@@ -74,6 +74,15 @@ void ScreenOverlay::SetFixedPosition(int x, int y)
     _y = y;
 }
 
+void ScreenOverlay::SetAutoSize(bool auto_size)
+{
+    if (!IsAutoSize() && auto_size)
+    {
+        ResizeToImage();
+    }
+    _flags = (_flags & ~kOver_AutoSize) | (kOver_AutoSize * auto_size);
+}
+
 void ScreenOverlay::SetSpriteAnchor(const Pointf &anchor)
 {
     _sprAnchor = Pointf::Clamp(anchor, Pointf(), Pointf(1.f, 1.f));
@@ -88,6 +97,7 @@ void ScreenOverlay::SetDestinationSize(int w, int h)
 {
     if ((w == _destSize.Width) && (h == _destSize.Height))
         return;
+    _flags &= ~kOver_AutoSize;
     _destSize = Size(w, h);
     _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
     MarkChanged();
@@ -125,25 +135,42 @@ void ScreenOverlay::SetZOrder(int zorder)
     _zorder = zorder;
 }
 
-void ScreenOverlay::ResetImage()
+void ScreenOverlay::ResetImage(bool reset_size)
 {
     if (_sprnum > 0 && !IsSpriteShared())
         free_dynamic_sprite(_sprnum, false);
     _sprnum = 0;
     _flags &= ~(kOver_SpriteShared);
-    _destSize = {};
-    _scaledSize = {};
+    if (reset_size)
+    {
+        _destSize = {};
+        _scaledSize = {};
+    }
+}
+
+void ScreenOverlay::ResizeToImage()
+{
+    if ((_sprnum > 0) && (static_cast<uint32_t>(_sprnum) < game.SpriteInfos.size()))
+    {
+        _destSize = Size(game.SpriteInfos[_sprnum].Width, game.SpriteInfos[_sprnum].Height);
+        _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
+    }
+    else
+    {
+        _destSize = {};
+        _scaledSize = {};
+    }
 }
 
 void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic)
 {
-    ResetImage();
+    ResetImage(IsAutoSize());
 
     if (pic)
     {
-        _destSize = Size(pic->GetWidth(), pic->GetHeight());
-        _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
         _sprnum = add_dynamic_sprite(std::move(pic), SPF_OBJECTOWNED);
+        if (IsAutoSize())
+            ResizeToImage();
     }
     MarkChanged();
 }
@@ -159,7 +186,7 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int 
 
 void ScreenOverlay::SetSpriteNum(int sprnum)
 {
-    ResetImage();
+    ResetImage(IsAutoSize());
 
     assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < game.SpriteInfos.size());
     if (sprnum < 0 || static_cast<uint32_t>(sprnum) >= game.SpriteInfos.size())
@@ -167,8 +194,8 @@ void ScreenOverlay::SetSpriteNum(int sprnum)
 
     _flags |= kOver_SpriteShared;
     _sprnum = sprnum;
-    _destSize = Size(game.SpriteInfos[sprnum].Width, game.SpriteInfos[sprnum].Height);
-    _scaledSize = Size(_destSize.Width * _scale.X, _destSize.Height * _scale.Y);
+    if (IsAutoSize())
+        ResizeToImage();
     MarkChanged();
 }
 
@@ -315,7 +342,7 @@ int ScreenOverlay::UpdateTimeout()
 
 void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
-    ResetImage();
+    ResetImage(true);
 
     in->ReadInt32(); // ddb 32-bit pointer value (nasty legacy format)
     int pic = in->ReadInt32();
@@ -370,6 +397,10 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     if ((cmp_ver < kOverSvgVersion_36303) || ((cmp_ver >= kOverSvgVersion_400) && (cmp_ver < kOverSvgVersion_40024)))
     {
         _flags |= kOver_Visible;
+    }
+    if (cmp_ver < kOverSvgVersion_40028)
+    {
+        _flags |= kOver_AutoSize;
     }
 
     if (cmp_ver >= kOverSvgVersion_400)

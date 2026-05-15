@@ -1359,6 +1359,8 @@ builtin managed struct Overlay {
   /// Sets this overlay's horizontal and vertical scaling
   import void SetScale(float x, float y);
 
+  /// Gets/sets whether overlay should resize itself whenever its graphic changes.
+  import attribute bool AutoSize;
   /// Gets/sets a graphic anchor X in normalized relative coordinates (0.0 - 1.0)
   import attribute float GraphicAnchorX;
   /// Gets/sets a graphic anchor Y in normalized relative coordinates (0.0 - 1.0)

@@ -180,10 +180,11 @@ AGSBitmap *initialize_sprite(AGS::Common::sprkey_t /*index*/, AGSBitmap *image, 
 }
 
 // Safely gets a sprite, if the sprite does not exist then returns a placeholder (sprite 0)
-Common::Bitmap *get_sprite (int spnr) {
-  if ((spnr < 0) || !spriteset[spnr])
-    return spriteset[0]; // return a placeholder
-  return spriteset[spnr];
+Common::Bitmap *get_sprite(int spnr)
+{
+    if (!spriteset.DoesSpriteExist(spnr))
+        return spriteset[0]; // return a placeholder
+    return spriteset[spnr];
 }
 
 int AddNewSprite(std::unique_ptr<AGSBitmap> &sprit, int flags) {

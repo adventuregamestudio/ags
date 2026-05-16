@@ -52,7 +52,7 @@ void SpriteFileWriter::Begin(int store_flags, AGS::Types::SpriteCompression comp
 void SpriteFileWriter::WriteBitmap(System::Drawing::Bitmap ^image)
 {
     RGB imgPalBuf[256];
-    int importedColourDepth;
+    int importedColourDepth = 0;
     std::unique_ptr<AGSBitmap> native_bmp(CreateBlockFromBitmap(image, imgPalBuf, nullptr, true, true /* FIXME */, true, true, &importedColourDepth));
     _nativeWriter->WriteBitmap(native_bmp->GetBitmapData());
 }

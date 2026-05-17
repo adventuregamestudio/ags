@@ -140,6 +140,7 @@ protected:
     TIndex AcquireFreeSlot()
     {
         const TIndex index = GetFreeIndex();
+        assert(static_cast<size_t>(index) >= _fixedCount);
         if (index != NoIndexValue)
         {
             _isFree[index] = false;
@@ -213,7 +214,7 @@ protected:
         for (size_t idx = 0u; idx < _isFree.size() && idx < is_used.size(); ++idx)
         {
             _isFree[idx] = !is_used[idx];
-            if (!is_used[idx])
+            if (!is_used[idx] && (static_cast<size_t>(idx) >= _fixedCount))
                 _freeIds.push(idx);
             _count += static_cast<int>(is_used[idx]);
         }

@@ -94,8 +94,6 @@
   #textmsgs {
     left: 50%;
     top: 50%;
-    -ms-transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     text-align: center;
     margin: auto;
@@ -105,52 +103,16 @@
     z-index: 1000;
   }
 
-  @-webkit-keyframes levitate {
-    0%   { transform: translate(-50%, 0px);  }
-    50%  { transform: translate(-50%, -50%); }
-    100% { transform: translate(-50%, 0px);  }
-  }
-  
-  @-moz-keyframes  levitate {
-    0%   { transform: translate(-50%, 0px);  }
-    50%  { transform: translate(-50%, -50%); }
-    100% { transform: translate(-50%, 0px);  }
-  }
-  
-  @-o-keyframes levitate {
-    0%   { transform: translate(-50%, 0px);  }
-    50%  { transform: translate(-50%, -50%); }
-    100% { transform: translate(-50%, 0px);  }
-  }
-  
   @keyframes levitate {
     0%   { transform: translate(-50%, 0px);  }
     50%  { transform: translate(-50%, -50%); }
     100% { transform: translate(-50%, 0px);  }
   }
-  
-  @-webkit-keyframes rotation {
-  0%   { transform: rotate(-30deg); }
-  50%  { transform: rotate(30deg);  }
-  100% { transform: rotate(-30deg); }
-  }
-
-  @-moz-keyframes rotation {
-  0%   { transform: rotate(-30deg); }
-  50%  { transform: rotate(30deg);  }
-  100% { transform: rotate(-30deg); }
-  }
-
-  @-o-keyframes rotation {
-  0%   { transform: rotate(-30deg); }
-  50%  { transform: rotate(30deg);  }
-  100% { transform: rotate(-30deg); }
-  }
 
   @keyframes rotation {
-  0%   { transform: rotate(-30deg); }
-  50%  { transform: rotate(30deg);  }
-  100% { transform: rotate(-30deg); }
+    0%   { transform: rotate(-30deg); }
+    50%  { transform: rotate(30deg);  }
+    100% { transform: rotate(-30deg); }
   }
   
   .gears-cont {
@@ -189,16 +151,10 @@
   }
 
   .bluecup.rotate {
-    -webkit-animation: rotation 1s ease-in-out infinite;
-    -moz-animation: rotation 1s ease-in-out infinite;
-    -o-animation: rotation 1s ease-in-out infinite;
     animation: rotation 1s ease-in-out infinite;
   }
 
   .bluecup.levitate {
-    -webkit-animation: levitate 4s ease-in-out infinite;
-    -moz-animation: levitate 4s ease-in-out infinite;
-    -o-animation: levitate 4s ease-in-out infinite;
     animation: levitate 4s ease-in-out infinite;
   }
 
@@ -214,8 +170,6 @@
   #controls {
     left: 50%;
     top: 32%;
-    -ms-transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     text-align: center;
     margin: auto;
@@ -241,8 +195,6 @@
   .modal-content {
     left: 50%;
     top: 50%;
-    -ms-transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     text-align: center;
     margin: auto;
@@ -256,14 +208,7 @@
   .modal-header {padding: 2px 16px;}
   
   .modal-header-content {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-box;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-flex-align: center;
-    -ms-flex-align: center;
-    -webkit-align-items: center;
     align-items: center;
   }
 
@@ -348,7 +293,7 @@
   }
 
   function fscrChangeHandler() {
-    if (!document.fullscreenElement && !document.webkitIsFullscreen && !document.mozFullScreen && !document.msFullscreenElement) {
+    if (!document.fullscreenElement) {
       fscrExitHandler();
     }
   }
@@ -375,9 +320,7 @@
         btnToggleFS.style.display = "none";
       }
     } else {
-      if ('mozFullScreenEnabled' in document) document.addEventListener('mozfullscreenchange', fscrChangeHandler);
-      else if ('msFullscreenEnabled' in document) document.addEventListener('MSFullscreenChange', fscrChangeHandler);
-      else if ('fullscreenEnabled' in document) document.addEventListener('fullscreenchange', fscrChangeHandler);
+      document.addEventListener('fullscreenchange', fscrChangeHandler);
 
       btnToggleFS.onclick = function () {
         if (game_file !== "") {

@@ -1,6 +1,6 @@
 REVISION HISTORY
 ===================================================================================================
-VERSION 4.0.0 - Alpha, November 2025
+VERSION 4.0.0 - Alpha, May 2026
 
 Common:
  - Support true 32-bit colors in GUI, text messages and drawing commands in script.
@@ -224,6 +224,7 @@ Script API:
  - Added Math.Random(), Math.RandomFloat() and Math.Round() functions.
  - Added eRoundTowardsZero and eRoundAwayFromZero rounding styles for use in FloatToInt() and
    Math.Round() functions.
+ - Added Overlay.AutoSize, Overlay.ScaleX, ScaleY properties and SetScale() function.
  - Added Overlay.Flip property that lets to set one of the 3 standard flip styles.
  - Added Overlay.Tint(), SetLightLevel() and RemoveTint() functions, Overlay.HasTint,
    HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance

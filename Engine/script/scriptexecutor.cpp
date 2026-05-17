@@ -250,7 +250,7 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     // has a blocking action inside, e.g.: 
     //    callFunction( doBlockingActionAndReturnResult(), String.Format(...) )
     //
-    if (_threadStack.empty())
+    if (_threadStack.empty() && !_thread)
         pool.RunGarbageCollectionIfAppropriate();
 
     if (new_line_hook)

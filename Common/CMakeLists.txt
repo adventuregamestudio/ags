@@ -244,6 +244,7 @@ if(AGS_TESTS)
         test/common_stubs.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
+        test/indexedobjectpool_test.cpp
         test/inifile_test.cpp
         test/math_test.cpp
         test/memory_test.cpp

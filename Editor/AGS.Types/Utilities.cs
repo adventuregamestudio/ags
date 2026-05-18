@@ -370,6 +370,21 @@ namespace AGS.Types
             return Color.FromArgb(0xFF, color);
         }
 
+        public static string GetAsString(this Decoder decoder, byte[] bytes)
+        {
+            return GetAsString(decoder, bytes, bytes.Length);
+        }
+
+        public static string GetAsString(this Decoder decoder, byte[] bytes, int count)
+        {
+            var zeroFoundAt = Array.IndexOf(bytes, (byte)0);
+            count = zeroFoundAt >= 0 ? zeroFoundAt : count;
+            var length = decoder.GetCharCount(bytes, 0, count);
+            char[] chars = new char[length];
+            int charCount = decoder.GetChars(bytes, 0, count, chars, 0);
+            return new string(chars, 0, charCount);
+        }
+
         public static KeyValuePair<string, string> ParseKeyValue(string line, char separator = '=')
         {
             int firstSep = line.IndexOf(separator);

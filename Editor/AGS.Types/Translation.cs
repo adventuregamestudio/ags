@@ -105,21 +105,25 @@ namespace AGS.Types
         public int? NormalFont
         {
             get { return _normalFont; }
+            set { _normalFont = value; }
         }
 
         public int? SpeechFont
         {
             get { return _speechFont; }
+            set { _speechFont = value; }
         }
 
         public bool? RightToLeftText
         {
             get { return _rightToLeftText; }
+            set { _rightToLeftText = value; }
         }
 
         public bool AutoTranslateParserSaid
         {
             get { return _autoTranslateParserSaid; }
+            set { _autoTranslateParserSaid = value; }
         }
 
         public string EncodingHint
@@ -196,9 +200,26 @@ namespace AGS.Types
 
         public void SaveData()
         {
-            //
-            // Organize translated lines by sections
-            //
+            var sectionLists = PrepareDataForSave();
+            using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
+            {
+                SaveDataImpl(sw, sectionLists);
+            }
+            Modified = false;
+        }
+
+        public void SaveData(StreamWriter sw)
+        {
+            var sectionLists = PrepareDataForSave();
+            SaveDataImpl(sw, sectionLists);
+            Modified = false;
+        }
+
+        /// <summary>
+        /// Organizes translated lines by sections.
+        /// </summary>
+        private List<Tuple<TranslationSection, List<string>>> PrepareDataForSave()
+        {
             var sectionLists = new List<Tuple<TranslationSection, List<string>>>();
             var sectionIndexByKey = new Dictionary<string, int>();
             var nonameSection = new TranslationSection(string.Empty);
@@ -223,69 +244,69 @@ namespace AGS.Types
                 }
                 sectionList.Add(line.Key);
             }
+            return sectionLists;
+        }
 
-            //
-            // Write translation source file
-            //
-            using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
+        /// <summary>
+        /// Writes translation source file into the provided stream.
+        /// </summary>
+        private void SaveDataImpl(StreamWriter sw, List<Tuple<TranslationSection, List<string>>> sectionLists)
+        {
+            sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
+            sw.WriteLine("// Format is alternating lines with original game text and replacement");
+            sw.WriteLine("// text. If you don't want to translate a line, just leave the following");
+            sw.WriteLine("// line blank. Lines starting with '//' are comments - DO NOT translate");
+            sw.WriteLine("// them. Special characters such as [ and %%s symbolise things within the");
+            sw.WriteLine("// game, so should be left in an appropriate place in the message.");
+            sw.WriteLine("// ");
+            sw.WriteLine("// ** Translation settings are below");
+            sw.WriteLine("// ** Leave them as \"DEFAULT\" to use the game settings");
+            sw.WriteLine("// The normal font to use - DEFAULT or font number");
+            sw.WriteLine("//#NormalFont=" + WriteOptionalInt(_normalFont));
+            sw.WriteLine("// The speech font to use - DEFAULT or font number");
+            sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
+            sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
+            sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
+            sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
+            sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
+            sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
+            sw.WriteLine($"//#Language={(_language != null ? _language.Replace('-', '_') : string.Empty)}");
+            sw.WriteLine("// Whether engine should translate Parser.Said strings automatically - ON or OFF");
+            sw.WriteLine($"//#AutoTranslateParserSaid={(_autoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
+            if (_fontOverrides.Count != 0)
             {
-                sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
-                sw.WriteLine("// Format is alternating lines with original game text and replacement");
-                sw.WriteLine("// text. If you don't want to translate a line, just leave the following");
-                sw.WriteLine("// line blank. Lines starting with '//' are comments - DO NOT translate");
-                sw.WriteLine("// them. Special characters such as [ and %%s symbolise things within the");
-                sw.WriteLine("// game, so should be left in an appropriate place in the message.");
-                sw.WriteLine("// ");
-                sw.WriteLine("// ** Translation settings are below");
-                sw.WriteLine("// ** Leave them as \"DEFAULT\" to use the game settings");
-                sw.WriteLine("// The normal font to use - DEFAULT or font number");
-                sw.WriteLine("//#NormalFont=" + WriteOptionalInt(_normalFont));
-                sw.WriteLine("// The speech font to use - DEFAULT or font number");
-                sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
-                sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
-                sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
-                sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
-                sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
-                sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
-                sw.WriteLine($"//#Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
-                sw.WriteLine("// Whether engine should translate Parser.Said strings automatically - ON or OFF");
-                sw.WriteLine($"//#AutoTranslateParserSaid={(_autoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
-                if (_fontOverrides.Count != 0)
-                {
-                    WriteFontOverrides(sw);
-                }
-                sw.WriteLine("//  ");
-                sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
-                sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
+                WriteFontOverrides(sw);
+            }
+            sw.WriteLine("//  ");
+            sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
+            sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
 
-                TranslationEntryOptions entryOptions = null;
-                foreach (var sectionList in sectionLists)
-                {
-                    var section = sectionList.Item1;
-                    var lines = sectionList.Item2;
-                    if (lines.Count == 0)
-                        continue;
+            TranslationEntryOptions entryOptions = null;
+            foreach (var sectionList in sectionLists)
+            {
+                var section = sectionList.Item1;
+                var lines = sectionList.Item2;
+                if (lines.Count == 0)
+                    continue;
 
-                    sw.WriteLine("//-----------------------------------------------------------------------------");
-                    if (string.IsNullOrWhiteSpace(section.Comment))
-                        sw.WriteLine($"//$SECTION = {section.Name}");
-                    else
-                        sw.WriteLine($"//$SECTION = {section.Name}; {section.Comment}");
-                    sw.WriteLine("//-----------------------------------------------------------------------------");
-                    foreach (string key in lines)
+                sw.WriteLine("//-----------------------------------------------------------------------------");
+                if (string.IsNullOrWhiteSpace(section.Comment))
+                    sw.WriteLine($"//$SECTION = {section.Name}");
+                else
+                    sw.WriteLine($"//$SECTION = {section.Name}; {section.Comment}");
+                sw.WriteLine("//-----------------------------------------------------------------------------");
+                foreach (string key in lines)
+                {
+                    if (_entryOptions.TryGetValue(key, out entryOptions))
                     {
-                        if (_entryOptions.TryGetValue(key, out entryOptions))
-                        {
-                            foreach (var a in entryOptions.Metadata)
-                                sw.WriteLine($"//${a}");
-                        }
-
-                        sw.WriteLine(key);
-                        sw.WriteLine(_translatedLines[key]);
+                        foreach (var a in entryOptions.Metadata)
+                            sw.WriteLine($"//${a}");
                     }
+
+                    sw.WriteLine(key);
+                    sw.WriteLine(_translatedLines[key]);
                 }
             }
-            Modified = false;
         }
 
         /// <summary>
@@ -294,8 +315,7 @@ namespace AGS.Types
         /// </summary>
         public void LoadData()
         {
-            CompileMessages errors = new CompileMessages();
-            LoadDataImpl(errors);
+            TryLoadData();
         }
 
         /// <summary>
@@ -307,7 +327,20 @@ namespace AGS.Types
             CompileMessages errors = new CompileMessages();
             try
             {
-                LoadDataImpl(errors);
+                bool result = false;
+                string old_encoding = _encodingHint;
+                using (StreamReader sr = new StreamReader(FileName, _encoding))
+                {
+                    result = LoadDataImpl(sr, errors);
+                }
+                if (!result && (string.Compare(old_encoding, _encodingHint) != 0))
+                {
+                    // try again with the new encoding
+                    using (StreamReader sr = new StreamReader(FileName, _encoding))
+                    {
+                        result = LoadDataImpl(sr, errors);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -317,10 +350,28 @@ namespace AGS.Types
             return errors;
         }
 
+        public CompileMessages TryLoadData(StreamReader sr)
+        {
+            CompileMessages errors = new CompileMessages();
+            try
+            {
+                if (!LoadDataImpl(sr, errors))
+                {
+                    return errors;
+                }
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError(string.Format("Failed to load translation: \n{1}", e.Message)));
+                _translatedLines.Clear(); // clear on failure
+            }
+            return errors;
+        }
+
         // TODO: frankly I am not convinced that the TRS file reading/writing should be
         // in this Translation class. It might be more convenient to have them elsewhere,
         // in a translation file parser/serializer.
-        private void LoadDataImpl(CompileMessages errors)
+        private bool LoadDataImpl(StreamReader sr, CompileMessages errors)
         {
             _fontOverrides = new Dictionary<int, Font>();
             _translatedLines = new Dictionary<string, string>();
@@ -332,7 +383,6 @@ namespace AGS.Types
             string currentSectionComment = string.Empty;
             string old_encoding = _encodingHint;
 
-            using (StreamReader sr = new StreamReader(FileName, _encoding))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -344,9 +394,7 @@ namespace AGS.Types
                             ReadSpecialTags(line.Substring(3));
                             if (string.Compare(old_encoding, _encodingHint) != 0)
                             {
-                                sr.Close();
-                                LoadDataImpl(errors); // try again with the new encoding
-                                return;
+                                return false;
                             }
                         }
                         else if (line.Length > 2 && line[2] == '$')
@@ -393,6 +441,7 @@ namespace AGS.Types
 					}
                 }
             }
+            return true;
         }
 
         private void ReadSpecialTags(string line)

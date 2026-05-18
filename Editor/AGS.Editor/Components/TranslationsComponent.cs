@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {
-    class TranslationsComponent : BaseComponent
+    public class TranslationsComponent : BaseComponent
     {
         private const string TOP_LEVEL_COMMAND_ID = "Translations";
         private const string COMMAND_NEW_ITEM = "NewTranslation";
@@ -309,7 +309,7 @@ namespace AGS.Editor.Components
             return messages;
         }
 
-        private void UpdateSingleTranslationProcess(Translation translation, ICollection<GameTextLine> gameTexts, CompileMessages messages)
+        private static void UpdateSingleTranslationProcess(Translation translation, ICollection<GameTextLine> gameTexts, CompileMessages messages)
         {
             var oldLines = translation.TranslatedLines;
             var oldOptions = translation.TranslatedEntryOptions;
@@ -574,6 +574,13 @@ namespace AGS.Editor.Components
             {
                 DoTranslationUpdate(translations);
             }
+        }
+
+        public static CompileMessages UpdateTranslation(Translation translation, ICollection<GameTextLine> gameTexts)
+        {
+            CompileMessages messages = new CompileMessages();
+            UpdateSingleTranslationProcess(translation, gameTexts, messages);
+            return messages;
         }
 
         public override void CommandClick(string controlID)

@@ -88,6 +88,7 @@
     <Compile Include="Editor\AutoComplete\AutoCompleteTests.cs" />
     <Compile Include="Editor\BuildTargets\BuildTargetBaseTests.cs" />
     <Compile Include="Editor\Panes\FreePanControlTests.cs" />
+    <Compile Include="Editor\Translations\TranslationTests.cs" />
     <Compile Include="Editor\Utilities\IncludeUtilsTests.cs" />
     <Compile Include="Editor\Utilities\ScriptParsingTests.cs" />
     <Compile Include="Editor\Utilities\TextUtilsTests.cs" />

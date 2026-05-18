@@ -91,7 +91,7 @@ namespace AGS.Editor
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
 
         [Test]

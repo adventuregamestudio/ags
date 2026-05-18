@@ -36,6 +36,14 @@ namespace AGS.Editor
 // ** NOT CHANGE THE EXISTING TEXT.
 ";
 
+        /// <summary>
+        /// Unify line endings in the input string, in case they depend on a enviroment.
+        /// </summary>
+        string UniformTestString(string s)
+        {
+            return s.Replace("\r\n", "\n");
+        }
+
         private Translation CreateTranslationForTest()
         {
             Translation translation = new Translation("NewLanguage");
@@ -123,7 +131,7 @@ bonsoir
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
 
         [Test]
@@ -178,7 +186,7 @@ bonsoir
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
 
         private TranslationEntryOptions CreateEntryOptions(string[] arr)
@@ -231,7 +239,7 @@ bonsoir
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
 
         [Test]
@@ -512,7 +520,7 @@ deuxième réplique
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
 
         [Test]
@@ -605,7 +613,7 @@ This line is in a completely new section
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
 
         [Test]
@@ -683,7 +691,7 @@ deuxième réplique
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(UniformTestString(expectedResult), UniformTestString(result));
         }
     }
 }

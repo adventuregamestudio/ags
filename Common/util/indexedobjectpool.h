@@ -48,13 +48,30 @@ template <typename TIndex, TIndex NoIndexValue = 0>
 class IndexedPoolBase
 {
 public:
+    // Constructs a default object pool.
+    IndexedPoolBase()
+        // no-index value of 0 is turned into a fixed slot, for the ease of implementation
+        : _fixedCount(NoIndexValue == 0 ? 1u : 0u)
+    {
+        // any other "invalid index" values will complicate things, so restrict them
+        assert(NoIndexValue <= 0 || NoIndexValue == std::numeric_limits<TIndex>::max());
+        if (NoIndexValue > 0 && NoIndexValue != std::numeric_limits<TIndex>::max())
+            throw std::runtime_error("IndexedPoolBase: NoIndexValue must be either <= 0 or max of its type");
+        _isFree.resize(_fixedCount, true);
+    }
+
     // Constructs object pool, designating a number of fixed slots
     // that are allocated initially and never selected for use automatically.
     // (They may be still assigned an element via Set(elem, index).)
     IndexedPoolBase(size_t fixed_count)
-        : _fixedCount(fixed_count)
+        // no-index value of 0 is turned into a fixed slot, for the ease of implementation
+        : _fixedCount((NoIndexValue == 0 && fixed_count == 0) ? 1u : fixed_count)
     {
-        _isFree.resize(fixed_count, true);
+        // any other "invalid index" values will complicate things, so restrict them
+        assert(NoIndexValue <= 0 || NoIndexValue == std::numeric_limits<TIndex>::max());
+        if (NoIndexValue > 0 && NoIndexValue != std::numeric_limits<TIndex>::max())
+            throw std::runtime_error("IndexedPoolBase: NoIndexValue must be either <= 0 or max of its type");
+        _isFree.resize(_fixedCount, true);
     }
 
     // Returns the count of the used (aka valid) elements
@@ -73,7 +90,11 @@ public:
     // Requests particular index to be marked as "in use"
     void Set(const TIndex &index)
     {
-        AcquireSlot(index);
+        assert(index >= 0u && index != NoIndexValue);
+        if (index >= 0 && index != NoIndexValue)
+        {
+            AcquireSlot(index);
+        }
     }
 
     // Initializes whole array of indexes, some of which may be marked as "in use" and others as "free"
@@ -85,6 +106,7 @@ public:
     // Mark certain index as free
     void Free(const TIndex &index)
     {
+        assert(index >= 0u);
         if (!_isFree[index])
         {
             _isFree[index] = true;
@@ -152,10 +174,9 @@ protected:
     // Marks certain index as used
     void AcquireSlot(const TIndex &index)
     {
-        assert(index >= 0u);
         if (static_cast<size_t>(index) < _isFree.size())
         {
-            if (_isFree[index])
+            if (_isFree[index] && index != NoIndexValue)
             {
                 if (static_cast<size_t>(index) >= _fixedCount)
                 {
@@ -213,10 +234,11 @@ protected:
 
         for (size_t idx = 0u; idx < _isFree.size() && idx < is_used.size(); ++idx)
         {
-            _isFree[idx] = !is_used[idx];
-            if (!is_used[idx] && (static_cast<size_t>(idx) >= _fixedCount))
+            const bool is_used_real = is_used[idx] && (idx != NoIndexValue);
+            _isFree[idx] = !is_used_real;
+            if (!is_used_real && (static_cast<size_t>(idx) >= _fixedCount))
                 _freeIds.push(idx);
-            _count += static_cast<int>(is_used[idx]);
+            _count += static_cast<int>(is_used_real);
         }
     }
 
@@ -231,19 +253,24 @@ protected:
 // and used indexes.
 //
 template <typename TElem, typename TIndex = size_t, TIndex NoIndexValue = 0>
-class IndexedObjectPool : protected IndexedPoolBase<TIndex>
+class IndexedObjectPool : protected IndexedPoolBase<TIndex, NoIndexValue>
 {
 public:
+    using BaseType = IndexedPoolBase<TIndex, NoIndexValue>;
     using ContainerType = std::vector<TElem>;
 
-    IndexedObjectPool() = default;
+    // Constructs a default object pool.
+    IndexedObjectPool()
+    {
+        _elems.resize(BaseType::_fixedCount);
+    }
     // Constructs object pool, designating a number of fixed slots
     // that are allocated initially and never selected for use automatically.
     // (They may be still assigned an element via Set(elem, index).)
     IndexedObjectPool(size_t fixed_count)
-        : IndexedPoolBase<TIndex>(fixed_count)
+        : BaseType(fixed_count)
     {
-        _elems.resize(fixed_count);
+        _elems.resize(BaseType::_fixedCount);
     }
 
     // STL-compatibility
@@ -261,16 +288,16 @@ public:
     TElem &operator [](TIndex index)
     {
         assert(index >= 0u && static_cast<size_t>(index) < _elems.size() && index != NoIndexValue);
-        assert(!IndexedPoolBase<TIndex>::_isFree[index]);
+        assert(!BaseType::_isFree[index]);
         return _elems[static_cast<size_t>(index)];
     }
 
     // Returns the count of the used (aka valid) elements
-    size_t GetCount() const { return IndexedPoolBase<TIndex>::_count; }
+    size_t GetCount() const { return BaseType::_count; }
     // Tells if particular index is free
-    bool IsFree(TIndex index) const { return IndexedPoolBase<TIndex>::_isFree[index]; }
+    bool IsFree(TIndex index) const { return BaseType::_isFree[index]; }
     // Tells if particular index is being used
-    bool IsInUse(TIndex index) const { return !IndexedPoolBase<TIndex>::_isFree[index]; }
+    bool IsInUse(TIndex index) const { return !BaseType::_isFree[index]; }
 
     // Adds new element, initialized with default value; returns its index
     TIndex Add()
@@ -302,55 +329,67 @@ public:
     // Adds new element, initialized with default value, at the specified index
     void Set(const TIndex &index)
     {
-        AcquireSlot(index);
-        _elems[index] = {};
+        assert(index >= 0u && index != NoIndexValue);
+        if (index != NoIndexValue)
+        {
+            AcquireSlot(index);
+            _elems[index] = {};
+        }
     }
 
     // Adds new element at the specified index, copies a value over
     void Set(const TElem &elem, const TIndex &index)
     {
-        AcquireSlot(index);
-        _elems[index] = elem;
+        assert(index >= 0u && index != NoIndexValue);
+        if (index != NoIndexValue)
+        {
+            AcquireSlot(index);
+            _elems[index] = elem;
+        }
     }
 
     // Adds new element at the specified index, moves a value over
     void Set(TElem &&elem, const TIndex &index)
     {
-        AcquireSlot(index);
-        _elems[index] = std::move(elem);
+        assert(index >= 0u && index != NoIndexValue);
+        if (index != NoIndexValue)
+        {
+            AcquireSlot(index);
+            _elems[index] = std::move(elem);
+        }
     }
 
     // Initializes whole array of elements, some of the slots may be marked as "in use" and others as "free"
     void Set(const std::vector<TElem> &elems, const std::vector<bool> &is_used)
     {
         _elems = elems;
-        if (_elems.size() < IndexedPoolBase<TIndex>::_fixedCount)
-            _elems.resize(IndexedPoolBase<TIndex>::_fixedCount);
-        IndexedPoolBase<TIndex>::InitFreeIndexes(_elems.size(), is_used);
+        if (_elems.size() < BaseType::_fixedCount)
+            _elems.resize(BaseType::_fixedCount);
+        BaseType::InitFreeIndexes(_elems.size(), is_used);
     }
 
     // Initializes whole array of elements, some of the slots may be marked as "in use" and others as "free"
     void Set(std::vector<TElem> &&elems, const std::vector<bool> &is_used)
     {
         _elems = std::move(elems);
-        if (_elems.size() < IndexedPoolBase<TIndex>::_fixedCount)
-            _elems.resize(IndexedPoolBase<TIndex>::_fixedCount);
-        IndexedPoolBase<TIndex>::InitFreeIndexes(_elems.size(), is_used);
+        if (_elems.size() < BaseType::_fixedCount)
+            _elems.resize(BaseType::_fixedCount);
+        BaseType::InitFreeIndexes(_elems.size(), is_used);
     }
 
     // Resets element and marks its index as free
     void Free(const TIndex &index)
     {
         _elems[index] = {};
-        IndexedPoolBase<TIndex>::Free(index);
+        BaseType::Free(index);
     }
 
     // Resets the container
     void Clear()
     {
         _elems.clear();
-        _elems.resize(IndexedPoolBase<TIndex>::_fixedCount);
-        IndexedPoolBase<TIndex>::Clear();
+        _elems.resize(BaseType::_fixedCount);
+        BaseType::Clear();
     }
 
     // Reserves memory for certain amount of elements, useful when we expect
@@ -358,14 +397,14 @@ public:
     void Reserve(size_t size)
     {
         _elems.reserve(size);
-        IndexedPoolBase<TIndex>::Reserve(size);
+        BaseType::Reserve(size);
     }
 
 private:
     // Finds a free index, marks it as used, increments valid elements count
     TIndex AcquireFreeSlot()
     {
-        const TIndex index = IndexedPoolBase<TIndex>::AcquireFreeSlot();
+        const TIndex index = BaseType::AcquireFreeSlot();
         if ((index != NoIndexValue) && (static_cast<size_t>(index) >= _elems.size()))
             _elems.resize(static_cast<size_t>(index) + 1);
         return index;
@@ -375,7 +414,7 @@ private:
     void AcquireSlot(const TIndex &index)
     {
         assert(index >= 0u && index != NoIndexValue);
-        IndexedPoolBase<TIndex>::AcquireSlot(index);
+        BaseType::AcquireSlot(index);
         if (static_cast<size_t>(index) >= _elems.size())
             _elems.resize(index + 1u);
     }

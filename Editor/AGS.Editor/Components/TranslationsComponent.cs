@@ -14,7 +14,7 @@ using TypeUtils = AGS.Types.Utilities;
 
 namespace AGS.Editor.Components
 {
-    class TranslationsComponent : BaseComponent
+    public class TranslationsComponent : BaseComponent
     {
         private const string TOP_LEVEL_COMMAND_ID = "Translations";
         private const string COMMAND_NEW_ITEM = "NewTranslation";
@@ -312,7 +312,7 @@ namespace AGS.Editor.Components
             return messages;
         }
 
-        private void UpdateSingleTranslationProcess(Translation translation,
+        private static void UpdateSingleTranslationProcess(Translation translation,
             ICollection<GameTextLine> gameTexts, HashSet<string> keyedTexts,
             CompileMessages messages)
         {
@@ -519,6 +519,14 @@ namespace AGS.Editor.Components
             {
                 DoTranslationUpdate(translations);
             }
+        }
+
+        public static CompileMessages UpdateTranslation(Translation translation, ICollection<GameTextLine> gameTexts)
+        {
+            CompileMessages messages = new CompileMessages();
+            HashSet<string> keyedTexts = new HashSet<string>(gameTexts.Select((l) => { return l.Text; }));
+            UpdateSingleTranslationProcess(translation, gameTexts, keyedTexts, messages);
+            return messages;
         }
 
         public override void CommandClick(string controlID)

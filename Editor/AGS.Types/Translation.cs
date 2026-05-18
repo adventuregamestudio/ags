@@ -41,7 +41,7 @@ namespace AGS.Types
         private string _baseLanguage;
         private string _language;
         private Dictionary<int, Font> _fontOverrides = new Dictionary<int, Font>();
-        private Dictionary<string, TranslationEntry> _translatedEntries;
+        private Dictionary<string, TranslationEntry> _translatedEntries = new Dictionary<string, TranslationEntry>();
 
         public Translation(string name, string baseLanguage)
         {
@@ -204,60 +204,77 @@ namespace AGS.Types
         {
             using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
             {
-                string encoding = _encodingHint ?? "ASCII";
-                sw.WriteLine("# AGS TRANSLATION SOURCE FILE");
-                sw.WriteLine("# This is a PO file generated according to the gettext specificatins.");
-                sw.WriteLine("# Special characters such as %%s symbolise things within the game,");
-                sw.WriteLine("# so should be left in an appropriate place in the message.");
-                sw.WriteLine("# ");
-                sw.WriteLine("# ** Translation settings are below");
-                sw.WriteLine("# ** Leave them as \"DEFAULT\" to use the game settings");
-                sw.WriteLine("# The normal font to use - DEFAULT or font number");
-                sw.WriteLine("# $NormalFont=" + _normalFont.NullableToString(TAG_DEFAULT));
-                sw.WriteLine("# The speech font to use - DEFAULT or font number");
-                sw.WriteLine("# $SpeechFont=" + _speechFont.NullableToString(TAG_DEFAULT));
-                sw.WriteLine("# Text direction - DEFAULT, LEFT or RIGHT");
-                sw.WriteLine("# $TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
-                sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
-                sw.WriteLine("# $Encoding=" + encoding);
-                sw.WriteLine("#  ");
-                sw.WriteLine("# Text language, use standard locale strings, like 'en', 'en_US', etc");
-                sw.WriteLine($"# $Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
-                sw.WriteLine("# Whether engine should translate Parser.Said strings automatically - ON or OFF");
-                sw.WriteLine($"# $AutoTranslateParserSaid={(_autoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
-                if (_fontOverrides.Count != 0)
-                {
-                    WriteFontOverrides(sw);
-                }
-                sw.WriteLine("# ** IT IS SUGGESTED TO USE A THIRD-PARTY TOOL TO EDIT THIS FILE");
-                // PO metadata
-                sw.WriteLine("msgid \"\"");
-                sw.WriteLine("msgstr \"\"");
-                sw.WriteLine("\"Last-Translator: \\n\"");
-                sw.WriteLine("\"Language-Team: \\n\"");
-                sw.WriteLine("\"Language: " + Encode(_name) + "\\n\"");
-                sw.WriteLine("\"X-Source-Language: " + Encode(_baseLanguage) + "\\n\"");
-                sw.WriteLine("\"MIME-Version: 1.0\\n\"");
-                sw.WriteLine("\"Content-Type: text/plain; charset=" + ( _encodingHint == "ASCII" ? "ISO-8859-1" : _encodingHint) + "\\n\"");
-                sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
-                sw.WriteLine("\"X-Generator: AGS " + Version.AGS_EDITOR_VERSION + "\\n\"");
-
-                foreach (string key in _translatedEntries.Keys)
-                {
-                    TranslationEntry entry = _translatedEntries[key];
-                    sw.WriteLine("");
-                    if (entry.SourceReference != null)
-                        sw.WriteLine($"#: {entry.SourceReference}");
-                    foreach (string metadata in entry.Metadata)
-                        sw.WriteLine(metadata);
-                    if (entry.Context != null)
-                        sw.WriteLine($"msgctxt \"{entry.Context}\"");
-                    sw.WriteLine($"msgid \"{entry.Key}\"");
-                    sw.WriteLine($"msgstr \"{entry.Value}\"");
-                }
-                sw.WriteLine("");
+                SaveDataImpl(sw);
             }
-            this.Modified = false;
+            Modified = false;
+        }
+
+        public void SaveData(StreamWriter sw)
+        {
+            SaveDataImpl(sw);
+            Modified = false;
+        }
+
+        /// <summary>
+        /// Writes translation source file into the provided stream.
+        /// </summary>
+        private void SaveDataImpl(StreamWriter sw)
+        {
+            string encoding = _encodingHint ?? "ASCII";
+            sw.WriteLine("# AGS TRANSLATION SOURCE FILE");
+            sw.WriteLine("# This is a PO file generated according to the gettext specifications.");
+            sw.WriteLine("# Special characters such as %%s symbolise things within the game,");
+            sw.WriteLine("# so should be left in an appropriate place in the message.");
+            sw.WriteLine("# ");
+            sw.WriteLine("# ** Translation settings are below");
+            sw.WriteLine("# ** Leave them as \"DEFAULT\" to use the game settings");
+            sw.WriteLine("# The normal font to use - DEFAULT or font number");
+            sw.WriteLine("# $NormalFont=" + _normalFont.NullableToString(TAG_DEFAULT));
+            sw.WriteLine("# The speech font to use - DEFAULT or font number");
+            sw.WriteLine("# $SpeechFont=" + _speechFont.NullableToString(TAG_DEFAULT));
+            sw.WriteLine("# Text direction - DEFAULT, LEFT or RIGHT");
+            sw.WriteLine("# $TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
+            sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
+            sw.WriteLine("# $Encoding=" + encoding);
+            sw.WriteLine("# Text language, use standard locale strings, like 'en', 'en_US', etc");
+            sw.WriteLine($"# $Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
+            sw.WriteLine("# Whether engine should translate Parser.Said strings automatically - ON or OFF");
+            sw.WriteLine($"# $AutoTranslateParserSaid={(_autoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
+            if (_fontOverrides.Count != 0)
+            {
+                WriteFontOverrides(sw);
+            }
+            sw.WriteLine("#  ");
+            sw.WriteLine("# ** IT IS SUGGESTED TO USE A THIRD-PARTY TOOL TO EDIT THIS FILE");
+            // PO metadata
+            sw.WriteLine("msgid \"\"");
+            sw.WriteLine("msgstr \"\"");
+            sw.WriteLine("\"Last-Translator: \\n\"");
+            sw.WriteLine("\"Language-Team: \\n\"");
+            sw.WriteLine("\"Language: " + Encode(_name) + "\\n\"");
+            sw.WriteLine("\"X-Source-Language: " + Encode(_baseLanguage) + "\\n\"");
+            sw.WriteLine("\"MIME-Version: 1.0\\n\"");
+            sw.WriteLine("\"Content-Type: text/plain; charset=" + ( _encodingHint == "ASCII" ? "ISO-8859-1" : _encodingHint) + "\\n\"");
+            sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
+            sw.WriteLine("\"X-Generator: AGS " + Version.AGS_EDITOR_VERSION + "\\n\"");
+
+            foreach (string key in _translatedEntries.Keys)
+            {
+                TranslationEntry entry = _translatedEntries[key];
+                sw.WriteLine("");
+                if (!string.IsNullOrEmpty(entry.SourceReference))
+                    sw.WriteLine($"#: {entry.SourceReference}");
+                foreach (string metadata in entry.Metadata)
+                    sw.WriteLine(metadata);
+                if (entry.Context != null)
+                    sw.WriteLine($"msgctxt \"{entry.Context}\"");
+                sw.WriteLine($"msgid \"{entry.Key}\"");
+                sw.WriteLine($"msgstr \"{entry.Value}\"");
+            }
+            // note: if there's not an empty line at the end, the last record won't be stored
+            // CHECKME: double check that this complies to PO format!
+            if (_translatedEntries.Count > 0)
+                sw.WriteLine("");
         }
 
         private enum ParseState
@@ -275,12 +292,11 @@ namespace AGS.Types
         /// </summary>
         public void LoadData()
         {
-            CompileMessages errors = new CompileMessages();
-            LoadDataImpl(errors);
+            TryLoadData();
         }
 
         /// <summary>
-        /// Loads translation data from the source file (TRS).
+        /// Loads translation data from the source file (PO).
         /// Suppresses exceptions and returns error messages.
         /// </summary>
         public CompileMessages TryLoadData()
@@ -288,7 +304,20 @@ namespace AGS.Types
             CompileMessages errors = new CompileMessages();
             try
             {
-                LoadDataImpl(errors);
+                bool result = false;
+                string old_encoding = _encodingHint;
+                using (StreamReader sr = new StreamReader(FileName, _encoding))
+                {
+                    result = LoadDataImpl(sr, errors);
+                }
+                if (!result && (string.Compare(old_encoding, _encodingHint) != 0))
+                {
+                    // try again with the new encoding
+                    using (StreamReader sr = new StreamReader(FileName, _encoding))
+                    {
+                        result = LoadDataImpl(sr, errors);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -298,37 +327,35 @@ namespace AGS.Types
             return errors;
         }
 
+        public CompileMessages TryLoadData(StreamReader sr)
+        {
+            CompileMessages errors = new CompileMessages();
+            try
+            {
+                if (!LoadDataImpl(sr, errors))
+                {
+                    return errors;
+                }
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError(string.Format("Failed to load translation: \n{1}", e.Message)));
+                _translatedEntries.Clear(); // clear on failure
+            }
+            return errors;
+        }
+
         // TODO: frankly I am not convinced that the TRS file reading/writing should be
         // in this Translation class. It might be more convenient to have them elsewhere,
         // in a translation file parser/serializer.
-        private void LoadDataImpl(CompileMessages errors)
+        private bool LoadDataImpl(StreamReader sr, CompileMessages errors)
         {
             _fontOverrides = new Dictionary<int, Font>();
             _translatedEntries = new Dictionary<string, TranslationEntry>();
             string old_encoding = _encodingHint;
 
-            if (!File.Exists(FileName))
-            {
-                return;
-            }
-
-            string fileEncodingHint;
-            if (LoadDataImpl(errors, out fileEncodingHint))
-                return;
-            // If a different encoding is required, then try again with a proper encoding
-            if (string.Compare(EncodingHint, fileEncodingHint) != 0)
-            {
-                EncodingHint = fileEncodingHint;
-                LoadDataImpl(errors, out fileEncodingHint);
-            }
-        }
-
-        private bool LoadDataImpl(CompileMessages errors, out string fileEncodingHint)
-        {
-            fileEncodingHint = EncodingHint;
             ParseState state = ParseState.NewEntry;
             TranslationEntry entry = new TranslationEntry();
-            using (StreamReader sr = new StreamReader(FileName, _encoding))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -341,8 +368,8 @@ namespace AGS.Types
                     {
                         if (line.StartsWith("# $"))
                         {
-                            ReadSpecialTags(line.Substring(3), ref fileEncodingHint);
-                            if (string.Compare(EncodingHint, fileEncodingHint) != 0)
+                            ReadSpecialTags(line.Substring(3));
+                            if (string.Compare(old_encoding, _encodingHint) != 0)
                             {
                                 // Source file requires different encoding
                                 return false;
@@ -424,6 +451,7 @@ namespace AGS.Types
                 } // while
 
                 // note: if there's not an empty line at the end, the last record won't be stored
+                // CHECKME: double check that this complies to PO format!
             }
             return true;
         }
@@ -516,7 +544,7 @@ namespace AGS.Types
             return builder.ToString();
         }
 
-        private void ReadSpecialTags(string line, ref string encodingHint)
+        private void ReadSpecialTags(string line)
         {
             var keyValue = Utilities.ParseKeyValue(line);
             var key = keyValue.Key;
@@ -553,6 +581,13 @@ namespace AGS.Types
             else if (key == LANGUAGE_TAG)
             {
                 TextLanguage = value;
+            }
+            else if (key == AUTO_PARSERSAID_TAG)
+            {
+                if (value == TAG_ON)
+                    _autoTranslateParserSaid = true;
+                else
+                    _autoTranslateParserSaid = false;
             }
             else if (key.StartsWith(FONT_OVERRIDE_TAG))
             {

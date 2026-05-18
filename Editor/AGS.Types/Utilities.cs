@@ -369,5 +369,20 @@ namespace AGS.Types
         {
             return Color.FromArgb(0xFF, color);
         }
+
+        public static KeyValuePair<string, string> ParseKeyValue(string line, char separator = '=')
+        {
+            int firstSep = line.IndexOf(separator);
+            if (firstSep >= 0)
+            {
+                return new KeyValuePair<string, string>(
+                    line.Substring(0, firstSep).Trim(),
+                    line.Substring(firstSep + 1).Trim());
+            }
+            else
+            {
+                return new KeyValuePair<string, string>(line.Trim(), string.Empty);
+            }
+        }
     }
 }

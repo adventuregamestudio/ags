@@ -343,25 +343,60 @@ namespace AGS.Editor.Components
                 translation.TranslatedLines.Add(line.Text, translatedLine);
                 translation.TranslationSections.Add(line.Text, currentSection);
 
+                TranslationEntryOptions entryOptions = null;
+                TranslationEntryOptions oldEntryOptions = null;
+                List<string> entryOptionKeys = null;
+                if (existingLine)
+                    oldOptions.TryGetValue(line.Text, out oldEntryOptions);
+
                 // For parser words, add respective annotation
                 if (line.ParserWordID >= 0)
                 {
-                    var entryOptions = new TranslationEntryOptions();
+                    entryOptions = new TranslationEntryOptions();
                     entryOptions.Metadata.Add($"PARSERWORD={line.ParserWordID}");
                     entryOptions.ParserWordID = line.ParserWordID;
-                    translation.TranslatedEntryOptions[line.Text] = entryOptions;
+                    entryOptionKeys = new List<string>();
+                    entryOptionKeys.Add("PARSERWORD");
 
                     if (!modified)
-                        modified = !oldOptions.ContainsKey(line.Text) || !oldOptions[line.Text].IsParserDictionary;
+                        modified = (oldEntryOptions == null) || !oldEntryOptions.IsParserDictionary;
                 }
 
+                // Handle matching existing lines
                 if (existingLine)
                 {
+                    // Copy any existing annotations over; but here are few extra rules:
+                    // * since the old line is matching new one, this line can no longer be $OBSOLETE.
+                    // * certain sensitive annotations like $PARSERWORD must be skipped, because
+                    //   they must not be present in entries that are no longer parserwords
+                    // * annotations with matching keys are skipped
+                    if (oldEntryOptions != null)
+                    {
+                        foreach (var annotation in oldEntryOptions.Metadata)
+                        {
+                            var keyValue = AGS.Types.Utilities.ParseKeyValue(annotation);
+                            if (keyValue.Key == "OBSOLETE" || keyValue.Key == "PARSERWORD")
+                                continue;
+                            if (entryOptionKeys != null && entryOptionKeys.Contains(keyValue.Key))
+                                continue;
+                            if (entryOptions == null)
+                                entryOptions = new TranslationEntryOptions();
+                            if (entryOptionKeys == null)
+                                entryOptionKeys = new List<string>();
+                            entryOptions.Metadata.Add(annotation);
+                            entryOptionKeys.Add(keyValue.Key);
+                        }
+                    }
+
+                    // Remove matching line, so that we can know which lines are not matched later
                     oldLines.Remove(line.Text);
                     // Also check if section has changed
                     if (!modified)
                         modified = !oldSections.ContainsKey(line.Text) || (oldSections[line.Text].Name != currentSection.Name);
                 }
+
+                if (entryOptions != null)
+                    translation.TranslatedEntryOptions[line.Text] = entryOptions;
 
                 translationModified |= modified;
             }
@@ -384,15 +419,15 @@ namespace AGS.Editor.Components
 
                     translation.TranslatedLines.Add(line.Key, line.Value);
                     translation.TranslationSections.Add(line.Key, currentSection);
-                    TranslationEntryOptions entryOptions = null;
-                    if (!oldOptions.TryGetValue(line.Key, out entryOptions))
-                        entryOptions = new TranslationEntryOptions();
-                    if (!entryOptions.IsObsolete)
+                    TranslationEntryOptions options = null;
+                    if (!oldOptions.TryGetValue(line.Key, out options))
+                        options = new TranslationEntryOptions();
+                    if (!options.IsObsolete)
                     {
-                        entryOptions.IsObsolete = true;
-                        entryOptions.Metadata.Add("OBSOLETE");
+                        options.IsObsolete = true;
+                        options.Metadata.Add("OBSOLETE");
                     }
-                    translation.TranslatedEntryOptions[line.Key] = entryOptions;
+                    translation.TranslatedEntryOptions[line.Key] = options;
                 }
             }
 

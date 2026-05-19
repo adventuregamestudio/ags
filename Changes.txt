@@ -75,16 +75,20 @@ Editor:
  - "Go to Definition" command in script editor now works for Room elements too.
    Also, "missing event function" warnings support double click to go to event pane for Rooms and
    Room elements as well.
- - Translation source is now divided on sections, using "//$SECTION" markers, where a section is
-   created for each script module, each room, and each category of global objects.
- - When updating a translation source, obsolete entries will now be removed, and if there's already
-   a translated line present, then marked with a "//$OBSOLETE" tag for user to notice them.
  - Translation compiler now supports "Language" setting, with the same meaning as the one in
    General Settings, but associated with the particular translation.
  - Translation compiler now supports "Font override" settings, that let configure custom font
    overrides for the given Translation file.
  - Translation compiler supports "AutoTranslateParserSaid" setting, that, if enabled, instructs
    engine to automatically translate sentence patterns in Parser.Said().
+ - Translation source is now divided on sections, using "//$SECTION" markers, where a section is
+   created for each script module, each room, and each category of global objects.
+ - Translation compiler supports "//$PARSERWORD" annotation for the lines with the list of the text
+   parser words group.
+ - Translation compiler supports arbitrary user annotations to lines, having a general syntax of
+   "//$ANNOTATION: VALUE", which will be kept intact during translation update.
+ - When updating a translation source, obsolete entries will now be removed, and if there's already
+   a translated line present, then marked with a "//$OBSOLETE" tag for user to notice them.
  - Fixed Editor treating custom properties names as case-sensitive when loading them from the
    project file, although they are considered case-insensitive everywhere else.
  - Fixed deleted custom property values were remaining in objects data, apparently forever

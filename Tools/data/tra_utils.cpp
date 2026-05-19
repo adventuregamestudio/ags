@@ -27,6 +27,7 @@ namespace DataUtil
 // TRA - original translation source a in text format
 //-----------------------------------------------------------------------------
 
+const char   OPTION_SEPARATOR = '=';
 const String NORMAL_FONT_TAG = "NormalFont";
 const String SPEECH_FONT_TAG = "SpeechFont";
 const String TEXT_DIRECTION_TAG = "TextDirection";
@@ -40,6 +41,7 @@ const String TAG_DIRECTION_LEFT = "LEFT";
 const String TAG_DIRECTION_RIGHT = "RIGHT";
 const String TAG_ON = "ON";
 const String TAG_OFF = "OFF";
+const char   ANNOTATE_SEPARATOR = ':';
 const String ANNOTATE_PARSERWORD = "PARSERWORD";
 
 static int ReadOptionalInt(const String &text)
@@ -79,7 +81,7 @@ static bool ParseFontOverride(const String &line, FontInfo &finfo)
         std::vector<std::pair<String, String>> options;
         for (const auto &sec : sections)
         {
-            options.push_back(StrUtil::GetKeyValue(sec));
+            options.push_back(StrUtil::GetKeyValue(sec, OPTION_SEPARATOR));
         }
         for (const auto &opt : options)
         {
@@ -170,7 +172,7 @@ static bool ParseFontOverride(const String &line, FontInfo &finfo)
 
 static void ReadSpecialTags(Translation &tra, const String &line)
 {
-    const auto key_value = StrUtil::GetKeyValue(line);
+    const auto key_value = StrUtil::GetKeyValue(line, OPTION_SEPARATOR);
     const String key = key_value.first;
     const String value = key_value.second;
     if (key == NORMAL_FONT_TAG)
@@ -243,7 +245,7 @@ TraItemOptions ParseItemOptions(const std::vector<String> &annotations)
     // Parse for known annotations
     for (const auto &annotation : annotations)
     {
-        const auto key_value = StrUtil::GetKeyValue(annotation);
+        const auto key_value = StrUtil::GetKeyValue(annotation, ANNOTATE_SEPARATOR);
         const String key = key_value.first;
         const String value = key_value.second;
 

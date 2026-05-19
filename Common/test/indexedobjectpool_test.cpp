@@ -177,6 +177,62 @@ TEST(IndexedObjectPool, InvalidIndexIsZero) {
     ASSERT_EQ(index7, 5);
 }
 
+TEST(IndexedObjectPool, InvalidIndexIsMax) {
+    IndexedObjectPool<int, int, std::numeric_limits<int>::max()> pool;
+
+    // Initial state
+    ASSERT_EQ(pool.GetCount(), 0u);
+    ASSERT_EQ(pool.size(), 0u);
+
+    // Adding new elements
+    const int index0 = pool.Add(10);
+    const int index1 = pool.Add(20);
+    const int index2 = pool.Add(30);
+    ASSERT_EQ(pool.GetCount(), 3u); // only used elements
+    ASSERT_EQ(pool.size(), 3u); // all elements
+    ASSERT_EQ(index0, 0);
+    ASSERT_EQ(index1, 1);
+    ASSERT_EQ(index2, 2);
+    ASSERT_EQ(pool.IsFree(0), false);
+    ASSERT_EQ(pool.IsFree(1), false);
+    ASSERT_EQ(pool.IsFree(2), false);
+    ASSERT_EQ(pool.IsInUse(0), true);
+    ASSERT_EQ(pool.IsInUse(1), true);
+    ASSERT_EQ(pool.IsInUse(2), true);
+    ASSERT_EQ(pool[0], 10);
+    ASSERT_EQ(pool[1], 20);
+    ASSERT_EQ(pool[2], 30);
+
+    pool.Free(index1);
+    ASSERT_EQ(pool.GetCount(), 2u);
+    ASSERT_EQ(pool.IsFree(1), true);
+    ASSERT_EQ(pool.IsInUse(1), false);
+
+
+    const int index3 = pool.Add(40);
+    const int index4 = pool.Add(50);
+    ASSERT_EQ(pool.GetCount(), 4u);
+    ASSERT_EQ(pool.IsFree(0), false);
+    ASSERT_EQ(pool.IsFree(1), false);
+    ASSERT_EQ(pool.IsFree(2), false);
+    ASSERT_EQ(pool.IsFree(3), false);
+    ASSERT_EQ(pool.IsInUse(0), true);
+    ASSERT_EQ(pool.IsInUse(1), true);
+    ASSERT_EQ(pool.IsInUse(2), true);
+    ASSERT_EQ(pool.IsInUse(3), true);
+
+    {
+        const auto &cpool = pool; // force const container, prevent STL assertions
+        ASSERT_EQ(cpool[1], 40);
+        ASSERT_EQ(cpool[3], 50);
+    }
+    
+    // Cleared state
+    pool.Clear();
+    ASSERT_EQ(pool.GetCount(), 0u);
+    ASSERT_EQ(pool.size(), 0u);
+}
+
 TEST(IndexedObjectPool, FixedSlots) {
     IndexedObjectPool<int, int, -1> pool(5);
 

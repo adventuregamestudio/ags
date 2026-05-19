@@ -36,6 +36,7 @@
 
 #include <limits>
 #include <stack>
+#include <stdexcept>
 #include <vector>
 
 //
@@ -422,4 +423,4 @@ private:
     std::vector<TElem> _elems;
 };
 
-#endif // __AGS_CN_UTIL__OBJECTPOOL_H
+#endif // __AGS_CN_UTIL__INDEXEDOBJECTPOOL_H

@@ -115,7 +115,7 @@ namespace AGS.Editor
 
             var expectedResult = GeneratedTranslationHeader +
 @"//-----------------------------------------------------------------------------
-//$SECTION = 
+//$SECTION:
 //-----------------------------------------------------------------------------
 first line
 première réplique
@@ -164,19 +164,19 @@ bonsoir
 
             var expectedResult = GeneratedTranslationHeader +
 @"//-----------------------------------------------------------------------------
-//$SECTION = Simple Section
+//$SECTION: Simple Section
 //-----------------------------------------------------------------------------
 first line
 première réplique
 second line
 deuxième réplique
 //-----------------------------------------------------------------------------
-//$SECTION = No Translate
+//$SECTION: No Translate
 //-----------------------------------------------------------------------------
 Don't translate this
 
 //-----------------------------------------------------------------------------
-//$SECTION = Good day; A comment
+//$SECTION: Good day; A comment
 //-----------------------------------------------------------------------------
 Good morning
 bonjour
@@ -208,9 +208,13 @@ bonsoir
             translation.TranslatedLines.Add("Don't translate this", "");
             translation.TranslatedLines.Add("Good morning", "bonjour");
             translation.TranslatedLines.Add("Good evening", "bonsoir");
+            translation.TranslatedLines.Add(",apple,fruit", "");
+            translation.TranslatedLines.Add(",take,pick,pick up", "");
 
-            translation.TranslatedEntryOptions.Add("first line", CreateEntryOptions(new string[] { "OBSOLETE", "USER COMMENTARY" }));
+            translation.TranslatedEntryOptions.Add("first line", CreateEntryOptions(new string[] { "OBSOLETE", "COMMENT: type anything" }));
             translation.TranslatedEntryOptions.Add("Don't translate this", CreateEntryOptions(new string[] { "DON'T TRANSLATE ME" }));
+            translation.TranslatedEntryOptions.Add(",apple,fruit", CreateEntryOptions(new string[] { "PARSERWORD:1" }));
+            translation.TranslatedEntryOptions.Add(",take,pick,pick up", CreateEntryOptions(new string[] { "PARSERWORD:2" }));
 
             MemoryStream ms = new MemoryStream();
             using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
@@ -220,10 +224,10 @@ bonsoir
 
             var expectedResult = GeneratedTranslationHeader +
 @"//-----------------------------------------------------------------------------
-//$SECTION = 
+//$SECTION:
 //-----------------------------------------------------------------------------
 //$OBSOLETE
-//$USER COMMENTARY
+//$COMMENT: type anything
 first line
 première réplique
 second line
@@ -235,6 +239,12 @@ Good morning
 bonjour
 Good evening
 bonsoir
+//$PARSERWORD:1
+,apple,fruit
+
+//$PARSERWORD:2
+,take,pick,pick up
+
 ";
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
@@ -392,9 +402,13 @@ bonsoir
             translation.TranslatedLines.Add("Don't translate this", "");
             translation.TranslatedLines.Add("Good morning", "bonjour");
             translation.TranslatedLines.Add("Good evening", "bonsoir");
+            translation.TranslatedLines.Add(",apple,fruit", "");
+            translation.TranslatedLines.Add(",take,pick,pick up", "");
 
-            translation.TranslatedEntryOptions.Add("first line", CreateEntryOptions(new string[] { "OBSOLETE", "USER COMMENTARY" }));
+            translation.TranslatedEntryOptions.Add("first line", CreateEntryOptions(new string[] { "OBSOLETE", "COMMENT: type anything" }));
             translation.TranslatedEntryOptions.Add("Don't translate this", CreateEntryOptions(new string[] { "DON'T TRANSLATE ME" }));
+            translation.TranslatedEntryOptions.Add(",apple,fruit", CreateEntryOptions(new string[] { "PARSERWORD:1" }));
+            translation.TranslatedEntryOptions.Add(",take,pick,pick up", CreateEntryOptions(new string[] { "PARSERWORD:2" }));
 
             MemoryStream ms = new MemoryStream();
             using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
@@ -426,7 +440,7 @@ bonsoir
             Assert.AreEqual(8, translation.SpeechFont);
             Assert.AreEqual("fr_FR", translation.TextLanguage);
 
-            Assert.AreEqual(5, translation.TranslatedLines.Count);
+            Assert.AreEqual(7, translation.TranslatedLines.Count);
             Assert.IsTrue(translation.TranslatedLines.ContainsKey("first line"));
             Assert.AreEqual("première réplique", translation.TranslatedLines["first line"]);
             Assert.IsTrue(translation.TranslatedLines.ContainsKey("second line"));
@@ -437,18 +451,34 @@ bonsoir
             Assert.AreEqual("bonjour", translation.TranslatedLines["Good morning"]);
             Assert.IsTrue(translation.TranslatedLines.ContainsKey("Good evening"));
             Assert.AreEqual("bonsoir", translation.TranslatedLines["Good evening"]);
+            Assert.IsTrue(translation.TranslatedLines.ContainsKey(",apple,fruit"));
+            Assert.AreEqual("", translation.TranslatedLines[",apple,fruit"]);
+            Assert.IsTrue(translation.TranslatedLines.ContainsKey(",take,pick,pick up"));
+            Assert.AreEqual("", translation.TranslatedLines[",take,pick,pick up"]);
 
-            Assert.AreEqual(2, translation.TranslatedEntryOptions.Count);
+            Assert.AreEqual(4, translation.TranslatedEntryOptions.Count);
             Assert.IsTrue(translation.TranslatedEntryOptions.ContainsKey("first line"));
             var options = translation.TranslatedEntryOptions["first line"];
             Assert.AreEqual(2, options.Metadata.Count);
             Assert.AreEqual("OBSOLETE", options.Metadata[0]);
-            Assert.AreEqual("USER COMMENTARY", options.Metadata[1]);
+            Assert.AreEqual("COMMENT: type anything", options.Metadata[1]);
             Assert.AreEqual(true, options.IsObsolete);
             Assert.IsTrue(translation.TranslatedEntryOptions.ContainsKey("Don't translate this"));
             options = translation.TranslatedEntryOptions["Don't translate this"];
             Assert.AreEqual(1, options.Metadata.Count);
             Assert.AreEqual("DON'T TRANSLATE ME", options.Metadata[0]);
+            Assert.IsTrue(translation.TranslatedEntryOptions.ContainsKey(",apple,fruit"));
+            options = translation.TranslatedEntryOptions[",apple,fruit"];
+            Assert.AreEqual(1, options.Metadata.Count);
+            Assert.AreEqual("PARSERWORD:1", options.Metadata[0]);
+            Assert.IsTrue(options.IsParserDictionary);
+            Assert.AreEqual(1, options.ParserWordID);
+            Assert.IsTrue(translation.TranslatedEntryOptions.ContainsKey(",take,pick,pick up"));
+            options = translation.TranslatedEntryOptions[",take,pick,pick up"];
+            Assert.AreEqual(1, options.Metadata.Count);
+            Assert.AreEqual("PARSERWORD:2", options.Metadata[0]);
+            Assert.IsTrue(options.IsParserDictionary);
+            Assert.AreEqual(2, options.ParserWordID);
         }
 
         [Test]
@@ -501,7 +531,7 @@ bonsoir
 
             var expectedResult = GeneratedTranslationHeader +
 @"//-----------------------------------------------------------------------------
-//$SECTION = 
+//$SECTION:
 //-----------------------------------------------------------------------------
 first line
 première réplique
@@ -584,7 +614,7 @@ deuxième réplique
 
             var expectedResult = GeneratedTranslationHeader +
 @"//-----------------------------------------------------------------------------
-//$SECTION = Simple Section; New comment
+//$SECTION: Simple Section; New comment
 //-----------------------------------------------------------------------------
 first line
 première réplique
@@ -596,7 +626,7 @@ This is another new line
 second line
 deuxième réplique
 //-----------------------------------------------------------------------------
-//$SECTION = Good day; A comment
+//$SECTION: Good day; A comment
 //-----------------------------------------------------------------------------
 Good morning
 bonjour
@@ -605,7 +635,7 @@ bonsoir
 Good night
 
 //-----------------------------------------------------------------------------
-//$SECTION = New section
+//$SECTION: New section
 //-----------------------------------------------------------------------------
 This line is in a completely new section
 
@@ -628,9 +658,13 @@ This line is in a completely new section
             translation.TranslatedLines.Add("Don't translate this", "");
             translation.TranslatedLines.Add("Good morning", "bonjour");
             translation.TranslatedLines.Add("Good evening", "bonsoir");
+            translation.TranslatedLines.Add(",apple,fruit", "");
+            translation.TranslatedLines.Add(",take,pick,pick up", "");
 
-            translation.TranslatedEntryOptions.Add("first line", CreateEntryOptions(new string[] { "OBSOLETE", "USER COMMENTARY" }));
+            translation.TranslatedEntryOptions.Add("first line", CreateEntryOptions(new string[] { "OBSOLETE", "COMMENT: type anything" }));
             translation.TranslatedEntryOptions.Add("Don't translate this", CreateEntryOptions(new string[] { "DON'T TRANSLATE ME" }));
+            translation.TranslatedEntryOptions.Add(",apple,fruit", CreateEntryOptions(new string[] { "PARSERWORD:1" }));
+            translation.TranslatedEntryOptions.Add(",take,pick,pick up", CreateEntryOptions(new string[] { "PARSERWORD:2" }));
 
             MemoryStream ms = new MemoryStream();
             using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
@@ -660,6 +694,8 @@ This line is in a completely new section
                 new GameTextLine("Good evening"),
                 new GameTextLine("This is a new line"),
                 new GameTextLine("This is another new line"),
+                GameTextLine.MakeParserWord(1, ",apple,fruit", ""),
+                GameTextLine.MakeParserWord(2, ",take,pick,pick up", ""),
             };
             errors = TranslationsComponent.UpdateTranslation(translation, gameTexts);
 
@@ -671,9 +707,9 @@ This line is in a completely new section
 
             var expectedResult = GeneratedTranslationHeader +
 @"//-----------------------------------------------------------------------------
-//$SECTION = 
+//$SECTION:
 //-----------------------------------------------------------------------------
-//$USER COMMENTARY
+//$COMMENT: type anything
 first line
 première réplique
 Good morning
@@ -683,6 +719,12 @@ bonsoir
 This is a new line
 
 This is another new line
+
+//$PARSERWORD:1
+,apple,fruit
+
+//$PARSERWORD:2
+,take,pick,pick up
 
 //$OBSOLETE
 second line

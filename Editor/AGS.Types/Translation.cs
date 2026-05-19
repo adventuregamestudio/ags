@@ -13,21 +13,23 @@ namespace AGS.Types
         public const string TRANSLATION_SOURCE_FILE_EXTENSION = ".trs";
         public const string TRANSLATION_COMPILED_FILE_EXTENSION = ".tra";
 
-        private const string NORMAL_FONT_TAG = "NormalFont";
-        private const string SPEECH_FONT_TAG = "SpeechFont";
-        private const string TEXT_DIRECTION_TAG = "TextDirection";
-        private const string AUTO_PARSERSAID_TAG = "AutoTranslateParserSaid";
-        private const string ENCODING_TAG = "Encoding";
-        private const string LANGUAGE_TAG = "Language";
-        private const string FONT_OVERRIDE_TAG = "Font";
-        private const string TAG_DEFAULT = "DEFAULT";
-        private const string TAG_DIRECTION_LEFT = "LEFT";
-        private const string TAG_DIRECTION_RIGHT = "RIGHT";
-        private const string TAG_ON = "ON";
-        private const string TAG_OFF = "OFF";
-        private const string ANNOTATE_SECTION = "SECTION";
-        private const string ANNOTATE_OBSOLETE = "OBSOLETE";
-        private const string ANNOTATE_PARSERWORD = "PARSERWORD";
+        public const char   OPTION_SEPARATOR = '=';
+        public const string NORMAL_FONT_TAG = "NormalFont";
+        public const string SPEECH_FONT_TAG = "SpeechFont";
+        public const string TEXT_DIRECTION_TAG = "TextDirection";
+        public const string AUTO_PARSERSAID_TAG = "AutoTranslateParserSaid";
+        public const string ENCODING_TAG = "Encoding";
+        public const string LANGUAGE_TAG = "Language";
+        public const string FONT_OVERRIDE_TAG = "Font";
+        public const string TAG_DEFAULT = "DEFAULT";
+        public const string TAG_DIRECTION_LEFT = "LEFT";
+        public const string TAG_DIRECTION_RIGHT = "RIGHT";
+        public const string TAG_ON = "ON";
+        public const string TAG_OFF = "OFF";
+        public const char   ANNOTATE_SEPARATOR = ':';
+        public const string ANNOTATE_SECTION = "SECTION";
+        public const string ANNOTATE_OBSOLETE = "OBSOLETE";
+        public const string ANNOTATE_PARSERWORD = "PARSERWORD";
 
         private string _name;
         private string _fileName;
@@ -290,10 +292,12 @@ namespace AGS.Types
                     continue;
 
                 sw.WriteLine("//-----------------------------------------------------------------------------");
-                if (string.IsNullOrWhiteSpace(section.Comment))
-                    sw.WriteLine($"//$SECTION = {section.Name}");
+                if (string.IsNullOrWhiteSpace(section.Name))
+                    sw.WriteLine($"//$SECTION:");
+                else if (string.IsNullOrWhiteSpace(section.Comment))
+                    sw.WriteLine($"//$SECTION: {section.Name}");
                 else
-                    sw.WriteLine($"//$SECTION = {section.Name}; {section.Comment}");
+                    sw.WriteLine($"//$SECTION: {section.Name}; {section.Comment}");
                 sw.WriteLine("//-----------------------------------------------------------------------------");
                 foreach (string key in lines)
                 {
@@ -400,7 +404,7 @@ namespace AGS.Types
                         else if (line.Length > 2 && line[2] == '$')
                         {
                             string annotation = line.Substring(3);
-                            var keyValue = Utilities.ParseKeyValue(annotation);
+                            var keyValue = Utilities.ParseKeyValue(annotation, ANNOTATE_SEPARATOR);
                             if (keyValue.Key == ANNOTATE_SECTION)
                             {
                                 int splitAt = keyValue.Value.IndexOf(';');
@@ -446,7 +450,7 @@ namespace AGS.Types
 
         private void ReadSpecialTags(string line)
         {
-            var keyValue = Utilities.ParseKeyValue(line);
+            var keyValue = Utilities.ParseKeyValue(line, OPTION_SEPARATOR);
             var key = keyValue.Key;
             var value = keyValue.Value;
 
@@ -610,7 +614,7 @@ namespace AGS.Types
                 font.ID = -1; // mark it as not one of the game's font
                 var options = value.Split(';').Select(s =>
                     {
-                        return Utilities.ParseKeyValue(s);
+                        return Utilities.ParseKeyValue(s, OPTION_SEPARATOR);
                     }).ToArray();
                 foreach (var option in options)
                 {
@@ -705,7 +709,7 @@ namespace AGS.Types
             // Parse for known annotations
             foreach (var annotation in annotations)
             {
-                var keyValue = Utilities.ParseKeyValue(annotation);
+                var keyValue = Utilities.ParseKeyValue(annotation, ANNOTATE_SEPARATOR);
                 var key = keyValue.Key;
                 var value = keyValue.Value;
 

@@ -353,7 +353,7 @@ namespace AGS.Editor.Components
                 if (line.ParserWordID >= 0)
                 {
                     entryOptions = new TranslationEntryOptions();
-                    entryOptions.Metadata.Add($"PARSERWORD={line.ParserWordID}");
+                    entryOptions.Metadata.Add($"PARSERWORD:{line.ParserWordID}");
                     entryOptions.ParserWordID = line.ParserWordID;
                     entryOptionKeys = new List<string>();
                     entryOptionKeys.Add("PARSERWORD");
@@ -374,7 +374,7 @@ namespace AGS.Editor.Components
                     {
                         foreach (var annotation in oldEntryOptions.Metadata)
                         {
-                            var keyValue = AGS.Types.Utilities.ParseKeyValue(annotation);
+                            var keyValue = AGS.Types.Utilities.ParseKeyValue(annotation, Translation.ANNOTATE_SEPARATOR);
                             if (keyValue.Key == "OBSOLETE" || keyValue.Key == "PARSERWORD")
                                 continue;
                             if (entryOptionKeys != null && entryOptionKeys.Contains(keyValue.Key))

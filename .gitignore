@@ -100,6 +100,8 @@ Engine/ags
 **/Debug_XP
 **/Release
 **/Release_XP
+**/Debug_ASAN/
+**/Debug_ASAN/
 **/.build
 **/.lib
 **/.test

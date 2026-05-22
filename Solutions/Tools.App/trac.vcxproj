@@ -34,6 +34,7 @@
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
     <ClCompile Include="..\..\Tools\data\tra_utils.cpp" />
     <ClCompile Include="..\..\Tools\trac\main.cpp" />
   </ItemGroup>
@@ -42,6 +43,7 @@
     <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\data\tra_file.h" />
     <ClInclude Include="..\..\Common\util\textstreamreader.h" />
+    <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
     <ClInclude Include="..\..\Tools\data\tra_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

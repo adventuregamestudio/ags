@@ -139,7 +139,7 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     case kTraFblk_TextOpts:
         tra.NormalFont = in->ReadInt32();
         tra.SpeechFont = in->ReadInt32();
-        tra.RightToLeft = in->ReadInt32();
+        tra.RightToLeft = static_cast<TextDirectionMode>(in->ReadInt32());
         // 3.6.3.10 expansion
         if (block_len > (3 * sizeof(int32_t)))
         {
@@ -157,6 +157,9 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     if (ext_id.CompareNoCase("ext_sopts") == 0)
     {
         StrUtil::ReadStringMap(tra.StrOptions, in);
+        tra.GameEncodingHint = tra.StrOptions["gameencoding"];
+        tra.EncodingHint = tra.StrOptions["encoding"];
+        tra.LanguageHint = tra.StrOptions["language"];
         return HError::None();
     }
     else if (ext_id.CompareNoCase("ext_fonts") == 0)

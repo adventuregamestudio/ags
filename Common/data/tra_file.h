@@ -56,6 +56,13 @@ String GetTraBlockName(TraFileBlock id);
 
 typedef TypedCodeError<TraFileErrorType, GetTraFileErrorText> TraFileError;
 
+enum TextDirectionMode
+{
+    kTextDirection_Default = -1,
+    kTextDirection_LTR = 1,
+    kTextDirection_RTL = 2
+};
+
 // Miscellaneous translation flags
 enum TraOptionFlags
 {
@@ -73,9 +80,12 @@ struct Translation
     // Optional text parser's words dictionary (translation for text parser)
     WordsDictionary ParserDict;
     // Localization parameters
+    String EncodingHint;
+    String GameEncodingHint;
+    String LanguageHint;
     int NormalFont = -1; // replacement for normal font, or -1 for default
     int SpeechFont = -1; // replacement for speech font, or -1 for default
-    int RightToLeft = -1; // r2l text mode (1, 2), or -1 for default
+    TextDirectionMode RightToLeft = kTextDirection_Default; // r2l text mode
     int OptFlags = 0; // misc translation options
     StringMap StrOptions; // to store extended options with string values
     std::unordered_map<int, FontInfo> FontOverrides;

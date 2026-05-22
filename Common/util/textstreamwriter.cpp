@@ -64,6 +64,16 @@ void TextStreamWriter::WriteFormat(const char *fmt, ...)
     _stream->Write(_buf.GetCStr(), _buf.GetLength());
 }
 
+void TextStreamWriter::WriteLineFormat(const char *fmt, ...)
+{
+    va_list argptr;
+    va_start(argptr, fmt);
+    _buf.FormatV(fmt, argptr);
+    va_end(argptr);
+    _stream->Write(_buf.GetCStr(), _buf.GetLength());
+    _stream->Write(Endl, sizeof(Endl));
+}
+
 void TextStreamWriter::WriteLineBreak()
 {
     _stream->Write(Endl, sizeof(Endl));

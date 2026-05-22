@@ -729,6 +729,11 @@ PixelBuffer LoadBMP(Stream *in, PixelFormat *src_fmt, RGB *pal) {
     if (hdr.compression == kBI_RGB_None) {
         switch (hdr.bpp)
         {
+        case 1:
+        case 2:
+        case 4:
+        case 8:
+            break; // indexed image, masks not required
         case 15:
             hdr.rMask = 0x7C00;
             hdr.gMask = 0x03E0;

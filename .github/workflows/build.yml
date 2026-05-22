@@ -865,3 +865,126 @@ jobs:
           name: ags-archive
           path: AGS-*.zip
 
+  make-release:
+    name: Release Packaging
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - build-emscripten-bundle
+      - build-android-bundle
+      - build-linux-bundle
+      - windows-packaging
+      - package-pdbs
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install dependencies
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - name: Read version string
+        id: version
+        run: |
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Create source archives
+        run: |
+          version=${{ steps.version.outputs.version }}
+          mkdir -p /tmp/github_release
+          for ext in tar.bz2 tar.gz tar.xz zip; do
+            echo "Writing ${ext} archive..."
+            bsdtar -f "/tmp/github_release/ags_${version}_source.${ext}" \
+              -acs "!\./\(.*\)!ags_${version}_source/\1!" \
+              --exclude ".git*" \
+              --exclude ".github" \
+              --exclude ".cirrus.yml" \
+              .
+          done
+
+      - name: Download installer
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-installer
+          path: /tmp/github_release
+
+      - name: Download release archive
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-archive
+          path: /tmp/github_release
+
+      - name: Download WinDevDependenciesVS
+        uses: actions/download-artifact@v8
+        with:
+          name: WinDevDependenciesVS.zip
+          skip-decompress: true
+          path: /tmp/github_release
+
+      - name: Download Linux bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-linux
+          path: /tmp/github_release
+
+      - name: Download Emscripten bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-emscripten
+          path: /tmp/github_release
+
+      - name: Download PDB archive
+        uses: actions/download-artifact@v8
+        with:
+          name: pdb-archive
+          path: /tmp/github_release
+
+      - name: Download Linux .deb packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: linux-deb-{amd64,i386}
+          path: /tmp/github_release
+          merge-multiple: true
+
+      - name: Download Android APKs
+        uses: actions/download-artifact@v8
+        with:
+          name: android-apks
+          path: /tmp/github_release
+
+      - name: Download Android project bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: ags-bundle-android
+          path: /tmp/github_release
+
+      - name: Generate SHA-256 checksums
+        run: |
+          cd /tmp/github_release
+          sha256sum * | tee checksums.sha256
+
+      - run: |
+          ls -la /tmp/github_release/*
+
+      - name: Create Release and Upload assets
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+
+          if gh release view "${tag}" > /dev/null 2>&1; then
+            echo "Release ${tag} already exists, skipping creation."
+          else
+            gh release create "${tag}" \
+              --title "${tag}"
+          fi
+
+          for fpath in /tmp/github_release/*; do
+            echo "Uploading ${fpath}"
+            gh release upload "${tag}" "${fpath}"
+          done

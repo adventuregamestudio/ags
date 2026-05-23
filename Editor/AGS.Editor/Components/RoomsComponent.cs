@@ -893,9 +893,9 @@ namespace AGS.Editor.Components
             // and scanning is rather a extra aid.
             if (!room.Script.AutoCompleteData.Populated)
                 AutoComplete.ConstructCache(room.Script, null);
-            ScanAndReportMissingInteractionHandlers(room, par.Errors);
+            ScanAndReportMissingEventHandlers(room, par.Errors);
 
-            return null;            
+            return null;
         }
 
         private IScriptEditor GetScriptEditor(string fileName, bool showEditor)
@@ -2281,131 +2281,28 @@ namespace AGS.Editor.Components
             return editor.TrySelectObjectByName(name);
         }
 
-        /// <summary>
-        /// Helper class for use when scanning for event handlers.
-        /// Have to use this wrapper class because AGS.Types objects do not have a usable parent type!
-        /// </summary>
-        private class RoomObjectWithEvents
+        private void ScanAndReportMissingEventHandlers(Room room, CompileMessages errors)
         {
-            public Room Room;
-            // TODO: add parent class to room objects (and maybe game objects in general)
-            // with overridden properties like "ScriptName", "ID" and "DisplayName",
-            // this will allow to get these basic values without casting to explicit types.
-            public RoomObject Object;
-            public RoomHotspot Hotspot;
-            public RoomRegion Region;
+            _agsEditor.Tasks.ScanAndReportMissingEventHandlers(room, "Room", "Room", null, -1, room.Number,
+                room.ScriptFileName, true, room.Script.AutoCompleteData, true, errors);
 
-            public RoomObjectWithEvents(Room room) { Room = room; }
-            public RoomObjectWithEvents(RoomObject roomObject) { Object = roomObject; }
-            public RoomObjectWithEvents(RoomHotspot roomObject) { Hotspot = roomObject; }
-            public RoomObjectWithEvents(RoomRegion roomObject) { Region = roomObject; }
-        }
-
-        // Have to use this wrapper class because AGS.Types objects do not have a usable parent type!
-        private class RoomEventsReference
-        {
-            public RoomObjectWithEvents RoomObject;
-            public string TypeName;
-            public int ID;
-            public string ObjName;
-            public Dictionary<string, GameObjectEvent> Events;
-
-            public RoomEventsReference(RoomObjectWithEvents obj)
+            foreach (var obj in room.Objects)
             {
-                RoomObject = obj;
-
-                if (RoomObject.Room != null)
-                {
-                    TypeName = "Room";
-                    ObjName = "Room";
-                    Events = GameObjectEvents.GetEvents(RoomObject.Room);
-                }
-                else if (RoomObject.Object != null)
-                {
-                    TypeName = "Object";
-                    ID = RoomObject.Object.ID;
-                    ObjName = string.IsNullOrEmpty(RoomObject.Object.Name) ?
-                        $"Object{RoomObject.Object.ID}" : RoomObject.Object.Name;
-                    Events = GameObjectEvents.GetEvents(RoomObject.Object);
-                }
-                else if (RoomObject.Hotspot != null)
-                {
-                    TypeName = "Hotspot";
-                    ID = RoomObject.Hotspot.ID;
-                    ObjName = string.IsNullOrEmpty(RoomObject.Hotspot.Name) ?
-                        $"Hotspot{RoomObject.Hotspot.ID}" : RoomObject.Hotspot.Name;
-                    Events = GameObjectEvents.GetEvents(RoomObject.Hotspot);
-                }
-                else if (RoomObject.Region != null)
-                {
-                    TypeName = "Region";
-                    ID = RoomObject.Region.ID;
-                    ObjName = $"Region{RoomObject.Region.ID}";
-                    Events = GameObjectEvents.GetEvents(RoomObject.Region);
-                }
+                _agsEditor.Tasks.ScanAndReportMissingEventHandlers(obj, "Object", "Object",
+                    string.IsNullOrEmpty(obj.Name) ? $"Object{obj.ID}" : obj.Name, obj.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
             }
-        }
 
-        private void ScanAndReportMissingInteractionHandlers(Room room, CompileMessages errors)
-        {
-            // Gather function names from the Room and all of their contents,
-            // in order to check missing functions in a single batch.
-            List<RoomEventsReference> objectsWithEvents = new List<RoomEventsReference>();
-            objectsWithEvents.Add(new RoomEventsReference(new RoomObjectWithEvents(room)));
-            objectsWithEvents.AddRange(
-                room.Objects.Select((obj) =>
-                    new RoomEventsReference(new RoomObjectWithEvents(obj))));
-            objectsWithEvents.AddRange(
-                room.Hotspots.Select((obj) =>
-                    new RoomEventsReference(new RoomObjectWithEvents(obj))));
-            objectsWithEvents.AddRange(
-                room.Regions.Select((obj) =>
-                    new RoomEventsReference(new RoomObjectWithEvents(obj))));
-
-            foreach (var objRef in objectsWithEvents)
+            foreach (var hot in room.Hotspots)
             {
-                // Search for the function locations in script
-                var scriptFunctions = GameObjectEvents.GetScriptFunctions(objRef);
-                var funcs = _agsEditor.Tasks.FindEventHandlersForObject(objRef.ObjName, scriptFunctions, true,
-                    room.Script.FileName, room.Script.AutoCompleteData);
-                if (funcs == null || funcs.Count == 0)
-                    continue;
+                _agsEditor.Tasks.ScanAndReportMissingEventHandlers(hot, "Hotspot", "Hotspot",
+                    string.IsNullOrEmpty(hot.Name) ? $"Hotspot{hot.ID}" : hot.Name, hot.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
 
-                RoomObjectWithEvents roomObject = objRef.RoomObject;
-                var events = objRef.Events;
-                foreach (var evt in events)
-                {
-                    bool has_interaction = scriptFunctions.ContainsKey(evt.Key) && !string.IsNullOrEmpty(scriptFunctions[evt.Key]);
-                    bool has_function = funcs.ContainsKey(evt.Key);
-                    // If we have an assigned interaction function, but the function is not found - report a missing warning
-                    if (has_interaction && !has_function)
-                    {
-                        if (roomObject.Room != null)
-                        {
-                            errors.Add(new CompileWarningWithGameObject($"Room {room.Number}'s event {evt.Key} function \"{scriptFunctions[evt.Key]}\" not found in script {room.ScriptFileName}.",
-                                room.Number, objRef.TypeName, objRef.ObjName, true));
-                        }
-                        else
-                        {
-                            errors.Add(new CompileWarningWithGameObject($"Room {room.Number}: {objRef.TypeName} ({objRef.ID}) {objRef.ObjName}'s event {evt.Key} function \"{scriptFunctions[evt.Key]}\" not found in script {room.ScriptFileName}.",
-                                room.Number, objRef.TypeName, objRef.ObjName, true));
-                        }
-                    }
-                    // If we don't have an assignment, but has a similar function - report a possible unlinked function
-                    else if (!has_interaction && has_function)
-                    {
-                        if (roomObject.Room != null)
-                        {
-                            errors.Add(new CompileWarningWithFunction($"Function \"{funcs[evt.Key].Name}\" looks like an event handler, but is not linked on Room {room.Number}'s Event pane",
-                                funcs[evt.Key].ScriptName, funcs[evt.Key].Name, funcs[evt.Key].LineNumber));
-                        }
-                        else
-                        {
-                            errors.Add(new CompileWarningWithFunction($"Function \"{funcs[evt.Key].Name}\" looks like an event handler, but is not linked on {objRef.TypeName} ({objRef.ID}) {objRef.ObjName}'s Event pane",
-                                funcs[evt.Key].ScriptName, funcs[evt.Key].Name, funcs[evt.Key].LineNumber));
-                        }
-                    }
-                }
+            }
+
+            foreach (var reg in room.Regions)
+            {
+                _agsEditor.Tasks.ScanAndReportMissingEventHandlers(reg, "Region", "Region",
+                    $"Region{reg.ID}", reg.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
             }
         }
 

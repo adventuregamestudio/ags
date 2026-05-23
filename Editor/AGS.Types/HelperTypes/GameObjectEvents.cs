@@ -9,13 +9,16 @@ namespace AGS.Types
     public class GameObjectEvent
     {
         public string _name;
+        public string _suffix;
 
-        public GameObjectEvent(string name)
+        public GameObjectEvent(string name, string suffix)
         {
             _name = name;
+            _suffix = suffix;
         }
 
         public string Name { get { return _name; } }
+        public string Suffix { get { return _suffix; } }
     }
 
     /// <summary>
@@ -44,8 +47,17 @@ namespace AGS.Types
             Dictionary<string, GameObjectEvent> events = new Dictionary<string, GameObjectEvent>();
             PropertyDescriptorCollection eventProps =
                 TypeDescriptor.GetProperties(objType, new Attribute[] { new AGSEventPropertyAttribute() });
+            ScriptFunctionAttribute scriptFunctionAttr = new ScriptFunctionAttribute();
             foreach (PropertyDescriptor p in eventProps)
-                events.Add(p.Name, new GameObjectEvent(p.Name));
+            {
+                string suffix = string.Empty;
+                var scriptFunctionAttrib = p.Attributes[typeof(ScriptFunctionAttribute)];
+                if (scriptFunctionAttrib != null)
+                {
+                    suffix = (scriptFunctionAttrib as ScriptFunctionAttribute).Suffix;
+                }
+                events.Add(p.Name, new GameObjectEvent(p.Name, suffix));
+            }
             GetInteractionProperties(objType, events);
             return events;
         }
@@ -77,7 +89,7 @@ namespace AGS.Types
                 var interEvents = schema.Events;
                 foreach (var evt in interEvents)
                 {
-                    events.Add(evt.EventName, new GameObjectEvent(evt.EventName));
+                    events.Add(evt.EventName, new GameObjectEvent(evt.EventName, evt.FunctionSuffix));
                 }
             }
         }

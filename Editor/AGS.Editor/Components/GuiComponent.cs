@@ -426,34 +426,6 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.GUIFlatList;
         }
 
-        /// <summary>
-        /// Helper class for use when scanning for event handlers.
-        /// Have to use this wrapper class because AGS.Types objects do not have a usable parent type!
-        /// </summary>
-        private class GUIObjectWithEvents
-        {
-            public NormalGUI GUI;
-            public GUIControl Control;
-
-            public GUIObjectWithEvents(NormalGUI gui) { GUI = gui; Control = null; }
-            public GUIObjectWithEvents(GUIControl control) { GUI = null; Control = control; }
-        }
-
-        // Have to use this wrapper class because AGS.Types objects do not have a usable parent type!
-        private class GUIEventReference
-        {
-            public GUIObjectWithEvents GUIObject;
-            public string ObjName;
-            public Tuple<string, string>[] ScriptEvents;
-
-            public GUIEventReference(GUIObjectWithEvents obj, Tuple<string, string>[] scriptEvents)
-            {
-                GUIObject = obj;
-                ObjName = obj.GUI != null ? obj.GUI.Name : obj.Control.Name;
-                ScriptEvents = scriptEvents;
-            }
-        }
-
         private void ScanAndReportMissingEventHandlers(GenericMessagesArgs args)
         {
             var errors = args.Messages;
@@ -463,81 +435,36 @@ namespace AGS.Editor.Components
                 if (ngui == null)
                     continue;
 
-                // Gather function names from the GUI and all of their controls,
-                // in order to check missing functions in a single batch.
                 // TODO: the following code would be simpler if there was an indexed Events table in each GUI and control class;
                 // see also: how Interactions class is done for Characters etc.
-                List<GUIEventReference> objectsWithEvents = new List<GUIEventReference>();
-                objectsWithEvents.Add(new GUIEventReference(new GUIObjectWithEvents(ngui), new Tuple<string, string>[] { new Tuple<string, string>("OnClick", ngui.OnClick) }));
+                List<Tuple<string, string>> events = new List<Tuple<string, string>>();
+                events.Add(new Tuple<string, string>("OnClick", ngui.OnClick));
+                _agsEditor.Tasks.ScanAndReportMissingEventHandlers(ngui, "GUI", "GUI", ngui.Name, ngui.ID, ngui.ScriptModule, true, errors);
 
-                foreach (var control in ngui.Controls)
+                var buttons = ngui.Controls.Where(c => c is GUIButton).Select(c => c as GUIButton);
+                var listboxes = ngui.Controls.Where(c => c is GUIListBox).Select(c => c as GUIListBox);
+                var sliders = ngui.Controls.Where(c => c is GUISlider).Select(c => c as GUISlider);
+                var textboxes = ngui.Controls.Where(c => c is GUITextBox).Select(c => c as GUITextBox);
+                string objectContext = $"GUI ({ngui.ID}) {ngui.Name}";
+
+                foreach (var button in buttons)
                 {
-                    GUIObjectWithEvents obj = new GUIObjectWithEvents(control);
-                    if (control is GUIButton)
-                    {
-                        objectsWithEvents.Add(new GUIEventReference(obj, new Tuple<string, string>[] { new Tuple<string, string>("OnClick", (control as GUIButton).OnClick) }));
-                    }
-                    else if (control is GUIListBox)
-                    {
-                        objectsWithEvents.Add(new GUIEventReference(obj, new Tuple<string, string>[] { new Tuple<string, string>("OnSelectionChanged", (control as GUIListBox).OnSelectionChanged) }));
-                    }
-                    else if (control is GUISlider)
-                    {
-                        objectsWithEvents.Add(new GUIEventReference(obj, new Tuple<string, string>[] { new Tuple<string, string>("OnChange", (control as GUISlider).OnChange) }));
-                    }
-                    else if (control is GUITextBox)
-                    {
-                        objectsWithEvents.Add(new GUIEventReference(obj, new Tuple<string, string>[] { new Tuple<string, string>("OnActivate", (control as GUITextBox).OnActivate) }));
-                    }
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(button, button.ControlType, button.ControlType, button.Name, button.ID, objectContext, ngui.ScriptModule, true, errors);
                 }
 
-                foreach (var objRef in objectsWithEvents)
+                foreach (var listbox in listboxes)
                 {
-                    // Search for the function locations in script
-                    var functionNames = objRef.ScriptEvents.ToDictionary(
-                        evt => evt.Item1, evt => !string.IsNullOrEmpty(evt.Item2) ? evt.Item2 : $"{objRef.ObjName}_{evt.Item1}");
-                    var funcs = _agsEditor.Tasks.FindEventHandlers(ngui.ScriptModule, functionNames);
-                    if (funcs == null || funcs.Count == 0)
-                        continue;
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(listbox, listbox.ControlType, listbox.ControlType, listbox.Name, listbox.ID, objectContext, ngui.ScriptModule, true, errors);
+                }
 
-                    GUIObjectWithEvents guiObject = objRef.GUIObject;
-                    var events = objRef.ScriptEvents;
+                foreach (var slider in sliders)
+                {
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(slider, slider.ControlType, slider.ControlType, slider.Name, slider.ID, objectContext, ngui.ScriptModule, true, errors);
+                }
 
-                    foreach (var evt in events)
-                    {
-                        string evtName = evt.Item1;
-                        string functionName = evt.Item2;
-                        bool has_interaction = !string.IsNullOrEmpty(functionName);
-                        bool has_function = funcs.ContainsKey(evtName);
-                        // If we have an assigned interaction function, but the function is not found - report a missing warning
-                        if (has_interaction && !has_function)
-                        {
-                            if (guiObject.GUI != null)
-                            {
-                                errors.Add(new CompileWarningWithGameObject($"GUI ({ngui.ID}) {ngui.Name}'s event {evtName} function \"{functionName}\" not found in script {ngui.ScriptModule}.",
-                                    "GUI", ngui.Name, true));
-                            }
-                            else
-                            {
-                                errors.Add(new CompileWarningWithGameObject($"GUI ({ngui.ID}) {ngui.Name}: {guiObject.Control.ControlType} #{guiObject.Control.ID} {guiObject.Control.Name}'s event {evtName} function \"{functionName}\" not found in script {ngui.ScriptModule}.",
-                                    guiObject.Control.ControlType, guiObject.Control.Name, true));
-                            }
-                        }
-                        // If we don't have an assignment, but has a similar function - report a possible unlinked function
-                        else if (!has_interaction && has_function)
-                        {
-                            if (guiObject.GUI != null)
-                            {
-                                errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[evtName].Name}\" looks like an event handler, but is not linked on GUI ({ngui.ID}) {ngui.Name}'s Event pane",
-                                    "GUI", ngui.Name, funcs[evtName].ScriptName, funcs[evtName].Name, funcs[evtName].LineNumber));
-                            }
-                            else
-                            {
-                                errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[evtName].Name}\" looks like an event handler, but is not linked on {guiObject.Control.ControlType} ({guiObject.Control.ID}) {guiObject.Control.Name}'s Event pane",
-                                    guiObject.Control.ControlType, guiObject.Control.Name, funcs[evtName].ScriptName, funcs[evtName].Name, funcs[evtName].LineNumber));
-                            }
-                        }
-                    }
+                foreach (var textbox in textboxes)
+                {
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(textbox, textbox.ControlType, textbox.ControlType, textbox.Name, textbox.ID, objectContext, ngui.ScriptModule, true, errors);
                 }
             }
         }

@@ -7,9 +7,17 @@ namespace AGS.Types
         private string _suffix;
         private string _parameters;
 
+        public ScriptFunctionAttribute()
+            : base()
+        {
+            _suffix = string.Empty;
+            _parameters = string.Empty;
+        }
+
         public ScriptFunctionAttribute(string parameters)
             : base()
         {
+            _suffix = string.Empty;
             _parameters = parameters;
         }
 

@@ -30,7 +30,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("InventoryIcon", Resources.ResourceManager.GetIcon("iconinv-item.ico"));
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconinv.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Inventory items", ICON_KEY);
-            _agsEditor.CheckGameScripts += ScanAndReportMissingInteractionHandlers;
+            _agsEditor.CheckGameScripts += ScanAndReportMissingEventHandlers;
             RePopulateTreeView();
         }
 
@@ -306,34 +306,15 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.InventoryFlatList;
         }
 
-        private void ScanAndReportMissingInteractionHandlers(GenericMessagesArgs args)
+        private void ScanAndReportMissingEventHandlers(GenericMessagesArgs args)
         {
             var errors = args.Messages;
-            var events = GameObjectEvents.GetEvents(typeof(Character));
+            //var events = GameObjectEvents.GetEvents(typeof(Character));
+            //var scriptFunctions = GameObjectEvents.GetScriptFunctions(inv);
             foreach (InventoryItem inv in _agsEditor.CurrentGame.InventoryItems)
             {
-                var scriptFunctions = GameObjectEvents.GetScriptFunctions(inv);
-                var funcs = _agsEditor.Tasks.FindEventHandlersForObject(inv.Name, scriptFunctions, true, inv.ScriptModule);
-                if (funcs == null || funcs.Count == 0)
-                    continue;
-
-                foreach (var evt in events)
-                {
-                    bool has_interaction = scriptFunctions.ContainsKey(evt.Key) && !string.IsNullOrEmpty(scriptFunctions[evt.Key]);
-                    bool has_function = funcs.ContainsKey(evt.Key);
-                    // If we have an assigned interaction function, but the function is not found - report a missing warning
-                    if (has_interaction && !has_function)
-                    {
-                        errors.Add(new CompileWarningWithGameObject($"Inventory ({inv.ID}) {inv.Name}'s event {evt.Key} function \"{scriptFunctions[evt.Key]}\" not found in script {inv.ScriptModule}.",
-                            "InventoryItem", inv.Name, true));
-                    }
-                    // If we don't have an assignment, but has a similar function - report a possible unlinked function
-                    else if (!has_interaction && has_function)
-                    {
-                        errors.Add(new CompileWarningWithGameObject($"Function \"{funcs[evt.Key].Name}\" looks like an event handler, but is not linked on Inventory ({inv.ID}) {inv.Name}'s Event pane",
-                            "InventoryItem", inv.Name, funcs[evt.Key].ScriptName, funcs[evt.Key].Name, funcs[evt.Key].LineNumber));
-                    }
-                }
+                _agsEditor.Tasks.ScanAndReportMissingEventHandlers(inv, "Inventory", "InventoryItem",
+                    inv.Name, inv.ID, inv.ScriptModule, true, errors);
             }
         }
     }

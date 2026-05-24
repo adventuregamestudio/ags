@@ -1095,7 +1095,7 @@ namespace AGS.Editor
                 return null;
 
             // We generate default function names for those interactions that *DO NOT* have a function linked.
-            string functionPrefix = isRoom ? "Room" : objectName;
+            string functionPrefix = isRoom ? "room" : objectName;
             var functionNames = checkDefaultMatches ?
                 interactions.ScriptFunctionNames
                     .Select((f, i) => { return !string.IsNullOrEmpty(f) ? f : $"{functionPrefix}_{interactions.FunctionSuffixes[i]}"; })

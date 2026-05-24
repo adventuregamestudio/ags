@@ -62,7 +62,10 @@ set(TOOLS_COMMON_SOURCES
         ../Common/util/string_utils.cpp
         ../Common/util/string_utils.h
         ../Common/util/textstreamreader.cpp
-        ../Common/util/textstreamreader.h)
+        ../Common/util/textstreamreader.h
+        ../Common/util/textstreamwriter.cpp
+        ../Common/util/textstreamwriter.h
+        ../Common/util/textwriter.h)
 
 
 #-----------------------------------------------------------------------------#

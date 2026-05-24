@@ -960,26 +960,26 @@ namespace AGS.Editor.Components
 
         private Room LoadNewRoomForEditing(UnloadedRoom newRoom, CompileMessages errors)
         {
-            // CHECKME: why do we load script BEFORE loading room data here?
-            if ((newRoom.Script == null) || (!newRoom.Script.Modified))
-            {
-                TryLoadScriptAndCreateMissing(newRoom, errors, silent: false);
-            }
-            else if (_roomScriptEditors.ContainsKey(newRoom.Number))
-            {
-                ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
-            }
-
             // Load the room into the editing state;
             // currently AGS Editor supports only a single room in edit state.
             _loadedRoom = _nativeProxy.LoadRoomForEditing(newRoom);
+            if ((_loadedRoom.Script == null) || (!_loadedRoom.Script.Modified))
+            {
+                TryLoadScriptAndCreateMissing(_loadedRoom, errors, silent: false);
+            }
+            else if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
+            {
+                ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
+            }
+
+            // Update and fixup room as necessary
             CheckRoomForValidity(_loadedRoom, errors);
             UpdateRoomToCurrentVersion(_loadedRoom, errors);
             // Sync the loaded room with the up-to-date game data
-            _loadedRoom.Modified |= SyncCustomProperties(_loadedRoom);
+            SyncRoomWithGame(_loadedRoom, true);
 
             // Force reload room script into the respective editor panel, if necessary
-			if (_loadedRoom.Script.Modified)
+            if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
 				{
@@ -997,15 +997,20 @@ namespace AGS.Editor.Components
                 TryLoadScript(room, errors);
             }
 
+            // Update and fixup room as necessary
             CheckRoomForValidity(room, errors);
             UpdateRoomToCurrentVersion(room, errors, doLoadScript);
-            // NOTE: currently the only way to know if the room was not affected by
-            // game's settings is to test whether it has game's ID.
-            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
-            {
-                room.Modified |= ApplyDefaultMaskResolution(room);
-            }
+            // Sync the loaded room with the up-to-date game data
+            SyncRoomWithGame(_loadedRoom, true);
             return room;
+        }
+
+        private void CheckRoomForValidity(Room room, CompileMessages errors)
+        {
+            if (room.ColorDepth > 8 && _agsEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
+            {
+                errors.Add(new CompileWarning("This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor."));
+            }
         }
 
         private void UpdateRoomToCurrentVersion(Room room, CompileMessages errors, bool updateScript = true)
@@ -1020,11 +1025,16 @@ namespace AGS.Editor.Components
             room.Modified |= AdjustRoomResolution(room);
         }
 
-        private void CheckRoomForValidity(Room room, CompileMessages errors)
+        /// <summary>
+        /// Sync the Room with the current Game, copy global settings over.
+        /// If loaded for editing, then merge game palette.
+        /// </summary>
+        private void SyncRoomWithGame(Room room, bool loadedForEditing)
         {
-            if (room.ColorDepth > 8 && _agsEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
+            room.Modified |= SyncCustomProperties(room);
+            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
             {
-                errors.Add(new CompileWarning("This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor."));
+                room.Modified |= ApplyDefaultMaskResolution(room);
             }
         }
 

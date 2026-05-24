@@ -25,10 +25,9 @@ CFLAGS   += -Werror=implicit-function-declaration
 COMMON_OBJS = \
 	../../Common/ac/wordsdictionary.cpp \
 	../../Common/data/data_ext.cpp \
+	../../Common/data/data_helpers.cpp \
 	../../Common/data/tra_file.cpp \
 	../../Common/debug/debugmanager.cpp \
-	../../Common/game/data_helpers.cpp \
-	../../Common/game/tra_file.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
@@ -39,7 +38,7 @@ COMMON_OBJS = \
 	../../Common/util/string_compat.c \
 	../../Common/util/string_utils.cpp \
 	../../Common/util/textstreamreader.cpp \
-    ../../Common/util/textstreamwriter.cpp
+	../../Common/util/textstreamwriter.cpp
 
 TOOL_OBJS = \
 	../../Tools/data/tra_utils.cpp

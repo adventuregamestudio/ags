@@ -2,6 +2,8 @@ name: Build Linux Docker Image
 
 on:
   push:
+    branches:
+      - '**'
     paths:
       - 'ci/linux/Dockerfile'
       - '.github/workflows/build-linux-docker.yml'

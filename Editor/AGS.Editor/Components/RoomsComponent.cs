@@ -73,6 +73,7 @@ namespace AGS.Editor.Components
         private Room _loadedRoom;
         // Current room palette combines game-wide slots from the default game pal,
         // and background slots from the room background pal
+        // FIXME: this rool palette should be a part of some kind of a "edited room" object instance (not Room)
         private PaletteEntry[] _roomPalette;
         private NativeProxy _nativeProxy;
         private int _rightClickedRoomNumber;
@@ -185,7 +186,7 @@ namespace AGS.Editor.Components
             }
 			else if (controlID.StartsWith(TREE_PREFIX_ROOM_SETTINGS))
 			{
-				LoadRoom(controlID);
+				LoadRoomAndShowEditor(controlID);
 			}
 			else if (controlID.StartsWith(TREE_PREFIX_ROOM_SCRIPT))
 			{
@@ -221,7 +222,7 @@ namespace AGS.Editor.Components
             }
             else if (controlID.StartsWith(TREE_PREFIX_ROOM_NODE))
             {
-                LoadRoom(controlID);
+                LoadRoomAndShowEditor(controlID);
             }
         }
 
@@ -268,7 +269,7 @@ namespace AGS.Editor.Components
             SelectRoomByNumber(roomNumber);
         }
 
-        private void TryLoadScriptAndCreateMissing(UnloadedRoom room)
+        private void TryLoadScript(UnloadedRoom room, CompileMessages errors = null)
         {
             try
             {
@@ -276,8 +277,23 @@ namespace AGS.Editor.Components
             }
             catch (FileNotFoundException)
             {
-                _guiController.ShowMessage("The script file '" + room.ScriptFileName + "' is missing. An empty script has been created instead.", MessageBoxIcon.Warning);
+                string errorMsg = $"The script file '{room.ScriptFileName}' is missing. An empty script will be initialized instead.";
+                if (errors != null)
+                    errors.Add(new CompileWarning(errorMsg));
+            }
+        }
+
+        private void TryLoadScriptAndCreateMissing(UnloadedRoom room, CompileMessages errors = null, bool silent = false)
+        {
+            try
+            {
+                room.LoadScript();
+            }
+            catch (FileNotFoundException)
+            {
                 room.Script.SaveToDisk(true);
+                Tasks.IssueUserWarning($"The script file '{room.ScriptFileName}' is missing. An empty script file has been created instead.",
+                    errors, silent);
             }
         }
 
@@ -477,14 +493,12 @@ namespace AGS.Editor.Components
 			}
 		}
 
-        private void UnloadRoom(IRoom roomToDelete)
+        private void UnloadRoom(IRoom room)
         {
-            if ((_loadedRoom != null) && (roomToDelete.Number == _loadedRoom.Number))
+            if ((_loadedRoom != null) && (room.Number == _loadedRoom.Number))
             {
                 UnloadCurrentRoom();
             }
-            
-            RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);            
         }
 
         private void ImportExistingRoomFile(string fileName)
@@ -715,16 +729,69 @@ namespace AGS.Editor.Components
             }
         }
 
+        /// <summary>
+        /// Save the given room into its file.
+        /// Do not recompile room scripts.
+        /// Do only minimal required pre-save checks and corrections.
+        /// </summary>
+        private void SaveRoomDirectly(Room room, bool compileRoom, CompileMessages errors)
+        {
+            // Do any automatic fixups that do not raise errors
+            PerformPreSaveChecks(room);
+
+            if (!_agsEditor.AttemptToGetWriteAccess(room.FileName))
+            {
+                errors.Add(new CompileError("Unable to open file " + room.FileName + " for writing"));
+                return;
+            }
+
+            // Save room data
+            SaveRoomData(room);
+            if (compileRoom)
+            {
+                // We have to load room's images to the cache before compiling the room
+                LoadImageCache(room, errors, silent: true);
+                SaveCrm(room);
+            }
+        }
+
+        /// <summary>
+        /// Stops File Watchers and writes the room data to disk
+        /// (xml data, images, and everything).
+        /// </summary>
+        private void SaveRoomData(Room room)
+        {
+            _fileWatchers.TemporarilyDisable(() =>
+            {
+                IsBeingSaved = true;
+                if (room.Modified)
+                {
+                    SaveImages(false);
+                    using (var writer = new XmlTextWriter(room.DataFileName, Types.Utilities.UTF8))
+                    {
+                        writer.Formatting = Formatting.Indented;
+                        room.ToXmlDocument().Save(writer);
+                    }
+                    room.Modified = false;
+                }
+                IsBeingSaved = false;
+                LastSavedAt = DateTime.Now;
+            });
+        }
+
+        /// <summary>
+        /// Save Room data, and then compile to CRM file.
+        /// </summary>
+        private void SaveRoomDataAndCompile(Room room)
+        {
+            SaveRoomData(room);
+            SaveCrm(room);
+        }
+
         private void SaveRoomButDoNotShowAnyErrors(Room room, CompileMessages errors, string pleaseWaitText)
         {
 			lock (_roomLoadingOrSavingLock)
 			{
-				if (room != _loadedRoom)
-				{
-					errors.Add(new CompileError("Attempted to save room " + room.Number + " which is not loaded"));
-					return;
-				}
-
                 // First test the Room for valid content
                 if (!EnsureScriptNamesAreUnique(room, errors))
                     return;
@@ -880,6 +947,8 @@ namespace AGS.Editor.Components
         {
             CompileRoomParameters par = (CompileRoomParameters)parameter;
             Room room = par.Room;
+
+            // Compile script and report errors
             _agsEditor.RegenerateScriptHeader(room);
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
             CompileMessages messages = new CompileMessages();
@@ -887,8 +956,9 @@ namespace AGS.Editor.Components
             if (messages.HasErrors)
                 throw messages.Errors[0];
 
-            ((IRoomController)this).Save();
-            
+            // Save room data and compile CRM
+            SaveRoomDataAndCompile(room);
+
             // Scan after saving, because saving a room here is a more critical task,
             // and scanning is rather a extra aid.
             if (!room.Script.AutoCompleteData.Populated)
@@ -1008,7 +1078,7 @@ namespace AGS.Editor.Components
             return true;
         }
 
-        private void LoadRoom(string controlID)
+        private void LoadRoomAndShowEditor(string controlID)
         {
             LoadRoomAndShowEditor(Convert.ToInt32(controlID.Substring(3)));
         }
@@ -1045,8 +1115,6 @@ namespace AGS.Editor.Components
 
         private void UnloadCurrentRoomAndGreyOutTree()
         {
-            ProjectTree treeController = _guiController.ProjectTree;
-
             if (_loadedRoom != null)
             {
                 if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -1054,6 +1122,7 @@ namespace AGS.Editor.Components
                     ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).Room = null;
                 }
 
+                ProjectTree treeController = _guiController.ProjectTree;
                 treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_NODE + _loadedRoom.Number, _loadedRoom.StateSaving ? ROOM_ICON_SAVE_UNLOADED : ROOM_ICON_UNLOADED);
                 treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_SETTINGS + _loadedRoom.Number, ROOM_ICON_UNLOADED);
             }
@@ -1080,47 +1149,105 @@ namespace AGS.Editor.Components
 			_loadedRoom = null;
 		}
 
-        private Room LoadNewRoomIntoMemory(UnloadedRoom newRoom, CompileMessages errors)
+        private Room LoadNewRoomForEditing(UnloadedRoom newRoom, CompileMessages errors)
         {
-            if ((newRoom.Script == null) || (!newRoom.Script.Modified))
-            {
-                TryLoadScriptAndCreateMissing(newRoom);
-            }
-            else if (_roomScriptEditors.ContainsKey(newRoom.Number))
-            {
-                ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
-            }
-
+            // Load the room into the editing state;
+            // currently AGS Editor supports only a single room in edit state.
             _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
-            CopyGamePalette();
-
-            UpdateLoadedRoomToTheCurrentVersion(errors);
-
-            // Apply default game settings to this Room
-            // NOTE: currently the only way to know if the room was not affected by
-            // game's settings is to test whether it has game's ID.
-            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            if ((_loadedRoom.Script == null) || (!_loadedRoom.Script.Modified))
             {
-                _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
+                TryLoadScriptAndCreateMissing(_loadedRoom, errors, silent: false);
+            }
+            else if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
+            {
+                ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            // Post-load setup
-            LoadImageCache();
-            _fileWatchers.Clear();
-            _fileWatchers.AddRange(LoadFileWatchers());
-            return _loadedRoom;
-        }
+            // Update and fixup room as necessary
+            CheckRoomForValidity(_loadedRoom, errors);
+            UpdateRoomToCurrentVersion(_loadedRoom, errors);
 
-        private void UpdateLoadedRoomToTheCurrentVersion(CompileMessages errors)
-        {
-            _loadedRoom.Modified |= SyncCustomProperties(_loadedRoom);
-            _loadedRoom.Modified |= UpgradeRoomFeatures(_loadedRoom, errors);
+            // Sync the loaded room with the up-to-date game data
+            SyncRoomWithGame(_loadedRoom, true);
+
+            // Force reload room script into the respective editor panel, if necessary
             if (_loadedRoom.Script.Modified)
             {
                 if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
                 {
                     ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).ScriptModifiedExternally();
                 }
+            }
+
+            // Post-load setup
+            LoadImageCache(_loadedRoom, errors, silent: false);
+            _fileWatchers.Clear();
+            _fileWatchers.AddRange(LoadFileWatchers());
+            return _loadedRoom;
+        }
+
+        private Room LoadRoomAsTemporary(UnloadedRoom newRoom, CompileMessages errors, bool doLoadScript)
+        {
+            // Load the room into memory
+            Room room = new Room(LoadData(newRoom)) { Script = newRoom.Script };
+            if (doLoadScript)
+            {
+                LoadRoomScript(room, errors, silentIfMissing: true);
+            }
+            // Update and fixup room as necessary
+            CheckRoomForValidity(room, errors);
+            UpdateRoomToCurrentVersion(room, errors, doLoadScript);
+            // Sync the loaded room with the up-to-date game data
+            SyncRoomWithGame(room, true);
+            return room;
+        }
+
+        private void LoadRoomScript(UnloadedRoom room, CompileMessages errors, bool silentIfMissing)
+        {
+            if ((room.Script == null) || (!room.Script.Modified))
+            {
+                TryLoadScriptAndCreateMissing(room, errors, silentIfMissing);
+            }
+            else if (_roomScriptEditors.ContainsKey(room.Number))
+            {
+                ((ScriptEditor)_roomScriptEditors[room.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
+            }
+        }
+
+        /// <summary>
+        /// Tests room data for errors and compatibility with the game.
+        /// </summary>
+        private void CheckRoomForValidity(Room room, CompileMessages errors)
+        {
+            if (room.ColorDepth > 8 && _agsEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
+            {
+                errors.Add(new CompileWarning("This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game."));
+            }
+        }
+
+        /// <summary>
+        /// Update Room data to the current version, apply default values for
+        /// the new features, convert obsolete settings to new ones, and so forth.
+        /// </summary>
+        private void UpdateRoomToCurrentVersion(Room room, CompileMessages errors, bool updateScript = true)
+        {
+            room.Modified |= UpgradeRoomFeatures(room, errors);
+        }
+
+        /// <summary>
+        /// Sync the Room with the current Game, copy global settings over.
+        /// If loaded for editing, then merge game palette.
+        /// </summary>
+        private void SyncRoomWithGame(Room room, bool loadedForEditing)
+        {
+            room.Modified |= SyncCustomProperties(room);
+            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            {
+                room.Modified |= ApplyDefaultMaskResolution(room);
+            }
+            if (loadedForEditing)
+            {
+                CopyGamePalette();
             }
         }
 
@@ -1223,7 +1350,7 @@ namespace AGS.Editor.Components
 				{
 					CompileMessages errors = new CompileMessages();
 
-					LoadNewRoomIntoMemory(newRoom, errors);
+					LoadNewRoomForEditing(newRoom, errors);
 
 					_loadedRoom.RoomModifiedChanged += _modifiedChangedHandler;
 
@@ -1710,35 +1837,34 @@ namespace AGS.Editor.Components
 
             string rebuildReason = rebuildAll ? "because the full rebuild was ordered" : "because a script has changed";
 
+            UnloadCurrentRoomAndGreyOutTree();
+
             foreach (UnloadedRoom unloadedRoom in roomsToRebuild)
 			{
-				Room room;
-				if ((_loadedRoom == null) || (_loadedRoom.Number != unloadedRoom.Number))
-				{
-					UnloadCurrentRoomAndGreyOutTree();
-					room = LoadNewRoomIntoMemory(unloadedRoom, errors);
-				}
-				else
-				{
-					room = _loadedRoom;
-				}
+				Room room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
+                // Ensure that the script is saved, in case it was modified on a room upgrade, for instance
+                room.Script.SaveToDisk();
 
-				CompileMessages roomErrors = new CompileMessages();
-				SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");
+                CompileMessages roomErrors = new CompileMessages();
+                // We have to load room's images to the cache before compiling the room
+                LoadImageCache(room, roomErrors, silent: true);
+                SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");
 
 				if (roomErrors.HasErrors)
 				{
 					errors.Add(new CompileError($"Failed to save room {room.FileName}; details below"));
 					errors.AddRange(roomErrors);
 					success = false;
-					break;
 				}
                 else if (roomErrors.Count > 0)
                 {
                     errors.Add(new CompileWarning($"Room {room.FileName} was saved, but there were warnings; details below"));
                     errors.AddRange(roomErrors);
                 }
-			}
+
+                if (!success)
+                    break;
+            }
 
             return success;
         }
@@ -1837,10 +1963,11 @@ namespace AGS.Editor.Components
 				}
 			}
 
+            UnloadCurrentRoomAndGreyOutTree();
+
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
-                UnloadCurrentRoom();
-                Room room = LoadNewRoomIntoMemory(unloadedRoom, errors);
+                Room room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
 
                 room.Script.Text = processor.ProcessText(room.Script.Text, GameTextType.Script);
                 if (processor.MakesChanges)
@@ -1929,24 +2056,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            _fileWatchers.TemporarilyDisable(() =>
-            {
-                IsBeingSaved = true;
-                if (_loadedRoom.Modified)
-                {
-                    SaveImages(false);
-                    using (var writer = new XmlTextWriter(_loadedRoom.DataFileName, Types.Utilities.UTF8))
-                    {
-                        writer.Formatting = Formatting.Indented;
-                        _loadedRoom.ToXmlDocument().Save(writer);
-                    }
-                    _loadedRoom.Modified = false;
-                }
-                IsBeingSaved = false;
-                LastSavedAt = DateTime.Now;
-            });
-
-            SaveCrm();
+            SaveRoomDataAndCompile(_loadedRoom);
         }
 
         Bitmap IRoomController.GetBackground(int background)
@@ -2046,10 +2156,10 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
-            SetMaskDirect(mask, bmp.Clone() as Bitmap, true);
+            SetMaskDirect(_loadedRoom, mask, bmp.Clone() as Bitmap, true);
         }
 
-        void SetMaskDirect(RoomAreaMaskType mask, Bitmap bmp, bool markModified)
+        void SetMaskDirect(Room room, RoomAreaMaskType mask, Bitmap bmp, bool markModified)
         {
             if (ValidateMask(mask, bmp))
             {
@@ -2057,14 +2167,14 @@ namespace AGS.Editor.Components
                 _maskCache.TryGetValue(mask, out toDispose);
                 toDispose?.Dispose();
                 _maskCache[mask] = new RoomImage(bmp, markModified);
-                _loadedRoom.Modified |= markModified;
+                room.Modified |= markModified;
             }
             else // invalid source, try to recover
             {
                 if (_maskCache.ContainsKey(mask) && _maskCache[mask] != null)
                     return; // there's already a previous version in cache, no need to do anything
                 // create an empty mask
-                _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
+                _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, room.Width, room.Height), true);
             }
         }
 
@@ -2312,20 +2422,21 @@ namespace AGS.Editor.Components
             Array.Copy(Factory.AGSEditor.CurrentGame.Palette, _roomPalette, Factory.AGSEditor.CurrentGame.Palette.Length);
         }
 
-        private void LoadImageCache()
+        /// <summary>
+        /// Loads the Room's background and mask images into the cache.
+        /// TODO: the cache is currently implemented as a static instance, and can hold only
+        /// single Room's resources at a time. Must be reimplemented to allow multiple
+        /// loaded room resources, or editing multiple rooms at once.
+        /// </summary>
+        private void LoadImageCache(Room room, CompileMessages errors, bool silent = false)
         {
-            if (_loadedRoom == null)
-            {
-                throw new InvalidOperationException("No room is currently loaded");
-            }
-
             ClearImageCache();
 
-            for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+            for (int i = 0; i < room.BackgroundCount; i++)
             {
-                if (File.Exists(_loadedRoom.GetBackgroundFileName(i)))
+                if (File.Exists(room.GetBackgroundFileName(i)))
                 {
-                    _backgroundCache.Add(new RoomImage(LoadBackground(i), false));
+                    _backgroundCache.Add(new RoomImage(LoadBackground(room, i), false));
                 }
             }
 
@@ -2333,21 +2444,19 @@ namespace AGS.Editor.Components
 
             if (!_backgroundCache.Any())
             {
-                _backgroundCache.Add(new RoomImage(new Bitmap(_loadedRoom.Width, _loadedRoom.Height), true));
-                _loadedRoom.BackgroundCount = 1;
+                _backgroundCache.Add(new RoomImage(new Bitmap(room.Width, room.Height), true));
+                room.BackgroundCount = 1;
                 imageNotFound = true;
-                _guiController.ShowMessage(
-                    $"Could not to find any background images at \"{_loadedRoom.Directory}\", an empty " +
-                    $"default image will be used instead.",
-                    MessageBoxIcon.Warning);
+                Tasks.IssueUserWarning($"Could not to find any background images at \"{room.Directory}\", an empty " +
+                    $"default image will be used instead.", errors, silent);
             }
-            else if (_loadedRoom.BackgroundCount != _backgroundCache.Count)
+            else if (room.BackgroundCount != _backgroundCache.Count)
             {
-                _loadedRoom.BackgroundCount = _backgroundCache.Count;
+                room.BackgroundCount = _backgroundCache.Count;
                 imageNotFound = true;
             }
             
-            _loadedRoom.ColorDepth = _backgroundCache[0].Image.GetColorDepth();
+            room.ColorDepth = _backgroundCache[0].Image.GetColorDepth();
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
             {
@@ -2356,22 +2465,21 @@ namespace AGS.Editor.Components
                     continue;
                 }
 
-                if (File.Exists(_loadedRoom.GetMaskFileName(mask)))
+                if (File.Exists(room.GetMaskFileName(mask)))
                 {
-                    SetMaskDirect(mask, LoadMask(mask), false);
+                    SetMaskDirect(room, mask, LoadMask(room, mask), false);
                 }
                 else
                 {
-                    _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
+                    _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, room.Width, room.Height), true);
                     imageNotFound = true;
-                    _guiController.ShowMessage(
-                        $"Could not to find mask at \"{_loadedRoom.GetMaskFileName(mask)}\", an empty " +
+                    Tasks.IssueUserWarning($"Could not to find mask at \"{room.GetMaskFileName(mask)}\", an empty " +
                         $"default image will be used instead.",
-                        MessageBoxIcon.Warning);
+                        errors, silent);
                 }
             }
 
-            _loadedRoom.Modified = imageNotFound;
+            room.Modified = imageNotFound;
         }
 
         private XmlNode LoadData(UnloadedRoom room)
@@ -2401,11 +2509,11 @@ namespace AGS.Editor.Components
             _guiController.RefreshPropertyGrid();
         }
 
-        private Bitmap LoadBackground(int i)
+        private Bitmap LoadBackground(Room room, int i)
         {
-            Bitmap newBmp = BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
+            Bitmap newBmp = BitmapExtensions.LoadNonLockedBitmap(room.GetBackgroundFileName(i));
             // For 8-bit rooms - remap loaded background images
-            if (_loadedRoom.ColorDepth == 8)
+            if (room.ColorDepth == 8)
             {
                 int colorsImage, colorsLimit;
                 CopyGamePalette(); // in case they had changes to game colors in the meantime
@@ -2423,8 +2531,13 @@ namespace AGS.Editor.Components
 
         private void RefreshBackground(int i)
         {
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
             _backgroundCache[i]?.Dispose();
-            _backgroundCache[i] = new RoomImage(LoadBackground(i), false);
+            _backgroundCache[i] = new RoomImage(LoadBackground(_loadedRoom, i), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
             _loadedRoom.Modified = true;
         }
@@ -2461,11 +2574,16 @@ namespace AGS.Editor.Components
             }
         }
 
-        private Bitmap LoadMask(RoomAreaMaskType mask) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
+        private Bitmap LoadMask(Room room, RoomAreaMaskType mask) => BitmapExtensions.LoadNonLockedBitmap(room.GetMaskFileName(mask));
 
         private void RefreshMask(RoomAreaMaskType mask)
         {
-            SetMaskDirect(mask, LoadMask(mask), false);
+            if (_loadedRoom == null)
+            {
+                throw new InvalidOperationException("No room is currently loaded");
+            }
+
+            SetMaskDirect(_loadedRoom, mask, LoadMask(_loadedRoom, mask), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
             _loadedRoom.Modified = true;
         }
@@ -2724,6 +2842,8 @@ namespace AGS.Editor.Components
         /// Upgrades the room format from .crm to open format with text files and images directly accessible from disk
         /// </summary>
         /// <remarks>
+        /// FIXME: the following remark about Room._roomStructPtr is obsolete, and that is no longer a problem.
+        /// ----
         /// This easily maxes the work capacity of a single thread and runs for a while so this is a good candidate
         /// for parallel execution. However the native proxy is designed around the <see cref="Room._roomStructPtr"/>
         /// which can only hold the value of single room at a time so thread execution would crash. It might not be
@@ -2849,24 +2969,19 @@ namespace AGS.Editor.Components
         /// <summary>
         /// Saves .crm file from open format
         /// </summary>
-        private void SaveCrm()
+        private void SaveCrm(Room room)
         {
-            if (_loadedRoom == null)
-            {
-                throw new InvalidOperationException("No room is currently loaded");
-            }
-
             // Sync native palette before writing
-            if ((_loadedRoom.ColorDepth == 8) && (_loadedRoom.BackgroundCount > 0))
+            if ((room.ColorDepth == 8) && (room.BackgroundCount > 0))
             {
                 CopyGamePalette(); // in case they had changes to game colors in the meantime
                 _backgroundCache[0].Image.CopyToAGSBackgroundPalette(_roomPalette); // update current room palette
                 Factory.NativeProxy.ApplyPalette(_roomPalette); // sync native palette
             }
 
-            using (var nativeRoom = new Native.NativeRoom(_loadedRoom))
+            using (var nativeRoom = new Native.NativeRoom(room))
             {
-                for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
+                for (int i = 0; i < room.BackgroundCount; i++)
                 {
                     nativeRoom.SetBackground(i, _backgroundCache[i].Image);
                 }
@@ -2879,7 +2994,7 @@ namespace AGS.Editor.Components
                     nativeRoom.SetAreaMask(mask, _maskCache[mask].Image);
                 }
 
-                nativeRoom.SaveToFile(_loadedRoom.FileName);
+                nativeRoom.SaveToFile(room.FileName);
             }
         }
         #endregion // Upgrade Crm Format To Open Format

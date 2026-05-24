@@ -1180,5 +1180,18 @@ namespace AGS.Editor
                 }
             }
         }
+
+        /// <summary>
+        /// Helper method which adds a warning to the CompileMessages collection,
+        /// and optionally displays same warning on screen.
+        /// FIXME: find a better place to put this method to.
+        /// </summary>
+        public static void IssueUserWarning(string text, CompileMessages messages, bool silent)
+        {
+            if (messages != null)
+                messages.Add(new CompileWarning(text));
+            if (!silent)
+                Factory.GUIController.ShowMessage(text, MessageBoxIcon.Warning);
+        }
     }
 }

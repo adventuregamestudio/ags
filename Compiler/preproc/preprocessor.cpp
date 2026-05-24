@@ -72,6 +72,7 @@ namespace Preprocessor {
         void WriteChar(char c) override {  _str.AppendChar(c); }
         void WriteString(const String &str) override { _str.Append(str);}
         void WriteFormat(const char *fmt, ...) override { va_list argptr; va_start(argptr, fmt); _str.Append(String::FromFormatV(fmt, argptr)); va_end(argptr);}
+        void WriteLineFormat(const char *fmt, ...) override { va_list argptr; va_start(argptr, fmt); _str.Append(String::FromFormatV(fmt, argptr)); va_end(argptr); _str.Append(li_end); }
         void WriteLineBreak() override { _str.Append(li_end); }
 
         String GetString () {return _str;}

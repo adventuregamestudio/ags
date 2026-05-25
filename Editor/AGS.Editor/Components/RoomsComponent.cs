@@ -1297,10 +1297,14 @@ namespace AGS.Editor.Components
         private bool SyncCustomProperties(Room room)
         {
             bool wasModified = room.Properties.SyncWithSchema();
-            foreach (var o in room.Objects)
-                wasModified |= o.Properties.SyncWithSchema();
             foreach (var h in room.Hotspots)
                 wasModified |= h.Properties.SyncWithSchema();
+            foreach (var o in room.Objects)
+                wasModified |= o.Properties.SyncWithSchema();
+            foreach (var r in room.Regions)
+                wasModified |= r.Properties.SyncWithSchema();
+            foreach (var wa in room.WalkableAreas)
+                wasModified |= wa.Properties.SyncWithSchema();
             return wasModified;
         }
 

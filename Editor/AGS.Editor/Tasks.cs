@@ -1243,10 +1243,14 @@ namespace AGS.Editor
         {
             List<CustomProperties> allProps = new List<CustomProperties>();
             allProps.Add(room.Properties);
-            foreach(var o in room.Objects)
-                allProps.Add(o.Properties);
             foreach (var h in room.Hotspots)
                 allProps.Add(h.Properties);
+            foreach (var o in room.Objects)
+                allProps.Add(o.Properties);
+            foreach (var r in room.Regions)
+                allProps.Add(r.Properties);
+            foreach (var wa in room.WalkableAreas)
+                allProps.Add(wa.Properties);
             ApplyCustomPropertySchemaChanges(allProps, schemaChanges);
             room.Modified = true;
         }
@@ -1255,8 +1259,18 @@ namespace AGS.Editor
         {
             List<CustomProperties> allProps = new List<CustomProperties>();
             var game = AGSEditor.Instance.CurrentGame;
+            foreach (var a in game.AudioClips)
+                allProps.Add(a.Properties);
             foreach (var c in game.Characters)
                 allProps.Add(c.Properties);
+            foreach (var d in game.Dialogs)
+                allProps.Add(d.Properties);
+            foreach (var g in game.GUIs)
+            {
+                allProps.Add(g.Properties);
+                foreach (var gc in g.Controls)
+                    allProps.Add(gc.Properties);
+            }
             foreach (var i in game.InventoryItems)
                 allProps.Add(i.Properties);
             ApplyCustomPropertySchemaChanges(allProps, schemaChanges);

@@ -1934,7 +1934,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_400_26,
+        kCharSvgVersion_Current,
         kCharSvgVersion_400,
         kSaveCmp_Characters,
         WriteCharacters,
@@ -2043,7 +2043,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_40026,
+        kRoomStatSvgVersion_Current,
         kRoomStatSvgVersion_40003,
         kSaveCmp_Rooms,
         WriteRoomStates,
@@ -2052,7 +2052,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_40026, // must correspond to "Room States"
+        kRoomStatSvgVersion_Current, // must correspond to "Room States"
         kRoomStatSvgVersion_40003,
         kSaveCmp_ThisRoom,
         WriteThisRoom,

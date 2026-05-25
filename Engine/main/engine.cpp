@@ -629,6 +629,9 @@ void engine_init_game_settings()
         set_uformat(U_UTF8);
     else
         set_uformat(U_ASCII);
+    Debug::Printf("Game text encoding: %s, text language: %s",
+        get_uformat() == U_UTF8 ? "UTF-8" : "ASCII",
+        game.GameTextLanguage.IsEmpty() ? "not set" : game.GameTextLanguage.GetCStr());
 
     int ee;
 

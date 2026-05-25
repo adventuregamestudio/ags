@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Windows.Forms;
 
@@ -970,6 +971,32 @@ namespace AGS.Editor
                 return FindEventHandlers(scriptModule, lookupFunctionNames);
         }
 
+        /*
+        public Dictionary<string, FunctionLocation> FindEventHandlers(string scriptName, Dictionary<string, string> functionNames)
+        {
+            // We generate default function names for those events that *DO NOT* have a function linked.
+            var functionNames = checkDefaultMatches ?
+                eventFunctions
+                    .Select((f) => { return !string.IsNullOrEmpty(f.Item2) ? f.Item2 : $"{objectName}_{f.Item1}"; })
+                    .ToArray()
+                : eventFunctions.Select((fn) => { return fn.Item2; }).Where(fn => !string.IsNullOrEmpty(fn)).ToArray();
+
+            return FindEventHandlers(scriptName, functionNames);
+        }
+
+        public FunctionLocation?[] FindEventHandlers(string objectName, string scriptName, ScriptAutoCompleteData scriptData, Tuple<string, string>[] eventFunctions, bool checkDefaultMatches)
+        {
+            // We generate default function names for those events that *DO NOT* have a function linked.
+            var functionNames = checkDefaultMatches ?
+                eventFunctions
+                    .Select((f) => { return !string.IsNullOrEmpty(f.Item2) ? f.Item2 : $"{objectName}_{f.Item1}"; })
+                    .ToArray()
+                : eventFunctions.Select((fn) => { return fn.Item2; }).Where(fn => !string.IsNullOrEmpty(fn)).ToArray();
+
+            return FindEventHandlers(scriptName, scriptData, functionNames);
+        }
+        */
+
         /// <summary>
         /// Scans the script module looking for the list of functions.
         /// Creates a dictionary of FunctionLocations with event names as keys.
@@ -1179,6 +1206,63 @@ namespace AGS.Editor
                     }
                 }
             }
+        }
+
+        private void ApplyCustomPropertySchemaChanges(List<CustomProperties> allProps, List<CustomPropertyDefChange> schemaChanges)
+        {
+            if (allProps.Count == 0 || schemaChanges.Count == 0)
+                return;
+
+            foreach (var props in allProps)
+            {
+                if (props.PropertyValues.Count == 0)
+                    continue;
+
+                foreach (var change in schemaChanges)
+                {
+                    if (change.Type == CustomPropertyDefChangeType.Remove)
+                    {
+                        props.PropertyValues.Remove(change.OriginalName);
+                    }
+                    else if (change.Type == CustomPropertyDefChangeType.Edit &&
+                        change.NewName.ToLowerInvariant() != change.OriginalName.ToLowerInvariant())
+                    {
+                        if (props.PropertyValues.ContainsKey(change.OriginalName))
+                        {
+                            var oldProp = props.PropertyValues[change.OriginalName];
+                            props.PropertyValues.Remove(change.OriginalName);
+                            oldProp.Name = change.NewName;
+                            props.PropertyValues.Add(change.NewName, oldProp);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ApplyCustomPropertySchemaChangesInRoom(Room room, List<CustomPropertyDefChange> schemaChanges)
+        {
+            List<CustomProperties> allProps = new List<CustomProperties>();
+            allProps.Add(room.Properties);
+            foreach(var o in room.Objects)
+                allProps.Add(o.Properties);
+            foreach (var h in room.Hotspots)
+                allProps.Add(h.Properties);
+            ApplyCustomPropertySchemaChanges(allProps, schemaChanges);
+            room.Modified = true;
+        }
+
+        public void HandleCustomPropertySchemaChanges(List<CustomPropertyDefChange> schemaChanges)
+        {
+            List<CustomProperties> allProps = new List<CustomProperties>();
+            var game = AGSEditor.Instance.CurrentGame;
+            foreach (var c in game.Characters)
+                allProps.Add(c.Properties);
+            foreach (var i in game.InventoryItems)
+                allProps.Add(i.Properties);
+            ApplyCustomPropertySchemaChanges(allProps, schemaChanges);
+
+            ComponentController.Instance.FindComponent<RoomsComponent>()?
+                .ModifyAllRooms((r, m) => { ApplyCustomPropertySchemaChangesInRoom(r, schemaChanges); }, modifyScript: false);
         }
 
         /// <summary>

@@ -1585,7 +1585,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 return kScExecErr_Generic;
             }
             DynObjectRef ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
-            reg1.SetScriptObject(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj(), ref.Mgr());
             break;
         }
         case SCMD_NEWARRAY2:
@@ -1605,7 +1605,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             assert(_rtti && !_rtti->IsEmpty());
             const uint32_t global_tid = _typeidLocal2Global->at(arg_typeid);
             DynObjectRef ref = CCDynamicArray::CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
-            reg1.SetScriptObject(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj(), ref.Mgr());
             break;
         }
         case SCMD_NEWUSEROBJECT:
@@ -1618,7 +1618,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 return kScExecErr_Generic;
             }
             DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, arg_size);
-            reg1.SetScriptObject(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj(), ref.Mgr());
             break;
         }
         case SCMD_NEWUSEROBJECT2:
@@ -1637,7 +1637,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             assert(_rtti && !_rtti->IsEmpty());
             const uint32_t global_tid = _typeidLocal2Global->at(arg_typeid);
             DynObjectRef ref = ScriptUserObject::Create(global_tid, arg_size);
-            reg1.SetScriptObject(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj(), ref.Mgr());
             break;
         }
         case SCMD_DYNAMICCAST:
@@ -1797,7 +1797,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             auto &reg1 = _registers[codeOp.Arg1i()];
             const char *ptr = reinterpret_cast<const char*>(reg1.GetDirectPtr());
             DynObjectRef ref = ScriptString::Create(ptr);
-            reg1.SetScriptObject(ref.Obj, &myScriptStringImpl);
+            reg1.SetScriptObject(ref.Obj(), &myScriptStringImpl);
             break;
         }
         case SCMD_STRINGSEQUAL:

@@ -21,9 +21,21 @@ namespace AGS.Types
         {
         }
 
+        public CustomPropertySchema(CustomPropertySchema copyFrom)
+        {
+            CopyFrom(copyFrom);
+        }
+
         public List<CustomPropertySchemaItem> PropertyDefinitions
         {
             get { return _propertyDefinitions; }
+        }
+
+        public void CopyFrom(CustomPropertySchema copyFrom)
+        {
+            _propertyDefinitions.Clear();
+            foreach (var item in copyFrom.PropertyDefinitions)
+                _propertyDefinitions.Add((CustomPropertySchemaItem)item.Clone());
         }
 
         public void FromXml(XmlNode node)

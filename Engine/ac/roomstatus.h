@@ -37,6 +37,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
     kRoomStatSvgVersion_36214    = 3060214, // serialize current room's changes to masks
     kRoomStatSvgVersion_36304    = 3060304, // room object's blocking rect x,y
+    kRoomStatSvgVersion_36310    = 3060310, // audio panning and speed
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
     kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
     kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas
@@ -45,7 +46,8 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
     kRoomStatSvgVersion_40024    = 4000024, // sync with kRoomStatSvgVersion_36214
     kRoomStatSvgVersion_40026    = 4000026, // sync with kRoomStatSvgVersion_36304
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40024
+    kRoomStatSvgVersion_40028    = 4000028, // sync with kRoomStatSvgVersion_36310
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40028
 };
 
 struct HotspotState

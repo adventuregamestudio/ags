@@ -423,7 +423,7 @@ void unload_old_room()
 
     // clear the draw caches to save memory, since many of the the involved
     // objects probably aren't on the new screen
-    clear_drawobj_cache();
+    clear_drawobj_cache(true /* keep object callbacks */);
 
     // if Hide Player Character was ticked, restore it to visible
     if (play.temporarily_turned_off_character >= 0) {

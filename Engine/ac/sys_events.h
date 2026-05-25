@@ -102,7 +102,9 @@ void ags_dispose_userevent(const SDL_Event &evt);
 void ags_drop_next_inputevent();
 // Tells if the key is currently down, provided AGS key.
 // NOTE: for particular script codes this function returns positive if either of two keys are down.
-int ags_iskeydown(eAGSKeyCode ags_key);
+bool ags_iskeydown(eAGSKeyCode ags_key);
+// Tells whether any key is currently down
+bool ags_isanykeydown();
 // Simulates key press with the given AGS key
 void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle);
 
@@ -117,6 +119,8 @@ extern bool sys_modkeys_fired; // tells whether mod combination had been used fo
 eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut);
 // Tells if the mouse button is currently down
 bool ags_misbuttondown(eAGSMouseButton but);
+// Tells if any of the mouse buttons is currently down
+bool ags_misanybuttondown();
 // Returns recent relative mouse movement; resets accumulated values
 void ags_mouse_acquire_relxy(int &x, int &y);
 // Updates mouse cursor position in game

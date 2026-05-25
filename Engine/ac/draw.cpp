@@ -60,6 +60,7 @@
 #include "gfx/blender.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "util/delegate.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
@@ -83,6 +84,24 @@ extern int mouse_hotx, mouse_hoty;
 extern int bg_just_changed;
 
 
+// SpriteNotifyControl is used to report dynamic sprite change (or deletion)
+// to all of its users. This report is done two ways:
+// 1. By resetting a "notification mark", which is simply a shared integer
+// holding sprite's ID. When it's reset to "invalid value" that signifies
+// that the sprite just got edited or removed.
+// 2. By broadcasting a "sprite updated" event through the delegate object.
+struct SpriteNotifyControl
+{
+    ObjectDelegate<ISpriteUser, sprkey_t> SpriteUpdated;
+    std::shared_ptr<uint32_t> NotifyMark;
+
+    SpriteNotifyControl(uint32_t sprite_id)
+        : NotifyMark(new uint32_t(sprite_id)) { }
+
+    SpriteNotifyControl(std::shared_ptr<uint32_t> notify_mark)
+        : NotifyMark(notify_mark) { }
+};
+
 // TODO: refactor the draw unit into a virtual interface with
 // two implementations: for software and video-texture render,
 // instead of checking whether the current method is "software".
@@ -102,8 +121,8 @@ struct DrawState
     // Next allocated DrawIndex index
     uint32_t NextDrawIndex = 0u;
 
-    // A map of shared "control blocks" per each sprite used
-    // when preparing object textures. "Control block" is currently just
+    // A map of "control blocks" per each sprite which is used when preparing
+    // object textures. "Control block" contains ......... fixme
     // an integer which lets to check whether the object texture is in sync
     // with the sprite. When the dynamic sprite is updated or deleted,
     // the control block is marked as invalid and removed from the map;
@@ -114,7 +133,7 @@ struct DrawState
     // "shared texture" with sprite ID ref in Software renderer too,
     // which would allow to use same method of testing DDB ID for both
     // kinds of renderers, thus saving on 1 extra notification mechanism.
-    std::unordered_map<sprkey_t, std::shared_ptr<uint32_t>>
+    std::unordered_map<sprkey_t, SpriteNotifyControl>
         SpriteNotifyMap;
 };
 
@@ -145,7 +164,7 @@ struct ObjTexture
     std::unique_ptr<Bitmap> TempBmp[2];
     // Corresponding texture, created by renderer
     IDriverDependantBitmap *Ddb = nullptr;
-    // Sprite notification block: becomes invalid to notify an updated
+    // Sprite notification mark: becomes invalid to notify an updated
     // or deleted sprite
     std::shared_ptr<uint32_t> SpriteNotify;
     // Sprite's position
@@ -718,7 +737,7 @@ extern void dispose_engine_overlay();
 
 void dispose_game_drawdata()
 {
-    clear_drawobj_cache();
+    clear_drawobj_cache(false /* reset everything */);
 
     charcache.clear();
     actsps.clear();
@@ -745,7 +764,7 @@ void dispose_room_drawdata()
     dispose_invalid_regions(true);
 }
 
-void clear_drawobj_cache()
+void clear_drawobj_cache(bool keep_sprite_callbacks)
 {
     // clear the character cache
     for (auto &cc : charcache)
@@ -778,7 +797,20 @@ void clear_drawobj_cache()
     cursor_tx = ObjTexture();
 
     // Clear sprite update notification blocks
-    drawstate.SpriteNotifyMap.clear();
+    if (keep_sprite_callbacks)
+    {
+        std::unordered_map<sprkey_t, SpriteNotifyControl> clean_map;
+        for (const auto &n : drawstate.SpriteNotifyMap)
+        {
+            if (n.second.SpriteUpdated)
+                clean_map.insert(n);
+        }
+        drawstate.SpriteNotifyMap = std::move(clean_map);
+    }
+    else
+    {
+        drawstate.SpriteNotifyMap.clear();
+    }
 
     dispose_debug_room_drawdata();
 }
@@ -1023,6 +1055,51 @@ void reset_drawobj_for_overlay(int objnum)
     }
 }
 
+uint32_t add_sprite_changed_callback(int sprnum, ISpriteUser *user)
+{
+    // don't register this callback if sprite does not exist, or if it's not dynamic
+    if (!spriteset.DoesSpriteExist(sprnum) || !game.SpriteInfos[sprnum].IsDynamicSprite())
+        return 0u;
+
+    SpriteNotifyControl *notify_ctrl;
+    auto it_notify = drawstate.SpriteNotifyMap.find(sprnum);
+    if (it_notify != drawstate.SpriteNotifyMap.end())
+        notify_ctrl = &it_notify->second;
+    else
+        notify_ctrl = &drawstate.SpriteNotifyMap.insert(std::make_pair(sprnum, sprnum)).first->second;
+    return notify_ctrl->SpriteUpdated.Add(user, &ISpriteUser::OnSpriteUpdate);
+}
+
+void remove_sprite_changed_callback(int sprnum, ISpriteUser *user)
+{
+    // don't register this callback if sprite does not exist, or if it's not dynamic
+    if (!spriteset.DoesSpriteExist(sprnum) || !game.SpriteInfos[sprnum].IsDynamicSprite())
+        return;
+
+    auto it_notify = drawstate.SpriteNotifyMap.find(sprnum);
+    if (it_notify != drawstate.SpriteNotifyMap.end())
+    {
+        it_notify->second.SpriteUpdated.Remove(user);
+    }
+}
+
+void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser *user)
+{
+    // NOTE: keep in mind that, because of how dynamic sprites are referenced in script,
+    // new dynamic sprites may accidentally get same IDs as previously deleted ones,
+    // so we cannot tell that if sprite numbers are equal then it's the same sprite.
+    if ((old_sprnum != new_sprnum) && (old_sprnum > 0))
+    {
+        remove_sprite_changed_callback(old_sprnum, user);
+    }
+
+    // NOTE: add_sprite_changed_callback will not add the same callback twice, so it's safe to call always
+    if (spriteset.DoesSpriteExist(new_sprnum) && game.SpriteInfos[new_sprnum].IsDynamicSprite())
+    {
+        add_sprite_changed_callback(new_sprnum, user);
+    }
+}
+
 void notify_sprite_changed(int sprnum, bool deleted)
 {
     assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < game.SpriteInfos.size());
@@ -1033,18 +1110,38 @@ void notify_sprite_changed(int sprnum, bool deleted)
         update_shared_texture(sprnum);
 
     // For texture-based renderers updating a shared texture will already
-    // update all the related drawn objects on screen; software renderer
-    // will need to know to redraw active cached sprite for objects.
-    // We have this notification for both kinds of renderers though,
-    // because it makes the code simpler, and also it makes it simpler to
-    // notify texture-based ones in a specific case when a deleted sprite
-    // was replaced by another of same ID.
+    // update all the related drawn objects on screen. But there are still
+    // few cases where that won't be enough:
+    // 1. Software renderer, currently does not use shared texture objects,
+    // so won't be able to detect that anything have changed.
+    // (This maybe can be resolved, syncing how software mode DDBs work with
+    // real texture-based ones)
+    // 2. There are still objects, such as GUIs and GUI controls, which
+    // do not pass sprites directly to the renderer, but blit them onto the
+    // intermediate images first. For these we need a direct notification
+    // mechanism, via callbacks, that would let them mark themselves as
+    // modified. E.g. inventory windows would need to be redrawn whenever
+    // a dynamic sprite assigned as a inventory item's graphic was edited.
+    // 3. Following notification mechanism also makes it simpler to
+    // notify texture-based renderers in a specific case when a deleted
+    // sprite was replaced by another of same ID.
     {
         auto it_notify = drawstate.SpriteNotifyMap.find(sprnum);
         if (it_notify != drawstate.SpriteNotifyMap.end())
         {
-            *it_notify->second = UINT32_MAX;
-            drawstate.SpriteNotifyMap.erase(sprnum);
+            if (it_notify->second.NotifyMark)
+                *it_notify->second.NotifyMark = UINT32_MAX; // set notification mark
+            it_notify->second.NotifyMark.reset(); // detach the notification mark
+            it_notify->second.SpriteUpdated(sprnum); // run callback
+
+            // NOTE: only erase the notification object here if there are no registered
+            // callbacks left. Unfortunately, the mechanics of dynamic sprites in the
+            // engine are such that if a old sprite got deleted and a new one created
+            // immediately after, then there's a chance that it will get same ID.
+            // Many games have a oversight where they do not reassign a new sprite
+            // to an object, but it gets "hooked up" having accidentally same ID.
+            if (deleted && !it_notify->second.SpriteUpdated)
+                drawstate.SpriteNotifyMap.erase(it_notify); // remove the control entry
         }
     }
 }
@@ -1417,14 +1514,19 @@ static void sync_object_texture(ObjTexture &obj, bool opaque = false)
         if (!obj.SpriteNotify || (*obj.SpriteNotify != obj.SpriteID))
         {
             auto it_notify = drawstate.SpriteNotifyMap.find(obj.SpriteID);
-            if (it_notify != drawstate.SpriteNotifyMap.end())
-            { // assign existing
-                obj.SpriteNotify = it_notify->second;
-            }
-            else
-            { // if does not exist, then create and share one
+            if (it_notify == drawstate.SpriteNotifyMap.end())
+            { // if control entry does not exist, then create and share one
                 obj.SpriteNotify = std::make_shared<uint32_t>(obj.SpriteID);
                 drawstate.SpriteNotifyMap.insert(std::make_pair(obj.SpriteID, obj.SpriteNotify));
+            }
+            else if (!it_notify->second.NotifyMark)
+            { // if control entry exists, but mark is not allocated, then create one
+                it_notify->second.NotifyMark = std::make_shared<uint32_t>(obj.SpriteID);
+                obj.SpriteNotify = it_notify->second.NotifyMark;
+            }
+            else
+            { // if control entry exists and mark allocated, then use one
+                obj.SpriteNotify = it_notify->second.NotifyMark;
             }
         }
     }

@@ -33,8 +33,8 @@ size_t ScriptDictBase::CalcSerializeSize(const void* /*address*/)
 
 void ScriptDictBase::Serialize(const void* /*address*/, Stream *out)
 {
-    out->WriteInt32(IsSorted());
-    out->WriteInt32(IsCaseSensitive());
+    out->WriteInt32(GetSortStyle());
+    out->WriteInt32(GetStringCompareStyle());
     SerializeContainer(out);
 }
 

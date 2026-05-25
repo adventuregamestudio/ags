@@ -380,6 +380,11 @@ namespace AGS.Editor
                 }
             }
 
+            if ((xmlVersionIndex < 3060310) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS))
+            {
+                game.Settings.GameTextLanguage = string.Empty;
+            }
+
             //-----------------------------------------------------------------
             // v4.0 updates
             //-----------------------------------------------------------------

@@ -18,9 +18,11 @@
 #ifndef __AGS_CN_UTIL__DIRECTORY_H
 #define __AGS_CN_UTIL__DIRECTORY_H
 
+#include <locale>
 #include <memory>
 #include <regex>
 #include <stack>
+#include <stdexcept>
 #include <vector>
 #include "platform/platform.h"
 #include "util/string.h"
@@ -234,10 +236,26 @@ struct FileEntryEqByName
 
 struct FileEntryEqByNameCI
 {
-     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
     {
-        return fe1.Name.CompareNoCase(fe2.Name) == 0;
+        // We assume that filenames are in utf-8 always
+        return fe1.Name.CompareUtf8NoCase(fe2.Name) == 0;
     }
+};
+
+struct FileEntryEqByNameAuto
+{
+    FileEntryEqByNameAuto(std::unique_ptr<IStrCmp> &&cmp_impl)
+        : _cmpImpl(std::move(cmp_impl)) {}
+
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return _cmpImpl->operator()(fe1.Name, fe2.Name) == 0;
+    }
+
+private:
+    // It's shared ptr, because STL requires a copy constructor for predicates
+    std::shared_ptr<IStrCmp> _cmpImpl;
 };
 
 struct FileEntryCmpByName
@@ -252,8 +270,24 @@ struct FileEntryCmpByNameCI
 {
     bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
     {
-        return fe1.Name.CompareNoCase(fe2.Name) < 0;
+        // We assume that filenames are in utf-8 always
+        return fe1.Name.CompareUtf8NoCase(fe2.Name) < 0;
     }
+};
+
+struct FileEntryCmpByNameAuto
+{
+    FileEntryCmpByNameAuto(std::unique_ptr<IStrCmp> &&cmp_impl)
+        : _cmpImpl(std::move(cmp_impl)) {}
+
+    bool operator()(const FileEntry &fe1, const FileEntry &fe2) const
+    {
+        return _cmpImpl->operator()(fe1.Name, fe2.Name) < 0;
+    }
+
+private:
+    // It's shared ptr, because STL requires a copy constructor for predicates
+    std::shared_ptr<IStrCmp> _cmpImpl;
 };
 
 struct FileEntryCmpByTime

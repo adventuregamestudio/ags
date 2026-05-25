@@ -155,6 +155,13 @@ Common::Bitmap *get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
+int AddNewSprite(AGSBitmap *sprit, int flags)
+{
+    int slot = spriteset.AddSprite(std::unique_ptr<AGSBitmap>(sprit), flags);
+    spritesModified = true;
+    return slot;
+}
+
 void SetNewSprite(int slot, std::unique_ptr<AGSBitmap> &&sprit, int flags)
 {
   // safety check
@@ -207,10 +214,6 @@ int GetSpriteColorDepth(int slot) {
 
 int GetPaletteAsHPalette() {
   return (int)convert_palette_to_hpalette(palette);
-}
-
-int find_free_sprite_slot() {
-  return spriteset.GetFreeIndex();
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {
@@ -1374,12 +1377,6 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
   }
 
   set_palette_range(palette, 0, 255, 0);
-  
-  if ((rs.BgFrames[0].Graphic->GetColorDepth() > 8) &&
-      (thisgame.color_depth == 1))
-  {
-      MessageBox(NULL, "WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
-  }
 
   validate_mask(rs.HotspotMask.get(), get_mask_name(kRoomAreaHotspot), MAX_ROOM_HOTSPOTS);
   validate_mask(rs.WalkBehindMask.get(), get_mask_name(kRoomAreaWalkBehind), MAX_WALK_AREAS);
@@ -2206,13 +2203,25 @@ AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int destColorDepth, 
     return tempsprite;
 }
 
-AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, int transColour,
+AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap ^bmp, int spriteImportMethod, int transColour,
     bool remapColours, bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
-    return CreateNativeBitmap(bmp, 0, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel, out_flags);
+    return CreateNativeBitmap(bmp, 0, spriteImportMethod, transColour, remapColours,
+        useRoomBackgroundColours, alphaChannel, out_flags);
 }
 
-void SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp,
+SpriteImportResult AddNewSpriteFromBitmap(System::Drawing::Bitmap^ bmp, int destColorDepth,
+    int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+{
+    int flags;
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, &flags);
+
+    int slot = AddNewSprite(tempsprite, flags);
+    return SpriteImportResult(slot);
+}
+
+SpriteImportResult SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp,
     int destColorDepth, int spriteImportMethod, int transColour,
     bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
@@ -2220,6 +2229,7 @@ void SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp,
     std::unique_ptr<AGSBitmap> tempsprite(CreateNativeBitmap(bmp, destColorDepth, spriteImportMethod, transColour,
         remapColours, useRoomBackgroundColours, alphaChannel, &flags));
     SetNewSprite(slot, std::move(tempsprite), flags);
+    return SpriteImportResult(slot);
 }
 
 void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)

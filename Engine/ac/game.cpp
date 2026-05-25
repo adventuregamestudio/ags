@@ -723,6 +723,16 @@ ScriptSaveGameSortStyle ValidateSaveGameSort(const char *apiname, int save_sort)
     return static_cast<ScriptSaveGameSortStyle>(save_sort);
 }
 
+ScriptSortStyle ValidateSortStyle(const char *apiname, int sort_style)
+{
+    if (sort_style < kScNotSorted || sort_style > kScSorted)
+    {
+        debug_script_warn("%s: invalid sort style (%d)", apiname, sort_style);
+        return kScNotSorted;
+    }
+    return static_cast<ScriptSortStyle>(sort_style);
+}
+
 ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir)
 {
     if (sort_dir < kScSortNone || sort_dir > kScSortDescending)
@@ -731,6 +741,16 @@ ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir)
         return kScSortNone;
     }
     return static_cast<ScriptSortDirection>(sort_dir);
+}
+
+ScriptStringComparison ValidateStringComparison(const char* apiname, int compare_style)
+{
+    if (compare_style < kScCaseInsensitive || compare_style > kScCaseSensitiveLocaleAware)
+    {
+        debug_script_warn("%s: invalid case sensitivity (%d)", apiname, compare_style);
+        return kScCaseInsensitive;
+    }
+    return static_cast<ScriptStringComparison>(compare_style);
 }
 
 bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot)
@@ -1156,7 +1176,7 @@ const char* Game_GetRoomName(int room_number)
 void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir)
 {
     if (!ValidateSaveSlotRange("Game.GetSaveSlots", min_slot, max_slot))
-        return CCDynamicArray::CreateOld(0, sizeof(int32_t), false).Obj;
+        return CCDynamicArray::CreateOld(0, sizeof(int32_t), false).Obj();
     save_sort = ValidateSaveGameSort("Game.GetSaveSlots", save_sort);
     sort_dir = ValidateSortDirection("Game.GetSaveSlots", sort_dir);
 
@@ -1164,10 +1184,10 @@ void *Game_GetSaveSlots(int min_slot, int max_slot, int save_sort, int sort_dir)
     FillSaveList(saves, min_slot, max_slot, false /* no desc */, (ScriptSaveGameSortStyle)save_sort, (ScriptSortDirection)sort_dir);
 
     DynObjectRef arr = CCDynamicArray::CreateOld(saves.size(), sizeof(int32_t), false);
-    int32_t *arr_ptr = static_cast<int32_t*>(arr.Obj);
+    int32_t *arr_ptr = static_cast<int32_t*>(arr.Obj());
     for (const auto &save : saves)
         *(arr_ptr++) = save.Slot;
-    return arr.Obj;
+    return arr.Obj();
 }
 
 extern void prescan_saves(int *dest_arr, size_t dest_count, int min_slot, int max_slot, int file_sort, int sort_dir);
@@ -1747,36 +1767,6 @@ void game_sprite_updated(int sprnum, bool deleted)
 {
     // Notify draw system about dynamic sprite change
     notify_sprite_changed(sprnum, deleted);
-
-    // GUI still have a special draw route, so cannot rely on object caches;
-    // will have to do a per-GUI and per-control check.
-    // TODO: devise a way to speed this iteration up, perhaps link GUI objects
-    // to the sprite notification block somehow, etc...?
-    //
-    // gui backgrounds
-    for (auto &gui : guis)
-    {
-        if (gui.GetBgImage() == sprnum)
-        {
-            gui.MarkChanged();
-        }
-    }
-    // gui buttons
-    for (auto &but : guibuts)
-    {
-        if (but.GetCurrentImage() == sprnum)
-        {
-            but.MarkChanged();
-        }
-    }
-    // gui sliders
-    for (auto &slider : guislider)
-    {
-        if ((slider.GetBgImage() == sprnum) || (slider.GetHandleImage() == sprnum))
-        {
-            slider.MarkChanged();
-        }
-    }
 }
 
 void precache_view(int view, int first_loop, int last_loop, bool with_sounds)

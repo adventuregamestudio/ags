@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/slider.h"
 #include "ac/common.h"
+#include "ac/draw.h"
 #include "debug/debug_log.h"
 
 using namespace AGS::Common;
@@ -47,7 +48,10 @@ int Slider_GetBackgroundGraphic(GUISlider *guisl) {
 
 void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage) 
 {
+    const int old_image = guisl->GetBgImage();
     guisl->SetBgImage(newImage);
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_image, newImage, guisl);
 }
 
 int Slider_GetBorderShadeColor(GUISlider *guisl)
@@ -76,7 +80,10 @@ int Slider_GetHandleGraphic(GUISlider *guisl) {
 
 void Slider_SetHandleGraphic(GUISlider *guisl, int newImage) 
 {
+    const int old_image = guisl->GetHandleImage();
     guisl->SetHandleImage(newImage);
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_image, newImage, guisl);
 }
 
 int Slider_GetHandleOffset(GUISlider *guisl) {

@@ -2998,5 +2998,80 @@ namespace AGS.Editor.Components
             }
         }
         #endregion // Upgrade Crm Format To Open Format
+
+        private struct ModifyRoomParameters
+        {
+            internal Action<Room, CompileMessages> ModifyAction { get; set; }
+            internal bool ModifyScript { get; set; }
+            internal CompileMessages Errors { get; set; }
+
+            internal ModifyRoomParameters(Action<Room, CompileMessages> action, bool modifyScript, CompileMessages errors)
+            {
+                ModifyAction = action;
+                ModifyScript = modifyScript;
+                Errors = errors;
+            }
+        }
+
+        public bool ModifyAllRooms(Action<Room, CompileMessages> modifyAction, bool modifyScript)
+        {
+            CompileMessages errors = new CompileMessages();
+            if (_loadedRoom != null)
+            {
+                if (!SaveRoomIfModifiedAndShowErrors(_loadedRoom, _roomSettings?.Control as RoomSettingsEditor))
+                    return false; // no changes were made
+
+                UnloadCurrentRoomAndGreyOutTree();
+            }
+
+            try
+            {
+                BusyDialog.Show("Please wait while the necessary operations are performed...", new BusyDialog.ProcessingHandler(ModifyRoomsOnThread),
+                    new ModifyRoomParameters(modifyAction, modifyScript, errors));
+            }
+            catch (AGSEditorException ex)
+            {
+                errors.Add(new CompileError(ex.Message, ex));
+            }
+
+            if (errors.Count > 0)
+            {
+                if (errors.HasErrors)
+                    _guiController.ShowMessage("There have been errors while trying to perform necessary operations over rooms. Refer to the output panel for more details.", MessageBoxIcon.Warning);
+                _guiController.ShowOutputPanel(errors);
+            }
+
+            // Assume that some changes were made
+            return true;
+        }
+
+        private object ModifyRoomsOnThread(IWorkProgress progress, object parameter)
+        {
+            ModifyRoomParameters modifyRoom = (ModifyRoomParameters)parameter;
+            progress.Total = _agsEditor.CurrentGame.Rooms.Count;
+            progress.Current = 0;
+            foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
+            {
+                Room room = LoadRoomAsTemporary(unloadedRoom, modifyRoom.Errors, modifyRoom.ModifyScript);
+
+                if (room != null)
+                {
+                    CompileMessages roomErrors = new CompileMessages();
+                    modifyRoom.ModifyAction.Invoke(room, roomErrors);
+                    if (!roomErrors.HasErrors && room.Modified)
+                    {
+                        // Save room script too, in case it was modified on a room upgrade, for instance
+                        if (modifyRoom.ModifyScript)
+                            room.Script.SaveToDisk();
+                        SaveRoomDirectly(room, compileRoom: false, errors: roomErrors);
+                        room.Modified = false;
+                    }
+                    UnloadRoom(room);
+                }
+
+                progress.Current++;
+            }
+            return null;
+        }
     }
 }

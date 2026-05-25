@@ -305,6 +305,7 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 // input events for our internal use whenever engine have to query player input.
 static std::deque<SDL_Event> g_inputEvtQueue;
 
+int sys_keydown_count = 0; // counter of keys pressed down
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
@@ -366,7 +367,7 @@ void ags_drop_next_inputevent()
     }
 }
 
-int ags_iskeydown(eAGSKeyCode ags_key)
+bool ags_iskeydown(eAGSKeyCode ags_key)
 {
     // old input handling: update key state in realtime
     // left only in case if necessary for some ancient game, but
@@ -378,8 +379,13 @@ int ags_iskeydown(eAGSKeyCode ags_key)
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
-        return 0;
+        return false;
     return (state[scan[0]] || state[scan[1]] || state[scan[2]]);
+}
+
+bool ags_isanykeydown()
+{
+    return sys_keydown_count > 0;
 }
 
 void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
@@ -411,12 +417,16 @@ static void on_sdl_key_down(const SDL_Event &event)
     // Engine is not structured very well yet, and we cannot pass this event where it's needed;
     // instead we save it in the queue where it will be ready whenever any component asks for one.
     g_inputEvtQueue.push_back(event);
+    if (event.key.repeat == 0)
+        sys_keydown_count++;
 }
 
 static void on_sdl_key_up(const SDL_Event &event)
 {
     // Key up events are only used for reacting on mod key combinations at the moment.
     g_inputEvtQueue.push_back(event);
+    if (event.key.repeat == 0)
+        sys_keydown_count--;
 }
 
 static void on_sdl_textinput(const SDL_Event &event)
@@ -499,6 +509,11 @@ static int mouse_z_was = 0;
 bool ags_misbuttondown(eAGSMouseButton but)
 {
     return (mouse_button_state & MouseButton2Bits[but]) != 0;
+}
+
+bool ags_misanybuttondown()
+{
+    return mouse_button_state != 0;
 }
 
 static void send_mouse_button_event(int evt_type, int device, int button, int x, int y)
@@ -1037,6 +1052,7 @@ void ags_clear_input_state()
         ags_dispose_userevent(g_inputEvtQueue.front());
         g_inputEvtQueue.pop_front();
     }
+    sys_keydown_count = 0;
     sys_modkeys = 0;
     sys_modkeys_fired = false;
     mouse_button_state = 0;

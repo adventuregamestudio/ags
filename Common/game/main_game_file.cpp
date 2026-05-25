@@ -375,6 +375,10 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
         game.inv_hot_color = RemapFromLegacyColourNumber(game, game.inv_hot_color);
         game.inv_hot_cross_color = RemapFromLegacyColourNumber(game, game.inv_hot_cross_color);
     }
+    if (game.GameInfo.count("text_lang") > 0)
+    {
+        game.GameTextLanguage = game.GameInfo["text_lang"];
+    }
 }
 
 void UpgradeDialogs(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)

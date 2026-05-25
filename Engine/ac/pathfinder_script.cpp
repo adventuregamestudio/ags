@@ -51,7 +51,7 @@ void *Pathfinder_FindPath(ScriptPathfinder *pathfind, int srcx, int srcy, int ds
     if (path.empty())
         return nullptr;
 
-    return ScriptStructHelpers::CreateArrayOfPoints(path).Obj;
+    return ScriptStructHelpers::CreateArrayOfPoints(path).Obj();
 }
 
 ScriptUserObject *Pathfinder_Trace(ScriptPathfinder *pathfind, int srcx, int srcy, int dstx, int dsty)
@@ -148,7 +148,7 @@ ScriptMotionPath *MotionPath_Create(void *path_arr, float speedx, float speedy, 
     Pathfinding::CalculateMoveList(mlist, path, speedx, speedy, 0u,
         RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     return static_cast<ScriptMotionPath*>(
-        ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj);
+        ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj());
 }
 
 ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *speedy_arr, int repeat, int direction)
@@ -185,7 +185,7 @@ ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *spe
     Pathfinding::CalculateMoveList(mlist, path, speeds, 0u,
         RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
     return static_cast<ScriptMotionPath *>(
-        ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj);
+        ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj());
 }
 
 static bool ValidateMoveList(const char *api_name, ScriptMotionPath *mpath)
@@ -219,7 +219,7 @@ void *MotionPath_GetPath(ScriptMotionPath *mpath)
 {
     if (!ValidateMoveList("MotionPath.GetPath", mpath))
         return nullptr;
-    return ScriptStructHelpers::CreateArrayOfPoints(mpath->GetMoveList()->pos).Obj;
+    return ScriptStructHelpers::CreateArrayOfPoints(mpath->GetMoveList()->pos).Obj();
 }
 
 void MotionPath_StepBack(ScriptMotionPath *mpath)

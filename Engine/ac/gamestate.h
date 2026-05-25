@@ -181,7 +181,8 @@ struct GamePlayState
     int   player_on_region = 0;     // player's current region
     int   screen_is_faded_out = 0;  // the screen is currently black
     int   check_interaction_only = 0;
-    int   bg_frame,bg_anim_delay = 0; // for animating backgrounds
+    int   bg_frame = 0; // for animating backgrounds
+    int   bg_anim_delay = 0;
     short wait_counter = 0;
     char  wait_skipped_by = 0;      // tells how last blocking wait was skipped [not serialized]
     int   wait_skipped_by_data = 0; // extended data telling how last blocking wait was skipped [not serialized]
@@ -240,13 +241,13 @@ struct GamePlayState
     short new_music_queue_size = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
     char  lastParserEntry[MAX_MAXSTRLEN]{};
-    AGS::Common::String game_name;
+    Common::String game_name;
     int   ground_level_areas_disabled = 0;
     int   next_screen_transition = 0;
     int   gamma_adjustment = 0;
     short temporarily_turned_off_character = 0;  // Hide Player Charactr ticked
     std::vector<int> gui_draw_order; // used only for hit detection now
-    std::unordered_set<AGS::Common::String> do_once_tokens;
+    std::unordered_set<Common::String> do_once_tokens;
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
     std::vector<int> default_audio_type_volumes;
@@ -262,7 +263,7 @@ struct GamePlayState
     float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
     // Dynamic custom property values for global game objects
-    std::vector<AGS::Common::StringIMap> charProps;
+    std::vector<Common::StringIMap> charProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
     std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
@@ -303,6 +304,14 @@ struct GamePlayState
 
 
     GamePlayState();
+
+    // Current set game text language; this may be set either by the base game,
+    // or by the loaded translation.
+    const Common::String &GetTextLanguage() const { return _gameTextLanguage; }
+    // Current game texts locale; used for lexographical string comparison.
+    const Common::String &GetTextLocaleName() const { return _localeNameUTF8; }
+
+    void SetGameTextLanguage(const Common::String &language);
 
     //
     // Viewport and camera control.
@@ -454,6 +463,10 @@ struct GamePlayState
 private:
     VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport);
     void UpdateRoomCamera(int index);
+
+    Common::String _gameTextLanguage;
+    // Name of the current used locale for UTF8 text mode
+    Common::String _localeNameUTF8;
 
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport = true;

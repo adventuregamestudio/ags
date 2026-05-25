@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/inventoryitem.h"
 #include "ac/characterinfo.h"
+#include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -39,6 +40,29 @@ extern CharacterInfo*playerchar;
 extern CCInventory ccDynamicInv;
 
 
+// TODO: ideally, it's the InvWindow gui controls that should be reacting
+// to the inventory item looks update. For that we'd probably need to subscribe
+// InvWindow for inventory item change, somehow (or character inventory change).
+class InvItemDynamicSpriteListener : public ISpriteUser
+{
+public:
+    virtual void OnSpriteUpdate(int sprite_num)
+    {
+        // NOTE: we currently don't distinguish whether the item is displayed anywhere or not
+        AGS::Engine::GUIE::MarkInventoryForUpdate(-1, false);
+    }
+} gl_InvItemSpriteListener;
+
+void InvItems_RegisterDynamicSpriteCallbacks()
+{
+    for (int i = 0; i < MAX_INV; ++i)
+    {
+        if (game.invinfo[i].pic > 0)
+            add_sprite_changed_callback(i, &gl_InvItemSpriteListener);
+    }
+}
+
+
 void set_inv_item_pic(int invi, int piccy)
 {
     if ((invi < 1) || (invi > game.numinvitems))
@@ -46,6 +70,11 @@ void set_inv_item_pic(int invi, int piccy)
 
     if (game.invinfo[invi].pic == piccy)
         return;
+
+    const int old_pic = game.invinfo[invi].pic;
+    game.invinfo[invi].pic = piccy;
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_pic, piccy, &gl_InvItemSpriteListener);
 
     game.invinfo[invi].pic = piccy;
     GUIE::MarkInventoryForUpdate(-1, false);

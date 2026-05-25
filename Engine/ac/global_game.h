@@ -14,9 +14,12 @@
 #ifndef __AGS_EE_AC__GLOBALGAME_H
 #define __AGS_EE_AC__GLOBALGAME_H
 
+#include <locale>
+#include <stdexcept>
 #include <time.h>
 #include "ac/runtime_defines.h"
 #include "util/string.h"
+#include "util/string_types.h"
 using namespace AGS; // FIXME later
 
 struct SaveListItem
@@ -50,10 +53,19 @@ struct SaveItemCmpByTime
 
 struct SaveItemCmpByDesc
 {
+    SaveItemCmpByDesc(std::unique_ptr<AGS::Common::IStrCmp> &&cmp_impl)
+        : _cmpImpl(std::move(cmp_impl))
+    {
+    }
+
     bool operator()(const SaveListItem &item1, const SaveListItem &item2) const
     {
-        return item1.Description.Compare(item2.Description) < 0;
+        return _cmpImpl->operator()(item1.Description, item2.Description) < 0;
     }
+
+private:
+    // It's shared ptr, because STL requires a copy constructor for predicates
+    std::shared_ptr<AGS::Common::IStrCmp> _cmpImpl;
 };
 
 
@@ -112,6 +124,7 @@ const char *GetLocationName(int xxx, int yyy);
 void GetLocationNameInBuf(int xxx,int yyy, char *buf);
 
 int IsKeyPressed (int keycode);
+bool IsAnyKeyPressed();
 
 int SaveScreenShot1(const char*namm);
 int SaveScreenShot4(const char *namm, int width, int height, int layers);

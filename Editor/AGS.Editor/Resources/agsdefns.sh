@@ -475,8 +475,16 @@ enum CharacterDirection {
 #ifdef SCRIPT_API_v350
 enum StringCompareStyle
 {
+  // NOTE: these constants values are chosen to be a combination of flags:
+  // - CaseSensitive = 0x1,
+  // - LocaleAware = 0x2
+
   eCaseInsensitive = 0,
-  eCaseSensitive = 1
+  eCaseSensitive = 1,
+#ifdef SCRIPT_API_v363
+  eCaseInsensitiveLocaleAware = 2,
+  eCaseSensitiveLocaleAware = 3,
+#endif // SCRIPT_API_v363
 };
 
 enum SortStyle
@@ -1123,6 +1131,8 @@ builtin struct Mouse {
 #ifdef SCRIPT_API_v363
   /// Gets the active hotspot for the specified mouse cursor.
   import static Point* GetModeHotspot(CursorMode);
+  /// Checks whether any mouse button is currently pressed.
+  import static bool IsAnyButtonDown();
 #endif
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader applied to the mouse cursor.
@@ -1599,6 +1609,10 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 /// Skip current cutscene (if one is currently in progress)
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
+#ifdef SCRIPT_API_v363
+/// Checks whether any key is currently held down
+import bool IsAnyKeyPressed();
+#endif // SCRIPT_API_v363
 
 #ifdef SCRIPT_API_v363
 enum GUIButtonColorStyle {
@@ -1925,6 +1939,8 @@ builtin managed struct ListBox extends GUIControl {
   /// Gets/sets whether the border around the list box is shown.
   import attribute bool ShowBorder;
 #endif // SCRIPT_COMPAT_v363
+  /// Sorts the ListBox in alphabetic order
+  import void SortItems(StringCompareStyle, SortDirection);
   /// Gets/sets whether the clickable scroll arrows are shown.
   import attribute bool ShowScrollArrows;
   /// Gets/sets color of the list item's selection
@@ -2696,8 +2712,10 @@ builtin managed struct Object {
   import attribute int  Scaling;
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
+#ifdef SCRIPT_COMPAT_v363
   /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
   import attribute int  AnimationVolume;
+#endif // SCRIPT_COMPAT_v363
   /// Gets the script name of this object.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
@@ -2716,6 +2734,12 @@ builtin managed struct Object {
   import attribute bool UseRegionTint;
 #endif
 #ifdef SCRIPT_API_v363
+  /// Gets/sets the panning (-100 - +100) of frame-linked sounds for this object.
+  import attribute int  AudioPanning;
+  /// Gets/sets the speed of frame-linked sounds for this object.
+  import attribute int  AudioSpeed;
+  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
+  import attribute int  AudioVolume;
   /// Gets/sets the relative x offset of a blocking area of the object.
   import attribute int  BlockingRectX;
   /// Gets/sets the relative y offset of a blocking area of the object.
@@ -2965,8 +2989,10 @@ builtin managed struct Character {
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
+#ifdef SCRIPT_COMPAT_v363
   /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this character.
   import attribute int  AnimationVolume;
+#endif // SCRIPT_COMPAT_v363
   /// Gets/sets the character's idle animation delay.
   import attribute int  IdleAnimationDelay;
 #endif // SCRIPT_API_v360
@@ -2983,6 +3009,12 @@ builtin managed struct Character {
   readonly import attribute Character* Following;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Gets/sets the panning (-100 - +100) of frame-linked sounds for this character.
+  import attribute int  AudioPanning;
+  /// Gets/sets the speed of frame-linked sounds for this character.
+  import attribute int  AudioSpeed;
+  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this character.
+  import attribute int  AudioVolume;
   /// Gets/sets the relative x offset of a blocking area of the character.
   import attribute int  BlockingRectX;
   /// Gets/sets the relative y offset of a blocking area of the character.
@@ -3479,8 +3511,7 @@ enum SaveComponentSelection
 };
 
 #ifdef SCRIPT_API_v362
-builtin managed struct RestoredSaveInfo
-{
+builtin managed struct RestoredSaveInfo {
   /// Gets/sets whether this game's save should be cancelled.
   import attribute bool Cancel;
   /// Gets/sets whether this game's save should be reloaded again without particular components.
@@ -3533,6 +3564,14 @@ builtin managed struct RestoredSaveInfo
   import readonly attribute int ScriptModuleDataSizes[];
 };
 #endif
+
+#ifdef SCRIPT_API_v363
+builtin struct Utils {
+  import static void SortStrings(String stringArr[], StringCompareStyle, SortDirection);
+  import static void SortInts(int intArr[], SortDirection);
+  import static void SortFloats(float floatArr[], SortDirection);
+};
+#endif // SCRIPT_API_v363
 
 #ifdef SCRIPT_API_v399
 builtin managed struct Joystick {

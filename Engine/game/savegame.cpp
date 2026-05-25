@@ -479,8 +479,8 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
         }
     }
 
-    // Cleanup drawn caches
-    clear_drawobj_cache();
+    // Cleanup draw caches
+    clear_drawobj_cache(false /* reset everything */);
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gamescript->GetGlobalData().size();

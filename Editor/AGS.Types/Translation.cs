@@ -19,6 +19,7 @@ namespace AGS.Types
         private const string SPEECH_FONT_TAG = "SpeechFont";
         private const string TEXT_DIRECTION_TAG = "TextDirection";
         private const string ENCODING_TAG = "Encoding";
+        private const string LANGUAGE_TAG = "Language";
         private const string FONT_OVERRIDE_TAG = "Font";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
@@ -33,6 +34,7 @@ namespace AGS.Types
         private string _encodingHint;
         private Encoding _encoding;
         private string _baseLanguage;
+        private string _language;
         private Dictionary<int, Font> _fontOverrides = new Dictionary<int, Font>();
         private Dictionary<string, TranslationEntry> _translatedEntries;
 
@@ -45,6 +47,7 @@ namespace AGS.Types
             _rightToLeftText = null;
             EncodingHint = "UTF-8";
             _baseLanguage = baseLanguage;
+            _language = "en_US";
         }
 
         public Translation(XmlNode node, string baseLanguage)
@@ -142,6 +145,12 @@ namespace AGS.Types
             get { return _encoding; }
         }
 
+        public string TextLanguage
+        {
+            get { return _language; }
+            set { _language = value; }
+        }
+
         /// <summary>
         /// Contains definitions of font overrides provided for the given font indexes;
         /// these have to be used when this translation is loaded at runtime.
@@ -196,6 +205,8 @@ namespace AGS.Types
                 sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
                 sw.WriteLine("# $Encoding=" + encoding);
                 sw.WriteLine("#  ");
+                sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
+                sw.WriteLine($"//#Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
                 if (_fontOverrides.Count != 0)
                 {
                     WriteFontOverrides(sw);
@@ -510,6 +521,10 @@ namespace AGS.Types
             else if (key == ENCODING_TAG)
             {
                 EncodingHint = value;
+            }
+            else if (key == LANGUAGE_TAG)
+            {
+                TextLanguage = value;
             }
             else if (key.StartsWith(FONT_OVERRIDE_TAG))
             {

@@ -561,6 +561,7 @@
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\ac\touch.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
+    <ClCompile Include="..\..\Engine\ac\utils_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\video_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewport_script.cpp" />

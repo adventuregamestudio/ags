@@ -28,6 +28,62 @@ namespace AGS
 namespace Common
 {
 
+int StrUtil::LexographicalCompare(const String &s1, const String &s2, const char *locale_name)
+{
+    try
+    {
+        const auto loc = (locale_name && *locale_name) ? std::locale(locale_name) : std::locale();
+        const auto &fac_c = std::use_facet<std::collate<char>>(loc);
+        return fac_c.compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(), s2.GetCStr(), s2.GetCStr() + s2.GetLength());
+    }
+    catch (const std::runtime_error&)
+    {
+        return s1.Compare(s2);
+    }
+}
+
+int StrUtil::LexographicalCompareNoCase(const String &s1, const String &s2, const char *locale_name)
+{
+    try
+    {
+        // TODO: find out if there's a way to avoid allocating lowercase strings,
+        // and do collation over original strings instead (does C++ stdlib support that?)
+        const String s1lower = s1.LowerUTF8();
+        const String s2lower = s2.LowerUTF8();
+        const auto loc = (locale_name && *locale_name) ? std::locale(locale_name) : std::locale();
+        const auto &fac_c = std::use_facet<std::collate<char>>(loc);
+        return fac_c.compare(s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(), s2lower.GetCStr() + s2lower.GetLength());
+    }
+    catch (const std::runtime_error&)
+    {
+        return Utf8::StrCmpNoCase(s1.GetCStr(), s2.GetCStr());
+    }
+}
+
+std::unique_ptr<IStrCmp> StrUtil::GetStrCmpImplFor(bool unicode, bool nocase, const char *locale_name)
+{
+    // NOTE: locale_aware only makes sense in unicode mode
+    const bool locale_aware = locale_name != nullptr;
+    if (unicode)
+    {
+        if (nocase)
+            return std::unique_ptr<IStrCmp>(locale_aware ?
+                (IStrCmp*)new StrCmpLexographicalNoCase(locale_name)
+                : new StrCmpUtf8NoCase());
+        else
+            return std::unique_ptr<IStrCmp>(locale_aware ?
+                (IStrCmp*)new StrCmpLexographical(locale_name)
+                : new StrCmpDirect());
+    }
+    else
+    {
+        if (nocase)
+            return std::unique_ptr<IStrCmp>(new StrCmpNoCase());
+        else
+            return std::unique_ptr<IStrCmp>(new StrCmpDirect());
+    }
+}
+
 String StrUtil::IntToString(int d)
 {
     return String::FromFormat("%d", d);
@@ -418,6 +474,43 @@ std::unique_ptr<char[]> StrUtil::Substring(const char *cstr, size_t start, size_
     memcpy(buf.get(), cstr + start, length);
     buf[length] = 0;
     return std::move(buf);
+}
+
+static bool TryUTF8LocaleName(const String &locale_name)
+{
+    try
+    {
+        auto locale = std::locale(locale_name.GetCStr());
+        if (locale_name.CompareNoCase(locale.name().c_str()) == 0)
+            return true;
+    }
+    catch (const std::runtime_error&)
+    {
+    }
+    return false;
+}
+
+String StrUtil::FindCompatibleUTF8LocaleName(const String &lang_name)
+{
+    if (lang_name.IsEmpty())
+        return "";
+
+    String locale_name = lang_name;
+    locale_name.Replace('-', '_');
+    // Try several suffix variants which are commonly supported by the C++ runtime libs
+    String try_locale = String::FromFormat("%s.utf8", locale_name.GetCStr());
+    if (TryUTF8LocaleName(try_locale))
+        return try_locale;
+    try_locale = String::FromFormat("%s.utf-8", locale_name.GetCStr());
+    if (TryUTF8LocaleName(try_locale))
+        return try_locale;
+    try_locale = String::FromFormat("%s.UTF8", locale_name.GetCStr());
+    if (TryUTF8LocaleName(try_locale))
+        return try_locale;
+    try_locale = String::FromFormat("%s.UTF-8", locale_name.GetCStr());
+    if (TryUTF8LocaleName(try_locale))
+        return try_locale;
+    return "";
 }
 
 } // namespace Common

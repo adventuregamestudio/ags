@@ -238,8 +238,8 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
     }
 
     // Sort and remove duplicates
-    std::sort(assets.begin(), assets.end(), StrLessNoCase());
-    assets.erase(std::unique(assets.begin(), assets.end(), StrEqNoCase()), assets.end());
+    std::sort(assets.begin(), assets.end(), StrLessUtf8NoCase());
+    assets.erase(std::unique(assets.begin(), assets.end(), StrEqUtf8NoCase()), assets.end());
 }
 
 void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wildcard,
@@ -292,7 +292,7 @@ void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wild
             for (const auto &fe : lib_fileents)
             {
                 auto it_place = std::upper_bound(assets.begin(), assets.end(), fe, FileEntryCmpByNameCI());
-                if (it_place == assets.begin() || (it_place - 1)->Name.CompareNoCase(fe.Name) != 0)
+                if (it_place == assets.begin() || (it_place - 1)->Name.CompareUtf8NoCase(fe.Name) != 0)
                     assets.insert(it_place, fe);
             }
         }

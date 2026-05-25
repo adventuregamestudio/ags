@@ -38,4 +38,6 @@ const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *prope
 
 void set_inv_item_cursorpic(int invItemId, int piccy);
 
+void InvItems_RegisterDynamicSpriteCallbacks();
+
 #endif // __AGS_EE_AC__INVENTORYITEM_H

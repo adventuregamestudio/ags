@@ -100,12 +100,11 @@ namespace Native
                 int dc_atx, int dc_aty, int dc_width, int dc_height,
                 int text_atx, int text_aty, int max_width, float scaling);
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+			Sprite^ AddSpriteFromBitmap(Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int destColorDepth, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
             Bitmap^ GetSpriteBitmap(int spriteSlot);
             Bitmap^ GetSpriteBitmapAs32Bit(int spriteSlot, int width, int height);
 			void DeleteSprite(int spriteSlot);
-			int  GetFreeSpriteSlot();
             Types::SpriteInfo^ GetSpriteInfo(int spriteSlot);
 			int  GetSpriteWidth(int spriteSlot);
 			int  GetSpriteHeight(int spriteSlot);

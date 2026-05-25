@@ -56,6 +56,7 @@ extern void RegisterStringAPI();
 extern void RegisterSystemAPI();
 extern void RegisterTextBoxAPI();
 extern void RegisterTouchAPI();
+extern void RegisterUtilsAPI();
 extern void RegisterViewFrameAPI();
 extern void RegisterViewportAPI();
 extern void RegisterVideoAPI();
@@ -106,6 +107,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterSystemAPI();
     RegisterTextBoxAPI();
     RegisterTouchAPI();
+    RegisterUtilsAPI();
     RegisterViewFrameAPI();
     RegisterViewportAPI();
     RegisterVideoAPI();

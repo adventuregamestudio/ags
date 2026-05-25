@@ -107,6 +107,7 @@ enum CharacterSvgVersion
     kCharSvgVersion_36115   = 4, // no limit on character name's length
     kCharSvgVersion_36205   = 3060205, // 32-bit "following" parameters
     kCharSvgVersion_36304   = 3060304, // blocking x,y
+    kCharSvgVersion_36310   = 3060310, // audio panning and speed
     kCharSvgVersion_400     = 4000000, // extended graphic effects (blend, rotate,...)
     kCharSvgVersion_400_03  = 4000003, // compat with kCharSvgVersion_36115
     kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
@@ -116,6 +117,8 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_18  = 4000018, // shaders
     kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
     kCharSvgVersion_400_26  = 4000026, // sync with kCharSvgVersion_36304
+    kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
+    kCharSvgVersion_Current = kCharSvgVersion_400_28
 };
 
 // Character event indexes

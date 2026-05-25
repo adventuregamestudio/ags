@@ -169,6 +169,12 @@ bool GUIMain::IsInteractableAt(int x, int y) const
     return ((pt.X >= 0) && (pt.Y >= 0) && (pt.X < _width) && (pt.Y < _height));
 }
 
+void GUIMain::OnSpriteUpdate(int sprite_num)
+{
+    if (_bgImage == sprite_num)
+        MarkChanged();
+}
+
 void GUIMain::MarkControlChanged()
 {
     _hasControlsChanged = true;

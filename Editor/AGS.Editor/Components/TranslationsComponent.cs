@@ -157,9 +157,11 @@ namespace AGS.Editor.Components
 
         private void WriteExtStrOptions(BinaryWriter bw, Translation translation, CompileMessages errors)
         {
-            bw.Write((int)1); // size of key/value table
+            bw.Write((int)2); // size of key/value table
             DataFileWriter.FilePutString("encoding", bw);
             DataFileWriter.FilePutString(translation.EncodingHint, bw);
+            DataFileWriter.FilePutString("language", bw);
+            DataFileWriter.FilePutString(translation.TextLanguage, bw);
         }
         
         private void WriteExtFontOverrides(BinaryWriter bw, Translation translation, CompileMessages errors)

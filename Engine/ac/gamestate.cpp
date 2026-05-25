@@ -42,6 +42,20 @@ GamePlayState::GamePlayState()
 {
 }
 
+void GamePlayState::SetGameTextLanguage(const String &language)
+{
+    _gameTextLanguage = language;
+    if (get_uformat() == U_UTF8)
+    {
+        _localeNameUTF8 = StrUtil::FindCompatibleUTF8LocaleName(language.GetCStr());
+    }
+    else
+    {
+        _localeNameUTF8 = "";
+    }
+    GUI::Context.TextLocaleName = _localeNameUTF8;
+}
+
 bool GamePlayState::IsAutoRoomViewport() const
 {
     return _isAutoRoomViewport;

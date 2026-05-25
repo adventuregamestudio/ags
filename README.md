@@ -18,11 +18,11 @@ Please be aware that, unlike the runtime engine, AGS Editor is only supported on
 
 ## Branches and releases
 
-The [`master`][master-br] branch is where the next planned version is being developed. It may temporarily contain unstable or untested code.
+The [`master`][master-br] branch is where the next planned version is being developed. It may temporarily contain unstable or untested code.
 
-Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, system support, and performance. Changes to data formats and game script should be kept to a strict minimum necessary to fill in the critical gaps in the engine's functionality.
+Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, system support, and performance. Changes to data formats and game script should be kept to a strict minimum necessary to fill in the critical gaps in the engine's functionality.
 
-There's an [`ags4`][ags4-br] branch also active where we develop a future version AGS 4.0. There we introduce greater changes and cut much of the old version support.
+There's an [`ags4`][ags4-br] branch also active where we develop a future version AGS 4.0. There we introduce greater changes and cut much of the old version support.
 
 According to our plans, in the future `master` branch will be merged with `ags4`, while the backward compatible generation will remain as the `ags3` branch and only receive fixes and minor enhancements. But there's still some work to do in AGS 3.\*, so the exact moment that happens is unknown.
 
@@ -55,7 +55,7 @@ For Android, we have a game launcher app that may run any game, but it's also po
 
 Game configuration is usually found in the `acsetup.cfg` file. On Windows you may also invoke a setup dialog by running the engine with `--setup` argument.
 
-For the list of available config options and command-line arguments, please refer to [OPTIONS.md](OPTIONS.md).
+For the list of available config options and command-line arguments, please refer to [OPTIONS.md](OPTIONS.md).
 
 AGS Editor is currently only supported on Windows, although it may be run using Wine on Linux and OSX.
 

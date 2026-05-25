@@ -614,6 +614,14 @@ void GUIButton::SetDefaultLooksFor363()
     UpdateCurrentImage();
 }
 
+void GUIButton::OnSpriteUpdate(int sprite_num)
+{
+    // Only mark changed if the current image is notified about,
+    // because button will redraw itself anyway when changed to another state
+    if (_currentImage == sprite_num)
+        MarkChanged();
+}
+
 void GUIButton::OnColorsChanged()
 {
     UpdateCurrentImage();

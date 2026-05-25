@@ -165,8 +165,7 @@ namespace AGS.Editor
         {
             lock (_spriteSetLock)
             {
-                int spriteSlot = _native.GetFreeSpriteSlot();
-                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)dstColorDepth, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
+                return _native.AddSpriteFromBitmap(bmp, (int)dstColorDepth, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
             }
         }
 

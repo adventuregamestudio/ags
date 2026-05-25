@@ -2086,6 +2086,8 @@ namespace AGS.Editor
             gameinfo.Add("genre", ents.Game.Settings.Genre);
             gameinfo.Add("release_date", ents.Game.Settings.ReleaseDate.ToString("dd.MM.yyyy"));
             gameinfo.Add("version", ents.Game.Settings.Version);
+            // following is not quite meta-data, but it was easier to add here, than to make a separate extension
+            gameinfo.Add("text_lang", ents.Game.Settings.GameTextLanguage.Replace('-', '_'));
 
             writer.Write(gameinfo.Count);
             foreach (var item in gameinfo)

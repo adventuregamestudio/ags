@@ -353,13 +353,36 @@ int Object_GetTransparency(ScriptObject *objj) {
     return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
 }
 
-int Object_GetAnimationVolume(ScriptObject *objj) {
-    return objs[objj->id].anim_volume;
+int Object_GetAudioPanning(ScriptObject *objj)
+{
+    return objs[objj->id].audio_panning;
 }
 
-void Object_SetAnimationVolume(ScriptObject *objj, int newval) {
+void Object_SetAudioPanning(ScriptObject *objj, int newval)
+{
+    objs[objj->id].audio_panning = Math::Clamp(newval, -100, 100);
+}
 
-    objs[objj->id].anim_volume = Math::Clamp(newval, 0, 100);
+int Object_GetAudioSpeed(ScriptObject *objj)
+{
+    return objs[objj->id].audio_speed;
+}
+
+void Object_SetAudioSpeed(ScriptObject *objj, int newval)
+{
+
+    objs[objj->id].audio_speed = newval;
+}
+
+int Object_GetAudioVolume(ScriptObject *objj)
+{
+    return objs[objj->id].audio_volume;
+}
+
+void Object_SetAudioVolume(ScriptObject *objj, int newval)
+{
+
+    objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
 void SetObjectBaseline(int obn, int basel) {
@@ -1065,9 +1088,9 @@ ScriptMotionPath *Object_GetMotionPath(ScriptObject *objj)
     }
 
     auto sc_path = ScriptMotionPath::Create(mslot);
-    ccAddObjectReference(sc_path.Handle);
-    obj.movelist_handle = sc_path.Handle;
-    return static_cast<ScriptMotionPath *>(sc_path.Obj);
+    ccAddObjectReference(sc_path.Handle());
+    obj.movelist_handle = sc_path.Handle();
+    return static_cast<ScriptMotionPath *>(sc_path.Obj());
 }
 
 void update_object_scale(int &res_zoom, int &res_width, int &res_height,
@@ -1628,14 +1651,34 @@ RuntimeScriptValue Sc_Object_GetAnimating(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(ScriptObject, Object_GetAnimating);
 }
 
-RuntimeScriptValue Sc_Object_GetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetAudioPanning(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetAnimationVolume);
+    API_OBJCALL_INT(ScriptObject, Object_GetAudioPanning);
 }
 
-RuntimeScriptValue Sc_Object_SetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_SetAudioPanning(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetAnimationVolume);
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetAudioPanning);
+}
+
+RuntimeScriptValue Sc_Object_GetAudioSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetAudioSpeed);
+}
+
+RuntimeScriptValue Sc_Object_SetAudioSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetAudioSpeed);
+}
+
+RuntimeScriptValue Sc_Object_GetAudioVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetAudioVolume);
+}
+
+RuntimeScriptValue Sc_Object_SetAudioVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetAudioVolume);
 }
 
 // int (ScriptObject *objj)
@@ -1985,8 +2028,14 @@ void RegisterObjectAPI()
         { "Object::StopMoving^0",             API_FN_PAIR(Object_StopMoving) },
         { "Object::Tint^5",                   API_FN_PAIR(Object_Tint) },
         { "Object::get_Animating",            API_FN_PAIR(Object_GetAnimating) },
-        { "Object::get_AnimationVolume",      API_FN_PAIR(Object_GetAnimationVolume) },
-        { "Object::set_AnimationVolume",      API_FN_PAIR(Object_SetAnimationVolume) },
+        { "Object::get_AnimationVolume",      API_FN_PAIR(Object_GetAudioVolume) },
+        { "Object::set_AnimationVolume",      API_FN_PAIR(Object_SetAudioVolume) },
+        { "Object::get_AudioPanning",         API_FN_PAIR(Object_GetAudioPanning) },
+        { "Object::set_AudioPanning",         API_FN_PAIR(Object_SetAudioPanning) },
+        { "Object::get_AudioSpeed",           API_FN_PAIR(Object_GetAudioSpeed) },
+        { "Object::set_AudioSpeed",           API_FN_PAIR(Object_SetAudioSpeed) },
+        { "Object::get_AudioVolume",          API_FN_PAIR(Object_GetAudioVolume) },
+        { "Object::set_AudioVolume",          API_FN_PAIR(Object_SetAudioVolume) },
         { "Object::get_Baseline",             API_FN_PAIR(Object_GetBaseline) },
         { "Object::set_Baseline",             API_FN_PAIR(Object_SetBaseline) },
         { "Object::get_BlockingHeight",       API_FN_PAIR(Object_GetBlockingHeight) },

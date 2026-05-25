@@ -3,7 +3,7 @@ ARG FROM_PLATFORM=$BUILDPLATFORM
 FROM --platform=$FROM_PLATFORM $FROM_DEBIAN
 
 # Take default debconf options
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Debian Jessie has been moved to archive
 RUN echo "deb [trusted=yes] http://archive.debian.org/debian jessie main non-free contrib" > /etc/apt/sources.list && \

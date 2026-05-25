@@ -44,11 +44,11 @@ int  ViewFrame_GetFrame(ScriptViewFrame *svf);
 int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale = 100);
 // Handle the new animation frame (play linked sounds, etc);
 // sound_volume is an optional *relative* factor, 100 is default (unchanged)
-void CheckViewFrame(int view, int loop, int frame, int sound_volume = 100);
-void CheckViewFrame(int view, int loop, int frame, int sound_volume,
+void CheckViewFrame(int view, int loop, int frame, int sound_volume = 100, int sound_pan = 0, int sound_speed = 1000);
+void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed,
                     const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt);
 // Plays a linked sound of the given frame; returns if the sound is linked and played successfully
-bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume);
+bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed);
 // Triggers a object's frame event handler for the given frame;
 // returns if the frame has associated custom event and object has a handler
 bool RunViewFrameEvent(int view, int loop, int frame,

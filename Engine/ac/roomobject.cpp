@@ -83,7 +83,7 @@ int RoomObject::get_baseline() const {
 
 void RoomObject::UpdateCyclingView(int ref_id)
 {
-	if (!is_enabled()) return;
+    if (!is_enabled()) return;
     if (moving>0) {
       do_movelist_move(moving, x, y);
       if (moving == 0)
@@ -131,13 +131,13 @@ void RoomObject::OnStopMoving()
 int RoomObject::GetFrameSoundVolume() const
 {
     // NOTE: room objects don't have "scale volume" flag at the moment
-    return ::CalcFrameSoundVolume(anim_volume, anim.AudioVolume);
+    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume);
 }
 
 void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(),
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, audio_speed,
         objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
@@ -189,23 +189,24 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         name = StrUtil::ReadString(in);
     }
 
-    int cur_anim_volume = 100;
+    int cur_audio_volume = 100;
     if (cmp_ver >= kRoomStatSvgVersion_36025)
     {
         // anim vols order inverted compared to character, by mistake :(
-        cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
-        anim_volume = static_cast<uint8_t>(in->ReadInt8());
-        in->ReadInt8(); // reserved to fill int32
-        in->ReadInt8();
+        cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
+        audio_volume = static_cast<uint8_t>(in->ReadInt8());
+        audio_panning = in->ReadInt8();
+        in->ReadInt8(); // reserved
     }
     else
     {
-        cur_anim_volume = 100;
-        anim_volume = 100;
+        cur_audio_volume = 100;
+        audio_volume = 100;
+        audio_panning = 0;
     }
 
-    if ((cmp_ver >= kRoomStatSvgVersion_36304) && (cmp_ver < kRoomStatSvgVersion_400) ||
-        (cmp_ver >= kRoomStatSvgVersion_40026))
+    if ((cmp_ver >= kRoomStatSvgVersion_36304) &&
+        ((cmp_ver < kRoomStatSvgVersion_400) || (cmp_ver >= kRoomStatSvgVersion_40026)))
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();
@@ -214,6 +215,15 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     {
         blocking_x = 0;
         blocking_y = 0;
+    }
+
+    if ((cmp_ver >= kRoomStatSvgVersion_36310) &&
+        ((cmp_ver < kRoomStatSvgVersion_400) || (cmp_ver >= kRoomStatSvgVersion_40028)))
+    {
+        audio_speed = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
     }
 
     if (cmp_ver >= kRoomStatSvgVersion_400)
@@ -299,7 +309,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         anim_dir_current = anim_dir_initial;
     }
 
-    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
+    anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_audio_volume);
     spr_width = width;
     spr_height = height;
     UpdateGraphicSpace();
@@ -334,12 +344,17 @@ void RoomObject::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(name, out);
     // kRoomStatSvgVersion_36025
     out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
-    out->WriteInt8(static_cast<uint8_t>(anim_volume));
-    out->WriteInt8(0); // reserved to fill int32
-    out->WriteInt8(0);
+    out->WriteInt8(static_cast<uint8_t>(audio_volume));
+    out->WriteInt8(audio_panning);
+    out->WriteInt8(0); // reserved
     // kRoomStatSvgVersion_36304
     out->WriteInt16(blocking_x);
     out->WriteInt16(blocking_y);
+    // kRoomStatSvgVersion_36310
+    out->WriteInt32(audio_speed);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     // kRoomStatSvgVersion_400
     out->WriteInt32(blend_mode);
     // Reserved for colour options

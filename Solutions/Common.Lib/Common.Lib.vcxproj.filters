@@ -928,5 +928,8 @@
     <ClInclude Include="..\..\libsrc\allegro\include\allegro.h">
       <Filter>Library Sources\allegro</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\delegate.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

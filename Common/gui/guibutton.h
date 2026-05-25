@@ -142,6 +142,9 @@ public:
     // Upgrades the GUI control to default looks for 3.6.3
     void SetDefaultLooksFor363() override;
 
+    // Notifies this object about a sprite being modified
+    void OnSpriteUpdate(int sprite_num) override;
+
 private:
     // Reports that any of the basic colors have changed;
     // the button will update its current colors depending on its state

@@ -64,8 +64,9 @@ class SpriteCache :
     protected ResourceCache<sprkey_t, std::unique_ptr<Bitmap>>
 {
 public:
+    static const sprkey_t NO_SPRITE_INDEX  = -1;
     static const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
-    static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX - 1;
+    static const sprkey_t MAX_SPRITE_INDEX = INT32_MAX;
     static const size_t   MAX_SPRITE_SLOTS = INT32_MAX;
 
     typedef std::function<Size(const Size &size, const uint32_t sprite_flags)> PfnAdjustSpriteSize;
@@ -110,9 +111,6 @@ public:
     // Makes sure sprite cache has allocated slots for all sprites up to the given inclusive limit;
     // returns requested index on success, or -1 on failure.
     sprkey_t    EnlargeTo(sprkey_t topmost);
-    // Finds a free slot index, if all slots are occupied enlarges sprite bank;
-    // returns a positive index on success, or -1 if no more free slots are available.
-    sprkey_t    GetFreeIndex();
     // Returns current size of the cache, in bytes; this includes locked size too!
     inline size_t GetCacheSize() const { return ResourceCache::GetCacheSize(); }
     // Gets the total size of the locked sprites, in bytes
@@ -140,6 +138,10 @@ public:
     // because IsSpriteLoaded() also reports true for external sprites, and false for
     // any non-occupied sprite slots.
     bool        IsAssetUnloaded(sprkey_t index) const;
+    // Assigns a new sprite at the first found free index; this sprite won't be auto disposed.
+    // "flags" are optional SPF_* constants that define sprite's behavior in game.
+    // Returns the new sprite's index, or -1 if operation failed for any reason.
+    sprkey_t    AddSprite(std::unique_ptr<Bitmap> image, int flags = 0);
     // Loads sprite using SpriteFile if such index is known,
     // frees the space if cache size reaches the limit
     void        PrecacheSprite(sprkey_t index);
@@ -198,6 +200,9 @@ protected:
     size_t CalcSize(const std::unique_ptr<Bitmap> &item) override;
 
 private:
+    // Finds a free slot index, if all slots are occupied enlarges sprite bank;
+    // returns a positive index on success, or -1 if no more free slots are available.
+    sprkey_t    GetFreeIndex();
     // Load sprite from game resource and put into the cache
     Bitmap *    LoadSprite(sprkey_t index, bool lock = false);
     // Remap the given index to the sprite 0

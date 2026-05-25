@@ -279,6 +279,15 @@ void SpriteCache::DisposeAllFreeCached()
     ResourceCache::DisposeFreeItems();
 }
 
+sprkey_t SpriteCache::AddSprite(std::unique_ptr<Bitmap> image, int flags)
+{
+    sprkey_t index = GetFreeIndex();
+    if (index >= 0 && SetSprite(index, std::move(image), flags))
+        return index;
+
+    return NO_SPRITE_INDEX;
+}
+
 void SpriteCache::PrecacheSprite(sprkey_t index)
 {
     assert(index >= 0); // out of positive range indexes are valid to fail

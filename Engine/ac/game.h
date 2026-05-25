@@ -70,7 +70,9 @@ const char* Game_GetSaveSlotDescription(int slnum);
 // Various sort parameter validation.
 ScriptFileSortStyle ValidateFileSort(const char *apiname, int file_sort);
 ScriptSaveGameSortStyle ValidateSaveGameSort(const char *apiname, int save_sort);
+ScriptSortStyle ValidateSortStyle(const char *apiname, int sort_style);
 ScriptSortDirection ValidateSortDirection(const char *apiname, int sort_dir);
+ScriptStringComparison ValidateStringComparison(const char *apiname, int compare_style);
 // Save slot range validation; fixups min and max slots, returns if the resulting range is non-empty
 bool ValidateSaveSlotRange(const char *api_name, int &min_slot, int &max_slot);
 // Graphic parameter validation.

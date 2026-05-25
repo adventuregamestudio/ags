@@ -1323,22 +1323,44 @@ int Character_GetAnimating(CharacterInfo *chaa) {
     return charextra[chaa->index_id].IsAnimating() ? 1 : 0;
 }
 
-int Character_GetAnimationSpeed(CharacterInfo *chaa) {
+int Character_GetAnimationSpeed(CharacterInfo *chaa)
+{
     return chaa->animspeed;
 }
 
-void Character_SetAnimationSpeed(CharacterInfo *chaa, int newval) {
-
+void Character_SetAnimationSpeed(CharacterInfo *chaa, int newval)
+{
     chaa->animspeed = newval;
 }
 
-int Character_GetAnimationVolume(CharacterInfo *chaa) {
-    return charextra[chaa->index_id].anim_volume;
+int Character_GetAudioPanning(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].audio_panning;
 }
 
-void Character_SetAnimationVolume(CharacterInfo *chaa, int newval) {
+void Character_SetAudioPanning(CharacterInfo *chaa, int newval)
+{
+    charextra[chaa->index_id].audio_panning = Math::Clamp(newval, -100, 100);
+}
 
-    charextra[chaa->index_id].anim_volume = Math::Clamp(newval, 0, 100);
+int Character_GetAudioSpeed(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].audio_speed;
+}
+
+void Character_SetAudioSpeed(CharacterInfo *chaa, int newval)
+{
+    charextra[chaa->index_id].audio_speed = std::max(0, newval);
+}
+
+int Character_GetAudioVolume(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].audio_volume;
+}
+
+void Character_SetAudioVolume(CharacterInfo *chaa, int newval) {
+
+    charextra[chaa->index_id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
 int Character_GetBaseline(CharacterInfo *chaa) {
@@ -2033,9 +2055,9 @@ ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch)
     }
 
     auto sc_path = ScriptMotionPath::Create(mslot);
-    ccAddObjectReference(sc_path.Handle);
-    chex.movelist_handle = sc_path.Handle;
-    return static_cast<ScriptMotionPath *>(sc_path.Obj);
+    ccAddObjectReference(sc_path.Handle());
+    chex.movelist_handle = sc_path.Handle();
+    return static_cast<ScriptMotionPath *>(sc_path.Obj());
 }
 
 //=============================================================================
@@ -3826,14 +3848,34 @@ RuntimeScriptValue Sc_Character_SetAnimationSpeed(void *self, const RuntimeScrip
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAnimationSpeed);
 }
 
-RuntimeScriptValue Sc_Character_GetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetAudioPanning(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetAnimationVolume);
+    API_OBJCALL_INT(CharacterInfo, Character_GetAudioPanning);
 }
 
-RuntimeScriptValue Sc_Character_SetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_SetAudioPanning(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAnimationVolume);
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAudioPanning);
+}
+
+RuntimeScriptValue Sc_Character_GetAudioSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetAudioSpeed);
+}
+
+RuntimeScriptValue Sc_Character_SetAudioSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAudioSpeed);
+}
+
+RuntimeScriptValue Sc_Character_GetAudioVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetAudioVolume);
+}
+
+RuntimeScriptValue Sc_Character_SetAudioVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAudioVolume);
 }
 
 // int (CharacterInfo *chaa)
@@ -4560,8 +4602,14 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_Animating",             API_FN_PAIR(Character_GetAnimating) },
         { "Character::get_AnimationSpeed",        API_FN_PAIR(Character_GetAnimationSpeed) },
         { "Character::set_AnimationSpeed",        API_FN_PAIR(Character_SetAnimationSpeed) },
-        { "Character::get_AnimationVolume",       API_FN_PAIR(Character_GetAnimationVolume) },
-        { "Character::set_AnimationVolume",       API_FN_PAIR(Character_SetAnimationVolume) },
+        { "Character::get_AnimationVolume",       API_FN_PAIR(Character_GetAudioVolume) },
+        { "Character::set_AnimationVolume",       API_FN_PAIR(Character_SetAudioVolume) },
+        { "Character::get_AudioPanning",          API_FN_PAIR(Character_GetAudioPanning) },
+        { "Character::set_AudioPanning",          API_FN_PAIR(Character_SetAudioPanning) },
+        { "Character::get_AudioSpeed",            API_FN_PAIR(Character_GetAudioSpeed) },
+        { "Character::set_AudioSpeed",            API_FN_PAIR(Character_SetAudioSpeed) },
+        { "Character::get_AudioVolume",           API_FN_PAIR(Character_GetAudioVolume) },
+        { "Character::set_AudioVolume",           API_FN_PAIR(Character_SetAudioVolume) },
         { "Character::get_Baseline",              API_FN_PAIR(Character_GetBaseline) },
         { "Character::set_Baseline",              API_FN_PAIR(Character_SetBaseline) },
         { "Character::get_BlinkInterval",         API_FN_PAIR(Character_GetBlinkInterval) },

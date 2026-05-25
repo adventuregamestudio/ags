@@ -32,6 +32,7 @@ const String SPEECH_FONT_TAG("SpeechFont");
 const String TEXT_DIRECTION_TAG("TextDirection");
 const String ENCODING_TAG("Encoding");
 const String GAMEENCODING_TAG("GameEncoding");
+const String LANGUAGE_TAG("Language");
 const String FONT_OVERRIDE_TAG("Font");
 const char *TAG_DEFAULT = "DEFAULT";
 const char *TAG_DIRECTION_LEFT = "LEFT";
@@ -200,6 +201,10 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     else if (key == GAMEENCODING_TAG)
     {
         tra.StrOptions["gameencoding"] = value;
+    }
+    else if (key == LANGUAGE_TAG)
+    {
+        tra.StrOptions["language"] = value;
     }
     else if (key.StartsWith(FONT_OVERRIDE_TAG))
     {

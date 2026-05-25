@@ -28,7 +28,22 @@ namespace AGS
 namespace Common
 {
 
-class GUIObject
+// ISpriteUser is an interface for objects that require a notification when
+// a dynamic sprite changes, so that they could update themselves on screen.
+// TODO: normally this should be a runtime interface, not in Common lib,
+// but the GUI classes are currently all in Common. Revise this when there's
+// a clear separation between data structs and runtime classes.
+class ISpriteUser
+{
+public:
+    virtual void OnSpriteUpdate(int sprite_num) = 0;
+
+protected:
+    ISpriteUser() = default;
+    virtual ~ISpriteUser() = default;
+};
+
+class GUIObject : public ISpriteUser
 {
 public:
     virtual ~GUIObject() = default;
@@ -112,6 +127,9 @@ public:
     // Events
     // TODO: get OnKey/Mouse events into this parent class too
     // 
+
+    // Notifies this object about a sprite being modified
+    void            OnSpriteUpdate(int sprite_num) override { /* do nothing */ }
 
     // Tells if object has graphically changed recently
     bool            HasChanged() const { return _hasChanged; }

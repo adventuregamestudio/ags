@@ -833,7 +833,7 @@ void *IAGSEngine::CreateDynamicArray(size_t elem_count, size_t elem_size, bool i
 
     auto obj_ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(elem_count), static_cast<uint32_t>(elem_size), is_managed_type);
     // Should be standard dynamic object, because not managed by plugin
-    return obj_ref.Obj;
+    return obj_ref.Obj();
 }
 
 size_t IAGSEngine::GetDynamicArrayLength(const void *arr)

@@ -52,6 +52,7 @@ namespace AGS.Editor
             this.chkObjects = new System.Windows.Forms.CheckBox();
             this.chkCharacters = new System.Windows.Forms.CheckBox();
             this.chkTranslated = new System.Windows.Forms.CheckBox();
+            this.btnRename = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -93,9 +94,11 @@ namespace AGS.Editor
             // 
             // txtName
             // 
+            this.txtName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtName.Location = new System.Drawing.Point(96, 18);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(194, 21);
+            this.txtName.Size = new System.Drawing.Size(299, 21);
             this.txtName.TabIndex = 4;
             // 
             // txtDescription
@@ -145,7 +148,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(105, 287);
+            this.btnCancel.Location = new System.Drawing.Point(113, 239);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(92, 26);
             this.btnCancel.TabIndex = 9;
@@ -305,6 +308,18 @@ namespace AGS.Editor
             this.chkTranslated.Text = "Add Text property values to the game\'s translation file";
             this.chkTranslated.UseVisualStyleBackColor = true;
             // 
+            // btnRename
+            // 
+            this.btnRename.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRename.Location = new System.Drawing.Point(401, 17);
+            this.btnRename.Name = "btnRename";
+            this.btnRename.Size = new System.Drawing.Size(92, 22);
+            this.btnRename.TabIndex = 13;
+            this.btnRename.Text = "Rename";
+            this.btnRename.UseVisualStyleBackColor = true;
+            this.btnRename.Click += new System.EventHandler(this.btnRename_Click);
+            // 
             // CustomPropertySchemaItemEditor
             // 
             this.AcceptButton = this.btnOK;
@@ -312,6 +327,7 @@ namespace AGS.Editor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(505, 318);
+            this.Controls.Add(this.btnRename);
             this.Controls.Add(this.chkTranslated);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnCancel);
@@ -368,5 +384,6 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkRegions;
         private System.Windows.Forms.CheckBox chkGUIControls;
         private System.Windows.Forms.CheckBox chkTranslated;
+        private System.Windows.Forms.Button btnRename;
     }
 }

@@ -38,6 +38,33 @@ namespace StrUtil
         kOutOfRange // the resulting value is out of range
     };
 
+    // Compares two strings lexographically, by the meaning of their characters
+    // rather than their code values. For example, 'À' follows 'A' and 'Č'
+    // follows 'C', as opposed to common char code-based comparison, where 'À'
+    // is positioned after 'Z'.
+    int             LexographicalCompare(const String &s1, const String &s2, const char *locale_name = "");
+    inline int      LexographicalCompare(const char *cstr1, const char *cstr2, const char *locale_name = "")
+                        { return LexographicalCompare(String::Wrapper(cstr1), String::Wrapper(cstr2), locale_name); }
+    // Compares two strings lexographically and case-insensitively.
+    // For example, 'À' follows 'A' and 'Č' follows 'C', as opposed to common
+    // char code-based comparison, where 'À' is positioned after 'Z'.
+    int             LexographicalCompareNoCase(const String &s1, const String &s2, const char *locale_name = "");
+    inline int      LexographicalCompareNoCase(const char* cstr1, const char* cstr2, const char* locale_name = "")
+                        { return LexographicalCompareNoCase(String::Wrapper(cstr1), String::Wrapper(cstr2), locale_name); }
+
+    // Constructs a string 'compare' predicate purposed for the certain case described by parameters
+    std::unique_ptr<IStrCmp> GetStrCmpImplFor(bool unicode, bool nocase, const char *locale_name = nullptr);
+    // Constructs a string 'equal' predicate purposed for the certain case described by parameters
+    inline StrEqAuto GetStrEqAutoFor(bool unicode, bool nocase, const char *locale_name = nullptr)
+    {
+        return StrEqAuto(GetStrCmpImplFor(unicode, nocase, locale_name));
+    }
+    // Constructs a string 'less' predicate purposed for the certain case described by parameters
+    inline StrLessAuto GetStrLessAutoFor(bool unicode, bool nocase, const char *locale_name = nullptr)
+    {
+        return StrLessAuto(GetStrCmpImplFor(unicode, nocase, locale_name));
+    }
+
     // Convert integer to string, by printing its value
     String          IntToString(int val);
     // Tries to convert whole string into integer value;
@@ -180,6 +207,11 @@ namespace StrUtil
     std::unique_ptr<char[]> Duplicate(const char *cstr);
     // Creates a substring with a partial copy of a c string
     std::unique_ptr<char[]> Substring(const char *cstr, size_t start, size_t length);
+
+    // Tries to find a UTF8 locale name for the given language name,
+    // suitable for the current runtime backend. Returns the locale name found,
+    // or empty string if none was found.
+    String FindCompatibleUTF8LocaleName(const String &lang_name);
 }
 } // namespace Common
 } // namespace AGS

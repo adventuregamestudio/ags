@@ -455,5 +455,11 @@ void GUISlider::SetDefaultLooksFor363()
     UpdateControlRect();
 }
 
+void GUISlider::OnSpriteUpdate(int sprite_num)
+{
+    if (_bgImage == sprite_num || _handleImage == sprite_num)
+        MarkChanged();
+}
+
 } // namespace Common
 } // namespace AGS

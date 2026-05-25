@@ -33,14 +33,21 @@ struct IScriptObject;
 // A convenience struct for grouping handle and dynamic object
 struct DynObjectRef
 {
-    const int Handle = 0;
-    void * const Obj = nullptr;
-    IScriptObject * const Mgr = nullptr;
-
+public:
     DynObjectRef() = default;
     DynObjectRef(int handle, void *obj, IScriptObject *mgr)
-        : Handle(handle), Obj(obj), Mgr(mgr) {}
-    inline operator bool() const { return Handle > 0; }
+        : _handle(handle), _obj(obj), _mgr(mgr) {}
+
+    inline int Handle() const { return _handle; }
+    inline void *Obj() const { return _obj; }
+    inline IScriptObject *Mgr() const { return _mgr; }
+
+    inline operator bool() const { return _handle > 0; }
+
+private:
+    int _handle = 0;
+    void *_obj = nullptr;
+    IScriptObject *_mgr = nullptr;
 };
 
 

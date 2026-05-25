@@ -92,6 +92,7 @@ void close_translation ()
         set_uformat(U_UTF8);
     else
         set_uformat(U_ASCII);
+    play.SetGameTextLanguage(game.GameTextLanguage);
 }
 
 bool init_translation(const String &lang, const String &fallback_lang)
@@ -164,8 +165,10 @@ bool init_translation(const String &lang, const String &fallback_lang)
         set_uformat(U_UTF8);
     else
         set_uformat(U_ASCII);
+    String language = trans.StrOptions["language"];
+
     String encoding_msg = !encoding.IsEmpty() ? encoding : "presume ASCII";
-    Debug::Printf("Translation's encoding: %s", encoding_msg.GetCStr());
+    Debug::Printf("Translation's encoding: %s, language: %s", encoding_msg.GetCStr(), language.GetCStr());
 
     // Mixed encoding support: 
     // original text unfortunately may contain extended ASCII chars (> 127);
@@ -197,6 +200,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
             Debug::Printf(kDbgMsg_Warn, "WARNING: UTF-8 translation in the ASCII/ANSI game, but no encoding hint for TRA keys conversion");
         }
     }
+
+    play.SetGameTextLanguage(language);
 
     Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(), encoding_msg.GetCStr());
     return true;

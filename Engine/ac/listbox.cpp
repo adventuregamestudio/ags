@@ -184,6 +184,16 @@ void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
   }
 }
 
+void ListBox_SortItems(GUIListBox *listbox, int compare_style, int sort_dir)
+{
+    compare_style = ValidateStringComparison("ListBox.SortItems", compare_style);
+    sort_dir = ValidateSortDirection("ListBox.SortItems", sort_dir);
+    if (sort_dir != kScSortNone)
+    {
+        listbox->SortItems((compare_style & kScCaseSensitiveFlag) == 0, (compare_style & kScLocaleAwareFlag) != 0, (sort_dir != kScSortDescending));
+    }
+}
+
 void ListBox_RemoveItem(GUIListBox *listbox, int index) {
   
   if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
@@ -431,6 +441,11 @@ RuntimeScriptValue Sc_ListBox_SetItemText(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT_POBJ(GUIListBox, ListBox_SetItemText, const char);
 }
 
+RuntimeScriptValue Sc_ListBox_SortItems(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(GUIListBox, ListBox_SortItems);
+}
+
 // int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -584,6 +599,7 @@ void RegisterListBoxAPI()
         { "ListBox::ScrollDown^0",        API_FN_PAIR(ListBox_ScrollDown) },
         { "ListBox::ScrollUp^0",          API_FN_PAIR(ListBox_ScrollUp) },
         { "ListBox::SetItemText^2",       API_FN_PAIR(ListBox_SetItemText) },
+        { "ListBox::SortItems^2",         API_FN_PAIR(ListBox_SortItems) },
         { "ListBox::get_Font",            API_FN_PAIR(ListBox_GetFont) },
         { "ListBox::set_Font",            API_FN_PAIR(ListBox_SetFont) },
         { "ListBox::get_ShowBorder",      API_FN_PAIR(ListBox_GetShowBorder) },

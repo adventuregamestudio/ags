@@ -364,7 +364,7 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
         bool found = false;
         for (; !di.AtEnd(); di.Next())
         {
-            if (test.CompareNoCase(di.Current()) != 0)
+            if (test.CompareUtf8NoCase(di.Current()) != 0)
                 continue;
 
             Path::AppendPath(path, di.Current()); // append exact entry's name

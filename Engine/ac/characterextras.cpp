@@ -82,7 +82,7 @@ int CharacterExtras::GetEffectiveY(const CharacterInfo *chi) const
 int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *chi) const
 {
     return ::CalcFrameSoundVolume(
-        anim_volume, anim.AudioVolume,
+        audio_volume, anim.AudioVolume,
         (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
 }
 
@@ -111,7 +111,7 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi),
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), audio_panning, audio_speed,
         objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
@@ -166,15 +166,16 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
     int cur_anim_volume = 100;
     if (save_ver >= kCharSvgVersion_36025)
     {
-        anim_volume = static_cast<uint8_t>(in->ReadInt8());
-        cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
-        in->ReadInt8(); // reserved to fill int32
-        in->ReadInt8();
+        audio_volume = static_cast<uint8_t>(in->ReadInt8());
+        cur_audio_volume = static_cast<uint8_t>(in->ReadInt8());
+        audio_panning = in->ReadInt8();
+        in->ReadInt8(); // reserved
     }
     else
     {
-        anim_volume = 100;
-        cur_anim_volume = 100;
+        audio_volume = 100;
+        cur_audio_volume = 100;
+        audio_panning = 0;
     }
 
     if (save_ver >= kCharSvgVersion_36205 && (save_ver < kCharSvgVersion_400 || save_ver >= kCharSvgVersion_400_13))
@@ -188,6 +189,14 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         following = -1;
         follow_dist = 0;
         follow_eagerness = 0;
+    }
+    
+    if ((save_ver >= kCharSvgVersion_36310) && (save_ver < kCharSvgVersion_400 || save_ver >= kCharSvgVersion_400_28))
+    {
+        audio_speed = in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
     }
 
     if (save_ver >= kCharSvgVersion_400)
@@ -294,14 +303,19 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
     // kCharSvgVersion_36025
-    out->WriteInt8(static_cast<uint8_t>(anim_volume));
+    out->WriteInt8(static_cast<uint8_t>(audio_volume));
     out->WriteInt8(static_cast<uint8_t>(anim.AudioVolume));
-    out->WriteInt8(0); // reserved to fill int32
-    out->WriteInt8(0);
+    out->WriteInt8(audio_panning);
+    out->WriteInt8(0); // reserved
     // kCharSvgVersion_36205
     out->WriteInt32(following);
     out->WriteInt32(follow_dist);
     out->WriteInt32(follow_eagerness);
+    // kCharSvgVersion_36310
+    out->WriteInt32(audio_speed);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     // kCharSvgVersion_400
     out->WriteInt32(blend_mode);
     // Reserved for colour options

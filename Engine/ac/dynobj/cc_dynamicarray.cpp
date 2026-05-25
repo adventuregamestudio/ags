@@ -164,17 +164,17 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
 {
     // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
-    if (!arr.Obj)
+    if (!arr.Obj())
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.Obj);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj());
     for (auto s : items)
     {
         DynObjectRef str = ScriptString::Create(s);
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
-        ccAddObjectReference(str.Handle);
-        *(slots++) = str.Handle;
+        ccAddObjectReference(str.Handle());
+        *(slots++) = str.Handle();
     }
     return arr;
 }
@@ -183,17 +183,17 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<String> &i
 {
     // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
-    if (!arr.Obj)
+    if (!arr.Obj())
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.Obj);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj());
     for (auto s : items)
     {
         DynObjectRef str = ScriptString::Create(s.GetCStr());
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
-        ccAddObjectReference(str.Handle);
-        *(slots++) = str.Handle;
+        ccAddObjectReference(str.Handle());
+        *(slots++) = str.Handle();
     }
     return arr;
 }
@@ -201,17 +201,17 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<String> &i
 DynObjectRef DynamicArrayHelpers::CreateStringArrayFromBuffers(std::vector<ScriptString::Buffer> &&items)
 {
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
-    if (!arr.Obj)
+    if (!arr.Obj())
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.Obj);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj());
     for (auto &buf : items)
     {
         DynObjectRef str = ScriptString::Create(std::move(buf));
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
-        ccAddObjectReference(str.Handle);
-        *(slots++) = str.Handle;
+        ccAddObjectReference(str.Handle());
+        *(slots++) = str.Handle();
     }
     return arr;
 }
@@ -219,14 +219,14 @@ DynObjectRef DynamicArrayHelpers::CreateStringArrayFromBuffers(std::vector<Scrip
 DynObjectRef DynamicArrayHelpers::CreateScriptArray(std::vector<DynObjectRef> &&items)
 {
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
-    if (!arr.Obj)
+    if (!arr.Obj())
         return arr;
 
-    int32_t *slots = static_cast<int32_t*>(arr.Obj);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj());
     for (auto const& obj : items)
     {
-        ccAddObjectReference(obj.Handle);
-        *(slots++) = obj.Handle;
+        ccAddObjectReference(obj.Handle());
+        *(slots++) = obj.Handle();
     }
     return arr;
 }
@@ -240,8 +240,8 @@ bool DynamicArrayHelpers::ResolveIntArray(const void *arrobj, std::vector<int> &
     ints.clear();
     const auto &header = CCDynamicArray::GetHeader(arrobj);
     const int *data = static_cast<const int*>(arrobj);
-    ints.reserve(header.ElemCount);
-    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    ints.reserve(header.GetElemCount());
+    for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
         ints.push_back(data[i]);
     }
@@ -257,8 +257,8 @@ bool DynamicArrayHelpers::ResolveFloatArray(const void *arrobj, std::vector<floa
     floats.clear();
     const auto &header = CCDynamicArray::GetHeader(arrobj);
     const float *data = static_cast<const float*>(arrobj);
-    floats.reserve(header.ElemCount);
-    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    floats.reserve(header.GetElemCount());
+    for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
         floats.push_back(data[i]);
     }
@@ -278,8 +278,8 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<vo
         return false;
 
     const uint32_t *handles = static_cast<const uint32_t*>(arrobj);
-    objects.reserve(header.ElemCount);
-    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    objects.reserve(header.GetElemCount());
+    for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
         objects.push_back(ccGetObjectAddressFromHandle(handles[i]));
     }
@@ -299,8 +299,8 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<Dy
         return false;
 
     const uint32_t *handles = static_cast<const uint32_t*>(arrobj);
-    objects.reserve(header.ElemCount);
-    for (uint32_t i = 0; i < header.ElemCount; ++i)
+    objects.reserve(header.GetElemCount());
+    for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
         void *obj;
         IScriptObject *mgr;

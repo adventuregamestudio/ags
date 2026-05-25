@@ -232,11 +232,14 @@ static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortSty
             std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByTime());
         break;
     case kScSaveGameSort_Description:
+    {
+        SaveItemCmpByDesc cmp_by_desc(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, false, play.GetTextLocaleName().GetCStr()));
         if (ascending)
-            std::sort(saves.begin(), saves.end(), SaveItemCmpByDesc());
+            std::sort(saves.begin(), saves.end(), cmp_by_desc);
         else
-            std::sort(saves.rbegin(), saves.rend(), SaveItemCmpByDesc());
+            std::sort(saves.rbegin(), saves.rend(), cmp_by_desc);
         break;
+    }
     default: break;
     }
 }
@@ -647,6 +650,11 @@ void GetLocationNameInBuf(int x, int y, char *buf)
 
 int IsKeyPressed (int keycode) {
     return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
+}
+
+bool IsAnyKeyPressed()
+{
+    return ags_isanykeydown();
 }
 
 int SaveScreenShot4(const char *namm, int width, int height, int layers)

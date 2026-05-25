@@ -78,7 +78,10 @@ public:
     char  slow_move_counter = 0;
     ViewAnimateParams anim;
     short animwait = 0; // current ticks counter, before advancing a animation
-    int   anim_volume = 100; // default animation volume (relative factor)
+    int   audio_volume = 100; // default animation volume (relative factor)
+    int   cur_audio_volume = 100; // current animation sound volume (relative factor)
+    int   audio_panning = 0;
+    int   audio_speed = 0;
     int   following = -1; // whom do we follow (character id)
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction

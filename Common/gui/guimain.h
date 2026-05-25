@@ -146,6 +146,9 @@ public:
     static const ScriptEventSchema &GetEventSchema() { return GUIMain::_eventSchema; }
     virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIMain::_eventSchema; }
 
+    // Notifies this object about a sprite being modified
+    void    OnSpriteUpdate(int sprite_num) override;
+
     // Tells if GUI controls have graphically changed recently
     bool    HasControlsChanged() const { return _hasControlsChanged; }
     // Marks GUI as having any of its controls changed its looks.
@@ -272,6 +275,7 @@ struct GuiOptions
 class SpriteCache;
 
 // Global GUI context, affects controls behavior (drawing, updating)
+// TODO: normally this should be strictly in runtime engine code, not Common lib.
 struct GuiContext
 {
 public:
@@ -279,6 +283,8 @@ public:
     int GameColorDepth = 0;
     // Working in software drawing mode
     bool SoftwareRender = false;
+    // Name of locale to use for the text collation (where applicable)
+    String TextLocaleName;
     // Sprite cache, for GUI drawing in software mode
     SpriteCache *Spriteset = nullptr;
     // Current disabled state.

@@ -147,7 +147,7 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
     return frame_vol;
 }
 
-bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume)
+bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed)
 {
     if (views[view].loops[loop].frames[frame].sound < 0)
         return false;
@@ -156,10 +156,13 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume)
     ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
     if (channel)
     {
-        sound_volume = Math::Clamp(sound_volume, 0, 100);
         auto *ch = AudioChans::GetChannel(channel->id);
         if (ch)
-            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+        {
+            ch->set_volume100(ch->get_volume100() * Math::Clamp(sound_volume, 0, 100) / 100);
+            ch->set_panning(sound_pan);
+            ch->set_speed(sound_speed);
+        }
         return true; // return positive if sound is linked, regardless of the playback success
     }
     return false;
@@ -176,7 +179,7 @@ bool RunViewFrameEvent(int view, int loop, int frame,
         evt_ext.Params[2] = RuntimeScriptValue().SetInt32(loop);
         evt_ext.Params[3] = RuntimeScriptValue().SetInt32(frame);
         auto dyn_str = ScriptString::Create(views[view].loops[loop].frames[frame].event_name.GetCStr());
-        evt_ext.Params[4] = RuntimeScriptValue().SetScriptObject(dyn_str.Obj, dyn_str.Mgr);
+        evt_ext.Params[4] = RuntimeScriptValue().SetScriptObject(dyn_str.Obj(), dyn_str.Mgr());
         evt_ext.ParamCount = 5;
         // This event is run on either blocking or non-blocking thread
         run_event_script_always(evt_ext, handlers, evnt);
@@ -186,16 +189,16 @@ bool RunViewFrameEvent(int view, int loop, int frame,
     return false;
 }
 
-void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed)
 {
-    CheckViewFrame(view, loop, frame, sound_volume, ObjectEvent(), nullptr, 0);
+    CheckViewFrame(view, loop, frame, sound_volume, sound_pan, sound_speed, ObjectEvent(), nullptr, 0);
 }
 
 // Handle the new animation frame (play linked sounds, etc)
-void CheckViewFrame(int view, int loop, int frame, int sound_volume,
+void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed,
                     const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt)
 {
-    PlayViewFrameSound(view, loop, frame, sound_volume);
+    PlayViewFrameSound(view, loop, frame, sound_volume, sound_pan, sound_speed);
     RunViewFrameEvent(view, loop, frame, obj_evt, handlers, evnt);
 }
 

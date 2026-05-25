@@ -80,6 +80,15 @@ namespace TextHelper
     std::string ConvertToStd(System::String^ clr_str, System::Text::Encoding^ enc);
 };
 
+struct SpriteImportResult
+{
+    int Slot = -1;
+
+    SpriteImportResult() = default;
+    SpriteImportResult(int slot)
+        : Slot(slot) {}
+};
+
 namespace WinAPIHelper
 {
     // Returns a message describing given WinAPI error code.

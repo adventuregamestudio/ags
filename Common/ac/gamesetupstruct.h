@@ -31,7 +31,7 @@
 #include "gui/guidefines.h"
 
 
-using AGS::Common::HGameFileError;
+using Common::HGameFileError;
 
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
@@ -47,9 +47,9 @@ struct GameSetupStruct : public GameSetupStructBase
     GameDataVersion   filever = kGameVersion_Undefined;
     Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
-    AGS::Common::PropertySchema propSchema;
-    std::vector<AGS::Common::StringIMap> charProps;
-    AGS::Common::StringIMap invProps[MAX_INV];
+    Common::PropertySchema propSchema;
+    std::vector<Common::StringIMap> charProps;
+    Common::StringIMap invProps[MAX_INV];
     std::vector<AGS::Common::StringIMap> audioclipProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
@@ -83,7 +83,9 @@ struct GameSetupStruct : public GameSetupStructBase
     float             faceDirectionRatio = 1.f;
 
     // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
-    AGS::Common::StringMap GameInfo;
+    Common::StringMap GameInfo;
+    // Game text language definition, in the form of locale name ('en', 'en_US' etc)
+    Common::String GameTextLanguage;
         
     // TODO: I converted original array of sprite infos to vector here, because
     // statistically in most games sprites go in long continious sequences with minimal

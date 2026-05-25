@@ -56,9 +56,35 @@ namespace AGS.Editor.Components
 
         private void ShowSchemaEditor()
         {
-            CustomPropertySchemaEditor schemaEditor = new CustomPropertySchemaEditor(_agsEditor.CurrentGame.PropertySchema);
-            schemaEditor.ShowDialog();
+            List<CustomPropertyDefChange> schemaChanges = null;
+            var schemaCopy = new CustomPropertySchema(_agsEditor.CurrentGame.PropertySchema);
+            CustomPropertySchemaEditor schemaEditor = new CustomPropertySchemaEditor(schemaCopy);
+            if (schemaEditor.ShowDialog() == DialogResult.OK)
+            {
+                schemaChanges = schemaEditor.SchemaChanges;
+            }
             schemaEditor.Dispose();
+
+            if (schemaChanges != null)
+            {
+                // Filter out name changes - these are the only changes we want to react to.
+                var wantedChanges = schemaChanges.Where(
+                    sc => (sc.Type == CustomPropertyDefChangeType.Edit && sc.OriginalName != sc.NewName)).ToArray();
+                if (wantedChanges.Length == 0)
+                {
+                    _agsEditor.CurrentGame.PropertySchema.CopyFrom(schemaCopy);
+                    return;
+                }
+
+                if (GUIController.Instance.ShowQuestion($"You have renamed some of the custom properties. Editor will have to apply modifications to each object in game which has these properties, including objects in Rooms. This process may take some time, because each Room will have to be loaded and resaved.{Environment.NewLine}{Environment.NewLine}"
+                                                     + "If you cancel this operation now, the Custom Properties Schema will be reverted to its previous state in order to prevent mismatches.",
+                                                     MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    _agsEditor.CurrentGame.PropertySchema.CopyFrom(schemaCopy);
+                    _agsEditor.Tasks.HandleCustomPropertySchemaChanges(schemaChanges);
+                    Factory.GUIController.RefreshPropertyGrid();
+                }
+            }
         }
 
         private void ExportSchema()

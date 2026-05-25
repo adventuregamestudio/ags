@@ -120,12 +120,33 @@
 // save slot reserved for the "restart point"
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
 
+// Script API SortStyle
+enum ScriptSortStyle
+{
+    kScNotSorted     = 0,
+    kScSorted        = 1,
+};
+
 // Script API SortDirection
 enum ScriptSortDirection
 {
     kScSortNone       = 0,
     kScSortAscending  = 1,
     kScSortDescending = 2,
+};
+
+// Script API StringCompareStyle
+enum ScriptStringComparison
+{
+    // NOTE: these constants are made as a combination of flags,
+    // for easier comparison mode selection
+    kScCaseSensitiveFlag = 0x1,
+    kScLocaleAwareFlag   = 0x2,
+
+    kScCaseInsensitive = 0,
+    kScCaseSensitive   = 1,
+    kScCaseInsensitiveLocaleAware = 2,
+    kScCaseSensitiveLocaleAware = 3,
 };
 
 // Script API FileSortStyle

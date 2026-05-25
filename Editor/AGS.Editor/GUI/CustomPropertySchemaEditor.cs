@@ -10,6 +10,28 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
+    public enum CustomPropertyDefChangeType
+    {
+        None,
+        Add,
+        Edit,
+        Remove
+    }
+
+    public struct CustomPropertyDefChange
+    {
+        public CustomPropertyDefChangeType Type;
+        public string OriginalName;
+        public string NewName;
+
+        public CustomPropertyDefChange(CustomPropertyDefChangeType type, string originalName, string newName)
+        {
+            Type = type;
+            OriginalName = originalName;
+            NewName = newName;
+        }
+    }
+
     public partial class CustomPropertySchemaEditor : Form
     {
         private const string MENU_ITEM_ADD = "AddSchemaItem";
@@ -17,11 +39,19 @@ namespace AGS.Editor
         private const string MENU_ITEM_DELETE = "DeleteSchemaItem";
 
         private CustomPropertySchema _schema;
+        private CustomPropertySchema _srcSchema;
+        private List<CustomPropertyDefChange> _schemaChanges = new List<CustomPropertyDefChange>();
 
         public CustomPropertySchemaEditor(CustomPropertySchema schema)
         {
             InitializeComponent();
-            _schema = schema;
+            _srcSchema = schema;
+            _schema = new CustomPropertySchema(schema);
+        }
+
+        public List<CustomPropertyDefChange> SchemaChanges
+        {
+            get { return _schemaChanges; }
         }
 
         private void RepopulateListView()
@@ -69,37 +99,32 @@ namespace AGS.Editor
             }
         }
 
-        private bool IsThereACustomPropertyWithThisName(string nameToCheckLowerCase)
-        {
-            foreach (CustomPropertySchemaItem item in _schema.PropertyDefinitions)
-            {
-                if (item.Name.ToLowerInvariant() == nameToCheckLowerCase)
-                {
-                    MessageBox.Show("You already have a property with this name.", "Property already exists", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private void EditOrAddItem(CustomPropertySchemaItem schemaItem)
         {
             bool isNewItem = false;
+            string oldName = null;
             if (schemaItem == null) 
             {
                 schemaItem = new CustomPropertySchemaItem();
                 schemaItem.Type = CustomPropertyType.Boolean;
                 isNewItem = true;
             }
-            CustomPropertySchemaItemEditor itemEditor = new CustomPropertySchemaItemEditor(schemaItem, isNewItem);
+            else
+            {
+                oldName = schemaItem.Name;
+            }
+
+            CustomPropertySchemaItemEditor itemEditor = new CustomPropertySchemaItemEditor(schemaItem, isNewItem, _schema);
             if (itemEditor.ShowDialog() == DialogResult.OK)
             {
                 if (isNewItem)
                 {
-                    if (!IsThereACustomPropertyWithThisName(schemaItem.Name.ToLowerInvariant()))
-                    {
-                        _schema.PropertyDefinitions.Add(schemaItem);
-                    }
+                    _schema.PropertyDefinitions.Add(schemaItem);
+                    _schemaChanges.Add(new CustomPropertyDefChange(CustomPropertyDefChangeType.Add, null, schemaItem.Name));
+                }
+                else
+                {
+                    _schemaChanges.Add(new CustomPropertyDefChange(CustomPropertyDefChangeType.Edit, oldName, schemaItem.Name));
                 }
                 RepopulateListView();
             }
@@ -120,9 +145,10 @@ namespace AGS.Editor
             }
             else if (menuItem.Name == MENU_ITEM_DELETE)
             {
-                if (MessageBox.Show("Are you sure you want to delete this entry from the schema? It will be removed from all items in the game that currently have this property set.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("Are you sure you want to delete this entry from the schema? It will be removed from all objects in the game that currently have this property set.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     _schema.PropertyDefinitions.Remove(schemaItem);
+                    _schemaChanges.Add(new CustomPropertyDefChange(CustomPropertyDefChangeType.Remove, schemaItem.Name, null));
                     RepopulateListView();
                 }
             }
@@ -145,6 +171,12 @@ namespace AGS.Editor
         }
 
         private void btnOK_Click(object sender, EventArgs e)
+        {
+            _srcSchema.CopyFrom(_schema);
+            this.Close();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
         {
             this.Close();
         }

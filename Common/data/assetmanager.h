@@ -157,7 +157,7 @@ private:
         String FilterString; // filter string, as received on input (for diagnostic purposes)
         std::vector<String> Filters; // asset filters this library is matching to
         std::vector<String> RealLibFiles; // fixed up library filenames
-        std::unordered_map<String, size_t, HashStrNoCase, StrEqNoCase> Lookup; // name to index asset lookup
+        std::unordered_map<String, size_t, HashStrUtf8NoCase, StrEqUtf8NoCase> Lookup; // name to index asset lookup
 
         bool TestFilter(const String &filter) const;
     };

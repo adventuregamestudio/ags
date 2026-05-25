@@ -16,6 +16,7 @@
 #include "ac/file.h"
 #include "ac/common.h"
 #include "ac/game.h"
+#include "ac/gamestate.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/path_helper.h"
@@ -40,6 +41,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
+extern GamePlayState play;
 extern AGSPlatformDriver *platform;
 
 // object-based File routines
@@ -155,6 +157,9 @@ void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSo
         return;
 
     std::vector<FileEntry> fileents;
+    const FileEntryCmpByNameAuto fileent_name_less(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, true, play.GetTextLocaleName().GetCStr()));
+    const FileEntryEqByNameAuto fileent_name_eq(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, true, play.GetTextLocaleName().GetCStr()));
+
     if (rp.AssetMgr)
     {
         // AssetManager returns asset entries with possibly parent paths,
@@ -173,9 +178,9 @@ void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSo
     {
     case kScFileSort_Name:
         if (ascending)
-            std::sort(fileents.begin(), fileents.end(), FileEntryCmpByNameCI());
+            std::sort(fileents.begin(), fileents.end(), fileent_name_less);
         else
-            std::sort(fileents.rbegin(), fileents.rend(), FileEntryCmpByNameCI());
+            std::sort(fileents.rbegin(), fileents.rend(), fileent_name_less);
         break;
     case kScFileSort_Time:
         if (ascending)
@@ -194,14 +199,14 @@ void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSo
 
 void *File_GetFiles(const char *filemask, int file_sort, int sort_dir)
 {
-    file_sort = ValidateFileSort("ListBox.FillDirList", file_sort);
-    sort_dir = ValidateSortDirection("ListBox.FillDirList", sort_dir);
+    file_sort = ValidateFileSort("File.GetFiles", file_sort);
+    sort_dir = ValidateSortDirection("File.GetFiles", sort_dir);
 
     std::vector<String> files;
     FillDirList(files, filemask, (ScriptFileSortStyle)file_sort, (ScriptSortDirection)sort_dir);
 
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(files);
-    return arr.Obj;
+    return arr.Obj();
 }
 
 void *sc_OpenFile(const char *fnmm, int mode) {

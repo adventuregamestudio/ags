@@ -1,10 +1,8 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using AGS.Types;
 
 namespace AGS.Editor.Components
 {
@@ -80,8 +78,32 @@ namespace AGS.Editor.Components
                                                      + "If you cancel this operation now, the Custom Properties Schema will be reverted to its previous state in order to prevent mismatches.",
                                                      MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    _agsEditor.CurrentGame.PropertySchema.CopyFrom(schemaCopy);
+                    // Here's the thing. We have to update custom properties in Rooms, but when a Room
+                    // is loaded up, it gets auto-synced with the game's custom property schema.
+                    // If some properties were renamed, the Room's properties of old names will get
+                    // automatically deleted, and we won't be able to rename them.
+                    // The solution: don't strip the properties with obsolete names; instead copy
+                    // only new property names over, while keeping old ones too. Only remove
+                    // obsolete properties after doing an update.
+                    foreach (var change in schemaChanges)
+                    {
+                        switch (change.Type)
+                        {
+                            case CustomPropertyDefChangeType.Edit:
+                            {
+                                var oldItem = _agsEditor.CurrentGame.PropertySchema.PropertyDefinitions.Find(p => p.Name == change.OriginalName);
+                                CustomPropertySchemaItem newItem = oldItem.Clone() as CustomPropertySchemaItem;
+                                newItem.Name = change.NewName;
+                                _agsEditor.CurrentGame.PropertySchema.PropertyDefinitions.Add(newItem);
+                            }
+                            break;
+                            case CustomPropertyDefChangeType.Remove:
+                                _agsEditor.CurrentGame.PropertySchema.PropertyDefinitions.RemoveAll(p => p.Name == change.OriginalName);
+                            break;
+                        }
+                    }
                     _agsEditor.Tasks.HandleCustomPropertySchemaChanges(schemaChanges);
+                    _agsEditor.CurrentGame.PropertySchema.CopyFrom(schemaCopy);
                     Factory.GUIController.RefreshPropertyGrid();
                 }
             }

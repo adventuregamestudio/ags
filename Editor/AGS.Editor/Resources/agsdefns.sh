@@ -1970,6 +1970,8 @@ builtin managed struct GUIControl {
   import attribute int PaddingX;
   /// Gets/sets the vertical padding (amount of pixels surrounding inner control's contents from the top and bottom sides).
   import attribute int PaddingY;
+  /// Gets/sets whether this control will have its text automatically translated when a game translation is active.
+  import attribute bool Translated;
 #endif // SCRIPT_API_v363
 };
 

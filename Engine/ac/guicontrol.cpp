@@ -279,6 +279,16 @@ void GUIControl_SetSolidBackground(GUIObject *guio, bool on)
     guio->SetSolidBackground(on);
 }
 
+bool GUIControl_GetTranslated(GUIObject *guio)
+{
+    return guio->IsTranslated();
+}
+
+void GUIControl_SetTranslated(GUIObject *guio, bool is_translated)
+{
+    guio->SetTranslated(is_translated);
+}
+
 int GUIControl_GetTransparency(GUIObject *guio) {
     return GfxDef::LegacyTrans255ToTrans100(guio->GetTransparency());
 }
@@ -493,6 +503,16 @@ RuntimeScriptValue Sc_GUIControl_SetZOrder(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetZOrder);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetTranslated(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIObject, GUIControl_GetTranslated);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetTranslated(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIObject, GUIControl_SetTranslated);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIObject, GUIControl_GetTransparency);
@@ -610,6 +630,8 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_Y",            API_FN_PAIR(GUIControl_SetY) },
         { "GUIControl::get_ZOrder",       API_FN_PAIR(GUIControl_GetZOrder) },
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
+        { "GUIControl::get_Translated",   API_FN_PAIR(GUIControl_GetTranslated) },
+        { "GUIControl::set_Translated",   API_FN_PAIR(GUIControl_SetTranslated) },
         { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
 

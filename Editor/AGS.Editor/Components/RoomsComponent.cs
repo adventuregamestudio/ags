@@ -749,8 +749,6 @@ namespace AGS.Editor.Components
             SaveRoomData(room);
             if (compileRoom)
             {
-                // We have to load room's images to the cache before compiling the room
-                LoadImageCache(room, errors, silent: true);
                 SaveCrm(room);
             }
         }
@@ -766,7 +764,7 @@ namespace AGS.Editor.Components
                 IsBeingSaved = true;
                 if (room.Modified)
                 {
-                    SaveImages(false);
+                    SaveImages(room, false);
                     using (var writer = new XmlTextWriter(room.DataFileName, Types.Utilities.UTF8))
                     {
                         writer.Formatting = Formatting.Indented;
@@ -2664,21 +2662,22 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void SaveImages(bool forced)
+        private void SaveImages(Room room, bool forced)
         {
-            lock (_loadedRoom)
+            lock (room)
             {
                 for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
                 {
-                    string fileName = _loadedRoom.GetBackgroundFileName(i);
+                    string fileName = room.GetBackgroundFileName(i);
                     // Delete remnants of unused backgrounds
-                    if (i >= _backgroundCache.Count)
+                    if (i >= room.BackgroundCount)
                     {
                         Utilities.TryDeleteFile(fileName);
                         continue;
                     }
 
-                    if (forced || _backgroundCache[i].Modified)
+                    if ((i < _backgroundCache.Count) && (_backgroundCache[i] != null)
+                        && (forced || _backgroundCache[i].Modified))
                     {
                         _backgroundCache[i].Image.Save(fileName, ImageFormat.Png);
                         _backgroundCache[i].Modified = false;
@@ -2687,14 +2686,14 @@ namespace AGS.Editor.Components
 
                 foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
                 {
-                    if (mask == RoomAreaMaskType.None)
+                    if (mask == RoomAreaMaskType.None || !_maskCache.ContainsKey(mask))
                         continue;
 
                     var maskObj = _maskCache[mask];
-                    if (!forced && !maskObj.Modified)
+                    if (!forced && (maskObj == null || !maskObj.Modified))
                         continue;
 
-                    string fileName = _loadedRoom.GetMaskFileName(mask);
+                    string fileName = room.GetMaskFileName(mask);
                     maskObj.Image.Save(fileName, ImageFormat.Png);
                     maskObj.Modified = false;
                 }
@@ -3002,18 +3001,20 @@ namespace AGS.Editor.Components
         private struct ModifyRoomParameters
         {
             internal Action<Room, CompileMessages> ModifyAction { get; set; }
+            internal bool ModifyImages { get; set; }
             internal bool ModifyScript { get; set; }
             internal CompileMessages Errors { get; set; }
 
-            internal ModifyRoomParameters(Action<Room, CompileMessages> action, bool modifyScript, CompileMessages errors)
+            internal ModifyRoomParameters(Action<Room, CompileMessages> action, bool modifyImages, bool modifyScript, CompileMessages errors)
             {
                 ModifyAction = action;
+                ModifyImages = modifyImages;
                 ModifyScript = modifyScript;
                 Errors = errors;
             }
         }
 
-        public bool ModifyAllRooms(Action<Room, CompileMessages> modifyAction, bool modifyScript)
+        public bool ModifyAllRooms(Action<Room, CompileMessages> modifyAction, bool modifyImages, bool modifyScript)
         {
             CompileMessages errors = new CompileMessages();
             if (_loadedRoom != null)
@@ -3027,7 +3028,7 @@ namespace AGS.Editor.Components
             try
             {
                 BusyDialog.Show("Please wait while the necessary operations are performed...", new BusyDialog.ProcessingHandler(ModifyRoomsOnThread),
-                    new ModifyRoomParameters(modifyAction, modifyScript, errors));
+                    new ModifyRoomParameters(modifyAction, modifyImages, modifyScript, errors));
             }
             catch (AGSEditorException ex)
             {
@@ -3053,6 +3054,9 @@ namespace AGS.Editor.Components
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
                 Room room = LoadRoomAsTemporary(unloadedRoom, modifyRoom.Errors, modifyRoom.ModifyScript);
+                // If modification action promises to modify room images, then load them up into memory
+                if (modifyRoom.ModifyImages)
+                    LoadImageCache(room, modifyRoom.Errors, silent: true);
 
                 if (room != null)
                 {

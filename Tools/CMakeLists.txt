@@ -91,7 +91,8 @@ endif()
 
 target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
 set(TOOLS_MINIMAL_ALLEGRO_SOURCES
-        ../libsrc/allegro/src/color.c)
+        ../libsrc/allegro/src/color.c
+        data/minallegro_inline.c)
 target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools

@@ -879,7 +879,7 @@ jobs:
         run: |
           version=${{ steps.version.outputs.version }}
           mkdir -p /tmp/github_release
-          for ext in tar.bz2 tar.gz tar.xz zip; do
+          for ext in tar.gz zip; do
             echo "Writing ${ext} archive..."
             bsdtar -f "/tmp/github_release/ags_${version}_source.${ext}" \
               -acs "!\./\(.*\)!ags_${version}_source/\1!" \

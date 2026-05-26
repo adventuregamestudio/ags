@@ -144,6 +144,7 @@ def main():
     sdlsound_replace_in_file("../debian/README.md", "utf-8", sdlsound_version)
     sdlsound_replace_in_file("../OSX/README.md", "utf-8", sdlsound_version)
     sdlsound_replace_in_file("../Windows/README.md", "utf-8", sdlsound_version)
+    sdlsound_replace_in_file("../Windows/setup_ags_build_deps.bat", "utf-8", sdlsound_version)
 
     sdlsound_replace_shasums_in_file("../libsrc/sha1sums", "utf-8", sdlsound_version)
 
@@ -153,6 +154,7 @@ def main():
     sdl_replace_in_file("../ci/windows/Dockerfile", "utf-8", sdl_version)
     sdl_replace_in_file("../ci/linux/Dockerfile", "utf-8", sdl_version)
     sdl_replace_in_file("../libsrc/download.sh", "utf-8", sdl_version)
+    sdl_replace_in_file("../Windows/setup_ags_build_deps.bat", "utf-8", sdl_version)
 
     sdl_replace_shasums_in_file("../libsrc/sha1sums", "utf-8", sdl_version)
 

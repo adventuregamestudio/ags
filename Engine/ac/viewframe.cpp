@@ -157,7 +157,7 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_p
         auto* ch = AudioChans::GetChannel(channel->id);
         if (ch)
         {
-            ch->set_volume100(ch->get_volume100() * (Math::Clamp(sound_volume, 0, 100) / 100));
+            ch->set_volume100(sound_volume);
             ch->set_panning(sound_pan);
             ch->set_speed(sound_speed);
         }

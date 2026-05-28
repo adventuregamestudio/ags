@@ -1296,7 +1296,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     if (!OpenMainGameFileFromDefaultAsset(src, amgr.get()))
         return false;
     GameSetupStruct g;
-    PreReadGameData(g, std::move(src.InputStream), src.DataVersion);
+    PreReadGameData(g, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     if (!guid.IsEmpty())
         return guid.CompareNoCase(g.guid) == 0;
     return legacy_id == g.uniqueid;

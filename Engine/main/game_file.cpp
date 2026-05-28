@@ -113,10 +113,7 @@ HError preload_game_data()
     if (!err)
         return (HError)err;
     // Read only the particular data we need for preliminary game analysis
-    PreReadGameData(game, std::move(src.InputStream), src.DataVersion);
-    // TODO: refactor, make this assignment a part of (Pre)ReadGameData
-    game.filever = src.DataVersion;
-    game.compiled_with = src.CompiledWith;
+    PreReadGameData(game, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     FixupSaveDirectory(game);
     return HError::None();
 }
@@ -187,12 +184,9 @@ HError load_game_file()
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (!err)
         return err;
-    err = (HError)ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
+    err = (HError)ReadGameData(ents, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     if (!err)
         return err;
-    // TODO: refactor, make this assignment a part of (Pre)ReadGameData
-    game.filever = src.DataVersion;
-    game.compiled_with = src.CompiledWith;
 
     //-------------------------------------------------------------------------
     // Data overrides: for compatibility mode and custom engine support

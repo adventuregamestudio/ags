@@ -1591,7 +1591,7 @@ HAGSError load_dta_file_into_thisgame(const AGSString &filename)
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
-        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
+        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
         if (load_err)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }

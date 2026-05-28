@@ -1095,9 +1095,11 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
 }
 
 
-HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
+HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver, const String &compiled_with)
 {
     GameSetupStruct &game = ents.Game;
+    game.filever = data_ver;
+    game.compiled_with = compiled_with;
     Stream *in = s_in.get(); // for convenience
 
     //-------------------------------------------------------------------------
@@ -1202,7 +1204,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     return HGameFileError::None();
 }
 
-void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
+void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver, const String& compiled_with)
 {
     Stream *in = s_in.get(); // for convenience
     GameSetupStruct::SerializeInfo sinfo;
@@ -1218,6 +1220,8 @@ void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, Game
     LoadedGameEntities ents(game);
     GameDataExtPreloader reader(ents, data_ver, std::move(s_in));
     reader.Read();
+    game.filever = data_ver;
+    game.compiled_with = compiled_with;
 }
 
 } // namespace Common

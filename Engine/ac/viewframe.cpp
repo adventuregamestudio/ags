@@ -157,7 +157,9 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_p
         auto* ch = AudioChans::GetChannel(channel->id);
         if (ch)
         {
-            ch->set_volume100(sound_volume);
+            // The animation's "sound volume" is used as a percentage factor
+            // to the default clip's volume (which is set by audio type).
+            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
             ch->set_panning(sound_pan);
             ch->set_speed(sound_speed);
         }

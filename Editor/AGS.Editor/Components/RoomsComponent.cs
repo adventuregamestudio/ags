@@ -1001,7 +1001,7 @@ namespace AGS.Editor.Components
             CheckRoomForValidity(room, errors);
             UpdateRoomToCurrentVersion(room, errors, doLoadScript);
             // Sync the loaded room with the up-to-date game data
-            SyncRoomWithGame(_loadedRoom, true);
+            SyncRoomWithGame(room, true);
             return room;
         }
 

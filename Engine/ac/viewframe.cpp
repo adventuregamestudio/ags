@@ -159,12 +159,11 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_p
         {
             // The animation's "sound volume" is used as a percentage factor
             // to the default clip's volume (which is set by audio type).
-            ch->set_volume100(ch->get_volume100() * sound_volume / 100);
+            ch->set_volume100(ch->get_volume100() * Math::Clamp(sound_volume, 0, 100) / 100);
             ch->set_panning(sound_pan);
             ch->set_speed(sound_speed);
         }
     }
-    
 }
 
 // draws a view frame, flipped if appropriate

@@ -2687,6 +2687,14 @@ builtin managed struct AudioClip {
   /// Gets the script name of this clip.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Gets the clips's default priority, which was set in the editor.
+  import readonly attribute int DefaultPriority;
+  /// Gets the clips's default repeat style, which was set in the editor.
+  import readonly attribute RepeatStyle DefaultRepeat;
+  /// Gets the clip's default volume, which was set in the editor.
+  import readonly attribute int DefaultVolume;
+#endif // SCRIPT_API_v363
 };
 
 

@@ -1608,18 +1608,20 @@ namespace AGS.Editor
             writer.Write((int)0);
         }
 
-        private static void WriteTextParserDictionary(TextParser parser, BinaryWriter writer)
+        public static void WriteTextParserDictionary(List<Tuple<string, ushort>> parserDict, BinaryWriter writer)
         {
             // Support multiple words written in the words entries, as a comma-separated list
             List<Tuple<string, ushort>> finalWords = new List<Tuple<string, ushort>>();
-            foreach (var item in parser.Words)
+            foreach (var item in parserDict)
             {
-                var words = item.Word.Split(',');
+                string line = item.Item1;
+                ushort wordID = item.Item2;
+                var words = line.Split(',');
                 foreach (var word in words)
                 {
                     if (!string.IsNullOrWhiteSpace(word))
                     {
-                        finalWords.Add(new Tuple<string, ushort>(word.Trim(), (ushort)item.WordGroup));
+                        finalWords.Add(new Tuple<string, ushort>(word.Trim(), wordID));
                     }
                 }
             }
@@ -1630,6 +1632,11 @@ namespace AGS.Editor
                 WriteStringEncrypted(writer, word.Item1);
                 writer.Write((ushort)word.Item2);
             }
+        }
+
+        private static void WriteTextParserDictionary(TextParser parser, BinaryWriter writer)
+        {
+            WriteTextParserDictionary(parser.Words.Select(w => new Tuple<string, ushort>(w.Word, (ushort)w.WordGroup)).ToList(), writer);
         }
 
         public static bool SaveThisGameToFile(string fileName, Game game, CompileMessages errors)

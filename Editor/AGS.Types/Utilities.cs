@@ -120,11 +120,12 @@ namespace AGS.Types
         /// </summary>
         public static int? ParseNullableInt(string text, string nullValueString)
         {
-            if (text == nullValueString)
+            int value;
+            if (text == nullValueString || !int.TryParse(text, out value))
             {
                 return null;
             }
-            return Convert.ToInt32(text);
+            return value;
         }
 
         /// <summary>
@@ -138,6 +139,21 @@ namespace AGS.Types
                 return nullValueString;
             }
             return value.Value.ToString();
+        }
+
+        public static KeyValuePair<string, string> ParseKeyValue(string line, char separator = '=')
+        {
+            int firstSep = line.IndexOf(separator);
+            if (firstSep >= 0)
+            {
+                return new KeyValuePair<string, string>(
+                    line.Substring(0, firstSep).Trim(),
+                    line.Substring(firstSep + 1).Trim());
+            }
+            else
+            {
+                return new KeyValuePair<string, string>(line.Trim(), string.Empty);
+            }
         }
 
         public static string RemoveInvalidCharactersFromScriptName(string name)

@@ -18,12 +18,15 @@ namespace AGS.Types
         private const string NORMAL_FONT_TAG = "NormalFont";
         private const string SPEECH_FONT_TAG = "SpeechFont";
         private const string TEXT_DIRECTION_TAG = "TextDirection";
+        private const string AUTO_PARSERSAID_TAG = "AutoTranslateParserSaid";
         private const string ENCODING_TAG = "Encoding";
         private const string LANGUAGE_TAG = "Language";
         private const string FONT_OVERRIDE_TAG = "Font";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
+        private const string TAG_ON = "ON";
+        private const string TAG_OFF = "OFF";
 
         private string _name;
         private string _fileName;
@@ -31,6 +34,7 @@ namespace AGS.Types
         private int? _normalFont;
         private int? _speechFont;
         private bool? _rightToLeftText;
+        private bool _autoTranslateParserSaid = false;
         private string _encodingHint;
         private Encoding _encoding;
         private string _baseLanguage;
@@ -90,6 +94,9 @@ namespace AGS.Types
             get { return _name + TRANSLATION_COMPILED_FILE_EXTENSION; }
         }
 
+        // FIXME: this storage does not fully matches the PO format capability:
+        // the PO format allows to have a combined key made of a msgid + msgctxt pair,
+        // meaning there may be two identical untranslated lines with different context.
         public Dictionary<string, TranslationEntry> TranslatedEntries
         {
             get { return _translatedEntries; }
@@ -99,7 +106,9 @@ namespace AGS.Types
         /// <summary>
         /// TranslatedLines is a deprecated API, now a stub that prevents older plugins
         /// and tools from throwing exceptions.
-        /// TODO: consider returning a filled dictionary generated from TranslatedEntries?
+        /// TODO: consider what to do with this in the future:
+        /// - remove completely?
+        /// - fill returned dictionary with actual values?
         /// </summary>
         [Obsolete]
         public Dictionary<string, string> TranslatedLines
@@ -123,6 +132,12 @@ namespace AGS.Types
         {
             get { return _rightToLeftText; }
             set { _rightToLeftText = value; }
+        }
+
+        public bool AutoTranslateParserSaid
+        {
+            get { return _autoTranslateParserSaid; }
+            set { _autoTranslateParserSaid = value; }
         }
 
         public string EncodingHint
@@ -207,6 +222,8 @@ namespace AGS.Types
                 sw.WriteLine("#  ");
                 sw.WriteLine("# Text language, use standard locale strings, like 'en', 'en_US', etc");
                 sw.WriteLine($"# $Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
+                sw.WriteLine("# Whether engine should translate Parser.Said strings automatically - ON or OFF");
+                sw.WriteLine($"# $AutoTranslateParserSaid={(_autoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
                 if (_fontOverrides.Count != 0)
                 {
                     WriteFontOverrides(sw);
@@ -490,9 +507,9 @@ namespace AGS.Types
 
         private void ReadSpecialTags(string line, ref string encodingHint)
         {
-            var keyValue = ParseKeyValue(line);
-            var key = keyValue.Item1;
-            var value = keyValue.Item2;
+            var keyValue = Utilities.ParseKeyValue(line);
+            var key = keyValue.Key;
+            var value = keyValue.Value;
 
             if (key == NORMAL_FONT_TAG)
             {
@@ -598,22 +615,6 @@ namespace AGS.Types
             }
         }
 
-        // TODO: move to some utility module?
-        private Tuple<string, string> ParseKeyValue(string line, char separator = '=')
-        {
-            int firstSep = line.IndexOf(separator);
-            if (firstSep >= 0)
-            {
-                return new Tuple<string, string>(
-                    line.Substring(0, firstSep).Trim(),
-                    line.Substring(firstSep + 1).Trim());
-            }
-            else
-            {
-                return new Tuple<string, string>(line.Trim(), string.Empty);
-            }
-        }
-
         /// <summary>
         /// Parses "FontN" kind of string, where N is a font's ID.
         /// </summary>
@@ -644,35 +645,35 @@ namespace AGS.Types
                 font.ID = -1; // mark it as not one of the game's font
                 var options = value.Split(';').Select(s =>
                     {
-                        return ParseKeyValue(s);
+                        return Utilities.ParseKeyValue(s);
                     }).ToArray();
                 foreach (var option in options)
                 {
-                    if (option.Item1 == "File")
+                    if (option.Key == "File")
                     {
-                        font.FontFileName = option.Item2;
+                        font.FontFileName = option.Value;
                     }
-                    else if (option.Item1 == "Size")
+                    else if (option.Key == "Size")
                     {
-                        font.PointSize = option.Item2.ParseIntOrDefault();
+                        font.PointSize = option.Value.ParseIntOrDefault();
                     }
-                    else if (option.Item1 == "SizeMultiplier")
+                    else if (option.Key == "SizeMultiplier")
                     {
-                        font.SizeMultiplier = option.Item2.ParseIntOrDefault();
+                        font.SizeMultiplier = option.Value.ParseIntOrDefault();
                     }
-                    else if (option.Item1 == "Outline")
+                    else if (option.Key == "Outline")
                     {
-                        if (option.Item2 == "NONE")
+                        if (option.Value == "NONE")
                         {
                             font.OutlineStyle = FontOutlineStyle.None;
                         }
-                        else if (option.Item2 == "AUTO")
+                        else if (option.Value == "AUTO")
                         {
                             font.OutlineStyle = FontOutlineStyle.Automatic;
                         }
                         else
                         {
-                            int outFontID = ParseFontN(option.Item2);
+                            int outFontID = ParseFontN(option.Value);
                             if (outFontID >= 0)
                             {
                                 font.OutlineStyle = FontOutlineStyle.UseOutlineFont;
@@ -680,51 +681,51 @@ namespace AGS.Types
                             }
                         }
                     }
-                    else if (option.Item1 == "AutoOutline")
+                    else if (option.Key == "AutoOutline")
                     {
-                        if (option.Item2 == "SQUARED")
+                        if (option.Value == "SQUARED")
                         {
                             font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
                         }
-                        else if (option.Item2 == "ROUND")
+                        else if (option.Value == "ROUND")
                         {
                             font.AutoOutlineStyle = FontAutoOutlineStyle.Rounded;
                         }
                     }
-                    else if (option.Item1 == "AutoOutlineThickness")
+                    else if (option.Key == "AutoOutlineThickness")
                     {
-                        font.AutoOutlineThickness = option.Item2.ParseIntOrDefault();
+                        font.AutoOutlineThickness = option.Value.ParseIntOrDefault();
                     }
-                    else if (option.Item1 == "HeightDefinition")
+                    else if (option.Key == "HeightDefinition")
                     {
-                        if (option.Item2 == "NOMINAL")
+                        if (option.Value == "NOMINAL")
                         {
                             font.HeightDefinedBy = FontHeightDefinition.NominalHeight;
                         }
-                        else if (option.Item2 == "REAL")
+                        else if (option.Value == "REAL")
                         {
                             font.HeightDefinedBy = FontHeightDefinition.PixelHeight;
                         }
-                        else if (option.Item2 == "CUSTOM")
+                        else if (option.Value == "CUSTOM")
                         {
                             font.HeightDefinedBy = FontHeightDefinition.CustomValue;
                         }
                     }
-                    else if (option.Item1 == "CustomHeight")
+                    else if (option.Key == "CustomHeight")
                     {
-                        font.CustomHeightValue = option.Item2.ParseIntOrDefault();
+                        font.CustomHeightValue = option.Value.ParseIntOrDefault();
                     }
-                    else if (option.Item1 == "VerticalOffset")
+                    else if (option.Key == "VerticalOffset")
                     {
-                        font.VerticalOffset = option.Item2.ParseIntOrDefault();
+                        font.VerticalOffset = option.Value.ParseIntOrDefault();
                     }
-                    else if (option.Item1 == "LineSpacing")
+                    else if (option.Key == "LineSpacing")
                     {
-                        font.LineSpacing = option.Item2.ParseIntOrDefault();
+                        font.LineSpacing = option.Value.ParseIntOrDefault();
                     }
-                    else if (option.Item1 == "CharacterSpacing")
+                    else if (option.Key == "CharacterSpacing")
                     {
-                        font.CharacterSpacing = option.Item2.ParseIntOrDefault();
+                        font.CharacterSpacing = option.Value.ParseIntOrDefault();
                     }
                 }
                 return font;

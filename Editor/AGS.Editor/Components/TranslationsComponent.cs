@@ -1,13 +1,14 @@
+using AGS.Types;
+using ScintillaNET;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.Xml;
-using AGS.Types;
+using static System.Windows.Forms.Design.AxImporter;
 using TypeUtils = AGS.Types.Utilities;
 
 namespace AGS.Editor.Components
@@ -31,6 +32,7 @@ namespace AGS.Editor.Components
         private const int TRANSLATION_BLOCK_OPTIONS = 3;
         private const string TRANSLATION_BLOCK_STROPTIONS = "ext_sopts";
         private const string TRANSLATION_BLOCK_FONTOVERRIDES = "ext_fonts";
+        private const string TRANSLATION_BLOCK_PARSERDICT = "ext_parserdict";
         private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
 //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
@@ -132,20 +134,27 @@ namespace AGS.Editor.Components
             WriteString(bw, _agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
         }
 
-        private void WriteExtDictionary(BinaryWriter bw, Translation translation, CompileMessages error)
+        private void WriteExtDictionary(BinaryWriter bw, Translation translation, List<Tuple<string, string>> translatedLines, CompileMessages error)
         {
             Encoding textEncoding = translation.Encoding;
-            foreach (string src_line in translation.TranslatedEntries.Keys)
+            foreach (var entry in translation.TranslatedEntries.Values)
             {
-                string trs_line = translation.TranslatedEntries[src_line].Value;
-                if (!string.IsNullOrEmpty(trs_line))
+                string srcLine = entry.Key;
+                string trsLine = entry.Value;
+                if (!string.IsNullOrEmpty(trsLine))
                 {
-                    WriteString(bw, Regex.Unescape(src_line), textEncoding);
-                    WriteString(bw, Regex.Unescape(trs_line), textEncoding);
+                    WriteString(bw, Regex.Unescape(srcLine), textEncoding);
+                    WriteString(bw, Regex.Unescape(trsLine), textEncoding);
                 }
             }
             WriteString(bw, string.Empty, textEncoding);
             WriteString(bw, string.Empty, textEncoding);
+        }
+
+        private void WriteExtParserDict(BinaryWriter bw, Translation translation, List<Tuple<string, ushort>> parserDict, CompileMessages errors)
+        {
+            // Follow same data format as the main parser dictionary in the game file
+            DataFileWriter.WriteTextParserDictionary(parserDict, bw);
         }
 
         private void WriteExtTextOptions(BinaryWriter bw, Translation translation, CompileMessages error)
@@ -153,6 +162,10 @@ namespace AGS.Editor.Components
             bw.Write(translation.NormalFont ?? -1);
             bw.Write(translation.SpeechFont ?? -1);
             bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
+            // Since 3.6.3.10: parser options flag set
+            int flags = 0;
+            if (translation.AutoTranslateParserSaid) flags |= 0x0001;
+            bw.Write(flags);
         }
 
         private void WriteExtStrOptions(BinaryWriter bw, Translation translation, CompileMessages errors)
@@ -197,6 +210,10 @@ namespace AGS.Editor.Components
             string tempFile = Path.GetTempFileName();
             Encoding textEncoding = translation.Encoding;
 
+            var translatedLines = new List<Tuple<string, string>>();
+            var parserDict = new List<Tuple<string, ushort>>();
+            SplitTranslationItemsIntoSections(translation, ref translatedLines, ref parserDict);
+
             using (BinaryWriter bw = new BinaryWriter(new FileStream(tempFile, FileMode.Create, FileAccess.Write)))
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
@@ -205,7 +222,13 @@ namespace AGS.Editor.Components
                     (w, e) => WriteExtGameID(w, translation, e), bw, errors);
 
                 DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_TRANSLATION_DATA, DataFileWriter.DataExtFlags.ID32,
-                    (w, e) => WriteExtDictionary(w, translation, e), bw, errors);
+                    (w, e) => WriteExtDictionary(w, translation, translatedLines, e), bw, errors);
+
+                if (parserDict.Count > 0)
+                {
+                    DataFileWriter.WriteExtension(TRANSLATION_BLOCK_PARSERDICT, 0, DataFileWriter.DataExtFlags.ID32,
+                        (w, e) => WriteExtParserDict(w, translation, parserDict, e), bw, errors);
+                }
 
                 DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_OPTIONS, DataFileWriter.DataExtFlags.ID32,
                     (w, e) => WriteExtTextOptions(w, translation, e), bw, errors);
@@ -233,6 +256,52 @@ namespace AGS.Editor.Components
             }, $"Failed to replace an old file {destFile}", errors);
         }
 
+        private void SplitTranslationItemsIntoSections(Translation translation, ref List<Tuple<string, string>> translatedLines,
+            ref List<Tuple<string, ushort>> wordsDictionary)
+        {
+            foreach (var entry in translation.TranslatedEntries.Values)
+            {
+                string srcLine = entry.Key;
+                string trsLine = entry.Value;
+                if (!string.IsNullOrEmpty(trsLine))
+                {
+                    // Words dictionary is written in a separate data section
+                    if (entry.IsParserDictionary)
+                    {
+                        wordsDictionary.Add(new Tuple<string, ushort>(trsLine, (ushort)entry.ParserWordID));
+                        continue;
+                    }
+
+                    translatedLines.Add(new Tuple<string, string>(srcLine, trsLine));
+                }
+            }
+        }
+
+        private Dictionary<int, string> ConstructParserWordsList(TextParser parser)
+        {
+            var wordsPerID = new Dictionary<int, List<string>>();
+            foreach (var word in parser.Words)
+            {
+                if (!wordsPerID.ContainsKey(word.WordGroup))
+                    wordsPerID[word.WordGroup] = new List<string>();
+                wordsPerID[word.WordGroup].Add(word.Word);
+            }
+
+            var wordLists = new Dictionary<int, string>();
+            foreach (var wordList in wordsPerID)
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var word in wordList.Value)
+                {
+                    if (sb.Length > 0)
+                        sb.Append(',');
+                    sb.Append(word);
+                }
+                wordLists[wordList.Key] = sb.ToString();
+            }
+            return wordLists;
+        }
+
         private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)
         {
             List<Translation> translations = (List<Translation>)translationList;
@@ -242,20 +311,48 @@ namespace AGS.Editor.Components
             if (messages.HasErrors)
                 return messages; // abort for avoiding corrupting translations
 
-            foreach (string line in generator.LinesForTranslation)
+            // Add game texts
+            foreach (Translation translation in translations)
             {
-                foreach (Translation translation in translations)
+                foreach (string line in generator.LinesForTranslation)
                 {
                     if (!translation.TranslatedEntries.ContainsKey(line))
                     {
-                        TranslationEntry entry = new TranslationEntry();
-                        entry.Key = line;
-                        entry.Value = string.Empty;
-                        translation.TranslatedEntries.Add(line, entry);
+                        translation.TranslatedEntries.Add(line, new TranslationEntry(line));
                         translation.Modified = true;
                     }
                 }
             }
+
+            // (Optionally) add Text Parser's dictionary
+            if (_agsEditor.CurrentGame.Settings.TranslateTextParser)
+            {
+                var wordLists = ConstructParserWordsList(_agsEditor.CurrentGame.TextParser);
+                foreach (Translation translation in translations)
+                {
+                    foreach (var list in wordLists)
+                    {
+                        // What we do here: because parser dictionary entry may match some
+                        // generic game text (e.g. if it's a item's name), the cheap and dumb solution
+                        // that we use is that we prefix the source line with a comma
+                        // (this works as it's a comma-separated list).
+                        // FIXME: this is not good, the PO format allows to have a combined key made of
+                        // a msgid + msgctxt pair. Context could serve to distinguish parser words here.
+                        // but we'd need to change how translated entries are stored (the keys type?).
+                        int wordsKey = list.Key;
+                        string wordsValue = ",{list.Value}";
+                        
+                        if (!translation.TranslatedEntries.ContainsKey(wordsValue))
+                        {
+                            var entry = new TranslationEntry(wordsValue);
+                            entry.Context = $"PARSERWORD:{wordsKey}";
+                            translation.TranslatedEntries.Add(wordsValue, entry);
+                            translation.Modified = true;
+                        }
+                    }
+                }
+            }
+
             foreach (Translation translation in translations)
             {
                 if (translation.Modified)

@@ -20,6 +20,7 @@
 #define __AGS_CN_GAME_TRAFILE_H
 
 #include "ac/gamestructdefines.h"
+#include "ac/wordsdictionary.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string_types.h"
@@ -55,6 +56,12 @@ String GetTraBlockName(TraFileBlock id);
 
 typedef TypedCodeError<TraFileErrorType, GetTraFileErrorText> TraFileError;
 
+// Miscellaneous translation flags
+enum TraOptionFlags
+{
+    // Translate Parser.Said input automatically
+    kTraOpt_AutoTranslateSaid = 0x0001
+};
 
 struct Translation
 {
@@ -63,10 +70,13 @@ struct Translation
     String GameName;
     // Translation dictionary in source/dest pairs
     StringMap Dict;
+    // Optional text parser's words dictionary (translation for text parser)
+    WordsDictionary ParserDict;
     // Localization parameters
     int NormalFont = -1; // replacement for normal font, or -1 for default
     int SpeechFont = -1; // replacement for speech font, or -1 for default
     int RightToLeft = -1; // r2l text mode (1, 2), or -1 for default
+    int OptFlags = 0; // misc translation options
     StringMap StrOptions; // to store extended options with string values
     std::unordered_map<int, FontInfo> FontOverrides;
 };

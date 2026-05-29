@@ -108,7 +108,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
     return HError::None();
 }
 
-HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const String &ext_id, soff_t /*block_len*/)
+HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const String &ext_id, soff_t block_len)
 {
     switch (block)
     {
@@ -139,6 +139,11 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
         tra.NormalFont = in->ReadInt32();
         tra.SpeechFont = in->ReadInt32();
         tra.RightToLeft = in->ReadInt32();
+        // 3.6.3.10 expansion
+        if (block_len > (3 * sizeof(int32_t)))
+        {
+            tra.OptFlags = in->ReadInt32();
+        }
         return HError::None();
     case kTraFblk_None:
         // continue reading extensions with string ID
@@ -156,6 +161,11 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     else if (ext_id.CompareNoCase("ext_fonts") == 0)
     {
         return ReadFontOverrides(tra, in);
+    }
+    else if (ext_id.CompareNoCase("ext_parserdict") == 0)
+    {
+        tra.ParserDict.ReadFromFile(in);
+        return HError::None();
     }
     
     return new TraFileError(kTraFileErr_UnknownBlockType,
@@ -278,6 +288,8 @@ void WriteTextOpts(const Translation &tra, Stream *out)
     out->WriteInt32(tra.NormalFont);
     out->WriteInt32(tra.SpeechFont);
     out->WriteInt32(tra.RightToLeft);
+    // 3.6.3.10 expansion
+    out->WriteInt32(tra.OptFlags);
 }
 
 void WriteStrOptions(const Translation &tra, Stream *out)

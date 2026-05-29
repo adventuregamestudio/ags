@@ -1142,8 +1142,6 @@ builtin struct Mouse {
   readonly int  x,y;
 };
 
-import int  Said (const string text);
-
 /// Gets the width of the specified text in the specified font
 import int  GetTextWidth(const string text, FontType);
 /// Gets the height of the specified text in the specified font when wrapped at the specified width

@@ -804,7 +804,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
-        { "Said",                     API_FN_PAIR(Said) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot1) },
         { "SaveScreenShot^1",         API_FN_PAIR(SaveScreenShot1) },
         { "SaveScreenShot^4",         API_FN_PAIR(SaveScreenShot4) },

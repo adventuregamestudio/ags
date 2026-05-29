@@ -46,7 +46,7 @@ void ParseText (const char*text) {
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Said (const char *checkwords) {
+int Parser_Said (const char *checkwords) {
     int numword = 0;
     short words[MAX_PARSED_WORDS];
     return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
@@ -329,13 +329,10 @@ RuntimeScriptValue Sc_Parser_SaidUnknownWord(const RuntimeScriptValue *params, i
     API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord);
 }
 
-// int  (char*checkwords)
-RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Parser_Said(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(Said, /*const*/ char);
+    API_SCALL_VOID_POBJ(Parser_Said, /*const*/ char);
 }
-
-
 
 void RegisterParserAPI()
 {
@@ -343,7 +340,7 @@ void RegisterParserAPI()
         { "Parser::FindWordID^1",     API_FN_PAIR(Parser_FindWordID) },
         { "Parser::ParseText^1",      API_FN_PAIR(ParseText) },
         { "Parser::SaidUnknownWord^0",API_FN_PAIR(Parser_SaidUnknownWord) },
-        { "Parser::Said^1",           API_FN_PAIR(Said) },
+        { "Parser::Said^1",           API_FN_PAIR(Parser_Said) },
     };
 
     ccAddExternalFunctions(parser_api);

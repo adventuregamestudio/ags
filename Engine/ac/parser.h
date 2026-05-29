@@ -21,7 +21,7 @@
 int Parser_FindWordID(const char *wordToFind);
 const char* Parser_SaidUnknownWord();
 void ParseText (const char*text);
-int Said (const char*checkwords);
+int Parser_Said (const char*checkwords);
 
 //=============================================================================
 

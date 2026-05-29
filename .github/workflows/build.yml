@@ -87,7 +87,7 @@ jobs:
     - name: Upload runtime artifacts
       uses: actions/upload-artifact@v7
       with:
-        name: runtime-${{ matrix.platform.artifact }}
+        name: runtime-${{ matrix.platform.artifact }}-cmake
         path: |
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags

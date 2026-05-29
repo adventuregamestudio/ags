@@ -304,11 +304,11 @@ private:
     String previousError;
     D3DPixelShaderPtr pixelShader;
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
-    bool _smoothScaling;
-    bool _legacyPixelShader;
-    float _pixelRenderXOffset;
-    float _pixelRenderYOffset;
-    bool _renderAtScreenRes;
+    bool _smoothScaling = false;
+    bool _legacyPixelShader = false;
+    float _pixelRenderXOffset = 0.f;
+    float _pixelRenderYOffset = 0.f;
+    bool _renderAtScreenRes = false;
 
     // TODO: find a way to merge this with Render Targets from sprite batches,
     // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
@@ -341,6 +341,7 @@ private:
     BackbufferState _screenBackbuffer;
     BackbufferState _nativeBackbuffer;
     const BackbufferState *_currentBackbuffer = nullptr;
+    int _batchFilter = 0;
 
     // Render target DDB references, for keeping track of them,
     // and resetting during device reset.

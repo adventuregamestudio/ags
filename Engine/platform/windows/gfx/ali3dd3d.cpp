@@ -1204,8 +1204,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     }
     else
     {
-      direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, _currentBackbuffer->Filter);
-      direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, _currentBackbuffer->Filter);
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, _batchFilter);
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, _batchFilter);
     }
 
     direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
@@ -1350,6 +1350,8 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
         // render target, which also contains alpha channel.
         direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
         SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_INVDESTALPHA, D3DBLEND_ONE);
+        // Force min/mag filter to nearest neighbour for rendering a on a batch render target
+        _batchFilter = D3DTEXF_POINT;
     }
     else
     {
@@ -1361,6 +1363,7 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(_currentBackbuffer->Projection));
         // Disable alpha merging rules, return back to default settings
         direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+        _batchFilter = _currentBackbuffer->Filter;
     }
 
     if (clear)

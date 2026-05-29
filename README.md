@@ -1,6 +1,6 @@
 <p align=center>
   <img src="https://avatars.githubusercontent.com/u/1833326" width=96></br>
-  <a target="_blank" href="https://cirrus-ci.com/github/adventuregamestudio/ags" title="Build Status"><img src="(https://api.cirrus-ci.com/github/adventuregamestudio/ags.svg?branch=ags4"></a>
+  <a target="_blank" href="https://github.com/adventuregamestudio/ags/actions/workflows/build.yml" title="Build Status"><img src="https://github.com/adventuregamestudio/ags/actions/workflows/build.yml/badge.svg?branch=ags4"></a>
 </p>
   
 # Adventure Game Studio

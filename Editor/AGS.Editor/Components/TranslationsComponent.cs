@@ -733,6 +733,8 @@ namespace AGS.Editor.Components
 
         private void LegacyReadSpecialTags(Translation translation, string line, ref string encodingHint)
         {
+            // FIXME: sync with 3.6.3 translation options (and use proper parsing methods)
+
             const string NORMAL_FONT_TAG = "//#NormalFont=";
             const string SPEECH_FONT_TAG = "//#SpeechFont=";
             const string TEXT_DIRECTION_TAG = "//#TextDirection=";

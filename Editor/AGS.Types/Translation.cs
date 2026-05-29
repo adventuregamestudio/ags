@@ -205,8 +205,8 @@ namespace AGS.Types
                 sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
                 sw.WriteLine("# $Encoding=" + encoding);
                 sw.WriteLine("#  ");
-                sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
-                sw.WriteLine($"//#Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
+                sw.WriteLine("# Text language, use standard locale strings, like 'en', 'en_US', etc");
+                sw.WriteLine($"# $Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
                 if (_fontOverrides.Count != 0)
                 {
                     WriteFontOverrides(sw);
@@ -549,7 +549,7 @@ namespace AGS.Types
                 StringBuilder sb = new StringBuilder();
                 int fontIndex = fontOverride.Key;
                 Font font = fontOverride.Value;
-                sb.Append($"//#Font{fontIndex}=");
+                sb.Append($"# $Font{fontIndex}=");
                 if (font.ID >= 0)
                 {
                     sb.Append($"Font{font.ID}");

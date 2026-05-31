@@ -177,6 +177,7 @@ namespace AGS.Editor
         public const int    AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS = 3999907;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_COLORS_32BIT = 4000009;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES = 4000010;
+        public const int    AGS_4_0_0_XML_VERSION_INDEX_DIALOG_FILES = 4000027;
 
         /*
          * LATEST_XML_VERSION is the X.Y.Z.W string which defines project's user data format.

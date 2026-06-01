@@ -163,7 +163,7 @@ namespace AGS.Editor
             }
             string errorMsg = DataFileWriter.MakeDataFile(ConstructFileListForDataFile(errors),
                 Factory.AGSEditor.CurrentGame.Settings.SplitResources * 1000000,
-                Path.ChangeExtension(Factory.AGSEditor.BaseGameFileName, ".ags"),
+                Factory.AGSEditor.BaseGameFileName + ".ags",
                 Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY));
             if (errorMsg != null)
             {

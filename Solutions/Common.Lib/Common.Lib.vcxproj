@@ -620,7 +620,6 @@
     <ClCompile Include="..\..\Common\ac\spritefile.cpp" />
     <ClCompile Include="..\..\Common\ac\view.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
-    <ClCompile Include="..\..\Common\data\asset.cpp" />
     <ClCompile Include="..\..\Common\data\assetmanager.cpp" />
     <ClCompile Include="..\..\Common\data\data_ext.cpp" />
     <ClCompile Include="..\..\Common\data\data_helpers.cpp" />

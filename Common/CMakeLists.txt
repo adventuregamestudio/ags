@@ -50,7 +50,6 @@ target_sources(common
     ac/view.h
     ac/wordsdictionary.cpp
     ac/wordsdictionary.h
-    data/asset.cpp
     data/asset.h
     data/assetmanager.cpp
     data/assetmanager.h

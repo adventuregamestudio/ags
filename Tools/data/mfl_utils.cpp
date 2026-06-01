@@ -231,18 +231,59 @@ HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &ds
     for (size_t id = 0; id < lib.LibFileNames.size(); ++id)
     {
         String dst_file = Path::ConcatPaths(dst_dir, lib.LibFileNames[id]);
-        if(verbose)
+        if (verbose)
             printf("Info: writing pack file '%s' ...\n", dst_file.GetCStr());
 
         HError err = WriteLibraryFile(lib, asset_dir, dst_file, lib_version, id, verbose);
-
-        if (!err) {
-            if(verbose) {
+        if (!err)
+        {
+            if (verbose)
                 printf("Error: failed to write pack file '%s'.\n", dst_file.GetCStr());
-            }
             return err;
         }
+
+        // Post-check
+        err = TestLibraryFile(dst_file, &lib);
+        if (!err)
+        {
+            if (verbose)
+                printf("Error: post-check failed for file '%s'.\n", dst_file.GetCStr());
+            return new Error("Pack post-check failed", err);
+        }
     }
+    return HError::None();
+}
+
+HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib)
+{
+    std::unique_ptr<Stream> in(File::OpenFileRead(lib_file));
+    if (!in)
+        return new Error("Error: failed to open pack file for reading.");
+
+    AssetLibInfo lib;
+    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
+    if (mfl_err != MFLUtil::kMFLNoError)
+        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+
+    if (compare_lib)
+    {
+        if (lib.BaseFileOffset != compare_lib->BaseFileOffset)
+            return new Error(String::FromFormat("Base library offset does not match: %lld vs %lld", lib.BaseFileOffset, compare_lib->BaseFileOffset));
+        if (lib.AssetInfos.size() != compare_lib->AssetInfos.size())
+            return new Error(String::FromFormat("Number of assets does not match: %zu vs %zu", lib.AssetInfos.size(), compare_lib->AssetInfos.size()));
+        for (size_t i = 0; i < lib.AssetInfos.size(); ++i)
+        {
+            const auto &asset1 = lib.AssetInfos[i];
+            const auto &asset2 = compare_lib->AssetInfos[i];
+            if (asset1.FileName.CompareNoCase(asset2.FileName) != 0)
+                return new Error(String::FromFormat("Asset %zu does not match filename: %s vs %s", i, asset1.FileName.GetCStr(), asset2.FileName.GetCStr()));
+            if (asset1.Size != asset2.Size)
+                return new Error(String::FromFormat("Asset %zu does not match size: %lld vs %lld", i, asset1.Size, asset2.Size));
+            if (asset1.Offset - lib.BaseFileOffset != asset2.Offset)
+                return new Error(String::FromFormat("Asset %zu does not match offset: %lld vs %lld", i, asset1.Offset - lib.BaseFileOffset, asset2.Offset));
+        }
+    }
+
     return HError::None();
 }
 

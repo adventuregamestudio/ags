@@ -21,8 +21,11 @@ namespace AGSPak
 {
     using String = AGS::Common::String;
 
+    int Command_Attach(const String &src_pak, const String &dst_file, bool verbose);
     int Command_Create(const String &src_dir, const String &dst_pak, const std::vector<String> &pattern_list,
         const String &pattern_file, bool do_subdirs, size_t part_size_mb, bool verbose);
+    int Command_Cut(const String &src_file, bool verbose);
+    int Command_Detach(const String &src_file, const String &dst_pak, bool verbose);
     int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list);
     int Command_List(const String &src_pak);
 }

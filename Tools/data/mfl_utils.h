@@ -59,6 +59,9 @@ namespace DataUtil
     HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir,
                         Common::MFLUtil::MFLVersion lib_version,
                         bool verbose);
+    // Tests that the given file is recognized as a asset library.
+    // Optionally compares read table of contents with the provided lib info.
+    HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib);
 
     // A custom comparator used to search for AssetInfos by a name
     struct AssetInfoComparator

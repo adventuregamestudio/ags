@@ -48,6 +48,7 @@ namespace MFLUtil
 
     enum MFLVersion
     {
+        kMFLVersion_Undefined   = 0,
         kMFLVersion_SingleLib   = 6,
         kMFLVersion_MultiV10    = 10,
         kMFLVersion_MultiV11    = 11,
@@ -63,10 +64,16 @@ namespace MFLUtil
     String   GetMFLErrorText(MFLError err);
 
     MFLError TestIsMFL(Stream *in, bool test_is_main = false);
+    MFLError ReadOffset(Stream *in, soff_t &lib_offset);
+    MFLError ReadOffsetAndVersion(Stream *in, MFLVersion &lib_version, soff_t &lib_offset);
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
+    bool     HasEnderSig(Stream *in);
 
     void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
     void     WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
+    // Overwrite a library ender, presumed to be already written at the end of the output stream.
+    // This helper function is used to rewrite ender sig after attaching data to another file.
+    void     OverwriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
 }
 
 } // namespace Common

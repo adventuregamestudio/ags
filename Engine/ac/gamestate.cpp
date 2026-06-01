@@ -54,6 +54,8 @@ void GamePlayState::SetGameTextLanguage(const String &language)
         _localeNameUTF8 = "";
     }
     GUI::Context.TextLocaleName = _localeNameUTF8;
+    Debug::Printf("Set game text language: %s", _gameTextLanguage.GetCStr());
+    Debug::Printf("Set locale: %s", _localeNameUTF8.GetCStr());
 }
 
 bool GamePlayState::IsAutoRoomViewport() const

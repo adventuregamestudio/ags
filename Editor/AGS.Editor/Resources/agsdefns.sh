@@ -2808,6 +2808,8 @@ builtin struct System {
 #ifdef SCRIPT_API_v363
   /// Gets current real game's FPS; this may or not match the game's speed property.
   import static readonly attribute int FPS;
+  /// Gets the name of the current game's locale. Locale is used for certain text operations, such as locale-aware string comparison.
+  import static readonly attribute String LocaleName;
 #endif // #ifdef SCRIPT_API_v363
 };
 

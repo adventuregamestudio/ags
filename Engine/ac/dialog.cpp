@@ -1809,11 +1809,15 @@ void DialogExec::Run()
         // current dialog object
         DialogTopic *dtop = &dialog[_dlgNum];
         int res = 0; // dialog execution result
+        // reset global dialog flow instruction to default;
+        // unless this is changed by a explicit script command, DialogExec will refer
+        // to the result of processing a next dialog entry or chosen option.
+        _doRunDialog = RUN_DIALOG_STAY;
+
         // If a new dialog topic: run dialog entry point
         if (_dlgNum != _dlgWas)
         {
             const int start_opt = _startOpt;
-            _doRunDialog = RUN_DIALOG_STAY;
             _startOpt = 0; // reset starting option
             _executedOption = 0;
             if (start_opt == 0)

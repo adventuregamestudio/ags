@@ -459,6 +459,9 @@ namespace AGS.Editor.Components
 
             int totalCount = game.Dialogs.Count;
             int convertedCount = 0;
+
+            // ACTUALLY FOR THIS TO WORK I GUESS I NEED TO MOVE STUFF OUT OF THE CURRENT DIALOG LOADING?
+            // I HAVE NO IDEA HOW TO DO THIS
             foreach (Dialog dialog in game.Dialogs)
             {
                 try

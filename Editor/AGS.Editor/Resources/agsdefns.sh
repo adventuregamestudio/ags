@@ -960,14 +960,22 @@ builtin struct Room {
   import static readonly attribute String Name; // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Hotspots in the current room.
   import static readonly attribute Hotspot *Hotspots[];   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the number of hotspots in the current room.
+  import static readonly attribute int HotspotCount;   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Objects in the current room.
   import static readonly attribute Object *Objects[];   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Regions in the current room.
   import static readonly attribute Region *Regions[];   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the number of regions in the current room.
+  import static readonly attribute int RegionCount;   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Walkable areas in the current room.
   import static readonly attribute WalkableArea *WalkableAreas[];   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the number of walkable areas in the current room.
+  import static readonly attribute int WalkableAreaCount;   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Walk-behinds in the current room.
   import static readonly attribute Walkbehind *Walkbehinds[];   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the number of walk-behinds in the current room.
+  import static readonly attribute int WalkbehindCount;   // $AUTOCOMPLETESTATICONLY$
   /// Gets the current Room's Pathfinder object that lets find route around walkable areas.
   import static readonly attribute Pathfinder *PathFinder;   // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character in the current room.
@@ -2620,7 +2628,7 @@ builtin managed struct Object {
   /// Gets an integer Custom Property for this object.
   import int GetProperty(const string property);
   /// Gets a text Custom Property for this object.
-  import String   GetTextProperty(const string property);
+  import String GetTextProperty(const string property);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
   /// Starts the object moving towards the specified co-ordinates.
@@ -2812,9 +2820,9 @@ builtin managed struct Character {
   /// Gets a numeric custom property for this character.
   import int GetProperty(const string property);
   /// Gets a text custom property for this character.
-  import String   GetTextProperty(const string property);
+  import String GetTextProperty(const string property);
   /// Checks whether the character currently has the specified inventory item.
-  import bool     HasInventory(InventoryItem *item);
+  import bool HasInventory(InventoryItem *item);
   /// Checks whether this character is in collision with the other character.
   import bool IsCollidingWithChar(Character*);
   /// Checks whether this character is in collision with the object.
@@ -2861,7 +2869,7 @@ builtin managed struct Character {
   /// The specified text is displayed in a thought-bubble GUI.
   import void Think(__format const string message, ...);
   /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
-  import void     Tint(int red, int green, int blue, int saturation, int luminance);
+  import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Unlocks the view after an animation has finished.
   import void UnlockView(StopMovementStyle=eStopMoving);
   /// Moves the character to the destination, automatically playing his walking animation.

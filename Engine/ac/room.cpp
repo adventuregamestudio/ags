@@ -160,8 +160,24 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
     return surface;
 }
 
+int Room_GetHotspotCount() {
+    return MAX_ROOM_HOTSPOTS;
+}
+
 int Room_GetObjectCount() {
     return croom->numobj;
+}
+
+int Room_GetRegionCount() {
+    return MAX_ROOM_REGIONS;
+}
+
+int Room_GetWalkableAreaCount() {
+    return MAX_WALK_AREAS;
+}
+
+int Room_GetWalkbehindCount() {
+    return MAX_WALK_BEHINDS;
 }
 
 int Room_GetWidth() {
@@ -1257,10 +1273,30 @@ RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t
     API_SCALL_INT(Room_GetLeftEdge);
 }
 
+RuntimeScriptValue Sc_Room_GetHotspotCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetHotspotCount);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetObjectCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetObjectCount);
+}
+
+RuntimeScriptValue Sc_Room_GetRegionCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetRegionCount);
+}
+
+RuntimeScriptValue Sc_Room_GetWalkableAreaCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetWalkableAreaCount);
+}
+
+RuntimeScriptValue Sc_Room_GetWalkbehindCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetWalkbehindCount);
 }
 
 // int ()
@@ -1365,7 +1401,11 @@ void RegisterRoomAPI()
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },
         { "Room::get_LeftEdge",                       API_FN_PAIR(Room_GetLeftEdge) },
+        { "Room::get_HotspotCount",                   API_FN_PAIR(Room_GetHotspotCount) },
         { "Room::get_ObjectCount",                    API_FN_PAIR(Room_GetObjectCount) },
+        { "Room::get_RegionCount",                    API_FN_PAIR(Room_GetRegionCount) },
+        { "Room::get_WalkableAreaCount",              API_FN_PAIR(Room_GetWalkableAreaCount) },
+        { "Room::get_WalkbehindCount",                API_FN_PAIR(Room_GetWalkbehindCount) },
         { "Room::get_RightEdge",                      API_FN_PAIR(Room_GetRightEdge) },
         { "Room::get_TopEdge",                        API_FN_PAIR(Room_GetTopEdge) },
         { "Room::get_Width",                          API_FN_PAIR(Room_GetWidth) },

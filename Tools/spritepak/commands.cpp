@@ -328,7 +328,7 @@ int Command_Export(const String &src_pak, const String &dst_dir, const CommandOp
         {
             PixelBuffer pxbuf;
             HError err = reader.LoadSprite(i, pxbuf);
-            if (!err)
+            if (!err || !pxbuf)
             {
                 printf("Error: failed to unpack sprite %d\n", i);
                 continue;

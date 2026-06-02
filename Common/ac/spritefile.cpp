@@ -386,6 +386,7 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
         if (spriteoffs[i] != 0)
         {
             _spriteData[i].Offset = spriteoffs[i];
+            _spriteData[i].HasImage = (rspritewidths[i] > 0) && (rspriteheights[i] > 0);
             if (metrics)
             {
                 (*metrics)[i].Width = rspritewidths[i];
@@ -426,6 +427,7 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
         _spriteData[i].Offset = in->GetPosition();
         SpriteDatHeader hdr;
         ReadSprHeader(hdr, _stream.get(), _version, _compress);
+        _spriteData[i].HasImage = (hdr.BPP > 0) && (hdr.Width > 0) && (hdr.Height > 0);
         if (hdr.BPP == 0) continue; // empty slot, this is normal
         if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
         {
@@ -455,7 +457,7 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
 bool SpriteFile::DoesSpriteExist(sprkey_t index)
 {
     return (index >= 0) && (static_cast<size_t>(index) < _spriteData.size())
-        && (_spriteData[index].Offset > 0);
+        && (_spriteData[index].HasImage);
 }
 
 HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)

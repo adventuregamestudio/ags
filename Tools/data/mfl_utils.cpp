@@ -146,15 +146,20 @@ HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
 }
 
 HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
-    std::vector<AssetInfo> &assets, soff_t part_size)
+    std::vector<AssetInfo> &assets, soff_t part_size, bool append_first)
 {
     int lib_id = 0;
     if (part_size > 0)
     {
-        // Split assets into multiple libs
-        for (; assets.size() > 0 && lib_id < MFLUtil::MaxMultiLibFiles; ++lib_id)
+        soff_t start_size = 0;
+        if (append_first)
         {
-            soff_t lib_size = 0;
+            start_size = File::GetFileSize(lib_basefile);
+        }
+
+        // Split assets into multiple libs
+        for (soff_t lib_size = start_size; assets.size() > 0 && lib_id < MFLUtil::MaxMultiLibFiles; ++lib_id, lib_size = 0)
+        {
             for (auto it = assets.begin(); it != assets.end() && lib_size < part_size;)
             {
                 // We accept a single asset to be larger than the limit,
@@ -195,11 +200,17 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
 }
 
 HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String &lib_filename,
-                        MFLUtil::MFLVersion lib_version, int lib_index, bool verbose)
+                        MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose)
 {
-    std::unique_ptr<Stream> out(File::CreateFile(lib_filename));
+    append &= File::IsFile(lib_filename); // append only if this file exists, otherwise create
+    std::unique_ptr<Stream> out(append ? File::CreateTempFile() : File::CreateFile(lib_filename));
     if (!out)
-        return new Error("Error: failed to open pack file for writing.");
+    {
+        if (append)
+            return new Error("Error: failed to open a temporary file for writing pack data.");
+        else
+            return new Error("Error: failed to open pack file for writing.");
+    }
 
     soff_t s_offset = out->GetPosition();
     MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, lib_index, out.get());
@@ -211,22 +222,37 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String
             String path = Path::ConcatPaths(asset_dir, asset.FileName);
             std::unique_ptr<Stream> in(File::OpenFileRead(path));
             if (!in)
-                return new Error("Failed to open the file for reading.");
+                return new Error(String::FromFormat("Failed to open the asset file for reading: %s", path.GetCStr()));
             if (CopyStream(in.get(), out.get(), asset.Size) < asset.Size)
                 return new Error(String::FromFormat("Failed to write the asset '%s'.", asset.FileName.GetCStr()));
             if (verbose)
                 printf("Info: wrote asset '%s'\n", asset.FileName.GetCStr());
         }
     }
+    lib.BaseFileOffset = s_offset;
     out->Seek(s_offset, kSeekBegin);
     MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, lib_index, out.get());
     out->Seek(0, kSeekEnd);
     MFLUtil::WriteEnder(s_offset, lib_version, out.get());
+    out->Flush();
+
+    // If appending, then write to the final file
+    if (append)
+    {
+        std::unique_ptr<Stream> final(File::OpenFileWrite(lib_filename));
+        if (!final)
+            return new Error("Error: failed to open destination file for writing.");
+        final->Seek(0, kSeekEnd);
+        lib.BaseFileOffset = final->GetPosition();
+        out->Seek(0, kSeekBegin);
+        CopyStream(out->GetStreamBase(), final->GetStreamBase());
+        OverwriteEnder(lib.BaseFileOffset, lib_version, final.get());
+    }
     return HError::None();
 }
 
 HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir, MFLUtil::MFLVersion lib_version,
-                    bool verbose)
+                    bool append_first, bool verbose)
 {
     for (size_t id = 0; id < lib.LibFileNames.size(); ++id)
     {
@@ -234,7 +260,7 @@ HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &ds
         if (verbose)
             printf("Info: writing pack file '%s' ...\n", dst_file.GetCStr());
 
-        HError err = WriteLibraryFile(lib, asset_dir, dst_file, lib_version, id, verbose);
+        HError err = WriteLibraryFile(lib, asset_dir, dst_file, lib_version, id, append_first && (id == 0), verbose);
         if (!err)
         {
             if (verbose)

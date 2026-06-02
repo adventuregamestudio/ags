@@ -51,8 +51,11 @@ const char *HELP_STRING = "Usage:\n"
     "  -a, --attach           attach an existing pack file to another file;\n"
     "                         overwrites any assets that were attached previously.\n"
     "                         This is commonly used to attach asset data to exe.\n"
-    "  -c, --create           create a new pack file, gathering the files from the\n"
-    "                         input directory.\n"
+    "  -c, --create           create a new pack file, gathering the asset files from\n"
+    "                         the input directory.\n"
+    "  -A, --create-attach    create a asset pack attached to the existing file,\n"
+    "                         gathering the asset files from the input directory.\n"
+    "                         This is commonly used to attach asset data to exe.\n"
     "  -d, --detach           detach appended asset data from a file, writes them\n"
     "                         into a standalone pack file, then cuts off the original\n"
     "                         attachment.\n"
@@ -115,6 +118,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'd';
             break;
         }
+        if (opt == "-A" || opt == "--create-attach")
+        {
+            command = 'A';
+            break;
+        }
     }
 
     // Fixed pos options
@@ -159,10 +167,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             return AGSPak::Command_Attach(pak_file, dst_file, verbose);
         }
     case 'c': // create
+    case 'A': // create-attach
         {
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
-            return AGSPak::Command_Create(work_dir, pak_file, pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
+            return AGSPak::Command_Create(work_dir, pak_file, command == 'A', pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
         }
     case 'd': // detach
         {

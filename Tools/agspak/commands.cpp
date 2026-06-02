@@ -227,7 +227,7 @@ int Command_Cut(const String &src_pak, bool verbose)
     return 0;
 }
 
-int Command_Create(const String &src_dir, const String &dst_pak,
+int Command_Create(const String &src_dir, const String &dst_pak, bool append,
                    const std::vector<String> &pattern_list, const String &pattern_file,
                    bool do_subdirs, size_t part_size_mb, bool verbose)
 {
@@ -254,10 +254,25 @@ int Command_Create(const String &src_dir, const String &dst_pak,
         return -1;
 
     //-----------------------------------------------------------------------//
+    // If we are appending, then check for the existing library in the
+    // destination file, and cut one out.
+    //-----------------------------------------------------------------------//
+    if (append)
+    {
+        err = CutAssetLibrary(lib_basefile, verbose);
+        if (!err)
+        {
+            printf("Error: failed to cut existing asset data from the destination file:\n");
+            printf("%s\n", err->FullMessage().GetCStr());
+            return -1;
+        }
+    }
+
+    //-----------------------------------------------------------------------//
     // Write pack file
     //-----------------------------------------------------------------------//
     String lib_dir = Path::GetParent(lib_basefile);
-    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, verbose);
+    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, append, verbose);
     if (!err)
     {
         printf("Error: failed to write pack file:\n");

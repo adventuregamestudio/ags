@@ -47,18 +47,20 @@ namespace DataUtil
     HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
         bool do_subdirs, const String &lib_basefile);
     // Generate AssetLibInfo based on a list of assets, optionally limiting each
-    // library partition by part_size bytes
+    // library partition by part_size bytes.
+    // append_first param tells that the very first lib file is going to be
+    // appended to a existing file (makes a difference if part_size != 0).
     HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
-        std::vector<AssetInfo> &assets, soff_t part_size = 0);
+        std::vector<AssetInfo> &assets, soff_t part_size = 0, bool append_first = false);
     // Writes the library partition into the file lib_filename;
     // recalculates asset offsets and stores in lib as it goes.
     HError WriteLibraryFile(AssetLibInfo &lib, const String &src_dir, const String &lib_filename,
-                            Common::MFLUtil::MFLVersion lib_version, int lib_index, bool verbose);
+                            Common::MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose);
     // Writes the potentially multi-file library into the dst_dir directory;
     // recalculates asset offsets and stores in lib as it goes.
     HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir,
                         Common::MFLUtil::MFLVersion lib_version,
-                        bool verbose);
+                        bool append_first, bool verbose);
     // Tests that the given file is recognized as a asset library.
     // Optionally compares read table of contents with the provided lib info.
     HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib);

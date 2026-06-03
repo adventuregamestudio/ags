@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -290,56 +291,12 @@ namespace AGS.Editor.Components
             if (messages.HasErrors)
                 return messages; // abort for avoiding corrupting translations
 
-            HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation.Select((l) => { return l.Text; }));
-
             // Merge game texts in
+            var gameTexts = generator.LinesForTranslation;
+            HashSet<string> keyedTexts = new HashSet<string>(gameTexts.Select((l) => { return l.Text; }));
             foreach (Translation translation in translations)
             {
-                // Remove or mark as obsolete those texts that are not found in game
-                List<string> removeLines = new List<string>();
-                foreach (var entry in translation.TranslatedEntries.Values)
-                {
-                    if (!keyedTexts.Contains(entry.Key))
-                    {
-                        if (string.IsNullOrEmpty(entry.Value))
-                        {
-                            removeLines.Add(entry.Key);
-                            translation.Modified = true;
-                        }
-                        else
-                        {
-                            if (!entry.IsObsolete)
-                            {
-                                entry.IsObsolete = true;
-                                translation.Modified = true;
-                            }
-                        }
-                    }
-                }
-
-                // Remove obsolete translation lines
-                foreach (var remKey in removeLines)
-                {
-                    translation.TranslatedEntries.Remove(remKey);
-                }
-
-                // Add current game texts
-                foreach (var line in generator.LinesForTranslation)
-                {
-                    if (!translation.TranslatedEntries.ContainsKey(line.Text))
-                    {
-                        var entry = new TranslationEntry(line.Text);
-                        entry.SourceReference = line.SourceRef;
-                        // For parser words, set respective context
-                        // FIXME: this is not good, the PO format allows to have a combined key made of
-                        // a msgid + msgctxt pair. Context could serve to distinguish parser words here.
-                        // but we'd need to change how translated entries are stored (the keys type?).
-                        if (line.ParserWordID >= 0)
-                            entry.Context = $"PARSERWORD:{line.ParserWordID}";
-                        translation.TranslatedEntries.Add(line.Text, entry);
-                        translation.Modified = true;
-                    }
-                }
+                UpdateSingleTranslationProcess(translation, gameTexts, keyedTexts, messages);
             }
 
             foreach (Translation translation in translations)
@@ -353,6 +310,69 @@ namespace AGS.Editor.Components
                 }
             }
             return messages;
+        }
+
+        private void UpdateSingleTranslationProcess(Translation translation,
+            ICollection<GameTextLine> gameTexts, HashSet<string> keyedTexts,
+            CompileMessages messages)
+        {
+            // Remove or mark as obsolete those texts that are not found in game
+            List<string> removeLines = new List<string>();
+            foreach (var entry in translation.TranslatedEntries.Values)
+            {
+                if (!keyedTexts.Contains(entry.Key))
+                {
+                    if (string.IsNullOrEmpty(entry.Value))
+                    {
+                        removeLines.Add(entry.Key);
+                        translation.Modified = true;
+                    }
+                    else
+                    {
+                        if (!entry.IsObsolete)
+                        {
+                            entry.IsObsolete = true;
+                            translation.Modified = true;
+                        }
+                    }
+                }
+            }
+
+            // Remove obsolete translation lines
+            foreach (var remKey in removeLines)
+            {
+                translation.TranslatedEntries.Remove(remKey);
+            }
+
+            // Add current game texts
+            foreach (var line in gameTexts)
+            {
+                TranslationEntry existingEntry;
+                if (translation.TranslatedEntries.TryGetValue(line.Text, out existingEntry))
+                {
+                    // Entry already existed, but we may have to update meta data
+                    existingEntry.SourceReference = line.SourceRef;
+                    if (line.ParserWordID >= 0)
+                        existingEntry.Context = $"PARSERWORD:{line.ParserWordID}";
+                    else if (existingEntry.IsParserDictionary)
+                        existingEntry.Context = null;
+                    translation.Modified = true;
+                }
+                else
+                {
+                    // Add new entry
+                    var entry = new TranslationEntry(line.Text);
+                    entry.SourceReference = line.SourceRef;
+                    // For parser words, set respective context
+                    // FIXME: this is not good, the PO format allows to have a combined key made of
+                    // a msgid + msgctxt pair. Context could serve to distinguish parser words here.
+                    // but we'd need to change how translated entries are stored (the keys type?).
+                    if (line.ParserWordID >= 0)
+                        entry.Context = $"PARSERWORD:{line.ParserWordID}";
+                    translation.TranslatedEntries.Add(line.Text, entry);
+                    translation.Modified = true;
+                }
+            }
         }
 
         private void DoTranslationUpdate(IList<Translation> translations)

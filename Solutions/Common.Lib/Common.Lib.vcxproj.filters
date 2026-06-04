@@ -533,9 +533,6 @@
     <ClCompile Include="..\..\Common\data\tra_file.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\interactions_deprecated.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -933,9 +930,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\delegate.h">
       <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\game\interactions_deprecated.h">
-      <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

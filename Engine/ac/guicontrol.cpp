@@ -42,19 +42,27 @@ extern CCGUIListBox ccDynamicGUIListBox;
 extern CCGUISlider ccDynamicGUISlider;
 extern CCGUITextBox ccDynamicGUITextBox;
 
-GUIControl *GetGUIControlAtLocation(int xx, int yy) {
-    int guinum = GetGUIAt(xx, yy);
+GUIObject *GUIControl_GetAtScreenXY(int xx, int yy, int gui_hitoptions, int ctrl_hitoptions)
+{
+    int guinum = GetGUIAt(xx, yy, gui_hitoptions);
     if (guinum == -1)
         return nullptr;
 
-    int toret = guis[guinum].FindControlAt(xx, yy, 0, false);
+    int toret = guis[guinum].FindControlAt(xx, yy, 0, (ctrl_hitoptions & kHit_Interactable));
     if (toret < 0)
         return nullptr;
 
     return guis[guinum].GetControl(toret);
 }
 
-int GUIControl_GetVisible(GUIControl *guio) {
+GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
+{
+    // NOTE: historically GUIControl.GetAtScreenXY did not require controls to be clickable (only guis)
+    return GUIControl_GetAtScreenXY(x, y, kHit_Interactable, kHit_Any);
+}
+
+int GUIControl_GetVisible(GUIControl *guio)
+{
   return guio->IsVisible();
 }
 
@@ -312,6 +320,16 @@ void GUIControl_SetSolidBackground(GUIControl *guio, bool on)
     guio->SetSolidBackground(on);
 }
 
+bool GUIControl_GetTranslated(GUIControl *guio)
+{
+    return guio->IsTranslated();
+}
+
+void GUIControl_SetTranslated(GUIControl *guio, bool is_translated)
+{
+    guio->SetTranslated(is_translated);
+}
+
 int GUIControl_GetTransparency(GUIControl *guio)
 {
     return GfxDef::LegacyTrans255ToTrans100(guio->GetTransparency());
@@ -404,10 +422,14 @@ RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID(GUIControl, GUIControl_BringToFront);
 }
 
-// GUIControl *(int xx, int yy)
-RuntimeScriptValue Sc_GetGUIControlAtLocation(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUIControl_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(GUIControl, ccDynamicGUIControl, GetGUIControlAtLocation);
+    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIControl, GUIControl_GetAtScreenXY2);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT4(GUIObject, ccDynamicGUIControl, GUIControl_GetAtScreenXY);
 }
 
 // void (GUIControl *guio)
@@ -610,6 +632,16 @@ RuntimeScriptValue Sc_GUIControl_SetZOrder(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetZOrder);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetTranslated(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(GUIControl, GUIControl_GetTranslated);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetTranslated(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(GUIControl, GUIControl_SetTranslated);
+}
+
 RuntimeScriptValue Sc_GUIControl_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIControl, GUIControl_GetTransparency);
@@ -734,7 +766,8 @@ RuntimeScriptValue Sc_GUIControl_SetTextProperty(void *self, const RuntimeScript
 void RegisterGUIControlAPI()
 {
     ScFnRegister guicontrol_api[] = {
-        { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GetGUIControlAtLocation) },
+        { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GUIControl_GetAtScreenXY2) },
+        { "GUIControl::GetAtScreenXY^4",  API_FN_PAIR(GUIControl_GetAtScreenXY) },
         { "GUIControl::GetByName",        API_FN_PAIR(GUIControl_GetByName) },
 
         { "GUIControl::BringToFront^0",   API_FN_PAIR(GUIControl_BringToFront) },
@@ -778,6 +811,8 @@ void RegisterGUIControlAPI()
         { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
         { "GUIControl::get_ZOrder",       API_FN_PAIR(GUIControl_GetZOrder) },
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
+        { "GUIControl::get_Translated",   API_FN_PAIR(GUIControl_GetTranslated) },
+        { "GUIControl::set_Translated",   API_FN_PAIR(GUIControl_SetTranslated) },
         { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
 

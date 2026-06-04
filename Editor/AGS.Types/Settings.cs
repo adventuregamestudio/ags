@@ -88,6 +88,7 @@ namespace AGS.Types
         private bool _useGlobalSpeechAnimationDelay = false;
         private DialogOptionsNumbering _numberDialogOptions = DialogOptionsNumbering.KeyShortcutsOnly;
         private bool _dialogOptionsBackwards = false;
+        private bool _displaySingleDialogOption = false;
         private SpeechPortraitSide _speechPortraitSide = SpeechPortraitSide.Left;
         private string _dialogScriptSayFunction;
         private string _dialogScriptNarrateFunction;
@@ -844,6 +845,16 @@ namespace AGS.Types
         {
             get { return _dialogOptionsBackwards; }
             set { _dialogOptionsBackwards = value; }
+        }
+
+        [DisplayName("Display single dialog option")]
+        [Description("Display dialog options even if only one is enabled at this time. If this is disabled, then the only enabled option will be run automatically.")]
+        [Category("Dialog")]
+        [DefaultValue(false)]
+        public bool DisplaySingleDialogOption
+        {
+            get { return _displaySingleDialogOption; }
+            set { _displaySingleDialogOption = value; }
         }
 
         [DisplayName("Sierra-style portrait location")]

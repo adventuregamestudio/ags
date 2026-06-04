@@ -172,13 +172,14 @@ Bitmap *GetObjectSourceImage(int obj)
     return spriteset[objs[obj].num];
 }
 
-int GetObjectIDAtRoom(int roomx, int roomy)
+int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 {
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int bestshotyp = -1, bestshotwas = -1;
     // Iterate through all objects in the room
     for (uint32_t aa = 0; aa < croom->numobj; aa++) {
         if (!objs[aa].is_displayed()) continue; // disabled or invisible
-        if (objs[aa].flags & OBJF_NOINTERACT)
+        if (only_clickable && (objs[aa].flags & OBJF_NOINTERACT))
             continue;
         int xxx = objs[aa].x, yyy = objs[aa].y;
         SpriteTransformFlags sprite_flags = kSprTf_None;
@@ -205,28 +206,33 @@ int GetObjectIDAtRoom(int roomx, int roomy)
     return bestshotwas;
 }
 
-int GetObjectIDAtScreen(int scrx, int scry)
+ScriptObject *Object_GetAtScreenXY(int x, int y, int hit_options)
 {
     // translate screen co-ordinates to room co-ordinates
-    VpPoint vpt = play.ScreenToRoom(scrx, scry);
+    VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
-        return -1;
-    return GetObjectIDAtRoom(vpt.first.X, vpt.first.Y);
-}
-
-ScriptObject *GetObjectAtScreen(int xx, int yy) {
-    int hsnum = GetObjectIDAtScreen(xx, yy);
+        return nullptr;
+    int hsnum = GetObjectIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &scrObj[hsnum];
 }
 
-ScriptObject *GetObjectAtRoom(int x, int y)
+ScriptObject *Object_GetAtScreenXY2(int x, int y)
 {
-    int hsnum = GetObjectIDAtRoom(x, y);
+    return Object_GetAtScreenXY(x, y, true);
+}
+
+ScriptObject *Object_GetAtRoomXY(int x, int y, int hit_options)
+{
+    int hsnum = GetObjectIDAtRoom(x, y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &scrObj[hsnum];
+}
+ScriptObject *Object_GetAtRoomXY2(int x, int y)
+{
+    return Object_GetAtRoomXY(x, y, true);
 }
 
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {
@@ -1213,7 +1219,7 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
 // X and Y co-ordinates must be in native format (TODO: find out if this comment is still true)
 int check_click_on_object(int roomx, int roomy, int mood)
 {
-    int aa = GetObjectIDAtRoom(roomx, roomy);
+    int aa = GetObjectIDAtRoom(roomx, roomy, kHit_Interactable);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;
@@ -1634,15 +1640,24 @@ RuntimeScriptValue Sc_Object_Tint(void *self, const RuntimeScriptValue *params, 
     API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint);
 }
 
-RuntimeScriptValue Sc_GetObjectAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtRoom);
+    API_SCALL_OBJ_PINT3(ScriptObject, ccDynamicObject, Object_GetAtRoomXY);
 }
 
-// ScriptObject *(int xx, int yy)
-RuntimeScriptValue Sc_GetObjectAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtScreen);
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, Object_GetAtRoomXY2);
+}
+
+RuntimeScriptValue Sc_Object_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT3(ScriptObject, ccDynamicObject, Object_GetAtScreenXY);
+}
+
+RuntimeScriptValue Sc_Object_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, Object_GetAtScreenXY2);
 }
 
 // int (ScriptObject *objj)
@@ -2002,8 +2017,10 @@ RuntimeScriptValue Sc_Object_GetMotionPath(void *self, const RuntimeScriptValue 
 void RegisterObjectAPI()
 {
     ScFnRegister object_api[] = {
-        { "Object::GetAtRoomXY^2",            API_FN_PAIR(GetObjectAtRoom) },
-        { "Object::GetAtScreenXY^2",          API_FN_PAIR(GetObjectAtScreen) },
+        { "Object::GetAtRoomXY^2",            API_FN_PAIR(Object_GetAtRoomXY2) },
+        { "Object::GetAtScreenXY^2",          API_FN_PAIR(Object_GetAtScreenXY2) },
+        { "Object::GetAtRoomXY^3",            API_FN_PAIR(Object_GetAtRoomXY) },
+        { "Object::GetAtScreenXY^3",          API_FN_PAIR(Object_GetAtScreenXY) },
         { "Object::GetByName",                API_FN_PAIR(Object_GetByName) },
 
         { "Object::Animate^5",                API_FN_PAIR(Object_Animate5) },

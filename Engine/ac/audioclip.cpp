@@ -42,6 +42,21 @@ const char *AudioClip_GetScriptName(ScriptAudioClip *clip)
     return CreateNewScriptString(clip->scriptName);
 }
 
+int AudioClip_GetDefaultPriority(ScriptAudioClip *clip)
+{
+    return clip->defaultPriority;
+}
+
+int AudioClip_GetDefaultRepeat(ScriptAudioClip *clip)
+{
+    return clip->defaultRepeat;
+}
+
+int AudioClip_GetDefaultVolume(ScriptAudioClip *clip)
+{
+    return clip->defaultVolume;
+}
+
 int AudioClip_GetFileType(ScriptAudioClip *clip)
 {
     return clip->fileType;
@@ -165,6 +180,21 @@ RuntimeScriptValue Sc_AudioClip_GetScriptName(void *self, const RuntimeScriptVal
     API_OBJCALL_OBJ(ScriptAudioClip, const char, myScriptStringImpl, AudioClip_GetScriptName);
 }
 
+RuntimeScriptValue Sc_AudioClip_GetDefaultPriority(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetDefaultPriority);
+}
+
+RuntimeScriptValue Sc_AudioClip_GetDefaultRepeat(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetDefaultRepeat);
+}
+
+RuntimeScriptValue Sc_AudioClip_GetDefaultVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetDefaultVolume);
+}
+
 // int | ScriptAudioClip *clip
 RuntimeScriptValue Sc_AudioClip_GetFileType(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -252,6 +282,9 @@ void RegisterAudioClipAPI()
         { "AudioClip::SetProperty^2",     API_FN_PAIR(AudioClip_SetProperty) },
         { "AudioClip::SetTextProperty^2", API_FN_PAIR(AudioClip_SetTextProperty) },
         { "AudioClip::get_ID",            API_FN_PAIR(AudioClip_GetID) },
+        { "AudioClip::get_DefaultPriority", API_FN_PAIR(AudioClip_GetDefaultPriority) },
+        { "AudioClip::get_DefaultRepeat", API_FN_PAIR(AudioClip_GetDefaultRepeat) },
+        { "AudioClip::get_DefaultVolume", API_FN_PAIR(AudioClip_GetDefaultVolume) },
         { "AudioClip::get_FileType",      API_FN_PAIR(AudioClip_GetFileType) },
         { "AudioClip::get_IsAvailable",   API_FN_PAIR(AudioClip_GetIsAvailable) },
         { "AudioClip::get_ScriptName",    API_FN_PAIR(AudioClip_GetScriptName) },

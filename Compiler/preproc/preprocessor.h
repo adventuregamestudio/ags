@@ -46,7 +46,7 @@ namespace Preprocessor {
     private:
         bool _inMultiLineComment = false;
         MacroTable _macros = MacroTable();
-        int _lineNumber;
+        int _lineNumber = 0;
         String _scriptName;
         Version _applicationVersion;
         // Conditional statement stack remembers the results of all the nested conditions
@@ -59,9 +59,9 @@ namespace Preprocessor {
 
         void LogError(ErrorCode error, const String &message = nullptr);
 
-        void ProcessConditionalDirective(String &directive, String &line);
+        void ProcessConditionalDirective(const String &directive, String &line);
 
-        bool DeletingCurrentLine();
+        bool DeletingCurrentLine() const;
 
         String GetNextWord(String &text, bool trimText = true, bool includeDots = false);
 

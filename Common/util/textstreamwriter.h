@@ -47,6 +47,9 @@ public:
     void    WriteLine(const String &str) override;
     // Write formatted string (see *printf)
     void    WriteFormat(const char *fmt, ...) override;
+    // Write formatted string and line break at the end
+    void    WriteLineFormat(const char *fmt, ...) override;
+    // Write line break
     void    WriteLineBreak() override;
 
     // Flushes the underlying device

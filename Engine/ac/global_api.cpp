@@ -222,12 +222,6 @@ RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT_PINT2(GetLocationType);
 }
 
-// int  (int xxx, int yyy)
-RuntimeScriptValue Sc_GetRegionIDAtRoom(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetRegionIDAtRoom);
-}
-
 // int  (int x, int y)
 RuntimeScriptValue Sc_GetScalingAt(const RuntimeScriptValue *params, int32_t param_count)
 {

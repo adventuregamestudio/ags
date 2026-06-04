@@ -160,29 +160,34 @@ const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
     return CreateNewScriptString(game.invScriptNames[scii->id]);
 }
 
-int GetInvAt(int scrx, int scry)
+int GetInvAt(int atx, int aty, int gui_hitoptions, int inv_hitoptions)
 {
-    int ongui = GetGUIAt(scrx, scry);
+    int ongui = GetGUIAt(atx, aty, gui_hitoptions);
     if (ongui >= 0)
     {
-        GUIMain &gui = guis[ongui];
-        int onobj = gui.FindControlAt(scrx, scry);
-        GUIControl *guio = gui.GetControl(onobj);
-        if (guio && (gui.GetControlType(onobj) == kGUIInvWindow))
+        int onobj = guis[ongui].FindControlAt(atx, aty, 0, inv_hitoptions & kHit_Interactable);
+        GUIObject *guio = guis[ongui].GetControl(onobj);
+        if (guio && (guis[ongui].GetControlType(onobj) == kGUIInvWindow))
         {
-            Point guipt = gui.GetGraphicSpace().WorldToLocal(scrx, scry);
-            Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
-            return InvWindow_GetItemAtXY((GUIInvWindow *)guio, gobjpt.X, gobjpt.Y);
+            const int inv_atx = atx - guis[ongui].GetX() - guio->GetX();
+            const int inv_aty = aty - guis[ongui].GetY() - guio->GetY();
+            return InvWindow_GetItemAtXY((GUIInvWindow *)guio, inv_atx, inv_aty);
         }
     }
     return -1;
 }
 
-ScriptInvItem *InventoryItem_GetAtScreenXY(int xx, int yy) {
-  int hsnum = GetInvAt(xx, yy);
-  if (hsnum <= 0)
-    return nullptr;
-  return &scrInv[hsnum];
+ScriptInvItem *InventoryItem_GetAtScreenXY(int x, int y, int gui_hitoptions, int inv_hitoptions)
+{
+    int hsnum = GetInvAt(x, y, gui_hitoptions, inv_hitoptions);
+    if (hsnum <= 0)
+        return nullptr;
+    return &scrInv[hsnum];
+}
+
+ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
+{
+    return InventoryItem_GetAtScreenXY(x, y, kHit_Interactable, kHit_Interactable);
 }
 
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
@@ -283,16 +288,19 @@ ScriptInvItem *InventoryItem_GetByName(const char *name)
     return static_cast<ScriptInvItem*>(ccGetScriptObjectAddress(name, ccDynamicInv.GetType()));
 }
 
-
 RuntimeScriptValue Sc_InventoryItem_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(ScriptInvItem, ccDynamicInv, InventoryItem_GetByName, const char);
 }
 
-// ScriptInvItem *(int xx, int yy)
 RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY);
+    API_SCALL_OBJ_PINT4(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY);
+}
+
+RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptInvItem, ccDynamicInv, InventoryItem_GetAtScreenXY2);
 }
 
 // int (ScriptInvItem *iitem, int mood)
@@ -407,7 +415,8 @@ RuntimeScriptValue Sc_InventoryItem_GetName_New(void *self, const RuntimeScriptV
 void RegisterInventoryItemAPI()
 {
     ScFnRegister invitem_api[] = {
-        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
+        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY2) },
+        { "InventoryItem::GetAtScreenXY^4",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
         { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
 
         { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },

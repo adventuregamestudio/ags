@@ -81,6 +81,11 @@ int System_GetHardwareAcceleration()
     return gfxDriver->HasAcceleratedTransform() ? 1 : 0;
 }
 
+const char *System_GetLocaleName()
+{
+    return CreateNewScriptString(play.GetTextLocaleName());
+}
+
 int System_GetNumLock()
 {
     SDL_Keymod mod_state = SDL_GetModState();
@@ -382,6 +387,11 @@ RuntimeScriptValue Sc_System_GetHasInputFocus(const RuntimeScriptValue *params, 
     API_SCALL_BOOL(System_GetHasInputFocus);
 }
 
+RuntimeScriptValue Sc_System_GetLocaleName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, System_GetLocaleName);
+}
+
 // int ()
 RuntimeScriptValue Sc_System_GetNumLock(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -519,6 +529,7 @@ void RegisterSystemAPI()
         { "System::set_Gamma",                API_FN_PAIR(System_SetGamma) },
         { "System::get_HardwareAcceleration", API_FN_PAIR(System_GetHardwareAcceleration) },
         { "System::get_HasInputFocus",        API_FN_PAIR(System_GetHasInputFocus) },
+        { "System::get_LocaleName",           API_FN_PAIR(System_GetLocaleName) },
         { "System::get_NumLock",              API_FN_PAIR(System_GetNumLock) },
         { "System::get_OperatingSystem",      API_FN_PAIR(System_GetOS) },
         { "System::get_RenderAtScreenResolution", API_FN_PAIR(System_GetRenderAtScreenResolution) },

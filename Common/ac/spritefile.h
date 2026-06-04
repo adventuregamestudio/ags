@@ -175,8 +175,6 @@ private:
     // Loads sprite index file
     bool        LoadSpriteIndexFile(std::unique_ptr<Stream> && index_file, int expectedFileID,
                         sprkey_t topmost, std::vector<GraphicResolution> *metrics);
-    // Reload sprite metrics, optionally uses ready index, optionally
-    HError      LoadSpriteMetricsImpl(std::vector<SpriteDatHeader> *metrics);
     // Rebuilds sprite index from the main sprite file
     HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost,
                         std::vector<GraphicResolution> *metrics, std::vector<SpriteDatHeader>* metrics2);
@@ -187,6 +185,7 @@ private:
     struct SpriteRef
     {
         soff_t Offset = 0; // data offset
+        bool   HasImage = false;
         size_t RawSize = 0; // file size of element, in bytes
         // TODO: RawSize is currently unused, due to incompleteness of spriteindex format
     };

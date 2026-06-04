@@ -43,7 +43,7 @@ inline bool IsPlaybackDone(PlaybackState state)
 }
 
 // Max channels that are distributed among game's audio types
-#define MAX_GAME_CHANNELS         16
+#define MAX_GAME_CHANNELS         32
 #define SPECIAL_CROSSFADE_CHANNEL (MAX_GAME_CHANNELS)
 // Total number of channels: game chans + utility chans
 #define TOTAL_AUDIO_CHANNELS      (MAX_GAME_CHANNELS + 1)

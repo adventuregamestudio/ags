@@ -309,13 +309,13 @@ static void GameUpdateCheckGroundInteractions()
     else
     {
         // check if he's standing on a hotspot
-        int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
+        int hotspotThere = GetHotspotIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
         // run Stands on Hotspot event;
         // NOTE: this runs even for hotspot 0 (no hotspot), in case one has a script function attached
         setevent(AGSEvent_Object(kObjEventType_Hotspot, hotspotThere, kHotspotEvent_StandOn));
 
         // check current region
-        int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y);
+        int onRegion = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
         if (onRegion != play.player_on_region)
         {
             // we need to save this and set play.player_on_region

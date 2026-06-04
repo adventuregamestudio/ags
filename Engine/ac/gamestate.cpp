@@ -54,6 +54,8 @@ void GamePlayState::SetGameTextLanguage(const String &language)
         _localeNameUTF8 = "";
     }
     GUI::Context.TextLocaleName = _localeNameUTF8;
+    Debug::Printf("Set game text language: %s", _gameTextLanguage.GetCStr());
+    Debug::Printf("Set locale: %s", _localeNameUTF8.GetCStr());
 }
 
 bool GamePlayState::IsAutoRoomViewport() const
@@ -952,7 +954,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( parsed_words.size());
     out->WriteArrayOfInt16( reinterpret_cast<const int16_t*>(parsed_words.data()), std::min<size_t>(parsed_words.size(), MAX_PARSED_WORDS));
     if (parsed_words.size() < MAX_PARSED_WORDS)
-        out->WriteByteCount(0, MAX_PARSED_WORDS - parsed_words.size());
+        out->WriteByteCount(0, (MAX_PARSED_WORDS - parsed_words.size()) * sizeof(int16_t));
     bad_parsed_word.WriteCount(out, 100);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]

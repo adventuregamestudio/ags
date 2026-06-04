@@ -39,7 +39,7 @@ COMMON_OBJS = \
 	../../Common/util/textstreamreader.cpp
 
 TOOL_OBJS = \
-	../../Tools/data/ignore_utils.cpp \
+	../../Tools/data/include_utils.cpp \
 	../../Tools/data/mfl_utils.cpp
 
 OBJS := main.cpp \

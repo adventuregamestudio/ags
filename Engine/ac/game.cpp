@@ -1344,7 +1344,7 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     if (!OpenMainGameFileFromDefaultAsset(src, amgr.get()))
         return false;
     GameSetupStruct g;
-    PreReadGameData(g, std::move(src.InputStream), src.DataVersion);
+    PreReadGameData(g, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
     if (!guid.IsEmpty())
         return guid.CompareNoCase(g.guid) == 0;
     return legacy_id == g.uniqueid;
@@ -1614,31 +1614,29 @@ void stop_fast_forwarding() {
 
 // allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
 // or whether it returns 0
-int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
+int __GetLocationType(int x, int y, int allowHotspot0) {
     getloctype_index = 0;
     // If it's not in ProcessClick, then return 0 when over a GUI
-    if ((GetGUIAt(xxx, yyy) >= 0) && (getloctype_throughgui == 0))
+    if ((GetGUIAt(x, y, kHit_Interactable) >= 0) && (getloctype_throughgui == 0))
         return 0;
 
     getloctype_throughgui = 0;
 
-    const int scrx = xxx;
-    const int scry = yyy;
-    VpPoint vpt = play.ScreenToRoom(xxx, yyy);
+    VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return 0;
-    xxx = vpt.first.X;
-    yyy = vpt.first.Y;
-    if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
+    x = vpt.first.X;
+    y = vpt.first.Y;
+    if ((x>=thisroom.Width) || (x<0) || (y<0) || (y>=thisroom.Height))
         return 0;
 
     // check characters, objects and walkbehinds, work out which is
     // foremost visible to the player
-    int charat = is_pos_on_character(xxx,yyy);
-    int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectIDAtScreen(scrx, scry);
+    int charat = GetCharIDAtRoom(x, y, kHit_Interactable);
+    int hsat = GetHotspotIDAtRoom(x, y, kHit_Interactable);
+    int objat = GetObjectIDAtRoom(x, y, kHit_Interactable);
 
-    int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
+    int wbat = thisroom.WalkBehindMask->GetPixel(x, y);
 
     if (wbat <= 0) wbat = 0;
     else wbat = croom->walkbehind_base[wbat];

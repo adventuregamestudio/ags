@@ -20,7 +20,11 @@
 #define MAX_MAXSTRLEN 200
 
 #define INVALID_X  30000
-#define MAX_INVORDER 500
+#define LEGACY_MAX_CHAR_INVENTORY 500
+// Max character inventory capacity is limited by SCR_NO_VALUE,
+// because that was AddInventory's index parameter's default value.
+// May up to INT32_MAX in AGS 4.x, but keep here for backwards compatibility.
+#define MAX_CHAR_INVENTORY 31998
 #define LEGACY_MAX_TIMERS 21
 #define MAX_PARSED_WORDS 15
 
@@ -271,6 +275,14 @@ enum ScriptButtonColorStyle
     eGUIButtonDefault           = 0,
     eGUIButtonDynamic           = 1,
     eGUIButtonDynamicFlat       = 2
+};
+
+// Determines a set of bit-flags for hit-test functions, such as
+// GetAtScreenXY and GetAtRoomXY.
+enum ScriptHitTestOptions
+{
+    kHit_Any                    = 0,
+    kHit_Interactable           = 0x0001
 };
 
 enum eScriptSystemOSID

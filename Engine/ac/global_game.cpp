@@ -385,7 +385,8 @@ int GetGameSpeed()
     return game.options[OPT_GAMEFPS];
 }
 
-int SetGameOption (int opt, int newval) {
+int SetGameOption (int opt, int newval)
+{
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
         debug_script_warn("SetGameOption: invalid option specified: %d", opt);
@@ -448,6 +449,9 @@ int SetGameOption (int opt, int newval) {
         break;
     case OPT_PORTRAITSIDE:
         play.swap_portrait_side = (newval == PORTRAIT_ALTERNATE);
+        break;
+    case OPT_DISPLAYSINGLEDIALOGOPTION:
+        play.show_single_dialog_option = newval;
         break;
     default:
         break; // do nothing else
@@ -563,10 +567,10 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
         return ""; // no room loaded yet
     }
 
-    if (GetGUIAt(x, y) >= 0)
+    if (GetGUIAt(x, y, kHit_Interactable) >= 0)
     {
         // On GUI, test if we're above an inventory item
-        int invitem = GetInvAt(x, y);
+        int invitem = GetInvAt(x, y, kHit_Interactable, kHit_Interactable);
         if (invitem > 0)
         {
             loc_index = kSavedLocType_InvItem + invitem;
@@ -739,7 +743,7 @@ void RoomProcessClick(int xx,int yy,int mood) {
     yy = vpt.first.Y;
 
     if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE]==0)) {
-        int hsnum=get_hotspot_at(xx,yy);
+        int hsnum=GetHotspotIDAtRoom(xx, yy, kHit_Interactable);
         if (hsnum<1) ;
         else if (thisroom.Hotspots[hsnum].WalkTo.X<1) ;
         else if (play.auto_use_walkto_points == 0) ;

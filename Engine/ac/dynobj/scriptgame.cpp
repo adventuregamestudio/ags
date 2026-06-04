@@ -209,7 +209,10 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 119: // play.fade_to_blue;
         debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
-    case 120:  play.show_single_dialog_option = val; break;
+    case 120:
+        play.show_single_dialog_option = val;
+        game.options[OPT_DISPLAYSINGLEDIALOGOPTION] = val;
+        break;
     case 121:  play.keep_screen_during_instant_transition = val; break;
     case 122:  play.read_dialog_option_colour = val; break;
     case 123:  break; // [DEPRECATED]

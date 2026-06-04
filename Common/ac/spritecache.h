@@ -141,7 +141,7 @@ public:
     // Assigns a new sprite at the first found free index; this sprite won't be auto disposed.
     // "flags" are optional SPF_* constants that define sprite's behavior in game.
     // Returns the new sprite's index, or -1 if operation failed for any reason.
-    sprkey_t    AddSprite(std::unique_ptr<Bitmap> image, int flags = 0);
+    sprkey_t    AddSprite(std::unique_ptr<Bitmap> &&image, int flags = 0);
     // Loads sprite using SpriteFile if such index is known,
     // frees the space if cache size reaches the limit
     void        PrecacheSprite(sprkey_t index);

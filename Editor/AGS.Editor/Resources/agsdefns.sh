@@ -98,6 +98,8 @@
 #define OPT_SAVECOMPONENTSIGNORE 55
 // OPT_GAMEFPS                56 // [HIDDEN], only read once on startup
 #define OPT_GUICONTROLMOUSEBUT 57
+#define OPT_AUTOTRANSPARSERSAID 58
+#define OPT_DISPLAYSINGLEDIALOGOPTION 59
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT     0
@@ -179,11 +181,13 @@ enum Alignment {
   eAlignMiddleRight   = 32,
   eAlignBottomLeft    = 64,
   eAlignBottomCenter  = 128,
-  eAlignBottomRight   = 256,
+  eAlignBottomRight   = 256
+};
 
-  // Masks are helping to determine whether alignment parameter contains
-  // particular horizontal or vertical component (for example: left side
-  // or bottom side)
+// Masks are helping to determine whether alignment parameter contains
+// particular horizontal or vertical component (for example: left side
+// or bottom side)
+enum AlignmentMask {
   eAlignHasLeft       = 73,
   eAlignHasRight      = 292,
   eAlignHasTop        = 7,
@@ -563,6 +567,14 @@ enum DialogOptionsNumbering
   eDialogOptNumbers_Disabled  = -1,
   eDialogOptNumbers_KeysOnly  = 0,
   eDialogOptNumbers_Display   = 1
+};
+
+// Determines a set of bit-flags for hit-test functions, such as
+// GetAtScreenXY and GetAtRoomXY.
+enum HitTestOptions
+{
+  eHit_Any              = 0,
+  eHit_Interactable     = 0x0001
 };
 #endif // SCRIPT_API_v363
 
@@ -1150,6 +1162,8 @@ builtin struct Mouse {
   readonly int  x,y;
 };
 
+#ifndef STRICT
+#endif // STRICT
 /// Gets the width of the specified text in the specified font
 import int  GetTextWidth(const string text, FontType);
 /// Gets the height of the specified text in the specified font when wrapped at the specified width
@@ -1158,8 +1172,10 @@ import int  GetTextHeight(const string text, FontType, int width);
 import int  GetFontHeight(FontType);
 /// Gets the default step between two lines of text for the specified font
 import int  GetFontLineSpacing(FontType);
+#ifdef SCRIPT_COMPAT_v363
 /// Refreshes the on-screen inventory display.
 import void UpdateInventory();
+#endif // SCRIPT_COMPAT_v363
 /// From within dialog_request, tells AGS not to return to the dialog after this function ends.
 import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
@@ -1267,7 +1283,7 @@ builtin managed struct File {
 
 builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
-  import static InventoryItem* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions invHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -1644,7 +1660,7 @@ builtin managed struct GUIControl {
   /// Brings this control to the front of the z-order, in front of all other controls.
   import void BringToFront();
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
-  import static GUIControl* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
+  import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions controlHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
 #ifdef SCRIPT_API_v361
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -1709,6 +1725,8 @@ builtin managed struct GUIControl {
   import attribute int PaddingX;
   /// Gets/sets the vertical padding (amount of pixels surrounding inner control's contents from the top and bottom sides).
   import attribute int PaddingY;
+  /// Gets/sets whether this control will have its text automatically translated when a game translation is active.
+  import attribute bool Translated;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets an integer custom property for this control.
@@ -1966,7 +1984,7 @@ builtin managed struct GUI {
   /// Moves the GUI to be centred on the screen.
   import void Centre();
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
-  import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2084,7 +2102,7 @@ builtin managed struct TextWindowGUI extends GUI {
 
 builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
-  import static Hotspot* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static Hotspot* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2112,7 +2130,7 @@ builtin managed struct Hotspot {
   import bool SetTextProperty(const string property, const string value);
 #ifdef SCRIPT_API_v3507
   /// Returns the hotspot at the specified position within this room.
-  import static Hotspot* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+  import static Hotspot* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
   /// Gets the drawing surface for the 8-bit hotspots mask
@@ -2128,7 +2146,7 @@ builtin managed struct Hotspot {
 
 builtin managed struct Region {
   /// Returns the region at the specified position within this room.
-  import static Region* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static Region* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
   /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
@@ -2153,7 +2171,7 @@ builtin managed struct Region {
   readonly import attribute int  TintLuminance;
 #ifdef SCRIPT_API_v3507
   /// Returns the region at the specified position on the screen.
-  import static Region* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static Region* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
   /// Gets the drawing surface for the 8-bit regions mask
@@ -2511,6 +2529,14 @@ builtin managed struct AudioClip {
   /// Gets the script name of this clip.
   import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Gets the clips's default priority, which was set in the editor.
+  import readonly attribute int DefaultPriority;
+  /// Gets the clips's default repeat style, which was set in the editor.
+  import readonly attribute RepeatStyle DefaultRepeat;
+  /// Gets the clip's default volume, which was set in the editor.
+  import readonly attribute int DefaultVolume;
+#endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets an integer custom property for this item.
   import int  GetProperty(const string property);
@@ -2607,6 +2633,8 @@ builtin struct System {
 #ifdef SCRIPT_API_v363
   /// Gets current real game's FPS; this may or not match the game's speed property.
   import static readonly attribute int FPS;
+  /// Gets the name of the current game's locale. Locale is used for certain text operations, such as locale-aware string comparison.
+  import static readonly attribute String LocaleName;
 #endif // #ifdef SCRIPT_API_v363
 };
 
@@ -2621,7 +2649,7 @@ builtin managed struct Object {
 #endif
   );
   /// Gets the object that is on the screen at the specified co-ordinates.
-  import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static Object* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2709,7 +2737,7 @@ builtin managed struct Object {
   readonly import attribute int  TintLuminance;
 #ifdef SCRIPT_API_v3507
   /// Returns the object at the specified position within this room.
-  import static Object* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+  import static Object* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
   /// Gets/sets whether the object uses manually specified scaling instead of using walkable area scaling.
@@ -2786,14 +2814,14 @@ enum StopMovementStyle
 
 builtin managed struct Character {
   /// Adds the specified item to the character's inventory.
-  import void AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
+  import void AddInventory(InventoryItem *item, int addAtIndex=-1);
   /// Manually adds a waypoint to the character's movement path.
   import void AddWaypoint(int x, int y);
   /// Animates the character using its current locked view.
   import void Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
     , int frame=0
-#endif  
+#endif
 #ifdef SCRIPT_API_v360
     , int volume=100
 #endif
@@ -2813,7 +2841,7 @@ builtin managed struct Character {
   /// Starts this character following the other character.
   import void FollowCharacter(Character*, int dist=10, int eagerness=97);
   /// Returns the character that is at the specified position on the screen.
-  import static Character* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2992,7 +3020,7 @@ builtin managed struct Character {
   readonly import attribute int  TintLuminance;
 #ifdef SCRIPT_API_v3507
   /// Returns the character at the specified position within this room.
-  import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+  import static Character* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
 #ifdef SCRIPT_COMPAT_v363
@@ -3029,6 +3057,10 @@ builtin managed struct Character {
   import readonly attribute int IdleDelay;
   /// Gets remaining time before the idle view activates, in seconds
   import readonly attribute int IdleTime;
+  /// Gets how many items are currently in the character's inventory. This counts duplicates too if "Display multiple icons for multiple items" option is enabled.
+  import readonly attribute int InventoryCount;
+  /// Gets inventory items which character has in its inventory.
+  import readonly attribute InventoryItem* Inventory[];
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.

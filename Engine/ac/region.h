@@ -20,8 +20,7 @@
 
 #include "ac/dynobj/scriptobjects.h"
 
-ScriptRegion *Region_GetAtRoomXY(int xx, int yy);
-int		GetRegionIDAtRoom(int xxx, int yyy);
+int     GetRegionIDAtRoom(int x, int y, int hit_options);
 void    Region_SetLightLevel(ScriptRegion *ssr, int brightness);
 int     Region_GetLightLevel(ScriptRegion *ssr);
 int     Region_GetTintEnabled(ScriptRegion *srr);

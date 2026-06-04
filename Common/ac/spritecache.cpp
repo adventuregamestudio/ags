@@ -279,7 +279,7 @@ void SpriteCache::DisposeAllFreeCached()
     ResourceCache::DisposeFreeItems();
 }
 
-sprkey_t SpriteCache::AddSprite(std::unique_ptr<Bitmap> image, int flags)
+sprkey_t SpriteCache::AddSprite(std::unique_ptr<Bitmap> &&image, int flags)
 {
     sprkey_t index = GetFreeIndex();
     if (index >= 0 && SetSprite(index, std::move(image), flags))

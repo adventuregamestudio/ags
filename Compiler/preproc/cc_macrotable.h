@@ -23,10 +23,10 @@ struct MacroTable {
 private:
     std::map<AGString,AGString> _macro_table;
 public:
-    bool contains(const AGString &name);
-    AGString get_macro(const AGString &name) ;
+    bool contains(const AGString &name) const;
+    AGString get_macro(const AGString &name);
     void add(const AGString &macroname, const AGString &value);
-    void remove(AGString &macroname);
+    void remove(const AGString &macroname);
     void merge(MacroTable & macro_table);
     void clear();
 };

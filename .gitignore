@@ -100,6 +100,8 @@ Engine/ags
 **/Debug_XP
 **/Release
 **/Release_XP
+**/Debug_ASAN/
+**/Debug_ASAN/
 **/.build
 **/.lib
 **/.test
@@ -159,13 +161,12 @@ Emscripten/emscripten/
 Emscripten/build*/
 
 # ignore tools built from their makefiles
-Tools/agf2autoash/agf2autoash
 Tools/agf2dlgasc/agf2dlgasc
-Tools/agf2glvar/agf2glvar
+Tools/agfexport/agfexport
 Tools/agspak/agspak
-Tools/agsunpak/agsunpak
 Tools/crm2ash/crm2ash
 Tools/crmpak/crmpak
+Tools/spritepak/spritepak
 Tools/trac/trac
 
 # ignore lib sources fetch with download.sh

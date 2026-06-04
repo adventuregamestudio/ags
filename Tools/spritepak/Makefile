@@ -8,7 +8,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
-	-DALLEGRO_STATICLINK
+	-DALLEGRO_STATICLINK \
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
@@ -51,6 +51,7 @@ MINIZ_OBJS = \
 OBJS := main.cpp \
 	commands.cpp \
 	$(COMMON_OBJS) \
+	$(MINIMAL_ALLEGRO_OBJS) \
 	$(MINIZ_OBJS)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)

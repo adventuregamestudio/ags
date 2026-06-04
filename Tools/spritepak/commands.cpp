@@ -228,7 +228,7 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     //-----------------------------------------------------------------------//
     // Write sprite file
     //-----------------------------------------------------------------------//
-    auto out = File::OpenFileWrite(dst_pak);
+    auto out = File::CreateFile(dst_pak);
     if (!out)
     {
         printf("Error: failed to open sprite file for writing: %s\n", dst_pak.GetCStr());
@@ -328,13 +328,13 @@ int Command_Export(const String &src_pak, const String &dst_dir, const CommandOp
         {
             PixelBuffer pxbuf;
             HError err = reader.LoadSprite(i, pxbuf);
-            if (!err)
+            if (!err || !pxbuf)
             {
                 printf("Error: failed to unpack sprite %d\n", i);
                 continue;
             }
             String image_file = Path::ConcatPaths(dst_dir, String::FromFormat(image_pattern.GetCStr(), i));
-            auto out = File::OpenFileWrite(image_file);
+            auto out = File::CreateFile(image_file);
             if (!out)
             {
                 printf("Error: failed to open image file for writing: %s\n", image_file.GetCStr());

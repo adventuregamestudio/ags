@@ -299,17 +299,25 @@ VERSION 3.6.3 - Beta, October 2025
 
 Common:
  - Removed limit of Dialog's options (was 30).
+ - Increased number of Audio Channels to 32 (was 16).
 
 Editor:
  - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
    regardless of the local system settings. This is done primarily to make it easier to share
    values between property fields and script.
+ - In General Settings added "Text language" option, that lets specify a base game language.
+   This option is used whenever engine needs to identify the game text as being of a particular
+   language or using particular alphabet (e.g. alphabetic string sorting).
+ - In General Settings added "Display single dialog option", which corresponds to the previously
+   existing "game.show_single_dialog_option" variable in script.
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
    right mouse buttons.
  - In General Settings added Translation settings: "Include script texts with prefix",
    "Exclude script texts with prefix" and "Exclude script function calls", that let configure
    selection of the script texts which are added to translation file.
+ - In General Settings added "Translate Text Parser" setting, which makes Editor export
+   Text Parser's words dictionary to the translation file.
  - In Default Setup added "Compress saves" option, enabled by default.
  - On Color Finder panel added Web Color and comma-separated RGB color representation.
  - Merged previously paired "Color" and "Color Number" properties into the single "Color" property
@@ -340,6 +348,9 @@ Editor:
    requested by clicking on the table column headers.
  - Custom Properties Schema now lets specify whether the String property value's should be added
    to Translation file, or not.
+ - Allow to rename custom properties in the Schema, in which case the Editor will process all the
+   objects in all game and adjust property names there.
+ - Custom Properties Schema dialog now has a Cancel button which lets to revert any changes.
  - Redesigned Font Preview panel. Now the table of glyphs display all the characters present in the
    font and let jump to a chosen character. Added text preview, where user may input any multiline
    text and see it printed with the current font.
@@ -348,6 +359,8 @@ Editor:
  - In GUI Editor let set control's ZOrder property directly.
  - In Room Editor Characters will be sorted among themselves in accordance to their starting
    Baseline (NOTE: Characters and Room Objects are still not sorted among each other).
+ - Text Parser pane now allows to enter multiple comma-separated words per entry, which may be
+   a more convenient way to create list of synonyms.
  - In View Editor added context menu commands for copying, cutting and pasting individual frames
    and frame ranges; commands for reversing a range of frames, and reversing loop.
  - View preview now refers to the game's default FPS setting when displaying animation.
@@ -357,9 +370,20 @@ Editor:
  - "Go to Definition" command in script editor now works for Room elements too.
    Also, "missing event function" warnings support double click to go to event pane for Rooms and
    Room elements as well.
- - Implemented performance optimization for Translation update process.
+ - Translation compiler now supports "Language" setting, with the same meaning as the one in
+   General Settings, but associated with the particular translation.
  - Translation compiler now supports "Font override" settings, that let configure custom font
    overrides for the given Translation file.
+ - Translation compiler supports "AutoTranslateParserSaid" setting, that, if enabled, instructs
+   engine to automatically translate sentence patterns in Parser.Said().
+ - Translation source is now divided on sections, using "//$SECTION" markers, where a section is
+   created for each script module, each room, and each category of global objects.
+ - Translation compiler supports "//$PARSERWORD" annotation for the lines with the list of the text
+   parser words group.
+ - Translation compiler supports arbitrary user annotations to lines, having a general syntax of
+   "//$ANNOTATION: VALUE", which will be kept intact during translation update.
+ - When updating a translation source, obsolete entries will now be removed, and if there's already
+   a translated line present, then marked with a "//$OBSOLETE" tag for user to notice them.
  - Fixed Editor treating custom properties names as case-sensitive when loading them from the
    project file, although they are considered case-insensitive everywhere else.
  - Fixed deleted custom property values were remaining in objects data, apparently forever
@@ -374,10 +398,18 @@ Script API:
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
    they have their own special handling for RMB).
- - Add eUndefinedFont constant that may be used in certain font properties as a indication that
+ - Moved eAlignHas* constants from Alignment to AlignmentMask enum.
+ - Added eUndefinedFont constant that may be used in certain font properties as a indication that
    they are not initialized, and engine should go for a default fallback value instead.
- - Added GameInfo struct that contains meta-information about the game, such as developer's name,
-   developer's URL, version, and so forth.
+ - Added two new options for StringCompareStyle: eCaseInsensitiveLocaleAware and
+   eCaseSensitiveLocaleAware. These two "LocaleAware" styles compare strings using proper
+   alphabetic rules, as opposed to comparing character code values. For example, with standard
+   styles the accented letter 'À' is positioned after letter 'Z'. With locale aware style it is
+   positioned after letter 'A'. But the exact result depends on the "Text language" setting set
+   either in General Settings or current Translation.
+ - Added HitTestOptions enum with a eHit_Any and eHit_Interactable constants.
+ - For each GetAtScreenXY and GetAtRoomXY function added an optional "hitOptions" parameter,
+   that lets tell whether to detect only clickable/enabled objects, or all of them regardless.
  - Added new "maxDistance" parameter to AudioChannel.SetRoomLocation() function.
  - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
    channels.
@@ -386,8 +418,13 @@ Script API:
    MouseOverTextColor, PushedBackgroundColor, PushedBorderColor, PushedTextColor, TextOutlineColor
    properties.
  - Added Button.IsHighlighted and IsPushed readonly properties.
+ - Deprecated Character.AnimationVolume and Object.AnimationVolume, and added AudioVolume property
+   to these types as a replacement.
+ - Added Character.AudioPanning and AudioSpeed properties, and Object.AudioPanning and AudioSpeed.
  - Added Character.BlockingRectX, BlockingRectY, and Object.BlockingRectX, BlockingRectY.
  - Added Character.IdleDelay and Character.IdleTime.
+ - Added Character.Inventory[] and InventoryCount readonly properties that let iterate all items
+   that character currently holds, including item duplicates (if they are allowed).
  - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
  - Added Dialog.SetOptionText().
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
@@ -418,13 +455,17 @@ Script API:
  - Added Game.TickCounter property that tells the number of a logical game tick (update).
  - Added Game.PlayVoiceClipAsType() which lets to play voice-over clips using arbitrary type's
    rules and channels. As an effect this also lets play multiple voice-overs at once.
+ - Added GameInfo struct that contains meta-information about the game, such as developer's name,
+   developer's URL, version, and so forth.
  - Made GUI.PopupStyle property settable.
  - Added GUIControl.BackgroundColor, BorderColor, BorderWidth, SolidBackground, ShowBorder,
    PaddingX and PaddingY properties.
  - Added InventoryItem.CursorHotspotX, CursorHotspotY properties.
  - Added Label.TextOutlineColor property.
  - Added ListBox.TextOutlineColor property.
+ - Added ListBox.SortItems() function.
  - Added Mouse.GetModeHotspot().
+ - Added Mouse.IsAnyButtonDown().
  - Added Overlay.Text that lets assign an arbitrary overlay tag (description), but also returns
    a text used to create a textual overlay.
  - Added Overlay.Visible property.
@@ -435,7 +476,9 @@ Script API:
  - Added TextBox.TextAlignment and TextOutlineColor properties.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
    LeftGraphic, RightGraphic, and so forth.
+ - Added Utils.SortStrings(), Utils.SortInts() and Utils.SortFloats() array sort functions.
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
+ - Added IsAnyKeyPressed() function.
  - Added "resultValue" parameter to the SkipWait() function. This lets to define a value that
    will be returned from Wait*() functions or by Game.BlockingWaitSkipped property.
 
@@ -465,7 +508,16 @@ Engine:
    standing on one when entering the room.
  - Corrected the order of update for the cursor graphic saved for the current location
    (see Mouse.SaveCursorUntilItLeaves()).
+ - Number of individual items (including item duplicates) that a Character can hold is now 32k
+   (was 500).
+ - Changing Character.InventoryQuantity[] now automatically adds and removes items from the
+   Character's list of items; there's no need to call UpdateInventory() anymore.
+ - Inventory Item's hotspot now treats 0,0 value exactly, and not as "centered in graphic".
+ - Inventory Item's hotspot marker can now be drawn outside of the cursor graphic's boundaries.
  - Speech skip key will also apply to skipping Display messages.
+ - Text Parser supports translation and unicode strings.
+ - Parser.Said() does automatic translation of the sentence pattern (if respective option is
+   enabled in the current translation).
  - Improved video playback's synchronization between video and audio streams.
  - Support for "Font overrides" instructed by the loaded Translation.
  - Added "enabled" config option to "mouse" section. It's on by default, but when off, this option
@@ -479,9 +531,12 @@ Engine:
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.
  - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
+ - Fixed InventoryWindow not getting redrawn immediately if one of the item's has a dynamic sprite
+   assigned as a graphic and that dynamic sprite gets edited (like, drawn upon).
  - Fixed that DrawingSurface didn't register when its source image (such as a dynamic sprite or a
    room background) gets unavailable, which could led to a invalid memory access would user script
    continue to operate this DrawingSurface object.
+ - Fixed SetGameOption(OPT_PORTRAITSIDE) not always working correctly.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.
@@ -520,6 +575,50 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 9, May 2026
+
+Editor:
+ - Don't issue a warning if the script function of the standard interaction name is linked to a
+   different event (e.g. "Character_Look" linked to a "Interact" event).
+ - When run with a "/compile" command-line argument, Editor will automatically recreate sprite file
+   from sources (if possible) without asking a question. This helps automatic game builds.
+ - Fixed a project tree's item is activated without intent when user double clicks to open a
+   folder, and project tree scrolls down so that a different item appears under mouse cursor.
+ - Fixed AudioClip's label missing ID after clip is renamed in the project explorer.
+ - Fixed unhandled exception in the "Change ID" dialog occuring if the item has ID greater than the
+   total number of items. This situation may occur if the project file was modified by hand.
+ - Fixed copy-pasted gui controls always get linked to a GlobalScript, and not a script module
+   of their parent GUI.
+ - Fixed that if a room editor is opened, and user changes one of the present Character's RealName,
+   such Character becomes impossible to select in the room.
+ - Fixed Walk-behind's baseline is not drawn in the room editor if Zoom is less than 100%.
+ - Fixed game plugin's extra dependencies not found in the Compiled/Windows folder when game
+   is run from the Editor.
+
+Engine:
+ - Fixed a potential error occuring when a animating object or character was assigned a view's
+   loop without any frames (possibly a regression since some previous patches).
+ - Fixed ListBox.FillDirList() and File.GetFiles() not being able to find files in subdirectories,
+   if a search pattern has relative parent path.
+ - Fixed a mistake in ListBox.FillDirList() and File.GetFiles(), which could prevent files from
+   different places (like from game package and game directory) to be merged in a single list when
+   using $DATA$ location token.
+ - Fixed ListBox.FillDirList() and File.GetFiles() listing files from within the game package with
+   their relative parent paths. It is supposed to list only filenames, for consistency with the
+   regular files on disk.
+ - Fixed ListBox.FillDirList() and File.GetFiles() not sorting the filenames alphabetically
+   properly if these names contain non-latin unicode characters.
+ - Fixed ListBox.FillSaveGameList() always sorting saves by the filetime, disregarding the
+   function parameters.
+ - Fixed Dictionary and Set not sorting their items properly if the keys contain non-latin unicode
+   characters.
+ - Fixed a potential error that may occur when a temporary dynamic object is created inside the
+   script function's parameter list, but there's a blocking action or a Wait call between when it's
+   created and when it's passed into the function.
+   Example case: "func( WaitAndReturnValue(), String.Format(...) )".
+ - Fixed another rare case when a WAV file can get stuck in the end of the playback forever.
+
 
 VERSION 3.6.2 - Patch 8, March 2026
 

@@ -130,7 +130,6 @@ void set_cursor_look(int newcurs, bool force_update)
         return;
 
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
-    mouse_hotx = hotspotx, mouse_hoty = hotspoty;
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
     if (!force_update &&
@@ -151,20 +150,40 @@ void set_cursor_look(int newcurs, bool force_update)
     // Assign new pic
     const int cur_pic = game.mcurs[newcurs].pic;
     set_new_cursor_graphic(cur_pic);
+    mouse_hotx = hotspotx, mouse_hoty = hotspoty;
 
     // If it's inventory cursor, draw hotspot crosshair sprite upon it
     if (game.HasCursorRole(newcurs, kCursorRole_UseInv) && (cur_pic > 0) &&
         ((game.inv_hot_color != 0) || (game.inv_hot_sprite > 0)) )
     {
-        // If necessary, create a copy of the cursor and put the hotspot dot onto it
-        std::unique_ptr<Bitmap> gen_cursor(BitmapHelper::CreateBitmapCopy(spriteset[cur_pic]));
+        const int hotspot_sprite = game.inv_hot_sprite;
+        Rect hotspot_rc;
+        if (hotspot_sprite > 0)
+        {
+            hotspot_rc = RectWH(hotspotx - game.SpriteInfos[hotspot_sprite].Width / 2,
+                hotspoty - game.SpriteInfos[hotspot_sprite].Height / 2,
+                game.SpriteInfos[hotspot_sprite].Width,
+                game.SpriteInfos[hotspot_sprite].Height);
+        }
+        else
+        {
+            hotspot_rc = RectWH(hotspotx - 1, hotspoty - 1, 3, 3);
+        }
 
-        if (game.inv_hot_sprite > 0)
+        // Create a copy of the cursor and put the hotspot dot onto it
+        Rect cursor_rc = RectWH(Size(game.SpriteInfos[cur_pic].Width, game.SpriteInfos[cur_pic].Height));
+        int offx = -std::min(0, hotspot_rc.Left);
+        int offy = -std::min(0, hotspot_rc.Top);
+        Rect full_rc = SumRects(cursor_rc, hotspot_rc);
+        std::unique_ptr<Bitmap> gen_cursor(BitmapHelper::CreateTransparentBitmap(full_rc.GetWidth(), full_rc.GetHeight()));
+        gen_cursor->Blit(spriteset[cur_pic], offx, offy);
+
+        if (hotspot_sprite > 0)
         {
             draw_sprite_slot_support_alpha(gen_cursor.get(),
-                hotspotx - game.SpriteInfos[game.inv_hot_sprite].Width / 2,
-                hotspoty - game.SpriteInfos[game.inv_hot_sprite].Height / 2,
-                game.inv_hot_sprite);
+                hotspotx + offx - game.SpriteInfos[hotspot_sprite].Width / 2,
+                hotspoty + offy - game.SpriteInfos[hotspot_sprite].Height / 2,
+                hotspot_sprite);
         }
         else
         {
@@ -172,14 +191,15 @@ void set_cursor_look(int newcurs, bool force_update)
             if (game.inv_hot_cross_color != 0)
             {
                 const int outercol = MakeColor(game.inv_hot_cross_color);
-                gen_cursor->PutPixel(hotspotx + 1, hotspoty, outercol);
-                gen_cursor->PutPixel(hotspotx, hotspoty + 1, outercol);
-                gen_cursor->PutPixel(hotspotx - 1, hotspoty, outercol);
-                gen_cursor->PutPixel(hotspotx, hotspoty - 1, outercol);
+                gen_cursor->PutPixel(hotspotx + offx + 1, hotspoty + offy, outercol);
+                gen_cursor->PutPixel(hotspotx + offx, hotspoty + offy + 1, outercol);
+                gen_cursor->PutPixel(hotspotx + offx - 1, hotspoty + offy, outercol);
+                gen_cursor->PutPixel(hotspotx + offx, hotspoty + offy - 1, outercol);
             }
         }
 
         cursor_gstate.SetImage(std::move(gen_cursor));
+        mouse_hotx = hotspotx + offx, mouse_hoty = hotspoty + offy;
     }
 }
 
@@ -485,9 +505,10 @@ void update_script_mouse_coords() {
     scmouse.y = mousey;
 }
 
-void update_inv_cursor(int invnum) {
-
-    if ((game.options[OPT_FIXEDINVCURSOR]==0) && (invnum > 0)) {
+void update_inv_cursor(int invnum)
+{
+    if ((game.options[OPT_FIXEDINVCURSOR]==0) && (invnum > 0))
+    {
         int cursorSprite = game.invinfo[invnum].cursorPic;
 
         // Fall back to the inventory pic if no cursor pic is defined.
@@ -503,12 +524,16 @@ void update_inv_cursor(int invnum) {
         // all cursor images must be pre-cached
         spriteset.PrecacheSprite(cursorSprite);
 
-        if ((game.invinfo[invnum].hotx > 0) || (game.invinfo[invnum].hoty > 0)) {
-            // if the hotspot was set (unfortunately 0,0 isn't a valid co-ord)
-            mcur.hotx=game.invinfo[invnum].hotx;
-            mcur.hoty=game.invinfo[invnum].hoty;
+        const int hotx = game.invinfo[invnum].hotx;
+        const int hoty = game.invinfo[invnum].hoty;
+        // Pre-3.6.3 games used hotspot 0,0 as "centered"
+        if ((loaded_game_file_version >= kGameVersion_363_10) || (hotx > 0) || (hoty > 0))
+        {
+            mcur.hotx = hotx;
+            mcur.hoty = hoty;
         }
-        else {
+        else
+        {
             mcur.hotx = game.SpriteInfos[cursorSprite].Width / 2;
             mcur.hoty = game.SpriteInfos[cursorSprite].Height / 2;
         }

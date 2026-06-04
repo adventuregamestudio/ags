@@ -38,40 +38,50 @@ extern RGB palette[256];
 extern CCRegion ccDynamicRegion;
 
 
-int GetRegionIDAtRoom(int xxx, int yyy)
+int GetRegionIDAtRoom(int x, int y, int hit_options)
 {
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
-    xxx = room_to_mask_coord(xxx);
-    yyy = room_to_mask_coord(yyy);
+    x = room_to_mask_coord(x);
+    y = room_to_mask_coord(y);
 
-    if (xxx >= thisroom.RegionMask->GetWidth())
-        xxx = thisroom.RegionMask->GetWidth() - 1;
-    if (yyy >= thisroom.RegionMask->GetHeight())
-        yyy = thisroom.RegionMask->GetHeight() - 1;
-    if (xxx < 0)
-        xxx = 0;
-    if (yyy < 0)
-        yyy = 0;
+    if (x >= thisroom.RegionMask->GetWidth())
+        x = thisroom.RegionMask->GetWidth() - 1;
+    if (y >= thisroom.RegionMask->GetHeight())
+        y = thisroom.RegionMask->GetHeight() - 1;
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
 
-    int hsthere = thisroom.RegionMask->GetPixel(xxx, yyy);
+    int hsthere = thisroom.RegionMask->GetPixel(x, y);
     if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS) return 0;
-    if (croom->region_enabled[hsthere] == 0) return 0;
+    if (((hit_options & kHit_Interactable) != 0) && (croom->region_enabled[hsthere] == 0)) return 0;
     return hsthere;
 }
 
-ScriptRegion *Region_GetAtRoomXY(int xx, int yy)
+ScriptRegion *Region_GetAtRoomXY(int x, int y, int hit_options)
 {
-    return &scrRegion[GetRegionIDAtRoom(xx, yy)];
+    return &scrRegion[GetRegionIDAtRoom(x, y, hit_options)];
 }
 
-ScriptRegion *Region_GetAtScreenXY(int x, int y)
+ScriptRegion *Region_GetAtRoomXY2(int x, int y)
+{
+    return Region_GetAtRoomXY(x, y, kHit_Interactable);
+}
+
+ScriptRegion *Region_GetAtScreenXY(int x, int y, int hit_options)
 {
     VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return &scrRegion[0]; // return region[0] for consistency and backwards compatibility
-    return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y);
+    return Region_GetAtRoomXY(vpt.first.X, vpt.first.Y, hit_options);
+}
+
+ScriptRegion *Region_GetAtScreenXY2(int x, int y)
+{
+    return Region_GetAtScreenXY(x, y, kHit_Interactable);
 }
 
 void SetAreaLightLevel(int area, int brightness) {
@@ -277,14 +287,24 @@ void generate_light_table()
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+RuntimeScriptValue Sc_Region_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY2);
+}
+
 RuntimeScriptValue Sc_Region_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY);
+    API_SCALL_OBJ_PINT3(ScriptRegion, ccDynamicRegion, Region_GetAtRoomXY);
+}
+
+RuntimeScriptValue Sc_Region_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY2);
 }
 
 RuntimeScriptValue Sc_Region_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY);
+    API_SCALL_OBJ_PINT3(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY);
 }
 
 RuntimeScriptValue Sc_Region_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
@@ -399,8 +419,10 @@ RuntimeScriptValue Sc_Region_SetTextProperty(void *self, const RuntimeScriptValu
 void RegisterRegionAPI()
 {
     ScFnRegister region_api[] = {
-        { "Region::GetAtRoomXY^2",        API_FN_PAIR(Region_GetAtRoomXY) },
-        { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY) },
+        { "Region::GetAtRoomXY^2",        API_FN_PAIR(Region_GetAtRoomXY2) },
+        { "Region::GetAtRoomXY^3",        API_FN_PAIR(Region_GetAtRoomXY) },
+        { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY2) },
+        { "Region::GetAtScreenXY^3",      API_FN_PAIR(Region_GetAtScreenXY) },
         { "Region::GetDrawingSurface",    API_FN_PAIR(Region_GetDrawingSurface) },
 
         { "Region::Tint^4",               API_FN_PAIR(Region_TintNoLum) },

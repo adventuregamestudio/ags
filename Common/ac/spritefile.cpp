@@ -359,17 +359,10 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     std::vector<int8_t>  spritedepths;
     std::vector<soff_t>  spriteoffs;
 
-    if (metrics || !fidx->CanSeek())
-    {
-        spritewidths.resize(numsprits);
-        spriteheights.resize(numsprits);
-        fidx->ReadArrayOfInt16(&spritewidths[0], numsprits);
-        fidx->ReadArrayOfInt16(&spriteheights[0], numsprits);
-    }
-    else
-    {
-        fidx->Seek(numsprits * sizeof(int16_t) * 2); // skip 2 arrays of int16
-    }
+    spritewidths.resize(numsprits);
+    spriteheights.resize(numsprits);
+    fidx->ReadArrayOfInt16(spritewidths.data(), numsprits);
+    fidx->ReadArrayOfInt16(spriteheights.data(), numsprits);
 
     spriteoffs.resize(numsprits);
     if (vers <= kSpridxfVersion_Last32bit)
@@ -393,6 +386,7 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
         if (spriteoffs[i] != 0)
         {
             _spriteData[i].Offset = spriteoffs[i];
+            _spriteData[i].HasImage = (spritewidths[i] > 0) && (spriteheights[i] > 0);
             if (metrics)
             {
                 (*metrics)[i] = GraphicResolution(spritewidths[i], spriteheights[i], spritedepths[i]);
@@ -432,6 +426,7 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
         _spriteData[i].Offset = in->GetPosition();
         SpriteDatHeader hdr;
         ReadSprHeader(hdr, _stream.get(), _version, _compress);
+        _spriteData[i].HasImage = (hdr.BPP > 0) && (hdr.Width > 0) && (hdr.Height > 0);
         if (hdr.BPP == 0) continue; // empty slot, this is normal
         if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
         {
@@ -460,7 +455,7 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
 bool SpriteFile::DoesSpriteExist(sprkey_t index)
 {
     return (index >= 0) && (static_cast<size_t>(index) < _spriteData.size())
-        && (_spriteData[index].Offset > 0);
+        && (_spriteData[index].HasImage);
 }
 
 HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)

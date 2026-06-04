@@ -33,6 +33,9 @@ using AGS::Common::Translation;
 // separate struct for representing TRS contents, including list of annotations
 // per trs item, user comments, etc. This would allow to save TRS back as-is.
 HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in);
+// Generates a translation source file based on compiled Translation object.
+HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out);
+// Write a compiled translation file from Translation object.
 HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out);
 
 } // namespace DataUtil

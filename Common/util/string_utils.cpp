@@ -476,13 +476,13 @@ std::unique_ptr<char[]> StrUtil::Substring(const char *cstr, size_t start, size_
     return std::move(buf);
 }
 
-static bool TryUTF8LocaleName(const String &locale_name)
+static bool TryUTF8LocaleName(const String &try_name, String &got_name)
 {
     try
     {
-        auto locale = std::locale(locale_name.GetCStr());
-        if (locale_name.CompareNoCase(locale.name().c_str()) == 0)
-            return true;
+        auto locale = std::locale(try_name.GetCStr());
+        got_name = locale.name();
+        return true;
     }
     catch (const std::runtime_error&)
     {
@@ -499,17 +499,18 @@ String StrUtil::FindCompatibleUTF8LocaleName(const String &lang_name)
     locale_name.Replace('-', '_');
     // Try several suffix variants which are commonly supported by the C++ runtime libs
     String try_locale = String::FromFormat("%s.utf8", locale_name.GetCStr());
-    if (TryUTF8LocaleName(try_locale))
-        return try_locale;
+    String got_locale;
+    if (TryUTF8LocaleName(try_locale, got_locale))
+        return got_locale;
     try_locale = String::FromFormat("%s.utf-8", locale_name.GetCStr());
-    if (TryUTF8LocaleName(try_locale))
-        return try_locale;
+    if (TryUTF8LocaleName(try_locale, got_locale))
+        return got_locale;
     try_locale = String::FromFormat("%s.UTF8", locale_name.GetCStr());
-    if (TryUTF8LocaleName(try_locale))
-        return try_locale;
+    if (TryUTF8LocaleName(try_locale, got_locale))
+        return got_locale;
     try_locale = String::FromFormat("%s.UTF-8", locale_name.GetCStr());
-    if (TryUTF8LocaleName(try_locale))
-        return try_locale;
+    if (TryUTF8LocaleName(try_locale, got_locale))
+        return got_locale;
     return "";
 }
 

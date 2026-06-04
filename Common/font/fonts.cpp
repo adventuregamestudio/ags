@@ -158,7 +158,11 @@ static void font_post_init(int font_number)
     else
         font.Metrics.LogicalHeight = font.Metrics.RealHeight;
 
-    if (font.Info.Outline != FONT_OUTLINE_AUTO)
+    if (font.Info.Outline == FONT_OUTLINE_AUTO)
+    {
+        font.Info.AutoOutlineThickness = std::max(1, font.Info.AutoOutlineThickness);
+    }
+    else
     {
         font.Info.AutoOutlineThickness = 0;
     }

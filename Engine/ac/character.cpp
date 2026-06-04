@@ -142,51 +142,57 @@ bool AssertCharacter(const char *apiname, int char_id)
     return false;
 }
 
-void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex) {
-    int ee;
-
+void Character_AddInventory(CharacterInfo *chi, ScriptInvItem *invi, int at_index)
+{
     if (invi == nullptr)
-        quit("!AddInventoryToCharacter: invalid inventory number");
+        quit("!Character.AddInventory: invalid inventory number");
 
-    int inum = invi->id;
+    if (at_index >= SCR_NO_VALUE)
+        at_index = -1;
 
-    if (chaa->inv[inum] >= 32000)
-        quit("!AddInventory: cannot carry more than 32000 of one inventory item");
+    const int inum = invi->id;
+    if (chi->inv[inum] == INT16_MAX)
+    {
+        debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
+            chi->scrname, game.invScriptNames[inum].GetCStr(), INT16_MAX);
+        return;
+    }
 
-    chaa->inv[inum]++;
+    chi->inv[inum]++;
+    auto &chex = charextra[chi->index_id];
 
-    int charid = chaa->index_id;
-
-    if (game.options[OPT_DUPLICATEINV] == 0) {
+    if (game.options[OPT_DUPLICATEINV] == 0)
+    {
         // Ensure it is only in the list once
-        for (ee = 0; ee < charextra[charid].invorder_count; ee++) {
-            if (charextra[charid].invorder[ee] == inum) {
+        for (const auto &item_id : chex.inventory)
+        {
+            if (item_id == inum)
+            {
                 // They already have the item, so don't add it to the list
-                if (chaa == playerchar)
+                if (chi == playerchar)
                     run_on_event(kScriptEvent_InventoryAdd, inum);
                 return;
             }
         }
     }
-    if (charextra[charid].invorder_count >= MAX_INVORDER)
-        quit("!Too many inventory items added, max 500 display at one time");
 
-    if ((addIndex == SCR_NO_VALUE) ||
-        (addIndex >= charextra[charid].invorder_count) ||
-        (addIndex < 0)) {
-            // add new item at end of list
-            charextra[charid].invorder[charextra[charid].invorder_count] = inum;
+    if (chex.inventory.size() == MAX_CHAR_INVENTORY)
+    {
+        debug_script_warn("Character.AddInventory: char %s, item %s: too many inventory items added, max %d can be stored at once",
+            chi->scrname, game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
+        return;
     }
-    else {
-        // insert new item at index
-        for (ee = charextra[charid].invorder_count - 1; ee >= addIndex; ee--)
-            charextra[charid].invorder[ee + 1] = charextra[charid].invorder[ee];
 
-        charextra[charid].invorder[addIndex] = inum;
+    if ((at_index < 0) || (static_cast<uint32_t>(at_index) >= chex.inventory.size()))
+    {
+        chex.inventory.push_back(inum);
     }
-    charextra[charid].invorder_count++;
-    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
-    if (chaa == playerchar)
+    else
+    {
+        chex.inventory.insert(chex.inventory.begin() + at_index, inum);
+    }
+    GUIE::MarkInventoryForUpdate(chi->index_id, chi->index_id == game.playercharacter);
+    if (chi == playerchar)
         run_on_event(kScriptEvent_InventoryAdd, inum);
 }
 
@@ -763,29 +769,30 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     if (invi == nullptr)
         quit("!LoseInventoryFromCharacter: invalid inventory number");
 
-    int inum = invi->id;
-
-    if (chap->inv[inum] > 0)
-        chap->inv[inum]--;
-
-    if ((chap->activeinv == inum) & (chap->inv[inum] < 1)) {
+    const int inum = invi->id;
+    if (chap->inv[inum] == 0)
+    {
+        debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
+            chap->scrname, game.invScriptNames[inum].GetCStr());
+        return;
+    }
+    
+    chap->inv[inum]--;
+    // If this was a selected item, and its quantity drops to zero,
+    // then reset the active inventory and "use inv" cursor
+    if ((chap->activeinv == inum) && (chap->inv[inum] == 0))
+    {
         chap->activeinv = -1;
         if ((chap == playerchar) && (is_current_cursor_mode(kCursorRole_UseInv)))
             set_cursor_mode(0); // change to the first enabled mode
     }
 
     int charid = chap->index_id;
-
-    if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0)) {
-        int xx,tt;
-        for (xx = 0; xx < charextra[charid].invorder_count; xx++) {
-            if (charextra[charid].invorder[xx] == inum) {
-                charextra[charid].invorder_count--;
-                for (tt = xx; tt < charextra[charid].invorder_count; tt++)
-                    charextra[charid].invorder[tt] = charextra[charid].invorder[tt+1];
-                break;
-            }
-        }
+    // Remove one item of this kind (it will be the only item if no duplicates allowed)
+    if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
+    {
+        auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
+        charextra[charid].inventory.erase(it_found);
     }
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
@@ -878,7 +885,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     if (displayed_room != playerchar->room)
         NewRoom(playerchar->room);
     else   // make sure it doesn't run the region interactions
-        play.player_on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y);
+        play.player_on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
 
     if ((playerchar->activeinv >= 0) && (playerchar->inv[playerchar->activeinv] < 1))
         playerchar->activeinv = -1;
@@ -1546,14 +1553,65 @@ int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
     return (chaa->inv[invi->id] > 0) ? 1 : 0;
 }
 
-void Character_SetIInventoryQuantity(CharacterInfo *chaa, int index, int quant) {
+void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
+{
     if ((index < 1) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
-    if ((quant < 0) || (quant > 32000))
-        quitprintf("!Character.InventoryQuantity: invalid quantity %d", quant);
+    if ((quant < 0) || (quant > INT16_MAX))
+    {
+        debug_script_warn("Character.InventoryQuantity: char %s, item %s: invalid quantity %d, valid range is 0..%d",
+            chi->scrname, game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
+        quant = Math::Clamp<int>(quant, 0, INT16_MAX);
+    }
 
-    chaa->inv[index] = quant;
+    int old_quant = chi->inv[index];
+    chi->inv[index] = quant;
+
+    if ((quant == old_quant) || (loaded_game_file_version < kGameVersion_363_10))
+        return;
+
+    auto &chex = charextra[chi->index_id];
+    if (game.options[OPT_DUPLICATEINV] != 0)
+    {
+        if (quant > old_quant)
+        {
+            for (int i = old_quant; i < quant; ++i)
+                chex.inventory.push_back(index);
+        }
+        else
+        {
+            int cur_quant = old_quant;
+            for (size_t last_found = 0; (cur_quant > quant) && (last_found != chex.inventory.size()); --cur_quant)
+            {
+                auto it_found = std::find(chex.inventory.begin() + last_found, chex.inventory.end(), index);
+                last_found = it_found - chex.inventory.begin();
+                chex.inventory.erase(it_found);
+            }
+        }
+    }
+    else
+    {
+        if (quant > 0 && old_quant == 0)
+        {
+            chex.inventory.push_back(index);
+        }
+        else if (quant == 0 && old_quant > 0)
+        {
+            auto it_found = std::find(chex.inventory.begin(), chex.inventory.end(), index);
+            chex.inventory.erase(it_found);
+        }
+    }
+
+    if (chi == playerchar)
+    {
+        if (quant > old_quant)
+            run_on_event(kScriptEvent_InventoryAdd, index);
+        else
+            run_on_event(kScriptEvent_InventoryLose, index);
+    }
+
+    GUIE::MarkInventoryForUpdate(chi->index_id, chi->index_id == game.playercharacter);
 }
 
 // [DEPRECATED]
@@ -1582,6 +1640,22 @@ void Character_SetManualScaling(CharacterInfo *chaa, int yesorno) {
     chaa->flags &= ~CHF_MANUALSCALING;
     if (yesorno)
         chaa->flags |= CHF_MANUALSCALING;
+}
+
+int Character_GetInventoryCount(CharacterInfo* chi)
+{
+    return charextra[chi->index_id].inventory.size();
+}
+
+ScriptInvItem* Character_GetInventory(CharacterInfo* chi, int index)
+{
+    auto &chex = charextra[chi->index_id];
+    if (index < 0 || static_cast<uint32_t>(index) >= chex.inventory.size())
+    {
+        debug_script_warn("Character.Inventory[]: char %s: index %d is out of valid range, current inventory is 0..%d", chi->scrname, index, (int)chex.inventory.size());
+        return nullptr;
+    }
+    return &scrInv[charextra[chi->index_id].inventory[index]];
 }
 
 int Character_GetMovementLinkedToAnimation(CharacterInfo *chaa) {
@@ -2634,22 +2708,33 @@ Bitmap *GetCharacterSourceImage(int charid)
     return spriteset[sppic];
 }
 
-CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
-    VpPoint vpt = play.ScreenToRoom(xx, yy);
+CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)
+{
+    VpPoint vpt = play.ScreenToRoom(x, y);
     if (vpt.second < 0)
         return nullptr;
-    int chnum = is_pos_on_character(vpt.first.X, vpt.first.Y);
+    int chnum = GetCharIDAtRoom(vpt.first.X, vpt.first.Y, hit_options);
     if (chnum < 0)
         return nullptr;
     return &game.chars[chnum];
 }
 
-CharacterInfo *GetCharacterAtRoom(int x, int y)
+CharacterInfo *Character_GetAtScreenXY2(int x, int y)
 {
-    int hsnum = is_pos_on_character(x, y);
+    return Character_GetAtScreenXY(x, y, true);
+}
+
+CharacterInfo *Character_GetAtRoomXY(int x, int y, int hit_options)
+{
+    int hsnum = GetCharIDAtRoom(x, y, hit_options);
     if (hsnum < 0)
         return nullptr;
     return &game.chars[hsnum];
+}
+
+CharacterInfo *Character_GetAtRoomXY2(int x, int y)
+{
+    return Character_GetAtRoomXY(x, y, true);
 }
 
 extern int char_lowest_yp, obj_lowest_yp;
@@ -2699,12 +2784,14 @@ void update_character_scale(int charid)
     chex.UpdateGraphicSpace(&chin);
 }
 
-int is_pos_on_character(int xx,int yy) {
+int GetCharIDAtRoom(int x, int y, int hit_options)
+{
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
         if (!game.chars[cc].is_displayed()) continue; // disabled or not visible
-        if (game.chars[cc].flags & CHF_NOINTERACT) continue;
+        if (only_clickable && (game.chars[cc].flags & CHF_NOINTERACT)) continue;
         if (game.chars[cc].view < 0) continue;
         CharacterInfo*chin=&game.chars[cc];
 
@@ -2722,7 +2809,7 @@ int is_pos_on_character(int xx,int yy) {
         SpriteTransformFlags sprite_flags = views[chin->view].loops[chin->loop].frames[chin->frame].flags;
         Bitmap *theImage = GetCharacterSourceImage(cc);
         // Convert to local object coordinates
-        Point local = charextra[cc].GetGraphicSpace().WorldToLocal(xx, yy);
+        Point local = charextra[cc].GetGraphicSpace().WorldToLocal(x, y);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
                 usewid, usehit, sprite_flags) == FALSE)
             continue;
@@ -2764,7 +2851,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 }
 
 int check_click_on_character(int xx,int yy,int mood) {
-    int lowestwas=is_pos_on_character(xx,yy);
+    int lowestwas=GetCharIDAtRoom(xx, yy, kHit_Interactable);
     if (lowestwas>=0) {
         Character_RunInteraction(&game.chars[lowestwas], mood);
         return 1;
@@ -3415,23 +3502,23 @@ PViewport FindNearestViewport(int charid)
     return nearest_view ? nearest_view : play.GetRoomViewport(0);
 }
 
-void UpdateInventory() {
-    for (int cc = 0; cc < game.numcharacters; cc++) {
-        charextra[cc].invorder_count = 0;
-        int ff, howmany;
-        // Iterate through all inv items, adding them once (or multiple
-        // times if requested) to the list.
-        for (ff = 0; ff < game.numinvitems; ff++) {
-            howmany = game.chars[cc].inv[ff];
-            if ((game.options[OPT_DUPLICATEINV] == 0) && (howmany > 1))
-                howmany = 1;
+void UpdateInventory()
+{
+    for (int cc = 0; cc < game.numcharacters; cc++)
+    {
+        auto &chex = charextra[cc];
+        chex.inventory.clear();
+        // Iterate through all inv items, adding them once
+        // (or multiple times if requested) to the list.
+        for (int item = 0; (item < game.numinvitems) && (chex.inventory.size() != MAX_CHAR_INVENTORY); ++item)
+        {
+            int item_count = game.chars[cc].inv[item];
+            if ((game.options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
+                item_count = 1;
 
-            for (int ts = 0; ts < howmany; ts++) {
-                if (charextra[cc].invorder_count >= MAX_INVORDER)
-                    quit("!Too many inventory items to display: 500 max");
-
-                charextra[cc].invorder[charextra[cc].invorder_count] = ff;
-                charextra[cc].invorder_count++;
+            for (int i = 0; (i < item_count) && (chex.inventory.size() != MAX_CHAR_INVENTORY); ++i)
+            {
+                chex.inventory.push_back(item);
             }
         }
     }
@@ -3807,15 +3894,24 @@ RuntimeScriptValue Sc_Character_WalkPath(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_POBJ_PINT3(CharacterInfo, Character_WalkPath, void);
 }
 
-RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtRoom);
+    API_SCALL_OBJ_PINT3(CharacterInfo, ccDynamicCharacter, Character_GetAtRoomXY);
 }
 
-// CharacterInfo *(int xx, int yy)
-RuntimeScriptValue Sc_GetCharacterAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetAtRoomXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtScreen);
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, Character_GetAtRoomXY2);
+}
+
+RuntimeScriptValue Sc_Character_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT3(CharacterInfo, ccDynamicCharacter, Character_GetAtScreenXY);
+}
+
+RuntimeScriptValue Sc_Character_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, Character_GetAtScreenXY2);
 }
 
 // ScriptInvItem* (CharacterInfo *chaa)
@@ -4078,6 +4174,16 @@ RuntimeScriptValue Sc_Character_SetIgnoreLighting(void *self, const RuntimeScrip
 }
 
 // int (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetInventoryCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetInventoryCount);
+}
+
+RuntimeScriptValue Sc_Character_GetInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT(CharacterInfo, ScriptInvItem, ccDynamicInv, Character_GetInventory);
+}
+
 RuntimeScriptValue Sc_Character_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetLoop);
@@ -4536,8 +4642,10 @@ void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
 void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister character_api[] = {
-        { "Character::GetAtRoomXY^2",             API_FN_PAIR(GetCharacterAtRoom) },
-        { "Character::GetAtScreenXY^2",           API_FN_PAIR(GetCharacterAtScreen) },
+        { "Character::GetAtRoomXY^2",             API_FN_PAIR(Character_GetAtRoomXY2) },
+        { "Character::GetAtScreenXY^2",           API_FN_PAIR(Character_GetAtScreenXY2) },
+        { "Character::GetAtRoomXY^3",             API_FN_PAIR(Character_GetAtRoomXY) },
+        { "Character::GetAtScreenXY^3",           API_FN_PAIR(Character_GetAtScreenXY) },
         { "Character::GetByName",                 API_FN_PAIR(Character_GetByName) },
 
         { "Character::AddInventory^2",            API_FN_PAIR(Character_AddInventory) },
@@ -4647,6 +4755,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::seti_InventoryQuantity",    API_FN_PAIR(Character_SetIInventoryQuantity) },
         { "Character::get_IgnoreLighting",        API_FN_PAIR(Character_GetIgnoreLighting) },
         { "Character::set_IgnoreLighting",        API_FN_PAIR(Character_SetIgnoreLighting) },
+        { "Character::get_InventoryCount",        API_FN_PAIR(Character_GetInventoryCount) },
+        { "Character::geti_Inventory",            API_FN_PAIR(Character_GetInventory) },
         { "Character::get_Loop",                  API_FN_PAIR(Character_GetLoop) },
         { "Character::set_Loop",                  API_FN_PAIR(Character_SetLoop) },
         { "Character::get_ManualScaling",         API_FN_PAIR(Character_GetManualScaling) },

@@ -39,7 +39,7 @@ namespace Preprocessor {
 
     const Error Preprocessor::NoError = Error();
 
-    size_t FindIndexOfMatchingCharacter(String text, size_t indexOfFirstSpeechMark, int charToMatch)
+    size_t FindIndexOfMatchingCharacter(const String& text, const size_t indexOfFirstSpeechMark, const int charToMatch)
     {
         size_t endOfString = NOT_FOUND;
         size_t checkFrom = indexOfFirstSpeechMark + 1;
@@ -72,6 +72,7 @@ namespace Preprocessor {
         void WriteChar(char c) override {  _str.AppendChar(c); }
         void WriteString(const String &str) override { _str.Append(str);}
         void WriteFormat(const char *fmt, ...) override { va_list argptr; va_start(argptr, fmt); _str.Append(String::FromFormatV(fmt, argptr)); va_end(argptr);}
+        void WriteLineFormat(const char *fmt, ...) override { va_list argptr; va_start(argptr, fmt); _str.Append(String::FromFormatV(fmt, argptr)); va_end(argptr); _str.Append(li_end); }
         void WriteLineBreak() override { _str.Append(li_end); }
 
         String GetString () {return _str;}
@@ -93,10 +94,10 @@ namespace Preprocessor {
         String ReadLine() override {
             if(_idx >= _str.GetLength()) return nullptr;
 
-            size_t newPos = _str.FindChar('\n', _idx);
+            const size_t newPos = _str.FindChar('\n', _idx);
             if(newPos != NOT_FOUND) {
-                size_t length = newPos - _idx;
-                size_t idx = _idx;
+                const size_t length = newPos - _idx;
+                const size_t idx = _idx;
                 _idx = newPos+1;
                 if (length == 0) return String("");
                 return _str.Mid(idx,length);
@@ -104,7 +105,8 @@ namespace Preprocessor {
                 return ReadAll();
             }
         }
-        String ReadAll() override { size_t idx = _idx; _idx = _str.GetLength(); return _str.Mid(idx, _str.GetLength() - idx); }
+        String ReadAll() override {
+ const size_t idx = _idx; _idx = _str.GetLength(); return _str.Mid(idx, _str.GetLength() - idx); }
     };
 
     static bool Contains(const std::vector<String> &v, const String &s) {
@@ -112,7 +114,7 @@ namespace Preprocessor {
     }
 
 
-    void Preprocessor::LogError(ErrorCode error, const String& message) {
+    void Preprocessor::LogError(const ErrorCode error, const String& message) {
         String msg;
         if(message == nullptr) {
             switch (error) {
@@ -155,9 +157,9 @@ namespace Preprocessor {
         cc_error(msg.GetCStr());
     }
 
-    void Preprocessor::ProcessConditionalDirective(String &directive, String &line)
+    void Preprocessor::ProcessConditionalDirective(const String &directive, String &line)
     {
-        String macroName = GetNextWord(line, true, true);
+        const String macroName = GetNextWord(line, true, true);
         if (macroName.GetLength() == 0)
         {
             LogError(ErrorCode::MacroNameMissing, String::FromFormat("Expected something after '%s'", directive.GetCStr()));
@@ -181,7 +183,7 @@ namespace Preprocessor {
         else if (directive == "ifver" || directive == "ifnver")
         {
             // Compare provided version number with the current application version
-            Version macroVersion = Version(macroName);
+            const Version macroVersion = Version(macroName);
             if(macroVersion.Major == 0) {
                 LogError(ErrorCode::InvalidVersionNumber, String::FromFormat("Cannot parse version number: %s", macroName.GetCStr()));
             }
@@ -197,12 +199,12 @@ namespace Preprocessor {
             _negativeCounter++; // more negative conditions
     }
 
-    bool Preprocessor::DeletingCurrentLine()
+    bool Preprocessor::DeletingCurrentLine() const
     {
         return _negativeCounter > 0;
     }
 
-    String Preprocessor::GetNextWord(String &text, bool trimText, bool includeDots) {
+    String Preprocessor::GetNextWord(String &text, const bool trimText, const bool includeDots) {
         size_t i = 0;
         while ((i < text.GetLength()) &&
                (IsScriptWordChar(text[i]) ||
@@ -230,7 +232,7 @@ namespace Preprocessor {
     {
         if (_inMultiLineComment)
         {
-            size_t commentEnd = text.FindString("*/",0);
+            const size_t commentEnd = text.FindString("*/",0);
             if (commentEnd == NOT_FOUND)
             {
                 return String("");
@@ -249,7 +251,7 @@ namespace Preprocessor {
                     size_t endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
-                        String msg = String::FromFormat("Unterminated string: '%c' is missing", text[i]);
+                        const String msg = String::FromFormat("Unterminated string: '%c' is missing", text[i]);
                         LogError(ErrorCode::UnterminatedString, msg);
                         break;
                     }
@@ -287,7 +289,7 @@ namespace Preprocessor {
     String Preprocessor::PreProcessDirective(String &line)
     {
         line.ClipLeft(1);
-        String directive = GetNextWord(line);
+        const String directive = GetNextWord(line);
 
         if ((directive == "ifdef") || (directive == "ifndef") ||
             (directive == "ifver") || (directive == "ifnver"))
@@ -331,7 +333,7 @@ namespace Preprocessor {
         }
         else if (directive == "define")
         {
-            String macroName = GetNextWord(line);
+            const String macroName = GetNextWord(line);
             if (macroName.GetLength() == 0)
             {
                 LogError(ErrorCode::MacroNameMissing);
@@ -410,7 +412,7 @@ namespace Preprocessor {
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {
-                    int end_of_literal = FindIndexOfMatchingCharacter(line, i, line[i]);
+                    const size_t end_of_literal = FindIndexOfMatchingCharacter(line, i, line[i]);
                     if (end_of_literal == NOT_FOUND)
                     {
                         i = line.GetLength();

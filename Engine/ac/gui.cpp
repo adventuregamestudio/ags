@@ -502,20 +502,35 @@ int GUI_GetBottomLeftGraphic(ScriptGUI *tehgui)
         get_but_pic(&guis[tehgui->id], kTW_BottomLeft) : 0;
 }
 
-int GetGUIAt(int xx, int yy) {
+int GetGUIAt(int x, int y, int hit_options)
+{
+    const bool only_clickable = (hit_options & kHit_Interactable) != 0;
     // Test in the opposite order (from closer to further)
-    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g) {
-        if (guis[*g].IsInteractableAt(xx, yy))
-            return *g;
+    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g)
+    {
+        if (guis[*g].IsDisplayed())
+        {
+            if ((only_clickable && guis[*g].IsInteractableAt(x, y) ||
+                (!only_clickable && guis[*g].GetRect().IsInside(x, y))))
+            {
+                return *g;
+            }
+        }
     }
     return -1;
 }
 
-ScriptGUI *GUI_GetAtScreenXY(int xx, int yy) {
-    int guiid = GetGUIAt(xx, yy);
+ScriptGUI *GUI_GetAtScreenXY(int x, int y, int hit_options)
+{
+    int guiid = GetGUIAt(x, y, hit_options);
     if (guiid < 0)
         return nullptr;
     return &scrGui[guiid];
+}
+
+ScriptGUI *GUI_GetAtScreenXY2(int x, int y)
+{
+    return GUI_GetAtScreenXY(x, y, true);
 }
 
 void GUI_Click(ScriptGUI *scgui, int mbut)
@@ -927,7 +942,7 @@ int gui_get_interactable(int x, int y)
 {
     if (GUI::Context.DisabledState == kGuiDis_Off)
         return -1;
-    return GetGUIAt(x, y);
+    return GetGUIAt(x, y, kHit_Interactable);
 }
 
 int gui_on_mouse_move(const int mx, const int my)
@@ -1134,10 +1149,14 @@ RuntimeScriptValue Sc_GUI_Centre(void *self, const RuntimeScriptValue *params, i
     API_OBJCALL_VOID(ScriptGUI, GUI_Centre);
 }
 
-// ScriptGUI *(int xx, int yy)
+RuntimeScriptValue Sc_GUI_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptGUI, ccDynamicGUI, GUI_GetAtScreenXY2);
+}
+
 RuntimeScriptValue Sc_GUI_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptGUI, ccDynamicGUI, GUI_GetAtScreenXY);
+    API_SCALL_OBJ_PINT3(ScriptGUI, ccDynamicGUI, GUI_GetAtScreenXY);
 }
 
 // void (ScriptGUI *tehgui, int xx, int yy)
@@ -1494,7 +1513,8 @@ RuntimeScriptValue Sc_GUI_GetBottomLeftGraphic(void *self, const RuntimeScriptVa
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
-        { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY) },
+        { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY2) },
+        { "GUI::GetAtScreenXY^3",         API_FN_PAIR(GUI_GetAtScreenXY) },
         { "GUI::GetByName",               API_FN_PAIR(GUI_GetByName) },
         { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },
         { "GUI::ScreenToGUIPoint",        API_FN_PAIR(GUI_ScreenToGUIPoint) },

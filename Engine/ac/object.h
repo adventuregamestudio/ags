@@ -32,16 +32,13 @@ bool    is_valid_object(int obj_id);
 // Asserts the object ID is valid in the current room,
 // if not then prints a warning to the log; returns assertion result
 bool    AssertObject(const char *apiname, int obj_id);
+// Get object at the given room coordinates
+int     GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 // Gets last cached object's image; this may be a source image if there was no transformation
 AGS::Common::Bitmap *GetObjectImage(int obj, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the room object
 AGS::Common::Bitmap *GetObjectSourceImage(int obj);
 int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
-ScriptObject *GetObjectAtScreen(int xx, int yy);
-// Get object at the given screen coordinates
-int     GetObjectIDAtScreen(int xx, int yy);
-// Get object at the given room coordinates
-int     GetObjectIDAtRoom(int roomx, int roomy);
 void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
 void    Object_RemoveTint(ScriptObject *objj);
 void    Object_SetView(ScriptObject *objj, int view, int loop, int frame);

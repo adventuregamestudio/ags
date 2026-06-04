@@ -149,15 +149,16 @@ AGSBitmap *initialize_sprite(AGS::Common::sprkey_t /*index*/, AGSBitmap *image, 
 }
 
 // Safely gets a sprite, if the sprite does not exist then returns a placeholder (sprite 0)
-Common::Bitmap *get_sprite (int spnr) {
-  if ((spnr < 0) || !spriteset[spnr])
-    return spriteset[0]; // return a placeholder
-  return spriteset[spnr];
+Common::Bitmap *get_sprite(int spnr)
+{
+    if (!spriteset.DoesSpriteExist(spnr))
+        return spriteset[0]; // return a placeholder
+    return spriteset[spnr];
 }
 
-int AddNewSprite(AGSBitmap *sprit, int flags)
+int AddNewSprite(std::unique_ptr<AGSBitmap> &sprit, int flags)
 {
-    int slot = spriteset.AddSprite(std::unique_ptr<AGSBitmap>(sprit), flags);
+    int slot = spriteset.AddSprite(std::move(sprit), flags);
     spritesModified = true;
     return slot;
 }
@@ -1277,7 +1278,7 @@ HAGSError load_dta_file_into_thisgame(const AGSString &filename)
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
-        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
+        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion, src.CompiledWith);
         if (load_err)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }
@@ -2213,9 +2214,9 @@ AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap ^bmp, int spriteImportMeth
 SpriteImportResult AddNewSpriteFromBitmap(System::Drawing::Bitmap^ bmp, int destColorDepth,
     int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
-    int flags;
-    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, transColour,
-        remapColours, useRoomBackgroundColours, alphaChannel, &flags);
+    int flags = 0;
+    std::unique_ptr<AGSBitmap> tempsprite(CreateNativeBitmap(bmp, spriteImportMethod, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, &flags));
 
     int slot = AddNewSprite(tempsprite, flags);
     return SpriteImportResult(slot);
@@ -2700,6 +2701,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->UseOldVoiceClipNaming = (thisgame.options[OPT_VOICECLIPNAMERULE] == 0); // inverted, 0 for old
     game->Settings->GameFPS = (thisgame.options[OPT_GAMEFPS] > 0) ? thisgame.options[OPT_GAMEFPS] : 40;
     game->Settings->GUIHandleOnlyLeftMouseButton = (thisgame.options[OPT_GUICONTROLMOUSEBUT] != 0);
+    game->Settings->DisplaySingleDialogOption = (thisgame.options[OPT_DISPLAYSINGLEDIALOGOPTION] != 0);
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 

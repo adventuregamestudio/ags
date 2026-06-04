@@ -54,13 +54,12 @@ void    GUI_SetTextColor(ScriptGUI *tehgui, int newcol);
 int     GUI_GetTextColor(ScriptGUI *tehgui);
 void    GUI_SetTextPadding(ScriptGUI *tehgui, int newpos);
 int     GUI_GetTextPadding(ScriptGUI *tehgui);
-int     GetGUIAt(int xx, int yy);
-ScriptGUI *GUI_GetAtScreenXY(int xx, int yy);
+ScriptGUI *GUI_GetAtScreenXY(int x, int y, int hit_options);
+int     GetGUIAt(int x, int y, int hit_options);
 
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
-void	replace_macro_tokens(const char *text, AGS::Common::String &fixed_text);
 void	update_gui_zorder();
 // Initializes all GUI and controls for runtime state;
 // this must be done after creating or loading GUIs.

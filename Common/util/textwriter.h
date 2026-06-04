@@ -40,6 +40,9 @@ public:
     virtual void    WriteLine(const String &str)            = 0;
     // Write formatted string (see *printf)
     virtual void    WriteFormat(const char *fmt, ...)       = 0;
+    // Write formatted string and line break at the end
+    virtual void    WriteLineFormat(const char *fmt, ...)   = 0;
+    // Write line break
     virtual void    WriteLineBreak()                        = 0;
 
     // Flushes the underlying device (does nothing in def impl)

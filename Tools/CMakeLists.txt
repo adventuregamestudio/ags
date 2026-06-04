@@ -61,7 +61,10 @@ set(TOOLS_COMMON_SOURCES
         ../Common/util/string_utils.cpp
         ../Common/util/string_utils.h
         ../Common/util/textstreamreader.cpp
-        ../Common/util/textstreamreader.h)
+        ../Common/util/textstreamreader.h
+        ../Common/util/textstreamwriter.cpp
+        ../Common/util/textstreamwriter.h
+        ../Common/util/textwriter.h)
 
 
 #-----------------------------------------------------------------------------#
@@ -87,7 +90,8 @@ endif()
 
 target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
 set(TOOLS_MINIMAL_ALLEGRO_SOURCES
-        ../libsrc/allegro/src/color.c)
+        ../libsrc/allegro/src/color.c
+        data/minallegro_inline.c)
 target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools

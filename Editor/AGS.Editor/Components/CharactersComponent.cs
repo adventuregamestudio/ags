@@ -254,6 +254,10 @@ namespace AGS.Editor.Components
             {
                 OnCharacterDescriptionChanged?.Invoke(this, new CharacterDescriptionChangedEventArgs(itemBeingEdited, (string)oldValue));
             }
+            else if (propertyName == Character.PROPERTY_NAME_DESCRIPTION)
+            {
+                OnCharacterDescriptionChanged?.Invoke(this, new CharacterDescriptionChangedEventArgs(itemBeingEdited, (string)oldValue));
+            }
             else if (propertyName == Character.PROPERTY_NAME_STARTINGROOM)
             {
                 if (OnCharacterRoomChanged != null)

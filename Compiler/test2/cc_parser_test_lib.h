@@ -22,5 +22,4 @@
 extern char kAgsHeaderString[];
 extern char kAgsHeaderBool[];
 
-
-#endif
+#endif // __CS_PARSER_TEST_LIB_H

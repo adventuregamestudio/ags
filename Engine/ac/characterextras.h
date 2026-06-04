@@ -26,6 +26,7 @@
 #ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
 #define __AGS_EE_AC__CHARACTEREXTRAS_H
 
+#include <vector>
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "gfx/gfx_def.h"
@@ -53,8 +54,6 @@ class CharacterExtras
 public:
     // FIXME: hide the fields under public interface;
     //        use standard int* types
-    short invorder[MAX_INVORDER]{};
-    short invorder_count = 0;
     Point spr_offset;    // fixed sprite offset (translation)
     Pointf spr_anchor    // graphic anchor (relative alignment)
         = Pointf(0.5f, 1.f); // default: middle-bottom
@@ -81,10 +80,13 @@ public:
     int   audio_volume = 100; // default animation volume (relative factor)
     int   cur_audio_volume = 100; // current animation sound volume (relative factor)
     int   audio_panning = 0;
-    int   audio_speed = 0;
+    int   audio_speed = 1000;
     int   following = -1; // whom do we follow (character id)
     int   follow_dist = 0; // follow distance, in pixels
     int   follow_eagerness = 0; // follow reaction
+    // Character's inventory, stores item IDs in the order in which items were added.
+    // This may include item duplicates if OPT_DUPLICATEINV is enabled.
+    std::vector<int> inventory;
     Common::BlendMode blend_mode = Common::kBlend_Normal;
     int   shader_id = 0;
     int   shader_handle = 0; // script shader handle

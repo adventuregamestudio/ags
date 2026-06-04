@@ -884,7 +884,7 @@ jobs:
       - name: Read version string
         id: version
         run: |
-          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Create source archives

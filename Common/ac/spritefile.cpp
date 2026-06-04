@@ -354,21 +354,14 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     }
 
     sprkey_t numsprits = topmost_index + 1;
-    std::vector<int16_t> rspritewidths;
-    std::vector<int16_t> rspriteheights;
+    std::vector<int16_t> spritewidths;
+    std::vector<int16_t> spriteheights;
     std::vector<soff_t>  spriteoffs;
 
-    if (metrics || !fidx->CanSeek())
-    {
-        rspritewidths.resize(numsprits);
-        rspriteheights.resize(numsprits);
-        fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
-        fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
-    }
-    else
-    {
-        fidx->Seek(numsprits * sizeof(int16_t) * 2); // skip 2 arrays of int16
-    }
+    spritewidths.resize(numsprits);
+    spriteheights.resize(numsprits);
+    fidx->ReadArrayOfInt16(spritewidths.data(), numsprits);
+    fidx->ReadArrayOfInt16(spriteheights.data(), numsprits);
 
     spriteoffs.resize(numsprits);
     if (vers <= kSpridxfVersion_Last32bit)
@@ -386,11 +379,11 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
         if (spriteoffs[i] != 0)
         {
             _spriteData[i].Offset = spriteoffs[i];
-            _spriteData[i].HasImage = (rspritewidths[i] > 0) && (rspriteheights[i] > 0);
+            _spriteData[i].HasImage = (spritewidths[i] > 0) && (spriteheights[i] > 0);
             if (metrics)
             {
-                (*metrics)[i].Width = rspritewidths[i];
-                (*metrics)[i].Height = rspriteheights[i];
+                (*metrics)[i].Width = spritewidths[i];
+                (*metrics)[i].Height = spriteheights[i];
             }
         }
     }

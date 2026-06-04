@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Text;
 using System.Xml;
 using AGS.Types.Interfaces;
@@ -13,17 +14,16 @@ namespace AGS.Types
         private int _id;
         private string _name;
         private bool _showTextParser;
-        private string _script;
+        private DialogScript _script;
         private bool _scriptChangedSinceLastCompile;
         private string _cachedConvertedScript;
         private List<DialogOption> _options = new List<DialogOption>();
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Dialogs);
 
-        public Dialog()
+        public Dialog(string name)
         {
-            _script = "// Dialog script file" + Environment.NewLine + 
-                "@S  // Dialog startup entry point" + Environment.NewLine +
-                "return" + Environment.NewLine;
+            _name = Utilities.ValidateScriptName(name);
+            _script = DialogScript.CreateDefault(_name);
             _cachedConvertedScript = null;
             _scriptChangedSinceLastCompile = true;
         }
@@ -35,7 +35,10 @@ namespace AGS.Types
         public int ID
         {
             get { return _id; }
-            set { _id = value; }
+            set
+            { 
+                _id = value;
+            }
         }
 
         [Description("The script name of the dialog")]
@@ -44,14 +47,17 @@ namespace AGS.Types
         public string Name
         {
             get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            set {
+                _name = Utilities.ValidateScriptName(value);
+                _script.FileName = DialogScript.GetFileName(_name);
+            }
         }
 
         [Browsable(false)]
-        public string FileName { get { return "Dialog " + ID; } }
+        public string FileName { get { return _script.FileName; } }
 
         [Browsable(false)]
-        public string Text { get { return _script; } }
+        public string Text { get { return _script.Text; } }
 
         [Browsable(false)]
         public ScriptAutoCompleteData AutoCompleteData { get { return null; } }
@@ -67,14 +73,14 @@ namespace AGS.Types
         [Browsable(false)]
         public string Script
         {
-            get { return _script; }
+            get { return _script.Text; }
             set 
             {
-                if (_script != value)
+                if (_script.Text != value)
                 {
                     _scriptChangedSinceLastCompile = true;
                 }
-                _script = value; 
+                _script.Text = value; 
             }
         }
 
@@ -133,7 +139,27 @@ namespace AGS.Types
             _showTextParser = Boolean.Parse(SerializeUtils.GetElementString(node, "ShowTextParser"));
             XmlNode scriptNode = node.SelectSingleNode("Script");
             // Luckily the CDATA section is easy to read back
-            _script = scriptNode.InnerText;
+            // FIX-ME: we will need to figure how to look the .asd file and then if it fails look into the inner text?
+            // or the reverse? Need to think on this
+            String fileName = DialogScript.GetFileName(_name);
+
+            if (File.Exists(fileName))
+            {
+                // read from .asd file
+                _script = new DialogScript(fileName, "");
+                _script.LoadFromDisk();
+            }
+            else if (!string.IsNullOrEmpty(scriptNode.InnerText))
+            {
+                // try the CData?
+                _script = new DialogScript(fileName, scriptNode.InnerText);
+            }
+            else
+            {
+                // I don't think we should be here???
+                _script = DialogScript.CreateDefault(fileName);
+            }
+            _script.FileName = fileName;
 
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "DialogOptions"))
             {
@@ -143,12 +169,19 @@ namespace AGS.Types
 
         public void ToXml(XmlTextWriter writer)
         {
+            // lets save the .asd file
+            _script.SaveToDisk(true);
+
             writer.WriteStartElement("Dialog");
             writer.WriteElementString("ID", ID.ToString());
             writer.WriteElementString("Name", _name);
             writer.WriteElementString("ShowTextParser", _showTextParser.ToString());
             writer.WriteStartElement("Script");
-            writer.WriteCData(_script);
+            // Actually I am commenting this
+            // FIX-ME: move this out because the writing will be in a file by DialogScript.
+            // For now we keep this so things still work.
+            // writer.WriteCData(_script.Text);
+            writer.WriteCData(string.Empty);
             writer.WriteEndElement();
 
             writer.WriteStartElement("DialogOptions");

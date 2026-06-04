@@ -1,12 +1,13 @@
+using AGS.Editor.TextProcessing;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Types;
-using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor.Components
 {
@@ -32,7 +33,8 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
 			_guiController.OnZoomToFile += GUIController_OnZoomToFile;
             _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
-			RePopulateTreeView();
+            Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
+            RePopulateTreeView();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -55,9 +57,9 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
-                Dialog newItem = new Dialog();
+                string name = _agsEditor.GetFirstAvailableScriptName("dDialog");
+                Dialog newItem = new Dialog(name);
                 newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-                newItem.Name = _agsEditor.GetFirstAvailableScriptName("dDialog");
                 string newNodeID = AddSingleItem(newItem);
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
 				ShowPaneForDialog(newItem);
@@ -412,6 +414,75 @@ namespace AGS.Editor.Components
         protected override IList<Dialog> GetFlatList()
         {
             return _agsEditor.CurrentGame.DialogFlatList;
+        }
+
+
+        private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
+        {
+            args.Tasks.Add(new UpgradeGameDialogsToIndividualFiles(ConvertAllDialogsToIndividualFiles));
+        }
+
+        private void ConvertAllDialogsToIndividualFiles(Game game, IWorkProgress progress, CompileMessages errors)
+        {
+            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_DIALOG_FILES)
+                return; // already converted
+
+            // this logic is convoluted
+            // a person may have a Dialogs dir with notes or source files
+            // perhaps only move already existing .asd files?
+            // need to look carefully into this, to move only the contents that could conflict
+            if (Directory.Exists(DialogScript.DIALOGUES_DIR))
+            {
+                string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, DialogScript.DIALOGUES_DIR, "Backup-");
+
+                Utilities.SafeMoveDirectoryFiles(DialogScript.DIALOGUES_DIR, backupRootDir);
+            }
+
+            // I think I can just check here if the directory already exists
+            // then the only way this can fail is some weird permission setting from file system
+            try
+            {
+                if (!Directory.Exists(DialogScript.DIALOGUES_DIR))
+                {
+                    Directory.CreateDirectory(DialogScript.DIALOGUES_DIR);
+                }
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError($"Failed to create directory '{DialogScript.DIALOGUES_DIR}'.", e));
+                // this probably needs a return but I don't know what a failure here means, is the project left in an intermediary state?
+            }
+
+            // now we need to do the actual conversion, but how do I handle partial conversion?
+            // I guess this could only happen through power failure? perhaps cycle through all files again and do the save to disk later?
+            // I also think this issue means I still want a way to load the old stuff in Dialog in ags types...
+
+            int totalCount = game.Dialogs.Count;
+            int convertedCount = 0;
+
+            // ACTUALLY FOR THIS TO WORK I GUESS I NEED TO MOVE STUFF OUT OF THE CURRENT DIALOG LOADING?
+            // I HAVE NO IDEA HOW TO DO THIS
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                try
+                {
+                    string fileName = DialogScript.GetFileName(dialog.Name);
+                    DialogScript script = new DialogScript(fileName, dialog.Script);
+                    script.SaveToDisk(true);
+                    convertedCount++;
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new CompileError($"Failed to convert dialog '{dialog.Name}'", e));
+                }
+            }
+            
+            // I dont know if I should report these things at all or just a "Done!" message or nothing.
+            if (convertedCount != totalCount)
+            {
+                errors.Add(new CompileWarning($"Converted {convertedCount} of {totalCount} dialogs. Failed to convert {totalCount - convertedCount}."));
+            }
+                
         }
     }
 }

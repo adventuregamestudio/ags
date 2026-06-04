@@ -2840,7 +2840,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
 	for (int i = 0; i < thisgame.numdialog; i++) 
 	{
-		AGS::Types::Dialog ^newDialog = gcnew AGS::Types::Dialog();
+		AGS::Types::Dialog ^newDialog = gcnew AGS::Types::Dialog(AGS::Types::DialogScript::GetFileName(TextHelper::ConvertASCII(thisgame.dialogScriptNames[i])));
 		newDialog->ID = i;
 		for (int j = 0; j < dialog[i].GetOptionCount(); j++) 
 		{

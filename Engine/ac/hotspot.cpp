@@ -78,7 +78,7 @@ ScriptHotspot *Hotspot_GetAtScreenXY(int x, int y, int hit_options)
 
 ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
 {
-    return Hotspot_GetAtScreenXY(x, y, true);
+    return Hotspot_GetAtScreenXY(x, y, kHit_Interactable);
 }
 
 ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, int hit_options)
@@ -88,7 +88,7 @@ ScriptHotspot *Hotspot_GetAtRoomXY(int x, int y, int hit_options)
 
 ScriptHotspot *Hotspot_GetAtRoomXY2(int x, int y)
 {
-    return Hotspot_GetAtRoomXY(x, y, true);
+    return Hotspot_GetAtRoomXY(x, y, kHit_Interactable);
 }
 
 void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {

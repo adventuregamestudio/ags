@@ -10,8 +10,8 @@
 
     "dependencies": {
         "sdlsound": {
-            "revision": "c5639414c1bb24fb4eef5861c13adb42a4aab950",
-            "urlHash": "2e9ab24fd861f61349b9386fd66c9851e9f03a60"
+            "revision": "3a41c3de5b90355745333041b96e142ba8f5fbdf",
+            "urlHash": "18d2473ec9db3c8a41011032400cb8ad92a9f152"
         },
         "sdl": {
             "revision": "2.28.5",

@@ -9,7 +9,7 @@ REM Windows comes with bsdtar by default, so this script assumes it exists.
 set XIPH_VERSION=2022.12.23
 set SDL_VERSION=release-2.30.11
 set SDL_VERSION_NUMBER=2.30.11
-set SDL2_SOUND_VERSION=474dbf755a1b67ebe7a55467b4f65e033f268aff
+set SDL2_SOUND_VERSION=3a41c3de5b90355745333041b96e142ba8f5fbdf
 set VCREDIST_X86_URL=https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe
 set VCREDIST_X64_URL=https://download.visualstudio.microsoft.com/download/pr/c7dac50a-e3e8-40f6-bbb2-9cc4e3dfcabe/1821577409C35B2B9505AC833E246376CC68A8262972100444010B57226F0940/VC_redist.x64.exe
 

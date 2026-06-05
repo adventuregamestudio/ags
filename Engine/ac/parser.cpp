@@ -529,7 +529,7 @@ RuntimeScriptValue Sc_Parser_SaidUnknownWord(const RuntimeScriptValue *params, i
 
 RuntimeScriptValue Sc_Parser_Said(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(Parser_Said, const char);
+    API_SCALL_INT_POBJ(Parser_Said, const char);
 }
 
 void RegisterParserAPI()

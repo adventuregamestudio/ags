@@ -161,6 +161,8 @@ Remade events tables
 sync with 3.6.3.4/6
 4.0.0.27:
 sync with 3.6.3.8
+4.0.0.29:
+sync with 3.6.3.10
 */
 
 enum GameDataVersion
@@ -196,8 +198,9 @@ enum GameDataVersion
     kGameVersion_400_24         = 4000024,
     kGameVersion_400_26         = 4000026,
     kGameVersion_400_27         = 4000027,
+    kGameVersion_400_29         = 4000029,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_27
+    kGameVersion_Current        = kGameVersion_400_29
 };
 
 // Data format version of the loaded game

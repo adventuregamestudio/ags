@@ -146,8 +146,9 @@ namespace AGS.Editor
          * 4.00.00.26     - sync with colored gui controls (3.6.3),
          *                  and other properties (BlockingRectangle etc)
          * 4.00.00.27     - Character.GraphicAnchor/Offset.
+         * 4.00.00.29     - Sync with 3.6.3.10.
         */
-        public const string LATEST_XML_VERSION = "4.0.0.27";
+        public const string LATEST_XML_VERSION = "4.0.0.29";
 
         /*
          * FIRST_XML_VERSION is the very first version of the Editor using XML project file.

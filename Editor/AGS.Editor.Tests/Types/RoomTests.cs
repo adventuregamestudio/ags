@@ -206,8 +206,6 @@ namespace AGS.Types
                 <WalkBehinds/>
                 <Regions/>
             </Room>";
-            Directory.CreateDirectory(Path.Combine("Rooms", $"{number}"));
-            File.WriteAllText(Path.Combine("Rooms", $"{number}", $"room{number}.asc"), "Test placeholder");
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
             _room = new Room(doc.SelectSingleNode("Room"));
@@ -229,8 +227,6 @@ namespace AGS.Types
             Assert.That(_room.Number, Is.EqualTo(number));
             Assert.That(_room.Description, Is.EqualTo(description));
             Assert.That(_room.OnLeaveLeft, Is.EqualTo("room_LeftEdge"));
-
-            File.Delete("TestScript.asc");
         }
 
         [TestCase(1, 2, 1174750494, 320, 240, 5, false, 1, 1, 2, 3, 4, 2, "description1")]

@@ -154,7 +154,7 @@ void Character_AddInventory(CharacterInfo *chi, ScriptInvItem *invi, int at_inde
     if (chi->inv[inum] == INT16_MAX)
     {
         debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
-            chi->scrname, game.invScriptNames[inum].GetCStr(), INT16_MAX);
+            chi->scrname.GetCStr(), game.invScriptNames[inum].GetCStr(), INT16_MAX);
         return;
     }
 
@@ -179,7 +179,7 @@ void Character_AddInventory(CharacterInfo *chi, ScriptInvItem *invi, int at_inde
     if (chex.inventory.size() == MAX_CHAR_INVENTORY)
     {
         debug_script_warn("Character.AddInventory: char %s, item %s: too many inventory items added, max %d can be stored at once",
-            chi->scrname, game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
+            chi->scrname.GetCStr(), game.invScriptNames[inum].GetCStr(), MAX_CHAR_INVENTORY);
         return;
     }
 
@@ -773,7 +773,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     if (chap->inv[inum] == 0)
     {
         debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
-            chap->scrname, game.invScriptNames[inum].GetCStr());
+            chap->scrname.GetCStr(), game.invScriptNames[inum].GetCStr());
         return;
     }
     
@@ -1561,7 +1561,7 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
     if ((quant < 0) || (quant > INT16_MAX))
     {
         debug_script_warn("Character.InventoryQuantity: char %s, item %s: invalid quantity %d, valid range is 0..%d",
-            chi->scrname, game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
+            chi->scrname.GetCStr(), game.invScriptNames[index].GetCStr(), quant, INT16_MAX);
         quant = Math::Clamp<int>(quant, 0, INT16_MAX);
     }
 
@@ -1652,7 +1652,8 @@ ScriptInvItem* Character_GetInventory(CharacterInfo* chi, int index)
     auto &chex = charextra[chi->index_id];
     if (index < 0 || static_cast<uint32_t>(index) >= chex.inventory.size())
     {
-        debug_script_warn("Character.Inventory[]: char %s: index %d is out of valid range, current inventory is 0..%d", chi->scrname, index, (int)chex.inventory.size());
+        debug_script_warn("Character.Inventory[]: char %s: index %d is out of valid range, current inventory is 0..%d",
+            chi->scrname.GetCStr(), index, (int)chex.inventory.size());
         return nullptr;
     }
     return &scrInv[charextra[chi->index_id].inventory[index]];

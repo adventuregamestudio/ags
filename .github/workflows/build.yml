@@ -115,7 +115,7 @@ jobs:
     - name: Run auto-test (Hardware GFX)
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        ${{matrix.platform.runbin}} --gfxdriver ${{matrix.platform.gfx}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . ${{env.AUTO_TEST_GAME}}
+        ${{matrix.platform.runbin}} --gfxdriver ${{matrix.platform.gfx}} --no-message-box --log-stdout=script:info,main:debug --user-data-dir . ${{env.AUTO_TEST_GAME}}
         mv agstest.tap agstest_hardware.tap
 
     - name: Check auto-test (Hardware GFX) # we are using tap.py so that the pipeline fails if a test fails
@@ -126,7 +126,7 @@ jobs:
     - name: Run auto-test (Software GFX)
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        ${{matrix.platform.runbin}} --gfxdriver Software --no-message-box --log-stdout=script:info,main:info --user-data-dir . ${{env.AUTO_TEST_GAME}}
+        ${{matrix.platform.runbin}} --gfxdriver Software --no-message-box --log-stdout=script:info,main:debug --user-data-dir . ${{env.AUTO_TEST_GAME}}
         mv agstest.tap agstest_software.tap
 
     - name: Check auto-test (Software GFX) # we are using tap.py so that the pipeline fails if a test fails

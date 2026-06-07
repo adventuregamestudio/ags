@@ -18,6 +18,7 @@
 #include "debug/out.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/geometry.h"
+#include "util/string_compat.h"
 #include "util/string.h"
 
 using namespace AGS::Common;
@@ -167,6 +168,27 @@ void sys_renderer_set_output(const String &name)
 // AUDIO UTILS
 // ----------------------------------------------------------------------------
 
+static bool try_init_audio_driver(const char *driver_name)
+{
+    if (driver_name)
+        SDL_setenv("SDL_AUDIODRIVER", driver_name, 1);
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+        return false;
+    SDL_AudioSpec desired {};
+    SDL_AudioDeviceID device = SDL_OpenAudioDevice(NULL, SDL_FALSE, &desired, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
+    if (device)
+    {
+        SDL_CloseAudioDevice(device);
+        return true;
+    }
+    else
+    {
+        Debug::Printf(kDbgMsg_Error, "Failed to open audio device; error: %s", SDL_GetError());
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        return false;
+    }
+}
+
 bool sys_audio_init(const String &driver_name)
 {
     if ((gl_SysMainInfo.SDLSubsystems & SDL_INIT_AUDIO) != 0)
@@ -177,31 +199,38 @@ bool sys_audio_init(const String &driver_name)
     // way when initializing any additional SDL-based audio lib or plugin;
     // at the very least - the mojoAl (OpenAL's implementation we're using).
     bool res = false;
-    // If user config contained a driver request, then apply one for a try
+    // If user config contained a driver request, then apply one for a try;
+    // then try to initialize audio driver, with either requested driver name,
+    // or a driver name set by an enviroment variable, or default driver.
     if (!driver_name.IsEmpty())
-        SDL_setenv("SDL_AUDIODRIVER", driver_name.GetCStr(), 1);
-    const char *env_drv = SDL_getenv("SDL_AUDIODRIVER");
-    Debug::Printf("Requested audio driver: %s", env_drv ? env_drv : "default");
-    res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+    {
+        Debug::Printf("Requested audio driver: %s", driver_name.GetCStr());
+        res = try_init_audio_driver(driver_name.GetCStr());
+    }
+    else
+    {
+        const char *env_drv = SDL_getenv("SDL_AUDIODRIVER");
+        Debug::Printf("Requested audio driver: %s", env_drv ? env_drv : "default");
+        res = try_init_audio_driver(nullptr);
+    }
     // If there have been an explicit request that failed, then try to force
     // SDL to go through a list of supported drivers and see if that succeeds.
+    const char *env_drv = SDL_getenv("SDL_AUDIODRIVER");
     if (!res && env_drv)
     {
         Debug::Printf(kDbgMsg_Error, "Failed to initialize requested audio driver '%s'; error: %s",
             env_drv, SDL_GetError());
         Debug::Printf("Attempt to initialize any audio driver from the known list");
-        SDL_setenv("SDL_AUDIODRIVER", "", 1);
-        res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+        res = try_init_audio_driver("");
     }
     // Finally, if that failed, also try "dummy" driver. SDL2 does not try that
     // unless explicitly asked for.
-    if (!res && driver_name.CompareNoCase("dummy") != 0)
+    if (!res && (!env_drv || ags_stricmp(env_drv, "dummy") != 0))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver suitable for this plaform; error: %s",
             SDL_GetError());
         Debug::Printf("Attempt to initialize \"dummy\" audio driver");
-        SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
-        res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+        res = try_init_audio_driver("dummy");
     }
 
     if (res)

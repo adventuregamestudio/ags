@@ -104,6 +104,11 @@ Engine/ags
 **/.lib
 **/.test
 
+
+# Various tools output (merge/diff backups, etc)
+*.orig
+
+
 # Force git to NOT ignore this source folder
 # this is necessary because some of the above patterns have "*Debug" in them
 !Common/debug

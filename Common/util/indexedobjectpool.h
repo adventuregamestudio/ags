@@ -285,8 +285,8 @@ public:
     // Returns the size of container, how many elements are in the pool;
     // this includes both used and free elements
     size_t size() const { return _elems.size(); }
-    const TElem &operator [](TIndex index) const { return _elems[static_cast<size_t>(index)]; }
-    TElem &operator [](TIndex index)
+    const TElem &operator [](const TIndex &index) const { return _elems[static_cast<size_t>(index)]; }
+    TElem &operator [](const TIndex &index)
     {
         assert(index >= 0u && static_cast<size_t>(index) < _elems.size() && index != NoIndexValue);
         assert(!BaseType::_isFree[index]);

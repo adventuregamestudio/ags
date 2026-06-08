@@ -86,6 +86,7 @@ private:
     int  Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
     int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
+    void WriteImpl(Common::Stream *out) const;
 
 public:
     // Adds a reference count
@@ -105,6 +106,7 @@ public:
     void RunGarbageCollectionIfAppropriate();
     int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
     int AddUnserializedObject(void *address, IScriptObject *callback, int handle, ScriptValueType obj_type, bool persistent);
+    // NOTE: WriteToDisk is not const, because it calls RunGarbageCollection() internally
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectCollectionReader *reader);
     // De-allocate all objects

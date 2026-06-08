@@ -175,11 +175,15 @@ int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callb
     return Add(handle, address, callback, obj_type);
 }
 
-void ManagedObjectPool::WriteToDisk(Stream *out) {
-
-    // use this opportunity to clean up any non-referenced pointers
+void ManagedObjectPool::WriteToDisk(Stream *out)
+{
+    // Use this opportunity to clean up any non-referenced pointers
     RunGarbageCollection();
+    WriteImpl(out);
+}
 
+void ManagedObjectPool::WriteImpl(Common::Stream *out) const
+{
     std::vector<uint8_t> serializeBuffer;
     serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
@@ -189,7 +193,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     int size = 0;
     for (size_t i = 1; i < objects.size(); i++)
     {
-        auto const & o = objects[i];
+        auto const &o = objects[i];
         if (o.isUsed())
             size++;
     }

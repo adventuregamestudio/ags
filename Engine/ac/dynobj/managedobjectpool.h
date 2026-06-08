@@ -62,6 +62,7 @@ private:
 
     int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
+    void WriteImpl(Common::Stream *out) const;
 
 public:
 
@@ -75,6 +76,7 @@ public:
     void RunGarbageCollectionIfAppropriate();
     int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type);
     int AddUnserializedObject(void *address, IScriptObject *callback, ScriptValueType obj_type, int handle);
+    // NOTE: WriteToDisk is not const, because it calls RunGarbageCollection() internally
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectCollectionReader *reader);
     // De-allocate all objects

@@ -38,6 +38,7 @@ using namespace Common;
 enum GameInitErrorType
 {
     kGameInitErr_NoError,
+    kGameInitErr_UnknownDataVersion,
     // currently AGS requires at least one font to be present in game
     kGameInitErr_NoFonts,
     kGameInitErr_EntityInitFail,

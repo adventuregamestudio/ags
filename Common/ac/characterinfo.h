@@ -19,6 +19,7 @@
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
 #include "util/bbop.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

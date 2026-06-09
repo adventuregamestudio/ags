@@ -15,6 +15,7 @@
 #define __AC_RUNTIMEDEFINES_H
 
 #include "ac/common_defines.h"
+#include "ac/game_version.h"
 
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
@@ -270,5 +271,9 @@ enum PluginEventID
     kPluginEvt_PostRestoreGame  = 0x00040000,
     kPluginEvt_PostRoomDraw     = 0x00080000,
 };
+
+// Data format version of the loaded game
+// TODO: get rid of this global variable, use one from GameSetupStruct
+extern GameDataVersion loaded_game_file_version;
 
 #endif // __AC_RUNTIMEDEFINES_H

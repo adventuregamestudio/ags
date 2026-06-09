@@ -103,6 +103,8 @@ String GetGameInitErrorText(GameInitErrorType err)
     {
     case kGameInitErr_NoError:
         return "No error.";
+    case kGameInitErr_UnknownDataVersion:
+        return "Unknown game data version";
     case kGameInitErr_NoFonts:
         return "No fonts specified to be used in this game.";
     case kGameInitErr_EntityInitFail:
@@ -293,6 +295,7 @@ HError InitAndRegisterGameEntities(GameSetupStruct &game)
 
 void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
+    set_gamedata_version(data_ver);
     for (int i = 0; i < game.numfonts; ++i) 
     {
         if (load_game_font(i, game.fonts[i], data_ver))

@@ -82,6 +82,18 @@ void init_font_renderer(AssetManager *amgr)
     wfnRenderer.reset(new WFNFontRenderer(amgr));
 }
 
+void set_gamedata_version(GameDataVersion data_ver)
+{
+    if (ttfRenderer)
+    {
+        // Games made in AGS version range [3.2.0, 3.4.1) with TTF anti-aliasing
+        // had a different rule for the loaded font's height
+        // (the reason is uncertain, but this is to emulate old engine's behavior).
+        ttfRenderer->SetLegacyAntiaAliasedFontHeightFixup(
+            (data_ver >= kGameVersion_320) && (data_ver < kGameVersion_341));
+    }
+}
+
 void shutdown_font_renderer()
 {
     set_our_eip(9919);

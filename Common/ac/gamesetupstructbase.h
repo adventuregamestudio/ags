@@ -40,6 +40,8 @@ struct GameSetupStructBase
     static const int  NUM_INTS_RESERVED = 16;
 
     Common::String    gamename;
+    GameDataVersion   gamedataver = kGameVersion_Undefined;
+    Common::String    compiled_with; // version of AGS this data was created by
     int               options[MAX_OPTIONS] = { 0 };
     uint8_t           paluses[256] = { 0 };
     RGB               defpal[256] = {};
@@ -191,7 +193,7 @@ struct GameSetupStructBase
     // Test if the game is built around old audio system
     inline bool IsLegacyAudioSystem() const
     {
-        return loaded_game_file_version < kGameVersion_320;
+        return gamedataver < kGameVersion_320;
     }
 
     // Returns the expected filename of a digital audio package

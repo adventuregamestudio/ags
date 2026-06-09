@@ -18,8 +18,6 @@
 #ifndef __AGS_CN_AC__GAMEVERSION_H
 #define __AGS_CN_AC__GAMEVERSION_H
 
-#include "util/version.h"
-
 /*
 
 Game data versions and changes:
@@ -200,8 +198,5 @@ enum GameDataVersion
     kGameVersion_363_10         = 3060310,
     kGameVersion_Current        = kGameVersion_363_10
 };
-
-// Data format version of the loaded game
-extern GameDataVersion loaded_game_file_version;
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

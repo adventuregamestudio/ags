@@ -51,7 +51,7 @@ bool GUIMain::HasAlphaChannel() const
         // transparent background have alpha channel only since 3.2.0;
         // "classic" gui rendering mode historically had non-alpha transparent backgrounds
         // (3.2.0 broke the compatibility, now we restore it)
-        loaded_game_file_version >= kGameVersion_320 && game.options[OPT_NEWGUIALPHA] != kGuiAlphaRender_Legacy;
+        GUI::DataVersion >= kGameVersion_320 && game.options[OPT_NEWGUIALPHA] != kGuiAlphaRender_Legacy;
 }
 
 //=============================================================================
@@ -157,7 +157,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     bool reverse = false;
     // Text boxes input is never "translated" in regular sense,
     // but they use this flag to apply text direction
-    if ((loaded_game_file_version >= kGameVersion_361) && ((_flags & kGUICtrl_Translated) != 0))
+    if ((GUI::DataVersion >= kGameVersion_361) && ((_flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(_text);
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
@@ -165,12 +165,12 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 
     FrameAlignment text_align = kAlignTopLeft;
     // 3.6.1 -> 3.6.2 applied text alignment based on text direction
-    if ((loaded_game_file_version >= kGameVersion_361) && (loaded_game_file_version < kGameVersion_363_04))
+    if ((GUI::DataVersion >= kGameVersion_361) && (GUI::DataVersion < kGameVersion_363_04))
     {
         text_align = reverse ? kAlignTopRight : kAlignTopLeft;
     }
     // 3.6.3+ have explicit text alignment property
-    else if (loaded_game_file_version >= kGameVersion_363_04)
+    else if (GUI::DataVersion >= kGameVersion_363_04)
     {
         text_align = _textAlignment;
     }
@@ -200,7 +200,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
      _textToDraw = GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0,
-         (loaded_game_file_version >= kGameVersion_361));
+         (GUI::DataVersion >= kGameVersion_361));
 }
 
 void GUIButton::PrepareTextToDraw()
@@ -213,7 +213,7 @@ void GUIButton::PrepareTextToDraw()
     else
     {
         _textToDraw = GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0,
-            (loaded_game_file_version >= kGameVersion_361));
+            (GUI::DataVersion >= kGameVersion_361));
     }
 }
 

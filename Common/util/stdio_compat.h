@@ -44,6 +44,7 @@ time_t ags_file_time(const char *path);
 int ags_file_remove(const char *path);
 int ags_file_rename(const char *src, const char *dst);
 int ags_file_copy(const char *src, const char *dst, int overwrite);
+int ags_file_truncate(const char *path, file_off_t length);
 
 #ifdef __cplusplus
 }

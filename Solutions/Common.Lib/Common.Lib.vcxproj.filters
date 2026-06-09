@@ -509,9 +509,6 @@
     <ClCompile Include="..\..\Common\gui\guitextbasedcontrol.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\data\asset.cpp">
-      <Filter>Source Files\data</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\data\assetmanager.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>

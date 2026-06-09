@@ -16,7 +16,6 @@ set(TOOLS_COMMON_SOURCES
         ../Common/ac/spritefile.h
         ../Common/ac/wordsdictionary.cpp
         ../Common/ac/wordsdictionary.h
-        ../Common/data/asset.cpp
         ../Common/data/asset.h
         ../Common/data/data_helpers.cpp
         ../Common/data/data_helpers.h

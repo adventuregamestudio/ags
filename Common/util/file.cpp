@@ -141,6 +141,11 @@ bool File::CopyFile(const String &src_path, const String &dst_path, bool overwri
     return ags_file_copy(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
 }
 
+bool File::TruncateFile(const String &filename, soff_t length)
+{
+    return ags_file_truncate(filename.GetCStr(), length) == 0;
+}
+
 bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode)
 {
     // We do not test for 'b' and 't' here, because text mode reading/writing should be done with
@@ -261,6 +266,15 @@ std::unique_ptr<Stream> File::OpenFile(const String &filename, soff_t start_off,
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
     return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs), start_off, end_off));
+}
+
+std::unique_ptr<Stream> File::CreateTempFile()
+{
+    FILE *file = std::tmpfile();
+    if (!file)
+        return nullptr;
+    // Create a BufferedStream instance, wrapping the selected device impl
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::OwnHandle(file, kStream_ReadWrite)));
 }
 
 std::unique_ptr<Stream> File::OpenStdin()

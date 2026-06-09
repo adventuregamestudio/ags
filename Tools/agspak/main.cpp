@@ -15,7 +15,9 @@
 // AGS package file pack/unpack utility.
 // 
 // TODO:
-// * append cmdline option (create new file / append to existing)
+// * option to fully test result of "create", including binary comparison of
+//   all asset data.
+// * option to write library in old format versions (to let test old engines).
 // * proper unified error codes for the AGS tools?
 // * clarify the use of "verbose" option, and make it consistent
 //   throughout the operations.
@@ -30,12 +32,12 @@
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
-const char *BIN_STRING = "agspak v0.3.0 - AGS game packaging tool\n"
+const char *BIN_STRING = "agspak v0.4.0 - AGS game packaging tool\n"
     "Copyright (c) 2025 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"
    //--------------------------------------------------------------------------------|
-    "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>] [<FILES>] [OPTIONS]\n"
+    "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>|<DEST-FILE>] [<FILES>] [OPTIONS]\n"
     "      executes an operation regarding the chosen package file, a working\n"
     "      directory, and an optional files list. Depending on a command either the\n"
     "      pack or the directory is an input or an output.\n"
@@ -46,15 +48,27 @@ const char *HELP_STRING = "Usage:\n"
     "      Options may adjust the operation further.\n"
     "\n"
     "Commands:\n"
-    "  -c, --create           create a pack file, gathering the files from the\n"
-    "                         input directory.\n"
+    "  -a, --attach           attach an existing pack file to another file;\n"
+    "                         overwrites any assets that were attached previously.\n"
+    "                         This is commonly used to attach asset data to exe.\n"
+    "  -c, --create           create a new pack file, gathering the asset files from\n"
+    "                         the input directory.\n"
+    "  -A, --create-attach    create a asset pack attached to the existing file,\n"
+    "                         gathering the asset files from the input directory.\n"
+    "                         This is commonly used to attach asset data to exe.\n"
+    "  -d, --detach           detach appended asset data from a file, writes them\n"
+    "                         into a standalone pack file, then cuts off the original\n"
+    "                         attachment.\n"
+    "                         If no asset data is found, then nothing will be done.\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
     "  -l, --list             print pack file's contents.\n"
+    "  -x, --cut              cut (deletes) appended asset data from a file.\n"
+    "                         If no asset data is found, then nothing will be done.\n"
     "\n"
     "Command options:\n"
     "  -f, --pattern-file <file>\n"
-    "                         when creating a pack file, use pattern file with the"
+    "                         when creating a pack file, use pattern file with the\n"
     "                         include/exclude patterns\n"
     "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
     "                         partitions of this size max. Input files are not split,\n"
@@ -89,11 +103,32 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'l'; // list
             break;
         }
+        if (opt == "-a" || opt == "--attach")
+        {
+            command = 'a';
+            break;
+        }
+        if (opt == "-x" || opt == "--cut")
+        {
+            command = 'x';
+            break;
+        }
+        if (opt == "-d" || opt == "--detach")
+        {
+            command = 'd';
+            break;
+        }
+        if (opt == "-A" || opt == "--create-attach")
+        {
+            command = 'A';
+            break;
+        }
     }
 
     // Fixed pos options
     const String pak_file = cmdargs.PosArgs.size() > 0 ? cmdargs.PosArgs[0] : String();
     const String work_dir = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
+    const String dst_file = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
     const String file_list_str = cmdargs.PosArgs.size() > 2 ? cmdargs.PosArgs[2] : String();
     // Common options
     // a include pattern file that should be inside the input-dir
@@ -125,11 +160,24 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     // Run supported commands
     switch (command)
     {
-    case 'c': // create
+    case 'a': // attach
         {
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
-            return AGSPak::Command_Create(work_dir, pak_file, pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
+            return AGSPak::Command_Attach(pak_file, dst_file, verbose);
+        }
+    case 'c': // create
+    case 'A': // create-attach
+        {
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
+            return AGSPak::Command_Create(work_dir, pak_file, command == 'A', pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
+        }
+    case 'd': // detach
+        {
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
+            return AGSPak::Command_Detach(pak_file, dst_file, verbose);
         }
     case 'e': // export
         {
@@ -142,6 +190,12 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             if (cmdargs.PosArgs.size() < 1)
                 break; // not enough args
             return AGSPak::Command_List(pak_file);
+        }
+    case 'x': // cut
+        {
+            if (cmdargs.PosArgs.size() < 1)
+                break; // not enough args
+            return AGSPak::Command_Cut(pak_file, verbose);
         }
     default:
         printf("Error: no valid command is specified\n");

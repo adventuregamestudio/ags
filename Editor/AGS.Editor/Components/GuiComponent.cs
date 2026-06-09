@@ -422,34 +422,6 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.GUIFlatList;
         }
 
-        /// <summary>
-        /// Helper class for use when scanning for event handlers
-        /// </summary>
-        private class GUIObjectWithEvents
-        {
-            public NormalGUI GUI;
-            public GUIControl Control;
-
-            public GUIObjectWithEvents(NormalGUI gui) { GUI = gui; Control = null; }
-            public GUIObjectWithEvents(GUIControl control) { GUI = null; Control = control; }
-        }
-
-        private class GUIEventReference
-        {
-            public GUIObjectWithEvents GUIObject;
-            public string ObjName;
-            public string EventName;
-            public string FunctionName;
-
-            public GUIEventReference(GUIObjectWithEvents obj, string evtName, string fnName)
-            {
-                GUIObject = obj;
-                ObjName = obj.GUI != null ? obj.GUI.Name : obj.Control.Name;
-                EventName = evtName;
-                FunctionName = fnName;
-            }
-        }
-
         private void ScanAndReportMissingEventHandlers(GenericMessagesArgs args)
         {
             var errors = args.Messages;

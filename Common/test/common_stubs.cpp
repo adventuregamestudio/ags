@@ -22,6 +22,7 @@
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
 #include "gui/guitextbox.h"
+#include "util/version.h"
 
 using namespace AGS::Common;
 

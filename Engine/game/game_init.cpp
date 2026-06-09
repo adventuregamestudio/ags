@@ -561,8 +561,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
     ApplyAccessibilityOptions(play, usetup);
-    // Apply override settings, such as hacks and backwards compatibility fixes
-    ApplyOverrides(game, play, usetup);
+    // Applies behavior options, also hacks and backwards compatibility fixes
+    ApplyBehaviorOptions(game, play, usetup);
 
     return HGameInitError::None();
 }
@@ -585,8 +585,19 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
     }
 }
 
-void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
+void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
 {
+    // First designate the default behavior settings, depending on game data version
+    std::array<bool, kNum_RBS> rbo = {0};
+
+    // Now apply overrides from config, *BUT* these only enable disabled options,
+    // and never disable enabled ones (because that might break or "downgrade" modern games).
+    for (size_t i = 0; i < kNum_RBS; ++i)
+    {
+        rbo[i] |= setup.BehaviorOverrides[i];
+    }
+    play.SetRBSwitches(rbo);
+
     if (setup.Override.NewKeyHandling)
     {
         game.options[OPT_KEYHANDLEAPI] = 1;
@@ -595,6 +606,20 @@ void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup 
     if (setup.Override.SmoothCharacterWalk)
     {
         play.smooth_walk = true;
+    }
+}
+
+void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play)
+{
+    // Runtime Behavior Switches
+    {
+        Debug::Printf("Runtime behavior switches:");
+        const auto &rbs_values = play.GetRBSwitches();
+        for (size_t i = kRBS_Dummy + 1; i < kNum_RBS; ++i)
+        {
+            assert(RBSwitchNames[i] != nullptr);
+            Debug::Printf("\t%s = %d", RBSwitchNames[i], static_cast<int>(rbs_values[i]));
+        }
     }
 }
 

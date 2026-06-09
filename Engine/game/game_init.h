@@ -56,8 +56,11 @@ typedef ErrorHandle<GameInitError> HGameInitError;
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup);
-// Applies override settings, such as hacks and backwards compatibility fixes
-void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup);
+// Applies configurable behavior options for this game, including option overrides,
+// such as hacks and backwards compatibility fixes
+void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup);
+// Prints behavior options to the log
+void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play);
 
 } // namespace Engine
 } // namespace AGS

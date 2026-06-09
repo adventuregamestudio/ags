@@ -14,6 +14,7 @@
 #ifndef __AC_RUNTIMEDEFINES_H
 #define __AC_RUNTIMEDEFINES_H
 
+#include <array>
 #include "ac/common_defines.h"
 #include "ac/game_version.h"
 
@@ -271,6 +272,17 @@ enum PluginEventID
     kPluginEvt_PostRestoreGame  = 0x00040000,
     kPluginEvt_PostRoomDraw     = 0x00080000,
 };
+
+// Runtime behavior switches.
+// The purpose is differentiating between modern and backwards-compatible behavior
+// on a per-operation basis.
+enum RuntimeBehaviorSwitch
+{
+    kRBS_Dummy = 0, // is here to have at least one valid constant
+    kNum_RBS
+};
+
+extern std::array<const char*, kNum_RBS> RBSwitchNames;
 
 // Data format version of the loaded game
 // TODO: get rid of this global variable, use one from GameSetupStruct

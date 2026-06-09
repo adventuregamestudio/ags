@@ -663,7 +663,10 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     {
         auto &chi = game.chars[i];
         auto &chex = charextra[i];
-        chi.ReadFromSavegame(in, svg_ver);
+        // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
+        CharacterInfo::LegacyFields old_fields;
+        chi.ReadFromSavegame(in, old_fields, svg_ver);
+        chex.view_offset = old_fields.view_offset;
         chex.ReadFromSavegame(&chi, in, svg_ver);
         Properties::ReadValues(play.charProps[i], in);
 

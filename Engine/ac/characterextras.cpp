@@ -93,8 +93,8 @@ void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int 
     chi->frame = frame;
     chi->wait = 0;
     chi->flags |= CHF_FIXVIEW;
-    chi->view_anchor = anchor;
-    chi->view_offset = off;
+    view_anchor = anchor;
+    view_offset = off;
     UpdateEffectiveValues(chi);
 }
 
@@ -103,8 +103,8 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
     chi->flags &= ~CHF_FIXVIEW;
     chi->view = chi->defview;
     chi->frame = 0;
-    chi->view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
-    chi->view_offset = Point();
+    view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
+    view_offset = Point();
     UpdateEffectiveValues(chi);
 }
 
@@ -142,8 +142,8 @@ void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int dista
 
 void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *chin)
 {
-    eff_offset = chin->is_view_locked() ? chin->view_offset : spr_offset;
-    eff_anchor = chin->is_view_locked() ? chin->view_anchor : spr_anchor;
+    eff_offset = chin->is_view_locked() ? view_offset : spr_offset;
+    eff_anchor = chin->is_view_locked() ? view_anchor : spr_anchor;
 }
 
 void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, CharacterSvgVersion save_ver)
@@ -282,10 +282,10 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         spr_offset = Point(offx, offy);
         float ax = in->ReadFloat32();
         float ay = in->ReadFloat32();
-        chin->view_anchor = Pointf(ax, ay);
+        view_anchor = Pointf(ax, ay);
         offx = in->ReadInt32();
         offy = in->ReadInt32();
-        chin->view_offset = Point(offx, offy);
+        view_offset = Point(offx, offy);
     }
     else
     {
@@ -365,8 +365,8 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     // kRoomStatSvgVersion_40026
     out->WriteInt32(spr_offset.X);
     out->WriteInt32(spr_offset.Y);
-    out->WriteFloat32(chin->view_anchor.X);
-    out->WriteFloat32(chin->view_anchor.Y);
-    out->WriteInt32(chin->view_offset.X);
-    out->WriteInt32(chin->view_offset.Y);
+    out->WriteFloat32(view_anchor.X);
+    out->WriteFloat32(view_anchor.Y);
+    out->WriteInt32(view_offset.X);
+    out->WriteInt32(view_offset.Y);
 }

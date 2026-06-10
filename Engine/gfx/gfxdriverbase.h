@@ -258,6 +258,11 @@ public:
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
     float GetRotation() const override { return _rotation; }
     void SetRotation(float rotation) override { _rotation = rotation; }
+    virtual Pointf GetPivot() const { return _pivot; }
+    virtual void SetPivot(float pivotx, float pivoty)
+    {
+        _pivot = Pointf(pivotx, pivoty);
+    }
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
     int  GetLightLevel() const override { return _lightLevel; }
@@ -302,6 +307,7 @@ protected:
     Size _scaledSize;
     Common::GraphicFlip _flip = Common::kFlip_None;
     float _rotation = 0.f; // either in degrees or radians, depending on impl
+    Pointf _pivot = Pointf(.5f, .5f);
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
     IShaderInstance *_shader = nullptr;

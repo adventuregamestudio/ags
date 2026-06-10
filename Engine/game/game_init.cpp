@@ -590,6 +590,8 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     // First designate the default behavior settings, depending on game data version
     std::array<bool, kNum_RBS> rbo = {0};
     rbo[kRBO_SmoothWalkTransition] = (loaded_game_file_version >= kGameVersion_361);
+    rbo[kRBO_ApplyGUITextDirection] = (loaded_game_file_version >= kGameVersion_361);
+    rbo[kRBO_ApplyDialogOptionTextDirection]= (loaded_game_file_version >= kGameVersion_363);
 
     // Now apply overrides from config, *BUT* these only enable disabled options,
     // and never disable enabled ones (because that might break or "downgrade" modern games).
@@ -603,6 +605,8 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     {
         game.options[OPT_KEYHANDLEAPI] = 1;
     }
+
+    GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
 
 void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play)

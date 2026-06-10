@@ -282,6 +282,10 @@ enum RuntimeBehaviorSwitch
     kRBS_Dummy = 0,
     // Enables smooth transition between two consecutive walk orders
     kRBO_SmoothWalkTransition,
+    // Apply text direction for GUI controls (except Labels, where it's always applied)
+    kRBO_ApplyGUITextDirection,
+    // Apply text direction for dialog options
+    kRBO_ApplyDialogOptionTextDirection,
     kNum_RBS
 };
 

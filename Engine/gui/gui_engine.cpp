@@ -157,7 +157,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     bool reverse = false;
     // Text boxes input is never "translated" in regular sense,
     // but they use this flag to apply text direction
-    if ((GUI::DataVersion >= kGameVersion_361) && ((_flags & kGUICtrl_Translated) != 0))
+    if ((GUI::Options.ApplyTextDirection) && ((_flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(_text);
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
@@ -165,7 +165,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 
     FrameAlignment text_align = kAlignTopLeft;
     // 3.6.1 -> 3.6.2 applied text alignment based on text direction
-    if ((GUI::DataVersion >= kGameVersion_361) && (GUI::DataVersion < kGameVersion_363_04))
+    if ((GUI::Options.ApplyTextDirection) && (GUI::DataVersion < kGameVersion_363_04))
     {
         text_align = reverse ? kAlignTopRight : kAlignTopLeft;
     }
@@ -200,7 +200,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
      _textToDraw = GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0,
-         (GUI::DataVersion >= kGameVersion_361));
+         (GUI::Options.ApplyTextDirection));
 }
 
 void GUIButton::PrepareTextToDraw()
@@ -213,7 +213,7 @@ void GUIButton::PrepareTextToDraw()
     else
     {
         _textToDraw = GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0,
-            (GUI::DataVersion >= kGameVersion_361));
+            (GUI::Options.ApplyTextDirection));
     }
 }
 

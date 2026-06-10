@@ -1401,6 +1401,14 @@ builtin managed struct Overlay {
   import attribute int GraphicOffsetX;
   /// Gets/sets a Y offset of a graphic relative to the overlay's position, in pixels
   import attribute int GraphicOffsetY;
+  /// Gets/sets a graphic rotation pivot X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicPivotX;
+  /// Gets/sets a graphic rotation pivot Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicPivotY;
+  /// Gets/sets a X offset of a graphic pivot relative to the overlay's position, in pixels
+  import attribute int GraphicPivotOffsetX;
+  /// Gets/sets a Y offset of a graphic pivot relative to the overlay's position, in pixels
+  import attribute int GraphicPivotOffsetY;
   /// Gets whether the overlay has a tint set.
   readonly import attribute bool HasTint;
   /// Gets whether the overlay has a light level set.
@@ -2792,6 +2800,14 @@ builtin managed struct Object {
   import attribute int GraphicOffsetX;
   /// Gets/sets a Y offset of a graphic relative to the object's position, in pixels
   import attribute int GraphicOffsetY;
+  /// Gets/sets a graphic rotation pivot X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicPivotX;
+  /// Gets/sets a graphic rotation pivot Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicPivotY;
+  /// Gets/sets a X offset of a graphic pivot relative to the object's position, in pixels
+  import attribute int GraphicPivotOffsetX;
+  /// Gets/sets a Y offset of a graphic pivot relative to the object's position, in pixels
+  import attribute int GraphicPivotOffsetY;
   /// Gets this object's current MotionPath, or null if it's not moving.
   import readonly attribute MotionPath* MotionPath;
 #endif // SCRIPT_API_v400
@@ -3103,6 +3119,14 @@ builtin managed struct Character {
   import attribute int GraphicOffsetX;
   /// Gets/sets a Y offset of a graphic relative to the character's position, in pixels
   import attribute int GraphicOffsetY;
+  /// Gets/sets a graphic rotation pivot X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicPivotX;
+  /// Gets/sets a graphic rotation pivot Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float GraphicPivotY;
+  /// Gets/sets a X offset of a graphic pivot relative to the character's position, in pixels
+  import attribute int GraphicPivotOffsetX;
+  /// Gets/sets a Y offset of a graphic pivot relative to the character's position, in pixels
+  import attribute int GraphicPivotOffsetY;
   /// Gets this character's current MotionPath, or null if it's not moving.
   import readonly attribute MotionPath* MotionPath;
   /// Gets the effective graphic anchor X in normalized relative coordinates (0.0 - 1.0)
@@ -3453,6 +3477,16 @@ builtin managed struct Camera {
   /// Gets/sets the camera rotation in degrees.
   import attribute float Rotation;
 #endif // SCRIPT_API_v399
+#ifdef SCRIPT_API_v400
+  /// Gets/sets a rotation pivot X in normalized relative coordinates (0.0 - 1.0)
+  import attribute float PivotX;
+  /// Gets/sets a rotation pivot Y in normalized relative coordinates (0.0 - 1.0)
+  import attribute float PivotY;
+  /// Gets/sets a X offset of a rotation pivot relative to the camera's position, in pixels
+  import attribute int PivotOffsetX;
+  /// Gets/sets a Y offset of a rotation pivot relative to the camera's position, in pixels
+  import attribute int PivotOffsetY;
+#endif
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader of this camera.
   import attribute ShaderInstance* Shader;

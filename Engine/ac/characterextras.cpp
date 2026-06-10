@@ -42,7 +42,7 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
         RectWH((eff_offset.X + frame_xoff),
                (-chin->z + eff_offset.Y + frame_yoff),
                spr_width, spr_height),
-        rotation // transforms
+        rotation, pivot, pivot_offset
     );
 }
 

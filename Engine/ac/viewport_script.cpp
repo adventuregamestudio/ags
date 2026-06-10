@@ -102,15 +102,71 @@ void Camera_SetHeight(ScriptCamera *scam, int height)
 
 float Camera_GetRotation(ScriptCamera *scam)
 {
-    if (scam->GetID() < 0) { debug_script_warn("Camera.Height: trying to use deleted camera"); return 0; }
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Rotation: trying to use deleted camera"); return 0; }
     return play.GetRoomCamera(scam->GetID())->GetRotation();
 }
 
 void Camera_SetRotation(ScriptCamera *scam, float rotation)
 {
-    if (scam->GetID() < 0) { debug_script_warn("Camera.Height: trying to use deleted camera"); return; }
+    if (scam->GetID() < 0) { debug_script_warn("Camera.Rotation: trying to use deleted camera"); return; }
     auto cam = play.GetRoomCamera(scam->GetID());
     cam->SetRotation(rotation);
+}
+
+float Camera_GetPivotX(ScriptCamera *scam)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotX: trying to use deleted camera"); return 0.f; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    return cam->GetPivot().X;
+}
+
+void Camera_SetPivotX(ScriptCamera *scam, float pivotx)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotX: trying to use deleted camera"); return; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetPivot(Pointf(pivotx, cam->GetPivot().Y));
+}
+
+float Camera_GetPivotY(ScriptCamera *scam)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotY: trying to use deleted camera"); return 0.f; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    return cam->GetPivot().Y;
+}
+
+void Camera_SetPivotY(ScriptCamera *scam, float pivoty)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotY: trying to use deleted camera"); return; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetPivot(Pointf(cam->GetPivot().X, pivoty));
+}
+
+int Camera_GetPivotOffsetX(ScriptCamera *scam)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotOffsetX: trying to use deleted camera"); return 0; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    return cam->GetPivotOffset().X;
+}
+
+void Camera_SetPivotOffsetX(ScriptCamera *scam, int px)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotOffsetX: trying to use deleted camera"); return; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetPivotOffset(Point(px, cam->GetPivotOffset().Y));
+}
+
+int Camera_GetPivotOffsetY(ScriptCamera *scam)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotOffsetY: trying to use deleted camera"); return 0; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    return cam->GetPivotOffset().Y;
+}
+
+void Camera_SetPivotOffsetY(ScriptCamera *scam, int py)
+{
+    if (scam->GetID() < 0) { debug_script_warn("Camera.PivotOffsetY: trying to use deleted camera"); return; }
+    auto cam = play.GetRoomCamera(scam->GetID());
+    cam->SetPivotOffset(Point(cam->GetPivotOffset().X, py));
 }
 
 bool Camera_GetAutoTracking(ScriptCamera *scam)
@@ -214,6 +270,46 @@ RuntimeScriptValue Sc_Camera_GetRotation(void *self, const RuntimeScriptValue *p
 RuntimeScriptValue Sc_Camera_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PFLOAT(ScriptCamera, Camera_SetRotation);
+}
+
+RuntimeScriptValue Sc_Camera_GetPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptCamera, Camera_GetPivotX);
+}
+
+RuntimeScriptValue Sc_Camera_SetPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptCamera, Camera_SetPivotX);
+}
+
+RuntimeScriptValue Sc_Camera_GetPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptCamera, Camera_GetPivotY);
+}
+
+RuntimeScriptValue Sc_Camera_SetPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptCamera, Camera_SetPivotY);
+}
+
+RuntimeScriptValue Sc_Camera_GetPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptCamera, Camera_GetPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Camera_SetPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptCamera, Camera_SetPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Camera_GetPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptCamera, Camera_GetPivotOffsetY);
+}
+
+RuntimeScriptValue Sc_Camera_SetPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptCamera, Camera_SetPivotOffsetY);
 }
 
 RuntimeScriptValue Sc_Camera_GetAutoTracking(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -549,6 +645,14 @@ void RegisterViewportAPI()
         { "Camera::set_Height",         API_FN_PAIR(Camera_SetHeight) },
         { "Camera::get_Rotation",       API_FN_PAIR(Camera_GetRotation) },
         { "Camera::set_Rotation",       API_FN_PAIR(Camera_SetRotation) },
+        { "Camera::get_PivotX",         API_FN_PAIR(Camera_GetPivotX) },
+        { "Camera::set_PivotX",         API_FN_PAIR(Camera_SetPivotX) },
+        { "Camera::get_PivotY",         API_FN_PAIR(Camera_GetPivotY) },
+        { "Camera::set_PivotY",         API_FN_PAIR(Camera_SetPivotY) },
+        { "Camera::get_PivotOffsetX",   API_FN_PAIR(Camera_GetPivotOffsetX) },
+        { "Camera::set_PivotOffsetX",   API_FN_PAIR(Camera_SetPivotOffsetX) },
+        { "Camera::get_PivotOffsetY",   API_FN_PAIR(Camera_GetPivotOffsetY) },
+        { "Camera::set_PivotOffsetY",   API_FN_PAIR(Camera_SetPivotOffsetY) },
         { "Camera::get_AutoTracking",   API_FN_PAIR(Camera_GetAutoTracking) },
         { "Camera::set_AutoTracking",   API_FN_PAIR(Camera_SetAutoTracking) },
         { "Camera::SetAt",              API_FN_PAIR(Camera_SetAt) },

@@ -86,6 +86,37 @@ void Camera::SetRotation(float degrees)
     _hasChangedSize = true;
 }
 
+Pointf Camera::GetPivot() const
+{
+    return _pivot;
+}
+
+void Camera::SetPivot(const Pointf &pivot)
+{
+    _pivot = pivot;
+    AdjustTransformations();
+    _hasChangedPosition = true; // changing pivot shifts camera but does not change the rotation angle
+}
+
+Point Camera::GetPivotOffset() const
+{
+    return _pivotOff;
+}
+
+void Camera::SetPivotOffset(const Point &pivot_off)
+{
+    _pivotOff = pivot_off;
+    AdjustTransformations();
+    _hasChangedPosition = true; // changing pivot shifts camera but does not change the rotation angle
+}
+
+Pointf Camera::GetEffectivePivot() const
+{
+    return _pivot +
+        Pointf((static_cast<float>(_pivotOff.X) / _position.GetWidth()),
+               (static_cast<float>(_pivotOff.Y) / _position.GetHeight()));
+}
+
 void Camera::AdjustTransformations()
 {
     for (auto vp = _viewportRefs.begin(); vp != _viewportRefs.end(); ++vp)

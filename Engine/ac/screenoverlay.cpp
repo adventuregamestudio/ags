@@ -48,6 +48,13 @@ ScreenOverlay &ScreenOverlay::operator =(ScreenOverlay &&over)
     return *this;
 }
 
+Pointf ScreenOverlay::GetEffectivePivot() const
+{
+    return _pivot +
+        Pointf((static_cast<float>(_pivotOff.X) / _scaledSize.Width),
+               (static_cast<float>(_pivotOff.Y) / _scaledSize.Height));
+}
+
 Bitmap *ScreenOverlay::GetImage() const
 {
     return spriteset[_sprnum];
@@ -117,6 +124,18 @@ void ScreenOverlay::SetScale(float sx, float sy)
 void ScreenOverlay::SetRotation(float rotation)
 {
     _rotation = rotation;
+    MarkChanged();
+}
+
+void ScreenOverlay::SetPivot(const Pointf &pivot)
+{
+    _pivot = pivot;
+    MarkChanged();
+}
+
+void ScreenOverlay::SetPivotOffset(const Point &pivot_offset)
+{
+    _pivotOff = pivot_offset;
     MarkChanged();
 }
 
@@ -329,7 +348,7 @@ void ScreenOverlay::UpdateGraphicSpace()
         _scaledSize,
         // real graphical aabb (maybe with extra offsets)
         RectWH(_sprOffset.X, _sprOffset.Y, pic->GetWidth(), pic->GetHeight()),
-        _rotation // transforms
+        _rotation, _pivot, _pivotOff
     );
 }
 

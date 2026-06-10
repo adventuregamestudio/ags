@@ -958,6 +958,46 @@ void Object_SetRotation(ScriptObject *objj, float degrees) {
     objs[objj->id].UpdateGraphicSpace();
 }
 
+float Object_GetGraphicPivotX(ScriptObject *objj)
+{
+    return objs[objj->id].pivot.X;
+}
+
+void Object_SetGraphicPivotX(ScriptObject *objj, float pivotx)
+{
+    objs[objj->id].pivot.X = pivotx;
+}
+
+float Object_GetGraphicPivotY(ScriptObject *objj)
+{
+    return objs[objj->id].pivot.Y;
+}
+
+void Object_SetGraphicPivotY(ScriptObject *objj, float pivoty)
+{
+    objs[objj->id].pivot.Y = pivoty;
+}
+
+int Object_GetGraphicPivotOffsetX(ScriptObject *objj)
+{
+    return objs[objj->id].pivot_offset.X;
+}
+
+void Object_SetGraphicPivotOffsetX(ScriptObject *objj, int px)
+{
+    objs[objj->id].pivot_offset.X = px;
+}
+
+int Object_GetGraphicPivotOffsetY(ScriptObject *objj)
+{
+    return objs[objj->id].pivot_offset.Y;
+}
+
+void Object_SetGraphicPivotOffsetY(ScriptObject *objj, int py)
+{
+    objs[objj->id].pivot_offset.Y = py;
+}
+
 void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
     const RunPathParams &run_params)
 {
@@ -2008,6 +2048,46 @@ RuntimeScriptValue Sc_Object_SetRotation(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetRotation);
 }
 
+RuntimeScriptValue Sc_Object_GetGraphicPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptObject, Object_GetGraphicPivotX);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetGraphicPivotX);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptObject, Object_GetGraphicPivotY);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptObject, Object_SetGraphicPivotY);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetGraphicPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphicPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetGraphicPivotOffsetY);
+}
+
+RuntimeScriptValue Sc_Object_SetGraphicPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphicPivotOffsetY);
+}
+
 RuntimeScriptValue Sc_Object_GetMotionPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(ScriptObject, ScriptMotionPath, Object_GetMotionPath);
@@ -2115,6 +2195,14 @@ void RegisterObjectAPI()
         { "Object::set_GraphicOffsetY",       API_FN_PAIR(Object_SetGraphicOffsetY) },
         { "Object::get_GraphicRotation",      API_FN_PAIR(Object_GetRotation) },
         { "Object::set_GraphicRotation",      API_FN_PAIR(Object_SetRotation) },
+        { "Object::get_GraphicPivotX",        API_FN_PAIR(Object_GetGraphicPivotX) },
+        { "Object::set_GraphicPivotX",        API_FN_PAIR(Object_SetGraphicPivotX) },
+        { "Object::get_GraphicPivotY",        API_FN_PAIR(Object_GetGraphicPivotY) },
+        { "Object::set_GraphicPivotY",        API_FN_PAIR(Object_SetGraphicPivotY) },
+        { "Object::get_GraphicPivotOffsetX",  API_FN_PAIR(Object_GetGraphicPivotOffsetX) },
+        { "Object::set_GraphicPivotOffsetX",  API_FN_PAIR(Object_SetGraphicPivotOffsetX) },
+        { "Object::get_GraphicPivotOffsetY",  API_FN_PAIR(Object_GetGraphicPivotOffsetY) },
+        { "Object::set_GraphicPivotOffsetY",  API_FN_PAIR(Object_SetGraphicPivotOffsetY) },
         { "Object::get_UseRegionTint",        API_FN_PAIR(Object_GetUseRegionTint) },
         { "Object::set_UseRegionTint",        API_FN_PAIR(Object_SetUseRegionTint) },
 

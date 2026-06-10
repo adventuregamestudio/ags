@@ -204,5 +204,29 @@ namespace AGS.Editor
             if (propertiesGrid.SelectedGridItem != null)
                 Clipboard.SetText(propertiesGrid.SelectedGridItem.Value.ToString());
         }
+
+        private void resetToDefaultToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var item = propertiesGrid.SelectedGridItem;
+            if (item != null && item.PropertyDescriptor != null)
+            {
+                item.PropertyDescriptor.ResetValue(propertiesGrid.SelectedObject);
+                propertiesGrid.Refresh();
+            }
+        }
+
+        private void ctxmenuPropertyGrid_Opening(object sender, CancelEventArgs e)
+        {
+            resetToDefaultToolStripMenuItem.Enabled = false;
+
+            var item = propertiesGrid.SelectedGridItem;
+            if (item != null && item.PropertyDescriptor != null)
+            {
+                if (item.PropertyDescriptor.Attributes.OfType<DefaultValueAttribute>().Any())
+                {
+                    resetToDefaultToolStripMenuItem.Enabled = true;
+                }
+            }
+        }
     }
 }

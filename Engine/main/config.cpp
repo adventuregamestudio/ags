@@ -475,7 +475,6 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
     setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
     setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);
-    setup.Override.SmoothCharacterWalk = CfgReadBoolInt(cfg, "override", "smooth_walk", setup.Override.SmoothCharacterWalk);
 
     // Behavior overrides switches
     if (cfg.count("override_behavior") > 0)

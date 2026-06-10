@@ -41,6 +41,7 @@ extern ScriptSystem scsystem;
 std::array<const char*, kNum_RBS> RBSwitchNames =
 {{
     "dummy",            // kRBS_Dummy
+    "smooth_walk",      // kRBO_SmoothWalkTransition
 }};
 
 GamePlayState::GamePlayState()

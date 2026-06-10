@@ -278,7 +278,10 @@ enum PluginEventID
 // on a per-operation basis.
 enum RuntimeBehaviorSwitch
 {
-    kRBS_Dummy = 0, // is here to have at least one valid constant
+    // Is here to have at least one valid constant
+    kRBS_Dummy = 0,
+    // Enables smooth transition between two consecutive walk orders
+    kRBO_SmoothWalkTransition,
     kNum_RBS
 };
 

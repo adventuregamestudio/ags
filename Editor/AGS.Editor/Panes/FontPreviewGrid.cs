@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using AGS.Types;
 
 namespace AGS.Editor
 {
     public class FontPreviewGrid : BufferedPanel
     {
         private int _fontNumber = -1;
-        private Native.FontMetrics _fontMetrics;
+        private FontMetrics _fontMetrics;
         // Valid character codes for the current font
         private int[] _charCodes;
         // Character code to preview index lookup table
@@ -211,7 +212,7 @@ namespace AGS.Editor
             }
             else
             {
-                _fontMetrics = Native.FontMetrics.Empty;
+                _fontMetrics = FontMetrics.Empty;
                 _charCodes = null;
                 _charcodeToCellIndex = null;
                 _lastANSICharCodeIndex = -1;

@@ -110,7 +110,7 @@ namespace AGS.Editor
 			}
         }
 
-        public Native.FontMetrics GetFontMetrics(int fontNum)
+        public FontMetrics GetFontMetrics(int fontNum)
         {
             return _native.GetFontMetrics(fontNum);
         }

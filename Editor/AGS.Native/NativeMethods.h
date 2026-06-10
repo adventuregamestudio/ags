@@ -27,41 +27,6 @@ namespace AGS
 {
 	namespace Native 
 	{
-        public ref class FontMetrics
-        {
-        public:
-            property int FirstCharCode;
-            property int LastCharCode;
-            property System::Drawing::Rectangle CharBBox;
-
-            static property FontMetrics ^Empty
-            {
-                FontMetrics ^get()
-                {
-                    if (_empty == nullptr)
-                        _empty = gcnew FontMetrics();
-                    return _empty;
-                }
-            }
-
-            FontMetrics(int first_char, int last_char, System::Drawing::Rectangle bbox)
-            {
-                FirstCharCode = first_char;
-                LastCharCode = last_char;
-                CharBBox = bbox;
-            }
-
-        private:
-            static FontMetrics ^_empty = nullptr;
-
-            FontMetrics()
-            {
-                FirstCharCode = -1;
-                LastCharCode = -1;
-                CharBBox = System::Drawing::Rectangle::Empty;
-            }
-        };
-
 		public ref class NativeMethods
 		{
 		private:

@@ -14,6 +14,7 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
+#include <array>
 #include "ac/game_version.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
@@ -74,10 +75,6 @@ struct OverrideGameConfig
     int   KeyRestoreGame    = eAGSKeyCodeNone;
     // Optional override for the max save slot
     int   MaxSaveSlot       = 0;
-    // Force smooth walking behavior;
-    // this behavior is turned off in the old games by default, because
-    // it may cause random issues with coordinate checks in script.
-    bool  SmoothCharacterWalk = false;
 };
 
 
@@ -140,6 +137,10 @@ struct GameConfig
 
     // Accessibility options
     AccessibilityGameConfig Access;
+
+    // Overrides for runtime behavior;
+    // these are primarily meant to allow modern behavior when running old games.
+    std::array<bool, kNum_RBS> BehaviorOverrides = {{ 0 }};
 
     GameConfig() = default;
 };

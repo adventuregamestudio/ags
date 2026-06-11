@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 #include "ac/game_version.h"
+#include "platform/types.h"
 #include "util/geometry.h"
 
 class MoveList;

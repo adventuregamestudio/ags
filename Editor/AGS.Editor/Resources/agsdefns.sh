@@ -3455,6 +3455,10 @@ builtin struct Game {
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Returns the volume drop applied to the specified audio type when speech is played
+  import static int GetAudioTypeSpeechVolumeDrop(AudioType);
+  /// Returns the default volume of audio clips of the specified type. Return value -1 means that no standard volume is defined, and each clip will start playback with its own default volume set in the editor.
+  import static int GetAudioTypeVolume(AudioType);
   /// Play speech voice-over in non-blocking mode, using certain AudioType settings, and optionally putting it on a particular channel.
   import static AudioChannel* PlayVoiceClipAsType(Character*, int cue, AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Pauses the game, which stops all animations and movement. Each call to Game.Pause() incremements a "pause" counter.

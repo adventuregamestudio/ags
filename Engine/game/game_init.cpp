@@ -159,8 +159,6 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
     {
         // TODO: move this to Character's "init" method
         game.chars[i].walking = 0;
-        game.chars[i].view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
-        game.chars[i].view_offset = Point();
         game.chars[i].blinkinterval = 140;
         game.chars[i].blinktimer = game.chars[i].blinkinterval;
         game.chars[i].index_id = i;

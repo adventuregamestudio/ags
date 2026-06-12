@@ -105,6 +105,8 @@ public:
     virtual void SetFlip(Common::GraphicFlip flip) = 0;
     virtual float GetRotation() const = 0; // in degrees
     virtual void SetRotation(float rotation) = 0; // in degrees
+    virtual Pointf GetPivot() const = 0;
+    virtual void SetPivot(float pivotx, float pivoty) = 0;
     virtual int  GetAlpha() const = 0;
     virtual void SetAlpha(int alpha) = 0; // 0-255
     virtual int  GetLightLevel() const = 0; // 0-255

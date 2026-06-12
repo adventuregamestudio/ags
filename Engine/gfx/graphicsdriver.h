@@ -61,12 +61,12 @@ struct SpriteTransform
     int X = 0, Y = 0;
     float ScaleX = 1.f, ScaleY = 1.f;
     float Rotate = 0.f; // angle, in degrees, clockwise
-    Point Pivot = Point(); // rotation pivot
+    Pointf Pivot = Pointf(); // rotation pivot
     SpriteColorTransform Color;
 
     SpriteTransform() = default;
     SpriteTransform(int x, int y, float scalex = 1.0f, float scaley = 1.0f,
-        float rotate = 0.0f, Point pivot = Point(),
+        float rotate = 0.0f, const Pointf &pivot = Point(),
         SpriteColorTransform color = SpriteColorTransform())
         : X(x), Y(y), ScaleX(scalex), ScaleY(scaley),
           Rotate(rotate), Pivot(pivot),

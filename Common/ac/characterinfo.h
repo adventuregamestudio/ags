@@ -118,7 +118,8 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
     kCharSvgVersion_400_26  = 4000026, // sync with kCharSvgVersion_36304
     kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
-    kCharSvgVersion_Current = kCharSvgVersion_400_28
+    kCharSvgVersion_400_29  = 4000029, // rotation pivot
+    kCharSvgVersion_Current = kCharSvgVersion_400_29
 };
 
 // Character event indexes
@@ -174,8 +175,6 @@ struct CharacterInfo
     int16_t walking     = 0; // stores movelist index
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
-    Point   view_offset; // fixed view offset (from locked view)
-    Pointf  view_anchor; // view anchor (from locked view)
     int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
     AGS::Common::String scrname = {}; // script name
     AGS::Common::String name = {}; // regular name (aka description)
@@ -252,8 +251,14 @@ struct CharacterInfo
 
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;
+
     // TODO: move to runtime-only class and merge with its respective Read/Write save methods
-    void ReadFromSavegame(Common::Stream *in, CharacterSvgVersion save_ver);
+    struct LegacyFields
+    {
+        Point view_offset;
+    };
+
+    void ReadFromSavegame(Common::Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver);
     void WriteToSavegame(Common::Stream *out) const;
 
 private:

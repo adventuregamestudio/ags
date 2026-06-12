@@ -1990,6 +1990,46 @@ void Character_SetRotation(CharacterInfo *chaa, float degrees) {
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
+float Character_GetGraphicPivotX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].pivot.X;
+}
+
+void Character_SetGraphicPivotX(CharacterInfo *chaa, float pivotx)
+{
+    charextra[chaa->index_id].pivot.X = pivotx;
+}
+
+float Character_GetGraphicPivotY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].pivot.Y;
+}
+
+void Character_SetGraphicPivotY(CharacterInfo *chaa, float pivoty)
+{
+    charextra[chaa->index_id].pivot.Y = pivoty;
+}
+
+int Character_GetGraphicPivotOffsetX(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].pivot_offset.X;
+}
+
+void Character_SetGraphicPivotOffsetX(CharacterInfo *chaa, int px)
+{
+    charextra[chaa->index_id].pivot_offset.X = px;
+}
+
+int Character_GetGraphicPivotOffsetY(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].pivot_offset.Y;
+}
+
+void Character_SetGraphicPivotOffsetY(CharacterInfo *chaa, int py)
+{
+    charextra[chaa->index_id].pivot_offset.Y = py;
+}
+
 float Character_GetFaceDirectionRatio(CharacterInfo *chaa) {
     return charextra[chaa->index_id].face_dir_ratio;
 }
@@ -4595,6 +4635,46 @@ RuntimeScriptValue Sc_Character_SetRotation(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetRotation);
 }
 
+RuntimeScriptValue Sc_Character_GetGraphicPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetGraphicPivotX);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetGraphicPivotX);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetGraphicPivotY);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetGraphicPivotY);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetGraphicPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetGraphicPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetGraphicPivotOffsetY);
+}
+
+RuntimeScriptValue Sc_Character_SetGraphicPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetGraphicPivotOffsetY);
+}
+
 RuntimeScriptValue Sc_Character_GetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(CharacterInfo, Character_GetFaceDirectionRatio);
@@ -4835,6 +4915,14 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_GraphicOffsetY",        API_FN_PAIR(Character_SetGraphicOffsetY) },
         { "Character::get_GraphicRotation",       API_FN_PAIR(Character_GetRotation) },
         { "Character::set_GraphicRotation",       API_FN_PAIR(Character_SetRotation) },
+        { "Character::get_GraphicPivotX",         API_FN_PAIR(Character_GetGraphicPivotX) },
+        { "Character::set_GraphicPivotX",         API_FN_PAIR(Character_SetGraphicPivotX) },
+        { "Character::get_GraphicPivotY",         API_FN_PAIR(Character_GetGraphicPivotY) },
+        { "Character::set_GraphicPivotY",         API_FN_PAIR(Character_SetGraphicPivotY) },
+        { "Character::get_GraphicPivotOffsetX",   API_FN_PAIR(Character_GetGraphicPivotOffsetX) },
+        { "Character::set_GraphicPivotOffsetX",   API_FN_PAIR(Character_SetGraphicPivotOffsetX) },
+        { "Character::get_GraphicPivotOffsetY",   API_FN_PAIR(Character_GetGraphicPivotOffsetY) },
+        { "Character::set_GraphicPivotOffsetY",   API_FN_PAIR(Character_SetGraphicPivotOffsetY) },
         { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
         { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
         { "Character::get_ViewAnchorX",           API_FN_PAIR(Character_GetViewAnchorX) },

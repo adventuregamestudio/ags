@@ -72,7 +72,8 @@ enum OverlaySvgVersion
     kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
     kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
     kOverSvgVersion_40028   = 4000028, // autosize flag, scale field is valid
-    kOverSvgVersion_Current = kOverSvgVersion_40028
+    kOverSvgVersion_40029   = 4000029, // rotation pivot
+    kOverSvgVersion_Current = kOverSvgVersion_40029
 };
 
 class ScreenOverlay
@@ -103,6 +104,9 @@ public:
     int  GetScaledWidth() const { return _scaledSize.Width; }
     int  GetScaledHeight() const { return _scaledSize.Height; }
     float GetRotation() const { return _rotation; }
+    const Pointf &GetPivot() const { return _pivot; }
+    const Point &GetPivotOffset() const { return _pivotOff;}
+    Pointf GetEffectivePivot() const;
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
     bool IsAutoSize() const  { return (_flags & kOver_AutoSize) != 0; }
@@ -150,6 +154,8 @@ public:
     void SetDestinationSize(int w, int h);
     void SetScale(float sx, float sy);
     void SetRotation(float rotation);
+    void SetPivot(const Pointf &pivot);
+    void SetPivotOffset(const Point &pivot_offset);
     // Assigns a shader to overlay
     void SetZOrder(int zorder);
     // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
@@ -238,7 +244,11 @@ private:
     // also used as a border/padding offset for the tiled text windows
     Point _sprOffset;
     // Graphic anchor (relative alignment)
-    Pointf _sprAnchor;
+    Pointf _sprAnchor; // default: top-left
+    // Relative rotation pivot
+    Pointf _pivot = Pointf(0.5f, 0.5f); // default: center
+    // Relative rotation pivot offset (in pixels)
+    Point _pivotOff;
     // The size to stretch the texture to
     // TODO: figure out what to do with this, considering the "scale" property, keep or deprecate?
     Size _destSize;

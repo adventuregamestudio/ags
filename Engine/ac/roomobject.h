@@ -48,6 +48,9 @@ public:
     Point spr_offset;       // fixed sprite offset (translation)
     Pointf spr_anchor       // graphic anchor (relative alignment)
         = Pointf(0.f, 1.f); // default: left-bottom
+    Pointf pivot            // relative rotation pivot
+        = Pointf(0.5f, 0.5f); // default: center
+    Point pivot_offset;     // relative rotation pivot offset (in pixels)
     int   spr_width, spr_height; // last used sprite's size
     int   frame_xoff, frame_yoff; // frame offsets (when using a view)
     int16_t width, height;  // width/height based on a scaled sprite

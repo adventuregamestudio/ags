@@ -291,8 +291,15 @@ void WriteCameraState(const Camera &cam, Stream *out)
     // kGSSvgVersion_400_18
     out->WriteInt32(cam.GetShaderID());
     out->WriteInt32(cam.GetShaderHandle());
+    out->WriteFloat32(cam.GetRotation());
     out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
+    // kGSSvgVersion_400_29
+    const auto &pivot = cam.GetPivot();
+    const auto &pivot_off = cam.GetPivotOffset();
+    out->WriteFloat32(pivot.X);
+    out->WriteFloat32(pivot.Y);
+    out->WriteInt32(pivot_off.X);
+    out->WriteInt32(pivot_off.Y);
 }
 
 void WriteViewportState(const Viewport &view, Stream *out)
@@ -366,8 +373,17 @@ void ReadCameraState(GameStateSvgVersion svg_ver, RestoredData &r_data, Stream *
     {
         cam.ShaderID = in->ReadInt32();
         cam.ShaderHandle = in->ReadInt32();
+        cam.Rotation = in->ReadFloat32();
         in->ReadInt32(); // reserved
-        in->ReadInt32();
+    }
+    if (svg_ver >= kGSSvgVersion_400_29)
+    {
+        float pivotx = in->ReadFloat32();
+        float pivoty = in->ReadFloat32();
+        int pivot_offx = in->ReadInt32();
+        int pivot_offy = in->ReadInt32();
+        cam.Pivot = Pointf(pivotx, pivoty);
+        cam.PivotOffset = Point(pivot_offx, pivot_offy);
     }
     r_data.Cameras.push_back(cam);
 }
@@ -663,7 +679,10 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
     {
         auto &chi = game.chars[i];
         auto &chex = charextra[i];
-        chi.ReadFromSavegame(in, svg_ver);
+        // TODO: this is ugly reading old fields like that, might either join Read methods in one, or drop old format at some point
+        CharacterInfo::LegacyFields old_fields;
+        chi.ReadFromSavegame(in, old_fields, svg_ver);
+        chex.view_offset = old_fields.view_offset;
         chex.ReadFromSavegame(&chi, in, svg_ver);
         Properties::ReadValues(play.charProps[i], in);
 

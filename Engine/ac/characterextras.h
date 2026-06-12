@@ -57,8 +57,14 @@ public:
     Point spr_offset;    // fixed sprite offset (translation)
     Pointf spr_anchor    // graphic anchor (relative alignment)
         = Pointf(0.5f, 1.f); // default: middle-bottom
+    Point view_offset;   // fixed view offset (from locked view)
+    Pointf view_anchor   // view anchor (from locked view)
+        = Pointf(0.5f, 1.f); // default: middle-bottom
     Point eff_offset;    // effective offset (depends on view state)
     Pointf eff_anchor;   // effective anchor (depends on view state)
+    Pointf pivot         // relative rotation pivot
+        = Pointf(0.5f, 0.5f); // default: center
+    Point pivot_offset;  // relative rotation pivot offset (in pixels)
     int   spr_width = 0; // current sprite size
     int   spr_height = 0;
     int   frame_xoff = 0; // current frame offset

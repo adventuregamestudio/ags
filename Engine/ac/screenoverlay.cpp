@@ -441,11 +441,12 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         _rotation = in->ReadFloat32(); // transform rotate
-        in->ReadInt32(); // sprite pivot x
-        in->ReadInt32(); // sprite pivot y
+        float px = in->ReadFloat32(); // sprite pivot x
+        float py = in->ReadFloat32(); // sprite pivot y
         float ax = in->ReadFloat32(); // sprite anchor x
         float ay = in->ReadFloat32(); // sprite anchor y
         _sprAnchor = Pointf(ax, ay);
+        _pivot = Pointf(px, py);
     }
 
     // Some of the fields above were not valid in previous versions,
@@ -459,14 +460,22 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     {
         _shaderID = in->ReadInt32();
         _shaderHandle = in->ReadInt32();
-        in->ReadInt32(); // reserved
-        in->ReadInt32();
+        // valid since kOverSvgVersion_40029
+        int pivot_offx = in->ReadInt32();
+        int pivot_offy = in->ReadInt32();
+        _pivotOff = Point(pivot_offx, pivot_offy);
     }
     else
     {
         _shaderID = 0;
         _shaderHandle = 0;
         _sprOffset = Point();
+    }
+
+    if (cmp_ver < kOverSvgVersion_40029)
+    {
+        _pivot = Pointf(0.5f, 0.5f);
+        _pivotOff = Point();
     }
 
     // Convert magic x,y values from the older saves
@@ -522,15 +531,16 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteFloat32(_rotation); // transform rotate
-    out->WriteInt32(0); // sprite pivot x
-    out->WriteInt32(0); // sprite pivot y
+    out->WriteFloat32(_pivot.X); // sprite pivot x
+    out->WriteFloat32(_pivot.Y); // sprite pivot y
     out->WriteFloat32(_sprAnchor.X); // sprite anchor x
     out->WriteFloat32(_sprAnchor.Y); // sprite anchor y
     // kOverSvgVersion_40018
     out->WriteInt32(_shaderID);
     out->WriteInt32(_shaderHandle);
-    out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
+    // valid since kOverSvgVersion_40029
+    out->WriteInt32(_pivotOff.X);
+    out->WriteInt32(_pivotOff.Y);
 }
 
 const ViewFrame *AnimatedOverlay::GetViewFrame() const

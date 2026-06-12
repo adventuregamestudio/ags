@@ -630,6 +630,9 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
         // Set size first, or offset position may clamp to the room
         cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
         cam->SetAt(cam_dat.Left, cam_dat.Top);
+        cam->SetRotation(cam_dat.Rotation);
+        cam->SetPivot(cam_dat.Pivot);
+        cam->SetPivotOffset(cam_dat.PivotOffset);
     }
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {

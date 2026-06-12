@@ -234,6 +234,9 @@ struct RestoredData
         int Height = 0;
         int ShaderID = 0;
         int ShaderHandle = 0;
+        float Rotation = 0.f;
+        Pointf Pivot;
+        Point PivotOffset;
     };
     std::vector<ViewportData> Viewports;
     std::vector<CameraData> Cameras;

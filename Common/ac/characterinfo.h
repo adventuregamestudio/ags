@@ -118,7 +118,8 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
     kCharSvgVersion_400_26  = 4000026, // sync with kCharSvgVersion_36304
     kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
-    kCharSvgVersion_Current = kCharSvgVersion_400_28
+    kCharSvgVersion_400_29  = 4000029, // rotation pivot
+    kCharSvgVersion_Current = kCharSvgVersion_400_29
 };
 
 // Character event indexes

@@ -227,11 +227,12 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         rotation = in->ReadFloat32(); // transform rotate
-        in->ReadInt32(); // sprite pivot x
-        in->ReadInt32(); // sprite pivot y
+        float px = in->ReadFloat32(); // sprite pivot x
+        float py = in->ReadFloat32(); // sprite pivot y
         float ax = in->ReadFloat32(); // sprite anchor x
         float ay = in->ReadFloat32(); // sprite anchor y
         spr_anchor = Pointf(ax, ay);
+        pivot = Pointf(px, py);
     }
     else
     {
@@ -293,6 +294,18 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         spr_offset = Point();
     }
 
+    if (save_ver >= kCharSvgVersion_400_29)
+    {
+        int pivot_offx = in->ReadInt32();
+        int pivot_offy = in->ReadInt32();
+        pivot_offset = Point(pivot_offx, pivot_offy);
+    }
+    else
+    {
+        pivot = Point(0.5f, 0.5f); // default: center
+        pivot_offset = Point();
+    }
+
     // NOTE: the legacy animating fields from old save fmt are applied externally,
     // because they are loaded into deprecated CharacterInfo fields
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_anim_volume);
@@ -343,8 +356,8 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteFloat32(rotation); // transform rotate
-    out->WriteInt32(0); // sprite pivot x
-    out->WriteInt32(0); // sprite pivot y
+    out->WriteFloat32(pivot.X); // sprite pivot x
+    out->WriteFloat32(pivot.Y); // sprite pivot y
     out->WriteFloat32(spr_anchor.X); // sprite anchor x
     out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // -- kCharSvgVersion_400_03
@@ -369,4 +382,7 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     out->WriteFloat32(view_anchor.Y);
     out->WriteInt32(view_offset.X);
     out->WriteInt32(view_offset.Y);
+    // kRoomStatSvgVersion_40029
+    out->WriteInt32(pivot_offset.X);
+    out->WriteInt32(pivot_offset.Y);
 }

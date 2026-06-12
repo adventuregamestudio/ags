@@ -335,7 +335,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_400_24    = 4000024, // sync with kGSSvgVersion_363_02
     kGSSvgVersion_400_26    = 4000026, // sync with kGSSvgVersion_363_04
     kGSSvgVersion_400_27    = 4000027, // 32-bit inventory cursor hotspot colors
-    kGSSvgVersion_Current   = kGSSvgVersion_400_27
+    kGSSvgVersion_400_29    = 4000029, // rotation pivot
+    kGSSvgVersion_Current   = kGSSvgVersion_400_29
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

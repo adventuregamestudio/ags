@@ -239,11 +239,12 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         rotation = in->ReadFloat32(); // transform rotate
-        in->ReadInt32(); // sprite pivot x
-        in->ReadInt32(); // sprite pivot y
+        float px = in->ReadFloat32(); // sprite pivot x
+        float py = in->ReadFloat32(); // sprite pivot y
         float ax = in->ReadFloat32(); // sprite anchor x
         float ay = in->ReadFloat32(); // sprite anchor y
         spr_anchor = Pointf(ax, ay);
+        pivot = Pointf(px, py);
     }
     else
     {
@@ -293,6 +294,18 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     {
         spr_anchor = Pointf(0.f, 1.f); // default: left-bottom
         spr_offset = Point();
+    }
+
+    if (cmp_ver >= kRoomStatSvgVersion_40029)
+    {
+        int pivot_offx = in->ReadInt32();
+        int pivot_offy = in->ReadInt32();
+        pivot_offset = Point(pivot_offx, pivot_offy);
+    }
+    else
+    {
+        pivot = Point(0.5f, 0.5f); // default: center
+        pivot_offset = Point();
     }
 
     // Apply animation params either from old or new save
@@ -367,8 +380,8 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteFloat32(rotation); // transform rotate
-    out->WriteInt32(0); // sprite pivot x
-    out->WriteInt32(0); // sprite pivot y
+    out->WriteFloat32(pivot.X); // sprite pivot x
+    out->WriteFloat32(pivot.Y); // sprite pivot y
     out->WriteFloat32(spr_anchor.X); // sprite anchor x
     out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // kRoomStatSvgVersion_40016
@@ -389,6 +402,9 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // kRoomStatSvgVersion_40026
     out->WriteInt32(spr_offset.X);
     out->WriteInt32(spr_offset.Y);
+    // kRoomStatSvgVersion_40029
+    out->WriteInt32(pivot_offset.X);
+    out->WriteInt32(pivot_offset.Y);
 }
 
 void RoomObject::UpdateGraphicSpace()

@@ -72,7 +72,8 @@ enum OverlaySvgVersion
     kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
     kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
     kOverSvgVersion_40028   = 4000028, // autosize flag, scale field is valid
-    kOverSvgVersion_Current = kOverSvgVersion_40028
+    kOverSvgVersion_40029   = 4000029, // rotation pivot
+    kOverSvgVersion_Current = kOverSvgVersion_40029
 };
 
 class ScreenOverlay

@@ -47,7 +47,8 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_40024    = 4000024, // sync with kRoomStatSvgVersion_36214
     kRoomStatSvgVersion_40026    = 4000026, // sync with kRoomStatSvgVersion_36304
     kRoomStatSvgVersion_40028    = 4000028, // sync with kRoomStatSvgVersion_36310
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40028
+    kRoomStatSvgVersion_40029    = 4000029, // objects rotation pivot
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40029
 };
 
 struct HotspotState

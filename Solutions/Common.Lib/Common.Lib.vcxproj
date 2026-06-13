@@ -641,7 +641,9 @@
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp" />
+    <ClCompile Include="..\..\Common\gfx\image_bmp.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_file.cpp" />
+    <ClCompile Include="..\..\Common\gfx\image_pcx.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
     <ClCompile Include="..\..\Common\gui\guiinv.cpp" />
     <ClCompile Include="..\..\Common\gui\guilabel.cpp" />

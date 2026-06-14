@@ -111,6 +111,83 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
     return false;
 }
 
+void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
+    uint8_t *dst_buffer, const size_t dst_pitch, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+    const int width, const int height, const PixelFormat px_fmt)
+{
+    const int bpp = PixelFormatToPixelBytes(px_fmt);
+    if (bpp <= 1)
+        return; // nothing to swap
+
+    switch (bpp)
+    {
+    case 2:
+        {
+            const uint8_t *src_end = src_buffer + src_pitch * height;
+            for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+            {
+                const uint16_t *src_ptr = reinterpret_cast<const uint16_t*>(src_buffer);
+                uint16_t *dst_ptr = reinterpret_cast<uint16_t*>(dst_buffer);
+                for (int x = 0; x < width; ++x)
+                {
+                    uint16_t c = *(src_ptr++);
+                    *(dst_ptr++) =
+                        ((c >> src_r_shift) & 0x1F) << dst_r_shift |
+                        ((c >> src_g_shift) & 0x3F) << dst_g_shift |
+                        ((c >> src_b_shift) & 0x1F) << dst_b_shift;
+                }
+            }
+        }
+        break;
+    case 3:
+        {
+            const uint8_t *src_ptr = src_buffer;
+            const uint8_t *src_end = src_buffer + src_pitch * height;
+            for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
+            {
+                for (int x = 0; x < width; ++x, src_ptr += 3, dst_ptr += 3)
+                {
+                    int32_t c = Memory::ReadInt24(src_ptr);
+                    int32_t c2 = 
+                        ((c >> src_r_shift) & 0xFF) << dst_r_shift |
+                        ((c >> src_g_shift) & 0xFF) << dst_g_shift |
+                        ((c >> src_b_shift) & 0xFF) << dst_b_shift;
+                    Memory::WriteInt24(dst_ptr, c2);
+                }
+            }
+        }
+        break;
+    case 4:
+        {
+            const uint8_t *src_end = src_buffer + src_pitch * height;
+            for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+            {
+                const uint32_t *src_ptr = reinterpret_cast<const uint32_t*>(src_buffer);
+                uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buffer);
+                for (int x = 0; x < width; ++x)
+                {
+                    uint32_t c = *(src_ptr++);
+                    *(dst_ptr++) =
+                        ((c >> src_r_shift) & 0xFF) << dst_r_shift |
+                        ((c >> src_g_shift) & 0xFF) << dst_g_shift |
+                        ((c >> src_b_shift) & 0xFF) << dst_b_shift |
+                        ((c >> src_a_shift) & 0xFF) << dst_a_shift;
+                }
+            }
+        }
+        break;
+    }
+}
+
+void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
+    uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+    const int width, const int height, const PixelFormat px_fmt)
+{
+    const size_t pitch = GetStrideForPixelFormat(px_fmt, width);
+    CopySwapRGBA(src_buffer, pitch, src_r_shift, src_g_shift, src_b_shift, src_a_shift,
+        dst_buffer, pitch, dst_r_shift, dst_g_shift, dst_b_shift, dst_a_shift, width, height, px_fmt);
+}
+
 } // namespace PixelOperations
 
 } // namespace Common

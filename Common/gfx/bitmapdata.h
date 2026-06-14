@@ -223,6 +223,17 @@ namespace PixelOp
     //          add more common conversions later!
     bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
         const int width, const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch);
+    // Copies pixels from source to dest buffer, swapping the RGB components, according
+    // to the provided RGB shifts. This operation requires that pixel format is kept the same.
+    void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
+        uint8_t *dst_buffer, const size_t dst_pitch, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+        const int width, const int height, const PixelFormat px_fmt);
+    // Copies pixels from source to dest buffer, swapping the RGB components, according
+    // to the provided RGB shifts. This operation requires that pixel format is kept the same.
+    // The source and destination pitches are calculated from PixelFormat
+    void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
+        uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+        const int width, const int height, const PixelFormat px_fmt);
 }
 
 } // namespace Common

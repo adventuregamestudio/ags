@@ -39,6 +39,11 @@ namespace Common
 namespace ImageFile
 {
 
+#define PNG_SHIFT_R32 (0)
+#define PNG_SHIFT_G32 (8)
+#define PNG_SHIFT_B32 (16)
+#define PNG_SHIFT_A32 (24)
+
 static int STB_IO_read(void *user, char *data, int size)
 {
     return static_cast<int>(static_cast<IStreamBase*>(user)->Read(data, size));
@@ -89,26 +94,30 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     }
 
     PixelBuffer pxbuf;
-    if (stb_format == STBI_grey || stb_format == STBI_rgb || stb_format == STBI_rgb_alpha)
+    if (stb_format == STBI_grey)
     {
         // FIXME: support PixelBuffer with custom deleter, then we may attach stb buffer here
         pxbuf = PixelBuffer(width, height, px_fmt);
-        // stb_format matches bytes-per-pixel in this case
-        std::memcpy(pxbuf.GetData(), pixels, width * height * stb_format);
+        std::memcpy(pxbuf.GetData(), pixels, width * height);
         // Set a grayscale palette for gray images
-        if (stb_format == STBI_grey)
+        if (pal)
         {
-            if (pal)
+            for (int i = 0; i < PAL_SIZE; ++i)
             {
-                for (int i = 0; i < PAL_SIZE; ++i)
-                {
-                    pal[i].r = (uint8_t)i;
-                    pal[i].g = (uint8_t)i;
-                    pal[i].b = (uint8_t)i;
-                    pal[i].a = 0;
-                }
+                pal[i].r = (uint8_t)i;
+                pal[i].g = (uint8_t)i;
+                pal[i].b = (uint8_t)i;
+                pal[i].a = 0;
             }
         }
+    }
+    else if (stb_format == STBI_rgb || stb_format == STBI_rgb_alpha)
+    {
+        // TODO: what about 16-bit images, are they even possible here?
+        pxbuf = PixelBuffer(width, height, px_fmt);
+        PixelOp::CopySwapRGBA(pixels, width * stb_format, PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32,
+            pxbuf.GetData(), GetStrideForPixelFormat(px_fmt, width), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
+            width, height, px_fmt);
     }
     else if (stb_format == STBI_grey_alpha)
     {
@@ -137,7 +146,7 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     }
 
     stbi_image_free(pixels);
-    if (src_fmt)
+    if (pxbuf && src_fmt)
         *src_fmt = px_fmt;
     return pxbuf;
 }
@@ -147,9 +156,21 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     // TODO: support skip_alpha
     // FIXME: support saving palette!!
 
+    PixelBuffer png_buf;
+    if (bmp.GetBytesPerPixel() > 1)
+    {
+        png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());
+        if (bmp.GetBytesPerPixel() == 2)
+            PixelOp::CopySwapRGBA(bmp.GetData(), _rgb_r_shift_16, _rgb_g_shift_16, _rgb_b_shift_16, 0,
+                png_buf.GetData(), 0, 5, 11 /*FIXME!*/, 0, bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());
+        else
+            PixelOp::CopySwapRGBA(bmp.GetData(), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
+                png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32, bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());
+    }
+
     // Write a compressed PNG to memory
     size_t size = 0;
-    void *png = tdefl_write_image_to_png_file_in_memory_ex(bmp.GetData(), bmp.GetWidth(), bmp.GetHeight(), bmp.GetBytesPerPixel(),
+    void *png = tdefl_write_image_to_png_file_in_memory_ex(png_buf ? png_buf.GetData() : bmp.GetData(), bmp.GetWidth(), bmp.GetHeight(), bmp.GetBytesPerPixel(),
         &size, Z_DEFAULT_COMPRESSION, MZ_FALSE);
 
     // Write a result PNG from memory to file

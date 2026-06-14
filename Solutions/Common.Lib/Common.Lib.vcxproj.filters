@@ -99,6 +99,9 @@
     <Filter Include="Source Files\data">
       <UniqueIdentifier>{09cd86a4-83ba-4514-bdcb-d1d302d930fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library Sources\stb">
+      <UniqueIdentifier>{12edb783-3fec-4e1d-b2d5-428cc6712fe3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ac\audiocliptype.cpp">
@@ -533,6 +536,12 @@
     <ClCompile Include="..\..\Common\gfx\image_pcx.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_png.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\stb\stb_image.c">
+      <Filter>Library Sources\stb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -927,6 +936,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\game\interactions_deprecated.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\stb\stb_image.h">
+      <Filter>Library Sources\stb</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

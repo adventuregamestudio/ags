@@ -42,6 +42,7 @@ static struct ImageExtToFmt
 } FormatProcs[] {
         { "bmp", LoadBMP, SaveBMP },
         { "pcx", LoadPCX, SavePCX },
+        { "png", LoadPNG, SavePNG },
         { nullptr, nullptr, nullptr }
     };
 

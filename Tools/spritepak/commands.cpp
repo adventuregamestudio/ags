@@ -27,7 +27,7 @@ namespace SpritePak
 
 static const String DefaultPattern = "spr%06d";
 static const String DefaultRegexPattern = "spr\\d{6}";
-static const String DefaultExtension = "bmp"; // TODO: replace with PNG when engine code has support
+static const String DefaultExtension = "png";
 static const CstrArr<kNumSprCompressTypes> CompressionNames = {{"none", "rle", "lzw", "deflate"}};
 
 void Init()

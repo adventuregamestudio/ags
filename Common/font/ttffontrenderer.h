@@ -53,6 +53,8 @@ public:
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();
 
+  void SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup);
+
   //
   // Utility functions
   //
@@ -72,6 +74,7 @@ private:
     };
     std::map<int, FontData> _fontData;
     AGS::Common::AssetManager *_amgr = nullptr;
+    bool _legacyAAHeightFixup = false;
 };
 
 #endif // __AC_TTFFONTRENDERER_H

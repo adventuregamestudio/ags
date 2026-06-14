@@ -38,6 +38,14 @@ extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
 
+std::array<const char*, kNum_RBS> RBSwitchNames =
+{{
+    "dummy",                        // kRBS_Dummy
+    "smooth_walk",                  // kRBO_SmoothWalkTransition
+    "gui_text_direction",           // kRBO_ApplyGUITextDirection
+    "dialog_opt_text_direction",    // kRBO_ApplyDialogOptionTextDirection 
+}};
+
 GamePlayState::GamePlayState()
 {
 }
@@ -56,6 +64,11 @@ void GamePlayState::SetGameTextLanguage(const String &language)
     GUI::Context.TextLocaleName = _localeNameUTF8;
     Debug::Printf("Set game text language: %s", _gameTextLanguage.GetCStr());
     Debug::Printf("Set locale: %s", _localeNameUTF8.GetCStr());
+}
+
+void GamePlayState::SetRBSwitches(const std::array<bool, kNum_RBS> &overrides)
+{
+    std::copy(overrides.begin(), overrides.end(), _rbSwitches.begin());
 }
 
 bool GamePlayState::IsAutoRoomViewport() const

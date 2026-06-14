@@ -14,7 +14,9 @@
 #ifndef __AC_RUNTIMEDEFINES_H
 #define __AC_RUNTIMEDEFINES_H
 
+#include <array>
 #include "ac/common_defines.h"
+#include "ac/game_version.h"
 
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
@@ -270,5 +272,27 @@ enum PluginEventID
     kPluginEvt_PostRestoreGame  = 0x00040000,
     kPluginEvt_PostRoomDraw     = 0x00080000,
 };
+
+// Runtime behavior switches.
+// The purpose is differentiating between modern and backwards-compatible behavior
+// on a per-operation basis.
+enum RuntimeBehaviorSwitch
+{
+    // Is here to have at least one valid constant
+    kRBS_Dummy = 0,
+    // Enables smooth transition between two consecutive walk orders
+    kRBO_SmoothWalkTransition,
+    // Apply text direction for GUI controls (except Labels, where it's always applied)
+    kRBO_ApplyGUITextDirection,
+    // Apply text direction for dialog options
+    kRBO_ApplyDialogOptionTextDirection,
+    kNum_RBS
+};
+
+extern std::array<const char*, kNum_RBS> RBSwitchNames;
+
+// Data format version of the loaded game
+// TODO: get rid of this global variable, use one from GameSetupStruct
+extern GameDataVersion loaded_game_file_version;
 
 #endif // __AC_RUNTIMEDEFINES_H

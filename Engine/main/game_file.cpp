@@ -192,6 +192,9 @@ HError load_game_file()
     // Data overrides: for compatibility mode and custom engine support
     // NOTE: this must be done before UpdateGameData, or certain adjustments
     // won't be applied correctly.
+    if (src.DataVersion == kGameVersion_Undefined)
+        return new GameInitError(kGameInitErr_UnknownDataVersion);
+    loaded_game_file_version = src.DataVersion;
 
     // Custom engine detection (ugly hack, depends on the known game GUIDs)
     if (strcmp(game.guid, "{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}" /* Kathy Rain */ ) == 0 ||

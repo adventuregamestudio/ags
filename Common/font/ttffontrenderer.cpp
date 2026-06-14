@@ -33,6 +33,11 @@ TTFFontRenderer::~TTFFontRenderer()
     alfont_exit();
 }
 
+void TTFFontRenderer::SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup)
+{
+    _legacyAAHeightFixup = legacy_aa_height_fixup;
+}
+
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {
   // TTF fonts already have space at the top, so try to remove the gap
@@ -85,14 +90,13 @@ bool TTFFontRenderer::IsBitmapFont()
     return false;
 }
 
-static int GetAlfontFlags(int load_mode)
+static int GetAlfontFlags(int load_mode, bool legacy_aa_height_fixup)
 {
     int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
     // Compatibility: optionally adjust font ascender to the formal font's height;
     // EXCEPTION: not if it's a game made in AGS version range [3.2.0, 3.4.1) with TTF anti-aliasing
     // (the reason is uncertain, but this is to emulate old engine's behavior).
-    const bool aa_special_case = (loaded_game_file_version >= kGameVersion_320) && (loaded_game_file_version < kGameVersion_341);
-    if (((load_mode & FFLG_ASCENDERFIXUP) != 0) && !(ShouldAntiAliasText() && aa_special_case))
+    if (((load_mode & FFLG_ASCENDERFIXUP) != 0) && !(ShouldAntiAliasText() && legacy_aa_height_fixup))
     {
         flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
     }
@@ -163,7 +167,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String 
         fontSize *= f_params.SizeMultiplier;
 
     ALFONT_FONT *alfptr = LoadTTF(use_filename, fontSize,
-        GetAlfontFlags(f_params.LoadMode));
+        GetAlfontFlags(f_params.LoadMode, _legacyAAHeightFixup));
     if (!alfptr)
         return false;
 
@@ -193,13 +197,13 @@ void TTFFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 
 void TTFFontRenderer::AdjustFontForAntiAlias(int fontNumber, bool /*aa_mode*/)
 {
-  if (loaded_game_file_version < kGameVersion_341)
-  {
-    ALFONT_FONT *alfptr = _fontData[fontNumber].AlFont;
-    const FontRenderParams &params = _fontData[fontNumber].Params;
-    int old_height = alfont_get_font_height(alfptr);
-    alfont_set_font_size_ex(alfptr, old_height, GetAlfontFlags(params.LoadMode));
-  }
+    if (_legacyAAHeightFixup)
+    {
+        ALFONT_FONT *alfptr = _fontData[fontNumber].AlFont;
+        const FontRenderParams &params = _fontData[fontNumber].Params;
+        int old_height = alfont_get_font_height(alfptr);
+        alfont_set_font_size_ex(alfptr, old_height, GetAlfontFlags(params.LoadMode, _legacyAAHeightFixup));
+    }
 }
 
 void TTFFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes)

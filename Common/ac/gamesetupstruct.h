@@ -52,9 +52,6 @@ struct GameSetupStruct : public GameSetupStructBase
     UInteraction intrInv[MAX_INV];
     std::vector<UInteractionEvents> charScripts;
     std::vector<UInteractionEvents> invScripts;
-    // TODO: use this everywhere in the engine instead of loaded_game_file_version!
-    GameDataVersion   filever = kGameVersion_Undefined;
-    Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     Common::PropertySchema propSchema;
     std::vector<Common::StringIMap> charProps;
@@ -105,7 +102,7 @@ struct GameSetupStruct : public GameSetupStructBase
     // Get game's native color depth (bits per pixel)
     inline int GetColorDepth() const { return color_depth * 8; }
     // Tells whether game respects alpha channel when doing primitive drawing operations
-    inline bool HasAlphaInDrawingOps() const { return filever > kGameVersion_272; }
+    inline bool HasAlphaInDrawingOps() const { return gamedataver > kGameVersion_272; }
 
 
     GameSetupStruct();
@@ -140,11 +137,11 @@ struct GameSetupStruct : public GameSetupStructBase
     void WriteMouseCursors(Common::Stream *out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in);
+    void read_characters(Common::Stream *in, GameDataVersion data_ver);
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
     void read_messages(Common::Stream *in, const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver);
 
-    void ReadCharacters(Common::Stream *in);
+    void ReadCharacters(Common::Stream *in, GameDataVersion data_ver);
     void WriteCharacters(Common::Stream *out);
     //------------------------------
     // Part 3

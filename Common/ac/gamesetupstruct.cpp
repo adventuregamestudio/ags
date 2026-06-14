@@ -175,11 +175,11 @@ void GameSetupStruct::WriteMouseCursors(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::Stream *in)
+void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
     chars.resize(numcharacters);
     chars2.resize(numcharacters);
-    ReadCharacters(in);
+    ReadCharacters(in, data_ver);
 }
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
@@ -208,11 +208,11 @@ void GameSetupStruct::read_messages(Common::Stream *in,
     }
 }
 
-void GameSetupStruct::ReadCharacters(Stream *in)
+void GameSetupStruct::ReadCharacters(Stream *in, GameDataVersion data_ver)
 {
     for (int i = 0; i < numcharacters; ++i)
     {
-        chars[i].ReadFromFile(chars2[i], in, loaded_game_file_version);
+        chars[i].ReadFromFile(chars2[i], in, data_ver);
     }
 }
 

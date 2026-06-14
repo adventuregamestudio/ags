@@ -14,6 +14,7 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
+#include <array>
 #include <memory>
 #include <vector>
 #include <unordered_map>
@@ -234,7 +235,6 @@ struct GamePlayState
     char  walkable_areas_on[MAX_WALK_AREAS]{};
     short screen_flipped = 0;
     bool  enable_antialiasing = false; // enable sprite AA (linear) scaling
-    bool  smooth_walk = true; // enable smooth walk mode
     int   entered_at_x = 0;
     int   entered_at_y = 0;
     int   entered_edge = 0;
@@ -363,6 +363,11 @@ struct GamePlayState
 
     void SetGameTextLanguage(const Common::String &language);
 
+    // Runtime behavior switches: allow to configure engine behavior
+    // for modern and backwards-compatibility mode on a per-operation basis.
+    const std::array<bool, kNum_RBS> &GetRBSwitches() const { return _rbSwitches; }
+    void SetRBSwitches(const std::array<bool, kNum_RBS> &rbs);
+
     //
     // Viewport and camera control.
     // Viewports are positioned in game screen coordinates, related to the "game size",
@@ -446,7 +451,7 @@ struct GamePlayState
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
     // Tells if the smooth walk mode is enabled for characters
     // (this means - smooth transition between two separate walks, without stopping)
-    bool ShouldSmoothWalk() const { return smooth_walk; }
+    bool ShouldSmoothWalk() const { return _rbSwitches[kRBO_SmoothWalkTransition]; }
 
     //
     // User input management
@@ -515,6 +520,8 @@ private:
     Common::String _gameTextLanguage;
     // Name of the current used locale for UTF8 text mode
     Common::String _localeNameUTF8;
+
+    std::array<bool, kNum_RBS> _rbSwitches = {{ 0 }};
 
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport = true;

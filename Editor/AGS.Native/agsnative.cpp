@@ -1580,7 +1580,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
         reload_font(i);
 
     spritesModified = false;
-    thisgame.filever = data_ver;
+    thisgame.gamedataver = data_ver;
     return HAGSError::None();
 }
 
@@ -3650,7 +3650,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Characters->Add(character);
 
         // Custom properties are only for 2.6.0 and higher
-        if (thisgame.filever >= kGameVersion_260)
+        if (thisgame.gamedataver >= kGameVersion_260)
         {
             ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
         }

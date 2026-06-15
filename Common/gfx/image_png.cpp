@@ -139,7 +139,7 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     PixelBuffer pxbuf;
     if (use_palette)
     {
-        // FIXME: support PixelBuffer with custom deleter, then we may attach stb buffer here
+        // FIXME: add support for stb_image reading pixel data into precreated buffer!
         pxbuf = PixelBuffer(width, height, px_fmt);
         std::memcpy(pxbuf.GetData(), pixels, width * height);
         if (pal)
@@ -156,7 +156,7 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     }
     else if (stb_format == STBI_grey)
     {
-        // FIXME: support PixelBuffer with custom deleter, then we may attach stb buffer here
+        // FIXME: add support for stb_image reading pixel data into precreated buffer!
         pxbuf = PixelBuffer(width, height, px_fmt);
         std::memcpy(pxbuf.GetData(), pixels, width * height);
         // Set a grayscale palette for gray images
@@ -173,7 +173,7 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     }
     else if (stb_format == STBI_rgb || stb_format == STBI_rgb_alpha)
     {
-        // FIXME: support PixelBuffer with custom deleter, then we may attach stb buffer here
+        // FIXME: add support for stb_image reading pixel data into precreated buffer!
         // TODO: what about 16-bit images, are they even possible here?
         pxbuf = PixelBuffer(width, height, px_fmt);
         if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
@@ -193,7 +193,6 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
         const uint8_t *src_ptr = pixels;
         uint8_t *dst_ptr = pxbuf.GetData();
         size_t skip = pxbuf.GetStride() - (pxbuf.GetWidth() * 4);
-
         for (int y = 0; y < height; ++y)
         {
             for (int x = 0; x < width; ++x)
@@ -246,7 +245,17 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     }
     else if (bmp.GetBytesPerPixel() == 2)
     {
-        // TODO: how do we handle 16-bit images?
+        // TODO: is it possible to support saving 16-bit RGB PNGs?
+        png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), kPxFmt_R8G8B8);
+        PixelOp::CopyConvert(png_buf.GetData(), kPxFmt_R8G8B8, png_buf.GetStride(), bmp.GetWidth(), bmp.GetHeight(),
+            bmp.GetData(), bmp.GetFormat(), bmp.GetStride());
+        // Swap RGB(A) components if necessary
+        if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
+        {
+            // convert in-place
+            PixelOp::CopySwapRGBA(png_buf.GetData(), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
+                png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32, png_buf.GetWidth(), png_buf.GetHeight(), png_buf.GetFormat());
+        }
     }
     else
     {
@@ -262,14 +271,15 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     // Write a compressed PNG to memory
     size_t size = 0;
     void *png;
-    if (bmp.GetBytesPerPixel() == 1)
+    const BitmapData *final_bmp = (png_buf) ? static_cast<const BitmapData*>(&png_buf) : &bmp;
+    if (final_bmp->GetBytesPerPixel() == 1)
     {
-        png = tdefl_write_image_to_png_file_in_memory_ex2(png_buf ? png_buf.GetData() : bmp.GetData(), bmp.GetWidth(), bmp.GetHeight(), bmp.GetBytesPerPixel(),
-            bmp.GetStride(), &size, Z_DEFAULT_COMPRESSION, MZ_FALSE, plte, PAL_SIZE, trns, PAL_SIZE);
+        png = tdefl_write_image_to_png_file_in_memory_ex2(final_bmp->GetData(), final_bmp->GetWidth(), final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(),
+            final_bmp->GetStride(), &size, Z_DEFAULT_COMPRESSION, MZ_FALSE, plte, PAL_SIZE, trns, PAL_SIZE);
     }
     else
     {
-        png = tdefl_write_image_to_png_file_in_memory_ex(png_buf ? png_buf.GetData() : bmp.GetData(), bmp.GetWidth(), bmp.GetHeight(), bmp.GetBytesPerPixel(),
+        png = tdefl_write_image_to_png_file_in_memory_ex(final_bmp->GetData(), final_bmp->GetWidth(), final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(),
             &size, Z_DEFAULT_COMPRESSION, MZ_FALSE);
     }
 

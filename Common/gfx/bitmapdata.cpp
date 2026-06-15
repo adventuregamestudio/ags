@@ -11,6 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+// TODO: we only need color.h/color.c for this code unit;
+// consider porting necessary tables / shifts from Allegro right here
+// if this dependency will cause trouble (e.g. for tools).
+#include <allegro.h>
 #include "gfx/bitmapdata.h"
 #include "util/memory.h"
 
@@ -108,6 +112,41 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
         }
         return true;
     }
+    else if (dst_fmt == kPxFmt_R8G8B8 && src_fmt == kPxFmt_R5G6B5)
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+        {
+            const uint16_t *src_ptr = reinterpret_cast<const uint16_t*>(src_buffer);
+            uint8_t *dst_ptr = dst_buffer;
+            for (int x = 0; x < width; ++x, dst_ptr += 3)
+            {
+                uint16_t c = *(src_ptr++);
+                int32_t c2 = 
+                    _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_32 |
+                    _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_32 |
+                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32;
+                Memory::WriteInt24(dst_ptr, c2);
+            }
+        }
+    }
+    else if (dst_fmt == kPxFmt_A8R8G8B8 && src_fmt == kPxFmt_R5G6B5)
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+        {
+            const uint16_t *src_ptr = reinterpret_cast<const uint16_t*>(src_buffer);
+            uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buffer);
+            for (int x = 0; x < width; ++x)
+            {
+                uint16_t c = *(src_ptr++);
+                *(dst_ptr++) =
+                    _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_32 |
+                    _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_32 |
+                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32;
+            }
+        }
+    }
     return false;
 }
 
@@ -141,10 +180,11 @@ void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_s
         break;
     case 3:
         {
-            const uint8_t *src_ptr = src_buffer;
             const uint8_t *src_end = src_buffer + src_pitch * height;
-            for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
+            for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
             {
+                const uint8_t *src_ptr = src_buffer;
+                uint8_t *dst_ptr = dst_buffer;
                 for (int x = 0; x < width; ++x, src_ptr += 3, dst_ptr += 3)
                 {
                     int32_t c = Memory::ReadInt24(src_ptr);

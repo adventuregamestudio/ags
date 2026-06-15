@@ -94,13 +94,13 @@ RECENT REVISION HISTORY:
  Optimizations & bugfixes                  Mikhail Morozov (1-bit BMP)
     Fabian "ryg" Giesen                    Anael Seghezzi (is-16-bit query)
     Arseny Kapoulkine                      Simon Breuss (16-bit PNM)
-    John-Mark Allen
+    John-Mark Allen                        Katelyn Gadd (indexed color loading)
     Carmelo J Fdez-Aguera
 
  Bug & warning fixes
     Marc LeBlanc            David Woo          Guillaume George     Martins Mozeiko
     Christpher Lloyd        Jerry Jansson      Joseph Thomson       Blazej Dariusz Roszkowski
-    Phil Jordan                                Dave Moore           Roy Eltham
+    Phil Jordan             Henner Zeller      Dave Moore           Roy Eltham
     Hayaki Saito            Nathan Reed        Won Chun
     Luke Graham             Johan Duparc       Nick Verigakis       the Horde3D community
     Thomas Ruf              Ronny Chevalier                         github:rlyeh
@@ -419,6 +419,15 @@ typedef struct
 STBIDEF stbi_uc *stbi_load_from_memory   (stbi_uc           const *buffer, int len   , int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_uc *stbi_load_from_callbacks(stbi_io_callbacks const *clbk  , void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
+////////////////////////////////////
+//
+// 8-bits-per-channel indexed color
+// Will fail if image is not an 8-bit PNG or TGA with a palette. 
+// Palette buffer needs to be at least 256 entries for PNG.
+//
+
+STBIDEF stbi_uc *stbi_load_from_memory_with_palette   (stbi_uc           const *buffer, int len , int *x, int *y, unsigned int *palette_buffer, int palette_buffer_len);
+STBIDEF stbi_uc *stbi_load_from_callbacks_with_palette(stbi_io_callbacks const *clbk, void *user, int *x, int *y, unsigned int *palette_buffer, int palette_buffer_len);
 // free the loaded image -- this is just free()
 STBIDEF void     stbi_image_free      (void *retval_from_stbi_load);
 
@@ -761,7 +770,7 @@ typedef struct
 
 #ifndef STBI_NO_PNG
 static int      stbi__png_test(stbi__context *s);
-static void    *stbi__png_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri);
+static void    *stbi__png_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, unsigned int *palette_buffer, int palette_buffer_len, stbi__result_info *ri);
 #endif
 
 
@@ -909,7 +918,8 @@ STBIDEF void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_fli
                                          : stbi__vertically_flip_on_load_global)
 #endif // STBI_THREAD_LOCAL
 
-static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri, int bpc)
+
+static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri, int bpc, unsigned int *palette_buffer, int palette_buffer_len)
 {
    memset(ri, 0, sizeof(*ri)); // make sure it's initialized if we add new fields
    ri->bits_per_channel = 8; // default is 8 so most paths don't have to be changed
@@ -919,7 +929,7 @@ static void *stbi__load_main(stbi__context *s, int *x, int *y, int *comp, int re
    // test the formats with a very explicit header first (at least a FOURCC
    // or distinctive magic number first)
    #ifndef STBI_NO_PNG
-   if (stbi__png_test(s))  return stbi__png_load(s,x,y,comp,req_comp, ri);
+   if (stbi__png_test(s))  return stbi__png_load(s,x,y,comp,req_comp, palette_buffer, palette_buffer_len, ri);
    #endif
 
    return stbi__errpuc("unknown image type", "Image not of any known type, or corrupt");
@@ -965,10 +975,43 @@ static void stbi__vertical_flip(void *image, int w, int h, int bytes_per_pixel)
    }
 }
 
+static unsigned char *stbi__load_indexed(stbi__context *s, int *x, int *y, unsigned int *palette_buffer, int palette_buffer_len)
+{
+   stbi__result_info ri;
+   int comp;
+   void *result;
+
+   if (!palette_buffer)
+       return NULL;
+
+   result = stbi__load_main(s, x, y, &comp, 1, &ri, 8, palette_buffer, palette_buffer_len);
+   if (result == NULL)
+      return NULL;
+
+   if (comp != 1) {
+       stbi_image_free(result);
+       return NULL;
+   }
+
+   if (ri.bits_per_channel != 8) {
+      stbi_image_free(result);
+      return NULL;
+   }
+
+   // @TODO: move stbi__convert_format to here
+
+   if (stbi__vertically_flip_on_load) {
+      int channels = 1;
+      stbi__vertical_flip(result, *x, *y, channels * sizeof(stbi_uc));
+   }
+
+   return (unsigned char *) result;
+}
+
 static unsigned char *stbi__load_and_postprocess_8bit(stbi__context *s, int *x, int *y, int *comp, int req_comp)
 {
    stbi__result_info ri;
-   void *result = stbi__load_main(s, x, y, comp, req_comp, &ri, 8);
+   void *result = stbi__load_main(s, x, y, comp, req_comp, &ri, 8, NULL, 0);
 
    if (result == NULL)
       return NULL;
@@ -1005,6 +1048,19 @@ STBIDEF stbi_uc *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *u
    return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
 }
 
+STBIDEF stbi_uc *stbi_load_from_memory_with_palette(stbi_uc const *buffer, int len, int *x, int *y, unsigned int *palette_buffer, int palette_buffer_len)
+{
+    stbi__context s;
+    stbi__start_mem(&s, buffer, len);
+    return stbi__load_indexed(&s, x, y, palette_buffer, palette_buffer_len);
+}
+
+STBIDEF stbi_uc *stbi_load_from_callbacks_with_palette(stbi_io_callbacks const *clbk, void *user, int *x, int *y, unsigned int *palette_buffer, int palette_buffer_len)
+{
+    stbi__context s;
+    stbi__start_callbacks(&s, (stbi_io_callbacks *)clbk, user);
+    return stbi__load_indexed(&s, x, y, palette_buffer, palette_buffer_len);
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1146,6 +1202,7 @@ static unsigned char *stbi__convert_format(unsigned char *data, int img_n, int r
    int i,j;
    unsigned char *good;
 
+   if (data == NULL) return data;
    if (req_comp == img_n) return data;
    STBI_ASSERT(req_comp >= 1 && req_comp <= 4);
 
@@ -2240,14 +2297,24 @@ static void stbi__de_iphone(stbi__png *z)
 
 #define STBI__PNG_TYPE(a,b,c,d)  (((unsigned) (a) << 24) + ((unsigned) (b) << 16) + ((unsigned) (c) << 8) + (unsigned) (d))
 
-static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
+static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp, unsigned int *palette_buffer, int palette_buffer_len)
 {
-   stbi_uc palette[1024], pal_img_n=0;
+   stbi_uc _palette[1024], pal_img_n=0;
+   stbi_uc *palette = _palette;
    stbi_uc has_trans=0, tc[3]={0};
    stbi__uint16 tc16[3];
    stbi__uint32 ioff=0, idata_limit=0, i, pal_len=0;
    int first=1,k,interlace=0, color=0, is_iphone=0;
    stbi__context *s = z->s;
+
+   if (palette_buffer) {
+       if (palette_buffer_len < 256)
+           return stbi__err("palette buffer too small", "palette buffer len must be 256");
+       else if (req_comp != 1)
+           return stbi__err("invalid req_comp", "req_comp must be 1 when loading paletted");
+       else
+           palette = (stbi_uc *)(void *)palette_buffer;
+   }
 
    z->expanded = NULL;
    z->idata = NULL;
@@ -2391,8 +2458,9 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
                s->img_n = pal_img_n; // record the actual colors we had
                s->img_out_n = pal_img_n;
                if (req_comp >= 3) s->img_out_n = req_comp;
-               if (!stbi__expand_png_palette(z, palette, pal_len, s->img_out_n))
-                  return 0;
+               if (!palette_buffer)
+                   if (!stbi__expand_png_palette(z, palette, pal_len, s->img_out_n))
+                       return 0;
             } else if (has_trans) {
                // non-paletted image with tRNS -> source image has (constant) alpha
                ++s->img_n;
@@ -2400,6 +2468,10 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
             STBI_FREE(z->expanded); z->expanded = NULL;
             // end of PNG chunk, read and skip CRC
             stbi__get32be(s);
+            if (s->io.skip && s->img_buffer_end > s->img_buffer) {
+               // rewind the additional bytes that have been read to the buffer
+               (s->io.skip)(s->io_user_data, (int)(s->img_buffer - s->img_buffer_end));
+            }
             return 1;
          }
 
@@ -2414,6 +2486,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
                invalid_chunk[1] = STBI__BYTECAST(c.type >> 16);
                invalid_chunk[2] = STBI__BYTECAST(c.type >>  8);
                invalid_chunk[3] = STBI__BYTECAST(c.type >>  0);
+               (void)invalid_chunk;
                #endif
                return stbi__err(invalid_chunk, "PNG not supported: unknown PNG chunk type");
             }
@@ -2425,11 +2498,18 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
    }
 }
 
-static void *stbi__do_png(stbi__png *p, int *x, int *y, int *n, int req_comp, stbi__result_info *ri)
+static void *stbi__do_png(stbi__png *p, int *x, int *y, int *n, int req_comp, unsigned int *palette_buffer, int palette_buffer_len, stbi__result_info *ri)
 {
    void *result=NULL;
-   if (req_comp < 0 || req_comp > 4) return stbi__errpuc("bad req_comp", "Internal error");
-   if (stbi__parse_png_file(p, STBI__SCAN_load, req_comp)) {
+   if (palette_buffer && req_comp != 1) {
+      stbi__err("bad req_comp", "req_comp must be 1 if loading paletted image without expansion");
+      return NULL;
+   }
+   if (req_comp < 0 || req_comp > 4) {
+      stbi__err("bad req_comp", "Internal error");
+      return NULL;
+   }
+   if (stbi__parse_png_file(p, STBI__SCAN_load, req_comp, palette_buffer, palette_buffer_len)) {
       if (p->depth <= 8)
          ri->bits_per_channel = 8;
       else if (p->depth == 16)
@@ -2439,7 +2519,9 @@ static void *stbi__do_png(stbi__png *p, int *x, int *y, int *n, int req_comp, st
       result = p->out;
       p->out = NULL;
       if (req_comp && req_comp != p->s->img_out_n) {
-         if (ri->bits_per_channel == 8)
+         if (palette_buffer)
+            ;
+         else if (ri->bits_per_channel == 8)
             result = stbi__convert_format((unsigned char *) result, p->s->img_out_n, req_comp, p->s->img_x, p->s->img_y);
          else
             result = stbi__convert_format16((stbi__uint16 *) result, p->s->img_out_n, req_comp, p->s->img_x, p->s->img_y);
@@ -2448,7 +2530,12 @@ static void *stbi__do_png(stbi__png *p, int *x, int *y, int *n, int req_comp, st
       }
       *x = p->s->img_x;
       *y = p->s->img_y;
-      if (n) *n = p->s->img_n;
+      if (n) {
+         if (palette_buffer)
+            *n = 1;
+         else
+            *n = p->s->img_n;
+      }
    }
    STBI_FREE(p->out);      p->out      = NULL;
    STBI_FREE(p->expanded); p->expanded = NULL;
@@ -2457,11 +2544,11 @@ static void *stbi__do_png(stbi__png *p, int *x, int *y, int *n, int req_comp, st
    return result;
 }
 
-static void *stbi__png_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, stbi__result_info *ri)
+static void *stbi__png_load(stbi__context *s, int *x, int *y, int *comp, int req_comp, unsigned int *palette_buffer, int palette_buffer_len, stbi__result_info *ri)
 {
    stbi__png p;
    p.s = s;
-   return stbi__do_png(&p, x,y,comp,req_comp, ri);
+   return stbi__do_png(&p, x,y,comp,req_comp, palette_buffer, palette_buffer_len, ri);
 }
 
 static int stbi__png_test(stbi__context *s)

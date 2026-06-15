@@ -30,6 +30,8 @@ namespace Common
 // A format of pixel storage in memory;
 // Note that there's a small list of formats used by AGS at runtime,
 // others are here only for temporary use e.g. when loading an image from file.
+// FIXME: differentiate RGB(A) formats with different order of components!
+// -- this may be required for transformation checks when saving or loading image files.
 enum PixelFormat
 {
     kPxFmt_Undefined,

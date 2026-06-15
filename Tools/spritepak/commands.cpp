@@ -243,8 +243,15 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     // tile cropping, etc, which options we may need to read from some kind of a
     // "sprite definition" file (or Game.agf).
     writer.Begin(opts.StorageFlags, opts.Compress, top_index);
+    sprkey_t index = 0;
     for (const auto &imf : sorted_files)
     {
+        // Fill any gaps with empty slots
+        while (index++ != imf.first)
+        {
+            writer.WriteEmptySlot();
+        }
+
         auto im_in = File::OpenFileRead(Path::ConcatPaths(src_dir, imf.second));
         if (!im_in)
         {

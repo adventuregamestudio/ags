@@ -296,7 +296,7 @@ void save_room_data_segment()
     croom->tsdatasize = globaldata.size();
     if (croom->tsdatasize > 0) {
         croom->tsdata.resize(croom->tsdatasize);
-        memcpy(croom->tsdata.data(),&globaldata[0],croom->tsdatasize);
+        memcpy(croom->tsdata.data(), globaldata.data(), croom->tsdatasize);
     }
 
 }

@@ -669,16 +669,16 @@ void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name,
     if (log_len > 0)
     {
         if (is_shader)
-            glGetShaderInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+            glGetShaderInfoLog(obj_id, log_len, &log_len, errorLog.data());
         else
-            glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+            glGetProgramInfoLog(obj_id, log_len, &log_len, errorLog.data());
     }
 
     Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: %s %s:", obj_name.GetCStr(), is_shader ? "failed to compile" : "failed to link");
     if (errorLog.size() > 0)
     {
         Debug::Printf(kDbgMsg_Error, "----------------------------------------");
-        Debug::Printf(kDbgMsg_Error, "%s", &errorLog[0]);
+        Debug::Printf(kDbgMsg_Error, "%s", errorLog.data());
         Debug::Printf(kDbgMsg_Error, "----------------------------------------");
     }
     else

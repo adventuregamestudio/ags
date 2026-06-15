@@ -413,7 +413,7 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char
         wcsbuf[at] = static_cast<wchar_t>(r);
     }
     // Then convert widestring to single-byte string using specified locale
-    size_t res_sz = wcstombs(out_cstr, &wcsbuf[0], out_sz);
+    size_t res_sz = wcstombs(out_cstr, wcsbuf.data(), out_sz);
     setlocale(LC_CTYPE, old_locale);
     if (res_sz == static_cast<std::size_t>(-1))
     {

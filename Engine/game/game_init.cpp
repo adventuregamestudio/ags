@@ -261,13 +261,13 @@ void RegisterStaticArrays(GameSetupStruct &game)
     StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
     StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
 
-    ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
-    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
-    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
-    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
-    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
-    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
-    ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
+    ccAddExternalStaticArray("character", game.chars.data(), &StaticCharacterArray);
+    ccAddExternalStaticArray("object", &scrObj[0], &StaticObjectArray);
+    ccAddExternalStaticArray("gui", scrGui.data(), &StaticGUIArray);
+    ccAddExternalStaticArray("hotspot", &scrHotspot[0], &StaticHotspotArray);
+    ccAddExternalStaticArray("region", &scrRegion[0], &StaticRegionArray);
+    ccAddExternalStaticArray("inventory", &scrInv[0], &StaticInventoryArray);
+    ccAddExternalStaticArray("dialog", scrDialog.data(), &StaticDialogArray);
 }
 
 // Initializes various game entities and registers them in the script system

@@ -43,13 +43,13 @@ const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)
         size_t len = sz * _cvt.len_mult;
         _buf.resize(len);
     }
-    _cvt.buf = &_buf[0];
+    _cvt.buf = _buf.data();
     _cvt.len = _cvt.len_cvt = sz;
     SDL_memcpy(_cvt.buf, data, sz);
     if (SDL_ConvertAudio(&_cvt) < 0)
         return nullptr;
     out_sz = _cvt.len_cvt;
-    return &_buf[0];
+    return _buf.data();
 }
 
 //-----------------------------------------------------------------------------

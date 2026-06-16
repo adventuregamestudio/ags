@@ -161,7 +161,7 @@ void RunHotspotInteraction(int hotspothere, int mood)
         play.usedinv = playerchar->activeinv;
     }
 
-    if ((game.options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)));
+    if (game.options[OPT_WALKONLOOK] == 0);
     else if (play.auto_use_walkto_points == 0);
     else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter, hotspothere);

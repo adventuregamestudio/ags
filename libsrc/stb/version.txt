@@ -1,0 +1,9 @@
+stb_image:
+	contains a stripped version (minimal PNG support)
+	source: https://github.com/nothings/stb/
+	commit: 31c1ad37456438565541f4919958214b6e762fb4
+
+	additional modifications applied from the version found in SDL_image library, SDL2 branch:
+		- indexed PNG image loading, few minor fixes
+	source: https://github.com/libsdl-org/SDL_image/blob/SDL2/src/stb_image.h
+	commit: 3ab7e077b893f8f794026e0482a958ca30c9d4e0

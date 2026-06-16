@@ -223,8 +223,6 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     // NOTE: following code was written while using SDL_SavePNG_IO() from SDL_Image as a reference;
     // see: https://github.com/libsdl-org/SDL/blob/release-3.4.x/src/video/SDL_stb.c
 
-    // TODO: support skip_alpha
-
     // Prepare additional data, and do preliminary conversions, if necessary
     PixelBuffer png_buf;
     uint8_t plte[PAL_SIZE * 3] = {0};
@@ -243,23 +241,26 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
             trns[i] = pal[i].a;
         }
     }
-    else if (bmp.GetBytesPerPixel() == 2)
+    // There are two situations where we should convert source image to 24-bit RGB:
+    // * first if it's a 16-bit image, as our PNG save implementation cannot write 16-bit RGB data;
+    // * second if it's a 32-bit image, but we are instructed to skip alpha.
+    // TODO: is it possible to support saving 16-bit RGB PNGs?
+    else if ((bmp.GetBytesPerPixel() == 2)
+        || ((bmp.GetBytesPerPixel() == 4) && skip_alpha))
     {
-        // TODO: is it possible to support saving 16-bit RGB PNGs?
         png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), kPxFmt_R8G8B8);
         PixelOp::CopyConvert(png_buf.GetData(), kPxFmt_R8G8B8, png_buf.GetStride(), bmp.GetWidth(), bmp.GetHeight(),
             bmp.GetData(), bmp.GetFormat(), bmp.GetStride());
-        // Swap RGB(A) components if necessary
+        // Swap RGB(A) components if necessary (in-place)
         if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
         {
-            // convert in-place
             PixelOp::CopySwapRGBA(png_buf.GetData(), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
                 png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32, png_buf.GetWidth(), png_buf.GetHeight(), png_buf.GetFormat());
         }
     }
     else
     {
-        // Swap RGB(A) components if necessary
+        // For 24-bit RGB or 32-bit ARGB we should swap RGB(A) components if necessary
         if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
         {
             png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());

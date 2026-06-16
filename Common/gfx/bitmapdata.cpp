@@ -62,30 +62,18 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
         return true;
     }
 
-    // Copy 4-bit indexed image into 8-bit image
-    if (dst_fmt == kPxFmt_Indexed8 && src_fmt == kPxFmt_Indexed4)
-    {
-        const uint8_t *src_ptr = src_buffer;
-        const uint8_t *src_end = src_buffer + src_pitch * height;
-        const uint32_t src_width = width / 2; // number of full sequences of 2 source pixels
-        for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
-        {
-            uint32_t x = 0;
-            for (; x < src_width; ++x)
-            {
-                uint8_t sp = src_ptr[x];
-                dst_ptr[x * 2]     = ((sp >> 4) & 0xF);
-                dst_ptr[x * 2 + 1] =  (sp       & 0xF);
-            }
+    // TODO: this function originally was purposed to support conversions that
+    // Allegro 4 cannot do (like 1-bit and 4-bit to 8-bit), but later it turned
+    // out that it may need many others. Consider using more generic algorithms,
+    // similar to how Allegro 4 does this, or even use functions from Allegro 4.
+    // For indexed conversions this may require separate approach,
+    // but for RGB/ARGB ones we might need a generic function with following params:
+    // - ARGB shifts (for src and dest)
+    // - ARGB masks  (for src and dest)
+    // - optionally re-scale arrays, e.g. for scaling from 16-bit to 24/32-bit.
 
-            // Last pixel (upper half of the source byte)
-            if (src_width * 2 < width)
-                dst_ptr[x * 2] = ((src_ptr[x] >> 4) & 0xF);
-        }
-        return true;
-    }
-    // Copy 1-bit monochrome image into 8-bit image
-    else if (dst_fmt == kPxFmt_Indexed8 && src_fmt == kPxFmt_Indexed1)
+    // 1-bit monochrome => 8-bit indexed image
+    if (src_fmt == kPxFmt_Indexed1 && dst_fmt == kPxFmt_Indexed8)
     {
         const uint8_t *src_ptr = src_buffer;
         const uint8_t *src_end = src_buffer + src_pitch * height;
@@ -112,7 +100,30 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
         }
         return true;
     }
-    else if (dst_fmt == kPxFmt_R8G8B8 && src_fmt == kPxFmt_R5G6B5)
+    // 4-bit indexed image => 8-bit indexed image
+    else if (src_fmt == kPxFmt_Indexed4 && dst_fmt == kPxFmt_Indexed8)
+    {
+        const uint8_t *src_ptr = src_buffer;
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        const uint32_t src_width = width / 2; // number of full sequences of 2 source pixels
+        for (uint8_t *dst_ptr = dst_buffer; src_ptr < src_end; src_ptr += src_pitch, dst_ptr += dst_pitch)
+        {
+            uint32_t x = 0;
+            for (; x < src_width; ++x)
+            {
+                uint8_t sp = src_ptr[x];
+                dst_ptr[x * 2]     = ((sp >> 4) & 0xF);
+                dst_ptr[x * 2 + 1] =  (sp       & 0xF);
+            }
+
+            // Last pixel (upper half of the source byte)
+            if (src_width * 2 < width)
+                dst_ptr[x * 2] = ((src_ptr[x] >> 4) & 0xF);
+        }
+        return true;
+    }
+    // 16-bit RGB -> 24-bit RGB
+    else if (src_fmt == kPxFmt_R5G6B5 && dst_fmt == kPxFmt_R8G8B8)
     {
         const uint8_t *src_end = src_buffer + src_pitch * height;
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
@@ -130,7 +141,8 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
             }
         }
     }
-    else if (dst_fmt == kPxFmt_A8R8G8B8 && src_fmt == kPxFmt_R5G6B5)
+    // 16-bit RGB -> 32-bit ARGB
+    else if (src_fmt == kPxFmt_R5G6B5 && dst_fmt == kPxFmt_A8R8G8B8)
     {
         const uint8_t *src_end = src_buffer + src_pitch * height;
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
@@ -143,7 +155,22 @@ bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t ds
                 *(dst_ptr++) =
                     _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_32 |
                     _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_32 |
-                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32;
+                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32 |
+                    0xFF << _rgb_a_shift_32;
+            }
+        }
+    }
+    // 32-bit RGB -> 24-bit ARGB (cut alpha channel)
+    else if (src_fmt == kPxFmt_A8R8G8B8 && dst_fmt == kPxFmt_R8G8B8)
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+        {
+            const uint32_t *src_ptr = reinterpret_cast<const uint32_t*>(src_buffer);
+            uint8_t *dst_ptr = dst_buffer;
+            for (int x = 0; x < width; ++x, dst_ptr += 3)
+            {
+                Memory::WriteInt24(dst_ptr, (*(src_ptr++) & 0xFFFFFF));
             }
         }
     }

@@ -259,14 +259,19 @@ void Viewport::AdjustTransformation()
         float scale_x = (float)_position.GetWidth() / (float)cam_rc.GetWidth();
         float scale_y = (float)_position.GetHeight() / (float)cam_rc.GetHeight();
         float rotate = locked_cam->GetRotation();
+        Pointf pivot = locked_cam->GetEffectivePivot();
 
         glm::mat4 mat_v2c = glmex::make_transform2d(cam_rc.Left, cam_rc.Top,
-            1.f / scale_x, 1.f / scale_y, -Math::DegreesToRadians(rotate), -0.5 * cam_rc.GetWidth(), -0.5 * cam_rc.GetHeight());
+            1.f / scale_x, 1.f / scale_y, Math::DegreesToRadians(rotate),
+            -cam_rc.GetWidth() * pivot.X, -cam_rc.GetHeight() * pivot.Y
+            );
         _v2cTransform = glmex::translate(mat_v2c, -_position.Left, -_position.Top);
 
         glm::mat4 mat_c2v = glmex::translate(_position.Left, _position.Top);
         _c2vTransform = glmex::inv_transform2d(mat_c2v, -cam_rc.Left, -cam_rc.Top,
-            scale_x, scale_y, Math::DegreesToRadians(rotate), 0.5 * cam_rc.GetWidth(), 0.5 * cam_rc.GetHeight());;
+            scale_x, scale_y, -Math::DegreesToRadians(rotate),
+            cam_rc.GetWidth() * pivot.X, cam_rc.GetHeight() * pivot.Y
+            );
     }
 }
 

@@ -2967,7 +2967,7 @@ static void construct_roomview_hw(const Viewport *viewport)
             camera->GetRotation(), camera->GetEffectivePivot());
 
         gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
-        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans, cam_rc.GetSize());
         gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
         put_sprite_list_on_screen(true);
         gfxDriver->EndSpriteBatch();

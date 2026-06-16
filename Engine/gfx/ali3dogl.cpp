@@ -1939,13 +1939,13 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Translate scaled node into Top-Left screen coordinates
     float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
     float scaled_offy = _srcRect.GetHeight() * ((1.f - desc.Transform.ScaleY) * 0.5f);
-    float pivotx = _srcRect.GetWidth() / 2.f - (_srcRect.GetWidth() * desc.Transform.Pivot.X);
-    float pivoty = _srcRect.GetHeight() / 2.f - (_srcRect.GetHeight() * desc.Transform.Pivot.Y);
+    float pivotx = -_srcRect.GetWidth() * 0.5f + desc.SizeRef.Width * desc.Transform.ScaleX * desc.Transform.Pivot.X;
+    float pivoty = -_srcRect.GetHeight() * 0.5f + desc.SizeRef.Height * desc.Transform.ScaleY * desc.Transform.Pivot.Y;
     model = glmex::translate(model, -scaled_offx, -(-scaled_offy));
-    // Classic Scale-Rotate-Translate, but inverse, because it's GLM
-    glm::mat4 msrt = glmex::make_transform2d((float)desc.Transform.X, (float)-desc.Transform.Y,
+    // Inverse transformation, because it should affect the textures drawn within this batch
+    glm::mat4 msrt = glmex::make_inv_transform2d((float)desc.Transform.X, (float)-desc.Transform.Y,
         desc.Transform.ScaleX, desc.Transform.ScaleY,
-        -Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
+        Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     model = model * msrt;
 
     // Also create separate viewport transformation matrix:
@@ -1954,7 +1954,7 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     glm::mat4 mat_viewport = glmex::make_transform2d(
         (float)desc.Transform.X, (float)desc.Transform.Y,
         desc.Transform.ScaleX, desc.Transform.ScaleY, // CHECKME: rotation args here
-        -Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
+        Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     glm::mat4 vp_flip_off = glmex::translate(
         _srcRect.GetWidth() * ((1.f - flip_sx) * 0.5f),
         _srcRect.GetHeight() * ((1.f - flip_sy) * 0.5f));

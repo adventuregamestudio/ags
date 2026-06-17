@@ -22,9 +22,11 @@
 #include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
@@ -242,6 +244,22 @@ void GUIControl_SetSize(GUIControl *guio, int newwid, int newhit) {
   GUIControl_SetHeight(guio, newhit);
 }
 
+void *GUIControl_GetGraphicPosition(GUIControl *guio)
+{
+    guio->UpdateGraphicSpace();
+    std::vector<Point> points;
+    guio->GetGraphicSpace().GetTransformedCorners(points, guio->GetSize());
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
+void *GUIControl_GetGraphicBoundBox(GUIControl *guio)
+{
+    guio->UpdateGraphicSpace();
+    std::vector<Point> points;
+    guio->GetGraphicSpace().GetAABBPoints(points);
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
 void GUIControl_SendToBack(GUIControl *guio) {
   guis[guio->GetParentID()].SendControlToBack(guio->GetID());
 }
@@ -448,6 +466,16 @@ RuntimeScriptValue Sc_GUIControl_SetPosition(void *self, const RuntimeScriptValu
 RuntimeScriptValue Sc_GUIControl_SetSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT2(GUIControl, GUIControl_SetSize);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIControl, void, globalDynamicArray, GUIControl_GetGraphicPosition);
+}
+
+RuntimeScriptValue Sc_GUIControl_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIControl, void, globalDynamicArray, GUIControl_GetGraphicBoundBox);
 }
 
 // GUIButton* (GUIControl *guio)
@@ -774,6 +802,8 @@ void RegisterGUIControlAPI()
         { "GUIControl::SendToBack^0",     API_FN_PAIR(GUIControl_SendToBack) },
         { "GUIControl::SetPosition^2",    API_FN_PAIR(GUIControl_SetPosition) },
         { "GUIControl::SetSize^2",        API_FN_PAIR(GUIControl_SetSize) },
+        { "GUIControl::GetGraphicPosition^0", API_FN_PAIR(GUIControl_GetGraphicPosition) },
+        { "GUIControl::GetGraphicBoundBox^0", API_FN_PAIR(GUIControl_GetGraphicBoundBox) },
         { "GUIControl::GetProperty^1",    API_FN_PAIR(GUIControl_GetProperty) },
         { "GUIControl::GetTextProperty^1", API_FN_PAIR(GUIControl_GetTextProperty) },
         { "GUIControl::SetProperty^2",    API_FN_PAIR(GUIControl_SetProperty) },

@@ -1066,6 +1066,22 @@ void Object_RunInteraction(ScriptObject *objj, int mode) {
     RunObjectInteraction(objj->id, mode);
 }
 
+void *Object_GetGraphicPosition(ScriptObject *objj)
+{
+    objs[objj->id].UpdateGraphicSpace();
+    std::vector<Point> points;
+    objs[objj->id].GetGraphicSpace().GetTransformedCorners(points, Size(objs[objj->id].spr_width, objs[objj->id].spr_height));
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
+void *Object_GetGraphicBoundBox(ScriptObject *objj)
+{
+    objs[objj->id].UpdateGraphicSpace();
+    std::vector<Point> points;
+    objs[objj->id].GetGraphicSpace().GetAABBPoints(points);
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
 int GetObjectProperty(int hss, const char *property)
 {
     if (!is_valid_object(hss))
@@ -1542,6 +1558,16 @@ RuntimeScriptValue Sc_Object_Animate(void *self, const RuntimeScriptValue *param
 RuntimeScriptValue Sc_Object_IsCollidingWithObject(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(ScriptObject, Object_IsCollidingWithObject, ScriptObject);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptObject, void, globalDynamicArray, Object_GetGraphicPosition);
+}
+
+RuntimeScriptValue Sc_Object_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptObject, void, globalDynamicArray, Object_GetGraphicBoundBox);
 }
 
 // int (ScriptObject *objj, const char *property)
@@ -2107,6 +2133,8 @@ void RegisterObjectAPI()
         { "Object::Animate^6",                API_FN_PAIR(Object_Animate6) },
         { "Object::Animate^7",                API_FN_PAIR(Object_Animate) },
         { "Object::IsCollidingWithObject^1",  API_FN_PAIR(Object_IsCollidingWithObject) },
+        { "Object::GetGraphicPosition^0",     API_FN_PAIR(Object_GetGraphicPosition) },
+        { "Object::GetGraphicBoundBox^0",     API_FN_PAIR(Object_GetGraphicBoundBox) },
         { "Object::GetProperty^1",            API_FN_PAIR(Object_GetProperty) },
         { "Object::GetPropertyText^2",        API_FN_PAIR(Object_GetPropertyText) },
         { "Object::GetTextProperty^1",        API_FN_PAIR(Object_GetTextProperty) },

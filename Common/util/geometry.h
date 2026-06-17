@@ -349,6 +349,16 @@ struct Rect
         return Point(Left, Top);
     }
 
+    inline Point GetRT() const
+    {
+        return Point(Right, Top);
+    }
+
+    inline Point GetLB() const
+    {
+        return Point(Left, Bottom);
+    }
+
     inline Point GetRB() const
     {
         return Point(Right, Bottom);

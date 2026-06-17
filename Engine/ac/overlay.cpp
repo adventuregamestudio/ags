@@ -30,8 +30,10 @@
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -267,6 +269,24 @@ void Overlay_SetGraphicOffsetY(ScriptOverlay *scover, int y)
 {
     auto *over = GetOverlayValidate("Overlay.GraphicOffsetY", scover);
     over->SetSpriteOffset(Point(over->GetSpriteOffset().X, y));
+}
+
+void *Overlay_GetGraphicPosition(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GetGraphicPosition", scover);
+    over->UpdateGraphicSpace();
+    std::vector<Point> points;
+    over->GetGraphicSpace().GetTransformedCorners(points, over->GetGraphicSize());
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
+void *Overlay_GetGraphicBoundBox(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GetGraphicBoundBox", scover);
+    over->UpdateGraphicSpace();
+    std::vector<Point> points;
+    over->GetGraphicSpace().GetAABBPoints(points);
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
 int Overlay_GetValid(ScriptOverlay *scover)
@@ -1214,6 +1234,16 @@ RuntimeScriptValue Sc_Overlay_SetFlip(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetFlip);
 }
 
+RuntimeScriptValue Sc_Overlay_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptOverlay, void, globalDynamicArray, Overlay_GetGraphicPosition);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptOverlay, void, globalDynamicArray, Overlay_GetGraphicBoundBox);
+}
+
 RuntimeScriptValue Sc_Overlay_GetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetGraphicAnchorX);
@@ -1501,6 +1531,8 @@ void RegisterOverlayAPI()
         { "Overlay::CreateRoomGraphical^4", API_FN_PAIR(Overlay_CreateRoomGraphical) },
         { "Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical5) },
         { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
+        { "Overlay::GetGraphicPosition^0", API_FN_PAIR(Overlay_GetGraphicPosition) },
+        { "Overlay::GetGraphicBoundBox^0", API_FN_PAIR(Overlay_GetGraphicBoundBox) },
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
         { "Overlay::SetPosition^4",       API_FN_PAIR(Overlay_SetPosition) },

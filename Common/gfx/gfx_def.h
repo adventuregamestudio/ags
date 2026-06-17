@@ -22,6 +22,7 @@
 #define __AGS_CN_GFX__GFXDEF_H
 
 #include <algorithm>
+#include <vector>
 #include "util/geometry.h"
 #include "util/matrix.h"
 
@@ -161,6 +162,28 @@ public:
     {
         glm::vec4 v = L2WTransform * glmex::vec4(static_cast<float>(x), static_cast<float>(y));
         return Point(static_cast<int>(v.x), static_cast<int>(v.y)); // TODO: better rounding
+    }
+
+    // Fills a std::vector with 4 corner positions of AABB, in the clockwise order
+    inline void GetAABBPoints(std::vector<Point> &points) const
+    {
+        points.resize(4);
+        points[0] = _AABB.GetLT();
+        points[1] = _AABB.GetRT();
+        points[2] = _AABB.GetRB();
+        points[3] = _AABB.GetLB();
+    }
+
+    // Fills a std::vector with 4 corner positions of the transformed object,
+    // in world coordinates, in the clockwise order.
+    // NOTE: GraphicSpace does not store object size, only transform, so we have to pass size as a argument
+    inline void GetTransformedCorners(std::vector<Point> &points, const Size &obj_size) const
+    {
+        points.resize(4);
+        points[0] = LocalToWorld(0, 0);
+        points[1] = LocalToWorld(obj_size.Width - 1, 0);
+        points[2] = LocalToWorld(obj_size.Width - 1, obj_size.Height - 1);
+        points[3] = LocalToWorld(0, obj_size.Height - 1);
     }
 
 private:

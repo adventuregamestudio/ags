@@ -16,6 +16,7 @@
 //
 //=============================================================================
 #include <cstdio>
+#include <math.h>
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
@@ -49,12 +50,12 @@
 #include "ac/walkablearea.h"
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/update.h"
 #include "util/string_compat.h"
-#include <math.h>
 #include "gfx/graphicsdriver.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
@@ -1250,9 +1251,23 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
     run_event_script(obj_evt, &game.chars[chaa->index_id].GetEvents(), anyclick_evt);
 }
 
+void *Character_GetGraphicPosition(CharacterInfo *chaa)
+{
+    auto &chex = charextra[chaa->index_id];
+    chex.UpdateGraphicSpace(chaa);
+    std::vector<Point> points;
+    chex.GetGraphicSpace().GetTransformedCorners(points, Size(chex.spr_width, chex.spr_height));
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
 
-
-// **** CHARACTER: PROPERTIES ****
+void *Character_GetGraphicBoundBox(CharacterInfo *chaa)
+{
+    auto &chex = charextra[chaa->index_id];
+    chex.UpdateGraphicSpace(chaa);
+    std::vector<Point> points;
+    chex.GetGraphicSpace().GetAABBPoints(points);
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
 
 int Character_GetProperty(CharacterInfo *chaa, const char *property)
 {
@@ -3675,6 +3690,16 @@ RuntimeScriptValue Sc_Character_GetFollowing(void *self, const RuntimeScriptValu
     API_OBJCALL_OBJ(CharacterInfo, CharacterInfo, ccDynamicCharacter, Character_GetFollowing);
 }
 
+RuntimeScriptValue Sc_Character_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(CharacterInfo, void, globalDynamicArray, Character_GetGraphicPosition);
+}
+
+RuntimeScriptValue Sc_Character_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(CharacterInfo, void, globalDynamicArray, Character_GetGraphicBoundBox);
+}
+
 // int (CharacterInfo *chaa, const char *property)
 RuntimeScriptValue Sc_Character_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4743,6 +4768,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::FaceLocation^3",            API_FN_PAIR(Character_FaceLocation) },
         { "Character::FaceObject^2",              API_FN_PAIR(Character_FaceObject) },
         { "Character::FollowCharacter^3",         API_FN_PAIR(Character_FollowCharacter) },
+        { "Character::GetGraphicPosition^0",      API_FN_PAIR(Character_GetGraphicPosition) },
+        { "Character::GetGraphicBoundBox^0",      API_FN_PAIR(Character_GetGraphicBoundBox) },
         { "Character::GetProperty^1",             API_FN_PAIR(Character_GetProperty) },
         { "Character::GetPropertyText^2",         API_FN_PAIR(Character_GetPropertyText) },
         { "Character::GetTextProperty^1",         API_FN_PAIR(Character_GetTextProperty) },

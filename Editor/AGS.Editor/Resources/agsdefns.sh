@@ -1382,14 +1382,18 @@ builtin managed struct Overlay {
   import attribute float Rotation;
 #endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
-  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
-  import void Tint(int red, int green, int blue, int saturation, int luminance);
-  /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
-  import void SetLightLevel(int light_level);
+  /// Gets position of the overlay's graphic in either screen or room coordinates (depending on which overlay this is). Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicPosition();
+  /// Gets overlay graphic's axis-aligned bounding box in either screen or room coordinates (depending on which overlay this is). Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicBoundBox();
   /// Removes an existing colour tint or light level from this overlay.
   import void RemoveTint();
+  /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  import void SetLightLevel(int light_level);
   /// Sets this overlay's horizontal and vertical scaling
   import void SetScale(float x, float y);
+  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  import void Tint(int red, int green, int blue, int saturation, int luminance);
 
   /// Gets/sets whether overlay should resize itself whenever its graphic changes.
   import attribute bool AutoSize;
@@ -1737,6 +1741,10 @@ builtin managed struct GUIControl {
   import attribute bool Translated;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
+  /// Gets control's graphical position in parent GUI coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicPosition();
+  /// Gets control's graphical axis-aligned bounding box in parent GUI coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicBoundBox();
   /// Gets an integer custom property for this control.
   import int  GetProperty(const string property);
   /// Gets a text custom property for this control.
@@ -2055,16 +2063,21 @@ builtin managed struct GUI {
   import attribute float Rotation;
 #endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
+  /// Convert relative GUI coordinates to screen coordinates. Optionally clips position by GUI's bounds, in which case if the point lies outside of GUI, then this function will return null.
+  import Point *GUIToScreenPoint(int guix, int guiy, bool clipToGUI = true);
+  /// Convert screen coordinates to relative GUI coordinates. Optionally clips position by GUI's bounds, in which case if the point lies outside of GUI, then this function will return null.
+  import Point *ScreenToGUIPoint(int screenx, int screeny, bool clipToGUI = true);
+  /// Gets graphical GUI position in screen coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicPosition();
+  /// Gets GUI's graphical axis-aligned bounding box in screen coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicBoundBox();
+
   /// Gets/sets this GUI horizontal scaling.
   import attribute float ScaleX;
   /// Gets/sets this GUI vertical scaling.
   import attribute float ScaleY;
   /// Sets this GUI horizontal and vertical scaling
   import void SetScale(float x, float y);
-
-  import Point *GUIToScreenPoint(int guix, int guiy, bool clipToGUI = true);
-  import Point *ScreenToGUIPoint(int screenx, int screeny, bool clipToGUI = true);
-
   /// Gets an integer custom property for this GUI.
   import int  GetProperty(const string property);
   /// Gets a text custom property for this GUI.
@@ -2788,6 +2801,10 @@ builtin managed struct Object {
   import attribute int  BlockingRectY;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
+  /// Gets position of the object's graphic in room coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicPosition();
+  /// Gets object graphic's axis-aligned bounding box in room coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicBoundBox();
   /// Moves the object along the path, ignoring walkable areas.
   import void MovePath(Point*[], int speed, BlockingStyle=eNoBlock, RepeatStyle=eOnce, Direction=eForwards);
   /// Gets/sets whether the object will be drawn and updated during the game update.
@@ -3103,6 +3120,10 @@ builtin managed struct Character {
   import attribute bool UseRegionTint;
 #endif // SCRIPT_API_v399
 #ifdef SCRIPT_API_v400
+  /// Gets position of the character's graphic in room coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicPosition();
+  /// Gets object character's axis-aligned bounding box in room coordinates. Returns a dynamic array of 4 Points, one per graphic's corner, in the order: LT, RT, RB, LB.
+  import Point*[] GetGraphicBoundBox();
   /// Locks the character to this view, using specified anchor and offset for the duration of this lock.
   import void LockViewAnchored(int view, float xAnchor, float yAnchor, int xOffset=0, int yOffset=0, StopMovementStyle=eStopMoving);
   /// Gets/sets whether the character will be drawn and updated during the game update.

@@ -32,6 +32,7 @@ namespace AGS.Editor
             this.panel1 = new System.Windows.Forms.Panel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tbTextPreview = new System.Windows.Forms.TextBox();
+            this.rbPreviewAuto = new System.Windows.Forms.RadioButton();
             this.rbANSI = new System.Windows.Forms.RadioButton();
             this.rbUnicode = new System.Windows.Forms.RadioButton();
             this.label2 = new System.Windows.Forms.Label();
@@ -43,7 +44,7 @@ namespace AGS.Editor
             this.lblCharCode = new System.Windows.Forms.Label();
             this.btnImportFont = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.rbPreviewAuto = new System.Windows.Forms.RadioButton();
+            this.chkRTL = new System.Windows.Forms.CheckBox();
             this.textPreviewPanel = new AGS.Editor.BufferedPanel();
             this.fontViewPanel = new AGS.Editor.FontPreviewGrid();
             this.currentItemGroupBox.SuspendLayout();
@@ -93,6 +94,7 @@ namespace AGS.Editor
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.chkRTL);
             this.splitContainer1.Panel1.Controls.Add(this.tbTextPreview);
             this.splitContainer1.Panel1.Controls.Add(this.textPreviewPanel);
             this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(7);
@@ -114,7 +116,7 @@ namespace AGS.Editor
             this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(7);
             this.splitContainer1.Panel2MinSize = 120;
             this.splitContainer1.Size = new System.Drawing.Size(538, 389);
-            this.splitContainer1.SplitterDistance = 120;
+            this.splitContainer1.SplitterDistance = 155;
             this.splitContainer1.TabIndex = 0;
             this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
             this.splitContainer1.Resize += new System.EventHandler(this.splitContainer1_Resize);
@@ -123,7 +125,7 @@ namespace AGS.Editor
             // 
             this.tbTextPreview.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbTextPreview.Location = new System.Drawing.Point(10, 62);
+            this.tbTextPreview.Location = new System.Drawing.Point(10, 78);
             this.tbTextPreview.Multiline = true;
             this.tbTextPreview.Name = "tbTextPreview";
             this.tbTextPreview.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -131,6 +133,20 @@ namespace AGS.Editor
             this.tbTextPreview.TabIndex = 1;
             this.tbTextPreview.Text = "The quick brown fox jumps over the lazy dog.";
             this.tbTextPreview.TextChanged += new System.EventHandler(this.tbTextPreview_TextChanged);
+            // 
+            // rbPreviewAuto
+            // 
+            this.rbPreviewAuto.AutoSize = true;
+            this.rbPreviewAuto.Checked = true;
+            this.rbPreviewAuto.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.rbPreviewAuto.Location = new System.Drawing.Point(91, 6);
+            this.rbPreviewAuto.Name = "rbPreviewAuto";
+            this.rbPreviewAuto.Size = new System.Drawing.Size(138, 17);
+            this.rbPreviewAuto.TabIndex = 10;
+            this.rbPreviewAuto.TabStop = true;
+            this.rbPreviewAuto.Text = "Auto (use Game setting)";
+            this.rbPreviewAuto.UseVisualStyleBackColor = true;
+            this.rbPreviewAuto.CheckedChanged += new System.EventHandler(this.rbPreviewAuto_CheckedChanged);
             // 
             // rbANSI
             // 
@@ -247,18 +263,17 @@ namespace AGS.Editor
             this.label1.TabIndex = 0;
             this.label1.Text = "Use the property grid on the right to change basic settings.";
             // 
-            // rbPreviewAuto
+            // chkRTL
             // 
-            this.rbPreviewAuto.AutoSize = true;
-            this.rbPreviewAuto.Checked = true;
-            this.rbPreviewAuto.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.rbPreviewAuto.Location = new System.Drawing.Point(91, 6);
-            this.rbPreviewAuto.Name = "rbPreviewAuto";
-            this.rbPreviewAuto.Size = new System.Drawing.Size(138, 17);
-            this.rbPreviewAuto.TabIndex = 10;
-            this.rbPreviewAuto.Text = "Auto (use Game setting)";
-            this.rbPreviewAuto.UseVisualStyleBackColor = true;
-            this.rbPreviewAuto.CheckedChanged += new System.EventHandler(this.rbPreviewAuto_CheckedChanged);
+            this.chkRTL.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chkRTL.AutoSize = true;
+            this.chkRTL.Location = new System.Drawing.Point(10, 128);
+            this.chkRTL.Name = "chkRTL";
+            this.chkRTL.Size = new System.Drawing.Size(140, 17);
+            this.chkRTL.TabIndex = 2;
+            this.chkRTL.Text = "Right-to-left text preview";
+            this.chkRTL.UseVisualStyleBackColor = true;
+            this.chkRTL.CheckedChanged += new System.EventHandler(this.chkRTL_CheckedChanged);
             // 
             // textPreviewPanel
             // 
@@ -268,7 +283,7 @@ namespace AGS.Editor
             this.textPreviewPanel.AutoScroll = true;
             this.textPreviewPanel.Location = new System.Drawing.Point(10, 13);
             this.textPreviewPanel.Name = "textPreviewPanel";
-            this.textPreviewPanel.Size = new System.Drawing.Size(516, 44);
+            this.textPreviewPanel.Size = new System.Drawing.Size(516, 59);
             this.textPreviewPanel.TabIndex = 0;
             this.textPreviewPanel.SizeChanged += new System.EventHandler(this.textPreviewPanel_SizeChanged);
             this.textPreviewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.textPreviewPanel_Paint);
@@ -287,7 +302,7 @@ namespace AGS.Editor
             this.fontViewPanel.Name = "fontViewPanel";
             this.fontViewPanel.Scaling = 1F;
             this.fontViewPanel.SelectedCharCode = -1;
-            this.fontViewPanel.Size = new System.Drawing.Size(520, 196);
+            this.fontViewPanel.Size = new System.Drawing.Size(520, 148);
             this.fontViewPanel.TabIndex = 9;
             this.fontViewPanel.TabStop = true;
             // 
@@ -333,5 +348,6 @@ namespace AGS.Editor
         private System.Windows.Forms.RadioButton rbUnicode;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.RadioButton rbPreviewAuto;
+        private System.Windows.Forms.CheckBox chkRTL;
     }
 }

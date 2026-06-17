@@ -1024,7 +1024,7 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
         drawBlock(hdc, tempblock.get(), dc_atx, dc_aty);
 }
 
-void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool use_outline,
+void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right_to_left, bool use_outline,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int text_atx, int text_aty, int max_width, float scaling)
 {
@@ -1047,20 +1047,23 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool use_o
 
     SplitLines lines;
     split_lines(text.GetCStr(), lines, max_width, fontnum);
+    if (right_to_left)
+    {
+        for (size_t rr = 0; rr < lines.Count(); rr++)
+        {
+            (get_uformat() == U_UTF8) ?
+                lines[rr].ReverseUTF8() :
+                lines[rr].Reverse();
+        }
+    }
+
     const int linespacing = get_font_linespacing(fontnum);
     std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(ds_width, ds_height, 8));
     tempblock->Fill(0);
     color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
     color_t outline_color = tempblock->GetCompatibleColor(8); // fixed dark grey color
-    int x = text_atx, y = text_aty;
-    for (const auto &s : lines.GetVector())
-    {
-        if (use_outline)
-            wouttext_outline(tempblock.get(), x, y, fontnum, text_color, outline_color, s.GetCStr());
-        else
-            wouttextxy(tempblock.get(), x, y, fontnum, text_color, s.GetCStr());
-        y += linespacing;
-    }
+    AGS::Common::GUI::DrawTextLinesAligned(tempblock.get(), lines.GetVector(), lines.Count(), fontnum, linespacing, text_color, outline_color,
+        RectWH(text_atx, text_aty, max_width, dc_height - (dc_aty + text_aty)), right_to_left ? kAlignTopRight : kAlignTopLeft, false);
 
     if (scaling != 1.f)
         drawBlockScaledAt(hdc, tempblock.get(), dc_atx, dc_aty, scaling);
@@ -2260,7 +2263,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font->Height = get_font_real_height(fontNumber);
 }
 
-void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum, bool draw_outline,
+void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum, bool right_to_left, bool draw_outline,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int text_atx, int text_aty, int max_width, float scaling)
 {
@@ -2271,7 +2274,7 @@ void DrawTextUsingFontAt(HDC hdc, String ^text, int fontnum, bool draw_outline,
     // split_lines does not understand '\r' so replace them here
     text = text->Replace("\r\n", "\n");
     AGSString native_text = TextHelper::GetGameTextConverter()->Convert(text);
-    DrawTextUsingFontAt(hdc, native_text, fontnum, draw_outline,
+    DrawTextUsingFontAt(hdc, native_text, fontnum, right_to_left, draw_outline,
         dc_atx, dc_aty, dc_width, dc_height,
         text_atx, text_aty, max_width, scaling);
 }

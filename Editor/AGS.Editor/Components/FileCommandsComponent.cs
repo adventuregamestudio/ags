@@ -25,6 +25,8 @@ namespace AGS.Editor.Components
         private const string SHOW_PREFERENCES_COMMAND = "ShowPreferences";
         private const string EXIT_COMMAND = "Exit";
         private const string OPEN_PROJ_FILE_EXPLORER_COMMAND = "OpenProjFileExplorerGame";
+        private const string OPEN_GAME_SAVE_FOLDER_COMMAND = "OpenGameSaveFolder";
+        private const string OPEN_GAME_APPDATA_FOLDER_COMMAND = "OpenGameAppDataFolder";
         private const string DEFAULT_FONT_RESOURCE_PATH = "AGS.Editor.Resources.";
 
         private List<MenuCommand> _toolbarCommands = new List<MenuCommand>();
@@ -75,6 +77,12 @@ namespace AGS.Editor.Components
 
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 800);
             commands.Commands.Add(new MenuCommand(OPEN_PROJ_FILE_EXPLORER_COMMAND, "Open Project in File Explorer", "OpenProjFolderIcon"));
+            subCommands = new List<MenuCommand>
+            {
+                new MenuCommand(OPEN_GAME_SAVE_FOLDER_COMMAND, "Game Save folder"),
+                new MenuCommand(OPEN_GAME_APPDATA_FOLDER_COMMAND, "Game Common Data Folder")
+            };
+            commands.Commands.Add(new MenuCommand(null, "Other Locations...", Keys.None, null, subCommands));
             _guiController.AddMenuItems(this, commands);
 
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 9000);
@@ -262,6 +270,22 @@ namespace AGS.Editor.Components
             else if(controlID == OPEN_PROJ_FILE_EXPLORER_COMMAND)
             {
                 Utilities.OpenFileOrDirInFileExplorer(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.GAME_FILE_NAME));
+            }
+            else if (controlID == OPEN_GAME_SAVE_FOLDER_COMMAND)
+            {
+                if (!Utilities.OpenFileOrDirInFileExplorer(Path.Combine(
+                    Utilities.GetSystemSaveFolderPath(), Factory.AGSEditor.CurrentGame.GameSaveFolderName)))
+                {
+                    _guiController.ShowMessage("The requested folder does not exist. This may happen if the game did not write any saves or user config yet.", MessageBoxIcon.Information);
+                }
+            }
+            else if (controlID == OPEN_GAME_APPDATA_FOLDER_COMMAND)
+            {
+                if (!Utilities.OpenFileOrDirInFileExplorer(Path.Combine(
+                    Utilities.GetSystemProgramDataFolderPath(), Factory.AGSEditor.CurrentGame.GameSaveFolderName)))
+                {
+                    _guiController.ShowMessage("The requested folder does not exist. This may happen if the game did not write any common data files yet.", MessageBoxIcon.Information);
+                }
             }
             else if (controlID == EXIT_COMMAND)
             {

@@ -41,10 +41,19 @@ namespace AGS.Editor
         [DllImport("user32.dll", EntryPoint = "DestroyIcon")]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
+        // See https://stackoverflow.com/questions/27910592/get-path-to-links-aka-favorites-folder
+        [DllImport("shell32.dll", SetLastError = true)]
+        static extern IntPtr SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr ppszPath);
+
+        public static class KnownFolders
+        {
+            public static readonly Guid ProgramData = new Guid("62AB5D82-FDC1-4DC3-A9DD-070D1D495D97");
+            public static readonly Guid SavedGames = new Guid("4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4");
+        }
+
         private static char[] PathSeparators = new char[]
         { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
-        public static string SelectedReligion = "Not a Believer";
 
         public static string NetRuntimeVersion
         {
@@ -294,6 +303,28 @@ namespace AGS.Editor
 
             newPath = GetRelativeToProjectPath(newPath);
             return true;
+        }
+
+        public static string GetSystemFolderPath(Guid guid)
+        {
+            string sRet = string.Empty;
+            IntPtr pPath;
+            if (SHGetKnownFolderPath(guid, 0, IntPtr.Zero, out pPath).ToInt32() == 0)
+            {
+                sRet = Marshal.PtrToStringUni(pPath);
+                Marshal.FreeCoTaskMem(pPath);
+            }
+            return sRet;
+        }
+
+        public static string GetSystemProgramDataFolderPath()
+        {
+            return GetSystemFolderPath(KnownFolders.ProgramData);
+        }
+
+        public static string GetSystemSaveFolderPath()
+        {
+            return GetSystemFolderPath(KnownFolders.SavedGames);
         }
 
         /// <summary>

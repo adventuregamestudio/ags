@@ -312,6 +312,7 @@ int String_GetLength(const char *thisString) {
 size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines)
 {
     lines.Reset();
+    // FIXME: stop using the global variable, pass as a reference!
     longestline=0;
 
     // If empty string - bail out now
@@ -325,24 +326,22 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     bool compat_mode = loaded_game_file_version < kGameVersion_360;
     split_lines(todis, lines, wii, fonnt, compat_mode, max_lines);
 
-    int line_length;
-    // Right-to-left just means reverse the text then
-    // write it as normal
+    // Reverse the text if requested
     if (apply_direction && (game.options[OPT_RIGHTLEFTWRITE] != 0))
-        for (size_t rr = 0; rr < lines.Count(); rr++) {
+    {
+        for (size_t rr = 0; rr < lines.Count(); rr++)
+        {
             (get_uformat() == U_UTF8) ?
                 lines[rr].ReverseUTF8() :
                 lines[rr].Reverse();
-            line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
-            if (line_length > longestline)
-                longestline = line_length;
         }
-    else
-        for (size_t rr = 0; rr < lines.Count(); rr++) {
-            line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
-            if (line_length > longestline)
-                longestline = line_length;
-        }
+    }
+    // Calculate the longest line
+    for (size_t rr = 0; rr < lines.Count(); rr++)
+    {
+        int line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
+        longestline = std::max(longestline, line_length);
+    }
     return lines.Count();
 }
 

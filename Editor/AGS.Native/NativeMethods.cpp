@@ -943,6 +943,7 @@ namespace AGS
             if (name->Equals("OPT_GAMEFPS")) return OPT_GAMEFPS;
             if (name->Equals("OPT_GUICONTROLMOUSEBUT")) return OPT_GUICONTROLMOUSEBUT;
             if (name->Equals("OPT_DISPLAYSINGLEDIALOGOPTION")) return OPT_DISPLAYSINGLEDIALOGOPTION;
+            if (name->Equals("OPT_TURNORDERPRIORITY")) return OPT_TURNORDERPRIORITY;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
             return nullptr;
         }

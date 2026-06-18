@@ -182,6 +182,7 @@
     <Compile Include="Enums\SpriteImportTransparency.cs" />
     <Compile Include="Enums\SpriteImportResolution.cs" />
     <Compile Include="Enums\TextParserWordType.cs" />
+    <Compile Include="Enums\TurnOrderPriority.cs" />
     <Compile Include="Exceptions\CannotDeleteFileException.cs" />
     <Compile Include="Exceptions\CompileError.cs" />
     <Compile Include="Exceptions\CompileMessage.cs" />

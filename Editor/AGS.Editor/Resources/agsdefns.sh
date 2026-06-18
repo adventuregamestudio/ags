@@ -94,6 +94,7 @@
 #define OPT_GUICONTROLMOUSEBUT 57
 #define OPT_AUTOTRANSPARSERSAID 58
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59
+#define OPT_TURNORDERPRIORITY 60
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1
@@ -576,6 +577,16 @@ enum HitTestOptions
 {
   eHit_Any              = 0,
   eHit_Interactable     = 0x0001
+};
+
+// Determines which order of character turning is chosen when
+// both clockwise and counter-clockwise directions are equally short
+enum TurnOrderPriority
+{
+  eTurnOrderClockwise          = 0,
+  eTurnOrderCounterClockwise   = 1,
+  eTurnOrderRandom             = 2,
+  eTurnOrderFaceDown           = 3
 };
 #endif // SCRIPT_API_v363
 

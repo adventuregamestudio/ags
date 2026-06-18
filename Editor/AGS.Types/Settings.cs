@@ -65,6 +65,7 @@ namespace AGS.Types
         private bool _attachDataToExe = false;
         private bool _turnBeforeWalking = false;
         private bool _turnBeforeFacing = false;
+        private TurnOrderPriority _turnOrderPriority = TurnOrderPriority.Clockwise;
         private bool _scaleMovementSpeedWithMaskRes = false;
         private bool _mouseWheelEnabled = true;
         private bool _guiHandleOnlyLeftMouseButton = false;
@@ -470,6 +471,16 @@ namespace AGS.Types
         {
             get { return _turnBeforeWalking; }
             set { _turnBeforeWalking = value; }
+        }
+
+        [DisplayName("Prioritize this turning direction")]
+        [Description("Which turning direction to prioritize when character is turning to face the opposite direction")]
+        [Category("Character behavior")]
+        [DefaultValue(TurnOrderPriority.Clockwise)]
+        public TurnOrderPriority TurnOrderPriority
+        {
+            get { return _turnOrderPriority; }
+            set { _turnOrderPriority = value; }
         }
 
         [DisplayName("Scale movement speed with room's mask resolution")]

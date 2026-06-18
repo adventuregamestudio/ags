@@ -676,14 +676,14 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
         }
         if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
         {
-            String number = String::FromFormat("%d. ", ww + 1);
             if (ltr_position)
             {
+                String number = String::FromFormat("%d. ", ww + 1);
                 wouttext_outline(ds, first_line_at - bullet_wid + bullet_sprwid, curyp, usingfont, text_color, number.GetCStr());
             }
             else
             {
-                number.ReverseUTF8();
+                String number = String::FromFormat(". %d", ww + 1);
                 wouttext_outline(ds, first_line_at + first_line_wid, curyp, usingfont, text_color, number.GetCStr());
             }
         }

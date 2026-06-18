@@ -167,7 +167,7 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 
           if ((turnlooporder[wantloop] >= views[view].numLoops) ||
               (views[view].loops[turnlooporder[wantloop]].numFrames < 1) ||
-              ((turnlooporder[wantloop] >= 4) && ((chi->flags & CHF_NODIAGONAL)!=0))) {
+              ((turnlooporder[wantloop] >= NUM_BASE_DIRECTIONS) && ((chi->flags & CHF_NODIAGONAL)!=0))) {
             if (chi->walking >= TURNING_BACKWARDS)
               wantloop--;
             else

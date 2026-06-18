@@ -230,6 +230,16 @@ enum ScriptHitTestOptions
     kHit_Interactable           = 0x0001
 };
 
+// Determines which order of character turning is chosen when
+// both clockwise and counter-clockwise directions are equally short
+enum ScriptTurnOrderPriority
+{
+    kScTurnOrder_Clockwise          = 0, // historically is default
+    kScTurnOrder_CounterClockwise   = 1,
+    kScTurnOrder_Random             = 2, // cw or ccw, chosen random each time
+    kScTurnOrder_FaceDown           = 3, // try to face down (towards player) more
+};
+
 enum eScriptSystemOSID
 {
     eOS_Unknown = 0,

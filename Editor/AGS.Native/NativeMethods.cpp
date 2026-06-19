@@ -91,6 +91,8 @@ extern int GetSpriteHeight(int slot);
 extern int GetSpriteColorDepth(int slot);
 extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
+extern int FindNearestFreeSpriteNumber(int slot);
+extern int FindNearestFreeSpriteNumber(int slot, const std::vector<int> &replaceableNumbers);
 extern int GetMaxSprites();
 extern int GetCurrentlyLoadedRoomNumber();
 extern bool load_template_file(const AGSString &fileName, AGSString &description,
@@ -98,6 +100,7 @@ extern bool load_template_file(const AGSString &fileName, AGSString &description
 extern HAGSError extract_template_files(const AGSString &templateFileName);
 extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
+extern void change_sprite_numbers(const std::vector<int> &oldNumbers, const std::vector<int> &newNumbers);
 extern void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes);
 extern void SaveNativeSprites(Settings^ gameSettings);
 extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
@@ -397,6 +400,18 @@ namespace AGS
 			return ::DoesSpriteExist(spriteNumber);
         }
 
+        int NativeMethods::FindNearestFreeSpriteNumber(int spriteNumber, array<int>^ replaceableNumbers)
+        {
+            if ((spriteNumber < 0) || (spriteNumber >= GetMaxSprites()))
+            {
+                return -1;
+            }
+            std::vector<int> numbers;
+            for (int i = 0; i < replaceableNumbers->Length; ++i)
+                numbers.push_back(replaceableNumbers[i]);
+            return ::FindNearestFreeSpriteNumber(spriteNumber, numbers);
+        }
+
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
 			AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
@@ -485,6 +500,20 @@ namespace AGS
 			change_sprite_number(sprite->Number, newNumber);
 			sprite->Number = newNumber;
 		}
+
+        void NativeMethods::ChangeSpriteNumbers(array<Sprite^>^ sprites, array<int> ^newNumbers)
+        {
+            std::vector<int> old_numbers;
+            std::vector<int> new_numbers;
+            int total = std::min(sprites->Length, newNumbers->Length);
+            for (int i = 0; i < total; ++i)
+                old_numbers.push_back(sprites[i]->Number);
+            for (int i = 0; i < total; ++i)
+                new_numbers.push_back(newNumbers[i]);
+            change_sprite_numbers(old_numbers, new_numbers);
+            for (int i = 0; i < total; ++i)
+                sprites[i]->Number = newNumbers[i];
+        }
 
 		void NativeMethods::SpriteResolutionsChanged(cli::array<Sprite^>^ sprites)
 		{

@@ -207,6 +207,23 @@ bool DoesSpriteExist(int slot) {
     return spriteset.DoesSpriteExist(slot);
 }
 
+int FindNearestFreeSpriteNumber(int slot, const std::vector<int> &replaceableNumbers)
+{
+    for (; slot < MAX_STATIC_SPRITES; ++slot)
+    {
+        if (std::find(replaceableNumbers.begin(), replaceableNumbers.end(), slot) != replaceableNumbers.end()
+            || slot > spriteset.GetTopmostSprite() || !spriteset.DoesSpriteExist(slot))
+            return slot;
+    }
+    return -1;
+}
+
+int FindNearestFreeSpriteNumber(int slot)
+{
+    std::vector<int> empty;
+    return FindNearestFreeSpriteNumber(slot, empty);
+}
+
 int GetMaxSprites() {
 	return MAX_STATIC_SPRITES;
 }
@@ -261,6 +278,24 @@ void change_sprite_number(int oldNumber, int newNumber) {
   std::unique_ptr<AGSBitmap> bitmap(spriteset.RemoveSprite(oldNumber));
   spriteset.SetSprite(newNumber, std::move(bitmap), thisgame.SpriteInfos[oldNumber].Flags);
   spritesModified = true;
+}
+
+void change_sprite_numbers(const std::vector<int> &oldNumbers, const std::vector<int> &newNumbers)
+{
+    // Because sprites may be shifted also among themselves, we need to temporarily 
+    // remove them from the spritecache and keep saved separately until all are re-inserted.
+    size_t total = std::min(oldNumbers.size(), newNumbers.size());
+    std::vector<std::unique_ptr<AGSBitmap>> saved_sprites;
+    std::vector<int> saved_flags;
+    for (size_t i = 0; i < total; ++i)
+    {
+        saved_sprites.push_back(spriteset.RemoveSprite(oldNumbers[i]));
+        saved_flags.push_back(thisgame.SpriteInfos[oldNumbers[i]].Flags);
+    }
+    for (size_t i = 0; i < total; ++i)
+    {
+        spriteset.SetSprite(newNumbers[i], std::move(saved_sprites[i]), saved_flags[i]);
+    }
 }
 
 int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *crop_rect) {

@@ -192,11 +192,27 @@ namespace AGS.Editor
 			}
         }
 
+        public int FindNearestFreeSpriteNumber(int spriteNumber, int[] replaceableNumbers)
+        {
+            lock (_spriteSetLock)
+            {
+                return _native.FindNearestFreeSpriteNumber(spriteNumber, replaceableNumbers);
+            }
+        }
+
         public void ChangeSpriteNumber(Sprite sprite, int newNumber)
         {
             lock (_spriteSetLock)
             {
                 _native.ChangeSpriteNumber(sprite, newNumber);
+            }
+        }
+
+        public void ChangeSpriteNumbers(Sprite[] sprites, int[] newNumbers)
+        {
+            lock (_spriteSetLock)
+            {
+                _native.ChangeSpriteNumbers(sprites, newNumbers);
             }
         }
 

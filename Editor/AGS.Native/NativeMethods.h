@@ -75,7 +75,9 @@ namespace AGS
             Drawing::Size GetMaxSpriteSize(array<int>^ sprites, [Runtime::InteropServices::Out] bool% hasLowResSprites);
 			bool CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric);
 			bool DoesSpriteExist(int spriteNumber);
+			int FindNearestFreeSpriteNumber(int spriteNumber, array<int>^ replaceableNumbers);
 			void ChangeSpriteNumber(Sprite^ sprite, int newNumber);
+			void ChangeSpriteNumbers(array<Sprite^>^ sprites, array<int>^ newNumbers);
 			void SpriteResolutionsChanged(cli::array<Sprite^>^ sprites);
 			void Shutdown();
 			Game^ ImportOldGameFile(String^ fileName);

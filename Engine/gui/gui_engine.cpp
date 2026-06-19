@@ -90,11 +90,18 @@ namespace Common
 
 String GUI::ApplyTextDirection(const String &text)
 {
-    if (game.options[OPT_RIGHTLEFTWRITE] == 0)
-        return text;
-    String res_text = text;
-    (get_uformat() == U_UTF8) ? res_text.ReverseUTF8() : res_text.Reverse();
-    return res_text;
+    const bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
+    if (get_uformat() == U_UTF8)
+    {
+        return StrUtil::ApplyTextDirection(text, rtl_mode);
+    }
+    else if (rtl_mode)
+    {
+        String res_text = text;
+        res_text.Reverse();
+        return res_text;
+    }
+    return text;
 }
 
 String GUI::TransformTextForDrawing(const String &text, bool translate, bool apply_direction)

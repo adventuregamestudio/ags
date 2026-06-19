@@ -109,6 +109,13 @@ inline size_t GetLength(const char *c)
     return len;
 }
 
+// Takes a utf8 string pointer and advances it one char forward, unless it hits the end of the string
+inline const char *ForwardOneChar(const char *c, const char *end)
+{
+    for (; c < end && ((*(++c) & 0xC0) == 0x80););
+    return c;
+}
+
 // Takes a utf8 string pointer and rolls it back one char, unless it hits the head of same string
 inline const char *BackOneChar(const char *c, const char *front)
 {

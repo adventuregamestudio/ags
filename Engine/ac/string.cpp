@@ -27,6 +27,7 @@
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
+#include "util/string_utils.h"
 #include "util/utf8.h"
 
 using namespace AGS::Common;
@@ -326,13 +327,18 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     bool compat_mode = loaded_game_file_version < kGameVersion_360;
     split_lines(todis, lines, wii, fonnt, compat_mode, max_lines);
 
-    // Reverse the text if requested
-    if (apply_direction && (game.options[OPT_RIGHTLEFTWRITE] != 0))
+    // Apply text direction if requested
+    bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
+    if (apply_direction)
     {
-        for (size_t rr = 0; rr < lines.Count(); rr++)
+        if (get_uformat() == U_UTF8)
         {
-            (get_uformat() == U_UTF8) ?
-                lines[rr].ReverseUTF8() :
+            for (size_t rr = 0; rr < lines.Count(); rr++)
+                lines[rr] = StrUtil::ApplyTextDirection(lines[rr], rtl_mode);
+        }
+        else if (rtl_mode)
+        {
+            for (size_t rr = 0; rr < lines.Count(); rr++)
                 lines[rr].Reverse();
         }
     }

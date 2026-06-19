@@ -29,6 +29,16 @@ namespace AGS.Editor
             get { return txtFriendlyName.Text; } 
         }
 
+        public string NewGameParentFolder
+        {
+            get { return txtCreateInFolder.Text; }
+        }
+
+        public bool SaveNewGameParentFolderAsNewDefault
+        {
+            get { return chkSaveFolderAsDefault.Checked; }
+        }
+
         public string GetFullPath()
         {
             try

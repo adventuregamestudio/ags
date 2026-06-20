@@ -22,6 +22,7 @@
 #define __AGS_CN_GFX__GFXDEF_H
 
 #include <algorithm>
+#include <vector>
 #include "util/geometry.h"
 #include "util/matrix.h"
 
@@ -111,15 +112,17 @@ public:
     //          this is used to separate additional offsets for the object gfx,
     //          in case its image exceeds the "logical" rectangle.
     // rot      - rotation, clockwise, in degrees
-    //          this constructor makes a fixed pivot at the center of src_aabb.
+    // pivot    - pivot of rotation, in *relative* position (center is default)
+    // pivot_off - extra pivot offset, in local coordinates (zero is default)
     GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size,
-                 const Size &dst_size, const Rect &g_aabb, const float rot)
+                 const Size &dst_size, const Rect &g_aabb, const float rot,
+                 const Pointf pivot = Pointf(.5f, .5f), const Point pivot_off = Point())
     {
         const int src_w = src_size.Width;
         const int src_h = src_size.Height;
         const float sx = src_w != 0.f ? static_cast<float>(dst_size.Width) / src_w : 1.f;
         const float sy = src_h != 0.f ? static_cast<float>(dst_size.Height) / src_h : 1.f;
-        Init(ox, oy, origin, src_size, dst_size, g_aabb, sx, sy, rot);
+        Init(ox, oy, origin, src_size, dst_size, g_aabb, sx, sy, rot, pivot, pivot_off);
     }
 
     // ox,oy    - position of the object's origin in world coordinates
@@ -130,13 +133,15 @@ public:
     //          in case its image exceeds the "logical" rectangle.
     // sx,sy    - scaling factors (along x and y axes)
     // rot      - rotation, clockwise, in degrees
-    //          this constructor makes a fixed pivot at the center of src_aabb.
+    // pivot    - pivot of rotation, in *relative* position (center is default)
+    // pivot_off - extra pivot offset, in local coordinates (zero is default)
     GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size,
-                 const Rect &g_aabb, const float sx, const float sy, const float rot)
+                 const Rect &g_aabb, const float sx, const float sy, const float rot,
+                 const Pointf pivot = Pointf(.5f, .5f), const Point pivot_off = Point())
     {
         Init(ox, oy, origin, src_size,
              Size(static_cast<int>(src_size.Width * sx), static_cast<int>(src_size.Height * sy)),
-             g_aabb, sx, sy, rot);
+             g_aabb, sx, sy, rot, pivot, pivot_off);
     }
 
     // Get position of the top-left corner of this object in the world coordinates;
@@ -159,9 +164,32 @@ public:
         return Point(static_cast<int>(v.x), static_cast<int>(v.y)); // TODO: better rounding
     }
 
+    // Fills a std::vector with 4 corner positions of AABB, in the clockwise order
+    inline void GetAABBPoints(std::vector<Point> &points) const
+    {
+        points.resize(4);
+        points[0] = _AABB.GetLT();
+        points[1] = _AABB.GetRT();
+        points[2] = _AABB.GetRB();
+        points[3] = _AABB.GetLB();
+    }
+
+    // Fills a std::vector with 4 corner positions of the transformed object,
+    // in world coordinates, in the clockwise order.
+    // NOTE: GraphicSpace does not store object size, only transform, so we have to pass size as a argument
+    inline void GetTransformedCorners(std::vector<Point> &points, const Size &obj_size) const
+    {
+        points.resize(4);
+        points[0] = LocalToWorld(0, 0);
+        points[1] = LocalToWorld(obj_size.Width - 1, 0);
+        points[2] = LocalToWorld(obj_size.Width - 1, obj_size.Height - 1);
+        points[3] = LocalToWorld(0, obj_size.Height - 1);
+    }
+
 private:
     void Init(const int ox, const int oy, const Pointf &origin, const Size &src_size,
-              const Size &dst_size, const Rect &g_aabb, const float sx, const float sy, const float rot)
+              const Size &dst_size, const Rect &g_aabb, const float sx, const float sy,
+              const float rot, const Pointf pivot, const Point pivot_off)
     {
         const int local_srcx = -static_cast<int>((src_size.Width - 1) * origin.X);
         const int local_srcy = -static_cast<int>((src_size.Height - 1) * origin.Y);
@@ -171,9 +199,10 @@ private:
             ? 0.f : 1.f / sx;
         const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()
             ? 0.f : 1.f / sy;
-        // Pivot is relative to the local coordinate center
-        const float pivotx = (dst_size.Width) * 0.5f;
-        const float pivoty = (dst_size.Height) * 0.5f;
+        // Pivot is relative to the local coordinate center;
+        // here is calculated in coordinates of the *destination* rectangle (post-scaling)
+        const float pivotx = (dst_size.Width) * pivot.X + pivot_off.X * sx;
+        const float pivoty = (dst_size.Height) * pivot.Y + pivot_off.Y * sy;
         // World->local transform
         W2LTransform = glmex::make_inv_transform2d(
             -world_x, -world_y, sx_inv, sy_inv,

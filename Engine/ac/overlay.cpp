@@ -30,8 +30,10 @@
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptshader.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -269,6 +271,24 @@ void Overlay_SetGraphicOffsetY(ScriptOverlay *scover, int y)
     over->SetSpriteOffset(Point(over->GetSpriteOffset().X, y));
 }
 
+void *Overlay_GetGraphicPosition(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GetGraphicPosition", scover);
+    over->UpdateGraphicSpace();
+    std::vector<Point> points;
+    over->GetGraphicSpace().GetTransformedCorners(points, over->GetGraphicSize());
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
+void *Overlay_GetGraphicBoundBox(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GetGraphicBoundBox", scover);
+    over->UpdateGraphicSpace();
+    std::vector<Point> points;
+    over->GetGraphicSpace().GetAABBPoints(points);
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
 int Overlay_GetValid(ScriptOverlay *scover)
 {
     return get_overlay(scover->GetOverlayID()) != nullptr;
@@ -428,6 +448,54 @@ float Overlay_GetRotation(ScriptOverlay *scover) {
 void Overlay_SetRotation(ScriptOverlay *scover, float degrees) {
     auto *over = GetOverlayValidate("Overlay.Rotation", scover);
     over->SetRotation(Math::ClampAngle360(degrees));
+}
+
+float Overlay_GetGraphicPivotX(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotX", scover);
+    return over->GetPivot().X;
+}
+
+void Overlay_SetGraphicPivotX(ScriptOverlay *scover, float pivotx)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotX", scover);
+    over->SetPivot(Pointf(pivotx, over->GetPivot().Y));
+}
+
+float Overlay_GetGraphicPivotY(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotY", scover);
+    return over->GetPivot().Y;
+}
+
+void Overlay_SetGraphicPivotY(ScriptOverlay *scover, float pivoty)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotY", scover);
+    over->SetPivot(Pointf(over->GetPivot().X, pivoty));
+}
+
+int Overlay_GetGraphicPivotOffsetX(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotOffsetX", scover);
+    return over->GetPivotOffset().X;
+}
+
+void Overlay_SetGraphicPivotOffsetX(ScriptOverlay *scover, int px)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotOffsetX", scover);
+    over->SetPivotOffset(Point(px, over->GetPivotOffset().Y));
+}
+
+int Overlay_GetGraphicPivotOffsetY(ScriptOverlay *scover)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotOffsetY", scover);
+    return over->GetPivotOffset().Y;
+}
+
+void Overlay_SetGraphicPivotOffsetY(ScriptOverlay *scover, int py)
+{
+    auto *over = GetOverlayValidate("Overlay.GraphicPivotOffsetY", scover);
+    over->SetPivotOffset(Point(over->GetPivotOffset().X, py));
 }
 
 int Overlay_GetZOrder(ScriptOverlay *scover)
@@ -1166,6 +1234,16 @@ RuntimeScriptValue Sc_Overlay_SetFlip(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetFlip);
 }
 
+RuntimeScriptValue Sc_Overlay_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptOverlay, void, globalDynamicArray, Overlay_GetGraphicPosition);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptOverlay, void, globalDynamicArray, Overlay_GetGraphicBoundBox);
+}
+
 RuntimeScriptValue Sc_Overlay_GetGraphicAnchorX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetGraphicAnchorX);
@@ -1214,6 +1292,46 @@ RuntimeScriptValue Sc_Overlay_GetRotation(void *self, const RuntimeScriptValue *
 RuntimeScriptValue Sc_Overlay_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetRotation);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetGraphicPivotX);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicPivotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetGraphicPivotX);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptOverlay, Overlay_GetGraphicPivotY);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicPivotY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetGraphicPivotY);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicPivotOffsetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetGraphicPivotOffsetX);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicPivotOffsetY);
+}
+
+RuntimeScriptValue Sc_Overlay_SetGraphicPivotOffsetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetGraphicPivotOffsetY);
 }
 
 RuntimeScriptValue Sc_Overlay_GetScaleX(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1413,6 +1531,8 @@ void RegisterOverlayAPI()
         { "Overlay::CreateRoomGraphical^4", API_FN_PAIR(Overlay_CreateRoomGraphical) },
         { "Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical5) },
         { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
+        { "Overlay::GetGraphicPosition^0", API_FN_PAIR(Overlay_GetGraphicPosition) },
+        { "Overlay::GetGraphicBoundBox^0", API_FN_PAIR(Overlay_GetGraphicBoundBox) },
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
         { "Overlay::SetPosition^4",       API_FN_PAIR(Overlay_SetPosition) },
@@ -1468,6 +1588,14 @@ void RegisterOverlayAPI()
         { "Overlay::set_GraphicOffsetY",  API_FN_PAIR(Overlay_SetGraphicOffsetY) },
         { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
         { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
+        { "Overlay::get_GraphicPivotX",   API_FN_PAIR(Overlay_GetGraphicPivotX) },
+        { "Overlay::set_GraphicPivotX",   API_FN_PAIR(Overlay_SetGraphicPivotX) },
+        { "Overlay::get_GraphicPivotY",   API_FN_PAIR(Overlay_GetGraphicPivotY) },
+        { "Overlay::set_GraphicPivotY",   API_FN_PAIR(Overlay_SetGraphicPivotY) },
+        { "Overlay::get_GraphicPivotOffsetX", API_FN_PAIR(Overlay_GetGraphicPivotOffsetX) },
+        { "Overlay::set_GraphicPivotOffsetX", API_FN_PAIR(Overlay_SetGraphicPivotOffsetX) },
+        { "Overlay::get_GraphicPivotOffsetY", API_FN_PAIR(Overlay_GetGraphicPivotOffsetY) },
+        { "Overlay::set_GraphicPivotOffsetY", API_FN_PAIR(Overlay_SetGraphicPivotOffsetY) },
         { "Overlay::get_ScaleX",          API_FN_PAIR(Overlay_GetScaleX) },
         { "Overlay::set_ScaleX",          API_FN_PAIR(Overlay_SetScaleX) },
         { "Overlay::get_ScaleY",          API_FN_PAIR(Overlay_GetScaleY) },

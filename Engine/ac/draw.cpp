@@ -227,6 +227,7 @@ struct ObjectCache
     short tintr = 0, tintg = 0, tintb = 0, tintamnt = 0, tintlight = 0;
     short lightlev = 0, zoom = 0;
     float rotation = 0.f;
+    float pivotx = 0.f, pivoty = 0.f;
     GraphicFlip flip = kFlip_None;
     int   x = 0, y = 0;
 
@@ -2066,6 +2067,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         objsav.lightlev = light_level;
         objsav.zoom = objsrc.zoom;
         objsav.rotation = objsrc.rotation;
+        objsav.pivotx = objsrc.pivotx;
+        objsav.pivoty = objsrc.pivoty;
         objsav.flip = use_flip;
         return is_texture_intact;
     }
@@ -2092,6 +2095,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         (objsav.lightlev == light_level) &&
         (objsav.zoom == objsrc.zoom) &&
         (objsav.rotation == objsrc.rotation) &&
+        (objsav.pivotx == objsrc.pivotx) &&
+        (objsav.pivoty == objsrc.pivoty) &&
         (objsav.flip == use_flip))
     {
         // If the image is the same, we can use it cached
@@ -2159,6 +2164,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     objsav.lightlev = light_level;
     objsav.zoom = objsrc.zoom;
     objsav.rotation = objsrc.rotation;
+    objsav.pivotx = objsrc.pivotx;
+    objsav.pivoty = objsrc.pivoty;
     objsav.flip = use_flip;
     objsav.x = objsrc.x;
     objsav.y = objsrc.y;
@@ -2216,6 +2223,7 @@ void prepare_and_add_object_gfx(
     {
         actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
         actsp.Ddb->SetRotation(objsav.rotation);
+        actsp.Ddb->SetPivot(objsav.pivotx, objsav.pivoty);
         actsp.Ddb->SetFlip(objsav.flip);
         apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb, objsav.tintlight);
     }
@@ -2236,6 +2244,8 @@ bool construct_object_gfx(int objid, bool force_software)
     ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b,
         obj.tint_level, obj.tint_light, 0 /* skip */, obj.zoom, obj.rotation,
         kFlip_None /* skip */, obj.x, obj.y);
+    objsrc.pivotx = obj.pivot.X + (static_cast<float>(obj.pivot_offset.X) / obj.width);
+    objsrc.pivoty = obj.pivot.Y + (static_cast<float>(obj.pivot_offset.Y) / obj.height);
 
     return construct_object_gfx(
         (obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
@@ -2350,6 +2360,8 @@ bool construct_char_gfx(int charid, bool force_software)
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b,
         chex.tint_level, chex.tint_light, 0 /* skip */, chex.zoom, chex.rotation,
         kFlip_None /* skip */, chin.x, chin.y);
+    chsrc.pivotx = chex.pivot.X + (static_cast<float>(chex.pivot_offset.X) / chex.width);
+    chsrc.pivoty = chex.pivot.Y + (static_cast<float>(chex.pivot_offset.Y) / chex.height);
 
     return construct_object_gfx(
         vf,
@@ -2911,7 +2923,7 @@ static void construct_roomview_hw(const Viewport *viewport)
     if (render_room_as_texture)
     {
         const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                                        camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+            camera->GetRotation(), camera->GetEffectivePivot());
 
         auto &cam_data = CameraDrawData[viewport->GetID()];
         cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
@@ -2952,10 +2964,10 @@ static void construct_roomview_hw(const Viewport *viewport)
         const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
         const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
         const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                                        camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+            camera->GetRotation(), camera->GetEffectivePivot());
 
         gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
-        gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
+        gfxDriver->BeginSpriteBatch(Rect(), cam_trans, cam_rc.GetSize());
         gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
         put_sprite_list_on_screen(true);
         gfxDriver->EndSpriteBatch();
@@ -3123,6 +3135,8 @@ static void construct_overlays()
         overtx.Ddb->SetStretch(over.GetScaledWidth(), over.GetScaledHeight());
         overtx.Ddb->SetFlip(over.GetFlip());
         overtx.Ddb->SetRotation(over.GetRotation());
+        const auto pivot = over.GetEffectivePivot();
+        overtx.Ddb->SetPivot(pivot.X, pivot.Y);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.GetTransparency()));
         overtx.Ddb->SetBlendMode(over.GetBlendMode());
         overtx.Ddb->SetShader(shaderInstances[over.GetShaderID()]);

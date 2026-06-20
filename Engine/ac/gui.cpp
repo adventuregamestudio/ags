@@ -36,10 +36,12 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
@@ -327,6 +329,24 @@ void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
 
 int GUI_GetZOrder(ScriptGUI *tehgui) {
   return guis[tehgui->id].GetZOrder();
+}
+
+void *GUI_GetGraphicPosition(ScriptGUI *tehgui)
+{
+    auto &gui = guis[tehgui->id];
+    gui.UpdateGraphicSpace();
+    std::vector<Point> points;
+    gui.GetGraphicSpace().GetTransformedCorners(points, gui.GetSize());
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
+}
+
+void *GUI_GetGraphicBoundBox(ScriptGUI *tehgui)
+{
+    auto &gui = guis[tehgui->id];
+    gui.UpdateGraphicSpace();
+    std::vector<Point> points;
+    gui.GetGraphicSpace().GetAABBPoints(points);
+    return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
@@ -1352,6 +1372,16 @@ RuntimeScriptValue Sc_GUI_SetZOrder(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetZOrder);
 }
 
+RuntimeScriptValue Sc_GUI_GetGraphicPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptGUI, void, globalDynamicArray, GUI_GetGraphicPosition);
+}
+
+RuntimeScriptValue Sc_GUI_GetGraphicBoundBox(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptGUI, void, globalDynamicArray, GUI_GetGraphicBoundBox);
+}
+
 RuntimeScriptValue Sc_GUI_AsTextWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(ScriptGUI, ScriptGUI, ccDynamicGUI, GUI_AsTextWindow);
@@ -1524,10 +1554,12 @@ void RegisterGUIAPI()
         { "GUI::Click^1",                 API_FN_PAIR(GUI_Click) },
         { "GUI::SetPosition^2",           API_FN_PAIR(GUI_SetPosition) },
         { "GUI::SetSize^2",               API_FN_PAIR(GUI_SetSize) },
-        { "GUI::GetProperty^1",             API_FN_PAIR(GUI_GetProperty) },
-        { "GUI::GetTextProperty^1",         API_FN_PAIR(GUI_GetTextProperty) },
-        { "GUI::SetProperty^2",             API_FN_PAIR(GUI_SetProperty) },
-        { "GUI::SetTextProperty^2",         API_FN_PAIR(GUI_SetTextProperty) },
+        { "GUI::GetGraphicPosition^0",    API_FN_PAIR(GUI_GetGraphicPosition) },
+        { "GUI::GetGraphicBoundBox^0",    API_FN_PAIR(GUI_GetGraphicBoundBox) },
+        { "GUI::GetProperty^1",           API_FN_PAIR(GUI_GetProperty) },
+        { "GUI::GetTextProperty^1",       API_FN_PAIR(GUI_GetTextProperty) },
+        { "GUI::SetProperty^2",           API_FN_PAIR(GUI_SetProperty) },
+        { "GUI::SetTextProperty^2",       API_FN_PAIR(GUI_SetTextProperty) },
         { "GUI::get_BackgroundGraphic",   API_FN_PAIR(GUI_GetBackgroundGraphic) },
         { "GUI::set_BackgroundGraphic",   API_FN_PAIR(GUI_SetBackgroundGraphic) },
         { "GUI::get_BackgroundColor",     API_FN_PAIR(GUI_GetBackgroundColor) },

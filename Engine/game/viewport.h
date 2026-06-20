@@ -65,6 +65,11 @@ public:
     float GetRotation() const;
     // Sets camera's rotation, in degrees
     void SetRotation(float degrees);
+    Pointf GetPivot() const;
+    void SetPivot(const Pointf &pivot);
+    Point GetPivotOffset() const;
+    void SetPivotOffset(const Point &pivot_off);
+    Pointf GetEffectivePivot() const;
     int GetShaderID() const { return _shaderID; }
     int GetShaderHandle() const { return _shaderHandle; }
     void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
@@ -103,6 +108,8 @@ private:
     Rect _position;
     // Rotation in degrees
     float _rotation = 0.0;
+    Pointf _pivot = Pointf(.5f, .5f); // default: center
+    Point _pivotOff;
     // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;
     int _shaderHandle = 0;

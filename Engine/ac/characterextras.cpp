@@ -42,7 +42,7 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
         RectWH((eff_offset.X + frame_xoff),
                (-chin->z + eff_offset.Y + frame_yoff),
                spr_width, spr_height),
-        rotation // transforms
+        rotation, pivot, pivot_offset
     );
 }
 
@@ -93,8 +93,8 @@ void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int 
     chi->frame = frame;
     chi->wait = 0;
     chi->flags |= CHF_FIXVIEW;
-    chi->view_anchor = anchor;
-    chi->view_offset = off;
+    view_anchor = anchor;
+    view_offset = off;
     UpdateEffectiveValues(chi);
 }
 
@@ -103,8 +103,8 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
     chi->flags &= ~CHF_FIXVIEW;
     chi->view = chi->defview;
     chi->frame = 0;
-    chi->view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
-    chi->view_offset = Point();
+    view_anchor = CharacterInfo::GetDefaultSpriteAnchor();
+    view_offset = Point();
     UpdateEffectiveValues(chi);
 }
 
@@ -142,8 +142,8 @@ void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int dista
 
 void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *chin)
 {
-    eff_offset = chin->is_view_locked() ? chin->view_offset : spr_offset;
-    eff_anchor = chin->is_view_locked() ? chin->view_anchor : spr_anchor;
+    eff_offset = chin->is_view_locked() ? view_offset : spr_offset;
+    eff_anchor = chin->is_view_locked() ? view_anchor : spr_anchor;
 }
 
 void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, CharacterSvgVersion save_ver)
@@ -227,11 +227,12 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         in->ReadInt32(); // transform skew x
         in->ReadInt32(); // transform skew y
         rotation = in->ReadFloat32(); // transform rotate
-        in->ReadInt32(); // sprite pivot x
-        in->ReadInt32(); // sprite pivot y
+        float px = in->ReadFloat32(); // sprite pivot x
+        float py = in->ReadFloat32(); // sprite pivot y
         float ax = in->ReadFloat32(); // sprite anchor x
         float ay = in->ReadFloat32(); // sprite anchor y
         spr_anchor = Pointf(ax, ay);
+        pivot = Pointf(px, py);
     }
     else
     {
@@ -282,15 +283,27 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         spr_offset = Point(offx, offy);
         float ax = in->ReadFloat32();
         float ay = in->ReadFloat32();
-        chin->view_anchor = Pointf(ax, ay);
+        view_anchor = Pointf(ax, ay);
         offx = in->ReadInt32();
         offy = in->ReadInt32();
-        chin->view_offset = Point(offx, offy);
+        view_offset = Point(offx, offy);
     }
     else
     {
         spr_anchor = Pointf(0.5f, 1.f); // default: middle-bottom
         spr_offset = Point();
+    }
+
+    if (save_ver >= kCharSvgVersion_400_29)
+    {
+        int pivot_offx = in->ReadInt32();
+        int pivot_offy = in->ReadInt32();
+        pivot_offset = Point(pivot_offx, pivot_offy);
+    }
+    else
+    {
+        pivot = Point(0.5f, 0.5f); // default: center
+        pivot_offset = Point();
     }
 
     // NOTE: the legacy animating fields from old save fmt are applied externally,
@@ -343,8 +356,8 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     out->WriteInt32(0); // transform skew x
     out->WriteInt32(0); // transform skew y
     out->WriteFloat32(rotation); // transform rotate
-    out->WriteInt32(0); // sprite pivot x
-    out->WriteInt32(0); // sprite pivot y
+    out->WriteFloat32(pivot.X); // sprite pivot x
+    out->WriteFloat32(pivot.Y); // sprite pivot y
     out->WriteFloat32(spr_anchor.X); // sprite anchor x
     out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // -- kCharSvgVersion_400_03
@@ -365,8 +378,11 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     // kRoomStatSvgVersion_40026
     out->WriteInt32(spr_offset.X);
     out->WriteInt32(spr_offset.Y);
-    out->WriteFloat32(chin->view_anchor.X);
-    out->WriteFloat32(chin->view_anchor.Y);
-    out->WriteInt32(chin->view_offset.X);
-    out->WriteInt32(chin->view_offset.Y);
+    out->WriteFloat32(view_anchor.X);
+    out->WriteFloat32(view_anchor.Y);
+    out->WriteInt32(view_offset.X);
+    out->WriteInt32(view_offset.Y);
+    // kRoomStatSvgVersion_40029
+    out->WriteInt32(pivot_offset.X);
+    out->WriteInt32(pivot_offset.Y);
 }

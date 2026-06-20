@@ -61,12 +61,12 @@ struct SpriteTransform
     int X = 0, Y = 0;
     float ScaleX = 1.f, ScaleY = 1.f;
     float Rotate = 0.f; // angle, in degrees, clockwise
-    Point Pivot = Point(); // rotation pivot
+    Pointf Pivot = Pointf(); // rotation pivot
     SpriteColorTransform Color;
 
     SpriteTransform() = default;
     SpriteTransform(int x, int y, float scalex = 1.0f, float scaley = 1.0f,
-        float rotate = 0.0f, Point pivot = Point(),
+        float rotate = 0.0f, const Pointf &pivot = Point(),
         SpriteColorTransform color = SpriteColorTransform())
         : X(x), Y(y), ScaleX(scalex), ScaleY(scaley),
           Rotate(rotate), Pivot(pivot),
@@ -329,12 +329,15 @@ public:
     // Optionally you can assign "filter flags" to this batch; this lets to filter certain
     // batches out during some operations, such as fading effects or making screenshots.
     virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags = 0) = 0;
+    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref, uint32_t filter_flags = 0) = 0;
     // Begins a sprite batch with defined viewport and a global model transformation
     // and a global flip setting. Optionally provides a surface which should be rendered
     // underneath the rest of the sprites.
     // TODO: merge GraphicFlip with SpriteTransform.
     // TODO: can we merge PBitmap surface and render_target from overriden method?
     virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
+        Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) = 0;
+    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
         Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) = 0;
     // Begins a sprite batch which will be rendered on a target texture.
     // This batch will ignore any parent transforms, regardless whether it's nested

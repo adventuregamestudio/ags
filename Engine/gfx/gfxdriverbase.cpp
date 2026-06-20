@@ -91,13 +91,24 @@ bool GraphicsDriverBase::GetVsync() const
 
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags)
 {
-    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, kFlip_None, nullptr, filter_flags));
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, Size(), kFlip_None, nullptr, filter_flags));
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref, uint32_t filter_flags)
+{
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, size_ref, kFlip_None, nullptr, filter_flags));
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
     GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
 {
-    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface, filter_flags));
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, Size(), flip, surface, filter_flags));
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
+    GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
+{
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, size_ref, flip, surface, filter_flags));
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(IDriverDependantBitmap *render_target,

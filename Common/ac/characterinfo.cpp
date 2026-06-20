@@ -165,7 +165,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt8(0); // alignment padding to int32
 }
 
-void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
+void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, CharacterSvgVersion save_ver)
 {
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
@@ -191,7 +191,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     blinktimer = in->ReadInt16();
     blinkframe = in->ReadInt16();
     walkspeed_y = in->ReadInt16();
-    view_offset.Y = in->ReadInt16(); // legacy 16-bit view offset
+    old_fields.view_offset.Y = in->ReadInt16(); // legacy 16-bit view offset
     z = in->ReadInt32();
     walkwait = in->ReadInt32();
     speech_anim_speed = in->ReadInt16();
@@ -199,7 +199,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
     index_id = in->ReadInt32();
-    view_offset.X = in->ReadInt16(); // legacy 16-bit view offset
+    old_fields.view_offset.X = in->ReadInt16(); // legacy 16-bit view offset
     walkwaitcounter = in->ReadInt16();
     loop = in->ReadInt16();
     frame = in->ReadInt16();

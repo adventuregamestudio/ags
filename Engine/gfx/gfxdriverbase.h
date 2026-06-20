@@ -47,6 +47,8 @@ struct SpriteBatchDesc
     SpriteTransform          Transform;
     // Optional flip, applied to the whole batch as the last transform
     Common::GraphicFlip      Flip = Common::kFlip_None;
+    // Reference size, used mainly for deducing absolute rotation pivot
+    Size                     SizeRef;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     // TODO: merge with the RenderTexture?
     PBitmap                  Surface;
@@ -58,11 +60,12 @@ struct SpriteBatchDesc
 
     SpriteBatchDesc() = default;
     SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform,
-        Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr,
+        Size size_ref = Size(), Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr,
         uint32_t filter_flags = 0)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
+        , SizeRef(size_ref)
         , Flip(flip)
         , Surface(surface)
         , FilterFlags(filter_flags)
@@ -75,6 +78,7 @@ struct SpriteBatchDesc
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
+        , SizeRef(render_target ? Size(render_target->GetWidth(), render_target->GetHeight()) : Size())
         , Flip(flip)
         , RenderTarget(render_target)
         , FilterFlags(filter_flags)
@@ -145,15 +149,18 @@ public:
     //
     // Prepares next sprite batch, a list of sprites with defined viewport and optional
     // global model transformation.
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags = 0) override;
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags) override;
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref, uint32_t filter_flags) override;
     // Begins a sprite batch with defined viewport and a global model transformation
     // and a global flip setting. Optionally provides a surface which should be rendered
     // underneath the rest of the sprites.
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) override;
+                    Common::GraphicFlip flip, PBitmap surface, uint32_t filter_flags) override;
+    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
+                    Common::GraphicFlip flip, PBitmap surface, uint32_t filter_flags) override;
     // Begins a sprite batch which will be rendered on a target texture.
     void        BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0) override;
+                    Common::GraphicFlip flip, uint32_t filter_flags) override;
     // Ends current sprite batch
     void        EndSpriteBatch() override;
     // Clears all sprite batches, resets batch counter
@@ -258,6 +265,11 @@ public:
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
     float GetRotation() const override { return _rotation; }
     void SetRotation(float rotation) override { _rotation = rotation; }
+    virtual Pointf GetPivot() const { return _pivot; }
+    virtual void SetPivot(float pivotx, float pivoty)
+    {
+        _pivot = Pointf(pivotx, pivoty);
+    }
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
     int  GetLightLevel() const override { return _lightLevel; }
@@ -302,6 +314,7 @@ protected:
     Size _scaledSize;
     Common::GraphicFlip _flip = Common::kFlip_None;
     float _rotation = 0.f; // either in degrees or radians, depending on impl
+    Pointf _pivot = Pointf(.5f, .5f);
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
     IShaderInstance *_shader = nullptr;

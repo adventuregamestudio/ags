@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../libsrc/miniz ../../libsrc/allegro/include
+INCDIR = ../../Common ../../libsrc/miniz ../../libsrc/allegro/include ../../libsrc/stb
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -26,7 +26,10 @@ CFLAGS   += -Werror=implicit-function-declaration
 COMMON_OBJS = \
 	../../Common/ac/spritefile.cpp \
 	../../Common/gfx/bitmapdata.cpp \
+	../../Common/gfx/image_bmp.cpp \
 	../../Common/gfx/image_file.cpp \
+	../../Common/gfx/image_pcx.cpp \
+	../../Common/gfx/image_png.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/compress.cpp \
@@ -48,11 +51,15 @@ MINIMAL_ALLEGRO_OBJS = \
 MINIZ_OBJS = \
 	../../libsrc/miniz/miniz.c
 
+STB_OBJS = \
+	../../libsrc/stb/stb_image.c
+
 OBJS := main.cpp \
 	commands.cpp \
 	$(COMMON_OBJS) \
 	$(MINIMAL_ALLEGRO_OBJS) \
 	$(MINIZ_OBJS)
+	$(STB_OBJS)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 

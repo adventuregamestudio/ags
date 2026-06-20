@@ -17,6 +17,9 @@
     <Filter Include="allegro">
       <UniqueIdentifier>{9f02011e-fa1a-41f3-97bd-8d6b72d66542}</UniqueIdentifier>
     </Filter>
+    <Filter Include="stb">
+      <UniqueIdentifier>{a82a002f-a4f4-4bca-84e0-19b83412b412}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Tools\spritepak\main.cpp">
@@ -82,6 +85,18 @@
     <ClCompile Include="..\..\libsrc\allegro\src\color.c">
       <Filter>allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_bmp.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_pcx.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_png.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\stb\stb_image.c">
+      <Filter>stb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\spritepak\commands.h">
@@ -140,6 +155,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\bitmapdata.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\stb\stb_image.h">
+      <Filter>stb</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

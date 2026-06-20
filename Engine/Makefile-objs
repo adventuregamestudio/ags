@@ -82,5 +82,7 @@ AASTR = ../Common/libsrc/aastr-0.1.1/aarot.c ../Common/libsrc/aastr-0.1.1/aastr.
 
 MINIZ = ../libsrc/miniz/miniz.c
 
+STB = ../libsrc/stb/stb_image.c
+
 include Makefile-defs.allegro
 

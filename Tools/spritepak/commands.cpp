@@ -27,7 +27,7 @@ namespace SpritePak
 
 static const String DefaultPattern = "spr%06d";
 static const String DefaultRegexPattern = "spr\\d{6}";
-static const String DefaultExtension = "bmp"; // TODO: replace with PNG when engine code has support
+static const String DefaultExtension = "png";
 static const CstrArr<kNumSprCompressTypes> CompressionNames = {{"none", "rle", "lzw", "deflate"}};
 
 void Init()
@@ -349,6 +349,7 @@ int Command_Export(const String &src_pak, const String &dst_dir, const CommandOp
             }
             // TODO: we don't really know if this sprite respects the alpha channel without info from the main game data :(
             // need to support optinally receiving this information
+            // FIXME: cannot provide a palette without reading ac2game.dta or game28.dta :(
             if (!ImageFile::SaveImage(pxbuf, false /* dont skip alpha */, nullptr, out.get(), file_ext))
             {
                 printf("Error: failed to save image file: %s\n", image_file.GetCStr());

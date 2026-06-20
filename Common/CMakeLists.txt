@@ -97,8 +97,11 @@ target_sources(common
     gfx/bitmapdata.cpp
     gfx/bitmapdata.h
     gfx/gfx_def.h
+    gfx/image_bmp.cpp
     gfx/image_file.cpp
     gfx/image_file.h
+    gfx/image_pcx.cpp
+    gfx/image_png.cpp
     gui/guibutton.cpp
     gui/guibutton.h
     gui/guidefines.h
@@ -200,6 +203,7 @@ target_link_libraries(common PUBLIC
         AlFont::AlFont
         AAStr::AAStr
         glm::glm
+        stb::stb
         MiniZ::MiniZ)
 
 if (WIN32)

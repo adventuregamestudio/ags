@@ -30,8 +30,11 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/room_file_base.cpp
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
+		../Common/gfx/image_bmp.cpp
         ../Common/gfx/image_file.cpp
         ../Common/gfx/image_file.h
+		../Common/gfx/image_pcx.cpp
+		../Common/gfx/image_png.cpp
         ../Common/util/bufferedstream.cpp
         ../Common/util/bufferedstream.h
         ../Common/util/cmdlineopts.cpp
@@ -118,6 +121,7 @@ target_sources(libtools
         )
         
 target_link_libraries(libtools PUBLIC MiniZ::MiniZ)
+target_link_libraries(libtools PUBLIC stb::stb)
 target_link_libraries(libtools PUBLIC TinyXML2::TinyXML2)
 if (WIN32)
     target_link_libraries(libtools PUBLIC shlwapi)

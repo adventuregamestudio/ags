@@ -30,6 +30,8 @@ namespace Common
 // A format of pixel storage in memory;
 // Note that there's a small list of formats used by AGS at runtime,
 // others are here only for temporary use e.g. when loading an image from file.
+// FIXME: differentiate RGB(A) formats with different order of components!
+// -- this may be required for transformation checks when saving or loading image files.
 enum PixelFormat
 {
     kPxFmt_Undefined,
@@ -219,10 +221,28 @@ namespace PixelOp
     // and dest pixel format. The destination buffer must be properly allocated
     //     (see GetDataSizeForPixelFormat()).
     // Returns result, fails if conversion not supported.
-    // WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
+    // WARNING: the only conversion supported currently are:
+    //          * 1-bit     => 8-bit
+    //          * 4-bit     => 8-bit
+    //          * 16-bit    => 24-bit
+    //          * 16-bit    => 32-bit
     //          add more common conversions later!
+    // FIXME: this would require a palette if conversion goes from indexed to non-indexed!
     bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
         const int width, const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch);
+    // Copies pixels from source to dest buffer, swapping the RGB components, according
+    // to the provided RGB shifts. This operation requires that pixel format is kept the same.
+    // It is actually possible to swap in-place (where src and dst are the same buffers).
+    void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
+        uint8_t *dst_buffer, const size_t dst_pitch, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+        const int width, const int height, const PixelFormat px_fmt);
+    // Copies pixels from source to dest buffer, swapping the RGB components, according
+    // to the provided RGB shifts. This operation requires that pixel format is kept the same.
+    // The source and destination pitches are calculated from PixelFormat.
+    // It is actually possible to swap in-place (where src and dst are the same buffers).
+    void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
+        uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+        const int width, const int height, const PixelFormat px_fmt);
 }
 
 } // namespace Common

@@ -43,6 +43,22 @@ namespace ImageFile
     // "ext" parameter tells which image format to use.
     inline bool SaveImage(const BitmapData& bmdata, Stream* out, const String& ext)
         { return SaveImage(bmdata, false, nullptr, out, ext); }
+
+    // Returns a list of supported image extensions
+    std::vector<String> GetSupportedImageExts();
+
+    // Load BMP image from the stream
+    PixelBuffer LoadBMP(Stream *in, PixelFormat *src_fmt, RGB *pal);
+    // Load PCX image from the stream
+    PixelBuffer LoadPCX(Stream *in, PixelFormat *src_fmt, RGB *pal);
+    // Load PNG image from the stream
+    PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal);
+    // Save BMP image into the stream
+    bool SaveBMP(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out);
+    // Save PCX image into the stream
+    bool SavePCX(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out);
+    // Save PNG image into the stream
+    bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out);
 } // namespace ImageFile
 
 } // namespace Common

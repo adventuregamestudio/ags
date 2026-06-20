@@ -46,6 +46,10 @@ static struct ImageExtToFmt
         { nullptr, nullptr, nullptr }
     };
 
+std::vector<String> GetSupportedImageExts()
+{
+    return std::vector<String>{ "bmp", "pcx", "png" };
+}
 
 PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat* src_fmt, RGB *pal)
 {

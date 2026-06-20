@@ -44,6 +44,9 @@ namespace ImageFile
     inline bool SaveImage(const BitmapData& bmdata, Stream* out, const String& ext)
         { return SaveImage(bmdata, false, nullptr, out, ext); }
 
+    // Returns a list of supported image extensions
+    std::vector<String> GetSupportedImageExts();
+
     // Load BMP image from the stream
     PixelBuffer LoadBMP(Stream *in, PixelFormat *src_fmt, RGB *pal);
     // Load PCX image from the stream

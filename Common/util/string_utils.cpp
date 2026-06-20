@@ -449,6 +449,82 @@ size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t 
     return len;
 }
 
+String StrUtil::ApplyTextDirection(const String &text, bool default_rtl)
+{
+    const Utf8::Rune LRE = 0x202A;
+    const Utf8::Rune RLE = 0x202B;
+
+    // We may only cut control characters, but not add any new ones,
+    // therefore we allocate a buffer which is at least as large as the input.
+    // NOTE: we don't allocate a buffer unless meet control chars (or RTL section);
+    // in case whole string is LTR, we just return original string.
+    char *dst_buf = nullptr;
+
+    bool is_rtl = default_rtl;
+    const char *src_ptr = text.GetCStr();
+    const char *sec_begin = src_ptr;
+    char *dst_ptr = nullptr;
+    for (Utf8::Rune r = Utf8::RuneInvalid; r != 0;)
+    {
+        size_t c_len = Utf8::GetChar(src_ptr, Utf8::UtfSz, &r);
+
+        if (is_rtl)
+        {
+            // Right-to-left section goes until a LRE control char or end of string
+            if (r == LRE || r == 0)
+            {
+                if (!dst_buf)
+                {
+                    dst_buf = new char[text.GetLength() + 1];
+                    dst_ptr = dst_buf;
+                }
+
+                // RTL section is copied char by char in reverse direction
+                // TODO: pick this out to a separate helper function?
+                const char *copy_from = src_ptr, *copy_to;
+                do
+                {
+                    copy_to = copy_from;
+                    copy_from = Utf8::BackOneChar(copy_to, sec_begin);
+                    size_t copy_len = copy_to - copy_from;
+                    memcpy(dst_ptr, copy_from, copy_len);
+                    dst_ptr += copy_len;
+                }
+                while (copy_from != sec_begin);
+                is_rtl = false;
+                sec_begin = src_ptr + c_len;
+            }
+        }
+        else
+        {
+            // Left-to-right section goes until a LRE control char or end of string
+            if (r == RLE || r == 0)
+            {
+                // Optimization: if we reached end of string without seeing any control chars,
+                // then just return the original string as-is.
+                if (r == 0 && (sec_begin == text.GetCStr()))
+                    return text;
+
+                if (!dst_buf)
+                {
+                    dst_buf = new char[text.GetLength() + 1];
+                    dst_ptr = dst_buf;
+                }
+
+                // LTR section is copied plainly as a sequence of bytes
+                size_t sec_length = src_ptr - sec_begin;
+                memcpy(dst_ptr, sec_begin, sec_length);
+                dst_ptr += sec_length;
+                is_rtl = true;
+                sec_begin = src_ptr + c_len;
+            }
+        }
+        src_ptr += c_len;
+    }
+    *dst_ptr = 0;
+    return String(dst_buf);
+}
+
 static bool TryUTF8LocaleName(const String &try_name, String &got_name)
 {
     try

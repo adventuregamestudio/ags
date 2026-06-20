@@ -1578,7 +1578,7 @@ builtin managed struct DynamicSprite {
   import static DynamicSprite* CreateFromDrawingSurface(DrawingSurface* surface, int x, int y, int width, int height);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of an existing sprite.
   import static DynamicSprite* CreateFromExistingSprite(int slot, bool preserveAlphaChannel=0);    // $AUTOCOMPLETESTATICONLY$
-  /// Creates a dynamic sprite from a BMP or PCX file.
+  /// Creates a dynamic sprite from any supported image file.
   import static DynamicSprite* CreateFromFile(const string filename);              // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
@@ -1604,7 +1604,7 @@ builtin managed struct DynamicSprite {
   import void Resize(int width, int height);
   /// Rotates the sprite by the specified number of degrees.
   import void Rotate(int angle, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
-  /// Saves the sprite to a BMP or PCX file.
+  /// Saves the sprite to a image file of any supported format.
   import int  SaveToFile(const string filename);
   /// Permanently tints the sprite to the specified colour.
   import void Tint(int red, int green, int blue, int saturation, int luminance);

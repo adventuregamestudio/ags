@@ -292,16 +292,16 @@ void RegisterStaticArrays(GameSetupStruct &game)
     StaticHandlesArray.Create(sizeof(int32_t));
 
     // Game element arrays
-    ccAddExternalScriptObject("character", &StaticCharacterArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("dialog", &StaticDialogArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("gui", &StaticGUIArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("inventory", &StaticInventoryArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("character", StaticCharacterArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("dialog", StaticDialogArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("gui", StaticGUIArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("inventory", StaticInventoryArray.data(), &StaticHandlesArray);
     // Room element arrays
-    ccAddExternalScriptObject("hotspot", &StaticHotspotArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("object", &StaticObjectArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("region", &StaticRegionArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("walkarea", &StaticWalkareaArray[0], &StaticHandlesArray);
-    ccAddExternalScriptObject("walkbehind", &StaticWalkbehindArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("hotspot", StaticHotspotArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("object", StaticObjectArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("region", StaticRegionArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("walkarea", StaticWalkareaArray.data(), &StaticHandlesArray);
+    ccAddExternalScriptObject("walkbehind", StaticWalkbehindArray.data(), &StaticHandlesArray);
 }
 
 // Initializes various game entities and registers them in the script system

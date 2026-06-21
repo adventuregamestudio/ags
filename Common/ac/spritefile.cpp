@@ -378,7 +378,7 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     spritedepths.resize(numsprits);
     if (vers >= kSpridxfVersion_ColorDepths)
     {
-        fidx->ReadArrayOfInt8(&spritedepths[0], numsprits);
+        fidx->ReadArrayOfInt8(spritedepths.data(), numsprits);
     }
 
     for (sprkey_t i = 0; i <= topmost_index; ++i)

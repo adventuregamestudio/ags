@@ -14,6 +14,7 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
+#include <array>
 #include <memory>
 #include <vector>
 #include <unordered_map>
@@ -312,6 +313,11 @@ struct GamePlayState
 
     void SetGameTextLanguage(const Common::String &language);
 
+    // Runtime behavior switches: allow to configure engine behavior
+    // for modern and backwards-compatibility mode on a per-operation basis.
+    const std::array<bool, kNum_RBS> &GetRBSwitches() const { return _rbSwitches; }
+    void SetRBSwitches(const std::array<bool, kNum_RBS> &rbs);
+
     //
     // Viewport and camera control.
     // Viewports are positioned in game screen coordinates, related to the "game size",
@@ -466,6 +472,8 @@ private:
     Common::String _gameTextLanguage;
     // Name of the current used locale for UTF8 text mode
     Common::String _localeNameUTF8;
+
+    std::array<bool, kNum_RBS> _rbSwitches = {{ 0 }};
 
     // Defines if the room viewport should be adjusted to the room size automatically.
     bool _isAutoRoomViewport = true;

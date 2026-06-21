@@ -208,6 +208,13 @@ namespace StrUtil
     // Creates a substring with a partial copy of a c string
     std::unique_ptr<char[]> Substring(const char *cstr, size_t start, size_t length);
 
+    // Applies text directon using LTR and RTL instructions. Allows to have LTR and RTL
+    // sequences in any order, using respective Unicode control characters.
+    // Control characters are not copied, but removed from the final string.
+    // Returns a new resulting string.
+    // IMPORTANT: Assumes that the input string contains UTF-8 data.
+    String ApplyTextDirection(const String &text, bool default_rtl = false);
+
     // Tries to find a UTF8 locale name for the given language name,
     // suitable for the current runtime backend. Returns the locale name found,
     // or empty string if none was found.

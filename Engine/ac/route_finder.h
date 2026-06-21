@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 #include "ac/movelist.h"
+#include "platform/types.h"
 #include "util/geometry.h"
 
 namespace AGS

@@ -270,6 +270,12 @@ struct GuiOptions
     bool GreyOutInvWindow = false;
     // Whether to graphically outline GUI controls
     bool OutlineControls = false;
+
+    //
+    // Backwards-compatibility options
+    //-------------------------------------------------------------------------
+    // Apply text direction for GUI controls (except Labels, where it's always applied)
+    bool ApplyTextDirection = true;
 };
 
 class SpriteCache;

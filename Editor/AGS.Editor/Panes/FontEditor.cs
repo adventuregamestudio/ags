@@ -108,7 +108,7 @@ namespace AGS.Editor
             try
             {
                 Factory.NativeProxy.DrawTextUsingFont(g.GetHdc(),
-                    tbTextPreview.Text, _item.ID, true /*draw_outline*/,
+                    tbTextPreview.Text, _item.ID, chkRTL.Checked, true /*draw_outline*/,
                     0, 0, g_width, g_height, 5, 5, g_width / scaling - 5,
                     scaling);
                 g.ReleaseHdc();
@@ -131,6 +131,12 @@ namespace AGS.Editor
 
         private void textPreviewPanel_SizeChanged(object sender, EventArgs e)
         {
+            textPreviewPanel.Invalidate();
+        }
+
+        private void chkRTL_CheckedChanged(object sender, EventArgs e)
+        {
+            tbTextPreview.RightToLeft = chkRTL.Checked ? RightToLeft.Yes : RightToLeft.No;
             textPreviewPanel.Invalidate();
         }
 

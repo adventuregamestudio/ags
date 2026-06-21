@@ -54,6 +54,8 @@ public:
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();
 
+  void SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup);
+
   //
   // Utility functions
   //

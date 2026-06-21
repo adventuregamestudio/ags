@@ -65,11 +65,18 @@ namespace Common
 
 String GUI::ApplyTextDirection(const String &text)
 {
-    if (game.options[OPT_RIGHTLEFTWRITE] == 0)
-        return text;
-    String res_text = text;
-    (get_uformat() == U_UTF8) ? res_text.ReverseUTF8() : res_text.Reverse();
-    return res_text;
+    const bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
+    if (get_uformat() == U_UTF8)
+    {
+        return StrUtil::ApplyTextDirection(text, rtl_mode);
+    }
+    else if (rtl_mode)
+    {
+        String res_text = text;
+        res_text.Reverse();
+        return res_text;
+    }
+    return text;
 }
 
 String GUI::TransformTextForDrawing(const String &text, bool translate, bool apply_direction)
@@ -127,7 +134,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     bool reverse = false;
     // Text boxes input is never "translated" in regular sense,
     // but they use this flag to apply text direction
-    if ((loaded_game_file_version >= kGameVersion_361) && ((_flags & kGUICtrl_Translated) != 0))
+    if ((GUI::Options.ApplyTextDirection) && ((_flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(_text);
         reverse = game.options[OPT_RIGHTLEFTWRITE] != 0;
@@ -135,12 +142,12 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 
     FrameAlignment text_align = kAlignTopLeft;
     // 3.6.1 -> 3.6.2 applied text alignment based on text direction
-    if ((loaded_game_file_version >= kGameVersion_361) && (loaded_game_file_version < kGameVersion_363_04))
+    if ((GUI::Options.ApplyTextDirection) && (GUI::DataVersion < kGameVersion_363_04))
     {
         text_align = reverse ? kAlignTopRight : kAlignTopLeft;
     }
     // 3.6.3+ have explicit text alignment property
-    else if (loaded_game_file_version >= kGameVersion_363_04)
+    else if (GUI::DataVersion >= kGameVersion_363_04)
     {
         text_align = _textAlignment;
     }
@@ -170,7 +177,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
      _textToDraw = GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0,
-         (loaded_game_file_version >= kGameVersion_361));
+         (GUI::Options.ApplyTextDirection));
 }
 
 void GUIButton::PrepareTextToDraw()
@@ -183,7 +190,7 @@ void GUIButton::PrepareTextToDraw()
     else
     {
         _textToDraw = GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0,
-            (loaded_game_file_version >= kGameVersion_361));
+            (GUI::Options.ApplyTextDirection));
     }
 }
 

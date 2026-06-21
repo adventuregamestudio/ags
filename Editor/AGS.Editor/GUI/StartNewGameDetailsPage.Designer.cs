@@ -29,6 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkSaveFolderAsDefault = new System.Windows.Forms.CheckBox();
             this.btnCreateInBrowse = new System.Windows.Forms.Button();
             this.txtCreateInFolder = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -42,6 +43,7 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.chkSaveFolderAsDefault);
             this.groupBox1.Controls.Add(this.btnCreateInBrowse);
             this.groupBox1.Controls.Add(this.txtCreateInFolder);
             this.groupBox1.Controls.Add(this.label3);
@@ -52,10 +54,20 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(9, 7);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(520, 219);
+            this.groupBox1.Size = new System.Drawing.Size(520, 237);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "New game details";
+            // 
+            // chkSaveFolderAsDefault
+            // 
+            this.chkSaveFolderAsDefault.AutoSize = true;
+            this.chkSaveFolderAsDefault.Location = new System.Drawing.Point(19, 215);
+            this.chkSaveFolderAsDefault.Name = "chkSaveFolderAsDefault";
+            this.chkSaveFolderAsDefault.Size = new System.Drawing.Size(188, 17);
+            this.chkSaveFolderAsDefault.TabIndex = 7;
+            this.chkSaveFolderAsDefault.Text = "Remember this location as default";
+            this.chkSaveFolderAsDefault.UseVisualStyleBackColor = true;
             // 
             // btnCreateInBrowse
             // 
@@ -143,7 +155,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MinimumSize = new System.Drawing.Size(540, 240);
             this.Name = "StartNewGameDetailsPage";
-            this.Size = new System.Drawing.Size(1555, 574);
+            this.Size = new System.Drawing.Size(1523, 567);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -161,5 +173,6 @@ namespace AGS.Editor
 		private System.Windows.Forms.TextBox txtCreateInFolder;
 		private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button btnCreateInBrowse;
+        private System.Windows.Forms.CheckBox chkSaveFolderAsDefault;
     }
 }

@@ -17,6 +17,7 @@
 #include <ctype.h> // toupper
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
@@ -324,6 +325,18 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
     setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
     setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);
+
+    // Behavior overrides switches
+    if (cfg.count("override_behavior") > 0)
+    {
+        CstrArr<kNum_RBS> names;
+        std::copy(std::begin(RBSwitchNames), std::end(RBSwitchNames), names.begin());
+        const auto &rbo_opts = cfg.at("override_behavior");
+        for (const auto &opt : rbo_opts)
+        {
+            setup.BehaviorOverrides[StrUtil::ParseEnum(opt.first, names, kRBS_Dummy)] = StrUtil::StringToInt(opt.second, 0);
+        }
+    }
 
     // Apply logging configuration
     apply_debug_config(cfg, true);

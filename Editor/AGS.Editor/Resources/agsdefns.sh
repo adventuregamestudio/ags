@@ -100,6 +100,7 @@
 #define OPT_GUICONTROLMOUSEBUT 57
 #define OPT_AUTOTRANSPARSERSAID 58
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59
+#define OPT_TURNORDERPRIORITY 60
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT     0
@@ -575,6 +576,16 @@ enum HitTestOptions
 {
   eHit_Any              = 0,
   eHit_Interactable     = 0x0001
+};
+
+// Determines which order of character turning is chosen when
+// both clockwise and counter-clockwise directions are equally short
+enum TurnOrderPriority
+{
+  eTurnOrderClockwise          = 0,
+  eTurnOrderCounterClockwise   = 1,
+  eTurnOrderRandom             = 2,
+  eTurnOrderFaceDown           = 3
 };
 #endif // SCRIPT_API_v363
 
@@ -1482,7 +1493,7 @@ builtin managed struct DynamicSprite {
   import static DynamicSprite* CreateFromDrawingSurface(DrawingSurface* surface, int x, int y, int width, int height, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of an existing sprite.
   import static DynamicSprite* CreateFromExistingSprite(int slot, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
-  /// Creates a dynamic sprite from a BMP or PCX file.
+  /// Creates a dynamic sprite from any supported image file.
   import static DynamicSprite* CreateFromFile(const string filename, ColorFormat format = eColorFmt_Default); // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a save game screenshot.
   import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
@@ -1508,7 +1519,7 @@ builtin managed struct DynamicSprite {
   import void Resize(int width, int height);
   /// Rotates the sprite by the specified number of degrees.
   import void Rotate(int angle, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
-  /// Saves the sprite to a BMP or PCX file.
+  /// Saves the sprite to a image file of any supported format.
   import int  SaveToFile(const string filename);
   /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
@@ -3288,6 +3299,10 @@ builtin struct Game {
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Returns the volume drop applied to the specified audio type when speech is played
+  import static int GetAudioTypeSpeechVolumeDrop(AudioType);
+  /// Returns the default volume of audio clips of the specified type. Return value -1 means that no standard volume is defined, and each clip will start playback with its own default volume set in the editor.
+  import static int GetAudioTypeVolume(AudioType);
   /// Play speech voice-over in non-blocking mode, using certain AudioType settings, and optionally putting it on a particular channel.
   import static AudioChannel* PlayVoiceClipAsType(Character*, int cue, AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Pauses the game, which stops all animations and movement. Each call to Game.Pause() incremements a "pause" counter.

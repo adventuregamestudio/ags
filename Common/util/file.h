@@ -19,7 +19,7 @@
 // TODO: because Stream is now just a wrapper over IStreamBase,
 // there are two *alternate* changes that we might consider for the future:
 // 1. Variant 1 - return not a unique_ptr<Stream>, but a plain moveable
-//    Stream object instead. This would require altering alot  of code
+//    Stream object instead. This would require altering alot of code
 //    throughout the engine though, where Stream is accessed as a ptr.
 // 2. Variant 2 - return unique_ptr<IStreamBase>. This means getting a more
 //    primitive object, which may be wrapped into Stream only where necessary.
@@ -72,6 +72,8 @@ namespace File
     bool        RenameFile(const String &old_name, const String &new_name);
     // Copies a file from src_path to dst_path; returns TRUE on success
     bool        CopyFile(const String &src_path, const String &dst_path, bool overwrite);
+    // Truncates existing file to the given length in bytes.
+    bool        TruncateFile(const String &filename, soff_t length);
 
     // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
     bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode);
@@ -98,6 +100,9 @@ namespace File
     {
         return OpenFile(filename, kFile_Create, kStream_Write);
     }
+    // Creates and opens a temporary file in read/write mode.
+    // This file will be deleted as soon as the stream is closed.
+    std::unique_ptr<Stream> CreateTempFile();
     // Opens stdin stream for reading
     std::unique_ptr<Stream> OpenStdin();
     // Opens stdout stream for writing

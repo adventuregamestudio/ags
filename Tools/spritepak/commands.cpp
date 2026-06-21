@@ -27,7 +27,7 @@ namespace SpritePak
 
 static const String DefaultPattern = "spr%06d";
 static const String DefaultRegexPattern = "spr\\d{6}";
-static const String DefaultExtension = "bmp"; // TODO: replace with PNG when engine code has support
+static const String DefaultExtension = "png";
 static const CstrArr<kNumSprCompressTypes> CompressionNames = {{"none", "rle", "lzw", "deflate"}};
 
 void Init()
@@ -243,8 +243,15 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     // tile cropping, etc, which options we may need to read from some kind of a
     // "sprite definition" file (or Game.agf).
     writer.Begin(opts.StorageFlags, opts.Compress, top_index);
+    sprkey_t index = 0;
     for (const auto &imf : sorted_files)
     {
+        // Fill any gaps with empty slots
+        while (index++ != imf.first)
+        {
+            writer.WriteEmptySlot();
+        }
+
         auto im_in = File::OpenFileRead(Path::ConcatPaths(src_dir, imf.second));
         if (!im_in)
         {
@@ -342,6 +349,7 @@ int Command_Export(const String &src_pak, const String &dst_dir, const CommandOp
             }
             // TODO: we don't really know if this sprite respects the alpha channel without info from the main game data :(
             // need to support optinally receiving this information
+            // FIXME: cannot provide a palette without reading ac2game.dta or game28.dta :(
             if (!ImageFile::SaveImage(pxbuf, false /* dont skip alpha */, nullptr, out.get(), file_ext))
             {
                 printf("Error: failed to save image file: %s\n", image_file.GetCStr());

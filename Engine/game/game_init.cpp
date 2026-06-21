@@ -112,6 +112,8 @@ String GetGameInitErrorText(GameInitErrorType err)
     {
     case kGameInitErr_NoError:
         return "No error.";
+    case kGameInitErr_UnknownDataVersion:
+        return "Unknown game data version";
     case kGameInitErr_NoFonts:
         return "No fonts specified to be used in this game.";
     case kGameInitErr_EntityInitFail:
@@ -325,6 +327,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 
 void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
+    set_gamedata_version(data_ver);
     for (int i = 0; i < game.numfonts; ++i) 
     {
         load_game_font(i, game.fonts[i], data_ver);
@@ -509,8 +512,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
     ApplyAccessibilityOptions(play, usetup);
-    // Apply override settings, such as hacks and backwards compatibility fixes
-    ApplyOverrides(game, play, usetup);
+    // Applies behavior options, also hacks and backwards compatibility fixes
+    ApplyBehaviorOptions(game, play, usetup);
 
     // Optionally dump joint RTTI into the log
     if (logScriptRTTI && RuntimeScript::GetJointRTTI())
@@ -538,12 +541,43 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
     }
 }
 
-void ApplyOverrides(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
+void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
 {
-    // CLNUP: remove in AGS 4
+    // CLNUP: remove in AGS 4 (all of the below relate to running pre-3.6.3 versions)
+
+    // First designate the default behavior settings, depending on game data version
+    std::array<bool, kNum_RBS> rbo = {0};
+    rbo[kRBO_SmoothWalkTransition] = (loaded_game_file_version >= kGameVersion_361);
+    rbo[kRBO_ApplyGUITextDirection] = (loaded_game_file_version >= kGameVersion_361);
+    rbo[kRBO_ApplyDialogOptionTextDirection]= (loaded_game_file_version >= kGameVersion_363);
+
+    // Now apply overrides from config, *BUT* these only enable disabled options,
+    // and never disable enabled ones (because that might break or "downgrade" modern games).
+    for (size_t i = 0; i < kNum_RBS; ++i)
+    {
+        rbo[i] |= setup.BehaviorOverrides[i];
+    }
+    play.SetRBSwitches(rbo);
+
     if (setup.Override.NewKeyHandling)
     {
         game.options[OPT_KEYHANDLEAPI] = 1;
+    }
+
+    GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
+}
+
+void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play)
+{
+    // Runtime Behavior Switches
+    {
+        Debug::Printf("Runtime behavior switches:");
+        const auto &rbs_values = play.GetRBSwitches();
+        for (size_t i = kRBS_Dummy + 1; i < kNum_RBS; ++i)
+        {
+            assert(RBSwitchNames[i] != nullptr);
+            Debug::Printf("\t%s = %d", RBSwitchNames[i], static_cast<int>(rbs_values[i]));
+        }
     }
 }
 

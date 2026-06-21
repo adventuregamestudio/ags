@@ -399,6 +399,13 @@ namespace AGS.Types
 			set { _directoryPath = value; }
 		}
 
+        // Returns game's save folder name. It is either defined by Settings,
+        // or taken equal to the game's title.
+        public string GameSaveFolderName
+        {
+            get { return string.IsNullOrEmpty(_settings.SaveGameFolderName) ? _settings.GameName : _settings.SaveGameFolderName; }
+        }
+
 		/// <summary>
 		/// If this is set, then the editor is more forceful about making
 		/// the user save the game on exit.

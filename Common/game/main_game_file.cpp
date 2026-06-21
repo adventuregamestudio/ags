@@ -178,16 +178,11 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     size_t count = in->ReadInt32();
     for (size_t i = 0; i < count; ++i)
         src.Caps.insert(StrUtil::ReadString(in));
-    // Remember loaded game data version
-    // NOTE: this global variable is embedded in the code too much to get
-    // rid of it too easily; the easy way is to set it whenever the main
-    // game file is opened.
-    loaded_game_file_version = src.DataVersion;
     // Generate data version for certain game versions that did not have dedicated index;
     // rely on CompiledWith field. This lets distinguish some behavior differences.
     Version compiled_version(src.CompiledWith);
     if (compiled_version.AsNumber() == 30501)
-        loaded_game_file_version = kGameVersion_351;
+        src.DataVersion = kGameVersion_351;
     return HGameFileError::None();
 }
 
@@ -1109,7 +1104,7 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
 HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver, const String &compiled_with)
 {
     GameSetupStruct &game = ents.Game;
-    game.filever = data_ver;
+    game.gamedataver = data_ver;
     game.compiled_with = compiled_with;
     Stream *in = s_in.get(); // for convenience
 
@@ -1154,7 +1149,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
 
     ReadViews(game, ents.Views, in, data_ver);
 
-    game.read_characters(in);
+    game.read_characters(in, data_ver);
     game.read_lipsync(in, data_ver);
     game.skip_messages(in, sinfo.HasMessages, data_ver);
 
@@ -1209,6 +1204,8 @@ void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, Game
     GameSetupStruct::SerializeInfo sinfo;
     game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
+    game.gamedataver = data_ver;
+    game.compiled_with = compiled_with;
 
     // Check for particular expansions that might have data necessary
     // for "preload" purposes
@@ -1219,8 +1216,6 @@ void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, Game
     LoadedGameEntities ents(game);
     GameDataExtPreloader reader(ents, data_ver, std::move(s_in));
     reader.Read();
-    game.filever = data_ver;
-    game.compiled_with = compiled_with;
 }
 
 } // namespace Common

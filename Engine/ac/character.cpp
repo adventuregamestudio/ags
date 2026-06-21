@@ -41,6 +41,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/route_finder.h"
+#include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
@@ -48,25 +49,24 @@
 #include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/cc_inventory.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
+#include "gfx/gfx_def.h"
+#include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "util/string_compat.h"
-#include "gfx/graphicsdriver.h"
+#include "media/audio/audio_system.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_inventory.h"
-#include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "script/script_runtime.h"
-#include "gfx/gfx_def.h"
-#include "media/audio/audio_system.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -2192,8 +2192,9 @@ ScriptMotionPath *Character_GetMotionPath(CharacterInfo *ch)
 
 //=============================================================================
 
-// order of loops to turn character in circle from down to down
-const int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
+// Order of loops to turn character, from down to down-right clockwise
+const int turnlooporder[MAX_FACE_DIRECTIONS] =
+    { kDirLoop_Down, kDirLoop_DownLeft, kDirLoop_Left, kDirLoop_UpLeft, kDirLoop_Up, kDirLoop_UpRight, kDirLoop_Right, kDirLoop_DownRight };
 
 // Core character move implementation:
 // uses a provided path or searches for a path to a given destination;
@@ -2323,9 +2324,10 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     }
 }
 
-int find_looporder_index (int curloop) {
-    int rr;
-    for (rr = 0; rr < 8; rr++) {
+int find_looporder_index(int curloop)
+{
+    for (int rr = 0; rr < MAX_FACE_DIRECTIONS; ++rr)
+    {
         if (turnlooporder[rr] == curloop)
             return rr;
     }
@@ -2344,46 +2346,68 @@ bool should_use_diagloops(CharacterInfo *char1, bool require_animation)
 }
 
 // returns 1 normally, or 0 if they only have horizontal animations
-int hasUpDownLoops(CharacterInfo *char1) {
+bool has_updown_loops(CharacterInfo *char1)
+{
     // if no loops in the Down animation
     // or no loops in the Up animation
     if ((views[char1->view].loops[0].numFrames < 1) ||
         (views[char1->view].numLoops < 4) ||
         (views[char1->view].loops[3].numFrames < 1))
     {
-        return 0;
+        return false;
     }
+    return true;
+}
 
-    return 1;
+// Tells if the given directional loop belongs to the left half of the circle;
+// note this returns positive for vertical loops too, for the sake of simplicity
+static bool is_loop_in_left_half(int loop)
+{
+    switch (loop)
+    {
+    case kDirLoop_Down: case kDirLoop_DownLeft: case kDirLoop_Left: case kDirLoop_UpLeft: case kDirLoop_Up: return true;
+    default: return false;
+    }
 }
 
 void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloops)
 {
     CharacterExtras &chex = charextra[chinf->index_id];
     // work out how far round they have to turn 
-    int fromidx = find_looporder_index (chinf->loop);
-    int toidx = find_looporder_index (useloop);
-    //Display("Curloop: %d, needloop: %d",chinf->loop, useloop);
-    int ii, go_anticlock = 0;
-    // work out whether anticlockwise is quicker or not
-    if ((toidx > fromidx) && ((toidx - fromidx) > 4))
-        go_anticlock = 1;
-    if ((toidx < fromidx) && ((fromidx - toidx) < 4))
-        go_anticlock = 1;
-    if (go_anticlock == 0)
-        go_anticlock = -1;
+    int fromidx = find_looporder_index(chinf->loop);
+    int toidx = find_looporder_index(useloop);
+    // Default turn order is clockwise. But in certain cases we might want to change this.
+    int clock_order = 1;
+    // If anti-clockwise is a shorter turn, then we choose anti-clockwise direction.
+    if ((toidx > fromidx) && ((toidx - fromidx) > MAX_FACE_DIRECTIONS / 2) ||
+        (toidx < fromidx) && ((fromidx - toidx) < MAX_FACE_DIRECTIONS / 2))
+    {
+        clock_order = -1;
+    }
+    // If both directions are equally short, then use the global priority setting.
+    else if (std::abs(toidx - fromidx) == MAX_FACE_DIRECTIONS / 2)
+    {
+        switch (game.options[OPT_TURNORDERPRIORITY])
+        {
+        case kScTurnOrder_Clockwise: clock_order = 1; break;
+        case kScTurnOrder_CounterClockwise: clock_order = -1; break;
+        case kScTurnOrder_Random: clock_order = (rand() % 2) == 0 ? 1 : -1; break;
+        case kScTurnOrder_FaceDown: clock_order = is_loop_in_left_half(fromidx) ? 1 : -1 ; break;
+        default: break;
+        }
+    }
 
     int turns = 0;
-    for (ii = fromidx; ii != toidx; ii -= go_anticlock)
+    for (int ii = fromidx; ii != toidx; ii += clock_order)
     {
-        // Wrap the loop order into range [0-7]
+        // Wrap the loop order into range [0..MAX_FACE_DIRECTIONS - 1]
         if (ii < 0)
-            ii = 7;
-        if (ii >= 8)
+            ii = MAX_FACE_DIRECTIONS - 1;
+        if (ii >= MAX_FACE_DIRECTIONS)
             ii = 0;
         if (ii == toidx)
             break;
-        if ((turnlooporder[ii] >= 4) && (!use_diagloops))
+        if ((turnlooporder[ii] >= NUM_BASE_DIRECTIONS) && (!use_diagloops))
             continue; // there are no diagonal loops
         if (turnlooporder[ii] >= views[chinf->view].numLoops)
             continue; // no such loop
@@ -2391,10 +2415,9 @@ void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloo
             continue; // no frames in such loop
         turns++;
     }
-
     if (turns > 0)
     {
-        chex.SetTurning(true, go_anticlock > 0, turns);
+        chex.SetTurning(true, clock_order < 0, turns);
     }
 }
 
@@ -2420,7 +2443,7 @@ void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
     }
     if ((chinf->loop >= views[chinf->view].numLoops) ||
         (views[chinf->view].loops[chinf->loop].numFrames < 1) ||
-        (hasUpDownLoops(chinf) == 0)) {
+        (!has_updown_loops(chinf))) {
             // Character is not currently on a valid loop, so don't try to rotate
             // eg. left/right only view, but current loop 0
             chinf->loop = useloop;

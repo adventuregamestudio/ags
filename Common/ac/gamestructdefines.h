@@ -93,7 +93,8 @@
 #define OPT_GUICONTROLMOUSEBUT 57 // whether common gui controls should react only to LMB (0 - any, 1 - LMB)
 #define OPT_AUTOTRANSPARSERSAID 58 // automatically translate arguments to Parser functions, like Said(...).
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59 // display dialog options even if only one is enabled
-#define OPT_HIGHESTOPTION      OPT_DISPLAYSINGLEDIALOGOPTION
+#define OPT_TURNORDERPRIORITY 60 // which turn order to choose if cw and ccw turns are equally short
+#define OPT_HIGHESTOPTION   OPT_TURNORDERPRIORITY
 #define OPT_LIPSYNCTEXT        99
 
 // Compatibility engine modes (hacks)

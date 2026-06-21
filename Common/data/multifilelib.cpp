@@ -90,6 +90,16 @@ MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
     return err;
 }
 
+MFLUtil::MFLError MFLUtil::ReadOffset(Stream *in, soff_t &lib_offset)
+{
+    return ReadSigsAndVersion(in, nullptr, &lib_offset);
+}
+
+MFLUtil::MFLError MFLUtil::ReadOffsetAndVersion(Stream *in, MFLUtil::MFLVersion &lib_version, soff_t &lib_offset)
+{
+    return ReadSigsAndVersion(in, &lib_version, &lib_offset);
+}
+
 MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
 {
     MFLVersion lib_version;
@@ -113,6 +123,7 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
     // (since only base data file may be EXE file, other clib parts are always on their own)
     if (abs_offset > 0)
     {
+        lib.BaseFileOffset = abs_offset;
         for (auto &asset : lib.AssetInfos)
         {
             if (asset.LibUid == 0)
@@ -120,6 +131,13 @@ MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
         }
     }
     return err;
+}
+
+bool MFLUtil::HasEnderSig(Stream *in)
+{
+    in->Seek(-(soff_t)TailSig.GetLength(), kSeekEnd);
+    String sig = String::FromStreamCount(in, TailSig.GetLength());
+    return TailSig.Compare(sig) == 0;
 }
 
 MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset)
@@ -177,16 +195,16 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
 
     // read library header
     MFLVersion lib_version = static_cast<MFLVersion>(in->ReadInt8());
+    if (p_lib_version)
+        *p_lib_version = lib_version;
+    if (p_abs_offset)
+        *p_abs_offset = abs_offset;
+
     if ((lib_version != kMFLVersion_SingleLib) && (lib_version != kMFLVersion_MultiV10) &&
         (lib_version != kMFLVersion_MultiV11) && (lib_version != kMFLVersion_MultiV15) &&
         (lib_version != kMFLVersion_MultiV20) && (lib_version != kMFLVersion_MultiV21) &&
         lib_version != kMFLVersion_MultiV30)
         return kMFLErrLibVersion; // unsupported version
-
-    if (p_lib_version)
-        *p_lib_version = lib_version;
-    if (p_abs_offset)
-        *p_abs_offset = abs_offset;
     return kMFLNoError;
 }
 
@@ -419,6 +437,14 @@ void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out)
     else
         out->WriteInt64(lib_offset);
     out->Write(TailSig.GetCStr(), TailSig.GetLength());
+}
+
+void MFLUtil::OverwriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out)
+{
+    soff_t ender_size = ((lib_version < kMFLVersion_MultiV30) ? sizeof(int32_t) : sizeof(int64_t))
+        + (soff_t)TailSig.GetLength();
+    out->Seek(-ender_size, kSeekEnd);
+    MFLUtil::WriteEnder(lib_offset, lib_version, out);
 }
 
 void MFLUtil::DecryptText(char *text)

@@ -31,10 +31,11 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PropertiesPanel));
             this.propertiesGrid = new CustomPropertyGrid();
-            this.propertyObjectCombo = new System.Windows.Forms.ComboBox();
             this.ctxmenuPropertyGrid = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyPropertyNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyPropertyValueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.propertyObjectCombo = new System.Windows.Forms.ComboBox();
+            this.resetToDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ctxmenuPropertyGrid.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -48,6 +49,30 @@
             this.propertiesGrid.Size = new System.Drawing.Size(292, 239);
             this.propertiesGrid.TabIndex = 12;
             // 
+            // ctxmenuPropertyGrid
+            // 
+            this.ctxmenuPropertyGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyPropertyNameToolStripMenuItem,
+            this.copyPropertyValueToolStripMenuItem,
+            this.resetToDefaultToolStripMenuItem});
+            this.ctxmenuPropertyGrid.Name = "ctxmenuPropertyGrid";
+            this.ctxmenuPropertyGrid.Size = new System.Drawing.Size(186, 92);
+            this.ctxmenuPropertyGrid.Opening += new System.ComponentModel.CancelEventHandler(this.ctxmenuPropertyGrid_Opening);
+            // 
+            // copyPropertyNameToolStripMenuItem
+            // 
+            this.copyPropertyNameToolStripMenuItem.Name = "copyPropertyNameToolStripMenuItem";
+            this.copyPropertyNameToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
+            this.copyPropertyNameToolStripMenuItem.Text = "Copy Property Name";
+            this.copyPropertyNameToolStripMenuItem.Click += new System.EventHandler(this.copyPropertyNameToolStripMenuItem_Click);
+            // 
+            // copyPropertyValueToolStripMenuItem
+            // 
+            this.copyPropertyValueToolStripMenuItem.Name = "copyPropertyValueToolStripMenuItem";
+            this.copyPropertyValueToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
+            this.copyPropertyValueToolStripMenuItem.Text = "Copy Property Value";
+            this.copyPropertyValueToolStripMenuItem.Click += new System.EventHandler(this.copyPropertyValueToolStripMenuItem_Click);
+            // 
             // propertyObjectCombo
             // 
             this.propertyObjectCombo.Dock = System.Windows.Forms.DockStyle.Top;
@@ -58,27 +83,12 @@
             this.propertyObjectCombo.Size = new System.Drawing.Size(292, 21);
             this.propertyObjectCombo.TabIndex = 11;
             // 
-            // ctxmenuPropertyGrid
+            // resetToDefaultToolStripMenuItem
             // 
-            this.ctxmenuPropertyGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.copyPropertyNameToolStripMenuItem,
-            this.copyPropertyValueToolStripMenuItem});
-            this.ctxmenuPropertyGrid.Name = "ctxmenuPropertyGrid";
-            this.ctxmenuPropertyGrid.Size = new System.Drawing.Size(175, 48);
-            // 
-            // copyPropertyNameToolStripMenuItem
-            // 
-            this.copyPropertyNameToolStripMenuItem.Name = "copyPropertyNameToolStripMenuItem";
-            this.copyPropertyNameToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
-            this.copyPropertyNameToolStripMenuItem.Text = "Copy Property Name";
-            this.copyPropertyNameToolStripMenuItem.Click += new System.EventHandler(this.copyPropertyNameToolStripMenuItem_Click);
-            // 
-            // copyPropertyValueToolStripMenuItem
-            // 
-            this.copyPropertyValueToolStripMenuItem.Name = "copyPropertyValueToolStripMenuItem";
-            this.copyPropertyValueToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
-            this.copyPropertyValueToolStripMenuItem.Text = "Copy Property Value";
-            this.copyPropertyValueToolStripMenuItem.Click += new System.EventHandler(this.copyPropertyValueToolStripMenuItem_Click);
+            this.resetToDefaultToolStripMenuItem.Name = "resetToDefaultToolStripMenuItem";
+            this.resetToDefaultToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
+            this.resetToDefaultToolStripMenuItem.Text = "Reset To Default";
+            this.resetToDefaultToolStripMenuItem.Click += new System.EventHandler(this.resetToDefaultToolStripMenuItem_Click);
             // 
             // PropertiesPanel
             // 
@@ -104,5 +114,6 @@
         private System.Windows.Forms.ContextMenuStrip ctxmenuPropertyGrid;
         private System.Windows.Forms.ToolStripMenuItem copyPropertyNameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyPropertyValueToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem resetToDefaultToolStripMenuItem;
     }
 }

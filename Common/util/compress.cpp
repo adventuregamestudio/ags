@@ -340,7 +340,7 @@ void skip_rle_bitmap8(Stream *in)
     // Unpack the pixels into temp buf
     std::vector<uint8_t> buf;
     buf.resize(w * h);
-    cunpackbitl(&buf[0], w * h, in);
+    cunpackbitl(buf.data(), w * h, in);
     // Skip RGB palette
     in->Seek(3 * 256);
 }

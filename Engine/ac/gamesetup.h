@@ -14,6 +14,7 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
+#include <array>
 #include "ac/game_version.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
@@ -138,6 +139,10 @@ struct GameConfig
 
     // Accessibility options
     AccessibilityGameConfig Access;
+
+    // Overrides for runtime behavior;
+    // these are primarily meant to allow modern behavior when running old games.
+    std::array<bool, kNum_RBS> BehaviorOverrides = {{ 0 }};
 
     GameConfig() = default;
 };

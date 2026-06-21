@@ -82,6 +82,11 @@ void init_font_renderer(AssetManager *amgr)
     wfnRenderer.reset(new WFNFontRenderer(amgr));
 }
 
+void set_gamedata_version(GameDataVersion data_ver)
+{
+    // Do anything necessary for backwards compatibility here
+}
+
 void shutdown_font_renderer()
 {
     set_our_eip(9919);

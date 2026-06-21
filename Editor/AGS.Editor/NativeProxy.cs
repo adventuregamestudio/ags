@@ -115,7 +115,7 @@ namespace AGS.Editor
 			}
         }
 
-        public Native.FontMetrics GetFontMetrics(int fontNum)
+        public FontMetrics GetFontMetrics(int fontNum)
         {
             return _native.GetFontMetrics(fontNum);
         }
@@ -137,11 +137,11 @@ namespace AGS.Editor
                 col_count, row_count, first_cell, scaling);
         }
 
-        public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum, bool draw_outline,
+        public void DrawTextUsingFont(IntPtr hdc, string text, int fontNum, bool rightToLeft, bool draw_outline,
             int dc_atx, int dc_aty, int dc_width, int dc_height,
             int text_atx, int text_aty, int max_width, float scaling)
         {
-            _native.DrawTextUsingFont((int)hdc, text, fontNum, draw_outline, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
+            _native.DrawTextUsingFont((int)hdc, text, fontNum, rightToLeft, draw_outline, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
         }
 
         public void DrawSprite(IntPtr hdc, int x, int y, int width, int height, int spriteNum, bool flipImage = false)
@@ -194,11 +194,27 @@ namespace AGS.Editor
 			}
         }
 
+        public int FindNearestFreeSpriteNumber(int spriteNumber, int[] replaceableNumbers)
+        {
+            lock (_spriteSetLock)
+            {
+                return _native.FindNearestFreeSpriteNumber(spriteNumber, replaceableNumbers);
+            }
+        }
+
         public void ChangeSpriteNumber(Sprite sprite, int newNumber)
         {
             lock (_spriteSetLock)
             {
                 _native.ChangeSpriteNumber(sprite, newNumber);
+            }
+        }
+
+        public void ChangeSpriteNumbers(Sprite[] sprites, int[] newNumbers)
+        {
+            lock (_spriteSetLock)
+            {
+                _native.ChangeSpriteNumbers(sprites, newNumbers);
             }
         }
 

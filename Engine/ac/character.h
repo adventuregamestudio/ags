@@ -172,8 +172,8 @@ int  find_looporder_index (int curloop);
 // Tells if character should use diagonal loops;
 // optionally require that diagonal loops have an actual animation (> 1 frame)
 bool should_use_diagloops(CharacterInfo *char1, bool require_animation);
-// returns 1 normally, or 0 if they only have horizontal animations
-int  hasUpDownLoops(CharacterInfo *char1);
+// returns if they have vertical loops, or only horizontal ones
+bool has_updown_loops(CharacterInfo *char1);
 void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloops);
 void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls);
 // Check whether two characters have walked into each other

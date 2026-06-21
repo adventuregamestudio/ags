@@ -63,7 +63,7 @@ extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_cha
     int cell_w, int cell_h, int cell_space_x, int cell_space_y,
     int col_count, int row_count, int first_cell,
     float scaling);
-extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum, bool draw_outline,
+extern void DrawTextUsingFontAt(HDC hdc, String^ text, int fontnum, bool right_to_left, bool draw_outline,
     int dc_atx, int dc_aty, int dc_width, int dc_height,
     int text_atx, int text_aty, int max_width, float scaling);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
@@ -85,12 +85,15 @@ extern int GetSpriteHeight(int slot);
 extern int GetSpriteColorDepth(int slot);
 extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
+extern int FindNearestFreeSpriteNumber(int slot);
+extern int FindNearestFreeSpriteNumber(int slot, const std::vector<int> &replaceableNumbers);
 extern int GetMaxSprites();
 extern bool load_template_file(const AGSString &fileName, AGSString &description,
     std::vector<char> &iconDataBuffer, bool isRoomTemplate);
 extern HAGSError extract_template_files(const AGSString &templateFileName, std::vector<AGSString> *out_files = nullptr);
 extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber, std::vector<AGSString> *out_files = nullptr);
 extern void change_sprite_number(int oldNumber, int newNumber);
+extern void change_sprite_numbers(const std::vector<int> &oldNumbers, const std::vector<int> &newNumbers);
 extern void SaveNativeSprites(Settings^ gameSettings);
 extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
 extern HAGSError reset_sprite_file();
@@ -375,11 +378,11 @@ namespace AGS
                 col_count, row_count, first_cell, scaling);
         }
 
-        void NativeMethods::DrawTextUsingFont(int hDC, String ^text, int fontNum, bool draw_outline,
+        void NativeMethods::DrawTextUsingFont(int hDC, String ^text, int fontNum, bool right_to_left, bool draw_outline,
             int dc_atx, int dc_aty, int dc_width, int dc_height,
             int text_atx, int text_aty, int max_width, float scaling)
         {
-            DrawTextUsingFontAt((HDC)hDC, text, fontNum, draw_outline, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
+            DrawTextUsingFontAt((HDC)hDC, text, fontNum, right_to_left, draw_outline, dc_atx, dc_aty, dc_width, dc_height, text_atx, text_aty, max_width, scaling);
         }
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage)
@@ -399,6 +402,18 @@ namespace AGS
 				return false;
 			}
 			return ::DoesSpriteExist(spriteNumber);
+        }
+
+        int NativeMethods::FindNearestFreeSpriteNumber(int spriteNumber, array<int>^ replaceableNumbers)
+        {
+            if ((spriteNumber < 0) || (spriteNumber >= GetMaxSprites()))
+            {
+                return -1;
+            }
+            std::vector<int> numbers;
+            for (int i = 0; i < replaceableNumbers->Length; ++i)
+                numbers.push_back(replaceableNumbers[i]);
+            return ::FindNearestFreeSpriteNumber(spriteNumber, numbers);
         }
 
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
@@ -484,6 +499,20 @@ namespace AGS
 			change_sprite_number(sprite->Number, newNumber);
 			sprite->Number = newNumber;
 		}
+
+        void NativeMethods::ChangeSpriteNumbers(array<Sprite^>^ sprites, array<int> ^newNumbers)
+        {
+            std::vector<int> old_numbers;
+            std::vector<int> new_numbers;
+            int total = std::min(sprites->Length, newNumbers->Length);
+            for (int i = 0; i < total; ++i)
+                old_numbers.push_back(sprites[i]->Number);
+            for (int i = 0; i < total; ++i)
+                new_numbers.push_back(newNumbers[i]);
+            change_sprite_numbers(old_numbers, new_numbers);
+            for (int i = 0; i < total; ++i)
+                sprites[i]->Number = newNumbers[i];
+        }
 
         static int GetCurrentlyLoadedRoomNumber()
         {
@@ -799,6 +828,7 @@ namespace AGS
             if (name->Equals("OPT_GAMEFPS")) return OPT_GAMEFPS;
             if (name->Equals("OPT_GUICONTROLMOUSEBUT")) return OPT_GUICONTROLMOUSEBUT;
             if (name->Equals("OPT_DISPLAYSINGLEDIALOGOPTION")) return OPT_DISPLAYSINGLEDIALOGOPTION;
+            if (name->Equals("OPT_TURNORDERPRIORITY")) return OPT_TURNORDERPRIORITY;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
             return nullptr;
         }

@@ -185,7 +185,9 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
         return topmost;
 
     size_t newsize = topmost + 1;
-    _sprInfos.resize(newsize);
+    // We must remember that spriteinfos are external data, and we should not truncate it
+    if (_sprInfos.size() < newsize)
+        _sprInfos.resize(newsize);
     _spriteData.resize(newsize);
     return topmost;
 }
@@ -489,7 +491,9 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
 
     // Initialize sprite infos
     size_t newsize = metrics.size();
-    _sprInfos.resize(newsize);
+    // We must remember that spriteinfos are external data, and we should not truncate it
+    if (_sprInfos.size() < newsize)
+        _sprInfos.resize(newsize);
     _spriteData.resize(newsize);
     for (size_t i = 0; i < metrics.size(); ++i)
     {

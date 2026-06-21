@@ -43,6 +43,7 @@ namespace AGS.Editor
             this.label3 = new System.Windows.Forms.Label();
             this.udCharCode = new System.Windows.Forms.NumericUpDown();
             this.lblCharCode = new System.Windows.Forms.Label();
+            this.chkRTL = new System.Windows.Forms.CheckBox();
             this.fontViewPanel = new AGS.Editor.FontPreviewGrid();
             this.label1 = new System.Windows.Forms.Label();
             this.currentItemGroupBox.SuspendLayout();
@@ -91,6 +92,7 @@ namespace AGS.Editor
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.chkRTL);
             this.splitContainer1.Panel1.Controls.Add(this.tbTextPreview);
             this.splitContainer1.Panel1.Controls.Add(this.textPreviewPanel);
             this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(7);
@@ -112,7 +114,7 @@ namespace AGS.Editor
             this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(7);
             this.splitContainer1.Panel2MinSize = 120;
             this.splitContainer1.Size = new System.Drawing.Size(538, 427);
-            this.splitContainer1.SplitterDistance = 120;
+            this.splitContainer1.SplitterDistance = 155;
             this.splitContainer1.TabIndex = 0;
             this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
             this.splitContainer1.Resize += new System.EventHandler(this.splitContainer1_Resize);
@@ -121,7 +123,7 @@ namespace AGS.Editor
             // 
             this.tbTextPreview.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbTextPreview.Location = new System.Drawing.Point(10, 62);
+            this.tbTextPreview.Location = new System.Drawing.Point(10, 78);
             this.tbTextPreview.Multiline = true;
             this.tbTextPreview.Name = "tbTextPreview";
             this.tbTextPreview.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -253,6 +255,17 @@ namespace AGS.Editor
             this.lblCharCode.TabIndex = 3;
             this.lblCharCode.Text = "Code: U+";
             // 
+            // chkRTL
+            // 
+            this.chkRTL.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chkRTL.AutoSize = true;
+            this.chkRTL.Location = new System.Drawing.Point(10, 128);
+            this.chkRTL.Name = "chkRTL";
+            this.chkRTL.Size = new System.Drawing.Size(140, 17);
+            this.chkRTL.TabIndex = 2;
+            this.chkRTL.Text = "Right-to-left text preview";
+            this.chkRTL.UseVisualStyleBackColor = true;
+            this.chkRTL.CheckedChanged += new System.EventHandler(this.chkRTL_CheckedChanged);
             // fontViewPanel
             // 
             this.fontViewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -321,5 +334,6 @@ namespace AGS.Editor
         private System.Windows.Forms.RadioButton rbUnicode;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.RadioButton rbPreviewAuto;
+        private System.Windows.Forms.CheckBox chkRTL;
     }
 }

@@ -19,12 +19,12 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-struct AudioClipType {
-    int id;
-    int reservedChannels;
-    int volume_reduction_while_speech_playing;
-    int crossfadeSpeed;
-    int reservedForFuture;
+struct AudioClipType
+{
+    int id = 0;
+    int reservedChannels = 0;
+    int volume_reduction_while_speech_playing = 0;
+    int crossfadeSpeed = 0;
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

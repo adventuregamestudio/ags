@@ -43,9 +43,6 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
-    // TODO: use this everywhere in the engine instead of loaded_game_file_version!
-    GameDataVersion   filever = kGameVersion_Undefined;
-    Common::String    compiled_with; // version of AGS this data was created by
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     Common::PropertySchema propSchema;
     std::vector<Common::StringIMap> charProps;
@@ -148,13 +145,13 @@ struct GameSetupStruct : public GameSetupStructBase
     void WriteMouseCursors(Common::Stream *out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in);
+    void read_characters(Common::Stream *in, GameDataVersion data_ver);
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
     // NOTE: Global messages are cut out, but we still have to check them
     // so long as we keep support of loading an older game data
     void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver);
 
-    void ReadCharacters(Common::Stream *in);
+    void ReadCharacters(Common::Stream *in, GameDataVersion data_ver);
     void WriteCharacters(Common::Stream *out);
     //------------------------------
     // Part 3

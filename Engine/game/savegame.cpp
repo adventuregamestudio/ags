@@ -904,7 +904,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
     ApplyAccessibilityOptions(play, usetup);
-    ApplyOverrides(game, play, usetup);
+    // Applies behavior options, also hacks and backwards compatibility fixes
+    ApplyBehaviorOptions(game, play, usetup);
 
     play.ClearIgnoreInput(); // don't keep ignored input after save restore
     update_polled_stuff();

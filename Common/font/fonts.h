@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 #include "ac/gamestructdefines.h"
+#include "ac/game_version.h"
 #include "data/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "util/string.h"
@@ -32,6 +33,7 @@ struct FontRenderParams;
 struct FontMetrics;
 
 void init_font_renderer(AGS::Common::AssetManager *amgr);
+void set_gamedata_version(GameDataVersion data_ver);
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, int font_number);
 IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer* renderer);

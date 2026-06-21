@@ -540,7 +540,7 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
 {
     // Left-to-right text direction flag
     const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
-        || (loaded_game_file_version < kGameVersion_363);
+        || (!play.GetRBSwitches()[kRBO_ApplyDialogOptionTextDirection]);
 
     // Configure positioning settings
     const HorAlignment text_align = play.dialog_options_textalign;
@@ -632,14 +632,14 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
         }
         if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
         {
-            String number = String::FromFormat("%d. ", ww + 1);
             if (ltr_position)
             {
+                String number = String::FromFormat("%d. ", ww + 1);
                 wouttext_outline(ds, first_line_at - bullet_wid + bullet_sprwid, curyp, usingfont, text_color, number.GetCStr());
             }
             else
             {
-                number.ReverseUTF8();
+                String number = String::FromFormat(". %d", ww + 1);
                 wouttext_outline(ds, first_line_at + first_line_wid, curyp, usingfont, text_color, number.GetCStr());
             }
         }
@@ -1172,7 +1172,7 @@ void DialogOptions::Draw()
 
         // Left-to-right text direction flag
         const bool ltr_position = (game.options[OPT_RIGHTLEFTWRITE] == 0)
-            || (loaded_game_file_version < kGameVersion_363);
+            || (!play.GetRBSwitches()[kRBO_ApplyDialogOptionTextDirection]);
 
         parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
         if (ltr_position)

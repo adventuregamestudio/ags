@@ -1292,6 +1292,11 @@ namespace AGS.Editor
 
             if (result == DialogResult.OK)
             {
+                if (gameNameSelectPage.SaveNewGameParentFolderAsNewDefault)
+                {
+                    Factory.AGSEditor.Settings.NewGamePath = gameNameSelectPage.NewGameParentFolder;
+                }
+
                 createdSuccessfully = CreateNewGame(gameNameSelectPage.GetFullPath(), gameNameSelectPage.FileName,
                     gameNameSelectPage.NewGameName, templateSelectPage.SelectedTemplate);
             }

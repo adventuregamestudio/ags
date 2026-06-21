@@ -21,6 +21,7 @@
 #include "game/scripteventtable.h"
 #include "util/bbop.h"
 #include "util/geometry.h"
+#include "util/string.h"
 #include "util/string_types.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -64,6 +65,11 @@ using namespace AGS; // FIXME later
 // Value of "followinfo" field that tells to draw follower char above followed
 // Value of CharacterInfo::followinfo that tells to keep follower z-sorted above the leading char
 #define FOLLOW_ALWAYSONTOP  0x7ffe
+
+// Maximal number of character's face directions (loops)
+#define MAX_FACE_DIRECTIONS 8
+// Number of base directions
+#define NUM_BASE_DIRECTIONS 4
 
 // Length of deprecated character name field, in bytes
 #define LEGACY_MAX_CHAR_NAME_LEN 40

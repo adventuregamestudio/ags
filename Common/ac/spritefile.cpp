@@ -69,7 +69,7 @@ static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &d
     const size_t dst_size = image.GetWidth() * image.GetHeight();
     dst_data.resize(dst_size);
     const uint8_t *src = image.GetData(), *src_end = src + src_size;
-    uint8_t *dst = &dst_data[0], *dst_end = dst + dst_size;
+    uint8_t *dst = dst_data.data(), *dst_end = dst + dst_size;
     pal_count = 0;
 
     for (; src < src_end && dst < dst_end; src += src_bpp)
@@ -372,7 +372,7 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     }
     else // large file support
     {
-        fidx->ReadArrayOfInt64(&spriteoffs[0], numsprits);
+        fidx->ReadArrayOfInt64(spriteoffs.data(), numsprits);
     }
 
     spritedepths.resize(numsprits);
@@ -504,7 +504,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
         default: assert(0); break;
         }
         indexed_buf.resize(w * h);
-        im_data = ImBufferPtr(&indexed_buf[0], indexed_buf.size(), 1);
+        im_data = ImBufferPtr(indexed_buf.data(), indexed_buf.size(), 1);
     }
     // (Optional) Decompress the image data into the temp buffer
     size_t in_data_size =
@@ -600,7 +600,7 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     // Seek back and read all at once
     data.resize(data_size);
     _stream->Seek(data_pos, kSeekBegin);
-    _stream->Read(&data[0], data_size);
+    _stream->Read(data.data(), data_size);
 
     _curPos = index + 1; // mark correct pos
     return HError::None();
@@ -703,7 +703,7 @@ HError SaveSpriteFile(std::unique_ptr<Stream>&& out,
             writer.WriteEmptySlot();
             continue;
         }
-        writer.WriteRawData(hdr, &membuf[0], membuf.size());
+        writer.WriteRawData(hdr, membuf.data(), membuf.size());
     }
     writer.Finalize();
 
@@ -728,9 +728,9 @@ HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
     out->WriteInt32(static_cast<uint32_t>(index.GetCount()));
     if (index.GetCount() > 0)
     {
-        out->WriteArrayOfInt16(&index.Widths[0], index.Widths.size());
-        out->WriteArrayOfInt16(&index.Heights[0], index.Heights.size());
-        out->WriteArrayOfInt64(&index.Offsets[0], index.Offsets.size());
+        out->WriteArrayOfInt16(index.Widths.data(), index.Widths.size());
+        out->WriteArrayOfInt16(index.Heights.data(), index.Heights.size());
+        out->WriteArrayOfInt64(index.Offsets.data(), index.Offsets.size());
     }
     out->WriteArrayOfInt8(&index.Depths[0], index.Depths.size());
     return HError::None();
@@ -791,7 +791,7 @@ void SpriteFileWriter::WriteBitmap(const BitmapData &image)
         { // Test the resulting size, and switch if the paletted image is less
             if (im_data.Size > (indexed_buf.size() + gen_pal_count * bpp))
             {
-                im_data = ImBufferCPtr(&indexed_buf[0], indexed_buf.size(), 1);
+                im_data = ImBufferCPtr(indexed_buf.data(), indexed_buf.size(), 1);
                 sformat = PaletteFormatForBPP(bpp);
                 pal_count = gen_pal_count;
             }
@@ -817,7 +817,7 @@ void SpriteFileWriter::WriteBitmap(const BitmapData &image)
         default: assert(!"Unsupported compression type!"); result = false; break;
         }
         // mark to write as a plain byte array
-        im_data = result ? ImBufferCPtr(&_membuf[0], _membuf.size(), 1) : ImBufferCPtr();
+        im_data = result ? ImBufferCPtr(_membuf.data(), _membuf.size(), 1) : ImBufferCPtr();
     }
 
     // Write the final data

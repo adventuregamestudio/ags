@@ -57,9 +57,10 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/game_init.h"
+#include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactory.h"
-#include "gfx/ddb.h"
+#include "gfx/image_file.h"
 #include "media/audio/sound.h"
 #include "main/config.h"
 #include "main/game_file.h"
@@ -537,12 +538,21 @@ int engine_check_disk_space()
 // Do the preload graphic if available
 void show_preload()
 {
-    auto stream = AssetMgr->OpenAsset("preload.pcx");
+    UStream stream;
+    String f_ext;
+    for (const auto &ext : ImageFile::GetSupportedImageExts())
+    {
+        f_ext = ext;
+        const auto asset_name = String::FromFormat("preload.%s", f_ext.GetCStr());
+        stream = AssetMgr->OpenAsset(asset_name);
+        if (stream)
+            break;
+    }
     if (!stream)
         return;
 
     RGB temppal[256];
-    Bitmap *splashsc = BitmapHelper::LoadBitmap(stream.get(), "pcx", nullptr, temppal);
+    Bitmap *splashsc = BitmapHelper::LoadBitmap(stream.get(), f_ext.GetCStr(), nullptr, temppal);
     if (splashsc != nullptr)
     {
         Debug::Printf("Displaying preload image");
@@ -857,7 +867,9 @@ void engine_init_game_settings()
     // FIXME: this should be done once in InitGameState, but the code for default game settings
     // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
     ApplyAccessibilityOptions(play, usetup);
-    ApplyOverrides(game, play, usetup);
+    // Applies behavior options, also hacks and backwards compatibility fixes
+    ApplyBehaviorOptions(game, play, usetup);
+    PrintBehaviorOptions(game, play);
 }
 
 void engine_setup_scsystem_auxiliary()

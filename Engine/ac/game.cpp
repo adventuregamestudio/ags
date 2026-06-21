@@ -189,10 +189,20 @@ int getloctype_index = 0, getloctype_throughgui = 0;
 // Audio
 //=============================================================================
 
+bool AssertAudioType(const char *api_name, int audio_type)
+{
+    if ((audio_type < 0) || ((size_t)audio_type >= game.audioClipTypes.size()))
+    {
+        debug_script_warn("%s: invalid audio type: %d, valid range is 0..%d", api_name, audio_type, static_cast<int>(game.audioClipTypes.size()) - 1);
+        return false;
+    }
+    return true;
+}
+
 void Game_StopAudio(int audioType)
 {
-    if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
-        quitprintf("!Game.StopAudio: invalid audio type %d", audioType);
+    if ((audioType != SCR_NO_VALUE) && !AssertAudioType("Game.StopAudio", audioType))
+        return;
     for (int aa = 0; aa < game.numGameChannels; aa++)
     {
         if (audioType == SCR_NO_VALUE)
@@ -212,8 +222,8 @@ void Game_StopAudio(int audioType)
 
 int Game_IsAudioPlaying(int audioType)
 {
-    if (((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size())) && (audioType != SCR_NO_VALUE))
-        quitprintf("!Game.IsAudioPlaying: invalid audio type %d", audioType);
+    if ((audioType != SCR_NO_VALUE) && !AssertAudioType("Game.IsAudioPlaying", audioType))
+        return 0;
 
     if (play.fast_forward)
         return 0;
@@ -232,22 +242,40 @@ int Game_IsAudioPlaying(int audioType)
     return 0;
 }
 
+int Game_GetAudioTypeSpeechVolumeDrop(int audioType)
+{
+    if (!AssertAudioType("Game.GetAudioTypeSpeechVolumeDrop", audioType))
+        return 0;
+
+    return game.audioClipTypes[audioType].volume_reduction_while_speech_playing;
+}
+
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 {
-    if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
-        quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
+    if (!AssertAudioType("Game.SetAudioTypeSpeechVolumeDrop", audioType))
+        return;
 
     Debug::Printf("Game.SetAudioTypeSpeechVolumeDrop: type: %d, drop: %d", audioType, volumeDrop);
     game.audioClipTypes[audioType].volume_reduction_while_speech_playing = volumeDrop;
     update_volume_drop_if_voiceover();
 }
 
+int Game_GetAudioTypeVolume(int audioType)
+{
+    if (!AssertAudioType("Game.GetAudioTypeVolume", audioType))
+        return -1;
+    return play.default_audio_type_volumes[audioType];
+}
+
 void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 {
+    if (!AssertAudioType("Game.SetAudioTypeVolume", audioType))
+        return;
     if ((volume < 0) || (volume > 100))
-        quitprintf("!Game.SetAudioTypeVolume: volume %d is not between 0..100", volume);
-    if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
-        quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
+    {
+        debug_script_warn("Game.SetAudioTypeVolume: invalid volume %d, valid range is 0..100", volume);
+        volume = Math::Clamp(volume, 0, 100);
+    }
 
     const char *change_str[3]{"existing", "future", "all"};
     Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %s", audioType, volume,
@@ -255,12 +283,12 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     if ((changeType == VOL_CHANGEEXISTING) ||
         (changeType == VOL_BOTH))
     {
-        for (int aa = 0; aa < game.numGameChannels; aa++)
+        for (int i = 0; i < game.numGameChannels; ++i)
         {
-            int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[aa]);
+            int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[i]);
             if (play_atype == audioType)
             {
-                auto* ch = AudioChans::GetChannel(aa);
+                auto* ch = AudioChans::GetChannel(i);
                 if (ch)
                     ch->set_volume100(volume);
             }
@@ -275,7 +303,6 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
         // update queued clip volumes
         update_queued_clips_volume(audioType, volume);
     }
-
 }
 
 //=============================================================================
@@ -2009,13 +2036,21 @@ RuntimeScriptValue Sc_Game_IsAudioPlaying(const RuntimeScriptValue *params, int3
     API_SCALL_INT_PINT(Game_IsAudioPlaying);
 }
 
-// void (int audioType, int volumeDrop)
+RuntimeScriptValue Sc_Game_GetAudioTypeSpeechVolumeDrop(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetAudioTypeSpeechVolumeDrop);
+}
+
 RuntimeScriptValue Sc_Game_SetAudioTypeSpeechVolumeDrop(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(Game_SetAudioTypeSpeechVolumeDrop);
 }
 
-// void (int audioType, int volume, int changeType)
+RuntimeScriptValue Sc_Game_GetAudioTypeVolume(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetAudioTypeVolume);
+}
+
 RuntimeScriptValue Sc_Game_SetAudioTypeVolume(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(Game_SetAudioTypeVolume);
@@ -2504,7 +2539,9 @@ void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {
         { "Game::IsAudioPlaying^1",                       API_FN_PAIR(Game_IsAudioPlaying) },
+        { "Game::GetAudioTypeSpeechVolumeDrop^1",         API_FN_PAIR(Game_GetAudioTypeSpeechVolumeDrop) },
         { "Game::SetAudioTypeSpeechVolumeDrop^2",         API_FN_PAIR(Game_SetAudioTypeSpeechVolumeDrop) },
+        { "Game::GetAudioTypeVolume^1",                   API_FN_PAIR(Game_GetAudioTypeVolume) },
         { "Game::SetAudioTypeVolume^3",                   API_FN_PAIR(Game_SetAudioTypeVolume) },
         { "Game::StopAudio^1",                            API_FN_PAIR(Game_StopAudio) },
         { "Game::ChangeTranslation^1",                    API_FN_PAIR(Game_ChangeTranslation) },

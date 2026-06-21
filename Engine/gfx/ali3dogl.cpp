@@ -991,9 +991,9 @@ void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name
     if (log_len > 0)
     {
         if (is_shader)
-            glGetShaderInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+            glGetShaderInfoLog(obj_id, log_len, &log_len, errorLog.data());
         else
-            glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+            glGetProgramInfoLog(obj_id, log_len, &log_len, errorLog.data());
     }
 
     const MessageType mt = as_error ? kDbgMsg_Error : kDbgMsg_Debug;
@@ -1004,7 +1004,7 @@ void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name
     if (errorLog.size() > 0)
     {
         Debug::Printf(mt, "----------------------------------------");
-        Debug::Printf(mt, "%s", &errorLog[0]);
+        Debug::Printf(mt, "%s", errorLog.data());
         Debug::Printf(mt, "----------------------------------------");
     }
     else

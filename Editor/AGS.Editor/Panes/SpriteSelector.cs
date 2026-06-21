@@ -1,3 +1,6 @@
+using AGS.Editor.Utils;
+using AGS.Types;
+using AGS.Types.AutoComplete;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -6,10 +9,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Windows.Forms;
 using System.Linq;
-using AGS.Types;
-using AGS.Editor.Utils;
+using System.Security.Policy;
+using System.Windows.Forms;
 
 namespace AGS.Editor
 {
@@ -54,6 +56,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_CROP_SYMMETRIC = "CropSymettric";
         private const string MENU_ITEM_ASSIGN_TO_VIEW = "AssignToView";
         private const string MENU_ITEM_CHANGE_SPRITE_NUMBER = "ChangeSpriteNumber";
+        private const string MENU_ITEM_CHANGE_SPRITES_NUMBERS = "ChangeSpritesNumbers";
 
         private const string MENU_ITEM_PREVIEW_SIZE_1X = "PreviewSizeSmall";
         private const string MENU_ITEM_PREVIEW_SIZE_2X = "PreviewSizeMedium";
@@ -808,6 +811,10 @@ namespace AGS.Editor
             {
                 ChangeSpriteNumber(_spriteNumberOnMenuActivation);
             }
+            else if (item.Name == MENU_ITEM_CHANGE_SPRITES_NUMBERS)
+            {
+                AssignSequentialNumbers();
+            }
             else if (item.Name == MENU_ITEM_SHOW_USAGE)
             {
                 string usage = SpriteTools.GetSpriteUsageReport(_spriteNumberOnMenuActivation, Factory.AGSEditor.CurrentGame);
@@ -1389,10 +1396,17 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add(new ToolStripMenuItem("Show usage...", null, onClick, MENU_ITEM_SHOW_USAGE));
                 menu.Items.Add(new ToolStripMenuItem("Change sprite number...", null, onClick, MENU_ITEM_CHANGE_SPRITE_NUMBER));
+                menu.Items.Add(new ToolStripMenuItem("Assign sequential sprite numbers", null, onClick, MENU_ITEM_CHANGE_SPRITES_NUMBERS));
                 if (spriteList.SelectedItems.Count > 1)
                 {
+                    menu.Items[menu.Items.Count - 3].Enabled = false;
                     menu.Items[menu.Items.Count - 2].Enabled = false;
+                    menu.Items[menu.Items.Count - 2].Visible = false;
+                }
+                else if (spriteList.SelectedItems.Count == 1)
+                {
                     menu.Items[menu.Items.Count - 1].Enabled = false;
+                    menu.Items[menu.Items.Count - 1].Visible = false;
                 }
                 menu.Items.Add(new ToolStripMenuItem("Assign to view...", null, onClick, MENU_ITEM_ASSIGN_TO_VIEW));
                 menu.Items.Add(new ToolStripSeparator());
@@ -1470,6 +1484,8 @@ namespace AGS.Editor
                 String.Format("Enter the new sprite number in the box below ({0}-{1}):", 0, NativeConstants.MAX_STATIC_SPRITES - 1),
                 "WARNING: Changing the sprite slot number is a specialized operation, for advanced users only.\n\nOnly re - number this sprite if you are ABSOLUTELY SURE it is not used AT ALL in your game. Any parts of your game that do use this sprite will cause the editor and engine to crash if you go ahead.",
                 sprite.Number, 0, NativeConstants.MAX_STATIC_SPRITES - 1);
+            if (newNumber == sprite.Number)
+                return;
             if (newNumber < 0)
                 return;
             if (Factory.NativeProxy.DoesSpriteExist(newNumber))
@@ -1489,6 +1505,43 @@ namespace AGS.Editor
                     Factory.GUIController.ShowError("Unable to change the sprite number.", ex, MessageBoxIcon.Warning);
                 }
             }
+        }
+
+        private void AssignSequentialNumbers()
+        {
+            if (spriteList.SelectedItems.Count == 0)
+                return;
+
+            List<Sprite> sprites = new List<Sprite>();
+            foreach (ListViewItem selectedItem in spriteList.SelectedItems)
+            {
+                sprites.Add(GetSprite(selectedItem));
+            }
+
+            int firstNumber = NumberEntryWithInfoDialog.Show("Assign sequential sprite numbers",
+                String.Format("Enter the new sprite number for the first sprite in sequence ({0}-{1}):", 0, NativeConstants.MAX_STATIC_SPRITES - 1),
+                "This will assign closest found free numbers to all selected sprites in a seuqnce.\n\nWARNING: Changing the sprite slot number is a specialized operation, for advanced users only.\n\nOnly re - number this sprite if you are ABSOLUTELY SURE it is not used AT ALL in your game. Any parts of your game that do use this sprite will cause the editor and engine to crash if you go ahead.",
+                sprites[0].Number, 0, NativeConstants.MAX_STATIC_SPRITES - 1);
+            if (firstNumber < 0)
+                return;
+
+            int[] oldNumbers = sprites.Select(s => s.Number).ToArray();
+            int[] newNumbers = new int[sprites.Count];
+            for (int handledSprites = 0, newNumber = firstNumber; handledSprites < sprites.Count; ++handledSprites, ++newNumber)
+            {
+                newNumber = Factory.NativeProxy.FindNearestFreeSpriteNumber(newNumber, oldNumbers);
+                if (newNumber < 0)
+                {
+                    Factory.GUIController.ShowMessage($"Unable to find enough free sprite slots for the sequence, {handledSprites} free slots were found out of {sprites.Count}.", MessageBoxIcon.Stop);
+                    return;
+                }
+                newNumbers[handledSprites] = newNumber;
+            }
+
+            Factory.NativeProxy.ChangeSpriteNumbers(sprites.ToArray(), newNumbers);
+
+            RefreshSpriteDisplay();
+            SelectSprite(FindSpriteByNumber(newNumbers[0]));
         }
 
         /// <summary>

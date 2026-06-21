@@ -34,6 +34,11 @@ TTFFontRenderer::~TTFFontRenderer()
     alfont_exit();
 }
 
+void TTFFontRenderer::SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup)
+{
+    // CLNUP: remove in AGS 4
+}
+
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {
   // TTF fonts already have space at the top, so try to remove the gap
@@ -99,7 +104,7 @@ bool TTFFontRenderer::IsBitmapFont()
     return false;
 }
 
-static int GetAlfontFlags(int load_mode)
+static int GetAlfontFlags(int load_mode, bool legacy_aa_height_fixup)
 {
     int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
     // Compatibility: optionally adjust font ascender to the formal font's height;
@@ -172,7 +177,7 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String 
         fontSize *= f_params.SizeMultiplier;
 
     ALFONT_FONT *alfptr = LoadTTF(filename, fontSize,
-        GetAlfontFlags(f_params.LoadMode));
+        GetAlfontFlags(f_params.LoadMode, false));
     if (!alfptr)
         return false;
 

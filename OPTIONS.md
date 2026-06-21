@@ -127,7 +127,7 @@ Locations of two latter files differ between running platforms:
 	* time - skip speech by time-out only;
 	* any - skip speech either by player's input or time-out.
   * textskip = \[string\] - assigns the text message skip style to a fixed value; values are the same as for "speechskip" option.
-* **\[override\]** - special options, overriding game behavior. These are purposed rather for emergency "hacks", in case something was not done "right" in a game, or when you like to enable certain compatibility mode.
+* **\[override\]** - special options, overriding standard engine behavior. These are purposed as emergency "hacks", when something prevents from playing a game properly.
   * noplugins = \[0; 1\] - disable plugin loading. Engine will fallback to built-in plugins or stubs, if they are available.
   * multitasking = \[0; 1\] - lock the game in the "single-tasking" or "multitasking" mode. In the nutshell, "multitasking" here means that the game will continue running when player switched away from game window; otherwise it will freeze until player switches back.
   * os = \[string\] - trick the game to think that it runs on a particular operating system. This may come handy if the game is scripted to play differently depending on OS. Possible choices are:
@@ -141,7 +141,10 @@ Locations of two latter files differ between running platforms:
   * upscale = \[0; 1\] - run game in the "upscale mode". The earlier versions of AGS provided support for "upscaling" low-res games to hi-res. The script API has means for detecting if the game is running upscaled, and game developer could use this opportunity to setup game accordingly (e.g. assign hi-res fonts, etc). This options works **only** for games created before AGS 3.1.0 with low-res native resolution, such as 320x200 or 320x240, and it may somewhat improve
   game looks.
   * new_key_mode = \[0; 1\] - enforce new key handling mode, where each button is firing separate event, and button codes do not depend on the keyboard layout. WARNING: may cause script errors in certain old games.
-  * smooth_walk = \[0; 1\] - enforce smooth character walking, which causes seamless transition between walk commands. WARNING: may cause script errors in certain old games.
+* **\[override_behavior\]** - options, overriding backwards-compatible engine behavior. When running old games, the engine tries to emulate old behavior as close as possible. This may include various restrictions and inconveniences. These options allow to enable *modern* behavior on a per-case basis. NOTE: you can only enable new behavior in old games, you won't be able to disable modern behavior in games where it is a standard.
+  * smooth_walk = \[0; 1\] - enable seamless transition between consecutive walk commands. WARNING: may cause script errors in certain old games.
+  * gui_text_direction = \[0; 1\] - enable applying text direction on gui controls other than labels (labels support it always).
+  * dialog_opt_text_direction = \[0; 1\] - enable applying text direction on dialog options.
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.
   * gfxdrivers = \[0; 1\] - tells to lock "Graphics driver" selection in a default state;
   * \<gfxdriver id\> = \[0; 1\] - tells to remove particular graphics driver from the selection list;

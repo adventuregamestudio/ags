@@ -189,6 +189,7 @@
     <Compile Include="Enums\SpriteImportTransparency.cs" />
     <Compile Include="Enums\SpriteImportResolution.cs" />
     <Compile Include="Enums\TextParserWordType.cs" />
+    <Compile Include="Enums\TurnOrderPriority.cs" />
     <Compile Include="Exceptions\CannotDeleteFileException.cs" />
     <Compile Include="Exceptions\CompileError.cs" />
     <Compile Include="Exceptions\CompileInformation.cs" />
@@ -203,6 +204,7 @@
     <Compile Include="GlobalVariables.cs" />
     <Compile Include="GUIControlGroup.cs" />
     <Compile Include="HelperTypes\FakeEnumerator.cs" />
+    <Compile Include="HelperTypes\FontMetrics.cs" />
     <Compile Include="HelperTypes\GameObjectEvents.cs" />
     <Compile Include="HelperTypes\SpriteInfo.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />

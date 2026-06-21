@@ -47,7 +47,6 @@ target_sources(common
     ac/view.h
     ac/wordsdictionary.cpp
     ac/wordsdictionary.h
-    data/asset.cpp
     data/asset.h
     data/assetmanager.cpp
     data/assetmanager.h
@@ -95,8 +94,11 @@ target_sources(common
     gfx/blender.cpp
     gfx/blender.h
     gfx/gfx_def.h
+    gfx/image_bmp.cpp
     gfx/image_file.cpp
     gfx/image_file.h
+    gfx/image_pcx.cpp
+    gfx/image_png.cpp
     gui/guibutton.cpp
     gui/guibutton.h
     gui/guicontrol.cpp
@@ -204,6 +206,7 @@ target_link_libraries(common PUBLIC
         AlFont::AlFont
         AAStr::AAStr
         glm::glm
+        stb::stb
         MiniZ::MiniZ)
 
 if (WIN32)

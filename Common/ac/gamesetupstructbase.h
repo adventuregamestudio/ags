@@ -42,6 +42,8 @@ struct GameSetupStructBase
     static const int  NUM_LEGACY_GLOBALMES = 500;
 
     Common::String    gamename;
+    GameDataVersion   gamedataver = kGameVersion_Undefined;
+    Common::String    compiled_with; // version of AGS this data was created by
     int               options[MAX_OPTIONS] = { 0 };
     uint8_t           paluses[256] = { 0 };
     RGB               defpal[256] = {};

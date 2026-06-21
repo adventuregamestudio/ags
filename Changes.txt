@@ -10,9 +10,14 @@ Editor:
  - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
    regardless of the local system settings. This is done primarily to make it easier to share
    values between property fields and script.
+ - Added main menu commands for opening game's save folder and shared data folder.
+ - In New Game Wizard dialog added a checkbox "Remember this location" which lets save the last
+   selected game location as a new default in editor's preferences.
  - In General Settings added "Text language" option, that lets specify a base game language.
    This option is used whenever engine needs to identify the game text as being of a particular
    language or using particular alphabet (e.g. alphabetic string sorting).
+ - In General Settings added "Prioritize this turning direction" for Character behavior which
+   tells which direction should characters take when turning by 180-degrees.
  - In General Settings added "Display single dialog option", which corresponds to the previously
    existing "game.show_single_dialog_option" variable in script.
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
@@ -64,6 +69,8 @@ Editor:
  - In GUI Editor let set control's ZOrder property directly.
  - In Room Editor Characters will be sorted among themselves in accordance to their starting
    Baseline (NOTE: Characters and Room Objects are still not sorted among each other).
+ - In Sprites Manager added "Assign sequential sprite numbers" context menu command, that lets
+   apply new incremental IDs to a selected group of sprites.
  - Text Parser pane now allows to enter multiple comma-separated words per entry, which may be
    a more convenient way to create list of synonyms.
  - In View Editor added context menu commands for copying, cutting and pasting individual frames
@@ -71,7 +78,8 @@ Editor:
  - View preview now refers to the game's default FPS setting when displaying animation.
  - View preview lets to optionally play frame sounds.
  - Do not auto-add up to 4 loops to Views assigned as Character's NormalView.
- - Properties Grid now has a context menu which lets copy Property's Name or Value to clipboard.
+ - Properties Grid now has a context menu which lets copy Property's Name or Value to clipboard,
+   and reset property value to default.
  - "Go to Definition" command in script editor now works for Room elements too.
    Also, "missing event function" warnings support double click to go to event pane for Rooms and
    Room elements as well.
@@ -89,6 +97,7 @@ Editor:
    "//$ANNOTATION: VALUE", which will be kept intact during translation update.
  - When updating a translation source, obsolete entries will now be removed, and if there's already
    a translated line present, then marked with a "//$OBSOLETE" tag for user to notice them.
+ - Fixed Editor creating a game file name of a wrong name, if game's name contains dots.
  - Fixed Editor treating custom properties names as case-sensitive when loading them from the
    project file, although they are considered case-insensitive everywhere else.
  - Fixed deleted custom property values were remaining in objects data, apparently forever
@@ -100,6 +109,8 @@ Compiler:
  - Removed hard limit of script function parameters.
 
 Script API:
+ - Added new game-wide option OPT_TURNORDERPRIORITY that defines which direction should characters
+   take when turning by 180-degrees. This option uses TurnOrderPriority enum.
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
    they have their own special handling for RMB).
@@ -116,6 +127,7 @@ Script API:
  - For each GetAtScreenXY and GetAtRoomXY function added an optional "hitOptions" parameter,
    that lets tell whether to detect only clickable/enabled objects, or all of them regardless.
  - Added new "maxDistance" parameter to AudioChannel.SetRoomLocation() function.
+ - Added AudioClip.DefaultPriority, DefaultRepeat and DefaultVolume readonly properties.
  - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
    channels.
  - Added GUIButtonColorStyle enum, which defines the Button's dynamic coloring style.
@@ -151,6 +163,8 @@ Script API:
  - Added Game.InBlockingAction, BlockingWaitCounter and BlockingWaitSkipType properties.
  - Game.InBlockingWait now returns positive only when inside a Wait*() function call, not any
    blocking action (this is what InBlockingAction is for now).
+ - Added Game.GetAudioTypeVolume() function that returns a volume value previously set by
+   Game.SetAudioTypeVolume().
  - Added Game.IsSpriteDynamic[] and TopSpriteNumber readonly properties.
  - Added Game.InventoryCursorHotspotGraphic, InventoryCursorHotspotColor,
    InventoryCursorHotspotCrossColor and UseActiveInventoryGraphicForCursor properties.
@@ -165,6 +179,7 @@ Script API:
  - Made GUI.PopupStyle property settable.
  - Added GUIControl.BackgroundColor, BorderColor, BorderWidth, SolidBackground, ShowBorder,
    PaddingX and PaddingY properties.
+ - Added GUIControl.Translated property.
  - Added InventoryItem.CursorHotspotX, CursorHotspotY properties.
  - Added Label.TextOutlineColor property.
  - Added ListBox.TextOutlineColor property.
@@ -178,6 +193,8 @@ Script API:
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.
  - Added System.FPS that lets read current real fps.
+ - Added System.LocaleName readonly property that tells which of the UTF8 locales is used for
+   the game strings.
  - Added TextBox.TextAlignment and TextOutlineColor properties.
  - Added number of readonly properties to TextWindowGUI which return respective border graphics:
    LeftGraphic, RightGraphic, and so forth.
@@ -192,6 +209,7 @@ Engine:
  - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
    in "misc" section, enabled by default.
  - Always compress a screenshot in game save using Deflate algorithm.
+ - Support loading and saving PNG image files (using DynamicSprite functions).
  - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
    buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
    interface is disabled.
@@ -220,6 +238,8 @@ Engine:
  - Inventory Item's hotspot now treats 0,0 value exactly, and not as "centered in graphic".
  - Inventory Item's hotspot marker can now be drawn outside of the cursor graphic's boundaries.
  - Speech skip key will also apply to skipping Display messages.
+ - Engine now supports Unicode control characters LRE (U+202A) and RLE (U+202B) when applying
+   text direction (regardless of the global OPT_RIGHTTOLEFT option).
  - Text Parser supports translation and unicode strings.
  - Parser.Said() does automatic translation of the sentence pattern (if respective option is
    enabled in the current translation).
@@ -230,9 +250,11 @@ Engine:
    be moved by the respective script commands.
  - Added "new_key_mode" config option to "override" section, that lets force the new key handling
    mode while running old games.
- - Added "smooth_walk" config option to "override" section, that allows smooth walk transitions if
-   running old games (this feature may cause glitches in some of the old games's scripts, so it's
-   normally disabled for them.
+ - Added "override_behavior" config section, its options are purposed to override game's backwards-
+   compatible behavior and enforce new behavior when running old games. Currently supported options
+   include: "smooth_walk" (allows smooth walk transitions), "gui_text_direction" (apply text
+   direction to non-label gui controls), "dialog_opt_text_direction" (apply text direction to
+   built-in dialog options).
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.
  - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
@@ -242,6 +264,9 @@ Engine:
    room background) gets unavailable, which could led to a invalid memory access would user script
    continue to operate this DrawingSurface object.
  - Fixed SetGameOption(OPT_PORTRAITSIDE) not always working correctly.
+ - Fixed particular rare OGG Vorbis clips not playing.
+ - Fixed potential engine crash occuring if the game's spritefile contained less sprites than
+   are defined by the game data, for any reason.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.

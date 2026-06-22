@@ -1,6 +1,6 @@
 REVISION HISTORY
 ===================================================================================================
-VERSION 4.0.0 - Alpha, May 2026
+VERSION 4.0.0 - Alpha, June 2026
 
 Common:
  - Support true 32-bit colors in GUI, text messages and drawing commands in script.
@@ -180,8 +180,15 @@ Script API:
    Overlay.BlendMode.
  - Added GraphicAnchorX, GraphicAnchorY, GraphicOffsetX and GraphicOffsetY properties to
    Character, Object and Overlay types.
+ - Added GraphicPivotX, GraphicPivotY, GraphicPivotOffsetX, GraphicPivotOffsetY properties to
+   Character, Object and Overlay types.
+ - Added functions GetGraphicPosition() and GetGraphicBoundBox() to: Character, GUI, GUIControl,
+   Object and Overlay types. These functions return 4-Point dynamic arrays, with coordinates of
+   the actual object's graphic corners, and coordinates of object's graphic axis-aligned bounding
+   box, respectively.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, GUIControl.Rotation,
    Object.GraphicRotation, Overlay.Rotation.
+ - Added Camera.PivotX, PivotY, PivotOffsetX, and PivotOffsetY.
  - Added Character.Shader, GUI.Shader, GUIControl.Shader, Object.Shader, Overlay.Shader,
    Camera.Shader, Viewport.Shader, Mouse.CursorShader, Screen.Shader.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
@@ -230,6 +237,7 @@ Script API:
    HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance
    properties, matching Character and Object tinting functionality.
  - Added Room.Number and Name properties.
+ - Added Room.HostpotCount, RegionCount, WalkableAreaCount.
  - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
    room's walkable areas.
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
@@ -295,7 +303,7 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.3 - Beta, October 2025
+VERSION 3.6.3 - Beta, June 2026
 
 Common:
  - Removed limit of Dialog's options (was 30).

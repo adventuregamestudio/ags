@@ -237,7 +237,7 @@ Script API:
    HasLightLevel, LightLevel, TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance
    properties, matching Character and Object tinting functionality.
  - Added Room.Number and Name properties.
- - Added Room.HostpotCount, RegionCount, WalkableAreaCount.
+ - Added Room.HotspotCount, RegionCount, WalkableAreaCount and WalkbehindCount properties.
  - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
    room's walkable areas.
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.

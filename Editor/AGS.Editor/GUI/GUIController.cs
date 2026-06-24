@@ -1959,9 +1959,19 @@ namespace AGS.Editor
 
         private void SetEditorWindowSize()
         {
-            _mainForm.SetDesktopLocation(Factory.AGSEditor.Settings.MainWinX, Factory.AGSEditor.Settings.MainWinY);
-            _mainForm.Width = Math.Max(Factory.AGSEditor.Settings.MainWinWidth, 300);
-            _mainForm.Height = Math.Max(Factory.AGSEditor.Settings.MainWinHeight, 300);
+            Rectangle totalDesktop = Rectangle.Empty;
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                totalDesktop = Rectangle.Union(totalDesktop, screen.Bounds);
+            }
+
+            int x = Math.Max(totalDesktop.Left, Factory.AGSEditor.Settings.MainWinX);
+            int y = Math.Max(totalDesktop.Top, Factory.AGSEditor.Settings.MainWinY);
+            int w = Math.Max(Math.Min(totalDesktop.Width - x, Factory.AGSEditor.Settings.MainWinWidth), 300);
+            int h = Math.Max(Math.Min(totalDesktop.Height - y, Factory.AGSEditor.Settings.MainWinHeight), 300);
+            _mainForm.SetDesktopLocation(x, y);
+            _mainForm.Width = w;
+            _mainForm.Height = h;
             _mainForm.WindowState = Factory.AGSEditor.Settings.MainWinMaximize ? FormWindowState.Maximized : FormWindowState.Normal;
         }
 

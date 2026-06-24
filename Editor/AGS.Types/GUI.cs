@@ -74,6 +74,7 @@ namespace AGS.Types
             set { _id = value; }
         }
 
+        [DisplayName("ScriptName")]
         [Description("The script name of the GUI")]
         [Category("Design")]
         [BrowsableMultiedit(false)]

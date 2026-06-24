@@ -1750,11 +1750,11 @@ namespace AGS.Editor
 
         private ScriptStruct ProcessVariableAccess(ScriptVariable var, bool indexedAccess, int accessDims = 1)
         {
-            if (!var.IsArray && indexedAccess)
-                return null; // accessing element of non-array, bad syntax...
+            if (indexedAccess && !var.IsArray && !var.IsIndexedAttribute)
+                return null; // accessing element of non-array (and not indexed attrib), bad syntax...
 
-            if (var.IsArray && !var.IsDynamicArray && !indexedAccess)
-                return null; // accessing member of static array, no result
+            if (!indexedAccess && ((var.IsArray && !var.IsDynamicArray) || (var.IsIndexedAttribute)))
+                return null; // accessing member of static array (or indexed attribute), no result
 
             ScriptStruct foundType = FindGlobalType(var.Type);
             if (foundType == null)

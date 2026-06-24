@@ -341,9 +341,9 @@ struct Child extends Base {{
             string scriptCode = $@"
 struct MyStruct {{
     int arrOfInts[];
-    attribute int IndexedAttrib[];
-    attribute int[] AttribOfArray;
-    attribute int[] IndexedAttribOfArrays[];
+    import attribute int IndexedAttrib[];
+    import attribute int[] AttribOfArray;
+    import attribute int[] IndexedAttribOfArrays[];
 }}
 ";
             Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
@@ -353,6 +353,8 @@ struct MyStruct {{
 
             var myStruct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "MyStruct");
             Assert.That(myStruct, Is.Not.Null);
+
+            Assert.That(myStruct.Variables.Count, Is.EqualTo(4)); // attributes are also registered as variables...
 
             ScriptVariable var1 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "arrOfInts");
             Assert.That(var1, Is.Not.Null);
@@ -390,6 +392,195 @@ struct MyStruct {{
             Assert.That(lenProp.Type, Is.EqualTo("int"));
             Assert.That(lenProp.IsPointer, Is.False);
             Assert.That(lenProp.IsArray, Is.False);
+        }
+
+        [Test]
+        public void ContainsAttributeInAStruct()
+        {
+            string scriptCode = $@"
+managed struct Character {{
+}};
+
+struct MyStruct {{
+    import attribute int Attrib;
+    import attribute Character* CharacterAttrib;
+    import static attribute int StaticAttrib;
+}};
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(2));
+
+            var myStruct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "MyStruct");
+            Assert.That(myStruct, Is.Not.Null);
+
+            ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "Character");
+            Assert.That(strct, Is.Not.Null);
+
+            Assert.That(myStruct.Variables.Count, Is.EqualTo(3)); // attributes are also registered as variables...
+
+            ScriptVariable var1 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "Attrib");
+            Assert.That(var1, Is.Not.Null);
+            Assert.That(var1.Type, Is.EqualTo("int"));
+            Assert.That(var1.IsArray, Is.False);
+            Assert.That(var1.IsDynamicArray, Is.False);
+            Assert.That(var1.IsPointer, Is.False);
+
+            ScriptVariable var2 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "CharacterAttrib");
+            Assert.That(var2, Is.Not.Null);
+            Assert.That(var2.Type, Is.EqualTo("Character"));
+            Assert.That(var2.IsArray, Is.False);
+            Assert.That(var2.IsDynamicArray, Is.False);
+            Assert.That(var2.IsPointer, Is.True);
+
+            ScriptVariable var3 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "StaticAttrib");
+            Assert.That(var3, Is.Not.Null);
+            Assert.That(var3.Type, Is.EqualTo("int"));
+            Assert.That(var3.IsArray, Is.False);
+            Assert.That(var3.IsDynamicArray, Is.False);
+            Assert.That(var3.IsPointer, Is.False);
+            Assert.That(var3.IsStatic, Is.True);
+        }
+
+        [Test]
+        public void ContainsIndexedAttributeInAStruct()
+        {
+            string scriptCode = $@"
+managed struct Character {{
+}};
+
+struct MyStruct {{
+    import attribute int IndexedAttrib[];
+    import attribute Character* IndexedCharacters[];
+    import static attribute int StaticIndexedAttrib[];
+}};
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(2));
+
+            var myStruct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "MyStruct");
+            Assert.That(myStruct, Is.Not.Null);
+
+            ScriptStruct strct = scriptToTest.AutoCompleteData.Structs.FirstOrDefault(s => s.Name == "Character");
+            Assert.That(strct, Is.Not.Null);
+
+            Assert.That(myStruct.Variables.Count, Is.EqualTo(3)); // attributes are also registered as variables...
+
+            ScriptVariable var1 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedAttrib");
+            Assert.That(var1, Is.Not.Null);
+            Assert.That(var1.Type, Is.EqualTo("int"));
+            Assert.That(var1.IsArray, Is.False);
+            Assert.That(var1.IsDynamicArray, Is.False);
+            Assert.That(var1.IsPointer, Is.False);
+
+            ScriptVariable var2 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedCharacters");
+            Assert.That(var2, Is.Not.Null);
+            Assert.That(var2.Type, Is.EqualTo("Character"));
+            Assert.That(var2.IsArray, Is.False);
+            Assert.That(var2.IsDynamicArray, Is.False);
+            Assert.That(var2.IsPointer, Is.True);
+
+            ScriptVariable var3 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "StaticIndexedAttrib");
+            Assert.That(var3, Is.Not.Null);
+            Assert.That(var3.Type, Is.EqualTo("int"));
+            Assert.That(var3.IsArray, Is.False);
+            Assert.That(var3.IsDynamicArray, Is.False);
+            Assert.That(var3.IsPointer, Is.False);
+            Assert.That(var3.IsStatic, Is.True);
+        }
+
+        [Test]
+        public void CheckAutoCompleteMemberFunctions()
+        {
+            string scriptCode = $@"
+import void AbortGame();
+
+internalstring autoptr builtin managed struct String {{
+  /// Creates a formatted string using the supplied parameters.
+  import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
+  /// Checks whether the supplied string is null or empty.
+  import static bool IsNullOrEmpty(String stringToCheck);  // $AUTOCOMPLETESTATICONLY$
+  /// Returns a new string with the specified string appended to this string.
+  import String  Append(const string appendText);
+  /// Returns a new string that has the extra character appended.
+  import String  AppendChar(int extraChar);
+  import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
+  /// Creates a copy of the string.
+  import String  Copy();
+  /// Returns the index of the first occurrence of the needle in this string.
+  import int     IndexOf(const string needle);
+  /// Returns a lower-cased version of this string.
+  import String  LowerCase();
+  /// Returns a portion of the string.
+  import String  Substring(int index, int length);
+  /// Returns an upper-cased version of this string.
+  import String  UpperCase();
+  /// Converts the string to a float.
+  readonly import attribute float AsFloat;
+  /// Converts the string to an integer.
+  readonly import attribute int AsInt;
+  /// Accesses individual characters of the string.
+  readonly import attribute int Chars[];
+  /// Returns the length of the string.
+  readonly import attribute int Length;
+}};
+
+function room_AfterFadeIn()
+{{
+  // String.Append
+  {{ 
+    String mytext = ""Hello"";
+    mytext = mytext.Append(""World"");
+            if (mytext != ""HelloWorld"") AbortGame();
+  }}
+  
+  // String.AppendChar
+  {{ 
+    String mytext = ""Hell"";
+    mytext = mytext.AppendChar('o');
+    if(mytext != ""Hello"") AbortGame();
+  }}
+}}
+";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(0));
+            Assert.That(scriptToTest.AutoCompleteData.Functions.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.Enums.Count, Is.EqualTo(0));
+            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.Defines.Count, Is.EqualTo(0));
+
+            ScriptFunction scriptFunction = null;
+            ScriptStruct scriptStruct = scriptToTest.AutoCompleteData.FindStruct("String");
+            Assert.That(scriptStruct, Is.Not.Null);
+
+            scriptFunction = scriptStruct.FindMemberFunction("Format");
+            Assert.That(scriptFunction, Is.Not.Null);
+            Assert.That(scriptFunction.IsStatic, Is.True);
+            Assert.That(scriptFunction.IsStaticOnly, Is.True);
+            Assert.That(scriptFunction.IsProtected, Is.False);
+            Assert.That(scriptFunction.ParamList, Is.EqualTo("const string format, ..."));
+            Assert.That(scriptFunction.Type, Is.EqualTo("String"));
+            Assert.That(scriptFunction.Description, Is.EqualTo("Creates a formatted string using the supplied parameters."));
+
+            scriptFunction = scriptStruct.FindMemberFunction("IsNullOrEmpty");
+            Assert.That(scriptFunction, Is.Not.Null);
+            Assert.That(scriptFunction.IsStatic, Is.True);
+            Assert.That(scriptFunction.IsStaticOnly, Is.True);
+            Assert.That(scriptFunction.IsProtected, Is.False);
+            Assert.That(scriptFunction.ParamList, Is.EqualTo("String stringToCheck"));
+            Assert.That(scriptFunction.Type, Is.EqualTo("bool"));
+            Assert.That(scriptFunction.Description, Is.EqualTo("Checks whether the supplied string is null or empty."));
+            
+            scriptFunction = scriptStruct.FindMemberFunction("Append");
+            Assert.That(scriptFunction, Is.Not.Null);
+            Assert.That(scriptFunction.IsStatic, Is.False);
+            Assert.That(scriptFunction.IsStaticOnly, Is.False);
+            Assert.That(scriptFunction.IsProtected, Is.False);
+            Assert.That(scriptFunction.ParamList, Is.EqualTo("const string appendText"));
+            Assert.That(scriptFunction.Type, Is.EqualTo("String"));
+            Assert.That(scriptFunction.Description, Is.EqualTo("Returns a new string with the specified string appended to this string."));
         }
 
         [Test]
@@ -489,100 +680,6 @@ mytext = mytext.Append(""World"");
             Assert.That(scriptToTest.AutoCompleteData.FindStruct("String"), Is.Not.Null);
 
             Assert.That(scriptToTest.AutoCompleteData.FindDefine("MAX_THINGS"), Is.Not.Null);
-        }
-
-
-        [Test]
-        public void CheckAutoCompleteMemberFunctions()
-        {
-            string scriptCode = $@"
-import void AbortGame();
-
-internalstring autoptr builtin managed struct String {{
-  /// Creates a formatted string using the supplied parameters.
-  import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
-  /// Checks whether the supplied string is null or empty.
-  import static bool IsNullOrEmpty(String stringToCheck);  // $AUTOCOMPLETESTATICONLY$
-  /// Returns a new string with the specified string appended to this string.
-  import String  Append(const string appendText);
-  /// Returns a new string that has the extra character appended.
-  import String  AppendChar(int extraChar);
-  import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
-  /// Creates a copy of the string.
-  import String  Copy();
-  /// Returns the index of the first occurrence of the needle in this string.
-  import int     IndexOf(const string needle);
-  /// Returns a lower-cased version of this string.
-  import String  LowerCase();
-  /// Returns a portion of the string.
-  import String  Substring(int index, int length);
-  /// Returns an upper-cased version of this string.
-  import String  UpperCase();
-  /// Converts the string to a float.
-  readonly import attribute float AsFloat;
-  /// Converts the string to an integer.
-  readonly import attribute int AsInt;
-  /// Accesses individual characters of the string.
-  readonly import attribute int Chars[];
-  /// Returns the length of the string.
-  readonly import attribute int Length;
-}};
-
-function room_AfterFadeIn()
-{{
-  // String.Append
-  {{ 
-    String mytext = ""Hello"";
-    mytext = mytext.Append(""World"");
-            if (mytext != ""HelloWorld"") AbortGame();
-  }}
-  
-  // String.AppendChar
-  {{ 
-    String mytext = ""Hell"";
-    mytext = mytext.AppendChar('o');
-    if(mytext != ""Hello"") AbortGame();
-  }}
-}}
-";
-            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
-
-            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(0));
-            Assert.That(scriptToTest.AutoCompleteData.Functions.Count, Is.EqualTo(2));
-            Assert.That(scriptToTest.AutoCompleteData.Enums.Count, Is.EqualTo(0));
-            Assert.That(scriptToTest.AutoCompleteData.Structs.Count, Is.EqualTo(1));
-            Assert.That(scriptToTest.AutoCompleteData.Defines.Count, Is.EqualTo(0));
-
-            ScriptFunction scriptFunction = null;
-            ScriptStruct scriptStruct = scriptToTest.AutoCompleteData.FindStruct("String");
-            Assert.That(scriptStruct, Is.Not.Null);
-
-            scriptFunction = scriptStruct.FindMemberFunction("Format");
-            Assert.That(scriptFunction, Is.Not.Null);
-            Assert.That(scriptFunction.IsStatic, Is.True);
-            Assert.That(scriptFunction.IsStaticOnly, Is.True);
-            Assert.That(scriptFunction.IsProtected, Is.False);
-            Assert.That(scriptFunction.ParamList, Is.EqualTo("const string format, ..."));
-            Assert.That(scriptFunction.Type, Is.EqualTo("String"));
-            Assert.That(scriptFunction.Description, Is.EqualTo("Creates a formatted string using the supplied parameters."));
-
-            scriptFunction = scriptStruct.FindMemberFunction("IsNullOrEmpty");
-            Assert.That(scriptFunction, Is.Not.Null);
-            Assert.That(scriptFunction.IsStatic, Is.True);
-            Assert.That(scriptFunction.IsStaticOnly, Is.True);
-            Assert.That(scriptFunction.IsProtected, Is.False);
-            Assert.That(scriptFunction.ParamList, Is.EqualTo("String stringToCheck"));
-            Assert.That(scriptFunction.Type, Is.EqualTo("bool"));
-            Assert.That(scriptFunction.Description, Is.EqualTo("Checks whether the supplied string is null or empty."));
-            
-            scriptFunction = scriptStruct.FindMemberFunction("Append");
-            Assert.That(scriptFunction, Is.Not.Null);
-            Assert.That(scriptFunction.IsStatic, Is.False);
-            Assert.That(scriptFunction.IsStaticOnly, Is.False);
-            Assert.That(scriptFunction.IsProtected, Is.False);
-            Assert.That(scriptFunction.ParamList, Is.EqualTo("const string appendText"));
-            Assert.That(scriptFunction.Type, Is.EqualTo("String"));
-            Assert.That(scriptFunction.Description, Is.EqualTo("Returns a new string with the specified string appended to this string."));
         }
     }
 }

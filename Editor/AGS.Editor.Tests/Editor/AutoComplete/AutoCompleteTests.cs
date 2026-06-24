@@ -153,6 +153,7 @@ Character* arrOfCharacters[] = new Character[100];
             ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp, Is.Not.Null);
             Assert.That(lenProp.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp.IsAttribute, Is.True);
             Assert.That(lenProp.IsPointer, Is.False);
             Assert.That(lenProp.IsArray, Is.False);
 
@@ -163,6 +164,7 @@ Character* arrOfCharacters[] = new Character[100];
             ScriptVariable lenProp2 = strct2.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp2, Is.Not.Null);
             Assert.That(lenProp2.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp2.IsAttribute, Is.True);
             Assert.That(lenProp2.IsPointer, Is.False);
             Assert.That(lenProp2.IsArray, Is.False);
         }
@@ -209,6 +211,7 @@ int multiDimArray[][];
             ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp, Is.Not.Null);
             Assert.That(lenProp.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp.IsAttribute, Is.True);
             Assert.That(lenProp.IsPointer, Is.False);
             Assert.That(lenProp.IsArray, Is.False);
 
@@ -219,6 +222,7 @@ int multiDimArray[][];
             ScriptVariable lenProp2 = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp2, Is.Not.Null);
             Assert.That(lenProp2.Type, Is.EqualTo("int")); // type of Length attribute
+            Assert.That(lenProp2.IsAttribute, Is.True);
             Assert.That(lenProp2.IsPointer, Is.False);
             Assert.That(lenProp2.IsArray, Is.False);
         }
@@ -366,6 +370,8 @@ struct MyStruct {{
             ScriptVariable var2 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedAttrib");
             Assert.That(var2, Is.Not.Null);
             Assert.That(var2.Type, Is.EqualTo("int"));
+            Assert.That(var2.IsAttribute, Is.True);
+            Assert.That(var2.IsIndexedAttribute, Is.True);
             Assert.That(var2.IsArray, Is.False);
             Assert.That(var2.IsDynamicArray, Is.False);
             Assert.That(var2.IsPointer, Is.False);
@@ -373,6 +379,8 @@ struct MyStruct {{
             ScriptVariable var3 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "AttribOfArray");
             Assert.That(var3, Is.Not.Null);
             Assert.That(var3.Type, Is.EqualTo("int[]"));
+            Assert.That(var3.IsAttribute, Is.True);
+            Assert.That(var3.IsIndexedAttribute, Is.False);
             Assert.That(var3.IsArray, Is.True);
             Assert.That(var3.IsDynamicArray, Is.True);
             Assert.That(var3.IsPointer, Is.False);
@@ -380,6 +388,8 @@ struct MyStruct {{
             ScriptVariable var4 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedAttribOfArrays");
             Assert.That(var4, Is.Not.Null);
             Assert.That(var4.Type, Is.EqualTo("int[]"));
+            Assert.That(var4.IsAttribute, Is.True);
+            Assert.That(var4.IsIndexedAttribute, Is.True);
             Assert.That(var4.IsArray, Is.True);
             Assert.That(var4.IsDynamicArray, Is.True);
             Assert.That(var4.IsPointer, Is.False);
@@ -390,6 +400,8 @@ struct MyStruct {{
             ScriptVariable lenProp = strct.Variables.FirstOrDefault(v => v.VariableName == "Length");
             Assert.That(lenProp, Is.Not.Null);
             Assert.That(lenProp.Type, Is.EqualTo("int"));
+            Assert.That(lenProp.IsAttribute, Is.True);
+            Assert.That(lenProp.IsIndexedAttribute, Is.False);
             Assert.That(lenProp.IsPointer, Is.False);
             Assert.That(lenProp.IsArray, Is.False);
         }
@@ -422,6 +434,8 @@ struct MyStruct {{
             ScriptVariable var1 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "Attrib");
             Assert.That(var1, Is.Not.Null);
             Assert.That(var1.Type, Is.EqualTo("int"));
+            Assert.That(var1.IsAttribute, Is.True);
+            Assert.That(var1.IsIndexedAttribute, Is.False);
             Assert.That(var1.IsArray, Is.False);
             Assert.That(var1.IsDynamicArray, Is.False);
             Assert.That(var1.IsPointer, Is.False);
@@ -429,6 +443,8 @@ struct MyStruct {{
             ScriptVariable var2 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "CharacterAttrib");
             Assert.That(var2, Is.Not.Null);
             Assert.That(var2.Type, Is.EqualTo("Character"));
+            Assert.That(var2.IsAttribute, Is.True);
+            Assert.That(var2.IsIndexedAttribute, Is.False);
             Assert.That(var2.IsArray, Is.False);
             Assert.That(var2.IsDynamicArray, Is.False);
             Assert.That(var2.IsPointer, Is.True);
@@ -436,6 +452,8 @@ struct MyStruct {{
             ScriptVariable var3 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "StaticAttrib");
             Assert.That(var3, Is.Not.Null);
             Assert.That(var3.Type, Is.EqualTo("int"));
+            Assert.That(var3.IsAttribute, Is.True);
+            Assert.That(var3.IsIndexedAttribute, Is.False);
             Assert.That(var3.IsArray, Is.False);
             Assert.That(var3.IsDynamicArray, Is.False);
             Assert.That(var3.IsPointer, Is.False);
@@ -470,6 +488,8 @@ struct MyStruct {{
             ScriptVariable var1 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedAttrib");
             Assert.That(var1, Is.Not.Null);
             Assert.That(var1.Type, Is.EqualTo("int"));
+            Assert.That(var1.IsAttribute, Is.True);
+            Assert.That(var1.IsIndexedAttribute, Is.True);
             Assert.That(var1.IsArray, Is.False);
             Assert.That(var1.IsDynamicArray, Is.False);
             Assert.That(var1.IsPointer, Is.False);
@@ -477,6 +497,8 @@ struct MyStruct {{
             ScriptVariable var2 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "IndexedCharacters");
             Assert.That(var2, Is.Not.Null);
             Assert.That(var2.Type, Is.EqualTo("Character"));
+            Assert.That(var2.IsAttribute, Is.True);
+            Assert.That(var2.IsIndexedAttribute, Is.True);
             Assert.That(var2.IsArray, Is.False);
             Assert.That(var2.IsDynamicArray, Is.False);
             Assert.That(var2.IsPointer, Is.True);
@@ -484,6 +506,8 @@ struct MyStruct {{
             ScriptVariable var3 = myStruct.Variables.FirstOrDefault(v => v.VariableName == "StaticIndexedAttrib");
             Assert.That(var3, Is.Not.Null);
             Assert.That(var3.Type, Is.EqualTo("int"));
+            Assert.That(var3.IsAttribute, Is.True);
+            Assert.That(var3.IsIndexedAttribute, Is.True);
             Assert.That(var3.IsArray, Is.False);
             Assert.That(var3.IsDynamicArray, Is.False);
             Assert.That(var3.IsPointer, Is.False);

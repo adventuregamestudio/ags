@@ -960,17 +960,23 @@ namespace AGS.Editor.Components
 
         private Room LoadNewRoomForEditing(UnloadedRoom newRoom, CompileMessages errors)
         {
+            // IMPORTANT: we **MUST** create Script object in the UnloadedRoom object,
+            // because then it will be shared between UnloadedRoom and LoadedRoom.
+            // When the script is opened for editing in the editor window, it is taken
+            // from UnloadedRoom. It's modified state should be accessible in both
+            // UnloadedRoom and LoadedRoom objects. That's how Editor is organized...
+            if ((newRoom.Script == null) || (!newRoom.Script.Modified))
+            {
+                TryLoadScriptAndCreateMissing(newRoom, errors, silent: false);
+            }
+            else if (_roomScriptEditors.ContainsKey(newRoom.Number))
+            {
+                ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
+            }
+
             // Load the room into the editing state;
             // currently AGS Editor supports only a single room in edit state.
             _loadedRoom = _nativeProxy.LoadRoomForEditing(newRoom);
-            if ((_loadedRoom.Script == null) || (!_loadedRoom.Script.Modified))
-            {
-                TryLoadScriptAndCreateMissing(_loadedRoom, errors, silent: false);
-            }
-            else if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
-            {
-                ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
-            }
 
             // Update and fixup room as necessary
             CheckRoomForValidity(_loadedRoom, errors);
@@ -1658,12 +1664,10 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    if (_loadedRoom != null)
-                        UnloadCurrentRoomAndGreyOutTree();
                     room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
+                    // Ensure that the script is saved, in case it was modified on a room upgrade, for instance
+                    room.Script.SaveToDisk();
                 }
-				// Ensure that the script is saved, in case it was modified on a room upgrade, for instance
-				room.Script.SaveToDisk();
 
 				CompileMessages roomErrors = new CompileMessages();
 				SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");

@@ -423,6 +423,9 @@ struct GamePlayState
 
     // Tells if engine should apply AA (linear) scaling to the game sprites
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
+    // Tells if the smooth walk mode is enabled for characters
+    // (this means - smooth transition between two separate walks, without stopping)
+    bool ShouldSmoothWalk() const { return loaded_game_file_version >= kGameVersion_361; }
 
     //
     // User input management

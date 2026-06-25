@@ -33,7 +33,7 @@ enum MoveResult
 // returns "need_to_fix_sprite" value, which may be 0,1,2;
 // TODO: find out what this return value means, and refactor.
 // TODO: do not reset mslot in this function, reset externally instead.
-MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y);
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_move);
 // Recalculate derived (non-serialized) values in movelists
 void restore_movelists();
 // Update various things on the game frame (historical code mess...)

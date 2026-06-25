@@ -71,9 +71,14 @@ int RoomObject::get_baseline() const {
 void RoomObject::UpdateCyclingView(int ref_id)
 {
 	if (on != OBJ_STATE_ENABLED) return;
-    if (moving>0) {
-      do_movelist_move(moving, x, y);
-      }
+    if (moving > 0)
+    {
+        // If we support smooth walk, then keep moving even across multiple stages,
+        // until all the "current move" is not depleted
+        MoveResult last_move_result;
+        while (((last_move_result = do_movelist_move(moving, x, y, play.ShouldSmoothWalk())) == kMoveResult_NextStage)
+            && play.ShouldSmoothWalk() && mls[moving].onpart > 0.f);
+    }
     if (cycling==0) return;
     if (view == RoomObject::NoView) return;
     if (wait>0) { wait--; return; }

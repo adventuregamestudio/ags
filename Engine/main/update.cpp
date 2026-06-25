@@ -152,9 +152,9 @@ static bool movelist_handle_donemove(const uint8_t testflag, const fixed xpermov
     return (doneflag & testflag) != 0;
 }
 
-MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_move)
 {
-    // TODO: find out why movelist 0 is not being used
+    // NOTE: mslot 0 is not used, because id 0 is treated as "no move"
     assert(mslot >= 1);
     if (mslot < 1)
         return kMoveResult_Abort;
@@ -166,10 +166,9 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     const float main_onpart = (cmls.fin_from_part > 0.f) ? cmls.fin_from_part : cmls.onpart;
     const float fin_onpart = cmls.onpart - main_onpart;
     Point target = cmls.pos[cmls.onstage + 1];
-    int xps = pos_x, yps = pos_y;
 
     // Old-style optional move target fixup
-    if (loaded_game_file_version < kGameVersion_361)
+    if (!smooth_move)
     {
         if ((ypermove != 0) && (cmls.doneflag & kMoveListDone_X) != 0)
         { // X-move has finished, handle the Y-move remainer
@@ -181,20 +180,24 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         }
     }
 
-    // Calculate next positions, as required
+    // Calculate next positions, as required, save them in max_* positions;
+    // these positions are saved for the reference, but the actual pos may
+    // be further adjusted by clamping to the move target pos.
+    int max_xps = pos_x, max_yps = pos_y;
     if ((cmls.doneflag & kMoveListDone_X) == 0)
     {
-        xps = cmls.from.X + (int)(fixtof(xpermove) * main_onpart) +
+        max_xps = cmls.from.X + (int)(fixtof(xpermove) * main_onpart) +
           (int)(fixtof(fin_move) * fin_onpart);
     }
     if ((cmls.doneflag & kMoveListDone_Y) == 0)
     {
-        yps = cmls.from.Y + (int)(fixtof(ypermove) * main_onpart) +
+        max_yps = cmls.from.Y + (int)(fixtof(ypermove) * main_onpart) +
           (int)(fixtof(fin_move) * fin_onpart);
     }
 
     // Check if finished either horizontal or vertical movement;
     // if any was finished just now, then also handle remainer fixup
+    int xps = max_xps, yps = max_yps;
     bool done_now = movelist_handle_donemove(kMoveListDone_X, xpermove, target.X, cmls.doneflag, xps);
     done_now     |= movelist_handle_donemove(kMoveListDone_Y, ypermove, target.Y, cmls.doneflag, yps);
     if (done_now)
@@ -202,35 +205,47 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 
     // Handle end of move stage
     MoveResult move_result = kMoveResult_Continue;
-    if ((cmls.doneflag & kMoveListDone_XY) == kMoveListDone_XY)
+    if ((cmls.doneflag & kMoveListDone_XY) != kMoveListDone_XY)
     {
-        // this stage is done, go on to the next stage
-        cmls.from = cmls.pos[cmls.onstage + 1];
-        cmls.onstage++;
-        cmls.onpart = -1.f;
-        cmls.fin_from_part = 0.f;
-        cmls.fin_move = 0;
-        cmls.doneflag = 0;
-        if (cmls.onstage < cmls.GetNumStages())
+        // Make a step along the current vector and return
+        cmls.onpart += 1.f;
+    }
+    else
+    {
+        // End of stage (or end of path)
+        const uint32_t next_stage = cmls.onstage + 1;
+        if (next_stage < cmls.GetNumStages())
         {
-            xps = cmls.from.X;
-            yps = cmls.from.Y;
+            xps = cmls.pos[next_stage].X;
+            yps = cmls.pos[next_stage].Y;
         }
 
-        if (cmls.onstage >= cmls.GetNumStages() - 1)
-        {  // last stage is just dest pos
+        if (next_stage >= cmls.GetNumStages() - 1)
+        {
+            // Last stage is just dest pos, so finish the move
             cmls = {};
             mslot = 0;
             move_result = kMoveResult_Done;
         }
         else
         {
+            // Switch to the next stage
+            cmls.onstage = next_stage;
+            cmls.from = cmls.pos[cmls.onstage];
+            cmls.onpart = 0.f;
+            cmls.fin_from_part = 0.f;
+            cmls.fin_move = 0;
+            cmls.doneflag = 0;
+
+            // Smooth out next stage transition by carrying over remaining % of the previous move
+            const float frac_complete_x = static_cast<float>(xps - pos_x) / static_cast<float>(max_xps - pos_x);
+            const float frac_complete_y = static_cast<float>(yps - pos_y) / static_cast<float>(max_yps - pos_y);
+            const float lost_frac = std::max(1.f - frac_complete_x, 1.f - frac_complete_y);
+            cmls.onpart += lost_frac;
             move_result = kMoveResult_NextStage;
         }
     }
 
-    // Make a step along the current vector and return
-    cmls.onpart += 1.f;
     pos_x = xps;
     pos_y = yps;
     return move_result;

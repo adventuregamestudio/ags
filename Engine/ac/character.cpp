@@ -2054,7 +2054,7 @@ int has_hit_another_character(int sourceChar) {
 int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
-    if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
+    if (do_movelist_move(chi->walking, chi->x, chi->y) == kMoveResult_NextStage) 
     {
         if (chi->is_moving_walkanim())
             fix_player_sprite(&mls[chi->get_movelist_id()], chi);

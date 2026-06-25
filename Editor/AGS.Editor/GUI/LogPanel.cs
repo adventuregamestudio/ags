@@ -80,6 +80,25 @@ namespace AGS.Editor
 
         private void PropertyGrid_PropertyValueChanged(object s, System.Windows.Forms.PropertyValueChangedEventArgs e)
         {
+            if (e.ChangedItem.Parent != null && e.ChangedItem.Parent.Label == "Log Output")
+            {
+                // Ensure that if the user changed Output to a lower verbosity,
+                // then the filter is not any higher than that.
+                _logConfig.LogFilter.Game = (LogLevel)Math.Min((int)_logConfig.LogOutput.Game, (int)_logConfig.LogFilter.Game);
+                _logConfig.LogFilter.Main = (LogLevel)Math.Min((int)_logConfig.LogOutput.Main, (int)_logConfig.LogFilter.Main);
+                _logConfig.LogFilter.Plugin = (LogLevel)Math.Min((int)_logConfig.LogOutput.Plugin, (int)_logConfig.LogFilter.Plugin);
+                _logConfig.LogFilter.Script = (LogLevel)Math.Min((int)_logConfig.LogOutput.Script, (int)_logConfig.LogFilter.Script);
+            }
+            else if (e.ChangedItem.Parent != null && e.ChangedItem.Parent.Label == "Log Filter")
+            {
+                // Ensure that if the user changed Filter to a higher verbosity,
+                // then the output is at least same high.
+                _logConfig.LogOutput.Game = (LogLevel)Math.Max((int)_logConfig.LogOutput.Game, (int)_logConfig.LogFilter.Game);
+                _logConfig.LogOutput.Main = (LogLevel)Math.Max((int)_logConfig.LogOutput.Main, (int)_logConfig.LogFilter.Main);
+                _logConfig.LogOutput.Plugin = (LogLevel)Math.Max((int)_logConfig.LogOutput.Plugin, (int)_logConfig.LogFilter.Plugin);
+                _logConfig.LogOutput.Script = (LogLevel)Math.Max((int)_logConfig.LogOutput.Script, (int)_logConfig.LogFilter.Script);
+            }
+
             ApplyFilters(_logConfig);
         }
 

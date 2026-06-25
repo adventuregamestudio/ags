@@ -152,14 +152,13 @@ static bool movelist_handle_donemove(const uint8_t testflag, const fixed xpermov
     return (doneflag & testflag) != 0;
 }
 
-int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 {
     // TODO: find out why movelist 0 is not being used
     assert(mslot >= 1);
     if (mslot < 1)
-        return 0;
+        return kMoveResult_Abort;
 
-    int need_to_fix_sprite = 0; // TODO: find out what this value means and refactor
     MoveList &cmls = mls[mslot];
     const fixed xpermove = cmls.permove[cmls.onstage].X;
     const fixed ypermove = cmls.permove[cmls.onstage].Y;
@@ -202,6 +201,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         movelist_handle_remainer(cmls);
 
     // Handle end of move stage
+    MoveResult move_result = kMoveResult_Continue;
     if ((cmls.doneflag & kMoveListDone_XY) == kMoveListDone_XY)
     {
         // this stage is done, go on to the next stage
@@ -221,11 +221,11 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         {  // last stage is just dest pos
             cmls = {};
             mslot = 0;
-            need_to_fix_sprite = 1; // TODO: find out what this means
+            move_result = kMoveResult_Done;
         }
         else
         {
-            need_to_fix_sprite = 2; // TODO: find out what this means
+            move_result = kMoveResult_NextStage;
         }
     }
 
@@ -233,7 +233,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     cmls.onpart += 1.f;
     pos_x = xps;
     pos_y = yps;
-    return need_to_fix_sprite;
+    return move_result;
 }
 
 void restore_movelists()

@@ -64,10 +64,12 @@ void start_game_load_savegame_on_startup(const String &load_save)
     }
 }
 
-void start_game() {
+void start_game()
+{
     set_room_placeholder();
     set_cursor_mode(MODE_WALK);
-    Mouse::SetPosition(Point(160, 100));
+    const auto &screen_sz = game.GetGameRes();
+    Mouse::SetPosition(Point(screen_sz.Width / 2, screen_sz.Height / 2));
     newmusic(0);
 
     set_our_eip(-42);

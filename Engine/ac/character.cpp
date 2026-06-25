@@ -2147,7 +2147,8 @@ void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloo
     }
 }
 
-void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
+void fix_player_sprite(const MoveList *cmls, CharacterInfo *chinf)
+{
     const fixed xpmove = cmls->permove[cmls->onstage].X;
     const fixed ypmove = cmls->permove[cmls->onstage].Y;
 
@@ -2205,17 +2206,27 @@ int has_hit_another_character(int sourceChar) {
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
-    int ntf=0, xwas = chi->x, ywas = chi->y;
-
-    if (do_movelist_move(chi->walking, chi->x, chi->y) == kMoveResult_NextStage) 
+int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
+{
+    int xwas = chi->x, ywas = chi->y;
+    // If we support smooth walk, then keep moving even across multiple stages,
+    // until all the "current move" is not depleted OR until we have to turn.
+    while (do_movelist_move(chi->walking, chi->x, chi->y, play.ShouldSmoothWalk()) == kMoveResult_NextStage)
     {
+        // Character just switched to the next path segment
+        auto &mlist = mls[chi->get_movelist_id()];
         if (chi->is_moving_walkanim())
-            fix_player_sprite(&mls[chi->get_movelist_id()], chi);
+            fix_player_sprite(&mlist, chi);
+        if (chi->is_turning() || !play.ShouldSmoothWalk() || mlist.onpart <= 0.f)
+        {
+            mlist.onpart = 0.f;
+            break;
+        }
     }
 
-    ntf = has_hit_another_character(chi->index_id);
-    if (ntf >= 0) {
+    int ntf = has_hit_another_character(chi->index_id);
+    if (ntf >= 0)
+    {
         chi->walkwait = 30;
         if (game.chars[ntf].walkspeed < 5)
             chi->walkwait += (5 - game.chars[ntf].walkspeed) * 5;
@@ -2230,8 +2241,9 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
             chex->animwait = chi->walkwait;
         }
 
-        if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mls[chi->get_movelist_id()].onpart > 0.f) {
+        if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) { /* skip */ }
+        else if (mls[chi->get_movelist_id()].onpart > 0.f)
+        {
             mls[chi->get_movelist_id()].onpart -= 1.f;
             chi->x = xwas;
             chi->y = ywas;

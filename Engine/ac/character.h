@@ -178,7 +178,7 @@ bool should_use_diagloops(CharacterInfo *char1, bool require_animation);
 // returns if they have vertical loops, or only horizontal ones
 bool has_updown_loops(CharacterInfo *char1);
 void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloops);
-void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf);
+void fix_player_sprite(const MoveList *cmls, CharacterInfo *chinf);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);
 int  doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex);

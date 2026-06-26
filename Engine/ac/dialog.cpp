@@ -1372,7 +1372,7 @@ bool DialogOptions::Run()
 bool DialogOptions::RunControls()
 {
     bool state_handled = false;
-    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     {
         switch (type)
         {

@@ -92,7 +92,10 @@ inline int make_sdl_merged_mod(int mod)
 }
 
 // Tells if there are any buffered input events;
-// return the InputType corresponding to the first queued event.
+// returns the InputType corresponding to the first queued event.
+bool ags_hasinputevent_ready(InputType &type);
+// Returns the InputType corresponding to the first queued event;
+// returns kInputNone if the queue is empty.
 InputType ags_inputevent_ready();
 // Queries for the next input event in buffer; returns uninitialized data if none was queued
 SDL_Event ags_get_next_inputevent();

@@ -873,7 +873,7 @@ static void GameUpdateCheckControls()
     check_mouse_state(was_mouse_on_iface); // NOTE: this also polls mousewheel
 
     // Handle all the buffered input events
-    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     {
         switch (type)
         {

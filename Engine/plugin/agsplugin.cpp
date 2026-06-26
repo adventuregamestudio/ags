@@ -372,11 +372,12 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
     rotate_sprite(ds->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }
 
-void IAGSEngine::PollSystem () {
+void IAGSEngine::PollSystem ()
+{
     update_polled_stuff();
     ags_domouse();
     // Handle all the buffered input events
-    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     {
         eAGSMouseButton mbut;
         KeyInput ki;
@@ -391,8 +392,8 @@ void IAGSEngine::PollSystem () {
                 pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut);
         }
     }
-    
 }
+
 AGSCharacter* IAGSEngine::GetCharacter (int32 charnum) {
     if (charnum >= game.numcharacters)
         quit("!AGSEngine::GetCharacter: invalid character request");

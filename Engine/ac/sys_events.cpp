@@ -309,6 +309,14 @@ int sys_keydown_count = 0; // counter of keys pressed down
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
+bool ags_hasinputevent_ready(InputType &type)
+{
+    if (g_inputEvtQueue.empty())
+        return false;
+    type = ags_inputevent_ready();
+    return true;
+}
+
 InputType ags_inputevent_ready()
 {
     if (g_inputEvtQueue.empty())

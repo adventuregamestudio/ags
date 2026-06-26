@@ -770,14 +770,8 @@ static void check_gamepad_controls()
     if ((play.text_overlay_on > 0) && (play.speech_skip_style & SKIP_KEYPRESS)) {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0) {
-            // check if it requires a specific keypress
-            if ((play.skip_speech_specific_key > 0) &&
-                (gbn != play.skip_speech_specific_key)) { }
-            else
-            {
-                remove_screen_overlay(play.text_overlay_on);
-                play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
-            }
+            remove_screen_overlay(play.text_overlay_on);
+            play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
         }
 
         return;

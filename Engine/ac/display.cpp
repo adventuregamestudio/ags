@@ -349,7 +349,7 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
 bool display_check_user_input(int skip)
 {
     bool state_handled = false;
-    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     { // NOTE: must handle them all in case there were engine's hotkeys too
         switch (type)
         {

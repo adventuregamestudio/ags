@@ -382,7 +382,7 @@ std::unique_ptr<BlockingVideoPlayer> gl_Video;
 // Checks input events, tells if the video should be skipped
 static bool video_check_user_input(VideoSkipType skip)
 {
-    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    for (InputType type = kInputNone; ags_hasinputevent_ready(type);)
     {
         if (type == kInputKeyboard)
         {

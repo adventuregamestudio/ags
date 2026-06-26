@@ -539,9 +539,6 @@ HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out)
 HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
 {
     // Check if translation object is meaningful
-    if (tra.Dict.size() < 1)
-        printf("WARNING: input translation appears to be empty.\n");
-
     bool has_translation = false;
     for (const auto &kv : tra.Dict)
     {

@@ -309,6 +309,14 @@ int sys_keydown_count = 0; // counter of keys pressed down
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
+bool ags_hasinputevent_ready(InputType &type)
+{
+    if (g_inputEvtQueue.empty())
+        return false;
+    type = ags_inputevent_ready();
+    return true;
+}
+
 InputType ags_inputevent_ready()
 {
     if (g_inputEvtQueue.empty())
@@ -322,6 +330,7 @@ InputType ags_inputevent_ready()
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
         return kInputMouse;
+    case SDL_JOYBUTTONDOWN:
     case SDL_CONTROLLERBUTTONDOWN:
         return kInputGamepad;
     case AGS_SDL_EVT_TOUCHDOWN:
@@ -1072,7 +1081,12 @@ void ags_clear_mouse_movement()
 
 static void on_sdl_joystick_button(const SDL_Event &event)
 {
-    g_inputEvtQueue.push_back(event);
+    // Skip button events for joysticks that are gamepads, because
+    // these have their own gamepad button events
+    if (!SDL_IsGameController(event.jbutton.which))
+    {
+        g_inputEvtQueue.push_back(event);
+    }
 }
 
 static void on_sdl_joystick_device(const SDL_JoyDeviceEvent &event)

@@ -330,6 +330,7 @@ InputType ags_inputevent_ready()
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
         return kInputMouse;
+    case SDL_JOYBUTTONDOWN:
     case SDL_CONTROLLERBUTTONDOWN:
         return kInputGamepad;
     case AGS_SDL_EVT_TOUCHDOWN:
@@ -1080,7 +1081,12 @@ void ags_clear_mouse_movement()
 
 static void on_sdl_joystick_button(const SDL_Event &event)
 {
-    g_inputEvtQueue.push_back(event);
+    // Skip button events for joysticks that are gamepads, because
+    // these have their own gamepad button events
+    if (!SDL_IsGameController(event.jbutton.which))
+    {
+        g_inputEvtQueue.push_back(event);
+    }
 }
 
 static void on_sdl_joystick_device(const SDL_JoyDeviceEvent &event)

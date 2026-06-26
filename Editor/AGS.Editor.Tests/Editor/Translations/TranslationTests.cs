@@ -17,6 +17,10 @@ namespace AGS.Editor
 // them. Special characters such as [ and %%s symbolise things within the
 // game, so should be left in an appropriate place in the message.
 // 
+// Game identification: this lets game to detect a translation meant
+// for another game. These may be left blank too.
+//#GameID=
+//#GameName=
 // ** Translation settings are below
 // ** Leave them as ""DEFAULT"" to use the game settings
 // The normal font to use - DEFAULT or font number

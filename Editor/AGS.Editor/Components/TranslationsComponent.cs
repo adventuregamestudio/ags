@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.Util;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.Design.AxImporter;
@@ -128,8 +129,8 @@ namespace AGS.Editor.Components
 
         private void WriteExtGameID(BinaryWriter bw, Translation translation, CompileMessages error)
         {
-            bw.Write(_agsEditor.CurrentGame.Settings.UniqueID);
-            WriteString(bw, _agsEditor.CurrentGame.Settings.GameName, _agsEditor.CurrentGame.TextEncoding);
+            bw.Write(translation.GameID);
+            WriteString(bw, translation.GameName, _agsEditor.CurrentGame.TextEncoding);
         }
 
         private void WriteExtDictionary(BinaryWriter bw, Translation translation, List<Tuple<string, string>> translatedLines, CompileMessages error)
@@ -206,6 +207,9 @@ namespace AGS.Editor.Components
             errors.AddRange(load_errors);
             if (load_errors.HasErrors)
                 return;
+
+            translation.GameID = _agsEditor.CurrentGame.Settings.UniqueID;
+            translation.GameName = _agsEditor.CurrentGame.Settings.GameName;
 
             string tempFile = Path.GetTempFileName();
             Encoding textEncoding = translation.Encoding;
@@ -561,6 +565,12 @@ namespace AGS.Editor.Components
 
         private void UpdateTranslations(IList<Translation> translations)
         {
+            foreach (var translation in translations)
+            {
+                translation.GameID = _agsEditor.CurrentGame.Settings.UniqueID;
+                translation.GameName = _agsEditor.CurrentGame.Settings.GameName;
+            }
+
             if (_guiController.ShowQuestion("Updating the translation can take some time depending on the size of your game, and will save your game beforehand. Do you want to continue?") == DialogResult.Yes)
             {
                 DoTranslationUpdate(translations);

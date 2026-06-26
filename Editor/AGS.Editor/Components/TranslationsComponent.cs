@@ -8,6 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.Design.AxImporter;
+using static System.Windows.Forms.LinkLabel;
 
 namespace AGS.Editor.Components
 {
@@ -311,21 +314,55 @@ namespace AGS.Editor.Components
 
         private static void UpdateSingleTranslationProcess(Translation translation, ICollection<GameTextLine> gameTexts, CompileMessages messages)
         {
-            var oldLines = translation.TranslatedLines;
-            var oldOptions = translation.TranslatedEntryOptions;
-            var oldSections = translation.TranslationSections;
+            // We take the existing translation source content as a base and merge the new changes in.
+            // To be fair, this still does not guarantee that old content is kept in the same order,
+            // because Translation class stores the lines in a hash dictionary. If we wanted to be
+            // strict about this, we'd need to record them in a separate indexed list (or similar).
 
-            translation.TranslatedLines = new Dictionary<string, string>();
-            translation.TranslatedEntryOptions = new Dictionary<string, TranslationEntryOptions>();
-            translation.TranslationSections = new Dictionary<string, TranslationSection>();
-
-            // Add current game texts
+            bool translationModified = false;
+            var newTextKeys = new HashSet<string>();
             var sectionByKey = new Dictionary<string, TranslationSection>();
             TranslationSection currentSection = null;
-            bool translationModified = false;
+
+            // Process new texts, merging them with the existing translation
             foreach (var line in gameTexts)
             {
-                // Prepare a section for this line
+                // Save the new entry key, used to find obsolete entries afterwards
+                bool modified = false;
+                newTextKeys.Add(line.Text);
+
+                TranslationEntryOptions entryOptions = null;
+                TranslationSection oldSection = null;
+                if (translation.TranslatedLines.ContainsKey(line.Text))
+                {
+                    // An entry already exists
+                    translation.TranslationSections.TryGetValue(line.Text, out oldSection);
+                    translation.TranslatedEntryOptions.TryGetValue(line.Text, out entryOptions);
+                    // If entry options exist, remove all standard options from metadata list;
+                    // these options must be set by merging new game line, below
+                    if (entryOptions != null)
+                    {
+                        modified |= entryOptions.ParserWordID != line.ParserWordID
+                            || entryOptions.IsObsolete;
+
+                        entryOptions.ParserWordID = -1;
+                        entryOptions.IsObsolete = false;
+                        entryOptions.Metadata.RemoveAll((annotation) =>
+                        {
+                            var keyValue = AGS.Types.Utilities.ParseKeyValue(annotation, Translation.ANNOTATE_SEPARATOR);
+                            return keyValue.Key == "OBSOLETE" || keyValue.Key == "PARSERWORD";
+                        });
+                    }
+                }
+                else
+                {
+                    // Add new entry
+                    translation.TranslatedLines[line.Text] = string.Empty;
+                    modified = true;
+                }
+
+                // Get or create a section for this entry, always use a section from the new game line
+                modified |= (oldSection == null) || (oldSection.Name != line.Context);
                 if (currentSection == null || currentSection.Name != line.Context)
                 {
                     string context = line.Context ?? string.Empty;
@@ -335,101 +372,55 @@ namespace AGS.Editor.Components
                         sectionByKey.Add(context, currentSection);
                     }
                 }
+                translation.TranslationSections[line.Text] = currentSection;
 
-                string translatedLine = string.Empty;
-                bool existingLine = oldLines.TryGetValue(line.Text, out translatedLine);
-                bool modified = !existingLine;
-
-                translation.TranslatedLines.Add(line.Text, translatedLine);
-                translation.TranslationSections.Add(line.Text, currentSection);
-
-                TranslationEntryOptions entryOptions = null;
-                TranslationEntryOptions oldEntryOptions = null;
-                List<string> entryOptionKeys = null;
-                if (existingLine)
-                    oldOptions.TryGetValue(line.Text, out oldEntryOptions);
-
-                // For parser words, add respective annotation
+                // Apply entry options from the new game line
                 if (line.ParserWordID >= 0)
                 {
-                    entryOptions = new TranslationEntryOptions();
-                    entryOptions.Metadata.Add($"PARSERWORD:{line.ParserWordID}");
-                    entryOptions.ParserWordID = line.ParserWordID;
-                    entryOptionKeys = new List<string>();
-                    entryOptionKeys.Add("PARSERWORD");
-
-                    if (!modified)
-                        modified = (oldEntryOptions == null) || !oldEntryOptions.IsParserDictionary;
-                }
-
-                // Handle matching existing lines
-                if (existingLine)
-                {
-                    // Copy any existing annotations over; but here are few extra rules:
-                    // * since the old line is matching new one, this line can no longer be $OBSOLETE.
-                    // * certain sensitive annotations like $PARSERWORD must be skipped, because
-                    //   they must not be present in entries that are no longer parserwords
-                    // * annotations with matching keys are skipped
-                    if (oldEntryOptions != null)
+                    if (entryOptions == null)
                     {
-                        foreach (var annotation in oldEntryOptions.Metadata)
-                        {
-                            var keyValue = AGS.Types.Utilities.ParseKeyValue(annotation, Translation.ANNOTATE_SEPARATOR);
-                            if (keyValue.Key == "OBSOLETE" || keyValue.Key == "PARSERWORD")
-                                continue;
-                            if (entryOptionKeys != null && entryOptionKeys.Contains(keyValue.Key))
-                                continue;
-                            if (entryOptions == null)
-                                entryOptions = new TranslationEntryOptions();
-                            if (entryOptionKeys == null)
-                                entryOptionKeys = new List<string>();
-                            entryOptions.Metadata.Add(annotation);
-                            entryOptionKeys.Add(keyValue.Key);
-                        }
+                        entryOptions = new TranslationEntryOptions();
+                        translation.TranslatedEntryOptions[line.Text] = entryOptions;
                     }
 
-                    // Remove matching line, so that we can know which lines are not matched later
-                    oldLines.Remove(line.Text);
-                    // Also check if section has changed
-                    if (!modified)
-                        modified = !oldSections.ContainsKey(line.Text) || (oldSections[line.Text].Name != currentSection.Name);
+                    entryOptions.Metadata.Add($"PARSERWORD:{line.ParserWordID}");
+                    entryOptions.ParserWordID = line.ParserWordID;
                 }
-
-                if (entryOptions != null)
-                    translation.TranslatedEntryOptions[line.Text] = entryOptions;
 
                 translationModified |= modified;
             }
 
-            // Handle the obsolete entries, remaining from an old translation file.
-            // If they contain translated lines - then keep them but mark as OBSOLETE.
-            // If they do not, then simply erase these.
-            translationModified |= oldLines.Count > 0;
-            foreach (var line in oldLines)
+            // Handle obsolete translation entries
+            var removeEntries = new List<string>();
+            foreach (var entry in translation.TranslatedLines)
             {
-                if (!string.IsNullOrEmpty(line.Value))
+                if (!newTextKeys.Contains(entry.Key))
                 {
-                    TranslationSection section = null;
-                    oldSections.TryGetValue(line.Key, out section);
-                    if (!sectionByKey.TryGetValue(section != null ? section.Name : string.Empty, out currentSection))
+                    translationModified = true;
+                    // If the entry was never translated, then simply remove one.
+                    // If there's already a translated line, then keep the entry, but mark as OBSOLETE
+                    if (string.IsNullOrEmpty(entry.Value))
                     {
-                        currentSection = section ?? new TranslationSection(string.Empty);
-                        sectionByKey.Add(currentSection.Name, currentSection);
+                        removeEntries.Add(entry.Key);
                     }
-
-                    translation.TranslatedLines.Add(line.Key, line.Value);
-                    translation.TranslationSections.Add(line.Key, currentSection);
-                    TranslationEntryOptions options = null;
-                    if (!oldOptions.TryGetValue(line.Key, out options))
-                        options = new TranslationEntryOptions();
-                    if (!options.IsObsolete)
+                    else
                     {
-                        options.IsObsolete = true;
-                        options.Metadata.Add("OBSOLETE");
+                        TranslationEntryOptions entryOptions = null;
+                        if (!translation.TranslatedEntryOptions.TryGetValue(entry.Key, out entryOptions))
+                        {
+                            entryOptions = new TranslationEntryOptions();
+                            translation.TranslatedEntryOptions[entry.Key] = entryOptions;
+                        }
+                        if (!entryOptions.IsObsolete)
+                        {
+                            entryOptions.IsObsolete = true;
+                            entryOptions.Metadata.Add("OBSOLETE");
+                        }
                     }
-                    translation.TranslatedEntryOptions[line.Key] = options;
                 }
             }
+            foreach (var removeEntry in removeEntries)
+                translation.TranslatedLines.Remove(removeEntry);
 
             translation.Modified = translationModified;
         }

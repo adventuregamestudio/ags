@@ -511,6 +511,7 @@ bonsoir
             }
 
             Assert.That(!errors.HasErrors);
+            Assert.That(!translation.Modified);
 
             var gameTexts = new GameTextLine[] { 
                 new GameTextLine("first line"),
@@ -522,6 +523,7 @@ bonsoir
                 new GameTextLine("This is another new line"),
             };
             errors = TranslationsComponent.UpdateTranslation(translation, gameTexts);
+            Assert.That(translation.Modified);
 
             ms = new MemoryStream();
             using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
@@ -535,6 +537,9 @@ bonsoir
 //-----------------------------------------------------------------------------
 first line
 première réplique
+//$OBSOLETE
+second line
+deuxième réplique
 Good morning
 bonjour
 Good evening
@@ -543,9 +548,6 @@ This is a new line
 
 This is another new line
 
-//$OBSOLETE
-second line
-deuxième réplique
 ";
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());
@@ -592,6 +594,7 @@ deuxième réplique
             }
 
             Assert.That(!errors.HasErrors);
+            Assert.That(!translation.Modified);
 
             var gameTexts = new GameTextLine[] {
                 new GameTextLine("first line", "Simple Section", "New comment"),
@@ -605,6 +608,7 @@ deuxième réplique
                 new GameTextLine("This line is in a completely new section", "New section"),
             };
             errors = TranslationsComponent.UpdateTranslation(translation, gameTexts);
+            Assert.That(translation.Modified);
 
             ms = new MemoryStream();
             using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
@@ -618,13 +622,13 @@ deuxième réplique
 //-----------------------------------------------------------------------------
 first line
 première réplique
+//$OBSOLETE
+second line
+deuxième réplique
 This is a new line
 
 This is another new line
 
-//$OBSOLETE
-second line
-deuxième réplique
 //-----------------------------------------------------------------------------
 //$SECTION: Good day; A comment
 //-----------------------------------------------------------------------------
@@ -683,6 +687,7 @@ This line is in a completely new section
             }
 
             Assert.That(!errors.HasErrors);
+            Assert.That(!translation.Modified);
 
             // NOTE: unfortunately, there's no way to add custom annotations into update atm,
             // but the existing custom annotations found in the source file should be kept!
@@ -698,6 +703,7 @@ This line is in a completely new section
                 GameTextLine.MakeParserWord(2, ",take,pick,pick up", ""),
             };
             errors = TranslationsComponent.UpdateTranslation(translation, gameTexts);
+            Assert.That(translation.Modified);
 
             ms = new MemoryStream();
             using (StreamWriter sw = new StreamWriter(ms, translation.Encoding))
@@ -712,23 +718,23 @@ This line is in a completely new section
 //$COMMENT: type anything
 first line
 première réplique
+//$OBSOLETE
+second line
+deuxième réplique
 Good morning
 bonjour
 Good evening
 bonsoir
-This is a new line
-
-This is another new line
-
 //$PARSERWORD:1
 ,apple,fruit
 
 //$PARSERWORD:2
 ,take,pick,pick up
 
-//$OBSOLETE
-second line
-deuxième réplique
+This is a new line
+
+This is another new line
+
 ";
 
             var result = translation.Encoding.GetDecoder().GetAsString(ms.GetBuffer());

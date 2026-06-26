@@ -30,6 +30,8 @@ namespace DataUtil
 //-----------------------------------------------------------------------------
 
 const char   OPTION_SEPARATOR = '=';
+const String GAMEID_TAG = "GameID";
+const String GAMENAME_TAG = "GameName";
 const String NORMAL_FONT_TAG = "NormalFont";
 const String SPEECH_FONT_TAG = "SpeechFont";
 const String TEXT_DIRECTION_TAG = "TextDirection";
@@ -187,7 +189,15 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     const auto key_value = StrUtil::GetKeyValue(line, OPTION_SEPARATOR);
     const String key = key_value.first;
     const String value = key_value.second;
-    if (key == NORMAL_FONT_TAG)
+    if (key == GAMEID_TAG)
+    {
+        tra.GameUid = StrUtil::StringToInt(value);
+    }
+    else if (key == GAMENAME_TAG)
+    {
+        tra.GameName = value;
+    }
+    else if (key == NORMAL_FONT_TAG)
     {
         tra.NormalFont = ReadOptionalInt(value);
     }
@@ -457,6 +467,10 @@ static HError WriteTRS(const Translation &tra, const std::vector<TranslationSect
     sw.WriteLine("// them. Special characters such as [ and %%s symbolise things within the");
     sw.WriteLine("// game, so should be left in an appropriate place in the message.");
     sw.WriteLine("// ");
+    sw.WriteLine("// Game identification: this lets game to detect a translation meant");
+    sw.WriteLine("// for another game. These may be left blank too.");
+    sw.WriteLineFormat("//#GameID=%s", (tra.GameUid != 0 ? String::FromFormat("%d", tra.GameUid).GetCStr() : ""));
+    sw.WriteLineFormat("//#GameName=%s", tra.GameName.GetCStr());
     sw.WriteLine("// ** Translation settings are below");
     sw.WriteLine("// ** Leave them as \"DEFAULT\" to use the game settings");
     sw.WriteLine("// The normal font to use - DEFAULT or font number");

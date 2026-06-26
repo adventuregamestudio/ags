@@ -14,12 +14,14 @@ const char *HELP_STRING = "Usage:\n"
 "  trac <input.trs> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
 "  trac -u <input.tra> [<output.trs>]\n";
 
-int Command_Compile(const String &src, const String &dst, const String &game_name, int game_uid)
+int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
 {
     printf("Input translation source: %s\n", src.GetCStr());
     printf("Output compiled translation: %s\n", dst.GetCStr());
-    printf("Game name: %s\n", game_name.GetCStr());
-    printf("Game uniqueid: %d\n", game_uid);
+    if (game_name)
+        printf("Game name: %s\n", game_name->GetCStr());
+    if (game_uid)
+        printf("Game uniqueid: %d\n", *game_uid);
 
     //-----------------------------------------------------------------------//
     // Read TRS
@@ -40,6 +42,11 @@ int Command_Compile(const String &src, const String &dst, const String &game_nam
         return -1;
     }
 
+    if (game_uid)
+        tra.GameUid = *game_uid;
+    if (game_name)
+        tra.GameName = *game_name;
+
     //-----------------------------------------------------------------------//
     // Write TRA
     //-----------------------------------------------------------------------//
@@ -49,8 +56,6 @@ int Command_Compile(const String &src, const String &dst, const String &game_nam
         printf("Error: failed to open output TRA for writing.\n");
         return -1;
     }
-    tra.GameName = game_name;
-    tra.GameUid = game_uid;
     err = WriteTRA(tra, std::move(out));
     if (!err)
     {
@@ -135,21 +140,31 @@ int main(int argc, char *argv[])
         String dst;
         String game_name;
         int game_uid = 0;
+        bool use_game_uid = false;
+        bool use_game_name = false;
         for (int i = 2; i < argc; ++i)
         {
             const char *arg = argv[i];
             if (arg[0] != '-' && dst.IsEmpty())
+            {
                 dst = arg;
+            }
             else if (ags_stricmp(arg, "--gamename") == 0 && (i < argc - 1))
+            {
                 game_name = argv[++i];
+                use_game_name = true;
+            }
             else if (ags_stricmp(arg, "--uniqueid") == 0 && (i < argc - 1))
+            {
                 game_uid = StrUtil::StringToInt(argv[++i]);
+                use_game_uid = true;
+            }
         }
 
         if (dst.IsEmpty())
             dst = Path::ReplaceExtension(src, "tra");
 
-        return Command_Compile(src, dst, game_name, game_uid);
+        return Command_Compile(src, dst, use_game_name ? &game_name : nullptr, use_game_uid ? &game_uid : nullptr);
     }
     else if (ags_stricmp(argv[1], "-u") == 0)
     {

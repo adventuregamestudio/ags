@@ -150,6 +150,7 @@ struct JoystickImpl {
     SDL_Joystick* sdlJoystick = nullptr;
     SDL_JoystickID sdlJoystickID = -1;
     int scriptJoystickHandle = 0;
+    int ButtonCount = 0;
 };
 
 std::vector<JoystickImpl> _joysticks;
@@ -181,6 +182,7 @@ void add_joystick(int device_index)
     joy.sdlGameController = sdl_gamepad;
     joy.sdlJoystickID = sdl_id;
     joy.scriptJoystickHandle = 0;
+    joy.ButtonCount = SDL_JoystickNumButtons(sdl_joy);
     _joysticks.push_back(joy);
 }
 
@@ -252,6 +254,34 @@ ScriptJoystick* Joystick_GetiJoysticks(int i)
     return newJoy;
 }
 
+bool Joystick_IsAnyButtonDown(ScriptJoystick* joy)
+{
+    if (joy->IsInvalid()) return 0;
+    auto const& joy_impl = _joysticks[joy->GetID()];
+    if (joy_impl.sdlGameController != nullptr)
+    {
+        for (int butt = SDL_CONTROLLER_BUTTON_A; butt < SDL_CONTROLLER_BUTTON_MAX; butt++)
+        {
+            if (SDL_GameControllerGetButton(joy_impl.sdlGameController, static_cast<SDL_GameControllerButton>(butt)))
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        int button_count = joy_impl.ButtonCount;
+        for (int butt = 0; butt < button_count; butt++)
+        {
+            if (SDL_JoystickGetButton(joy_impl.sdlJoystick, butt) > 0)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 int Joystick_IsConnected(ScriptJoystick* joy)
 {
     if(joy->IsInvalid()) return 0;
@@ -260,6 +290,7 @@ int Joystick_IsConnected(ScriptJoystick* joy)
 
 int Joystick_IsGamepad(ScriptJoystick* joy)
 {
+    if (joy->IsInvalid()) return 0;
     return _joysticks[joy->GetID()].sdlGameController != nullptr;
 }
 
@@ -305,7 +336,7 @@ int Joystick_IsButtonDown(ScriptJoystick* joy, int butt)
 {
     if (joy->IsInvalid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
-    int button_count = SDL_JoystickNumButtons(joy_impl.sdlJoystick);
+    int button_count = joy_impl.ButtonCount;
     if (butt < 0 || butt >= button_count) {
         debug_script_warn("Warning: joystick's (id %d) button %d is not in range (0:%d), returned false",
                           joy_impl.sdlJoystickID, butt, button_count);
@@ -339,7 +370,7 @@ int Joystick_GetButtonCount(ScriptJoystick* joy)
 {
     if (joy->IsInvalid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
-    return SDL_JoystickNumButtons(joy_impl.sdlJoystick);
+    return joy_impl.ButtonCount;
 }
 
 int Joystick_GetHatCount(ScriptJoystick* joy)
@@ -383,6 +414,12 @@ RuntimeScriptValue Sc_Joystick_GetName(void *self, const RuntimeScriptValue *par
 RuntimeScriptValue Sc_Joystick_IsConnected(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptJoystick, Joystick_IsConnected);
+}
+
+// bool (ScriptJoystick *joy)
+RuntimeScriptValue Sc_Joystick_IsAnyButtonDown(void* self, const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptJoystick, Joystick_IsAnyButtonDown);
 }
 
 // int (ScriptJoystick *joy)
@@ -441,10 +478,11 @@ void RegisterJoystickAPI()
 {
     ScFnRegister joystick_api[] = {
             {"Joystick::get_JoystickCount",     API_FN_PAIR(Joystick_GetJoystickCount)},
-            {"Joystick::geti_Joysticks",         API_FN_PAIR(Joystick_GetiJoysticks)},
+            {"Joystick::geti_Joysticks",        API_FN_PAIR(Joystick_GetiJoysticks)},
             {"Joystick::get_Name",              API_FN_PAIR(Joystick_GetName)},
             {"Joystick::get_IsConnected",       API_FN_PAIR(Joystick_IsConnected)},
             {"Joystick::get_IsGamepad",         API_FN_PAIR(Joystick_IsGamepad)},
+            {"Joystick::get_IsAnyButtonDown",   API_FN_PAIR(Joystick_IsAnyButtonDown)},
             {"Joystick::IsGamepadButtonDown^1", API_FN_PAIR(Joystick_IsGamepadButtonDown)},
             {"Joystick::GetGamepadAxis^2",      API_FN_PAIR(Joystick_GetGamepadAxis)},
             {"Joystick::GetAxis^2",             API_FN_PAIR(Joystick_GetAxis)},

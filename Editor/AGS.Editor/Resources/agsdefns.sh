@@ -3466,6 +3466,8 @@ builtin struct Game {
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 100). Value 0 disables crossfade.
+  import static int GetAudioTypeCrossfadeSpeed(AudioType);
   /// Returns the volume drop applied to the specified audio type when speech is played
   import static int GetAudioTypeSpeechVolumeDrop(AudioType);
   /// Returns the default volume of audio clips of the specified type. Return value -1 means that no standard volume is defined, and each clip will start playback with its own default volume set in the editor.
@@ -3476,6 +3478,8 @@ builtin struct Game {
   import static void Pause();
   /// Resumes the game after it was paused earlier. Each call to Game.Resume() decrements a "pause" counter.
   import static void Resume();
+  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 100). Value 0 disables crossfade.
+  import static void SetAudioTypeCrossfadeSpeed(AudioType, int speed);
   /// Returns whether the game is currently paused.
   import static readonly attribute bool IsPaused;
   /// Gets/sets game's running speed, in frames per second.

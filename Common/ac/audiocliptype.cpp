@@ -26,7 +26,7 @@ void AudioClipType::ReadFromFile(Stream *in)
     in->ReadInt32(); // reserved
 }
 
-void AudioClipType::WriteToFile(Stream *out)
+void AudioClipType::WriteToFile(Stream *out) const
 {
     out->WriteInt32(id);
     out->WriteInt32(reservedChannels);

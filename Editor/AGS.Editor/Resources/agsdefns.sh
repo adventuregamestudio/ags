@@ -910,8 +910,12 @@ builtin managed struct DrawingSurface {
   import readonly attribute bool Valid;
 #endif
 #ifdef SCRIPT_API_v400
+  /// Returns a dynamic array of bytes, containing a copy of this surface's pixels from the specified region, in respective format.
+  import char[] GetPixelsCopy(int x = 0, int y = 0, int width = -1, int height = -1);
   /// Changes the colour of a single pixel on the surface. This operation ignores drawing settings, and simply sets the color value.
   import void SetPixel(int x, int y, int color);
+  /// Pastes an array of pixels onto the surface at the specified position. The pixels format must match the surface's.
+  import void SetPixels(char pixels[], int x = 0, int y = 0, int width = -1);
   /// Gets/sets the current BlendMode that will be used for drawing onto this surface.
   import attribute BlendMode BlendMode;
   /// Gets the colour depth of this surface.

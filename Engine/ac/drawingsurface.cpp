@@ -23,16 +23,17 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
-#include "gui/guimain.h"
-#include "ac/spritecache.h"
-#include "script/runtimescriptvalue.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"
+#include "gui/guimain.h"
+#include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -405,6 +406,74 @@ void DrawingSurface_SetPixel(ScriptDrawingSurface *sds, int x, int y, int color)
     sds->FinishedDrawing();
 }
 
+void *DrawingSurface_GetPixelsCopy(ScriptDrawingSurface *sds, int x, int y, int width, int height)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.GetPixels");
+    if (!ds)
+        return nullptr;
+
+    if (x < 0 || y < 0 || x >= ds->GetWidth() || y >= ds->GetHeight())
+    {
+        debug_script_warn("DrawingSurface.GetPixelsCopy: invalid region %d,%d %dx%d", x, y, width, height);
+        return nullptr;
+    }
+
+    if (width < 0)
+        width = ds->GetWidth();
+    if (height < 0)
+        height = ds->GetHeight();
+    width = std::min(width, ds->GetWidth() - x);
+    height = std::min(height, ds->GetHeight() - y);
+    const int src_pitch = ds->GetWidth() * ds->GetBPP();
+    auto arr = DynamicArrayHelpers::CreateArray(width * height * ds->GetBPP());
+    if (arr)
+    {
+        if (width == ds->GetWidth())
+        {
+            std::copy(ds->GetData() + y * src_pitch, ds->GetData() + y * src_pitch + height * src_pitch,
+                static_cast<uint8_t*>(arr.Obj()));
+        }
+        else
+        {
+            const int src_offx = x * ds->GetBPP();
+            const int src_regwidth = width * ds->GetBPP();
+            for (int i = 0, end_y = y + height; y < end_y; ++y, ++i)
+                std::copy(ds->GetData() + y * src_pitch + src_offx, ds->GetData() + y * src_pitch + src_offx + src_regwidth,
+                    static_cast<uint8_t*>(arr.Obj()) + i * src_regwidth);
+        }
+    }
+    return arr.Obj();
+}
+
+void DrawingSurface_SetPixels(ScriptDrawingSurface *sds, void *arrobj, int x, int y, int width)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.GetPixels");
+    if (!ds)
+        return;
+
+    if (arrobj == nullptr)
+        return;
+    if (x < 0 || y < 0 || x >= ds->GetWidth() || y >= ds->GetHeight())
+    {
+        debug_script_warn("DrawingSurface.SetPixels: invalid region %d,%d", x, y);
+        return;
+    }
+
+    if (width < 0)
+        width = ds->GetWidth();
+    const auto &arr_header = CCDynamicArray::GetHeader(arrobj);
+    const uint8_t *arr_ptr = static_cast<uint8_t*>(arrobj);
+    const int src_pitch = width * ds->GetBPP();
+    const int dst_pitch = ds->GetWidth() * ds->GetBPP();
+    const int dst_offx = x * ds->GetBPP();
+    const int dest_width = std::min(width, ds->GetWidth() - x);
+    const int dest_height = std::min<int>(arr_header.TotalSize / (src_pitch), ds->GetHeight());
+    const int dest_regwidth = dest_width * ds->GetBPP();
+    for (int i = 0, end_y = y + dest_height; y < end_y; ++y, ++i)
+        std::copy(arr_ptr + i * src_pitch, arr_ptr + i * src_pitch + dest_regwidth, ds->GetDataForWriting() + y * dst_pitch + dst_offx);
+    sds->FinishedDrawing();
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -521,6 +590,16 @@ RuntimeScriptValue Sc_DrawingSurface_SetPixel(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_SetPixel);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_GetPixelsCopy(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT4(ScriptDrawingSurface, void, globalDynamicArray, DrawingSurface_GetPixelsCopy);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_SetPixels(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT3(ScriptDrawingSurface, DrawingSurface_SetPixels, void);
+}
+
 // void (ScriptDrawingSurface* sds)
 RuntimeScriptValue Sc_DrawingSurface_Release(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -606,7 +685,9 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
         { "DrawingSurface::DrawSurface^10",       API_FN_PAIR(DrawingSurface_DrawSurface) },
         { "DrawingSurface::DrawTriangle^6",       API_FN_PAIR(DrawingSurface_DrawTriangle) },
         { "DrawingSurface::GetPixel^2",           API_FN_PAIR(DrawingSurface_GetPixel) },
+        { "DrawingSurface::GetPixelsCopy^4",      API_FN_PAIR(DrawingSurface_GetPixelsCopy) },
         { "DrawingSurface::SetPixel^3",           API_FN_PAIR(DrawingSurface_SetPixel) },
+        { "DrawingSurface::SetPixels^4",          API_FN_PAIR(DrawingSurface_SetPixels) },
         { "DrawingSurface::Release^0",            API_FN_PAIR(DrawingSurface_Release) },
         { "DrawingSurface::get_DrawingColor",     API_FN_PAIR(DrawingSurface_GetDrawingColor) },
         { "DrawingSurface::set_DrawingColor",     API_FN_PAIR(DrawingSurface_SetDrawingColor) },

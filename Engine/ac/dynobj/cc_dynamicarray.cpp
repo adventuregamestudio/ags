@@ -160,6 +160,21 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
 CCDynamicArray globalDynamicArray;
 
 
+DynObjectRef DynamicArrayHelpers::CreateArray(size_t data_sz)
+{
+    return globalDynamicArray.CreateOld(data_sz, sizeof(uint8_t), false);
+}
+
+DynObjectRef DynamicArrayHelpers::CreateArray(const std::vector<uint8_t> &data)
+{
+    DynObjectRef arr = globalDynamicArray.CreateOld(data.size(), sizeof(uint8_t), false);
+    if (arr.Obj())
+    {
+        std::copy(data.begin(), data.end(), static_cast<uint8_t*>(arr.Obj()));
+    }
+    return arr;
+}
+
 DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> &items)
 {
     // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)

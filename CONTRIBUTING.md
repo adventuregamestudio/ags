@@ -55,8 +55,8 @@ But the important rule is: a program that you modify must build at every commit 
 *Commit description* is to be divided into the commit title and details. Commit title is the first line of description, and should give a clear and simple note about your change. We recommend keeping the title at *72 characters max*, as that's a traditional limit used by Git itself and most Git frontends when displaying a history of commits (if it's longer, then it's going to be truncated with "..." appended in the end). After you wrote this title, make two linebreaks and then write the full description as you see fit. The latter is optional, do this if you think that the changes deserve further explanation. It may be of any length.
 
 Regarding commit title, we suggest to start it with a name of a program you are modifying, for example: "Engine: ", "Editor: " and so forth. Historically we used following prefixes, but we do not limit to these:
-  * "Editor:"
-  * "Engine:"
+  * "Editor:" - changes to the editor program
+  * "Engine:" - changes to the engine program
   * "Script API:" - collective changes implementing new game script command
   * "Compiler:" - changes to the game script compiler
   * "Tool:" (or name of the particular command line tool)
@@ -66,6 +66,11 @@ Regarding commit title, we suggest to start it with a name of a program you are 
   * "Makefile" - changes to Makefiles
   * "CMake" - changes to CMake scripts
   * "Readme", etc - changes to doc files (readme, changelog, and so forth)
+
+Examples of commit titles:
+  * "Engine: improve pathfinder's performance"
+  * "Editor: fixed main menu not working properly"
+  * "Script API: add Character.Jump()"
 
 If your commit fixes or reverts changes made by a particular older commit, and you know which one, please mention that in description by pasting the older commit's hash (this helps to know which versions of the program have been affected by a bug).
 

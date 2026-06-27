@@ -803,6 +803,22 @@ builtin managed struct DrawingSurface {
   import int  GetPixel(int x, int y);
   /// Tells AGS that you have finished drawing onto the surface.
   import void Release();
+#ifdef SCRIPT_API_v363
+  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
+  import readonly attribute bool Valid;
+  /// Returns a dynamic array of bytes, containing a copy of this surface's pixels from the specified region, in respective format.
+  import char[] GetPixelsCopy(int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Returns a dynamic array of shorts (2-byte ints), containing a copy of this surface's pixels from the specified region, in 16-bit R5G6B5 format.
+  import short[] GetPixelsCopy16(int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Returns a dynamic array of ints, containing a copy of this surface's pixels from the specified region, in 32-bit ARGB format.
+  import int[] GetPixelsCopy32(int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Pastes an array of pixels onto the surface at the specified position. The pixels format must match the surface's.
+  import void SetPixels(char pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Pastes an array of pixels onto the surface at the specified position. The image must have a 16-bit color depth (R5G6B5 format).
+  import void SetPixels16(int pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Pastes an array of pixels onto the surface at the specified position. The image must have a 32-bit color depth (ARGB format).
+  import void SetPixels32(int pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
+#endif // SCRIPT_API_v363
   /// Gets/sets the current AGS Colour Number that will be used for drawing onto this surface.
   import attribute int DrawingColor;
   /// Gets the height of this surface.
@@ -813,10 +829,6 @@ builtin managed struct DrawingSurface {
 #endif // SCRIPT_COMPAT_v341
   /// Gets the width of the surface.
   readonly import attribute int Width;
-#ifdef SCRIPT_API_v363
-  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
-  import readonly attribute bool Valid;
-#endif
 };
 
 #ifdef SCRIPT_API_v3507

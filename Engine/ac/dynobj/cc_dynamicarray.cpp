@@ -102,6 +102,26 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 CCDynamicArray globalDynamicArray;
 
 
+DynObjectRef DynamicArrayHelpers::CreateArray(size_t data_sz)
+{
+    return globalDynamicArray.Create(data_sz, sizeof(uint8_t), false);
+}
+
+DynObjectRef DynamicArrayHelpers::CreateArray(size_t elem_size, size_t length)
+{
+    return globalDynamicArray.Create(length, elem_size, false);
+}
+
+DynObjectRef DynamicArrayHelpers::CreateArray(const std::vector<uint8_t> &data)
+{
+    DynObjectRef arr = globalDynamicArray.Create(data.size(), sizeof(uint8_t), false);
+    if (arr.Obj())
+    {
+        std::copy(data.begin(), data.end(), static_cast<uint8_t*>(arr.Obj()));
+    }
+    return arr;
+}
+
 DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> &items)
 {
     // NOTE: we need element size of "handle" for array of managed pointers

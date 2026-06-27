@@ -537,6 +537,11 @@ inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue); \
     return RuntimeScriptValue((int32_t)0)
 
+#define API_OBJCALL_VOID_POBJ_PINT4(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 5); \
+    METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
+    return RuntimeScriptValue((int32_t)0)
+
 #define API_OBJCALL_VOID_POBJ2(CLASS, METHOD, P1CLASS, P2CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, (P2CLASS*)params[1].Ptr); \

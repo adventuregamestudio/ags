@@ -150,7 +150,7 @@ struct JoystickImpl {
     SDL_Joystick* sdlJoystick = nullptr;
     SDL_JoystickID sdlJoystickID = -1;
     int scriptJoystickHandle = 0;
-    int sdljoybutton_count = 0;
+    int ButtonCount = 0;
 };
 
 std::vector<JoystickImpl> _joysticks;
@@ -182,7 +182,7 @@ void add_joystick(int device_index)
     joy.sdlGameController = sdl_gamepad;
     joy.sdlJoystickID = sdl_id;
     joy.scriptJoystickHandle = 0;
-    joy.sdljoybutton_count = SDL_JoystickNumButtons(sdl_joy);
+    joy.ButtonCount = SDL_JoystickNumButtons(sdl_joy);
     _joysticks.push_back(joy);
 }
 
@@ -270,7 +270,7 @@ bool Joystick_IsAnyButtonDown(ScriptJoystick* joy)
     }
     else
     {
-        int button_count = joy_impl.sdljoybutton_count;
+        int button_count = joy_impl.ButtonCount;
         for (int butt = 0; butt < button_count; butt++)
         {
             if (SDL_JoystickGetButton(joy_impl.sdlJoystick, butt) > 0)
@@ -336,7 +336,7 @@ int Joystick_IsButtonDown(ScriptJoystick* joy, int butt)
 {
     if (joy->IsInvalid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
-    int button_count = joy_impl.sdljoybutton_count;
+    int button_count = joy_impl.ButtonCount;
     if (butt < 0 || butt >= button_count) {
         debug_script_warn("Warning: joystick's (id %d) button %d is not in range (0:%d), returned false",
                           joy_impl.sdlJoystickID, butt, button_count);
@@ -370,7 +370,7 @@ int Joystick_GetButtonCount(ScriptJoystick* joy)
 {
     if (joy->IsInvalid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
-    return joy_impl.sdljoybutton_count;
+    return joy_impl.ButtonCount;
 }
 
 int Joystick_GetHatCount(ScriptJoystick* joy)

@@ -3693,6 +3693,8 @@ builtin managed struct Joystick {
   import readonly attribute bool IsConnected;
   /// checks if joystick is a valid gamepad
   import readonly attribute bool IsGamepad;
+  /// checks if joystick has any buttons down
+  import readonly attribute bool IsAnyButtonDown;
   /// checks if a gamepad button is pressed, including dpad.
   import bool IsGamepadButtonDown(eGamepad_Button button);
   /// get gamepad axis or trigger, trigger only has positive values.

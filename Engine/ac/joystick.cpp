@@ -252,6 +252,34 @@ ScriptJoystick* Joystick_GetiJoysticks(int i)
     return newJoy;
 }
 
+bool Joystick_IsAnyButtonDown(ScriptJoystick* joy)
+{
+    if (joy->IsInvalid()) return 0;
+    auto const& joy_impl = _joysticks[joy->GetID()];
+    if (joy_impl.sdlGameController != nullptr)
+    {
+        for (int butt = SDL_CONTROLLER_BUTTON_A; butt < SDL_CONTROLLER_BUTTON_MAX; butt++)
+        {
+            if (SDL_GameControllerGetButton(joy_impl.sdlGameController, static_cast<SDL_GameControllerButton>(butt)))
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        int button_count = SDL_JoystickNumButtons(joy_impl.sdlJoystick);
+        for (int butt = 0; butt < button_count; butt++)
+        {
+            if (SDL_JoystickGetButton(joy_impl.sdlJoystick, butt) > 0)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 int Joystick_IsConnected(ScriptJoystick* joy)
 {
     if(joy->IsInvalid()) return 0;
@@ -260,6 +288,7 @@ int Joystick_IsConnected(ScriptJoystick* joy)
 
 int Joystick_IsGamepad(ScriptJoystick* joy)
 {
+    if (joy->IsInvalid()) return 0;
     return _joysticks[joy->GetID()].sdlGameController != nullptr;
 }
 
@@ -386,6 +415,12 @@ RuntimeScriptValue Sc_Joystick_IsConnected(void *self, const RuntimeScriptValue 
 }
 
 // int (ScriptJoystick *joy)
+RuntimeScriptValue Sc_Joystick_IsAnyButtonDown(void* self, const RuntimeScriptValue* params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptJoystick, Joystick_IsAnyButtonDown);
+}
+
+// int (ScriptJoystick *joy)
 RuntimeScriptValue Sc_Joystick_IsGamepad(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptJoystick, Joystick_IsGamepad);
@@ -441,10 +476,11 @@ void RegisterJoystickAPI()
 {
     ScFnRegister joystick_api[] = {
             {"Joystick::get_JoystickCount",     API_FN_PAIR(Joystick_GetJoystickCount)},
-            {"Joystick::geti_Joysticks",         API_FN_PAIR(Joystick_GetiJoysticks)},
+            {"Joystick::geti_Joysticks",        API_FN_PAIR(Joystick_GetiJoysticks)},
             {"Joystick::get_Name",              API_FN_PAIR(Joystick_GetName)},
             {"Joystick::get_IsConnected",       API_FN_PAIR(Joystick_IsConnected)},
             {"Joystick::get_IsGamepad",         API_FN_PAIR(Joystick_IsGamepad)},
+            {"Joystick::get_IsAnyButtonDown",   API_FN_PAIR(Joystick_IsAnyButtonDown)},
             {"Joystick::IsGamepadButtonDown^1", API_FN_PAIR(Joystick_IsGamepadButtonDown)},
             {"Joystick::GetGamepadAxis^2",      API_FN_PAIR(Joystick_GetGamepadAxis)},
             {"Joystick::GetAxis^2",             API_FN_PAIR(Joystick_GetAxis)},

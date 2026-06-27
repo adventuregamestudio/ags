@@ -93,6 +93,12 @@ extern CCDynamicArray globalDynamicArray;
 // TODO: move to the separate source file and merge with script struct helpers?!
 namespace DynamicArrayHelpers
 {
+    // Create array of the requested size in bytes
+    DynObjectRef CreateArray(size_t data_sz);
+    // Create array of the requested length and size of element
+    DynObjectRef CreateArray(size_t elem_size, size_t length);
+    // Create array, initializing with the provided bytes
+    DynObjectRef CreateArray(const std::vector<uint8_t> &data);
     // Create array of managed strings from strings that exists somewhere
     DynObjectRef CreateStringArray(const std::vector<const char*> &);
     DynObjectRef CreateStringArray(const std::vector<AGS::Common::String> &);

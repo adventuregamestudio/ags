@@ -53,12 +53,11 @@ void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src
     const size_t src_px_off, const int width_px, const int height_px,
     uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
 {
-    const size_t src_off = src_px_off * bpp;
-    const size_t dst_off = dst_px_off * bpp;
-    const size_t width = width_px * bpp;
-    const size_t height = height_px * bpp;
+    const size_t src_boff = src_px_off * bpp;
+    const size_t dst_boff = dst_px_off * bpp;
+    const size_t width_b = width_px * bpp;
     // NOTE: all assertions are done further in Memory::BlockCopy
-    Memory::BlockCopy(src_buffer, src_pitch, src_off, width, height, dst_buffer, dst_pitch, dst_off);
+    Memory::BlockCopy(src_buffer, src_pitch, src_boff, width_b, height_px, dst_buffer, dst_pitch, dst_boff);
 }
 
 bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,

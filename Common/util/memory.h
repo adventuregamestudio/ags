@@ -255,6 +255,7 @@ namespace Memory
     // Memory data manipulation
     //-------------------------------------------------------------------------
     // Copies a block of 2D data from source buffer into destination buffer.
+    // Pitches, offsets and width are in bytes, height is a number of lines.
     // FIXME: a safer version that requires to assert buffer size
     inline void BlockCopy( const uint8_t *src, const size_t src_pitch, const size_t src_offset,
         const size_t width, const size_t height,
@@ -263,8 +264,15 @@ namespace Memory
         if (src_offset >= src_pitch || dst_offset >= dst_pitch || width == 0u || height == 0u)
             return; // nothing to copy
         const size_t copy_width = std::min(width, std::min(dst_pitch - dst_offset, src_pitch - src_offset));
-        for (size_t y = 0; y < height; ++y, src += src_pitch, dst += dst_pitch)
-            memcpy(dst + dst_offset, src + src_offset, copy_width);
+        if (copy_width == src_pitch && copy_width == dst_pitch)
+        {
+            memcpy(dst, src, height * copy_width);
+        }
+        else
+        {
+            for (size_t y = 0; y < height; ++y, src += src_pitch, dst += dst_pitch)
+                memcpy(dst + dst_offset, src + src_offset, copy_width);
+        }
     }
 
 } // namespace Memory

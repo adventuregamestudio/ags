@@ -81,13 +81,19 @@ enum eAGSGamepad_InputType
 struct GamepadInput
 {
     SDL_JoystickID JoystickID = -1;
-    eAGSGamepad_Button Button = eAGSGamepad_Button::eAGSGamepad_ButtonInvalid;
+    eAGSGamepad_Button GamepadButton = eAGSGamepad_Button::eAGSGamepad_ButtonInvalid;
     eAGSGamepad_Axis Axis = eAGSGamepad_Axis::eAGSGamepad_AxisInvalid;
     eAGSGamepad_InputType Type = eAGSGamepad_InputType::eAGSGamepad_InputTypeNone;
+    int JoystickButton = -1;
+    bool isGamepad = false;
+    inline bool IsAnyButtonDown() const
+    {
+        return GamepadButton != eAGSGamepad_ButtonInvalid || JoystickButton >= 0;
+    }
 };
 
 void JoystickConnectionEvent(const SDL_JoyDeviceEvent &event);
-bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button gbn);
+bool is_default_gamepad_skip_button_pressed(const GamepadInput &getinput);
 void init_joystick();
 
 SDL_GameControllerAxis Gamepad_Axis_AGStoSDL(eAGSGamepad_Axis ags_axis);

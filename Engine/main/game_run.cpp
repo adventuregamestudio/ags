@@ -726,39 +726,50 @@ static void check_keyboard_controls()
     }
 }
 
+int get_gamepadkey(const GamepadInput &getinput)
+{
+    if (getinput.isGamepad) return getinput.GamepadButton;
+    else return getinput.JoystickButton;
+}
+
 bool run_service_gamepad_controls(GamepadInput &out_key)
 {
-    out_key.JoystickID = -1;
-    out_key.Type = eAGSGamepad_InputTypeNone;
-    out_key.Button = eAGSGamepad_ButtonInvalid;
-    out_key.Axis = eAGSGamepad_AxisInvalid;
-
+    out_key = GamepadInput();
     if (ags_inputevent_ready() != kInputGamepad)
         return false; // there was no gamepad event
 
     const auto gp_evt = ags_get_next_inputevent();
     switch (gp_evt.type)
     {
+        case SDL_JOYBUTTONDOWN:
+                out_key.JoystickID = gp_evt.cbutton.which;
+                out_key.Type = eAGSGamepad_InputTypeButton;
+                out_key.GamepadButton = eAGSGamepad_ButtonInvalid;
+                out_key.JoystickButton = gp_evt.jbutton.button;
+                out_key.isGamepad = false;            
+        break;
         case SDL_CONTROLLERBUTTONDOWN:
             out_key.JoystickID = gp_evt.cbutton.which;
             out_key.Type = eAGSGamepad_InputTypeButton;
-            out_key.Button = Gamepad_Button_SDLtoAGS(static_cast<SDL_GameControllerButton>(gp_evt.cbutton.button));
+            out_key.GamepadButton = Gamepad_Button_SDLtoAGS(static_cast<SDL_GameControllerButton>(gp_evt.cbutton.button));
+            out_key.JoystickButton = -1;
+            out_key.isGamepad = true;
             break;
     }
-    return out_key.Button != eAGSGamepad_ButtonInvalid;
+    return out_key.GamepadButton != eAGSGamepad_ButtonInvalid || out_key.JoystickButton >= 0;
 }
 
 // Runs default gamepad handling
 static void check_gamepad_controls()
 {
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
-    GamepadInput gi;
-    if (!run_service_gamepad_controls(gi)) {
+    GamepadInput gbut;
+    if (!run_service_gamepad_controls(gbut)) {
         return;
     }
-    eAGSGamepad_Button gbn = gi.Button;
+    
     // Then, check cutscene skip
-    check_skip_cutscene_gamepad(gbn);
+    check_skip_cutscene_gamepad(gbut);
     if (play.fast_forward) {
         return;
     }
@@ -771,20 +782,20 @@ static void check_gamepad_controls()
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0) {
             remove_screen_overlay(play.text_overlay_on);
-            play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+            play.SetWaitSkipResult(SKIP_GAMEPAD, get_gamepadkey(gbut));
         }
 
         return;
     }
 
     if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
-        play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+        play.SetWaitSkipResult(SKIP_GAMEPAD, get_gamepadkey(gbut));
         return;
     }
 
     if (is_inside_script()) {
         // Don't queue up another button press if it can't be run instantly
-        debug_script_log("Gamepad button %d ignored (game blocked)", gbn);
+        debug_script_log("Gamepad button %d ignored (game blocked)", get_gamepadkey(gbut));
         return;
     }
 }

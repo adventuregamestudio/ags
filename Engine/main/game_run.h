@@ -82,6 +82,8 @@ bool is_runtime_set();
 // Gets real runtime duration in ms, for diagnostic purposes
 uint32_t get_runtime_ms();
 
+//Gets controller key [gamepad or joystick]
+int get_gamepadkey(GamepadInput &getinput);
 // Runs service key controls, returns false if no key was pressed or key input was claimed by the engine,
 // otherwise returns true and provides a keycode.
 bool run_service_key_controls(KeyInput &kgn);

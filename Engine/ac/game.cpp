@@ -1606,10 +1606,11 @@ bool check_skip_cutscene_mclick(int mbut)
     return false;
 }
 
-bool check_skip_cutscene_gamepad(int gbut)
+bool check_skip_cutscene_gamepad(const GamepadInput &getinput)
 {
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
-    if (gbut>0 && skip == eSkipSceneAnyKey)
+    
+    if (getinput.IsAnyButtonDown() && skip == eSkipSceneAnyKey)
     {
         start_skipping_cutscene();
         return true;

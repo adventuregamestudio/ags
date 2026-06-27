@@ -22,12 +22,20 @@
 #include "script/script_api.h"
 #include "ac/dynobj/dynobj_manager.h"
 
-bool is_default_gamepad_skip_button_pressed(eAGSGamepad_Button gbn)
+bool is_default_gamepad_skip_button_pressed(const GamepadInput &getinput)
 {
-    return (gbn == eAGSGamepad_ButtonA) ||
-    (gbn == eAGSGamepad_ButtonB) ||
-    (gbn == eAGSGamepad_ButtonX) ||
-    (gbn == eAGSGamepad_ButtonY);
+    if (getinput.isGamepad)
+    {
+        eAGSGamepad_Button gbn = getinput.GamepadButton;
+        return (gbn == eAGSGamepad_ButtonA) ||
+            (gbn == eAGSGamepad_ButtonB) ||
+            (gbn == eAGSGamepad_ButtonX) ||
+            (gbn == eAGSGamepad_ButtonY);
+    }
+    else
+    {
+        return getinput.JoystickButton >= 0 && getinput.JoystickButton<=3;
+    }
 }
 
 // clamps to -1.0 to 1.0, taking into account a dead-zone from 0.0

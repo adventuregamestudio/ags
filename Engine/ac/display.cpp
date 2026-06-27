@@ -395,15 +395,15 @@ bool display_check_user_input(int skip)
             GamepadInput gbut;
             if (!run_service_gamepad_controls(gbut) || play.fast_forward || state_handled)
                 continue; // handled by engine layer, or fast-forwarded, or resolved
-            eAGSGamepad_Button gbn = gbut.Button;
-            if (check_skip_cutscene_gamepad(gbn))
+            
+            if (check_skip_cutscene_gamepad(gbut))
             {
                 state_handled = true; // stop display
             }
             else if ((skip & SKIP_GAMEPAD) != 0 && !play.IsIgnoringInput() &&
-                    is_default_gamepad_skip_button_pressed(gbn))
+                    is_default_gamepad_skip_button_pressed(gbut))
             {
-                play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
+                play.SetWaitSkipResult(SKIP_GAMEPAD, get_gamepadkey(gbut));
                 state_handled = true; // stop display
             }
             break;

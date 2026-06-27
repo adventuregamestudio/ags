@@ -404,9 +404,13 @@ static bool video_check_user_input(VideoSkipType skip)
         else if (type == kInputGamepad)
         {
             GamepadInput gbut;
-            if (run_service_gamepad_controls(gbut) && (skip == VideoSkipAnyKey) &&
-                is_default_gamepad_skip_button_pressed(gbut.Button))
-                return true; // skip on ABXY
+            if (run_service_gamepad_controls(gbut) && (skip == VideoSkipAnyKey))
+            {
+                if (is_default_gamepad_skip_button_pressed(gbut))
+                {
+                    return true; // skip on gamepad/joystic
+                }
+            }
         }
     }
     return false;

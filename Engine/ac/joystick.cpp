@@ -150,6 +150,7 @@ struct JoystickImpl {
     SDL_Joystick* sdlJoystick = nullptr;
     SDL_JoystickID sdlJoystickID = -1;
     int scriptJoystickHandle = 0;
+    int sdljoybutton_count = 0;
 };
 
 std::vector<JoystickImpl> _joysticks;
@@ -181,6 +182,7 @@ void add_joystick(int device_index)
     joy.sdlGameController = sdl_gamepad;
     joy.sdlJoystickID = sdl_id;
     joy.scriptJoystickHandle = 0;
+    joy.sdljoybutton_count = SDL_JoystickNumButtons(sdl_joy);
     _joysticks.push_back(joy);
 }
 
@@ -268,7 +270,7 @@ bool Joystick_IsAnyButtonDown(ScriptJoystick* joy)
     }
     else
     {
-        int button_count = SDL_JoystickNumButtons(joy_impl.sdlJoystick);
+        int button_count = joy_impl.sdljoybutton_count;
         for (int butt = 0; butt < button_count; butt++)
         {
             if (SDL_JoystickGetButton(joy_impl.sdlJoystick, butt) > 0)
@@ -334,7 +336,7 @@ int Joystick_IsButtonDown(ScriptJoystick* joy, int butt)
 {
     if (joy->IsInvalid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
-    int button_count = SDL_JoystickNumButtons(joy_impl.sdlJoystick);
+    int button_count = joy_impl.sdljoybutton_count;
     if (butt < 0 || butt >= button_count) {
         debug_script_warn("Warning: joystick's (id %d) button %d is not in range (0:%d), returned false",
                           joy_impl.sdlJoystickID, butt, button_count);
@@ -368,7 +370,7 @@ int Joystick_GetButtonCount(ScriptJoystick* joy)
 {
     if (joy->IsInvalid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
-    return SDL_JoystickNumButtons(joy_impl.sdlJoystick);
+    return joy_impl.sdljoybutton_count;
 }
 
 int Joystick_GetHatCount(ScriptJoystick* joy)
@@ -414,10 +416,10 @@ RuntimeScriptValue Sc_Joystick_IsConnected(void *self, const RuntimeScriptValue 
     API_OBJCALL_INT(ScriptJoystick, Joystick_IsConnected);
 }
 
-// int (ScriptJoystick *joy)
+// bool (ScriptJoystick *joy)
 RuntimeScriptValue Sc_Joystick_IsAnyButtonDown(void* self, const RuntimeScriptValue* params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptJoystick, Joystick_IsAnyButtonDown);
+    API_OBJCALL_BOOL(ScriptJoystick, Joystick_IsAnyButtonDown);
 }
 
 // int (ScriptJoystick *joy)

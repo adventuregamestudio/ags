@@ -249,8 +249,8 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
         || ((bmp.GetBytesPerPixel() == 4) && skip_alpha))
     {
         png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), kPxFmt_R8G8B8);
-        PixelOp::CopyConvert(png_buf.GetData(), kPxFmt_R8G8B8, png_buf.GetStride(), bmp.GetWidth(), bmp.GetHeight(),
-            bmp.GetData(), bmp.GetFormat(), bmp.GetStride());
+        PixelOp::CopyConvert(bmp.GetData(), bmp.GetFormat(), bmp.GetStride(),
+            bmp.GetWidth(), bmp.GetHeight(), png_buf.GetData(), kPxFmt_R8G8B8, png_buf.GetStride());
         // Swap RGB(A) components if necessary (in-place)
         if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
         {

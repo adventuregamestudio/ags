@@ -104,8 +104,9 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
     if (!bitmap)
         return nullptr;
 
-    if (!PixelOp::CopyConvert(bitmap->GetDataForWriting(), ColorDepthToPixelFormat(dst_color_depth),
-            bitmap->GetLineLength(), width, height, pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch))
+    if (!PixelOp::CopyConvert(pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch,
+            width, height, bitmap->GetDataForWriting(), ColorDepthToPixelFormat(dst_color_depth),
+            bitmap->GetLineLength()))
         return nullptr;
 
     return bitmap.release();
@@ -294,10 +295,10 @@ void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool 
         ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy32(), PixelTransSkip32(), mask_color, dst_has_alpha, mask_has_alpha);
 }
 
-void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
+void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch)
 {
-    PixelOp::CopyPixels(dst->GetDataForWriting(), dst->GetLineLength(), 0u,
-        dst->GetBPP(), dst->GetHeight(), src_buffer, src_pitch, src_px_offset);
+    PixelOp::CopyPixels(src_buffer, dst->GetBPP(), src_pitch, dst->GetWidth(), dst->GetHeight(),
+        dst->GetDataForWriting(), dst->GetLineLength());
 }
 
 // Converts loaded bitmap to the requested color depth,

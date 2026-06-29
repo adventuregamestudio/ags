@@ -584,6 +584,13 @@ int AGSColorToBitmapColor(int color, int /*color_depth*/)
     return color;
 }
 
+int BitmapColorToAGSColor(int color, int /*color_depth*/)
+{
+    // no conversion necessary, we assume that "ags color" is matching
+    // palette index in 8-bit mode and 32-bit A8R8G8B8 in 32-bit mode
+    return color;
+}
+
 void AGSColorToRGB(int color, int color_depth, RGB &rgb)
 {
     if (color_depth == 8)

@@ -361,7 +361,8 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
     sds->FinishedDrawingWithBrush();
 }
 
-void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
+void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y)
+{
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawPixel");
     if (!ds)
         return;
@@ -376,34 +377,22 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
     sds->FinishedDrawing();
 }
 
-int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
+int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y)
+{
     Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.GetPixel");
-    if (!ds)
-        return 0;
-    int rawPixel = ds->GetPixel(x, y);
-    int maskColor = ds->GetMaskColor();
-    int colDepth = ds->GetColorDepth();
-
-    if (rawPixel == maskColor)
-    {
-        rawPixel = SCR_COLOR_TRANSPARENT;
-    }
-    else if (colDepth > 8)
-    {
-        int r = getr_depth(colDepth, rawPixel);
-        int g = getg_depth(colDepth, rawPixel);
-        int b = getb_depth(colDepth, rawPixel);
-        rawPixel = Game_GetColorFromRGB(r, g, b);
-    }
-
-    return rawPixel;
+    if (ds)
+        return BitmapHelper::BitmapColorToAGSColor(ds->GetPixel(x, y), ds->GetColorDepth());
+    return 0;
 }
 
 void DrawingSurface_SetPixel(ScriptDrawingSurface *sds, int x, int y, int color)
 {
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.SetPixel");
-    ds->PutPixel(x, y, ds->GetCompatibleColor(color));
-    sds->FinishedDrawing();
+    if (ds)
+    {
+        ds->PutPixel(x, y, ds->GetCompatibleColor(color));
+        sds->FinishedDrawing();
+    }
 }
 
 void *DrawingSurface_GetPixelsCopyImpl(ScriptDrawingSurface *sds, int x, int y, int width, int height, uint8_t dest_elem_size)

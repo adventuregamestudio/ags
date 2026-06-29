@@ -79,12 +79,15 @@ void ScriptDrawingSurface::SetBlendMode(BlendMode blend_mode)
 Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
 {
     Bitmap *ds = GetBitmapSurface();
-    _alphaBlending = (ds->GetColorDepth() == 32) && (_currentBlendMode != kBlend_Copy)
-        && ((geta32(_currentColor) != 0xFF) || (_currentBlendMode != kBlend_Normal));
-    if (_alphaBlending)
+    if (ds)
     {
-        drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
-        SetBlender(_currentBlendMode, 0xFF);
+        _alphaBlending = (ds->GetColorDepth() == 32) && (_currentBlendMode != kBlend_Copy)
+            && ((geta32(_currentColor) != 0xFF) || (_currentBlendMode != kBlend_Normal));
+        if (_alphaBlending)
+        {
+            drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
+            SetBlender(_currentBlendMode, 0xFF);
+        }
     }
     return ds;
 }

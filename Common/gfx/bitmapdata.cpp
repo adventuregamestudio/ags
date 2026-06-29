@@ -43,22 +43,29 @@ uint32_t BitmapData::GetPixel(int x, int y) const
 namespace PixelOp
 {
 
-void CopyPixels(uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_offset,
-    const int bpp, const int height, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
+void CopyPixels(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
+    const int width, const int height, uint8_t *dst_buffer, const size_t dst_pitch)
 {
-    const size_t src_bpp_offset = src_px_offset * bpp;
-    const size_t dst_bpp_offset = dst_px_offset * bpp;
-    if (src_bpp_offset >= src_pitch || dst_bpp_offset >= dst_pitch)
-        return; // nothing to copy
-    Memory::BlockCopy(dst_buffer, dst_pitch, src_bpp_offset, src_buffer, src_pitch, dst_bpp_offset, height);
+    CopyPixelsRegion(src_buffer, bpp, src_pitch, 0u, width, height, dst_buffer, dst_pitch, 0u);
 }
 
-bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
-    const int width, const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch)
+void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
+    const size_t src_px_off, const int width_px, const int height_px,
+    uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
+{
+    const size_t src_boff = src_px_off * bpp;
+    const size_t dst_boff = dst_px_off * bpp;
+    const size_t width_b = width_px * bpp;
+    // NOTE: all assertions are done further in Memory::BlockCopy
+    Memory::BlockCopy(src_buffer, src_pitch, src_boff, width_b, height_px, dst_buffer, dst_pitch, dst_boff);
+}
+
+bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
+    const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch)
 {
     if (dst_fmt == src_fmt)
     {
-        CopyPixels(dst_buffer, dst_pitch, 0u, src_fmt, height, src_buffer, src_pitch, 0u);
+        CopyPixels(src_buffer, src_fmt, src_pitch, width, height, dst_buffer, dst_pitch);
         return true;
     }
 

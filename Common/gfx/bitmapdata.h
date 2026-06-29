@@ -212,14 +212,29 @@ namespace PixelOp
     // Copy pixel data from one memory buffer to another. It is required that the
     // buffers match same format, and have enough size.
     // Pitches are given in bytes and define the length of the source and dest scan lines.
-    // Offsets are optional and define horizontal dest and source offsets, *in pixels*.
-    void CopyPixels(uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_offset,
-        const int bpp, const int height, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset);
-    inline void CopyPixels(uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_offset,
-        const PixelFormat fmt, const int height, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
+    // Width and height of the rectangle are *in pixels*.
+    void CopyPixels(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
+        const int width, const int height, uint8_t *dst_buffer, const size_t dst_pitch);
+    inline void CopyPixels(const uint8_t *src_buffer, const PixelFormat fmt, const size_t src_pitch,
+        const int width_px, const int height_px, uint8_t *dst_buffer, const size_t dst_pitch)
     {
-        CopyPixels(dst_buffer, dst_pitch, dst_px_offset, PixelFormatToPixelBytes(fmt), height, src_buffer, src_pitch, src_px_offset);
+        CopyPixels(src_buffer, PixelFormatToPixelBytes(fmt), src_pitch, width_px, height_px, dst_buffer, dst_pitch);
     }
+    // Copy a portion of pixel data from one memory buffer to another. It is required that the
+    // buffers match same format, and have enough size.
+    // Pitches are given in bytes and define the length of the source and dest scan lines.
+    // Width and height of the rectangle, as well as source and destination offsets are *in pixels*.
+    void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
+        const size_t src_px_off, const int width_px, const int height_px,
+        uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off);
+    inline void CopyPixelsRegion(const uint8_t *src_buffer, const PixelFormat fmt, const size_t src_pitch,
+        const size_t src_px_off, const int width_px, const int height_px,
+        uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
+    {
+        CopyPixelsRegion(src_buffer, PixelFormatToPixelBytes(fmt), src_pitch,
+            src_px_off, width_px, height_px, dst_buffer, dst_pitch, dst_px_off);
+    }
+
     // Copies pixels from source to dest buffer, possibly converting between source
     // and dest pixel format. The destination buffer must be properly allocated
     //     (see GetDataSizeForPixelFormat()).
@@ -231,8 +246,8 @@ namespace PixelOp
     //          * 16-bit    => 32-bit
     //          add more common conversions later!
     // FIXME: this would require a palette if conversion goes from indexed to non-indexed!
-    bool CopyConvert(uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch,
-        const int width, const int height, const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch);
+    bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
+        const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch);
     // Copies pixels from source to dest buffer, swapping the RGB components, according
     // to the provided RGB shifts. This operation requires that pixel format is kept the same.
     // It is actually possible to swap in-place (where src and dst are the same buffers).

@@ -304,6 +304,8 @@ namespace BitmapHelper
 {
     // Remaps AGS color number to a color value compatible to a bitmap of certain color depth
     int AGSColorToBitmapColor(int color, int color_depth);
+    // Remaps a bitmap pixel of certain color depth to AGS color number
+    int BitmapColorToAGSColor(int color, int color_depth);
     // Remaps AGS color number in certain color depth mode to a actual RGB
     void AGSColorToRGB(int color, int color_depth, RGB &rgb);
     // TODO: revise those functions later (currently needed in a few very specific cases)

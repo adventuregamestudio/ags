@@ -319,20 +319,20 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     sds->FinishedDrawing();
 }
 
-void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
-    int linespacing = get_font_linespacing(font);
-
-    const char *draw_text = skip_voiceover_token(msg);
-    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
-        return;
-
+void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg)
+{
     // no need to use "brush", blending is done by font renderer
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.DrawStringWrapped");
     if (!ds)
         return;
+
+    int linespacing = get_font_linespacing(font);
+    const char *draw_text = skip_voiceover_token(msg);
+    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
+        return;
+
     color_t text_color = sds->GetRealDrawingColor();
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
-
     for (size_t i = 0; i < Lines.Count(); i++)
     {
         GUI::DrawTextAlignedHor(ds, Lines[i], font, text_color, outline_color, sds->GetBlendMode(),

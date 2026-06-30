@@ -1454,8 +1454,8 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
     }
 
     set_our_eip(oldeip);
-    // ensure input state is reset
-    ags_clear_input_state();
+    // ensure input queue is reset
+    ags_clear_input_queue();
     // call "After Restore" event callback
     run_on_event(kScriptEvent_GameRestored, slotNumber);
     return HSaveError::None();

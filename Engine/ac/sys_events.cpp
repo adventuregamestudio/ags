@@ -36,52 +36,8 @@ using namespace AGS::Engine;
 
 extern SystemConfig gl_SysConfig;
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle);
-int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
-
-// Converts SDL scan and key codes to the ags keycode
-KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
+int sdl_mod_to_ags_mod(const Uint16 mod)
 {
-    KeyInput ki;
-    // Normally SDL_TEXTINPUT is meant for handling the printable characters,
-    // and not the actual key presses.
-    // But in the "old key handle" mode we use it also to get the full range
-    // of key codes corresponding to chars, including combos (SHIFT + 3 = #).
-    // TODO: find out if it's feasible to just convert keydown + SHIFT combos
-    // ourselves: then we can utilize SDL_KEYDOWN for both modes and leave
-    // TEXTINPUT for char print only.
-    switch (event.type)
-    {
-    case SDL_TEXTINPUT:
-        if (old_keyhandle)
-        {
-            char ascii[sizeof(SDL_TextInputEvent::text)];
-            StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
-            if (ascii[0] >= 32)
-            {
-                ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
-                ki.CompatKey = ki.Key;
-            }
-        }
-        ags_strncpy_s(ki.Text, KeyInput::UTF8_ARR_SIZE, event.text.text, KeyInput::UTF8_ARR_SIZE - 1);
-        Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
-        return ki;
-    case SDL_KEYDOWN:
-        ki.Mod = sdl_mod_to_ags_mod(event.key);
-        ki.Key = sdl_key_to_ags_key(event.key, old_keyhandle);
-        ki.CompatKey = sdl_key_to_ags_key(event.key, true);
-        if (!old_keyhandle && (ki.CompatKey == eAGSKeyCodeNone))
-            ki.CompatKey = ki.Key; // in the new mode also assign letter-range keys
-        return ki;
-    default:
-        return ki;
-    }
-}
-
-int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt)
-{
-    const SDL_Keysym key = kbevt.keysym;
-    const Uint16 mod = key.mod;
     int ags_mod = 0;
     if (mod & KMOD_LSHIFT) ags_mod |= eAGSModLShift;
     if (mod & KMOD_RSHIFT) ags_mod |= eAGSModRShift;
@@ -94,12 +50,8 @@ int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt)
     return ags_mod;
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle)
+eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod, bool old_keyhandle)
 {
-    const SDL_Keysym key = kbevt.keysym;
-    const SDL_Keycode sym = key.sym;
-    const Uint16 mod = key.mod;
-
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') may be misleading, as they are NOT
     // received when user presses for example Shift + 1 on regular keyboard, but only on
     // systems where single keypress can produce that symbol.
@@ -139,7 +91,7 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
     // Remaining codes may match or not, but we use a big table anyway.
     // TODO: this is code by [sonneveld],
     // double check that we must use scan codes here, maybe can use sdl key (sym) too?
-    switch (key.scancode)
+    switch (scancode)
     {
     case SDL_SCANCODE_BACKSPACE: return eAGSKeyCodeBackspace;
     case SDL_SCANCODE_TAB:
@@ -199,6 +151,16 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
 
     default: return eAGSKeyCodeNone;
     }
+}
+
+eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode key, const SDL_Scancode scancode, const Uint16 mod)
+{
+    return sdl_key_to_ags_key(key, scancode, mod, false);
+}
+
+eAGSKeyCode sdl_key_to_ags_key(const SDL_Keysym &key, bool old_keyhandle)
+{
+    return sdl_key_to_ags_key(key.sym, key.scancode, key.mod, old_keyhandle);
 }
 
 // Converts ags key to SDL key scans (up to 3 values, because this is not a 1:1 match);
@@ -295,6 +257,44 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
     }
 }
 
+// Converts SDL scan and key codes to the ags keycode
+KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
+{
+    KeyInput ki;
+    // Normally SDL_TEXTINPUT is meant for handling the printable characters,
+    // and not the actual key presses.
+    // But in the "old key handle" mode we use it also to get the full range
+    // of key codes corresponding to chars, including combos (SHIFT + 3 = #).
+    // TODO: find out if it's feasible to just convert keydown + SHIFT combos
+    // ourselves: then we can utilize SDL_KEYDOWN for both modes and leave
+    // TEXTINPUT for char print only.
+    switch (event.type)
+    {
+    case SDL_TEXTINPUT:
+        if (old_keyhandle)
+        {
+            char ascii[sizeof(SDL_TextInputEvent::text)];
+            StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
+            if (ascii[0] >= 32)
+            {
+                ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
+                ki.CompatKey = ki.Key;
+            }
+        }
+        ags_strncpy_s(ki.Text, KeyInput::UTF8_ARR_SIZE, event.text.text, KeyInput::UTF8_ARR_SIZE - 1);
+        Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
+        return ki;
+    case SDL_KEYDOWN:
+        ki.Mod = sdl_mod_to_ags_mod(event.key.keysym.mod);
+        ki.Key = sdl_key_to_ags_key(event.key.keysym, old_keyhandle);
+        ki.CompatKey = sdl_key_to_ags_key(event.key.keysym, true);
+        if (!old_keyhandle && (ki.CompatKey == eAGSKeyCodeNone))
+            ki.CompatKey = ki.Key; // in the new mode also assign letter-range keys
+        return ki;
+    default:
+        return ki;
+    }
+}
 
 
 // ----------------------------------------------------------------------------
@@ -305,8 +305,7 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 // input events for our internal use whenever engine have to query player input.
 static std::deque<SDL_Event> g_inputEvtQueue;
 
-// counter of keys pressed down, used to tell if any is down at the moment
-int sys_keydown_count = 0;
+std::vector<SDL_Keysym> sys_keysdown;
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
@@ -395,7 +394,12 @@ bool ags_iskeydown(eAGSKeyCode ags_key)
 
 bool ags_isanykeydown()
 {
-    return sys_keydown_count > 0;
+    return sys_keysdown.size() > 0;
+}
+
+const std::vector<SDL_Keysym> &ags_getkeysdown()
+{
+    return sys_keysdown;
 }
 
 void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
@@ -428,7 +432,9 @@ static void on_sdl_key_down(const SDL_Event &event)
     // instead we save it in the queue where it will be ready whenever any component asks for one.
     g_inputEvtQueue.push_back(event);
     if (event.key.repeat == 0)
-        sys_keydown_count++;
+    {
+        sys_keysdown.push_back(event.key.keysym);
+    }
 }
 
 static void on_sdl_key_up(const SDL_Event &event)
@@ -436,7 +442,11 @@ static void on_sdl_key_up(const SDL_Event &event)
     // Key up events are only used for reacting on mod key combinations at the moment.
     g_inputEvtQueue.push_back(event);
     if (event.key.repeat == 0)
-        sys_keydown_count--;
+    {
+        sys_keysdown.erase(
+            std::remove_if(sys_keysdown.begin(), sys_keysdown.end(), [&event](const SDL_Keysym &key){ return key.sym == event.key.keysym.sym; }),
+            sys_keysdown.end());
+    }
 }
 
 static void on_sdl_textinput(const SDL_Event &event)
@@ -1058,7 +1068,7 @@ void ags_clear_input_state()
 {
     // clear everything related to the input state
     ags_clear_input_queue();
-    sys_keydown_count = 0;
+    sys_keysdown.clear();
     sys_modkeys = 0;
     sys_modkeys_fired = false;
     mouse_button_state = 0;

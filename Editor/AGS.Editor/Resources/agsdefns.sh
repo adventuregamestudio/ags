@@ -1828,7 +1828,9 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v363
-/// Checks whether any key is currently held down
+/// Gets a dynamic arrays of keys that are currently held down.
+import eKeyCode[] GetPressedKeys();
+/// Checks whether any key is currently held down.
 import bool IsAnyKeyPressed();
 #endif // SCRIPT_API_v363
 

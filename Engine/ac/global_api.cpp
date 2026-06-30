@@ -65,6 +65,7 @@
 #include "ac/parser.h"
 #include "ac/string.h"
 #include "ac/room.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "media/video/video.h"
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
@@ -785,6 +786,11 @@ RuntimeScriptValue Sc_GetFontHeight(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_GetFontLineSpacing(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(GetFontLineSpacing);
+}
+
+RuntimeScriptValue Sc_GetPressedKeys(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(void, globalDynamicArray, GetPressedKeys);
 }
 
 // int (int whatti)
@@ -2487,6 +2493,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },
         { "GetFontHeight",            API_FN_PAIR(GetFontHeight) },
         { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
+        { "GetPressedKeys",           API_FN_PAIR(GetPressedKeys) },
         { "GetTime",                  API_FN_PAIR(sc_GetTime) },
         { "GetTimerPos",              API_FN_PAIR(GetTimerPos) },
         { "GetTranslation",           API_FN_PAIR(get_translation) },

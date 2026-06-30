@@ -44,6 +44,7 @@
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/view.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
@@ -844,13 +845,27 @@ void GetLocationNameInBuf(int x, int y, char *buf)
     snprintf(buf, MAX_MAXSTRLEN, "%s", name);
 }
 
-int IsKeyPressed (int keycode) {
+int IsKeyPressed(int keycode)
+{
     return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
 }
 
 bool IsAnyKeyPressed()
 {
     return ags_isanykeydown();
+}
+
+void *GetPressedKeys()
+{
+    const auto &keys = ags_getkeysdown();
+    DynObjectRef arr = DynamicArrayHelpers::CreateArray(sizeof(int), keys.size());
+    if (arr)
+    {
+        for (size_t i = 0; i < keys.size(); ++i)
+            *(static_cast<uint32_t*>(arr.Obj()) + i) = AGSKeyToScriptKey(
+                sdl_key_to_ags_key(keys[i].sym, keys[i].scancode, 0u /* ignore mod */));
+    }
+    return arr.Obj();
 }
 
 int SaveScreenShot4(const char *namm, int width, int height, int layers)

@@ -3035,6 +3035,8 @@ void AGS::Parser::AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncPa
     size_t param_idx = it - param_descs.begin();
 
     // Find the corresponding argument and make sure that it's a string literal
+    if (param_idx >= arg_exprs.size())
+        return;
     auto &arg_expr = arg_exprs[param_idx];
     if (arg_expr.Length() != 1)
         return;

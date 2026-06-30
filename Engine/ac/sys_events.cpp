@@ -303,7 +303,8 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 // input events for our internal use whenever engine have to query player input.
 static std::deque<SDL_Event> g_inputEvtQueue;
 
-int sys_keydown_count = 0; // counter of keys pressed down
+// counter of keys pressed down, used to tell if any is down at the moment
+int sys_keydown_count = 0;
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
@@ -982,6 +983,11 @@ void ags_clear_mouse_movement()
 {
     mouse_accum_relx = 0;
     mouse_accum_rely = 0;
+}
+
+void ags_clear_input_queue()
+{
+    g_inputEvtQueue.clear();
 }
 
 

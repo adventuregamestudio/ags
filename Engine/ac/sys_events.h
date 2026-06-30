@@ -147,11 +147,13 @@ void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
 
 // Other input utilities
 //
-// Clears buffered keypresses and mouse clicks;
-// resets current key/mb states
+// Clears all cached input state and discard buffered events.
 void ags_clear_input_state();
-// Clears buffered mouse movement
+// Clears buffered mouse movement.
 void ags_clear_mouse_movement();
+// Clears buffered input events.
+// The purpose is to interrupt any scheduled events when the program state changes.
+void ags_clear_input_queue();
 
 
 // Events.

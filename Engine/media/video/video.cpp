@@ -227,7 +227,8 @@ void BlockingVideoPlayer::End()
     }
 
     invalidate_screen();
-    ags_clear_input_state();
+    // drop any input which they might have done while it was playing
+    ags_clear_input_queue();
 
     // Restore the game audio if we stopped them before the video playback
     if ((_stateFlags & kVideoState_StopGameAudio) != 0)

@@ -561,7 +561,7 @@ bool run_service_key_controls(KeyInput &out_key)
 
     // Use backward-compatible combined key for special controls,
     // because game variables may store old-style key + mod codes
-    const eAGSKeyCode agskey = ki.CompatKey;
+    const eAGSKeyCode agskey = AGSKeyToScriptKey(ki.CompatKey);
     // LAlt or RAlt + Enter/Return
     if ((ki.Mod & eAGSModAlt) && (agskey == eAGSKeyCodeReturn))
     {
@@ -653,7 +653,7 @@ static void check_keyboard_controls()
     }
     // Use backward-compatible combined key for special controls,
     // because game variables may store old-style key + mod codes
-    const eAGSKeyCode agskey = ki.CompatKey;
+    const eAGSKeyCode agskey = AGSKeyToScriptKey(ki.CompatKey);
     // Then, check cutscene skip
     check_skip_cutscene_keypress(agskey);
     if (play.fast_forward) { 
@@ -736,12 +736,11 @@ static void check_keyboard_controls()
     }
 
     // Pass the key event to the script
-    const int sckey = AGSKeyToScriptKey(ki.Key);
-    const int sckeymod = ki.Mod;
+    const int agskeymod = ki.Mod;
     if (old_keyhandle || (ki.UChar == 0))
     {
-        debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
-        setevent(AGSEvent_Script(kTS_KeyPress, sckey, sckeymod));
+        debug_script_log("Running on_key_press keycode %d, mod %d", agskey, agskeymod);
+        setevent(AGSEvent_Script(kTS_KeyPress, agskey, agskeymod));
     }
     if (!old_keyhandle && (ki.UChar > 0))
     {

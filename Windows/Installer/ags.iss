@@ -16,7 +16,10 @@
 #else
 #define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion + ' ' + AgsSpVersion
 #define AgsOutputFile 'AGS-' + AgsFullVersion + '-' + AgsSpVersion
-#endif 
+#endif
+
+; Registry key that contains last installation path for the demo game
+#define DemoGamePathKey "DemoGamePath_36x"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -56,7 +59,7 @@ ComponentEngineDefault=Runtime engine for MS Windows
 ComponentLinuxBuild=Linux build component
 ComponentWebBuild=Web build component
 ComponentAndroidBuild=Android build component
-; ComponentDemoGame=Demo Game
+ComponentDemoGame=Demo Game ("AGS Quest")
 InstallOptions=Install options
 InstallVCRedist=Install {#VcRedistName}
 CreateDesktopIcon=Create a &desktop icon
@@ -70,7 +73,7 @@ Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full 
 Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
 Name: "web"; Description: "{cm:ComponentWebBuild}"; Types: full custom
 Name: "android"; Description: "{cm:ComponentAndroidBuild}"; Types: full custom
-; Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
+Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
 
 [Tasks]
@@ -127,7 +130,7 @@ Source: "Source\Android\gradle\*"; DestDir: "{app}\Android\gradle"; Flags: ignor
 Source: "Source\Android\library\*"; DestDir: "{app}\Android\library"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
 Source: "Source\Android\plugins\*"; DestDir: "{app}\Android\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
 ; Demo game
-; Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
+Source: "Source\AGSQuest\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
 ; Visual C++ runtime
 Source: "Source\Redist\{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
@@ -135,7 +138,7 @@ Source: "Source\Redist\{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafter
 
 [Icons]
 Name: "{group}\AGS Editor {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Comment: "What are you waiting for? Fire it up and start making the best game ever!";
-; Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
+Name: "{group}\AGSQuest"; Filename: "{code:GetDemoGameDir}\Game.agf"; Comment: "A demo game 'AGSQuest' created by the members of AGS community."; Components: demogame
 Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online help, tutorials and reference. THIS IS YOUR BIBLE NOW!"
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."
 Name: "{group}\Visit the AGS Website"; Filename: "{app}\URLs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
@@ -170,14 +173,14 @@ end;
 procedure InitializeWizard();
 begin
   // create a directory input page
-  DemoGameDirPage := CreateInputDirPage(wpSelectComponents, 'Select Demo Game installation folder', 'Where should the Demo Game be installed', 'Demo Game will be installed in the following folder.'#13#10#13#10 +
-    'To continue, click Next. If you would like to select a different folder, click Browse.', True, 'Demo Game');
+  DemoGameDirPage := CreateInputDirPage(wpSelectComponents, 'Select "AGS Quest" installation folder', 'Where should the "AGS Quest" be installed', '"AGS Quest" will be installed in the following folder.'#13#10#13#10 +
+    'To continue, click Next. If you would like to select a different folder, click Browse.', True, 'AGSQuest');
   // add directory input page items
   DemoGameDirPage.Add('');
   // assign default directories for the items from the previously stored data; if
   // there are no data stored from the previous installation, use default folders
   // of your choice
-  DemoGameDirPage.Values[0] := GetPreviousData('DemoGamePath', ExpandConstant('{commondocs}/Demo Game'));
+  DemoGameDirPage.Values[0] := GetPreviousData('{#DemoGamePathKey}', ExpandConstant('{userdocs}/AGSQuest'));
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
@@ -192,7 +195,7 @@ end;
 procedure RegisterPreviousData(PreviousDataKey: Integer);
 begin
   // store chosen directories for the next run of the setup
-  SetPreviousData(PreviousDataKey, 'DemoGamePath', DemoGameDirPage.Values[0]);
+  SetPreviousData(PreviousDataKey, '{#DemoGamePathKey}', DemoGameDirPage.Values[0]);
 end;
 
 

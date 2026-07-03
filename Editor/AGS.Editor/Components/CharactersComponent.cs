@@ -1,3 +1,5 @@
+using AGS.Editor.TextProcessing;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -5,8 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Types;
-using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor.Components
 {
@@ -14,8 +14,10 @@ namespace AGS.Editor.Components
     {
         private const string CHARACTERS_COMMAND_ID = "Characters";
         private const string COMMAND_NEW_ITEM = "NewCharacter";
-        private const string COMMAND_IMPORT = "ImportCharacter";
         private const string COMMAND_DELETE_ITEM = "DeleteCharacter";
+        private const string COMMAND_COPY_ITEM = "CopyCharacter";
+        private const string COMMAND_PASTE_ITEM = "PasteCharacter";
+        private const string COMMAND_IMPORT = "ImportCharacter";
         private const string COMMAND_EXPORT = "ExportCharacter";
         private const string COMMAND_CHANGE_ID = "ChangeCharacterID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
@@ -49,18 +51,28 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Characters; }
         }
 
+        private Character AddNewCharacter(Character newItem, string baseScriptName)
+        {
+            newItem.ID = _agsEditor.CurrentGame.RootCharacterFolder.GetAllItemsCount();
+            newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            string newNodeID;
+            if (_itemRightClicked != null)
+                newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
+            else
+                newNodeID = AddSingleItem(newItem, _rightClickedID);
+            _guiController.ProjectTree.SelectNode(this, newNodeID);
+            ShowOrAddPane(newItem);
+            return newItem;
+        }
+
         protected override void ItemCommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
             {                
                 Character newItem = new Character();
-                newItem.ID = _agsEditor.CurrentGame.RootCharacterFolder.GetAllItemsCount();
-                newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName("cChar");
                 newItem.RealName = "New character";
                 newItem.StartingRoom = -1;
-                string newNodeID = AddSingleItem(newItem);
-                _guiController.ProjectTree.SelectNode(this, newNodeID);
-				ShowOrAddPane(newItem);
+                AddNewCharacter(newItem, "cChar");
             }
             else if (controlID == COMMAND_IMPORT)
             {
@@ -94,6 +106,18 @@ namespace AGS.Editor.Components
                     OnCharacterRoomChanged?.Invoke(this, new CharacterRoomChangedEventArgs(c, oldRoom));
                     DeleteSingleItem(_itemRightClicked);
                 }
+            }
+            else if (controlID == COMMAND_COPY_ITEM)
+            {
+                ClipboardUtils.CopyToClipboard(_itemRightClicked);
+            }
+            else if (controlID == COMMAND_PASTE_ITEM)
+            {
+                Character newItem = ClipboardUtils.PasteFromClipboard(typeof(Character)) as Character;
+                if (newItem == null)
+                    return;
+                newItem.Interactions.Schema = Character.InteractionSchema; // schema reference is lost when deserializing
+                AddNewCharacter(newItem, newItem.ScriptName);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -167,7 +191,7 @@ namespace AGS.Editor.Components
             }            
         }
 
-		private void ShowOrAddPane(Character chosenItem)
+        private void ShowOrAddPane(Character chosenItem)
 		{
             ContentDocument document;
 			if (!_documents.TryGetValue(chosenItem, out document)
@@ -265,6 +289,7 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> menu = base.GetContextMenu(controlID);
+            _itemRightClicked = null;
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
                 (!IsFolderNode(controlID)))
             {
@@ -273,6 +298,9 @@ namespace AGS.Editor.Components
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change character ID", null));
+                    menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy character", null));
+                    if (ClipboardUtils.IsAvailableOnClipboard(typeof(Character)))
+                        menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste character", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this character", null));
                     menu.Add(new MenuCommand(COMMAND_EXPORT, "Export character...", null));
                     menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.ScriptName, null));
@@ -384,7 +412,9 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New character", null));
-            menu.Add(new MenuCommand(COMMAND_IMPORT, "Import character...", null));  
+            menu.Add(new MenuCommand(COMMAND_IMPORT, "Import character...", null));
+            if (ClipboardUtils.IsAvailableOnClipboard(typeof(Character)))
+                menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste character", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)

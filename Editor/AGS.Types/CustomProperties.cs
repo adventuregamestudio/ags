@@ -5,12 +5,13 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [Category("Custom Properties")]
     [DisplayName("Custom Properties")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
 
-    public class CustomProperties : ICustomTypeDescriptor
+    public class CustomProperties : ICustomTypeDescriptor, ICloneable
     {
         private Dictionary<string,CustomProperty> _properties = new Dictionary<string,CustomProperty>(
             StringComparer.InvariantCultureIgnoreCase);
@@ -182,5 +183,17 @@ namespace AGS.Types
             return this;
         }
         #endregion // ICustomTypeDescriptor
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            CustomProperties copy = new CustomProperties(_appliesTo);
+            foreach (var prop in this._properties)
+                copy._properties.Add(prop.Key, new CustomProperty(prop.Value.Name, prop.Value.Value));
+            return copy;
+        }
+
+        #endregion
     }
 }

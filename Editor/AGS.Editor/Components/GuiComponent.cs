@@ -21,6 +21,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_TEXTWINDOW = "NewTextWindow";
         private const string COMMAND_IMPORT_GUI = "ImportGUI";
         private const string COMMAND_DELETE_GUI = "DeleteGUI";
+        private const string COMMAND_COPY_ITEM = "CopyGUI";
+        private const string COMMAND_PASTE_ITEM = "PasteGUI";
         private const string COMMAND_EXPORT_GUI = "ExportGUI";
         private const string COMMAND_CHANGE_ID = "ChangeGUIID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
@@ -69,19 +71,34 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.GUIs; }
         }
 
+        private GUI AddNewGUI(GUI newGui, string baseScriptName)
+        {
+            newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
+            newGui.Name = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            string newNodeID;
+            if (_guiRightClicked != null)
+                newNodeID = AddSingleItem(newGui, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _guiRightClicked)));
+            else
+                newNodeID = AddSingleItem(newGui, _rightClickedID);
+            GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
+            _guiController.ProjectTree.SelectNode(this, newNodeID);
+            ShowOrAddPane(newGui);
+            return newGui;
+        }
+
         protected override void ItemCommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_GUI)
             {
                 Size gameRes = _agsEditor.CurrentGame.Settings.CustomResolution;
                 GUI newGUI = new NormalGUI(Math.Min(gameRes.Width, GUI_DEFAULT_WIDTH_MAX), Math.Min(gameRes.Height, GUI_DEFAULT_HEIGHT_MAX));
-                AddNewGUI(newGUI);
+                AddNewGUI(newGUI, "gGui");
                 _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }
             else if (controlID == COMMAND_NEW_TEXTWINDOW)
             {
                 GUI newGUI = new TextWindowGUI();
-                AddNewGUI(newGUI);
+                AddNewGUI(newGUI, "gGui");
                 _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }
             else if (controlID == COMMAND_IMPORT_GUI)
@@ -131,6 +148,22 @@ namespace AGS.Editor.Components
                     DeleteSingleItem(_guiRightClicked);
                     GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
                 }
+            }
+            else if (controlID == COMMAND_COPY_ITEM)
+            {
+                ClipboardUtils.CopyToClipboard(_guiRightClicked);
+            }
+            else if (controlID == COMMAND_PASTE_ITEM)
+            {
+                GUI newGUI = null;
+                if (ClipboardUtils.IsAvailableOnClipboard(typeof(NormalGUI)))
+                    newGUI = ClipboardUtils.PasteFromClipboard(typeof(NormalGUI)) as NormalGUI;
+                else if (ClipboardUtils.IsAvailableOnClipboard(typeof(TextWindowGUI)))
+                    newGUI = ClipboardUtils.PasteFromClipboard(typeof(TextWindowGUI)) as TextWindowGUI;
+                if (newGUI == null)
+                    return;
+                AddNewGUI(newGUI, newGUI.Name);
+                _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -299,6 +332,9 @@ namespace AGS.Editor.Components
             menu.Add(new MenuCommand(COMMAND_NEW_GUI, "New GUI", null));
             menu.Add(new MenuCommand(COMMAND_NEW_TEXTWINDOW, "New Text Window GUI", null));
             menu.Add(new MenuCommand(COMMAND_IMPORT_GUI, "Import GUI...", null));
+            if (ClipboardUtils.IsAvailableOnClipboard(typeof(NormalGUI)) ||
+                    ClipboardUtils.IsAvailableOnClipboard(typeof(TextWindowGUI)))
+                menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste GUI", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -315,6 +351,7 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> menu = base.GetContextMenu(controlID);
+            _guiRightClicked = null;
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
                 (!IsFolderNode(controlID)))
             {
@@ -322,6 +359,10 @@ namespace AGS.Editor.Components
                 GUI gui = _agsEditor.CurrentGame.RootGUIFolder.FindGUIByID(guiID, true);
                 _guiRightClicked = gui;
                 menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change GUI ID", null));
+                menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy GUI", null));
+                if (ClipboardUtils.IsAvailableOnClipboard(typeof(NormalGUI)) ||
+                        ClipboardUtils.IsAvailableOnClipboard(typeof(TextWindowGUI)))
+                    menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste GUI", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_GUI, "Delete " + gui.Name, null));
                 menu.Add(new MenuCommand(COMMAND_EXPORT_GUI, "Export GUI...", null));
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + gui.Name, null));
@@ -362,16 +403,6 @@ namespace AGS.Editor.Components
             toolbarIcons.Add(new MenuCommand(MODE_ADD_INVENTORY, "Add Inventory Window", "GUIInvWindowIcon"));
             toolbarIcons[0].Checked = true;
             return toolbarIcons;
-        }
-
-        private void AddNewGUI(GUI newGui)
-        {            
-            newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
-            newGui.Name = _agsEditor.GetFirstAvailableScriptName("gGui");
-            string newNodeId = AddSingleItem(newGui);
-            GUIIndexTypeConverter.SetGUIList(_agsEditor.CurrentGame.GUIs);
-            _guiController.ProjectTree.SelectNode(this, newNodeId);
-			ShowOrAddPane(newGui);
         }
 
         private void _guiEditor_OnControlsChanged(GUI editingGui)

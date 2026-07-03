@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
-    public class InventoryItem : IToXml, IComparable<InventoryItem>
+    public class InventoryItem : IToXml, IComparable<InventoryItem>, ICloneable
     {
         private static InteractionSchema _interactionSchema;
 
@@ -21,6 +20,7 @@ namespace AGS.Types
         private int _hotspotX, _hotspotY;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.InventoryItems);
         private Interactions _interactions = new Interactions(_interactionSchema);
+        [NonSerialized]
         private bool _currentlyDeserializing = false;
 
         static InventoryItem()
@@ -157,6 +157,13 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
+        [AGSNoSerialize()]
+        [Browsable(false)]
+        public static InteractionSchema InteractionSchema
+        {
+            get { return _interactionSchema; }
+        }
+
         public InventoryItem(XmlNode node)
         {
             _currentlyDeserializing = true;
@@ -187,6 +194,18 @@ namespace AGS.Types
         public int CompareTo(InventoryItem other)
         {
             return ID.CompareTo(other.ID);
+        }
+
+        #endregion
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            InventoryItem copy = this.MemberwiseClone() as InventoryItem;
+            copy._interactions = this._interactions.Clone() as Interactions;
+            copy._properties = this._properties.Clone() as CustomProperties;
+            return copy;
         }
 
         #endregion

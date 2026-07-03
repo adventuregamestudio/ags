@@ -6,8 +6,9 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [DefaultProperty("Image")]
-    public class MouseCursor
+    public class MouseCursor : ICloneable
     {
         private string _name = string.Empty;
         private bool _standardMode = false;
@@ -177,6 +178,15 @@ namespace AGS.Types
         {
             SerializeUtils.SerializeToXML(this, writer);
         }
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        #endregion
 
     }
 }

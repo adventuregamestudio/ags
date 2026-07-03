@@ -891,35 +891,7 @@ namespace AGS.Editor
             bgPanel.Invalidate();
         }
 
-        private string _guiControlsClipboardFormat = string.Format($"{typeof(GUIControl).FullName}List");
-
-        private void SaveControlsToClipboard(List<GUIControl> controls)
-        {
-            DataFormats.Format format = DataFormats.GetFormat(_guiControlsClipboardFormat);
-
-            IDataObject dataObj = new DataObject();
-            dataObj.SetData(format.Name, false, controls);
-            Clipboard.SetDataObject(dataObj, true);
-        }
-
-        private bool AvailableControlsOnClipboard()
-        {
-            IDataObject dataObj = Clipboard.GetDataObject();
-            if (dataObj != null)
-                return dataObj.GetDataPresent(_guiControlsClipboardFormat);
-            return false;
-        }
-
-        private List<GUIControl> GetControlsFromClipBoard()
-        {
-            List<GUIControl> controls = null;
-            IDataObject dataObj = Clipboard.GetDataObject();
-            if (dataObj.GetDataPresent(_guiControlsClipboardFormat))
-            {
-                controls = dataObj.GetData(_guiControlsClipboardFormat) as List<GUIControl>;
-            }
-            return controls;
-        }
+        private string _guiControlsClipboardFormat = $"{typeof(GUIControl).FullName}List";
 
         private void CopyControlClick(object sender, EventArgs e)
         {
@@ -928,13 +900,13 @@ namespace AGS.Editor
                 List<GUIControl> _copyBuffer = new List<GUIControl>();
                 foreach (var control in _selected)
                     _copyBuffer.Add((GUIControl)control.Clone());
-                SaveControlsToClipboard(_copyBuffer);
+                ClipboardUtils.MoveToClipboard(_copyBuffer, _guiControlsClipboardFormat);
             }
         }
 
         private void PasteControlClick(object sender, EventArgs e)
         {
-            List<GUIControl> newControls = GetControlsFromClipBoard();
+            List<GUIControl> newControls = (List<GUIControl>)ClipboardUtils.PasteFromClipboard(typeof(List<GUIControl>), _guiControlsClipboardFormat);
             if (newControls == null)
                 return;
 
@@ -1063,7 +1035,7 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(DeleteControlClick), Keys.Delete));
                 }
 
-                if (AvailableControlsOnClipboard())
+                if (ClipboardUtils.IsAvailableOnClipboard(_guiControlsClipboardFormat))
                 {
                     menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control | Keys.V));
                 }

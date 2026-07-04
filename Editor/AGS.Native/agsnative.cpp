@@ -2078,7 +2078,6 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 
     // And then temp file to its final location
-    String ^sprindexfilename = gcnew String(sprindexname);
     try
     {
         if (IO::File::Exists(sprfilename))
@@ -2092,6 +2091,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 
     // Sprite index is wanted but optional, so react to exceptions separately
+    String ^sprindexfilename = gcnew String(sprindexname);
     try
     {
         if (IO::File::Exists(sprindexfilename))

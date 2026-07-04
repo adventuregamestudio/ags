@@ -91,7 +91,7 @@ namespace AGS
             void OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate);
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();
-            void ReplaceSpriteFile(String ^srcFileName);
+            void ReplaceSpriteFile(String ^srcFileName, String ^srcIndexFileName);
 			Room^ LoadRoomForEditing(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
             Room^ LoadRoom(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
             void UnloadRoom(Room ^room);

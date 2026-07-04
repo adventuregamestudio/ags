@@ -272,6 +272,8 @@ namespace AGS.Types
             {
                 if (hexString.StartsWith("#"))
                     hexString = hexString.Substring(1);
+                if (hexString.StartsWith("0x"))
+                    hexString = hexString.Substring(2);
 
                 int value = Convert.ToInt32(hexString, 16);
                 if (hexString.Length == 8)

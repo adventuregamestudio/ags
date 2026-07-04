@@ -699,9 +699,10 @@ static void check_keyboard_controls()
     }
 
     bool keywasprocessed = false;
-    // First pass the key/text events to any active Text Box controls
+    // First pass the key/text events to any active Text Box control
     if (GUI::IsEnabledState())
     {
+        bool textbox_found = true;
         for (auto &gui : guis)
         {
             if (!gui.IsDisplayed())
@@ -730,7 +731,13 @@ static void check_keyboard_controls()
                     // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
                     setevent(AGSEvent_GUI(gui.GetID(), controlIndex, static_cast<eAGSMouseButton>(1)));
                 }
+                // Break out at the first active text box
+                textbox_found = true;
+                break;
             }
+
+            if (textbox_found)
+                break;
         }
     }
 

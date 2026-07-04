@@ -351,6 +351,8 @@ namespace AGS.Editor.Components
                 _editor.SelectedItem = itemToEdit;
                 _document.SelectedPropertyGridObject = itemToEdit;
                 _document.TreeNodeID = _rightClickedID;
+                if (itemToEdit is AudioClip)
+                    UpdateAudioClipFromPreview(itemToEdit as AudioClip, _editor);
                 _guiController.AddOrShowPane(_document);
             }
         }
@@ -445,6 +447,7 @@ namespace AGS.Editor.Components
             clip.FileLastModifiedDate = lastModifiedDate;
             clip.SourceFileName = sourceFileName;
             clip.CacheFileName = newCacheFileName;
+            clip.Length = TimeSpan.MinValue;
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
             return clip;
         }
@@ -468,6 +471,15 @@ namespace AGS.Editor.Components
             }
 
             return newClip;
+        }
+
+        /// <summary>
+        /// Updates certain preview-only properties from the AudioEditor,
+        /// for displaying them in the property grid.
+        /// </summary>
+        private void UpdateAudioClipFromPreview(AudioClip clip, AudioEditor editor)
+        {
+            clip.Length = TimeSpan.FromMilliseconds(editor.LengthMs);
         }
 
         private string EnsureScriptNameIsUnique(string nameToTry, int truncateToLength = Int32.MaxValue)

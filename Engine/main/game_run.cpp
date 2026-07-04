@@ -699,38 +699,37 @@ static void check_keyboard_controls()
     }
 
     bool keywasprocessed = false;
-    // Determine if a GUI Text Box should steal the click:
-    // it should be either a printable character or one of the textbox control keys
-    // TODO: instead of making a preliminary check, just let each gui control
-    // test the key and OnKeyPress return if it was handled?
-    if (GUI::IsEnabledState() &&
-        ((ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
-         (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))) {
-        for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
-            auto &gui = guis[guiIndex];
+    // First pass the key/text events to any active Text Box controls
+    if (GUI::IsEnabledState())
+    {
+        for (auto &gui : guis)
+        {
+            if (!gui.IsDisplayed())
+                continue;
 
-            if (!gui.IsDisplayed()) continue;
-
-            for (int controlIndex = 0; controlIndex < gui.GetControlCount(); controlIndex++) {
+            for (int controlIndex = 0; controlIndex < gui.GetControlCount(); ++controlIndex)
+            {
                 // not a text box, ignore it
-                if (gui.GetControlType(controlIndex) != kGUITextBox) { continue; }
-
+                if (gui.GetControlType(controlIndex) != kGUITextBox)
+                    continue;
                 auto *guitex = static_cast<GUITextBox*>(gui.GetControl(controlIndex));
-                if (guitex == nullptr) { continue; }
+                if (!guitex || !guitex->IsEnabled() || !guitex->IsVisible())
+                    continue;
 
-                // if the text box is disabled, it cannot accept keypresses
-                if (!guitex->IsEnabled()) { continue; }
-                if (!guitex->IsVisible()) { continue; }
+                bool handled = guitex->OnKeyPress(ki);
+                switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
+                {
+                case kScTextBoxClaim_Never: break;
+                case kScTextBoxClaim_Handled: keywasprocessed = handled; break;
+                case kScTextBoxClaim_Always:
+                default: keywasprocessed = true; break;
+                }
 
-                guitex->OnKeyPress(ki);
-                // Note that the TextBox always steals the key event here, regardless
-                // of whether it had any meaning for control
-                keywasprocessed = true;
-
-                if (guitex->IsActivated()) {
+                if (guitex->IsActivated())
+                {
                     guitex->SetActivated(false);
                     // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
-                    setevent(AGSEvent_GUI(guiIndex, controlIndex, static_cast<eAGSMouseButton>(1)));
+                    setevent(AGSEvent_GUI(gui.GetID(), controlIndex, static_cast<eAGSMouseButton>(1)));
                 }
             }
         }

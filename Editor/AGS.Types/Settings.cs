@@ -444,10 +444,10 @@ namespace AGS.Types
             set { _guiHandleOnlyLeftMouseButton = value; }
         }
 
-        [DisplayName("When should TextBoxes claim key and text input events")]
+        [DisplayName("TextBoxes claim key and text input events")]
         [Description("If a TextBox control is shown on screen and is enabled, it may claim key or text input events, in which case such events are not sent into the script; \"on_key_press\" and \"on_text_input\" callbacks are not run for such claimed events.")]
         [Category("GUI behavior")]
-        [DefaultValue(GUITextBoxKeyClaimStyle.Handled)]
+        [DefaultValue(GUITextBoxKeyClaimStyle.Always)]
         public GUITextBoxKeyClaimStyle TextBoxKeyClaimStyle
         {
             get { return _textBoxKeyClaimStyle; }

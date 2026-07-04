@@ -595,8 +595,7 @@ enum TurnOrderPriority
 enum TextBoxKeyClaimStyle
 {
   eTextBoxKeyClaimAlways       = 0,
-  eTextBoxKeyClaimNever        = 1,
-  eTextBoxKeyClaimHandled      = 2
+  eTextBoxKeyClaimHandled      = 1
 };
 #endif // SCRIPT_API_v363
 

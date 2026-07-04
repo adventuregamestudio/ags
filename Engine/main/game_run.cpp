@@ -719,8 +719,7 @@ static void check_keyboard_controls()
                 bool handled = guitex->OnKeyPress(ki);
                 switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
                 {
-                case kScTextBoxClaim_Never: break;
-                case kScTextBoxClaim_Handled: keywasprocessed = handled; break;
+                case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
                 case kScTextBoxClaim_Always:
                 default: keywasprocessed = true; break;
                 }

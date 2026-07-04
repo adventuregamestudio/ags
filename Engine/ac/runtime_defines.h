@@ -245,8 +245,7 @@ enum ScriptTurnOrderPriority
 enum ScriptTextBoxClaimStyle
 {
     kScTextBoxClaim_Always          = 0, // historically is default
-    kScTextBoxClaim_Never           = 1,
-    kScTextBoxClaim_Handled         = 2
+    kScTextBoxClaim_Handled         = 1
 };
 
 enum eScriptSystemOSID

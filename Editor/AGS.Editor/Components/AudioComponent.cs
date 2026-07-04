@@ -480,6 +480,7 @@ namespace AGS.Editor.Components
         private void UpdateAudioClipFromPreview(AudioClip clip, AudioEditor editor)
         {
             clip.Length = TimeSpan.FromMilliseconds(editor.LengthMs);
+            clip.Format = editor.Format;
         }
 
         private string EnsureScriptNameIsUnique(string nameToTry, int truncateToLength = Int32.MaxValue)

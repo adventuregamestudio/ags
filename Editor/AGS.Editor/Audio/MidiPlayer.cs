@@ -91,6 +91,12 @@ namespace AGS.Editor
             return 0;
         }
 
+        public MediaInfo GetMediaInfo()
+        {
+            // MediaInfo is not applicable to MIDI
+            return new MediaInfo(0, 0, 0);
+        }
+
         public void Pause()
         {
             mciSendString("stop track", null, 0, IntPtr.Zero);

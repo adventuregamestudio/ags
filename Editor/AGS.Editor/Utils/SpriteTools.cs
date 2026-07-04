@@ -801,7 +801,7 @@ namespace AGS.Editor.Utils
         /// Writes the sprite file, importing all the existing sprites either from the
         /// their sources, or existing spriteset file, - whatever is present (in that order).
         /// </summary>
-        public static void WriteSpriteFileFromSources(string destFilename,
+        public static void WriteSpriteFileFromSources(string destFilename, string destIndexFilename,
             string srcSetFilename, string srcIndexFilename, IWorkProgress progress)
         {
             int storeFlags = 0;
@@ -836,10 +836,14 @@ namespace AGS.Editor.Utils
                 progress.Current = ++realSprites;
                 spriteIndex++;
             }
-            writer.End();
-
+            var spriteFileIndex = writer.End();
             reader.Dispose();
             writer.Dispose();
+
+            if (!string.IsNullOrEmpty(destIndexFilename))
+            {
+                Native.SpriteIndexFileWriter.WriteSpriteIndex(destIndexFilename, spriteFileIndex);
+            }
         }
 
         private static void WriteSprite(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Sprite sprite)

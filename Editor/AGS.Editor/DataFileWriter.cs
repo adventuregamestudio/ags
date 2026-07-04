@@ -559,6 +559,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_GUICONTROLMOUSEBUT] = (game.Settings.GUIHandleOnlyLeftMouseButton ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISPLAYSINGLEDIALOGOPTION] = (game.Settings.DisplaySingleDialogOption ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_TURNORDERPRIORITY] = (int)(game.Settings.TurnOrderPriority);
+            options[NativeConstants.GameOptions.OPT_TEXTBOXCLAIMSKEYS] = (int)(game.Settings.TextBoxKeyClaimStyle);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i)
             {

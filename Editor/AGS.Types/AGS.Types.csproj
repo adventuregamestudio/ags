@@ -148,6 +148,7 @@
     <Compile Include="EditorFeatures\RoomTemplate.cs" />
     <Compile Include="Enums\AndroidBuildFormat.cs" />
     <Compile Include="Enums\ButtonColorStyle.cs" />
+    <Compile Include="Enums\GUITextBoxKeyClaimStyle.cs" />
     <Compile Include="Enums\InputMotionMode.cs" />
     <Compile Include="Enums\TouchToMouseEmulationType.cs" />
     <Compile Include="Enums\FontAutoOutlineStyle.cs" />
@@ -182,7 +183,7 @@
     <Compile Include="Enums\SpriteImportTransparency.cs" />
     <Compile Include="Enums\SpriteImportResolution.cs" />
     <Compile Include="Enums\TextParserWordType.cs" />
-    <Compile Include="Enums\TurnOrderPriority.cs" />
+    <Compile Include="Enums\CharacterTurnOrderPriority.cs" />
     <Compile Include="Exceptions\CannotDeleteFileException.cs" />
     <Compile Include="Exceptions\CompileError.cs" />
     <Compile Include="Exceptions\CompileMessage.cs" />

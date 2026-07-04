@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace AGS.Types
 {
-    public enum TurnOrderPriority
+    public enum CharacterTurnOrderPriority
     {
         [Description("Clockwise (default)")]
         Clockwise = 0,

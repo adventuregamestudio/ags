@@ -65,10 +65,11 @@ namespace AGS.Types
         private bool _attachDataToExe = false;
         private bool _turnBeforeWalking = false;
         private bool _turnBeforeFacing = false;
-        private TurnOrderPriority _turnOrderPriority = TurnOrderPriority.Clockwise;
+        private CharacterTurnOrderPriority _turnOrderPriority = CharacterTurnOrderPriority.Clockwise;
         private bool _scaleMovementSpeedWithMaskRes = false;
         private bool _mouseWheelEnabled = true;
         private bool _guiHandleOnlyLeftMouseButton = false;
+        private GUITextBoxKeyClaimStyle _textBoxKeyClaimStyle = GUITextBoxKeyClaimStyle.Always;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private SpriteCompression _compressSprites = SpriteCompression.None;
@@ -443,6 +444,16 @@ namespace AGS.Types
             set { _guiHandleOnlyLeftMouseButton = value; }
         }
 
+        [DisplayName("When should TextBoxes claim key and text input events")]
+        [Description("If a TextBox control is shown on screen and is enabled, it may claim key or text input events, in which case such events are not sent into the script; \"on_key_press\" and \"on_text_input\" callbacks are not run for such claimed events.")]
+        [Category("GUI behavior")]
+        [DefaultValue(GUITextBoxKeyClaimStyle.Handled)]
+        public GUITextBoxKeyClaimStyle TextBoxKeyClaimStyle
+        {
+            get { return _textBoxKeyClaimStyle; }
+            set { _textBoxKeyClaimStyle = value; }
+        }
+
         [DisplayName("Use low-resolution co-ordinates in script")]
         [Description("Backwards-compatible option to always use low-res co-ordinates in the script. This is how previous versions of AGS always worked. WARNING: Changing this setting could break your current scripts.")]
         [Category("Backwards Compatibility")]
@@ -476,8 +487,8 @@ namespace AGS.Types
         [DisplayName("Prioritize this turning direction")]
         [Description("Which turning direction to prioritize when character is turning to face the opposite direction")]
         [Category("Character behavior")]
-        [DefaultValue(TurnOrderPriority.Clockwise)]
-        public TurnOrderPriority TurnOrderPriority
+        [DefaultValue(CharacterTurnOrderPriority.Clockwise)]
+        public CharacterTurnOrderPriority TurnOrderPriority
         {
             get { return _turnOrderPriority; }
             set { _turnOrderPriority = value; }

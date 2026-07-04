@@ -95,6 +95,7 @@
 #define OPT_AUTOTRANSPARSERSAID 58
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59
 #define OPT_TURNORDERPRIORITY 60
+#define OPT_TEXTBOXCLAIMSKEYS 61
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1
@@ -587,6 +588,15 @@ enum TurnOrderPriority
   eTurnOrderCounterClockwise   = 1,
   eTurnOrderRandom             = 2,
   eTurnOrderFaceDown           = 3
+};
+
+// Determines under which condition the TextBox control claims
+// the received key / text input events
+enum TextBoxKeyClaimStyle
+{
+  eTextBoxKeyClaimAlways       = 0,
+  eTextBoxKeyClaimNever        = 1,
+  eTextBoxKeyClaimHandled      = 2
 };
 #endif // SCRIPT_API_v363
 

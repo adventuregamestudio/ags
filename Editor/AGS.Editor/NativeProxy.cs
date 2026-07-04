@@ -86,11 +86,11 @@ namespace AGS.Editor
 			}
         }
 
-        public void ReplaceSpriteFile(string srcFilename)
+        public void ReplaceSpriteFile(string srcFilename, string srcIndexFilename)
         {
             lock (_spriteSetLock)
             {
-                _native.ReplaceSpriteFile(srcFilename);
+                _native.ReplaceSpriteFile(srcFilename, srcIndexFilename);
             }
         }
 

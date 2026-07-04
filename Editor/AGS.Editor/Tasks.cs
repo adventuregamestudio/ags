@@ -330,39 +330,42 @@ namespace AGS.Editor
         {
             string tempFilename = Path.GetTempFileName();
             SpriteTools.WriteDummySpriteFile(tempFilename);
-            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
+            Factory.NativeProxy.ReplaceSpriteFile(tempFilename, string.Empty);
             File.Delete(tempFilename);
         }
 
         private class WriteSpriteFileArgs
         {
             public string DestFilename;
+            public string DestIndexFilename;
             public string SrcSetFilename;
             public string SrcIndexFilename;
 
-            public WriteSpriteFileArgs(string destFilename, string srcSetFilename, string srcIndexFilename)
+            public WriteSpriteFileArgs(string destFilename, string destIndexFilename, string srcSetFilename, string srcIndexFilename)
             {
                 DestFilename = destFilename;
+                DestIndexFilename = destIndexFilename;
                 SrcSetFilename = srcSetFilename;
                 SrcIndexFilename = srcIndexFilename;
             }
         }
 
-        private delegate void WriteSpriteFileWithProgress(string destFilename,
+        private delegate void WriteSpriteFileWithProgress(string destFilename, string destIndexFilename,
             string srcSetFilename, string srcIndexFilename, IWorkProgress progress);
 
         private static void RecreateSpriteFile(WriteSpriteFileWithProgress taskProc)
         {
-            string tempFilename;
+            string tempFilename, tempIndexFilename;
             try
             {
                 tempFilename = Path.GetTempFileName();
-                var args = new WriteSpriteFileArgs(tempFilename, AGSEditor.SPRITE_FILE_NAME, AGSEditor.SPRITE_INDEX_FILE_NAME);
+                tempIndexFilename = Path.GetTempFileName();
+                var args = new WriteSpriteFileArgs(tempFilename, tempIndexFilename, AGSEditor.SPRITE_FILE_NAME, AGSEditor.SPRITE_INDEX_FILE_NAME);
                 BusyDialog.Show("Please wait while the sprite file is recreated...",
                     new BusyDialog.ProcessingHandler(
                         (IWorkProgress progress, object o) => {
                             WriteSpriteFileArgs writeArgs = (WriteSpriteFileArgs)o;
-                            taskProc(writeArgs.DestFilename, writeArgs.SrcSetFilename, writeArgs.SrcIndexFilename, progress);
+                            taskProc(writeArgs.DestFilename, writeArgs.DestIndexFilename, writeArgs.SrcSetFilename, writeArgs.SrcIndexFilename, progress);
                             return null;
                         }),
                     args);
@@ -373,8 +376,9 @@ namespace AGS.Editor
                 return;
             }
 
-            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
+            Factory.NativeProxy.ReplaceSpriteFile(tempFilename, tempIndexFilename);
             File.Delete(tempFilename);
+            File.Delete(tempIndexFilename);
 
             Factory.Events.OnSpritesImported(null);
         }

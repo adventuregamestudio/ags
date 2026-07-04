@@ -32,6 +32,17 @@ namespace AGS
 namespace Native
 {
 
+SpriteFileIndex::SpriteFileIndex(const AGS::Common::SpriteFileIndex *index)
+{
+    if (index)
+        _index = new AGS::Common::SpriteFileIndex(*index);
+}
+
+SpriteFileIndex::!SpriteFileIndex()
+{
+    delete _index;
+}
+
 SpriteFileWriter::SpriteFileWriter(System::String ^filename)
 {
     AGSString fn = TextHelper::ConvertUTF8(filename);
@@ -80,9 +91,20 @@ void SpriteFileWriter::WriteEmptySlot()
     _nativeWriter->WriteEmptySlot();
 }
 
-void SpriteFileWriter::End()
+SpriteFileIndex ^SpriteFileWriter::End()
 {
     _nativeWriter->Finalize();
+    return gcnew SpriteFileIndex(&_nativeWriter->GetIndex());
+}
+
+void SpriteIndexFileWriter::WriteSpriteIndex(System::String ^filename, SpriteFileIndex ^index)
+{
+    const auto *native_index = index->GetIndex();
+    if (native_index)
+    {
+        AGSString fn = TextHelper::ConvertUTF8(filename);
+        AGS::Common::SaveSpriteIndex(fn, *native_index);
+    }
 }
 
 } // namespace Native

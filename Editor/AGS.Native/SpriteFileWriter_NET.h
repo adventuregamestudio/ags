@@ -22,6 +22,19 @@ namespace AGS
 namespace Native
 {
 
+public ref class SpriteFileIndex
+{
+public:
+    SpriteFileIndex(const AGS::Common::SpriteFileIndex *index);
+    ~SpriteFileIndex() { this->!SpriteFileIndex(); }
+    !SpriteFileIndex();
+
+    const AGS::Common::SpriteFileIndex *GetIndex() { return _index; }
+
+private:
+    AGS::Common::SpriteFileIndex *_index = nullptr;
+};
+
 public ref class SpriteFileWriter : public SpriteFile
 {
 public:
@@ -42,11 +55,18 @@ public:
     void WriteRawData(RawSpriteData^ data);
     // Writes an empty slot marker
     void WriteEmptySlot();
-    // Finalizes current format; no further writing is possible after this
-    void End();
+    // Finalizes current format; no further writing is possible after this.
+    // Returns sprite index object which may be used to write sprite index file.
+    SpriteFileIndex ^End();
 
 private:
     AGS::Common::SpriteFileWriter *_nativeWriter = nullptr;
+};
+
+static public ref class SpriteIndexFileWriter
+{
+public:
+    static void WriteSpriteIndex(System::String ^filename, SpriteFileIndex ^index);
 };
 
 } // namespace Native

@@ -809,10 +809,10 @@ namespace AGS.Editor.Utils
         /// Writes the sprite file, importing all the existing sprites either from the
         /// their sources, or existing spriteset file, - whatever is present (in that order).
         /// </summary>
-        public static void WriteSpriteFileFromSources(string destFilename,
+        public static void WriteSpriteFileFromSources(string destFilename, string destIndexFilename,
             string srcSetFilename, string srcIndexFilename, IWorkProgress progress)
         {
-            WriteSpriteFile(destFilename, srcSetFilename, srcIndexFilename, WriteSpriteFromSource, progress);
+            WriteSpriteFile(destFilename, destIndexFilename, srcSetFilename, srcIndexFilename, WriteSpriteFromSource, progress);
         }
 
         /// <summary>
@@ -823,16 +823,16 @@ namespace AGS.Editor.Utils
         /// converted to the new one. If ImportColorDepth is set to an explicit
         /// depth value, such sprites are written back as-is.
         /// </summary>
-        public static void WriteSpriteFileWithNewGameColorDepth(string destFilename,
+        public static void WriteSpriteFileWithNewGameColorDepth(string destFilename, string destIndexFilename,
             string srcSetFilename, string srcIndexFilename, IWorkProgress progress)
         {
-            WriteSpriteFile(destFilename, srcSetFilename, srcIndexFilename, WriteSpriteInGameDepth, progress);
+            WriteSpriteFile(destFilename, destIndexFilename, srcSetFilename, srcIndexFilename, WriteSpriteInGameDepth, progress);
         }
 
         /// <summary>
         /// Writes the sprite file using the provided WriteSprite delegate.
         /// </summary>
-        private static void WriteSpriteFile(string destFilename,
+        private static void WriteSpriteFile(string destFilename, string destIndexFilename,
             string srcSetFilename, string srcIndexFilename, WriteSpriteProc writeProc, IWorkProgress progress)
         {
             Game game = Factory.AGSEditor.CurrentGame; // TODO: get Game as a function argument?
@@ -868,10 +868,14 @@ namespace AGS.Editor.Utils
                 progress.Current = ++realSprites;
                 spriteIndex++;
             }
-            writer.End();
-
+            var spriteFileIndex = writer.End();
             reader.Dispose();
             writer.Dispose();
+
+            if (!string.IsNullOrEmpty(destIndexFilename))
+            {
+                Native.SpriteIndexFileWriter.WriteSpriteIndex(destIndexFilename, spriteFileIndex);
+            }
         }
 
         private static void WriteSpriteFromSource(Native.SpriteFileWriter writer, Native.SpriteFileReader reader, Game game, Sprite sprite)

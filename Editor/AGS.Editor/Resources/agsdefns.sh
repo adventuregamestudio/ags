@@ -1492,6 +1492,7 @@ builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions invHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the inventory item by its script name
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer custom property for this item.
@@ -1926,6 +1927,7 @@ builtin managed struct GUIControl {
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
   import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions controlHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
 #ifdef SCRIPT_API_v361
+  /// Gets the GUI Control by its script name
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Sends this control to the back of the z-order, behind all other controls.
@@ -2248,6 +2250,7 @@ builtin managed struct GUI {
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the GUI by its script name
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Moves the GUI to have its top-left corner at the specified position.
@@ -2343,6 +2346,7 @@ builtin managed struct Hotspot {
   import void GetPropertyText(const string property, string buffer);
 #endif // !STRICT_STRINGS
 #ifdef SCRIPT_API_v361
+  /// Gets the hotspot by its script name
   import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer Custom Property for this hotspot.
@@ -2423,6 +2427,7 @@ builtin managed struct Region {
 
 builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
+  /// Gets the dialog by its script name
   import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Displays the options for this dialog and returns which one the player selected.
@@ -2676,6 +2681,7 @@ builtin managed struct AudioChannel {
 
 builtin managed struct AudioClip {
 #ifdef SCRIPT_API_v361
+  /// Gets the audio clip by its script name
   import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Plays this audio clip.
@@ -2851,6 +2857,7 @@ builtin managed struct Object {
   import void GetPropertyText(const string property, string buffer);
 #endif // !STRICT_STRINGS
 #ifdef SCRIPT_API_v361
+  /// Gets the object by its script name
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer Custom Property for this object.
@@ -3036,6 +3043,7 @@ builtin managed struct Character {
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the character by its script name
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets a numeric custom property for this character.

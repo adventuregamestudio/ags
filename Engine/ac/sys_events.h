@@ -17,6 +17,7 @@
 //=============================================================================
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
 #define __AGS_EE_AC__SYS_EVENTS_H
+#include <vector>
 #include <SDL_keyboard.h>
 #include <SDL_events.h>
 #include "ac/keycode.h"
@@ -54,6 +55,10 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle);
 // Converts eAGSKeyCode to SDL key scans (up to 3 values, because this is not a 1:1 match);
 // NOTE: fails at Ctrl+ or Alt+ AGS keys, or any unknown key codes.
 bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);
+// Converts a complex SDL key definition (with mod) to a AGS key, including composite keys.
+eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod);
+// Converts sdl mod key to AGS mod key
+int sdl_mod_to_ags_mod(const Uint16 mod);
 
 // Tells if key event refers to one of the mod-keys
 inline bool is_sdl_mod_key(const SDL_Keysym &key)
@@ -108,6 +113,8 @@ void ags_drop_next_inputevent();
 bool ags_iskeydown(eAGSKeyCode ags_key);
 // Tells whether any key is currently down
 bool ags_isanykeydown();
+// Returns a list of keys that are currently down
+const std::vector<SDL_Keysym> &ags_getkeysdown();
 // Simulates key press with the given AGS key
 void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle);
 

@@ -1663,9 +1663,13 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v363
-/// Checks whether any key is currently held down
+/// Checks whether any key is currently held down.
 import bool IsAnyKeyPressed();
 #endif // SCRIPT_API_v363
+#ifdef SCRIPT_API_v400
+/// Gets a dynamic arrays of keys that are currently held down.
+import eKeyCode[] GetPressedKeys();
+#endif // SCRIPT_API_v400
 
 #ifdef SCRIPT_API_v363
 enum GUIButtonColorStyle {

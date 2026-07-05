@@ -717,10 +717,11 @@ static void check_keyboard_controls()
                 if (!guitex || !guitex->IsEnabled() || !guitex->IsVisible())
                     continue;
 
-                bool handled = guitex->OnKeyPress(ki);
+                const bool handled = guitex->OnKeyPress(ki);
                 switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
                 {
                 case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
+                case kScTextBoxClaim_TextOnly: keywasprocessed |= (ki.UChar > 0); break;
                 case kScTextBoxClaim_Always:
                 default: keywasprocessed = true; break;
                 }

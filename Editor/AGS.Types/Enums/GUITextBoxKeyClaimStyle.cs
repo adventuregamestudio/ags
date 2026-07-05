@@ -7,7 +7,9 @@ namespace AGS.Types
     {
         [Description("Always")]
         Always  = 0,
-        [Description("Handled input events only")]
-        Handled = 1
+        [Description("Handled input events (key and text)")]
+        Handled = 1,
+        [Description("Text input events only")]
+        TextOnly = 2,
     }
 }

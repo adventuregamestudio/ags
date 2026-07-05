@@ -34,6 +34,14 @@ namespace AGS.Editor
             DeleteCommonGameFiles(OutputDirectoryFullPath, name, errors);
         }
 
+        /// <summary>
+        /// Escapes javascript's string quotes.
+        /// </summary>
+        private string EscapeFilenameForJS(string filename)
+        {
+            return filename.Replace("'", "\\'").Replace("\"", "\\\"");
+        }
+
         public override bool Build(CompileMessages errors, bool forceRebuild)
         {
             if (!base.Build(errors, forceRebuild)) return false;
@@ -49,10 +57,10 @@ namespace AGS.Editor
                 {
                     Utilities.HardlinkOrCopy(GetCompiledPath(WEB_DIR, Path.GetFileName(fileName)), fileName, true);
 
-                    my_game_files_text += "'" + Path.GetFileName(fileName) + "', ";
+                    my_game_files_text += $"'{EscapeFilenameForJS(Path.GetFileName(fileName))}', ";
                 }
             }
-            my_game_files_text += "'" + AGSEditor.CONFIG_FILE_NAME + "'";
+            my_game_files_text += $"'{EscapeFilenameForJS(AGSEditor.CONFIG_FILE_NAME)}'";
 
             my_game_files_text += "];";
 

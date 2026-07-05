@@ -61,7 +61,6 @@ int     GUI_GetTextPadding(ScriptGUI *tehgui);
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
-void	replace_macro_tokens(const char *text, AGS::Common::String &fixed_text);
 void	update_gui_zorder();
 // Initializes all GUI and controls for runtime state;
 // this must be done after creating or loading GUIs.
@@ -77,6 +76,8 @@ int     gui_on_mouse_move(const int mx, const int my);
 void    gui_on_mouse_hold(const int wasongui, const int wasbutdown);
 void    gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, const int my);
 void    gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my);
+
+AGS::Common::GUITextBox *gui_get_active_textbox();
 
 extern int ifacepopped;
 

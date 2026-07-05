@@ -702,43 +702,24 @@ static void check_keyboard_controls()
     // First pass the key/text events to any active Text Box control
     if (GUI::IsEnabledState())
     {
-        bool textbox_found = true;
-        for (auto &gui : guis)
+        GUITextBox *guitex = gui_get_active_textbox();
+        if (guitex)
         {
-            if (!gui.IsDisplayed())
-                continue;
-
-            for (int controlIndex = 0; controlIndex < gui.GetControlCount(); ++controlIndex)
+            const bool handled = guitex->OnKeyPress(ki);
+            switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
             {
-                // not a text box, ignore it
-                if (gui.GetControlType(controlIndex) != kGUITextBox)
-                    continue;
-                auto *guitex = static_cast<GUITextBox*>(gui.GetControl(controlIndex));
-                if (!guitex || !guitex->IsEnabled() || !guitex->IsVisible())
-                    continue;
-
-                const bool handled = guitex->OnKeyPress(ki);
-                switch (game.options[OPT_TEXTBOXCLAIMSKEYS])
-                {
-                case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
-                case kScTextBoxClaim_TextOnly: keywasprocessed |= (ki.UChar > 0); break;
-                case kScTextBoxClaim_Always:
-                default: keywasprocessed = true; break;
-                }
-
-                if (guitex->IsActivated())
-                {
-                    guitex->SetActivated(false);
-                    // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
-                    setevent(AGSEvent_GUI(gui.GetID(), controlIndex, static_cast<eAGSMouseButton>(1)));
-                }
-                // Break out at the first active text box
-                textbox_found = true;
-                break;
+            case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
+            case kScTextBoxClaim_TextOnly: keywasprocessed |= (ki.UChar > 0); break;
+            case kScTextBoxClaim_Always:
+            default: keywasprocessed = true; break;
             }
 
-            if (textbox_found)
-                break;
+            if (guitex->IsActivated())
+            {
+                guitex->SetActivated(false);
+                // FIXME: review this, are we abusing "mouse button" arg here in order to pass a different data?
+                setevent(AGSEvent_GUI(guitex->GetParentID(), guitex->GetID(), static_cast<eAGSMouseButton>(1)));
+            }
         }
     }
 

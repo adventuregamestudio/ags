@@ -2253,6 +2253,10 @@ builtin managed struct GUI {
   /// Gets the GUI by its script name
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Returns the first found active TextBox control; which is the one that receives key and text input right now.
+  import static TextBox* GetActiveTextInputControl(); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v363
   /// Moves the GUI to have its top-left corner at the specified position.
   import void SetPosition(int x, int y);
   /// Changes the size of the GUI.

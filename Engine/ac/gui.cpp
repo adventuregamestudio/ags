@@ -942,6 +942,29 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     run_on_event(kScriptEvent_GUIMouseDown, guin, mbut, mx - guis[guin].GetX(), my - guis[guin].GetY());
 }
 
+GUITextBox *gui_get_active_textbox()
+{
+    if (!GUI::IsEnabledState())
+        return nullptr;
+
+    for (auto &gui : guis)
+    {
+        if (!gui.IsDisplayed())
+            continue;
+
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+        {
+            if (gui.GetControlType(i) == kGUITextBox)
+            {
+                auto *guitex = static_cast<GUITextBox*>(gui.GetControl(i));
+                if (guitex && guitex->IsEnabled() && guitex->IsVisible())
+                    return guitex;
+            }
+        }
+    }
+    return nullptr;
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -959,10 +982,20 @@ ScriptGUI *GUI_GetByName(const char *name)
     return static_cast<ScriptGUI*>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));
 }
 
+GUITextBox *GUI_GetActiveTextInputControl()
+{
+    return gui_get_active_textbox();
+}
+
 
 RuntimeScriptValue Sc_GUI_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(ScriptGUI, ccDynamicGUI, GUI_GetByName, const char);
+}
+
+RuntimeScriptValue Sc_GUI_GetActiveTextInputControl(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(GUITextBox, ccDynamicGUIObject, GUI_GetActiveTextInputControl);
 }
 
 // void GUI_Centre(ScriptGUI *sgui)
@@ -1249,7 +1282,8 @@ void RegisterGUIAPI()
     ScFnRegister gui_api[] = {
         { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY2) },
         { "GUI::GetAtScreenXY^3",         API_FN_PAIR(GUI_GetAtScreenXY) },
-        { "GUI::GetByName",               API_FN_PAIR(GUI_GetByName) },
+        { "GUI::GetByName^1",             API_FN_PAIR(GUI_GetByName) },
+        { "GUI::GetActiveTextInputControl^0", API_FN_PAIR(GUI_GetActiveTextInputControl) },
 
         { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },
 

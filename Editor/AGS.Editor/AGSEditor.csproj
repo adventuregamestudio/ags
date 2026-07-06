@@ -460,6 +460,7 @@
     <Compile Include="Utils\AndroidUtilities.cs" />
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\BitmapExtensions.cs" />
+    <Compile Include="Utils\ClipboardUtils.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
     <Compile Include="Utils\Debounce.cs" />

@@ -5,6 +5,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     public class CustomProperty
     {
         private string _name;

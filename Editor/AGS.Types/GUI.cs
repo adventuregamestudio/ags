@@ -10,7 +10,7 @@ namespace AGS.Types
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("BackgroundImage")]
-    public abstract class GUI : IToXml, IComparable<GUI>
+    public abstract class GUI : IToXml, IComparable<GUI>, ICloneable
     {
         public GUI()
         {
@@ -223,6 +223,19 @@ namespace AGS.Types
         public int CompareTo(GUI other)
         {
             return ID.CompareTo(other.ID);
+        }
+
+        #endregion
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            GUI copy = this.MemberwiseClone() as GUI;
+            copy._controls = new List<GUIControl>();
+            foreach (var ctrl in _controls)
+                copy._controls.Add(ctrl.Clone() as GUIControl);
+            return copy;
         }
 
         #endregion

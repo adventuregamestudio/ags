@@ -1,13 +1,12 @@
 using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 
 namespace AGS.Types
 {
-    public class Interactions
+    [Serializable]
+    public class Interactions : ICloneable
     {
+        [NonSerialized]
         private InteractionSchema _schema;
         private string _scriptModule = string.Empty;
         private string[] _scriptFunctionNames;
@@ -58,6 +57,19 @@ namespace AGS.Types
         public InteractionSchema Schema
         {
             get { return _schema; }
+            // Schema setter is required for random data deserialization,
+            // such as when reading an object from clipboard.
+            set
+            {
+                _schema = value;
+                if (_scriptFunctionNames.Length != _schema.EventNames.Length)
+                {
+                    var newFnNames = new string[_schema.EventNames.Length];
+                    var newImpScripts = new string[_schema.EventNames.Length];
+                    Array.Copy(_scriptFunctionNames, newFnNames, Math.Min(_scriptFunctionNames.Length, _schema.EventNames.Length));
+                    Array.Copy(_importedScripts, newImpScripts, Math.Min(_importedScripts.Length, _schema.EventNames.Length));
+                }
+            }
         }
 
         //[Category("(Basic)")]
@@ -132,5 +144,17 @@ namespace AGS.Types
             writer.WriteEndElement();
         }
 
+        #region IClonable Members
+
+        public object Clone()
+        {
+            Interactions copy = new Interactions(_schema);
+            copy._scriptModule = this._scriptModule;
+            copy._scriptFunctionNames = this._scriptFunctionNames.Clone() as string[];
+            copy._importedScripts = this._importedScripts.Clone() as string[];
+            return copy;
+        }
+
+        #endregion
     }
 }

@@ -93,17 +93,17 @@ namespace AGS.Editor
             return textLine.Text;
         }
 
-        private bool DoesStringTerminateHere(string script, int index, char stringTerminator)
+        private bool DoesStringTerminateHere(ScriptParsing.ParserState state, char stringTerminator)
         {
-            if ((script[index] == stringTerminator) && (script[index - 1] != '\\'))
+            if (state.Char == stringTerminator)
             {
-                // speech mark (not escaped)
-                return true;
-            }
-            if ((script[index] == stringTerminator) && (script[index - 1] == '\\') && (script[index - 2] == '\\'))
-            {
-                // speech mark, with escaped backslash before it
-                return true;
+                // We must make sure that this quotemark is not escaped, so count
+                // number of backslashes before it. Should be either 0, or even number
+                // (in the latter case they escape themselves and don't affect quotemark).
+                int backslashes = 0;
+                for (int index = state.CharIndex - 1; index >= 0 && state.Script[index] == '\\'; --index)
+                    backslashes++;
+                return (backslashes == 0) || (backslashes % 2 == 0);
             }
             return false;
         }
@@ -111,26 +111,28 @@ namespace AGS.Editor
         private string ProcessScript(string script, string context, string contextComment)
         {
             ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
-            int index = 0;
-            while (index < script.Length)
-            {
-				index = ScriptParsing.SkipComments(state, index);
+            ScriptParsing.FillLines(state);
+            state.Reset();
 
-                if ((index < script.Length) && 
-                    ((script[index] == '"') || (script[index] == '\'')))
+            while (state.CharIndex < script.Length)
+            {
+				ScriptParsing.SkipComments(state);
+
+                if (!state.AtEnd && 
+                    ((state.Char == '"') || (state.Char == '\'')))
                 {
-                    char stringTerminator = script[index];
-                    int stringStartIndex = index;
-                    index++;
-                    while (index < script.Length)
+                    char stringTerminator = state.Char;
+                    int stringStartIndex = state.CharIndex;
+                    state.Forward();
+                    while (!state.AtEnd)
                     {
-                        if (DoesStringTerminateHere(script, index, stringTerminator))
+                        if (DoesStringTerminateHere(state, stringTerminator))
                         {
                             break;
                         }
-                        index++;
+                        state.Forward();
                     }
-                    if (index >= script.Length)
+                    if (state.AtEnd)
                     {
                         _errors.Add(new CompileError("Unterminated string in script: " + script.Substring(stringStartIndex)));
                         return script;
@@ -138,7 +140,7 @@ namespace AGS.Editor
 
                     if (stringTerminator == '"')
                     {
-                        int stringEndIndex = index;
+                        int stringEndIndex = state.CharIndex;
                         string previousFuncCall = _lookupForFunctionCalls ?
                             ScriptParsing.GetCurrentFunctionCall(state, stringStartIndex, _lookupForOuterFunctionCalls)
                             : string.Empty;
@@ -152,16 +154,16 @@ namespace AGS.Editor
                                 string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
                                 string scriptAfterString = script.Substring(stringEndIndex);
                                 script = scriptBeforeString + modifiedString + scriptAfterString;
-                                index = stringStartIndex + modifiedString.Length + 1;
+                                state.SetAt(stringStartIndex + modifiedString.Length + 1);
                             }
                             else
                             {
-                                index = stringStartIndex + mainString.Length + 1;
+                                state.SetAt(stringStartIndex + mainString.Length + 1);
                             }
                         }
                     }
                 }
-                index++;
+                state.Forward();
             }
             return script;
         }

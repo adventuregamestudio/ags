@@ -19,18 +19,17 @@ namespace AGS.Editor
 
             foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
-                string context = dialog.Name;
                 foreach (DialogOption option in dialog.Options)
                 {
-                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, context), GameTextType.DialogOption);
+                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, dialog.Name), GameTextType.DialogOption);
                 }
 
-                dialog.Script = processor.ProcessText(dialog.Script, context, GameTextType.DialogScript);
+                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.Name), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
             {
-                string newScript = processor.ProcessText(script.Script.Text, script.Script.FileName, GameTextType.Script);
+                string newScript = processor.ProcessText(GameTextLine.MakeScript(script.Script.Text, script.Script.FileName), GameTextType.Script);
                 if (newScript != script.Script.Text)
                 {
                     // Only cause it to flag Modified if we changed it
@@ -119,7 +118,7 @@ namespace AGS.Editor
                 CustomProperty prop;
                 if (props.PropertyValues.TryGetValue(def.Name, out prop))
                 {
-                    prop.Value = processor.ProcessText(prop.Value, context, contextComment, GameTextType.ItemDescription);
+                    prop.Value = processor.ProcessText(new GameTextLine(prop.Value, context, contextComment), GameTextType.ItemDescription);
                 }
             }
         }

@@ -67,8 +67,11 @@ namespace AGS.Editor
 					{
 						return ParseNumericalCharacterID(characterName);
 					}
-					return FindCharacterIDForCharacter(characterName);
-				}
+					int charID = FindCharacterIDForCharacter(characterName);
+					if (charID < 0)
+                        _errors.Add(new CompileError("Unknown character: " + characterName, _scriptName, _parserState.Line));
+					return charID;
+                }
 			}
 			return -1;
 		}

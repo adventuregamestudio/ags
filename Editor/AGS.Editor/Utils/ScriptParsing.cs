@@ -43,14 +43,16 @@ namespace AGS.Editor
         public class ParserState
         {
             private string _script;
+            private int _baseLine = 0;
             private List<int> _lines;
             private SortedSet<Tuple<int, int>> _comments;
             private int _index = 0;
             private char _curChar = (char)0;
 
-            public ParserState(string script)
+            public ParserState(string script, int baseLine = 0)
             {
                 _script = script;
+                _baseLine = baseLine;
                 _lines = new List<int>();
                 _comments = new SortedSet<Tuple<int, int>>(new SectionComparer());
                 _curChar = !string.IsNullOrEmpty(_script) ? _script[0] : (char)0;
@@ -73,7 +75,7 @@ namespace AGS.Editor
                 int line = _lines.BinarySearch(index);
                 if (line < 0)
                     line = ~line - 1; // returned bitwise complement of the index of the next element that is larger than item
-                return line;
+                return line + _baseLine;
             }
 
             public void Reset()

@@ -1769,7 +1769,7 @@ namespace AGS.Editor.Components
                 string roomContext = $"Room{room.Number}";
                 string roomContextComment = room.Description;
 
-                room.Script.Text = processor.ProcessText(room.Script.Text, roomContext, roomContextComment, GameTextType.Script);
+                room.Script.Text = processor.ProcessText(GameTextLine.MakeScript(room.Script.Text, room.ScriptFileName, roomContext, roomContextComment), GameTextType.Script);
                 if (processor.MakesChanges)
                 {
                     room.Script.SaveToDisk();
@@ -1789,13 +1789,13 @@ namespace AGS.Editor.Components
 
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
-                    hotspot.Description = processor.ProcessText(hotspot.Description, roomContext, roomContextComment, GameTextType.ItemDescription);
+                    hotspot.Description = processor.ProcessText(new GameTextLine(hotspot.Description, roomContext, roomContextComment), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, roomContext, roomContextComment, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
-                    obj.Description = processor.ProcessText(obj.Description, roomContext, roomContextComment, GameTextType.ItemDescription);
+                    obj.Description = processor.ProcessText(new GameTextLine(obj.Description, roomContext, roomContextComment), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, roomContext, roomContextComment, errors);
                 }
 

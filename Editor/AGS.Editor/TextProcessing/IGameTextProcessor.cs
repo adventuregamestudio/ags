@@ -9,7 +9,6 @@ namespace AGS.Editor
     {
         string ProcessText(string text, GameTextType textType);
         string ProcessText(string text, string context, GameTextType textType);
-        string ProcessText(string text, string context, string contextComment, GameTextType textType);
         string ProcessText(GameTextLine textLine, GameTextType textType);
         // Whether the client needs to use the return value from ProcessText
         bool MakesChanges { get; }

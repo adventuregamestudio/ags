@@ -18,6 +18,9 @@ namespace AGS.Editor
         private bool _processHotspotAndObjectDescriptions;
         private bool _lookupForFunctionCalls;
         private bool _lookupForOuterFunctionCalls;
+        // Current parsing state
+        protected string _scriptName;
+        protected ScriptParsing.ParserState _parserState;
 
         protected abstract string CreateSpeechLine(GameTextLine textLine, GameTextType textType);
         protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
@@ -60,11 +63,6 @@ namespace AGS.Editor
             return ProcessText(new GameTextLine(text, context), textType);
         }
 
-        public string ProcessText(string text, string context, string contextComment, GameTextType textType)
-        {
-            return ProcessText(new GameTextLine(text, context, contextComment), textType);
-        }
-
         public string ProcessText(GameTextLine textLine, GameTextType textType)
         {
             if (string.IsNullOrWhiteSpace(textLine.Text))
@@ -78,9 +76,9 @@ namespace AGS.Editor
                 case GameTextType.Message:
                     return CreateSpeechLine(textLine, textType);
                 case GameTextType.DialogScript:
-                    return ProcessDialogScript(textLine.Text, textLine.Context, textLine.ContextComment);
+                    return ProcessDialogScript(textLine.Text, textLine.ScriptFileName, textLine.Context, textLine.ContextComment);
                 case GameTextType.Script:
-                    return ProcessScript(textLine.Text, textLine.Context, textLine.ContextComment);
+                    return ProcessScript(textLine.Text, textLine.ScriptFileName, textLine.Context, textLine.ContextComment);
                 case GameTextType.ItemDescription:
                     if (_processHotspotAndObjectDescriptions)
                     {
@@ -108,11 +106,15 @@ namespace AGS.Editor
             return false;
         }
 
-        private string ProcessScript(string script, string context, string contextComment)
+        private string ProcessScript(string script, string scriptName, string context, string contextComment, int originalLine = -1)
         {
-            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
+            // If originalLine is set, then this "script" is an excerpt from another bigger text
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script, originalLine);
             ScriptParsing.FillLines(state);
             state.Reset();
+
+            _scriptName = scriptName;
+            _parserState = state;
 
             while (state.CharIndex < script.Length)
             {
@@ -134,7 +136,7 @@ namespace AGS.Editor
                     }
                     if (state.AtEnd)
                     {
-                        _errors.Add(new CompileError("Unterminated string in script: " + script.Substring(stringStartIndex)));
+                        _errors.Add(new CompileError("Unterminated string in script: " + script.Substring(stringStartIndex), scriptName, state.Line));
                         return script;
                     }
 
@@ -148,7 +150,7 @@ namespace AGS.Editor
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, context, contextComment), GameTextType.Script);
+                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, context, contextComment, state.Line), GameTextType.Script);
                             if (_makesChanges)
                             {
                                 string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
@@ -168,12 +170,13 @@ namespace AGS.Editor
             return script;
         }
 
-        private string ProcessDialogScript(string script, string context, string contextComment)
+        private string ProcessDialogScript(string script, string scriptFileName, string context, string contextComment)
         {
             StringBuilder sb = new StringBuilder(script.Length);
             StreamReader sr = new StreamReader(new MemoryStream(_game.TextEncoding.GetBytes(script), false), _game.TextEncoding);
             string thisLine;
             string originalLine;
+            int line = 1;
             while ((thisLine = sr.ReadLine()) != null)
             {
                 originalLine = thisLine;
@@ -181,7 +184,7 @@ namespace AGS.Editor
 
                 if (DialogScriptConverter.IsRealScriptLineInDialog(originalLine))
                 {
-                    originalLine = ProcessScript(originalLine, context, contextComment);
+                    originalLine = ProcessScript(originalLine, scriptFileName, context, contextComment, line);
                 }
                 else if (thisLine.IndexOf("//") >= 0)
                 {
@@ -200,11 +203,16 @@ namespace AGS.Editor
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
                         originalLine = string.Format("{0}: {1}", characterName,
-                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, context, contextComment), GameTextType.DialogScript));
+                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, context, contextComment, line), GameTextType.DialogScript));
+                    }
+                    else
+                    {
+                        _errors.Add(new CompileError("Unknown character: " + characterName, scriptFileName, line));
                     }
                 }
 
                 sb.AppendLine(originalLine);
+                line++;
             }
             sr.Close();
             return sb.ToString();
@@ -245,7 +253,6 @@ namespace AGS.Editor
                 return foundChar.ID;
             }
 
-            _errors.Add(new CompileError("Unknown character name: " + characterName));
             return -1;
         }
 

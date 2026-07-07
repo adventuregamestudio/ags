@@ -306,6 +306,43 @@ WinSetup:
 
 ---------------------------------------------------------------------------------------------------
 
+VERSION 3.6.2 - Patch 10, July 2026
+
+Editor:
+ - Made it so that in Log Panel's config Output and Filter settings are synced: when user decreases
+   any Output level the respective Filter level will be adjusted to be not higher than that, and
+   when user increases any Filter level the respective Output level will be adjusted to be not
+   lower than that.
+ - Made it so that when Editor recreates a spritefile from sources, it would also created a new
+   sprite index file (sprindex.dat).
+ - Fixed window may appear offscreen on program launch if number of active monitors have changed
+   since the previous session.
+ - Fixed Editor compiling a game data file of a wrong name, if game's "filename" setting
+   contains dots.
+ - Fixed Editor compiling a Web/Emscripten game build generated a faulty "my_game_files.js"
+   if the game's filename contains single quote marks (apostrophes). This mistake would result
+   in game not being able to launch in the browser.
+ - Ensure that Room Editor displays placeholder sprite 0 for objects which had a non-existing
+   sprite assigned to them (so that they could be seen in the editor).
+ - Fixed autocomplete in script not processing indexed attributes properly.
+ - Fixed Editor not detecting and reporting "unlinked script functions" for Room events properly.
+ - Fixed missing comments for Type.GetByName() script functions.
+
+Engine:
+ - Implemented smoother transition between segments of the walking path for characters: now they
+   will not make a small pause at the end of each segment, but keep moving with the same speed,
+   unless having to turn on spot first. This also fixes a unexpected slowdown occuring when a
+   character is moving along a path consisting of very short segments in zig-zag pattern.
+ - Fixed mouse cursor's starting position to be in the center of the actual game's resolution,
+   and not at (160, 100) as if it's always 320x200.
+ - Fixed SetGameOption(OPT_PORTRAITSIDE) not always working correctly.
+ - Fixed speech skip key setting not working properly if it's assigned any letter key.
+ - Fixed GUI controls rendered very smudged with Linear filter in Direct3D/OpenGL.
+ - Fixed engine not always detecting audio driver failure on initialization, and thus not creating
+   a "dummy" audio driver as a replacement (necessary for audio scripts to work without errors).
+ - Fixed particular rare OGG Vorbis clips not playing.
+
+
 VERSION 3.6.2 - Patch 9, May 2026
 
 Editor:

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "ags": {
+      "command": "C:\\path\\to\\Editor\\AGS.CommandLine\\bin\\x86\\Release\\AGS.CommandLine.exe",
+      "args": [],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

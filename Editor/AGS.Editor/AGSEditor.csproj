@@ -39,10 +39,20 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>AGSEditor.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <!-- Auto-detect irrKlang: define IRRKLANG_AVAILABLE when the DLL is present in Editor\References\.
+       This enables the real audio preview player in IrrklangPlayer.cs.
+       If the DLL is absent the #else stub compiles and the Editor still builds without audio preview. -->
+  <PropertyGroup Condition="'$(Platform)' == 'x86' and Exists('..\References\irrKlang.NET4.dll')">
+    <IrrklangAvailableDefine>IRRKLANG_AVAILABLE;</IrrklangAvailableDefine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)' == 'x64' and Exists('..\References\x64\irrKlang.NET4.dll')">
+    <IrrklangAvailableDefine>IRRKLANG_AVAILABLE;</IrrklangAvailableDefine>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\Solutions\.build\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>$(IrrklangAvailableDefine)TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -54,7 +64,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\Solutions\.build\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(IrrklangAvailableDefine)TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <PlatformTarget>x64</PlatformTarget>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -66,7 +76,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\Solutions\.build\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>$(IrrklangAvailableDefine)TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -78,7 +88,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>..\..\Solutions\.build\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(IrrklangAvailableDefine)TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <PlatformTarget>x86</PlatformTarget>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -96,15 +106,20 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\x64\AGS.Native.dll</HintPath>
     </Reference>
-    <Reference Condition="'$(Platform)' == 'x86'" Include="irrKlang.NET4">
+    <!-- irrKlang.NET4 is optional. If irrKlang.NET4.dll is present in Editor\References\,
+         IRRKLANG_AVAILABLE is defined automatically and audio preview is enabled.
+         If the DLL is absent the stub in IrrklangPlayer.cs is used and the Editor still builds. -->
+    <Reference Condition="'$(Platform)' == 'x86' and Exists('..\References\irrKlang.NET4.dll')"
+               Include="irrKlang.NET4">
       <HintPath>..\References\irrKlang.NET4.dll</HintPath>
+    </Reference>
+    <Reference Condition="'$(Platform)' == 'x64' and Exists('..\References\x64\irrKlang.NET4.dll')"
+               Include="irrKlang.NET4">
+      <HintPath>..\References\x64\irrKlang.NET4.dll</HintPath>
     </Reference>
     <Reference Include="Magick.NET-Q8-AnyCPU, Version=7.10.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
       <HintPath>..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
       <Private>True</Private>
-    </Reference>
-    <Reference Condition="'$(Platform)' == 'x64'" Include="irrKlang.NET4">
-      <HintPath>..\References\x64\irrKlang.NET4.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\Solutions\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -460,7 +475,6 @@
     <Compile Include="Utils\AndroidUtilities.cs" />
     <Compile Include="Utils\ArgumentBuilder.cs" />
     <Compile Include="Utils\BitmapExtensions.cs" />
-    <Compile Include="Utils\ClipboardUtils.cs" />
     <Compile Include="Utils\CommandLineOptions.cs" />
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
     <Compile Include="Utils\Debounce.cs" />
@@ -559,6 +573,7 @@
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="TextProcessing\APITypeDef.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
+    <Compile Include="Utils\ClipboardUtils.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">
     </Compile>
     <Compile Include="Utils\SpriteSheet.cs" />
@@ -731,11 +746,14 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Condition="'$(Platform)' == 'x86'" Include="..\References\ikpMP3.dll">
+    <!-- ikpMP3.dll is the MP3 decoder for irrKlang. Included only when present alongside irrKlang.NET4.dll. -->
+    <Content Condition="'$(Platform)' == 'x86' and Exists('..\References\ikpMP3.dll')"
+             Include="..\References\ikpMP3.dll">
       <Link>ikpMP3.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Condition="'$(Platform)' == 'x64'" Include="..\References\x64\ikpMP3.dll">
+    <Content Condition="'$(Platform)' == 'x64' and Exists('..\References\x64\ikpMP3.dll')"
+             Include="..\References\x64\ikpMP3.dll">
       <Link>ikpMP3.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

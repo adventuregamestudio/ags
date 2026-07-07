@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AGS.Editor.Utils
 {
@@ -208,6 +206,233 @@ namespace AGS.Editor.Utils
                 throw new IndexOutOfRangeException("Bad chunk size in png image.");
             return length;
         }
+
+        private const int BITMAPCOREHEADER_SIZE = 12;
+        private const int BITMAPINFOHEADER_SIZE = 40;
+        private const int BITMAPV2INFOHEADER_SIZE = 52;
+        private const int BITMAPV3INFOHEADER_SIZE = 56;
+        private const int BITMAPV4INFOHEADER_SIZE = 108;
+        private const int COMPRESSION_NONE = 0;
+        private const int COMPRESSION_BITFIELDS = 3;
+
+        /// <summary>
+        /// Saves image as DIB format of type BITFIELDS.
+        /// 
+        /// According to the information from https://stackoverflow.com/a/46424800 ,
+        /// the 32-bit RGB format (without alpha) is supported for pasting from clipboard
+        /// by a wide range of graphic software. Unfortunately, ARGB format is less
+        /// supported, so not recommended to be used for sharing with external software.
+        /// For this reason we save the DIB with BITMAPCOREHEADER, and not with the more
+        /// appropriate BITMAPV3INFOHEADER_SIZE which supports alpha channel.
+        /// </summary>
+        public static byte[] SaveDIB(Bitmap image, bool withAlpha = false)
+        {
+            int width = image.Width;
+            int height = image.Height;
+            int colorDepth = image.GetColorDepth();
+            Bitmap useImage = image;
+            // Convert 16-bit bitmaps to 24-bit, because these seem to have higher compatibility
+            if (colorDepth > 8 && colorDepth < 24)
+            {
+                Bitmap newBitmap = new Bitmap(image.Width, image.Height, PixelFormat.Format24bppRgb);
+                using (Graphics g = Graphics.FromImage(newBitmap))
+                    g.DrawImage(image, new Rectangle(0, 0, width, height));
+                useImage = newBitmap;
+            }
+
+            int compression = colorDepth == 8 ? COMPRESSION_NONE : COMPRESSION_BITFIELDS;
+            withAlpha &= (image.PixelFormat == PixelFormat.Format32bppArgb);
+            bool withPalette = (colorDepth == 8) && (image.Palette != null);
+            int colorsCount = withPalette ? image.Palette.Entries.Length : 0;
+
+            Rectangle sourceRect = new Rectangle(0, 0, useImage.Width, useImage.Height);
+            BitmapData sourceData = useImage.LockBits(sourceRect, ImageLockMode.ReadOnly, useImage.PixelFormat);
+            IntPtr sourcePos = sourceData.Scan0;
+
+            // BITMAPINFOHEADER struct for DIB.
+            // NOTE: we are technically using BITMAPV2INFOHEADER to store BITFIELDS data,
+            // but tag it as BITMAPINFOHEADER instead, because not every software understands
+            // BITMAPV2INFOHEADER. BITFIELDS compression type actually instructs to use
+            // same header extension as BITMAPV2INFOHEADER, so their sizes match.
+            int realhdrSize = withAlpha ? BITMAPV3INFOHEADER_SIZE : BITMAPV2INFOHEADER_SIZE;
+            int reportHdrSize = withAlpha ? BITMAPV3INFOHEADER_SIZE : BITMAPINFOHEADER_SIZE;
+            // Classic stride: fit within blocks of 4 bytes.
+            int bitCount = Image.GetPixelFormatSize(sourceData.PixelFormat);
+            int destStride = (((((bitCount * width) + 7) / 8) + 3) / 4) * 4;
+            int widthBytes = ((bitCount * width) + 7) / 8;
+            int dibDataSize = destStride * sourceData.Height;
+            byte[] pixelBuffer = new byte[dibDataSize];
+            // Copy line by line in reverse order, because DIB has image inverted vertically
+            for (int y = 0, pxIndex = destStride * height - destStride; y < height; ++y, pxIndex -= destStride)
+            {
+                Marshal.Copy(sourcePos, pixelBuffer, pxIndex, widthBytes);
+                sourcePos = new IntPtr(sourcePos.ToInt64() + sourceData.Stride);
+            }
+
+            useImage.UnlockBits(sourceData);
+            if (useImage != image)
+                useImage.Dispose();
+
+            byte[] dibBuffer = new byte[realhdrSize + dibDataSize];
+            using (MemoryStream ms = new MemoryStream(dibBuffer))
+            using (BinaryWriter writer = new BinaryWriter(ms))
+            {
+                // BITMAPINFOHEADER
+                writer.Write(reportHdrSize);//Int32 biSize;
+                writer.Write(width);        //Int32 biWidth;
+                writer.Write(height);       //Int32 biHeight;
+                writer.Write((short)1);     //Int16 biPlanes;
+                writer.Write((short)colorDepth); //Int16 biBitCount;
+                writer.Write(compression);  //BITMAPCOMPRESSION biCompression
+                writer.Write(dibDataSize);  //Int32 biSizeImage;
+                writer.Write(0);            //Int32 biXPelsPerMeter
+                writer.Write(0);            //Int32 biYPelsPerMeter
+                writer.Write(colorsCount);  //Int32 biClrUsed
+                writer.Write(colorsCount);  //Int32 biClrImportant
+                if (compression == COMPRESSION_BITFIELDS)
+                {
+                    // BITMAPV2INFOHEADER
+                    writer.Write(0x00FF0000);   //BITFIELDS: Red
+                    writer.Write(0x0000FF00);   //BITFIELDS: Green
+                    writer.Write(0x000000FF);   //BITFIELDS: Blue
+                }
+                if ((compression == COMPRESSION_BITFIELDS) && withAlpha)
+                {
+                    // BITMAPV3INFOHEADER
+                    writer.Write(0xFF000000);   //BITFIELDS: Alpha
+                }
+                // Palette follows header (if present)
+                if (withPalette)
+                {
+                    foreach (var entry in image.Palette.Entries)
+                    {
+                        // CHECKME: is this a correct order of rgb here?
+                        writer.Write((byte)entry.B);
+                        writer.Write((byte)entry.G);
+                        writer.Write((byte)entry.R);
+                        writer.Write((byte)entry.A);
+                    }
+                }
+                // Pixel data
+                writer.Write(pixelBuffer);
+            }
+            return dibBuffer;
+        }
+
+        private struct BITMAPHEADER
+        {
+            public int HdrSize;
+            public int Width;
+            public int Height;
+            public int ColorDepth;
+            public int Compression;
+            public int DibSize;
+            public int ColorsCount;
+            public int RedBits;
+            public int GreenBits;
+            public int BlueBits;
+            public int AlphaBits;
+        }
+
+        public static Bitmap LoadDIB(MemoryStream dibStream)
+        {
+            BITMAPHEADER header = new BITMAPHEADER();
+            Color[] palette = null;
+            byte[] pixelBuffer = null;
+
+            // Read the DIB data into header, palette and pixelBuffer
+            using (BinaryReader reader = new BinaryReader(dibStream))
+            {
+                // BITMAPINFOHEADER
+                header.HdrSize = reader.ReadInt32();        //Int32 biSize;
+                header.Width = reader.ReadInt32();          //Int32 biWidth;
+                header.Height = reader.ReadInt32();         //Int32 biHeight;
+                reader.ReadInt16();                         //Int16 biPlanes;
+                header.ColorDepth = reader.ReadInt16();     //Int16 biBitCount;
+                header.Compression = reader.ReadInt32();    //BITMAPCOMPRESSION biCompression;
+                header.DibSize = reader.ReadInt32();        //Int32 biSizeImage;
+                reader.ReadInt32();                         //Int32 biXPelsPerMeter
+                reader.ReadInt32();                         //Int32 biYPelsPerMeter
+                header.ColorsCount = reader.ReadInt32();    //Int32 biClrUsed
+                reader.ReadInt32();                         //Int32 biClrImportant
+                if ((header.HdrSize >= BITMAPV2INFOHEADER_SIZE) ||
+                    (header.Compression == COMPRESSION_BITFIELDS))
+                {
+                    // BITMAPV2INFOHEADER
+                    header.RedBits = reader.ReadInt32();    //BITFIELDS: Red
+                    header.GreenBits = reader.ReadInt32();  //BITFIELDS: Green
+                    header.BlueBits = reader.ReadInt32();   //BITFIELDS: Blue
+                }
+                if (header.HdrSize >= BITMAPV3INFOHEADER_SIZE)
+                {
+                    // BITMAPV3INFOHEADER
+                    header.AlphaBits = reader.ReadInt32();  //BITFIELDS: Alpha
+                }
+                // Skip any extended header format
+                if (header.HdrSize > BITMAPV3INFOHEADER_SIZE)
+                {
+                    reader.BaseStream.Seek(header.HdrSize - BITMAPV3INFOHEADER_SIZE, SeekOrigin.Current);
+                }
+                // Palette goes after header (if present)
+                if (header.ColorsCount > 0)
+                {
+                    palette = new Color[header.ColorsCount];
+                    for (int i = 0; i < header.ColorsCount; ++i)
+                    {
+                        // CHECKME: is this a correct order of rgb here?
+                        byte g = reader.ReadByte();
+                        byte b = reader.ReadByte();
+                        byte r = reader.ReadByte();
+                        byte a = reader.ReadByte();
+                        palette[i] = Color.FromArgb(a, r, g, b);
+                    }
+                }
+                pixelBuffer = new byte[header.DibSize];
+                reader.Read(pixelBuffer, 0, header.DibSize);
+            }
+
+            // Construct a new Bitmap out of the read data
+            PixelFormat pxFormat = PixelFormat.Undefined;
+            switch (header.ColorDepth)
+            {
+                case 8: pxFormat = PixelFormat.Format8bppIndexed; break;
+                case 24: pxFormat = PixelFormat.Format24bppRgb; break;
+                case 32: pxFormat = PixelFormat.Format32bppArgb; break;
+                default: break;
+            }
+            if (pxFormat == PixelFormat.Undefined)
+                return null; // not supported
+
+            Bitmap image = new Bitmap(header.Width, header.Height, pxFormat);
+            Rectangle destRect = new Rectangle(0, 0, header.Width, header.Height);
+            BitmapData destData = image.LockBits(destRect, ImageLockMode.ReadOnly, image.PixelFormat);
+            IntPtr destPos = destData.Scan0;
+            // Classic stride: fit within blocks of 4 bytes.
+            int srcStride = (((((header.ColorDepth * header.Width) + 7) / 8) + 3) / 4) * 4;
+            int widthBytes = ((header.ColorDepth * header.Width) + 7) / 8;
+
+            // Copy line by line in reverse order, because DIB has image inverted vertically
+            for (int y = 0, pxIndex = srcStride * header.Height - srcStride; y < header.Height; ++y, pxIndex -= srcStride)
+            {
+                Marshal.Copy(pixelBuffer, pxIndex, destPos, widthBytes);
+                destPos = new IntPtr(destPos.ToInt64() + destData.Stride);
+            }
+            image.UnlockBits(destData);
+
+            // Apply palette if necessary
+            if (palette != null)
+            {
+                for (int i = 0; i < palette.Length && i < image.Palette.Entries.Length; ++i)
+                    image.Palette.Entries[i] = palette[i];
+            }
+
+            return image;
+        }
+
+        public static Bitmap LoadDIB(byte[] dibBuffer)
+        {
+            return LoadDIB(new MemoryStream(dibBuffer));
+        }
     }
 
     /// <summary>
@@ -216,10 +441,10 @@ namespace AGS.Editor.Utils
     public static class BitmapExtensions
     {
         /// <summary>
-        /// Gets an integer with the color depth of the image.
+        /// Gets color depth of the image, in bits per pixel.
         /// </summary>
         /// <param name="bmp">The image to get the color depth from.</param>
-        /// <returns>An integer with the color depth.</returns>
+        /// <returns>Color depth, in bits per pixel.</returns>
         public static int GetColorDepth(this Bitmap bmp) => Image.GetPixelFormatSize(bmp.PixelFormat);
 
         /// <summary>

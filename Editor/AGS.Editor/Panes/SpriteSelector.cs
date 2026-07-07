@@ -1,6 +1,5 @@
 using AGS.Editor.Utils;
 using AGS.Types;
-using AGS.Types.AutoComplete;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -666,18 +664,11 @@ namespace AGS.Editor
 
             if (item.Name == MENU_ITEM_PASTE_NEW)
             {
-                if ((Clipboard.ContainsImage()) && (Clipboard.GetImage() is Bitmap))
+                if (Clipboard.ContainsImage())
                 {
-                    Bitmap bmp = (Bitmap)Clipboard.GetImage();
-                    if ((bmp.PixelFormat == PixelFormat.Format32bppRgb) ||
-                        (bmp.PixelFormat == PixelFormat.Format16bppRgb565))
+                    using (Bitmap bmp = ClipboardUtils.GetBitmap())
                     {
                         ImportNewSprite(_currentFolder, bmp);
-                    }
-                    else
-                    {
-                        Factory.GUIController.ShowMessage("The image on the clipboard is in an unrecognised format: " + bmp.PixelFormat, MessageBoxIcon.Warning);
-                        bmp.Dispose();
                     }
                 }
                 else
@@ -722,19 +713,12 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_REPLACE_FROM_CLIPBOARD)
             {
-                if ((Clipboard.ContainsImage()) && (Clipboard.GetImage() is Bitmap))
+                if (Clipboard.ContainsImage())
                 {
-                    Bitmap bmp = (Bitmap)Clipboard.GetImage();
-                    if ((bmp.PixelFormat == PixelFormat.Format32bppRgb) ||
-                        (bmp.PixelFormat == PixelFormat.Format16bppRgb565))
+                    using (Bitmap bmp = ClipboardUtils.GetBitmap())
                     {
                         Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
                         ReplaceSprite(sprite, bmp);
-                    }
-                    else
-                    {
-                        Factory.GUIController.ShowMessage("The image on the clipboard is in an unrecognised format: " + bmp.PixelFormat, MessageBoxIcon.Warning);
-                        bmp.Dispose();
                     }
                 }
                 else
@@ -804,7 +788,7 @@ namespace AGS.Editor
                     }
                 }
 
-                Clipboard.SetImage(bmp);
+                ClipboardUtils.SetImage(bmp);
                 bmp.Dispose();
             }
             else if (item.Name == MENU_ITEM_CHANGE_SPRITE_NUMBER)

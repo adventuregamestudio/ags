@@ -2241,13 +2241,19 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
             chex->animwait = chi->walkwait;
         }
 
-        if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) { /* skip */ }
-        else if (mls[chi->get_movelist_id()].onpart > 0.f)
+        if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND))
+        { /* skip */ }
+        else
         {
-            mls[chi->get_movelist_id()].onpart -= 1.f;
-            chi->x = xwas;
-            chi->y = ywas;
+            auto &mlist = mls[chi->get_movelist_id()];
+            if (mlist.onpart > 0.f)
+            {
+                mlist.onpart = std::max(0.f, mlist.onpart - 1.f);
+                chi->x = xwas;
+                chi->y = ywas;
+            }
         }
+
         debug_script_log("%s: Bumped into %s, waiting for them to move",
             chi->scrname, game.chars[ntf].scrname);
         return 1;

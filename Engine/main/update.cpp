@@ -160,6 +160,10 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_mo
         return kMoveResult_Abort;
 
     MoveList &cmls = mls[mslot];
+    // Safety fix, in case onpart became invalid
+    if (std::isnan(cmls.onpart) || cmls.onpart < 0.f)
+        cmls.onpart = 0.f;
+
     const fixed xpermove = cmls.permove[cmls.onstage].X;
     const fixed ypermove = cmls.permove[cmls.onstage].Y;
     const fixed fin_move = cmls.fin_move;
@@ -238,8 +242,8 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_mo
             cmls.doneflag = 0;
 
             // Smooth out next stage transition by carrying over remaining % of the previous move
-            const float frac_complete_x = static_cast<float>(xps - pos_x) / static_cast<float>(max_xps - pos_x);
-            const float frac_complete_y = static_cast<float>(yps - pos_y) / static_cast<float>(max_yps - pos_y);
+            const float frac_complete_x = (max_xps != pos_x) ? static_cast<float>(xps - pos_x) / static_cast<float>(max_xps - pos_x) : 0.f;
+            const float frac_complete_y = (max_yps != pos_y) ? static_cast<float>(yps - pos_y) / static_cast<float>(max_yps - pos_y) : 0.f;
             const float lost_frac = std::max(1.f - frac_complete_x, 1.f - frac_complete_y);
             cmls.onpart += lost_frac;
             move_result = kMoveResult_NextStage;

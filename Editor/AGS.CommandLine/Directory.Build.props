@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- Force use of framework assemblies from system (matching AGS.Types approach) -->
+  <PropertyGroup>
+    <FrameworkPathOverride>C:\Windows\Microsoft.NET\Framework\v4.0.30319\</FrameworkPathOverride>
+  </PropertyGroup>
+</Project>

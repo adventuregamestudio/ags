@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Li
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Editor.Tests", "..\Editor\AGS.Editor.Tests\AGS.Editor.Tests.csproj", "{6D85D3E7-5D23-405F-BEF4-6F09A93ABCCC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.CommandLine", "..\Editor\AGS.CommandLine\AGS.CommandLine.csproj", "{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -95,6 +97,14 @@ Global
 		{6D85D3E7-5D23-405F-BEF4-6F09A93ABCCC}.Release|Win32.Build.0 = Release|Any CPU
 		{6D85D3E7-5D23-405F-BEF4-6F09A93ABCCC}.Release|x64.ActiveCfg = Release|x64
 		{6D85D3E7-5D23-405F-BEF4-6F09A93ABCCC}.Release|x64.Build.0 = Release|x64
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Debug|Win32.Build.0 = Debug|Any CPU
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Debug|x64.ActiveCfg = Debug|x64
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Debug|x64.Build.0 = Debug|x64
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Release|Win32.ActiveCfg = Release|Any CPU
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Release|Win32.Build.0 = Release|Any CPU
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Release|x64.ActiveCfg = Release|x64
+		{9E9C5B5E-8B7D-4C5F-8E5F-5B5E9C5B5E5E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

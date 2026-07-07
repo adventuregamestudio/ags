@@ -76,6 +76,16 @@ namespace AGS.Editor
             return (int)_source.PlayLength;
         }
 
+        public MediaInfo GetMediaInfo()
+        {
+            return new MediaInfo(
+                _source.AudioFormat.SampleRate,
+                _source.AudioFormat.ChannelCount,
+                // irrKlang's bytes per second is unreliable,
+                // it seems to refer to the format in memory
+                0);
+        }
+
         public void Pause()
         {
             if (_soundPlaying != null)

@@ -3,6 +3,8 @@ REVISION HISTORY
 VERSION 3.6.2 - Patch 10, July 2026
 
 Editor:
+ - Double clicking the Translation in Project Explorer will now attempt to open the translation
+   file in the associated application (if none is registered, the system should ask you to do so).
  - Made it so that in Log Panel's config Output and Filter settings are synced: when user decreases
    any Output level the respective Filter level will be adjusted to be not higher than that, and
    when user increases any Filter level the respective Output level will be adjusted to be not

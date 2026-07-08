@@ -438,11 +438,13 @@ namespace AGS.Editor
             _mainForm.pnlOutput.ErrorsToList = errors;
             if (errors.Count > 0)
             {
+                // Because in console mode the output panel may not be accessible after execution,
+                // print all the accumulated messages to the console
                 if (StdConsoleWriter.IsEnabled)
                 {
-                    foreach (CompileError cerr in errors.Errors)
+                    foreach (var message in errors)
                     {
-                        StdConsoleWriter.WriteLine(cerr.AsString);
+                        StdConsoleWriter.WriteLine(message.AsString);
                     }
                 }
                 _mainForm.pnlOutput.Show();

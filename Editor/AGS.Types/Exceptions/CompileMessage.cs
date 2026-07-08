@@ -53,7 +53,7 @@ namespace AGS.Types
                 }
                 else
                 {
-                    fullMessage = Message + " at line " + _lineNumber.ToString() + " in " + _scriptName + ".";
+                    fullMessage = $"{Message} at line {_lineNumber} in {_scriptName}.";
                 }
 
                 for (Exception innerException = InnerException; innerException != null; innerException = innerException.InnerException)

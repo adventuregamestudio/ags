@@ -69,7 +69,7 @@ namespace AGS.Types
         private bool _scaleMovementSpeedWithMaskRes = false;
         private bool _mouseWheelEnabled = true;
         private bool _guiHandleOnlyLeftMouseButton = false;
-        private GUITextBoxKeyClaimStyle _textBoxKeyClaimStyle = GUITextBoxKeyClaimStyle.Always;
+        private GUITextBoxKeyClaimStyle _textBoxKeyClaimStyle = GUITextBoxKeyClaimStyle.All;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private SpriteCompression _compressSprites = SpriteCompression.None;
@@ -447,7 +447,7 @@ namespace AGS.Types
         [DisplayName("TextBoxes claim key and text input events")]
         [Description("If a TextBox control is shown on screen and is enabled, it may claim key or text input events, in which case such events are not sent into the script; \"on_key_press\" and \"on_text_input\" callbacks are not run for such claimed events.")]
         [Category("GUI behavior")]
-        [DefaultValue(GUITextBoxKeyClaimStyle.Always)]
+        [DefaultValue(GUITextBoxKeyClaimStyle.All)]
         public GUITextBoxKeyClaimStyle TextBoxKeyClaimStyle
         {
             get { return _textBoxKeyClaimStyle; }

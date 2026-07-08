@@ -5,11 +5,11 @@ namespace AGS.Types
 {
     public enum GUITextBoxKeyClaimStyle
     {
-        [Description("Always")]
-        Always  = 0,
+        [Description("All key and text input events")]
+        All         = 0,
         [Description("Handled input events (key and text)")]
-        Handled = 1,
+        Handled     = 1,
         [Description("Text input events only")]
-        TextOnly = 2,
+        TextOnly    = 2,
     }
 }

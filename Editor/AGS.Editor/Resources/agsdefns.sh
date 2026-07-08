@@ -590,11 +590,10 @@ enum TurnOrderPriority
   eTurnOrderFaceDown           = 3
 };
 
-// Determines under which condition the TextBox control claims
-// the received key / text input events
+// Determines which of the key and text input events are claimed by the active TextBox control
 enum TextBoxKeyClaimStyle
 {
-  eTextBoxKeyClaimAlways       = 0,
+  eTextBoxKeyClaimAll          = 0,
   eTextBoxKeyClaimHandled      = 1,
   eTextBoxKeyClaimTextOnly     = 2
 };

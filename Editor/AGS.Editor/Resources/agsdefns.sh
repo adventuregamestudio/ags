@@ -828,6 +828,10 @@ builtin managed struct DrawingSurface {
 #endif // SCRIPT_COMPAT_v341
   /// Gets the width of the surface.
   readonly import attribute int Width;
+#ifdef SCRIPT_API_v363
+  /// Gets the colour depth of this surface, in bits per pixel (8, 16, 32).
+  readonly import attribute int ColorDepth;
+#endif // SCRIPT_API_v363
 };
 
 #ifdef SCRIPT_API_v3507
@@ -1641,7 +1645,7 @@ builtin managed struct DynamicSprite {
   import int  SaveToFile(const string filename);
   /// Permanently tints the sprite to the specified colour.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
-  /// Gets the colour depth of this sprite.
+  /// Gets the colour depth of this sprite, in bits per pixel (8, 16, 32).
   readonly import attribute int ColorDepth;
   /// Gets the sprite number of this dynamic sprite, which you can use to display it in the game.
   readonly import attribute int Graphic;
@@ -2787,7 +2791,7 @@ builtin struct System {
   readonly import static attribute AudioChannel *AudioChannels[];   // $AUTOCOMPLETESTATICONLY$
   /// Gets the number of audio channels supported by AGS.
   readonly import static attribute int  AudioChannelCount;   // $AUTOCOMPLETESTATICONLY$
-  /// Gets the colour depth that the game is running at.
+  /// Gets the colour depth that the game is running at, in bits per pixel (8, 16, 32).
   readonly import static attribute int  ColorDepth;
   /// Gets/sets the gamma correction level.
   import static attribute int  Gamma;

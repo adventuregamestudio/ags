@@ -301,6 +301,12 @@ int DrawingSurface_GetWidth(ScriptDrawingSurface *sds)
     return width;
 }
 
+int DrawingSurface_GetColorDepth(ScriptDrawingSurface *sds) 
+{
+    Bitmap *ds = GetAndAssertBitmapSurface(sds, "DrawingSurface.ColorDepth");
+    return ds ? ds->GetColorDepth() : 0;
+}
+
 void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 {
     Bitmap *ds = TryStartDrawing(sds, "DrawingSurface.Clear");
@@ -767,6 +773,11 @@ RuntimeScriptValue Sc_DrawingSurface_GetWidth(void *self, const RuntimeScriptVal
     API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetWidth);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_GetColorDepth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetColorDepth);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -809,6 +820,7 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*com
         { "DrawingSurface::SetPixels16^5",        API_FN_PAIR(DrawingSurface_SetPixels16) },
         { "DrawingSurface::SetPixels32^5",        API_FN_PAIR(DrawingSurface_SetPixels32) },
         { "DrawingSurface::Release^0",            API_FN_PAIR(DrawingSurface_Release) },
+        { "DrawingSurface::get_ColorDepth",       API_FN_PAIR(DrawingSurface_GetColorDepth) },
         { "DrawingSurface::get_DrawingColor",     API_FN_PAIR(DrawingSurface_GetDrawingColor) },
         { "DrawingSurface::set_DrawingColor",     API_FN_PAIR(DrawingSurface_SetDrawingColor) },
         { "DrawingSurface::get_Height",           API_FN_PAIR(DrawingSurface_GetHeight) },

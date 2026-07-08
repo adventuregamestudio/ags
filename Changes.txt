@@ -170,6 +170,7 @@ Script API:
  - Added DialogOptions.Overlay that lets access a overlay object which represents dialog options
    on screen (only returns overlay when the options are displayed).
  - In DynamicSprite.ChangeCanvasSize() function made "x" and "y" parameters optional.
+ - Added DrawingSurface.ColorDepth readonly property.
  - Added DrawingSurface.GetPixelsCopy() and SetPixels() functions that allow to retrieve all or
    a portion of the drawing surface's pixels as a dynamic array, or assign its pixels from array.
  - Added DrawingSurface.Valid readonly property.

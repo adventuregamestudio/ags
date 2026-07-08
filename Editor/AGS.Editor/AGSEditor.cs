@@ -1131,28 +1131,20 @@ namespace AGS.Editor
 		{
 			if (errors.HasErrors)
 			{
-				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
+				if ((_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
+                    || StdConsoleWriter.IsEnabled)
 				{
 					Factory.GUIController.ShowMessage("There were compilation errors. See the output window for details.", MessageBoxIcon.Warning);
 				}
 			}
 			else if (errors.Count > 0)
 			{
-				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
+				if ((_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
+                    || StdConsoleWriter.IsEnabled)
                 {
                     Factory.GUIController.ShowMessage("There were warnings compiling your game. See the output window for details.", MessageBoxIcon.Warning);
 				}
 			}
-
-            // Because in console mode the output panel may not be accessible after execution,
-            // print all the accumulated messages to the console
-            if (StdConsoleWriter.IsEnabled)
-            {
-                foreach (var message in errors)
-                {
-                    StdConsoleWriter.WriteLine(message.AsString);
-                }
-            }
 		}
 
         private void RunPreCompilationChecks(CompileMessages errors)

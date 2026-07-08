@@ -151,6 +151,8 @@ namespace AGS.Editor
 
         public Dictionary<string, string> InstalledFonts { get; private set; }
 
+        public bool IsConsoleMode { get { return StdConsoleWriter.IsEnabled; } }
+
         public void ShowMessage(string message, MessageBoxIconType icon)
 		{
 			MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
@@ -1067,7 +1069,7 @@ namespace AGS.Editor
                     _agsEditor.SaveUserDataFile(); // in case pending config is applied
 
                 _batchProcessShutdown = true;
-                if (messages.Count == 0)
+                if (!messages.HasErrors)
                 {
                     BuildCommandsComponent.ShowCompileSuccessMessage();
                 }
@@ -1076,7 +1078,8 @@ namespace AGS.Editor
                     error = true;
                 }
             }
-            if(error) Program.SetExitCode(1);
+            if (error)
+                Program.SetExitCode(1);
             this.ExitApplication();
         }
 

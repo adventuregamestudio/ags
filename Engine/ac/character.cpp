@@ -756,7 +756,8 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
     {
         auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
-        charextra[charid].inventory.erase(it_found);
+        if (it_found != charextra[charid].inventory.end())
+            charextra[charid].inventory.erase(it_found);
     }
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
@@ -1489,7 +1490,8 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
             {
                 auto it_found = std::find(chex.inventory.begin() + last_found, chex.inventory.end(), index);
                 last_found = it_found - chex.inventory.begin();
-                chex.inventory.erase(it_found);
+                if (it_found != chex.inventory.end())
+                    chex.inventory.erase(it_found);
             }
         }
     }
@@ -1502,7 +1504,8 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
         else if (quant == 0 && old_quant > 0)
         {
             auto it_found = std::find(chex.inventory.begin(), chex.inventory.end(), index);
-            chex.inventory.erase(it_found);
+            if (it_found != chex.inventory.end())
+                chex.inventory.erase(it_found);
         }
     }
 

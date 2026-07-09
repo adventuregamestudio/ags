@@ -23,7 +23,7 @@ Editor:
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
    right mouse buttons.
- - In General Settings added "When should TextBoxes claim key and text input events" option that
+ - In General Settings added "TextBoxes claim key and text input events" option that
    allows to pass all or certain key events to script while a TextBox control is active.
  - In General Settings added Translation settings: "Include script texts with prefix",
    "Exclude script texts with prefix" and "Exclude script function calls", that let configure
@@ -230,7 +230,6 @@ Engine:
  - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
    in "misc" section, enabled by default.
  - Always compress a screenshot in game save using Deflate algorithm.
- - Support loading and saving PNG image files (using DynamicSprite functions).
  - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
    buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
    interface is disabled.
@@ -240,8 +239,8 @@ Engine:
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Only the first found active TextBox control will receive input events.
  - Standard Dialog options now support Right-to-left text mode.
- - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving 32-bit
-   BMP files with alpha channel.
+ - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving PNG
+   files, also 32-bit BMP files with alpha channel.
  - Removed hard limit of Timers (was 20).
  - Room Region events will now be run consistently with the other game events, scheduled and
    executed at the end of the game update cycle (was run at the beginning of the game update).

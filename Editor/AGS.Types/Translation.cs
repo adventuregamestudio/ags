@@ -678,7 +678,9 @@ namespace AGS.Types
             //    FontN
             // Format 2:
             //    Property1=Value1;Property2=Value2;Property3=Value3;...
-            int reFontNumber = ParseFontN(value);
+            var options = value.Split(';');
+            string fontRef = options.Length > 0 ? options[0] : string.Empty;
+            int reFontNumber = ParseFontN(fontRef);
             if (reFontNumber >= 0)
             {
                 var font = new Font();
@@ -689,11 +691,11 @@ namespace AGS.Types
             {
                 var font = new Font();
                 font.ID = -1; // mark it as not one of the game's font
-                var options = value.Split(';').Select(s =>
+                var keyValues = options.Select(s =>
                     {
                         return Utilities.ParseKeyValue(s);
                     }).ToArray();
-                foreach (var option in options)
+                foreach (var option in keyValues)
                 {
                     if (option.Key == "File")
                     {

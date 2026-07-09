@@ -1212,6 +1212,8 @@ namespace AGS.Editor
                     break;
                 case GUIAddType.Label:
                     newControl = new GUILabel(left, top, width, height);
+                    // Labels are non-clickable by default.
+                    newControl.Clickable = false;
                     break;
                 case GUIAddType.TextBox:
                     newControl = new GUITextBox(left, top, width, height);

@@ -383,6 +383,19 @@ namespace AGS.Editor
             if ((xmlVersionIndex < 3060310) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS))
             {
                 game.Settings.GameTextLanguage = string.Empty;
+
+                // Removed implicit disabling of Labels in the engine, so they should be disabled
+                // in the project when importing from older versions.
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl gc in gui.Controls)
+                    {
+                        if (gc is GUILabel)
+                        {
+                            gc.Clickable = false;
+                        }
+                    }
+                }
             }
 
             //-----------------------------------------------------------------

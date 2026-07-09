@@ -80,7 +80,8 @@ static bool ParseFontOverride(const String &line, FontInfo &finfo)
     //    FontN
     // Format 2:
     //    Property1=Value1;Property2=Value2;Property3=Value3;...
-    int re_font_number = ParseFontN(line);
+    const auto sections = line.Split(';');
+    int re_font_number = sections.size() > 0 ? ParseFontN(sections[0]) : -1;
     if (re_font_number >= 0)
     {
         // This is a replacement with existing font
@@ -91,7 +92,6 @@ static bool ParseFontOverride(const String &line, FontInfo &finfo)
     {
         // This is a new font generation
         finfo.FontID = -1; // mark it as not one of the game's font
-        const auto sections = line.Split(';');
         std::vector<std::pair<String, String>> options;
         for (const auto &sec : sections)
         {
@@ -180,6 +180,11 @@ static bool ParseFontOverride(const String &line, FontInfo &finfo)
                 finfo.CharacterSpacing = StrUtil::StringToInt(value);
             }
         }
+
+        // Adjust font flags based on the read parameters
+        if (finfo.Size == 0)
+            finfo.Flags |= FFLG_SIZEMULTIPLIER;
+
         return true;
     }
 }

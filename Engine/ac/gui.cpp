@@ -629,11 +629,14 @@ void prepare_gui_runtime(bool startup)
     // Reset particular states after loading game data
     if (startup)
     {
-        // labels are not clickable by default
-        // CHECKME: why are we doing this at all?
-        for (auto &label : guilabels)
+        // Labels are not supposed to be clickable by default
+        // (done in the editor since 3.6.3)
+        if (loaded_game_file_version < kGameVersion_363_10)
         {
-            label.SetClickable(false);
+            for (auto &label : guilabels)
+            {
+                label.SetClickable(false);
+            }
         }
     }
     play.gui_draw_order.resize(guis.size());

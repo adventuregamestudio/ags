@@ -132,6 +132,8 @@ Region events are run consistent with other interactions.
 Expanded Color properties for GUI Controls. TextBox's TextAlignment.
 3.6.3.6:
 Character blocking rectangle set up at design time.
+3.6.3.10:
+Updated inventory behavior; don't secretly disable all Labels on startup.
 */
 
 enum GameDataVersion

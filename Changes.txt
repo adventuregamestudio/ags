@@ -70,6 +70,9 @@ Editor:
    font and let jump to a chosen character. Added text preview, where user may input any multiline
    text and see it printed with the current font.
  - Font Preview and GUI Editor now display fonts with their respective outlines.
+ - In GUI Editor new Labels will be created non-Clickable by default. Historically engine would
+   unconditionally disable all Labels on game startup, hence overriding project settings. Now this
+   property is fully under user's control. (Older projects will have Labels disabled on import.)
  - In GUI Editor allow to resize controls by dragging by any side.
  - In GUI Editor let set control's ZOrder property directly.
  - In Room Editor Characters will be sorted among themselves in accordance to their starting
@@ -231,6 +234,8 @@ Engine:
  - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
    buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
    interface is disabled.
+ - Dont unconditionally disable all Labels (setting them non-clickable) on game start. Keep the
+   property value from the editor instead.
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Only the first found active TextBox control will receive input events.

@@ -23,6 +23,8 @@ Editor:
  - Fixed autocomplete in script not processing indexed attributes properly.
  - Fixed Editor not detecting and reporting "unlinked script functions" for Room events properly.
  - Fixed missing comments for Type.GetByName() script functions.
+ - Fixed automatic game build on /compile exiting the program with a error code if there were
+   only script warnings.
 
 Engine:
  - Implemented smoother transition between segments of the walking path for characters: now they

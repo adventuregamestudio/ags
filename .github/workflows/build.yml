@@ -723,6 +723,7 @@ jobs:
       - windows-msvc-engine
     env:
       TEMPLATES_REPOSITORY: adventuregamestudio/ags-templates
+      DEMOGAME_REPOSITORY: adventuregamestudio/ags-demo-game
       AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
     steps:
       - uses: actions/checkout@v6
@@ -810,6 +811,12 @@ jobs:
           call Script\setvar.cmd ACI_VERSION_STR
           tar -f _android_tmp\AGS-%ACI_VERSION_STR%-android-proj-release.zip -xvzC Windows\Installer\Source\Android
           rd /s /q _android_tmp
+
+      - name: Download Demo game
+        shell: cmd
+        run: |
+          mkdir Windows\Installer\Source\AGSQuest
+          curl -fLSs https://github.com/%DEMOGAME_REPOSITORY%/releases/latest/download/AGSQuest.zip | tar -f - -xvzC Windows\Installer\Source\AGSQuest --strip-components 1
 
       #   NOTE: Inno Setup 6.7.1 comes preinstalled in Windows runners.
       #   It looks like it is also in PATH already, but our script expects its

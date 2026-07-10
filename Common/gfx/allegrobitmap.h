@@ -145,11 +145,12 @@ public:
     {
         return Point(_alBitmap->x_ofs, _alBitmap->y_ofs);
     }
+    // Get color depth in bits-per-pixel (8, 16, 32, etc)
     inline int  GetColorDepth() const
     {
         return bitmap_color_depth(_alBitmap);
     }
-    // BPP: bytes per pixel
+    // Get color depth in bytes per pixel (1, 2, 4, etc)
     inline int  GetBPP() const
     {
         return (GetColorDepth() + 7) / 8;

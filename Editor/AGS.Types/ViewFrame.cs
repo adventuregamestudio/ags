@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [DefaultProperty("Image")]
     public class ViewFrame
     {

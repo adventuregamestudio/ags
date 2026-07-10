@@ -15,6 +15,9 @@ namespace AGS.Types
         public const string TRANSLATION_SOURCE_FILE_EXTENSION = ".po";
         public const string TRANSLATION_COMPILED_FILE_EXTENSION = ".tra";
 
+        public const char   OPTION_SEPARATOR = '=';
+        public const string GAMEID_TAG = "GameID";
+        public const string GAMENAME_TAG = "GameName";
         private const string NORMAL_FONT_TAG = "NormalFont";
         private const string SPEECH_FONT_TAG = "SpeechFont";
         private const string TEXT_DIRECTION_TAG = "TextDirection";
@@ -32,6 +35,8 @@ namespace AGS.Types
         private string _name;
         private string _fileName;
         private bool _modified;
+        private int _gameID = 0;
+        private string _gameName = string.Empty;
         private int? _normalFont;
         private int? _speechFont;
         private bool? _rightToLeftText;
@@ -93,6 +98,18 @@ namespace AGS.Types
         public string CompiledFileName
         {
             get { return _name + TRANSLATION_COMPILED_FILE_EXTENSION; }
+        }
+
+        public int GameID
+        {
+            get { return _gameID; }
+            set { _gameID = value; }
+        }
+
+        public string GameName
+        {
+            get { return _gameName; }
+            set { _gameName = value; }
         }
 
         // FIXME: this storage does not fully matches the PO format capability:
@@ -226,6 +243,10 @@ namespace AGS.Types
             sw.WriteLine("# Special characters such as %%s symbolise things within the game,");
             sw.WriteLine("# so should be left in an appropriate place in the message.");
             sw.WriteLine("# ");
+            sw.WriteLine("# Game identification: this lets game to detect a translation meant");
+            sw.WriteLine("# for another game. These may be left blank too.");
+            sw.WriteLine($"# $GameID={(_gameID != 0 ? _gameID.ToString() : string.Empty)}");
+            sw.WriteLine($"# $GameName={_gameName}");
             sw.WriteLine("# ** Translation settings are below");
             sw.WriteLine("# ** Leave them as \"DEFAULT\" to use the game settings");
             sw.WriteLine("# The normal font to use - DEFAULT or font number");
@@ -550,7 +571,15 @@ namespace AGS.Types
             var key = keyValue.Key;
             var value = keyValue.Value;
 
-            if (key == NORMAL_FONT_TAG)
+            if (key == GAMEID_TAG)
+            {
+                int.TryParse(value, out _gameID);
+            }
+            else if (key == GAMENAME_TAG)
+            {
+                _gameName = value;
+            }
+            else if (key == NORMAL_FONT_TAG)
             {
                 _normalFont = Utilities.ParseNullableInt(value, TAG_DEFAULT);
             }
@@ -678,7 +707,9 @@ namespace AGS.Types
             //    FontN
             // Format 2:
             //    Property1=Value1;Property2=Value2;Property3=Value3;...
-            int reFontNumber = ParseFontN(value);
+            var options = value.Split(';');
+            string fontRef = options.Length > 0 ? options[0] : string.Empty;
+            int reFontNumber = ParseFontN(fontRef);
             if (reFontNumber >= 0)
             {
                 var font = new Font();
@@ -689,11 +720,11 @@ namespace AGS.Types
             {
                 var font = new Font();
                 font.ID = -1; // mark it as not one of the game's font
-                var options = value.Split(';').Select(s =>
-                    {
-                        return Utilities.ParseKeyValue(s);
-                    }).ToArray();
-                foreach (var option in options)
+                var keyValues = options.Select(s =>
+                {
+                        return Utilities.ParseKeyValue(s, OPTION_SEPARATOR);
+                }).ToArray();
+                foreach (var option in keyValues)
                 {
                     if (option.Key == "File")
                     {

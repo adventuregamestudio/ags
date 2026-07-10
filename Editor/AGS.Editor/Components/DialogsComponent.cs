@@ -15,6 +15,8 @@ namespace AGS.Editor.Components
         private const string DIALOGS_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
+        private const string COMMAND_COPY_ITEM = "CopyDialog";
+        private const string COMMAND_PASTE_ITEM = "PasteDialog";
         private const string COMMAND_CHANGE_ID = "ChangeDialogID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string COMMAND_GO_TO_DIALOG_NUMBER = "GoToDialogNumber";
@@ -51,16 +53,26 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Dialogs; }
         }
 
+        private Dialog AddNewDialog(Dialog newItem, string baseScriptName)
+        {
+            newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
+            newItem.Name = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            string newNodeID;
+            if (_itemRightClicked != null)
+                newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
+            else
+                newNodeID = AddSingleItem(newItem, _rightClickedID);
+            _guiController.ProjectTree.SelectNode(this, newNodeID);
+            ShowPaneForDialog(newItem);
+            return newItem;
+        }
+
         protected override void ItemCommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
                 Dialog newItem = new Dialog();
-                newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-                newItem.Name = _agsEditor.GetFirstAvailableScriptName("dDialog");
-                string newNodeID = AddSingleItem(newItem);
-                _guiController.ProjectTree.SelectNode(this, newNodeID);
-				ShowPaneForDialog(newItem);
+                AddNewDialog(newItem, "dDialog");
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -68,6 +80,17 @@ namespace AGS.Editor.Components
                 {
                     DeleteSingleItem(_itemRightClicked);
                 }
+            }
+            else if (controlID == COMMAND_COPY_ITEM)
+            {
+                ClipboardUtils.CopyToClipboard(_itemRightClicked);
+            }
+            else if (controlID == COMMAND_PASTE_ITEM)
+            {
+                Dialog newItem = ClipboardUtils.PasteFromClipboard(typeof(Dialog)) as Dialog;
+                if (newItem == null)
+                    return;
+                AddNewDialog(newItem, newItem.Name);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -193,6 +216,8 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New Dialog", null));
+            if (ClipboardUtils.IsAvailableOnClipboard(typeof(Dialog)))
+                menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste Dialog", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -209,6 +234,7 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> menu = base.GetContextMenu(controlID);
+            _itemRightClicked = null;
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
                 (!IsFolderNode(controlID)))            
             {
@@ -217,6 +243,9 @@ namespace AGS.Editor.Components
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change dialog ID", null));
+                    menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy dialog", null));
+                    if (ClipboardUtils.IsAvailableOnClipboard(typeof(Dialog)))
+                        menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste dialog", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this dialog", null));
                     menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
                 }

@@ -152,6 +152,8 @@ namespace AGS.Editor
 
         public Dictionary<string, string> InstalledFonts { get; private set; }
 
+        public bool IsConsoleMode { get { return StdConsoleWriter.IsEnabled; } }
+
         public void ShowMessage(string message, MessageBoxIconType icon)
 		{
 			MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
@@ -437,11 +439,13 @@ namespace AGS.Editor
             _mainForm.pnlOutput.ErrorsToList = errors;
             if (errors.Count > 0)
             {
+                // Because in console mode the output panel may not be accessible after execution,
+                // print all the accumulated messages to the console
                 if (StdConsoleWriter.IsEnabled)
                 {
-                    foreach (CompileError cerr in errors.Errors)
+                    foreach (var message in errors)
                     {
-                        StdConsoleWriter.WriteLine(cerr.AsString);
+                        StdConsoleWriter.WriteLine(message.AsString);
                     }
                 }
                 _mainForm.pnlOutput.Show();
@@ -1123,7 +1127,7 @@ namespace AGS.Editor
                     _agsEditor.SaveUserDataFile(); // in case pending config is applied
 
                 _batchProcessShutdown = true;
-                if (messages.Count == 0)
+                if (!messages.HasErrors)
                 {
                     BuildCommandsComponent.ShowCompileSuccessMessage();
                 }
@@ -1132,7 +1136,8 @@ namespace AGS.Editor
                     error = true;
                 }
             }
-            if(error) Program.SetExitCode(1);
+            if (error)
+                Program.SetExitCode(1);
             this.ExitApplication();
         }
 
@@ -1990,9 +1995,19 @@ namespace AGS.Editor
 
         private void SetEditorWindowSize()
         {
-            _mainForm.SetDesktopLocation(Factory.AGSEditor.Settings.MainWinX, Factory.AGSEditor.Settings.MainWinY);
-            _mainForm.Width = Math.Max(Factory.AGSEditor.Settings.MainWinWidth, 300);
-            _mainForm.Height = Math.Max(Factory.AGSEditor.Settings.MainWinHeight, 300);
+            Rectangle totalDesktop = Rectangle.Empty;
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                totalDesktop = Rectangle.Union(totalDesktop, screen.Bounds);
+            }
+
+            int x = Math.Max(totalDesktop.Left, Factory.AGSEditor.Settings.MainWinX);
+            int y = Math.Max(totalDesktop.Top, Factory.AGSEditor.Settings.MainWinY);
+            int w = Math.Max(Math.Min(totalDesktop.Width - x, Factory.AGSEditor.Settings.MainWinWidth), 300);
+            int h = Math.Max(Math.Min(totalDesktop.Height - y, Factory.AGSEditor.Settings.MainWinHeight), 300);
+            _mainForm.SetDesktopLocation(x, y);
+            _mainForm.Width = w;
+            _mainForm.Height = h;
             _mainForm.WindowState = Factory.AGSEditor.Settings.MainWinMaximize ? FormWindowState.Maximized : FormWindowState.Normal;
         }
 

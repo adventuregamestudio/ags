@@ -64,22 +64,21 @@ extern IGraphicsDriver *gfxDriver;
 
 // Receives and modifies movelist_id and entity coordinates
 // Returns whether to there's a need to update the sprite due to a change in direction
-int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
 {
     assert(mslot > 0);
     if (mslot < 1)
-        return 0;
+        return kMoveResult_Abort;
 
     MoveList &cmls = *get_movelist(mslot);
-    // TODO: find out what this value means and refactor
-    int need_to_fix_sprite = 0;
     const int old_stage = cmls.GetStage();
+    MoveResult move_result = kMoveResult_Continue;
     if (cmls.Forward())
     {
         pos_x = cmls.GetCurrentPos().X;
         pos_y = cmls.GetCurrentPos().Y;
         if (cmls.GetStage() != old_stage)
-            need_to_fix_sprite = 2; // used to request a sprite direction update
+            move_result = kMoveResult_NextStage;
     }
     else
     {
@@ -88,8 +87,9 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
         // reset MoveList, and tell moving object to stop
         remove_movelist(mslot);
         mslot = 0; // movelist 0 means "not moving/walking"
+        move_result = kMoveResult_Done;
     }
-    return need_to_fix_sprite;
+    return move_result;
 }
 
 void update_script_timers()

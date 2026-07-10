@@ -973,6 +973,11 @@ namespace AGS.Editor
             return false;
         }
 
+        public static bool OpenFileInExternalProgram(string filePath)
+        {
+            return Process.Start(filePath, filePath) != null;
+        }
+
         /// <summary>
         /// Tries to get a config value stored in particular section, under certain key.
         /// If either section or key does not exist, then returns provided default value.

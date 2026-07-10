@@ -49,6 +49,16 @@ namespace AGS.Editor
             get { return (AudioClip)_selectedItem; }
         }
 
+        public MediaInfo Format
+        {
+            get
+            {
+                if (_selectedItem != null && _previewer != null)
+                    return _previewer.GetMediaInfo();
+                return new MediaInfo(0, 0, 0);
+            }
+        }
+
         private void SetupForNewItem(object selectedItem)
         {
             lock (_timerLock)

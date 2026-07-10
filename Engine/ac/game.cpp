@@ -242,6 +242,28 @@ int Game_IsAudioPlaying(int audioType)
     return 0;
 }
 
+int Game_GetAudioTypeCrossfadeSpeed(int audioType)
+{
+    if (!AssertAudioType("Game.GetAudioTypeCrossfadeSpeed", audioType))
+        return 0;
+
+    return game.audioClipTypes[audioType].crossfadeSpeed;
+}
+
+void Game_SetAudioTypeCrossfadeSpeed(int audioType, int crossfadeSpeed)
+{
+    if (!AssertAudioType("Game.SetAudioTypeCrossfadeSpeed", audioType))
+        return;
+    if (crossfadeSpeed < 0 || crossfadeSpeed > 100)
+    {
+        debug_script_warn("Game.SetAudioTypeCrossfadeSpeed: value %d is out of valid range (0..100)", crossfadeSpeed);
+        crossfadeSpeed = Math::Clamp(crossfadeSpeed, 0, 100);
+    }
+
+    Debug::Printf("Game.SetAudioTypeCrossfadeSpeed: type: %d, speed: %d", audioType, crossfadeSpeed);
+    game.audioClipTypes[audioType].crossfadeSpeed = crossfadeSpeed;
+}
+
 int Game_GetAudioTypeSpeechVolumeDrop(int audioType)
 {
     if (!AssertAudioType("Game.GetAudioTypeSpeechVolumeDrop", audioType))
@@ -2036,6 +2058,16 @@ RuntimeScriptValue Sc_Game_IsAudioPlaying(const RuntimeScriptValue *params, int3
     API_SCALL_INT_PINT(Game_IsAudioPlaying);
 }
 
+RuntimeScriptValue Sc_Game_GetAudioTypeCrossfadeSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetAudioTypeCrossfadeSpeed);
+}
+
+RuntimeScriptValue Sc_Game_SetAudioTypeCrossfadeSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(Game_SetAudioTypeCrossfadeSpeed);
+}
+
 RuntimeScriptValue Sc_Game_GetAudioTypeSpeechVolumeDrop(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Game_GetAudioTypeSpeechVolumeDrop);
@@ -2539,6 +2571,8 @@ void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {
         { "Game::IsAudioPlaying^1",                       API_FN_PAIR(Game_IsAudioPlaying) },
+        { "Game::GetAudioTypeCrossfadeSpeed^1",           API_FN_PAIR(Game_GetAudioTypeCrossfadeSpeed) },
+        { "Game::SetAudioTypeCrossfadeSpeed^2",           API_FN_PAIR(Game_SetAudioTypeCrossfadeSpeed) },
         { "Game::GetAudioTypeSpeechVolumeDrop^1",         API_FN_PAIR(Game_GetAudioTypeSpeechVolumeDrop) },
         { "Game::SetAudioTypeSpeechVolumeDrop^2",         API_FN_PAIR(Game_SetAudioTypeSpeechVolumeDrop) },
         { "Game::GetAudioTypeVolume^1",                   API_FN_PAIR(Game_GetAudioTypeVolume) },

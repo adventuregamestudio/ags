@@ -15,6 +15,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_VIEW = "NewView";
         private const string COMMAND_RENAME = "RenameView";
 		private const string COMMAND_DELETE = "DeleteView";
+        private const string COMMAND_COPY_ITEM = "CopyView";
+        private const string COMMAND_PASTE_ITEM = "PasteView";
         private const string COMMAND_CHANGE_ID = "ChangeViewID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string COMMAND_GO_TO_VIEW_NUMBER = "GoToViewNumber";
@@ -37,6 +39,25 @@ namespace AGS.Editor.Components
         public override string ComponentID
         {
             get { return ComponentIDs.ViewEditor; }
+        }
+
+        private View AddNewView(View newView, string baseScriptName)
+        {
+            newView.ID = _agsEditor.CurrentGame.FindAndAllocateAvailableViewID();
+            if (string.IsNullOrEmpty(baseScriptName))
+                newView.Name = "View" + newView.ID;
+            else
+                newView.Name = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            string newNodeID;
+            View viewClicked;
+            _items.TryGetValue(_rightClickedID, out viewClicked);
+            if (viewClicked != null)
+                newNodeID = AddSingleItem(newView, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), viewClicked)));
+            else
+                newNodeID = AddSingleItem(newView, _rightClickedID);
+            _guiController.ProjectTree.SelectNode(this, newNodeID);
+            ShowOrAddPane(newView);
+            return newView;
         }
 
         protected override void ItemCommandClick(string controlID)
@@ -88,12 +109,18 @@ namespace AGS.Editor.Components
             else if (controlID == COMMAND_NEW_VIEW)
             {
                 View newView = new View();
-                newView.ID = _agsEditor.CurrentGame.FindAndAllocateAvailableViewID();
-                newView.Name = "View" + newView.ID;
-
-                string newNodeID = AddSingleItem(newView);
-                ShowOrAddPane(newView);
-                _guiController.ProjectTree.BeginLabelEdit(this, newNodeID);
+                AddNewView(newView, null);
+            }
+            else if (controlID == COMMAND_COPY_ITEM)
+            {
+                ClipboardUtils.CopyToClipboard(_items[_rightClickedID]);
+            }
+            else if (controlID == COMMAND_PASTE_ITEM)
+            {
+                View newView = ClipboardUtils.PasteFromClipboard(typeof(View)) as View;
+                if (newView == null)
+                    return;
+                AddNewView(newView, newView.Name);
             }
             else if (controlID == COMMAND_RENAME)
             {
@@ -246,8 +273,11 @@ namespace AGS.Editor.Components
                 (!IsFolderNode(controlID)))
             {
                 menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change View ID", null));
-                menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
-				menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
+                menu.Add(new MenuCommand(COMMAND_RENAME, "Rename View", null));
+                menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy View", null));
+                if (ClipboardUtils.IsAvailableOnClipboard(typeof(View)))
+                    menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste View", null));
+                menu.Add(new MenuCommand(COMMAND_DELETE, "Delete View", null));
                 View view = _items[_rightClickedID];
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find all usages of " + view.Name, null));
             }
@@ -360,6 +390,8 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_VIEW, "New View", null));
+            if (ClipboardUtils.IsAvailableOnClipboard(typeof(View)))
+                menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste View", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)

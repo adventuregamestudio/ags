@@ -1597,7 +1597,6 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 
     // And then temp file to its final location
-    String ^sprindexfilename = gcnew String(sprindexname);
     try
     {
         if (IO::File::Exists(sprfilename))
@@ -1611,6 +1610,7 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 
     // Sprite index is wanted but optional, so react to exceptions separately
+    String ^sprindexfilename = gcnew String(sprindexname);
     try
     {
         if (IO::File::Exists(sprindexfilename))
@@ -2740,7 +2740,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->GameFPS = (thisgame.options[OPT_GAMEFPS] > 0) ? thisgame.options[OPT_GAMEFPS] : 40;
     game->Settings->GUIHandleOnlyLeftMouseButton = (thisgame.options[OPT_GUICONTROLMOUSEBUT] != 0);
     game->Settings->DisplaySingleDialogOption = (thisgame.options[OPT_DISPLAYSINGLEDIALOGOPTION] != 0);
-    game->Settings->TurnOrderPriority = (TurnOrderPriority)thisgame.options[OPT_TURNORDERPRIORITY];
+    game->Settings->TurnOrderPriority = (CharacterTurnOrderPriority)thisgame.options[OPT_TURNORDERPRIORITY];
+    game->Settings->TextBoxKeyClaimStyle = (GUITextBoxKeyClaimStyle)thisgame.options[OPT_TEXTBOXCLAIMSKEYS];
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 

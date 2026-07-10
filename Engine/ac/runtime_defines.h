@@ -297,6 +297,14 @@ enum ScriptTurnOrderPriority
     kScTurnOrder_FaceDown           = 3, // try to face down (towards player) more
 };
 
+// Determines which of the key and text input events are claimed by the active TextBox control
+enum ScriptTextBoxClaimStyle
+{
+    kScTextBoxClaim_All             = 0, // historically is default
+    kScTextBoxClaim_Handled         = 1,
+    kScTextBoxClaim_TextOnly        = 2,
+};
+
 enum eScriptSystemOSID
 {
     eOS_Unknown = 0,

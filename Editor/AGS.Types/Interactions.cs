@@ -11,10 +11,12 @@ namespace AGS.Types
     /// While InteractionSchema is attached to the object *type*,
     /// Interactions object is attached to individual object instances.
     /// </summary>
-    public class Interactions
+    [Serializable]
+    public class Interactions : ICloneable
     {
         public const string XML_VERSION = "4.0.0.24";
 
+        [NonSerialized]
         private InteractionSchema _schema;
         private string _scriptModule = string.Empty;
         // Map interaction (cursor) UID to a script function
@@ -130,6 +132,23 @@ namespace AGS.Types
             }
             writer.WriteEndElement();
         }
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            Interactions copy = new Interactions(_schema);
+            copy._scriptModule = this._scriptModule;
+            copy._scriptFunctionNames = this._scriptFunctionNames.ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value);
+            copy._indexedFunctionNames = this._indexedFunctionNames.ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value);
+            return copy;
+        }
+
+        #endregion
 
         /// <summary>
         /// Remaps from the legacy hardcoded list of script functions to the

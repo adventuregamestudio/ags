@@ -62,8 +62,9 @@ namespace AGS.Types
         private bool _attachDataToExe = false;
         private bool _turnBeforeWalking = false;
         private bool _turnBeforeFacing = false;
-        private TurnOrderPriority _turnOrderPriority = TurnOrderPriority.Clockwise;
+        private CharacterTurnOrderPriority _turnOrderPriority = CharacterTurnOrderPriority.Clockwise;
         private bool _guiHandleOnlyLeftMouseButton = false;
+        private GUITextBoxKeyClaimStyle _textBoxKeyClaimStyle = GUITextBoxKeyClaimStyle.All;
         private RoomTransitionStyle _roomTransition = RoomTransitionStyle.FadeOutAndIn;
         private bool _saveScreenshots = false;
         private SpriteCompression _compressSprites = SpriteCompression.None;
@@ -388,6 +389,16 @@ namespace AGS.Types
             set { _guiHandleOnlyLeftMouseButton = value; }
         }
 
+        [DisplayName("TextBoxes claim key and text input events")]
+        [Description("If a TextBox control is shown on screen and is enabled, it may claim key or text input events, in which case such events are not sent into the script; \"on_key_press\" and \"on_text_input\" callbacks are not run for such claimed events.")]
+        [Category("GUI behavior")]
+        [DefaultValue(GUITextBoxKeyClaimStyle.All)]
+        public GUITextBoxKeyClaimStyle TextBoxKeyClaimStyle
+        {
+            get { return _textBoxKeyClaimStyle; }
+            set { _textBoxKeyClaimStyle = value; }
+        }
+
         [DisplayName("Characters turn to face direction")]
         [Description("Characters will turn on the spot to face their new direction when FaceLocation is used")]
         [Category("Character behavior")]
@@ -411,8 +422,8 @@ namespace AGS.Types
         [DisplayName("Prioritize this turning direction")]
         [Description("Which turning direction to prioritize when character is turning to face the opposite direction")]
         [Category("Character behavior")]
-        [DefaultValue(TurnOrderPriority.Clockwise)]
-        public TurnOrderPriority TurnOrderPriority
+        [DefaultValue(CharacterTurnOrderPriority.Clockwise)]
+        public CharacterTurnOrderPriority TurnOrderPriority
         {
             get { return _turnOrderPriority; }
             set { _turnOrderPriority = value; }

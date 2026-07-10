@@ -13,6 +13,8 @@ namespace AGS.Editor.Components
         private const string TOP_LEVEL_COMMAND_ID = "Cursors";
         private const string COMMAND_NEW_ITEM = "NewCursor";
         private const string COMMAND_DELETE_ITEM = "DeleteCursor";
+        private const string COMMAND_COPY_ITEM = "CopyCursor";
+        private const string COMMAND_PASTE_ITEM = "PasteCursor";
         private const int BUILT_IN_CURSORS = 8;
         private const string ICON_KEY = "CursorsIcon";
 
@@ -34,21 +36,27 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Cursors; }
         }
 
+        private MouseCursor AddNewCursor(MouseCursor newItem)
+        {
+            IList<MouseCursor> items = _agsEditor.CurrentGame.Cursors;
+            newItem.ID = items.Count;
+            newItem.Name = "Cursor" + newItem.ID;
+                newItem.EventUID = _agsEditor.CurrentGame.GetNextCursorEventUID();
+            items.Add(newItem);
+                SyncCursorsWithInteractionSchema();
+            _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
+            _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), GetNodeLabel(newItem), "CursorIcon");
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
+            ShowOrAddPane(newItem);
+            return newItem;
+        }
+
         public override void CommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
-                IList<MouseCursor> items = _agsEditor.CurrentGame.Cursors;
                 MouseCursor newItem = new MouseCursor();
-                newItem.ID = items.Count;
-                newItem.Name = "Cursor" + newItem.ID;
-                newItem.EventUID = _agsEditor.CurrentGame.GetNextCursorEventUID();
-                items.Add(newItem);
-                SyncCursorsWithInteractionSchema();
-                _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), GetNodeLabel(newItem), "CursorIcon");
-                _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
-				ShowOrAddPane(newItem);
+                AddNewCursor(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -71,6 +79,17 @@ namespace AGS.Editor.Components
                     SyncCursorsWithInteractionSchema();
                     RePopulateTreeView();
                 }
+            }
+            else if (controlID == COMMAND_COPY_ITEM)
+            {
+                ClipboardUtils.CopyToClipboard(_itemRightClicked);
+            }
+            else if (controlID == COMMAND_PASTE_ITEM)
+            {
+                MouseCursor newItem = ClipboardUtils.PasteFromClipboard(typeof(MouseCursor)) as MouseCursor;
+                if (newItem == null)
+                    return;
+                AddNewCursor(newItem);
             }
             else if (controlID != TOP_LEVEL_COMMAND_ID)
             {
@@ -140,9 +159,12 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> menu = new List<MenuCommand>();
+            _itemRightClicked = null;
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New Cursor", null));
+                if (ClipboardUtils.IsAvailableOnClipboard(typeof(MouseCursor)))
+                    menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste Cursor", null));
             }
             else
             {
@@ -150,6 +172,9 @@ namespace AGS.Editor.Components
                 _itemRightClicked = _agsEditor.CurrentGame.Cursors[cursorID];
                 if (_itemRightClicked != null)
                 {
+                    menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy cursor", null));
+                    if (ClipboardUtils.IsAvailableOnClipboard(typeof(MouseCursor)))
+                        menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste cursor", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this cursor", null));
                     if (cursorID < BUILT_IN_CURSORS)
                     {

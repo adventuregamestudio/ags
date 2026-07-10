@@ -155,6 +155,7 @@
     <Compile Include="Enums\BlendMode.cs" />
     <Compile Include="Enums\ButtonColorStyle.cs" />
     <Compile Include="Enums\FontFileFormat.cs" />
+    <Compile Include="Enums\GUITextBoxKeyClaimStyle.cs" />
     <Compile Include="Enums\InputMotionMode.cs" />
     <Compile Include="Enums\SpriteFlipStyle.cs" />
     <Compile Include="Enums\SpriteImportColorDepth.cs" />
@@ -189,7 +190,7 @@
     <Compile Include="Enums\SpriteImportTransparency.cs" />
     <Compile Include="Enums\SpriteImportResolution.cs" />
     <Compile Include="Enums\TextParserWordType.cs" />
-    <Compile Include="Enums\TurnOrderPriority.cs" />
+    <Compile Include="Enums\CharacterTurnOrderPriority.cs" />
     <Compile Include="Exceptions\CannotDeleteFileException.cs" />
     <Compile Include="Exceptions\CompileError.cs" />
     <Compile Include="Exceptions\CompileInformation.cs" />
@@ -206,6 +207,7 @@
     <Compile Include="HelperTypes\FakeEnumerator.cs" />
     <Compile Include="HelperTypes\FontMetrics.cs" />
     <Compile Include="HelperTypes\GameObjectEvents.cs" />
+    <Compile Include="HelperTypes\MediaInfo.cs" />
     <Compile Include="HelperTypes\SpriteInfo.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />

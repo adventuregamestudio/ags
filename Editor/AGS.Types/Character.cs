@@ -7,9 +7,10 @@ using System.Drawing;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("StartingRoom")]
-    public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
+    public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>, ICloneable
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
         public const string PROPERTY_NAME_DESCRIPTION = "RealName";
@@ -647,6 +648,18 @@ namespace AGS.Types
         public int CompareTo(Character other)
         {
             return ID.CompareTo(other.ID);
+        }
+
+        #endregion
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            Character copy = this.MemberwiseClone() as Character;
+            copy._interactions = this._interactions.Clone() as Interactions;
+            copy._properties = this._properties.Clone() as CustomProperties;
+            return copy;
         }
 
         #endregion

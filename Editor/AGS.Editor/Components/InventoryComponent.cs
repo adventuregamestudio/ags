@@ -15,6 +15,8 @@ namespace AGS.Editor.Components
         private const string INVENTORY_COMMAND_ID = "Inventory";
         private const string COMMAND_NEW_ITEM = "NewInventory";
         private const string COMMAND_DELETE_ITEM = "DeleteInventory";
+        private const string COMMAND_COPY_ITEM = "CopyInventory";
+        private const string COMMAND_PASTE_ITEM = "PasteInventory";
         private const string COMMAND_CHANGE_ID = "ChangeInventoryID";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string COMMAND_GO_TO_ITEM_NUMBER = "GoToItemNumber";
@@ -39,6 +41,19 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Inventory; }
         }
 
+        private InventoryItem AddNewItem(InventoryItem newItem, string baseScriptName)
+        {
+            newItem.ID = _agsEditor.CurrentGame.RootInventoryItemFolder.GetAllItemsCount() + 1;
+            newItem.Name = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            string newNodeID;
+            if (_itemRightClicked != null)
+                newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
+            else
+                newNodeID = AddSingleItem(newItem, _rightClickedID);
+            _guiController.ProjectTree.SelectNode(this, newNodeID);
+            ShowOrAddPane(newItem);
+            return newItem;
+        }
         protected override void ItemCommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
@@ -49,12 +64,8 @@ namespace AGS.Editor.Components
                     return;
                 }
                 InventoryItem newItem = new InventoryItem();
-                newItem.ID = _agsEditor.CurrentGame.RootInventoryItemFolder.GetAllItemsCount() + 1;
-                newItem.Name = _agsEditor.GetFirstAvailableScriptName("iInvItem");
+                AddNewItem(newItem, "iInvItem");
                 newItem.Description = "New inventory item";
-                string newNodeID = AddSingleItem(newItem);
-                _guiController.ProjectTree.SelectNode(this, newNodeID);                
-				ShowOrAddPane(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -62,6 +73,18 @@ namespace AGS.Editor.Components
                 {
                     DeleteSingleItem(_itemRightClicked);                    
                 }
+            }
+            else if (controlID == COMMAND_COPY_ITEM)
+            {
+                ClipboardUtils.CopyToClipboard(_itemRightClicked);
+            }
+            else if (controlID == COMMAND_PASTE_ITEM)
+            {
+                InventoryItem newItem = ClipboardUtils.PasteFromClipboard(typeof(InventoryItem)) as InventoryItem;
+                if (newItem == null)
+                    return;
+                newItem.Interactions.Schema = InteractionSchema.Instance; // schema reference is lost when deserializing
+                AddNewItem(newItem, newItem.Name);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -211,6 +234,8 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New Inventory Item", null));
+            if (ClipboardUtils.IsAvailableOnClipboard(typeof(InventoryItem)))
+                menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste Inventory Item", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -227,6 +252,7 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> menu = base.GetContextMenu(controlID);
+            _itemRightClicked = null;
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
                 (!IsFolderNode(controlID)))
             {
@@ -235,6 +261,9 @@ namespace AGS.Editor.Components
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change inventory ID", null));
+                    menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy item", null));
+                    if (ClipboardUtils.IsAvailableOnClipboard(typeof(InventoryItem)))
+                        menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste item", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this item", null));
                     menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
                 }

@@ -10,9 +10,9 @@ namespace AGS.Editor
     /// </summary>
     public static class ScriptParsing
     {
-        public const char NEWLINE_CHAR1 = '\n';
-        public const char NEWLINE_CHAR2 = '\r';
-        public const char SYMBOL_MEMBER_ACCESS = '.';
+        public const char SYM_LINEFEED = '\n';
+        public const char SYM_CARETRETURN = '\r';
+        public const char SYM_MEMBER_ACCESS = '.';
 
         /// <summary>
         /// Tells if the character is a valid symbol for a script keyword or a variable name.
@@ -43,16 +43,101 @@ namespace AGS.Editor
         public class ParserState
         {
             private string _script;
+            private int _baseLine = 0;
+            private List<int> _lines;
             private SortedSet<Tuple<int, int>> _comments;
+            private int _index = 0;
+            private char _curChar = (char)0;
 
-            public ParserState(string script)
+            public ParserState(string script, int baseLine = 0)
             {
                 _script = script;
+                _baseLine = baseLine;
+                _lines = new List<int>();
                 _comments = new SortedSet<Tuple<int, int>>(new SectionComparer());
+                _curChar = !string.IsNullOrEmpty(_script) ? _script[0] : (char)0;
             }
 
             public string Script { get { return _script; } }
+            public List<int> Lines { get { return _lines; } }
             public SortedSet<Tuple<int, int>> Comments { get { return _comments; } }
+
+            public int CharIndex { get { return _index; } }
+            public bool AtEnd { get { return _index == _script.Length; } }
+            public bool AtLastChar { get { return _index == _script.Length - 1; } }
+
+            public char Char { get { return _curChar; } }
+
+            public int Line { get { return FindLineForCharIndex(_index); } }
+
+            public int FindLineForCharIndex(int index)
+            {
+                int line = _lines.BinarySearch(index);
+                if (line < 0)
+                    line = ~line - 1; // returned bitwise complement of the index of the next element that is larger than item
+                return line + _baseLine;
+            }
+
+            public void Reset()
+            {
+                _index = 0;
+            }
+
+            public char PeekChar()
+            {
+                return (_index < _script.Length - 1) ? _script[_index + 1] : (char)0;
+            }
+
+            public int Forward()
+            {
+                if (_index < _script.Length)
+                {
+                    _index++;
+                    if (_index < _script.Length)
+                        _curChar = _script[_index];
+                }
+                return _index;
+            }
+
+            public int Forward2()
+            {
+                _index = Math.Min(_index + 2, _script.Length);
+                if (_index < _script.Length)
+                    _curChar = _script[_index];
+                return _index;
+            }
+
+            public int Back()
+            {
+                if (_index > 0)
+                {
+                    _index--;
+                    _curChar = _script[_index];
+                }
+                return _index;
+            }
+
+            public int SetAt(int index)
+            {
+                if (index >= 0 && index < _script.Length)
+                {
+                    _index = index;
+                    _curChar = _script[_index];
+                }
+                return _index;
+            }
+        }
+
+        /// <summary>
+        /// Parses the whole script and fills Lines set.
+        /// </summary>
+        public static void FillLines(ParserState state)
+        {
+            state.Lines.Clear();
+            for (; !state.AtEnd; SkipLine(state))
+            {
+                state.Lines.Add(state.CharIndex);
+            }
         }
 
         /// <summary>
@@ -61,10 +146,24 @@ namespace AGS.Editor
         public static void FillCommentSections(ParserState state)
         {
             state.Comments.Clear();
-            for (int index = 0; index < state.Script.Length;)
+            while (!state.AtEnd)
             {
-                int nextIndex = SkipComments(state, index);
-                index = (nextIndex == index) ? index + 1 : nextIndex;
+                SeekToComment(state);
+                SkipComments(state);
+            }
+        }
+
+        public static void SkipLine(ParserState state)
+        {
+            while (!state.AtEnd)
+            {
+                // Regardless whether CRLF or LF, LF comes last
+                if (state.Char == SYM_LINEFEED)
+                {
+                    state.Forward();
+                    return;
+                }
+                state.Forward();
             }
         }
 
@@ -99,9 +198,9 @@ namespace AGS.Editor
                         index = SkipCommentBackwards(state, index - 1);
                     }
                 }
-                else if (symbol == NEWLINE_CHAR1 || symbol == NEWLINE_CHAR2)
+                else if (symbol == SYM_LINEFEED || symbol == SYM_CARETRETURN)
                 {
-                    for (; index >= 0 && (script[index] == NEWLINE_CHAR1 || script[index] == NEWLINE_CHAR2); --index) ;
+                    for (; index >= 0 && (script[index] == SYM_LINEFEED || script[index] == SYM_CARETRETURN); --index) ;
                     // When we reach the previous line (it appears that this is a multi-line expression),
                     // we, unfortunately, must first prescan and check if this line is commented out
                     int indexAfterComment = SkipCommentBackwards(state, index);
@@ -139,7 +238,7 @@ namespace AGS.Editor
                 lastValidIndex = index;
                 for (; index >= 0 && char.IsWhiteSpace(script[index]); --index) ;
             }
-            while (script[index--] == SYMBOL_MEMBER_ACCESS);
+            while (script[index--] == SYM_MEMBER_ACCESS);
             return lastValidIndex + 1;
         }
 
@@ -170,44 +269,57 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Skips forward until finding a beginning of comment section.
+        /// </summary>
+        public static void SeekToComment(ParserState state)
+        {
+            while (!state.AtLastChar &&
+                !((state.Char == '/') && (state.PeekChar() == '/')) &&
+                !((state.Char == '/') && (state.PeekChar() == '*')))
+                state.Forward();
+            // If we are at the last char, that means that no comment section was found,
+            // so forward once further to reach the end of the script.
+            if (state.AtLastChar)
+                state.Forward();
+        }
+
+        /// <summary>
         /// Skip comments in the script that might have speech marks
         /// in them, which could confuse the parser.
         /// </summary>
-        public static int SkipComments(ParserState state, int index)
+        public static void SkipComments(ParserState state)
         {
-            string script = state.Script;
-            if ((index < script.Length - 1) &&
-                (script[index] == '/') && (script[index + 1] == '/'))
+            if (!state.AtLastChar &&
+                (state.Char == '/') && (state.PeekChar() == '/'))
             {
-                int startIndex = index;
-                for (; (index < script.Length) &&
-                    (script[index] != NEWLINE_CHAR1) &&
-                    (script[index] != NEWLINE_CHAR2);
-                    ++index) ;
-                int endIndex = index;
+                int startIndex = state.CharIndex;
+                for (; !state.AtEnd &&
+                    (state.Char != SYM_LINEFEED) &&
+                    (state.Char != SYM_CARETRETURN);
+                    state.Forward()) ;
+                int endIndex = state.CharIndex;
                 var section = new Tuple<int, int>(startIndex, endIndex);
                 if (!state.Comments.Contains(section))
                     state.Comments.Add(section);
             }
-            if ((index < script.Length - 1) &&
-                (script[index] == '/') && (script[index + 1] == '*'))
+            if (!state.AtLastChar &&
+                (state.Char == '/') && (state.PeekChar() == '*'))
             {
-                int startIndex = index;
-                index += 2;
-                for (; index < script.Length - 1; ++index)
+                int startIndex = state.CharIndex;
+                state.Forward2();
+                for (; !state.AtLastChar; state.Forward())
                 {
-                    if ((script[index] == '*') && (script[index + 1] == '/'))
+                    if ((state.Char == '*') && (state.PeekChar() == '/'))
                     {
-                        index += 2;
+                        state.Forward2();
                         break;
                     }
                 }
-                int endIndex = index;
+                int endIndex = state.CharIndex;
                 var section = new Tuple<int, int>(startIndex, endIndex);
                 if (!state.Comments.Contains(section))
                     state.Comments.Add(section);
             }
-            return index;
         }
 
         /// <summary>

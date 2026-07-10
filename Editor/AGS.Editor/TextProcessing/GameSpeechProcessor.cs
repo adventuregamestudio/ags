@@ -18,6 +18,9 @@ namespace AGS.Editor
         private bool _processHotspotAndObjectDescriptions;
         private bool _lookupForFunctionCalls;
         private bool _lookupForOuterFunctionCalls;
+        // Current parsing state
+        protected string _scriptName;
+        protected ScriptParsing.ParserState _parserState;
 
         protected abstract string CreateSpeechLine(GameTextLine textLine, GameTextType textType);
         protected abstract bool ParseFunctionCall(string scriptCodeExtract, out int characterID);
@@ -59,7 +62,6 @@ namespace AGS.Editor
         {
             return ProcessText(new GameTextLine(text, sourceRef), textType);
         }
-
         public string ProcessText(GameTextLine textLine, GameTextType textType)
         {
             if (string.IsNullOrWhiteSpace(textLine.Text))
@@ -73,9 +75,9 @@ namespace AGS.Editor
                 case GameTextType.Message:
                     return CreateSpeechLine(textLine, textType);
                 case GameTextType.DialogScript:
-                    return ProcessDialogScript(textLine.Text, textLine.SourceRef);
+                    return ProcessDialogScript(textLine.Text, textLine.ScriptFileName, textLine.SourceRef);
                 case GameTextType.Script:
-                    return ProcessScript(textLine.Text, textLine.SourceRef);
+                    return ProcessScript(textLine.Text, textLine.ScriptFileName, textLine.SourceRef);
                 case GameTextType.ItemDescription:
                     if (_processHotspotAndObjectDescriptions)
                     {
@@ -88,53 +90,58 @@ namespace AGS.Editor
             return textLine.Text;
         }
 
-        private bool DoesStringTerminateHere(string script, int index, char stringTerminator)
+        private bool DoesStringTerminateHere(ScriptParsing.ParserState state, char stringTerminator)
         {
-            if ((script[index] == stringTerminator) && (script[index - 1] != '\\'))
+            if (state.Char == stringTerminator)
             {
-                // speech mark (not escaped)
-                return true;
-            }
-            if ((script[index] == stringTerminator) && (script[index - 1] == '\\') && (script[index - 2] == '\\'))
-            {
-                // speech mark, with escaped backslash before it
-                return true;
+                // We must make sure that this quotemark is not escaped, so count
+                // number of backslashes before it. Should be either 0, or even number
+                // (in the latter case they escape themselves and don't affect quotemark).
+                int backslashes = 0;
+                for (int index = state.CharIndex - 1; index >= 0 && state.Script[index] == '\\'; --index)
+                    backslashes++;
+                return (backslashes == 0) || (backslashes % 2 == 0);
             }
             return false;
         }
 
-        private string ProcessScript(string script, string scriptName)
+        private string ProcessScript(string script, string scriptName, string contextName, int originalLine = -1)
         {
-            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
-            int index = 0;
-            // TODO: record line number and add to the GameTextLine's source reference!!
-            while (index < script.Length)
-            {
-				index = ScriptParsing.SkipComments(state, index);
+            // If originalLine is set, then this "script" is an excerpt from another bigger text
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script, originalLine);
+            ScriptParsing.FillLines(state);
+            state.Reset();
 
-                if ((index < script.Length) && 
-                    ((script[index] == '"') || (script[index] == '\'')))
+            _scriptName = scriptName;
+            _parserState = state;
+
+            while (state.CharIndex < script.Length)
+            {
+				ScriptParsing.SkipComments(state);
+
+                if (!state.AtEnd && 
+                    ((state.Char == '"') || (state.Char == '\'')))
                 {
-                    char stringTerminator = script[index];
-                    int stringStartIndex = index;
-                    index++;
-                    while (index < script.Length)
+                    char stringTerminator = state.Char;
+                    int stringStartIndex = state.CharIndex;
+                    state.Forward();
+                    while (!state.AtEnd)
                     {
-                        if (DoesStringTerminateHere(script, index, stringTerminator))
+                        if (DoesStringTerminateHere(state, stringTerminator))
                         {
                             break;
                         }
-                        index++;
+                        state.Forward();
                     }
-                    if (index >= script.Length)
+                    if (state.AtEnd)
                     {
-                        _errors.Add(new CompileError("Unterminated string in script: " + script.Substring(stringStartIndex)));
+                        _errors.Add(new CompileError("Unterminated string in script: " + script.Substring(stringStartIndex), scriptName, state.Line));
                         return script;
                     }
 
                     if (stringTerminator == '"')
                     {
-                        int stringEndIndex = index;
+                        int stringEndIndex = state.CharIndex;
                         string previousFuncCall = _lookupForFunctionCalls ?
                             ScriptParsing.GetCurrentFunctionCall(state, stringStartIndex, _lookupForOuterFunctionCalls)
                             : string.Empty;
@@ -142,33 +149,33 @@ namespace AGS.Editor
                         if (ParseFunctionCall(previousFuncCall, out charID))
                         {
                             string mainString = script.Substring(stringStartIndex + 1, (stringEndIndex - stringStartIndex) - 1);
-                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, scriptName), GameTextType.Script);
+                            string modifiedString = CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, mainString, contextName, state.Line), GameTextType.Script);
                             if (_makesChanges)
                             {
                                 string scriptBeforeString = script.Substring(0, stringStartIndex + 1);
                                 string scriptAfterString = script.Substring(stringEndIndex);
                                 script = scriptBeforeString + modifiedString + scriptAfterString;
-                                index = stringStartIndex + modifiedString.Length + 1;
+                                state.SetAt(stringStartIndex + modifiedString.Length + 1);
                             }
                             else
                             {
-                                index = stringStartIndex + mainString.Length + 1;
+                                state.SetAt(stringStartIndex + mainString.Length + 1);
                             }
                         }
                     }
                 }
-                index++;
+                state.Forward();
             }
             return script;
         }
 
-        private string ProcessDialogScript(string script, string scriptName)
+        private string ProcessDialogScript(string script, string scriptFileName, string contextName)
         {
             StringBuilder sb = new StringBuilder(script.Length);
             StreamReader sr = new StreamReader(new MemoryStream(_game.TextEncoding.GetBytes(script), false), _game.TextEncoding);
             string thisLine;
             string originalLine;
-            // TODO: record line number and add to the GameTextLine's source reference!!
+            int line = 1;
             while ((thisLine = sr.ReadLine()) != null)
             {
                 originalLine = thisLine;
@@ -176,7 +183,7 @@ namespace AGS.Editor
 
                 if (DialogScriptConverter.IsRealScriptLineInDialog(originalLine))
                 {
-                    originalLine = ProcessScript(originalLine, scriptName);
+                    originalLine = ProcessScript(originalLine, scriptFileName, contextName, line);
                 }
                 else if (thisLine.IndexOf("//") >= 0)
                 {
@@ -195,11 +202,16 @@ namespace AGS.Editor
                     {
                         string lineText = thisLine.Substring(thisLine.IndexOf(":") + 1).Trim();
                         originalLine = string.Format("{0}: {1}", characterName,
-                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, scriptName), GameTextType.DialogScript));
+                            CreateSpeechLine(GameTextLine.MakeSpeechLine(charID, lineText, contextName, line), GameTextType.DialogScript));
+                    }
+                    else
+                    {
+                        _errors.Add(new CompileError("Unknown character: " + characterName, scriptFileName, line));
                     }
                 }
 
                 sb.AppendLine(originalLine);
+                line++;
             }
             sr.Close();
             return sb.ToString();
@@ -240,7 +252,6 @@ namespace AGS.Editor
                 return foundChar.ID;
             }
 
-            _errors.Add(new CompileError("Unknown character name: " + characterName));
             return -1;
         }
 

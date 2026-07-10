@@ -7,6 +7,7 @@ using System.Drawing;
 
 namespace AGS.Types
 {
+    [Serializable]
     public class NormalGUI : GUI
     {
         public const string XML_ELEMENT_NAME = "NormalGUI";

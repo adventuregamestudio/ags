@@ -6,8 +6,9 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [DefaultProperty("Name")]
-    public class View : IToXml, IComparable<View>
+    public class View : IToXml, IComparable<View>, ICloneable
     {
         public delegate void ViewUpdatedHandler(View view);
         public event ViewUpdatedHandler ViewUpdated;
@@ -114,6 +115,19 @@ namespace AGS.Types
         public int CompareTo(View other)
         {
             return ID.CompareTo(other.ID);
+        }
+
+        #endregion
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            View copy = this.MemberwiseClone() as View;
+            copy._loops = new List<ViewLoop>();
+            foreach (var loop in _loops)
+                copy._loops.Add(loop.Clone());
+            return copy;
         }
 
         #endregion

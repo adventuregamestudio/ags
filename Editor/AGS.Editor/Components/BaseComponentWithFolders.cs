@@ -143,16 +143,21 @@ namespace AGS.Editor.Components
 
         protected string AddSingleItem(ItemType item)
         {
+            return AddSingleItem(item, _rightClickedID);
+        }
+
+        protected string AddSingleItem(ItemType item, string parentFolderID)
+        {
             if (CreateItemsAtTop)
             {
-                _folders[_rightClickedID].Items.Insert(0, item);
+                _folders[parentFolderID].Items.Insert(0, item);
             }
             else
             {
-                _folders[_rightClickedID].Items.Add(item);
+                _folders[parentFolderID].Items.Add(item);
             }
 
-            _guiController.ProjectTree.StartFromNode(this, _rightClickedID);
+            _guiController.ProjectTree.StartFromNode(this, parentFolderID);
             string newNodeID = AddTreeNodeForItem(item);
             return newNodeID;
         }
@@ -545,18 +550,18 @@ namespace AGS.Editor.Components
             return true;
         }
 
-        protected FolderType FindFolderThatContainsItem(FolderType rootFolder, ItemType view)
+        protected FolderType FindFolderThatContainsItem(FolderType rootFolder, ItemType item)
         {
             foreach (FolderType subFolder in rootFolder.SubFolders)
             {
-                FolderType result = FindFolderThatContainsItem(subFolder, view);
+                FolderType result = FindFolderThatContainsItem(subFolder, item);
                 if (result != null)
                 {
                     return result;
                 }
             }
 
-            if (rootFolder.Items.Contains(view))
+            if (rootFolder.Items.Contains(item))
             {
                 return rootFolder;
             }

@@ -77,6 +77,8 @@ void    gui_on_mouse_hold(const int wasongui, const int wasbutdown);
 void    gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, const int my);
 void    gui_on_mouse_down(const int guin, const int mbut, const int mx, const int my);
 
+AGS::Common::GUITextBox *gui_get_active_textbox();
+
 // currently displayed pop-up GUI (-1 if none)
 extern int ifacepopped;
 // index of GUI the cursor was on

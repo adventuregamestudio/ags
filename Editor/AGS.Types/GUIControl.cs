@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Text;
 using System.Xml;
 using System.Drawing;
-using System.Windows.Forms;
 
 namespace AGS.Types
 {
@@ -329,41 +328,9 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
-        public void SaveToClipboard()
-        {
-            DataFormats.Format format = DataFormats.GetFormat(typeof(GUIControl).FullName);
-
-            IDataObject dataObj = new DataObject();
-            dataObj.SetData(format.Name, false, this);
-            Clipboard.SetDataObject(dataObj, true);
-        }
-
-        public static bool AvailableOnClipboard()
-        {
-            IDataObject dataObj = Clipboard.GetDataObject();
-            string format = typeof(GUIControl).FullName;
-            if (dataObj != null) return dataObj.GetDataPresent(format);
-            else return false;
-
-        }
-
         public Rectangle GetRectangle()
         {
             return new Rectangle(Left, Top, Width, Height);
-        }
-
-        public static GUIControl GetFromClipBoard()
-        {
-            GUIControl toreturn = null;
-            IDataObject dataObj = Clipboard.GetDataObject();
-            string format = typeof(GUIControl).FullName;
-
-            if (dataObj.GetDataPresent(format))
-            {
-                toreturn = dataObj.GetData(format) as GUIControl;
-            }
-
-            return toreturn;
         }
 
         public object Clone()

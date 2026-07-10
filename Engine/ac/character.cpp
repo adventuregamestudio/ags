@@ -793,7 +793,8 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
     {
         auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
-        charextra[charid].inventory.erase(it_found);
+        if (it_found != charextra[charid].inventory.end())
+            charextra[charid].inventory.erase(it_found);
     }
     GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
@@ -1601,7 +1602,8 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
             {
                 auto it_found = std::find(chex.inventory.begin() + last_found, chex.inventory.end(), index);
                 last_found = it_found - chex.inventory.begin();
-                chex.inventory.erase(it_found);
+                if (it_found != chex.inventory.end())
+                    chex.inventory.erase(it_found);
             }
         }
     }
@@ -1614,7 +1616,8 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
         else if (quant == 0 && old_quant > 0)
         {
             auto it_found = std::find(chex.inventory.begin(), chex.inventory.end(), index);
-            chex.inventory.erase(it_found);
+            if (it_found != chex.inventory.end())
+                chex.inventory.erase(it_found);
         }
     }
 
@@ -2421,7 +2424,8 @@ void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloo
     }
 }
 
-void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
+void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls)
+{
     const float xpmove = cmls.GetCurrentSpeed().X;
     const float ypmove = cmls.GetCurrentSpeed().Y;
 
@@ -2485,16 +2489,24 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
     if (chi->walking <= 0)
         return 0;
 
-    int ntf=0, xwas = chi->x, ywas = chi->y;
+    const int xwas = chi->x, ywas = chi->y;
     MoveList &mlist = *get_movelist(chi->get_movelist_id());
-
-    if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
+    // For the purpose smooth walk transition keep moving even across multiple stages,
+    // until all the "current move" is not depleted OR until we have to turn.
+    while (do_movelist_move(chi->walking, chi->x, chi->y) == kMoveResult_NextStage)
     {
+        // Character just switched to the next path segment
         if (chi->is_moving_walkanim())
             fix_player_sprite(chi, mlist);
+        if (charextra[chi->index_id].IsTurning() || mlist.onpart <= 0.f)
+        {
+            // cancel any walk progress transition since the previous stage
+            mlist.onpart = 0.f;
+            break;
+        }
     }
 
-    ntf = has_hit_another_character(chi->index_id);
+    int ntf = has_hit_another_character(chi->index_id);
     if (ntf >= 0)
     {
         chi->walkwait = 30;
@@ -2511,8 +2523,9 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
             chex->animwait = chi->walkwait;
         }
 
-        if ((chi->walking < 1) || (chex->turns > 0)) { /* skip */ }
-        else if (mlist.GetStageProgress() > 0.f)
+        if ((chi->walking < 1) || (chex->turns > 0))
+        { /* skip */ }
+        else if (mlist.GetStageDoneSteps() > 0.f)
         {
             mlist.Backward();
             chi->x = xwas;

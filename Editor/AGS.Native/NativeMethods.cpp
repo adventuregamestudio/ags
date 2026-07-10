@@ -320,10 +320,11 @@ namespace AGS
 			}
 		}
 
-        void NativeMethods::ReplaceSpriteFile(String ^srcFileName)
+        void NativeMethods::ReplaceSpriteFile(String ^srcFileName, String ^srcIndexFileName)
         {
             AGSString temp_filename = TextHelper::ConvertUTF8(srcFileName);
-            ::ReplaceSpriteFile(temp_filename, "", false);
+            AGSString temp_indexfilename = TextHelper::ConvertUTF8(srcIndexFileName);
+            ::ReplaceSpriteFile(temp_filename, temp_indexfilename, false);
         }
 
 		void NativeMethods::SaveGame(Game ^game)
@@ -829,6 +830,7 @@ namespace AGS
             if (name->Equals("OPT_GUICONTROLMOUSEBUT")) return OPT_GUICONTROLMOUSEBUT;
             if (name->Equals("OPT_DISPLAYSINGLEDIALOGOPTION")) return OPT_DISPLAYSINGLEDIALOGOPTION;
             if (name->Equals("OPT_TURNORDERPRIORITY")) return OPT_TURNORDERPRIORITY;
+            if (name->Equals("OPT_TEXTBOXCLAIMSKEYS")) return OPT_TEXTBOXCLAIMSKEYS;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
             return nullptr;
         }

@@ -99,7 +99,7 @@ namespace DynamicArrayHelpers
     DynObjectRef CreateArray(size_t elem_size, size_t length);
     // Create array, initializing with the provided bytes
     DynObjectRef CreateArray(const std::vector<uint8_t> &data);
-    // Create array of managed strings from strings that exists somewhere
+    // Create array of managed strings
     DynObjectRef CreateStringArray(const std::vector<const char*> &);
     DynObjectRef CreateStringArray(const std::vector<AGS::Common::String> &);
     // Create array of managed strings from preallocated script string buffers

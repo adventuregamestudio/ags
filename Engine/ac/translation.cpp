@@ -73,7 +73,8 @@ void restore_game_fonts(const Translation &old_trans)
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
-        load_game_font(font_id, game.fonts[font_id], loaded_game_file_version);
+        if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.fonts.size())
+            load_game_font(font_id, game.fonts[font_id], loaded_game_file_version);
     }
 }
 

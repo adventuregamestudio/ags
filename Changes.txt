@@ -326,6 +326,8 @@ Editor:
  - In General Settings added "GUI common controls handle only left mouse button" option that lets
    prevent RMB from activating gui controls, except those that have separate actions for left and
    right mouse buttons.
+ - In General Settings added "TextBoxes claim key and text input events" option that
+   allows to pass all or certain key events to script while a TextBox control is active.
  - In General Settings added Translation settings: "Include script texts with prefix",
    "Exclude script texts with prefix" and "Exclude script function calls", that let configure
    selection of the script texts which are added to translation file.
@@ -337,6 +339,7 @@ Editor:
    each. Color type properties will now display RGB representation in 16/32-bit games and a color
    number (palette index) in 8-bit games. They will always accept user input in any format (either
    color number of RGB).
+ - Added Length and Format readonly properties for AudioClips, for information purposes.
  - Added Baseline, BaselineOverridden, BlockingRectangle and Transparency properties to Characters.
  - Added new properties to GUI Controls: BackgroundColor, BorderColor, BorderWidth, ShowBorder,
    SolidBackground, PaddingX and PaddingY properties.
@@ -355,6 +358,8 @@ Editor:
    or script. The primary purpose of these is fixing incorrectly designed fonts.
  - In Project Explorer added context menu command "Go to X" for each applicable item type, which
    lets to find an item by its numeric ID.
+ - In Project Explorer added Copy/Paste context menu commands for: Characters, Cursors, Dialogs,
+   GUIs, InventoryItems, Views.
  - Added Custom Properties node in the Project Explorer.
  - Added commands for importing & exporting Custom Properties Schema.
  - Custom Properties Schema window and Global Variables list now support different sorting orders,
@@ -368,6 +373,9 @@ Editor:
    font and let jump to a chosen character. Added text preview, where user may input any multiline
    text and see it printed with the current font.
  - Font Preview and GUI Editor now display fonts with their respective outlines.
+ - In GUI Editor new Labels will be created non-Clickable by default. Historically engine would
+   unconditionally disable all Labels on game startup, hence overriding project settings. Now this
+   property is fully under user's control. (Older projects will have Labels disabled on import.)
  - In GUI Editor allow to resize controls by dragging by any side.
  - In GUI Editor let set control's ZOrder property directly.
  - In Room Editor Characters will be sorted among themselves in accordance to their starting
@@ -386,6 +394,9 @@ Editor:
  - "Go to Definition" command in script editor now works for Room elements too.
    Also, "missing event function" warnings support double click to go to event pane for Rooms and
    Room elements as well.
+ - Translation compiler now supports "UniqueID" and "GameName" settings right in TRS file, used
+   to match compiled translation with the game at runtime. Editor fills these settings when
+   creating a new translation source.
  - Translation compiler now supports "Language" setting, with the same meaning as the one in
    General Settings, but associated with the particular translation.
  - Translation compiler now supports "Font override" settings, that let configure custom font
@@ -400,13 +411,14 @@ Editor:
    "//$ANNOTATION: VALUE", which will be kept intact during translation update.
  - When updating a translation source, obsolete entries will now be removed, and if there's already
    a translated line present, then marked with a "//$OBSOLETE" tag for user to notice them.
- - Fixed Editor creating a game file name of a wrong name, if game's name contains dots.
+ - Improved error reporting for game text gathering actions such as "Create voice-acting script"
+   and "Update translation". Now these errors correctly tell the script location which lets you
+   go there.
  - Fixed Editor treating custom properties names as case-sensitive when loading them from the
    project file, although they are considered case-insensitive everywhere else.
  - Fixed deleted custom property values were remaining in objects data, apparently forever
    (they were not visible, unless you re-add the property under same name).
- - Fixed Editor resizing its own application window instead of Help window when Help->Index
-   or Help->Contents menu command was ordered by user.
+ - Fixed sprites loosing alpha channel when being copy/pasted in the Sprite Manager.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -417,6 +429,8 @@ Script API:
  - Added new game-wide option OPT_GUICONTROLMOUSEBUT that defines whether common GUI controls
    are affected by the right mouse button or not (InventoryWindows are excluded from this, because
    they have their own special handling for RMB).
+ - Added new game-wide option OPT_TEXTBOXCLAIMSKEYS that defines what kind of key input events are
+   claimed ("stolen") by the active TextBox control. This option uses TextBoxKeyClaimStyle enum.
  - Moved eAlignHas* constants from Alignment to AlignmentMask enum.
  - Added eUndefinedFont constant that may be used in certain font properties as a indication that
    they are not initialized, and engine should go for a default fallback value instead.
@@ -462,10 +476,14 @@ Script API:
  - Added DialogOptions.Overlay that lets access a overlay object which represents dialog options
    on screen (only returns overlay when the options are displayed).
  - In DynamicSprite.ChangeCanvasSize() function made "x" and "y" parameters optional.
+ - Added DrawingSurface.ColorDepth readonly property.
+ - Added DrawingSurface.GetPixelsCopy() and SetPixels() functions that allow to retrieve all or
+   a portion of the drawing surface's pixels as a dynamic array, or assign its pixels from array.
  - Added DrawingSurface.Valid readonly property.
  - Added Game.InBlockingAction, BlockingWaitCounter and BlockingWaitSkipType properties.
  - Game.InBlockingWait now returns positive only when inside a Wait*() function call, not any
    blocking action (this is what InBlockingAction is for now).
+ - Added Game.Get/SetAudioTypeCrossfadeSpeed() functions.
  - Added Game.GetAudioTypeVolume() function that returns a volume value previously set by
    Game.SetAudioTypeVolume().
  - Added Game.IsSpriteDynamic[] and TopSpriteNumber readonly properties.
@@ -479,6 +497,8 @@ Script API:
    rules and channels. As an effect this also lets play multiple voice-overs at once.
  - Added GameInfo struct that contains meta-information about the game, such as developer's name,
    developer's URL, version, and so forth.
+ - Added GUI.GetActiveTextInputControl() function that returns first found currently active
+   TextBox control (or null if none is active).
  - Made GUI.PopupStyle property settable.
  - Added GUIControl.BackgroundColor, BorderColor, BorderWidth, SolidBackground, ShowBorder,
    PaddingX and PaddingY properties.
@@ -503,6 +523,7 @@ Script API:
    LeftGraphic, RightGraphic, and so forth.
  - Added Utils.SortStrings(), Utils.SortInts() and Utils.SortFloats() array sort functions.
  - Added VideoPlayStyle enum, PlayVideo() now uses VideoPlayStyle as "flags" argument.
+ - Added GetPressedKeys() function that returns a dynamic array of pressed key codes.
  - Added IsAnyKeyPressed() function.
  - Added "resultValue" parameter to the SkipWait() function. This lets to define a value that
    will be returned from Wait*() functions or by Game.BlockingWaitSkipped property.
@@ -512,15 +533,17 @@ Engine:
  - Support compressing game saves using Deflate algorithm. Added config option "compress_saves"
    in "misc" section, enabled by default.
  - Always compress a screenshot in game save using Deflate algorithm.
- - Support loading and saving PNG image files (using DynamicSprite functions).
  - Dont apply grey-out effect on disabled Buttons without any ClickAction. This lets to use
    buttons for decorative purposes even if GUIs are set to "Grey out their controls" when the
    interface is disabled.
+ - Dont unconditionally disable all Labels (setting them non-clickable) on game start. Keep the
+   property value from the editor instead.
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
+ - Only the first found active TextBox control will receive input events.
  - Standard Dialog options now support Right-to-left text mode.
- - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving 32-bit
-   BMP files with alpha channel.
+ - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving PNG
+   files, also 32-bit BMP files with alpha channel.
  - Removed hard limit of Timers (was 20).
  - Room Region events will now be run consistently with the other game events, scheduled and
    executed at the end of the game update cycle (was run at the beginning of the game update).
@@ -566,8 +589,6 @@ Engine:
  - Fixed that DrawingSurface didn't register when its source image (such as a dynamic sprite or a
    room background) gets unavailable, which could led to a invalid memory access would user script
    continue to operate this DrawingSurface object.
- - Fixed SetGameOption(OPT_PORTRAITSIDE) not always working correctly.
- - Fixed particular rare OGG Vorbis clips not playing.
  - Fixed potential engine crash occuring if the game's spritefile contained less sprites than
    are defined by the game data, for any reason.
 
@@ -575,7 +596,7 @@ Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.
  - When a Restore/SaveGameDialog() function is called, remember the game's "normal font" value
    at the moment of a function call, and use it when the dialog is finally shown, even if "normal
-   font" setting 
+   font" setting was changed in the meanwhile.
  - Don't outline fonts on standard dialogs in pre-2.56 games.
  - Don't use alpha channel when drawing textwindow gui in pre-3.* games.
  - Force-update GUI when a BackgroundGraphic is re-assigned with the same dynamic sprite's number,
@@ -608,6 +629,47 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 10, July 2026
+
+Editor:
+ - Double clicking the Translation in Project Explorer will now attempt to open the translation
+   file in the associated application (if none is registered, the system should ask you to do so).
+ - Made it so that in Log Panel's config Output and Filter settings are synced: when user decreases
+   any Output level the respective Filter level will be adjusted to be not higher than that, and
+   when user increases any Filter level the respective Output level will be adjusted to be not
+   lower than that.
+ - Made it so that when Editor recreates a spritefile from sources, it would also created a new
+   sprite index file (sprindex.dat).
+ - Fixed window may appear offscreen on program launch if number of active monitors have changed
+   since the previous session.
+ - Fixed Editor compiling a game data file of a wrong name, if game's "filename" setting
+   contains dots.
+ - Fixed Editor compiling a Web/Emscripten game build generated a faulty "my_game_files.js"
+   if the game's filename contains single quote marks (apostrophes). This mistake would result
+   in game not being able to launch in the browser.
+ - Ensure that Room Editor displays placeholder sprite 0 for objects which had a non-existing
+   sprite assigned to them (so that they could be seen in the editor).
+ - Fixed autocomplete in script not processing indexed attributes properly.
+ - Fixed Editor not detecting and reporting "unlinked script functions" for Room events properly.
+ - Fixed missing comments for Type.GetByName() script functions.
+ - Fixed automatic game build on /compile exiting the program with a error code if there were
+   only script warnings.
+
+Engine:
+ - Implemented smoother transition between segments of the walking path for characters: now they
+   will not make a small pause at the end of each segment, but keep moving with the same speed,
+   unless having to turn on spot first. This also fixes a unexpected slowdown occuring when a
+   character is moving along a path consisting of very short segments in zig-zag pattern.
+ - Fixed mouse cursor's starting position to be in the center of the actual game's resolution,
+   and not at (160, 100) as if it's always 320x200.
+ - Fixed SetGameOption(OPT_PORTRAITSIDE) not always working correctly.
+ - Fixed speech skip key setting not working properly if it's assigned any letter key.
+ - Fixed GUI controls rendered very smudged with Linear filter in Direct3D/OpenGL.
+ - Fixed engine not always detecting audio driver failure on initialization, and thus not creating
+   a "dummy" audio driver as a replacement (necessary for audio scripts to work without errors).
+ - Fixed particular rare OGG Vorbis clips not playing.
+
 
 VERSION 3.6.2 - Patch 9, May 2026
 

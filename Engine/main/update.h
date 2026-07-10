@@ -20,12 +20,18 @@
 #ifndef __AGS_EE_MAIN__UPDATE_H
 #define __AGS_EE_MAIN__UPDATE_H
 
+enum MoveResult
+{
+    kMoveResult_Abort     = -1,
+    kMoveResult_Continue  = 0,
+    kMoveResult_Done      = 1,
+    kMoveResult_NextStage = 2
+};
+
 // Update MoveList of certain index, save current position;
 // *resets* mslot to zero if path is complete.
-// returns "need_to_fix_sprite" value, which may be 0,1,2;
-// TODO: find out what this return value means, and refactor.
 // TODO: do not reset mslot in this function, reset externally instead.
-int do_movelist_move(short &mslot, int &pos_x, int &pos_y);
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y);
 // Update various things on the game frame:
 // moves and animates objects, updates timers, etc.
 void update_game_objects();

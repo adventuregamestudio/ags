@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
-    public class InventoryItem : IToXml, IComparable<InventoryItem>
+    public class InventoryItem : IToXml, IComparable<InventoryItem>, ICloneable
     {
         private string _name;
         private string _description;
@@ -23,6 +22,7 @@ namespace AGS.Types
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
         private string _onAnyClick = string.Empty;
         //
+        [NonSerialized]
         private bool _currentlyDeserializing = false;
 
         public InventoryItem()
@@ -234,6 +234,18 @@ namespace AGS.Types
         public int CompareTo(InventoryItem other)
         {
             return ID.CompareTo(other.ID);
+        }
+
+        #endregion
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            InventoryItem copy = this.MemberwiseClone() as InventoryItem;
+            copy._interactions = this._interactions.Clone() as Interactions;
+            copy._properties = this._properties.Clone() as CustomProperties;
+            return copy;
         }
 
         #endregion

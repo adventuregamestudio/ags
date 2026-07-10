@@ -96,20 +96,29 @@ void MoveList::SetStageProgress(float progress)
 
 bool MoveList::Forward()
 {
+    // Safety fix, in case onpart became invalid
+    if (std::isnan(onpart) || onpart < 0.f)
+       onpart = 0.f;
+
     onpart += 1.f;
-    return OnProgressChanged();
+    return OnProgressChanged(1.f);
 }
 
 bool MoveList::Backward()
 {
+    // Safety fix, in case onpart became invalid
+    if (std::isnan(onpart) || onpart < 0.f)
+        onpart = 0.f;
+
     onpart -= 1.f;
     if (onpart < 0.f)
     {
+        // TODO: perform smooth transition also in the case of RevertStage
         return RevertStage();
     }
     else
     {
-        return OnProgressChanged();
+        return OnProgressChanged(-1.f);
     }
 }
 
@@ -186,7 +195,7 @@ float MoveList::CalcPartsFromProgress(uint32_t stage, float progress) const
     return std::max(xparts, yparts);
 }
 
-bool MoveList::OnProgressChanged()
+bool MoveList::OnProgressChanged(float step)
 {
     const int cur_stage = onstage;
     const int tar_pos_stage = run_params.IsForward() ? (onstage + 1) : (onstage);
@@ -196,10 +205,12 @@ bool MoveList::OnProgressChanged()
     const Point target = pos[tar_pos_stage];
 
     // Calculate next positions
-    // FIXME: use round to nearest here?
-    int xps = from.X + (int)(xpermove * onpart);
-    int yps = from.Y + (int)(ypermove * onpart);
+    const float max_xps = from.X + (xpermove * onpart);
+    const float max_yps = from.Y + (ypermove * onpart);
+    const float old_xps = (xpermove * (onpart - step)), old_yps = (ypermove * (onpart - step));
 
+    // FIXME: use round to nearest here?
+    int xps = static_cast<int>(max_xps), yps = static_cast<int>(max_yps);
     // Check if finished either horizontal or vertical movement;
     // snap to the target (in case run over)
     if (((xpermove > 0) && (xps >= target.X)) || ((xpermove < 0) && (xps <= target.X)))
@@ -216,7 +227,19 @@ bool MoveList::OnProgressChanged()
     if (xps == target.X && yps == target.Y)
     {
         // this stage is done, go on to the next stage, or stop
-        return NextStage();
+        if (NextStage())
+        {
+            // Smooth out next stage transition by carrying over remaining % of the previous move
+            const float frac_complete_x = (max_xps != old_xps) ? (xps - old_xps) / (max_xps - old_xps) : 0.f;
+            const float frac_complete_y = (max_yps != old_yps) ? (yps - old_yps) / (max_yps - old_yps) : 0.f;
+            const float lost_frac = std::max(1.f - frac_complete_x, 1.f - frac_complete_y);
+            onpart += lost_frac;
+            return true; // proceed to the next stage
+        }
+        else
+        {
+            return false; // end of path
+        }
     }
     else
     {

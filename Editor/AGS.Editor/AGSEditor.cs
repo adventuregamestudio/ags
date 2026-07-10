@@ -120,6 +120,7 @@ namespace AGS.Editor
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
          * 3.6.3.8        - Font Overrides in Translation, TextOutlineColor in GUI controls.
          * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption
+         * 3.6.3.12       - Settings.TurnOrderPriority, TextBoxKeyClaimStyle.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms. Deprecate '[' as a linebreak.
@@ -1313,14 +1314,16 @@ namespace AGS.Editor
 		{
 			if (errors.HasErrors)
 			{
-				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
+				if ((_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
+                    || StdConsoleWriter.IsEnabled)
 				{
 					Factory.GUIController.ShowMessage("There were compilation errors. See the output window for details.", MessageBoxIcon.Warning);
 				}
 			}
 			else if (errors.HasErrorsOrWarnings)
 			{
-				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
+				if ((_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
+                    || StdConsoleWriter.IsEnabled)
                 {
                     Factory.GUIController.ShowMessage("There were warnings compiling your game. See the output window for details.", MessageBoxIcon.Warning);
 				}

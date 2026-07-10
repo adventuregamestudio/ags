@@ -6,8 +6,10 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     public class ViewLoop
     {
+        [NonSerialized]
         public static readonly string[] DirectionNames = new string[]{"down", "left", "right", "up", "down-right", "up-right", "down-left", "up-left"};
 
         private int _id;

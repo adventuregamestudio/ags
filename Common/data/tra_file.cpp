@@ -319,7 +319,10 @@ void WriteFontOverrides(const Translation &tra, Stream *out)
         {
             // This corresponds to the standard font info format in game data
             out->WriteInt32(finfo.Flags);
-            out->WriteInt32(finfo.Size);
+            if ((finfo.Flags & FFLG_SIZEMULTIPLIER) == 0)
+                out->WriteInt32(finfo.Size * finfo.SizeMultiplier);
+            else
+                out->WriteInt32(finfo.SizeMultiplier);
             out->WriteInt32(finfo.Outline);
             out->WriteInt32(finfo.YOffset);
             out->WriteInt32(finfo.LineSpacing);

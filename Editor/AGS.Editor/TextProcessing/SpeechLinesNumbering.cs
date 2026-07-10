@@ -59,12 +59,12 @@ namespace AGS.Editor
                     }
                 }
 
-                dialog.Script = processor.ProcessText(dialog.Script, GameTextType.DialogScript);
+                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.Name), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
             {
-                script.Script.Text = processor.ProcessText(script.Script.Text, GameTextType.Script);                
+                script.Script.Text = processor.ProcessText(GameTextLine.MakeScript(script.Script.Text, script.Script.FileName), GameTextType.Script);                
             }
 
             if (_errors.HasErrors)

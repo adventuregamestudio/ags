@@ -6,8 +6,9 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [DefaultProperty("Text")]
-    public class DialogOption
+    public class DialogOption : ICloneable
     {
         private int _id;
         private string _text = string.Empty;
@@ -66,5 +67,13 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
+        #region IClonable Members
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        #endregion
     }
 }

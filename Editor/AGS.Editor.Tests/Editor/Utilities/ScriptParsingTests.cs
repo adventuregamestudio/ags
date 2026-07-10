@@ -51,9 +51,52 @@ function f()
         }
 
         [Test]
+        public void FillLinesSection_Test()
+        {
+            string script = UniformTestString(TestScript);
+
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
+            ScriptParsing.FillLines(state);
+
+            Assert.AreEqual(33, state.Lines.Count);
+            Assert.AreEqual(0, state.Lines[0]);
+            Assert.AreEqual(1, state.Lines[1]);
+            Assert.AreEqual(21, state.Lines[2]);
+            Assert.AreEqual(32, state.Lines[3]);
+            Assert.AreEqual(46, state.Lines[4]);
+            Assert.AreEqual(67, state.Lines[5]);
+            Assert.AreEqual(69, state.Lines[6]);
+            Assert.AreEqual(71, state.Lines[7]);
+            Assert.AreEqual(74, state.Lines[8]);
+            Assert.AreEqual(87, state.Lines[9]);
+            Assert.AreEqual(89, state.Lines[10]);
+            Assert.AreEqual(118, state.Lines[11]);
+            Assert.AreEqual(135, state.Lines[12]);
+            Assert.AreEqual(150, state.Lines[13]);
+            Assert.AreEqual(168, state.Lines[14]);
+            Assert.AreEqual(183, state.Lines[15]);
+            Assert.AreEqual(207, state.Lines[16]);
+            Assert.AreEqual(255, state.Lines[17]);
+            Assert.AreEqual(292, state.Lines[18]);
+            Assert.AreEqual(314, state.Lines[19]);
+            Assert.AreEqual(343, state.Lines[20]);
+            Assert.AreEqual(345, state.Lines[21]);
+            Assert.AreEqual(347, state.Lines[22]);
+            Assert.AreEqual(350, state.Lines[23]);
+            Assert.AreEqual(381, state.Lines[24]);
+            Assert.AreEqual(382, state.Lines[25]);
+            Assert.AreEqual(440, state.Lines[26]);
+            Assert.AreEqual(484, state.Lines[27]);
+            Assert.AreEqual(496, state.Lines[28]);
+            Assert.AreEqual(506, state.Lines[29]);
+            Assert.AreEqual(519, state.Lines[30]);
+            Assert.AreEqual(538, state.Lines[31]);
+            Assert.AreEqual(560, state.Lines[32]);
+        }
+
+        [Test]
         public void FillCommentSections_Test()
         {
-            // Unify line endings in the input string, in case they depend on a enviroment.
             string script = UniformTestString(TestScript);
 
             ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);

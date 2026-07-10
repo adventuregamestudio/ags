@@ -7,14 +7,17 @@ using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
+    [Serializable]
     [DefaultProperty("Name")]
-    public class Dialog : IScript, IToXml, IComparable<Dialog>
+    public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
     {
         private int _id;
         private string _name;
         private bool _showTextParser;
         private string _script;
+        [NonSerialized]
         private bool _scriptChangedSinceLastCompile;
+        [NonSerialized]
         private string _cachedConvertedScript;
         private List<DialogOption> _options = new List<DialogOption>();
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Dialogs);
@@ -167,6 +170,19 @@ namespace AGS.Types
         public int CompareTo(Dialog other)
         {
             return ID.CompareTo(other.ID);
+        }
+
+        #endregion
+
+        #region IClonable Members
+
+        public object Clone()
+        {
+            Dialog copy = this.MemberwiseClone() as Dialog;
+            copy._options = new List<DialogOption>();
+            foreach (var option in this._options)
+                copy._options.Add(option.Clone() as DialogOption);
+            return copy;
         }
 
         #endregion

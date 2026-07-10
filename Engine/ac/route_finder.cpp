@@ -311,8 +311,7 @@ void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, 
     const float new_movspeed_x = InputSpeedToVelocity(new_speed_x);
     const float new_movspeed_y = InputSpeedToVelocity(new_speed_y);
     // save current stage's step lengths, for later onpart's update
-    const float old_stage_xpermove = mls.permove[mls.onstage].X;
-    const float old_stage_ypermove = mls.permove[mls.onstage].Y;
+    const Pointf old_stage_permove = mls.permove[mls.onstage];
 
     for (uint32_t i = 0; (i < mls.GetNumStages()) && ((mls.permove[i].X != 0.f) || (mls.permove[i].Y != 0.f)); ++i)
     {
@@ -346,10 +345,13 @@ void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, 
     // now adjust current passed stage fraction
     if (mls.onpart >= 0.f)
     {
-        if (old_stage_xpermove != 0.f)
-            mls.SetStageDoneSteps((mls.onpart * old_stage_xpermove) / mls.permove[mls.onstage].X);
+        const auto &new_stage_permove = mls.permove[mls.onstage];
+        if ((old_stage_permove.X != 0.f) && (new_stage_permove.X != 0.f))
+            mls.SetStageDoneSteps((mls.onpart * old_stage_permove.X) / mls.permove[mls.onstage].X);
+        else if ((old_stage_permove.Y != 0.f) && (new_stage_permove.Y != 0.f))
+            mls.SetStageDoneSteps((mls.onpart * old_stage_permove.Y) / mls.permove[mls.onstage].Y);
         else
-            mls.SetStageDoneSteps((mls.onpart * old_stage_ypermove) / mls.permove[mls.onstage].Y);
+            assert(false); // should never happen
     }
 }
 

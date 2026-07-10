@@ -764,11 +764,14 @@ void prepare_gui_runtime(bool startup)
     // Reset particular states after loading game data
     if (startup)
     {
-        // labels are not clickable by default
-        // CHECKME: why are we doing this at all?
-        for (auto &label : guilabels)
+        // Labels are not supposed to be clickable by default
+        // (done in the editor since 3.6.3)
+        if (loaded_game_file_version < kGameVersion_363_10)
         {
-            label.SetClickable(false);
+            for (auto &label : guilabels)
+            {
+                label.SetClickable(false);
+            }
         }
     }
     play.gui_draw_order.resize(guis.size());
@@ -1121,6 +1124,29 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     run_on_event(kScriptEvent_GUIMouseDown, guin, mbut, mx - guis[guin].GetX(), my - guis[guin].GetY());
 }
 
+GUITextBox *gui_get_active_textbox()
+{
+    if (!GUI::IsEnabledState())
+        return nullptr;
+
+    for (auto &gui : guis)
+    {
+        if (!gui.IsDisplayed())
+            continue;
+
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+        {
+            if (gui.GetControlType(i) == kGUITextBox)
+            {
+                auto *guitex = static_cast<GUITextBox*>(gui.GetControl(i));
+                if (guitex && guitex->IsEnabled() && guitex->IsVisible())
+                    return guitex;
+            }
+        }
+    }
+    return nullptr;
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -1137,6 +1163,11 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
 ScriptGUI *GUI_GetByName(const char *name)
 {
     return static_cast<ScriptGUI*>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));
+}
+
+GUITextBox *GUI_GetActiveTextInputControl()
+{
+    return gui_get_active_textbox();
 }
 
 ScriptUserObject *GUI_ScreenToGUIPoint(ScriptGUI *tehgui, int scrx, int scry, bool clipToGUI)
@@ -1161,6 +1192,11 @@ ScriptUserObject *GUI_GUIToScreenPoint(ScriptGUI *tehgui, int guix, int guiy, bo
 RuntimeScriptValue Sc_GUI_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(ScriptGUI, ccDynamicGUI, GUI_GetByName, const char);
+}
+
+RuntimeScriptValue Sc_GUI_GetActiveTextInputControl(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(GUITextBox, ccDynamicGUIControl, GUI_GetActiveTextInputControl);
 }
 
 // void GUI_Centre(ScriptGUI *sgui)
@@ -1545,7 +1581,8 @@ void RegisterGUIAPI()
     ScFnRegister gui_api[] = {
         { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY2) },
         { "GUI::GetAtScreenXY^3",         API_FN_PAIR(GUI_GetAtScreenXY) },
-        { "GUI::GetByName",               API_FN_PAIR(GUI_GetByName) },
+        { "GUI::GetByName^1",             API_FN_PAIR(GUI_GetByName) },
+        { "GUI::GetActiveTextInputControl^0", API_FN_PAIR(GUI_GetActiveTextInputControl) },
         { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },
         { "GUI::ScreenToGUIPoint",        API_FN_PAIR(GUI_ScreenToGUIPoint) },
         { "GUI::GUIToScreenPoint",        API_FN_PAIR(GUI_GUIToScreenPoint) },

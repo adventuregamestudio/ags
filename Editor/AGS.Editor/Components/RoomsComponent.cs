@@ -1149,17 +1149,23 @@ namespace AGS.Editor.Components
 
         private Room LoadNewRoomForEditing(UnloadedRoom newRoom, CompileMessages errors)
         {
+            // IMPORTANT: we **MUST** create Script object in the UnloadedRoom object,
+            // because then it will be shared between UnloadedRoom and LoadedRoom.
+            // When the script is opened for editing in the editor window, it is taken
+            // from UnloadedRoom. It's modified state should be accessible in both
+            // UnloadedRoom and LoadedRoom objects. That's how Editor is organized...
+            if ((newRoom.Script == null) || (!newRoom.Script.Modified))
+            {
+                TryLoadScriptAndCreateMissing(newRoom, errors, silent: false);
+            }
+            else if (_roomScriptEditors.ContainsKey(newRoom.Number))
+            {
+                ((ScriptEditor)_roomScriptEditors[newRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
+            }
+
             // Load the room into the editing state;
             // currently AGS Editor supports only a single room in edit state.
-            _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
-            if ((_loadedRoom.Script == null) || (!_loadedRoom.Script.Modified))
-            {
-                TryLoadScriptAndCreateMissing(_loadedRoom, errors, silent: false);
-            }
-            else if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
-            {
-                ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
-            }
+           _loadedRoom = new Room(LoadData(newRoom)) { Script = newRoom.Script };
 
             // Update and fixup room as necessary
             CheckRoomForValidity(_loadedRoom, errors);
@@ -1974,7 +1980,7 @@ namespace AGS.Editor.Components
 
                 string roomContext = string.IsNullOrEmpty(room.Description) ? $"Room {room.Number}" : $"Room {room.Number}; {room.Description}";
 
-                room.Script.Text = processor.ProcessText(room.Script.Text, roomContext, GameTextType.Script);
+                room.Script.Text = processor.ProcessText(GameTextLine.MakeScript(room.Script.Text, room.ScriptFileName, roomContext), GameTextType.Script);
                 if (processor.MakesChanges)
                 {
                     room.Script.SaveToDisk();
@@ -1984,13 +1990,13 @@ namespace AGS.Editor.Components
 
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
-                    hotspot.Description = processor.ProcessText(hotspot.Description, roomContext, GameTextType.ItemDescription);
+                    hotspot.Description = processor.ProcessText(new GameTextLine(hotspot.Description, roomContext), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, roomContext, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
-                    obj.Description = processor.ProcessText(obj.Description, roomContext, GameTextType.ItemDescription);
+                    obj.Description = processor.ProcessText(new GameTextLine(obj.Description, roomContext), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, roomContext, errors);
                 }
 

@@ -17,6 +17,7 @@ namespace AGS.Editor
         bool IsPlaying();
         void Poll();
         int GetLengthMs();
+        MediaInfo GetMediaInfo();
         int GetPositionMs();
         void Pause();
         void Resume();

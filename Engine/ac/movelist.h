@@ -139,7 +139,7 @@ private:
     float CalcPartsFromProgress(uint32_t stage, float progress) const;
     // Handle stage progress change, possibly moves to the next stage;
     // returns if there's a new stage available
-    bool OnProgressChanged();
+    bool OnProgressChanged(float step);
     // Handle end of path, either stop or reset to beginning, as per RunPathParams;
     // returns whether to stop movement ('true') or continue ('false')
     bool OnPathCompleted();

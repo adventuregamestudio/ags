@@ -11,7 +11,7 @@ namespace AGS.Types
     [DisplayName("Custom Properties")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-    public class CustomProperties : ICloneable, ICustomTypeDescriptor
+    public class CustomProperties : ICustomTypeDescriptor, ICloneable
     {
         private Dictionary<string, CustomProperty> _properties = new Dictionary<string,CustomProperty>(
             StringComparer.InvariantCultureIgnoreCase);
@@ -108,14 +108,18 @@ namespace AGS.Types
             return "(Properties)";
         }
 
+        #region IClonable Members
+
         public object Clone()
         {
             CustomProperties props = new CustomProperties(_appliesTo);
             props._properties =
                 _properties.ToDictionary(entry => entry.Key,
-                                          entry => (CustomProperty)entry.Value.Clone());
+                                         entry => (CustomProperty)entry.Value.Clone());
             return props;
         }
+
+        #endregion
 
         #region ICustomTypeDescriptor
 

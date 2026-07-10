@@ -101,6 +101,7 @@
 #define OPT_AUTOTRANSPARSERSAID 58
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59
 #define OPT_TURNORDERPRIORITY 60
+#define OPT_TEXTBOXCLAIMSKEYS 61
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT     0
@@ -587,6 +588,14 @@ enum TurnOrderPriority
   eTurnOrderRandom             = 2,
   eTurnOrderFaceDown           = 3
 };
+
+// Determines which of the key and text input events are claimed by the active TextBox control
+enum TextBoxKeyClaimStyle
+{
+  eTextBoxKeyClaimAll          = 0,
+  eTextBoxKeyClaimHandled      = 1,
+  eTextBoxKeyClaimTextOnly     = 2
+};
 #endif // SCRIPT_API_v363
 
 enum EventType {
@@ -899,6 +908,18 @@ builtin managed struct DrawingSurface {
   import int  GetPixel(int x, int y);
   /// Tells AGS that you have finished drawing onto the surface.
   import void Release();
+#ifdef SCRIPT_API_v363
+  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
+  import readonly attribute bool Valid;
+  /// Returns a dynamic array of bytes, containing a copy of this surface's pixels from the specified region, in respective format.
+  import char[] GetPixelsCopy(int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Returns a dynamic array of ints, containing a copy of this surface's pixels from the specified region, in 32-bit ARGB format.
+  import int[] GetPixelsCopy32(int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Pastes an array of pixels onto the surface at the specified position. The pixels format must match the surface's.
+  import void SetPixels(char pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
+  /// Pastes an array of pixels onto the surface at the specified position. The image must have a 32-bit color depth (ARGB format).
+  import void SetPixels32(int pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
+#endif // SCRIPT_API_v363
   /// Gets/sets the current AGS Colour Number that will be used for drawing onto this surface.
   import attribute int DrawingColor;
   /// Gets the height of this surface.
@@ -906,24 +927,12 @@ builtin managed struct DrawingSurface {
   /// Gets the width of the surface.
   readonly import attribute int Width;
 #ifdef SCRIPT_API_v363
-  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
-  import readonly attribute bool Valid;
-#endif
+  /// Gets the colour depth of this surface, in bits per pixel (8, 16, 32).
+  readonly import attribute int ColorDepth;
+#endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
-  /// Returns a dynamic array of bytes, containing a copy of this surface's pixels from the specified region, in respective format.
-  import char[] GetPixelsCopy(int x = 0, int y = 0, int width = -1, int height = -1);
-  /// Returns a dynamic array of ints, containing a copy of this surface's pixels from the specified region, in ARGB format.
-  import int[] GetPixelsCopy32(int x = 0, int y = 0, int width = -1, int height = -1);
-  /// Changes the colour of a single pixel on the surface. This operation ignores drawing settings, and simply sets the color value.
-  import void SetPixel(int x, int y, int color);
-  /// Pastes an array of pixels onto the surface at the specified position. The pixels format must match the surface's.
-  import void SetPixels(char pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
-  /// Pastes an array of pixels onto the surface at the specified position. The image must have a 32-bit color depth (ARGB format).
-  import void SetPixels32(int pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
   /// Gets/sets the current BlendMode that will be used for drawing onto this surface.
   import attribute BlendMode BlendMode;
-  /// Gets the colour depth of this surface.
-  readonly import attribute int ColorDepth;
 #endif // SCRIPT_API_v400
 };
 
@@ -1304,6 +1313,7 @@ builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions invHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the inventory item by its script name
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer custom property for this item.
@@ -1531,7 +1541,7 @@ builtin managed struct DynamicSprite {
   import int  SaveToFile(const string filename);
   /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
-  /// Gets the colour depth of this sprite.
+  /// Gets the colour depth of this sprite, in bits per pixel (8, 16, 32).
   readonly import attribute int ColorDepth;
   /// Gets the sprite number of this dynamic sprite, which you can use to display it in the game.
   readonly import attribute int Graphic;
@@ -1663,13 +1673,11 @@ import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 import void SkipCutscene();
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v363
+/// Gets a dynamic arrays of keys that are currently held down.
+import eKeyCode[] GetPressedKeys();
 /// Checks whether any key is currently held down.
 import bool IsAnyKeyPressed();
 #endif // SCRIPT_API_v363
-#ifdef SCRIPT_API_v400
-/// Gets a dynamic arrays of keys that are currently held down.
-import eKeyCode[] GetPressedKeys();
-#endif // SCRIPT_API_v400
 
 #ifdef SCRIPT_API_v363
 enum GUIButtonColorStyle {
@@ -1697,6 +1705,7 @@ builtin managed struct GUIControl {
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
   import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions controlHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
 #ifdef SCRIPT_API_v361
+  /// Gets the GUI Control by its script name
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Sends this control to the back of the z-order, behind all other controls.
@@ -2025,8 +2034,13 @@ builtin managed struct GUI {
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the GUI by its script name
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v363
+  /// Returns the first found active TextBox control; which is the one that receives key and text input right now.
+  import static TextBox* GetActiveTextInputControl(); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v363
   /// Moves the GUI to have its top-left corner at the specified position.
   import void SetPosition(int x, int y);
   /// Changes the size of the GUI.
@@ -2148,6 +2162,7 @@ builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the hotspot by its script name
   import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer Custom Property for this hotspot.
@@ -2283,6 +2298,7 @@ builtin managed struct Walkbehind {
 
 builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
+  /// Gets the dialog by its script name
   import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Displays the options for this dialog and returns which one the player selected.
@@ -2541,6 +2557,7 @@ builtin managed struct AudioChannel {
 
 builtin managed struct AudioClip {
 #ifdef SCRIPT_API_v361
+  /// Gets the audio clip by its script name
   import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Plays this audio clip.
@@ -2628,7 +2645,7 @@ builtin struct System {
   readonly import static attribute AudioChannel *AudioChannels[];   // $AUTOCOMPLETESTATICONLY$
   /// Gets the number of audio channels supported by AGS.
   readonly import static attribute int  AudioChannelCount;   // $AUTOCOMPLETESTATICONLY$
-  /// Gets the colour depth that the game is running at.
+  /// Gets the colour depth that the game is running at, in bits per pixel (8, 16, 32).
   readonly import static attribute int  ColorDepth;
   /// Gets/sets the gamma correction level.
   import static attribute int  Gamma;
@@ -2695,6 +2712,7 @@ builtin managed struct Object {
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the object by its script name
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets an integer Custom Property for this object.
@@ -2899,6 +2917,7 @@ builtin managed struct Character {
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  /// Gets the character by its script name
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
   /// Gets a numeric custom property for this character.
@@ -3311,6 +3330,8 @@ builtin struct Game {
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 100). Value 0 disables crossfade.
+  import static int GetAudioTypeCrossfadeSpeed(AudioType);
   /// Returns the volume drop applied to the specified audio type when speech is played
   import static int GetAudioTypeSpeechVolumeDrop(AudioType);
   /// Returns the default volume of audio clips of the specified type. Return value -1 means that no standard volume is defined, and each clip will start playback with its own default volume set in the editor.
@@ -3321,6 +3342,8 @@ builtin struct Game {
   import static void Pause();
   /// Resumes the game after it was paused earlier. Each call to Game.Resume() decrements a "pause" counter.
   import static void Resume();
+  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 100). Value 0 disables crossfade.
+  import static void SetAudioTypeCrossfadeSpeed(AudioType, int speed);
   /// Returns whether the game is currently paused.
   import static readonly attribute bool IsPaused;
   /// Gets/sets game's running speed, in frames per second.

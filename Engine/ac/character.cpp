@@ -2057,7 +2057,8 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
     int xwas = chi->x, ywas = chi->y;
     // If we support smooth walk, then keep moving even across multiple stages,
     // until all the "current move" is not depleted OR until we have to turn.
-    while (do_movelist_move(chi->walking, chi->x, chi->y, play.ShouldSmoothWalk()) == kMoveResult_NextStage)
+    bool step_forward = true;
+    while (do_movelist_move(chi->walking, chi->x, chi->y, step_forward, play.ShouldSmoothWalk()) == kMoveResult_NextStage)
     {
         // Character just switched to the next path segment
         auto &mlist = mls[chi->get_movelist_id()];
@@ -2068,6 +2069,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
             mlist.onpart = 0.f;
             break;
         }
+        step_forward = false;
     }
 
     int ntf = has_hit_another_character(chi->index_id);

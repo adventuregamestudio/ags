@@ -152,7 +152,7 @@ static bool movelist_handle_donemove(const uint8_t testflag, const fixed xpermov
     return (doneflag & testflag) != 0;
 }
 
-MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_move)
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool step_forward, bool smooth_move)
 {
     // NOTE: mslot 0 is not used, because id 0 is treated as "no move"
     assert(mslot >= 1);
@@ -212,7 +212,8 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_mo
     if ((cmls.doneflag & kMoveListDone_XY) != kMoveListDone_XY)
     {
         // Make a step along the current vector and return
-        cmls.onpart += 1.f;
+        if (step_forward)
+            cmls.onpart += 1.f;
     }
     else
     {
@@ -242,10 +243,13 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_mo
             cmls.doneflag = 0;
 
             // Smooth out next stage transition by carrying over remaining % of the previous move
-            const float frac_complete_x = (max_xps != pos_x) ? static_cast<float>(xps - pos_x) / static_cast<float>(max_xps - pos_x) : 0.f;
-            const float frac_complete_y = (max_yps != pos_y) ? static_cast<float>(yps - pos_y) / static_cast<float>(max_yps - pos_y) : 0.f;
-            const float lost_frac = std::max(1.f - frac_complete_x, 1.f - frac_complete_y);
-            cmls.onpart += lost_frac;
+            if (smooth_move)
+            {
+                const float frac_complete_x = (max_xps != pos_x) ? static_cast<float>(xps - pos_x) / static_cast<float>(max_xps - pos_x) : 1.f;
+                const float frac_complete_y = (max_yps != pos_y) ? static_cast<float>(yps - pos_y) / static_cast<float>(max_yps - pos_y) : 1.f;
+                const float lost_frac = std::max(1.f - frac_complete_x, 1.f - frac_complete_y);
+                cmls.onpart += lost_frac;
+            }
             move_result = kMoveResult_NextStage;
         }
     }

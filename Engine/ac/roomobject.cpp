@@ -76,8 +76,9 @@ void RoomObject::UpdateCyclingView(int ref_id)
         // If we support smooth walk, then keep moving even across multiple stages,
         // until all the "current move" is not depleted
         MoveResult last_move_result;
-        while (((last_move_result = do_movelist_move(moving, x, y, play.ShouldSmoothWalk())) == kMoveResult_NextStage)
-            && play.ShouldSmoothWalk() && mls[moving].onpart > 0.f);
+        bool step_forward = true;
+        while (((last_move_result = do_movelist_move(moving, x, y, step_forward, play.ShouldSmoothWalk())) == kMoveResult_NextStage)
+            && play.ShouldSmoothWalk() && mls[moving].onpart > 0.f) { step_forward = false; }
     }
     if (cycling==0) return;
     if (view == RoomObject::NoView) return;

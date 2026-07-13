@@ -103,6 +103,9 @@ extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 extern std::vector<int> StaticObjectArray;
 extern std::vector<int> StaticHotspotArray;
+extern std::vector<int> StaticRegionArray;
+extern std::vector<int> StaticWalkareaArray;
+extern std::vector<int> StaticWalkbehindArray;
 
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
 RGB_MAP rgb_table;  // for 256-col antialiasing
@@ -420,19 +423,35 @@ void unload_old_room()
     play.swap_portrait_lastchar = -1;
     play.swap_portrait_lastlastchar = -1;
 
-    for (uint32_t ff = 0; ff < croom->numobj; ff++) {
-        // un-export the object's script object
-        if (thisroom.Objects[ff].ScriptName.IsEmpty())
-            continue;
-
-        ccRemoveExternalSymbol(thisroom.Objects[ff].ScriptName);
+    // Remove named room elements from script
+    for (uint32_t i = 0; i < thisroom.Objects.size(); ++i)
+    {
+        if (!thisroom.Objects[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(thisroom.Objects[i].ScriptName);
     }
 
-    for (int ff = 0; ff < MAX_ROOM_HOTSPOTS; ff++) {
-        if (thisroom.Hotspots[ff].ScriptName.IsEmpty())
-            continue;
+    for (uint32_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    {
+        if (!thisroom.Hotspots[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(thisroom.Hotspots[i].ScriptName);
+    }
 
-        ccRemoveExternalSymbol(thisroom.Hotspots[ff].ScriptName);
+    for (uint32_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        if (!thisroom.Regions[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(thisroom.Regions[i].ScriptName);
+    }
+
+    for (uint32_t i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        if (!thisroom.WalkAreas[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(thisroom.WalkAreas[i].ScriptName);
+    }
+
+    for (uint32_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+    {
+        if (!thisroom.WalkBehinds[i].ScriptName.IsEmpty())
+            ccRemoveExternalSymbol(thisroom.WalkBehinds[i].ScriptName);
     }
 
     croom_ptr_clear();
@@ -706,18 +725,35 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
 
-    // Register named Objects and Hotspots
-    for (uint32_t cc = 0; cc < thisroom.Objects.size(); cc++)
+    // Export named room elements to script
+    for (uint32_t i = 0; i < thisroom.Objects.size(); ++i)
     {
-        // export the object's script object
-        if (!thisroom.Objects[cc].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.Objects[cc].ScriptName, &StaticObjectArray[cc]);
+        if (!thisroom.Objects[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.Objects[i].ScriptName, &StaticObjectArray[i]);
     }
 
-    for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
+    for (uint32_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        if (!thisroom.Hotspots[cc].ScriptName.IsEmpty())
-            ccAddExternalScriptObjectHandle(thisroom.Hotspots[cc].ScriptName, &StaticHotspotArray[cc]);
+        if (!thisroom.Hotspots[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.Hotspots[i].ScriptName, &StaticHotspotArray[i]);
+    }
+
+    for (uint32_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        if (!thisroom.Regions[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.Regions[i].ScriptName, &StaticRegionArray[i]);
+    }
+
+    for (uint32_t i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        if (!thisroom.WalkAreas[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.WalkAreas[i].ScriptName, &StaticWalkareaArray[i]);
+    }
+
+    for (uint32_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+    {
+        if (!thisroom.WalkBehinds[i].ScriptName.IsEmpty())
+            ccAddExternalScriptObjectHandle(thisroom.WalkBehinds[i].ScriptName, &StaticWalkbehindArray[i]);
     }
 
     set_our_eip(210);

@@ -1005,13 +1005,16 @@ namespace AGS.Editor
                 }
             }
 
-            if (propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME ||
+            if (needRefresh ||
+                propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME ||
                 propertyName == RoomHotspot.PROPERTY_NAME_DESCRIPTION ||
                 propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME ||
                 propertyName == RoomObject.PROPERTY_NAME_DESCRIPTION ||
                 propertyName == Character.PROPERTY_NAME_SCRIPTNAME ||
                 propertyName == Character.PROPERTY_NAME_DESCRIPTION ||
-                needRefresh)
+                propertyName == RoomRegion.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == RoomWalkableArea.PROPERTY_NAME_SCRIPT_NAME ||
+                propertyName == RoomWalkBehind.PROPERTY_NAME_SCRIPT_NAME)
             {
                 if (_layer != null)
                 {

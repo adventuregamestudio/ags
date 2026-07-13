@@ -10,7 +10,10 @@ namespace AGS.Types
     [DefaultProperty("Baseline")]
     public class RoomWalkBehind : IToXml
     {
+        public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
+
         private int _id;
+        private string _scriptName = string.Empty;
         private int _baseline;
         private Room _room;
 
@@ -40,6 +43,16 @@ namespace AGS.Types
         {
             get { return _id; }
             set { _id = value; }
+        }
+
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [Description("The script name of the walk-behind")]
+        [Category("Design")]
+        [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
         [Description("Characters standing above this baseline will be drawn behind the walk-behind")]

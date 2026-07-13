@@ -55,6 +55,7 @@ v4.0.0: Raised for org purposes without format changes
 v4.0.0.17: Raised for org purposes, because forgot to rise each time a new ext was added
 v4.0.0.24: Remade events tables
 v4.0.0.26: sync with 3.6.3.6
+v4.0.0.30: area script names
 */
 enum RoomFileVersion
 {
@@ -66,8 +67,9 @@ enum RoomFileVersion
     kRoomVersion_400_17     = 4000017,
     kRoomVersion_400_24     = 4000024,
     kRoomVersion_400_26     = 4000026,
+    kRoomVersion_400_30     = 4000030,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_400_26
+    kRoomVersion_Current    = kRoomVersion_400_30
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

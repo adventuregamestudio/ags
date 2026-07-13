@@ -11,7 +11,10 @@ namespace AGS.Types
     [DefaultProperty("LightLevel")]
     public class RoomRegion : IChangeNotification, ICustomTypeDescriptor, IToXml
     {
+        public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
+
         private int _id;
+        private string _scriptName = string.Empty;
         private int _lightLevel = 100;
         private bool _useTint = false;
         private int _redTint = 0;
@@ -49,6 +52,16 @@ namespace AGS.Types
         {
             get { return _id; }
             set { _id = value; }
+        }
+
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [Description("The script name of the region")]
+        [Category("Design")]
+        [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
         [Description("Use a coloured tint for characters and objects on this region, rather than adjusting their brightness")]

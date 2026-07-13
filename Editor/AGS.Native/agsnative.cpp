@@ -3223,6 +3223,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		area->ID = i;
+        area->ScriptName = TextHelper::ConvertASCII(rs.WalkAreas[i].ScriptName);
 		area->AreaSpecificView = rs.WalkAreas[i].PlayerView;
         area->FaceDirectionRatio = rs.WalkAreas[i].FaceDirectionRatio;
 		area->UseContinuousScaling = !(rs.WalkAreas[i].ScalingNear == NOT_VECTOR_SCALED);
@@ -3243,6 +3244,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		area->ID = i;
+        area->ScriptName = TextHelper::ConvertASCII(rs.WalkBehinds[i].ScriptName);
 		area->Baseline = rs.WalkBehinds[i].Baseline;
 	}
 
@@ -3250,6 +3252,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 	{
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
+        area->ScriptName = TextHelper::ConvertASCII(rs.Regions[i].ScriptName);
 		// NOTE: Region's light level value exposed in editor is always 100 units higher,
 		// for compatibility with older versions of the editor.
 		// TODO: probably we could remove this behavior? Need to consider possible compat mode
@@ -3309,6 +3312,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     {
         RoomObject ^obj = room->Objects[i];
         auto &robj = rs.Objects[i];
+        robj.ID = i;
         robj.ScriptName = TextHelper::ConvertASCII(obj->Name);
         robj.Sprite = obj->Image;
         robj.Transparency = AGS::Common::GfxDef::Trans100ToLegacyTrans255(obj->Transparency);
@@ -3335,6 +3339,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.HotspotCount; ++i)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
+        rs.Hotspots[i].ID = i;
 		rs.Hotspots[i].Name = tcv->ConvertTextProperty(hotspot->Description);
 		rs.Hotspots[i].ScriptName = TextHelper::ConvertASCII(hotspot->Name);
 		rs.Hotspots[i].WalkTo.X = hotspot->WalkToPoint.X;
@@ -3346,6 +3351,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.WalkAreaCount; ++i)
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
+        rs.WalkAreas[i].ID = i;
+        rs.WalkAreas[i].ScriptName = TextHelper::ConvertASCII(area->ScriptName);
 		rs.WalkAreas[i].PlayerView = area->AreaSpecificView;
         rs.WalkAreas[i].FaceDirectionRatio = area->FaceDirectionRatio;
 
@@ -3367,6 +3374,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.WalkBehindCount; ++i)
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
+        rs.WalkBehinds[i].ID = i;
+        rs.WalkBehinds[i].ScriptName = TextHelper::ConvertASCII(area->ScriptName);
 		rs.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
@@ -3374,6 +3383,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.RegionCount; ++i)
 	{
 		RoomRegion ^area = room->Regions[i];
+        rs.Regions[i].ID = i;
+        rs.Regions[i].ScriptName = TextHelper::ConvertASCII(area->ScriptName);
 		rs.Regions[i].Tint = 0;
 		if (area->UseColourTint) 
 		{

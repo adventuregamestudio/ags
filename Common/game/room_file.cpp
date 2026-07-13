@@ -468,6 +468,43 @@ HError ReadExt_400_ObjectOptions2(RoomStruct* room, Stream* in, RoomFileVersion 
     return HError::None();
 }
 
+HError ReadExt_400_AreaNames(RoomStruct* room, Stream* in, RoomFileVersion data_ver)
+{
+    // NOTE: Object names and script names were historically written in
+    // blocks kRoomFblk_ObjectNames and kRoomFblk_ObjectScNames, but limited
+    // to 255 objects. Here they are limited to UINT32_MAX objects.
+    HError err;
+    if (!ReadAndAssertCount(in, "objects", room->Objects.size(), err))
+        return err;
+    for (auto &obj : room->Objects)
+    {
+        obj.ScriptName = StrUtil::ReadString(in);
+        obj.Name = StrUtil::ReadString(in);
+    }
+    // NOTE: Hotspot names and script names are written in the Main block,
+    // so they are skipped here.
+    //
+    if (!ReadAndAssertCount(in, "regions", MAX_ROOM_REGIONS, err))
+        return err;
+    for (uint8_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        room->Regions[i].ScriptName = StrUtil::ReadString(in);
+    }
+    if (!ReadAndAssertCount(in, "walkable areas", MAX_WALK_AREAS, err))
+        return err;
+    for (uint8_t i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        room->WalkAreas[i].ScriptName = StrUtil::ReadString(in);
+    }
+    if (!ReadAndAssertCount(in, "walk-behinds", MAX_WALK_BEHINDS, err))
+        return err;
+    for (uint8_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+    {
+        room->WalkBehinds[i].ScriptName = StrUtil::ReadString(in);
+    }
+    return HError::None();
+}
+
 HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
@@ -537,6 +574,10 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     {
         return ReadExt_400_ObjectOptions2(room, in, data_ver);
     }
+    else if (ext_id.CompareNoCase("v400_areanames") == 0)
+    {
+        return ReadExt_400_AreaNames(room, in, data_ver);
+    }
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
         String::FromFormat("Type: %s", ext_id.GetCStr()));
@@ -591,6 +632,18 @@ HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, Room
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
+    // Enforce sequential numeric IDs
+    for (int id = 0; id < room->Objects.size(); ++id)
+        room->Objects[id].ID = id;
+    for (int id = 0; id < MAX_ROOM_HOTSPOTS; ++id)
+        room->Hotspots[id].ID = id;
+    for (int id = 0; id < MAX_ROOM_REGIONS; ++id)
+        room->Regions[id].ID = id;
+    for (int id = 0; id < MAX_WALK_AREAS; ++id)
+        room->WalkAreas[id].ID = id;
+    for (int id = 0; id < MAX_WALK_BEHINDS; ++id)
+        room->WalkBehinds[id].ID = id;
+
     // For objects loaded from an older room, mark everything as
     // Enabled, because there's no good way to distinct if it was
     // disabled or only made invisible by setting "on" property.
@@ -673,9 +726,9 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     }
     // Hotspots names and script names
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
-        Common::StrUtil::WriteString(room->Hotspots[i].Name, out);
+        StrUtil::WriteString(room->Hotspots[i].Name, out);
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
-        Common::StrUtil::WriteString(room->Hotspots[i].ScriptName, out);
+        StrUtil::WriteString(room->Hotspots[i].ScriptName, out);
 
     out->WriteInt32(0); // legacy poly-point areas
 
@@ -766,14 +819,14 @@ void WriteObjNamesBlock(const RoomStruct *room, Stream *out)
 {
     out->WriteByte((uint8_t)room->Objects.size());
     for (const auto &obj : room->Objects)
-        Common::StrUtil::WriteString(obj.Name, out);
+        StrUtil::WriteString(obj.Name, out);
 }
 
 void WriteObjScNamesBlock(const RoomStruct *room, Stream *out)
 {
     out->WriteByte((uint8_t)room->Objects.size());
     for (const auto &obj : room->Objects)
-        Common::StrUtil::WriteString(obj.ScriptName, out);
+        StrUtil::WriteString(obj.ScriptName, out);
 }
 
 void WriteAnimBgBlock(const RoomStruct *room, Stream *out)
@@ -915,6 +968,37 @@ void WriteExt_400_ObjectOptions2(const RoomStruct* room, Stream* out)
     }
 }
 
+void WriteExt_400_AreaNames(const RoomStruct *room, Stream *out)
+{
+    // NOTE: Object names and script names were historically written in
+    // blocks kRoomFblk_ObjectNames and kRoomFblk_ObjectScNames, but limited
+    // to 255 objects. Here they are limited to UINT32_MAX objects.
+    out->WriteInt32(room->Objects.size());
+    for (const auto &obj : room->Objects)
+    {
+        StrUtil::WriteString(obj.ScriptName, out);
+        StrUtil::WriteString(obj.Name, out);
+    }
+    // NOTE: Hotspot names and script names are written in the Main block,
+    // so they are skipped here.
+    //
+    out->WriteInt32(MAX_ROOM_REGIONS);
+    for (uint8_t i = 0; i < MAX_ROOM_REGIONS; ++i)
+    {
+        StrUtil::WriteString(room->Regions[i].ScriptName, out);
+    }
+    out->WriteInt32(MAX_WALK_AREAS);
+    for (uint8_t i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        StrUtil::WriteString(room->WalkAreas[i].ScriptName, out);
+    }
+    out->WriteInt32(MAX_WALK_BEHINDS);
+    for (uint8_t i = 0; i < MAX_WALK_BEHINDS; ++i)
+    {
+        StrUtil::WriteString(room->WalkBehinds[i].ScriptName, out);
+    }
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)
@@ -928,12 +1012,6 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     // Compiled script
     if (room->CompiledScript)
         WriteRoomBlock(room, kRoomFblk_CompScript3, WriteCompSc3Block, out);
-    // Object names
-    if (room->Objects.size() > 0)
-    {
-        WriteRoomBlock(room, kRoomFblk_ObjectNames, WriteObjNamesBlock, out);
-        WriteRoomBlock(room, kRoomFblk_ObjectScNames, WriteObjScNamesBlock, out);
-    }
     // Secondary background frames
     if (room->BgFrameCount > 1)
         WriteRoomBlock(room, kRoomFblk_AnimBg, WriteAnimBgBlock, out);
@@ -952,6 +1030,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
     WriteRoomBlock(room, "v400_roomnames", WriteExt_400_RoomNames, out);
     WriteRoomBlock(room, "v400_eventtables", WriteExt_400_EventTables, out);
     WriteRoomBlock(room, "v400_objopts2", WriteExt_400_ObjectOptions2, out);
+    WriteRoomBlock(room, "v400_areanames", WriteExt_400_AreaNames, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

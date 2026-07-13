@@ -80,20 +80,6 @@ void RoomHotspot::RemapOldInteractions()
     _events.SetHandler(kHotspotEvent_MouseOver, old_interactions[6].FunctionName);
 }
 
-RoomObjectInfo::RoomObjectInfo()
-    : RoomObjectBase(&RoomObjectInfo::_eventSchema)
-    , Room(-1)
-    , X(0)
-    , Y(0)
-    , Sprite(0)
-    , Baseline(0)
-    , Transparency(0)
-    , Flags(0)
-    , BlendMode(kBlend_Normal)
-    , GraphicAnchor(0.f, 1.f) // bottom-left
-{
-}
-
 /* static */ ScriptEventSchema RoomObjectInfo::_eventSchema = {{
         { "OnAnyClick", kRoomObjectEvent_AnyClick },
         { "OnFrameEvent", kRoomObjectEvent_OnFrameEvent },
@@ -120,13 +106,6 @@ void RoomObjectInfo::RemapOldInteractions()
     _events.SetHandler(kRoomObjectEvent_AnyClick, old_interactions[4].FunctionName);
 }
 
-RoomRegion::RoomRegion()
-    : RoomObjectBase(&RoomRegion::_eventSchema)
-    , Light(0)
-    , Tint(0)
-{
-}
-
 /* static */ ScriptEventSchema RoomRegion::_eventSchema = {{
         { "OnStanding", kRegionEvent_Standing },
         { "OnWalksOnto", kRegionEvent_WalkOn },
@@ -143,22 +122,6 @@ void RoomRegion::RemapOldInteractions()
     _events.SetHandler(kRegionEvent_WalkOn, old_interactions[1].FunctionName);
     _events.SetHandler(kRegionEvent_WalkOff, old_interactions[2].FunctionName);
     Interactions = {};
-}
-
-WalkArea::WalkArea()
-    : CharacterView(0)
-    , ScalingFar(0)
-    , ScalingNear(NOT_VECTOR_SCALED)
-    , PlayerView(0)
-    , FaceDirectionRatio(0.f)
-    , Top(-1)
-    , Bottom(-1)
-{
-}
-
-WalkBehind::WalkBehind()
-    : Baseline(0)
-{
 }
 
 RoomStruct::RoomStruct()

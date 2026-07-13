@@ -696,13 +696,13 @@ namespace AGS.Editor
 
             if (currentRoom != null)
             {
-                AppendRoomObjectsAndHotspotsToHeader(sb, currentRoom);
+                AppendRoomContentsToHeader(sb, currentRoom);
             }
 
             return new Script(AUTO_GENERATED_HEADER_NAME, sb.ToString(), true);
         }
 
-        private void AppendRoomObjectsAndHotspotsToHeader(StringBuilder sb, Room room)
+        private void AppendRoomContentsToHeader(StringBuilder sb, Room room)
         {
             foreach (RoomObject obj in room.Objects)
             {
@@ -717,6 +717,30 @@ namespace AGS.Editor
                 if (hotspot.ScriptName.Length > 0)
                 {
                     sb.AppendLine("import readonly Hotspot *" + hotspot.ScriptName + ";");
+                }
+            }
+
+            foreach (RoomRegion region in room.Regions)
+            {
+                if (region.ScriptName.Length > 0)
+                {
+                    sb.AppendLine("import readonly Region *" + region.ScriptName + ";");
+                }
+            }
+
+            foreach (RoomWalkableArea area in room.WalkableAreas)
+            {
+                if (area.ScriptName.Length > 0)
+                {
+                    sb.AppendLine("import readonly WalkableArea *" + area.ScriptName + ";");
+                }
+            }
+
+            foreach (RoomWalkBehind area in room.WalkBehinds)
+            {
+                if (area.ScriptName.Length > 0)
+                {
+                    sb.AppendLine("import readonly Walkbehind *" + area.ScriptName + ";");
                 }
             }
         }

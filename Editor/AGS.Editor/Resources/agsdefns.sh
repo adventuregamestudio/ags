@@ -3311,6 +3311,8 @@ builtin managed struct Character {
   import readonly attribute int InventoryCount;
   /// Gets inventory items which character has in its inventory.
   import readonly attribute InventoryItem* Inventory[];
+  /// Gets whether the object is currently turning, which is either turning on spot by command, or turning while walking.
+  import readonly attribute bool Turning;
 #endif // SCRIPT_API_v363
 #ifdef STRICT
   /// The character's current X-position.

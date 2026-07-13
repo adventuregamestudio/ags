@@ -2242,6 +2242,10 @@ builtin managed struct Hotspot {
 builtin managed struct Region {
   /// Returns the region at the specified position within this room.
   import static Region* GetAtRoomXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v400
+  /// Gets the region by its script name
+  import static Region* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
   /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
@@ -2281,6 +2285,8 @@ builtin managed struct Region {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this region.
   import bool SetTextProperty(const string property, const string value);
+  /// Gets the script name of this region.
+  import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v400
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -2291,6 +2297,8 @@ builtin managed struct WalkableArea {
   import static WalkableArea* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Returns the walkable area at the specified position within this room.
   import static WalkableArea* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Gets the walkable area by its script name
+  import static WalkableArea* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
   /// Gets the drawing surface for the 8-bit walkable mask
   import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
   /// Changes this walkable area's scaling level.
@@ -2314,6 +2322,8 @@ builtin managed struct WalkableArea {
   import readonly attribute int ScalingMax;
   /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character while on this area.
   import static attribute float FaceDirectionRatio;
+  /// Gets the script name of this walkable area.
+  import readonly attribute String ScriptName;
 };
 #endif // SCRIPT_API_v400
 
@@ -2323,12 +2333,16 @@ builtin managed struct Walkbehind {
   import static Walkbehind* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Returns the walk-behind at the specified position within this room.
   import static Walkbehind* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Gets the walk-behind by its script name
+  import static Walkbehind* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
   /// Gets the drawing surface for the 8-bit walk-behind mask
   import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
   /// Gets the ID number for this walk-behind.
   import readonly attribute int ID;
   /// Gets/sets this walk-behind's baseline.
   import attribute int Baseline;
+  /// Gets the script name of this walk-behind.
+  import readonly attribute String ScriptName;
 };
 #endif // SCRIPT_API_v400
 

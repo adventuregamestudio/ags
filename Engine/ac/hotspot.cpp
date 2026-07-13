@@ -29,6 +29,7 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
+#include "script/script_runtime.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -133,6 +134,11 @@ ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
     return Hotspot_GetAtScreenXY(x, y, kHit_Interactable);
 }
 
+ScriptHotspot *Hotspot_GetByName(const char *name)
+{
+    return static_cast<ScriptHotspot*>(ccGetScriptObjectAddress(name, ccDynamicHotspot.GetType()));
+}
+
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
@@ -231,20 +237,7 @@ int GetHotspotIDAtRoom(int xpp, int ypp, int hit_options)
 
 #include "debug/out.h"
 #include "script/script_api.h"
-#include "script/script_runtime.h"
-#include "ac/dynobj/scriptstring.h"
 
-
-ScriptHotspot *Hotspot_GetByName(const char *name)
-{
-    return static_cast<ScriptHotspot*>(ccGetScriptObjectAddress(name, ccDynamicHotspot.GetType()));
-}
-
-
-RuntimeScriptValue Sc_Hotspot_GetByName(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_POBJ(ScriptHotspot, ccDynamicHotspot, Hotspot_GetByName, const char);
-}
 
 RuntimeScriptValue Sc_Hotspot_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -264,6 +257,11 @@ RuntimeScriptValue Sc_Hotspot_GetAtScreenXY(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_Hotspot_GetAtScreenXY2(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, Hotspot_GetAtScreenXY2);
+}
+
+RuntimeScriptValue Sc_Hotspot_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(ScriptHotspot, ccDynamicHotspot, Hotspot_GetByName, const char);
 }
 
 RuntimeScriptValue Sc_Hotspot_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)

@@ -19,6 +19,7 @@
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
+#include "ac/string.h"
 #include "ac/dynobj/cc_region.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/dynobj/scriptstring.h"
@@ -26,6 +27,7 @@
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
+#include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
@@ -84,6 +86,11 @@ ScriptRegion *Region_GetAtScreenXY2(int x, int y)
     return Region_GetAtScreenXY(x, y, kHit_Interactable);
 }
 
+ScriptRegion *Region_GetByName(const char *name)
+{
+    return static_cast<ScriptRegion*>(ccGetScriptObjectAddress(name, ccDynamicRegion.GetType()));
+}
+
 void SetAreaLightLevel(int area, int brightness) {
     if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
@@ -101,6 +108,11 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
     return thisroom.GetRegionLightLevel(ssr->id);
+}
+
+const char *Region_GetScriptName(ScriptRegion *ssr)
+{
+    return CreateNewScriptString(thisroom.Regions[ssr->id].ScriptName);
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
@@ -307,6 +319,11 @@ RuntimeScriptValue Sc_Region_GetAtScreenXY(const RuntimeScriptValue *params, int
     API_SCALL_OBJ_PINT3(ScriptRegion, ccDynamicRegion, Region_GetAtScreenXY);
 }
 
+RuntimeScriptValue Sc_Region_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(ScriptRegion, ccDynamicRegion, Region_GetByName, const char);
+}
+
 RuntimeScriptValue Sc_Region_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptDrawingSurface, Region_GetDrawingSurface);
@@ -357,6 +374,11 @@ RuntimeScriptValue Sc_Region_GetLightLevel(void *self, const RuntimeScriptValue 
 RuntimeScriptValue Sc_Region_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptRegion, Region_SetLightLevel);
+}
+
+RuntimeScriptValue Sc_Region_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptRegion, const char, myScriptStringImpl, Region_GetScriptName);
 }
 
 // int (ScriptRegion *srr)
@@ -423,20 +445,22 @@ void RegisterRegionAPI()
         { "Region::GetAtRoomXY^3",        API_FN_PAIR(Region_GetAtRoomXY) },
         { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY2) },
         { "Region::GetAtScreenXY^3",      API_FN_PAIR(Region_GetAtScreenXY) },
+        { "Region::GetByScriptName^1",    API_FN_PAIR(Region_GetByName) },
         { "Region::GetDrawingSurface",    API_FN_PAIR(Region_GetDrawingSurface) },
 
         { "Region::Tint^4",               API_FN_PAIR(Region_TintNoLum) },
         { "Region::Tint^5",               API_FN_PAIR(Region_Tint) },
         { "Region::RunInteraction^1",     API_FN_PAIR(Region_RunInteraction) },
-        { "Region::GetProperty^1",             API_FN_PAIR(Region_GetProperty) },
-        { "Region::GetTextProperty^1",         API_FN_PAIR(Region_GetTextProperty) },
-        { "Region::SetProperty^2",             API_FN_PAIR(Region_SetProperty) },
-        { "Region::SetTextProperty^2",         API_FN_PAIR(Region_SetTextProperty) },
+        { "Region::GetProperty^1",        API_FN_PAIR(Region_GetProperty) },
+        { "Region::GetTextProperty^1",    API_FN_PAIR(Region_GetTextProperty) },
+        { "Region::SetProperty^2",        API_FN_PAIR(Region_SetProperty) },
+        { "Region::SetTextProperty^2",    API_FN_PAIR(Region_SetTextProperty) },
         { "Region::get_Enabled",          API_FN_PAIR(Region_GetEnabled) },
         { "Region::set_Enabled",          API_FN_PAIR(Region_SetEnabled) },
         { "Region::get_ID",               API_FN_PAIR(Region_GetID) },
         { "Region::get_LightLevel",       API_FN_PAIR(Region_GetLightLevel) },
         { "Region::set_LightLevel",       API_FN_PAIR(Region_SetLightLevel) },
+        { "Region::get_ScriptName",       API_FN_PAIR(Region_GetScriptName) },
         { "Region::get_TintEnabled",      API_FN_PAIR(Region_GetTintEnabled) },
         { "Region::get_TintBlue",         API_FN_PAIR(Region_GetTintBlue) },
         { "Region::get_TintGreen",        API_FN_PAIR(Region_GetTintGreen) },

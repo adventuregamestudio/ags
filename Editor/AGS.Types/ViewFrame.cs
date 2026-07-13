@@ -123,7 +123,7 @@ namespace AGS.Types
         public void CopyTo(ViewFrame other)
         {
             other.Image = Image;
-            other.Flipped = Flipped;
+            other.Flip = Flip;
             other.Delay = Delay;
             other.Sound = Sound;
         }

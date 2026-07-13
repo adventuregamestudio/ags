@@ -83,14 +83,6 @@ namespace AGS.Types
             Assert.That(_sprite.ImportColorDepth, Is.EqualTo(importColorDepth));
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void GetsAndSetsImportAlphaChannel(bool importAlphaChannel)
-        {
-            _sprite.ImportAlphaChannel = importAlphaChannel;
-            Assert.That(_sprite.ImportAlphaChannel, Is.EqualTo(importAlphaChannel));
-        }
-
         [TestCase(null)]
         [TestCase(0)]
         [TestCase(1)]
@@ -266,7 +258,6 @@ namespace AGS.Types
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["Width"].InnerText, Is.EqualTo(_sprite.Width.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["Height"].InnerText, Is.EqualTo(_sprite.Height.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["ColorDepth"].InnerText, Is.EqualTo(_sprite.ColorDepth.ToString()));
-            Assert.That(doc.SelectSingleNode("/Sprite").Attributes["Resolution"].InnerText, Is.EqualTo(SpriteImportResolution.Real.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["AlphaChannel"].InnerText, Is.EqualTo(_sprite.AlphaChannel.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["ColoursLockedToRoom"].InnerText, Is.EqualTo(_sprite.ColoursLockedToRoom.ToString()));
 

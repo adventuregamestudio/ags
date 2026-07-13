@@ -525,7 +525,7 @@ namespace AGS.Editor.Components
         private void CreateDefaultAudioClipTypes()
         {
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(1, "Ambient Sound", 1, 0, true, CrossfadeSpeed.No));
-            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_MUSIC, "Music", 1, 30, true, _agsEditor.CurrentGame.Settings.CrossfadeMusic));
+            _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_MUSIC, "Music", 1, 30, true, CrossfadeSpeed.No));
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SOUND, "Sound", 0, 0, false, CrossfadeSpeed.No));
         }
 

@@ -9,6 +9,7 @@ namespace AGS.Types
     {
         public int Width;
         public int Height;
+        // CLNUP: remove Resolution type
         public SpriteImportResolution Resolution;
 
         public SpriteInfo(int width, int height, SpriteImportResolution res)

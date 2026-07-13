@@ -26,7 +26,7 @@ namespace AGS.Types
             GUIControl ctrl = context.Instance as GUIControl;
             if (ctrl != null)
             {
-                title = "Edit " + ctrl.Name + " text...";
+                title = "Edit " + ctrl.ScriptName + " text...";
             }
 
             GUIControl[] ctrls = context.Instance as GUIControl[];

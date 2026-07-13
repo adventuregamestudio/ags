@@ -12,9 +12,9 @@ namespace AGS.Types
     [DefaultProperty("BackgroundImage")]
     public abstract class GUI : IToXml, IComparable<GUI>, ICloneable
     {
-        protected string _name;
+        protected string _scriptName = string.Empty;
         protected int _id;
-        protected int _bgcol;
+        protected int _bgcol = 8;
         protected int _bgimage;
         protected List<GUIControl> _controls = new List<GUIControl>();
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.GUIs);
@@ -22,8 +22,6 @@ namespace AGS.Types
 
         public GUI()
         {
-            _name = string.Empty;
-            _bgcol = 8;
         }
 
         /// <summary>
@@ -89,13 +87,19 @@ namespace AGS.Types
         [Description("The script name of the GUI")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
-        public string Name
+        public string ScriptName
         {
-            get { return _name; }
+            get { return _scriptName; }
             set
             {
-                _name = Utilities.ValidateScriptName(value);
+                _scriptName = Utilities.ValidateScriptName(value);
             }
+        }
+
+        public string Name
+        {
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Description("Script module which contains this GUI's event functions")]
@@ -118,7 +122,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle(GetType().Name, _name, _id); }
+            get { return TypesHelper.MakePropertyGridTitle(GetType().Name, _scriptName, _id); }
         }
 
         [Browsable(false)]

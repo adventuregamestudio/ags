@@ -56,7 +56,7 @@ namespace AGS.Editor.Components
         private Dialog AddNewDialog(Dialog newItem, string baseScriptName)
         {
             newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-            newItem.Name = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
             string newNodeID;
             if (_itemRightClicked != null)
                 newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
@@ -90,7 +90,7 @@ namespace AGS.Editor.Components
                 Dialog newItem = ClipboardUtils.PasteFromClipboard(typeof(Dialog)) as Dialog;
                 if (newItem == null)
                     return;
-                AddNewDialog(newItem, newItem.Name);
+                AddNewDialog(newItem, newItem.ScriptName);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -113,7 +113,7 @@ namespace AGS.Editor.Components
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
-                findAllUsages.Find(null, _itemRightClicked.Name);
+                findAllUsages.Find(null, _itemRightClicked.ScriptName);
             }
             else if (controlID == COMMAND_GO_TO_DIALOG_NUMBER)
             {
@@ -136,7 +136,7 @@ namespace AGS.Editor.Components
                 Text = "Go To Dialog",
                 NodeTypeName = "Dialog",
                 List = dialogs
-                    .Select(d => Tuple.Create(d.ID, d.Name))
+                    .Select(d => Tuple.Create(d.ID, d.ScriptName))
                     .ToList()
             };
             if (goToDialogDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
@@ -201,10 +201,10 @@ namespace AGS.Editor.Components
 
             if (propertyName == "Name")
             {
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name, itemBeingEdited))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName, itemBeingEdited))
                 {
                     _guiController.ShowMessage("This script name is already used by another item.", MessageBoxIcon.Warning);
-                    itemBeingEdited.Name = (string)oldValue;
+                    itemBeingEdited.ScriptName = (string)oldValue;
                 }
                 else
                 {
@@ -247,7 +247,7 @@ namespace AGS.Editor.Components
                     if (ClipboardUtils.IsAvailableOnClipboard(typeof(Dialog)))
                         menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste dialog", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this dialog", null));
-                    menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.Name, null));
+                    menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + _itemRightClicked.ScriptName, null));
                 }
             }
             return menu;
@@ -304,7 +304,7 @@ namespace AGS.Editor.Components
             IList<Dialog> dialogs = GetFlatList();
             foreach (Dialog d in dialogs)
             {
-                if (d.Name == name)
+                if (d.ScriptName == name)
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(d));
                     ShowPaneForDialog(d);
@@ -406,7 +406,7 @@ namespace AGS.Editor.Components
 
         private string GetNodeLabel(Dialog item)
         {
-            return item.ID.ToString() + ": " + item.Name;
+            return item.ID.ToString() + ": " + item.ScriptName;
         }
 
         protected override ProjectTreeItem CreateTreeItemForItem(Dialog item)

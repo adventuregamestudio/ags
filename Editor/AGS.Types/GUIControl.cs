@@ -12,7 +12,7 @@ namespace AGS.Types
     {
         protected GUIControl(int x, int y, int width, int height)
         {
-            _name = string.Empty;
+            _scriptName = string.Empty;
             _width = width;
             _height = height;
             _x = x;
@@ -28,7 +28,7 @@ namespace AGS.Types
 
         protected GUIControl() { }
 
-        protected string _name;
+        protected string _scriptName;
         protected int _id;
         protected int _zorder;
         private int _width;
@@ -146,13 +146,21 @@ namespace AGS.Types
         [Description("The script name of the control")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
-        public string Name
+        public string ScriptName
         {
-            get { return _name; }
+            get { return _scriptName; }
             set
             {
-                _name = Utilities.ValidateScriptName(value);
+                _scriptName = Utilities.ValidateScriptName(value);
             }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
+        public string Name
+        {
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Description("Determines whether the Control can be clicked on, or whether mouse clicks pass straight through it")]
@@ -296,7 +304,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle(ControlType, _name, _id); }
+            get { return TypesHelper.MakePropertyGridTitle(ControlType, _scriptName, _id); }
         }
 
         /// <summary>

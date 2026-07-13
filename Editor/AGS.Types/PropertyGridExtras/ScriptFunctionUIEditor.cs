@@ -37,14 +37,14 @@ namespace AGS.Types
             }
             else if (context.Instance is GUIControl)
             {
-                itemName = ((GUIControl)context.Instance).Name;
+                itemName = ((GUIControl)context.Instance).ScriptName;
                 GUI gui = ((GUIControl)context.Instance).Parent;
                 if (gui != null)
                     scriptModule = gui.ScriptModule;
             }
             else if (context.Instance is InventoryItem)
             {
-                itemName = ((InventoryItem)context.Instance).Name;
+                itemName = ((InventoryItem)context.Instance).ScriptName;
                 scriptModule = ((InventoryItem)context.Instance).ScriptModule;
             }
             else if (context.Instance is Character)
@@ -59,12 +59,12 @@ namespace AGS.Types
             }
             else if (context.Instance is RoomHotspot)
             {
-                itemName = ((RoomHotspot)context.Instance).Name;
+                itemName = ((RoomHotspot)context.Instance).ScriptName;
                 scriptModule = ((RoomHotspot)context.Instance).Room.ScriptFileName;
             }
             else if (context.Instance is RoomObject)
             {
-                itemName = ((RoomObject)context.Instance).Name;
+                itemName = ((RoomObject)context.Instance).ScriptName;
                 scriptModule = ((RoomObject)context.Instance).Room.ScriptFileName;
             }
             else if (context.Instance is RoomRegion)

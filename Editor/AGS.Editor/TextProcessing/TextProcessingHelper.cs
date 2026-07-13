@@ -19,15 +19,15 @@ namespace AGS.Editor
 
             foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
-                string sourceRef = string.IsNullOrEmpty(dialog.Name) ? $"Dialog {dialog.ID}" : $"Dialog {dialog.ID}; {dialog.Name}";
+                string sourceRef = string.IsNullOrEmpty(dialog.ScriptName) ? $"Dialog {dialog.ID}" : $"Dialog {dialog.ID}; {dialog.ScriptName}";
                 foreach (DialogOption option in dialog.Options)
                 {
                     option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, sourceRef), GameTextType.DialogOption);
-                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, dialog.Name), GameTextType.DialogOption);
+                    option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, dialog.ScriptName), GameTextType.DialogOption);
                 }
 
                 dialog.Script = processor.ProcessText(dialog.Script, sourceRef, GameTextType.DialogScript);
-                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.Name), GameTextType.DialogScript);
+                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.ScriptName), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
@@ -64,13 +64,13 @@ namespace AGS.Editor
 
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
-                character.RealName = processor.ProcessText(character.RealName, "Characters", GameTextType.ItemDescription);
+                character.DisplayName = processor.ProcessText(character.DisplayName, "Characters", GameTextType.ItemDescription);
                 ProcessProperties(processor, game.PropertySchema, character.Properties, "Characters", errors);
             }
 
             foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
-                item.Description = processor.ProcessText(item.Description, "Inventory items", GameTextType.ItemDescription);
+                item.DisplayName = processor.ProcessText(item.DisplayName, "Inventory items", GameTextType.ItemDescription);
                 ProcessProperties(processor, game.PropertySchema, item.Properties, "Inventory items", errors);
             }
 

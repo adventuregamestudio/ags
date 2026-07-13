@@ -77,11 +77,11 @@ namespace AGS.Editor
             srcRoom.Properties.PropertyValues.Add("AnotherRoomProperty", new CustomProperty("AnotherRoomProperty", "also readme"));
 
             RoomHotspot h = new RoomHotspot(srcRoom);
-            h.Description = "This is some hotspot";
+            h.DisplayName = "This is some hotspot";
             h.ID = 0;
             h.Interactions.ScriptFunctionNames.Add("Look", "hSomeHotspot_Look");
             h.Interactions.ScriptFunctionNames.Add("Interact", "hSomeHotspot_Interact");
-            h.Name = "hSomeHotspot";
+            h.ScriptName = "hSomeHotspot";
             h.OnAnyClick = "hSomeHotspot_OnAnyClick";
             h.OnMouseMove = "hSomeHotspot_OnMouseMove";
             h.OnWalkOn = "hSomeHotspot_OnWalkOn";
@@ -90,11 +90,11 @@ namespace AGS.Editor
             h.WalkToPoint = new System.Drawing.Point(11, 22);
             srcRoom.Hotspots[0] = h;
             h = new RoomHotspot(srcRoom);
-            h.Description = "Absolutely different hotspot";
+            h.DisplayName = "Absolutely different hotspot";
             h.ID = 1;
             h.Interactions.ScriptFunctionNames.Add("Look", "hDifferentHotspot_Look");
             h.Interactions.ScriptFunctionNames.Add("Interact", "hDifferentHotspot_Interact");
-            h.Name = "hDifferentHotspot";
+            h.ScriptName = "hDifferentHotspot";
             h.OnAnyClick = "hDifferentHotspot_OnAnyClick";
             h.OnMouseMove = "hDifferentHotspot_OnMouseMove";
             h.OnWalkOn = "hDifferentHotspot_OnWalkOn";
@@ -109,7 +109,7 @@ namespace AGS.Editor
             o.BlendMode = BlendMode.Darken;
             o.BlockingRectangle = new System.Drawing.Rectangle(1, 4, 12, 11);
             o.Clickable = true;
-            o.Description = "The table";
+            o.DisplayName = "The table";
             o.Enabled = false;
             o.GraphicAnchor = new GraphicAnchor(FrameAlignment.BottomRight);
             o.GraphicOffset = new System.Drawing.Point(1, 4);
@@ -117,7 +117,7 @@ namespace AGS.Editor
             o.Image = 33;
             o.Interactions.ScriptFunctionNames.Add("Look", "oTable_Look");
             o.Interactions.ScriptFunctionNames.Add("Interact", "oTable_Interact");
-            o.Name = "oTable";
+            o.ScriptName = "oTable";
             o.OnAnyClick = "oTable_AnyClick";
             o.OnFrameEvent = "oTable_OnFrameEvent";
             o.Properties.PropertyValues.Add("MyProperty", new CustomProperty("MyProperty", "xxx"));
@@ -136,7 +136,7 @@ namespace AGS.Editor
             o.BlendMode = BlendMode.CopyAlpha;
             o.BlockingRectangle = new System.Drawing.Rectangle(-5, 0, 8, 16);
             o.Clickable = false;
-            o.Description = "The chair";
+            o.DisplayName = "The chair";
             o.Enabled = true;
             o.GraphicAnchor = new GraphicAnchor(FrameAlignment.TopCenter);
             o.GraphicOffset = new System.Drawing.Point(-5, 1);
@@ -144,7 +144,7 @@ namespace AGS.Editor
             o.Image = 44;
             o.Interactions.ScriptFunctionNames.Add("Look", "oChair_Look");
             o.Interactions.ScriptFunctionNames.Add("Interact", "oChair_Interact");
-            o.Name = "oChair";
+            o.ScriptName = "oChair";
             o.OnAnyClick = "oChair_AnyClick";
             o.OnFrameEvent = "oChair_OnFrameEvent";
             o.Properties.PropertyValues.Add("MyProperty", new CustomProperty("MyProperty", "aaa"));
@@ -256,9 +256,9 @@ namespace AGS.Editor
 
             Assert.That(dstRoom.HotspotCount, Is.EqualTo(50)); // Hotspots count is always fixed
             h = dstRoom.Hotspots[0];
-            Assert.That(h.Description, Is.EqualTo("This is some hotspot"));
+            Assert.That(h.DisplayName, Is.EqualTo("This is some hotspot"));
             Assert.That(h.ID, Is.EqualTo(0));
-            Assert.That(h.Name, Is.EqualTo("hSomeHotspot"));
+            Assert.That(h.ScriptName, Is.EqualTo("hSomeHotspot"));
             Assert.That(h.OnAnyClick, Is.EqualTo("hSomeHotspot_OnAnyClick"));
             Assert.That(h.OnMouseMove, Is.EqualTo("hSomeHotspot_OnMouseMove"));
             Assert.That(h.OnWalkOn, Is.EqualTo("hSomeHotspot_OnWalkOn"));
@@ -273,9 +273,9 @@ namespace AGS.Editor
             Assert.That(h.Properties.PropertyValues["MySecondProperty"].Value, Is.EqualTo("value2"));
 
             h = dstRoom.Hotspots[1];
-            Assert.That(h.Description, Is.EqualTo("Absolutely different hotspot"));
+            Assert.That(h.DisplayName, Is.EqualTo("Absolutely different hotspot"));
             Assert.That(h.ID, Is.EqualTo(1));
-            Assert.That(h.Name, Is.EqualTo("hDifferentHotspot"));
+            Assert.That(h.ScriptName, Is.EqualTo("hDifferentHotspot"));
             Assert.That(h.OnAnyClick, Is.EqualTo("hDifferentHotspot_OnAnyClick"));
             Assert.That(h.OnMouseMove, Is.EqualTo("hDifferentHotspot_OnMouseMove"));
             Assert.That(h.OnWalkOn, Is.EqualTo("hDifferentHotspot_OnWalkOn"));
@@ -296,13 +296,13 @@ namespace AGS.Editor
             Assert.That(o.BlendMode, Is.EqualTo(BlendMode.Darken));
             Assert.That(o.BlockingRectangle, Is.EqualTo(new System.Drawing.Rectangle(1, 4, 12, 11)));
             Assert.That(o.Clickable, Is.EqualTo(true));
-            Assert.That(o.Description, Is.EqualTo("The table"));
+            Assert.That(o.DisplayName, Is.EqualTo("The table"));
             Assert.That(o.Enabled, Is.EqualTo(false));
             Assert.That(o.GraphicAnchor, Is.EqualTo(new GraphicAnchor(FrameAlignment.BottomRight)));
             Assert.That(o.GraphicOffset, Is.EqualTo(new System.Drawing.Point(1, 4)));
             Assert.That(o.ID, Is.EqualTo(0));
             Assert.That(o.Image, Is.EqualTo(33));
-            Assert.That(o.Name, Is.EqualTo("oTable"));
+            Assert.That(o.ScriptName, Is.EqualTo("oTable"));
             Assert.That(o.OnAnyClick, Is.EqualTo("oTable_AnyClick"));
             Assert.That(o.OnFrameEvent, Is.EqualTo("oTable_OnFrameEvent"));
             Assert.That(o.Solid, Is.EqualTo(true));
@@ -327,13 +327,13 @@ namespace AGS.Editor
             Assert.That(o.BlendMode, Is.EqualTo(BlendMode.CopyAlpha));
             Assert.That(o.BlockingRectangle, Is.EqualTo(new System.Drawing.Rectangle(-5, 0, 8, 16)));
             Assert.That(o.Clickable, Is.EqualTo(false));
-            Assert.That(o.Description, Is.EqualTo("The chair"));
+            Assert.That(o.DisplayName, Is.EqualTo("The chair"));
             Assert.That(o.Enabled, Is.EqualTo(true));
             Assert.That(o.GraphicAnchor, Is.EqualTo(new GraphicAnchor(FrameAlignment.TopCenter)));
             Assert.That(o.GraphicOffset, Is.EqualTo(new System.Drawing.Point(-5, 1)));
             Assert.That(o.ID, Is.EqualTo(1));
             Assert.That(o.Image, Is.EqualTo(44));
-            Assert.That(o.Name, Is.EqualTo("oChair"));
+            Assert.That(o.ScriptName, Is.EqualTo("oChair"));
             Assert.That(o.OnAnyClick, Is.EqualTo("oChair_AnyClick"));
             Assert.That(o.OnFrameEvent, Is.EqualTo("oChair_OnFrameEvent"));
             Assert.That(o.Solid, Is.EqualTo(false));

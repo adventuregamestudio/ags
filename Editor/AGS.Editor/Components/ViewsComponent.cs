@@ -45,9 +45,9 @@ namespace AGS.Editor.Components
         {
             newView.ID = _agsEditor.CurrentGame.FindAndAllocateAvailableViewID();
             if (string.IsNullOrEmpty(baseScriptName))
-                newView.Name = "View" + newView.ID;
+                newView.ScriptName = "View" + newView.ID;
             else
-                newView.Name = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+                newView.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
             string newNodeID;
             View viewClicked;
             _items.TryGetValue(_rightClickedID, out viewClicked);
@@ -65,7 +65,7 @@ namespace AGS.Editor.Components
 			if (controlID == COMMAND_DELETE)
 			{
 				View viewToDelete = _items[_rightClickedID];
-				if (_guiController.ShowQuestion("Are you sure you want to delete view '" + viewToDelete.Name + "'?" + Environment.NewLine + Environment.NewLine + "If it is used as an animation anywhere it could cause crashes in the game.") == System.Windows.Forms.DialogResult.Yes)
+				if (_guiController.ShowQuestion("Are you sure you want to delete view '" + viewToDelete.ScriptName + "'?" + Environment.NewLine + Environment.NewLine + "If it is used as an animation anywhere it could cause crashes in the game.") == System.Windows.Forms.DialogResult.Yes)
 				{
 					string usage = GetViewUsageReport(viewToDelete.ID);
 					if (usage != null)
@@ -104,7 +104,7 @@ namespace AGS.Editor.Components
             {
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
                 View viewToFind = _items[_rightClickedID];
-                findAllUsages.Find(null, viewToFind.Name);
+                findAllUsages.Find(null, viewToFind.ScriptName);
             }
             else if (controlID == COMMAND_NEW_VIEW)
             {
@@ -120,7 +120,7 @@ namespace AGS.Editor.Components
                 View newView = ClipboardUtils.PasteFromClipboard(typeof(View)) as View;
                 if (newView == null)
                     return;
-                AddNewView(newView, newView.Name);
+                AddNewView(newView, newView.ScriptName);
             }
             else if (controlID == COMMAND_RENAME)
             {
@@ -148,7 +148,7 @@ namespace AGS.Editor.Components
                 Text = "Go To View",
                 NodeTypeName = "View",
                 List = views
-                    .Select(v => Tuple.Create(v.ID, v.Name))
+                    .Select(v => Tuple.Create(v.ID, v.ScriptName))
                     .ToList()
             };
             if (goToViewDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
@@ -224,10 +224,10 @@ namespace AGS.Editor.Components
                 {
                     View itemBeingEdited = (View)treeItem.LabelTextDataSource;
 
-                    if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name.ToUpperInvariant(), itemBeingEdited))
+                    if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName.ToUpperInvariant(), itemBeingEdited))
                     {
                         _guiController.ShowMessage("This script name is already used by another item.", MessageBoxIconType.Warning);
-                        itemBeingEdited.Name = treeItem.LabelTextBeforeLabelEdit;
+                        itemBeingEdited.ScriptName = treeItem.LabelTextBeforeLabelEdit;
                         treeItem.TreeNode.Text = itemBeingEdited.NameAndID;
                         return;
                     }
@@ -253,10 +253,10 @@ namespace AGS.Editor.Components
             if (propertyName == "Name")
             {
                 View itemBeingEdited = ((ViewEditor)_guiController.ActivePane.Control).ViewToEdit;
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.Name.ToUpperInvariant(), itemBeingEdited))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName.ToUpperInvariant(), itemBeingEdited))
                 {
                     _guiController.ShowMessage("This script name is already used by another item.", MessageBoxIconType.Warning);
-                    itemBeingEdited.Name = (string)oldValue;
+                    itemBeingEdited.ScriptName = (string)oldValue;
                 }
                 else
                 {
@@ -279,7 +279,7 @@ namespace AGS.Editor.Components
                     menu.Add(new MenuCommand(COMMAND_PASTE_ITEM, "Paste View", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE, "Delete View", null));
                 View view = _items[_rightClickedID];
-                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find all usages of " + view.Name, null));
+                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find all usages of " + view.ScriptName, null));
             }
             return menu;
         }
@@ -316,7 +316,7 @@ namespace AGS.Editor.Components
 
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
 			{
-				string charText = "character " + character.ID + " (" + character.RealName + ")";
+				string charText = "character " + character.ID + " (" + character.DisplayName + ")";
 
 				if (character.BlinkingView == viewNumber)
 				{
@@ -364,7 +364,7 @@ namespace AGS.Editor.Components
 
         private string GetNodeLabel(View item)
         {
-            return item.ID.ToString() + ": " + item.Name;
+            return item.ID.ToString() + ": " + item.ScriptName;
         }
 
         protected override ViewFolder GetRootFolder()

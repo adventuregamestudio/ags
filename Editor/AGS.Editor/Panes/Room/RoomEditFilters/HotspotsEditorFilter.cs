@@ -51,7 +51,7 @@ namespace AGS.Editor
 
         protected override string GetItemName(int id)
         {
-            return MakeLayerItemName("Hotspot", _room.Hotspots[id].Name, _room.Hotspots[id].Description, id);
+            return MakeLayerItemName("Hotspot", _room.Hotspots[id].ScriptName, _room.Hotspots[id].DisplayName, id);
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace AGS.Editor
         public override bool TrySelectItemByName(string name)
         {
             int id = -1;
-            var hotspot = _room.Hotspots.FirstOrDefault((h) => h.Name == name);
+            var hotspot = _room.Hotspots.FirstOrDefault((h) => h.ScriptName == name);
             if (hotspot == null)
             {
                 if (name.StartsWith("Hotspot") && int.TryParse(name.Substring(6), out id)

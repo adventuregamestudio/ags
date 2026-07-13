@@ -26,7 +26,7 @@ namespace AGS.Types
             _image = 1;
             _id = id;
             _zorder = id;
-            _name = string.Empty;
+            _scriptName = string.Empty;
         }
 
         public GUITextWindowEdge(XmlNode node)

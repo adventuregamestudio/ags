@@ -706,17 +706,17 @@ namespace AGS.Editor
         {
             foreach (RoomObject obj in room.Objects)
             {
-                if (obj.Name.Length > 0)
+                if (obj.ScriptName.Length > 0)
                 {
-                    sb.AppendLine("import readonly Object *" + obj.Name + ";");
+                    sb.AppendLine("import readonly Object *" + obj.ScriptName + ";");
                 }
             }
 
             foreach (RoomHotspot hotspot in room.Hotspots)
             {
-                if (hotspot.Name.Length > 0)
+                if (hotspot.ScriptName.Length > 0)
                 {
-                    sb.AppendLine("import readonly Hotspot *" + hotspot.Name + ";");
+                    sb.AppendLine("import readonly Hotspot *" + hotspot.ScriptName + ";");
                 }
             }
         }
@@ -730,9 +730,9 @@ namespace AGS.Editor
 
                 foreach (InventoryItem item in items)
                 {
-                    if (item.Name.Length > 0)
+                    if (item.ScriptName.Length > 0)
                     {
-                        sb.AppendLine("import readonly InventoryItem *" + item.Name + ";");
+                        sb.AppendLine("import readonly InventoryItem *" + item.ScriptName + ";");
                     }
                 }
             }
@@ -751,9 +751,9 @@ namespace AGS.Editor
 
                 foreach (Dialog item in dialogs)
                 {
-                    if (item.Name.Length > 0)
+                    if (item.ScriptName.Length > 0)
                     {
-                        sb.AppendLine("import readonly Dialog *" + item.Name + ";");
+                        sb.AppendLine("import readonly Dialog *" + item.ScriptName + ";");
                     }
                 }
             }
@@ -768,9 +768,9 @@ namespace AGS.Editor
         {
             foreach (AGS.Types.View view in viewFolder.Views)
             {
-                if (view.Name.Length > 0)
+                if (view.ScriptName.Length > 0)
                 {
-                    sb.AppendLine("#define " + view.Name.ToUpperInvariant() + " " + view.ID);
+                    sb.AppendLine("#define " + view.ScriptName.ToUpperInvariant() + " " + view.ID);
                 }
             }
 
@@ -803,9 +803,9 @@ namespace AGS.Editor
 
                     foreach (GUIControl control in gui.Controls)
                     {
-                        if (control.Name.Length > 0)
+                        if (control.ScriptName.Length > 0)
                         {
-                            sb.AppendLine("import readonly " + control.ScriptClassType + " *" + control.Name + ";");
+                            sb.AppendLine("import readonly " + control.ScriptClassType + " *" + control.ScriptName + ";");
                         }
                     }
                 }

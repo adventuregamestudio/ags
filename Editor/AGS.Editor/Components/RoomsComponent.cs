@@ -877,22 +877,22 @@ namespace AGS.Editor.Components
         {
             foreach (RoomHotspot hotspot in room.Hotspots)
             {
-                if (string.IsNullOrEmpty(hotspot.Name))
+                if (string.IsNullOrEmpty(hotspot.ScriptName))
                     continue;
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(hotspot.Name, hotspot) ||
-                    room.IsScriptNameAlreadyUsed(hotspot.Name, hotspot))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(hotspot.ScriptName, hotspot) ||
+                    room.IsScriptNameAlreadyUsed(hotspot.ScriptName, hotspot))
                 {
-                    errors.Add(new CompileError("Hotspot '" + hotspot.Name + "' script name conflicts with other game item"));
+                    errors.Add(new CompileError("Hotspot '" + hotspot.ScriptName + "' script name conflicts with other game item"));
                 }
             }
             foreach (RoomObject obj in room.Objects)
             {
-                if (string.IsNullOrEmpty(obj.Name))
+                if (string.IsNullOrEmpty(obj.ScriptName))
                     continue;
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(obj.Name, obj) ||
-                    room.IsScriptNameAlreadyUsed(obj.Name, obj))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(obj.ScriptName, obj) ||
+                    room.IsScriptNameAlreadyUsed(obj.ScriptName, obj))
                 {
-                    errors.Add(new CompileError("Object '" + obj.Name + "' script name conflicts with other game item"));
+                    errors.Add(new CompileError("Object '" + obj.ScriptName + "' script name conflicts with other game item"));
                 }
             }
             return !errors.HasErrors;
@@ -1990,13 +1990,13 @@ namespace AGS.Editor.Components
 
                 foreach (RoomHotspot hotspot in room.Hotspots)
                 {
-                    hotspot.Description = processor.ProcessText(new GameTextLine(hotspot.Description, roomContext), GameTextType.ItemDescription);
+                    hotspot.DisplayName = processor.ProcessText(new GameTextLine(hotspot.DisplayName, roomContext), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, hotspot.Properties, roomContext, errors);
                 }
 
                 foreach (RoomObject obj in room.Objects)
                 {
-                    obj.Description = processor.ProcessText(new GameTextLine(obj.Description, roomContext), GameTextType.ItemDescription);
+                    obj.DisplayName = processor.ProcessText(new GameTextLine(obj.DisplayName, roomContext), GameTextType.ItemDescription);
                     TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, obj.Properties, roomContext, errors);
                 }
 
@@ -2410,13 +2410,13 @@ namespace AGS.Editor.Components
             foreach (var obj in room.Objects)
             {
                 _agsEditor.Tasks.ScanAndReportMissingEventHandlers(obj, "Object", "Object",
-                    string.IsNullOrEmpty(obj.Name) ? $"Object{obj.ID}" : obj.Name, obj.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
+                    string.IsNullOrEmpty(obj.ScriptName) ? $"Object{obj.ID}" : obj.ScriptName, obj.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
             }
 
             foreach (var hot in room.Hotspots)
             {
                 _agsEditor.Tasks.ScanAndReportMissingEventHandlers(hot, "Hotspot", "Hotspot",
-                    string.IsNullOrEmpty(hot.Name) ? $"Hotspot{hot.ID}" : hot.Name, hot.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
+                    string.IsNullOrEmpty(hot.ScriptName) ? $"Hotspot{hot.ID}" : hot.ScriptName, hot.ID, room.Number, room.ScriptFileName, false, room.Script.AutoCompleteData, true, errors);
 
             }
 

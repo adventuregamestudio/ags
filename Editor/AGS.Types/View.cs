@@ -13,7 +13,7 @@ namespace AGS.Types
         public delegate void ViewUpdatedHandler(View view);
         public event ViewUpdatedHandler ViewUpdated;
 
-        private string _name;
+        private string _scriptName;
         private int _id;
         private List<ViewLoop> _loops = new List<ViewLoop>();
 
@@ -34,10 +34,18 @@ namespace AGS.Types
         [Description("The script name of the view")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string Name
         {
-            get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Browsable(false)]
@@ -51,7 +59,7 @@ namespace AGS.Types
         [AGSNoSerialize()]
         public string WindowTitle
         {
-            get { return "View: " + Name; }
+            get { return "View: " + ScriptName; }
         }
 
         // TODO: remove this; should not be a part of the basic type,
@@ -60,7 +68,7 @@ namespace AGS.Types
         [AGSNoSerialize()]
         public string NameAndID
         {
-            get { return _id.ToString() + ": " + _name; }
+            get { return _id.ToString() + ": " + _scriptName; }
         }
 
         /// <summary>
@@ -86,8 +94,9 @@ namespace AGS.Types
 
         public View(XmlNode node)
         {
-            ID = Convert.ToInt32(SerializeUtils.GetElementString(node, "ID"));
-            Name = SerializeUtils.GetElementString(node, "Name");
+            _id = Convert.ToInt32(SerializeUtils.GetElementString(node, "ID"));
+            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "Name", _scriptName);
+            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "ScriptName", _scriptName);
             foreach (XmlNode loopNode in SerializeUtils.GetChildNodes(node, "Loops"))
             {
                 _loops.Add(new ViewLoop(loopNode));
@@ -98,7 +107,7 @@ namespace AGS.Types
         {
             writer.WriteStartElement("View");
             writer.WriteElementString("ID", ID.ToString());
-            writer.WriteElementString("Name", _name);
+            writer.WriteElementString("ScriptName", _scriptName);
 
             writer.WriteStartElement("Loops");
             foreach (ViewLoop loop in _loops)

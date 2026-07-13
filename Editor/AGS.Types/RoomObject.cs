@@ -11,7 +11,7 @@ namespace AGS.Types
     [DefaultProperty("Image")]
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
-		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+		public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
         private int _id;
@@ -27,8 +27,8 @@ namespace AGS.Types
         private int _baseline = 0;
         private bool _solid = false;
         private Rectangle _blockingRect = Rectangle.Empty;
-        private string _name = string.Empty;
-        private string _description = string.Empty;
+        private string _scriptName = string.Empty;
+        private string _displayName = string.Empty;
         private bool _useRoomAreaScaling;
         private bool _useRoomAreaLighting;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Objects);
@@ -213,20 +213,36 @@ namespace AGS.Types
         [Description("Description of the object")]
         [Category("Appearance")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public string Description
+        public string DisplayName
         {
-            get { return _description; }
-            set { _description = value; }
+            get { return _displayName; }
+            set { _displayName = value; }
         }
 
-		[DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [Obsolete]
+        [Browsable(false)]
+        public string Description
+        {
+            get { return DisplayName; }
+            set { DisplayName = value; }
+        }
+
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
         [Description("The script name of the object")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string Name
         {
-            get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Description("Whether the object should be affected by walkable area scaling")]
@@ -250,7 +266,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle("Object", _name, _description, _id); }
+            get { return TypesHelper.MakePropertyGridTitle("Object", _scriptName, _displayName, _id); }
         }
 
         [AGSSerializeClass()]

@@ -285,7 +285,7 @@ namespace AGS.Editor.Components
                 
                 foreach(GUIControl gctrl in g.Controls)
                 {
-                    if(gctrl.Name == name)
+                    if(gctrl.ScriptName == name)
                     {
                         _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
                         ShowOrAddPane(g);
@@ -479,22 +479,22 @@ namespace AGS.Editor.Components
 
                 foreach (var button in buttons)
                 {
-                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(button, button.ControlType, button.ControlType, button.Name, button.ID, objectContext, ngui.ScriptModule, true, errors);
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(button, button.ControlType, button.ControlType, button.ScriptName, button.ID, objectContext, ngui.ScriptModule, true, errors);
                 }
 
                 foreach (var listbox in listboxes)
                 {
-                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(listbox, listbox.ControlType, listbox.ControlType, listbox.Name, listbox.ID, objectContext, ngui.ScriptModule, true, errors);
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(listbox, listbox.ControlType, listbox.ControlType, listbox.ScriptName, listbox.ID, objectContext, ngui.ScriptModule, true, errors);
                 }
 
                 foreach (var slider in sliders)
                 {
-                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(slider, slider.ControlType, slider.ControlType, slider.Name, slider.ID, objectContext, ngui.ScriptModule, true, errors);
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(slider, slider.ControlType, slider.ControlType, slider.ScriptName, slider.ID, objectContext, ngui.ScriptModule, true, errors);
                 }
 
                 foreach (var textbox in textboxes)
                 {
-                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(textbox, textbox.ControlType, textbox.ControlType, textbox.Name, textbox.ID, objectContext, ngui.ScriptModule, true, errors);
+                    _agsEditor.Tasks.ScanAndReportMissingEventHandlers(textbox, textbox.ControlType, textbox.ControlType, textbox.ScriptName, textbox.ID, objectContext, ngui.ScriptModule, true, errors);
                 }
             }
         }

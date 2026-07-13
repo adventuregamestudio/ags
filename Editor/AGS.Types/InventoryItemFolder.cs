@@ -69,7 +69,7 @@ namespace AGS.Types
 
         private bool IsItemByName(InventoryItem inventoryItem, string inventoryItemName)
         {
-            return inventoryItem.Name == inventoryItemName;
+            return inventoryItem.ScriptName == inventoryItemName;
         }
     }
 }

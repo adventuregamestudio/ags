@@ -1285,7 +1285,7 @@ namespace AGS.Editor
                 writer.Write(control.Width);
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
-                FilePutNullTerminatedString(control.Name, writer);
+                FilePutNullTerminatedString(control.ScriptName, writer);
                 // Old style events table; now unused so write size 0 always
                 writer.Write(0);
             }
@@ -1687,7 +1687,7 @@ namespace AGS.Editor
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 // legacy name field of fixed length
-                WriteString(TextProperty(game.InventoryItems[i].Description), 24, writer);
+                WriteString(TextProperty(game.InventoryItems[i].DisplayName), 24, writer);
                 writer.Write(new byte[4]); // null terminator plus 3 bytes padding
                 writer.Write(game.InventoryItems[i].Image);
                 writer.Write(game.InventoryItems[i].CursorImage);
@@ -1830,7 +1830,7 @@ namespace AGS.Editor
                 writer.Write((short)0);                                // [UNUSED] (actx)
                 writer.Write((short)0);                                // [UNUSED] (acty)
                 // legacy name and scriptname fields of fixed length
-                WriteString(TextProperty(character.RealName), 40, writer); // name
+                WriteString(TextProperty(character.DisplayName), 40, writer); // name
                 WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname
                 writer.Write((byte)0);                                 // deprecated "on" flag (replaced by ENABLED and VISIBLE flags)
                 writer.Write((byte)0);                                 // alignment padding
@@ -1875,14 +1875,14 @@ namespace AGS.Editor
             {
                 View view = game.FindViewByID(i + 1);
                 if (view != null)
-                    FilePutNullTerminatedString(view.Name, writer);
+                    FilePutNullTerminatedString(view.ScriptName, writer);
                 else
                     writer.Write((byte)0); // view is null, so its name is just a single NUL byte
             }
             writer.Write((byte)0); // inventory slot 0 is unused, so its name is just a single NUL byte
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
-                FilePutNullTerminatedString(game.InventoryItems[i].Name, writer);
+                FilePutNullTerminatedString(game.InventoryItems[i].ScriptName, writer);
             }
             /* [DEPRECATED] -- now written as a part of "v363_dialogsnew" extension
             for (int i = 0; i < game.Dialogs.Count; ++i)
@@ -2046,14 +2046,14 @@ namespace AGS.Editor
             for (int i = 0; i < game.Characters.Count; ++i)
             {
                 FilePutString(game.Characters[i].ScriptName, writer);
-                FilePutString(TextProperty(game.Characters[i].RealName), writer);
+                FilePutString(TextProperty(game.Characters[i].DisplayName), writer);
             }
             // Inventory items
             writer.Write((int)game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
             writer.Write((int)0); // inventory slot 0 is unused, so its name is just a single 0-length
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
-                FilePutString(TextProperty(game.InventoryItems[i].Description), writer);
+                FilePutString(TextProperty(game.InventoryItems[i].DisplayName), writer);
             }
             // Mouse cursors
             writer.Write((int)game.Cursors.Count);
@@ -2135,7 +2135,7 @@ namespace AGS.Editor
             foreach (Dialog dialog in game.Dialogs)
             {
                 // Dialog topic settings
-                FilePutString(dialog.Name, writer);
+                FilePutString(dialog.ScriptName, writer);
                 int topic_flags = 0;
                 if (dialog.ShowTextParser) topic_flags |= NativeConstants.DTFLG_SHOWPARSER;
                 writer.Write(topic_flags);

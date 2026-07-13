@@ -34,23 +34,23 @@ namespace AGS.Types
         [TestCase("TestDescription")]
         public void GetsAndSetsDescription(string description)
         {
-            _roomHotspot.Description = description;
-            Assert.That(_roomHotspot.Description, Is.EqualTo(description));
+            _roomHotspot.DisplayName = description;
+            Assert.That(_roomHotspot.DisplayName, Is.EqualTo(description));
         }
 
         [TestCase("")]
         [TestCase("TestName")]
         public void GetsAndSetsName(string name)
         {
-            _roomHotspot.Name = name;
-            Assert.That(_roomHotspot.Name, Is.EqualTo(name));
+            _roomHotspot.ScriptName = name;
+            Assert.That(_roomHotspot.ScriptName, Is.EqualTo(name));
         }
 
         [TestCase("6TestName")]
         [TestCase("Test#Name")]
         public void SetNameThrowsInvalidDataExceptionWhenNameIsInvalid(string name)
         {
-            Assert.Throws<InvalidDataException>(() => _roomHotspot.Name = name);
+            Assert.Throws<InvalidDataException>(() => _roomHotspot.ScriptName = name);
         }
 
         [TestCase(0, 0)]
@@ -69,7 +69,7 @@ namespace AGS.Types
         [TestCase("TestName", int.MaxValue)]
         public void GetsPropertyGridTitle(string name, int id)
         {
-            _roomHotspot.Name = name;
+            _roomHotspot.ScriptName = name;
             _roomHotspot.ID = id;
             Assert.That(_roomHotspot.PropertyGridTitle, Is.EqualTo($"{name} (Hotspot; ID {id})"));
         }
@@ -110,8 +110,8 @@ namespace AGS.Types
             doc.LoadXml(xml);
             _roomHotspot = new RoomHotspot(_room, doc.SelectSingleNode("RoomHotspot"));
 
-            Assert.That(_roomHotspot.Description, Is.EqualTo(description));
-            Assert.That(_roomHotspot.Name, Is.EqualTo(name));
+            Assert.That(_roomHotspot.DisplayName, Is.EqualTo(description));
+            Assert.That(_roomHotspot.ScriptName, Is.EqualTo(name));
             Assert.That(_roomHotspot.WalkToPoint.X, Is.EqualTo(walkToX));
             Assert.That(_roomHotspot.WalkToPoint.Y, Is.EqualTo(walkToY));
         }
@@ -120,8 +120,8 @@ namespace AGS.Types
         [TestCase("Hotspot 2", "hHotspot2", 5, 5)]
         public void SerializeToXml(string description, string name, int walkToX, int walkToY)
         {
-            _roomHotspot.Description = description;
-            _roomHotspot.Name = name;
+            _roomHotspot.DisplayName = description;
+            _roomHotspot.ScriptName = name;
             _roomHotspot.WalkToPoint = new Point(walkToX, walkToY);
             XmlDocument doc = _roomHotspot.ToXmlDocument();
 

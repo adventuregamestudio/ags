@@ -11,12 +11,12 @@ namespace AGS.Types
     [DefaultProperty("Description")]
     public class RoomHotspot : IChangeNotification, IToXml
 	{
-		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+		public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
 
         private int _id;
-        private string _name = string.Empty;
-        private string _description = string.Empty;
+        private string _scriptName = string.Empty;
+        private string _displayName = string.Empty;
         private Point _walkToPoint;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Hotspots);
         // Game Events
@@ -53,20 +53,36 @@ namespace AGS.Types
         [Description("Description of the hotspot")]
         [Category("Appearance")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public string Description
+        public string DisplayName
         {
-            get { return _description; }
-            set { _description = value; }
+            get { return _displayName; }
+            set { _displayName = value; }
         }
 
-		[DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [Obsolete]
+        [Browsable(false)]
+        public string Description
+        {
+            get { return DisplayName; }
+            set { DisplayName = value; }
+        }
+
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
 		[Description("The script name of the hotspot")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string Name
         {
-            get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Description("The player will walk to this spot when the hotspot is activated")]
@@ -80,7 +96,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle("Hotspot", _name, _description, _id); }
+            get { return TypesHelper.MakePropertyGridTitle("Hotspot", _scriptName, _displayName, _id); }
         }
 
         [AGSSerializeClass()]

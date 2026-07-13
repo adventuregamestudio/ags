@@ -115,8 +115,8 @@ namespace AGS.Types
         [TestCase(null)]
         public void GetsAndSetsDescription(string description)
         {
-            _roomObject.Description = description;
-            Assert.That(_roomObject.Description, Is.EqualTo(description));
+            _roomObject.DisplayName = description;
+            Assert.That(_roomObject.DisplayName, Is.EqualTo(description));
         }
 
         //Name tests
@@ -188,8 +188,8 @@ namespace AGS.Types
             Assert.That(_roomObject.Clickable, Is.EqualTo(clickable));
             Assert.That(_roomObject.StartX, Is.EqualTo(startX));
             Assert.That(_roomObject.StartY, Is.EqualTo(startY));
-            Assert.That(_roomObject.Description, Is.EqualTo(description));
-            Assert.That(_roomObject.Name, Is.EqualTo(name));
+            Assert.That(_roomObject.DisplayName, Is.EqualTo(description));
+            Assert.That(_roomObject.ScriptName, Is.EqualTo(name));
             Assert.That(_roomObject.UseRoomAreaScaling, Is.EqualTo(useRoomAreaScaling));
             Assert.That(_roomObject.UseRoomAreaLighting, Is.EqualTo(useRoomAreaLighting));
         }
@@ -205,8 +205,8 @@ namespace AGS.Types
             _roomObject.Clickable = clickable;
             _roomObject.StartX = startX;
             _roomObject.StartY = startY;
-            _roomObject.Description = description;
-            _roomObject.Name = name;
+            _roomObject.DisplayName = description;
+            _roomObject.ScriptName = name;
             _roomObject.UseRoomAreaScaling = useRoomAreaScaling;
             _roomObject.UseRoomAreaLighting = useRoomAreaLighting;
             XmlDocument doc = _roomObject.ToXmlDocument();

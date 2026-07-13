@@ -496,7 +496,7 @@ namespace AGS.Types
 			}
 			View newView = new View();
 			newView.ID = FindAndAllocateAvailableViewID();
-			newView.Name = "View" + newView.ID;
+			newView.ScriptName = "View" + newView.ID;
 			createInFolder.Views.Add(newView);
 			NotifyClientsViewsUpdated();
 			return newView;
@@ -920,14 +920,14 @@ namespace AGS.Types
             {
                 if (gui != ignoreObject)
                 {
-                    if (gui.Name == tryName)
+                    if (gui.ScriptName == tryName)
                     {
                         return true;
                     }
 
-                    if (gui.Name.StartsWith("g") &&
-                        (gui.Name.Length > 1) &&
-                        (gui.Name.Substring(1).ToUpperInvariant() == tryName))
+                    if (gui.ScriptName.StartsWith("g") &&
+                        (gui.ScriptName.Length > 1) &&
+                        (gui.ScriptName.Substring(1).ToUpperInvariant() == tryName))
                     {
                         return true;
                     }
@@ -935,7 +935,7 @@ namespace AGS.Types
 
                 foreach (GUIControl control in gui.Controls)
                 {
-                    if ((control.Name == tryName) && (control != ignoreObject))
+                    if ((control.ScriptName == tryName) && (control != ignoreObject))
                     {
                         return true;
                     }
@@ -944,7 +944,7 @@ namespace AGS.Types
 
             foreach (InventoryItem item in this.RootInventoryItemFolder.AllItemsFlat)
             {
-                if ((item.Name == tryName) && (item != ignoreObject))
+                if ((item.ScriptName == tryName) && (item != ignoreObject))
                 {
                     return true;
                 }
@@ -970,7 +970,7 @@ namespace AGS.Types
 
             foreach (Dialog dialog in this.RootDialogFolder.AllItemsFlat)
             {
-                if ((dialog.Name == tryName) && (dialog != ignoreObject))
+                if ((dialog.ScriptName == tryName) && (dialog != ignoreObject))
                 {
                     return true;
                 }
@@ -1020,7 +1020,7 @@ namespace AGS.Types
         {
             foreach (View view in folderToCheck.Views)
             {
-                if ((view.Name.ToUpperInvariant() == name) && (view != ignoreObject))
+                if ((view.ScriptName.ToUpperInvariant() == name) && (view != ignoreObject))
                 {
                     return true;
                 }

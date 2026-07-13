@@ -69,7 +69,7 @@ private:
 // Helper class, providing static methods for reading values from a doc element
 class ValueParser
 {
-protected:
+public:
     ValueParser() = default;
     ~ValueParser() = default;
 
@@ -288,13 +288,23 @@ public:
     }
 };
 
-// GUI list parser
+// GUI list parser (normal panels only)
 class GUIs : public EntityListParser
 {
 public:
     void GetAll(DocElem root, std::vector<DocElem> &elems) override
     {
         GetAllElems(root, elems, "GUIFolder", "GUIs", "GUIMain");
+    }
+};
+
+// GUI list parser (GUIMain and GUITextWindow)
+class GUIsAll : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, "GUIFolder", "GUIs", nullptr);
     }
 };
 
@@ -325,6 +335,16 @@ public:
     void GetAll(DocElem root, std::vector<DocElem> &elems) override
     {
         GetAllElems(root, elems, "ViewFolder", "Views", "View");
+    }
+};
+
+// Sprite list parser
+class Sprites : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, "SpriteFolder", "Sprites", "Sprite");
     }
 };
 

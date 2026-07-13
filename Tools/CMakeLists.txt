@@ -94,7 +94,7 @@ endif()
 target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
 set(TOOLS_MINIMAL_ALLEGRO_SOURCES
         ../libsrc/allegro/src/color.c
-        data/minallegro_inline.c)
+)
 target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools
@@ -174,6 +174,7 @@ target_link_libraries(crmpak PUBLIC libtools)
 add_executable(spritepak spritepak/main.cpp
         spritepak/commands.h
         spritepak/commands.cpp
+        data/minallegro_inline.c
         )
 set_target_properties(spritepak PROPERTIES
         CXX_STANDARD 11
@@ -189,6 +190,11 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
+if(AGS_BUILD_COMPILER)
+    add_subdirectory(libgamebuild)
+    add_subdirectory(agsbuild)
+endif()
+
 list(APPEND TOOLS_TARGETS
         agf2dlgasc
         agfexport
@@ -198,6 +204,10 @@ list(APPEND TOOLS_TARGETS
         spritepak
         trac
         )
+
+if(AGS_BUILD_COMPILER)
+    list(APPEND TOOLS_TARGETS agsbuild)
+endif()
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)
@@ -226,4 +236,30 @@ if(AGS_TESTS)
 
    include(GoogleTest)
    gtest_add_tests(TARGET tools_test)
+
+   if(AGS_BUILD_COMPILER)
+      add_executable(agsbuild_test
+         test/agsbuild_test.cpp
+         agsbuild/agsbuild_stubs.cpp
+      )
+      set_target_properties(agsbuild_test PROPERTIES
+         CXX_STANDARD 17
+         CXX_EXTENSIONS NO
+         C_STANDARD 11
+         C_EXTENSIONS NO
+         INTERPROCEDURAL_OPTIMIZATION FALSE
+      )
+      target_include_directories(agsbuild_test PRIVATE
+         ${CMAKE_CURRENT_SOURCE_DIR}/libgamebuild
+         ${CMAKE_CURRENT_SOURCE_DIR}/data
+      )
+      target_compile_definitions(agsbuild_test PRIVATE
+         AGSBUILD_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/minimal"
+      )
+      target_link_libraries(agsbuild_test
+         libgamebuild
+         gtest_main
+      )
+      gtest_add_tests(TARGET agsbuild_test)
+   endif()
 endif()

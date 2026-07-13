@@ -65,6 +65,18 @@ namespace DataUtil
     // Optionally compares read table of contents with the provided lib info.
     HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib);
 
+    // Asset sourced from an arbitrary path (not necessarily under one asset_dir).
+    struct AssetFileEntry
+    {
+        String FileName;
+        String SourcePath;
+    };
+
+    // Write a single-part CLIB/MFL archive from explicit (name, path) pairs.
+    HError WriteLibraryFromPaths(const String &output_path,
+        const std::vector<AssetFileEntry> &entries,
+        Common::MFLUtil::MFLVersion lib_version = Common::MFLUtil::kMFLVersion_MultiV30);
+
     // A custom comparator used to search for AssetInfos by a name
     struct AssetInfoComparator
     {

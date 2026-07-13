@@ -547,6 +547,7 @@ namespace AGS.Editor
         /// </summary>
         private static void SetDefaultColorsForGUIControls(Game game, GUIControl control, int xmlVersionIndex, bool remapOldColors)
         {
+#pragma warning disable 0612, 0618
             // Remap is only necessary if we have a non palette based game
             remapOldColors &= game.Settings.ColorDepth != GameColorDepth.Palette;
             var palette = game.Palette;
@@ -610,6 +611,7 @@ namespace AGS.Editor
                 tbox.PaddingX = 1;
                 tbox.PaddingY = 1;
             }
+#pragma warning restore 0612, 0618
         }
 
         private static void ConvertLinebreakInTextProperties(Game game)

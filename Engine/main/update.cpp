@@ -152,7 +152,7 @@ static bool movelist_handle_donemove(const uint8_t testflag, const fixed xpermov
     return (doneflag & testflag) != 0;
 }
 
-MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool step_forward, bool smooth_move)
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool smooth_move)
 {
     // NOTE: mslot 0 is not used, because id 0 is treated as "no move"
     assert(mslot >= 1);
@@ -212,8 +212,7 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool step_forw
     if ((cmls.doneflag & kMoveListDone_XY) != kMoveListDone_XY)
     {
         // Make a step along the current vector and return
-        if (step_forward)
-            cmls.onpart += 1.f;
+        cmls.onpart += 1.f;
     }
     else
     {

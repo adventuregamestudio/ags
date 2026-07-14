@@ -4884,6 +4884,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_DestinationY",          API_FN_PAIR(Character_GetDestinationY) },
         { "Character::get_DiagonalLoops",         API_FN_PAIR(Character_GetDiagonalWalking) },
         { "Character::set_DiagonalLoops",         API_FN_PAIR(Character_SetDiagonalWalking) },
+        { "Character::get_DisplayName",           API_FN_PAIR(Character_GetName) },
+        { "Character::set_DisplayName",           API_FN_PAIR(Character_SetName) },
         { "Character::get_Enabled",               API_FN_PAIR(Character_GetEnabled) },
         { "Character::set_Enabled",               API_FN_PAIR(Character_SetEnabled) },
         { "Character::get_Following",             API_FN_PAIR(Character_GetFollowing) },
@@ -4908,6 +4910,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_MovementLinkedToAnimation",API_FN_PAIR(Character_GetMovementLinkedToAnimation) },
         { "Character::set_MovementLinkedToAnimation",API_FN_PAIR(Character_SetMovementLinkedToAnimation) },
         { "Character::get_Moving",                API_FN_PAIR(Character_GetMoving) },
+        // [OBSOLETE] Name => DisplayName
         { "Character::get_Name",                  API_FN_PAIR(Character_GetName) },
         { "Character::set_Name",                  API_FN_PAIR(Character_SetName) },
         { "Character::get_NormalView",            API_FN_PAIR(Character_GetNormalView) },

@@ -433,9 +433,12 @@ void RegisterInventoryItemAPI()
         { "InventoryItem::set_CursorHotspotX",        API_FN_PAIR(InventoryItem_SetCursorHotspotX) },
         { "InventoryItem::get_CursorHotspotY",        API_FN_PAIR(InventoryItem_GetCursorHotspotY) },
         { "InventoryItem::set_CursorHotspotY",        API_FN_PAIR(InventoryItem_SetCursorHotspotY) },
+        { "InventoryItem::get_DisplayName",           API_FN_PAIR(InventoryItem_GetName_New) },
+        { "InventoryItem::set_DisplayName",           API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_Graphic",               API_FN_PAIR(InventoryItem_GetGraphic) },
         { "InventoryItem::set_Graphic",               API_FN_PAIR(InventoryItem_SetGraphic) },
         { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },
+        // [OBSOLETE] Name => DisplayName
         { "InventoryItem::get_Name",                  API_FN_PAIR(InventoryItem_GetName_New) },
         { "InventoryItem::set_Name",                  API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_ScriptName",            API_FN_PAIR(InventoryItem_GetScriptName) },

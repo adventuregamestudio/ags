@@ -2582,7 +2582,9 @@ void RegisterGameAPI()
         { "Game::DoOnceOnly^1",                           API_FN_PAIR(Game_DoOnceOnly) },
         { "Game::GetColorFromRGB^3",                      API_FN_PAIR(Game_GetColorFromRGB) },
         { "Game::GetColorFromRGBA^4",                     API_FN_PAIR(Game_GetColorFromRGBA) },
+        { "Game::GetDisplayNameAt^2",                     API_FN_PAIR(Game_GetLocationName) },
         { "Game::GetFrameCountForLoop^2",                 API_FN_PAIR(Game_GetFrameCountForLoop) },
+        // [OBSOLETE] GetLocationName => GetDisplayNameAt
         { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName) },
         { "Game::GetLoopCountForView^1",                  API_FN_PAIR(Game_GetLoopCountForView) },
         { "Game::GetRunNextSettingForLoop^2",             API_FN_PAIR(Game_GetRunNextSettingForLoop) },

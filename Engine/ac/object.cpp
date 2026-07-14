@@ -2175,6 +2175,8 @@ void RegisterObjectAPI()
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
         { "Object::get_DestinationX",         API_FN_PAIR(Object_GetDestinationX) },
         { "Object::get_DestinationY",         API_FN_PAIR(Object_GetDestinationY) },
+        { "Object::get_DisplayName",          API_FN_PAIR(Object_GetName_New) },
+        { "Object::set_DisplayName",          API_FN_PAIR(Object_SetName) },
         { "Object::get_Enabled",              API_FN_PAIR(Object_GetEnabled) },
         { "Object::set_Enabled",              API_FN_PAIR(Object_SetEnabled) },
         { "Object::get_Frame",                API_FN_PAIR(Object_GetFrame) },
@@ -2185,6 +2187,7 @@ void RegisterObjectAPI()
         { "Object::get_ManualScaling",        API_FN_PAIR(Object_GetManualScaling) },
         { "Object::set_ManualScaling",        API_FN_PAIR(Object_SetManualScaling) },
         { "Object::get_Moving",               API_FN_PAIR(Object_GetMoving) },
+        // [OBSOLETE] Name => DisplayName
         { "Object::get_Name",                 API_FN_PAIR(Object_GetName_New) },
         { "Object::set_Name",                 API_FN_PAIR(Object_SetName) },
         { "Object::get_Scaling",              API_FN_PAIR(Object_GetScaling) },

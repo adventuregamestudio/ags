@@ -1,0 +1,15 @@
+# Build / editor output — keep only source fixtures (Game.agf, *.asc, *.ash, etc.)
+
+# Compiled rooms
+*.crm
+
+# Sprite cache
+acsprset.spr
+sprindex.dat
+
+# Compiled script objects
+*.o
+
+# Build output if tests run inside a fixture tree
+Compiled/
+_temp/

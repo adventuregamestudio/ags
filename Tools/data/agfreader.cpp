@@ -52,16 +52,25 @@ HError AGFReader::Open(const char *filename)
         return new Error("Not a valid AGS game project");
 
     const char *attr_filever = _doc->RootElement()->Attribute(XML_ATTRIBUTE_VERSION);
-    if (strcmp(attr_filever, LATEST_XML_VERSION))
-        return new Error(String::FromFormat("Unsupported Game.agf format: %s", attr_filever));
-
     const int attr_format = _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX);
     const char *attr_editorver = _doc->RootElement()->Attribute(XML_ATTRIBUTE_EDITOR_VERSION);
-    Debug::Printf("AGFReader: opened %s,\n format tag: %s\n format index: %d\n saved by AGS %s",
-        filename, attr_filever, attr_format, attr_editorver);
 
     if (attr_format < LOWEST_SUPPORTED_FORMAT)
         return new Error(String::FromFormat("Unsupported Game.agf format index: %d", attr_format));
+
+    if (attr_filever && strcmp(attr_filever, LATEST_XML_VERSION) != 0)
+    {
+        Debug::Printf("AGFReader: note: Game.agf version tag %s (latest %s), format index %d",
+            attr_filever, LATEST_XML_VERSION, attr_format);
+    }
+    else if (!attr_filever)
+    {
+        Debug::Printf("AGFReader: note: Game.agf has no version tag, format index %d", attr_format);
+    }
+
+    Debug::Printf("AGFReader: opened %s,\n format tag: %s\n format index: %d\n saved by AGS %s",
+        filename, attr_filever ? attr_filever : "(none)", attr_format,
+        attr_editorver ? attr_editorver : "(unknown)");
 
     DocElem game = _doc->RootElement()->FirstChildElement("Game");
     if (!game)
@@ -84,24 +93,77 @@ void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elem
     const char *folder_elem, const char *list_elem, const char *type_elem)
 {
     DocElem list_root = game_root->FirstChildElement(list_elem);
-    DocElem node = list_root;
-    if (folder_elem)
-    { // Get the main folder
-        node = node->FirstChildElement(folder_elem);
+    if (!list_root)
+        return;
+
+    // Legacy: entities placed directly under the list wrapper
+    if (type_elem)
+    {
+        for (DocElem node = list_root->FirstChildElement(type_elem);
+            node; node = node->NextSiblingElement(type_elem))
+        {
+            elems.push_back(node);
+        }
     }
-    return GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
+    else if (folder_elem)
+    {
+        for (DocElem node = list_root->FirstChildElement();
+            node; node = node->NextSiblingElement())
+        {
+            if (strcmp(node->Name(), folder_elem) == 0)
+                continue;
+            elems.push_back(node);
+        }
+    }
+
+    if (folder_elem)
+    {
+        DocElem node = list_root->FirstChildElement(folder_elem);
+        if (node)
+            GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
+    }
+    else
+    {
+        GetElemsRecursive(list_root, elems, folder_elem, list_elem, type_elem);
+    }
 }
 
 void EntityListParser::GetAllElems(DocElem game_root, std::vector<DocElem> &elems,
     const char *root_elem, const char *folder_elem, const char *list_elem, const char *type_elem)
 {
     DocElem list_root = game_root->FirstChildElement(root_elem);
-    DocElem node = list_root;
-    if (folder_elem)
-    { // Get the main folder
-        node = node->FirstChildElement(folder_elem);
+    if (!list_root)
+        return;
+
+    if (type_elem)
+    {
+        for (DocElem node = list_root->FirstChildElement(type_elem);
+            node; node = node->NextSiblingElement(type_elem))
+        {
+            elems.push_back(node);
+        }
     }
-    return GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
+    else if (folder_elem)
+    {
+        for (DocElem node = list_root->FirstChildElement();
+            node; node = node->NextSiblingElement())
+        {
+            if (strcmp(node->Name(), folder_elem) == 0)
+                continue;
+            elems.push_back(node);
+        }
+    }
+
+    if (folder_elem)
+    {
+        DocElem node = list_root->FirstChildElement(folder_elem);
+        if (node)
+            GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
+    }
+    else
+    {
+        GetElemsRecursive(list_root, elems, folder_elem, list_elem, type_elem);
+    }
 }
 
 void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &elems,
@@ -141,7 +203,10 @@ const char* ValueParser::ReadString(DocElem elem, const char *field, const char 
 {
     DocElem name_f = elem->FirstChildElement(field);
     if (name_f)
-        return name_f->GetText();
+    {
+        const char *text = name_f->GetText();
+        return text ? text : def_value;
+    }
     return def_value;
 }
 
@@ -156,9 +221,10 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
 bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
 {
     DocElem name_f = elem->FirstChildElement(field);
-    if (name_f)
-        return ags_stricmp(name_f->GetText(), "True") == 0;
-    return def_value;
+    if (!name_f || !name_f->GetText())
+        return def_value;
+    const char *text = name_f->GetText();
+    return ags_stricmp(text, "True") == 0 || ags_stricmp(text, "true") == 0 || strcmp(text, "1") == 0;
 }
 
 int Dialog::ReadOptionCount(DocElem elem)

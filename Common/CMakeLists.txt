@@ -143,6 +143,7 @@ target_sources(common
     util/error.h
     util/file.cpp
     util/file.h
+    util/file_helpers.h
     util/filestream.cpp
     util/filestream.h
     util/geometry.cpp
@@ -162,6 +163,7 @@ target_sources(common
     util/path.cpp
     util/path_ex.cpp
     util/path.h
+    util/path_helpers.h
     util/resourcecache.h
     util/scaling.h
     util/smart_ptr.h

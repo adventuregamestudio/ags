@@ -1,0 +1,203 @@
+<?xml version='1.0' encoding='utf-8'?>
+<AGSEditorDocument Version="3.0.3.2" VersionIndex="3060020" EditorVersion="3.6.0.60">
+    <Game>
+        <Settings>
+            <AllowRelativeAssetResolutions>False</AllowRelativeAssetResolutions>
+            <AlwaysDisplayTextAsSpeech>False</AlwaysDisplayTextAsSpeech>
+            <AntiAliasFonts>False</AntiAliasFonts>
+            <AntiGlideMode>True</AntiGlideMode>
+            <AttachDataToExe>False</AttachDataToExe>
+            <AudioIndexer>16</AudioIndexer>
+            <AutoMoveInWalkMode>True</AutoMoveInWalkMode>
+            <ColorDepth>TrueColor</ColorDepth>
+            <CompressSpritesType>None</CompressSpritesType>
+            <CrossfadeMusic>No</CrossfadeMusic>
+            <CustomResolution>640,360</CustomResolution>
+            <DebugMode>False</DebugMode>
+            <Description>agdta test fixture</Description>
+            <DeveloperName>AGS</DeveloperName>
+            <DialogScriptNarrateFunction IsNull="True" />
+            <DialogScriptSayFunction IsNull="True" />
+            <EnforceNewAudio>True</EnforceNewAudio>
+            <EnforceNewStrings>True</EnforceNewStrings>
+            <EnforceObjectBasedScript>True</EnforceObjectBasedScript>
+            <GameFileName>agdta_test</GameFileName>
+            <GameName>agdta test</GameName>
+            <GameTextEncoding>utf-8</GameTextEncoding>
+            <Genre>Adventure</Genre>
+            <LeftToRightPrecedence>True</LeftToRightPrecedence>
+            <NumberDialogOptions>None</NumberDialogOptions>
+            <PixelPerfect>True</PixelPerfect>
+            <ReleaseDate>2026-07-14</ReleaseDate>
+            <RoomTransition>Instant</RoomTransition>
+            <SaveGameFolderName>agdta_test</SaveGameFolderName>
+            <ScriptAPIVersion>Highest</ScriptAPIVersion>
+            <ScriptCompatLevel>Highest</ScriptCompatLevel>
+            <SkipSpeech>MouseOrKeyboardOrTimer</SkipSpeech>
+            <SpeechStyle>Lucasarts</SpeechStyle>
+            <SpriteAlphaStyle>Improved</SpriteAlphaStyle>
+            <TextWindowGUI>0</TextWindowGUI>
+            <ThoughtGUI>0</ThoughtGUI>
+            <TurnBeforeWalking>True</TurnBeforeWalking>
+            <UseOldCustomDialogOptionsAPI>False</UseOldCustomDialogOptionsAPI>
+            <UseOldKeyboardHandling>False</UseOldKeyboardHandling>
+            <Version>0.1.0.0</Version>
+        </Settings>
+        <RuntimeSetup>
+            <DigitalSound>Default</DigitalSound>
+            <FullscreenDesktop>True</FullscreenDesktop>
+            <GameScaling>MaxInteger</GameScaling>
+            <GraphicsDriver>D3D9</GraphicsDriver>
+            <GraphicsFilter>stdscale</GraphicsFilter>
+            <SpriteCacheSize>128</SpriteCacheSize>
+            <Windowed>True</Windowed>
+        </RuntimeSetup>
+        <LipSync>
+            <Type>None</Type>
+            <DefaultFrame>0</DefaultFrame>
+        </LipSync>
+        <PropertyDefinitions />
+        <GlobalMessages />
+        <OldInteractionVariables />
+        <Plugins />
+        <Rooms>
+            <UnloadedRoomFolder Name="Main">
+                <SubFolders />
+                <UnloadedRooms>
+                    <UnloadedRoom>
+                        <Description>Room 1</Description>
+                        <Number>1</Number>
+                    </UnloadedRoom>
+                </UnloadedRooms>
+            </UnloadedRoomFolder>
+        </Rooms>
+        <Characters>
+            <CharacterFolder Name="Main">
+                <SubFolders />
+                <Characters>
+                    <Character>
+                        <AnimationDelay>3</AnimationDelay>
+                        <Clickable>True</Clickable>
+                        <DiagonalLoops>True</DiagonalLoops>
+                        <ID>0</ID>
+                        <MovementSpeed>9</MovementSpeed>
+                        <NormalView>0</NormalView>
+                        <Properties />
+                        <RealName>Player</RealName>
+                        <ScriptName>cPlayer</ScriptName>
+                        <Solid>True</Solid>
+                        <StartX>160</StartX>
+                        <StartY>160</StartY>
+                        <StartingRoom>1</StartingRoom>
+                        <TurnBeforeWalking>True</TurnBeforeWalking>
+                        <Interactions>
+                            <Event Index="0" />
+                            <Event Index="1" />
+                            <Event Index="2" />
+                            <Event Index="3" />
+                            <Event Index="4" />
+                            <Event Index="5" />
+                            <Event Index="6" />
+                            <Event Index="7" />
+                        </Interactions>
+                    </Character>
+                </Characters>
+            </CharacterFolder>
+        </Characters>
+        <PlayerCharacter>0</PlayerCharacter>
+        <Dialogs>
+            <DialogFolder Name="Main">
+                <SubFolders />
+                <Dialogs />
+            </DialogFolder>
+        </Dialogs>
+        <Cursors>
+            <MouseCursor>
+                <Animate>False</Animate>
+                <HotspotX>0</HotspotX>
+                <HotspotY>0</HotspotY>
+                <ID>0</ID>
+                <Image>0</Image>
+                <Name>Walk to</Name>
+                <StandardMode>True</StandardMode>
+                <View>0</View>
+            </MouseCursor>
+        </Cursors>
+        <Fonts>
+            <Font>
+                <ID>0</ID>
+                <Name>Font 0</Name>
+                <OutlineStyle>None</OutlineStyle>
+                <PointSize>0</PointSize>
+                <SourceFilename />
+            </Font>
+        </Fonts>
+        <Views>
+            <ViewFolder Name="Main">
+                <SubFolders />
+                <Views />
+            </ViewFolder>
+        </Views>
+        <DeletedViews />
+        <Scripts>
+            <ScriptFolder Name="Main">
+                <SubFolders />
+                <ScriptAndHeaders>
+                    <ScriptAndHeader>
+                        <ScriptAndHeader_Header>
+                            <Script>
+                                <FileName>GlobalScript.ash</FileName>
+                                <IsHeader>True</IsHeader>
+                            </Script>
+                        </ScriptAndHeader_Header>
+                        <ScriptAndHeader_Script>
+                            <Script>
+                                <FileName>GlobalScript.asc</FileName>
+                                <IsHeader>False</IsHeader>
+                            </Script>
+                        </ScriptAndHeader_Script>
+                    </ScriptAndHeader>
+                </ScriptAndHeaders>
+            </ScriptFolder>
+        </Scripts>
+        <InventoryItems>
+            <InventoryItemFolder Name="Main">
+                <SubFolders />
+                <InventoryItems />
+            </InventoryItemFolder>
+        </InventoryItems>
+        <AudioClips>
+            <AudioClipFolder Name="Main">
+                <SubFolders />
+                <AudioClips />
+            </AudioClipFolder>
+        </AudioClips>
+        <AudioClipTypes>
+            <AudioClipType>
+                <BackwardsCompatibilityType>True</BackwardsCompatibilityType>
+                <CrossfadeClips>No</CrossfadeClips>
+                <MaxChannels>1</MaxChannels>
+                <Name>Ambient Sound</Name>
+                <TypeID>1</TypeID>
+                <VolumeReductionWhileSpeechPlaying>0</VolumeReductionWhileSpeechPlaying>
+            </AudioClipType>
+            <AudioClipType>
+                <BackwardsCompatibilityType>True</BackwardsCompatibilityType>
+                <CrossfadeClips>No</CrossfadeClips>
+                <MaxChannels>1</MaxChannels>
+                <Name>Music</Name>
+                <TypeID>2</TypeID>
+                <VolumeReductionWhileSpeechPlaying>30</VolumeReductionWhileSpeechPlaying>
+            </AudioClipType>
+            <AudioClipType>
+                <BackwardsCompatibilityType>False</BackwardsCompatibilityType>
+                <CrossfadeClips>No</CrossfadeClips>
+                <MaxChannels>0</MaxChannels>
+                <Name>Sound</Name>
+                <TypeID>3</TypeID>
+                <VolumeReductionWhileSpeechPlaying>0</VolumeReductionWhileSpeechPlaying>
+            </AudioClipType>
+        </AudioClipTypes>
+        <Translations />
+    </Game>
+</AGSEditorDocument>

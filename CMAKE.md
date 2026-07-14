@@ -127,3 +127,31 @@ The relevant options include
   These are very verbose and should not be used in final builds.
 - `AGS_DEBUG_SPRITECACHE` : Enables including Sprite Cache  information when logging. 
   These are very verbose and should not be used in final builds.
+
+### Native game28.dta writer (`agdta`)
+
+Build the standalone tool that parses `Game.agf` and writes `game28.dta` from compiled
+script object files (`.o` in `Compiled/_temp`, normally from an AGS Editor build):
+
+```bash
+cmake .. -DAGS_BUILD_TOOLS=ON -DAGS_BUILD_COMPILER=ON -DAGS_BUILD_ENGINE=OFF
+cmake --build . --target agdta
+```
+
+Run from a game project directory:
+
+```bash
+# After script .o files exist under Compiled/_temp (from the editor build):
+agdta --open Game.agf --output Compiled [--scripts-dir Compiled/_temp]
+```
+
+Output:
+
+- `Compiled/_temp/game28.dta` (or path given with `--dta`)
+
+Integration test (requires `AGS_TESTS=ON` and `AGS_BUILD_COMPILER=ON`):
+
+```bash
+cmake --build . --target agdta_test
+ctest -R agdta_test
+```

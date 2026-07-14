@@ -1330,8 +1330,14 @@ builtin managed struct InventoryItem {
   import attribute int  Graphic;
   /// Gets the ID number of the inventory item.
   readonly import attribute int ID;
+#ifdef SCRIPT_COMPAT_v400
   /// Gets/sets the human-readable name of the inventory item.
   import attribute String Name;
+#endif // SCRIPT_COMPAT_v400_30
+#ifdef SCRIPT_API_v400_30
+  /// Gets/sets the human-readable name of the inventory item.
+  import attribute String DisplayName;
+#endif // SCRIPT_API_v400_30
   /// Sets an integer custom property for this item.
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this item.
@@ -2175,8 +2181,14 @@ builtin managed struct Hotspot {
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
   readonly import attribute int ID;
+#ifdef SCRIPT_COMPAT_v400
   /// Gets/sets the human-readable name of the hotspot.
   import attribute String Name;
+#endif // SCRIPT_COMPAT_v400_30
+#ifdef SCRIPT_API_v400_30
+  /// Gets/sets the human-readable name of the hotspot.
+  import attribute String DisplayName;
+#endif // SCRIPT_API_v400_30
   /// Gets the X co-ordinate of the walk-to point for this hotspot.
   readonly import attribute int WalkToX;
   /// Gets the Y co-ordinate of the walk-to point for this hotspot.
@@ -2759,8 +2771,14 @@ builtin managed struct Object {
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
   readonly import attribute bool Moving;
+#ifdef SCRIPT_COMPAT_v400
   /// Gets/sets the human-readable name of the object.
   import attribute String Name;
+#endif // SCRIPT_COMPAT_v400_30
+#ifdef SCRIPT_API_v400_30
+  /// Gets/sets the human-readable name of the object.
+  import attribute String DisplayName;
+#endif // SCRIPT_API_v400_30
   /// Gets/sets whether other objects and characters can move through this object.
   import attribute bool Solid;
   /// Gets/sets the object's transparency.
@@ -3023,8 +3041,14 @@ builtin managed struct Character {
   import attribute bool MovementLinkedToAnimation;
   /// Gets whether the character is currently moving.
   readonly import attribute bool Moving;
+#ifdef SCRIPT_COMPAT_v400
   /// Gets/sets the human-readable character's name.
   import attribute String Name;
+#endif // SCRIPT_COMPAT_v400_30
+#ifdef SCRIPT_API_v400_30
+  /// Gets/sets the human-readable character's name.
+  import attribute String DisplayName;
+#endif // SCRIPT_API_v400_30
   /// Gets the character's normal walking view.
   readonly import attribute int NormalView;
   /// Gets the room number that the character was in before this one.
@@ -3219,8 +3243,12 @@ builtin struct Game {
   import static int    GetColorFromRGB(int red, int green, int blue);
   /// Gets the number of frames in the specified view loop.
   import static int    GetFrameCountForLoop(int view, int loop);
+#ifdef SCRIPT_COMPAT_v400
   /// Gets the name of whatever is on the screen at (x,y)
   import static String GetLocationName(int x, int y);
+#endif // SCRIPT_COMPAT_v400_30
+  /// Gets the human-readable name of whatever is on the screen at (x,y)
+  import static String GetDisplayNameAt(int x, int y);
   /// Gets the number of loops in the specified view.
   import static int    GetLoopCountForView(int view);
   /// Gets whether the "Run next loop after this" setting is checked for the specified loop.

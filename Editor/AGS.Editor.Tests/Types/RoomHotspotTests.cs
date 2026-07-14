@@ -100,8 +100,8 @@ namespace AGS.Types
         {
             string xml = $@"
             <RoomHotspot>
-              <Description xml:space=""preserve"">{description}</Description>
-              <Name>{name}</Name>
+              <DisplayName xml:space=""preserve"">{description}</DisplayName>
+              <ScriptName>{name}</ScriptName>
               <WalkToPoint>{walkToX},{walkToY}</WalkToPoint>
               <Properties />
               <Interactions />
@@ -118,15 +118,15 @@ namespace AGS.Types
 
         [TestCase("Hotspot 1", "hHotspot1", 0, 0)]
         [TestCase("Hotspot 2", "hHotspot2", 5, 5)]
-        public void SerializeToXml(string description, string name, int walkToX, int walkToY)
+        public void SerializeToXml(string displayName, string scriptName, int walkToX, int walkToY)
         {
-            _roomHotspot.DisplayName = description;
-            _roomHotspot.ScriptName = name;
+            _roomHotspot.DisplayName = displayName;
+            _roomHotspot.ScriptName = scriptName;
             _roomHotspot.WalkToPoint = new Point(walkToX, walkToY);
             XmlDocument doc = _roomHotspot.ToXmlDocument();
 
-            Assert.That(doc.SelectSingleNode("/RoomHotspot/Description").InnerText, Is.EqualTo(description));
-            Assert.That(doc.SelectSingleNode("/RoomHotspot/Name").InnerText, Is.EqualTo(name));
+            Assert.That(doc.SelectSingleNode("/RoomHotspot/DisplayName").InnerText, Is.EqualTo(displayName));
+            Assert.That(doc.SelectSingleNode("/RoomHotspot/ScriptName").InnerText, Is.EqualTo(scriptName));
             Assert.That(doc.SelectSingleNode("/RoomHotspot/WalkToPoint").InnerText, Is.EqualTo($"{walkToX},{walkToY}"));
         }
     }

@@ -2776,4 +2776,77 @@ BuildResult BuildSystem::BuildGame(Project& project, const BuildConfig& config)
     return result;
 }
 
+bool BuildSystem::PrepareOutputDirectories(const BuildConfig& config, BuildResult& result)
+{
+    return CreateBuildDirectories(config, result);
+}
+
+bool BuildSystem::ValidateProject(Project& project, BuildResult& result)
+{
+    return PreBuildChecks(project, result);
+}
+
+bool BuildSystem::CompileProjectScripts(Project& project, const BuildConfig& config,
+                                        BuildResult& result)
+{
+    return CompileAllScripts(project, config, result);
+}
+
+bool BuildSystem::LoadCompiledScriptsFromDir(const std::string& dir, BuildResult& result)
+{
+    compiled_scripts_.clear();
+
+    std::vector<std::string> names;
+    CollectDirectoryFileNames(dir, [](const std::string& fname) {
+        return fname.size() > 2 && fname.compare(fname.size() - 2, 2, ".o") == 0;
+    }, names);
+
+    if (names.empty())
+    {
+        result.AddError("", 0, "No compiled script objects (.o) found in: " + dir);
+        return false;
+    }
+
+    for (const auto& fname : names)
+    {
+        CompiledScriptInfo info;
+        info.name = fname.substr(0, fname.size() - 2);
+        info.obj_file = dir + "/" + fname;
+        compiled_scripts_.push_back(std::move(info));
+    }
+
+    return true;
+}
+
+bool BuildSystem::WriteGameData(Project& project, const BuildConfig& config,
+                                BuildResult& result, const std::string& output_path)
+{
+    return WriteGameDataFile(project, config, result, output_path);
+}
+
+bool BuildSystem::PackageDataAssets(Project& project, const BuildConfig& config,
+                                    BuildResult& result, const std::string& data_dir)
+{
+    return PackageAssets(project, config, result, data_dir);
+}
+
+bool BuildSystem::BuildVoxFiles(Project& project, const BuildConfig& config,
+                                BuildResult& result, const std::string& data_dir)
+{
+    return CreateVOXFiles(project, config, result, data_dir);
+}
+
+bool BuildSystem::CompileProjectTranslations(Project& project, const BuildConfig& config,
+                                             BuildResult& result, const std::string& data_dir)
+{
+    return CompileRegisteredTranslations(project, config, result, data_dir);
+}
+
+bool BuildSystem::WriteSetupConfig(Project& project, const BuildConfig& config,
+                                   const std::string& target_dir)
+{
+    BuildResult ignored;
+    return GenerateConfigFile(project, config, target_dir);
+}
+
 } // namespace AGSBuild

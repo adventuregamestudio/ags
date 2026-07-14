@@ -22,10 +22,20 @@ using namespace AGSBuild;
 
 namespace {
 
-const char *HELP_STRING = R"EOS(agsbuild - Native AGS game compiler
+const char *HELP_STRING = R"EOS(agsbuild - Convenience wrapper for the data build pipeline
 Copyright (c) AGS Team and contributors
 
 Usage: agsbuild --open <Game.agf> [options]
+
+Runs the full Data-target pipeline in one invocation. For composable builds use
+the standalone tools instead (see Tools/scripts/build-data.sh):
+
+  agsscripts   compile project scripts to Compiled/_temp/*.o
+  agdta        write game28.dta from Game.agf + script objects
+  agsvox       build audio.vox / speech.vox
+  agstrans     compile registered translations to Compiled/Data/*.tra
+  agsassets    package Compiled/Data/<GameFileName>.ags
+  agscfg       write Compiled/Data/acsetup.cfg
 
 Options:
   --open <path>           Path to Game.agf (required)
@@ -34,10 +44,6 @@ Options:
   --force                 Rebuild all scripts even if timestamps unchanged
   --verbose               Print build log to stderr
   -h, --help              Show this help message
-
-Produces the same data archives as AGSEditor /compile (Data target only):
-  Compiled/Data/<GameFileName>.ags
-  Compiled/Data/audio.vox, speech.vox, *.tra, acsetup.cfg
 )EOS";
 
 struct ParsedOptions {

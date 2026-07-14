@@ -24,6 +24,7 @@ target_sources(libgamebuild PRIVATE
     game_data_writer.cpp
     game_data_writer.h
     io_utils.h
+    cli_utils.h
     logger.h
     path_utils.h
     project.cpp

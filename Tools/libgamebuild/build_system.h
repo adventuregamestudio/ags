@@ -129,6 +129,22 @@ public:
 
     BuildResult BuildGame(Project& project, const BuildConfig& config);
 
+    // Standalone pipeline steps (each maps to one CLI tool).
+    bool PrepareOutputDirectories(const BuildConfig& config, BuildResult& result);
+    bool ValidateProject(Project& project, BuildResult& result);
+    bool CompileProjectScripts(Project& project, const BuildConfig& config, BuildResult& result);
+    bool LoadCompiledScriptsFromDir(const std::string& dir, BuildResult& result);
+    bool WriteGameData(Project& project, const BuildConfig& config,
+                       BuildResult& result, const std::string& output_path);
+    bool PackageDataAssets(Project& project, const BuildConfig& config,
+                           BuildResult& result, const std::string& data_dir);
+    bool BuildVoxFiles(Project& project, const BuildConfig& config,
+                       BuildResult& result, const std::string& data_dir);
+    bool CompileProjectTranslations(Project& project, const BuildConfig& config,
+                                    BuildResult& result, const std::string& data_dir);
+    bool WriteSetupConfig(Project& project, const BuildConfig& config,
+                          const std::string& target_dir);
+
     bool IsBuilding() const { return building_; }
     const BuildProgress& GetProgress() const { return progress_; }
     const BuildResult& GetLastResult() const { return last_result_; }
@@ -140,28 +156,29 @@ public:
     using LogCallback = std::function<void(const std::string&)>;
     void SetLogCallback(LogCallback cb) { log_cb_ = std::move(cb); }
 
+    std::string GetCompiledDir(const BuildConfig& config) const;
+    std::string GetDataDir(const BuildConfig& config) const;
+
 private:
-    bool PreBuildChecks(Project& project, BuildResult& result);
     void EnsureDefaultFonts(Project& project);
     bool GenerateAutoHeader(Project& project, std::string& out_header);
+    bool PreBuildChecks(Project& project, BuildResult& result);
     bool CompileAllScripts(Project& project, const BuildConfig& config, BuildResult& result);
     bool WriteGameDataFile(Project& project, const BuildConfig& config,
                            BuildResult& result, const std::string& output_path);
     bool PackageAssets(Project& project, const BuildConfig& config,
                        BuildResult& result, const std::string& data_dir);
-    bool CompileRegisteredTranslations(Project& project, const BuildConfig& config,
-                                       BuildResult& result, const std::string& data_dir);
     bool CreateVOXFiles(Project& project, const BuildConfig& config,
                         BuildResult& result, const std::string& data_dir);
-    bool CopyEngineFiles(const BuildConfig& config, BuildTarget target,
-                         BuildResult& result, const std::string& target_dir);
+    bool CompileRegisteredTranslations(Project& project, const BuildConfig& config,
+                                       BuildResult& result, const std::string& data_dir);
     bool GenerateConfigFile(Project& project, const BuildConfig& config,
                             const std::string& target_dir);
     bool CreateBuildDirectories(const BuildConfig& config, BuildResult& result);
+    bool CopyEngineFiles(const BuildConfig& config, BuildTarget target,
+                         BuildResult& result, const std::string& target_dir);
 
     void Log(const char* fmt, ...);
-    std::string GetCompiledDir(const BuildConfig& config) const;
-    std::string GetDataDir(const BuildConfig& config) const;
     std::string GetTargetDir(const BuildConfig& config, BuildTarget target) const;
 
     bool building_ = false;

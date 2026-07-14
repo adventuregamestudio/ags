@@ -192,6 +192,29 @@ target_link_libraries(trac PUBLIC libtools)
 
 if(AGS_BUILD_COMPILER)
     add_subdirectory(libgamebuild)
+
+    function(add_libgamebuild_tool target)
+        add_executable(${target} ${target}/main.cpp agsbuild/agsbuild_stubs.cpp)
+        set_target_properties(${target} PROPERTIES
+            CXX_STANDARD 17
+            CXX_EXTENSIONS NO
+        )
+        target_include_directories(${target} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/libgamebuild
+            ${CMAKE_CURRENT_SOURCE_DIR}/../Common
+        )
+        target_link_libraries(${target} PUBLIC libgamebuild)
+        if(AGS_DESKTOP)
+            install(TARGETS ${target} RUNTIME DESTINATION bin)
+        endif()
+    endfunction()
+
+    add_libgamebuild_tool(agsscripts)
+    add_libgamebuild_tool(agdta)
+    add_libgamebuild_tool(agsassets)
+    add_libgamebuild_tool(agsvox)
+    add_libgamebuild_tool(agstrans)
+    add_libgamebuild_tool(agscfg)
     add_subdirectory(agsbuild)
 endif()
 
@@ -206,7 +229,15 @@ list(APPEND TOOLS_TARGETS
         )
 
 if(AGS_BUILD_COMPILER)
-    list(APPEND TOOLS_TARGETS agsbuild)
+    list(APPEND TOOLS_TARGETS
+        agsscripts
+        agdta
+        agsassets
+        agsvox
+        agstrans
+        agscfg
+        agsbuild
+    )
 endif()
 
 # Bundle-like target to build all tools

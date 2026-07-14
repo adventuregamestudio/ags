@@ -726,13 +726,20 @@ void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
 
 // GetLocationType exported function - just call through
 // to the main function with default 0
-int GetLocationType(int xxx,int yyy) {
-    return __GetLocationType(xxx, yyy, 0);
+int GetLocationType(int x, int y, int hit_options)
+{
+    return GetLocationTypeImpl(x, y, hit_options, false);
 }
 
-void SaveCursorForLocationChange() {
+int GetLocationType2(int x, int y)
+{
+    return GetLocationTypeImpl(x, y, kHit_Interactable, false);
+}
+
+void SaveCursorForLocationChange()
+{
     // update the current location name (ignore return value)
-    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
+    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable);
 
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time)
     {
@@ -745,7 +752,7 @@ void SaveCursorForLocationChange() {
 
 // Finds out what is located under the cursor;
 // returns location's name and "location index" using respective SavedLocationType index base.
-static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
+static const char *GetLocationNameAndIndex(int x, int y, int &loc_index, int hit_options)
 {
     if (displayed_room < 0)
     {
@@ -753,10 +760,10 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
         return ""; // no room loaded yet
     }
 
-    if (GetGUIAt(x, y, kHit_Interactable) >= 0)
+    if (GetGUIAt(x, y, hit_options) >= 0)
     {
         // On GUI, test if we're above an inventory item
-        int invitem = GetInvAt(x, y, kHit_Interactable, kHit_Interactable);
+        int invitem = GetInvAt(x, y, hit_options, hit_options);
         if (invitem > 0)
         {
             loc_index = kSavedLocType_InvItem + invitem;
@@ -769,7 +776,8 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
         }
     }
 
-    const int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
+    // NOTE: GetLocationType takes screen coords
+    const int loctype = GetLocationType(x, y, hit_options);
     // Find out if we're inside the room viewport
     const VpPoint vpt = play.ScreenToRoomDivDown(x, y);
     const Point room_pt = vpt.first;
@@ -816,10 +824,10 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
     return "";
 }
 
-const char *GetLocationName(int x, int y)
+const char *GetLocationName(int x, int y, int hit_options)
 {
     int loc_index;
-    const char *loc_name = GetLocationNameAndIndex(x, y, loc_index);
+    const char *loc_name = GetLocationNameAndIndex(x, y, loc_index, hit_options);
 
     // If it's a new location, different from the last time we checked,
     // then update "@OVERHOTSPOT@" label(s), and save the last index
@@ -832,13 +840,18 @@ const char *GetLocationName(int x, int y)
     return loc_name;
 }
 
+const char *GetLocationName2(int x, int y)
+{
+    return GetLocationName(x, y, kHit_Interactable);
+}
+
 // GetLocationNameInBuf assumes a string buffer of MAX_MAXSTRLEN
 void GetLocationNameInBuf(int x, int y, char *buf)
 {
     VALIDATE_STRING(buf);
     buf[0] = 0;
 
-    const char *name = GetLocationName(x, y);
+    const char *name = GetLocationName(x, y, kHit_Interactable);
     if (!name)
         return;
 
@@ -940,9 +953,10 @@ void SetMultitasking (int mode) {
 
 extern int getloctype_throughgui, getloctype_index;
 
-void RoomProcessClick(int xx,int yy,int mood) {
+void RoomProcessClick(int xx,int yy, int mood)
+{
     getloctype_throughgui = 1;
-    int loctype = GetLocationType (xx, yy);
+    int loctype = GetLocationType(xx, yy, kHit_Interactable);
     VpPoint vpt = play.ScreenToRoomDivDown(xx, yy);
     if (vpt.second < 0)
         return;
@@ -980,9 +994,10 @@ void RoomProcessClick(int xx,int yy,int mood) {
         RunHotspotInteraction (getloctype_index, mood);
 }
 
-int IsInteractionAvailable (int xx,int yy,int mood) {
+int IsInteractionAvailable (int xx,int yy,int mood)
+{
     getloctype_throughgui = 1;
-    int loctype = GetLocationType (xx, yy);
+    int loctype = GetLocationType(xx, yy, kHit_Interactable);
     VpPoint vpt = play.ScreenToRoomDivDown(xx, yy);
     if (vpt.second < 0)
         return 0;

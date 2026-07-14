@@ -1000,8 +1000,14 @@ const char* Game_InputBox(const char *msg) {
     return CreateNewScriptString(buffer);
 }
 
-const char* Game_GetLocationName(int x, int y) {
-    return CreateNewScriptString(GetLocationName(x, y));
+const char* Game_GetLocationName(int x, int y, int hit_options)
+{
+    return CreateNewScriptString(GetLocationName(x, y, hit_options));
+}
+
+const char* Game_GetLocationName2(int x, int y)
+{
+    return Game_GetLocationName(x, y, kHit_Interactable);
 }
 
 const char* Game_GetGlobalMessages(int index) {
@@ -1608,10 +1614,11 @@ void stop_fast_forwarding() {
 
 // allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
 // or whether it returns 0
-int __GetLocationType(int x, int y, int allowHotspot0) {
+int GetLocationTypeImpl(int x, int y, int hit_options, bool allow_hotspot0)
+{
     getloctype_index = 0;
     // If it's not in ProcessClick, then return 0 when over a GUI
-    if ((GetGUIAt(x, y, kHit_Interactable) >= 0) && (getloctype_throughgui == 0))
+    if ((GetGUIAt(x, y, hit_options) >= 0) && (getloctype_throughgui == 0))
         return 0;
 
     getloctype_throughgui = 0;
@@ -1626,9 +1633,9 @@ int __GetLocationType(int x, int y, int allowHotspot0) {
 
     // check characters, objects and walkbehinds, work out which is
     // foremost visible to the player
-    int charat = GetCharIDAtRoom(x, y, kHit_Interactable);
-    int hsat = GetHotspotIDAtRoom(x, y, kHit_Interactable);
-    int objat = GetObjectIDAtRoom(x, y, kHit_Interactable);
+    int charat = GetCharIDAtRoom(x, y, hit_options);
+    int hsat = GetHotspotIDAtRoom(x, y, hit_options);
+    int objat = GetObjectIDAtRoom(x, y, hit_options);
 
     data_to_game_coords(&x, &y);
 
@@ -1670,7 +1677,7 @@ int __GetLocationType(int x, int y, int allowHotspot0) {
             winner = LOCTYPE_HOTSPOT;
     }
 
-    if ((winner == LOCTYPE_HOTSPOT) && (!allowHotspot0) && (hsat == 0))
+    if ((winner == LOCTYPE_HOTSPOT) && (!allow_hotspot0) && (hsat == 0))
         winner = 0;
 
     if (winner == LOCTYPE_HOTSPOT)
@@ -2083,10 +2090,14 @@ RuntimeScriptValue Sc_Game_GetFrameCountForLoop(const RuntimeScriptValue *params
     API_SCALL_INT_PINT2(Game_GetFrameCountForLoop);
 }
 
-// const char* (int x, int y)
 RuntimeScriptValue Sc_Game_GetLocationName(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, Game_GetLocationName);
+    API_SCALL_OBJ_PINT3(const char, myScriptStringImpl, Game_GetLocationName);
+}
+
+RuntimeScriptValue Sc_Game_GetLocationName2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, Game_GetLocationName2);
 }
 
 // int (int viewNumber)
@@ -2538,7 +2549,8 @@ void RegisterGameAPI()
         { "Game::DoOnceOnly^1",                           API_FN_PAIR(Game_DoOnceOnly) },
         { "Game::GetColorFromRGB^3",                      API_FN_PAIR(Game_GetColorFromRGB) },
         { "Game::GetFrameCountForLoop^2",                 API_FN_PAIR(Game_GetFrameCountForLoop) },
-        { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName) },
+        { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName2) },
+        { "Game::GetLocationName^3",                      API_FN_PAIR(Game_GetLocationName) },
         { "Game::GetLoopCountForView^1",                  API_FN_PAIR(Game_GetLoopCountForView) },
         { "Game::GetMODPattern^0",                        API_FN_PAIR(Game_GetMODPattern) },
         { "Game::GetRunNextSettingForLoop^2",             API_FN_PAIR(Game_GetRunNextSettingForLoop) },

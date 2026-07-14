@@ -133,7 +133,7 @@ int Game_GetInSkippableCutscene();
 
 int Game_GetColorFromRGB(int red, int grn, int blu);
 const char* Game_InputBox(const char *msg);
-const char* Game_GetLocationName(int x, int y);
+const char* Game_GetLocationName(int x, int y, int hit_options);
 
 const char* Game_GetGlobalMessages(int index);
 
@@ -199,7 +199,7 @@ bool check_skip_cutscene_mclick(int mbut);
 void initialize_skippable_cutscene();
 void stop_fast_forwarding();
 
-int __GetLocationType(int xxx,int yyy, int allowHotspot0);
+int GetLocationTypeImpl(int x, int y, int hit_options, bool allow_hotspot0);
 
 // Called whenever game loses input focus
 void display_switch_out();

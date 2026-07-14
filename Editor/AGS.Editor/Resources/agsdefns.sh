@@ -970,7 +970,7 @@ import void DeleteSaveSlot(int slot);
 /// Sets this as the point at which the game will be restarted.
 import void SetRestartPoint();
 /// Gets what type of thing is in the room at the specified co-ordinates.
-import LocationType GetLocationType(int x, int y);
+import LocationType GetLocationType(int x, int y, HitTestOptions hitOptions = eHit_Interactable);
 #ifdef SCRIPT_COMPAT_v350
 /// Returns which walkable area is at the specified position on screen.
 import int  GetWalkableAreaAt(int screenX, int screenY);
@@ -3387,7 +3387,7 @@ builtin struct Game {
   /// Gets the number of frames in the specified view loop.
   import static int    GetFrameCountForLoop(int view, int loop);
   /// Gets the name of whatever is on the screen at (x,y)
-  import static String GetLocationName(int x, int y);
+  import static String GetLocationName(int x, int y, HitTestOptions hitOptions = eHit_Interactable);
   /// Gets the number of loops in the specified view.
   import static int    GetLoopCountForView(int view);
   /// Returns the current pattern/track number if the current music is MOD or XM.

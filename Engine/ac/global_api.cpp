@@ -648,10 +648,14 @@ RuntimeScriptValue Sc_GetLocationNameInBuf(const RuntimeScriptValue *params, int
     API_SCALL_VOID_PINT2_POBJ(GetLocationNameInBuf, char);
 }
 
-// int (int xxx,int yyy)
 RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetLocationType);
+    API_SCALL_INT_PINT3(GetLocationType);
+}
+
+RuntimeScriptValue Sc_GetLocationType2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(GetLocationType2);
 }
 
 // void  (int msg, char *buffer)
@@ -2468,7 +2472,9 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
         { "GetInvPropertyText",       API_FN_PAIR(GetInvPropertyText) },
         { "GetLocationName",          API_FN_PAIR(GetLocationNameInBuf) },
-        { "GetLocationType",          API_FN_PAIR(GetLocationType) },
+        { "GetLocationType^3",        API_FN_PAIR(GetLocationType) },
+        { "GetLocationType^2",        API_FN_PAIR(GetLocationType2) },
+        { "GetLocationType",          API_FN_PAIR(GetLocationType2) },
         { "GetMessageText",           API_FN_PAIR(GetMessageText) },
         { "GetMIDIPosition",          API_FN_PAIR(GetMIDIPosition) },
         { "GetMP3PosMillis",          API_FN_PAIR(GetMP3PosMillis) },

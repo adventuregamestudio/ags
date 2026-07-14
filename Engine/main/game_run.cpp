@@ -915,7 +915,7 @@ static void update_cursor_view()
             (mousex == lastmx) && (mousey == lastmy));
         // only on hotspot, and it's not on one
         else if (((mcur.flags & MCF_HOTSPOT) != 0) &&
-            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
+            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable) == 0))
             set_new_cursor_graphic(mcur.pic);
         else if (mouse_delay>0) mouse_delay--;
         // only animate if the loop 0 exists and has frames
@@ -941,7 +941,7 @@ static void UpdateSavedCursorOverLocation()
     // if the result it returns has changed from last time
     // CHECKME: this is also likely called in the main game update function,
     // so it may be not necessary here.
-    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
+    GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable);
 
     if ((play.get_loc_name_save_cursor >= 0) &&
         (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
@@ -991,9 +991,9 @@ static void update_gui_context(int mwasatx, int mwasaty)
         GUI::Context.Overhotspot = "";
     // Games prior to 3.6.0 had a slightly different order of updates, so use old cursor pos for them
     else if (loaded_game_file_version < kGameVersion_360_21)
-        GUI::Context.Overhotspot = GetLocationName(game_to_data_coord(mwasatx), game_to_data_coord(mwasaty));
+        GUI::Context.Overhotspot = GetLocationName(game_to_data_coord(mwasatx), game_to_data_coord(mwasaty), kHit_Interactable);
     else
-        GUI::Context.Overhotspot = GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey));
+        GUI::Context.Overhotspot = GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable);
 }
 
 // Detect mouse move over hotspot, and run respective event if necessary
@@ -1021,7 +1021,7 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         (offsetxWas != offsetx) || (offsetyWas != offsety))) 
     {
         // mouse moves over hotspot
-        if (__GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey), 1) == LOCTYPE_HOTSPOT)
+        if (GetLocationTypeImpl(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable, true) == LOCTYPE_HOTSPOT)
         {
             int onhs = getloctype_index;
 

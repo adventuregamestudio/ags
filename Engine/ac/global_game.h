@@ -127,13 +127,14 @@ void SkipCutscene();
 void ShowInputBox(const char *msg, char *bufr);
 void ShowInputBoxImpl(const char *msg, char *bufr, size_t buf_len);
 
-int GetLocationType(int xxx,int yyy);
+int GetLocationType(int x, int y, int hit_options);
+int GetLocationType2(int x, int y);
 void SaveCursorForLocationChange();
 // Returns the name (description) of a location under given coordinates;
 // if nothing found, returns an empty string.
-const char *GetLocationName(int xxx, int yyy);
+const char *GetLocationName(int x, int y, int hit_options);
 // GetLocationNameInBuf assumes a string buffer of MAX_MAXSTRLEN
-void GetLocationNameInBuf(int xxx,int yyy, char *buf);
+void GetLocationNameInBuf(int x, int y, char *buf);
 
 int IsKeyPressed (int keycode);
 bool IsAnyKeyPressed();

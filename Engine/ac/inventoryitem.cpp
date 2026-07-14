@@ -417,7 +417,9 @@ void RegisterInventoryItemAPI()
     ScFnRegister invitem_api[] = {
         { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY2) },
         { "InventoryItem::GetAtScreenXY^4",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
+        { "InventoryItem::GetByScriptName",           API_FN_PAIR(InventoryItem_GetByName) },
 
         { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },
         { "InventoryItem::GetProperty^1",             API_FN_PAIR(InventoryItem_GetProperty) },

@@ -4788,7 +4788,9 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::GetAtScreenXY^2",           API_FN_PAIR(Character_GetAtScreenXY2) },
         { "Character::GetAtRoomXY^3",             API_FN_PAIR(Character_GetAtRoomXY) },
         { "Character::GetAtScreenXY^3",           API_FN_PAIR(Character_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "Character::GetByName",                 API_FN_PAIR(Character_GetByName) },
+        { "Character::GetByScriptName",           API_FN_PAIR(Character_GetByName) },
 
         { "Character::AddInventory^2",            API_FN_PAIR(Character_AddInventory) },
         { "Character::AddWaypoint^2",             API_FN_PAIR(Character_AddWaypoint) },

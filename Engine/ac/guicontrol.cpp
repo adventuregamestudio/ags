@@ -796,7 +796,9 @@ void RegisterGUIControlAPI()
     ScFnRegister guicontrol_api[] = {
         { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GUIControl_GetAtScreenXY2) },
         { "GUIControl::GetAtScreenXY^4",  API_FN_PAIR(GUIControl_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "GUIControl::GetByName",        API_FN_PAIR(GUIControl_GetByName) },
+        { "GUIControl::GetByScriptName",  API_FN_PAIR(GUIControl_GetByName) },
 
         { "GUIControl::BringToFront^0",   API_FN_PAIR(GUIControl_BringToFront) },
         { "GUIControl::SendToBack^0",     API_FN_PAIR(GUIControl_SendToBack) },

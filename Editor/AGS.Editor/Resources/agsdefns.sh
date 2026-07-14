@@ -1313,9 +1313,15 @@ builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions invHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the inventory item by its script name
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the inventory item by its script name
+  import static InventoryItem* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Gets an integer custom property for this item.
   import int  GetProperty(const string property);
   /// Gets a text custom property for this item.
@@ -1711,9 +1717,15 @@ builtin managed struct GUIControl {
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
   import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions controlHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the GUI Control by its script name
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the GUI Control by its script name
+  import static GUIControl* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Sends this control to the back of the z-order, behind all other controls.
   import void SendToBack();
   /// Moves the control to the specified position within the GUI.
@@ -2040,9 +2052,15 @@ builtin managed struct GUI {
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the GUI by its script name
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the GUI by its script name
+  import static GUI* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
 #ifdef SCRIPT_API_v363
   /// Returns the first found active TextBox control; which is the one that receives key and text input right now.
   import static TextBox* GetActiveTextInputControl(); // $AUTOCOMPLETESTATICONLY$
@@ -2168,9 +2186,15 @@ builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the hotspot by its script name
   import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the hotspot by its script name
+  import static Hotspot* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Gets an integer Custom Property for this hotspot.
   import int  GetProperty(const string property);
   /// Gets a text Custom Property for this hotspot.
@@ -2310,9 +2334,15 @@ builtin managed struct Walkbehind {
 
 builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the dialog by its script name
   import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the dialog by its script name
+  import static Dialog* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Displays the options for this dialog and returns which one the player selected.
   import int DisplayOptions(DialogOptionSayStyle = eSayUseOptionSetting);
   /// Gets the enabled state for the specified option in this dialog.
@@ -2569,9 +2599,15 @@ builtin managed struct AudioChannel {
 
 builtin managed struct AudioClip {
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the audio clip by its script name
   import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the audio clip by its script name
+  import static AudioClip* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Plays this audio clip.
   import AudioChannel* Play(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Plays this audio clip, starting from the specified offset.
@@ -2724,9 +2760,15 @@ builtin managed struct Object {
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the object by its script name
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the object by its script name
+  import static Object* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Gets an integer Custom Property for this object.
   import int GetProperty(const string property);
   /// Gets a text Custom Property for this object.
@@ -2935,9 +2977,15 @@ builtin managed struct Character {
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
+  #ifdef SCRIPT_COMPAT_v400
   /// Gets the character by its script name
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+  #endif // SCRIPT_COMPAT_v400
 #endif // SCRIPT_API_v361
+#ifdef SCRIPT_API_v400_30
+  /// Gets the character by its script name
+  import static Character* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif // SCRIPT_API_v400_30
   /// Gets a numeric custom property for this character.
   import int GetProperty(const string property);
   /// Gets a text custom property for this character.

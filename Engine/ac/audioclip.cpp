@@ -270,7 +270,9 @@ RuntimeScriptValue Sc_AudioClip_SetTextProperty(void *self, const RuntimeScriptV
 void RegisterAudioClipAPI()
 {
     ScFnRegister audioclip_api[] = {
+        // [OBSOLETE] GetByName => GetByScriptName
         { "AudioClip::GetByName",         API_FN_PAIR(AudioClip_GetByName) },
+        { "AudioClip::GetByScriptName",   API_FN_PAIR(AudioClip_GetByName) },
         { "AudioClip::Play^2",            API_FN_PAIR(AudioClip_Play) },
         { "AudioClip::PlayFrom^3",        API_FN_PAIR(AudioClip_PlayFrom) },
         { "AudioClip::PlayQueued^2",      API_FN_PAIR(AudioClip_PlayQueued) },

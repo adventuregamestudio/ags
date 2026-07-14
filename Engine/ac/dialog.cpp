@@ -2371,7 +2371,9 @@ void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
         // Dialog
+        // [OBSOLETE] GetByName => GetByScriptName
         { "Dialog::GetByName",            API_FN_PAIR(Dialog_GetByName) },
+        { "Dialog::GetByScriptName",      API_FN_PAIR(Dialog_GetByName) },
         { "Dialog::Stop",                 API_FN_PAIR(Dialog_Stop) },
         { "Dialog::get_CurrentDialog",    API_FN_PAIR(Dialog_GetCurrentDialog) },
         { "Dialog::get_ExecutedOption",   API_FN_PAIR(Dialog_GetExecutedOption) },

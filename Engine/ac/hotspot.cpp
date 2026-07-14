@@ -365,7 +365,9 @@ void RegisterHotspotAPI()
         { "Hotspot::GetAtScreenXY^2",     API_FN_PAIR(Hotspot_GetAtScreenXY2) },
         { "Hotspot::GetAtRoomXY^3",       API_FN_PAIR(Hotspot_GetAtRoomXY) },
         { "Hotspot::GetAtScreenXY^3",     API_FN_PAIR(Hotspot_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "Hotspot::GetByName",           API_FN_PAIR(Hotspot_GetByName) },
+        { "Hotspot::GetByScriptName",     API_FN_PAIR(Hotspot_GetByName) },
         { "Hotspot::GetDrawingSurface",   API_FN_PAIR(Hotspot_GetDrawingSurface) },
 
         { "Hotspot::GetProperty^1",       API_FN_PAIR(Hotspot_GetProperty) },

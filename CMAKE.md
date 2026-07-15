@@ -127,3 +127,32 @@ The relevant options include
   These are very verbose and should not be used in final builds.
 - `AGS_DEBUG_SPRITECACHE` : Enables including Sprite Cache  information when logging. 
   These are very verbose and should not be used in final builds.
+
+### Native game compiler (`agsbuild`)
+
+Build the headless game compiler (same data output as `AGSEditor.exe /compile`, without copying engine binaries):
+
+```bash
+cmake .. -DAGS_BUILD_TOOLS=ON -DAGS_BUILD_COMPILER=ON -DAGS_BUILD_ENGINE=OFF
+cmake --build . --target agsbuild
+```
+
+Run from a game project directory:
+
+```bash
+agsbuild --open Game.agf [--output Compiled] [--force] [--verbose]
+```
+
+Output (Data target):
+
+- `Compiled/Data/<GameFileName>.ags` (contains `game28.dta` and other assets)
+- `Compiled/Data/audio.vox`, `speech.vox` (when applicable)
+- `Compiled/Data/*.tra` for translations registered in `Game.agf`
+- `Compiled/Data/acsetup.cfg`
+
+Integration tests (requires `AGS_TESTS=ON` and `AGS_BUILD_COMPILER=ON`):
+
+```bash
+cmake --build . --target agsbuild_test
+ctest -R agsbuild_test
+```

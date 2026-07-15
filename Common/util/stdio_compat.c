@@ -11,6 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#if !defined(_WIN32) && !defined(_DEFAULT_SOURCE)
+#define _DEFAULT_SOURCE
+#endif
 #include "util/stdio_compat.h"
 
 #include "platform/platform.h"

@@ -65,8 +65,8 @@ DialogScriptConverter::DialogScriptConverter(const String &dlg_script, const Gam
     : _game(game), _dialog(dialog), _dlgScript(dlg_script)
 {
     _scriptName.Format("Dialog %d", _dialog.ID);
-    _sayFnName = _game.Settings.SayFunction;
-    _narrateFnName = _game.Settings.NarrateFunction;
+    _sayFnName = _game.Settings.DialogScriptSayFunction;
+    _narrateFnName = _game.Settings.DialogScriptNarrateFunction;
     // Fixups
     if (_sayFnName.IsNullOrSpace())
         _sayFnName = "Say";

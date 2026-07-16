@@ -106,11 +106,11 @@ namespace AGS.Editor
         /// <summary>
         /// Notifies key press event. Returns whether event is handled by this filter.
         /// </summary>
-        bool KeyPressed(Keys keyData);
+        bool KeyPressed(Keys keyData, RoomEditorState state);
         /// <summary>
         /// Notifies key release event. Returns whether event is handled by this filter.
         /// </summary>
-        bool KeyReleased(Keys keyData);
+        bool KeyReleased(Keys keyData, RoomEditorState state);
         /// <summary>
         /// Gets a human-readable room item's name.
         /// </summary>

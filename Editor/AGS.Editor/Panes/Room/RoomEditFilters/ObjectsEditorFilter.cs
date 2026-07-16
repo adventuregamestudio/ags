@@ -65,15 +65,14 @@ namespace AGS.Editor
             if (!design.Visible)
                 return;
 
-            int width, height;
-            Utilities.GetSizeSpriteWillBeRenderedInGame(_selectedObject.Image, out width, out height);
-            width = state.RoomSizeToWindow(width);
-            height = state.RoomSizeToWindow(height);
-            int xPos = state.RoomXToWindow(_selectedObject.StartX);
-            int yPos = state.RoomYToWindow(_selectedObject.StartY) - height;
+            // TODO: this following algorithm could be in the base class BaseThingEditorFilter?
+
+            Rectangle objRect = state.RoomRectangleToWindow(GetObjectRectImpl(_selectedObject));
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-            graphics.DrawRectangle(pen, xPos, yPos, width, height);
+            graphics.DrawRectangle(pen, objRect);
+            int xPos = objRect.Left, yPos = objRect.Top;
+            int width = objRect.Width, height = objRect.Height;
 
             if (IsMovingObject)
             {
@@ -116,6 +115,13 @@ namespace AGS.Editor
                 if (HitTest(obj, x, y)) return obj;
             }
             return null;
+        }
+
+        private Rectangle GetObjectRectImpl(RoomObject obj)
+        {
+            int width, height;
+            Utilities.GetSizeSpriteWillBeRenderedInGame(_selectedObject.Image, out width, out height);
+            return new Rectangle(_selectedObject.StartX, _selectedObject.StartY - height, width, height);
         }
 
         private bool HitTest(RoomObject obj, int x, int y)
@@ -185,7 +191,7 @@ namespace AGS.Editor
             }
         }
 
-        protected override void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+        protected override void ShowContextMenu(Point position, RoomEditorState state)
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
@@ -199,8 +205,8 @@ namespace AGS.Editor
             {
                 menu.Items.Add(new ToolStripMenuItem("Copy Object Coordinates to Clipboard", null, onClick, MENU_ITEM_OBJECT_COORDS));
             }
-            OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, e.X, e.Y));
-            menu.Show(_panel, e.X, e.Y);
+            OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, position.X, position.Y));
+            menu.Show(_panel, position.X, position.Y);
         }
 
 		public override bool DoubleClick(RoomEditorState state)
@@ -308,6 +314,14 @@ namespace AGS.Editor
         {
             curX = obj.StartX;
             curY = obj.StartY;
+        }
+
+        /// <summary>
+        /// Get current object's bounding rectangle.
+        /// </summary>
+        protected override Rectangle GetObjectRectangle(RoomObject obj)
+        {
+            return GetObjectRectImpl(obj);
         }
 
         /// <summary>

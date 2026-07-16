@@ -89,15 +89,15 @@ namespace AGS.Editor
             Utilities.CopyTextToClipboard(textToCopy);
         }
 
-        protected override void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+        protected override void ShowContextMenu(Point position, RoomEditorState state)
         {
             if (_selectedObject != null)
             {
                 EventHandler onClick = new EventHandler(CharCoordMenuEventHandler);
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.Add(new ToolStripMenuItem("Copy Character coordinates to clipboard", null, onClick, MENU_ITEM_COPY_CHAR_COORDS));
-                OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, e.X, e.Y));
-                menu.Show(_panel, e.X, e.Y);
+                OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, position.X, position.Y));
+                menu.Show(_panel, position.X, position.Y);
             }
         }
 
@@ -126,11 +126,13 @@ namespace AGS.Editor
             if (!Enabled || _selectedObject == null)
                 return;
 
+            // TODO: this following algorithm could be in the base class BaseThingEditorFilter?
+
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
             
             {
-                Rectangle rect = GetCharacterRect(_selectedObject, state);
+                Rectangle rect = state.RoomRectangleToWindow(GetCharacterRect(_selectedObject));
                 graphics.DrawRectangle(pen, rect);
 
                 if (IsMovingObject)
@@ -181,11 +183,11 @@ namespace AGS.Editor
             }
         }
 
-        private Rectangle GetCharacterRect(Character character, RoomEditorState state)
+        private Rectangle GetCharacterRect(Character character)
         {
             AgsView view = _game.FindViewByID(character.NormalView);
-            int xPos = state.RoomXToWindow(character.StartX);
-            int yPos = state.RoomYToWindow(character.StartY);
+            int xPos = character.StartX;
+            int yPos = character.StartY;
 
             if (view == null || view.Loops.Count == 0)
             {
@@ -197,8 +199,6 @@ namespace AGS.Editor
                 spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;
             int spriteWidth, spriteHeight;
             Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum, out spriteWidth, out spriteHeight);
-            spriteWidth = state.RoomSizeToWindow(spriteWidth);
-            spriteHeight = state.RoomSizeToWindow(spriteHeight);
             return new Rectangle(xPos - spriteWidth / 2, yPos - spriteHeight, spriteWidth, spriteHeight);
         }
 
@@ -328,6 +328,14 @@ namespace AGS.Editor
         {
             curX = obj.StartX;
             curY = obj.StartY;
+        }
+
+        /// <summary>
+        /// Get current object's bounding rectangle.
+        /// </summary>
+        protected override Rectangle GetObjectRectangle(Character obj)
+        {
+            return GetCharacterRect(obj);
         }
 
         /// <summary>

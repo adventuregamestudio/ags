@@ -366,7 +366,7 @@ namespace AGS.Editor
             return false;
         }
 
-		public bool KeyPressed(Keys key)
+		public bool KeyPressed(Keys key, RoomEditorState state)
 		{
             UpdateModKeyState();
 
@@ -401,7 +401,7 @@ namespace AGS.Editor
             return true; // handled
 		}
 
-        public bool KeyReleased(Keys key)
+        public bool KeyReleased(Keys key, RoomEditorState state)
         {
             UpdateModKeyState();
             return false; // not handled

@@ -512,6 +512,23 @@ namespace AGS.Editor
             return false;
         }
 
+        protected override bool HandleKeyRelease(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
+            if (keyData == Keys.Apps)
+            {
+                if (_lastSelectedLoop >= 0)
+                {
+                    var loopPane = _loopPanes[_lastSelectedLoop];
+                    loopPane.ShowContextMenuForSelectedFrame();
+                }
+                return true;
+            }
+            return false;
+        }
+
 		private void UpdateWhetherPreviewIsShown()
 		{
 			if (chkShowPreview.Checked)

@@ -158,6 +158,16 @@ namespace AGS.Editor
             this.Invalidate();
         }
 
+        public void ShowContextMenuForSelectedFrame()
+        {
+            if (_selectedFrames.Count > 0)
+            {
+                int frame = _selectedFrames[_selectedFrames.Count - 1];
+                Rectangle frameRect = GetFrameRectangle(frame);
+                ShowContextMenu(new Point(frameRect.Left, frameRect.Bottom), frame);
+            }
+        }
+
         private void ReverseAllFrames()
         {
             ViewFrame swap = new ViewFrame();
@@ -303,6 +313,13 @@ namespace AGS.Editor
                 return x / FRAME_DISPLAY_SIZE;
             }
             return -1;
+        }
+
+        private Rectangle GetFrameRectangle(int frameIndex)
+        {
+            if (frameIndex < 0 || frameIndex >= _loop.Frames.Count)
+                return Rectangle.Empty;
+            return new Rectangle(frameIndex * FRAME_DISPLAY_SIZE, _loopDisplayY, FRAME_DISPLAY_SIZE, FRAME_DISPLAY_SIZE);
         }
 
         private void ChangeSelectedFrame(int newSelection, MultiSelectAction action = MultiSelectAction.Set)

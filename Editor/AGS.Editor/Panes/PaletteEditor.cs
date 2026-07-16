@@ -181,6 +181,7 @@ namespace AGS.Editor
             Game game = Factory.AGSEditor.CurrentGame;
             System.Drawing.Font boldFont = new System.Drawing.Font(this.Font, FontStyle.Bold);
 
+            // FIXME: these magic numbers everywhere!
             for (int i = 0; i < game.Palette.Length; i++)
             {
                 int x = (i % 16) * 20 + 30;
@@ -256,8 +257,28 @@ namespace AGS.Editor
             }
         }
 
+        protected override bool HandleKeyRelease(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
+            if (keyData == Keys.Apps)
+            {
+                if (_selectedIndexes.Count > 0)
+                {
+                    int selectedIndex = _selectedIndexes[_selectedIndexes.Count - 1];
+                    // FIXME: these magic numbers everywhere!
+                    Point showMenuAt = new Point((selectedIndex % 16) * 20 + 30, (selectedIndex / 16) * 20 + 16);
+                    ShowContextMenu(selectedIndex, showMenuAt);
+                }
+                return true;
+            }
+            return false;
+        }
+
         private void palettePanel_MouseDown(object sender, MouseEventArgs e)
         {
+            // FIXME: these magic numbers everywhere!
             if ((e.X > 30) && (e.X < 30 + 16 * 20) && (e.Y > 0) && (e.Y < 16 * 20))
             {
                 int selectedIndex = (e.X - 30) / 20 + (e.Y / 20) * 16;

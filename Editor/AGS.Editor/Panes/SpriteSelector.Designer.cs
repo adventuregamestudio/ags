@@ -35,7 +35,7 @@ namespace AGS.Editor
             this.label1 = new System.Windows.Forms.Label();
             this.button_importNew = new System.Windows.Forms.Button();
             this.sliderPreviewSize = new System.Windows.Forms.TrackBar();
-            this.spriteList = new System.Windows.Forms.ListView();
+            this.spriteList = new AGS.Controls.ListViewExtended();
             this.asyncFileDropWorker = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
             this.splitWindow.Panel1.SuspendLayout();
@@ -171,8 +171,8 @@ namespace AGS.Editor
             this.spriteList.DragDrop += new System.Windows.Forms.DragEventHandler(this.spriteList_DragDrop);
             this.spriteList.DragEnter += new System.Windows.Forms.DragEventHandler(this.spriteList_DragEnter);
             this.spriteList.DragOver += new System.Windows.Forms.DragEventHandler(this.spriteList_DragOver);
-            this.spriteList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseUp);
             this.spriteList.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.spriteList_MouseWheel);
+            this.spriteList.ContextMenuTrigger += SpriteList_ContextMenuTrigger;
             // 
             // asyncFileDropWorker
             // 
@@ -210,7 +210,7 @@ namespace AGS.Editor
         private System.Windows.Forms.SplitContainer splitWindow;
         private AGS.Controls.TreeViewWithDragDrop folderList;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.ListView spriteList;
+        private AGS.Controls.ListViewExtended spriteList;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TrackBar sliderPreviewSize;
         private System.Windows.Forms.Button button_importNew;

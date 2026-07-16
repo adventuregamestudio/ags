@@ -202,8 +202,8 @@ enum GUITextBoxKeyClaimStyle
 enum LipSyncType
 {
     kLipSync_None = 0,
-    kLipSync_Voice = 1,
-    kLipSync_Text = 2
+    kLipSync_Text = 1,
+    kLipSync_PamelaVoiceFiles = 2,
 };
 
 struct CharacterData : EntityRef
@@ -329,11 +329,18 @@ struct PluginData
     std::vector<uint8_t> Data;
 };
 
-// DialogRef contains only Dialog data strictly necessary for generating scripts.
-// NOTE: replace with full Dialog struct later if appears necessary
+struct DialogOptionData
+{
+    String Text;
+    bool Say = true;
+    bool Show = true;
+};
+
 struct DialogRef : EntityRef
 {
     int OptionCount = 0;
+    bool ShowTextParser = false;
+    std::vector<DialogOptionData> Options;
 };
 
 struct GUIControlData : EntityRef
@@ -348,6 +355,8 @@ struct GUIControlData : EntityRef
     bool Enabled{};
     bool Visible{};
     bool Translated{};
+    bool ShowBorder{};
+    bool SolidBackground{};
     int BackgroundColor{};
     int BorderColor{};
     int BorderWidth{};
@@ -412,7 +421,6 @@ struct GUITextBoxData : GUIControlData
 {
     int Font{};
     String OnActivate;
-    bool ShowBorder{};
     String Text;
     FrameAlignment TextAlignment = kAlignTopLeft;
     int TextColor{};
@@ -425,7 +433,6 @@ struct GUIListBoxData : GUIControlData
     String OnSelectionChanged;
     int SelectedBackgroundColor{};
     int SelectedTextColor{};
-    bool ShowBorder{};
     bool ShowScrollArrows{};
     HorAlignment TextAlignment = kHAlignLeft;
     int TextColor{};
@@ -450,6 +457,7 @@ struct GUIData : EntityRef
     int Left{};
     String Name;
     String OnClick;
+    String ScriptModule;
     GUIPopupStyle PopupStyle = kGUIPopupStyle_Normal;
     int PopupYPos{};
     int Top{};
@@ -595,6 +603,8 @@ struct InventoryItemData : EntityRef
 
 struct CursorData : EntityRef
 {
+    // NOTE: We are using the ScriptName property as the ScriptID from MouseCursor.cs
+    String Name;
     int Image = 0;
     int HotspotX = 0;
     int HotspotY = 0;

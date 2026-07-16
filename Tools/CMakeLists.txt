@@ -14,6 +14,9 @@ target_include_directories(libtools PUBLIC ../Common)
 set(TOOLS_COMMON_SOURCES
         ../Common/ac/spritefile.cpp
         ../Common/ac/spritefile.h
+        ../Common/ac/characterinfo.cpp
+        ../Common/ac/inventoryiteminfo.cpp
+        ../Common/ac/mousecursor.cpp
         ../Common/ac/wordsdictionary.cpp
         ../Common/ac/wordsdictionary.h
         ../Common/data/asset.h
@@ -101,6 +104,8 @@ target_sources(libtools
         PRIVATE
         data/agfreader.cpp
         data/agfreader.h
+        data/data_file_writer.cpp
+        data/data_file_writer.h
         data/dialogscriptconv.cpp
         data/dialogscriptconv.h
         data/game_utils.h
@@ -134,6 +139,14 @@ set_target_properties(agf2dlgasc PROPERTIES
         CXX_EXTENSIONS NO
         )
 target_link_libraries(agf2dlgasc PUBLIC libtools)
+
+#----- agf2dta ---------------------------------------------
+add_executable(agf2dta agf2dta/main.cpp)
+set_target_properties(agf2dta PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+)
+target_link_libraries(agf2dta PUBLIC libtools)
 
 #----- agfexport -----------------------------------------------
 add_executable(agfexport agfexport/main.cpp)
@@ -191,6 +204,7 @@ target_link_libraries(trac PUBLIC libtools)
 
 list(APPEND TOOLS_TARGETS
         agf2dlgasc
+        agf2dta
         agfexport
         agspak
         crm2ash

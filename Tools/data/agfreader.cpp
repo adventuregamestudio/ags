@@ -66,7 +66,7 @@ static const CstrArr<3> kNumberDialogOptionsNames = {{
 
 static const CstrArr<7> kSkipSpeechNames = {{
     "MouseOrKeyboardOrTimer", "KeyboardOnly", "TimerOnly",
-    "MouseOrKeyboard", "MouseOrTimer", "KeyboardOnlyStrict", "MouseOnlyStrict"
+    "MouseOrKeyboard", "MouseOnly", "KeyboardOnlyStrict", "MouseOnlyStrict"
 }};
 
 static const CstrArr<4> kSpeechPortraitSideNames = {{
@@ -144,7 +144,7 @@ static const CstrArr<6> kAudioPriorityNames = {{
 }};
 
 static const CstrArr<3> kLipSyncTypeNames = {{
-    "None", "Voice", "Text"
+    "None", "Text", "PamelaVoiceFiles"
 }};
 
 static const CstrArr<2> kPaletteTypeNames = {{
@@ -174,6 +174,10 @@ AGFReader::AGFReader()
 AGFReader::~AGFReader()
 {
 }
+
+// NOTE: When reading Game.agf files, it is possible they may have been authored by hand,
+// so they could potentially contain some mistakes when comparing with one authored by
+// the AGS Editor. We can reuse some logic from AGS.Types when reading the properties.
 
 HError AGFReader::Open(const char *filename)
 {
@@ -315,6 +319,24 @@ bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
     return def_value;
 }
 
+const char* ValueParser::ReadAttributeString(DocElem elem, const char *field, const char *def_value)
+{
+    if (!elem)
+        return def_value;
+    const char *value = elem->Attribute(field);
+    return value ? value : def_value;
+}
+
+int ValueParser::ReadAttributeInt(DocElem elem, const char *field, int def_value)
+{
+    return elem ? elem->IntAttribute(field, def_value) : def_value;
+}
+
+bool ValueParser::ReadAttributeBool(DocElem elem, const char *field, bool def_value)
+{
+    return elem ? elem->BoolAttribute(field, def_value) : def_value;
+}
+
 static DataUtil::GameColorDepth ReadGameColorDepth(const String &value)
 {
     switch (StrUtil::ParseEnum(value, kGameColorDepthNames, 2))
@@ -362,7 +384,7 @@ static DialogOptionNumbering ReadDialogOptionsNumbering(const String &value)
         static_cast<DialogOptionNumbering>(-1), kDlgOptNoNumbering);
 }
 
-static DataUtil::SkipSpeechStyle ReadSkipSpeech(const String &value)
+DataUtil::SkipSpeechStyle ReadSkipSpeech(const String &value)
 {
     return StrUtil::ParseEnum(value, kSkipSpeechNames, DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer);
 }
@@ -424,7 +446,7 @@ static DataUtil::CrossfadeSpeed ReadCrossfadeSpeed(const String &value);
 static DataUtil::ButtonColorStyle ReadButtonColorStyle(const String &value);
 static DataUtil::CharacterTurnOrderPriority ReadTurnOrderPriority(const String &value);
 static DataUtil::GUITextBoxKeyClaimStyle ReadTextBoxKeyClaimStyle(const String &value);
-static DataUtil::LipSyncType ReadLipSyncType(const String &value);
+DataUtil::LipSyncType ReadLipSyncType(const String &value);
 
 int Dialog::ReadOptionCount(DocElem elem)
 {
@@ -535,6 +557,7 @@ void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
     gui_data.BackgroundImage = ReadInt(self, "BackgroundImage");
     gui_data.BorderColor = ReadInt(self, "BorderColor");
     gui_data.OnClick = ReadString(self, "OnClick");
+    gui_data.ScriptModule = ReadString(self, "ScriptModule");
     gui_data.PopupStyle = ReadGuiPopupStyle(ReadString(self, "PopupStyle"));
     gui_data.ZOrder = ReadInt(self, "ZOrder");
     gui_data.PopupYPos = ReadInt(self, "PopupYPos");
@@ -580,6 +603,8 @@ void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData& data)
     data.Enabled = ReadBool(elem, "Enabled");
     data.Visible = ReadBool(elem, "Visible");
     data.Translated = ReadBool(elem, "Translated", true);
+    data.ShowBorder = ReadBool(elem, "ShowBorder");
+    data.SolidBackground = ReadBool(elem, "SolidBackground");
     data.ZOrder = ReadInt(elem, "ZOrder");
     data.BackgroundColor = ReadInt(elem, "BackgroundColor");
     data.BorderColor = ReadInt(elem, "BorderColor");
@@ -827,10 +852,24 @@ void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem)
     // Remove any non-alphanumeric characters from the script name
     for (size_t c = 0; c < name.GetLength(); ++c)
     {
-        if (!std::isalnum(name[c]) && name[c] != '_')
+        if (!StrUtil::IsScriptWordChar(name[c]))
             name.ClipMid(c--, 1);
     }
     ent.ScriptName = name;
+}
+
+static String BuildCursorScriptID(const String &name)
+{
+    String cursor_name;
+    // This is from MouseCursor.cs ScriptID read-only property
+    for (size_t c = 0; c < name.GetLength(); ++c)
+    {
+        if (StrUtil::IsScriptWordChar(name[c]))
+            cursor_name.AppendChar(name[c]);
+    }
+    if (cursor_name.GetLength() > 0)
+        cursor_name.Prepend("eMode");
+    return cursor_name;
 }
 
 void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser,
@@ -866,6 +905,12 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             ReadEntityRef(*data, control, el);
             control.ReadAllData(el, *data);
             control.ReadButtonData(el, *data);
+            if (strcmp(el->Name(), "GUITextWindowEdge") == 0)
+            {
+                data->ClickAction = "RunScript";
+                data->MouseoverImage = -1;
+                data->PushedImage = -1;
+            }
             gui_data.Controls.push_back(data);
         }
         else if(type == "Label")
@@ -915,7 +960,19 @@ static void ReadDialog(DataUtil::DialogRef &dialog, AGF::DocElem elem)
 {
     AGF::Dialog p_dialog;
     ReadEntityRef(dialog, p_dialog, elem);
-    dialog.OptionCount = p_dialog.ReadOptionCount(elem);
+    dialog.ShowTextParser = ValueParser::ReadBool(elem, "ShowTextParser");
+
+    DocElem options = elem->FirstChildElement("DialogOptions");
+    for (DocElem option = options ? options->FirstChildElement("DialogOption") : nullptr;
+         option; option = option->NextSiblingElement("DialogOption"))
+    {
+        DataUtil::DialogOptionData data;
+        data.Text = ValueParser::ReadString(option, "Text");
+        data.Say = ValueParser::ReadBool(option, "Say", true);
+        data.Show = ValueParser::ReadBool(option, "Show", true);
+        dialog.Options.push_back(data);
+    }
+    dialog.OptionCount = static_cast<int>(dialog.Options.size());
 }
 
 void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
@@ -945,7 +1002,6 @@ void ReadCustomPropertySchema(std::vector<DataUtil::CustomPropertySchemaItem> &s
     if (prop_elems.size() == 0)
         return;
 
-    AGF::CustomPropertySchemaItem prop_parser;
     for (const auto &el : prop_elems)
     {
         DataUtil::CustomPropertySchemaItem prop;
@@ -1038,12 +1094,12 @@ static DataUtil::GUITextBoxKeyClaimStyle ReadTextBoxKeyClaimStyle(const String &
     return StrUtil::ParseEnum(value, kTextBoxKeyClaimStyleNames, DataUtil::kTextBoxKeyClaim_All);
 }
 
-static DataUtil::LipSyncType ReadLipSyncType(const String &value)
+DataUtil::LipSyncType ReadLipSyncType(const String &value)
 {
     return StrUtil::ParseEnum(value, kLipSyncTypeNames, DataUtil::kLipSync_None);
 }
 
-static DataUtil::PaletteColourType ReadPaletteColourType(const String &value)
+static DataUtil::PaletteColourType ReadColourType(const String &value)
 {
     switch (StrUtil::ParseEnum(value, kPaletteTypeNames, 0))
     {
@@ -1297,6 +1353,8 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         {
             DataUtil::CursorData data;
             ReadEntityRef(data, cursor, el);
+            data.Name = cursor.ReadScriptName(el); // This is MouseCursor Name
+            data.ScriptName = BuildCursorScriptID(data.Name); // This is MouseCursor ScriptID
             cursor.ReadAllData(el, data);
             game.Cursors.push_back(data);
         }
@@ -1415,13 +1473,13 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     for (DocElem entry = palette ? palette->FirstChildElement("PaletteEntry") : nullptr;
          entry; entry = entry->NextSiblingElement("PaletteEntry"))
     {
-        const int index = ValueParser::ReadInt(entry, "Index", -1);
+        const int index = ValueParser::ReadAttributeInt(entry, "Index", -1);
         if (index < 0 || index >= 256) continue;
         auto &data = game.Palette[index];
-        data.ColourType = ReadPaletteColourType(ValueParser::ReadString(entry, "Type"));
-        data.Red = ValueParser::ReadInt(entry, "Red");
-        data.Green = ValueParser::ReadInt(entry, "Green");
-        data.Blue = ValueParser::ReadInt(entry, "Blue");
+        data.ColourType = ReadColourType(ValueParser::ReadAttributeString(entry, "Type", "Gamewide"));
+        data.Red = ValueParser::ReadAttributeInt(entry, "Red");
+        data.Green = ValueParser::ReadAttributeInt(entry, "Green");
+        data.Blue = ValueParser::ReadAttributeInt(entry, "Blue");
     }
 
     elems.clear();
@@ -1429,10 +1487,10 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     for (DocElem sprite : elems)
     {
         DataUtil::SpriteData data;
-        data.Slot = ValueParser::ReadInt(sprite,"Slot");
-        const String resolution = ValueParser::ReadString(sprite, "Resolution", "Real");
+        data.Slot = ValueParser::ReadAttributeInt(sprite, "Slot", -1);
+        const String resolution = ValueParser::ReadAttributeString(sprite, "Resolution", "Real");
         data.Resolution = ReadSpriteImportResolution(resolution);
-        data.AlphaChannel = ValueParser::ReadBool(sprite, "AlphaChannel");
+        data.AlphaChannel = ValueParser::ReadAttributeBool(sprite, "AlphaChannel");
         game.Sprites.push_back(data);
     }
 

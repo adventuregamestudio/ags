@@ -81,6 +81,11 @@ public:
     static const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
     static int ReadInt(DocElem elem, const char *field, int def_value = 0);
     static bool ReadBool(DocElem elem, const char *field, bool def_value = false);
+
+    // Read values stored as XML attributes rather than child elements.
+    static const char *ReadAttributeString(DocElem elem, const char *field, const char *def_value = "");
+    static int ReadAttributeInt(DocElem elem, const char *field, int def_value = 0);
+    static bool ReadAttributeBool(DocElem elem, const char *field, bool def_value = false);
 };
 
 // EntityParser: parent class meant for parsing a game entity
@@ -451,6 +456,11 @@ public:
 //
 // Helper functions
 //
+
+// exposing to enable testing
+// Convert serialized (string) enum names to their internal values (ints).
+DataUtil::SkipSpeechStyle ReadSkipSpeech(const String &value);
+DataUtil::LipSyncType ReadLipSyncType(const String &value);
 
 // Read entity reference data using given parser from the given doc element
 void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem);

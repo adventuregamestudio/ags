@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
+using AGS.Controls;
 
 namespace AGS.Editor
 {
@@ -117,13 +118,10 @@ namespace AGS.Editor
             menu.Show(lvwResults, menuPosition);
 		}
 
-		private void lvwResults_MouseUp(object sender, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Right)
-			{
-				ShowContextMenu(e.Location);
-			}
-		}
+        private void LvwResults_ContextMenuTrigger(object sender, ListViewContextMenuEventArgs e)
+        {
+            ShowContextMenu(e.Position);
+        }
 
         private void LoadColorTheme(ColorTheme t)
         {

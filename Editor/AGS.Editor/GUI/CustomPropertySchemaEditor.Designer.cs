@@ -83,7 +83,7 @@ namespace AGS.Editor
             this.schemaList.UseCompatibleStateImageBehavior = false;
             this.schemaList.View = System.Windows.Forms.View.Details;
             this.schemaList.ItemActivate += new System.EventHandler(this.schemaList_ItemActivate);
-            this.schemaList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.schemaList_MouseUp);
+            this.schemaList.ContextMenuTrigger += SchemaList_ContextMenuTrigger;
             // 
             // columnHeader1
             // 

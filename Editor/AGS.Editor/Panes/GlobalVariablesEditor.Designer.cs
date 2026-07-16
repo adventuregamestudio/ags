@@ -65,7 +65,7 @@ namespace AGS.Editor
             this.lvwVars.UseCompatibleStateImageBehavior = false;
             this.lvwVars.View = System.Windows.Forms.View.Details;
             this.lvwVars.ItemActivate += new System.EventHandler(this.lvwVars_ItemActivate);
-            this.lvwVars.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwVars_MouseUp);
+            this.lvwVars.ContextMenuTrigger += LvwVars_ContextMenuTrigger;
             // 
             // clmName
             // 

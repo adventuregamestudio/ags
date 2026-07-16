@@ -144,7 +144,12 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controls\ContextMenuTriggerEventArgs.cs" />
     <Compile Include="Controls\LineInBetween.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ListViewContextMenuEventArgs.cs" />
+    <Compile Include="Controls\ListViewExtended.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\ListViewExtensions.cs" />

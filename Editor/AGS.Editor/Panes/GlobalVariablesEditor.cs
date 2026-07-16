@@ -225,19 +225,16 @@ namespace AGS.Editor
             menu.Show(lvwVars, menuPosition);
         }
 
+        private void LvwVars_ContextMenuTrigger(object sender, Controls.ListViewContextMenuEventArgs e)
+        {
+            ShowContextMenu(e.Position);
+        }
+
         private void lvwVars_ItemActivate(object sender, EventArgs e)
         {
             if (lvwVars.SelectedItems.Count > 0)
             {
                 EditSelectedVariable((GlobalVariable)lvwVars.SelectedItems[0].Tag);
-            }
-        }
-
-        private void lvwVars_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                ShowContextMenu(e.Location);
             }
         }
 

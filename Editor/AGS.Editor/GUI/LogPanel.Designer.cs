@@ -35,7 +35,7 @@ namespace AGS.Editor
             this.timerLogBufferSync = new System.Windows.Forms.Timer(this.components);
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.propertyGrid = new System.Windows.Forms.PropertyGrid();
-            this.toolStrip = new AGS.Editor.ToolStripExtended();
+            this.toolStrip = new AGS.Controls.ToolStripExtended();
             this.btnRun = new System.Windows.Forms.ToolStripButton();
             this.btnPause = new System.Windows.Forms.ToolStripButton();
             this.btnGlue = new System.Windows.Forms.ToolStripButton();
@@ -228,7 +228,7 @@ namespace AGS.Editor
         #endregion
         private System.Windows.Forms.Timer timerLogBufferSync;
         private System.Windows.Forms.RichTextBox logTextBox;
-        private ToolStripExtended toolStrip;
+        private AGS.Controls.ToolStripExtended toolStrip;
         private System.Windows.Forms.ToolStripButton btnRun;
         private System.Windows.Forms.ToolStripButton btnPause;
         private System.Windows.Forms.ToolStripButton btnGlue;

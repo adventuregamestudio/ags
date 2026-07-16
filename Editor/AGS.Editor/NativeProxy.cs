@@ -19,10 +19,6 @@ namespace AGS.Editor
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        public const uint WM_MOUSEACTIVATE = 0x21;
-        public const uint MA_ACTIVATE = 1;
-        public const uint MA_ACTIVATEANDEAT = 2; 
-
         // IMPORTANT: These lengths reflect the resource file in ACWIN.EXE
         private const int AUTHOR_NAME_LEN = 30;
         private const int FILE_DESCRIPTION_LEN = 40;

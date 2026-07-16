@@ -52,10 +52,10 @@ namespace AGS.Editor
             this.pnlOutput = new AGS.Editor.OutputPanel();
             this.projectPanel = new AGS.Editor.ProjectPanel();
             this.propertiesPanel = new AGS.Editor.PropertiesPanel();
-            this.mainMenu = new MenuStripExtended();
+            this.mainMenu = new AGS.Controls.MenuStripExtended();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.windowsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStrip = new ToolStripExtended();
+            this.toolStrip = new AGS.Controls.ToolStripExtended();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.mainMenu.SuspendLayout();
@@ -297,12 +297,12 @@ namespace AGS.Editor
 
         internal WeifenLuo.WinFormsUI.Docking.DockPanel mainContainer;
         internal AGS.Editor.ProjectPanel projectPanel;
-        internal MenuStripExtended mainMenu;
+        internal AGS.Controls.MenuStripExtended mainMenu;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         internal System.Windows.Forms.ToolStripMenuItem windowsToolStripMenuItem;
         private AGS.Editor.PropertiesPanel propertiesPanel;
         private AGS.Editor.TabbedDocumentManager tabbedDocumentContainer1;
-        internal ToolStripExtended toolStrip;
+        internal AGS.Controls.ToolStripExtended toolStrip;
         internal OutputPanel pnlOutput;
         private System.Windows.Forms.StatusStrip statusStrip;
         internal System.Windows.Forms.ToolStripStatusLabel statusLabel;

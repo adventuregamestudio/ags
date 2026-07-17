@@ -174,7 +174,7 @@ namespace AGS.Editor
 
         public bool KeyReleased(Keys key, RoomEditorState state)
         {
-            if (key == Keys.Apps)
+            if (key == Keys.Apps || ((key & ~Keys.Modifiers) == Keys.F10 && (key & Keys.Modifiers) == Keys.Shift))
             {
                 if (_selectedObject != null)
                 {

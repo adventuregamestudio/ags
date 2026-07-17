@@ -15,7 +15,7 @@ namespace AGS.Controls
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Apps)
+            if (e.KeyCode == Keys.Apps || (e.KeyCode == Keys.F10 && e.Modifiers == Keys.Shift))
             {
                 if (SelectedItems.Count > 0)
                 {

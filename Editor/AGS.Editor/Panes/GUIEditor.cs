@@ -1282,7 +1282,7 @@ namespace AGS.Editor
             if (!DoesThisPanelHaveFocus())
                 return false;
 
-            if (keyData == Keys.Apps)
+            if (keyData == Keys.Apps || ((keyData & ~Keys.Modifiers) == Keys.F10 && (keyData & Keys.Modifiers) == Keys.Shift))
             {
                 if (_selectedControl != null)
                 {

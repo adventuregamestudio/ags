@@ -451,7 +451,7 @@ namespace AGS.Editor
 
         private void _projectTree_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Apps)
+            if (e.KeyCode == Keys.Apps || (e.KeyCode == Keys.F10 && e.Modifiers == Keys.Shift))
             {
                 var selectedNode = _projectTree.SelectedNode;
                 if (selectedNode != null)

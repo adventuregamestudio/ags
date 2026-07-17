@@ -917,7 +917,7 @@ namespace AGS.Editor
             {
                 return true;
             }
-            else if (keyData == Keys.Apps)
+            else if (keyData == Keys.Apps || ((keyData & ~Keys.Modifiers) == Keys.F10 && (keyData & Keys.Modifiers) == Keys.Shift))
             {
                 var showMenuAt = bufferedPanel1.PointToClient(MousePosition);
                 if (bufferedPanel1.ClientRectangle.Contains(showMenuAt))

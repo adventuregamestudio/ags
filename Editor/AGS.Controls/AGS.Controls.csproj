@@ -144,6 +144,9 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controls\ToolStripDropDownButtonEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\ContextMenuTriggerEventArgs.cs" />
     <Compile Include="Controls\LineInBetween.cs">
       <SubType>Component</SubType>

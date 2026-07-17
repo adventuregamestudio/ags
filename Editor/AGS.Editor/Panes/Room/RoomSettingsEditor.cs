@@ -280,7 +280,8 @@ namespace AGS.Editor
         /// </summary>
         private void layer_OnContextMenu(object sender, RoomFilterContextMenuArgs e)
         {
-            e.Menu.Items.Add(new ToolStripSeparator());
+            if (e.Menu.Items.Count > 0)
+                e.Menu.Items.Add(new ToolStripSeparator());
             PrepareContextMenu(e.Menu, e.X, e.Y);
         }
 

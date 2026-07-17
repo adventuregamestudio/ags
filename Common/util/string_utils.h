@@ -109,6 +109,10 @@ namespace StrUtil
     void            WriteString(const String &s, Stream *out);
     void            WriteString(const char *cstr, Stream *out);
     void            WriteString(const char *cstr, size_t len, Stream *out);
+    // Writes a fixed-size field for binary serialization: pads/truncates by raw
+    // byte length, not Unicode codepoint boundaries.
+    void            WriteFixedString(const String &s, size_t len, Stream *out);
+    void            WriteFixedString(const char *cstr, size_t len, Stream *out);
 
     // Serialize and unserialize string as c-string (null-terminated sequence)
     //

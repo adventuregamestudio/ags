@@ -519,11 +519,18 @@ namespace AGS.Editor
 
             if (keyData == Keys.Apps)
             {
+                ViewLoopEditor loopPane = null;
                 if (_lastSelectedLoop >= 0)
                 {
-                    var loopPane = _loopPanes[_lastSelectedLoop];
-                    loopPane.ShowContextMenuForSelectedFrame();
+                    loopPane = _loopPanes[_lastSelectedLoop];
                 }
+                else
+                {
+                    loopPane = _loopPanes.Find((p) => { return p.ClientRectangle.Contains(p.PointToClient(MousePosition)); });
+                }
+
+                if (loopPane != null)
+                    loopPane.ShowContextMenuForSelection();
                 return true;
             }
             return false;

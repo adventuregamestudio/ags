@@ -158,13 +158,17 @@ namespace AGS.Editor
             this.Invalidate();
         }
 
-        public void ShowContextMenuForSelectedFrame()
+        public void ShowContextMenuForSelection()
         {
             if (_selectedFrames.Count > 0)
             {
                 int frame = _selectedFrames[_selectedFrames.Count - 1];
                 Rectangle frameRect = GetFrameRectangle(frame);
                 ShowContextMenu(new Point(frameRect.Left, frameRect.Bottom), frame);
+            }
+            else
+            {
+                ShowContextMenu(PointToClient(MousePosition), -1);
             }
         }
 

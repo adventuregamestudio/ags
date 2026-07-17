@@ -147,6 +147,9 @@
     <Compile Include="Controls\ReadOnlyRichTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Controls\ToolStripDropDownButtonEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\ToolStripDropDownMenuEx.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -15,7 +15,7 @@ namespace AGS.Controls
     /// 
     /// References:
     /// 1. ToolStrip (and friends) source code:
-    /// https://referencesource.microsoft.com/#system.windows.forms/winforms/Managed/System/WinForms/ToolStripDropDownMenu.cs
+    /// https://github.com/dotnet/winforms/tree/main/src/System.Windows.Forms/System/Windows/Forms/Controls/ToolStrips/ToolStripDropDownMenu.cs
     /// 2. Ideas on coding ToolStrip scroll with a mousewheel:
     /// https://stackoverflow.com/questions/13139074/mouse-wheel-scrolling-toolstrip-menu-items
     /// </summary>
@@ -70,6 +70,12 @@ namespace AGS.Controls
         private static Action<ToolStrip, int> ScrollInternal
             = (Action<ToolStrip, int>)Delegate.CreateDelegate(typeof(Action<ToolStrip, int>),
                 typeof(ToolStrip).GetMethod("ScrollInternal",
+                  System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance));
+
+        private static Action<ToolStripDropDown, ToolStripDropDownCloseReason> SetCloseReasonInternal
+            = (Action<ToolStripDropDown, ToolStripDropDownCloseReason>)Delegate.CreateDelegate(typeof(Action<ToolStripDropDown, ToolStripDropDownCloseReason>),
+                typeof(ToolStripDropDown).GetMethod("SetCloseReason",
                   System.Reflection.BindingFlags.NonPublic
                 | System.Reflection.BindingFlags.Instance));
 
@@ -218,6 +224,16 @@ namespace AGS.Controls
                 UpScrollButton(this).Control.Enabled = firstItem.Bounds.Top < topPosition;
                 DownScrollButton(this).Control.Enabled = lastItem.Bounds.Bottom > bottomPosition;
             }
+        }
+
+        /// <summary>
+        /// Lets to set the closing reason for this dropdown menu.
+        /// This will be used next time the menu is closing, and then reset.
+        /// </summary>
+        /// <param name="reason"></param>
+        internal void SetCloseReason(ToolStripDropDownCloseReason reason)
+        {
+            SetCloseReasonInternal(this, reason);
         }
     }
 }

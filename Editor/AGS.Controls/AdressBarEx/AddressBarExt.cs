@@ -153,6 +153,12 @@ namespace AddressBarExt.Controls
             set { InitializeRoot(value); }
         }
 
+        public ToolStripDropDownMenuEx ActiveDropDownMenu
+        {
+            get;
+            private set;
+        }
+
         #endregion
 
         #region Constructor/s
@@ -236,11 +242,26 @@ namespace AddressBarExt.Controls
         }
 
         /// <summary>
+        /// Method to handle when a node has mouse entering its bounds.
+        /// </summary>
+        /// <param name="sender">Sender of this event</param>
+        /// <param name="e">Event arguments</param>
+        private void Node_MouseEnter(object sender, EventArgs e)
+        {
+            // If entering a bar's top-level item, focus the toolstrip bar,
+            // this prevents a need to click twice on item when a dropdown menu is open
+            if (ActiveDropDownMenu != null && sender is ToolStripItem && (sender as ToolStripItem).Owner == ts_bar)
+            {
+                ts_bar.Focus();
+            }
+        }
+
+        /// <summary>
         /// Method to handle when a node is double clicked
         /// </summary>
         /// <param name="sender">Sender of this event</param>
         /// <param name="e">Event arguments</param>
-        private void NodeDoubleClickHandler(Object sender, EventArgs e)
+        private void Node_DoubleClick(Object sender, EventArgs e)
         {
             //check we are handlign the double click event
             if (NodeDoubleClick != null && sender.GetType() == typeof(ToolStripButton))
@@ -286,17 +307,44 @@ namespace AddressBarExt.Controls
             }
         }
 
+        private void TsDropDown_Closed(object sender, ToolStripDropDownClosedEventArgs e)
+        {
+            ActiveDropDownMenu = null;
+        }
+
+        private void TsDropDown_Opened(object sender, EventArgs e)
+        {
+            ActiveDropDownMenu = sender as ToolStripDropDownMenuEx;
+        }
+
         /// <summary>
         /// Method that puts focus onto a given ToolStripDropDownMenuEx
         /// </summary>
         /// <param name="sender">Sender of this event</param>
         /// <param name="e">Event Arguments</param>
-        private void GiveToolStripDropDownMenuFocus(Object sender, EventArgs e)
+        private void TsDropDown_MouseEnter(Object sender, EventArgs e)
         {
             if (sender.GetType() == typeof(ToolStripDropDownMenuEx))
             {
                 //focus on the item
                 ((ToolStripDropDownMenuEx)sender).Focus();
+            }
+        }
+
+        /// <summary>
+        /// Method is called whenever a tool strip's dropdown menu is about to get closed.
+        /// </summary>
+        /// <param name="sender">Sender of this event</param>
+        /// <param name="e">Event Arguments</param>
+        private void TsDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
+        {
+            // The AddressBar has a hot-tracking feature, which highlights the bar items
+            // as the mouse cursor hovers them. This acts as a "item selection", causing other
+            // items to be deselected, in which case their dropdown menus are also closed.
+            // Because this is incovenient for users, we keep the menu opened in this exact case.
+            if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked)
+            {
+                e.Cancel = true;
             }
         }
 
@@ -337,7 +385,8 @@ namespace AddressBarExt.Controls
             tsButton.DoubleClickEnabled = true;
 
             //add the double click handler
-            tsButton.DoubleClick += new EventHandler(NodeDoubleClickHandler);
+            tsButton.DoubleClick += Node_DoubleClick;
+            tsButton.MouseEnter += Node_MouseEnter;
 
             if (position < 0)
                 ts_bar.Items.Add(tsButton);
@@ -351,11 +400,11 @@ namespace AddressBarExt.Controls
                 if (node.Children.Length > 0)
                 {
                     //create the drop down button
-                    //tsddButton = new ToolStripDropDownButton("");
+                    //tsddButton = new ToolStripDropDownButtonEx("");
 
                     //AGS: use some text to pickup text layout styling
                     //and provide a bigger target to click on
-                    tsddButton = new ToolStripDropDownButton("···");
+                    tsddButton = new ToolStripDropDownButtonEx("···");
                     tsddButton.ShowDropDownArrow = false;
 
                     //check if we have any tag data (we cache already built drop down items in the node TAG data.
@@ -413,8 +462,10 @@ namespace AddressBarExt.Controls
                         //assign the parent
                         tsDropDown.Tag = tsddButton;
 
-                        //handle the mouse entering/leaving the control
-                        tsDropDown.MouseEnter += new EventHandler(GiveToolStripDropDownMenuFocus);
+                        tsDropDown.Opened += TsDropDown_Opened;
+                        tsDropDown.MouseEnter += TsDropDown_MouseEnter;
+                        tsDropDown.Closing += TsDropDown_Closing;
+                        tsDropDown.Closed += TsDropDown_Closed;
                     }
                     else
                     {
@@ -449,6 +500,8 @@ namespace AddressBarExt.Controls
                     //AGS: prefer padding over margin to get a bigger click target
                     //and reduce the amount of unclickable gaps
                     tsddButton.Padding = new Padding(1, 0, 1, 0);
+
+                    tsddButton.MouseEnter += Node_MouseEnter;
 
                     //add it to the bar
                     if (position < 0)
@@ -635,7 +688,7 @@ namespace AddressBarExt.Controls
                 else
                 {
                     //create the overflow button
-                    ToolStripDropDownButton tsd = new ToolStripDropDownButton("..");
+                    ToolStripDropDownButton tsd = new ToolStripDropDownButtonEx("..");
 
                     //add the drop down
                     tsd.DropDown = tsddOverflow;

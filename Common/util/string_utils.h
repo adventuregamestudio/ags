@@ -37,6 +37,16 @@ namespace StrUtil
         kOutOfRange // the resulting value is out of range
     };
 
+    // Note: this is used when parsing arbitrary text or script.
+    // Tells if this character may be a part of a script symbol
+    inline bool IsScriptWordChar(char c)
+    {
+        return ((c >= 'A') && (c <= 'Z')) ||
+               ((c >= 'a') && (c <= 'z')) ||
+               ((c >= '0') && (c <= '9')) ||
+               (c == '_');
+    }
+
     // Compares two strings lexographically, by the meaning of their characters
     // rather than their code values. For example, 'À' follows 'A' and 'Č'
     // follows 'C', as opposed to common char code-based comparison, where 'À'

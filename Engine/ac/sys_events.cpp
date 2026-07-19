@@ -297,6 +297,20 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
     }
 }
 
+int ags_mod_to_sdl_mod(eAGSKeyMod mod)
+{
+    int sdl_mod = 0;
+    if (mod & eAGSModLShift) sdl_mod |= KMOD_LSHIFT;
+    if (mod & eAGSModRShift) sdl_mod |= KMOD_RSHIFT;
+    if (mod & eAGSModLCtrl)  sdl_mod |= KMOD_LCTRL;
+    if (mod & eAGSModRCtrl)  sdl_mod |= KMOD_RCTRL;
+    if (mod & eAGSModLAlt)   sdl_mod |= KMOD_LALT;
+    if (mod & eAGSModRAlt)   sdl_mod |= KMOD_RALT;
+    if (mod & eAGSModNum)    sdl_mod |= KMOD_NUM;
+    if (mod & eAGSModCaps)   sdl_mod |= KMOD_CAPS;
+    return sdl_mod;
+}
+
 
 
 // ----------------------------------------------------------------------------
@@ -361,7 +375,7 @@ int ags_iskeydown(eAGSKeyCode ags_key)
     return (state[scan[0]] || state[scan[1]] || state[scan[2]]);
 }
 
-void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
+void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod, bool old_keyhandle)
 {
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
@@ -372,6 +386,7 @@ void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
     const SDL_Keycode key_sym = SDL_GetKeyFromScancode(scan[0]);
     sdlevent.key.keysym.sym = key_sym;
     sdlevent.key.keysym.scancode = scan[0];
+    sdlevent.key.keysym.mod = ags_mod_to_sdl_mod(mod) | SDL_GetModState();
     SDL_PushEvent(&sdlevent);
     // Push a text input event for ascii printable characters;
     // in case of "old key handling mode" this instead will trigger on_key_press for them.
@@ -383,6 +398,31 @@ void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle)
     }
     sdlevent.type = SDL_KEYUP;
     SDL_PushEvent(&sdlevent);
+}
+
+void push_sdl_key_event(eAGSKeyCode ags_key, Uint32 sdl_event)
+{
+    SDL_Scancode scan[3];
+    if (!ags_key_to_sdl_scan(ags_key, scan))
+        return;
+    // Push a key event to the event queue; note that this won't affect the key states array
+    SDL_Event sdlevent = {};
+    sdlevent.type = sdl_event;
+    const SDL_Keycode key_sym = SDL_GetKeyFromScancode(scan[0]);
+    sdlevent.key.keysym.sym = key_sym;
+    sdlevent.key.keysym.scancode = scan[0];
+    sdlevent.key.keysym.mod = SDL_GetModState();
+    SDL_PushEvent(&sdlevent);
+}
+
+void ags_simulate_keydown(eAGSKeyCode ags_key)
+{
+    push_sdl_key_event(ags_key, SDL_KEYDOWN);
+}
+
+void ags_simulate_keyup(eAGSKeyCode ags_key)
+{
+    push_sdl_key_event(ags_key, SDL_KEYUP);
 }
 
 static void on_sdl_key_down(const SDL_Event &event)

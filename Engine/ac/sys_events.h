@@ -90,8 +90,12 @@ void ags_drop_next_inputevent();
 // Tells if the key is currently down, provided AGS key.
 // NOTE: for particular script codes this function returns positive if either of two keys are down.
 int ags_iskeydown(eAGSKeyCode ags_key);
-// Simulates key press with the given AGS key
-void ags_simulate_keypress(eAGSKeyCode ags_key, bool old_keyhandle);
+// Simulates key press with the given AGS key (sends key down, then key up event)
+void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod, bool old_keyhandle);
+// Simulates key down event with the given AGS key
+void ags_simulate_keydown(eAGSKeyCode ags_key);
+// Simulates key up event with the given AGS key
+void ags_simulate_keyup(eAGSKeyCode ags_key);
 
 // TODO: hide these later? (bad design with run_service_key_controls,
 // but also need to clear them in ags_clear_input_state())

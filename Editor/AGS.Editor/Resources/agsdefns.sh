@@ -420,6 +420,7 @@ enum eKeyCode
 #ifdef SCRIPT_API_v360
 enum eKeyMod
 {
+  eKeyModNone       = 0,
   eKeyModShiftLeft  = 0x00010000,
   eKeyModShiftRight = 0x00020000,
   eKeyModShift      = 0x00030000,
@@ -3470,7 +3471,7 @@ builtin struct Game {
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
   /// Simulate a keypress on the keyboard.
-  import static void   SimulateKeyPress(eKeyCode key);
+  import static void   SimulateKeyPress(eKeyCode key, eKeyMod mod = eKeyModNone);
 #endif // SCRIPT_API_v350
 #ifdef SCRIPT_API_v3507
   /// Gets the primary camera

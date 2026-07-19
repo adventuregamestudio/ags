@@ -1106,42 +1106,41 @@ ScriptCamera* Game_GetAnyCamera(int index)
     return play.GetScriptCamera(index);
 }
 
-void Game_SimulateKeyPress(int key)
+void Game_SimulateKeyPress(int key, int mod)
 {
-    // Old key handling mode: pass key code as-is, might include combo-keys, such as Ctrl+X
-    if (game.options[OPT_KEYHANDLEAPI] == 0)
+    const bool old_key_mode = game.options[OPT_KEYHANDLEAPI] == 0;
+    eAGSKeyCode modkey = eAGSKeyCodeNone;
+    eAGSKeyMod mod_ex = eAGSModNone;
+    // Support combo-keys, split them into key + mod and pass as separate events.
+    // If game is running in the old-key mode, then they will become re-combined again on receival.
+    if (key >= eAGSKeyCodeCtrlA && key <= eAGSKeyCodeCtrlZ)
     {
-        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), eAGSModNone, true);
+        key = key - eAGSKeyCodeCtrlA + eAGSKeyCodeA;
+        modkey = eAGSKeyCodeLCtrl;
+        mod_ex = eAGSModCtrl;
     }
-    // New key handling mode: split key code into plain key + mod key
+    else if (key >= eAGSKeyCodeAltA && key <= eAGSKeyCodeAltZ)
+    {
+        key = AGS_EXT_KEY_TOALPHA(key);
+        modkey = eAGSKeyCodeLAlt;
+        mod_ex = eAGSModAlt;
+    }
+
+    if (modkey > 0)
+    {
+        ags_simulate_keydown(modkey);
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod | mod_ex), old_key_mode);
+        ags_simulate_keyup(modkey);
+    }
     else
     {
-        eAGSKeyCode modkey = eAGSKeyCodeNone;
-        eAGSKeyMod mod = eAGSModNone;
-        if (key >= eAGSKeyCodeCtrlA && key <= eAGSKeyCodeCtrlZ)
-        {
-            key = key - eAGSKeyCodeCtrlA + eAGSKeyCodeA;
-            modkey = eAGSKeyCodeLCtrl;
-            mod = eAGSModCtrl;
-        }
-        else if (key >= eAGSKeyCodeAltA && key <= eAGSKeyCodeAltZ)
-        {
-            key = AGS_EXT_KEY_TOALPHA(key);
-            modkey = eAGSKeyCodeLAlt;
-            mod = eAGSModAlt;
-        }
-
-        if (modkey > 0)
-        {
-            ags_simulate_keydown(modkey);
-            ags_simulate_keypress(static_cast<eAGSKeyCode>(key), mod, false);
-            ags_simulate_keyup(modkey);
-        }
-        else
-        {
-            ags_simulate_keypress(static_cast<eAGSKeyCode>(key), eAGSModNone, false);
-        }  
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod), old_key_mode);
     }
+}
+
+void Game_SimulateKeyPressOld(int key)
+{
+    Game_SimulateKeyPress(key, 0);
 }
 
 int Game_BlockingWaitCounter()
@@ -2483,7 +2482,12 @@ RuntimeScriptValue Sc_Game_GetAnyCamera(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Game_SimulateKeyPress);
+    API_SCALL_VOID_PINT2(Game_SimulateKeyPress);
+}
+
+RuntimeScriptValue Sc_Game_SimulateKeyPressOld(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SimulateKeyPressOld);
 }
 
 RuntimeScriptValue Sc_Game_BlockingWaitCounter(const RuntimeScriptValue *params, int32_t param_count)
@@ -2602,7 +2606,8 @@ void RegisterGameAPI()
         { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::Resume",                                 API_FN_PAIR(Game_Resume) },
-        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
+        { "Game::SimulateKeyPress^1",                     API_FN_PAIR(Game_SimulateKeyPressOld) },
+        { "Game::SimulateKeyPress^2",                     API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::GetSaveSlots^4",                         API_FN_PAIR(Game_GetSaveSlots) },
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },

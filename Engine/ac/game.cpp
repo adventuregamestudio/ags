@@ -1108,7 +1108,40 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 void Game_SimulateKeyPress(int key)
 {
-    ags_simulate_keypress(static_cast<eAGSKeyCode>(key), (game.options[OPT_KEYHANDLEAPI] == 0));
+    // Old key handling mode: pass key code as-is, might include combo-keys, such as Ctrl+X
+    if (game.options[OPT_KEYHANDLEAPI] == 0)
+    {
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), eAGSModNone, true);
+    }
+    // New key handling mode: split key code into plain key + mod key
+    else
+    {
+        eAGSKeyCode modkey = eAGSKeyCodeNone;
+        eAGSKeyMod mod = eAGSModNone;
+        if (key >= eAGSKeyCodeCtrlA && key <= eAGSKeyCodeCtrlZ)
+        {
+            key = key - eAGSKeyCodeCtrlA + eAGSKeyCodeA;
+            modkey = eAGSKeyCodeLCtrl;
+            mod = eAGSModCtrl;
+        }
+        else if (key >= eAGSKeyCodeAltA && key <= eAGSKeyCodeAltZ)
+        {
+            key = AGS_EXT_KEY_TOALPHA(key);
+            modkey = eAGSKeyCodeLAlt;
+            mod = eAGSModAlt;
+        }
+
+        if (modkey > 0)
+        {
+            ags_simulate_keydown(modkey);
+            ags_simulate_keypress(static_cast<eAGSKeyCode>(key), mod, false);
+            ags_simulate_keyup(modkey);
+        }
+        else
+        {
+            ags_simulate_keypress(static_cast<eAGSKeyCode>(key), eAGSModNone, false);
+        }  
+    }
 }
 
 int Game_BlockingWaitCounter()

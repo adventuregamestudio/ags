@@ -26,7 +26,8 @@
 
 // Constant used to define Alt+Key codes
 #define AGS_EXT_KEY_SHIFT  300
-#define AGS_EXT_KEY_ALPHA(key)  (AGS_EXT_KEY_SHIFT + (key - eAGSKeyCodeCtrlA) + 1)
+#define AGS_EXT_KEY_FROMALPHA(key)  (AGS_EXT_KEY_SHIFT + (key - eAGSKeyCodeCtrlA) + 1)
+#define AGS_EXT_KEY_TOALPHA(key)    (((key + eAGSKeyCodeCtrlA) - 1) - AGS_EXT_KEY_SHIFT)
 
 // These are based on eKeyCode values in AGS Script.
 // The actual values are based on scan codes of the old backend (allegro 3 and/or 4),
@@ -202,12 +203,13 @@ enum eAGSKeyCode
     eAGSKeyCodeInsert = AGS_EXT_KEY_SHIFT + 82,
     eAGSKeyCodeDelete = AGS_EXT_KEY_SHIFT + 83,
 
+    eAGSKeyCodeAltA = AGS_EXT_KEY_FROMALPHA(eAGSKeyCodeA),
     // [sonneveld] These are only used by debugging and abort keys.
     // They're based on allegro4 codes ...
-    eAGSKeyCodeAltV = AGS_EXT_KEY_ALPHA(eAGSKeyCodeV),
-    eAGSKeyCodeAltX = AGS_EXT_KEY_ALPHA(eAGSKeyCodeX),
-    eAGSKeyCodeAltY = AGS_EXT_KEY_ALPHA(eAGSKeyCodeY),
-    eAGSKeyCodeAltZ = AGS_EXT_KEY_ALPHA(eAGSKeyCodeZ),
+    eAGSKeyCodeAltV = AGS_EXT_KEY_FROMALPHA(eAGSKeyCodeV),
+    eAGSKeyCodeAltX = AGS_EXT_KEY_FROMALPHA(eAGSKeyCodeX),
+    eAGSKeyCodeAltY = AGS_EXT_KEY_FROMALPHA(eAGSKeyCodeY),
+    eAGSKeyCodeAltZ = AGS_EXT_KEY_FROMALPHA(eAGSKeyCodeZ),
 
     // The beginning of "service key list": mod keys and other special keys
     // not normally intended to affect the default game logic
@@ -258,6 +260,7 @@ enum eAGSKeyCode
 // AGS key modifiers
 enum eAGSKeyMod
 {
+    eAGSModNone   = 0,
     eAGSModLShift = 0x00010000,
     eAGSModRShift = 0x00020000,
     eAGSModLCtrl  = 0x00040000,

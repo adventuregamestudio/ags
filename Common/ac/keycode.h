@@ -326,8 +326,7 @@ inline bool IsAGSServiceKey(eAGSKeyCode keycode)
     return keycode >= eAGSKeyCode_FirstServiceKey;
 }
 
-// Converts eAGSKeyCode to script API code, for script callbacks (e.g. on_key_press),
-// and matching the user-set key variables.
+// Converts eAGSKeyCode to script API code, for "on_key_press" and similar callbacks
 eAGSKeyCode AGSKeyToScriptKey(eAGSKeyCode keycode);
 // Converts eAGSKeyCode to ASCII text representation with the range check; returns 0 on failure
 // Not unicode compatible.

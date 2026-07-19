@@ -223,6 +223,15 @@ endif ()
 
 if(AGS_TESTS)
    add_executable(tools_test
+      ../Common/ac/gamesetupstructbase.cpp # needed by data_file_writer_test
+      ../Common/ac/view.cpp # needed by data_file_writer_test
+      ../Common/ac/audiocliptype.cpp # needed by data_file_writer_test
+      ../Common/ac/dynobj/scriptaudioclip.cpp # needed by data_file_writer_test
+      ../Common/ac/dialogtopic.cpp # needed by data_file_writer_test
+      ../Common/game/interactions.cpp # needed by data_file_writer_test
+      ../Common/game/customproperties.cpp # needed by data_file_writer_test
+      test/agfreader_test.cpp
+      test/data_file_writer_test.cpp
       test/data_helpers_test.cpp
       test/include_utils_test.cpp
    )

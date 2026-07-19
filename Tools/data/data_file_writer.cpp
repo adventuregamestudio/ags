@@ -1137,8 +1137,6 @@ void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game)
     }
 }
 
-typedef void (*ExtensionWriter)(Stream*, const DataUtil::GameData&);
-
 // Read as one extension record by DataExtReader::Read() in
 // Common/data/data_ext.cpp; GameDataExtReader::ReadBlock() reads its payload.
 void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game,

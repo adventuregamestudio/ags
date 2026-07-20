@@ -679,6 +679,82 @@ extern DECLSPEC int SDLCALL TTF_GetFontKerning(const TTF_Font *font);
 extern DECLSPEC void SDLCALL TTF_SetFontKerning(TTF_Font *font, int allowed);
 
 /**
+* Set additional space in pixels to be applied between any two rendered
+* characters. The spacing value is applied uniformly after each character,
+* in addition to the normal glyph's advance.
+* 
+* Spacing may be a negative value, in which case it will reduce the
+* distance instead.
+*
+* This updates any TTF_Text objects using this font.
+*
+* \param font the font to specify a direction for.
+* \param char_spacing the new spacing value.
+* \returns 0 on success, -1 on error.
+*
+* \since This function is a custom patch into the SDL_ttf 2.24.0.
+*/
+extern DECLSPEC int SDLCALL TTF_SetFontCharSpacing(TTF_Font *font, int spacing);
+
+/**
+* Get the additional character spacing in pixels to be applied between any two
+* rendered characters.
+*
+* This defaults to 0 if it hasn't been set.
+*
+* \param font the font to query.
+* \returns the character spacing in pixels.
+*
+* \since This function is a custom patch into the SDL_ttf 2.24.0.
+*/
+extern DECLSPEC int SDLCALL TTF_GetFontCharSpacing(TTF_Font *font);
+
+/**
+* Query the font's bounding box.
+*
+* The bounding box defines bounds large enough to contain any glyph from
+* the font. It is expressed in pixel offsets from glyph's origin (0,0),
+* with Y axis pointing upwards. Thus maxy offset may be seen as the
+* "maximum ascender" and miny offset - as the "minimum descender".
+*
+* \param font the font to query.
+* \param minx a pointer filled in with the minimum x coordinate of *any* glyph
+*             in this font from it's origin. This value may be negative.
+* \param maxx a pointer filled in with the maximum x coordinate of *any* glyph
+*             in this font from it's origin.
+* \param miny a pointer filled in with the minimum y coordinate of *any* glyph
+*             in this font from it's origin. This value may be negative.
+* \param maxy a pointer filled in with the maximum y coordinate of *any* glyph
+*             in this font from it's origin.
+* \returns 0 on success, -1 on error.
+*
+* \since This function is a custom patch into the SDL_ttf 2.24.0.
+*/
+extern DECLSPEC int SDLCALL TTF_GetFontBBox(const TTF_Font *font, int *minx, int *maxx, int *miny, int *maxy);
+
+/**
+* Get the first UNICODE codepoint for which the font provides a glyph.
+*
+* \param font the font to query.
+* \returns the first codepoint, or UINT32_MAX if the font's charmap is empty.
+*
+* \since This function is a custom patch into the SDL_ttf 2.24.0.
+*/
+extern DECLSPEC Uint32 SDLCALL TTF_GetFirstFontChar(TTF_Font *font);
+
+/**
+* Get the next UNICODE codepoint for which the font provides a glyph.
+*
+* \param font the font to query.
+* \param ch the current codepoint.
+* \returns the next codepoint, or UINT32_MAX if the end of the font's charmap
+*          is reached.
+*
+* \since This function is a custom patch into the SDL_ttf 2.24.0.
+*/
+extern DECLSPEC Uint32 SDLCALL TTF_GetNextFontChar(TTF_Font *font, Uint32 ch);
+
+/**
  * Query the number of faces of a font.
  *
  * \param font the font to query.

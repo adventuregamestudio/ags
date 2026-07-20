@@ -69,7 +69,8 @@ namespace AGS.Types
             }
             else if (context.Instance is RoomRegion)
             {
-                itemName = "region" + ((RoomRegion)context.Instance).ID;
+                itemName = string.IsNullOrEmpty(((RoomRegion)context.Instance).ScriptName) ?
+                    "region" + ((RoomRegion)context.Instance).ID : ((RoomRegion)context.Instance).ScriptName;
                 scriptModule = ((RoomRegion)context.Instance).Room.ScriptFileName;
             }
             else

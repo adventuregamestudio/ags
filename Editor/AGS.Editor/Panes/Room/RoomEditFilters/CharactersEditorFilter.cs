@@ -305,7 +305,7 @@ namespace AGS.Editor
         /// </summary>
         protected override string GetNavbarItemTitle(Character obj)
         {
-            return MakeLayerItemName("Character", obj.ScriptName, obj.RealName, obj.ID);
+            return MakeLayerItemName("Character", obj.ScriptName, obj.DisplayName, obj.ID);
         }
 
         /// <summary>

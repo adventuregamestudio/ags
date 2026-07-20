@@ -219,7 +219,7 @@ namespace AGS.Editor.Utils
             {
                 if (item.Image == spriteNumber)
                 {
-                    usageReport.AppendLine("Inventory item " + item.ID + " (" + item.Name + ")");
+                    usageReport.AppendLine("Inventory item " + item.ID + " (" + item.ScriptName + ")");
                 }
             }
 
@@ -250,7 +250,7 @@ namespace AGS.Editor.Utils
                             (button.MouseoverImage == spriteNumber) ||
                             (button.PushedImage == spriteNumber))
                         {
-                            usageReport.AppendLine("GUI button " + control.Name + " on GUI " + gui.Name);
+                            usageReport.AppendLine("GUI button " + control.ScriptName + " on GUI " + gui.Name);
                         }
                     }
                     GUISlider slider = control as GUISlider;
@@ -259,13 +259,13 @@ namespace AGS.Editor.Utils
                         if ((slider.HandleImage == spriteNumber) ||
                             (slider.BackgroundImage == spriteNumber))
                         {
-                            usageReport.AppendLine("GUI slider " + control.Name + " on GUI " + gui.Name);
+                            usageReport.AppendLine("GUI slider " + control.ScriptName + " on GUI " + gui.Name);
                         }
                     }
                     GUITextWindowEdge edge = control as GUITextWindowEdge;
                     if ((edge != null) && (edge.Image == spriteNumber))
                     {
-                        usageReport.AppendLine("Text window edge " + control.Name + " on GUI " + gui.Name);
+                        usageReport.AppendLine("Text window edge " + control.ScriptName + " on GUI " + gui.Name);
                     }
                 }
             }

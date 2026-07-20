@@ -564,14 +564,14 @@ namespace AGS.Types
 
             foreach (RoomHotspot hotspot in Hotspots)
             {
-                if ((hotspot.Name == tryName) && (hotspot != ignoreObject))
+                if ((hotspot.ScriptName == tryName) && (hotspot != ignoreObject))
                 {
                     return true;
                 }
             }
             foreach (RoomObject obj in Objects)
             {
-                if ((obj.Name == tryName) && (obj != ignoreObject))
+                if ((obj.ScriptName == tryName) && (obj != ignoreObject))
                 {
                     return true;
                 }

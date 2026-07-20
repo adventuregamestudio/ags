@@ -2127,7 +2127,9 @@ void RegisterObjectAPI()
         { "Object::GetAtScreenXY^2",          API_FN_PAIR(Object_GetAtScreenXY2) },
         { "Object::GetAtRoomXY^3",            API_FN_PAIR(Object_GetAtRoomXY) },
         { "Object::GetAtScreenXY^3",          API_FN_PAIR(Object_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "Object::GetByName",                API_FN_PAIR(Object_GetByName) },
+        { "Object::GetByScriptName",          API_FN_PAIR(Object_GetByName) },
 
         { "Object::Animate^5",                API_FN_PAIR(Object_Animate5) },
         { "Object::Animate^6",                API_FN_PAIR(Object_Animate6) },
@@ -2175,6 +2177,8 @@ void RegisterObjectAPI()
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
         { "Object::get_DestinationX",         API_FN_PAIR(Object_GetDestinationX) },
         { "Object::get_DestinationY",         API_FN_PAIR(Object_GetDestinationY) },
+        { "Object::get_DisplayName",          API_FN_PAIR(Object_GetName_New) },
+        { "Object::set_DisplayName",          API_FN_PAIR(Object_SetName) },
         { "Object::get_Enabled",              API_FN_PAIR(Object_GetEnabled) },
         { "Object::set_Enabled",              API_FN_PAIR(Object_SetEnabled) },
         { "Object::get_Frame",                API_FN_PAIR(Object_GetFrame) },
@@ -2185,6 +2189,7 @@ void RegisterObjectAPI()
         { "Object::get_ManualScaling",        API_FN_PAIR(Object_GetManualScaling) },
         { "Object::set_ManualScaling",        API_FN_PAIR(Object_SetManualScaling) },
         { "Object::get_Moving",               API_FN_PAIR(Object_GetMoving) },
+        // [OBSOLETE] Name => DisplayName
         { "Object::get_Name",                 API_FN_PAIR(Object_GetName_New) },
         { "Object::set_Name",                 API_FN_PAIR(Object_SetName) },
         { "Object::get_Scaling",              API_FN_PAIR(Object_GetScaling) },

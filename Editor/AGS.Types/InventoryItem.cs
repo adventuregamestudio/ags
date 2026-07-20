@@ -9,8 +9,8 @@ namespace AGS.Types
     [DefaultProperty("Image")]
     public class InventoryItem : IToXml, IComparable<InventoryItem>, ICloneable
     {
-        private string _name;
-        private string _description;
+        private string _scriptName;
+        private string _displayName;
         private int _image;
         private int _cursorImage;
         private bool _startWithItem;
@@ -28,8 +28,8 @@ namespace AGS.Types
         public InventoryItem()
         {
             _startWithItem = false;
-            _name = string.Empty;
-            _description = string.Empty;
+            _scriptName = string.Empty;
+            _displayName = string.Empty;
             _image = 0;
             _cursorImage = 0;
             _hotspotX = 0;
@@ -102,31 +102,47 @@ namespace AGS.Types
         [Description("Description of the item")]
         [Category("Appearance")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string DisplayName
+        {
+            get { return _displayName; }
+            set { _displayName = value; }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string Description
         {
-            get { return _description; }
-            set { _description = value; }
+            get { return DisplayName; }
+            set { DisplayName = value; }
         }
 
         [Description("The script name of the item")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string Name
         {
-            get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Browsable(false)]
         public string WindowTitle
         {
-            get { return "Inventory: " + this.Name; }
+            get { return "Inventory: " + this.ScriptName; }
         }
 
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle("Inventory item", _name, _description, _id); }
+            get { return TypesHelper.MakePropertyGridTitle("Inventory item", _scriptName, _displayName, _id); }
         }
 
         [AGSSerializeClass()]

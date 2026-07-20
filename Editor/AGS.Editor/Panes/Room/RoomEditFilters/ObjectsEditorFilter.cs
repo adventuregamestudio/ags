@@ -168,7 +168,7 @@ namespace AGS.Editor
                 }
                 RoomObject newObj = new RoomObject(_room);
                 newObj.ID = _room.Objects.Count;
-                newObj.Name = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
+                newObj.ScriptName = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
                 newObj.StartX = MenuClickPos.X;
                 newObj.StartY = MenuClickPos.Y;
                 _room.Objects.Add(newObj);
@@ -252,7 +252,7 @@ namespace AGS.Editor
         /// </summary>
         protected override string GetItemScriptName(RoomObject obj)
         {
-            return obj.Name;
+            return obj.ScriptName;
         }
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace AGS.Editor
         /// </summary>
         protected override string GetNavbarItemTitle(RoomObject obj)
         {
-            return MakeLayerItemName("Object", obj.Name, obj.Description, obj.ID);
+            return MakeLayerItemName("Object", obj.ScriptName, obj.DisplayName, obj.ID);
         }
 
         public override bool AllowClicksInterception()
@@ -337,7 +337,7 @@ namespace AGS.Editor
         /// </summary>
         public override bool TrySelectItemByName(string name)
         {
-            var obj = _room.Objects.FirstOrDefault((o) => o.Name == name);
+            var obj = _room.Objects.FirstOrDefault((o) => o.ScriptName == name);
             if (obj == null)
             {
                 int id;

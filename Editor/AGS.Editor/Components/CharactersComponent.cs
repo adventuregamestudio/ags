@@ -70,7 +70,7 @@ namespace AGS.Editor.Components
             if (controlID == COMMAND_NEW_ITEM)
             {                
                 Character newItem = new Character();
-                newItem.RealName = "New character";
+                newItem.DisplayName = "New character";
                 newItem.StartingRoom = -1;
                 // Default Character colors are set as palette indexes, remap them to proper colors
                 Tasks.RemapCharacterColours(newItem, _agsEditor.CurrentGame, GameColorDepth.Palette);
@@ -162,7 +162,7 @@ namespace AGS.Editor.Components
                 Text = "Go To Character",
                 NodeTypeName = "Character",
                 List = characters
-                    .Select(c => Tuple.Create(c.ID, string.Format("({0}) {1}",c.ScriptName, c.RealName)))
+                    .Select(c => Tuple.Create(c.ID, string.Format("({0}) {1}",c.ScriptName, c.DisplayName)))
                     .ToList()
             };
             if (goToCharacterDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;

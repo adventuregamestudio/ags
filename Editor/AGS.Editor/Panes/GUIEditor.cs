@@ -156,7 +156,7 @@ namespace AGS.Editor
                     if (_selected.Count > 1)
                         return;
                     objectBeingChanged = _selectedControl;
-                    newName = _selectedControl.Name;
+                    newName = _selectedControl.ScriptName;
                 }
                 Game game = Factory.AGSEditor.CurrentGame;
                 bool nameInUse = game.IsScriptNameAlreadyUsed(newName, objectBeingChanged);
@@ -174,7 +174,7 @@ namespace AGS.Editor
                     Factory.GUIController.ShowMessage("This script name is already used by another item.", MessageBoxIcon.Warning);
                     if (_selectedControl != null)
                     {
-                        _selectedControl.Name = (string)oldValue;
+                        _selectedControl.ScriptName = (string)oldValue;
                     }
                     else
                     {
@@ -732,7 +732,7 @@ namespace AGS.Editor
             {
                 Type controlType = _selectedControl.GetType();
                 var textProperty = controlType.GetProperty("Text");
-                string title = "Edit " + _selectedControl.Name + " text...";
+                string title = "Edit " + _selectedControl.ScriptName + " text...";
 
                 String currentText = (String)textProperty.GetValue(_selectedControl);
                 String newText = MultilineStringEditorDialog.ShowEditor(title, currentText);
@@ -923,7 +923,7 @@ namespace AGS.Editor
             int refControlX = 0, refControlY = 0;
             foreach (var newControl in newControls)
             {
-                newControl.Name = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
+                newControl.ScriptName = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
                 newControl.ZOrder = _gui.Controls.Count;
                 newControl.ID = _gui.Controls.Count;
                 newControl.MemberOf = null;
@@ -1235,7 +1235,7 @@ namespace AGS.Editor
                     throw new AGSEditorException("Unknown control type added: " + _controlAddMode.ToString());
             }
 
-            newControl.Name = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
+            newControl.ScriptName = Factory.AGSEditor.GetFirstAvailableScriptName(newControl.ControlType);
             newControl.ZOrder = _gui.Controls.Count;
             newControl.Parent = _gui;
             newControl.ID = _gui.Controls.Count;
@@ -1419,7 +1419,7 @@ namespace AGS.Editor
 			if (objectToCheck is GUI)
 				itemName = ((GUI)objectToCheck).Name;
 			else
-				itemName = ((GUIControl)objectToCheck).Name;
+				itemName = ((GUIControl)objectToCheck).ScriptName;
 
 			if (string.IsNullOrEmpty(itemName))
 			{

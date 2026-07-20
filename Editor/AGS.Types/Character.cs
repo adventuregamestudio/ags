@@ -13,13 +13,13 @@ namespace AGS.Types
     public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>, ICloneable
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
-        public const string PROPERTY_NAME_DESCRIPTION = "RealName";
+        public const string PROPERTY_NAME_DESCRIPTION = "Description";
         public const string PROPERTY_NAME_STARTINGROOM = "StartingRoom";
         public const int NARRATOR_CHARACTER_ID = 999;
 
         private int _id;
         private string _scriptName = string.Empty;
-        private string _fullName = string.Empty;
+        private string _displayName = string.Empty;
         private int _view = 1;
         private int _speechView;
         private int _idleView;
@@ -86,10 +86,18 @@ namespace AGS.Types
         [Description("The full name of the character")]
         [Category("Design")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string DisplayName
+        {
+            get { return _displayName; }
+            set { _displayName = value; }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string RealName
         {
-            get { return _fullName; }
-            set { _fullName = value; }
+            get { return DisplayName; }
+            set { DisplayName = value; }
         }
 
         [Description("The normal walking view for the character")]
@@ -514,7 +522,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle("Character", _scriptName, _fullName, _id); }
+            get { return TypesHelper.MakePropertyGridTitle("Character", _scriptName, _displayName, _id); }
         }
 
         #region Serialization

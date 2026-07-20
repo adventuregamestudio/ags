@@ -365,7 +365,9 @@ void RegisterHotspotAPI()
         { "Hotspot::GetAtScreenXY^2",     API_FN_PAIR(Hotspot_GetAtScreenXY2) },
         { "Hotspot::GetAtRoomXY^3",       API_FN_PAIR(Hotspot_GetAtRoomXY) },
         { "Hotspot::GetAtScreenXY^3",     API_FN_PAIR(Hotspot_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "Hotspot::GetByName",           API_FN_PAIR(Hotspot_GetByName) },
+        { "Hotspot::GetByScriptName",     API_FN_PAIR(Hotspot_GetByName) },
         { "Hotspot::GetDrawingSurface",   API_FN_PAIR(Hotspot_GetDrawingSurface) },
 
         { "Hotspot::GetProperty^1",       API_FN_PAIR(Hotspot_GetProperty) },
@@ -375,9 +377,12 @@ void RegisterHotspotAPI()
         { "Hotspot::SetTextProperty^2",   API_FN_PAIR(Hotspot_SetTextProperty) },
         { "Hotspot::IsInteractionAvailable^1", API_FN_PAIR(Hotspot_IsInteractionAvailable) },
         { "Hotspot::RunInteraction^1",    API_FN_PAIR(Hotspot_RunInteraction) },
+        { "Hotspot::get_DisplayName",     API_FN_PAIR(Hotspot_GetName_New) },
+        { "Hotspot::set_DisplayName",     API_FN_PAIR(Hotspot_SetName) },
         { "Hotspot::get_Enabled",         API_FN_PAIR(Hotspot_GetEnabled) },
         { "Hotspot::set_Enabled",         API_FN_PAIR(Hotspot_SetEnabled) },
         { "Hotspot::get_ID",              API_FN_PAIR(Hotspot_GetID) },
+        // [OBSOLETE] Name => DisplayName
         { "Hotspot::get_Name",            API_FN_PAIR(Hotspot_GetName_New) },
         { "Hotspot::set_Name",            API_FN_PAIR(Hotspot_SetName) },
         { "Hotspot::get_ScriptName",      API_FN_PAIR(Hotspot_GetScriptName) },

@@ -1581,7 +1581,9 @@ void RegisterGUIAPI()
     ScFnRegister gui_api[] = {
         { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY2) },
         { "GUI::GetAtScreenXY^3",         API_FN_PAIR(GUI_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "GUI::GetByName^1",             API_FN_PAIR(GUI_GetByName) },
+        { "GUI::GetByScriptName^1",       API_FN_PAIR(GUI_GetByName) },
         { "GUI::GetActiveTextInputControl^0", API_FN_PAIR(GUI_GetActiveTextInputControl) },
         { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },
         { "GUI::ScreenToGUIPoint",        API_FN_PAIR(GUI_ScreenToGUIPoint) },

@@ -245,7 +245,7 @@ namespace AGS.Editor
 
             foreach (Dialog otherDialog in _game.RootDialogFolder.AllItemsFlat)
             {
-                if (string.Compare(otherDialog.Name, newDialogName, true) == 0)
+                if (string.Compare(otherDialog.ScriptName, newDialogName, true) == 0)
                 {
                     return string.Format("return {0};", otherDialog.ID) + "}";
                 }

@@ -19,7 +19,7 @@ namespace AGS.Editor
             cmbWhichCharacter.Items.Add("Only re-number the narrator");
             foreach (Character character in characters)
             {
-                cmbWhichCharacter.Items.Add("Only re-number " + character.RealName);
+                cmbWhichCharacter.Items.Add("Only re-number " + character.DisplayName);
             }
             cmbWhichCharacter.SelectedIndex = 0;
         }

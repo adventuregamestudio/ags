@@ -1369,7 +1369,7 @@ namespace AGS.Editor
 				AGS.Types.View view = _game.FindViewByID(character.NormalView);
 				if (view == null)
 				{
-					errors.Add(new CompileError("Character " + character.ID + " (" + character.RealName + ") has invalid normal view."));
+					errors.Add(new CompileError("Character " + character.ID + " (" + character.ScriptName + ") has invalid normal view."));
 				}
 			}
 
@@ -1407,15 +1407,15 @@ namespace AGS.Editor
 
 			foreach (AGS.Types.View view in folder.Views)
 			{
-				if (!string.IsNullOrEmpty(view.Name))
+				if (!string.IsNullOrEmpty(view.ScriptName))
 				{
-					if (viewNames.ContainsKey(view.Name.ToLowerInvariant()))
+					if (viewNames.ContainsKey(view.ScriptName.ToLowerInvariant()))
 					{
-						errors.Add(new CompileError("There are two or more views with the same name '" + view.Name + "'"));
+						errors.Add(new CompileError("There are two or more views with the same name '" + view.ScriptName + "'"));
 					}
 					else
 					{
-						viewNames.Add(view.Name.ToLowerInvariant(), view);
+						viewNames.Add(view.ScriptName.ToLowerInvariant(), view);
 					}
 				}
 			}

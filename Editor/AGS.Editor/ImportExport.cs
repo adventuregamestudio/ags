@@ -765,7 +765,7 @@ namespace AGS.Editor
         {
             View newView = ReadOldStyleView(reader, game, folder, palette);
             newView.ID = game.FindAndAllocateAvailableViewID();
-            newView.Name = viewName;
+            newView.ScriptName = viewName;
             game.RootViewFolder.Views.Add(newView);
             return newView.ID;
         }
@@ -783,12 +783,12 @@ namespace AGS.Editor
 
         private static void EnsureViewNameIsUnique(View view, Game game)
         {
-            string scriptNameBase = view.Name; 
+            string scriptNameBase = view.ScriptName; 
             int suffix = 0;
-            while (game.IsScriptNameAlreadyUsed(view.Name.ToUpperInvariant(), view))
+            while (game.IsScriptNameAlreadyUsed(view.ScriptName.ToUpperInvariant(), view))
             {
                 suffix++;
-                view.Name = scriptNameBase + suffix;
+                view.ScriptName = scriptNameBase + suffix;
             }
         }
 
@@ -1005,9 +1005,9 @@ namespace AGS.Editor
             }
             foreach (GUIControl control in gui.Controls)
             {
-                while (game.IsScriptNameAlreadyUsed(control.Name, control))
+                while (game.IsScriptNameAlreadyUsed(control.ScriptName, control))
                 {
-                    control.Name += "2";
+                    control.ScriptName += "2";
                 }
             }
         }

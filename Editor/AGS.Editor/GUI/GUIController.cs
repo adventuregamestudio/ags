@@ -1561,7 +1561,7 @@ namespace AGS.Editor
 			if (character != null)
 			{
 				sw.WriteLine();
-				sw.WriteLine("*** Lines for character " + character.RealName + " (ID " + charID + ") ***");
+				sw.WriteLine("*** Lines for character " + character.DisplayName + " (ID " + charID + ") ***");
 				sw.WriteLine();
 			}
 			else

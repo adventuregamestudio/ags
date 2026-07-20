@@ -12,7 +12,7 @@ namespace AGS.Types
     public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
     {
         private int _id;
-        private string _name;
+        private string _scriptName;
         private bool _showTextParser;
         private string _script;
         [NonSerialized]
@@ -44,10 +44,18 @@ namespace AGS.Types
         [Description("The script name of the dialog")]
         [Category("Design")]
         [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
+        }
+
+        [Obsolete]
+        [Browsable(false)]
         public string Name
         {
-            get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value); }
+            get { return ScriptName; }
+            set { ScriptName = value; }
         }
 
         [Browsable(false)]
@@ -105,7 +113,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string WindowTitle
         {
-            get { return string.IsNullOrEmpty(this.Name) ? ("Dialog " + this.ID) : ("Dialog: " + this.Name); }
+            get { return string.IsNullOrEmpty(this.ScriptName) ? ("Dialog " + this.ID) : ("Dialog: " + this.ScriptName); }
         }
 
         [AGSSerializeClass()]
@@ -125,14 +133,15 @@ namespace AGS.Types
         [Browsable(false)]
         public string PropertyGridTitle
         {
-            get { return TypesHelper.MakePropertyGridTitle("Dialog", _name, _id); }
+            get { return TypesHelper.MakePropertyGridTitle("Dialog", _scriptName, _id); }
         }
 
         public Dialog(XmlNode node)
         {
             _scriptChangedSinceLastCompile = true;
             _id = Convert.ToInt32(SerializeUtils.GetElementString(node, "ID"));
-            _name = SerializeUtils.GetElementString(node, "Name");
+            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "Name", _scriptName); // old-style script name
+            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "ScriptName", _scriptName);
             _showTextParser = Boolean.Parse(SerializeUtils.GetElementString(node, "ShowTextParser"));
             XmlNode scriptNode = node.SelectSingleNode("Script");
             // Luckily the CDATA section is easy to read back
@@ -148,7 +157,7 @@ namespace AGS.Types
         {
             writer.WriteStartElement("Dialog");
             writer.WriteElementString("ID", ID.ToString());
-            writer.WriteElementString("Name", _name);
+            writer.WriteElementString("ScriptName", _scriptName);
             writer.WriteElementString("ShowTextParser", _showTextParser.ToString());
             writer.WriteStartElement("Script");
             writer.WriteCData(_script);

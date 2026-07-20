@@ -417,7 +417,9 @@ void RegisterInventoryItemAPI()
     ScFnRegister invitem_api[] = {
         { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY2) },
         { "InventoryItem::GetAtScreenXY^4",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
+        // [OBSOLETE] GetByName => GetByScriptName
         { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
+        { "InventoryItem::GetByScriptName",           API_FN_PAIR(InventoryItem_GetByName) },
 
         { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },
         { "InventoryItem::GetProperty^1",             API_FN_PAIR(InventoryItem_GetProperty) },
@@ -433,9 +435,12 @@ void RegisterInventoryItemAPI()
         { "InventoryItem::set_CursorHotspotX",        API_FN_PAIR(InventoryItem_SetCursorHotspotX) },
         { "InventoryItem::get_CursorHotspotY",        API_FN_PAIR(InventoryItem_GetCursorHotspotY) },
         { "InventoryItem::set_CursorHotspotY",        API_FN_PAIR(InventoryItem_SetCursorHotspotY) },
+        { "InventoryItem::get_DisplayName",           API_FN_PAIR(InventoryItem_GetName_New) },
+        { "InventoryItem::set_DisplayName",           API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_Graphic",               API_FN_PAIR(InventoryItem_GetGraphic) },
         { "InventoryItem::set_Graphic",               API_FN_PAIR(InventoryItem_SetGraphic) },
         { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },
+        // [OBSOLETE] Name => DisplayName
         { "InventoryItem::get_Name",                  API_FN_PAIR(InventoryItem_GetName_New) },
         { "InventoryItem::set_Name",                  API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_ScriptName",            API_FN_PAIR(InventoryItem_GetScriptName) },

@@ -63,15 +63,12 @@ int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
 
 int TTFFontRenderer::GetTextHeight(const char * /*text*/, int fontNumber)
 {
-    return TTF_FontHeight(_fontData[fontNumber].Font);
-    /* FIXME: what to do with this?
-  // Compatibility mode: if we required to return "nominal font height",
-  // then ask alfont to return one the font was loaded with
-  if ((_fontData[fontNumber].Params.LoadMode & FFLG_LOGICALNOMINALHEIGHT) != 0)
-    return alfont_get_font_height(_fontData[fontNumber].AlFont);
-  else
-    return alfont_get_font_real_height(_fontData[fontNumber].AlFont);
-    */
+    // Compatibility mode: if we required to return "nominal font height",
+    // then return the requested Point-size the font was loaded with.
+    if ((_fontData[fontNumber].Params.LoadMode & FFLG_LOGICALNOMINALHEIGHT) != 0)
+        return _fontData[fontNumber].SizePt;
+    else
+        return TTF_FontHeight(_fontData[fontNumber].Font);
 }
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int color)
@@ -152,9 +149,6 @@ static TTF_Font *LoadTTF(std::unique_ptr<Stream> &&in, int font_size)
     return font;
 }
 
-// FIXME: would be best to use SDL_ttf API for retrieving FT_Face's BBOX
-#include <freetype/freetype.h>
-
 // Fill the FontMetrics struct from the given ALFONT
 static void FillMetrics(TTF_Font *font, int nominal_size, FontMetrics *metrics)
 {
@@ -164,22 +158,18 @@ static void FillMetrics(TTF_Font *font, int nominal_size, FontMetrics *metrics)
     std::pair<int, int> vextent;
     Rect bbox;
     {
-        const FT_FaceRec_ *ft_face = *(FT_FaceRec_**)font;
-        // FIXME: would be best to use SDL_ttf API for retrieving FT_Face's BBOX
-        FT_Long bbox_xmin = FT_MulFix(FT_DivFix(ft_face->bbox.xMin, ft_face->units_per_EM), ft_face->size->metrics.x_ppem);
-        FT_Long bbox_xmax = FT_MulFix(FT_DivFix(ft_face->bbox.xMax, ft_face->units_per_EM), ft_face->size->metrics.x_ppem);
-        FT_Long bbox_ymin = FT_MulFix(FT_DivFix(ft_face->bbox.yMin, ft_face->units_per_EM), ft_face->size->metrics.y_ppem);
-        FT_Long bbox_ymax = FT_MulFix(FT_DivFix(ft_face->bbox.yMax, ft_face->units_per_EM), ft_face->size->metrics.y_ppem);
+        int minx, maxx, miny, maxy;
+        TTF_GetFontBBox(font, &minx, &maxx, &miny, &maxy);
         // FreeType's BBOX is calculated relative to font's baseline, with Y axis pointing up.
         // Here we recalculate that into our BBOX relative to the top-left "pen" position, with Y axis pointing down.
-        int real_face_extent_asc = (int)bbox_ymax;
-        int real_face_extent_desc = -(int)bbox_ymin;
+        int real_face_extent_asc = (int)maxy;
+        int real_face_extent_desc = -(int)miny;
         int face_ascender = TTF_FontAscent(font);
         int face_descender = TTF_FontDescent(font);
         int top = face_ascender - real_face_extent_asc; // may be negative
         int bottom = face_ascender + real_face_extent_desc;
         vextent = std::make_pair(top, bottom);
-        bbox = Rect(bbox_xmin, top, bbox_xmax, bottom);
+        bbox = Rect(minx, top, maxx, bottom);
     }
     // Fix vertical extent to be *not less* than realheight
     metrics->VExtent = vextent;
@@ -246,33 +236,31 @@ void TTFFontRenderer::SetBlendMode(BlendMode blend_mode)
 void TTFFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes)
 {
     int first_charcode = -1, last_charcode = -1;
-    // FIXME: support with SDL_TTF
-    //alfont_get_charcode_range(_fontData[fontNumber].AlFont, &first_charcode, &last_charcode, nullptr);
+    TTF_Font *font = _fontData[fontNumber].Font;
+    Uint32 ch = TTF_GetFirstFontChar(font);
+    if (ch != UINT32_MAX)
+    {
+        first_charcode = static_cast<int>(ch);
+        for (; ch != UINT32_MAX; ch = TTF_GetNextFontChar(font, ch))
+            last_charcode = static_cast<int>(ch);
+    }
     *char_codes = std::make_pair(first_charcode, last_charcode);
 }
 
 void TTFFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
 {
-    int *charcodes = nullptr;
-    int count = 0; // FIXME: support with SDL_TTF
-    //alfont_get_valid_charcodes(_fontData[fontNumber].AlFont, &charcodes);
-    if (!charcodes)
-        return;
-
-    char_codes.reserve(count);
-    for (int i = 0; i < count; ++i)
+    TTF_Font *font = _fontData[fontNumber].Font;
+    for (Uint32 ch = TTF_GetFirstFontChar(font); ch != UINT32_MAX; ch = TTF_GetNextFontChar(font, ch))
     {
-        char_codes.push_back(charcodes[i]);
+        char_codes.push_back(ch);
     }
-    free(charcodes);
 }
 
 void TTFFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
 {
     if (_fontData.find(fontNumber) != _fontData.end())
     {
-        // FIXME: support with SDL_TTF
-        //alfont_set_char_extra_spacing(_fontData[fontNumber].AlFont, spacing);
+        TTF_SetFontCharSpacing(_fontData[fontNumber].Font, spacing);
     }
 }
 

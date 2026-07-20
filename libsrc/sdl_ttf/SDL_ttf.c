@@ -263,6 +263,7 @@ struct TTF_Font {
 #if !TTF_USE_HARFBUZZ
     int use_kerning;
 #endif
+    int char_spacing; /* in FP 26.6 */
 
     /* Extra width in glyph bounds for text styles */
     int glyph_overhang;
@@ -3035,6 +3036,95 @@ void TTF_SetFontKerning(TTF_Font *font, int allowed)
 #endif
 }
 
+int TTF_SetFontCharSpacing(TTF_Font *font, int spacing)
+{
+    if (!font) {
+        return -1;
+    }
+
+    ///* Convert integer pixels to FP 26.6 */
+    spacing = F26Dot6(spacing);
+
+    if (spacing == font->char_spacing) {
+        return 0;
+    }
+
+    font->char_spacing = spacing;
+    TTF_initFontMetrics(font);
+    Flush_Cache(font);
+    return 0;
+}
+
+int TTF_GetFontCharSpacing(TTF_Font *font)
+{
+    if (!font) {
+        return 0;
+    }
+
+    /* Convert FP 26.6 to integer pixels */
+    return FT_FLOOR(font->char_spacing);
+}
+
+int TTF_GetFontBBox(const TTF_Font *font, int *minx, int *maxx, int *miny, int *maxy)
+{
+    if (!font || !font->face) {
+        return -1;
+    }
+
+    /* Bitmap fonts do not contain bbox information */
+    if (!FT_IS_SCALABLE(font->face)) {
+        return -1;
+    }
+
+    const FT_Face face = font->face;
+    /* Recalculate FT_Face's bbox from font units to pixels */
+    FT_Fixed xscale = face->size->metrics.x_scale;
+    FT_Fixed yscale = face->size->metrics.y_scale;
+    if (minx) {
+        *minx = FT_CEIL(FT_MulFix(face->bbox.xMin, xscale));
+    }
+    if (maxx) {
+        *maxx = FT_CEIL(FT_MulFix(face->bbox.xMax, xscale));
+    }
+    if (miny) {
+        *miny = FT_CEIL(FT_MulFix(face->bbox.yMin, yscale));
+    }
+    if (maxy) {
+        *maxy = FT_CEIL(FT_MulFix(face->bbox.yMax, yscale));
+    }
+    return 0;
+}
+
+Uint32 TTF_GetFirstFontChar(TTF_Font *font)
+{
+    if (!font || !font->face) {
+        return UINT32_MAX;
+    }
+
+    FT_UInt idx;
+    Uint32 ch = (Uint32)FT_Get_First_Char(font->face, &idx);
+
+    if (idx == 0) {
+        return UINT32_MAX;
+    }
+    return ch;
+}
+
+Uint32 TTF_GetNextFontChar(TTF_Font *font, Uint32 ch)
+{
+    if (!font || !font->face) {
+        return UINT32_MAX;
+    }
+
+    FT_UInt idx;
+    Uint32 next = (Uint32)FT_Get_Next_Char(font->face, ch, &idx);
+
+    if (idx == 0) {
+        return UINT32_MAX;
+    }
+    return next;
+}
+
 long TTF_FontFaces(const TTF_Font *font)
 {
     return font->face->num_faces;
@@ -3304,12 +3394,12 @@ static int TTF_Size_Internal(TTF_Font *font,
         /* Compute positions */
         pos_x  = x                     + x_offset;
         pos_y  = y + F26Dot6(font->ascent) - y_offset;
-        x     += x_advance + advance_if_bold;
+        x     += x_advance + advance_if_bold + font->char_spacing;
         y     += y_advance;
 #else
         /* Compute positions */
         x += prev_advance;
-        prev_advance = glyph->advance;
+        prev_advance = glyph->advance + font->char_spacing;
         if (font->use_kerning) {
             if (prev_index && glyph->index) {
                 FT_Vector delta;

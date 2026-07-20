@@ -122,7 +122,7 @@ HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
     return HGameFileError::None();
 }
 
-void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
+HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
     numIntrVars = 0;
 
@@ -131,23 +131,48 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
         charScripts.resize(numcharacters);
         invScripts.resize(numinvitems);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
-            charScripts[i] = InteractionEvents::CreateFromStream_v361(in);
+        {
+            HError err;
+            auto inter = InteractionEvents::CreateFromStream_v361(err, in);
+            if (!err)
+                return err;
+            charScripts[i] = std::move(inter);
+        }
         // NOTE: new inventory items' events are loaded starting from 1 for some reason
         for (size_t i = 1; i < (size_t)numinvitems; ++i)
-            invScripts[i] = InteractionEvents::CreateFromStream_v361(in);
+        {
+            HError err;
+            auto inter = InteractionEvents::CreateFromStream_v361(err, in);
+            if (!err)
+                return err;
+            invScripts[i] = std::move(inter);
+        }
     }
     else // 2.x
     {
         intrChar.resize(numcharacters);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
-            intrChar[i] = Interaction::CreateFromStream(in);
+        {
+            HError err;
+            auto inter = Interaction::CreateFromStream(err, in);
+            if (!err)
+                return err;
+            intrChar[i] = std::move(inter);
+        }
         for (size_t i = 0; i < (size_t)numinvitems; ++i)
-            intrInv[i] = Interaction::CreateFromStream(in);
+        {
+            HError err;
+            auto inter = Interaction::CreateFromStream(err, in);
+            if (!err)
+                return err;
+            intrInv[i] = std::move(inter);
+        }
 
         numIntrVars = in->ReadInt32();
         for (size_t i = 0; i < (size_t)numIntrVars; ++i)
             intrVars[i].Read(in);
     }
+    return HError::None();
 }
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)

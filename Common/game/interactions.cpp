@@ -14,7 +14,6 @@
 #include "game/interactions.h"
 #include <algorithm>
 #include <string.h>
-#include "ac/common.h" // quit
 #include "util/stream.h"
 #include "util/string_utils.h"
 
@@ -29,17 +28,21 @@ namespace Common
 //
 //-----------------------------------------------------------------------------
 
-std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(Stream *in)
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(HError &error, Stream *in)
 {
+    error = HError::None();
     std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
     inter->Read_v361(in);
     return inter;
 }
 
-std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(Stream *in)
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(HError &error, Stream *in)
 {
     std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
-    inter->Read_v362(in);
+    error = inter->Read_v362(in);
+    if (!error)
+        return nullptr;
+
     return inter;
 }
 
@@ -328,21 +331,30 @@ void Interaction::Reset()
     Events.clear();
 }
 
-std::unique_ptr<Interaction> Interaction::CreateFromStream(Stream *in)
+std::unique_ptr<Interaction> Interaction::CreateFromStream(HError &error, Stream *in)
 {
-    if (in->ReadInt32() != kInteractionVersion_Initial)
-        return nullptr; // unsupported format
+    error = HError::None();
+    std::unique_ptr<Interaction> inter(new Interaction());
+    const int version = in->ReadInt32();
+    if (version != kInteractionVersion_Initial)
+    {
+        error = new Error(String::FromFormat("Interaction version not supported: %d", version));
+        return nullptr;
+    }
 
     const size_t evt_count = in->ReadInt32();
     if (evt_count > MAX_NEWINTERACTION_EVENTS)
-        quit("Can't deserialize interaction: too many events"); // FIXME: dont quit, report HError
+    {
+        error = new Error(String::FromFormat("Too many interaction events (in data: %zu, max: %d)",
+            evt_count, MAX_NEWINTERACTION_EVENTS));
+        return nullptr;
+    }
 
     int types[MAX_NEWINTERACTION_EVENTS];
     int load_response[MAX_NEWINTERACTION_EVENTS];
     in->ReadArrayOfInt32(types, evt_count);
     in->ReadArrayOfInt32(load_response, evt_count);
 
-    std::unique_ptr<Interaction> inter(new Interaction());
     inter->Events.resize(evt_count);
     for (size_t i = 0; i < evt_count; ++i)
     {

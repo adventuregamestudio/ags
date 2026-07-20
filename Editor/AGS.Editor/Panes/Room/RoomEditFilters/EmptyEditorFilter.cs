@@ -101,12 +101,12 @@ namespace AGS.Editor
         {
         }
 
-        public bool KeyPressed(Keys key)
+        public bool KeyPressed(Keys key, RoomEditorState state)
         {
             return false;
         }
 
-        public bool KeyReleased(Keys key)
+        public bool KeyReleased(Keys key, RoomEditorState state)
         {
             return false;
         }

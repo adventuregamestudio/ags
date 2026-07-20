@@ -160,7 +160,7 @@ namespace AGS.Editor
             SetPropertyGridObject(_room);
         }
 
-        public bool KeyPressed(Keys key)
+        public bool KeyPressed(Keys key, RoomEditorState state)
         {
             if (_selectedObject == null)
                 return false;
@@ -172,8 +172,28 @@ namespace AGS.Editor
             return HandleMoveKeysPress(key);
         }
 
-        public bool KeyReleased(Keys key)
+        public bool KeyReleased(Keys key, RoomEditorState state)
         {
+            if (key == Keys.Apps || ((key & ~Keys.Modifiers) == Keys.F10 && (key & Keys.Modifiers) == Keys.Shift))
+            {
+                if (_selectedObject != null)
+                {
+                    var objRect = state.RoomRectangleToWindow(GetObjectRectangle(_selectedObject));
+                    ShowContextMenu(new Point(objRect.Left + objRect.Width / 2, objRect.Bottom), state);
+                }
+                else
+                {
+                    Point mouseAt = _panel.PointToClient(Control.MousePosition);
+                    if (_panel.ClientRectangle.Contains(mouseAt))
+                    {
+                        _menuClickPos.X = state.WindowXToRoom(mouseAt.X);
+                        _menuClickPos.Y = state.WindowYToRoom(mouseAt.Y);
+                        ShowContextMenu(mouseAt, state);
+                    }
+                }
+                return true;
+            }
+
             if (HandleKeyRelease(key))
                 return true;
             return HandleMoveKeysRelease(key);
@@ -218,7 +238,7 @@ namespace AGS.Editor
             {
                 _menuClickPos.X = state.WindowXToRoom(e.X);
                 _menuClickPos.Y = state.WindowYToRoom(e.Y);
-                ShowContextMenu(e, state);
+                ShowContextMenu(e.Location, state);
                 return true;
             }
             return false;
@@ -543,7 +563,7 @@ namespace AGS.Editor
         /// Prepares and shows context menu.
         /// Override in the child classes for the actual menu, or leave unimplemented for no menu.
         /// </summary>
-        protected virtual void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+        protected virtual void ShowContextMenu(Point position, RoomEditorState state)
         {
         }
 
@@ -556,6 +576,10 @@ namespace AGS.Editor
         /// Gets current object's position.
         /// </summary>
         protected abstract void GetObjectPosition(TThing obj, out int curX, out int curY);
+        /// <summary>
+        /// Get current object's bounding rectangle.
+        /// </summary>
+        protected abstract Rectangle GetObjectRectangle(TThing obj);
         /// <summary>
         /// Tries to assign new position in room for the given object.
         /// Returns if anything has changed as a result.

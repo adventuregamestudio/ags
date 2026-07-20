@@ -112,7 +112,7 @@ namespace AGS.Editor
         {
         }
 
-		public bool KeyPressed(Keys key)
+		public bool KeyPressed(Keys key, RoomEditorState state)
 		{
             switch (key)
             {
@@ -128,7 +128,7 @@ namespace AGS.Editor
             return false;
 		}
 
-        public bool KeyReleased(Keys key)
+        public bool KeyReleased(Keys key, RoomEditorState state)
         {
             return false;
         }

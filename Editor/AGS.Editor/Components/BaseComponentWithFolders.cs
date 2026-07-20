@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
-using System.Xml;
+using AGS.Controls;
 using AGS.Types;
 using AGS.Editor.Resources;
-using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {

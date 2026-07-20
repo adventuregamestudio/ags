@@ -280,7 +280,8 @@ namespace AGS.Editor
         /// </summary>
         private void layer_OnContextMenu(object sender, RoomFilterContextMenuArgs e)
         {
-            e.Menu.Items.Add(new ToolStripSeparator());
+            if (e.Menu.Items.Count > 0)
+                e.Menu.Items.Add(new ToolStripSeparator());
             PrepareContextMenu(e.Menu, e.X, e.Y);
         }
 
@@ -897,7 +898,7 @@ namespace AGS.Editor
                 return false;
             }
 
-            if (_layer != null && !IsLocked(_layer) && _layer.KeyPressed(keyData))
+            if (_layer != null && !IsLocked(_layer) && _layer.KeyPressed(keyData, _state))
             {
                 bufferedPanel1.Invalidate();
                 Factory.GUIController.RefreshPropertyGrid();
@@ -913,8 +914,17 @@ namespace AGS.Editor
                 return false;
             }
 
-            if (_layer != null && !IsLocked(_layer) && _layer.KeyReleased(keyData))
+            if (_layer != null && !IsLocked(_layer) && _layer.KeyReleased(keyData, _state))
             {
+                return true;
+            }
+            else if (keyData == Keys.Apps || ((keyData & ~Keys.Modifiers) == Keys.F10 && (keyData & Keys.Modifiers) == Keys.Shift))
+            {
+                var showMenuAt = bufferedPanel1.PointToClient(MousePosition);
+                if (bufferedPanel1.ClientRectangle.Contains(showMenuAt))
+                {
+                    ShowContextMenu(showMenuAt.X, showMenuAt.Y);
+                }
                 return true;
             }
             return ProcessPanKeyRelease(keyData);
@@ -1163,6 +1173,16 @@ namespace AGS.Editor
         internal int WindowSizeToRoom(int sz)
         {
             return (int)(sz / _scale);
+        }
+
+        internal Rectangle RoomRectangleToWindow(Rectangle rect)
+        {
+            return new Rectangle(RoomXToWindow(rect.Left), RoomYToWindow(rect.Top), RoomSizeToWindow(rect.Width), RoomSizeToWindow(rect.Height));
+        }
+
+        internal Rectangle WindowRectangleToRoom(Rectangle rect)
+        {
+            return new Rectangle(WindowXToRoom(rect.Left), WindowYToRoom(rect.Top), WindowSizeToRoom(rect.Width), WindowSizeToRoom(rect.Height));
         }
 
         /// <summary>

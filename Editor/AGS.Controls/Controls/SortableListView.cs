@@ -2,15 +2,16 @@
 using System.Collections;
 using System.Windows.Forms;
 
-namespace AGS.Editor
+namespace AGS.Controls
 {
     /// <summary>
     /// SortableListView implements standard sorting of items using subitem
     /// texts when the corresponding column is clicked.
     /// 
     /// TODO: indicate currently selected column & sort order (asc/dsc).
+    /// TODO: merge with ListViewExtended? perhaps would need to make non-sorted by default.
     /// </summary>
-    public class SortableListView : ListView
+    public class SortableListView : ListViewExtended
     {
         private int _selectedColumn = -1;
         private bool _selectedColumnAscending = false;

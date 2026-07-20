@@ -144,9 +144,35 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controls\ContextMenuTriggerEventArgs.cs" />
+    <Compile Include="Controls\LineInBetween.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ListViewContextMenuEventArgs.cs" />
+    <Compile Include="Controls\ListViewExtended.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ListViewExtensions.cs" />
+    <Compile Include="Controls\MenuStripExtended.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\SortableListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\TargetDropZone.cs" />
     <Compile Include="Controls\ToolStripDropDownMenuEx.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Controls\ToolStripExtended.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\TreeItemDragEventArgs.cs" />
+    <Compile Include="Controls\TreeItemTryDragEventArgs.cs" />
+    <Compile Include="Controls\TreeViewExtensions.cs" />
+    <Compile Include="Controls\TreeViewWithDragDrop.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\WinAPIHelper.cs" />
     <Compile Include="ScintillaHelper.cs" />
     <Compile Include="ScintillaNET\Annotation.cs" />
     <Compile Include="ScintillaNET\AutoCSelectionEventArgs.cs" />

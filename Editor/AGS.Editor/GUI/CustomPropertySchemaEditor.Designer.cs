@@ -30,7 +30,7 @@ namespace AGS.Editor
         {
             this.btnOK = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.schemaList = new AGS.Editor.SortableListView();
+            this.schemaList = new AGS.Controls.SortableListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -83,7 +83,7 @@ namespace AGS.Editor
             this.schemaList.UseCompatibleStateImageBehavior = false;
             this.schemaList.View = System.Windows.Forms.View.Details;
             this.schemaList.ItemActivate += new System.EventHandler(this.schemaList_ItemActivate);
-            this.schemaList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.schemaList_MouseUp);
+            this.schemaList.ContextMenuTrigger += SchemaList_ContextMenuTrigger;
             // 
             // columnHeader1
             // 
@@ -154,7 +154,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private AGS.Editor.SortableListView schemaList;
+        private AGS.Controls.SortableListView schemaList;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ColumnHeader columnHeader1;

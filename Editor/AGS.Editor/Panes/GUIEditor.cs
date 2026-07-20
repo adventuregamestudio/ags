@@ -990,7 +990,6 @@ namespace AGS.Editor
         {
             if (_gui is NormalGUI)
             {
-
                 ContextMenuStrip menu = new ContextMenuStrip();
                 if (control != null)
                 {
@@ -1278,6 +1277,32 @@ namespace AGS.Editor
             return ProcessGUIEditControl(keyData);
         }
 
+        protected override bool HandleKeyRelease(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
+            if (keyData == Keys.Apps || ((keyData & ~Keys.Modifiers) == Keys.F10 && (keyData & Keys.Modifiers) == Keys.Shift))
+            {
+                if (_selectedControl != null)
+                {
+                    Point showMenuAt =
+                        new Point(_state.GUIXToWindow(_selectedControl.Left + _selectedControl.Width / 2), _state.GUIYToWindow(_selectedControl.Top + _selectedControl.Height));
+                    ShowContextMenu(showMenuAt.X, showMenuAt.Y, _selectedControl);
+                }
+                else
+                {
+                    Point showMenuAt = bgPanel.PointToClient(MousePosition);
+                    if (bgPanel.ClientRectangle.Contains(showMenuAt))
+                    {
+                        ShowContextMenu(showMenuAt.X, showMenuAt.Y, _selectedControl);
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Handles key commands not related to selected controls.
         /// </summary>
@@ -1364,7 +1389,7 @@ namespace AGS.Editor
         }
 
         protected bool ProcessGUIEditControl(Keys keyData)
-        {        
+        {
             // TODO: normally this should be done using class/method overriding
             if (_gui is TextWindowGUI)
                 return false; // do not let users move or delete TextWindow elements

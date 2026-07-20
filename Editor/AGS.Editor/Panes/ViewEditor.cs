@@ -512,6 +512,30 @@ namespace AGS.Editor
             return false;
         }
 
+        protected override bool HandleKeyRelease(Keys keyData)
+        {
+            if (!DoesThisPanelHaveFocus())
+                return false;
+
+            if (keyData == Keys.Apps || ((keyData & ~Keys.Modifiers) == Keys.F10 && (keyData & Keys.Modifiers) == Keys.Shift))
+            {
+                ViewLoopEditor loopPane = null;
+                if (_lastSelectedLoop >= 0)
+                {
+                    loopPane = _loopPanes[_lastSelectedLoop];
+                }
+                else
+                {
+                    loopPane = _loopPanes.Find((p) => { return p.ClientRectangle.Contains(p.PointToClient(MousePosition)); });
+                }
+
+                if (loopPane != null)
+                    loopPane.ShowContextMenuForSelection();
+                return true;
+            }
+            return false;
+        }
+
 		private void UpdateWhetherPreviewIsShown()
 		{
 			if (chkShowPreview.Checked)

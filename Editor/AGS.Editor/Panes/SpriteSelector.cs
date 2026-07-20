@@ -10,6 +10,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor
 {
@@ -520,11 +521,15 @@ namespace AGS.Editor
             }
         }
 
-        private void spriteList_MouseUp(object sender, MouseEventArgs e)
+        private void SpriteList_ContextMenuTrigger(object sender, ListViewContextMenuEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
+            if (e.Item != null)
             {
-                ShowSpriteContextMenu(e.Location);
+                ShowSpriteContextMenu(e.Position, e.Item);
+            }
+            else
+            {
+                ShowSpriteContextMenu(e.Position);
             }
         }
 
@@ -1327,8 +1332,12 @@ namespace AGS.Editor
 
         private void ShowSpriteContextMenu(Point menuPosition)
         {
+            ShowSpriteContextMenu(menuPosition, spriteList.HitTest(menuPosition).Item);
+        }
+
+        private void ShowSpriteContextMenu(Point menuPosition, ListViewItem itemAtLocation)
+        {
             _spriteNumberOnMenuActivation = -1;
-            ListViewItem itemAtLocation = spriteList.HitTest(menuPosition).Item;
             EventHandler onClick = new EventHandler(SpriteContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
 

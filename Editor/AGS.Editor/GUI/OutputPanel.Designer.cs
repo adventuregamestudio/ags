@@ -29,7 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OutputPanel));
-            this.lvwResults = new System.Windows.Forms.ListView();
+            this.lvwResults = new AGS.Controls.ListViewExtended();
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
@@ -54,7 +54,7 @@ namespace AGS.Editor
             this.lvwResults.UseCompatibleStateImageBehavior = false;
             this.lvwResults.View = System.Windows.Forms.View.Details;
             this.lvwResults.ItemActivate += new System.EventHandler(this.lvwResults_ItemActivate);
-            this.lvwResults.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwResults_MouseUp);
+            this.lvwResults.ContextMenuTrigger += LvwResults_ContextMenuTrigger;
             // 
             // columnHeader1
             // 
@@ -86,7 +86,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private System.Windows.Forms.ListView lvwResults;
+        private AGS.Controls.ListViewExtended lvwResults;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;

@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor
 {
@@ -91,14 +92,6 @@ namespace AGS.Editor
             }
         }
 
-        private void schemaList_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                ShowContextMenu(e.Location);
-            }
-        }
-
         private void EditOrAddItem(CustomPropertySchemaItem schemaItem)
         {
             bool isNewItem = false;
@@ -168,6 +161,11 @@ namespace AGS.Editor
             menu.Items.Add(new ToolStripMenuItem("Add new property...", null, onClick, MENU_ITEM_ADD));
 
             menu.Show(schemaList, location);
+        }
+
+        private void SchemaList_ContextMenuTrigger(object sender, ListViewContextMenuEventArgs e)
+        {
+            ShowContextMenu(e.Position);
         }
 
         private void btnOK_Click(object sender, EventArgs e)

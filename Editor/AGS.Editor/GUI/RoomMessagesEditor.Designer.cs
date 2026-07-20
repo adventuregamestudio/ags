@@ -28,7 +28,7 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
-            this.lstList = new System.Windows.Forms.ListView();
+            this.lstList = new AGS.Controls.ListViewExtended();
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.txtMessage = new System.Windows.Forms.TextBox();
@@ -58,7 +58,7 @@ namespace AGS.Editor
             this.lstList.UseCompatibleStateImageBehavior = false;
             this.lstList.View = System.Windows.Forms.View.Details;
             this.lstList.SelectedIndexChanged += new System.EventHandler(this.lstList_SelectedIndexChanged);
-            this.lstList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lstList_MouseUp);
+            this.lstList.ContextMenuTrigger += LstList_ContextMenuTrigger;
             // 
             // columnHeader1
             // 
@@ -168,7 +168,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private System.Windows.Forms.ListView lstList;
+        private AGS.Controls.ListViewExtended lstList;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.TextBox txtMessage;

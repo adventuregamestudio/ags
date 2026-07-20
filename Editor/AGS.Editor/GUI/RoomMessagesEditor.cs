@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor
 {
@@ -85,14 +86,6 @@ namespace AGS.Editor
             _messages[lstList.SelectedIndices[0]].CharacterID = cmbDisplayAs.SelectedIndex - 1;
         }
 
-        private void lstList_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                ShowContextMenu(e.Location);
-            }
-        }
-
         private void ContextMenuEventHandler(object sender, EventArgs e)
         {
             ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
@@ -134,5 +127,9 @@ namespace AGS.Editor
             menu.Show(lstList, location);
         }
 
+        private void LstList_ContextMenuTrigger(object sender, ListViewContextMenuEventArgs e)
+        {
+            ShowContextMenu(e.Position);
+        }
     }
 }

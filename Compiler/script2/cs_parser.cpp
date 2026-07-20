@@ -5433,6 +5433,10 @@ void AGS::Parser::ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierS
     if (tqs[TQ::kAutoptr])
         flags[VTF::kAutoptr] = true;
 
+    // Default managed types to have 'managedbase' as a parent (if one is identified)
+    if (flags[VTF::kManaged] && (_sym.GetManagedBaseSym() != stname))
+        entry.VartypeD->Parent = _sym.GetManagedBaseSym();
+
     _sym.SetDeclared(stname, _src.GetCursor());
 }
 
@@ -5448,6 +5452,8 @@ void AGS::Parser::ParseStruct_ExtendsClause(Symbol stname)
         UserError(
 			ReferenceMsgSym("Expected a struct type, found '%s' instead", parent).c_str(), 
 			_sym.GetName(parent).c_str());
+    if (_sym.GetManagedBaseSym() == stname)
+        UserError("A type declared as 'managedbase' cannot have a parent type itself");
     if (!_sym.IsManagedVartype(parent) && _sym.IsManagedVartype(stname))
         UserError("Managed struct cannot extend the unmanaged struct '%s'", _sym.GetName(parent).c_str());
     if (_sym.IsManagedVartype(parent) && !_sym.IsManagedVartype(stname))
@@ -5487,6 +5493,7 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in
             tqs[(error_tq = TQ::kImport)] ||
             tqs[(error_tq = TQ::kInternalstring)] ||
             tqs[(error_tq = TQ::kManaged)] ||
+            tqs[(error_tq = TQ::kManagedBase)] ||
             tqs[(error_tq = TQ::kStatic)])
         {
             UserError("Cannot use '%s' within a function body", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
@@ -5500,6 +5507,12 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in
     {
         if (!tqs[TQ::kManaged])
             UserError("'autoptr' must be combined with 'managed'");
+    }
+
+    if (tqs[TQ::kManagedBase])
+    {
+        if (!tqs[TQ::kManaged])
+            UserError("'managedbase' must be combined with 'managed'");
     }
 
     // Note: 'builtin' does not always presuppose 'managed'
@@ -5536,6 +5549,10 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
         case kKW_ImportTry:      tqs[TQ::kImport] = true; itry_found = true;  break;
         case kKW_Internalstring: tqs[TQ::kInternalstring] = true; break;
         case kKW_Managed:        tqs[TQ::kManaged] = true; break;
+        case kKW_ManagedBase:
+            tqs[TQ::kManaged] = true; // auto treat 'managedbase' as 'managed'
+            tqs[TQ::kManagedBase] = true;
+            break;
         case kKW_Protected:      tqs[TQ::kProtected] = true; break;
         case kKW_Readonly:       tqs[TQ::kReadonly] = true; break;
         case kKW_Static:         tqs[TQ::kStatic] = true; break;
@@ -6047,6 +6064,26 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
             UserError("The stringstruct type is already defined to be %s", _sym.GetName(_sym.GetStringStructSym()).c_str());
         _sym.SetStringStructSym(stname);
     }
+    // Declare the struct type that is a implicit managed struct base
+    if (tqs[TQ::kManagedBase])
+    {
+        if (_sym.GetManagedBaseSym() > 0 && stname != _sym.GetManagedBaseSym())
+        {
+            UserError("The 'managedbase' type is already defined to be %s", _sym.GetName(_sym.GetManagedBaseSym()).c_str());
+        }
+        else
+        {
+            // Find if there's any managed struct fully-declared prior (forward declarations are marked by VTF::kUndefined)
+            if (std::find_if(_sym.entries.begin(), _sym.entries.end(), [stname](SymbolTableEntry &e)
+                { return e.Sym != stname && e.VartypeD && !e.VartypeD->Flags[VTF::kUndefined] && e.VartypeD->Flags[VTF::kManaged]; })
+                != _sym.entries.end())
+            {
+                UserError("The 'managedbase' type must be declared prior to any other managed type, including built-in types");
+            }
+
+            _sym.SetManagedBaseSym(stname);
+        }
+    }
 
     if (kKW_Extends == _src.PeekNext())
 		ParseStruct_ExtendsClause(stname);
@@ -6145,6 +6182,7 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     vardecl_tqs[TQ::kAutoptr] = false;
     vardecl_tqs[TQ::kBuiltin] = false;
     vardecl_tqs[TQ::kManaged] = false;
+    vardecl_tqs[TQ::kManagedBase] = false;
     vardecl_tqs[TQ::kInternalstring] = false;
 
     Vartype vartype = stname;
@@ -6331,6 +6369,7 @@ void AGS::Parser::ParseAttribute(TypeQualifierSet tqs, Symbol const name_of_curr
         tqs[error_tq = TQ::kBuiltin] ||
         tqs[error_tq = TQ::kInternalstring] ||
         tqs[error_tq = TQ::kManaged] ||
+        tqs[error_tq = TQ::kManagedBase] ||
         tqs[error_tq = TQ::kProtected] ||
         tqs[error_tq = TQ::kWriteprotected])
         UserError("Cannot use '%s' in front of 'attribute'", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());

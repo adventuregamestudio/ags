@@ -65,6 +65,9 @@ namespace AGS.Types.AutoComplete
         public string BaseType;
         /// Tells if this is a fully defined struct, or a temporary struct draft
         public bool FullDefinition;
+        /// Tells if this is a universal implicit parent type for all the managed structs.
+        public bool IsManagedBase;
+
         public List<ScriptVariable> Variables = new List<ScriptVariable>();
         public List<ScriptFunction> Functions = new List<ScriptFunction>();
 

@@ -863,11 +863,21 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
     if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
-        ents.Game.charScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    {
+        auto inter = InteractionEvents::CreateFromStream_v362(err, in);
+        if (!err)
+            return err;
+        ents.Game.charScripts[i] = std::move(inter);
+    }
     if (!ReadAndAssertCount(in, "inventory items", static_cast<uint32_t>(ents.Game.numinvitems), err))
         return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
-        ents.Game.invScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    {
+        auto inter = InteractionEvents::CreateFromStream_v362(err, in);
+        if (!err)
+            return err;
+        ents.Game.invScripts[i] = std::move(inter);
+    }
 
     // Script module specification for GUI events
     if (!ReadAndAssertCount(in, "GUI", static_cast<uint32_t>(ents.Game.numgui), err))
@@ -1119,7 +1129,9 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     err = game.read_cursors(in);
     if (!err)
         return err;
-    game.read_interaction_scripts(in, data_ver);
+    HError inter_err = game.read_interaction_scripts(in, data_ver);
+    if (!inter_err)
+        return new MainGameFileError(kMGFErr_GameEntityFailed, inter_err);
     if (sinfo.HasWordsDict)
         game.read_words_dictionary(in);
 

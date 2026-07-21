@@ -34,6 +34,7 @@ using Common::UInteraction;
 using Common::UInteractionEvents;
 using Common::InteractionVariable;
 using Common::HGameFileError;
+using Common::HError;
 
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
@@ -128,7 +129,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
     void read_font_infos(Common::Stream *in, GameDataVersion data_ver);
     HGameFileError read_cursors(Common::Stream *in);
-    void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
+    HError read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);
 
     void ReadInvInfo(Common::Stream *in);

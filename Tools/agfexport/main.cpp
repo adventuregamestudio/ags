@@ -21,6 +21,7 @@ const char *HELP_STRING = ""
     "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
     "Commands:\n"
     "  autoash                Generate auto script header\n"
+    "  custom-data-dir        Exports list of custom data directories\n"
     "  font-list              Exports list of font files\n"
     "  game-cfg               Generate default game config\n"
     "  glvar                  Generate global variables scripts\n"
@@ -38,12 +39,19 @@ const char *HELP_AUTOASH = ""
     "Commands:\n"
     "  -h, --help             Show this help message\n";
 
-const char *HELP_FONT_LIST = ""
-    "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-     "Writes <OUT-FILE>, a file with a list of font files used by the game."
+const char *HELP_CUSTOMDATADIR_LIST = ""
+    "Usage: agfexport custom-data-dir <INPUT-GAME.AGF> <OUT-FILE>\n"
+    "Writes <OUT-FILE>, a file with a list of custom game data directories.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of font files to stdout";
+    "  -t, --to-stdout        Instead write the list of font files to stdout\n";
+
+const char *HELP_FONT_LIST = ""
+    "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+    "Writes <OUT-FILE>, a file with a list of font files used by the game\n."
+    "Commands:\n"
+    "  -h, --help             Show this help message\n"
+    "  -t, --to-stdout        Instead write the list of font files to stdout\n";
 
 const char *HELP_GAMECFG = ""
     "Usage: agfexport gamecfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
@@ -61,42 +69,43 @@ const char *HELP_GLVAR = ""
 
 const char *HELP_HEADER_LIST = ""
     "Usage: agfexport header-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of headers from script modules."
+    "Writes <OUT-FILE>, a file with a list of headers from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of scripts to stdout";
+    "  -t, --to-stdout        Instead write the list of scripts to stdout\n";
 
 const char *HELP_PLUGIN_LIST = ""
     "Usage: agfexport plugin-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-     "Writes <OUT-FILE>, a file with a list of game plugins."
+    "Writes <OUT-FILE>, a file with a list of game plugins.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of rooms to stdout";
+    "  -t, --to-stdout        Instead write the list of rooms to stdout\n";
 
 const char *HELP_ROOM_LIST = ""
     "Usage: agfexport room-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-     "Writes <OUT-FILE>, a file with a list of rooms."
+    "Writes <OUT-FILE>, a file with a list of rooms.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of rooms to stdout";
+    "  -t, --to-stdout        Instead write the list of rooms to stdout\n";
 
 const char *HELP_SCRIPT_LIST = ""
     "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules."
+    "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of scripts to stdout";
+    "  -t, --to-stdout        Instead write the list of scripts to stdout\n";
 
 const char *HELP_TRA_LIST = ""
     "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-     "Writes <OUT-FILE>, a file with a list of translations."
+    "Writes <OUT-FILE>, a file with a list of translations.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of translations to stdout";
+    "  -t, --to-stdout        Instead write the list of translations to stdout\n";
 
 enum CommandType
 {
     kCmdAutoAsh = 0,
+    kCmdCustomDataDir,
     kCmdFontList,
     kCmdGameCfg,
     kCmdGlVar,
@@ -117,6 +126,7 @@ struct Command
     const char *Help;
 } Command[] = {
         {"autoash",     kCmdAutoAsh,    2, HELP_AUTOASH},
+        {"custom-data-dir", kCmdCustomDataDir, 2, HELP_CUSTOMDATADIR_LIST},
         {"font-list",   kCmdFontList,   2, HELP_FONT_LIST},
         {"game-cfg",    kCmdGameCfg,    2, HELP_GAMECFG},
         {"glvar",       kCmdGlVar,      3, HELP_GLVAR},
@@ -142,6 +152,18 @@ HError write_to_file(const String &content, const String &file)
 HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout)
 {
     String exp_data;
+
+    if (cmd == kCmdCustomDataDir)
+    {
+        std::vector<String> dirs;
+        AGF::ReadCustomDataDirectories(dirs, reader.GetGameRoot());
+        // Unfortunately, in AGS 3.x project there's no explicit indication of a filename,
+        // only font ID. The actual file is chosen at runtime among all variants, by certain priority rule.
+        for (const auto &dir : dirs)
+        {
+            exp_data.AppendFmt("%s\n", dir.GetCStr());
+        }
+    }
 
     if (cmd == kCmdFontList)
     {
@@ -351,8 +373,9 @@ int main(int argc, char *argv[])
     String exp_data;
     switch (command)
     {
-        case kCmdHeaderList:
+        case kCmdCustomDataDir:
         case kCmdFontList:
+        case kCmdHeaderList:
         case kCmdPluginList:
         case kCmdRoomList:
         case kCmdScriptList:

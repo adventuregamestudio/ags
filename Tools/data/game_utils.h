@@ -64,9 +64,10 @@ struct GameSettings
     // TODO: following struct is a stub, listing only few fields used so far. Expand later.
 
     bool DebugMode = false;
+    String CustomDataDir;
+    String NarrateFunction; // Custom narrate function name
     RenderAtScreenRes RenderAtScreenResolution = ::kRenderAtScreenRes_UserDefined;
     String SayFunction; // Custom speech function name
-    String NarrateFunction; // Custom narrate function name
 };
 
 struct RuntimeSetup

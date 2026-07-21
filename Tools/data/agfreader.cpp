@@ -256,10 +256,11 @@ static RenderAtScreenRes ReadRenderAtScreenResolution(const String &value)
 void GameSettings::ReadAll(DocElem elem, DataUtil::GameSettings &s)
 {
     // TODO: following function is a stub, listing only few fields used so far. Expand later.
+    s.CustomDataDir = ReadString(elem, "CustomDataDir");
     s.DebugMode = ReadBool(elem, "DebugMode");
+    s.NarrateFunction = ReadString(elem, "DialogScriptNarrateFunction");
     s.RenderAtScreenResolution = ReadRenderAtScreenResolution(ReadString(elem, "RenderAtScreenResolution"));
     s.SayFunction = ReadString(elem, "DialogScriptSayFunction");
-    s.NarrateFunction = ReadString(elem, "DialogScriptNarrateFunction");
 }
 
 void RuntimeSetup::ReadAll(DocElem elem, DataUtil::RuntimeSetup &setup)
@@ -459,6 +460,19 @@ void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem elem)
     AGF::RuntimeSetup p_set;
     DocElem set_elem = p_game.GetDefaultSetup(elem);
     p_set.ReadAll(set_elem, setup);
+}
+
+void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root)
+{
+    AGF::Game p_game;
+    AGF::GameSettings p_set;
+    DataUtil::GameSettings set;
+    p_set.ReadAll(p_game.GetSettings(root), set);
+    const auto game_dirs = set.CustomDataDir.Split(',');
+    dirs.clear();
+    for (const auto &dir : game_dirs)
+        if (!dir.IsEmpty())
+            dirs.push_back(dir);
 }
 
 void ReadFontList(std::vector<int> &font_list, DocElem root)

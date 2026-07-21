@@ -149,20 +149,23 @@ int Compile(const CompilerOptions& comp_opts)
     {
         pp.DefineMacro("NEW_DIALOGOPTS_API", "1");
     }
-    for(int i=0; i<ScriptAPIs.size()-1; i++) // Set Script API macros
+    // Set Script API macros (starting from lowest and until the highest requested)
+    for(int i=0; i<ScriptAPIs.size()-1; i++)
     {
         pp.DefineMacro(scriptAPIVersionMacros[i].c_str(), "1");
         if(comp_opts.ScriptAPI.ScriptAPIVersion == ScriptAPIs[i]) {
             break;
         }
     }
-    if(comp_opts.ScriptAPI.ScriptCompatLevel != HIGHEST_SCRIPT_API) {
-        // Set API Compatibility macros
-        for (int i = ScriptAPIs.size() - 2; i >= 0; i--) {
+    // Set API Compatibility macros (starting from highest requested and all below)
+    {
+        int highest_compat;
+        for (highest_compat = ScriptAPIs.size() - 1;
+            (highest_compat >= 0) && (comp_opts.ScriptAPI.ScriptCompatLevel != ScriptAPIs[highest_compat]); --highest_compat);
+        if (highest_compat == ScriptAPIs.size() - 1)
+            highest_compat = ScriptAPIs.size() - 2; // skip "Highest" when declaring macros
+        for (int i = highest_compat; i >= 0; i--){
             pp.DefineMacro(scriptCompatLevelMacros[i].c_str(), "1");
-            if (comp_opts.ScriptAPI.ScriptCompatLevel == ScriptAPIs[i]) {
-                break;
-            }
         }
     }
 

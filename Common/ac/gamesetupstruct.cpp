@@ -133,7 +133,7 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
         invScripts.resize(numinvitems);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
         {
-            auto inter = InteractionEvents::CreateFromStream_v361(err, in);
+            auto inter = InteractionEvents::CreateFromStream_v361(in, err);
             if (!err)
                 return err;
             charScripts[i] = std::move(inter);
@@ -141,7 +141,7 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
         // NOTE: new inventory items' events are loaded starting from 1 because slot 0 is purposedly unused
         for (size_t i = 1; i < (size_t)numinvitems; ++i)
         {
-            auto inter = InteractionEvents::CreateFromStream_v361(err, in);
+            auto inter = InteractionEvents::CreateFromStream_v361(in, err);
             if (!err)
                 return err;
             invScripts[i] = std::move(inter);
@@ -152,14 +152,14 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
         intrChar.resize(numcharacters);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
         {
-            auto inter = Interaction::CreateFromStream(err, in);
+            auto inter = Interaction::CreateFromStream(in, err);
             if (!err)
                 return err;
             intrChar[i] = std::move(inter);
         }
         for (size_t i = 0; i < (size_t)numinvitems; ++i)
         {
-            auto inter = Interaction::CreateFromStream(err, in);
+            auto inter = Interaction::CreateFromStream(in, err);
             if (!err)
                 return err;
             intrInv[i] = std::move(inter);

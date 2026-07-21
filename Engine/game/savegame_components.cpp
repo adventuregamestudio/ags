@@ -117,7 +117,7 @@ bool AssertFormatTag(Stream *in, const String &tag, bool open = true)
 }
 
 // Reads a component tag and asserts that it matches expected name; formats error message on failure
-bool AssertFormatTagStrict(HSaveError &err, Stream *in, const String &tag, bool open = true)
+bool AssertFormatTagStrict(Stream *in, HSaveError &err, const String &tag, bool open = true)
 {
     String read_tag;
     if (!ReadFormatTag(in, read_tag, open) || read_tag.Compare(tag) != 0)
@@ -911,7 +911,7 @@ bool ReadGUIControlArray(std::vector<TGUIControl> &obj_arr, Stream *in, GuiSvgVe
     const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_old,
     const std::vector<std::pair<uint32_t, uint32_t>> &ctrlidx_per_gui_new)
 {
-    if (!AssertFormatTagStrict(err, in, tag))
+    if (!AssertFormatTagStrict(in, err, tag))
         return false;
     const uint32_t guiobj_read_count = in->ReadInt32();
     if (!AssertGameContent(err, guiobj_read_count, obj_arr.size(), friendly_name, r_data.Result, r_data.DataCounts.Dummy))
@@ -937,7 +937,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
     HSaveError err;
     const GuiSvgVersion svg_ver = (GuiSvgVersion)cmp_ver;
     // GUI state
-    if (!AssertFormatTagStrict(err, in, "GUIs"))
+    if (!AssertFormatTagStrict(in, err, "GUIs"))
         return err;
     const uint32_t guis_read = in->ReadInt32();
     if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
@@ -991,7 +991,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserved
         return err;
 
     // Animated buttons
-    if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))
+    if (!AssertFormatTagStrict(in, err, "AnimatedButtons"))
         return err;
     int anim_count = in->ReadInt32();
     for (int i = 0; i < anim_count; ++i)
@@ -1007,7 +1007,7 @@ HSaveError PrescanGUI(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const Pr
 {
     HSaveError err;
     // GUI state
-    if (!AssertFormatTagStrict(err, in, "GUIs"))
+    if (!AssertFormatTagStrict(in, err, "GUIs"))
         return err;
     const uint32_t guis_read = in->ReadInt32();
     if (!AssertGameContent(err, guis_read, game.numgui, "GUIs", r_data.Result, r_data.DataCounts.GUIs))
@@ -1564,11 +1564,11 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         {
             if (!AssertCompatRange(err, id, 0, MAX_ROOMS - 1, "room index"))
                 return err;
-            if (!AssertFormatTagStrict(err, in, "RoomState", true))
+            if (!AssertFormatTagStrict(in, err, "RoomState", true))
                 return err;
             RoomStatus *roomstat = getRoomStatus(id);
             roomstat->ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
-            if (!AssertFormatTagStrict(err, in, "RoomState", false))
+            if (!AssertFormatTagStrict(in, err, "RoomState", false))
                 return err;
         }
     }

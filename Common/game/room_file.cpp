@@ -178,19 +178,19 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     {
         for (uint32_t i = 0; i < room->HotspotCount; ++i)
         {
-            auto inter = Interaction::CreateFromStream(err, in);
+            auto inter = Interaction::CreateFromStream(in, err);
             if (!err)
                 return err;
             room->Hotspots[i].Interaction = std::move(inter);
         }
         for (auto &obj : room->Objects)
         {
-            auto inter = Interaction::CreateFromStream(err, in);
+            auto inter = Interaction::CreateFromStream(in, err);
             if (!err)
                 return err;
             obj.Interaction = std::move(inter);
         }
-        auto inter = Interaction::CreateFromStream(err, in);
+        auto inter = Interaction::CreateFromStream(in, err);
         if (!err)
             return err;
         room->Interaction = std::move(inter);
@@ -206,7 +206,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         {
             for (uint32_t i = 0; i < room->RegionCount; ++i)
             {
-                auto inter = Interaction::CreateFromStream(err, in);
+                auto inter = Interaction::CreateFromStream(in, err);
                 if (!err)
                     return err;
                 room->Regions[i].Interaction = std::move(inter);
@@ -218,27 +218,27 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
     if (data_ver >= kRoomVersion_300a)
     {
-        auto inter = InteractionEvents::CreateFromStream_v361(err, in);
+        auto inter = InteractionEvents::CreateFromStream_v361(in, err);
         if (!err)
             return err;
         room->EventHandlers = std::move(inter);
         for (uint32_t i = 0; i < room->HotspotCount; ++i)
         {
-            inter = InteractionEvents::CreateFromStream_v361(err, in);
+            inter = InteractionEvents::CreateFromStream_v361(in, err);
             if (!err)
                 return err;
             room->Hotspots[i].EventHandlers = std::move(inter);
         }
         for (auto &obj : room->Objects)
         {
-            inter = InteractionEvents::CreateFromStream_v361(err, in);
+            inter = InteractionEvents::CreateFromStream_v361(in, err);
             if (!err)
                 return err;
             obj.EventHandlers = std::move(inter);
         }
         for (uint32_t i = 0; i < room->RegionCount; ++i)
         {
-            inter = InteractionEvents::CreateFromStream_v361(err, in);
+            inter = InteractionEvents::CreateFromStream_v361(in, err);
             if (!err)
                 return err;
             room->Regions[i].EventHandlers = std::move(inter);

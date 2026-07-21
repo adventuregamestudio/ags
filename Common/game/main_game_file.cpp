@@ -864,7 +864,7 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
         return err;
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
     {
-        auto inter = InteractionEvents::CreateFromStream_v362(err, in);
+        auto inter = InteractionEvents::CreateFromStream_v362(in, err);
         if (!err)
             return err;
         ents.Game.charScripts[i] = std::move(inter);
@@ -873,7 +873,7 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
         return err;
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
     {
-        auto inter = InteractionEvents::CreateFromStream_v362(err, in);
+        auto inter = InteractionEvents::CreateFromStream_v362(in, err);
         if (!err)
             return err;
         ents.Game.invScripts[i] = std::move(inter);

@@ -99,9 +99,9 @@ struct InteractionEvents
     std::vector<EventHandler> Events;
 
     // Read and create pre-3.6.2 version of the InteractionEvents; returns null on failure
-    static std::unique_ptr<InteractionEvents> CreateFromStream_v361(HError &error, Stream *in);
+    static std::unique_ptr<InteractionEvents> CreateFromStream_v361(Stream *in, HError &error);
     // Read and create 3.6.2+ version of the InteractionEvents; returns null on failure
-    static std::unique_ptr<InteractionEvents> CreateFromStream_v362(HError &error, Stream *in);
+    static std::unique_ptr<InteractionEvents> CreateFromStream_v362(Stream *in, HError &error);
     HError Read_v361(Stream *in);
     HError Read_v362(Stream *in);
     void Write_v361(Stream *out) const;
@@ -228,7 +228,7 @@ struct Interaction
     void Reset();
 
     // Reads Interaction object from stream; returns null on failure
-    static std::unique_ptr<Interaction> CreateFromStream(HError &error, Stream *in);
+    static std::unique_ptr<Interaction> CreateFromStream(Stream *in, HError &error);
     void Write(Stream *out) const;
 
     Interaction &operator =(const Interaction &inter);

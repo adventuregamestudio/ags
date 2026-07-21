@@ -28,7 +28,7 @@ namespace Common
 //
 //-----------------------------------------------------------------------------
 
-std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(HError &error, Stream *in)
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(Stream *in, HError &error)
 {
     std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
     error = inter->Read_v361(in);
@@ -37,7 +37,7 @@ std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(HErr
     return inter;
 }
 
-std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(HError &error, Stream *in)
+std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(Stream *in, HError &error)
 {
     std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
     error = inter->Read_v362(in);
@@ -332,7 +332,7 @@ void Interaction::Reset()
     Events.clear();
 }
 
-std::unique_ptr<Interaction> Interaction::CreateFromStream(HError &error, Stream *in)
+std::unique_ptr<Interaction> Interaction::CreateFromStream(Stream *in, HError &error)
 {
     error = HError::None();
     std::unique_ptr<Interaction> inter(new Interaction());

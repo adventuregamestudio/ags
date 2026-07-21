@@ -15,8 +15,8 @@ using namespace AGS::DataUtil;
 namespace AGF = AGS::AGF;
 
 const char *HELP_STRING = ""
-    "agfexport v0.2.0 - AGS game project miscellaneous export tool\n"
-    "Copyright (c) 2024 AGS Team and contributors\n"
+    "agfexport v0.3.0 - AGS game project miscellaneous export tool\n"
+    "Copyright (c) 2026 AGS Team and contributors\n"
     "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
     "Commands:\n"
     "  autoash                Generate auto script header\n"
@@ -24,6 +24,7 @@ const char *HELP_STRING = ""
     "  header-list            Exports ordered list of headers from script modules\n"
     "  script-list            Exports ordered list of scripts from script modules\n"
     "  room-list              Exports list of active rooms\n"
+    "  tra-list               Exports list of translations\n"
     "  -h, --help             Show help message for command\n";
 
 const char *HELP_AUTOASH = ""
@@ -61,6 +62,13 @@ const char *HELP_ROOM_LIST = ""
     "  -h, --help             Show this help message\n"
     "  -t, --to-stdout        Instead write the list of rooms to stdout";
 
+const char *HELP_TRA_LIST = ""
+    "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+     "Writes <OUT-FILE>, a file with a list of translations."
+    "Commands:\n"
+    "  -h, --help             Show this help message\n"
+    "  -t, --to-stdout        Instead write the list of translations to stdout";
+
 enum CommandType
 {
     kCmdAutoAsh = 0,
@@ -68,6 +76,7 @@ enum CommandType
     kCmdHeaderList,
     kCmdScriptList,
     kCmdRoomList,
+    kCmdTraList,
     kCmdMAX,
     kCmdNone = kCmdMAX
 };
@@ -84,6 +93,7 @@ struct Command
         {"header-list", kCmdHeaderList, 2, HELP_HEADER_LIST},
         {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
         {"room-list",   kCmdRoomList,   2, HELP_ROOM_LIST},
+        {"tra-list",    kCmdTraList,    2, HELP_TRA_LIST},
         {nullptr,       kCmdNone,       0, nullptr}
 };
 
@@ -126,11 +136,19 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         AGF::ReadRoomList(rooms_dsc, reader.GetGameRoot());
         rooms.reserve(rooms_dsc.size());
         for (const auto &rd: rooms_dsc)
-                    rooms.push_back(rd.first);
+            rooms.push_back(rd.first);
 
         std::sort(rooms.begin(), rooms.end());
         for (const auto &r: rooms)
             exp_data.AppendFmt("room%d.crm\n", r);
+    }
+
+    if (cmd == kCmdTraList)
+    {
+        std::vector<String> translations;
+        AGF::ReadTranslationList(translations, reader.GetGameRoot());
+        for (const auto &s: translations)
+            exp_data.AppendFmt("%s.trs\n", s.GetCStr());
     }
 
     if (to_stdout)
@@ -266,6 +284,7 @@ int main(int argc, char *argv[])
         case kCmdHeaderList:
         case kCmdScriptList:
         case kCmdRoomList:
+        case kCmdTraList:
             err = list_command(reader, command, out_file, stdout_list_print);
             break;
         case kCmdAutoAsh:

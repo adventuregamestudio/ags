@@ -409,6 +409,23 @@ public:
     }
 };
 
+// Parses a description of a translation
+class Translation : public ValueParser
+{
+public:
+    String ReadName(DocElem elem) { return ReadString(elem, "Name"); }
+};
+
+// Parses a list of translations
+class Translations : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, nullptr, "Translations", "Translation");
+    }
+};
+
 
 //
 // Helper functions
@@ -432,6 +449,8 @@ void ReadScriptList(std::vector<String> &script_list, DocElem root);
 void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
 // Reads a list of room ID and descriptions found in the game document.
 void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
+// Reads a list of translation names.
+void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 
 } // namespace AGF
 } // namespace AGS

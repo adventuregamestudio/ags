@@ -433,5 +433,17 @@ void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
     }
 }
 
+void ReadTranslationList(std::vector<String> &trs_list, DocElem root)
+{
+    AGF::Translations translations;
+    AGF::Translation translation;
+    std::vector<DocElem> trs_els;
+    translations.GetAll(root, trs_els);
+    for (const auto &t : trs_els)
+    {
+        trs_list.push_back(translation.ReadName(t));
+    }
+}
+
 } // namespace AGF
 } // namespace AGS

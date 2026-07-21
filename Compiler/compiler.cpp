@@ -55,6 +55,10 @@ std::vector<const char *> ScriptAPIs = {"v321",
                                         "v3507",
                                         "v351",
                                         "v360",
+                                        "v36026",
+                                        "v361",
+                                        "v362",
+                                        "v363",
                                         HIGHEST_SCRIPT_API};
 
 std::vector<const char *> GetScriptAPIs()

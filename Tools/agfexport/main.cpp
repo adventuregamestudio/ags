@@ -8,6 +8,7 @@
 #include "data/agfreader.h"
 #include "data/scriptgen.h"
 #include "util/file.h"
+#include "util/ini_util.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -21,6 +22,7 @@ const char *HELP_STRING = ""
     "Commands:\n"
     "  autoash                Generate auto script header\n"
     "  font-list              Exports list of font files\n"
+    "  game-cfg               Generate default game config\n"
     "  glvar                  Generate global variables scripts\n"
     "  header-list            Exports ordered list of headers from script modules\n"
     "  script-list            Exports ordered list of scripts from script modules\n"
@@ -41,6 +43,13 @@ const char *HELP_FONT_LIST = ""
     "Commands:\n"
     "  -h, --help             Show this help message\n"
     "  -t, --to-stdout        Instead write the list of font files to stdout";
+
+const char *HELP_GAMECFG = ""
+    "Usage: agfexport gamecfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
+    "Writes <OUT-FILE.CFG>, default game config.\n"
+    "Config's contents are based on DefaultSetup node of the AGF file.\n"
+    "Commands:\n"
+    "  -h, --help             Show this help message\n";
 
 const char *HELP_GLVAR = ""
     "Usage: agfexport glvar <INPUT-GAME.AGF> <HEAD.ASH> <BODY.ASC>\n"
@@ -81,6 +90,7 @@ enum CommandType
 {
     kCmdAutoAsh = 0,
     kCmdFontList,
+    kCmdGameCfg,
     kCmdGlVar,
     kCmdHeaderList,
     kCmdScriptList,
@@ -99,6 +109,7 @@ struct Command
 } Command[] = {
         {"autoash",     kCmdAutoAsh,    2, HELP_AUTOASH},
         {"font-list",   kCmdFontList,   2, HELP_FONT_LIST},
+        {"game-cfg",    kCmdGameCfg,    2, HELP_GAMECFG},
         {"glvar",       kCmdGlVar,      3, HELP_GLVAR},
         {"header-list", kCmdHeaderList, 2, HELP_HEADER_LIST},
         {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
@@ -112,7 +123,6 @@ HError write_to_file(const String &content, const String &file)
     std::unique_ptr<Stream> out(File::CreateFile(file));
     if (!out)
     {
-
         return new Error(String::FromFormat("Failed to open output file '%s' for writing.", file.GetCStr()));
     }
     out->Write(content.GetCStr(), content.GetLength());
@@ -219,6 +229,24 @@ HError glvar_command(AGF::AGFReader &reader, const String &header_file, const St
     return HError::None();
 }
 
+HError gamecfg_command(AGF::AGFReader &reader, const String &dst)
+{
+    printf("Output config file: %s\n", dst.GetCStr());
+
+    GameSettings settings;
+    RuntimeSetup setup;
+    AGF::ReadGameSettings(settings, reader.GetGameRoot());
+    AGF::ReadRuntimeSetup(setup, reader.GetGameRoot());
+
+    // Copy runtime setup to config tree
+    ConfigTree cfg;
+    WriteConfig(setup, &settings, cfg);
+
+    // Write config tree as ini
+    String str;
+    IniUtil::WriteToString(str, cfg);
+    return write_to_file(str, dst);
+}
 
 int main(int argc, char *argv[])
 {
@@ -316,6 +344,9 @@ int main(int argc, char *argv[])
             break;
         case kCmdGlVar:
             err = glvar_command(reader, out_file, result.PosArgs[3]);
+            break;
+        case kCmdGameCfg:
+            err = gamecfg_command(reader, out_file);
             break;
         case kCmdMAX:
         default:

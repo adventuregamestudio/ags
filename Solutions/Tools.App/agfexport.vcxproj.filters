@@ -67,6 +67,18 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\ini_util.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\inifile.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\game_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">

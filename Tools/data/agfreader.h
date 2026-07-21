@@ -77,6 +77,7 @@ protected:
     // all of them return default value if the field cannot be read
     static const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
     static int ReadInt(DocElem elem, const char *field, int def_value = 0);
+    static float ReadFloat(DocElem elem, const char *field, float def_value = 0.f);
     static bool ReadBool(DocElem elem, const char *field, bool def_value = false);
 };
 
@@ -352,6 +353,7 @@ public:
     String ReadScriptName(DocElem elem) override { return ""; }
 
     DocElem GetSettings(DocElem elem);
+    DocElem GetDefaultSetup(DocElem elem);
 };
 
 class GameSettings : public EntityParser
@@ -361,8 +363,17 @@ public:
     int    ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
 
-    String ReadSayFunction(DocElem elem) { return ReadString(elem, "DialogScriptSayFunction"); }
-    String ReadNarrateFunction(DocElem elem) { return ReadString(elem, "DialogScriptNarrateFunction"); }
+    void   ReadAll(DocElem elem, DataUtil::GameSettings &s);
+};
+
+class RuntimeSetup : public EntityParser
+{
+public:
+    String ReadType(DocElem elem) override { return "RuntimeSetup"; }
+    int    ReadID(DocElem elem) override { return -1; }
+    String ReadScriptName(DocElem elem) override { return ""; }
+
+    void   ReadAll(DocElem elem, DataUtil::RuntimeSetup &setup);
 };
 
 // Parses a description of an individual script file (header or body)
@@ -443,6 +454,8 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root);
 void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 // Reads full game reference data using AGFReader
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
+// Reads default runtime game setup data
+void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem root);
 // Reads an ordered list of script module names (their order determines dependency).
 void ReadScriptList(std::vector<String> &script_list, DocElem root);
 // Reads an ordered list of script header module names (their order determines dependency).

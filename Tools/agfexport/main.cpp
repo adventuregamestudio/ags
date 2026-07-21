@@ -25,8 +25,9 @@ const char *HELP_STRING = ""
     "  game-cfg               Generate default game config\n"
     "  glvar                  Generate global variables scripts\n"
     "  header-list            Exports ordered list of headers from script modules\n"
-    "  script-list            Exports ordered list of scripts from script modules\n"
+    "  plugin-list            Exports list of game plugins\n"
     "  room-list              Exports list of active rooms\n"
+    "  script-list            Exports ordered list of scripts from script modules\n"
     "  tra-list               Exports list of translations\n"
     "  -h, --help             Show help message for command\n";
 
@@ -65,12 +66,12 @@ const char *HELP_HEADER_LIST = ""
     "  -h, --help             Show this help message\n"
     "  -t, --to-stdout        Instead write the list of scripts to stdout";
 
-const char *HELP_SCRIPT_LIST = ""
-    "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules."
+const char *HELP_PLUGIN_LIST = ""
+    "Usage: agfexport plugin-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+     "Writes <OUT-FILE>, a file with a list of game plugins."
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of scripts to stdout";
+    "  -t, --to-stdout        Instead write the list of rooms to stdout";
 
 const char *HELP_ROOM_LIST = ""
     "Usage: agfexport room-list <INPUT-GAME.AGF> <OUT-FILE>\n"
@@ -78,6 +79,13 @@ const char *HELP_ROOM_LIST = ""
     "Commands:\n"
     "  -h, --help             Show this help message\n"
     "  -t, --to-stdout        Instead write the list of rooms to stdout";
+
+const char *HELP_SCRIPT_LIST = ""
+    "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+    "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules."
+    "Commands:\n"
+    "  -h, --help             Show this help message\n"
+    "  -t, --to-stdout        Instead write the list of scripts to stdout";
 
 const char *HELP_TRA_LIST = ""
     "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
@@ -93,8 +101,9 @@ enum CommandType
     kCmdGameCfg,
     kCmdGlVar,
     kCmdHeaderList,
-    kCmdScriptList,
+    kCmdPluginList,
     kCmdRoomList,
+    kCmdScriptList,
     kCmdTraList,
     kCmdMAX,
     kCmdNone = kCmdMAX
@@ -112,8 +121,9 @@ struct Command
         {"game-cfg",    kCmdGameCfg,    2, HELP_GAMECFG},
         {"glvar",       kCmdGlVar,      3, HELP_GLVAR},
         {"header-list", kCmdHeaderList, 2, HELP_HEADER_LIST},
-        {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
+        {"plugin-list", kCmdPluginList, 2, HELP_PLUGIN_LIST},
         {"room-list",   kCmdRoomList,   2, HELP_ROOM_LIST},
+        {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
         {"tra-list",    kCmdTraList,    2, HELP_TRA_LIST},
         {nullptr,       kCmdNone,       0, nullptr}
 };
@@ -133,12 +143,17 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
 {
     String exp_data;
 
-    if (cmd == kCmdScriptList)
+    if (cmd == kCmdFontList)
     {
-        std::vector<String> scripts;
-        AGF::ReadScriptList(scripts, reader.GetGameRoot());
-        for (const auto &s: scripts)
-            exp_data.AppendFmt("%s\n", s.GetCStr());
+        std::vector<int> font_index;
+        AGF::ReadFontList(font_index, reader.GetGameRoot());
+        // Unfortunately, in AGS 3.x project there's no explicit indication of a filename,
+        // only font ID. The actual file is chosen at runtime among all variants, by certain priority rule.
+        for (const auto &f : font_index)
+        {
+            exp_data.AppendFmt("agsfnt%d.ttf\n", f);
+            exp_data.AppendFmt("agsfnt%d.wfn\n", f);
+        }
     }
 
     if (cmd == kCmdHeaderList)
@@ -146,6 +161,15 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         std::vector<String> scripts;
         AGF::ReadScriptHeaderList(scripts, reader.GetGameRoot());
         for (const auto &s: scripts)
+            exp_data.AppendFmt("%s\n", s.GetCStr());
+    }
+
+    if (cmd == kCmdPluginList)
+    {
+        std::vector<String> plugins;
+        AGF::ReadPluginList(plugins, reader.GetGameRoot());
+        // We expect the plugin's filename to contain .dll extension
+        for (const auto &s: plugins)
             exp_data.AppendFmt("%s\n", s.GetCStr());
     }
 
@@ -163,17 +187,12 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
             exp_data.AppendFmt("room%d.crm\n", r);
     }
 
-    if (cmd == kCmdFontList)
+    if (cmd == kCmdScriptList)
     {
-        std::vector<int> font_index;
-        AGF::ReadFontList(font_index, reader.GetGameRoot());
-        // Unfortunately, in AGS 3.x project there's no explicit indication of a filename,
-        // only font ID. The actual file is chosen at runtime among all variants, by certain priority rule.
-        for (const auto &f : font_index)
-        {
-            exp_data.AppendFmt("agsfnt%d.ttf\n", f);
-            exp_data.AppendFmt("agsfnt%d.wfn\n", f);
-        }
+        std::vector<String> scripts;
+        AGF::ReadScriptList(scripts, reader.GetGameRoot());
+        for (const auto &s: scripts)
+            exp_data.AppendFmt("%s\n", s.GetCStr());
     }
 
     if (cmd == kCmdTraList)
@@ -333,9 +352,10 @@ int main(int argc, char *argv[])
     switch (command)
     {
         case kCmdHeaderList:
-        case kCmdScriptList:
         case kCmdFontList:
+        case kCmdPluginList:
         case kCmdRoomList:
+        case kCmdScriptList:
         case kCmdTraList:
             err = list_command(reader, command, out_file, stdout_list_print);
             break;

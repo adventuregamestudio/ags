@@ -402,6 +402,23 @@ public:
     }
 };
 
+// Parses a description of a game plugin
+class Plugin : public ValueParser
+{
+public:
+    String ReadFileName(DocElem elem) { return ReadString(elem, "FileName"); }
+};
+
+// Parses a list of game plugins
+class Plugins : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, nullptr, "Plugins", "Plugin");
+    }
+};
+
 // Parses a description of a room
 class Room : public ValueParser
 {
@@ -456,15 +473,17 @@ void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
 // Reads default runtime game setup data
 void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem root);
+// Reads a list of font IDs.
+// In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
+void ReadFontList(std::vector<int> &font_list, DocElem root);
+// Reads a list of plugins registered for this game project.
+void ReadPluginList(std::vector<String> &plugin_list, DocElem root);
+// Reads a list of room ID and descriptions found in the game document.
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
 // Reads an ordered list of script module names (their order determines dependency).
 void ReadScriptList(std::vector<String> &script_list, DocElem root);
 // Reads an ordered list of script header module names (their order determines dependency).
 void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
-// Reads a list of room ID and descriptions found in the game document.
-void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
-// Reads a list of font IDs.
-// In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
-void ReadFontList(std::vector<int> &font_list, DocElem root);
 // Reads a list of translation names.
 void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 

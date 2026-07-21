@@ -461,6 +461,42 @@ void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem elem)
     p_set.ReadAll(set_elem, setup);
 }
 
+void ReadFontList(std::vector<int> &font_list, DocElem root)
+{
+    AGF::Fonts fonts;
+    AGF::Font font;
+    std::vector<DocElem> font_els;
+    fonts.GetAll(root, font_els);
+    for (const auto &t : font_els)
+    {
+        font_list.push_back(font.ReadID(t));
+    }
+}
+
+void ReadPluginList(std::vector<String> &plugin_list, DocElem root)
+{
+    AGF::Plugins plugins;
+    AGF::Plugin plugin;
+    std::vector<DocElem> pl_els;
+    plugins.GetAll(root, pl_els);
+    for (const auto &pl : pl_els)
+    {
+        plugin_list.push_back(plugin.ReadFileName(pl));
+    }
+}
+
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
+{
+    AGF::Rooms rooms;
+    AGF::Room room;
+    std::vector<DocElem> room_els;
+    rooms.GetAll(root, room_els);
+    for (const auto &r : room_els)
+    {
+        room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
+    }
+}
+
 void ReadScriptList(std::vector<String> &script_list, DocElem root)
 {
     AGF::ScriptModules scmodules;
@@ -488,30 +524,6 @@ void ReadScriptHeaderList(std::vector<String> &headers_list, DocElem root)
         DocElem header = scmodule.GetHeader(m);
         if (!header) continue;
         headers_list.push_back(scelem.ReadFilename(header));
-    }
-}
-
-void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
-{
-    AGF::Rooms rooms;
-    AGF::Room room;
-    std::vector<DocElem> room_els;
-    rooms.GetAll(root, room_els);
-    for (const auto &r : room_els)
-    {
-        room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
-    }
-}
-
-void ReadFontList(std::vector<int> &font_list, DocElem root)
-{
-    AGF::Fonts fonts;
-    AGF::Font font;
-    std::vector<DocElem> font_els;
-    fonts.GetAll(root, font_els);
-    for (const auto &t : font_els)
-    {
-        font_list.push_back(font.ReadID(t));
     }
 }
 

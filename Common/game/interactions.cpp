@@ -30,9 +30,10 @@ namespace Common
 
 std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v361(HError &error, Stream *in)
 {
-    error = HError::None();
     std::unique_ptr<InteractionEvents> inter(new InteractionEvents());
-    inter->Read_v361(in);
+    error = inter->Read_v361(in);
+    if (!error)
+        return nullptr;
     return inter;
 }
 
@@ -42,11 +43,10 @@ std::unique_ptr<InteractionEvents> InteractionEvents::CreateFromStream_v362(HErr
     error = inter->Read_v362(in);
     if (!error)
         return nullptr;
-
     return inter;
 }
 
-void InteractionEvents::Read_v361(Stream *in)
+HError InteractionEvents::Read_v361(Stream *in)
 {
     Events.clear();
     const size_t evt_count = in->ReadInt32();
@@ -54,6 +54,7 @@ void InteractionEvents::Read_v361(Stream *in)
     {
         Events.push_back( { String::FromStream(in) } );
     }
+    return HError::None();
 }
 
 HError InteractionEvents::Read_v362(Stream *in)

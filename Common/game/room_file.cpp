@@ -173,11 +173,11 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         }
     }
 
+    HError err;
     if (data_ver >= kRoomVersion_241 && data_ver < kRoomVersion_300a)
     {
         for (uint32_t i = 0; i < room->HotspotCount; ++i)
         {
-            HError err;
             auto inter = Interaction::CreateFromStream(err, in);
             if (!err)
                 return err;
@@ -185,13 +185,11 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         }
         for (auto &obj : room->Objects)
         {
-            HError err;
             auto inter = Interaction::CreateFromStream(err, in);
             if (!err)
                 return err;
             obj.Interaction = std::move(inter);
         }
-        HError err;
         auto inter = Interaction::CreateFromStream(err, in);
         if (!err)
             return err;
@@ -208,7 +206,6 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         {
             for (uint32_t i = 0; i < room->RegionCount; ++i)
             {
-                HError err;
                 auto inter = Interaction::CreateFromStream(err, in);
                 if (!err)
                     return err;
@@ -221,7 +218,6 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
     if (data_ver >= kRoomVersion_300a)
     {
-        HError err;
         auto inter = InteractionEvents::CreateFromStream_v361(err, in);
         if (!err)
             return err;

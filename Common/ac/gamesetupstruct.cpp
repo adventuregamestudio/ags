@@ -126,22 +126,21 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
 {
     numIntrVars = 0;
 
+    HError err;
     if (data_ver > kGameVersion_272) // 3.x
     {
         charScripts.resize(numcharacters);
         invScripts.resize(numinvitems);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
         {
-            HError err;
             auto inter = InteractionEvents::CreateFromStream_v361(err, in);
             if (!err)
                 return err;
             charScripts[i] = std::move(inter);
         }
-        // NOTE: new inventory items' events are loaded starting from 1 for some reason
+        // NOTE: new inventory items' events are loaded starting from 1 because slot 0 is purposedly unused
         for (size_t i = 1; i < (size_t)numinvitems; ++i)
         {
-            HError err;
             auto inter = InteractionEvents::CreateFromStream_v361(err, in);
             if (!err)
                 return err;
@@ -153,7 +152,6 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
         intrChar.resize(numcharacters);
         for (size_t i = 0; i < (size_t)numcharacters; ++i)
         {
-            HError err;
             auto inter = Interaction::CreateFromStream(err, in);
             if (!err)
                 return err;
@@ -161,7 +159,6 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
         }
         for (size_t i = 0; i < (size_t)numinvitems; ++i)
         {
-            HError err;
             auto inter = Interaction::CreateFromStream(err, in);
             if (!err)
                 return err;

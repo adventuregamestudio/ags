@@ -449,6 +449,9 @@ void ReadScriptList(std::vector<String> &script_list, DocElem root);
 void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
 // Reads a list of room ID and descriptions found in the game document.
 void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
+// Reads a list of font IDs.
+// In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
+void ReadFontList(std::vector<int> &font_list, DocElem root);
 // Reads a list of translation names.
 void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 

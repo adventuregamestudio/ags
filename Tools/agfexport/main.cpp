@@ -20,6 +20,7 @@ const char *HELP_STRING = ""
     "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
     "Commands:\n"
     "  autoash                Generate auto script header\n"
+    "  font-list              Exports list of font files\n"
     "  glvar                  Generate global variables scripts\n"
     "  header-list            Exports ordered list of headers from script modules\n"
     "  script-list            Exports ordered list of scripts from script modules\n"
@@ -33,6 +34,13 @@ const char *HELP_AUTOASH = ""
     "This header has global elements from the game necessary for building scripts.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n";
+
+const char *HELP_FONT_LIST = ""
+    "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+     "Writes <OUT-FILE>, a file with a list of font files used by the game."
+    "Commands:\n"
+    "  -h, --help             Show this help message\n"
+    "  -t, --to-stdout        Instead write the list of font files to stdout";
 
 const char *HELP_GLVAR = ""
     "Usage: agfexport glvar <INPUT-GAME.AGF> <HEAD.ASH> <BODY.ASC>\n"
@@ -72,6 +80,7 @@ const char *HELP_TRA_LIST = ""
 enum CommandType
 {
     kCmdAutoAsh = 0,
+    kCmdFontList,
     kCmdGlVar,
     kCmdHeaderList,
     kCmdScriptList,
@@ -89,6 +98,7 @@ struct Command
     const char *Help;
 } Command[] = {
         {"autoash",     kCmdAutoAsh,    2, HELP_AUTOASH},
+        {"font-list",   kCmdFontList,   2, HELP_FONT_LIST},
         {"glvar",       kCmdGlVar,      3, HELP_GLVAR},
         {"header-list", kCmdHeaderList, 2, HELP_HEADER_LIST},
         {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
@@ -141,6 +151,19 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         std::sort(rooms.begin(), rooms.end());
         for (const auto &r: rooms)
             exp_data.AppendFmt("room%d.crm\n", r);
+    }
+
+    if (cmd == kCmdFontList)
+    {
+        std::vector<int> font_index;
+        AGF::ReadFontList(font_index, reader.GetGameRoot());
+        // Unfortunately, in AGS 3.x project there's no explicit indication of a filename,
+        // only font ID. The actual file is chosen at runtime among all variants, by certain priority rule.
+        for (const auto &f : font_index)
+        {
+            exp_data.AppendFmt("agsfnt%d.ttf\n", f);
+            exp_data.AppendFmt("agsfnt%d.wfn\n", f);
+        }
     }
 
     if (cmd == kCmdTraList)
@@ -283,6 +306,7 @@ int main(int argc, char *argv[])
     {
         case kCmdHeaderList:
         case kCmdScriptList:
+        case kCmdFontList:
         case kCmdRoomList:
         case kCmdTraList:
             err = list_command(reader, command, out_file, stdout_list_print);

@@ -433,6 +433,18 @@ void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
     }
 }
 
+void ReadFontList(std::vector<int> &font_list, DocElem root)
+{
+    AGF::Fonts fonts;
+    AGF::Font font;
+    std::vector<DocElem> font_els;
+    fonts.GetAll(root, font_els);
+    for (const auto &t : font_els)
+    {
+        font_list.push_back(font.ReadID(t));
+    }
+}
+
 void ReadTranslationList(std::vector<String> &trs_list, DocElem root)
 {
     AGF::Translations translations;

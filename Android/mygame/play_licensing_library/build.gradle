@@ -19,7 +19,8 @@ android {
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 33
+        targetSdkVersion 34
+        multiDexEnabled = true
     }
 
     buildTypes {

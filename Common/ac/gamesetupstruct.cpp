@@ -13,8 +13,8 @@
 //=============================================================================
 #include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
+#include "data/data_helpers.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -146,7 +146,7 @@ void GameSetupStruct::skip_messages(Common::Stream *in,
     {
         if (!load_messages[i])
             continue;
-        skip_string_decrypt(in);
+        SkipStringDecrypt(in);
     }
 }
 

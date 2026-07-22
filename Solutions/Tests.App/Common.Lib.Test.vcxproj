@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\test\cmdlineopts_test.cpp" />
     <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
+    <ClCompile Include="..\..\Common\test\datahelpers_test.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
     <ClCompile Include="..\..\Common\test\gui_test.cpp" />
     <ClCompile Include="..\..\Common\test\indexedobjectpool_test.cpp" />

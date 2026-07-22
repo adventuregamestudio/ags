@@ -22,7 +22,6 @@
 #include "ac/parser.h"
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
-#include "ac/wordsdictionary.h"
 #include "data/assetmanager.h"
 #include "data/tra_file.h"
 #include "debug/out.h"

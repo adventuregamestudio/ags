@@ -15,78 +15,105 @@
 // Helper functions related to reading or writing game data.
 //
 //=============================================================================
-
+#include <vector>
 #include "game/scripteventtable.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"
+#include "util/stream.h"
 
 namespace AGS
 {
 namespace Common
 {
-
-inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expected, HError &err)
-{
-    uint32_t count = in->ReadInt32();
-    if (count != expected)
-        err = new Error(String::FromFormat("Mismatching number of %s: read %u expected %u", objname, count, expected));
-    return !err.HasError();
-}
-
-// Reads ScriptEventSchema and ScriptEventsTables for an object list.
-// The object list is assumed to be already precreated.
-// NOTE: if there will be an issue with the Events member (diff name, protected),
-// then we would require a method that sets handlers into object's event table.
-// NOTE: made this a template function, because majority of objects in the engine
-// do not have a shared parent class (also we work with a vector of them here...).
-// Revise this later?
-template <typename TObj, typename TObjIter>
-HError ReadScriptEventsTablesForObjects(TObjIter begin, TObjIter end, const char *objname, Stream *in)
-{
-    // TODO: figure out a more optimal way for handling all the operations here,
-    // perhaps join schema read and remap into the member of the ScriptEventSchema class?
-    // join Handlers read and remap? anything else that may be improved?
-    ScriptEventSchema schema;
-    HError err = schema.Read(in);
-    if (!err)
-        return err;
-    std::vector<uint32_t> remap;
-    const bool must_remap = schema.CreateRemap(TObj::GetEventSchema(), remap);
-
-    size_t obj_count = end - begin;
-    if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(obj_count), err))
-        return err;
-
-    for (size_t i = 0; i < obj_count; ++i)
+    inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expected, HError &err)
     {
-        ScriptEventHandlers handlers;
-        err = handlers.Read(in);
+        uint32_t count = in->ReadInt32();
+        if (count != expected)
+            err = new Error(String::FromFormat("Mismatching number of %s: read %u expected %u", objname, count, expected));
+        return !err.HasError();
+    }
+
+    // Reads ScriptEventSchema and ScriptEventsTables for an object list.
+    // The object list is assumed to be already precreated.
+    // NOTE: if there will be an issue with the Events member (diff name, protected),
+    // then we would require a method that sets handlers into object's event table.
+    // NOTE: made this a template function, because majority of objects in the engine
+    // do not have a shared parent class (also we work with a vector of them here...).
+    // Revise this later?
+    template <typename TObj, typename TObjIter>
+    HError ReadScriptEventsTablesForObjects(TObjIter begin, TObjIter end, const char *objname, Stream *in)
+    {
+        // TODO: figure out a more optimal way for handling all the operations here,
+        // perhaps join schema read and remap into the member of the ScriptEventSchema class?
+        // join Handlers read and remap? anything else that may be improved?
+        ScriptEventSchema schema;
+        HError err = schema.Read(in);
         if (!err)
             return err;
-        if (must_remap)
-            handlers.Remap(remap);
-        (*(begin + i)).GetEvents().SetHandlers(handlers);
+        std::vector<uint32_t> remap;
+        const bool must_remap = schema.CreateRemap(TObj::GetEventSchema(), remap);
+
+        size_t obj_count = end - begin;
+        if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(obj_count), err))
+            return err;
+
+        for (size_t i = 0; i < obj_count; ++i)
+        {
+            ScriptEventHandlers handlers;
+            err = handlers.Read(in);
+            if (!err)
+                return err;
+            if (must_remap)
+                handlers.Remap(remap);
+            (*(begin + i)).GetEvents().SetHandlers(handlers);
+        }
+        return HError::None();
     }
-    return HError::None();
-}
 
-// Reads ScriptEventSchema and ScriptEventsTables for an object list.
-// This is a variant for the objects stored in a std::vector
-template <typename TObj>
-HError ReadScriptEventsTablesForObjects(std::vector<TObj> &objs, const char *objname, Stream *in)
-{
-    return ReadScriptEventsTablesForObjects<TObj, typename std::vector<TObj>::iterator>(objs.begin(), objs.end(), objname, in);
-}
+    // Reads ScriptEventSchema and ScriptEventsTables for an object list.
+    // This is a variant for the objects stored in a std::vector
+    template <typename TObj>
+    HError ReadScriptEventsTablesForObjects(std::vector<TObj> &objs, const char *objname, Stream *in)
+    {
+        return ReadScriptEventsTablesForObjects<TObj, typename std::vector<TObj>::iterator>(objs.begin(), objs.end(), objname, in);
+    }
 
-// Reads ScriptEventSchema and ScriptEventsTables for an object list.
-// This is a variant for the objects stored in a C-style array.
-// TODO: store these in a vector too at some point, and remove this variant.
-template <typename TObj, size_t ObjListSize>
-HError ReadScriptEventsTablesForObjects(TObj (&objs)[ObjListSize], size_t obj_count, const char *objname, Stream *in)
-{
-    return ReadScriptEventsTablesForObjects<TObj, TObj*>(objs, objs + obj_count, objname, in);
-}
+    // Reads ScriptEventSchema and ScriptEventsTables for an object list.
+    // This is a variant for the objects stored in a C-style array.
+    // TODO: store these in a vector too at some point, and remove this variant.
+    template <typename TObj, size_t ObjListSize>
+    HError ReadScriptEventsTablesForObjects(TObj (&objs)[ObjListSize], size_t obj_count, const char *objname, Stream *in)
+    {
+        return ReadScriptEventsTablesForObjects<TObj, TObj*>(objs, objs + obj_count, objname, in);
+    }
+
+    // Text encryption/decryption functions which apply a password string
+    // using ADD operation (SUB when decrypting).
+    // Decrypts text found in the given buffer, writes back to the same buffer
+    void DecryptText(char *buf, size_t buf_sz);
+    // Reads an encrypted string from the stream and decrypts into the provided buffer
+    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz);
+    // Reads an encrypted string from the stream and returns as a string
+    String ReadStringDecrypt(Stream *in);
+    // Reads an encrypted string from the stream and returns as a string;
+    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
+    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf);
+    // Skip an encrypted string in stream
+    void SkipStringDecrypt(Stream *in);
+
+    // Password used for encryption; exposed for tests and editor (temporarily)
+    extern const char *EncryptPassword;
+
+    // Encrypts string in-place
+    void EncryptText(char *buf, size_t buf_sz);
+    // Encrypts input string and stores result in the vector of chars;
+    // returns a pointer to the buffer.
+    const char *EncryptText(std::vector<char> &en_buf, const String &s);
+    // Encrypts empty string. A helper function in case you don't have any source text
+    const char *EncryptEmptyString(std::vector<char> &en_buf);
+    // Encrypts string and writes into the output stream
+    void WriteStringEncrypt(Stream *out, const char *s);
 
 } // namespace Common
 } // namespace AGS

@@ -18,7 +18,6 @@
 #include "ac/keycode.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
-#include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"

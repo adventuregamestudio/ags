@@ -19,7 +19,6 @@
 #include "ac/global_translation.h"
 #include "ac/parser.h"
 #include "ac/string.h"
-#include "ac/wordsdictionary.h"
 #include "debug/debug_log.h"
 #include "util/string.h"
 #include "util/string_compat.h"

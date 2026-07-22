@@ -248,6 +248,7 @@ if(AGS_TESTS)
     add_executable(common_test
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
+        test/datahelpers_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
         test/indexedobjectpool_test.cpp

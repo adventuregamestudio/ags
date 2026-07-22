@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
@@ -55,6 +56,7 @@
     <ClInclude Include="..\..\Common\ac\characterinfo.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
+    <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\debug\out.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />

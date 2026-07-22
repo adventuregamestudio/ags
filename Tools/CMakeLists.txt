@@ -223,13 +223,36 @@ endif ()
 
 if(AGS_TESTS)
    add_executable(tools_test
+      ${CMAKE_SOURCE_DIR}/Common/test/common_stubs.cpp # GUI reader runtime stubs used by data_file_writer_test
       ../Common/ac/gamesetupstructbase.cpp # needed by data_file_writer_test
       ../Common/ac/view.cpp # needed by data_file_writer_test
       ../Common/ac/audiocliptype.cpp # needed by data_file_writer_test
       ../Common/ac/dynobj/scriptaudioclip.cpp # needed by data_file_writer_test
       ../Common/ac/dialogtopic.cpp # needed by data_file_writer_test
+      ../Common/ac/common.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/ac/spritecache.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/data/assetmanager.cpp # needed by Common font renderers
+      ../Common/font/fonts.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/font/ttffontrenderer.cpp # needed by fonts.cpp
+      ../Common/font/wfnfont.cpp # needed by fonts.cpp
+      ../Common/font/wfnfontrenderer.cpp # needed by fonts.cpp
       ../Common/game/interactions.cpp # needed by data_file_writer_test
       ../Common/game/customproperties.cpp # needed by data_file_writer_test
+      ../Common/gfx/allegrobitmap.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/gfx/bitmap.cpp # needed by allegrobitmap.cpp
+      ../Common/gui/guibutton.cpp # needed by data_file_writer_test
+      ../Common/gui/guiinv.cpp # needed by data_file_writer_test
+      ../Common/gui/guilabel.cpp # needed by data_file_writer_test
+      ../Common/gui/guilistbox.cpp # needed by data_file_writer_test
+      ../Common/gui/guimain.cpp # needed by data_file_writer_test
+      ../Common/gui/guiobject.cpp # needed by data_file_writer_test
+      ../Common/gui/guislider.cpp # needed by data_file_writer_test
+      ../Common/gui/guitextbasedcontrol.cpp # needed by data_file_writer_test
+      ../Common/gui/guitextbox.cpp # needed by data_file_writer_test
+      ../Common/util/geometry.cpp # needed by GUI readers in data_file_writer_test
+      ../Common/util/path_ex.cpp # needed by assetmanager.cpp
+      ../Common/util/version.cpp # needed by common_stubs.cpp
+      ../Common/util/wgt2allg.cpp # needed by Common bitmap/font implementations
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
       test/data_helpers_test.cpp
@@ -243,7 +266,10 @@ if(AGS_TESTS)
       INTERPROCEDURAL_OPTIMIZATION FALSE
    )
    target_link_libraries(tools_test
+      Allegro::Allegro
       libtools
+      AlFont::AlFont
+      AAStr::AAStr
       gtest_main
    )
 

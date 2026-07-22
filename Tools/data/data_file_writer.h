@@ -59,12 +59,15 @@ void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out);
 void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out);
 void WritePluginsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out);
+void WriteGuiBlock(const DataUtil::GameData &game, Stream *out);
 
 void WriteExt360Fonts(Stream *out, const DataUtil::GameData &game);
 void WriteExt360Cursors(Stream *out, const DataUtil::GameData &game);
 void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game);
 void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game);
 void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game);
+void WriteGuiControlLooks363(Stream *out, const DataUtil::GUIControlData &control);
+void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game);
 
 using ExtensionWriter = void (*)(Stream*, const DataUtil::GameData&);
 void WriteExtension(Stream *out, const char *id,

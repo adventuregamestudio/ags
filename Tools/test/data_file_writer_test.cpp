@@ -27,6 +27,13 @@
 #include "data/data_file_writer.h"
 #include "game/customproperties.h"
 #include "game/interactions.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guimain.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "util/memorystream.h"
 #include "util/string_utils.h"
 
@@ -1189,5 +1196,432 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
     EXPECT_STREQ("21.07.2026", info["release_date"].GetCStr());
     EXPECT_STREQ("1.2.3", info["version"].GetCStr());
     EXPECT_STREQ("pt_BR", info["text_lang"].GetCStr());
+    EXPECT_EQ(in->GetLength(), in->GetPosition());
+}
+
+// GUI serialization readers are implemented together with GUI runtime code.
+// The tests below use the shared runtime stubs from Common/test/common_stubs.cpp
+// instead of defining a separate set of stubs for the Tools tests.
+
+namespace
+{
+
+struct LoadedGuiBlock
+{
+    std::vector<GUIMain> Guis;
+    GUICollection Objects;
+    GuiVersion Version = kGuiVersion_Initial;
+    soff_t StreamLength = 0;
+    soff_t StreamPosition = 0;
+};
+
+LoadedGuiBlock ReadGuiBlock(const DataUtil::GameData &game)
+{
+    std::vector<uint8_t> buffer = WriteGameBlock(game,
+        DataFileWriter::WriteGuiBlock);
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(buffer));
+
+    LoadedGuiBlock loaded;
+    GUIRefCollection refs(loaded.Objects);
+    HError error = GUI::ReadGUI(loaded.Guis, kGameVersion_Current,
+        loaded.Version, refs, in.get());
+    EXPECT_TRUE(error);
+    loaded.StreamLength = in->GetLength();
+    loaded.StreamPosition = in->GetPosition();
+    return loaded;
+}
+
+DataUtil::GUIData MakeGui()
+{
+    DataUtil::GUIData gui;
+    gui.ScriptName = "gMain";
+    gui.OnClick = "gMain_OnClick";
+    gui.Left = 11;
+    gui.Top = 12;
+    gui.Width = 320;
+    gui.Height = 180;
+    gui.PopupStyle = DataUtil::kGUIPopupStyle_MouseYPos;
+    gui.PopupYPos = 23;
+    gui.BackgroundColor = 24;
+    gui.BackgroundImage = 25;
+    gui.BorderColor = 26;
+    gui.Clickable = true;
+    gui.Visible = true;
+    gui.Transparency = 35;
+    gui.ZOrder = 4;
+    return gui;
+}
+
+template <typename T>
+std::shared_ptr<T> MakeControl(const char *name)
+{
+    auto control = std::make_shared<T>();
+    control->ScriptName = name;
+    control->Left = 31;
+    control->Top = 32;
+    control->Width = 130;
+    control->Height = 40;
+    control->ZOrder = 3;
+    control->Clickable = true;
+    control->Enabled = true;
+    control->Visible = true;
+    control->Translated = true;
+    control->ShowBorder = true;
+    control->SolidBackground = true;
+    return control;
+}
+
+void ExpectControlBase(const DataUtil::GUIControlData &expected,
+    const GUIObject &actual)
+{
+    EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.GetName().GetCStr());
+    EXPECT_EQ(expected.Left, actual.GetX());
+    EXPECT_EQ(expected.Top, actual.GetY());
+    EXPECT_EQ(expected.Width, actual.GetWidth());
+    EXPECT_EQ(expected.Height, actual.GetHeight());
+    EXPECT_EQ(expected.ZOrder, actual.GetZOrder());
+    EXPECT_EQ(expected.Clickable, actual.IsClickable());
+    EXPECT_EQ(expected.Enabled, actual.IsEnabled());
+    EXPECT_EQ(expected.Visible, actual.IsVisible());
+    EXPECT_EQ(expected.Translated, actual.IsTranslated());
+    EXPECT_EQ(expected.ShowBorder, actual.IsShowBorder());
+    EXPECT_EQ(expected.SolidBackground, actual.IsSolidBackground());
+}
+
+void SetControlLooks(DataUtil::GUIControlData &control, int base)
+{
+    control.BackgroundColor = base + 1;
+    control.BorderColor = base + 2;
+    control.BorderWidth = base + 3;
+    control.PaddingX = base + 4;
+    control.PaddingY = base + 5;
+}
+
+void ExpectControlLooks(const DataUtil::GUIControlData &expected,
+    const GUIObject &actual)
+{
+    EXPECT_EQ(expected.BackgroundColor, actual.GetBackColor());
+    EXPECT_EQ(expected.BorderColor, actual.GetBorderColor());
+    EXPECT_EQ(expected.BorderWidth, actual.GetBorderWidth());
+    EXPECT_EQ(expected.PaddingX, actual.GetPaddingX());
+    EXPECT_EQ(expected.PaddingY, actual.GetPaddingY());
+}
+
+} // namespace
+
+TEST(DataFileWriter, RoundTripGuiMain)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    gui.Controls = {
+        MakeControl<DataUtil::GUIButtonData>("btn"),
+        MakeControl<DataUtil::GUILabelData>("lbl"),
+        MakeControl<DataUtil::GUIInventoryData>("inv"),
+        MakeControl<DataUtil::GUISliderData>("sld"),
+        MakeControl<DataUtil::GUITextBoxData>("txt"),
+        MakeControl<DataUtil::GUIListBoxData>("lst")
+    };
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Guis.size());
+    const GUIMain &actual = loaded.Guis[0];
+    EXPECT_EQ(kGuiVersion_Current, loaded.Version);
+    EXPECT_STREQ("gMain", actual.GetName().GetCStr());
+    EXPECT_STREQ("gMain_OnClick", actual.GetOnClickHandler().GetCStr());
+    EXPECT_EQ(gui.Left, actual.GetX());
+    EXPECT_EQ(gui.Top, actual.GetY());
+    EXPECT_EQ(gui.Width, actual.GetWidth());
+    EXPECT_EQ(gui.Height, actual.GetHeight());
+    EXPECT_EQ(kGUIPopupMouseY, actual.GetPopupStyle());
+    EXPECT_EQ(gui.PopupYPos, actual.GetPopupAtY());
+    EXPECT_EQ(gui.BackgroundColor, actual.GetBgColor());
+    EXPECT_EQ(gui.BackgroundImage, actual.GetBgImage());
+    EXPECT_EQ(gui.BorderColor, actual.GetFgColor());
+    EXPECT_TRUE(actual.IsClickable());
+    EXPECT_TRUE(actual.IsVisible());
+    EXPECT_EQ(GfxDef::Trans100ToLegacyTrans255(gui.Transparency),
+        actual.GetTransparency());
+    EXPECT_EQ(gui.ZOrder, actual.GetZOrder());
+    // ReadGUI restores serialized references; runtime control pointers are
+    // connected later by GUI::RebuildGUI() during game initialization.
+    ASSERT_EQ(6u, actual.GetControlRefs().size());
+    EXPECT_EQ(kGUIButton, actual.GetControlType(0));
+    EXPECT_EQ(kGUILabel, actual.GetControlType(1));
+    EXPECT_EQ(kGUIInvWindow, actual.GetControlType(2));
+    EXPECT_EQ(kGUISlider, actual.GetControlType(3));
+    EXPECT_EQ(kGUITextBox, actual.GetControlType(4));
+    EXPECT_EQ(kGUIListBox, actual.GetControlType(5));
+    for (size_t i = 0; i < actual.GetControlRefs().size(); ++i)
+        EXPECT_EQ(0, actual.GetControlID(i));
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiButton)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto button = MakeControl<DataUtil::GUIButtonData>("btnPlay");
+    button->ClickAction = "RunScript";
+    button->ClipImage = true;
+    button->Font = 2;
+    button->Image = 41;
+    button->MouseoverImage = 42;
+    button->PushedImage = 43;
+    button->NewModeNumber = 7;
+    button->OnClick = "btnPlay_OnClick";
+    button->Text = "Play";
+    button->TextAlignment = kAlignBottomRight;
+    button->TextColor = 15;
+    gui.Controls.push_back(button);
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Objects.Buttons.size());
+    const GUIButton &actual = loaded.Objects.Buttons[0];
+    ExpectControlBase(*button, actual);
+    EXPECT_TRUE(actual.IsClippingImage());
+    EXPECT_EQ(button->Image, actual.GetNormalImage());
+    EXPECT_EQ(button->MouseoverImage, actual.GetMouseOverImage());
+    EXPECT_EQ(button->PushedImage, actual.GetPushedImage());
+    EXPECT_EQ(button->Font, actual.GetFont());
+    EXPECT_EQ(button->TextColor, actual.GetTextColor());
+    EXPECT_EQ(kGUIAction_RunScript, actual.GetClickAction(kGUIClickLeft));
+    EXPECT_EQ(button->NewModeNumber, actual.GetClickData(kGUIClickLeft));
+    EXPECT_STREQ(button->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_EQ(button->TextAlignment, actual.GetTextAlignment());
+    EXPECT_STREQ(button->OnClick.GetCStr(), actual.GetEventHandler(0).GetCStr());
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiLabel)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto label = MakeControl<DataUtil::GUILabelData>("lblScore");
+    label->Text = "Score: @score@";
+    label->Font = 3;
+    label->TextColor = 16;
+    label->TextAlignment = kAlignMiddleCenter;
+    gui.Controls.push_back(label);
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Objects.Labels.size());
+    const GUILabel &actual = loaded.Objects.Labels[0];
+    ExpectControlBase(*label, actual);
+    EXPECT_STREQ(label->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_EQ(label->Font, actual.GetFont());
+    EXPECT_EQ(label->TextColor, actual.GetTextColor());
+    EXPECT_EQ(label->TextAlignment, actual.GetTextAlignment());
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiInvWindow)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto inv = MakeControl<DataUtil::GUIInventoryData>("invMain");
+    inv->CharacterID = 5;
+    inv->ItemWidth = 33;
+    inv->ItemHeight = 22;
+    gui.Controls.push_back(inv);
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Objects.InvWindows.size());
+    const GUIInvWindow &actual = loaded.Objects.InvWindows[0];
+    ExpectControlBase(*inv, actual);
+    EXPECT_EQ(inv->ItemWidth, actual.GetItemWidth());
+    EXPECT_EQ(inv->ItemHeight, actual.GetItemHeight());
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiSlider)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto slider = MakeControl<DataUtil::GUISliderData>("sldVolume");
+    slider->MinValue = 10;
+    slider->MaxValue = 90;
+    slider->Value = 55;
+    slider->HandleImage = 51;
+    slider->HandleOffset = 4;
+    slider->BackgroundImage = 52;
+    slider->OnChange = "sldVolume_OnChange";
+    gui.Controls.push_back(slider);
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Objects.Sliders.size());
+    const GUISlider &actual = loaded.Objects.Sliders[0];
+    ExpectControlBase(*slider, actual);
+    EXPECT_EQ(slider->MinValue, actual.GetMinValue());
+    EXPECT_EQ(slider->MaxValue, actual.GetMaxValue());
+    EXPECT_EQ(slider->Value, actual.GetValue());
+    EXPECT_EQ(slider->HandleImage, actual.GetHandleImage());
+    EXPECT_EQ(slider->HandleOffset, actual.GetHandleOffset());
+    EXPECT_EQ(slider->BackgroundImage, actual.GetBgImage());
+    EXPECT_STREQ(slider->OnChange.GetCStr(), actual.GetEventHandler(0).GetCStr());
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiTextBox)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto text_box = MakeControl<DataUtil::GUITextBoxData>("txtName");
+    text_box->Text = "Arthur";
+    text_box->Font = 4;
+    text_box->TextColor = 17;
+    text_box->ShowBorder = true;
+    text_box->OnActivate = "txtName_OnActivate";
+    gui.Controls.push_back(text_box);
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Objects.TextBoxes.size());
+    const GUITextBox &actual = loaded.Objects.TextBoxes[0];
+    ExpectControlBase(*text_box, actual);
+    EXPECT_STREQ(text_box->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_EQ(text_box->Font, actual.GetFont());
+    EXPECT_EQ(text_box->TextColor, actual.GetTextColor());
+    EXPECT_NE(0, actual.GetTextBoxFlags() & kTextBox_ShowBorder);
+    EXPECT_STREQ(text_box->OnActivate.GetCStr(), actual.GetEventHandler(0).GetCStr());
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiListBox)
+{
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto list_box = MakeControl<DataUtil::GUIListBoxData>("lstSaves");
+    list_box->Font = 5;
+    list_box->TextColor = 18;
+    list_box->SelectedTextColor = 19;
+    list_box->SelectedBackgroundColor = 20;
+    list_box->ShowBorder = true;
+    list_box->ShowScrollArrows = true;
+    list_box->TextAlignment = kHAlignCenter;
+    list_box->OnSelectionChanged = "lstSaves_OnSelectionChanged";
+    gui.Controls.push_back(list_box);
+    game.GUI.push_back(gui);
+
+    LoadedGuiBlock loaded = ReadGuiBlock(game);
+    ASSERT_EQ(1u, loaded.Objects.ListBoxes.size());
+    const GUIListBox &actual = loaded.Objects.ListBoxes[0];
+    ExpectControlBase(*list_box, actual);
+    EXPECT_EQ(0u, actual.GetItemCount());
+    EXPECT_EQ(list_box->Font, actual.GetFont());
+    EXPECT_EQ(list_box->TextColor, actual.GetTextColor());
+    EXPECT_EQ(list_box->SelectedTextColor, actual.GetSelectedTextColor());
+    EXPECT_EQ(list_box->SelectedBackgroundColor, actual.GetSelectedBgColor());
+    EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowBorder);
+    EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowArrows);
+    EXPECT_EQ(static_cast<FrameAlignment>(list_box->TextAlignment),
+        actual.GetTextAlignment());
+    EXPECT_STREQ(list_box->OnSelectionChanged.GetCStr(),
+        actual.GetEventHandler(0).GetCStr());
+    EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
+}
+
+TEST(DataFileWriter, RoundTripGuiControlLooks363)
+{
+    DataUtil::GUIControlData control;
+    SetControlLooks(control, 60);
+    std::vector<uint8_t> buffer;
+    auto out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(buffer, kStream_Write));
+    DataFileWriter::WriteGuiControlLooks363(out.get(), control);
+    out.reset();
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(buffer));
+
+    GUIObject loaded;
+    loaded.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(control, loaded);
+    EXPECT_EQ(in->GetLength(), in->GetPosition());
+}
+
+TEST(DataFileWriter, RoundTripExt363GuiControls)
+{
+    // The real extension loader runs after ReadGUI has established this
+    // context. GUIListBox uses it while updating metrics after extension data.
+    GUI::GameGuiVersion = kGuiVersion_Current;
+
+    DataUtil::GameData game;
+    DataUtil::GUIData gui = MakeGui();
+    auto button = MakeControl<DataUtil::GUIButtonData>("button");
+    auto label = MakeControl<DataUtil::GUILabelData>("label");
+    auto inv = MakeControl<DataUtil::GUIInventoryData>("inv");
+    auto slider = MakeControl<DataUtil::GUISliderData>("slider");
+    auto text_box = MakeControl<DataUtil::GUITextBoxData>("textbox");
+    auto list_box = MakeControl<DataUtil::GUIListBoxData>("listbox");
+    SetControlLooks(*button, 100);
+    SetControlLooks(*label, 110);
+    SetControlLooks(*inv, 120);
+    SetControlLooks(*slider, 130);
+    SetControlLooks(*text_box, 140);
+    SetControlLooks(*list_box, 150);
+    button->ColorStyle = DataUtil::kButtonColor_DynamicFlat;
+    button->BorderShadeColor = 201;
+    button->MouseOverBackgroundColor = 202;
+    button->PushedBackgroundColor = 203;
+    button->MouseOverBorderColor = 204;
+    button->PushedBorderColor = 205;
+    button->MouseOverTextColor = 206;
+    button->PushedTextColor = 207;
+    button->TextOutlineColor = 208;
+    label->TextOutlineColor = 211;
+    slider->HandleColor = 221;
+    slider->BorderShadeColor = 222;
+    text_box->TextAlignment = kAlignBottomCenter;
+    text_box->TextOutlineColor = 231;
+    list_box->TextOutlineColor = 241;
+    gui.Controls = { button, label, inv, slider, text_box, list_box };
+    game.GUI.push_back(gui);
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
+        DataFileWriter::WriteExt363GuiControls);
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(buffer));
+
+    ASSERT_EQ(1, in->ReadInt32());
+    GUIButton loaded_button;
+    loaded_button.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(*button, loaded_button);
+    EXPECT_TRUE(loaded_button.IsDynamicColors());
+    EXPECT_TRUE(loaded_button.IsFlatStyle());
+    EXPECT_EQ(button->BorderShadeColor, loaded_button.GetBorderShadeColor());
+    EXPECT_EQ(button->MouseOverBackgroundColor, loaded_button.GetMouseOverBackColor());
+    EXPECT_EQ(button->PushedBackgroundColor, loaded_button.GetPushedBackColor());
+    EXPECT_EQ(button->MouseOverBorderColor, loaded_button.GetMouseOverBorderColor());
+    EXPECT_EQ(button->PushedBorderColor, loaded_button.GetPushedBorderColor());
+    EXPECT_EQ(button->MouseOverTextColor, loaded_button.GetMouseOverTextColor());
+    EXPECT_EQ(button->PushedTextColor, loaded_button.GetPushedTextColor());
+
+    ASSERT_EQ(1, in->ReadInt32());
+    GUILabel loaded_label;
+    loaded_label.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(*label, loaded_label);
+    ASSERT_EQ(1, in->ReadInt32());
+    GUIInvWindow loaded_inv;
+    loaded_inv.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(*inv, loaded_inv);
+    ASSERT_EQ(1, in->ReadInt32());
+    GUISlider loaded_slider;
+    loaded_slider.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(*slider, loaded_slider);
+    EXPECT_EQ(slider->HandleColor, loaded_slider.GetHandleColor());
+    EXPECT_EQ(slider->BorderShadeColor, loaded_slider.GetBorderShadeColor());
+    ASSERT_EQ(1, in->ReadInt32());
+    GUITextBox loaded_text_box;
+    loaded_text_box.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(*text_box, loaded_text_box);
+    EXPECT_EQ(text_box->TextAlignment, loaded_text_box.GetTextAlignment());
+    ASSERT_EQ(1, in->ReadInt32());
+    GUIListBox loaded_list_box;
+    loaded_list_box.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
+    ExpectControlLooks(*list_box, loaded_list_box);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }

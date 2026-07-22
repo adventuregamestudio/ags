@@ -7,6 +7,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{53274d39-3a3b-466e-9fd6-5128aa4244ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common\GUI writer test dependencies">
+      <UniqueIdentifier>{65f5b61f-0632-4c0f-94b8-30e40b02410c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Test">
       <UniqueIdentifier>{0a0795e8-40b6-4df9-a388-96ad54312216}</UniqueIdentifier>
     </Filter>
@@ -116,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\util\memorystream.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\test\common_stubs.cpp">
+      <Filter>Common\GUI writer test dependencies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

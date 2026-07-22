@@ -170,6 +170,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
     <ClCompile Include="..\..\Common\ac\audiocliptype.cpp" />
     <ClCompile Include="..\..\Common\ac\characterinfo.cpp" />
     <ClCompile Include="..\..\Common\ac\dialogtopic.cpp" />
@@ -204,6 +205,12 @@
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_helpers_test.cpp" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common.Lib\Common.Lib.vcxproj">
+      <Project>{463a715c-3ef3-47c7-ac7f-d97660149c49}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h" />

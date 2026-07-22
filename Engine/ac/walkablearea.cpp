@@ -17,15 +17,16 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_walkablearea.h"
-#include "ac/object.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
+#include "ac/string.h"
 #include "ac/walkablearea.h"
 #include "ac/dynobj/cc_walkablearea.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
+#include "script/script_runtime.h"
 
 using namespace AGS::Common;
 
@@ -227,6 +228,11 @@ ScriptWalkableArea *Walkarea_GetAtScreenXY(int x, int y)
     return &scrWalkarea[area];
 }
 
+ScriptWalkableArea *Walkarea_GetByName(const char *name)
+{
+    return static_cast<ScriptWalkableArea*>(ccGetScriptObjectAddress(name, ccDynamicWalkarea.GetType()));
+}
+
 int Walkarea_GetID(ScriptWalkableArea *wa)
 {
     return wa->id;
@@ -261,6 +267,11 @@ int Walkarea_GetScalingMax(ScriptWalkableArea *wa)
 {
     return thisroom.WalkAreas[wa->id].ScalingNear;
 }
+const char *Walkarea_GetScriptName(ScriptWalkableArea *wa)
+{
+    return CreateNewScriptString(thisroom.WalkAreas[wa->id].ScriptName);
+}
+
 
 float Walkarea_GetFaceDirectionRatio(ScriptWalkableArea *wa)
 {
@@ -316,6 +327,11 @@ RuntimeScriptValue Sc_Walkarea_GetAtScreenXY(const RuntimeScriptValue *params, i
     API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkarea, Walkarea_GetAtScreenXY);
 }
 
+RuntimeScriptValue Sc_Walkarea_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(ScriptWalkableArea, ccDynamicWalkarea, Walkarea_GetByName, const char);
+}
+
 RuntimeScriptValue Sc_Walkarea_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
@@ -349,6 +365,11 @@ RuntimeScriptValue Sc_Walkarea_GetScalingMin(void *self, const RuntimeScriptValu
 RuntimeScriptValue Sc_Walkarea_GetScalingMax(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptWalkableArea, Walkarea_GetScalingMax);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptWalkableArea, const char, myScriptStringImpl, Walkarea_GetScriptName);
 }
 
 RuntimeScriptValue Sc_Walkarea_GetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -387,18 +408,20 @@ void RegisterWalkareaAPI()
     ScFnRegister walkarea_api[] = {
         { "WalkableArea::GetAtRoomXY^2",       API_FN_PAIR(Walkarea_GetAtRoomXY) },
         { "WalkableArea::GetAtScreenXY^2",     API_FN_PAIR(Walkarea_GetAtScreenXY) },
+        { "WalkableArea::GetByScriptName^1",   API_FN_PAIR(Walkarea_GetByName) },
         { "WalkableArea::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
 
         { "WalkableArea::SetScaling^2",        API_FN_PAIR(Walkarea_SetScaling) },
-        { "WalkableArea::GetProperty^1",             API_FN_PAIR(Walkarea_GetProperty) },
-        { "WalkableArea::GetTextProperty^1",         API_FN_PAIR(Walkarea_GetTextProperty) },
-        { "WalkableArea::SetProperty^2",             API_FN_PAIR(Walkarea_SetProperty) },
-        { "WalkableArea::SetTextProperty^2",         API_FN_PAIR(Walkarea_SetTextProperty) },
+        { "WalkableArea::GetProperty^1",       API_FN_PAIR(Walkarea_GetProperty) },
+        { "WalkableArea::GetTextProperty^1",   API_FN_PAIR(Walkarea_GetTextProperty) },
+        { "WalkableArea::SetProperty^2",       API_FN_PAIR(Walkarea_SetProperty) },
+        { "WalkableArea::SetTextProperty^2",   API_FN_PAIR(Walkarea_SetTextProperty) },
         { "WalkableArea::get_Enabled",         API_FN_PAIR(Walkarea_GetEnabled) },
         { "WalkableArea::set_Enabled",         API_FN_PAIR(Walkarea_SetEnabled) },
         { "WalkableArea::get_ID",              API_FN_PAIR(Walkarea_GetID) },
         { "WalkableArea::get_ScalingMin",      API_FN_PAIR(Walkarea_GetScalingMin) },
         { "WalkableArea::get_ScalingMax",      API_FN_PAIR(Walkarea_GetScalingMax) },
+        { "WalkableArea::get_ScriptName",      API_FN_PAIR(Walkarea_GetScriptName) },
         { "WalkableArea::get_FaceDirectionRatio", API_FN_PAIR(Walkarea_GetFaceDirectionRatio) },
         { "WalkableArea::set_FaceDirectionRatio", API_FN_PAIR(Walkarea_SetFaceDirectionRatio) },
     };

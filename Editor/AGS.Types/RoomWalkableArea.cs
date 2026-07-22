@@ -10,7 +10,10 @@ namespace AGS.Types
     [DefaultProperty("ScalingLevel")]
     public class RoomWalkableArea : IChangeNotification, ICustomTypeDescriptor, IToXml
     {
+        public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
+
         private int _id;
+        private string _scriptName = string.Empty;
         private int _areaSpecificView;
         private float _faceDirectionRatio = 0.0f;
         private int _scalingLevel = 100;
@@ -46,6 +49,16 @@ namespace AGS.Types
         {
             get { return _id; }
             set { _id = value; }
+        }
+
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [Description("The script name of the walkable area")]
+        [Category("Design")]
+        [BrowsableMultiedit(false)]
+        public string ScriptName
+        {
+            get { return _scriptName; }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
         [Description("The player character's walking view will switch to this when he is standing on the area")]

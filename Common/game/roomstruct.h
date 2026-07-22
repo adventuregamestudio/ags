@@ -195,9 +195,14 @@ struct RoomEdges
 struct RoomObjectBase
 {
 public:
+    RoomObjectBase()
+    {}
     RoomObjectBase(const ScriptEventSchema *schema)
         : _events(schema)
     {}
+
+    int    ID = -1;
+    String ScriptName;
 
     // Provides a script events table
     const ScriptEventTable &GetEvents() const { return _events; }
@@ -213,8 +218,8 @@ protected:
 // Room hotspot description
 struct RoomHotspot : public RoomObjectBase
 {
+    // Human-readable name (description)
     String      Name;
-    String      ScriptName;
     // Custom properties
     StringIMap  Properties;
     // Interaction events (cursor-based)
@@ -239,26 +244,29 @@ private:
 // Room object description
 struct RoomObjectInfo : public RoomObjectBase
 {
-    int32_t         Room;
-    int32_t         X;
-    int32_t         Y;
-    int32_t         Sprite;
-    Common::BlendMode BlendMode;
+    int32_t         Room = -1;
+    int32_t         X = 0;
+    int32_t         Y = 0;
+    int32_t         Sprite = 0;
+    Common::BlendMode BlendMode = kBlend_Normal;
     // Object's z-order in the room, or -1 (use Y)
-    int32_t         Baseline;
-    int32_t         Transparency;
-    int32_t         Flags;
+    int32_t         Baseline = 0;
+    int32_t         Transparency = 0;
+    int32_t         Flags = 0;
+    // Human-readable name (description)
     String          Name;
-    String          ScriptName;
     Rect            BlockingRect;
-    Pointf          GraphicAnchor;
+    Pointf          GraphicAnchor = Pointf(0.f, 1.f); // bottom-left
     Point           GraphicOffset;
     // Custom properties
     StringIMap      Properties;
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
 
-    RoomObjectInfo();
+    RoomObjectInfo()
+        : RoomObjectBase(&RoomObjectInfo::_eventSchema)
+    {
+    }
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -273,15 +281,18 @@ private:
 struct RoomRegion : public RoomObjectBase
 {
     // Light level (-100 -> +100) or Tint luminance (0 - 255)
-    int32_t         Light;
+    int32_t         Light = 0;
     // Tint setting (R-B-G-S)
-    int32_t         Tint;
+    int32_t         Tint = 0;
     // Custom properties
     StringIMap      Properties;
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
 
-    RoomRegion();
+    RoomRegion()
+        : RoomObjectBase(&RoomRegion::_eventSchema)
+    {
+    }
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -293,35 +304,31 @@ private:
 };
 
 // Walkable area description
-struct WalkArea
+struct WalkArea : public RoomObjectBase
 {
     // Apply player character's normal view on this area
-    int32_t     CharacterView;
+    int32_t     CharacterView = 0;
     // Character's scaling (-100 -> +100 %)
     // General scaling, or scaling at the farthest point
-    int32_t     ScalingFar;
+    int32_t     ScalingFar = 0;
     // Scaling at the nearest point, or NOT_VECTOR_SCALED for uniform scaling
-    int32_t     ScalingNear;
+    int32_t     ScalingNear = NOT_VECTOR_SCALED;
     // Optional override for player character view
-    int32_t     PlayerView;
+    int32_t     PlayerView = 0;
     // Optional character face direction ratio, 0 = ignore
-    float       FaceDirectionRatio;
+    float       FaceDirectionRatio = 0.f;
     // Top and bottom Y of the area
-    int32_t     Top;
-    int32_t     Bottom;
+    int32_t     Top = -1;
+    int32_t     Bottom = -1;
     // Custom properties
     StringIMap  Properties;
-
-    WalkArea();
 };
 
 // Walk-behind description
-struct WalkBehind
+struct WalkBehind : public RoomObjectBase
 {
     // Object's z-order in the room
-    int32_t Baseline;
-
-    WalkBehind();
+    int32_t Baseline = 0;
 };
 
 // Room's legacy resolution type

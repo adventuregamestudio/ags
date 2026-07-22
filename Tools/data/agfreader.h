@@ -77,6 +77,7 @@ protected:
     // all of them return default value if the field cannot be read
     static const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
     static int ReadInt(DocElem elem, const char *field, int def_value = 0);
+    static float ReadFloat(DocElem elem, const char *field, float def_value = 0.f);
     static bool ReadBool(DocElem elem, const char *field, bool def_value = false);
 };
 
@@ -352,6 +353,7 @@ public:
     String ReadScriptName(DocElem elem) override { return ""; }
 
     DocElem GetSettings(DocElem elem);
+    DocElem GetDefaultSetup(DocElem elem);
 };
 
 class GameSettings : public EntityParser
@@ -361,8 +363,17 @@ public:
     int    ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
 
-    String ReadSayFunction(DocElem elem) { return ReadString(elem, "DialogScriptSayFunction"); }
-    String ReadNarrateFunction(DocElem elem) { return ReadString(elem, "DialogScriptNarrateFunction"); }
+    void   ReadAll(DocElem elem, DataUtil::GameSettings &s);
+};
+
+class RuntimeSetup : public EntityParser
+{
+public:
+    String ReadType(DocElem elem) override { return "RuntimeSetup"; }
+    int    ReadID(DocElem elem) override { return -1; }
+    String ReadScriptName(DocElem elem) override { return ""; }
+
+    void   ReadAll(DocElem elem, DataUtil::RuntimeSetup &setup);
 };
 
 // Parses a description of an individual script file (header or body)
@@ -391,6 +402,23 @@ public:
     }
 };
 
+// Parses a description of a game plugin
+class Plugin : public ValueParser
+{
+public:
+    String ReadFileName(DocElem elem) { return ReadString(elem, "FileName"); }
+};
+
+// Parses a list of game plugins
+class Plugins : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, nullptr, "Plugins", "Plugin");
+    }
+};
+
 // Parses a description of a room
 class Room : public ValueParser
 {
@@ -406,6 +434,23 @@ public:
     void GetAll(DocElem root, std::vector<DocElem> &elems) override
     {
         GetAllElems(root, elems, "Rooms", "UnloadedRoomFolder", "UnloadedRooms", "UnloadedRoom");
+    }
+};
+
+// Parses a description of a translation
+class Translation : public ValueParser
+{
+public:
+    String ReadName(DocElem elem) { return ReadString(elem, "Name"); }
+};
+
+// Parses a list of translations
+class Translations : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, nullptr, "Translations", "Translation");
     }
 };
 
@@ -426,12 +471,23 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root);
 void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 // Reads full game reference data using AGFReader
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
+// Reads default runtime game setup data
+void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem root);
+// Reads a list of custom asset directories for this project
+void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root);
+// Reads a list of font IDs.
+// In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
+void ReadFontList(std::vector<int> &font_list, DocElem root);
+// Reads a list of plugins registered for this game project.
+void ReadPluginList(std::vector<String> &plugin_list, DocElem root);
+// Reads a list of room ID and descriptions found in the game document.
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
 // Reads an ordered list of script module names (their order determines dependency).
 void ReadScriptList(std::vector<String> &script_list, DocElem root);
 // Reads an ordered list of script header module names (their order determines dependency).
 void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
-// Reads a list of room ID and descriptions found in the game document.
-void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
+// Reads a list of translation names.
+void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 
 } // namespace AGF
 } // namespace AGS

@@ -15,7 +15,8 @@
 #define __AGS_TOOL_DATA__GAMEUTIL_H
 
 #include <vector>
-#include "util/string.h"
+#include "ac/gamestructdefines.h"
+#include "util/ini_util.h"
 
 namespace AGS
 {
@@ -60,8 +61,46 @@ struct Variable
 // Game settings
 struct GameSettings
 {
-    String SayFunction; // Custom speech function name
+    // TODO: following struct is a stub, listing only few fields used so far. Expand later.
+
+    bool DebugMode = false;
+    String CustomDataDir;
     String NarrateFunction; // Custom narrate function name
+    RenderAtScreenRes RenderAtScreenResolution = ::kRenderAtScreenRes_UserDefined;
+    String SayFunction; // Custom speech function name
+};
+
+struct RuntimeSetup
+{
+    // TODO: consider turning enum-like string fields into actual enum fields? see notes below
+    String GraphicsDriver;
+    bool Windowed = false;
+    bool FullscreenDesktop = false;
+    String FullscreenGameScaling; // enum-like field
+    String WindowGameScaling; // enum-like field
+    int GameScalingMultiplier = 0;
+    String GraphicsFilter;
+    bool VSync = false;
+    bool AAScaledSprites = false;
+    bool RenderAtScreenResolution = false;
+    String Rotation; // enum-like field
+    String AudioDriver; // enum-like field
+    bool UseVoicePack = false;
+    String Translation;
+    bool AutoLockMouse = false;
+    float MouseSpeed = 0.f;
+    String TouchToMouseEmulation; // enum-like field
+    String TouchToMouseMotionMode; // enum-like field
+    bool ShowFPS = false;
+    int SpriteCacheSize = 0;
+    int TextureCacheSize = 0;
+    int SoundCacheSize = 0;
+    bool CompressSaves = false;
+    bool UseCustomSavePath = false;
+    String CustomSavePath;
+    bool UseCustomAppDataPath = false;
+    String CustomAppDataPath;
+    String TitleText;
 };
 
 // GameRef contains only game data strictly necessary for generating scripts.
@@ -82,6 +121,10 @@ struct GameRef
 
     GameSettings           Settings;
 };
+
+// Fills ConfigTree with contents of RuntimeSetup, in accordance to the AGS config format.
+// Optionally uses GameSettings to adjust certain config options.
+void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, AGS::Common::ConfigTree &cfg);
 
 } // namespace DataUtil
 } // namespace AGS

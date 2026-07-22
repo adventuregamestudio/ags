@@ -279,13 +279,12 @@ void StrUtil::WriteFixedString(const String &s, size_t len, Stream *out)
     const String tmp = s.Left(len);
     if (!tmp.IsEmpty())
         out->Write(tmp.GetCStr(), tmp.GetLength());
-    for (size_t i = tmp.GetLength(); i < len; ++i)
-        out->WriteByte(0);
+    out->WriteByteCount(0, len - tmp.GetLength());
 }
 
 void StrUtil::WriteFixedString(const char *cstr, size_t len, Stream *out)
 {
-    WriteFixedString(String(cstr), len, out);
+    WriteFixedString(String::Wrapper(cstr), len, out);
 }
 
 void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)

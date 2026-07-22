@@ -130,6 +130,8 @@ namespace BitmapHelper
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
     // Skips mask color (leaves it with zero alpha).
     void    MakeOpaqueSkipMask(Bitmap *bmp);
+    // Runs over a bitmap and replaces all instances of one color value with another
+    void    ReplaceColor(Bitmap *bmp, int color1, int color2);
     // Replaces pixels with alpha <= threshold with standard mask color.
     void    ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold);
     // Replaces fully transparent (alpha = 0) pixels with standard mask color.

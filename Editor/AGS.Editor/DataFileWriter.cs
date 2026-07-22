@@ -1581,8 +1581,6 @@ namespace AGS.Editor
                 flags |= NativeConstants.FFLG_LOGICALNOMINALHEIGHT;
             if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
                 flags |= NativeConstants.FFLG_LOGICALCUSTOMHEIGHT;
-            if (font.TTFMetricsFixup == FontMetricsFixup.SetAscenderToHeight)
-                flags |= NativeConstants.FFLG_ASCENDERFIXUP;
             writer.Write(flags);
             if ((flags & NativeConstants.FFLG_SIZEMULTIPLIER) == 0)
                 writer.Write(font.PointSize * font.SizeMultiplier);

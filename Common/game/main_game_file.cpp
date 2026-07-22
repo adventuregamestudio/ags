@@ -976,9 +976,11 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             _ents.DialogScript->SetScriptName(script_name.ToStdString());
         if (!ReadAndAssertCount(in, "script modules", static_cast<uint32_t>(_ents.ScriptModules.size()), err))
             return err;
+        _ents.ScriptModuleNames.resize(_ents.ScriptModules.size());
         for (size_t i = 0; i < _ents.ScriptModules.size(); ++i)
         {
             script_name = StrUtil::ReadString(in);
+            _ents.ScriptModuleNames[i] = script_name;
             if (_ents.ScriptModules[i])
                 _ents.ScriptModules[i]->SetScriptName(script_name.ToStdString());
         }
@@ -1140,6 +1142,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         err = ReadScriptModules(ents.ScriptModules, in, data_ver);
         if (!err)
             return err;
+        ents.ScriptModuleNames.resize(ents.ScriptModules.size());
     }
 
     ReadViews(game, ents.Views, in, data_ver);

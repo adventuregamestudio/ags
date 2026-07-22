@@ -792,11 +792,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         export_gui_controls(i);
 
     AllocScriptModules();
-    if (create_global_script())
+    HError err = create_game_scripts();
+    if (!err)
     {
-        return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Unable to recreate global script: %s",
-                cc_get_error().ErrorString.GetCStr()));
+        return new SavegameError(kSvgErr_GameObjectInitFailed, "Unable to recreate game scripts", err);
     }
 
     // read the global data into the newly created script

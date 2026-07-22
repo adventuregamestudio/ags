@@ -554,9 +554,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     dialogScriptsScript = ents.DialogScript;
     numScriptModules = ents.ScriptModules.size();
     scriptModules = ents.ScriptModules;
+    scriptModuleNames = ents.ScriptModuleNames;
     AllocScriptModules();
-    if (create_global_script())
-        return new GameInitError(kGameInitErr_ScriptLinkFailed, cc_get_error().ErrorString);
+    err = create_game_scripts();
+    if (!err)
+        return new GameInitError(kGameInitErr_ScriptLinkFailed, err);
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.

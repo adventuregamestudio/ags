@@ -21,8 +21,10 @@
 #include "game/interactions.h"
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
+#include "util/error.h"
 #include "util/string.h"
 
+using AGS::Common::HError;
 using AGS::Common::String;
 using AGS::Common::Interaction;
 using AGS::Common::InteractionCommandList;
@@ -117,7 +119,8 @@ int     run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionComma
 int     run_interaction_script(const ObjectEvent &obj_evt, InteractionEvents *nint, int evnt, int chkAny = -1);
 void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
-int     create_global_script();
+// Creates and links all the game script instances.
+HError  create_game_scripts();
 void    cancel_all_scripts();
 
 enum RunScFuncResult
@@ -232,6 +235,7 @@ extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
 extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 
 extern std::vector<PScript> scriptModules;
+extern std::vector<String> scriptModuleNames;
 extern std::vector<UInstance> moduleInst;
 extern std::vector<UInstance> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;

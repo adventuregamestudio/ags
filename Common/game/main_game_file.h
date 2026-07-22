@@ -116,6 +116,7 @@ struct LoadedGameEntities
     std::vector<ViewStruct> Views;
     PScript                 GlobalScript;
     PScript                 DialogScript;
+    std::vector<String>     ScriptModuleNames;
     std::vector<PScript>    ScriptModules;
     std::vector<PluginInfo> PluginInfos;
 

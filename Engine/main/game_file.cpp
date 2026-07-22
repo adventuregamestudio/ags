@@ -45,10 +45,12 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern int ifacepopped;
+// Standard script names, used historically by AGS Editor
+const String GlobalScriptObj = "GlobalScript.o";
+const String DialogScriptObj = "__DialogScripts.o";
+const String ScriptModulesList = "ScriptModules.lst";
 
 extern GameSetupStruct game;
-
 extern AGSPlatformDriver *platform;
 
 
@@ -118,11 +120,21 @@ HError preload_game_data()
     return HError::None();
 }
 
-static inline HError MakeScriptLoadError(const char *name)
+PScript TryLoadScriptAsset(const String &script_obj_name)
 {
-    return new Error(String::FromFormat(
-        "Failed to load a script module: %s", name),
-        cc_get_error().ErrorString);
+    // Don't error here, as the script asset is optional
+    auto in = AssetMgr->OpenAsset(script_obj_name);
+    if (in)
+    {
+        PScript script(ccScript::CreateFromStream(Path::ReplaceExtension(script_obj_name, "asc").ToStdString(), in.get()));
+        if (script)
+            Debug::Printf(kDbgMsg_Info, "Script module '%s' is found and loaded", script_obj_name.GetCStr());
+        else
+            Debug::Printf(kDbgMsg_Warn, "Failed to load a script module '%s'.\n\tError: %s", script_obj_name.GetCStr(), cc_get_error().ErrorString.GetCStr());
+        return script;
+    }
+    Debug::Printf(kDbgMsg_Info, "Script module '%s' was not found, will use the script embedded in the main game file (if present)");
+    return nullptr;
 }
 
 // Looks up for the game scripts available as separate assets.
@@ -132,47 +144,26 @@ static inline HError MakeScriptLoadError(const char *name)
 HError LoadGameScripts(LoadedGameEntities &ents)
 {
     // Global script
-    auto in = AssetMgr->OpenAsset("GlobalScript.o");
-    if (in)
-    {
-        PScript script(ccScript::CreateFromStream("GlobalScript.asc", in.get()));
-        if (!script)
-            return MakeScriptLoadError("GlobalScript.o");
-        ents.GlobalScript = script;
-    }
+    ents.GlobalScript = TryLoadScriptAsset(GlobalScriptObj);
     // Dialog script
-    in = AssetMgr->OpenAsset("DialogScripts.o");
-    if (in)
-    {
-        PScript script(ccScript::CreateFromStream("__DialogScripts.asc", in.get()));
-        if (!script)
-            return MakeScriptLoadError("DialogScripts.o");
-        ents.DialogScript = script;
-    }
+    ents.DialogScript = TryLoadScriptAsset(DialogScriptObj);
     // Script modules
     // First load a modules list
     std::vector<String> modules;
-    in = AssetMgr->OpenAsset("ScriptModules.lst");
+    auto in = AssetMgr->OpenAsset(ScriptModulesList);
     if (in)
     {
         TextStreamReader reader(std::move(in));
         while (!reader.EOS())
             modules.push_back(reader.ReadLine());
+        Debug::Printf(kDbgMsg_Info, "Script modules list '%s' is found and loaded", ScriptModulesList.GetCStr());
     }
     if (modules.size() > ents.ScriptModules.size())
         ents.ScriptModules.resize(modules.size());
     // Now run by the list and try loading everything
     for (size_t i = 0; i < modules.size(); ++i)
     {
-        in = AssetMgr->OpenAsset(modules[i]);
-        if (in)
-        {
-            String script_name = Path::ReplaceExtension(modules[i], "asc");
-            PScript script(ccScript::CreateFromStream(script_name.ToStdString(), in.get()));
-            if (!script)
-                return MakeScriptLoadError(modules[i].GetCStr());
-            ents.ScriptModules[i] = script;
-        }
+        ents.ScriptModules[i] = TryLoadScriptAsset(modules[i]);
     }
     return HError::None();
 }

@@ -107,10 +107,10 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
     }
 
     String header;
-    String const_name;
     String buf;
     buf.Format("enum %s {\n", enum_name);
     header.Append(buf);
+    const String const_name = const_prefix ? const_prefix : "";
     bool first = true;
     for (const auto &ent : ents)
     {
@@ -118,14 +118,11 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
         if (name.IsEmpty())
             continue;
 
-        if (const_prefix)
-            const_name = const_prefix;
         // skip if the name begins with non-alpha character
         else if (!std::isalpha(name[0]))
             continue;
 
-        const_name.Append(name);
-        buf.Format("%s  %s = %d", first ? "" : ",\n", const_name.GetCStr(), ent.ID);
+        buf.Format("%s  %s%s = %d", first ? "" : ",\n", const_name.GetCStr(), name.GetCStr(), ent.ID);
         header.Append(buf);
         first = false;
     }

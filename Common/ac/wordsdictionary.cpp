@@ -14,9 +14,8 @@
 #include "ac/wordsdictionary.h"
 #include <algorithm>
 #include <map>
-#include <string.h>
+#include "data/data_helpers.h"
 #include "util/stream.h"
-#include "util/string_compat.h"
 
 namespace AGS
 {
@@ -36,7 +35,7 @@ void WordsDictionary::ReadFromFile(Stream* in)
     uint32_t word_count = static_cast<uint32_t>(in->ReadInt32());
     for (uint32_t i = 0; i < word_count; ++i)
     {
-        String word = read_string_decrypt(in);
+        String word = ReadStringDecrypt(in);
         uint16_t word_id = static_cast<uint16_t>(in->ReadInt16());
         _words[word] = word_id;
     }
@@ -47,86 +46,10 @@ void WordsDictionary::WriteToFile(Stream* out) const
     out->WriteInt32(_words.size());
     for (auto item : _words)
     {
-        write_string_encrypt(out, item.first.GetCStr());
+        WriteStringEncrypt(out, item.first.GetCStr());
         out->WriteInt16(item.second);
     }
 }
 
 } // Common
 } // AGS
-
-using namespace AGS::Common;
-
-const char *passwencstring = "Avis Durgan";
-
-void decrypt_text(char *buf, size_t buf_sz)
-{
-    int adx = 0;
-    const char *p_end = buf + buf_sz;
-
-    while (buf < p_end)
-    {
-        *buf -= passwencstring[adx];
-        if (*buf == 0)
-            break;
-
-        adx++;
-        buf++;
-
-        if (adx > 10)
-            adx = 0;
-    }
-}
-
-void read_string_decrypt(Stream *in, char *buf, size_t buf_sz)
-{
-    size_t len = in->ReadInt32();
-    size_t slen = std::min(buf_sz - 1, len);
-    in->Read(buf, slen);
-    if (len > slen)
-        in->Seek(len - slen);
-    decrypt_text(buf, slen);
-    buf[slen] = 0;
-}
-
-String read_string_decrypt(Stream *in)
-{
-    std::vector<char> dec_buf;
-    return read_string_decrypt(in, dec_buf);
-}
-
-String read_string_decrypt(Stream *in, std::vector<char> &dec_buf)
-{
-    size_t len = in->ReadInt32();
-    dec_buf.resize(len + 1);
-    in->Read(dec_buf.data(), len);
-    decrypt_text(dec_buf.data(), len);
-    dec_buf.back() = 0; // null terminate in case read string does not have one
-    return String(dec_buf.data());
-}
-
-void encrypt_text(char *toenc) {
-  int adx = 0, tobreak = 0;
-
-  while (tobreak == 0) {
-    if (toenc[0] == 0)
-      tobreak = 1;
-
-    toenc[0] += passwencstring[adx];
-    adx++;
-    toenc++;
-
-    if (adx > 10)
-      adx = 0;
-  }
-}
-
-void write_string_encrypt(Stream *out, const char *s) {
-  int stlent = (int)strlen(s) + 1;
-
-  out->WriteInt32(stlent);
-  char *enc = ags_strdup(s);
-  encrypt_text(enc);
-  out->WriteArray(enc, stlent, 1);
-  free(enc);
-}

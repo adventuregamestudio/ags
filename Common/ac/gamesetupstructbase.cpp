@@ -14,7 +14,6 @@
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/game_version.h"
-#include "ac/wordsdictionary.h"
 #include "script/cc_script.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

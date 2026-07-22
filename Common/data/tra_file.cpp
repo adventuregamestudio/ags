@@ -13,7 +13,6 @@
 //=============================================================================
 #include "data/tra_file.h"
 #include <string.h>
-#include "ac/wordsdictionary.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
@@ -119,8 +118,8 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
             // Read lines until we find zero-length key & value
             while (true)
             {
-                String src_line = read_string_decrypt(in, buf);
-                String dst_line = read_string_decrypt(in, buf);
+                String src_line = ReadStringDecrypt(in, buf);
+                String dst_line = ReadStringDecrypt(in, buf);
                 if (src_line.IsEmpty() && dst_line.IsEmpty())
                     break;
                 // Skip empty keys, skip key repeats
@@ -133,7 +132,7 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     case kTraFblk_GameID:
         {
             tra.GameUid = in->ReadInt32();
-            tra.GameName = read_string_decrypt(in);
+            tra.GameName = ReadStringDecrypt(in);
         }
         return HError::None();
     case kTraFblk_TextOpts:
@@ -241,25 +240,6 @@ HError ReadTraData(Translation &tra, std::unique_ptr<Stream> &&in)
 
     TRABlockReader reader(tra, std::move(in));
     return reader.Read();
-}
-
-// TODO: perhaps merge with encrypt/decrypt utilities
-static const char *EncryptText(std::vector<char> &en_buf, const String &s)
-{
-    if (en_buf.size() < s.GetLength() + 1)
-        en_buf.resize(s.GetLength() + 1);
-    memcpy(en_buf.data(), s.GetCStr(), s.GetLength() + 1);
-    encrypt_text(en_buf.data());
-    return en_buf.data();
-}
-
-// TODO: perhaps merge with encrypt/decrypt utilities
-static const char *EncryptEmptyString(std::vector<char> &en_buf)
-{
-    en_buf.resize(1);
-    en_buf[0] = 0;
-    encrypt_text(en_buf.data());
-    return en_buf.data();
 }
 
 void WriteGameID(const Translation &tra, Stream *out)

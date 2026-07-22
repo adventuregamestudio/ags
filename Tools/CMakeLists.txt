@@ -245,6 +245,7 @@ if(AGS_TESTS)
       ../Common/ac/common.cpp # needed by GUI readers in data_file_writer_test
       ../Common/ac/spritecache.cpp # needed by GUI readers in data_file_writer_test
       ../Common/data/assetmanager.cpp # needed by Common font renderers
+      ../Common/data/data_helpers.cpp
       ../Common/font/fonts.cpp # needed by GUI readers in data_file_writer_test
       ../Common/font/ttffontrenderer.cpp # needed by fonts.cpp
       ../Common/font/wfnfont.cpp # needed by fonts.cpp

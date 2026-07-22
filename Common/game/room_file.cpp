@@ -14,9 +14,9 @@
 #include "ac/common.h" // update_polled_stuff
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
-#include "ac/wordsdictionary.h" // TODO: extract string decryption
 #include "data/assetmanager.h"
 #include "data/data_ext.h"
+#include "data/data_helpers.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
 #include "game/room_file.h"
@@ -320,7 +320,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         }
         else
         {
-            room->Messages[i] = read_string_decrypt(in, mbuf);
+            room->Messages[i] = ReadStringDecrypt(in, mbuf);
         }
     }
 
@@ -379,14 +379,13 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Room script sources (original text)
-HError ReadScriptBlock(char *&buf, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadScriptBlock(std::vector<char> &buf, Stream *in, RoomFileVersion /*data_ver*/)
 {
     size_t len = in->ReadInt32();
-    buf = new char[len + 1];
-    in->Read(buf, len);
-    buf[len] = 0;
-    for (size_t i = 0; i < len; ++i)
-        buf[i] += passwencstring[i % 11];
+    buf.resize(len + 1);
+    in->Read(buf.data(), len);
+    buf[len] = 0; // safety fix
+    DecryptText(buf.data(), len);
     return HError::None();
 }
 
@@ -564,10 +563,9 @@ public:
         HError err = FindOne(kRoomFblk_Script);
         if (!err)
             return err;
-        char *buf = nullptr;
+        std::vector<char> buf;
         err = ReadScriptBlock(buf, _in.get(), _dataVer);
-        script = buf;
-        delete buf;
+        script = buf.data();
         return err;
     }
 
@@ -855,7 +853,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
         out->WriteInt8(room->MessageInfos[i].Flags);
     }
     for (uint32_t i = 0; i < room->MessageCount; ++i)
-        write_string_encrypt(out, room->Messages[i].GetCStr());
+        WriteStringEncrypt(out, room->Messages[i].GetCStr());
 
     out->WriteInt16(0); // legacy room animations
 

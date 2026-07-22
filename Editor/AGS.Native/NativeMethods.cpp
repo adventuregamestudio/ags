@@ -28,6 +28,7 @@
 #include "ac/mousecursor.h"
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
+#include "data/data_helpers.h"
 #include "data/multifilelib.h"
 #include "font/fonts.h"
 #include "game/customproperties.h"
@@ -880,9 +881,9 @@ namespace AGS
             if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
             if (name->Equals("PASSWORD_ENC_STRING"))
             {
-                int len = (int)strlen(passwencstring);
+                int len = (int)strlen(AGS::Common::EncryptPassword);
                 array<System::Byte>^ bytes = gcnew array<System::Byte>(len);
-                System::Runtime::InteropServices::Marshal::Copy( IntPtr( ( char* ) passwencstring ), bytes, 0, len );
+                System::Runtime::InteropServices::Marshal::Copy( IntPtr( ( char* ) AGS::Common::EncryptPassword ), bytes, 0, len );
                 return bytes;
             }
             if (name->Equals("LOOPFLAG_RUNNEXTLOOP")) return LOOPFLAG_RUNNEXTLOOP;

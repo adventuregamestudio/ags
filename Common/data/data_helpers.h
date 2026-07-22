@@ -18,7 +18,9 @@
 #ifndef __AGS_CN_GAME__DATAHELPERS_H
 #define __AGS_CN_GAME__DATAHELPERS_H
 
+#include <vector>
 #include "util/string.h"
+#include "util/stream.h"
 
 namespace AGS
 {
@@ -30,6 +32,32 @@ namespace Common
     // for in such case "\[" will be treated as a unknown escape sequence,
     // while "\\[" will be converted to "\[" by merging "\\" pair.
     String PreprocessLineForOldStyleLinebreaks(const String &line);
+
+    // Text encryption/decryption functions which apply a password string
+    // using ADD operation (SUB when decrypting).
+    // Decrypts text found in the given buffer, writes back to the same buffer
+    void DecryptText(char *buf, size_t buf_sz);
+    // Reads an encrypted string from the stream and decrypts into the provided buffer
+    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz);
+    // Reads an encrypted string from the stream and returns as a string
+    String ReadStringDecrypt(Stream *in);
+    // Reads an encrypted string from the stream and returns as a string;
+    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
+    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf);
+
+    // Password used for encryption; exposed for tests and editor (temporarily)
+    extern const char *EncryptPassword;
+
+    // Encrypts string in-place
+    void EncryptText(char *buf, size_t buf_sz);
+    // Encrypts input string and stores result in the vector of chars;
+    // returns a pointer to the buffer.
+    const char *EncryptText(std::vector<char> &en_buf, const String &s);
+    // Encrypts empty string. A helper function in case you don't have any source text
+    const char *EncryptEmptyString(std::vector<char> &en_buf);
+    // Encrypts string and writes into the output stream
+    void WriteStringEncrypt(Stream *out, const char *s);
+
 } // namespace Common
 } // namespace AGS
 

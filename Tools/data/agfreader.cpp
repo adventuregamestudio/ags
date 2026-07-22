@@ -728,13 +728,21 @@ void GUIControl::ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData& data)
     data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
 }
 
-AGS::Common::PropertyType CustomPropertySchemaItem::ReadType(DocElem elem)
+void CustomPropertySchemaItem::ReadAllData(DocElem elem, DataUtil::CustomPropertySchemaItem &data)
 {
-    const String value = ReadString(elem, "Type");
-    return ReadCustomPropertyType(value);
+    data.Name = ReadString(elem, "Name");
+    data.Description = ReadString(elem, "Description");
+    data.DefaultValue = ReadString(elem, "DefaultValue");
+    data.Type = ReadCustomPropertyType(ReadString(elem, "Type"));
+    data.AppliesToCharacters = ReadBool(elem, "AppliesToCharacters", true);
+    data.AppliesToHotspots = ReadBool(elem, "AppliesToHotspots", true);
+    data.AppliesToObjects = ReadBool(elem, "AppliesToObjects", true);
+    data.AppliesToInvItems = ReadBool(elem, "AppliesToInvItems", true);
+    data.AppliesToRooms = ReadBool(elem, "AppliesToRooms", true);
+    data.Translated = ReadBool(elem, "Translated");
 }
 
-void GameSettings::ReadGameSettings(DocElem elem, DataUtil::GameSettings& s)
+void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
 {
     s.AllowRelativeAssetResolutions = ReadBool(elem, "AllowRelativeAssetResolutions");
     s.AlwaysDisplayTextAsSpeech = ReadBool(elem, "AlwaysDisplayTextAsSpeech");
@@ -1021,6 +1029,7 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
 void ReadCustomPropertySchema(std::vector<DataUtil::CustomPropertySchemaItem> &schema, DocElem root)
 {
     AGF::CustomPropertySchema props;
+    AGF::CustomPropertySchemaItem parser;
     std::vector<AGF::DocElem> prop_elems;
     props.GetAll(root, prop_elems);
     if (prop_elems.size() == 0)
@@ -1029,16 +1038,7 @@ void ReadCustomPropertySchema(std::vector<DataUtil::CustomPropertySchemaItem> &s
     for (const auto &el : prop_elems)
     {
         DataUtil::CustomPropertySchemaItem prop;
-        prop.Name = CustomPropertySchemaItem::ReadName(el);
-        prop.Description = CustomPropertySchemaItem::ReadDescription(el);
-        prop.DefaultValue = CustomPropertySchemaItem::ReadDefaultValue(el);
-        prop.Type = CustomPropertySchemaItem::ReadType(el);
-        prop.AppliesToCharacters = CustomPropertySchemaItem::ReadAppliesToCharacters(el);
-        prop.AppliesToHotspots = CustomPropertySchemaItem::ReadAppliesToHotspots(el);
-        prop.AppliesToObjects = CustomPropertySchemaItem::ReadAppliesToObjects(el);
-        prop.AppliesToInvItems = CustomPropertySchemaItem::ReadAppliesToInvItems(el);
-        prop.AppliesToRooms = CustomPropertySchemaItem::ReadAppliesToRooms(el);
-        prop.Translated = CustomPropertySchemaItem::ReadTranslated(el);
+        parser.ReadAllData(el, prop);
         schema.push_back(prop);
     }
 }
@@ -1048,7 +1048,7 @@ void ReadGameSettings(DataUtil::GameSettings &opt, DocElem elem)
     AGF::Game p_game;
     AGF::GameSettings p_set;
     DocElem set_elem = p_game.GetSettings(elem);
-    p_set.ReadGameSettings(set_elem, opt);
+    p_set.ReadAllData(set_elem, opt);
 }
 
 static DataUtil::FontOutlineStyle ReadFontOutlineStyle(const String &value)
@@ -1326,7 +1326,7 @@ static void SortByID(std::vector<T> &items)
 
 static void ReadGameCommon(DataUtil::GameRef &game, DocElem root)
 {
-    game.PlayerCharacter = Game::ReadPlayerCharacter(root);
+    game.PlayerCharacter = ValueParser::ReadInt(root, "PlayerCharacter", -1);
     ReadRoomList(game.Rooms, root);
     ReadGlobalVariables(game.GlobalVars, root);
     ReadCustomPropertySchema(game.PropertySchema, root);

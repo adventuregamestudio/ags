@@ -370,16 +370,7 @@ public:
 class CustomPropertySchemaItem : public ValueParser
 {
 public:
-    static String ReadName(DocElem elem) { return ReadString(elem, "Name"); }
-    static String ReadDescription(DocElem elem) { return ReadString(elem, "Description"); }
-    static String ReadDefaultValue(DocElem elem) { return ReadString(elem, "DefaultValue"); }
-    static AGS::Common::PropertyType ReadType(DocElem elem);
-    static bool ReadAppliesToCharacters(DocElem elem) { return ReadBool(elem, "AppliesToCharacters", true); }
-    static bool ReadAppliesToHotspots(DocElem elem) { return ReadBool(elem, "AppliesToHotspots", true); }
-    static bool ReadAppliesToObjects(DocElem elem) { return ReadBool(elem, "AppliesToObjects", true); }
-    static bool ReadAppliesToInvItems(DocElem elem) { return ReadBool(elem, "AppliesToInvItems", true); }
-    static bool ReadAppliesToRooms(DocElem elem) { return ReadBool(elem, "AppliesToRooms", true); }
-    static bool ReadTranslated(DocElem elem) { return ReadBool(elem, "Translated"); }
+    void ReadAllData(DocElem elem, DataUtil::CustomPropertySchemaItem &data);
 };
 
 class CustomPropertySchema : public EntityListParser
@@ -396,7 +387,6 @@ public:
     String ReadScriptName(DocElem elem) override { return ""; }
 
     DocElem GetSettings(DocElem elem);
-    static int ReadPlayerCharacter(DocElem elem) { return ReadInt(elem, "PlayerCharacter", -1); }
 };
 
 class GameSettings : public EntityParser
@@ -405,7 +395,7 @@ public:
     String ReadType(DocElem elem) override { return "GameSettings"; }
     int    ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
-    void ReadGameSettings(DocElem elem, DataUtil::GameSettings& s);
+    void ReadAllData(DocElem elem, DataUtil::GameSettings& s);
 };
 
 // Parses a description of an individual script file (header or body)

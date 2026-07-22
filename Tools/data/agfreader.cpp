@@ -1324,15 +1324,21 @@ static void SortByID(std::vector<T> &items)
     std::sort(items.begin(), items.end(), [](const T &a, const T &b) { return a.ID < b.ID; });
 }
 
-
+static void ReadGameCommon(DataUtil::GameRef &game, DocElem root)
+{
+    game.PlayerCharacter = Game::ReadPlayerCharacter(root);
+    ReadRoomList(game.Rooms, root);
+    ReadGlobalVariables(game.GlobalVars, root);
+    ReadCustomPropertySchema(game.PropertySchema, root);
+    ReadGameSettings(game.Settings, root);
+}
 
 void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
 {
     game = DataUtil::GameData{};
     DocElem root = reader.GetGameRoot();
 
-    game.PlayerCharacter = Game::ReadPlayerCharacter(root);
-
+    ReadGameCommon(game, root);
     game.EditorVersion = reader.GetEditorVersion();
     // Audio clips
     {
@@ -1537,47 +1543,105 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         data.Data = DecodeBase64(ValueParser::ReadString(plugin, "Data"));
         game.Plugins.push_back(data);
     }
-
-    // Rooms
-    ReadRoomList(game.Rooms, root);
-
-    // Global Variables
-    ReadGlobalVariables(game.GlobalVars, root);
-
-    // Custom property schema
-    ReadCustomPropertySchema(game.PropertySchema, root);
-
-    // Game settings
-    ReadGameSettings(game.Settings, root);
 }
 
+// lightweight, read only the EntityRefs
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
 {
-    DataUtil::GameData data;
-    ReadGameData(data, reader);
+    game = DataUtil::GameRef{};
+    DocElem root = reader.GetGameRoot();
 
-    game = static_cast<const DataUtil::GameRef&>(data);
+    ReadGameCommon(game, root);
 
-    game.AudioClips.assign(data.AudioClips.begin(), data.AudioClips.end());
-    game.AudioTypes.assign(data.AudioTypes.begin(), data.AudioTypes.end());
-    game.Characters.assign(data.Characters.begin(), data.Characters.end());
-    game.Cursors.assign(data.Cursors.begin(), data.Cursors.end());
-    game.Fonts.assign(data.Fonts.begin(), data.Fonts.end());
-    game.Inventory.assign(data.Inventory.begin(), data.Inventory.end());
-    game.Views.assign(data.Views.begin(), data.Views.end());
-
-    game.GUI.reserve(data.GUI.size());
-    for (const auto &gui_data : data.GUI)
+    // Simple entity references.
     {
-        DataUtil::GUIRef gui;
-        static_cast<DataUtil::EntityRef&>(gui) = gui_data;
-        gui.Controls.reserve(gui_data.Controls.size());
-        for (const auto &control : gui_data.Controls)
+        AGF::AudioClips list;
+        AGF::AudioClip parser;
+        ReadAllEntityRefs(game.AudioClips, list, parser, root);
+        SortByID(game.AudioClips);
+    }
+    {
+        AGF::AudioTypes list;
+        AGF::AudioType parser;
+        ReadAllEntityRefs(game.AudioTypes, list, parser, root);
+        SortByID(game.AudioTypes);
+    }
+    {
+        AGF::Characters list;
+        AGF::Character parser;
+        ReadAllEntityRefs(game.Characters, list, parser, root);
+        SortByID(game.Characters);
+    }
+    {
+        AGF::Cursors list;
+        AGF::Cursor parser;
+        ReadAllEntityRefs(game.Cursors, list, parser, root);
+        SortByID(game.Cursors);
+    }
+
+    // DialogRef includes the option metadata required by dialog conversion.
+    {
+        AGF::Dialogs list;
+        std::vector<DocElem> elems;
+        list.GetAll(root, elems);
+        for (DocElem elem : elems)
         {
-            if (control)
-                gui.Controls.push_back(*control);
+            DataUtil::DialogRef dialog;
+            ReadDialog(dialog, elem);
+            game.Dialogs.push_back(dialog);
         }
-        game.GUI.push_back(gui);
+    }
+
+    {
+        AGF::Fonts list;
+        AGF::Font parser;
+        ReadAllEntityRefs(game.Fonts, list, parser, root);
+        SortByID(game.Fonts);
+    }
+
+    // GUIs retain only their own reference and their control references.
+    {
+        AGF::GUIs list;
+        AGF::GUIMain parser;
+        AGF::GUIControls control_list;
+        AGF::GUIControl control_parser;
+        std::vector<DocElem> elems;
+        list.GetAll(root, elems);
+        for (DocElem elem : elems)
+        {
+            DataUtil::GUIRef gui;
+            ReadEntityRef(gui, parser, elem);
+            ReadAllEntityRefs(gui.Controls, control_list, control_parser, elem);
+            game.GUI.push_back(gui);
+        }
+    }
+
+    {
+        AGF::Inventory list;
+        AGF::InventoryItem parser;
+        ReadAllEntityRefs(game.Inventory, list, parser, root);
+        SortByID(game.Inventory);
+    }
+
+    // Views are indexed by ID minus one in both representations; retain empty
+    // slots so that script macro generation observes the same indices.
+    {
+        AGF::Views list;
+        AGF::View parser;
+        std::vector<DocElem> elems;
+        std::vector<DataUtil::EntityRef> views;
+        int max_id = 0;
+        list.GetAll(root, elems);
+        for (DocElem elem : elems)
+        {
+            DataUtil::EntityRef view;
+            ReadEntityRef(view, parser, elem);
+            max_id = std::max(max_id, view.ID);
+            views.push_back(view);
+        }
+        game.Views.resize(max_id);
+        for (const auto &view : views)
+            if (view.ID > 0) game.Views[view.ID - 1] = view;
     }
 }
 

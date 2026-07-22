@@ -38,17 +38,15 @@ static String DeclareEntities(const std::vector<EntityRef> &ents,
 
     String header;
     if (array_name)
-        header.Append(String::FromFormat("import %s %s[%d];\n",
-            type_name, array_name, ents.size() + array_base));
+        header.AppendFmt("import %s %s[%d];\n",
+            type_name, array_name, ents.size() + array_base);
 
-    String buf;
     for (const auto &ent : ents)
     {
         String name = ent.ScriptName;
         if (name.IsEmpty())
             continue;
-        buf.Format("import %s %s;\n", type_name, name.GetCStr());
-        header.Append(buf);
+        header.AppendFmt("import %s %s;\n", type_name, name.GetCStr());
     }
     return header;
 }
@@ -66,7 +64,6 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
         return "";
 
     String header;
-    String buf;
     size_t len_prefix = 0;
     if(check_prefix) len_prefix = strlen(check_prefix);
     for (const auto &ent : ents)
@@ -85,8 +82,7 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
             continue;
 
         name.MakeUpper();
-        buf.Format("#define %s %d\n", name.GetCStr(), ent.ID);
-        header.Append(buf);
+        header.AppendFmt("#define %s %d\n", name.GetCStr(), ent.ID);
     }
     return header;
 }
@@ -107,9 +103,7 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
     }
 
     String header;
-    String buf;
-    buf.Format("enum %s {\n", enum_name);
-    header.Append(buf);
+    header.AppendFmt("enum %s {\n", enum_name);
     const String const_name = const_prefix ? const_prefix : "";
     bool first = true;
     for (const auto &ent : ents)
@@ -122,8 +116,7 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
         else if (!std::isalpha(name[0]))
             continue;
 
-        buf.Format("%s  %s%s = %d", first ? "" : ",\n", const_name.GetCStr(), name.GetCStr(), ent.ID);
-        header.Append(buf);
+        header.AppendFmt("%s  %s%s = %d", first ? "" : ",\n", const_name.GetCStr(), name.GetCStr(), ent.ID);
         first = false;
     }
     header.Append("\n};\n");
@@ -140,9 +133,8 @@ static String DeclareGUI(const std::vector<GUIRef> &guis)
         return "";
 
     String header;
-    header.Append(String::FromFormat("import GUI gui[%d];\n", guis.size()));
+    header.AppendFmt("import GUI gui[%d];\n", guis.size());
 
-    String buf;
     String macro_name;
     for (const auto &gui : guis)
     {
@@ -150,15 +142,13 @@ static String DeclareGUI(const std::vector<GUIRef> &guis)
         if (gui_name.IsEmpty())
             continue;
 
-        buf.Format("import GUI %s;\n", gui_name.GetCStr());
-        header.Append(buf);
+        header.AppendFmt("import GUI %s;\n", gui_name.GetCStr());
 
         if (gui_name.GetAt(0) == 'g')
         {
             macro_name = gui_name.Mid(1);
             macro_name.MakeUpper();
-            buf.Format("#define %s FindGUIID(\"%s\")\n", macro_name.GetCStr(), macro_name.GetCStr());
-            header.Append(buf);
+            header.AppendFmt("#define %s FindGUIID(\"%s\")\n", macro_name.GetCStr(), macro_name.GetCStr());
         }
 
         for (const auto &ent : gui.Controls)
@@ -167,8 +157,7 @@ static String DeclareGUI(const std::vector<GUIRef> &guis)
             if (obj_name.IsEmpty())
                 continue;
             const String &class_name = ent.TypeName;
-            buf.Format("import %s %s;\n", class_name.GetCStr(), obj_name.GetCStr());
-            header.Append(buf);
+            header.AppendFmt("import %s %s;\n", class_name.GetCStr(), obj_name.GetCStr());
         }
     }
     return header;

@@ -33,7 +33,7 @@ void WriteCursor(Stream *out, const DataUtil::CursorData &cursor);
 void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out);
 void WriteView(Stream *out, const DataUtil::GameData &game,
     const DataUtil::ViewData &view);
-void WriteAudioType(Stream *out, const DataUtil::AudioTypeData *type);
+void WriteAudioType(Stream *out, const DataUtil::AudioTypeData *type, int id);
 void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &clip,
     int index);
 void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game);

@@ -154,7 +154,7 @@ class AudioType : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "TypeID"); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
     void ReadAllData(DocElem elem, DataUtil::AudioTypeData &data);
 };
 
@@ -174,7 +174,7 @@ class Cursor : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
     void ReadAllData(DocElem elem, DataUtil::CursorData &data);
 };
 
@@ -196,7 +196,7 @@ class Font : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
     void ReadAllData(DocElem elem, DataUtil::FontData &data);
 };
 

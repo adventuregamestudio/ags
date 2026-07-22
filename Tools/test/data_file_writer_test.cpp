@@ -527,7 +527,7 @@ TEST(DataFileWriter, RoundTripAudioType)
     std::vector<uint8_t> buffer;
     auto out = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer, kStream_Write));
-    DataFileWriter::WriteAudioType(out.get(), &type);
+    DataFileWriter::WriteAudioType(out.get(), &type, 4);
     out.reset();
 
     auto in = std::make_unique<Stream>(
@@ -580,10 +580,10 @@ TEST(DataFileWriter, RoundTripAudioBlock)
 {
     DataUtil::GameData game;
     DataUtil::AudioTypeData music;
-    music.ID = 1;
+    music.ID = 10;
     music.MaxChannels = 2;
     DataUtil::AudioTypeData sound;
-    sound.ID = 2;
+    sound.ID = 20;
     sound.MaxChannels = 4;
     game.AudioTypes = { music, sound };
 
@@ -604,6 +604,8 @@ TEST(DataFileWriter, RoundTripAudioBlock)
     ASSERT_EQ(3u, loaded.Types.size());
     EXPECT_EQ(0, loaded.Types[0].id); // synthetic reserved type 0
     EXPECT_EQ(1, loaded.Types[0].reservedChannels);
+    // DataFileWriter.cs serializes audio type IDs from collection positions,
+    // rather than from AudioClipType.TypeID.
     EXPECT_EQ(1, loaded.Types[1].id);
     EXPECT_EQ(2, loaded.Types[2].id);
     ASSERT_EQ(2u, loaded.Clips.size());

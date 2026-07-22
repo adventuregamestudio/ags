@@ -422,9 +422,9 @@ void WriteGuiListBox(Stream *out, const DataUtil::GUIListBoxData &list_box)
 }
 
 // Read by AudioClipType::ReadFromFile() in Common/ac/audiocliptype.cpp.
-void WriteAudioType(Stream *out, const DataUtil::AudioTypeData *type)
+void WriteAudioType(Stream *out, const DataUtil::AudioTypeData *type, int id)
 {
-    out->WriteInt32(type ? type->ID : 0);
+    out->WriteInt32(id);
     out->WriteInt32(type ? type->MaxChannels : 1);
     out->WriteInt32(type ? type->VolumeReductionWhileSpeechPlaying : 0);
     out->WriteInt32(type ? type->Crossfade : 0);
@@ -920,9 +920,9 @@ void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
 {
     const int audio_type_count = static_cast<int>(game.AudioTypes.size()) + 1;
     out->WriteInt32(audio_type_count);
-    WriteAudioType(out, nullptr);
-    for (const auto &audio_type : game.AudioTypes)
-        WriteAudioType(out, &audio_type);
+    WriteAudioType(out, nullptr, 0);
+    for (size_t i = 0; i < game.AudioTypes.size(); ++i)
+        WriteAudioType(out, &game.AudioTypes[i], static_cast<int>(i) + 1);
 
     out->WriteInt32(static_cast<int32_t>(game.AudioClips.size()));
     for (size_t i = 0; i < game.AudioClips.size(); ++i)

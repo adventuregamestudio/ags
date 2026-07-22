@@ -437,6 +437,38 @@ static AGS::Common::PropertyType ReadCustomPropertyType(const String &value)
         AGS::Common::kPropertyBoolean, AGS::Common::kPropertyUndefined);
 }
 
+
+static String BuildPrefixedScriptID(const String &name, const char *prefix)
+{
+    String script_id;
+    for (size_t c = 0; c < name.GetLength(); ++c)
+    {
+        if (StrUtil::IsScriptWordChar(name[c]))
+            script_id.AppendChar(name[c]);
+    }
+    // Font.cs and AudioClipType.cs retain the prefix when a nonempty name is
+    // made entirely of invalid characters, unlike MouseCursor.cs. Such names
+    // are improbable, so use the cursor behavior consistently for all three.
+    if (!script_id.IsEmpty())
+        script_id.Prepend(prefix);
+    return script_id;
+}
+
+String BuildAudioTypePrefixedScriptID(const String &name)
+{
+    return BuildPrefixedScriptID(name, "eAudioType");
+}
+
+String BuildFontPrefixedScriptID(const String &name)
+{
+    return BuildPrefixedScriptID(name, "eFont");
+}
+
+String BuildMouseCursorPrefixedScriptID(const String &name)
+{
+    return BuildPrefixedScriptID(name, "eMode");
+}
+
 static DataUtil::FontOutlineStyle ReadFontOutlineStyle(const String &value);
 static DataUtil::FontAutoOutlineStyle ReadFontAutoOutlineStyle(const String &value);
 static DataUtil::SpriteImportResolution ReadSpriteImportResolution(const String &value);
@@ -493,8 +525,14 @@ static HorAlignment ReadHorizontalAlignment(const String &value, HorAlignment de
     return def_value;
 }
 
+String Cursor::ReadScriptName(DocElem elem)
+{
+    return BuildMouseCursorPrefixedScriptID(ReadString(elem, "Name"));
+}
+
 void Cursor::ReadAllData(DocElem elem, DataUtil::CursorData &data)
 {
+    data.Name = ReadString(elem, "Name"); // This is MouseCursor Name
     data.Image = ReadInt(elem, "Image");
     data.HotspotX = ReadInt(elem, "HotspotX");
     data.HotspotY = ReadInt(elem, "HotspotY");
@@ -858,20 +896,6 @@ void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem)
     ent.ScriptName = name;
 }
 
-static String BuildCursorScriptID(const String &name)
-{
-    String cursor_name;
-    // This is from MouseCursor.cs ScriptID read-only property
-    for (size_t c = 0; c < name.GetLength(); ++c)
-    {
-        if (StrUtil::IsScriptWordChar(name[c]))
-            cursor_name.AppendChar(name[c]);
-    }
-    if (cursor_name.GetLength() > 0)
-        cursor_name.Prepend("eMode");
-    return cursor_name;
-}
-
 void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser,
     EntityParser &parser, DocElem root)
 {
@@ -1167,8 +1191,14 @@ void AudioClip::ReadAllData(DocElem elem, DataUtil::AudioClipData &data)
     data.Volume = volume < 0 ? 100 : volume;
 }
 
+String AudioType::ReadScriptName(DocElem elem)
+{
+    return BuildAudioTypePrefixedScriptID(ReadString(elem, "Name"));
+}
+
 void AudioType::ReadAllData(DocElem elem, DataUtil::AudioTypeData &data)
 {
+    data.Name = ReadString(elem, "Name"); // This is AudioCliptType Name
     data.MaxChannels = ReadInt(elem, "MaxChannels");
     data.VolumeReductionWhileSpeechPlaying = ReadInt(elem, "VolumeReductionWhileSpeechPlaying");
     data.Crossfade = ReadCrossfadeSpeed(ReadString(elem, "CrossfadeClips"));
@@ -1235,8 +1265,14 @@ void View::ReadAllData(DocElem elem, DataUtil::ViewData &data)
     }
 }
 
+String Font::ReadScriptName(DocElem elem)
+{
+    return BuildFontPrefixedScriptID(ReadString(elem, "Name"));
+}
+
 void Font::ReadAllData(DocElem elem, DataUtil::FontData &data)
 {
+    data.Name = ReadScriptName(elem); // This is Font Name
     data.AutoOutlineThickness = ValueParser::ReadInt(elem, "AutoOutlineThickness");
     data.AutoOutlineStyle = ReadFontAutoOutlineStyle(ValueParser::ReadString(elem, "AutoOutlineStyle"));
     data.CharacterSpacing = ValueParser::ReadInt(elem, "CharacterSpacing");
@@ -1353,8 +1389,6 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         {
             DataUtil::CursorData data;
             ReadEntityRef(data, cursor, el);
-            data.Name = cursor.ReadScriptName(el); // This is MouseCursor Name
-            data.ScriptName = BuildCursorScriptID(data.Name); // This is MouseCursor ScriptID
             cursor.ReadAllData(el, data);
             game.Cursors.push_back(data);
         }

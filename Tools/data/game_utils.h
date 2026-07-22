@@ -268,6 +268,8 @@ struct ViewData : EntityRef
 
 struct FontData : EntityRef
 {
+    // NOTE: We are using the ScriptName property as the ScriptID from Font.cs
+    String Name;
     int AutoOutlineThickness{};
     FontAutoOutlineStyle AutoOutlineStyle = kFontAutoOutline_Squared;
     int CharacterSpacing{};
@@ -305,6 +307,8 @@ struct TextParserWordData
 
 struct AudioTypeData : EntityRef
 {
+    // NOTE: We are using the ScriptName property as the ScriptID from AudioClipType.cs
+    String Name;
     int MaxChannels{};
     int VolumeReductionWhileSpeechPlaying{};
     CrossfadeSpeed Crossfade = kCrossfade_No;

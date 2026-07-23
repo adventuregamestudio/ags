@@ -123,15 +123,6 @@ inline bool IsWhitespaceNoLineBreak(int c)
     return c == ' ' || c == '\t' || c == '\v' || c == '\f';
 }
 
-// Tells if this character may be a part of a script symbol
-inline bool IsScriptWordChar(char c)
-{
-    return ((c >= 'A') && (c <= 'Z')) ||
-           ((c >= 'a') && (c <= 'z')) ||
-           ((c >= '0') && (c <= '9')) ||
-           (c == '_');
-}
-
 // Returns a escaped character corresponding to the given character;
 // e.g. 'n'=>'\n', 't'=>'\t', etc.
 // If no such escaped character exists, then returns input character.

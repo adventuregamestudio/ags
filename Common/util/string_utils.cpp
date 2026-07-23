@@ -270,6 +270,23 @@ void StrUtil::WriteString(const char *cstr, size_t len, Stream *out)
         out->Write(cstr, len);
 }
 
+void StrUtil::WriteFixedString(const String &s, size_t len, Stream *out)
+{
+    if (!out || len == 0)
+        return;
+
+    // truncate and pad using raw bytes
+    const String tmp = s.Left(len);
+    if (!tmp.IsEmpty())
+        out->Write(tmp.GetCStr(), tmp.GetLength());
+    out->WriteByteCount(0, len - tmp.GetLength());
+}
+
+void StrUtil::WriteFixedString(const char *cstr, size_t len, Stream *out)
+{
+    WriteFixedString(String::Wrapper(cstr), len, out);
+}
+
 void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
 {
     if (buf_limit == 0)

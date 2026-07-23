@@ -170,18 +170,18 @@ String MakeGameAutoScriptHeader(const GameRef &game)
     // Audio clips
     header.Append(DeclareEntities(game.AudioClips, "AudioClip"));
     // Audio types
-    header.Append(DeclareEntitiesAsEnum(game.AudioTypes, "AudioType", "eAudioType"));
+    header.Append(DeclareEntitiesAsEnum(game.AudioTypes, "AudioType"));
     // Characters
     header.Append(DeclareEntities(game.Characters, "Character", "character"));
     header.Append(DeclareEntitiesAsMacros(game.Characters, "c"));
     // Cursors
-    header.Append(DeclareEntitiesAsEnum(game.Cursors, "CursorMode", "eMode"));
+    header.Append(DeclareEntitiesAsEnum(game.Cursors, "CursorMode"));
     // Dialogs
     std::vector<EntityRef> dialogs; // TODO: look for better solution later
     std::copy(game.Dialogs.begin(), game.Dialogs.end(), std::back_inserter(dialogs));
     header.Append(DeclareEntities(dialogs, "Dialog", "dialog"));
     // Fonts
-    header.Append(DeclareEntitiesAsEnum(game.Fonts, "FontType", "eFont"));
+    header.Append(DeclareEntitiesAsEnum(game.Fonts, "FontType"));
     // GUI
     header.Append(DeclareGUI(game.GUI));
     // Inventory items (array is 1-based)

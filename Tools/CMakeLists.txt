@@ -94,7 +94,7 @@ endif()
 target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
 set(TOOLS_MINIMAL_ALLEGRO_SOURCES
         ../libsrc/allegro/src/color.c
-        data/minallegro_inline.c)
+)
 target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools
@@ -174,6 +174,7 @@ target_link_libraries(crmpak PUBLIC libtools)
 add_executable(spritepak spritepak/main.cpp
         spritepak/commands.h
         spritepak/commands.cpp
+        data/minallegro_inline.c
         )
 set_target_properties(spritepak PROPERTIES
         CXX_STANDARD 11
@@ -189,6 +190,28 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
+if(AGS_BUILD_COMPILER)
+    add_subdirectory(libgamebuild)
+
+    function(add_libgamebuild_tool target)
+        add_executable(${target} ${target}/main.cpp agdta/agdta_stubs.cpp)
+        set_target_properties(${target} PROPERTIES
+            CXX_STANDARD 17
+            CXX_EXTENSIONS NO
+        )
+        target_include_directories(${target} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/libgamebuild
+            ${CMAKE_CURRENT_SOURCE_DIR}/../Common
+        )
+        target_link_libraries(${target} PUBLIC libgamebuild)
+        if(AGS_DESKTOP)
+            install(TARGETS ${target} RUNTIME DESTINATION bin)
+        endif()
+    endfunction()
+
+    add_libgamebuild_tool(agdta)
+endif()
+
 list(APPEND TOOLS_TARGETS
         agf2dlgasc
         agfexport
@@ -198,6 +221,10 @@ list(APPEND TOOLS_TARGETS
         spritepak
         trac
         )
+
+if(AGS_BUILD_COMPILER)
+    list(APPEND TOOLS_TARGETS agdta)
+endif()
 
 # Bundle-like target to build all tools
 add_custom_target(Tools)
@@ -226,4 +253,33 @@ if(AGS_TESTS)
 
    include(GoogleTest)
    gtest_add_tests(TARGET tools_test)
+
+   if(AGS_BUILD_COMPILER)
+      add_executable(agdta_test
+         test/agdta_test.cpp
+         test/agdta_test_compile.cpp
+         agdta/agdta_stubs.cpp
+      )
+      set_target_properties(agdta_test PROPERTIES
+         CXX_STANDARD 17
+         CXX_EXTENSIONS NO
+         C_STANDARD 11
+         C_EXTENSIONS NO
+         INTERPROCEDURAL_OPTIMIZATION FALSE
+      )
+      target_include_directories(agdta_test PRIVATE
+         ${CMAKE_CURRENT_SOURCE_DIR}/libgamebuild
+         ${CMAKE_CURRENT_SOURCE_DIR}/data
+      )
+      target_compile_definitions(agdta_test PRIVATE
+         AGDTA_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures/minimal"
+         SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+      )
+      target_link_libraries(agdta_test
+         libgamebuild
+         AGS::Compiler
+         gtest_main
+      )
+      gtest_add_tests(TARGET agdta_test)
+   endif()
 endif()

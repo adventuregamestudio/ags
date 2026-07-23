@@ -26,8 +26,6 @@
 //  * v362_interevent2 retains character and inventory event function names,
 //    but its embedded global/dialog/module filenames are empty until those
 //    external-file names are part of GameData;
-//  * AGF input also drops some project data that the Editor writer serializes:
-//    GUI button WrapText;
 //  * settings that are absent from Game.agf/GameData (notably the legacy
 //    letterbox-resolution value) still use the modern/default representation.
 
@@ -349,7 +347,9 @@ int GetButtonClickAction(const String &action)
 // Read by GUIButton::ReadFromFile() in Common/gui/guibutton.cpp.
 void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
 {
-    WriteGuiControl(out, button, button.ClipImage ? kGUICtrl_Clip : 0, &button.OnClick);
+    const int flags = (button.ClipImage ? kGUICtrl_Clip : 0) |
+        (button.WrapText ? kGUICtrl_WrapText : 0);
+    WriteGuiControl(out, button, flags, &button.OnClick);
     out->WriteInt32(button.Image);
     out->WriteInt32(button.MouseoverImage);
     out->WriteInt32(button.PushedImage);

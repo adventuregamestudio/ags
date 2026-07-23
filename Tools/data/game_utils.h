@@ -372,6 +372,7 @@ struct GUIButtonData : GUIControlData
 {
     String ClickAction;
     bool ClipImage{};
+    bool WrapText{};
     int Font{};
     int Image{};
     int MouseoverImage{};
@@ -443,8 +444,8 @@ struct GUIListBoxData : GUIControlData
     int TextOutlineColor{};
 };
 
-// GUIRef contains only GUI data strictly necessary for generating scripts.
-// NOTE: replace with full GUI struct later if appears necessary
+// Lightweight GUI data used by script generation. GUIData is the full form
+// used when serializing a compiled game.
 struct GUIRef : EntityRef
 {
     std::vector<EntityRef> Controls;
@@ -620,8 +621,8 @@ struct CursorData : EntityRef
     int AnimationDelay = 5;
 };
 
-// GameRef contains only game data strictly necessary for generating scripts.
-// NOTE: replace with full Game struct later if appears necessary
+// Lightweight game data used by script generation and dialog conversion.
+// GameData derives from this and adds the data required for serialization.
 struct GameRef
 {
     std::vector<EntityRef> AudioClips;

@@ -1365,6 +1365,7 @@ TEST(DataFileWriter, RoundTripGuiButton)
     auto button = MakeControl<DataUtil::GUIButtonData>("btnPlay");
     button->ClickAction = "RunScript";
     button->ClipImage = true;
+    button->WrapText = true;
     button->Font = 2;
     button->Image = 41;
     button->MouseoverImage = 42;
@@ -1382,6 +1383,7 @@ TEST(DataFileWriter, RoundTripGuiButton)
     const GUIButton &actual = loaded.Objects.Buttons[0];
     ExpectControlBase(*button, actual);
     EXPECT_TRUE(actual.IsClippingImage());
+    EXPECT_TRUE(actual.IsWrapText());
     EXPECT_EQ(button->Image, actual.GetNormalImage());
     EXPECT_EQ(button->MouseoverImage, actual.GetMouseOverImage());
     EXPECT_EQ(button->PushedImage, actual.GetPushedImage());

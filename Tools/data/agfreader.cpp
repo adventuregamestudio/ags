@@ -655,6 +655,7 @@ void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data)
 {
     data.ClickAction = ReadString(elem, "ClickAction");
     data.ClipImage = ReadBool(elem, "ClipImage");
+    data.WrapText = ReadBool(elem, "WrapText");
     data.Font = ReadInt(elem, "Font");
     data.Image = ReadInt(elem, "Image");
     data.MouseoverImage = ReadInt(elem, "MouseoverImage");
@@ -1272,7 +1273,7 @@ String Font::ReadScriptName(DocElem elem)
 
 void Font::ReadAllData(DocElem elem, DataUtil::FontData &data)
 {
-    data.Name = ReadScriptName(elem); // This is Font Name
+    data.Name = ReadString(elem, "Name"); // This is Font Name
     data.AutoOutlineThickness = ValueParser::ReadInt(elem, "AutoOutlineThickness");
     data.AutoOutlineStyle = ReadFontAutoOutlineStyle(ValueParser::ReadString(elem, "AutoOutlineStyle"));
     data.CharacterSpacing = ValueParser::ReadInt(elem, "CharacterSpacing");

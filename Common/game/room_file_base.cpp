@@ -110,14 +110,14 @@ String GetRoomBlockName(RoomFileBlock id)
 }
 
 // Helper for new-style blocks with string id
-void WriteRoomBlock(const RoomStruct *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
+void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
 {
     WriteExtBlock(ext_id, [room, writer](Stream *out) { writer(room, out); },
         kDataExt_NumID8 | kDataExt_File64, out);
 }
 
 // Helper for old-style blocks with only numeric id
-void WriteRoomBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
+void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
 {
     WriteExtBlock(block, [room, writer](Stream *out) { writer(room, out); },
         kDataExt_NumID8 | kDataExt_File64, out);

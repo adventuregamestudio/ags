@@ -191,12 +191,38 @@ public:
         _buf = _data.get();
         _cbuf = _data.get();
     }
+    PixelBuffer(const PixelBuffer &src)
+    {
+        *this = src;
+    }
 
     inline std::unique_ptr<uint8_t[]> ReleaseData()
     {
         auto data = std::move(_data);
         *this = {};
         return data;
+    }
+
+    inline PixelBuffer &operator =(const PixelBuffer &src)
+    {
+        _width = src._width;
+        _height = src._height;
+        _bitsPerPixel = src._bitsPerPixel;
+        _format = src._format;
+        _dataSize = src._dataSize;
+        _stride = src._stride;
+        if (src._data)
+        {
+            _data.reset(new uint8_t[_dataSize]);
+            std::copy(src._data.get(), src._data.get() + _dataSize, _data.get());
+        }
+        else
+        {
+            _data = nullptr;
+        }
+        _buf = _data.get();
+        _cbuf = _data.get();
+        return *this;
     }
 
 private:

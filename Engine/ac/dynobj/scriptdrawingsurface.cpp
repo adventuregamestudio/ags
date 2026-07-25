@@ -44,7 +44,7 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
     // TODO: consider creating weak_ptr here, and store one in the DrawingSurface!
     if (roomBackgroundNumber >= 0)
-        return thisroom.BgFrames[roomBackgroundNumber].Graphic.get();
+        return thisroom.BgImages[roomBackgroundNumber].get();
     else if (dynamicSpriteNumber >= 0)
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)

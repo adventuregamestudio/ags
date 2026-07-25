@@ -2354,7 +2354,7 @@ void prepare_room_sprites()
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
         roomBackgroundBmp =
-            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
+            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgImages[play.bg_frame].get(), false, true);
     }
     if (drawstate.FullFrameRedraw)
     {
@@ -2457,7 +2457,7 @@ PBitmap draw_room_background(Viewport *view)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgFrames[play.bg_frame].Graphic.get(), draw_to_camsurf);
+        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgImages[play.bg_frame].get(), draw_to_camsurf);
     }
 
     return CameraDrawData[view_index].Frame;

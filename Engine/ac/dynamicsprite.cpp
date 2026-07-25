@@ -453,11 +453,11 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     data_to_game_coords(&x1, &y1);
     data_to_game_coords(&width, &height);
     // create a new sprite as a copy of the existing one
-    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, thisroom.BgFrames[frame].Graphic->GetColorDepth()));
+    std::unique_ptr<Bitmap> new_pic(BitmapHelper::CreateBitmap(width, height, thisroom.BgImages[frame]->GetColorDepth()));
     if (!new_pic)
         return nullptr;
 
-    new_pic->Blit(thisroom.BgFrames[frame].Graphic.get(), x1, y1, 0, 0, width, height);
+    new_pic->Blit(thisroom.BgImages[frame].get(), x1, y1, 0, 0, width, height);
 
     int new_slot = add_dynamic_sprite(std::move(new_pic));
     if (new_slot <= 0)

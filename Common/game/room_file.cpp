@@ -18,7 +18,6 @@
 #include "debug/out.h"
 #include "game/customproperties.h"
 #include "game/room_file.h"
-#include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "script/cc_common.h"
 #include "script/cc_script.h"
@@ -67,7 +66,7 @@ void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
 
 
 // Main room data
-HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
     int bpp;
     if (data_ver >= kRoomVersion_208)
@@ -347,19 +346,18 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     // Primary background (LZW or RLE compressed depending on format)
     if (data_ver >= kRoomVersion_pre114_5)
-        room->BgFrames[0].Graphic = std::make_shared<Bitmap>(
-            load_lzw(in, room->BackgroundBPP, &room->Palette));
+        room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
     else
-        room->BgFrames[0].Graphic = std::make_shared<Bitmap>(load_rle_bitmap8(in));
+        room->BgFrames[0].GraphicBuf = load_rle_bitmap8(in);
 
     // Area masks
     if (data_ver >= kRoomVersion_255b)
-        room->RegionMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
+        room->RegionMaskBuf = load_rle_bitmap8(in);
     else if (data_ver >= kRoomVersion_114)
         skip_rle_bitmap8(in); // an old version - clear the 'shadow' area into a blank regions bmp (???)
-    room->WalkAreaMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
-    room->WalkBehindMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
-    room->HotspotMask = std::make_shared<Bitmap>(load_rle_bitmap8(in));
+    room->WalkAreaMaskBuf = load_rle_bitmap8(in);
+    room->WalkBehindMaskBuf = load_rle_bitmap8(in);
+    room->HotspotMaskBuf = load_rle_bitmap8(in);
     return HError::None();
 }
 
@@ -375,7 +373,7 @@ HError ReadScriptBlock(std::vector<char> &buf, Stream *in, RoomFileVersion /*dat
 }
 
 // Compiled room script
-HError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadCompSc3Block(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     room->CompiledScript.reset(ccScript::CreateFromStream(in));
     if (room->CompiledScript == nullptr)
@@ -384,7 +382,7 @@ HError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver
 }
 
 // Room object names
-HError ReadObjNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HError ReadObjNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
@@ -402,7 +400,7 @@ HError ReadObjNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 }
 
 // Room object script names
-HError ReadObjScNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HError ReadObjScNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
     size_t name_count = static_cast<uint8_t>(in->ReadInt8());
     if (name_count != room->Objects.size())
@@ -420,7 +418,7 @@ HError ReadObjScNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ve
 }
 
 // Secondary backgrounds
-HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
     room->BgFrameCount = in->ReadInt8();
     if (room->BgFrameCount > MAX_ROOM_BGFRAMES)
@@ -435,14 +433,13 @@ HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
-        room->BgFrames[i].Graphic = std::make_shared<Bitmap>(
-            load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette));
+        room->BgFrames[i].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
     }
     return HError::None();
 }
 
 // Read custom properties
-HError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadPropertiesBlock(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     int prop_ver = in->ReadInt32();
     if (prop_ver != 1)
@@ -460,7 +457,7 @@ HError ReadPropertiesBlock(RoomStruct *room, Stream *in, RoomFileVersion /*data_
     return HError::None();
 }
 
-HError ReadExt_363_Objects(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/)
 {
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
     if (obj_count != room->Objects.size())
@@ -481,7 +478,7 @@ HError ReadExt_363_Objects(RoomStruct *room, Stream *in, RoomFileVersion /*data_
     return HError::None();
 }
 
-HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
+HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
     //
@@ -492,7 +489,7 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
     case kRoomFblk_Main:
         return ReadMainBlock(room, in, data_ver);
     case kRoomFblk_Script:
-        in->Seek(block_len); // no longer read source script text into RoomStruct
+        in->Seek(block_len); // no longer read source script text into RoomData
         return HError::None();
     case kRoomFblk_CompScript3:
         return ReadCompSc3Block(room, in, data_ver);
@@ -535,7 +532,7 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
 class RoomBlockReader : public DataExtReader
 {
 public:
-    RoomBlockReader(RoomStruct *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
+    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
         : DataExtReader(std::move(in),
             kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
         , _room(room)
@@ -564,12 +561,12 @@ private:
         return ReadRoomBlock(_room, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
     }
 
-    RoomStruct *_room {};
+    RoomData *_room {};
     RoomFileVersion _dataVer {};
 };
 
 
-HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
     RoomBlockReader reader(room, data_ver, std::move(in));
@@ -577,11 +574,11 @@ HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, Room
     return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
 }
 
-HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
+HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
 {
     if (data_ver < kRoomVersion_200_final)
     {
-        room->MaskResolution = room->BgFrames[0].Graphic->GetWidth() > 320 ? RoomStruct::LegacyMaskHiresFactor : 1;
+        room->MaskResolution = room->BgFrames[0].GraphicBuf.GetWidth() > 320 ? RoomData::LegacyMaskHiresFactor : 1;
     }
     if (data_ver < kRoomVersion_3508)
     {
@@ -597,9 +594,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     // Old version - copy walkable areas to regions
     if (data_ver < kRoomVersion_255b)
     {
-        if (!room->RegionMask)
-            room->RegionMask.reset(BitmapHelper::CreateBitmap(room->WalkAreaMask->GetWidth(), room->WalkAreaMask->GetHeight(), 8));
-        room->RegionMask->Blit(room->WalkAreaMask.get(), 0, 0, 0, 0, room->RegionMask->GetWidth(), room->RegionMask->GetHeight());
+        room->RegionMaskBuf = room->WalkAreaMaskBuf;
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         { // sic!! walkable areas were storing Light level in this field pre-2.55
             room->Regions[i].Light = room->WalkAreas[i].PlayerView;
@@ -731,7 +726,7 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool g
     return HRoomFileError::None();
 }
 
-HError LoadRoom(RoomStruct *room, std::unique_ptr<Stream> &&in,
+HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
     bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
 {
     room->Free();
@@ -745,9 +740,7 @@ HError LoadRoom(RoomStruct *room, std::unique_ptr<Stream> &&in,
         if (err)
             err = UpdateRoomData(room, src.DataVersion, game_is_hires, sprinfos);
     }
-    if (err)
-        return new Error(*err);
-    return HError::None();
+    return err;
 }
 
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
@@ -759,7 +752,7 @@ HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, R
     return HRoomFileError::None();
 }
 
-void WriteMainBlock(const RoomStruct *room, Stream *out)
+void WriteMainBlock(const RoomData *room, Stream *out)
 {
     out->WriteInt32(room->BackgroundBPP);
     out->WriteInt16((uint16_t)room->WalkBehindCount);
@@ -850,33 +843,33 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt32(room->Regions[i].Tint);
 
-    save_lzw(out, room->BgFrames[0].Graphic->GetBitmapData(), &room->Palette);
-    save_rle_bitmap8(out, room->RegionMask->GetBitmapData());
-    save_rle_bitmap8(out, room->WalkAreaMask->GetBitmapData());
-    save_rle_bitmap8(out, room->WalkBehindMask->GetBitmapData());
-    save_rle_bitmap8(out, room->HotspotMask->GetBitmapData());
+    save_lzw(out, room->BgFrames[0].GraphicBuf, &room->Palette);
+    save_rle_bitmap8(out, room->RegionMaskBuf);
+    save_rle_bitmap8(out, room->WalkAreaMaskBuf);
+    save_rle_bitmap8(out, room->WalkBehindMaskBuf);
+    save_rle_bitmap8(out, room->HotspotMaskBuf);
 }
 
-void WriteCompSc3Block(const RoomStruct *room, Stream *out)
+void WriteCompSc3Block(const RoomData *room, Stream *out)
 {
     room->CompiledScript->Write(out);
 }
 
-void WriteObjNamesBlock(const RoomStruct *room, Stream *out)
+void WriteObjNamesBlock(const RoomData *room, Stream *out)
 {
     out->WriteByte((uint8_t)room->Objects.size());
     for (const auto &obj : room->Objects)
         Common::StrUtil::WriteString(obj.Name, out);
 }
 
-void WriteObjScNamesBlock(const RoomStruct *room, Stream *out)
+void WriteObjScNamesBlock(const RoomData *room, Stream *out)
 {
     out->WriteByte((uint8_t)room->Objects.size());
     for (const auto &obj : room->Objects)
         Common::StrUtil::WriteString(obj.ScriptName, out);
 }
 
-void WriteAnimBgBlock(const RoomStruct *room, Stream *out)
+void WriteAnimBgBlock(const RoomData *room, Stream *out)
 {
     out->WriteByte((int8_t)room->BgFrameCount);
     out->WriteByte(room->BgAnimSpeed);
@@ -884,10 +877,10 @@ void WriteAnimBgBlock(const RoomStruct *room, Stream *out)
     for (size_t i = 0; i < room->BgFrameCount; ++i)
         out->WriteInt8(room->BgFrames[i].IsPaletteShared ? 1 : 0);
     for (size_t i = 1; i < room->BgFrameCount; ++i)
-        save_lzw(out, room->BgFrames[i].Graphic->GetBitmapData(), &room->BgFrames[i].Palette);
+        save_lzw(out, room->BgFrames[i].GraphicBuf, &room->BgFrames[i].Palette);
 }
 
-void WritePropertiesBlock(const RoomStruct *room, Stream *out)
+void WritePropertiesBlock(const RoomData *room, Stream *out)
 {
     out->WriteInt32(1);  // Version 1 of properties block
     Properties::WriteValues(room->Properties, out);
@@ -897,12 +890,12 @@ void WritePropertiesBlock(const RoomStruct *room, Stream *out)
         Properties::WriteValues(obj.Properties, out);
 }
 
-void WriteStrOptions(const RoomStruct *room, Stream *out)
+void WriteStrOptions(const RoomData *room, Stream *out)
 {
     StrUtil::WriteStringMap(room->StrOptions, out);
 }
 
-void WriteExt_363_Objects(const RoomStruct *room, Stream *out)
+void WriteExt_363_Objects(const RoomData *room, Stream *out)
 {
     out->WriteInt32(room->Objects.size());
     for (const auto &obj : room->Objects)
@@ -917,7 +910,7 @@ void WriteExt_363_Objects(const RoomStruct *room, Stream *out)
     }
 }
 
-HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
+HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");

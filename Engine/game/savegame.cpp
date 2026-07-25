@@ -867,8 +867,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             if (r_data.RoomBkgScene[i])
             {
                 // Blit, don't replace image, in case we restored a image of different size
-                thisroom.BgFrames[i].Graphic->Clear(0);
-                thisroom.BgFrames[i].Graphic->Blit(r_data.RoomBkgScene[i].get());
+                thisroom.BgImages[i]->Clear(0);
+                thisroom.BgImages[i]->Blit(r_data.RoomBkgScene[i].get());
             }
         }
 

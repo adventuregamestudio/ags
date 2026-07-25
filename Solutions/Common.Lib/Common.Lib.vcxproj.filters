@@ -257,7 +257,7 @@
     <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\roomstruct.cpp">
+    <ClCompile Include="..\..\Common\game\roomdata.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aarot.c">
@@ -539,6 +539,9 @@
     <ClCompile Include="..\..\libsrc\stb\stb_image.c">
       <Filter>Library Sources\stb</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\game\roomstruct.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -748,7 +751,7 @@
     <ClInclude Include="..\..\Common\game\room_version.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\roomstruct.h">
+    <ClInclude Include="..\..\Common\game\roomdata.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\stdio_compat.h">
@@ -936,6 +939,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\stb\stb_image.h">
       <Filter>Library Sources\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\roomstruct.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

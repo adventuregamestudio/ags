@@ -21,11 +21,6 @@ namespace AGS
 namespace Common
 {
 
-RoomDataSource::RoomDataSource()
-    : DataVersion(kRoomVersion_Undefined)
-{
-}
-
 String GetRoomFileErrorText(RoomFileErrorType err)
 {
     switch (err)
@@ -68,6 +63,11 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
     src.InputStream = std::move(in);
+    return ReadRoomHeader(src);
+}
+
+HRoomFileError OpenRoomFile(RoomDataSource &src)
+{
     return ReadRoomHeader(src);
 }
 

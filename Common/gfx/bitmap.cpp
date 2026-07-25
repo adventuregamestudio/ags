@@ -106,7 +106,7 @@ Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
 
     if (!PixelOp::CopyConvert(pixels, ColorDepthToPixelFormat(src_col_depth), src_pitch,
             width, height, bitmap->GetDataForWriting(), ColorDepthToPixelFormat(dst_color_depth),
-            bitmap->GetLineLength()))
+            bitmap->GetPitch()))
         return nullptr;
 
     return bitmap.release();
@@ -200,15 +200,15 @@ void ReplaceColor(Bitmap *bmp, int color1, int color2)
     {
     case 8:
         ReplaceColorImpl<uint8_t>(bmp->GetDataForWriting(),
-                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetLineLength(), color1, color2);
+                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetPitch(), color1, color2);
         break;
     case 16:
         ReplaceColorImpl<uint16_t>(bmp->GetDataForWriting(),
-                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetLineLength(), color1, color2);
+                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetPitch(), color1, color2);
         break;
     case 32:
         ReplaceColorImpl<uint32_t>(bmp->GetDataForWriting(),
-                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetLineLength(), color1, color2);
+                                   bmp->GetWidth(), bmp->GetHeight(), bmp->GetPitch(), color1, color2);
         break;
     default: assert(false); break;
     }
@@ -317,7 +317,7 @@ void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool 
     uint8_t *dst_ptr       = dst->GetDataForWriting();
     const uint8_t *src_ptr = mask->GetData();
     const size_t bpp       = mask->GetBPP();
-    const size_t pitch     = mask->GetLineLength();
+    const size_t pitch     = mask->GetPitch();
     const size_t height    = mask->GetHeight();
 
     if (bpp == 1)
@@ -333,7 +333,7 @@ void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool 
 void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch)
 {
     PixelOp::CopyPixels(src_buffer, dst->GetBPP(), src_pitch, dst->GetWidth(), dst->GetHeight(),
-        dst->GetDataForWriting(), dst->GetLineLength());
+        dst->GetDataForWriting(), dst->GetPitch());
 }
 
 // Converts loaded bitmap to the requested color depth,

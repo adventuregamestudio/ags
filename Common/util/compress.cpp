@@ -384,7 +384,7 @@ void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256])
     {
         Stream memws(std::make_unique<VectorStream>(membuf, kStream_Write));
         const int w = bmdata.GetWidth(), h = bmdata.GetHeight(), bpp = bmdata.GetBytesPerPixel();
-        memws.WriteInt32(w * bpp); // stride
+        memws.WriteInt32(bmdata.GetStride()); // stride
         memws.WriteInt32(h);
         switch (bpp)
         {
@@ -438,8 +438,8 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
 
     // Open same buffer for reading and get params and pixels
     Stream mem_in(std::make_unique<VectorStream>(membuf));
-    int stride = mem_in.ReadInt32(); // width * bpp
-    int height = mem_in.ReadInt32();
+    const int stride = mem_in.ReadInt32(); // width * bpp
+    const int height = mem_in.ReadInt32();
     if (stride <= 0 || height <= 0)
         return {};
 

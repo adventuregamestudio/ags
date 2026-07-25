@@ -42,8 +42,11 @@ public:
     // data with a custom deleter function.
     typedef std::unique_ptr<void, PixelObjectDeleter> PixelObjectPtr;
 
+    // Construct empty bitmap
     Bitmap();
+    // Construct bitmap of certain format; its initial pixel values will be undefined
     Bitmap(int width, int height, int color_depth = 0);
+    // Construct bitmap by attaching and owning pixel buffer
     Bitmap(PixelBuffer &&pxbuf);
     // Constructs a sub-bitmap, referencing parent
     Bitmap(const Bitmap *src, const Rect &rc);
@@ -97,6 +100,8 @@ public:
     // BitmapData is used to pass pixel buffer pointer and metrics, while PixelObjectPtr
     // stores *something* that ought to be deleted using its own function.
     bool    WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data);
+    // Releases pixel data from ownership and returns it to the caller
+    PixelBuffer ReleasePixelData();
     // Deallocate bitmap
     void	Destroy();
 
@@ -174,10 +179,10 @@ public:
     // Gets size of Bitmap's pixel data, in bytes
 	inline int  GetDataSize() const
     {
-        return GetWidth() * GetHeight() * GetBPP();
+        return _alBitmap->dat_sz;
     }
-    // Gets scanline length in bytes (is the same for any scanline)
-	inline int  GetLineLength() const
+    // Gets pitch (a single scaneline) length in bytes
+	inline int  GetPitch() const
     {
         return _pitch;
     }
@@ -198,12 +203,12 @@ public:
     // Get bitmap data wrapped in a PixelBuffer struct
     inline const BitmapData GetBitmapData() const
     {
-        return BitmapData(GetData(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+        return BitmapData(GetData(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
     inline BitmapData GetBitmapData()
     {
-        return BitmapData(GetDataForWriting(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+        return BitmapData(GetDataForWriting(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
     //=========================================================================
@@ -315,7 +320,8 @@ private:
     PixelObjectPtr _pixelObject = PixelObjectPtr(nullptr, nullptr);
     BITMAP *_alBitmap = nullptr;
     bool    _ownPixelData = false; // whether owning pixel data / pixel object
-    bool    _isAlBitmapOwner = false; // whether owning BITMAP object
+    // FIXME: use std::unique_ptr<BITMAP> with no-op deleter
+    bool    _isBmOwner = false; // whether owning BITMAP object
     int     _pitch = 0; // cached pitch (scanline length)
 };
 

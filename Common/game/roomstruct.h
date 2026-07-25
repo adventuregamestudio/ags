@@ -12,369 +12,48 @@
 //
 //=============================================================================
 //
-// RoomStruct, a class describing initial room data.
-//
-// Because of the imperfect implementation there is inconsistency in how
-// this data is interpreted at the runtime. 
-// Some of that data is never supposed to be changed at runtime. Another
-// may be changed, but these changes are lost as soon as room is unloaded.
-// The changes that must remain in memory are kept as separate classes:
-// see RoomStatus, RoomObject etc.
+// RoomStruct, the Room data class prepared for use at runtime.
+// TODO: actually, should move this to the Engine side.
 // 
-// Partially this is because same class was used for both engine and editor,
-// while runtime code was not available for the editor.
-//
-// This is also the reason why some classes here are named with the "Info"
-// postfix. For example, RoomObjectInfo is the initial object data, and
-// there is also RoomObject runtime-only class for mutable data.
-// 
-// TODO: have a consistent division between design-time struct (loaded from
-// game data), and runtime class. Need to think how we want to deal with
-// the data saved when the room is unloaded. We may keep everything in the
-// same runtime class, OR have *another* struct for the "cached runtime data",
-// which is written to when the room is unloaded and read from when the room
-// is loaded once again.
 //=============================================================================
-#ifndef __AGS_CN_GAME__ROOMINFO_H
-#define __AGS_CN_GAME__ROOMINFO_H
-#include <memory>
-#include <allegro.h> // RGB
-#include "ac/common_defines.h"
-#include "game/scripteventtable.h"
-#include "gfx/gfx_def.h"
-#include "script/cc_script.h"
-#include "util/error.h"
-#include "util/geometry.h"
-#include "util/string_types.h"
+#ifndef __AGS_CN_GAME__ROOMSTRUCT_H
+#define __AGS_CN_GAME__ROOMSTRUCT_H
 
-// TODO: move the following enums under AGS::Common namespace
-// later, when more engine source is put in AGS namespace and
-// refactored.
+#include "game/roomdata.h"
+#include "gfx/bitmap.h"
 
-// Room's area mask type
-enum RoomAreaMask
-{
-    kRoomAreaNone = 0,
-    kRoomAreaHotspot,
-    kRoomAreaWalkBehind,
-    kRoomAreaWalkable,
-    kRoomAreaRegion,
-    kNumRoomAreaTypes,
-
-    kRoomArea_First = kRoomAreaHotspot,
-    kRoomArea_Last  = kRoomAreaRegion
-};
-
-// Extended room boolean options
-enum RoomFlags
-{
-    kRoomFlag_BkgFrameLocked = 0x01
-};
-
-// Flag tells that walkable area does not have continious zoom
-#define NOT_VECTOR_SCALED  -10000
-// Flags tells that room is not linked to particular game ID
-#define NO_GAME_ID_IN_ROOM_FILE 16325
-
-#define MAX_ROOM_BGFRAMES  5   // max number of frames in animating bg scene
-
-#define MAX_ROOM_HOTSPOTS  50  // v2.62: 20 -> 30; v2.8: -> 50
-#define MAX_ROOM_OBJECTS_v300 40 // for some legacy logic support
-#define MAX_ROOM_OBJECTS   256 // v3.6.0: 40 -> 256 (now limited by room format)
-#define MAX_ROOM_REGIONS   16
-#define MAX_WALK_AREAS     16
-#define MAX_WALK_BEHINDS   16
-
-#define MAX_MESSAGES       100
-// Max length of a serialized room message prior to 2.61
-#define MAX_MESSAGE_PRE261_LEN 3000
-
+#include "game/roomdata.h"
+#include "gfx/bitmap.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class Bitmap;
-class Stream;
-
 typedef std::shared_ptr<Bitmap> PBitmap;
 
-// Room event indexes;
-// these are used after resolving events map read from room file
-enum RoomEventID
-{
-    // room edge crossing
-    kRoomEvent_EdgeLeft = 0,
-    kRoomEvent_EdgeRight = 1,
-    kRoomEvent_EdgeBottom = 2,
-    kRoomEvent_EdgeTop = 3,
-    // first time enters room
-    kRoomEvent_FirstEnter = 4,
-    // load room; aka before fade-in
-    kRoomEvent_BeforeFadein = 5,
-    // room's rep-exec
-    kRoomEvent_Repexec = 6,
-    // after fade-in
-    kRoomEvent_AfterFadein = 7,
-    // leave room (before fade-out)
-    kRoomEvent_BeforeFadeout = 8,
-    // unload room; aka after fade-out
-    kRoomEvent_AfterFadeout = 9,
-};
-
-// Hotspot event indexes
-enum HotspotEventID
-{
-    // an interaction with any cursor mode that normally has a event
-    kHotspotEvent_AnyClick = 0,
-    // cursor is over hotspot
-    kHotspotEvent_MouseOver = 1,
-    // player stands on hotspot
-    kHotspotEvent_StandOn = 2,
-};
-
-// Room object event indexes
-enum RoomObjectEventID
-{
-    // an interaction with any cursor mode that normally has a event
-    kRoomObjectEvent_AnyClick = 0,
-    kRoomObjectEvent_OnFrameEvent
-};
-
-// Region event indexes
-enum RegionEventID
-{
-    kRegionEvent_Standing = 0,
-    kRegionEvent_WalkOn = 1,
-    kRegionEvent_WalkOff = 2,
-};
-
-// Various room options
-struct RoomOptions
-{
-    // If player character is turned off in the room
-    bool PlayerCharOff;
-    // Apply player character's normal view when entering this room
-    int  PlayerView;
-    // Optional character facing dir ratio (y / x), 0 = ignore
-    float FaceDirectionRatio;
-    // A collection of RoomFlags
-    int  Flags;
-
-    RoomOptions();
-};
-
-// Single room background frame
-struct RoomBgFrame
-{
-    PBitmap     Graphic;
-    // Palette is only valid in 8-bit games
-    RGB         Palette[256];
-    // Tells if this frame should keep previous frame palette instead of using its own
-    bool        IsPaletteShared;
-
-    RoomBgFrame();
-};
-
-// Describes room edges (coordinates of four edges)
-struct RoomEdges
-{
-    int32_t Left;
-    int32_t Right;
-    int32_t Top;
-    int32_t Bottom;
-
-    RoomEdges();
-    RoomEdges(int l, int r, int t, int b);
-};
-
-// A (possibly) temporary struct made for sharing event tables;
-// replace or expand later. Also, we have a similar thing for GUIObject,
-// so maybe merge these too.
-struct RoomObjectBase
+// TODO: review this later, probably not a good idea to publicly inherit RoomData?
+class RoomStruct : public RoomData
 {
 public:
-    RoomObjectBase()
-    {}
-    RoomObjectBase(const ScriptEventSchema *schema)
-        : _events(schema)
-    {}
-
-    int    ID = -1;
-    String ScriptName;
-
-    // Provides a script events table
-    const ScriptEventTable &GetEvents() const { return _events; }
-    ScriptEventTable &GetEvents() { return _events; }
-    // Clears all handlers from assigned functions
-    void ClearEventHandlers() { _events.ClearHandlers(); }
-
-protected:
-    // Common events
-    ScriptEventTable _events = {};
-};
-
-// Room hotspot description
-struct RoomHotspot : public RoomObjectBase
-{
-    // Human-readable name (description)
-    String      Name;
-    // Custom properties
-    StringIMap  Properties;
-    // Interaction events (cursor-based)
-    ScriptEventHandlers Interactions = {};
-
-    // Player will automatically walk here when interacting with hotspot
-    Point       WalkTo;
-
-    RoomHotspot() : RoomObjectBase(&RoomHotspot::_eventSchema)
-    {
-    }
-
-    static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
-    // Remaps old-format interaction list into new event table
-    void RemapOldInteractions();
-
-private:
-    // Script events schema
-    static ScriptEventSchema _eventSchema;
-};
-
-// Room object description
-struct RoomObjectInfo : public RoomObjectBase
-{
-    int32_t         Room = -1;
-    int32_t         X = 0;
-    int32_t         Y = 0;
-    int32_t         Sprite = 0;
-    Common::BlendMode BlendMode = kBlend_Normal;
-    // Object's z-order in the room, or -1 (use Y)
-    int32_t         Baseline = 0;
-    int32_t         Transparency = 0;
-    int32_t         Flags = 0;
-    // Human-readable name (description)
-    String          Name;
-    Rect            BlockingRect;
-    Pointf          GraphicAnchor = Pointf(0.f, 1.f); // bottom-left
-    Point           GraphicOffset;
-    // Custom properties
-    StringIMap      Properties;
-    // Interaction events (cursor-based)
-    ScriptEventHandlers Interactions = {};
-
-    RoomObjectInfo()
-        : RoomObjectBase(&RoomObjectInfo::_eventSchema)
-    {
-    }
-
-    static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
-    // Remaps old-format interaction list into new event table
-    void RemapOldInteractions();
-
-private:
-    // Script events schema
-    static ScriptEventSchema _eventSchema;
-};
-
-// Room region description
-struct RoomRegion : public RoomObjectBase
-{
-    // Light level (-100 -> +100) or Tint luminance (0 - 255)
-    int32_t         Light = 0;
-    // Tint setting (R-B-G-S)
-    int32_t         Tint = 0;
-    // Custom properties
-    StringIMap      Properties;
-    // Interaction events (old-style event storage, kept of loading old data)
-    ScriptEventHandlers Interactions = {};
-
-    RoomRegion()
-        : RoomObjectBase(&RoomRegion::_eventSchema)
-    {
-    }
-
-    static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
-    // Remaps old-format interaction list into new event table
-    void RemapOldInteractions();
-
-private:
-    // Script events schema
-    static ScriptEventSchema _eventSchema;
-};
-
-// Walkable area description
-struct WalkArea : public RoomObjectBase
-{
-    // Apply player character's normal view on this area
-    int32_t     CharacterView = 0;
-    // Character's scaling (-100 -> +100 %)
-    // General scaling, or scaling at the farthest point
-    int32_t     ScalingFar = 0;
-    // Scaling at the nearest point, or NOT_VECTOR_SCALED for uniform scaling
-    int32_t     ScalingNear = NOT_VECTOR_SCALED;
-    // Optional override for player character view
-    int32_t     PlayerView = 0;
-    // Optional character face direction ratio, 0 = ignore
-    float       FaceDirectionRatio = 0.f;
-    // Top and bottom Y of the area
-    int32_t     Top = -1;
-    int32_t     Bottom = -1;
-    // Custom properties
-    StringIMap  Properties;
-};
-
-// Walk-behind description
-struct WalkBehind : public RoomObjectBase
-{
-    // Object's z-order in the room
-    int32_t Baseline = 0;
-};
-
-// Room's legacy resolution type
-// The meaning of this value is bit complicated. In a usual case, it seems,
-// it should be either 1 or 2, meaning low-res or high-res, in the same
-// sense as the legacy game resolution may be low-res or high-res type.
-// If game's resolution type is different, the room's background will have
-// to be adjusted for it by scaling up or down correspondingly.
-// But rare games could have it higher than 2, which would mean "above
-// high res", in which case the room bg would need to be downscaled
-// even though the game is already high-res.
-enum RoomResolutionType
-{
-    kRoomResolution_Real        = 0, // room should always be treated as-is
-    kRoomResolution_Low         = 1, // created for low-resolution game
-    kRoomResolution_High        = 2, // created for high-resolution game
-    kRoomResolution_OverHigh    = 3, // created for high-res game, but bigger (must downscale)
-};
-
-//
-// Description of a single room.
-// This class contains initial room data. Some of it may still be modified
-// at the runtime, but then these changes get lost as soon as room is unloaded.
-//
-class RoomStruct : public RoomObjectBase
-{
-public:
-    // Mask resolution auto-assigned for high-res rooms in very old versions
-    static const int LegacyMaskHiresFactor = 2;
-
-    RoomStruct();
+    RoomStruct() = default;
+    // Construct a RoomStruct object by copying data from RoomData
+    RoomStruct(const RoomData &src);
+    // Construct a RoomStruct object by moving (owning) data from RoomData
+    RoomStruct(RoomData &&src);
     ~RoomStruct();
 
+    // Reinitialize RoomStruct by copying data from RoomData
+    RoomStruct &operator =(const RoomData &src);
+    // Reinitialize RoomStruct by moving (owning) data from RoomData
+    RoomStruct &operator =(RoomData &&src);
+
+    // Initializes bitmaps from RoomData's pixel buffers.
+    // CHECKME: this should be a private method; currently only accessed by a
+    // (possibly temporary) code in the Editor.
+    void    InitBitmaps();
     // Releases room resources
     void    Free();
-    // Init default room state
-    void    InitDefaults();
-
-    static const ScriptEventSchema &GetEventSchema() { return _eventSchema; }
-    // Remaps old-format interaction list into new event table
-    void    RemapOldInteractions();
-
-    // Gets this room's human-readable name (description)
-    const String &GetName() const { return Name; }
-    // Gets this room's script name
-    const String &GetScriptName() const { return ScriptName; }
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
@@ -384,82 +63,15 @@ public:
     // this is done by blitting; if bitmap is of different size than the room's mask,
     // then it's either cropped or remaining unfilled parts are erased to zero.
     void    CopyMask(RoomAreaMask mask, const Bitmap *bitmap);
-    // Gets mask's scale relative to the room's background size
-    float   GetMaskScale(RoomAreaMask mask) const;
 
-    // TODO: see later whether it may be more convenient to move these to the Region class instead.
-    // Gets if the given region has light level set
-    bool HasRegionLightLevel(int id) const;
-    // Gets if the given region has a tint set
-    bool HasRegionTint(int id) const;
-    // Gets region's light level in -100 to 100 range value; returns 0 (default level) if region's tint is set
-    int  GetRegionLightLevel(int id) const;
-    // Gets region's tint luminance in 0 to 100 range value; returns 0 if region's light level is set
-    int  GetRegionTintLuminance(int id) const;
+    // Background bitmaps
+    PBitmap BgImages[MAX_ROOM_BGFRAMES];
 
-// TODO: all members are currently public because they are used everywhere; hide them later
-public:
-    // Game's unique ID, corresponds to GameSetupStructBase::uniqueid.
-    // If this field has a valid value and does not match actual game's id,
-    // then engine will refuse to start this room.
-    // May be set to NO_GAME_ID_IN_ROOM_FILE to let it run within any game.
-    int32_t                 GameID;
-    // Loaded room file's data version. This value may be used to know when
-    // the room must have behavior specific to certain version of AGS.
-    int32_t                 DataVersion;
-
-    // This room's name (description)
-    String                  Name;
-    // This room's scriptname. This is a reserved field atm.
-    String                  ScriptName;
-    // Room region masks resolution. Defines the relation between room and mask units.
-    // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
-    int32_t                 MaskResolution;
-    // Size of the room, in logical coordinates (= pixels)
-    int32_t                 Width;
-    int32_t                 Height;
-    // Primary room palette (8-bit games)
-    RGB                     Palette[256];
-
-    // Basic room options
-    RoomOptions             Options;
-
-    // Background frames
-    int32_t                 BackgroundBPP; // bytes per pixel
-    uint32_t                BgFrameCount;
-    RoomBgFrame             BgFrames[MAX_ROOM_BGFRAMES];
-    // Speed at which background frames are changing, 0 - no auto animation
-    int32_t                 BgAnimSpeed;
-    // Edges
-    RoomEdges               Edges;
     // Region masks
-    PBitmap                 HotspotMask;
-    PBitmap                 RegionMask;
-    PBitmap                 WalkAreaMask;
-    PBitmap                 WalkBehindMask;
-    // Room entities
-    uint32_t                HotspotCount;
-    RoomHotspot             Hotspots[MAX_ROOM_HOTSPOTS];
-    std::vector<RoomObjectInfo> Objects;
-    uint32_t                RegionCount;
-    RoomRegion              Regions[MAX_ROOM_REGIONS];
-    uint32_t                WalkAreaCount;
-    WalkArea                WalkAreas[MAX_WALK_AREAS];
-    uint32_t                WalkBehindCount;
-    WalkBehind              WalkBehinds[MAX_WALK_BEHINDS];
-
-    // Custom properties
-    StringIMap              Properties;
-    // Interaction events (old-style event storage, kept of loading old data)
-    ScriptEventHandlers     Interactions = {};
-    // Compiled room script
-    UScript                 CompiledScript;
-    // Various extended options with string values, meta-data etc
-    StringMap               StrOptions;
-
-private:
-    // Script events schema
-    static ScriptEventSchema _eventSchema;
+    PBitmap HotspotMask;
+    PBitmap RegionMask;
+    PBitmap WalkAreaMask;
+    PBitmap WalkBehindMask;
 };
 
 
@@ -472,4 +84,4 @@ PBitmap FixBitmap(PBitmap bmp, int dst_width, int dst_height);
 } // namespace Common
 } // namespace AGS
 
-#endif // __AGS_CN_GAME__ROOMINFO_H
+#endif // __AGS_CN_GAME__ROOMSTRUCT_H

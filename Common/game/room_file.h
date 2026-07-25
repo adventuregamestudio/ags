@@ -13,7 +13,7 @@
 //=============================================================================
 //
 // This unit provides functions for reading compiled room file (CRM)
-// into the RoomStruct structure, as well as extracting separate components,
+// into the RoomData structure, as well as extracting separate components,
 // such as room scripts.
 //
 //=============================================================================
@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 #include "game/room_version.h"
+#include "game/roomdata.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -34,8 +35,6 @@ namespace AGS
 {
 namespace Common
 {
-
-class RoomStruct;
 
 enum RoomFileErrorType
 {
@@ -115,17 +114,17 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
 // Opens room data for reading from the arbitrary stream found in RoomDataSource
 HRoomFileError OpenRoomFile(RoomDataSource &src);
 // Reads room data
-HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
+HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos);
-// Loads new room data into the given RoomStruct object and upgrade it to the latest version
-HError LoadRoom(RoomStruct *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> &sprinfos);
+HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos);
+// Loads new room data into the given RoomData object and upgrade it to the latest version
+HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> &sprinfos);
 // Extracts text script from the room file, if it's available.
 // Historically, text sources were kept inside packed room files before AGS 3.*.
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Writes all room data to the stream
-HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
+HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
 
 // Reads room data header using stream assigned to RoomDataSource;
 // tests and saves its format index if successful
@@ -136,11 +135,11 @@ void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compil
 void WriteRoomEnding(Stream *out);
 
 // Type of function that writes single room block.
-typedef std::function<void(const RoomStruct *room, Stream *out)> PfnWriteRoomBlock;
+typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
 // Writes room block with a new-style string id
-void WriteRoomBlock(const RoomStruct *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
+void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
 // Writes room block with a old-style numeric id
-void WriteRoomBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
+void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
 
 } // namespace Common
 } // namespace AGS

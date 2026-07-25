@@ -81,6 +81,8 @@ target_sources(common
     game/room_file.h
     game/room_file_base.cpp
     game/room_version.h
+    game/roomdata.cpp
+    game/roomdata.h
     game/roomstruct.cpp
     game/roomstruct.h
     game/scripteventtable.cpp

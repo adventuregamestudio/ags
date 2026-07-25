@@ -64,11 +64,11 @@ Bitmap::Bitmap(Bitmap &&bmp)
     _pixelData = std::move(bmp._pixelData);
     _pixelObject = std::move(bmp._pixelObject);
     _alBitmap = bmp._alBitmap;
-    _isAlBitmapOwner = bmp._isAlBitmapOwner;
+    _isBmOwner = bmp._isBmOwner;
     _pitch = bmp._pitch;
     bmp._ownPixelData = false;
     bmp._alBitmap = nullptr;
-    bmp._isAlBitmapOwner = false;
+    bmp._isBmOwner = false;
     bmp._pitch = 0;
 }
 
@@ -108,7 +108,7 @@ bool Bitmap::Create(int width, int height, int color_depth)
 
     _pixelData = std::move(data);
     _alBitmap = bitmap;
-    _isAlBitmapOwner = true;
+    _isBmOwner = true;
     _ownPixelData = true;
     _pitch = GetWidth() * GetBPP();
     return true;
@@ -150,7 +150,7 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
 
     _pixelData = std::move(data);
     _alBitmap = bitmap;
-    _isAlBitmapOwner = true;
+    _isBmOwner = true;
     _ownPixelData = true;
     _pitch = GetWidth() * GetBPP();
     return true;
@@ -163,7 +163,7 @@ bool Bitmap::CreateSubBitmap(const Bitmap *src, const Rect &rc)
 
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
-    _isAlBitmapOwner = true;
+    _isBmOwner = true;
     _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
@@ -207,7 +207,7 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 
     Destroy();
     _alBitmap = al_bmp;
-    _isAlBitmapOwner = !shared_data;
+    _isBmOwner = !shared_data;
     _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
@@ -215,7 +215,7 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 void Bitmap::ForgetAllegroBitmap()
 {
     _alBitmap = nullptr;
-    _isAlBitmapOwner = false;
+    _isBmOwner = false;
     Destroy(); // clean up the rest
 }
 
@@ -229,7 +229,7 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
         return false;
 
     _pixelObject = std::move(data_obj);
-    _isAlBitmapOwner = true;
+    _isBmOwner = true;
     _ownPixelData = !shared_data;
     _pitch = bm_data.GetStride();
     return true;
@@ -237,7 +237,7 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
 
 void Bitmap::Destroy()
 {
-    if (_alBitmap && _isAlBitmapOwner)
+    if (_alBitmap && _isBmOwner)
     {
         destroy_bitmap(_alBitmap);
     }
@@ -253,7 +253,7 @@ void Bitmap::Destroy()
     }
 
     _alBitmap = nullptr;
-    _isAlBitmapOwner = false;
+    _isBmOwner = false;
     _ownPixelData = false;
     _pitch = 0;
 }
@@ -609,12 +609,12 @@ void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 	int copy_length = data_size;
 	if (copy_length < 0)
 	{
-		copy_length = GetLineLength();
+		copy_length = GetPitch();
 	}
 	else // TODO: use Math namespace here
-		if (copy_length > GetLineLength())
+		if (copy_length > GetPitch())
 	{
-		copy_length = GetLineLength();
+		copy_length = GetPitch();
 	}
 
 	memcpy(_alBitmap->line[index], data, copy_length);

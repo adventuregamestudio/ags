@@ -192,7 +192,7 @@ int Room_GetHeight() {
 }
 
 int Room_GetColorDepth() {
-    return thisroom.BgFrames[0].Graphic->GetColorDepth();
+    return thisroom.BgImages[0]->GetColorDepth();
 }
 
 int Room_GetBackgroundCount() {
@@ -527,7 +527,7 @@ static void reset_temp_room()
 }
 
 // Initializes object states in the current RoomState object,
-// copying default properties from RoomStruct, in the element range [start, end).
+// copying default properties from RoomData, in the element range [start, end).
 static void init_object_states(size_t start, size_t end)
 {
     for (uint32_t i = start; i < end; ++i)
@@ -570,7 +570,12 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, con
     auto in = mgr->OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
-    return LoadRoom(room, std::move(in), sprinfos);
+    RoomData room_data;
+    HRoomFileError err = LoadRoom(&room_data, std::move(in), sprinfos);
+    if (!err)
+        return new Error(*err);
+    *room = RoomStruct(room_data);
+    return HError::None();
 }
 
 // forchar = playerchar on NewRoom, or NULL if restore saved game
@@ -642,8 +647,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     {
-        thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(
-            thisroom.BgFrames[i].Graphic, false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
+        thisroom.BgImages[i] = PrepareSpriteForUse(
+            thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
     }
 
     set_our_eip(202);
@@ -1028,7 +1033,7 @@ void set_room_placeholder()
 {
     thisroom.InitDefaults();
     std::shared_ptr<Bitmap> dummy_bg(new Bitmap(1, 1, 8));
-    thisroom.BgFrames[0].Graphic = dummy_bg;
+    thisroom.BgImages[0] = dummy_bg;
     thisroom.HotspotMask = dummy_bg;
     thisroom.RegionMask = dummy_bg;
     thisroom.WalkAreaMask = dummy_bg;

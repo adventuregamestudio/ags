@@ -99,5 +99,35 @@ HError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const
     }
 }
 
+//-----------------------------------------------------------------------------
+// Room.ash
+//-----------------------------------------------------------------------------
+
+String MakeRoomScriptHeader(const RoomScNames &data)
+{
+    String header;
+    // Room Object names
+    for (const auto &obj : data.ObjectNames)
+    {
+        if (!obj.IsEmpty())
+        {
+            header.Append("import Object ");
+            header.Append(obj);
+            header.Append(";\n");
+        }
+    }
+    // Hotspot names
+    for (const auto &hot : data.HotspotNames)
+    {
+        if (!hot.IsEmpty())
+        {
+            header.Append("import Hotspot ");
+            header.Append(hot);
+            header.Append(";\n");
+        }
+    }
+    return header;
+}
+
 } // namespace DataUtil
 } // namespace AGS

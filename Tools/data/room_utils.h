@@ -44,6 +44,10 @@ HError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_v
 HError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver);
 
+// Generates room script header out of the room data;
+// the header will contain room object declarations.
+String MakeRoomScriptHeader(const RoomScNames &data);
+
 } // namespace DataUtil
 } // namespace AGS
 

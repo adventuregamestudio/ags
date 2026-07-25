@@ -11,10 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/common.h" // update_polled_stuff
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
-#include "data/assetmanager.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
@@ -39,19 +37,6 @@ namespace AGS
 {
 namespace Common
 {
-
-HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src, AssetManager *mgr)
-{
-    // Cleanup source struct
-    src = RoomDataSource();
-    // Try to find and open room file
-    auto in = mgr->OpenAsset(filename);
-    if (in == nullptr)
-        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
-    src.Filename = filename;
-    src.InputStream = std::move(in);
-    return ReadRoomHeader(src);
-}
 
 // Read base room object's fields
 void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
@@ -685,14 +670,14 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
     return HRoomFileError::None();
 }
 
-HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
+HError LoadRoom(RoomStruct *room, std::unique_ptr<Stream> &&in,
     const std::vector<SpriteInfo> &sprinfos)
 {
     room->Free();
     room->InitDefaults();
 
-    RoomDataSource src;
-    HRoomFileError err = OpenRoomFileFromAsset(filename, src, mgr);
+    RoomDataSource src(String(), std::move(in));
+    HRoomFileError err = OpenRoomFile(src);
     if (err)
     {
         err = ReadRoomData(room, std::move(src.InputStream), src.DataVersion);
@@ -700,7 +685,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
             err = UpdateRoomData(room, src.DataVersion, sprinfos);
     }
     if (!err)
-        return new Error(String::FromFormat("Failed loading a room from file '%s'.", filename.GetCStr()), err);
+        return new Error(*err);
     return HError::None();
 }
 

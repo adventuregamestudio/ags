@@ -23,7 +23,6 @@
 #include <functional>
 #include <memory>
 #include <vector>
-#include "data/assetmanager.h"
 #include "game/room_version.h"
 #include "util/error.h"
 #include "util/stream.h"
@@ -98,27 +97,30 @@ struct RoomDataSource
     // Name of the asset file
     String              Filename;
     // Room file format version
-    RoomFileVersion     DataVersion;
+    RoomFileVersion     DataVersion = kRoomVersion_Undefined;
     // Tool identifier (like version) this game was compiled with
     String              CompiledWith;
     // A ponter to the opened stream
     UStream             InputStream;
 
-    RoomDataSource();
+    RoomDataSource() = default;
+    RoomDataSource(const String &filename, UStream &&stream, RoomFileVersion data_ver = kRoomVersion_Undefined)
+        : Filename(filename), InputStream(std::move(stream)), DataVersion(data_ver)
+    { }
 };
 
 
-// Opens room data for reading from an arbitrary file
+// Opens room data for reading from the file; on success assigns a stream to RoomDataSource
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
-// Opens room data for reading from asset of a given name
-HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src, AssetManager *mgr);
+// Opens room data for reading from the arbitrary stream found in RoomDataSource
+HRoomFileError OpenRoomFile(RoomDataSource &src);
 // Reads room data
 HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos);
 // Loads new room data into the given RoomStruct object and upgrade it to the latest version
-HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, const std::vector<SpriteInfo> &sprinfos);
+HError LoadRoom(RoomStruct *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> &sprinfos);
 // Extracts text script from the room file, if it's available.
 // Historically, text sources were kept inside packed room files before AGS 3.*.
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);

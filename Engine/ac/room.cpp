@@ -565,6 +565,14 @@ static void init_object_states(size_t start, size_t end)
     }
 }
 
+HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, const std::vector<SpriteInfo> &sprinfos)
+{
+    auto in = mgr->OpenAsset(filename);
+    if (in == nullptr)
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+    return LoadRoom(room, std::move(in), sprinfos);
+}
+
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo *forchar)
 {

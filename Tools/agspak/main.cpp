@@ -32,8 +32,8 @@
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
-const char *BIN_STRING = "agspak v0.4.0 - AGS game packaging tool\n"
-    "Copyright (c) 2025 AGS Team and contributors\n";
+const char *BIN_STRING = "agspak v0.5.0 - AGS game packaging tool\n"
+    "Copyright (c) 2026 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"
    //--------------------------------------------------------------------------------|
@@ -62,8 +62,10 @@ const char *HELP_STRING = "Usage:\n"
     "                         If no asset data is found, then nothing will be done.\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
+    // -i, --import           RESERVED: import (add, overwrite) asset(s) to the pack
     "  -l, --list             print pack file's contents.\n"
-    "  -x, --cut              cut (deletes) appended asset data from a file.\n"
+    // -x, --cut              RESERVED: cut (delete) selected asset(s) from the pack
+    "  -X, --cut-attachment   cut (delete) all appended asset data from a file.\n"
     "                         If no asset data is found, then nothing will be done.\n"
     "\n"
     "Command options:\n"
@@ -121,9 +123,9 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'a';
             break;
         }
-        if (opt == "-x" || opt == "--cut")
+        if (opt == "-X" || opt == "--cut-attachment")
         {
-            command = 'x';
+            command = 'X';
             break;
         }
         if (opt == "-d" || opt == "--detach")
@@ -221,11 +223,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
                 break; // not enough args
             return AGSPak::Command_List(pak_file);
         }
-    case 'x': // cut
+    case 'X': // cut-attachment
         {
             if (cmdargs.PosArgs.size() < 1)
                 break; // not enough args
-            return AGSPak::Command_Cut(pak_file, verbose);
+            return AGSPak::Command_CutAttachment(pak_file, verbose);
         }
     default:
         printf("Error: no valid command is specified\n");

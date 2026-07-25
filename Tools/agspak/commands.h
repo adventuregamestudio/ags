@@ -32,7 +32,7 @@ namespace AGSPak
     int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String &dst_pak, bool append,
         const std::vector<String> &pattern_list, const String &pattern_file, DuplicateAssetAction dup_action,
         size_t part_size_mb, bool verbose);
-    int Command_Cut(const String &src_file, bool verbose);
+    int Command_CutAttachment(const String &src_file, bool verbose);
     int Command_Detach(const String &src_file, const String &dst_pak, bool verbose);
     int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list);
     int Command_List(const String &src_pak);

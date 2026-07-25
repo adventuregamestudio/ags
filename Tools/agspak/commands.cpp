@@ -251,7 +251,7 @@ int Command_Attach(const String &src_pak, const String &dst_file, bool verbose)
     return 0;
 }
 
-int Command_Cut(const String &src_pak, bool verbose)
+int Command_CutAttachment(const String &src_pak, bool verbose)
 {
     printf("Input pack file: %s\n", src_pak.GetCStr());
 

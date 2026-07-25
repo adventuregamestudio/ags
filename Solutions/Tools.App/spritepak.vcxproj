@@ -39,7 +39,16 @@
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\color.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)al_file.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)al_file.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)al_file.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)al_file.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
     <ClCompile Include="..\..\libsrc\miniz\miniz.c" />
     <ClCompile Include="..\..\libsrc\stb\stb_image.c" />
     <ClCompile Include="..\..\Tools\spritepak\main.cpp" />

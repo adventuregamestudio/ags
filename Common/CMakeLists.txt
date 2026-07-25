@@ -160,7 +160,6 @@ target_sources(common
     util/memorystream.cpp
     util/memorystream.h
     util/path.cpp
-    util/path_ex.cpp
     util/path.h
     util/resourcecache.h
     util/scaling.h

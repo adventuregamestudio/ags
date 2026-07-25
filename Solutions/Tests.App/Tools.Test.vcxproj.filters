@@ -13,8 +13,14 @@
     <Filter Include="Test">
       <UniqueIdentifier>{0a0795e8-40b6-4df9-a388-96ad54312216}</UniqueIdentifier>
     </Filter>
-    <Filter Include="tinyxml2">
+    <Filter Include="libsrc">
+      <UniqueIdentifier>{8b0b26f4-5c54-4eb7-9ac9-990eddeadc35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc\tinyxml2">
       <UniqueIdentifier>{b0c5c259-4c8e-4854-921b-88b05edf64ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc\allegro">
+      <UniqueIdentifier>{ff362cc5-5483-45eb-8a85-5f24a9c8824f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -115,13 +121,25 @@
       <Filter>data</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp">
-      <Filter>tinyxml2</Filter>
+      <Filter>libsrc\tinyxml2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\util\memorystream.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\test\common_stubs.cpp">
       <Filter>Common\GUI writer test dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>libsrc\allegro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -207,7 +225,7 @@
       <Filter>data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
-      <Filter>tinyxml2</Filter>
+      <Filter>libsrc\tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\memorystream.h">
       <Filter>Common</Filter>

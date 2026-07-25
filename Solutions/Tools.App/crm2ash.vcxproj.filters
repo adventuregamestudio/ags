@@ -14,6 +14,9 @@
     <Filter Include="data">
       <UniqueIdentifier>{ebea7864-de2f-48c8-b3d2-51eb82b7a045}</UniqueIdentifier>
     </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{2f79a3d4-bc0f-4889-a923-c442b7b1ab38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
@@ -60,6 +63,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\data\data_ext.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

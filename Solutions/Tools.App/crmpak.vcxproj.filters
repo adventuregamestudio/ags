@@ -11,6 +11,9 @@
     <Filter Include="crmpak">
       <UniqueIdentifier>{731e5dde-24bd-46ed-ae96-82f7baf41d3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{6ddf4885-63bd-4f8f-8c35-6e0a466d3522}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
@@ -54,6 +57,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\data\data_ext.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

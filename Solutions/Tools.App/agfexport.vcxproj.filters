@@ -17,6 +17,9 @@
     <Filter Include="agfexport">
       <UniqueIdentifier>{731e5dde-24bd-46ed-ae96-82f7baf41d3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{a7fc302e-f109-4d62-b5a7-8c9b453022a2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
@@ -78,6 +81,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\game_utils.cpp">
       <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

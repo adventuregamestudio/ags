@@ -100,8 +100,16 @@ endif()
 
 target_include_directories(libtools PUBLIC ../libsrc/allegro/include)
 set(TOOLS_MINIMAL_ALLEGRO_SOURCES
+        ../libsrc/allegro/src/allegro.c
         ../libsrc/allegro/src/color.c
+        ../libsrc/allegro/src/file.c
+        ../libsrc/allegro/src/unicode.c
         data/minallegro_inline.c)
+if(WIN32)
+    list(APPEND TOOLS_MINIMAL_ALLEGRO_SOURCES ../libsrc/allegro/src/win/wfile.c)
+else()
+    list(APPEND TOOLS_MINIMAL_ALLEGRO_SOURCES ../libsrc/allegro/src/unix/ufile.c)
+endif()
 target_compile_definitions(libtools PRIVATE ALLEGRO_STATICLINK)
 
 target_sources(libtools
@@ -255,7 +263,7 @@ if(AGS_TESTS)
       ../Common/gui/guitextbasedcontrol.cpp # needed by data_file_writer_test
       ../Common/gui/guitextbox.cpp # needed by data_file_writer_test
       ../Common/util/geometry.cpp # needed by GUI readers in data_file_writer_test
-      ../Common/util/path_ex.cpp # needed by assetmanager.cpp
+      ../Common/util/path.cpp # needed by assetmanager.cpp
       ../Common/util/version.cpp # needed by common_stubs.cpp
       ../Common/util/wgt2allg.cpp # needed by Common bitmap/font implementations
       test/agfreader_test.cpp

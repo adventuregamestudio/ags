@@ -22,6 +22,7 @@
 #include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
+#include "util/file.h"
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file
@@ -44,6 +45,55 @@ namespace AGS
 {
 namespace Common
 {
+
+String GetRoomFileErrorText(RoomFileErrorType err)
+{
+    switch (err)
+    {
+    case kRoomFileErr_NoError:
+        return "No error.";
+    case kRoomFileErr_FileOpenFailed:
+        return "Room file was not found or could not be opened.";
+    case kRoomFileErr_FormatNotSupported:
+        return "Format version not supported.";
+    case kRoomFileErr_BlockListFailed:
+        return "There was error reading room data.";
+    case kRoomFileErr_UnknownBlockType:
+        return "Unknown block type.";
+    case kRoomFileErr_OldBlockNotSupported:
+        return "Block type is too old and not supported by this version of the engine.";
+    case kRoomFileErr_IncompatibleEngine:
+        return "This engine cannot handle requested room content.";
+    case kRoomFileErr_ScriptLoadFailed:
+        return "Script load failed.";
+    case kRoomFileErr_InconsistentData:
+        return "Inconsistent room data, or file is corrupted.";
+    case kRoomFileErr_PropertiesBlockFormat:
+        return "Unknown format of the custom properties block.";
+    case kRoomFileErr_InvalidPropertyValues:
+        return "Errors encountered when reading custom properties.";
+    case kRoomFileErr_BlockNotFound:
+        return "Required block was not found.";
+    default: return "Unknown error.";
+    }
+}
+
+String GetRoomBlockName(RoomFileBlock id)
+{
+    switch (id)
+    {
+    case kRoomFblk_Main: return "Main";
+    case kRoomFblk_Script: return "TextScript";
+    case kRoomFblk_CompScript: return "CompScript";
+    case kRoomFblk_CompScript2: return "CompScript2";
+    case kRoomFblk_ObjectNames: return "ObjNames";
+    case kRoomFblk_AnimBg: return "AnimBg";
+    case kRoomFblk_CompScript3: return "CompScript3";
+    case kRoomFblk_Properties: return "Properties";
+    case kRoomFblk_ObjectScNames: return "ObjScNames";
+    default: return "unknown";
+    }
+}
 
 void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
 {
@@ -565,6 +615,59 @@ private:
     RoomFileVersion _dataVer {};
 };
 
+// Helper for new-style blocks with string id
+void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
+{
+    WriteExtBlock(ext_id, [room, writer](Stream *out) { writer(room, out); },
+        kDataExt_NumID8 | kDataExt_File64, out);
+}
+
+// Helper for old-style blocks with only numeric id
+void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
+{
+    WriteExtBlock(block, [room, writer](Stream *out) { writer(room, out); },
+        kDataExt_NumID8 | kDataExt_File64, out);
+}
+
+
+HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
+{
+    // Cleanup source struct
+    src = RoomDataSource();
+    // Try to open room file
+    auto in = File::OpenFileRead(filename);
+    if (in == nullptr)
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+    src.Filename = filename;
+    src.InputStream = std::move(in);
+    return ReadRoomHeader(src);
+}
+
+HRoomFileError OpenRoomFile(RoomDataSource &src)
+{
+    return ReadRoomHeader(src);
+}
+
+// Read room data header and check that we support this format
+HRoomFileError ReadRoomHeader(RoomDataSource &src)
+{
+    src.DataVersion = (RoomFileVersion)static_cast<uint16_t>(src.InputStream->ReadInt16());
+    if ((src.DataVersion < kRoomVersion_250b) || (src.DataVersion > kRoomVersion_Current))
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Required format version: %d, supported %d - %d", src.DataVersion, kRoomVersion_250b, kRoomVersion_Current));
+    if (src.DataVersion == kRoomVersion_399)
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Unsupported format version: %d", src.DataVersion));
+    return HRoomFileError::None();
+}
+
+void WriteRoomHeader(Stream *out, RoomFileVersion data_ver)
+{
+    out->WriteInt16(static_cast<uint16_t>(data_ver));
+}
+
+void WriteRoomEnding(Stream *out)
+{
+    out->WriteByte(kRoomFile_EOF);
+}
 
 HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {

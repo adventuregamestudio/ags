@@ -20,11 +20,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\data\data_ext.cpp" />
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
-    <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
+    <ClCompile Include="..\..\Common\game\customproperties.cpp" />
+    <ClCompile Include="..\..\Common\game\interactions.cpp" />
+    <ClCompile Include="..\..\Common\game\roomdata.cpp" />
+    <ClCompile Include="..\..\Common\game\room_file.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_common.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
+    <ClCompile Include="..\..\Common\util\compress.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
+    <ClCompile Include="..\..\Common\util\lzw.cpp" />
+    <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
@@ -40,7 +49,9 @@
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
+    <ClCompile Include="..\..\libsrc\miniz\miniz.c" />
     <ClCompile Include="..\..\Tools\crm2ash\main.cpp" />
+    <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp" />
     <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
   </ItemGroup>
@@ -113,7 +124,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -128,7 +139,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -144,7 +155,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -163,7 +174,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Tools;..\..\libsrc\allegro\include;..\..\libsrc\miniz;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

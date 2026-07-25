@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Common">
       <UniqueIdentifier>{eadadb9c-903a-4a50-8db9-a82dbf36b434}</UniqueIdentifier>
     </Filter>
@@ -16,6 +12,9 @@
     </Filter>
     <Filter Include="allegro">
       <UniqueIdentifier>{2f79a3d4-bc0f-4889-a923-c442b7b1ab38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="miniz">
+      <UniqueIdentifier>{89d6d00f-8f94-4880-84c6-3de33009a913}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -49,9 +48,6 @@
     <ClCompile Include="..\..\Tools\crm2ash\main.cpp">
       <Filter>crm2ash</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\room_file_base.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Tools\data\room_utils.cpp">
       <Filter>data</Filter>
     </ClCompile>
@@ -75,6 +71,42 @@
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\room_file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\customproperties.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\interactions.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\roomdata.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_common.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_script.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\compress.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\lzw.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\miniz\miniz.c">
+      <Filter>miniz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\memorystream.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

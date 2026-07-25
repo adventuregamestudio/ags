@@ -85,8 +85,6 @@ target_sources(common
     game/plugininfo.h
     game/room_file.cpp
     game/room_file.h
-    game/room_file_base.cpp
-    game/room_file_deprecated.cpp
     game/room_version.h
     game/roomdata.cpp
     game/roomdata.h
@@ -192,7 +190,7 @@ target_sources(common
     util/string_compat.c
     util/string_compat.h
     util/matrix.h
-
+    
     platform/platform.h
     platform/types.h
     platform/windows/windows.h

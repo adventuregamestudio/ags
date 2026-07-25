@@ -13,8 +13,11 @@ using namespace AGS::Common;
 using namespace AGS::Common::CmdLineOpts;
 using namespace AGS;
 
-const char *HELP_STRING = "Usage: agf2dta <INPUT-GAME.AGF> <OUTPUT-DIR>\n"
-"Creates a \"game28.dta\" file in the OUTPUT-DIR from data in INPUT-GAME.AGF. \n"
+const char *HELP_STRING =
+//------------------------------------------------------------------------------|
+"Usage: agf2dta <INPUT-GAME.AGF> <OUTPUT-FILE.DAT>\n"
+"      Parses AGS project file INPUT-GAME.AGF and writes a compiled AGS game\n"
+"      data file (v3.x-4.x engines expect 'game28.dta' by default).\n"
 "Options:\n"
 "  -h, --help             Show this help message\n";
 
@@ -36,10 +39,10 @@ int main(int argc, char *argv[])
     }
 	
     const String &src_agf = parseResult.PosArgs[0];
-    const String &dst_dir = parseResult.PosArgs[1];
+    const String &out_file = parseResult.PosArgs[1];
 	
     printf("Input game AGF: %s\n", src_agf.GetCStr());
-    printf("Output dir: %s\n", dst_dir.GetCStr());
+    printf("Output dat file: %s\n", out_file.GetCStr());
 	
     //-----------------------------------------------------------------------//
     // validate inputs
@@ -47,12 +50,6 @@ int main(int argc, char *argv[])
     if (!File::IsFile(src_agf))
     {
         printf("Error: input game file '%s' not found.\n", src_agf.GetCStr());
-        return -1;
-    }
-
-    if (!ags_directory_exists(dst_dir.GetCStr()))
-    {
-        printf("Error: not a valid output directory.\n");
         return -1;
     }
 
@@ -80,7 +77,6 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Write main game data file to game28.dta
     //-----------------------------------------------------------------------//
-    const String out_file = Path::ConcatPaths(dst_dir, "game28.dta");
     std::unique_ptr<Stream> out = File::CreateFile(out_file);
     if (!out)
     {

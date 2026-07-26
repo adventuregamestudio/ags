@@ -515,6 +515,8 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
 void ReadGameData(DataUtil::GameData &game, AGFReader &reader);
 // Reads default runtime game setup data
 void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem root);
+// Reads a list of audio clips for this project
+void ReadAudioClips(std::vector<DataUtil::AudioClipData> &clips, DocElem root);
 // Reads a list of custom asset directories for this project
 void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root);
 // Reads a list of font IDs.

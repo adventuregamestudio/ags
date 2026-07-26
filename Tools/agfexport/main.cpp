@@ -16,10 +16,12 @@ using namespace AGS::DataUtil;
 namespace AGF = AGS::AGF;
 
 const char *HELP_STRING = ""
+   //--------------------------------------------------------------------------------|
     "agfexport v0.3.0 - AGS game project miscellaneous export tool\n"
     "Copyright (c) 2026 AGS Team and contributors\n"
     "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
     "Commands:\n"
+    "  audioclip-list         Exports list of audio clips and their sources\n"
     "  autoash                Generate auto script header\n"
     "  custom-data-dir        Exports list of custom data directories\n"
     "  font-list              Exports list of font files\n"
@@ -31,6 +33,23 @@ const char *HELP_STRING = ""
     "  script-list            Exports ordered list of scripts from script modules\n"
     "  tra-list               Exports list of translations\n"
     "  -h, --help             Show help message for command\n";
+
+const char *HELP_AUDIOCLIP_LIST = ""
+    "Usage: agfexport audioclip-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+    "Writes <OUT-FILE>, a file with a list of audio files used by the game\n."
+    "Each entry in the list consists of 3 comma-separated items:\n"
+    "  * audio clip's import filename\n"
+    "  * audio clip's source absolute filepath\n"
+    "  * packing location, which is either 'ags' for the main game pack\n"
+    "    or 'vox' for the separate 'audio.vox'\n"
+#if (AGS_PLATFORM_OS_WINDOWS)
+    "Entry example: au000001.ogg,C:\\Projects\\Audio\\OriginalMusic.ogg,vox\n"
+#else
+    "Entry example: au000001.ogg,~/Projects/Audio/OriginalMusic.ogg,vox\n"
+#endif
+    "Commands:\n"
+    "  -h, --help             Show this help message\n"
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_AUTOASH = ""
     "Usage: agfexport autoash <INPUT-GAME.AGF> <OUT-FILE.ASH>\n"
@@ -104,7 +123,8 @@ const char *HELP_TRA_LIST = ""
 
 enum CommandType
 {
-    kCmdAutoAsh = 0,
+    kCmdAudioClipList,
+    kCmdAutoAsh,
     kCmdCustomDataDir,
     kCmdFontList,
     kCmdGameCfg,
@@ -125,6 +145,7 @@ struct Command
     const size_t NumArgs;
     const char *Help;
 } Command[] = {
+        {"audio-list",  kCmdAudioClipList, 2, HELP_AUDIOCLIP_LIST},
         {"autoash",     kCmdAutoAsh,    2, HELP_AUTOASH},
         {"custom-data-dir", kCmdCustomDataDir, 2, HELP_CUSTOMDATADIR_LIST},
         {"font-list",   kCmdFontList,   2, HELP_FONT_LIST},
@@ -159,6 +180,17 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         fprintf(StdFile, "Output list file: %s\n", file.GetCStr());
 
     String exp_data;
+
+    if (cmd == kCmdAudioClipList)
+    {
+        std::vector<AudioClipData> clips;
+        AGF::ReadAudioClips(clips, reader.GetGameRoot());
+        for (const auto &clip : clips)
+        {
+            exp_data.AppendFmt("%s,%s,%s\n", clip.CacheFileName.GetCStr(), clip.SourceFileName.GetCStr(),
+                clip.BundlingType == kAudioBundling_InMainData ? "ags" : "vox");
+        }
+    }
 
     if (cmd == kCmdCustomDataDir)
     {
@@ -381,6 +413,7 @@ int main(int argc, char *argv[])
     String exp_data;
     switch (command)
     {
+        case kCmdAudioClipList:
         case kCmdCustomDataDir:
         case kCmdFontList:
         case kCmdHeaderList:

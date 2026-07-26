@@ -1116,7 +1116,7 @@ static DataUtil::SpriteImportResolution ReadSpriteImportResolution(const String 
 static DataUtil::AudioFileBundlingType ReadAudioBundlingType(const String &value)
 {
     return StrUtil::ParseEnumWithBase(value, kAudioBundlingTypeNames,
-        DataUtil::kAudioBundling_InGameEXE, DataUtil::kAudioBundling_InGameEXE);
+        DataUtil::kAudioBundling_InMainData, DataUtil::kAudioBundling_InMainData);
 }
 
 static DataUtil::AudioClipFileType ReadAudioFileType(const String &value)
@@ -1697,6 +1697,20 @@ void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem elem)
     AGF::RuntimeSetup p_set;
     DocElem set_elem = p_game.GetDefaultSetup(elem);
     p_set.ReadAllData(set_elem, setup);
+}
+
+void ReadAudioClips(std::vector<DataUtil::AudioClipData> &clips, DocElem root)
+{
+    AGF::AudioClips aclips;
+    AGF::AudioClip aclip;
+    std::vector<DocElem> aclip_els;
+    aclips.GetAll(root, aclip_els);
+    for (const auto &a_el : aclip_els)
+    {
+        DataUtil::AudioClipData adata;
+        aclip.ReadAllData(a_el, adata);
+        clips.push_back(adata);
+    }
 }
 
 void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root)

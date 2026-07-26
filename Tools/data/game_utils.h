@@ -153,7 +153,7 @@ enum SpriteImportResolution
 
 enum AudioFileBundlingType
 {
-    kAudioBundling_InGameEXE = 1,
+    kAudioBundling_InMainData = 1,
     kAudioBundling_InSeparateVOX = 2
 };
 
@@ -319,7 +319,7 @@ struct AudioClipData : EntityRef
     int Index{};
     String SourceFileName;
     String CacheFileName;
-    AudioFileBundlingType BundlingType = kAudioBundling_InGameEXE;
+    AudioFileBundlingType BundlingType = kAudioBundling_InMainData;
     int Type{};
     AudioClipFileType FileType = kAudioFile_Undefined;
     bool Repeat{};

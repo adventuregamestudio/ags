@@ -55,8 +55,8 @@ namespace DataUtil
         const StringIMap &asset_map, soff_t part_size = 0, bool append_first = false);
     // Writes the library partition into the file lib_filename;
     // recalculates asset offsets and stores in lib as it goes.
-    HError WriteLibraryFile(AssetLibInfo &lib, const String &src_dir, const String &lib_filename,
-                            Common::MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose);
+    HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map,
+        const String &lib_filename, Common::MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose);
     // Writes the potentially multi-file library into the dst_dir directory;
     // recalculates asset offsets and stores in lib as it goes.
     HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map,

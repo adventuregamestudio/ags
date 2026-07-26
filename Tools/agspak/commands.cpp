@@ -203,10 +203,12 @@ static HError PrepareAssetLibrary(AssetLibInfo &lib,
                 }
             }
         }
+
         for (const auto &rem_key : remove_keys)
             local_asset_map.erase(rem_key);
 
-        asset_map.insert(local_asset_map.begin(), local_asset_map.end());
+        for (const auto &new_item : local_asset_map)
+            asset_map[new_item.first] = new_item.second;
     }
 
     if (asset_map.size() == 0)
@@ -272,7 +274,7 @@ int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String 
 {
     if (src_dirs.size() == 1)
     {
-        printf("Input directory: %s", src_dirs[0].first.GetCStr());
+        printf("Input directory: %s\n", src_dirs[0].first.GetCStr());
     }
     else if (src_dirs.size() > 1)
     {
@@ -297,7 +299,7 @@ int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String 
 
     if (valid_src_dirs == 0)
     {
-        printf("Error: no valid input directories provided");
+        printf("Error: no valid input directories provided\n");
         return -1;
     }
 

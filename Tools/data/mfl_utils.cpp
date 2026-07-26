@@ -128,7 +128,7 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
     {
         soff_t filesz = File::GetFileSize(asset_entry.second);
         if (filesz < 0)
-            return new Error("Failed to retrieve asset file's size: %s", asset_entry.second);
+            return new Error(String::FromFormat("Failed to retrieve asset file's size: %s", asset_entry.second.GetCStr()));
         AssetInfo asset;
         asset.FileName = asset_entry.first;
         asset.Size = filesz;

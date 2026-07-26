@@ -137,7 +137,7 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
         room->WalkBehinds[i].Baseline = in->ReadInt16();
 
     room->HotspotCount = in->ReadInt32();
-    if (room->HotspotCount == 0)
+    if ((data_ver <= kRoomVersion_272) && (room->HotspotCount == 0))
         room->HotspotCount = MIN_ROOM_HOTSPOTS;
     if (room->HotspotCount > MAX_ROOM_HOTSPOTS)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many hotspots (in room: %d, max: %d).", room->HotspotCount, MAX_ROOM_HOTSPOTS));
@@ -887,16 +887,25 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     }
 
     out->WriteInt32(0); // legacy interaction vars
-    out->WriteInt32(MAX_ROOM_REGIONS);
+    out->WriteInt32(MAX_ROOM_REGIONS); // NOTE: always writes MAX_ROOM_REGIONS!
 
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
-    room->EventHandlers->Write_v361(out);
+    InteractionEvents dummy_events;
+    room->EventHandlers ? room->EventHandlers->Write_v361(out) : dummy_events.Write_v361(out);
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
-        room->Hotspots[i].EventHandlers->Write_v361(out);
+    {
+        room->Hotspots[i].EventHandlers ? room->Hotspots[i].EventHandlers->Write_v361(out)
+            : dummy_events.Write_v361(out);
+    }
     for (const auto &obj : room->Objects)
-        obj.EventHandlers->Write_v361(out);
-    for (uint32_t i = 0; i < room->RegionCount; ++i)
-        room->Regions[i].EventHandlers->Write_v361(out);
+    {
+        obj.EventHandlers ? obj.EventHandlers->Write_v361(out) : dummy_events.Write_v361(out);
+    }
+    for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
+    {
+        room->Regions[i].EventHandlers ? room->Regions[i].EventHandlers->Write_v361(out)
+            : dummy_events.Write_v361(out);
+    }
 
     for (const auto &obj : room->Objects)
         out->WriteInt32(obj.Baseline);
@@ -906,7 +915,7 @@ void WriteMainBlock(const RoomData *room, Stream *out)
         out->WriteInt16(obj.Flags);
     out->WriteInt16(room->MaskResolution);
 
-    out->WriteInt32(MAX_WALK_AREAS);
+    out->WriteInt32(MAX_WALK_AREAS); // NOTE: always writes MAX_WALK_AREAS!
     for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingFar);
     for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
@@ -946,11 +955,13 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt32(room->Regions[i].Tint);
 
-    save_lzw(out, room->BgFrames[0].GraphicBuf, &room->Palette);
-    save_rle_bitmap8(out, room->RegionMaskBuf);
-    save_rle_bitmap8(out, room->WalkAreaMaskBuf);
-    save_rle_bitmap8(out, room->WalkBehindMaskBuf);
-    save_rle_bitmap8(out, room->HotspotMaskBuf);
+    // NOTE: it looks like our lzw impl cannot expand properly if the image is less than 4x4 :(
+    PixelBuffer dummy_buf(4, 4, kPxFmt_Indexed8);
+    save_lzw(out, room->BgFrames[0].GraphicBuf ? room->BgFrames[0].GraphicBuf : dummy_buf, &room->Palette);
+    save_rle_bitmap8(out, room->RegionMaskBuf ? room->RegionMaskBuf : dummy_buf);
+    save_rle_bitmap8(out, room->WalkAreaMaskBuf ? room->WalkAreaMaskBuf : dummy_buf);
+    save_rle_bitmap8(out, room->WalkBehindMaskBuf ? room->WalkBehindMaskBuf : dummy_buf);
+    save_rle_bitmap8(out, room->HotspotMaskBuf ? room->HotspotMaskBuf : dummy_buf);
 }
 
 void WriteCompSc3Block(const RoomData *room, Stream *out)

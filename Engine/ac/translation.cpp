@@ -194,8 +194,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
             Debug::Printf("Converting UTF-8 TRA keys to the game's encoding (%s)", key_enc.GetCStr());
             for (const auto &item : trans.Dict)
             {
-                ascii.resize(item.first.GetLength() + 1); // ascii len will be <= utf-8 len
-                StrUtil::ConvertUtf8ToAscii(item.first.GetCStr(), key_enc.GetCStr(), ascii.data(), ascii.size());
+                StrUtil::ConvertUtf8ToAscii(item.first.GetCStr(), key_enc.GetCStr(), ascii);
                 conv_map.insert(std::make_pair(ascii.data(), item.second));
             }
             trans.Dict = conv_map;

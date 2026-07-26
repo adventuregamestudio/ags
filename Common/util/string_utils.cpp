@@ -440,6 +440,12 @@ size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char
     return res_sz;
 }
 
+size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, std::vector<char> &out_cstr)
+{
+    out_cstr.resize(Utf8::GetLength(mbstr) + 1);
+    return ConvertUtf8ToAscii(mbstr, loc_name, out_cstr.data(), out_cstr.size());
+}
+
 size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, wchar_t *out_wcstr, size_t out_sz)
 {
     size_t len = 0;
@@ -454,6 +460,12 @@ size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, wchar_t *out_wcstr, size_t 
     return len;
 }
 
+size_t StrUtil::ConvertUtf8ToWstr(const char *mbstr, std::vector<wchar_t> &out_wcstr)
+{
+    out_wcstr.resize(Utf8::GetLength(mbstr) + 1);
+    return ConvertUtf8ToWstr(mbstr, out_wcstr.data(), out_wcstr.size());
+}
+
 size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t out_sz)
 {
     size_t len = 0;
@@ -464,6 +476,12 @@ size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t 
     }
     *out_mbstr = 0;
     return len;
+}
+
+size_t StrUtil::ConvertWstrToUtf8(const wchar_t *wcstr, std::vector<char> &out_mbstr)
+{
+    out_mbstr.resize(wcslen(wcstr) * Utf8::UtfSz + 1);
+    return ConvertWstrToUtf8(wcstr, out_mbstr.data(), out_mbstr.size());
 }
 
 String StrUtil::ApplyTextDirection(const String &text, bool default_rtl)

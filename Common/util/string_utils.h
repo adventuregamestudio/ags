@@ -19,6 +19,7 @@
 #define __AGS_CN_UTIL__STRINGUTILS_H
 
 #include <utility>
+#include <vector>
 #include "util/string_types.h"
 
 namespace AGS
@@ -208,12 +209,21 @@ namespace StrUtil
     // Convert utf-8 string to ascii/ansi representation;
     // writes into out_cstr buffer limited by out_sz bytes; returns bytes written.
     size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz);
+    // Convert utf-8 string to ascii/ansi representation;
+    // writes into out_cstr vector, resizing one as necessary; returns *bytes* written.
+    size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, std::vector<char> &out_cstr);
     // Convert utf-8 string to wide-string (16-bit char);
     // writes into out_wcstr buffer limited by out_sz *wchars*; returns *wchars* written.
     size_t ConvertUtf8ToWstr(const char *mbstr, wchar_t *out_wcstr, size_t out_sz);
+    // Convert utf-8 string to wide-string (16-bit char);
+    // writes into out_wcstr vector, resizing one as necessary; returns *wchars* written.
+    size_t ConvertUtf8ToWstr(const char *mbstr, std::vector<wchar_t> &out_wcstr);
     // Convert wide-string to utf-8 string;
     // writes into out_mbstr buffer limited by out_sz *bytes*; returns *bytes* written.
     size_t ConvertWstrToUtf8(const wchar_t *wcstr, char *out_mbstr, size_t out_sz);
+    // Convert wide-string to utf-8 string;
+    // writes into out_mbstr vector, resizing one as necessary; returns *bytes* written.
+    size_t ConvertWstrToUtf8(const wchar_t *wcstr, std::vector<char> &out_mbstr);
 
     // Applies text directon using LTR and RTL instructions. Allows to have LTR and RTL
     // sequences in any order, using respective Unicode control characters.

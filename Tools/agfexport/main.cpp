@@ -44,14 +44,14 @@ const char *HELP_CUSTOMDATADIR_LIST = ""
     "Writes <OUT-FILE>, a file with a list of custom game data directories.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_FONT_LIST = ""
     "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of font files used by the game\n."
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_GAMECFG = ""
     "Usage: agfexport gamecfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
@@ -72,35 +72,35 @@ const char *HELP_HEADER_LIST = ""
     "Writes <OUT-FILE>, a file with a list of headers from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of scripts to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_PLUGIN_LIST = ""
     "Usage: agfexport plugin-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of game plugins.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of rooms to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_ROOM_LIST = ""
     "Usage: agfexport room-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of rooms.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of rooms to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_SCRIPT_LIST = ""
     "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of scripts to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 const char *HELP_TRA_LIST = ""
     "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of translations.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -t, --to-stdout        Instead write the list of translations to stdout\n";
+    "  -s, --stdout           Instead write the list of font files to stdout\n";
 
 enum CommandType
 {
@@ -138,6 +138,10 @@ struct Command
         {nullptr,       kCmdNone,       0, nullptr}
 };
 
+// A file target to print program log to (info, warnings and errors)
+// TODO: replace this with a proper log system for tools.
+FILE *StdFile = stdout;
+
 HError write_to_file(const String &content, const String &file)
 {
     std::unique_ptr<Stream> out(File::CreateFile(file));
@@ -151,6 +155,9 @@ HError write_to_file(const String &content, const String &file)
 
 HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout)
 {
+    if (!to_stdout)
+        fprintf(StdFile, "Output list file: %s\n", file.GetCStr());
+
     String exp_data;
 
     if (cmd == kCmdCustomDataDir)
@@ -230,14 +237,16 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         printf("%s", exp_data.GetCStr());
         return HError::None();
     }
-
-    return write_to_file(exp_data, file);
+    else
+    {
+        return write_to_file(exp_data, file);
+    }
 }
 
 HError autoash_command(AGF::AGFReader &reader, const String &dst)
 {
     const char *dst_autoash = dst.GetCStr();
-    printf("Output script header: %s\n", dst_autoash);
+    fprintf(StdFile, "Output script header: %s\n", dst_autoash);
 
     GameRef game_ref;
     AGF::ReadGameRef(game_ref, reader);
@@ -247,8 +256,8 @@ HError autoash_command(AGF::AGFReader &reader, const String &dst)
 
 HError glvar_command(AGF::AGFReader &reader, const String &header_file, const String &body_file)
 {
-    printf("Output script header: %s\n", header_file.GetCStr());
-    printf("Output script body: %s\n", body_file.GetCStr());
+    fprintf(StdFile, "Output script header: %s\n", header_file.GetCStr());
+    fprintf(StdFile, "Output script body: %s\n", body_file.GetCStr());
 
     std::vector<Variable> vars;
     AGF::ReadGlobalVariables(vars, reader.GetGameRoot());
@@ -259,20 +268,20 @@ HError glvar_command(AGF::AGFReader &reader, const String &header_file, const St
     if (!err)
         return err;
 
-    printf("Script header written successfully.\n");
+    fprintf(StdFile, "Script header written successfully.\n");
 
     err = write_to_file(body, body_file);
     if (!err)
         return err;
 
-    printf("Script body written successfully.\n");
+    fprintf(StdFile, "Script body written successfully.\n");
 
     return HError::None();
 }
 
 HError gamecfg_command(AGF::AGFReader &reader, const String &dst)
 {
-    printf("Output config file: %s\n", dst.GetCStr());
+    fprintf(StdFile, "Output config file: %s\n", dst.GetCStr());
 
     GameSettings settings;
     RuntimeSetup setup;
@@ -301,12 +310,11 @@ int main(int argc, char *argv[])
         return result.HelpRequested ? 0 : -1;
     }
 
-    const bool stdout_list_print = result.Opt.count("-t") || result.Opt.count("--to-stdout");
-    // for (auto &owv: result.OptWithValue)
-    // {
-    //    const String &opt = owv.first;
-    //    const String &value = owv.second;
-    // }
+    const bool stdout_list_print = result.Opt.count("-s") || result.Opt.count("--stdout");
+    if (stdout_list_print)
+    {
+        StdFile = stderr;
+    }
 
     //-----------------------------------------------------------------------//
     // Parse command specific arguments
@@ -327,14 +335,14 @@ int main(int argc, char *argv[])
             const char *cmd_help = Command[cmd].Help;
             if (result.HelpRequested)
             {
-                printf("%s\n", cmd_help);
+                fprintf(StdFile, "%s\n", cmd_help);
                 return 0;
             }
             if (asked_command_argc != required_cmd_argc)
             {
-                printf("Error: required positional arguments don't match\n");
-                printf("Requires %zu arguments, passed %zu\n", required_cmd_argc, asked_command_argc);
-                printf("%s\n", cmd_help);
+                fprintf(StdFile, "Error: required positional arguments don't match\n");
+                fprintf(StdFile, "Requires %zu arguments, passed %zu\n", required_cmd_argc, asked_command_argc);
+                fprintf(StdFile, "%s\n", cmd_help);
                 return -1;
             }
 
@@ -348,8 +356,8 @@ int main(int argc, char *argv[])
 
     if (command == kCmdNone)
     {
-        printf("Error: unknown command '%s'\n", asked_command.GetCStr());
-        printf("%s\n", HELP_STRING);
+        fprintf(StdFile, "Error: unknown command '%s'\n", asked_command.GetCStr());
+        fprintf(StdFile, "%s\n", HELP_STRING);
         return -1;
     }
 
@@ -362,8 +370,8 @@ int main(int argc, char *argv[])
     HError err = reader.Open(game_agf.GetCStr());
     if (!err)
     {
-        printf("Error: failed to open source AGF '%s':\n", game_agf.GetCStr());
-        printf("%s\n", err->FullMessage().GetCStr());
+        fprintf(StdFile, "Error: failed to open source AGF '%s':\n", game_agf.GetCStr());
+        fprintf(StdFile, "%s\n", err->FullMessage().GetCStr());
         return -1;
     }
 
@@ -400,11 +408,13 @@ int main(int argc, char *argv[])
 
     if (!err)
     {
-        printf("Error: failed to execute command\n");
-        printf("%s\n", err->FullMessage().GetCStr());
+        fprintf(StdFile, "Error: failed to execute command\n");
+        fprintf(StdFile, "%s\n", err->FullMessage().GetCStr());
         return -1;
-    } else if(!stdout_list_print) {
-        printf("Data exported successfully.\n");
     }
-    return 0;
+    else if (!stdout_list_print)
+    {
+        fprintf(StdFile, "Data exported successfully.\n");
+        return 0;
+    }
 }

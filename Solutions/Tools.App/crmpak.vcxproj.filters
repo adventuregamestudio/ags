@@ -16,6 +16,9 @@
     <Filter Include="data">
       <UniqueIdentifier>{9e390445-87dc-4b1e-8151-d77694fc9e18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="stb">
+      <UniqueIdentifier>{4be780b6-cd2b-4a68-9b4c-b23dc754040e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
@@ -102,5 +105,40 @@
     <ClCompile Include="..\..\Common\script\cc_script.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\crmpak\commands.cpp">
+      <Filter>crmpak</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_bmp.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_pcx.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\image_png.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\stb\stb_image.c">
+      <Filter>stb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\color.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Tools\crmpak\commands.h">
+      <Filter>crmpak</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\stb\stb_image.h">
+      <Filter>stb</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

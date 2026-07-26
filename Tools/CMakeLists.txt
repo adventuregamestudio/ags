@@ -199,7 +199,9 @@ set_target_properties(crm2ash PROPERTIES
 target_link_libraries(crm2ash PUBLIC libtools)
 
 #----- crmpak -------------------------------------------------
-add_executable(crmpak crmpak/main.cpp)
+add_executable(crmpak crmpak/main.cpp
+        crmpak/commands.h
+        crmpak/commands.cpp)
 set_target_properties(crmpak PROPERTIES
         CXX_STANDARD 11
         CXX_EXTENSIONS NO

@@ -78,7 +78,7 @@ ccScript &ccScript::operator =(const ccScript &src)
     return *this;
 }
 
-void ccScript::Write(Stream *out)
+void ccScript::Write(Stream *out) const
 {
     out->Write(scfilesig,4);
     out->WriteInt32(SCOM_VERSION_CURRENT);

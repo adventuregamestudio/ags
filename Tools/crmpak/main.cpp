@@ -1,338 +1,229 @@
-#include <cerrno>
-#include <cinttypes>
-#include <cstdio>
-#include <cstring>
-#include "data/data_ext.h"
-#include "game/room_file.h"
-#include "util/file.h"
-#include "util/memory_compat.h"
-#include "util/memorystream.h"
-#include "util/string_compat.h"
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-2026 various contributors
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// https://opensource.org/license/artistic-2-0/
+//
+//=============================================================================
+// 
+// CRM room file pack/unpack utility.
+// 
+//=============================================================================
+#include "commands.h"
+#include "util/cmdlineopts.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
-
-// TODO: move to Common? need to find a good place
-class RoomBlockParser : public DataExtParser
-{
-public:
-    RoomBlockParser(std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
-        : DataExtParser(std::move(in), kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
-        {}
-    virtual String GetOldBlockName(int block_id) const
-    { return GetRoomBlockName((RoomFileBlock)block_id); }
-};
-
-
-static void print_known_blockids()
-{
-    for (int i = kRoomFblk_FirstID; i < kRoomFblk_LastID; ++i)
-        printf("%d:%s\n", i, GetRoomBlockName((RoomFileBlock)i).GetCStr());
-}
-
-HError print_room_blockids(RoomDataSource &datasrc)
-{
-    HError err = HError::None();
-    RoomBlockParser parser(std::move(datasrc.InputStream), datasrc.DataVersion);
-    printf("------ Block ID ------|------- Offset -------|--- Size --\n");
-    for (err = parser.OpenBlock(); err && !parser.AtEnd(); err = parser.OpenBlock())
-    {
-        printf(" %-16s (%d) | %-20" PRId64 " | %-10zu\n",
-            parser.GetBlockName().GetCStr(), parser.GetBlockID(), parser.GetBlockOffset(), (size_t)parser.GetBlockLength());
-        parser.SkipBlock();
-    }
-    return err;
-}
-
-static const char *passwencstring = "Avis Durgan";
-
-void UnpackScriptText(Stream *in, Stream *out)
-{
-    size_t len = static_cast<uint32_t>(in->ReadInt32());
-    std::vector<char> buf(len);
-    in->Read(&buf.front(), len);
-    for (size_t i = 0; i < len; ++i)
-        buf[i] += passwencstring[i % 11];
-    out->Write(&buf.front(), buf.size());
-}
-
-
-const char *BIN_STRING = "crmpak v0.1.0 - AGS compiled room's (re)packer\n"
-"Copyright (c) 2021 AGS Team and contributors";
+const char *BIN_STRING = "crmpak v0.2.0 - AGS compiled room's (re)packer\n"
+"Copyright (c) 2026 AGS Team and contributors";
 
 const char *HELP_STRING =
-"Usage: crmpak [OPTIONS] [<in-room.crm> <COMMAND> [<CMD_OPTIONS>]]\n"
-"Options:\n"
-"  --tell-blockids        print a list of the known block ids\n"
-"Commands:\n"
-"  -d <blockid>           delete: remove a block from the compiled room\n"
-"  -e <blockid> <file>    export: write a block into this file\n"
-"  -i <blockid> <file>    import: add/replace a block with this file contents\n"
-"  -l                     list: print id of all blocks found in the room\n"
-"  -x <blockid> <file>    extract: remove a block and save it in this file\n"
-"Command options:\n"
-"  -u                     for '-e' and '-x': unpack (decode) encoded block data\n"
-"  -w <out-room.crm>      for all commands but '-e': write the resulting room\n"
-"                         into a new file; otherwise will modify the input file\n";
+   //------------------------------------------------------------------------------|
+    "Usage:\n"
+    "  crmpak <COMMAND> <ROOM-FILE> [<CONTENT-LIST>] [<OPTIONS>]\n"
+    "      executes an operation regarding the chosen room file, and the selected\n"
+    "      list of content. Content list is a sequence of key-value pairs separated\n"
+    "      by spaces, where the key is a content name and the value is a file path:\n"
+    "          CONTENT1 FILE1 CONTENT2 FILE2 ...\n"
+    "      Certain commands (such as '-x') may not require specifying file paths,\n"
+    "      in which case content list must contain only sequence of content names:\n"
+    "          CONTENT1 CONTENT2 ...\n"
+    "      Certain other commands (such as '-l') do not require a content list.\n"
+    "      Options may adjust the operation further.\n"
+    "\n"
+    "Commands:\n"
+    "  -c, --create           create a room file with specified content;\n"
+    "                         if no content list is provided, then will create a\n"
+    "                         room with minimal default content.\n"
+    // NOTE: we reserve -c input options for the future, in case we want to create from some source
+    "  -e, --export           export (extract) content from the existing room file\n"
+    "                         into the output file(s).\n"
+    "  -i, --import           import (add, overwrite) specified content into the\n"
+    "                         existing room file.\n"
+    "  -l, --list             print the list of content found inside room file.\n"
+    "  -x, --cut              cut (delete) specified content from a room file.\n"
+    "\n"
+    "Content names:\n"
+    "  backN                  background image, where N is a 0-based index;\n"
+    "                         supported image formats: BMP, PCX, PNG\n"
+    "  mask-hotspot           hotspot mask image\n"
+    "  mask-region            region mask image\n"
+    "  mask-walkarea          walkable area mask image\n"
+    "  mask-walkbehind        walk-begind mask image\n"
+    "  script                 compiled script, binary data\n"
+    "  script-text            script text (commonly present in v2.x rooms)\n"
+    "\n"
+    "Command options:\n"
+    "  -w <out-room.crm>      for import and cut commands: write the resulting room\n"
+    "                         into a new file; otherwise will modify the input file\n"
+    "\n"
+    "Other options:\n"
+    "  -v, --verbose          print operation details"
+    ;
 
-int main(int argc, char *argv[])
+CRMPak::Content ParseContent(const String &cont_type, const String &filename)
 {
-    for (int i = 1; i < argc; ++i)
+    if (cont_type.CompareLeftNoCase("back") == 0)
     {
-        const char *arg = argv[i];
-        if (strcmp(arg, "--help") == 0 || strcmp(arg, "/?") == 0 || strcmp(arg, "-?") == 0)
-        {
-            printf("%s\n", BIN_STRING);
-            printf("%s\n", HELP_STRING);
-            return 0; // display help and bail out
-        }
+        int index = StrUtil::StringToInt(cont_type.Mid(4));
+        if (index >= 0)
+            return CRMPak::Content(CRMPak::kContent_Background, index, filename);
+        return {};
     }
 
-    const char *in_roomfile = argv[1];
+    auto cont = StrUtil::ParseEnum<CRMPak::ContentType, CRMPak::kNumContentTypes>(cont_type,
+        CRMPak::GetContentNames(), CRMPak::kContent_Undefined);
+    return CRMPak::Content(cont, filename);
+}
+
+int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
+{
+    // Parse the command
     char command = 0;
-    const char *arg_block = nullptr;
-    const char *arg_blockfile = nullptr;
-    const char *out_roomfile = nullptr;
-    bool unpack = false;
-    for (int i = 2; i < argc; ++i)
+    for (const auto &opt : cmdargs.Opt)
     {
-        if (strcmp(argv[i], "--tell-blockids") == 0)
+        if (opt == "-c" || opt == "--create")
         {
-            print_known_blockids();
-            return 0;
+            command = 'c'; // create
+            break;
         }
-
-        if (argv[i][0] != '-' || strlen(argv[i]) != 2)
-            continue;
-        char arg = argv[i][1];
-        switch (arg)
+        if (opt == "-e" || opt == "--export")
         {
-        case 'e': case 'i': case 'x':
-            command = arg;
-            if (argc > i + 2)
+            command = 'e'; // export
+            break;
+        }
+        if (opt == "-i" || opt == "--import")
+        {
+            command = 'i'; // import
+            break;
+        }
+        if (opt == "-l" || opt == "--list")
+        {
+            command = 'l'; // list
+            break;
+        }
+        if (opt == "-x" || opt == "--cut")
+        {
+            command = 'x';
+            break;
+        }
+    }
+
+    const bool is_cmd_with_content = (command == 'c' || command == 'e' || command == 'i' || command == 'x');
+    const bool is_cmd_with_cont_files = (command == 'c' || command == 'e' || command == 'i');
+
+    // Fixed pos options
+    const String src_room_file = cmdargs.PosArgs.size() > 0 ? cmdargs.PosArgs[0] : String();
+    String dst_room_file = src_room_file;
+
+    // Content list
+    std::vector<CRMPak::Content> content;
+    if (is_cmd_with_content && cmdargs.PosArgs.size() > 1)
+    {
+        if (is_cmd_with_cont_files)
+        {
+            if ((cmdargs.PosArgs.size() - 1) % 2 != 0)
+                printf("Warning: last content specification is not paired with the filename\n");
+
+            for (size_t i = 1; i < cmdargs.PosArgs.size() - 1; i += 2)
             {
-                arg_block = argv[++i];
-                arg_blockfile = argv[++i];
+                content.push_back(ParseContent(cmdargs.PosArgs[i], cmdargs.PosArgs[i + 1]));
             }
-            break;
-        case 'd':
-            command = arg;
-            if (argc > i + 1) arg_block = argv[++i];
-            break;
-        case 'w':
-            if (argc > i + 1) out_roomfile = argv[(i++) + 1];
-            break;
-        case 'l': command = arg;
-            break;
-        case 'u': unpack = true;
-            break;
-        }
-    }
-
-    // Test supported commands and number of args
-    printf("%s\n", BIN_STRING);
-    if (command == 0)
-    {
-        printf("Error: command not specified\n");
-        printf("%s\n", HELP_STRING);
-        return -1;
-    }
-    else if ((command != 'l') &&
-        (!arg_block || ((command != 'd') && !arg_blockfile)))
-    {
-        printf("Error: not enough arguments\n");
-        printf("%s\n", HELP_STRING);
-        return -1;
-    }
-
-    // Print working info
-    int block_numid = 0;
-    String block_strid;
-    printf("Room file: %s\n", in_roomfile);
-    if (command != 'l')
-    {
-        // Parse room block ID
-        char *parse_end = nullptr;
-        errno = 0;
-        block_numid = strtol(arg_block, &parse_end, 0);
-        bool is_old_numid = ((errno == 0) && (parse_end == arg_block + strlen(arg_block)));
-        block_strid = is_old_numid ? GetRoomBlockName((RoomFileBlock)block_numid) : arg_block;
-
-        printf("Block ID: %s (%d)\n", block_strid.GetCStr(), block_numid);
-        switch (command)
-        {
-        case 'e': case 'x': printf("Output file: %s\n", arg_blockfile); break;
-        case 'i': printf("Input file: %s\n", arg_blockfile); break;
-        case 'd': default: break;
-        }
-        if (out_roomfile && (command != 'e'))
-            printf("Write modified room into: %s\n", out_roomfile);
-    }
-
-    //-----------------------------------------------------------------------//
-    // Open the room, export list of block ids ('l' command).
-    //-----------------------------------------------------------------------//
-    RoomDataSource datasrc;
-    HError err = static_cast<PError>(OpenRoomFile(in_roomfile, datasrc));
-    if (!err)
-    {
-        printf("Error: failed to open room file for reading:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-
-    if (command == 'l')
-    {
-        err = print_room_blockids(datasrc);
-        if (!err)
-        {
-            printf("Error: failed to parse the input room:\n");
-            printf("%s\n", err->FullMessage().GetCStr());
-            return -1;
-        }
-        return 0;
-    }
-
-    //-----------------------------------------------------------------------//
-    // Parse the input room, search for the requested block ID;
-    // save its location in the stream.
-    //-----------------------------------------------------------------------//
-    // FIXME: following is a very ugly code!
-    // stream should not be shared between two owners at once.
-    Stream *input_s = datasrc.InputStream.get(); // save to let us check positions...
-    RoomBlockParser parser(std::move(datasrc.InputStream), datasrc.DataVersion);
-    soff_t block_head = -1;
-    soff_t block_data_at = -1;
-    soff_t block_end = -1;
-    for (block_end = input_s->GetPosition(), err = parser.OpenBlock();
-         (block_head < 0) && err && !parser.AtEnd(); err = parser.OpenBlock())
-    {
-        if (parser.GetBlockID() == block_numid || parser.GetBlockName() == block_strid)
-        {
-            block_head = block_end;
-            block_data_at = input_s->GetPosition();
-        }
-        parser.SkipBlock();
-        block_end = input_s->GetPosition();
-    }
-    // need these later
-    const int dataext_flags = parser.GetFlags();
-    datasrc.InputStream = parser.ReleaseStream();
-        
-    if (!err)
-    {
-        printf("Error: failed to parse the input room:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-    // If no block found for deletion / export - stop
-    if ((block_head < 0) && (command != 'i'))
-    {
-        printf("Requested block not found.\n");
-        return 0;
-    }
-
-    //-----------------------------------------------------------------------//
-    // Export the block data (commands 'e' and 'x')
-    //-----------------------------------------------------------------------//
-    if (command == 'e' || command == 'x')
-    {
-        std::unique_ptr<Stream> block_out(File::CreateFile(arg_blockfile));
-        if (!block_out)
-        {
-            printf("Error: failed to open block file for writing.\n");
-            return -1;
-        }
-        // Note we export only the internal block data, skipping the header
-        datasrc.InputStream->Seek(block_data_at, kSeekBegin);
-        // TODO: this TextScript case is a hack, the tool has to be redesigned
-        // with better options for unpacking blocks into a source data
-        if (unpack && block_strid == "TextScript")
-        {
-            UnpackScriptText(datasrc.InputStream.get(), block_out.get());
         }
         else
         {
-            CopyStream(datasrc.InputStream.get(), block_out.get(), block_end - block_data_at);
+            for (size_t i = 1; i < cmdargs.PosArgs.size(); ++i)
+            {
+                content.push_back(ParseContent(cmdargs.PosArgs[i], String()));
+            }
         }
     }
-
-    // Export is complete - stop
-    if (command == 'e')
+    if (is_cmd_with_content && content.size() == 0)
     {
-        printf("Done.\n");
-        return 0;
-    }
-
-    //-----------------------------------------------------------------------//
-    // Write the new room file (commands 'd', 'i', 'x')
-    //-----------------------------------------------------------------------//
-    // If we are importing, first try opening the input block file
-    std::unique_ptr<Stream> block_in;
-    if (command == 'i')
-    {
-        block_in = File::OpenFileRead(arg_blockfile);
-        if (!block_in)
+        if (command != 'c')
         {
-            printf("Error: failed to open block file for reading.\n");
+            printf("Error: no content specified for the command.\n");
+            printf("%s\n", HELP_STRING);
             return -1;
         }
     }
 
-    // Depending on settings we write either directly into the new room file,
-    // or into the temp buffer which we then use to overwrite existing room
-    std::unique_ptr<Stream> room_out;
-    std::vector<uint8_t> temp_data;
-    if (out_roomfile)
+    // Options with values
+    for (const auto &opt : cmdargs.OptWithValue)
     {
-        room_out = File::CreateFile(out_roomfile);
-        if (!room_out)
+        if (opt.first == "-w")
         {
-            printf("Error: failed to open room file for writing.\n");
-            return -1;
+            dst_room_file = opt.second;
         }
     }
-    else
+
+    // Other options
+    const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
+
+    // Init
+    CRMPak::Init();
+
+    // Run supported commands
+    switch (command)
     {
-        room_out = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data, kStream_Write));
+    case 'c': // create
+    {
+        if (cmdargs.PosArgs.size() < 1)
+            break; // not enough args
+        return CRMPak::Command_Create(dst_room_file, content, verbose);
+    }
+    case 'e': // export
+    {
+        if (cmdargs.PosArgs.size() < 3)
+            break; // not enough args
+        return CRMPak::Command_Export(src_room_file, content, verbose);
+    }
+    case 'i': // import
+    {
+        if (cmdargs.PosArgs.size() < 2)
+            break; // not enough args
+        return CRMPak::Command_Import(src_room_file, dst_room_file, content, verbose);
+    }
+    case 'l': // list
+    {
+        if (cmdargs.PosArgs.size() < 1)
+            break; // not enough args
+        return CRMPak::Command_List(src_room_file);
+    }
+    case 'x': // cut
+    {
+        if (cmdargs.PosArgs.size() < 1)
+            break; // not enough args
+        return CRMPak::Command_Cut(src_room_file, dst_room_file, content, verbose);
+    }
+    default:
+        printf("Error: no valid command is specified\n");
+        printf("%s\n", HELP_STRING);
+        return -1;
     }
 
-    // Write whole room, except for the block piece (if found)
-    datasrc.InputStream->Seek(0, kSeekBegin);
-    CopyStream(datasrc.InputStream.get(), room_out.get(), block_head);
-    datasrc.InputStream->Seek(block_end, kSeekBegin);
-    CopyStream(datasrc.InputStream.get(), room_out.get(), datasrc.InputStream->GetLength() - block_end);
-    // Finally close the room input
-    datasrc.InputStream.reset();
-    
-    // If we are importing, append the new block
-    if (command == 'i')
+    printf("Error: not enough arguments\n");
+    printf("%s\n", HELP_STRING);
+    return -1;
+}
+
+int main(int argc, char *argv[])
+{
+    printf("%s\n", BIN_STRING);
+
+    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-w"});
+    if (cmdargs.HelpRequested)
     {
-        WriteExtBlock(block_numid, block_strid,
-            [&block_in](Stream *out) { CopyStream(block_in.get(), out, block_in->GetLength()); },
-            dataext_flags, room_out.get());
-        // TODO: find a better design for this block writing ^
-        // TODO: also maybe modify CopyStream to support reading until input EOS
-        block_in.reset();
+        printf("%s\n", HELP_STRING);
+        return 0; // display help and bail out
     }
 
-    // Finalize the output room
-    WriteRoomEnding(room_out.get());
-    room_out.reset();
-
-    // If we saved the new room into the memory, now it's the time to overwrite
-    // the original room with the accumulated data
-    if (!out_roomfile)
-    {
-        auto temp_room = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data));
-        room_out = File::CreateFile(in_roomfile);
-        if (!room_out)
-        {
-            printf("Error: failed to open room file for writing.\n");
-            return -1;
-        }
-        CopyStream(temp_room.get(), room_out.get(), temp_data.size());
-    }
-    printf("Done.\n");
-    return 0;
+    return DoCommand(cmdargs);
 }

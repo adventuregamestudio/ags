@@ -23,6 +23,7 @@
 #include "script/cc_script.h"
 #include "util/compress.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file

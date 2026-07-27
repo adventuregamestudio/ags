@@ -252,7 +252,9 @@ void Dialog_SetOptionText(ScriptDialog *sd, int option, const char *text)
 
     option--; // option id is 1-based in script, and 0 is entry point
 
-    dialog[sd->id].Options[option].Text = text;
+    auto &opt = dialog[sd->id].Options[option];
+    opt.Text = text;
+    opt.Flags = (opt.Flags & ~DFLG_TEXTSET) | (DFLG_TEXTSET * (opt.OriginalText != opt.Text));
 }
 
 int Dialog_GetID(ScriptDialog *sd)

@@ -25,6 +25,7 @@ namespace CRMPak
     enum ContentType
     {
         kContent_Undefined = 0,
+        kContent_Ash,
         kContent_Background,
         kContent_Hotspot,
         kContent_Region,

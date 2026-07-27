@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "commands.h"
+#include "data/room_utils.h"
 #include "game/roomdata.h"
 #include "game/room_file.h"
 #include "gfx/image_file.h"
@@ -25,9 +26,9 @@ namespace CRMPak
 {
 
 const CstrArr<CRMPak::kNumContentTypes> ContentNames = 
-    {{ "undefined", "back", "mask-hotspot", "mask-region", "mask-walkarea", "mask-walkbehind", "script", "script-text" }};
+    {{ "undefined", "ash", "back", "mask-hotspot", "mask-region", "mask-walkarea", "mask-walkbehind", "script", "script-text" }};
 const CstrArr<CRMPak::kNumContentTypes> FriendlyContentNames = 
-    {{ "undefined", "Background %d", "Hotspot mask", "Region mask", "Walkable mask", "Walk-behind mask", "Compiled script", "Script text" }};
+    {{ "undefined", "Room header", "Background %d", "Hotspot mask", "Region mask", "Walkable mask", "Walk-behind mask", "Compiled script", "Script text" }};
 
 const CstrArr<kNumContentTypes> &GetContentNames()
 {
@@ -42,6 +43,12 @@ void Init()
 
 bool LoadRoomFile(RoomDataExt &room, const String &filename)
 {
+    // TODO: it is potentially possible to reduce amount of loaded data
+    // by reading only particular blocks and/or skipping to certain data offset.
+    // This operation will be regulated by the list of contents we're going to work with.
+    // Such implementation would use RoomBlockReader class (currently hidden
+    // inside room_file.cpp).
+
     auto in = File::OpenFileRead(filename);
     if (!in)
     {
@@ -196,6 +203,16 @@ bool DoesContentExist(const RoomDataExt &room, const Content &c, bool test_insta
     case kContent_WalkBehind: return (!test_instance || room.WalkBehindMaskBuf);
     case kContent_ScriptCompiled3: return (!test_instance || room.CompiledScript != nullptr);
     case kContent_ScriptText: return (!test_instance || !room.ScriptText.IsEmpty());
+    // NOTE: generated content never exists in room data
+    default: return false;
+    }
+}
+
+bool IsContentGenerated(const Content &c)
+{
+    switch (c.Type)
+    {
+    case kContent_Ash: return true;
     default: return false;
     }
 }
@@ -207,15 +224,28 @@ String GetFriendlyContentName(const Content &c)
     return String::Wrapper(FriendlyContentNames[c.Type]);
 }
 
+bool Export_Ash(const RoomDataExt &room, const String &filename)
+{
+    DataUtil::RoomScNames names;
+    for (const auto &h : room.Hotspots)
+        names.HotspotNames.push_back(h.ScriptName);
+    for (const auto &o : room.Objects)
+        names.ObjectNames.push_back(o.ScriptName);
+    return SaveTextFile(DataUtil::MakeRoomScriptHeader(names), filename);
+}
+
 void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
 {
     for (const auto &c : content)
     {
-        if (DoesContentExist(room, c, true))
+        if (DoesContentExist(room, c, true) || IsContentGenerated(c))
         {
             bool result = false;
             switch (c.Type)
             {
+            case kContent_Ash:
+                result = Export_Ash(room, c.FileName);
+                break;
             case kContent_Background:
                 if (c.Index >= 0 && static_cast<uint32_t>(c.Index) < room.BgFrameCount)
                     result = SaveImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
@@ -238,6 +268,7 @@ void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
             case kContent_ScriptText:
                 result = SaveTextFile(room.ScriptText, c.FileName);
                 break;
+            default: break;
             }
 
             if (result)

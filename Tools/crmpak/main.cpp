@@ -51,6 +51,7 @@ const char *HELP_STRING =
     "  -x, --cut              cut (delete) specified content from a room file.\n"
     "\n"
     "Content names:\n"
+    "  ash                    room script header, generated from room data\n"
     "  backN                  background image, where N is a 0-based index;\n"
     "                         supported image formats: BMP, PCX, PNG\n"
     "  mask-hotspot           hotspot mask image\n"

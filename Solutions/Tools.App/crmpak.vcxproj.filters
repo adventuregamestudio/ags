@@ -132,6 +132,9 @@
     <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\data\room_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\crmpak\commands.h">
@@ -139,6 +142,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\stb\stb_image.h">
       <Filter>stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\room_utils.h">
+      <Filter>data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

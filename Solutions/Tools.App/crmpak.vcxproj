@@ -61,10 +61,12 @@
     <ClCompile Include="..\..\Tools\crmpak\commands.cpp" />
     <ClCompile Include="..\..\Tools\crmpak\main.cpp" />
     <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp" />
+    <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\stb\stb_image.h" />
     <ClInclude Include="..\..\Tools\crmpak\commands.h" />
+    <ClInclude Include="..\..\Tools\data\room_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{20F0B521-1E8C-4F96-9C35-8CF244CA6947}</ProjectGuid>

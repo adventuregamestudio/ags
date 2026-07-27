@@ -42,9 +42,6 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\string_utils.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -134,6 +131,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\room_utils.cpp">
       <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

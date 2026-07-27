@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../Tools
+INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -43,9 +43,16 @@ COMMON_OBJS = \
 TOOL_OBJS = \
 	../../Tools/data/tra_utils.cpp
 
+MINIMAL_ALLEGRO_OBJS = \
+	../../libsrc/allegro/src/allegro.c \
+	../../libsrc/allegro/src/file.c \
+	../../libsrc/allegro/src/unicode.c \
+	../../libsrc/allegro/src/unix/ufile.c
+
 OBJS := main.cpp \
 	$(COMMON_OBJS) \
-	$(TOOL_OBJS)
+	$(TOOL_OBJS) \
+	$(MINIMAL_ALLEGRO_OBJS)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 

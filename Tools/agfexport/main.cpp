@@ -49,7 +49,7 @@ const char *HELP_AUDIOCLIP_LIST = ""
 #endif
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_AUTOASH = ""
     "Usage: agfexport autoash <INPUT-GAME.AGF> <OUT-FILE.ASH>\n"
@@ -63,17 +63,17 @@ const char *HELP_CUSTOMDATADIR_LIST = ""
     "Writes <OUT-FILE>, a file with a list of custom game data directories.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_FONT_LIST = ""
     "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of font files used by the game\n."
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_GAMECFG = ""
-    "Usage: agfexport gamecfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
+    "Usage: agfexport game-cfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
     "Writes <OUT-FILE.CFG>, default game config.\n"
     "Config's contents are based on DefaultSetup node of the AGF file.\n"
     "Commands:\n"
@@ -91,35 +91,35 @@ const char *HELP_HEADER_LIST = ""
     "Writes <OUT-FILE>, a file with a list of headers from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_PLUGIN_LIST = ""
     "Usage: agfexport plugin-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of game plugins.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_ROOM_LIST = ""
     "Usage: agfexport room-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of rooms.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_SCRIPT_LIST = ""
     "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_TRA_LIST = ""
     "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of translations.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
-    "  -s, --stdout           Instead write the list of font files to stdout\n";
+    "  -s, --stdout           Instead print the list to stdout\n";
 
 enum CommandType
 {
@@ -145,7 +145,7 @@ struct Command
     const size_t NumArgs;
     const char *Help;
 } Command[] = {
-        {"audio-list",  kCmdAudioClipList, 2, HELP_AUDIOCLIP_LIST},
+        {"audioclip-list", kCmdAudioClipList, 2, HELP_AUDIOCLIP_LIST},
         {"autoash",     kCmdAutoAsh,    2, HELP_AUTOASH},
         {"custom-data-dir", kCmdCustomDataDir, 2, HELP_CUSTOMDATADIR_LIST},
         {"font-list",   kCmdFontList,   2, HELP_FONT_LIST},
@@ -196,8 +196,6 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
     {
         std::vector<String> dirs;
         AGF::ReadCustomDataDirectories(dirs, reader.GetGameRoot());
-        // Unfortunately, in AGS 3.x project there's no explicit indication of a filename,
-        // only font ID. The actual file is chosen at runtime among all variants, by certain priority rule.
         for (const auto &dir : dirs)
         {
             exp_data.AppendFmt("%s\n", dir.GetCStr());
@@ -448,6 +446,6 @@ int main(int argc, char *argv[])
     else if (!stdout_list_print)
     {
         fprintf(StdFile, "Data exported successfully.\n");
-        return 0;
     }
+    return 0;
 }

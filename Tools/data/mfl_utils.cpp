@@ -27,7 +27,7 @@ namespace DataUtil
 
 // TODO: might replace "printf" with the logging functions,
 // but then we'd also need to make sure they are initialized in tools
-
+// FIXME: actually return HError from this function!
 static void ExportAsset(Stream *lib_in, const AssetInfo &asset, const String &dst_dir)
 {
     String dst_f = Path::ConcatPaths(dst_dir, asset.FileName);
@@ -110,44 +110,33 @@ HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool
     return HError::None();
 }
 
-HError MakeAssetListFromFileList(const std::vector<String> &files, std::vector<AssetInfo> &assets, const String &asset_dir)
+void MakeAssetMapFromFileList(StringIMap &asset_map, const std::vector<String> &files, const String &asset_dir)
 {
-    String fpath;
-    const String &parent = asset_dir;
     for (const auto &file : files)
     {
-        AssetInfo asset;
-        asset.FileName = file;
-        Path::ConcatPaths(fpath, parent, asset.FileName);
-        asset.Size = File::GetFileSize(fpath);
-        assets.push_back(asset);
+        asset_map.insert(std::make_pair(file, Path::ConcatPaths(asset_dir, file)));
     }
-    return HError::None();
-}
-
-HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
-    bool do_subdirs, const String &lib_basefile)
-{
-    String dpath;
-    String fpath;
-    const String &base = asset_dir;
-    const String &parent = asset_dir;
-
-    for (FindFile ff = FindFile::Open(parent, "*", true, false, do_subdirs ? -1 : 0);
-        !ff.AtEnd(); ff.Next())
-    {
-        AssetInfo asset;
-        asset.FileName = ff.Current();
-        Path::ConcatPaths(fpath, parent, asset.FileName);
-        asset.Size = File::GetFileSize(fpath);
-        assets.push_back(asset);
-    }
-    return HError::None();
 }
 
 HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
-    std::vector<AssetInfo> &assets, soff_t part_size, bool append_first)
+    const StringIMap &asset_map, soff_t part_size, bool append_first)
 {
+    // Generate the list of AssetInfos, as we must precalculate file sizes
+    // before arranging them among the library partitions.
+    std::vector<AssetInfo> assets;
+    for (const auto &asset_entry : asset_map)
+    {
+        soff_t filesz = File::GetFileSize(asset_entry.second);
+        if (filesz < 0)
+            return new Error(String::FromFormat("Failed to retrieve asset file's size: %s", asset_entry.second.GetCStr()));
+        AssetInfo asset;
+        asset.FileName = asset_entry.first;
+        asset.Size = filesz;
+        assets.push_back(asset);
+    }
+    // TODO: sort so that the subdirectories come last?
+    std::sort(assets.begin(), assets.end(), [](const AssetInfo &a1, const AssetInfo &a2) { return a1.FileName.CompareNoCase(a2.FileName) < 0; });
+
     int lib_id = 0;
     if (part_size > 0)
     {
@@ -199,17 +188,17 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
     return HError::None();
 }
 
-HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String &lib_filename,
-                        MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose)
+HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map,
+    const String &lib_filename, MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose)
 {
     append &= File::IsFile(lib_filename); // append only if this file exists, otherwise create
     std::unique_ptr<Stream> out(append ? File::CreateTempFile() : File::CreateFile(lib_filename));
     if (!out)
     {
         if (append)
-            return new Error("Error: failed to open a temporary file for writing pack data.");
+            return new Error("Failed to open a temporary file for writing pack data.");
         else
-            return new Error("Error: failed to open pack file for writing.");
+            return new Error("Failed to open pack file for writing.");
     }
 
     soff_t s_offset = out->GetPosition();
@@ -219,7 +208,10 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String
         if (asset.LibUid == lib_index)
         {
             asset.Offset = out->GetPosition() - s_offset;
-            String path = Path::ConcatPaths(asset_dir, asset.FileName);
+            auto it_file = asset_map.find(asset.FileName);
+            if (it_file == asset_map.end())
+                return new Error(String::FromFormat("Internal error: no file path for asset: %s", asset.FileName.GetCStr()));
+            const String path = it_file->second;
             std::unique_ptr<Stream> in(File::OpenFileRead(path));
             if (!in)
                 return new Error(String::FromFormat("Failed to open the asset file for reading: %s", path.GetCStr()));
@@ -241,7 +233,7 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String
     {
         std::unique_ptr<Stream> final(File::OpenFileWrite(lib_filename));
         if (!final)
-            return new Error("Error: failed to open destination file for writing.");
+            return new Error("Failed to open destination file for writing.");
         final->Seek(0, kSeekEnd);
         lib.BaseFileOffset = final->GetPosition();
         out->Seek(0, kSeekBegin);
@@ -251,8 +243,9 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String
     return HError::None();
 }
 
-HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir, MFLUtil::MFLVersion lib_version,
-                    bool append_first, bool verbose)
+HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map,
+    const String &dst_dir, MFLUtil::MFLVersion lib_version,
+    bool append_first, bool verbose)
 {
     for (size_t id = 0; id < lib.LibFileNames.size(); ++id)
     {
@@ -260,7 +253,7 @@ HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &ds
         if (verbose)
             printf("Info: writing pack file '%s' ...\n", dst_file.GetCStr());
 
-        HError err = WriteLibraryFile(lib, asset_dir, dst_file, lib_version, id, append_first && (id == 0), verbose);
+        HError err = WriteLibraryFile(lib, asset_map, dst_file, lib_version, id, append_first && (id == 0), verbose);
         if (!err)
         {
             if (verbose)
@@ -284,7 +277,7 @@ HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib)
 {
     std::unique_ptr<Stream> in(File::OpenFileRead(lib_file));
     if (!in)
-        return new Error("Error: failed to open pack file for reading.");
+        return new Error("Failed to open pack file for reading.");
 
     AssetLibInfo lib;
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());

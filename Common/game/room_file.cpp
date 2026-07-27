@@ -24,6 +24,7 @@
 #include "util/compress.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
+#include "util/memorystream.h"
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file
@@ -529,7 +530,7 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ve
     return HError::None();
 }
 
-HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const String &ext_id,
+HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
     //
@@ -540,7 +541,19 @@ HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const Stri
     case kRoomFblk_Main:
         return ReadMainBlock(room, in, data_ver);
     case kRoomFblk_Script:
-        in->Seek(block_len); // no longer read source script text into RoomData
+        // Only read if explicitly requested to by caller
+        if (room_aux)
+        {
+            std::vector<char> buf;
+            HError err = ReadScriptBlock(buf, in, data_ver);
+            if (!err)
+                return err;
+            room_aux->ScriptText = buf.data();
+        }
+        else
+        {
+            in->Seek(block_len);
+        }
         return HError::None();
     case kRoomFblk_CompScript3:
         return ReadCompSc3Block(room, in, data_ver);
@@ -587,6 +600,15 @@ public:
         : DataExtReader(std::move(in),
             kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
         , _room(room)
+        , _roomAux(nullptr)
+        , _dataVer(data_ver)
+    {}
+
+    RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in),
+            kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+        , _room(room)
+        , _roomAux(room_aux)
         , _dataVer(data_ver)
     {}
 
@@ -609,13 +631,17 @@ private:
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
-        return ReadRoomBlock(_room, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return ReadRoomBlock(_room, _roomAux, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
     }
 
     RoomData *_room {};
+    RoomDataAux *_roomAux {};
     RoomFileVersion _dataVer {};
 };
 
+//
+// TODO: RoomBlockWriter to pair the RoomBlockReader
+// 
 // Helper for new-style blocks with string id
 void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
 {
@@ -623,11 +649,21 @@ void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBloc
         kDataExt_NumID8 | kDataExt_File64, out);
 }
 
+void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stream *out)
+{
+    WriteExtBlock(ext_id, data, kDataExt_NumID8 | kDataExt_File64, out);
+}
+
 // Helper for old-style blocks with only numeric id
 void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
 {
     WriteExtBlock(block, [room, writer](Stream *out) { writer(room, out); },
         kDataExt_NumID8 | kDataExt_File64, out);
+}
+
+void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Stream *out)
+{
+    WriteExtBlock(block, data, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
 
@@ -670,12 +706,22 @@ void WriteRoomEnding(Stream *out)
     out->WriteByte(kRoomFile_EOF);
 }
 
-HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
-    RoomBlockReader reader(room, data_ver, std::move(in));
+    RoomBlockReader reader(room, room_aux, data_ver, std::move(in));
     HError err = reader.Read();
     return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
+}
+
+HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+{
+    return ReadRoomData(room, nullptr, std::move(in), data_ver);
+}
+
+HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+{
+    return ReadRoomData(room, room, std::move(in), data_ver);
 }
 
 HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
@@ -1025,7 +1071,16 @@ void WriteExt_363_Objects(const RoomData *room, Stream *out)
     }
 }
 
-HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver)
+void WriteAux_ScriptBlock(const RoomDataAux *room_aux, Stream *out)
+{
+    std::vector<uint8_t> data;
+    Stream mems(std::make_unique<VectorStream>(data, kStream_Write));
+    mems.WriteInt32(room_aux->ScriptText.GetLength());
+    WriteStringEncrypt(&mems, room_aux->ScriptText.GetCStr());
+    WriteRoomBlock(kRoomFblk_Script, data, out);
+}
+
+HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");
@@ -1054,9 +1109,27 @@ HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion 
 
     WriteRoomBlock(room, "v363_objects", WriteExt_363_Objects, out);
 
+    //
+    // Optional, auxiliary blocks
+    //
+    if (room_aux)
+    {
+        WriteAux_ScriptBlock(room_aux, out);
+    }
+
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);
     return HRoomFileError::None();
+}
+
+HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver)
+{
+    return WriteRoomData(room, nullptr, out, data_ver);
+}
+
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver)
+{
+    return WriteRoomData(room, room, out, data_ver);
 }
 
 } // namespace Common

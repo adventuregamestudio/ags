@@ -156,18 +156,33 @@ protected:
 };
 
 
+// TODO: DataExtWriter, to pair the DataExtReader
+// 
 // Type of function that writes a single data block.
 typedef std::function<void(Stream *out)> PfnWriteExtBlock;
+// Write a single data block, using a callback to write its contents
 void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writer, int flags, Stream *out);
-// Writes a block with a new-style string id
+// Write a single data block with the provided contents
+void WriteExtBlock(int block, const String &ext_id, const std::vector<uint8_t>& data, int flags, Stream *out);
+// Writes a block with a new-style string id, using a callback
 inline void WriteExtBlock(const String &ext_id, PfnWriteExtBlock writer, int flags, Stream *out)
 {
     WriteExtBlock(0, ext_id, writer, flags, out);
 }
-// Writes a block with a old-style numeric id
+// Writes a block with a old-style numeric id, using a callback
 inline void WriteExtBlock(int block, PfnWriteExtBlock writer, int flags, Stream *out)
 {
     WriteExtBlock(block, String(), writer, flags, out);
+}
+// Writes a block with a new-style string id, using provided data
+inline void WriteExtBlock(const String &ext_id, const std::vector<uint8_t>& data, int flags, Stream *out)
+{
+    WriteExtBlock(0, ext_id, data, flags, out);
+}
+// Writes a block with a old-style numeric id, using provided data
+inline void WriteExtBlock(int block, const std::vector<uint8_t>& data, int flags, Stream *out)
+{
+    WriteExtBlock(block, String(), data, flags, out);
 }
 
 } // namespace Common

@@ -101,6 +101,20 @@ struct RoomDataSource
     { }
 };
 
+// Auxiliary room data, not commonly needed for running the room at runtime,
+// but may be required for importing design-time data or other.
+class RoomDataAux
+{
+public:
+    String ScriptText;
+};
+
+// Full room data, includes both runtime and design-time data,
+// including obsolete data from 2.x editors
+class RoomDataExt : public RoomData, public RoomDataAux
+{
+};
+
 
 // Opens room data for reading from the file; on success assigns a stream to RoomDataSource
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
@@ -108,6 +122,8 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
 HRoomFileError OpenRoomFile(RoomDataSource &src);
 // Reads room data
 HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
+// Reads room data and fills in auxiliary data, if one is found in the stream.
+HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
@@ -118,6 +134,8 @@ HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, bool game_
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Writes all room data to the stream
 HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver);
+// Writes all extended room data to the stream
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver);
 
 // Reads room data header using stream assigned to RoomDataSource;
 // tests and saves its format index if successful

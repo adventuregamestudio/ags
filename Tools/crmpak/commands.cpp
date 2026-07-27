@@ -40,7 +40,7 @@ void Init()
     set_rgb_shifts(10, 5, 0, 11, 5, 0, 16, 8, 0, 16, 8, 0, 24);
 }
 
-bool LoadRoomFile(RoomData &room, const String &filename)
+bool LoadRoomFile(RoomDataExt &room, const String &filename)
 {
     auto in = File::OpenFileRead(filename);
     if (!in)
@@ -64,7 +64,7 @@ bool LoadRoomFile(RoomData &room, const String &filename)
     return true;
 }
 
-bool SaveRoomFile(const RoomData &room, const String &filename)
+bool SaveRoomFile(const RoomDataExt &room, const String &filename)
 {
     auto out = File::CreateFile(filename);
     if (!out)
@@ -136,6 +136,30 @@ bool SaveImageFile(const BitmapData &bm_data, const RGB *pal, const String &file
     return true;
 }
 
+bool LoadTextFile(String &text, const String &filename)
+{
+    auto in = File::OpenFileRead(filename);
+    if (!in)
+    {
+        printf("Error: failed to open file for reading: %s\n", filename.GetCStr());
+        return false;
+    }
+    text = String::FromStream(in.get(), SIZE_MAX);
+    return true;
+}
+
+bool SaveTextFile(const String &text, const String &filename)
+{
+    auto out = File::CreateFile(filename);
+    if (!out)
+    {
+        printf("Error: failed to open file for writing: %s\n", filename.GetCStr());
+        return false;
+    }
+    out->Write(text.GetCStr(), text.GetLength());
+    return true;
+}
+
 bool LoadScriptFile(PScript &script, const String &filename)
 {
     auto in = File::OpenFileRead(filename);
@@ -160,7 +184,7 @@ bool SaveScriptFile(const ccScript &script, const String &filename)
     return true;
 }
 
-bool DoesContentExist(const RoomData &room, const Content &c, bool test_instance)
+bool DoesContentExist(const RoomDataExt &room, const Content &c, bool test_instance)
 {
     switch (c.Type)
     {
@@ -171,7 +195,7 @@ bool DoesContentExist(const RoomData &room, const Content &c, bool test_instance
     case kContent_WalkArea: return (!test_instance || room.WalkAreaMaskBuf);
     case kContent_WalkBehind: return (!test_instance || room.WalkBehindMaskBuf);
     case kContent_ScriptCompiled3: return (!test_instance || room.CompiledScript != nullptr);
-    case kContent_ScriptText: return false;// TODO: must read special data block!
+    case kContent_ScriptText: return (!test_instance || !room.ScriptText.IsEmpty());
     default: return false;
     }
 }
@@ -183,7 +207,7 @@ String GetFriendlyContentName(const Content &c)
     return String::Wrapper(FriendlyContentNames[c.Type]);
 }
 
-void ExportContent(const RoomData &room, const std::vector<Content> &content)
+void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
 {
     for (const auto &c : content)
     {
@@ -212,7 +236,7 @@ void ExportContent(const RoomData &room, const std::vector<Content> &content)
                 result = SaveScriptFile(*room.CompiledScript, c.FileName);
                 break;
             case kContent_ScriptText:
-                // TODO: must read special data block!
+                result = SaveTextFile(room.ScriptText, c.FileName);
                 break;
             }
 
@@ -226,7 +250,7 @@ void ExportContent(const RoomData &room, const std::vector<Content> &content)
     }
 }
 
-void ImportContent(RoomData &room, const std::vector<Content> &content)
+void ImportContent(RoomDataExt &room, const std::vector<Content> &content)
 {
     for (const auto &c : content)
     {
@@ -257,7 +281,7 @@ void ImportContent(RoomData &room, const std::vector<Content> &content)
                 result = LoadScriptFile(room.CompiledScript, c.FileName);
                 break;
             case kContent_ScriptText:
-                // TODO: must read special data block!
+                result = LoadTextFile(room.ScriptText, c.FileName);
                 break;
             }
 
@@ -271,7 +295,7 @@ void ImportContent(RoomData &room, const std::vector<Content> &content)
     }
 }
 
-void CutContent(RoomData &room, const std::vector<Content> &content)
+void CutContent(RoomDataExt &room, const std::vector<Content> &content)
 {
     for (const auto &c : content)
     {
@@ -288,11 +312,7 @@ void CutContent(RoomData &room, const std::vector<Content> &content)
             case kContent_WalkArea: room.WalkAreaMaskBuf = {}; break;
             case kContent_WalkBehind: room.WalkBehindMaskBuf = {}; break;
             case kContent_ScriptCompiled3: room.CompiledScript = nullptr; break;
-            case kContent_ScriptText:
-                // TODO: must read special data block!
-                // Actually, the new room won't save this at all, so it gets cut anyway?
-                // which means that we might have to allow to keep it on other operations.
-                break;
+            case kContent_ScriptText: room.ScriptText = {}; break;
             }
 
             printf("- %s\n", GetFriendlyContentName(c).GetCStr());
@@ -309,7 +329,7 @@ int Command_Create(const String &dst_room, const std::vector<Content> &content, 
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Import");
 
-    RoomData empty;
+    RoomDataExt empty;
     ImportContent(empty, content);
     if (!SaveRoomFile(empty, dst_room))
         return -1;
@@ -324,7 +344,7 @@ int Command_Cut(const String &src_room, const String &dst_room, const std::vecto
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Cut");
 
-    RoomData room;
+    RoomDataExt room;
     if (!LoadRoomFile(room, src_room))
         return -1;
 
@@ -342,7 +362,7 @@ int Command_Export(const String &src_room, const std::vector<Content> &content, 
     printf("Input room file: %s\n", src_room.GetCStr());
     PrintContentOptions(content, "Export");
 
-    RoomData room;
+    RoomDataExt room;
     if (!LoadRoomFile(room, src_room))
         return -1;
 
@@ -359,7 +379,7 @@ int Command_Import(const String &src_room, const String &dst_room, const std::ve
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Import");
 
-    RoomData room;
+    RoomDataExt room;
     if (!LoadRoomFile(room, src_room))
         return -1;
 
@@ -376,7 +396,7 @@ int Command_List(const String &src_room)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
 
-    RoomData room;
+    RoomDataExt room;
     if (!LoadRoomFile(room, src_room))
         return -1;
 

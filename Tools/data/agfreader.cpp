@@ -309,6 +309,14 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
     return def_value;
 }
 
+float ValueParser::ReadFloat(DocElem elem, const char *field, float def_value)
+{
+    DocElem name_f = elem->FirstChildElement(field);
+    if (name_f)
+        return StrUtil::StringToFloat(name_f->GetText(), def_value);
+    return def_value;
+}
+
 bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
 {
     if (!elem)
@@ -865,9 +873,46 @@ void CustomPropertySchema::GetAll(DocElem root, std::vector<DocElem> &elems)
     }
 }
 
+void RuntimeSetup::ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup)
+{
+    setup.AAScaledSprites = ReadBool(elem, "AAScaledSprites");
+    setup.AutoLockMouse = ReadBool(elem, "AutoLockMouse");
+    setup.CompressSaves = ReadBool(elem, "CompressSaves");
+    setup.CustomAppDataPath = ReadString(elem, "CustomAppDataPath");
+    setup.CustomSavePath = ReadString(elem, "CustomSavePath");
+    setup.AudioDriver = ReadString(elem, "DigitalSound");
+    setup.FullscreenDesktop = ReadBool(elem, "FullscreenDesktop");
+    setup.FullscreenGameScaling = ReadString(elem, "FullscreenGameScaling");
+    setup.WindowGameScaling = ReadString(elem, "GameScaling");
+    setup.GameScalingMultiplier = ReadInt(elem, "GameScalingMultiplier");
+    setup.GraphicsDriver = ReadString(elem, "GraphicsDriver");
+    setup.GraphicsFilter = ReadString(elem, "GraphicsFilter");
+    setup.MouseSpeed = ReadFloat(elem, "MouseSpeed");
+    setup.RenderAtScreenResolution = ReadBool(elem, "RenderAtScreenResolution");
+    setup.Rotation = ReadString(elem, "Rotation");
+    setup.ShowFPS = ReadBool(elem, "ShowFPS");
+    setup.SoundCacheSize = ReadInt(elem, "SoundCacheSize");
+    setup.SpriteCacheSize = ReadInt(elem, "SpriteCacheSize");
+    setup.TextureCacheSize = ReadInt(elem, "TextureCacheSize");
+    setup.TitleText = ReadString(elem, "TitleText");
+    setup.TouchToMouseEmulation = ReadString(elem, "TouchToMouseEmulation");
+    setup.TouchToMouseMotionMode = ReadString(elem, "TouchToMouseMotionMode");
+    setup.Translation = ReadString(elem, "Translation");
+    setup.UseCustomAppDataPath = ReadBool(elem, "UseCustomAppDataPath");
+    setup.UseCustomSavePath = ReadBool(elem, "UseCustomSavePath");
+    setup.UseVoicePack = ReadBool(elem, "UseVoicePack");
+    setup.VSync = ReadBool(elem, "VSync");
+    setup.Windowed = ReadBool(elem, "Windowed");
+}
+
 DocElem Game::GetSettings(DocElem elem)
 {
     return elem->FirstChildElement("Settings");
+}
+
+DocElem Game::GetDefaultSetup(DocElem elem)
+{
+    return elem->FirstChildElement("RuntimeSetup");
 }
 
 DocElem ScriptWithHeader::GetHeader(DocElem elem)
@@ -1071,7 +1116,7 @@ static DataUtil::SpriteImportResolution ReadSpriteImportResolution(const String 
 static DataUtil::AudioFileBundlingType ReadAudioBundlingType(const String &value)
 {
     return StrUtil::ParseEnumWithBase(value, kAudioBundlingTypeNames,
-        DataUtil::kAudioBundling_InGameEXE, DataUtil::kAudioBundling_InGameEXE);
+        DataUtil::kAudioBundling_InMainData, DataUtil::kAudioBundling_InMainData);
 }
 
 static DataUtil::AudioClipFileType ReadAudioFileType(const String &value)
@@ -1646,6 +1691,77 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
     }
 }
 
+void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem elem)
+{
+    AGF::Game p_game;
+    AGF::RuntimeSetup p_set;
+    DocElem set_elem = p_game.GetDefaultSetup(elem);
+    p_set.ReadAllData(set_elem, setup);
+}
+
+void ReadAudioClips(std::vector<DataUtil::AudioClipData> &clips, DocElem root)
+{
+    AGF::AudioClips aclips;
+    AGF::AudioClip aclip;
+    std::vector<DocElem> aclip_els;
+    aclips.GetAll(root, aclip_els);
+    for (const auto &a_el : aclip_els)
+    {
+        DataUtil::AudioClipData adata;
+        aclip.ReadAllData(a_el, adata);
+        clips.push_back(adata);
+    }
+}
+
+void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root)
+{
+    AGF::Game p_game;
+    AGF::GameSettings p_set;
+    DataUtil::GameSettings set;
+    p_set.ReadAllData(p_game.GetSettings(root), set);
+    const auto game_dirs = set.CustomDataDir.Split(',');
+    dirs.clear();
+    for (const auto &dir : game_dirs)
+        if (!dir.IsEmpty())
+            dirs.push_back(dir);
+}
+
+void ReadFontList(std::vector<int> &font_list, DocElem root)
+{
+    AGF::Fonts fonts;
+    AGF::Font font;
+    std::vector<DocElem> font_els;
+    fonts.GetAll(root, font_els);
+    for (const auto &t : font_els)
+    {
+        font_list.push_back(font.ReadID(t));
+    }
+}
+
+void ReadPluginList(std::vector<String> &plugin_list, DocElem root)
+{
+    AGF::Plugins plugins;
+    AGF::Plugin plugin;
+    std::vector<DocElem> pl_els;
+    plugins.GetAll(root, pl_els);
+    for (const auto &pl : pl_els)
+    {
+        plugin_list.push_back(plugin.ReadFileName(pl));
+    }
+}
+
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
+{
+    AGF::Rooms rooms;
+    AGF::Room room;
+    std::vector<DocElem> room_els;
+    rooms.GetAll(root, room_els);
+    for (const auto &r : room_els)
+    {
+        room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
+    }
+}
+
 void ReadScriptList(std::vector<String> &script_list, DocElem root)
 {
     AGF::ScriptModules scmodules;
@@ -1676,15 +1792,15 @@ void ReadScriptHeaderList(std::vector<String> &headers_list, DocElem root)
     }
 }
 
-void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
+void ReadTranslationList(std::vector<String> &trs_list, DocElem root)
 {
-    AGF::Rooms rooms;
-    AGF::Room room;
-    std::vector<DocElem> room_els;
-    rooms.GetAll(root, room_els);
-    for (const auto &r : room_els)
+    AGF::Translations translations;
+    AGF::Translation translation;
+    std::vector<DocElem> trs_els;
+    translations.GetAll(root, trs_els);
+    for (const auto &t : trs_els)
     {
-        room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
+        trs_list.push_back(translation.ReadName(t));
     }
 }
 

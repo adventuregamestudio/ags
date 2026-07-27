@@ -22,7 +22,7 @@
 #include "game/customproperties.h"
 #include "gui/guidefines.h"
 #include "util/geometry.h"
-#include "util/string.h"
+#include "util/ini_util.h"
 
 namespace AGS
 {
@@ -153,7 +153,7 @@ enum SpriteImportResolution
 
 enum AudioFileBundlingType
 {
-    kAudioBundling_InGameEXE = 1,
+    kAudioBundling_InMainData = 1,
     kAudioBundling_InSeparateVOX = 2
 };
 
@@ -319,7 +319,7 @@ struct AudioClipData : EntityRef
     int Index{};
     String SourceFileName;
     String CacheFileName;
-    AudioFileBundlingType BundlingType = kAudioBundling_InGameEXE;
+    AudioFileBundlingType BundlingType = kAudioBundling_InMainData;
     int Type{};
     AudioClipFileType FileType = kAudioFile_Undefined;
     bool Repeat{};
@@ -579,6 +579,39 @@ struct GameSettings
     GuiDisableStyle WhenInterfaceDisabled = AGS::Common::kGuiDis_Greyout;
 };
 
+struct RuntimeSetup
+{
+    // TODO: consider turning enum-like string fields into actual enum fields? see notes below
+    String GraphicsDriver;
+    bool Windowed = false;
+    bool FullscreenDesktop = false;
+    String FullscreenGameScaling; // enum-like field
+    String WindowGameScaling; // enum-like field
+    int GameScalingMultiplier = 0;
+    String GraphicsFilter;
+    bool VSync = false;
+    bool AAScaledSprites = false;
+    bool RenderAtScreenResolution = false;
+    String Rotation; // enum-like field
+    String AudioDriver; // enum-like field
+    bool UseVoicePack = false;
+    String Translation;
+    bool AutoLockMouse = false;
+    float MouseSpeed = 0.f;
+    String TouchToMouseEmulation; // enum-like field
+    String TouchToMouseMotionMode; // enum-like field
+    bool ShowFPS = false;
+    int SpriteCacheSize = 0;
+    int TextureCacheSize = 0;
+    int SoundCacheSize = 0;
+    bool CompressSaves = false;
+    bool UseCustomSavePath = false;
+    String CustomSavePath;
+    bool UseCustomAppDataPath = false;
+    String CustomAppDataPath;
+    String TitleText;
+};
+
 struct CustomPropertySchemaItem
 {
     String Name;
@@ -665,6 +698,10 @@ struct GameData : GameRef
     std::vector<PluginData> Plugins;
     String EditorVersion;
 };
+
+// Fills ConfigTree with contents of RuntimeSetup, in accordance to the AGS config format.
+// Optionally uses GameSettings to adjust certain config options.
+void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, AGS::Common::ConfigTree &cfg);
 
 } // namespace DataUtil
 } // namespace AGS

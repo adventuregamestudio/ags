@@ -50,6 +50,10 @@ set(TOOLS_COMMON_SOURCES
         ../Common/util/file.h
         ../Common/util/filestream.cpp
         ../Common/util/filestream.h
+        ../Common/util/ini_util.cpp
+        ../Common/util/ini_util.h
+        ../Common/util/inifile.cpp
+        ../Common/util/inifile.h
         ../Common/util/lzw.cpp
         ../Common/util/lzw.h
         ../Common/util/memorystream.cpp
@@ -109,6 +113,7 @@ target_sources(libtools
         data/dialogscriptconv.cpp
         data/dialogscriptconv.h
         data/game_utils.h
+        data/game_utils.cpp
         data/include_utils.cpp
         data/include_utils.h
         data/mfl_utils.cpp

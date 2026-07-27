@@ -30,10 +30,11 @@ using namespace AGS; // FIXME later
 #define LEGACY_MAXTOPICOPTIONS 30
 
 // Dialog Options flags
-#define DFLG_ON             0x0001  // currently enabled
-#define DFLG_OFFPERM        0x0002  // off forever (can't be trurned on)
-#define DFLG_NOREPEAT       0x0004  // character doesn't say it when clicked
-#define DFLG_HASBEENCHOSEN  0x0008  // dialog option is 'read'
+#define DFLG_ON             0x00000001  // currently enabled
+#define DFLG_OFFPERM        0x00000002  // off forever (can't be trurned on)
+#define DFLG_NOREPEAT       0x00000004  // character doesn't say it when clicked
+#define DFLG_HASBEENCHOSEN  0x00000008  // dialog option is 'read'
+#define DFLG_TEXTSET        0x00000010  // option's text modified at runtime
 
 // Old-style dialog script commands and keywords
 #define DCMD_SAY            1
@@ -66,8 +67,11 @@ struct DialogTopic
 {
     struct DialogOption
     {
+        // Storing original text in case we load a save without modified text.
+        // NOTE: had no better idea how to prevent unnecessary text writing in the saves at this time.
+        Common::String OriginalText;
         Common::String Text;
-        int Flags = 0;
+        int Flags = 0; // DFLG_* flags
         int EntryPoint = -1; // old-style dialog script entry point
     };
 

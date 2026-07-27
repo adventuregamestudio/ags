@@ -26,7 +26,8 @@ void DialogTopic::ReadFromFile_v321(Stream *in)
     for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
     {
         in->Read(name, 150);
-        options[i].Text.SetString(name, 150);
+        options[i].OriginalText.SetString(name, 150);
+        options[i].Text = options[i].OriginalText;
     }
     for (size_t i = 0u; i < LEGACY_MAXTOPICOPTIONS; ++i)
     {
@@ -61,7 +62,8 @@ void DialogTopic::ReadFromFile_v363(Stream *in)
     Options.resize(option_count);
     for (auto &opt : Options)
     {
-        opt.Text = StrUtil::ReadString(in);
+        opt.OriginalText = StrUtil::ReadString(in);
+        opt.Text = opt.OriginalText;
         opt.Flags = in->ReadInt32();
         in->ReadInt32(); // reserved
         in->ReadInt32();
@@ -73,6 +75,8 @@ void DialogTopic::ReadOptionFromSavegame(DialogOption &opt, Stream *in, DialogTo
 {
     opt.Text = StrUtil::ReadString(in);
     opt.Flags = in->ReadInt32();
+    if ((opt.Flags & DFLG_TEXTSET) == 0)
+        opt.Text = opt.OriginalText;
 }
 
 void DialogTopic::ReadFromSavegame(Common::Stream *in, DialogTopicSvgVersion svg_ver, uint32_t *read_opt_count)
@@ -110,7 +114,10 @@ void DialogTopic::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(Options.size());
     for (auto &opt : Options)
     {
-        StrUtil::WriteString(opt.Text, out);
+        if ((opt.Flags & DFLG_TEXTSET) != 0)
+            StrUtil::WriteString(opt.Text, out);
+        else
+            StrUtil::WriteString(nullptr, 0, out);
         out->WriteInt32(opt.Flags);
     }
 }

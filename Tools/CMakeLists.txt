@@ -190,14 +190,6 @@ set_target_properties(agspak PROPERTIES
         )
 target_link_libraries(agspak PUBLIC libtools)
 
-#----- crm2ash ------------------------------------------------
-add_executable(crm2ash crm2ash/main.cpp)
-set_target_properties(crm2ash PROPERTIES
-        CXX_STANDARD 11
-        CXX_EXTENSIONS NO
-        )
-target_link_libraries(crm2ash PUBLIC libtools)
-
 #----- crmpak -------------------------------------------------
 add_executable(crmpak crmpak/main.cpp
         crmpak/commands.h
@@ -232,7 +224,6 @@ list(APPEND TOOLS_TARGETS
         agf2dta
         agfexport
         agspak
-        crm2ash
         crmpak
         spritepak
         trac

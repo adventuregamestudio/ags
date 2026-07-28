@@ -52,11 +52,31 @@ RoomStruct &RoomStruct::operator =(RoomData &&room_data)
 void RoomStruct::InitBitmaps()
 {
     for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
-        BgImages[i].reset(new Bitmap(std::move(BgFrames[i].GraphicBuf)));
-    HotspotMask.reset(new Bitmap(std::move(HotspotMaskBuf)));
-    RegionMask.reset(new Bitmap(std::move(RegionMaskBuf)));
-    WalkAreaMask.reset(new Bitmap(std::move(WalkAreaMaskBuf)));
-    WalkBehindMask.reset(new Bitmap(std::move(WalkBehindMaskBuf)));
+        if (BgFrames[i].GraphicBuf)
+            BgImages[i].reset(new Bitmap(std::move(BgFrames[i].GraphicBuf)));
+    if (HotspotMaskBuf)
+        HotspotMask.reset(new Bitmap(std::move(HotspotMaskBuf)));
+    if (RegionMaskBuf)
+        RegionMask.reset(new Bitmap(std::move(RegionMaskBuf)));
+    if (WalkAreaMaskBuf)
+        WalkAreaMask.reset(new Bitmap(std::move(WalkAreaMaskBuf)));
+    if (WalkBehindMaskBuf)
+        WalkBehindMask.reset(new Bitmap(std::move(WalkBehindMaskBuf)));
+}
+
+void RoomStruct::PrepareForWriteToFile()
+{
+    for (size_t i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+        if (BgImages[i])
+            BgFrames[i].GraphicBuf = std::move(BgImages[i]->ReleasePixelData());
+    if (HotspotMask)
+        HotspotMaskBuf = std::move(HotspotMask->ReleasePixelData());
+    if (RegionMask)
+        RegionMaskBuf = std::move(RegionMask->ReleasePixelData());
+    if (WalkAreaMask)
+        WalkAreaMaskBuf = std::move(WalkAreaMask->ReleasePixelData());
+    if (WalkBehindMask)
+        WalkBehindMaskBuf = std::move(WalkBehindMask->ReleasePixelData());
 }
 
 void RoomStruct::Free()

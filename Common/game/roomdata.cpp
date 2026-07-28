@@ -343,10 +343,10 @@ void RoomData::SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf)
 {
     switch (mask)
     {
-    case kRoomAreaWalkBehind: WalkBehindMaskBuf = std::move(pxbuf);
-    case kRoomAreaHotspot: HotspotMaskBuf = std::move(pxbuf);
-    case kRoomAreaWalkable: WalkAreaMaskBuf = std::move(pxbuf);
-    case kRoomAreaRegion: RegionMaskBuf = std::move(pxbuf);
+    case kRoomAreaWalkBehind: WalkBehindMaskBuf = std::move(pxbuf); break;
+    case kRoomAreaHotspot: HotspotMaskBuf = std::move(pxbuf); break;
+    case kRoomAreaWalkable: WalkAreaMaskBuf = std::move(pxbuf); break;
+    case kRoomAreaRegion: RegionMaskBuf = std::move(pxbuf); break;
     default: assert(false); break;
     }
 }

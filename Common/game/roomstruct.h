@@ -45,10 +45,15 @@ public:
     // Reinitialize RoomStruct by moving (owning) data from RoomData
     RoomStruct &operator =(RoomData &&src);
 
-    // Initializes bitmaps from RooData's pixel buffers.
-    // FIXME: this should be a private method; currently only accessed by a
-    // ugliest temporary code in AGS.Native.
+    // Initializes bitmaps from RoomData's pixel buffers.
+    // CHECKME: this should be a private method; currently only accessed by a
+    // (possibly temporary) code in the Editor.
     void    InitBitmaps();
+    // Initializes RoomData's pixel buffers from bitmaps,
+    // this lets to write this RoomStruct as RoomData back to the file.
+    // CHECKME: idk if this should exist; currently only accessed by a
+    // (possibly temporary) code in the Editor.
+    void    PrepareForWriteToFile();
     // Releases room resources
     void    Free();
 

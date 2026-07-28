@@ -142,9 +142,14 @@ struct RoomBgFrame
     // Palette is only valid in 8-bit games
     RGB         Palette[256];
     // Tells if this frame should keep previous frame palette instead of using its own
-    bool        IsPaletteShared;
+    bool        IsPaletteShared = false;
 
     RoomBgFrame();
+    RoomBgFrame(const RoomBgFrame &src);
+    RoomBgFrame(RoomBgFrame &&src) = default;
+
+    RoomBgFrame& operator =(const RoomBgFrame &src);
+    RoomBgFrame& operator =(RoomBgFrame &&src) = default;
 };
 
 // Describes room edges (coordinates of four edges)
@@ -173,6 +178,13 @@ struct RoomHotspot
 
     // Player will automatically walk here when interacting with hotspot
     Point       WalkTo;
+
+    RoomHotspot() = default;
+    RoomHotspot(const RoomHotspot &src);
+    RoomHotspot(RoomHotspot &&src) = default;
+
+    RoomHotspot& operator =(const RoomHotspot &src);
+    RoomHotspot& operator =(RoomHotspot &&src) = default;
 };
 
 // Room object description
@@ -198,6 +210,11 @@ struct RoomObjectInfo
     UInteractionEvents EventHandlers;
 
     RoomObjectInfo();
+    RoomObjectInfo(const RoomObjectInfo &src);
+    RoomObjectInfo(RoomObjectInfo &&src) = default;
+
+    RoomObjectInfo& operator =(const RoomObjectInfo &src);
+    RoomObjectInfo& operator =(RoomObjectInfo &&src) = default;
 };
 
 // Room region description
@@ -215,6 +232,11 @@ struct RoomRegion
     UInteractionEvents EventHandlers;
 
     RoomRegion();
+    RoomRegion(const RoomRegion &src);
+    RoomRegion(RoomRegion &&src) = default;
+
+    RoomRegion& operator =(const RoomRegion &src);
+    RoomRegion& operator =(RoomRegion &&src) = default;
 };
 
 // Walkable area description
@@ -287,12 +309,17 @@ public:
     static const int LegacyMaskHiresFactor = 2;
 
     RoomData();
+    RoomData(const RoomData &src);
+    RoomData(RoomData &&src);
     ~RoomData();
 
     // Gets if room should adjust its size to match the game's resolution
     inline bool IsRelativeRes() const { return _legacyResolution > kRoomResolution_Real; }
     // Gets the legacy room resolution type
     inline RoomResolutionType GetLegacyResolution() const { return _legacyResolution; }
+
+    RoomData &operator =(const RoomData &src);
+    RoomData &operator =(RoomData &&src) = default;
 
     // Releases room resources
     void Free();
@@ -305,8 +332,12 @@ public:
     // Set legacy resolution type
     void SetLegacyResolution(RoomResolutionType resolution);
 
+    // Gets bitmap of particular mask layer
+    const BitmapData &GetMask(RoomAreaMask mask) const;
     // Gets mask's scale relative to the room's background size
     float GetMaskScale(RoomAreaMask mask) const;
+    // Assigns bitmap for the particular mask layer
+    void  SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf);
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set

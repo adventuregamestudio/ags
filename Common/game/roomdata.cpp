@@ -13,6 +13,7 @@
 //=============================================================================
 #include "game/roomdata.h"
 #include "game/room_file.h"
+#include "script/cc_script.h"
 
 namespace AGS
 {
@@ -30,9 +31,21 @@ RoomOptions::RoomOptions()
 }
 
 RoomBgFrame::RoomBgFrame()
-    : IsPaletteShared(false)
 {
-    memset(Palette, 0, sizeof(Palette));
+    std::memset(Palette, 0, sizeof(Palette));
+}
+
+RoomBgFrame::RoomBgFrame(const RoomBgFrame &src)
+{
+    *this = src;
+}
+
+RoomBgFrame &RoomBgFrame::operator =(const RoomBgFrame &src)
+{
+    std::copy(src.Palette, src.Palette + 256, Palette);
+    IsPaletteShared = src.IsPaletteShared;
+    GraphicBuf = src.GraphicBuf;
+    return *this;
 }
 
 RoomEdges::RoomEdges()
@@ -51,6 +64,22 @@ RoomEdges::RoomEdges(int l, int r, int t, int b)
 {
 }
 
+RoomHotspot::RoomHotspot(const RoomHotspot &src)
+{
+    *this = src;
+}
+
+RoomHotspot &RoomHotspot::operator =(const RoomHotspot &src)
+{
+    Name = src.Name;
+    ScriptName = src.ScriptName;
+    Properties = src.Properties;
+    Interaction.reset(src.Interaction ? new AGS::Common::Interaction(*src.Interaction) : nullptr);
+    EventHandlers.reset(src.EventHandlers ? new AGS::Common::InteractionEvents(*src.EventHandlers) : nullptr);
+    WalkTo = src.WalkTo;
+    return *this;
+}
+
 RoomObjectInfo::RoomObjectInfo()
     : Room(-1)
     , X(0)
@@ -63,10 +92,49 @@ RoomObjectInfo::RoomObjectInfo()
 {
 }
 
+RoomObjectInfo::RoomObjectInfo(const RoomObjectInfo &src)
+{
+    *this = src;
+}
+
+RoomObjectInfo &RoomObjectInfo::operator =(const RoomObjectInfo &src)
+{
+    Room = src.Room;
+    X = src.X;
+    Y = src.Y;
+    Sprite = src.Sprite;
+    IsOn = src.IsOn;
+    Baseline = src.Baseline;
+    Transparency = src.Transparency;
+    Flags = src.Flags;
+    Name = src.Name;
+    ScriptName = src.ScriptName;
+    BlockingRect = src.BlockingRect;
+    Properties = src.Properties;
+    Interaction.reset(src.Interaction ? new AGS::Common::Interaction(*src.Interaction) : nullptr);
+    EventHandlers.reset(src.EventHandlers ? new AGS::Common::InteractionEvents(*src.EventHandlers) : nullptr);
+    return *this;
+}
+
 RoomRegion::RoomRegion()
     : Light(0)
     , Tint(0)
 {
+}
+
+RoomRegion::RoomRegion(const RoomRegion &src)
+{
+    *this = src;
+}
+
+RoomRegion &RoomRegion::operator =(const RoomRegion &src)
+{
+    Light = src.Light;
+    Tint = src.Tint;
+    Properties = src.Properties;
+    Interaction.reset(src.Interaction ? new AGS::Common::Interaction(*src.Interaction) : nullptr);
+    EventHandlers.reset(src.EventHandlers ? new AGS::Common::InteractionEvents(*src.EventHandlers) : nullptr);
+    return *this;
 }
 
 WalkArea::WalkArea()
@@ -95,9 +163,63 @@ RoomData::RoomData()
     InitDefaults();
 }
 
+RoomData::RoomData(const RoomData &src)
+{
+    *this = src;
+}
+
+RoomData::RoomData(RoomData &&src)
+{
+    *this = std::move(src);
+}
+
 RoomData::~RoomData()
 {
     Free();
+}
+
+RoomData &RoomData::operator =(const RoomData &src)
+{
+    GameID = src.GameID;
+    DataVersion = src.DataVersion;
+    MaskResolution = src.MaskResolution;
+    Width = src.Width;
+    Height = src.Height;
+    std::copy(src.Palette, src.Palette + 256, Palette);
+    Options = src.Options;
+
+    BackgroundBPP = src.BackgroundBPP;
+    BgFrameCount = src.BgFrameCount;
+    std::copy(src.BgFrames, src.BgFrames + MAX_ROOM_BGFRAMES, BgFrames);
+    BgAnimSpeed = src.BgAnimSpeed;
+    Edges = src.Edges;
+    HotspotMaskBuf = src.HotspotMaskBuf;
+    RegionMaskBuf = src.RegionMaskBuf;
+    WalkAreaMaskBuf = src.WalkAreaMaskBuf;
+    WalkBehindMaskBuf = src.WalkBehindMaskBuf;
+    HotspotCount = src.HotspotCount;
+    std::copy(src.Hotspots, src.Hotspots + MAX_ROOM_HOTSPOTS, Hotspots);
+    Objects = src.Objects;
+    RegionCount = src.RegionCount;
+    std::copy(src.Regions, src.Regions + MAX_ROOM_REGIONS, Regions);
+    WalkAreaCount = src.WalkAreaCount;
+    std::copy(src.WalkAreas, src.WalkAreas + MAX_WALK_AREAS, WalkAreas);
+    WalkBehindCount = src.WalkBehindCount;
+    std::copy(src.WalkBehinds, src.WalkBehinds + MAX_WALK_BEHINDS, WalkBehinds);
+
+    MessageCount = src.MessageCount;
+    std::copy(src.Messages, src.Messages + MAX_MESSAGES, Messages);
+    std::copy(src.MessageInfos, src.MessageInfos + MAX_MESSAGES, MessageInfos);
+
+    Properties = src.Properties;
+    LocalVariables = src.LocalVariables;
+    Interaction.reset(src.Interaction ? new AGS::Common::Interaction(*src.Interaction) : nullptr);
+    EventHandlers.reset(src.EventHandlers ? new AGS::Common::InteractionEvents(*src.EventHandlers) : nullptr);
+    CompiledScript.reset(src.CompiledScript ? new ccScript(*src.CompiledScript) : nullptr);
+    StrOptions = src.StrOptions;
+
+    _legacyResolution = src._legacyResolution;
+    return *this;
 }
 
 void RoomData::Free()
@@ -191,6 +313,19 @@ void RoomData::SetLegacyResolution(RoomResolutionType resolution)
     _legacyResolution = resolution;
 }
 
+// Gets bitmap of particular mask layer
+const BitmapData &RoomData::GetMask(RoomAreaMask mask) const
+{
+    switch (mask)
+    {
+    case kRoomAreaWalkBehind: return WalkBehindMaskBuf;
+    case kRoomAreaHotspot: return HotspotMaskBuf;
+    case kRoomAreaWalkable: return WalkAreaMaskBuf;
+    case kRoomAreaRegion: return RegionMaskBuf;
+    default: assert(false); return WalkAreaMaskBuf; // have to return a reference to something...
+    }
+}
+
 float RoomData::GetMaskScale(RoomAreaMask mask) const
 {
     switch (mask)
@@ -201,6 +336,18 @@ float RoomData::GetMaskScale(RoomAreaMask mask) const
     case kRoomAreaRegion:
         return 1.f / MaskResolution;
     default: return 0.f;
+    }
+}
+
+void RoomData::SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf)
+{
+    switch (mask)
+    {
+    case kRoomAreaWalkBehind: WalkBehindMaskBuf = std::move(pxbuf);
+    case kRoomAreaHotspot: HotspotMaskBuf = std::move(pxbuf);
+    case kRoomAreaWalkable: WalkAreaMaskBuf = std::move(pxbuf);
+    case kRoomAreaRegion: RegionMaskBuf = std::move(pxbuf);
+    default: assert(false); break;
     }
 }
 

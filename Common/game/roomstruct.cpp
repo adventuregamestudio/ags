@@ -20,12 +20,36 @@ namespace AGS
 namespace Common
 {
 
+RoomStruct::RoomStruct(const RoomData &room_data)
+{
+    *this = room_data;
+}
+
+RoomStruct::RoomStruct(RoomData &&room_data)
+{
+    *this = std::move(room_data);
+}
+
 RoomStruct::~RoomStruct()
 {
     Free();
 }
 
-void RoomStruct::InitRuntimeData()
+RoomStruct &RoomStruct::operator =(const RoomData &room_data)
+{
+    static_cast<RoomData&>(*this) = room_data;
+    InitBitmaps();
+    return *this;
+}
+
+RoomStruct &RoomStruct::operator =(RoomData &&room_data)
+{
+    static_cast<RoomData&>(*this) = std::move(room_data);
+    InitBitmaps();
+    return *this;
+}
+
+void RoomStruct::InitBitmaps()
 {
     for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
         BgImages[i].reset(new Bitmap(std::move(BgFrames[i].GraphicBuf)));

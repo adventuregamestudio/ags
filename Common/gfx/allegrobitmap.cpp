@@ -56,9 +56,9 @@ Bitmap::Bitmap(Bitmap &&bmp)
 {
     _pixelData = std::move(bmp._pixelData);
     _alBitmap = bmp._alBitmap;
-    _isDataOwner = bmp._isDataOwner;
+    _isBmOwner = bmp._isBmOwner;
     bmp._alBitmap = nullptr;
-    bmp._isDataOwner = false;
+    bmp._isBmOwner = false;
 }
 
 Bitmap::~Bitmap()
@@ -97,7 +97,7 @@ bool Bitmap::Create(int width, int height, int color_depth)
 
     _pixelData = std::move(data);
     _alBitmap = bitmap;
-    _isDataOwner = true;
+    _isBmOwner = true;
     return true;
 }
 
@@ -137,7 +137,7 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
 
     _pixelData = std::move(data);
     _alBitmap = bitmap;
-    _isDataOwner = true;
+    _isBmOwner = true;
     return true;
 }
 
@@ -148,7 +148,7 @@ bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
 
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
-    _isDataOwner = true;
+    _isBmOwner = true;
     return _alBitmap != nullptr;
 }
 
@@ -190,25 +190,36 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 
     Destroy();
     _alBitmap = al_bmp;
-    _isDataOwner = !shared_data;
+    _isBmOwner = !shared_data;
     return _alBitmap != nullptr;
 }
 
 void Bitmap::ForgetAllegroBitmap()
 {
     _alBitmap = nullptr;
-    _isDataOwner = false;
+    _isBmOwner = false;
     _pixelData = {};
+}
+
+PixelBuffer Bitmap::ReleasePixelData()
+{
+	if (!_alBitmap)
+		return {};
+
+	auto pxbuf = PixelBuffer(std::move(_pixelData), _alBitmap->dat_sz, _alBitmap->w, _alBitmap->h,
+		ColorDepthToPixelFormat(GetColorDepth()), _alBitmap->pitch);
+	Destroy();
+	return pxbuf;
 }
 
 void Bitmap::Destroy()
 {
-    if (_isDataOwner && _alBitmap)
+    if (_isBmOwner && _alBitmap)
     {
         destroy_bitmap(_alBitmap);
     }
     _alBitmap = nullptr;
-    _isDataOwner = false;
+    _isBmOwner = false;
     _pixelData = {};
 }
 
@@ -536,12 +547,12 @@ void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 	int copy_length = data_size;
 	if (copy_length < 0)
 	{
-		copy_length = GetLineLength();
+		copy_length = _alBitmap->pitch;
 	}
 	else // TODO: use Math namespace here
-		if (copy_length > GetLineLength())
+		if (copy_length > _alBitmap->pitch)
 	{
-		copy_length = GetLineLength();
+		copy_length = _alBitmap->pitch;
 	}
 
 	memcpy(_alBitmap->line[index], data, copy_length);

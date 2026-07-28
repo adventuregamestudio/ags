@@ -173,6 +173,8 @@ typedef struct BITMAP            /* a bitmap structure */
    int cl, cr, ct, cb;           /* clip left, right, top and bottom values */
    GFX_VTABLE *vtable;           /* drawing functions */
    void *dat;                    /* the memory we allocated for the bitmap */
+   size_t dat_sz;                /* size of the dat array in bytes */
+   size_t pitch;                 /* size of the single bitmap line in bytes */
    unsigned long id;             /* for identifying sub-bitmaps */
    void *extra;                  /* points to a structure with more info */
    int x_ofs;                    /* horizontal offset (for sub-bitmaps) */

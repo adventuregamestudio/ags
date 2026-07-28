@@ -339,7 +339,7 @@ bool FindNearestWalkablePoint(Bitmap *mask, const Point &from_pt, Point &dst_pt,
     // We store distances as "squared distance" in order to avoid sqrt() call in a loop
     uint64_t nearest_sqdist = UINT64_MAX;
     Point nearest_pt(-1, -1);
-    const int mask_line_len = mask->GetLineLength();
+    const int mask_line_len = mask->GetPitch();
     const uint8_t *mask_ptr = mask->GetData();
 
     int max_range = std::max(

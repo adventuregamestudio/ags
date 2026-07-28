@@ -35,8 +35,11 @@ namespace Common
 class Bitmap
 {
 public:
+    // Construct empty bitmap
     Bitmap() = default;
+    // Construct bitmap of certain format; its initial pixel values will be undefined
     Bitmap(int width, int height, int color_depth = 0);
+    // Construct bitmap by attaching and owning pixel buffer
     Bitmap(PixelBuffer &&pxbuf);
     // Constructs a sub-bitmap, referencing parent
     Bitmap(Bitmap *src, const Rect &rc);
@@ -82,6 +85,8 @@ public:
     // WARNING: this is meant strictly as a workaround in case third-party lib
     // have deleted our owned BITMAP object.
     void    ForgetAllegroBitmap();
+    // Releases pixel data from ownership and returns it to the caller
+    PixelBuffer ReleasePixelData();
     // Deallocate bitmap
     void	Destroy();
 
@@ -159,12 +164,12 @@ public:
     // Gets size of Bitmap's pixel data, in bytes
 	inline int  GetDataSize() const
     {
-        return GetWidth() * GetHeight() * GetBPP();
+        return _alBitmap->dat_sz;
     }
-    // Gets scanline length in bytes (is the same for any scanline)
-	inline int  GetLineLength() const
+    // Gets pitch (a single scaneline) length in bytes
+	inline int  GetPitch() const
     {
-        return GetWidth() * GetBPP();
+        return _alBitmap->pitch;
     }
 
 	// Gets a pointer to underlying graphic data
@@ -183,12 +188,12 @@ public:
     // Get bitmap data wrapped in a PixelBuffer struct
     inline const BitmapData GetBitmapData() const
     {
-        return BitmapData(GetData(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+        return BitmapData(GetData(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
     inline BitmapData GetBitmapData()
     {
-        return BitmapData(GetDataForWriting(), GetDataSize(), GetLineLength(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+        return BitmapData(GetDataForWriting(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
     }
 
     //=========================================================================
@@ -300,7 +305,7 @@ public:
 private:
     std::unique_ptr<uint8_t[]> _pixelData;
     BITMAP *_alBitmap = nullptr;
-    bool    _isDataOwner = false;
+    bool    _isBmOwner = false; // FIXME: use std::unique_ptr<BITMAP> with no-op deleter
     // Whether we support alpha channel when creating compatible colors
     bool    _alphaInColors = true;
 };

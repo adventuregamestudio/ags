@@ -133,9 +133,10 @@ namespace AGS.Editor
             // 
             // viewPreview2
             // 
-            this.viewPreview2.AutoResize = false;
-            this.viewPreview2.DynamicUpdates = false;
-            this.viewPreview2.IsCharacterView = false;
+            this.viewPreview2.AutoFrameFill = false;
+            this.viewPreview2.AutoResize = true;
+            this.viewPreview2.DynamicUpdates = true;
+            this.viewPreview2.IsCharacterView = true;
             this.viewPreview2.Location = new System.Drawing.Point(289, 3);
             this.viewPreview2.MinimumSize = new System.Drawing.Size(280, 320);
             this.viewPreview2.Name = "viewPreview2";
@@ -147,9 +148,10 @@ namespace AGS.Editor
             // 
             // viewPreview1
             // 
-            this.viewPreview1.AutoResize = false;
-            this.viewPreview1.DynamicUpdates = false;
-            this.viewPreview1.IsCharacterView = false;
+            this.viewPreview1.AutoFrameFill = false;
+            this.viewPreview1.AutoResize = true;
+            this.viewPreview1.DynamicUpdates = true;
+            this.viewPreview1.IsCharacterView = true;
             this.viewPreview1.Location = new System.Drawing.Point(3, 3);
             this.viewPreview1.MinimumSize = new System.Drawing.Size(280, 320);
             this.viewPreview1.Name = "viewPreview1";

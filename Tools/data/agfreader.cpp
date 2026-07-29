@@ -119,6 +119,10 @@ static const CstrArr<3> kSpriteImportResolutionNames = {{
     "Real", "LowRes", "HighRes"
 }};
 
+static const CstrArr<8> kSpriteImportTransparencyNames = {{
+    "PaletteIndex0", "TopLeft", "BottomLeft", "TopRight", "BottomRight", "LeaveAsIs", "NoTransparency", "PaletteIndex"
+}};
+
 static const CstrArr<2> kAudioBundlingTypeNames = {{
     "InGameEXE", "InSeparateVOX"
 }};
@@ -1113,6 +1117,12 @@ static DataUtil::SpriteImportResolution ReadSpriteImportResolution(const String 
         DataUtil::kSpriteImport_Real, DataUtil::kSpriteImport_Real);
 }
 
+static DataUtil::SpriteImportTransparency ReadSpriteImportTransparency(const String &value)
+{
+    return StrUtil::ParseEnumWithBase(value, kSpriteImportTransparencyNames,
+        DataUtil::kSpriteImport_PaletteIndex0, DataUtil::kSpriteImport_LeaveAsIs);
+}
+
 static DataUtil::AudioFileBundlingType ReadAudioBundlingType(const String &value)
 {
     return StrUtil::ParseEnumWithBase(value, kAudioBundlingTypeNames,
@@ -1379,6 +1389,40 @@ static void ReadGameCommon(DataUtil::GameRef &game, DocElem root)
     ReadGameSettings(game.Settings, root);
 }
 
+static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem root)
+{
+    std::vector<DocElem> elems;
+    CollectElements(root->FirstChildElement("Sprites"), "Sprite", elems);
+    for (DocElem sprite : elems)
+    {
+        DataUtil::SpriteData data;
+        data.Slot = ValueParser::ReadAttributeInt(sprite, "Slot", -1);
+        data.Width = ValueParser::ReadAttributeInt(sprite, "Width", 0);
+        data.Height = ValueParser::ReadAttributeInt(sprite, "Height", 0);
+        data.ColorDepth = ValueParser::ReadAttributeInt(sprite, "ColorDepth", 0);
+        data.Resolution = ReadSpriteImportResolution(ValueParser::ReadAttributeString(sprite, "Resolution", "Real"));
+        data.AlphaChannel = ValueParser::ReadAttributeBool(sprite, "AlphaChannel");
+        data.ColoursLockedToRoom = ValueParser::ReadAttributeInt(sprite, "ColoursLockedToRoom", 0);
+        DocElem source = sprite->FirstChildElement("Source");
+        if (source)
+        {
+            data.SourceFile = ValueParser::ReadString(source, "FileName");
+            data.ImportOffsetX = ValueParser::ReadInt(source, "OffsetX");
+            data.ImportOffsetY = ValueParser::ReadInt(source, "OffsetY");
+            data.ImportFrame = ValueParser::ReadInt(source, "Frame");
+            data.RemapToGamePalette = ValueParser::ReadBool(source, "RemapToGamePalette");
+            data.RemapToRoomPalette = ValueParser::ReadBool(source, "RemapToRoomPalette");
+            data.TransparentColour = ReadSpriteImportTransparency(ValueParser::ReadString(sprite, "ImportMethod", "LeaveAsIs"));
+            data.ImportAlphaChannel = ValueParser::ReadBool(source, "ImportAlphaChannel");
+            data.ImportWidth = ValueParser::ReadInt(source, "ImportWidth");
+            data.ImportHeight = ValueParser::ReadInt(source, "ImportHeight");
+            data.ImportAsTile = ValueParser::ReadBool(source, "ImportAsTile");
+            data.TransparentColourIndex = ValueParser::ReadInt(source, "TransparentColorIndex");
+        }
+        sprites.push_back(data);
+    }
+}
+
 void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
 {
     game = DataUtil::GameData{};
@@ -1568,17 +1612,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         data.Blue = ValueParser::ReadAttributeInt(entry, "Blue");
     }
 
-    elems.clear();
-    CollectElements(root->FirstChildElement("Sprites"), "Sprite", elems);
-    for (DocElem sprite : elems)
-    {
-        DataUtil::SpriteData data;
-        data.Slot = ValueParser::ReadAttributeInt(sprite, "Slot", -1);
-        const String resolution = ValueParser::ReadAttributeString(sprite, "Resolution", "Real");
-        data.Resolution = ReadSpriteImportResolution(resolution);
-        data.AlphaChannel = ValueParser::ReadAttributeBool(sprite, "AlphaChannel");
-        game.Sprites.push_back(data);
-    }
+    GetAllSprites(game.Sprites, root);
 
     DocElem plugins = root->FirstChildElement("Plugins");
     for (DocElem plugin = plugins ? plugins->FirstChildElement("Plugin") : nullptr;
@@ -1790,6 +1824,11 @@ void ReadScriptHeaderList(std::vector<String> &headers_list, DocElem root)
         if (!header) continue;
         headers_list.push_back(scelem.ReadFilename(header));
     }
+}
+
+void ReadSpriteList(std::vector<DataUtil::SpriteData> &sprites, DocElem root)
+{
+    GetAllSprites(sprites, root);
 }
 
 void ReadTranslationList(std::vector<String> &trs_list, DocElem root)

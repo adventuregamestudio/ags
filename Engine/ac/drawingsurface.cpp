@@ -511,8 +511,8 @@ void *DrawingSurface_GetPixelsCopyImpl(ScriptDrawingSurface *sds, int x, int y, 
     {
         const int src_pitch = ds->GetWidth() * ds->GetBPP();
         const int dst_pitch = width * ds->GetBPP();
-        PixelOp::CopyPixelsRegion(ds->GetData() + y * src_pitch, ds->GetBPP(), src_pitch,
-            x, width, height, static_cast<uint8_t*>(arr.Obj()), dst_pitch, 0u);
+        PixelOp::CopyPixelsRegion(ds->GetData(), ds->GetBPP(), src_pitch,
+            x, y, width, height, static_cast<uint8_t*>(arr.Obj()), dst_pitch, 0, 0);
     }
     return arr.Obj();
 }
@@ -561,8 +561,8 @@ void DrawingSurface_SetPixelsImpl(ScriptDrawingSurface *sds, void *arrobj, int x
     const int dst_pitch = ds->GetWidth() * ds->GetBPP();
     const int copy_width = std::min(width, ds->GetWidth() - x);
     const int copy_height = std::min(height, std::min<int>(arr_header.TotalSize / (src_pitch), ds->GetHeight()));
-    PixelOp::CopyPixelsRegion(arr_ptr, ds->GetBPP(), src_pitch, 0u, copy_width, copy_height,
-        ds->GetDataForWriting() + y * dst_pitch, dst_pitch, x);
+    PixelOp::CopyPixelsRegion(arr_ptr, ds->GetBPP(), src_pitch, 0, 0, copy_width, copy_height,
+        ds->GetDataForWriting(), dst_pitch, x, y);
     sds->FinishedDrawing();
 }
 

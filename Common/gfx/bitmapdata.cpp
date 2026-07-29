@@ -46,18 +46,34 @@ namespace PixelOp
 void CopyPixels(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
     const int width, const int height, uint8_t *dst_buffer, const size_t dst_pitch)
 {
-    CopyPixelsRegion(src_buffer, bpp, src_pitch, 0u, width, height, dst_buffer, dst_pitch, 0u);
+    CopyPixelsRegion(src_buffer, bpp, src_pitch, 0, 0, width, height, dst_buffer, dst_pitch, 0, 0);
 }
 
 void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
-    const size_t src_px_off, const int width_px, const int height_px,
-    uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
+    const int src_px_off, const int src_py_off, const int width_px, const int height_px,
+    uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off, const int dst_py_off)
 {
-    const size_t src_boff = src_px_off * bpp;
-    const size_t dst_boff = dst_px_off * bpp;
+    const size_t src_boff = (src_py_off * src_pitch) + (src_px_off * bpp);
+    const size_t dst_boff = (dst_py_off * dst_pitch) + (dst_px_off * bpp);
     const size_t width_b = width_px * bpp;
     // NOTE: all assertions are done further in Memory::BlockCopy
     Memory::BlockCopy(src_buffer, src_pitch, src_boff, width_b, height_px, dst_buffer, dst_pitch, dst_boff);
+}
+
+PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width, const int height)
+{
+    const int src_bpp = bm_data.GetBytesPerPixel();
+    const size_t src_pitch = bm_data.GetStride();
+    int do_src_x = src_x, do_src_y = src_y;
+    int do_width = width, do_height = height;
+    Math::ClampLength(do_src_x, do_width, 0, bm_data.GetWidth() - 1);
+    Math::ClampLength(do_src_y, do_height, 0, bm_data.GetHeight() - 1);
+    if (do_width == 0 || do_height == 0)
+        return {};
+
+    PixelBuffer out_buf(do_width, do_height, bm_data.GetFormat());
+    CopyPixelsRegion(bm_data.GetData(), src_bpp, src_pitch, do_src_x, do_src_y, do_width, do_height, out_buf.GetData(), out_buf.GetStride(), 0, 0);
+    return out_buf;
 }
 
 bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,

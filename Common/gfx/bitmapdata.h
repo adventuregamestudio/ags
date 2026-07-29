@@ -277,15 +277,19 @@ namespace PixelOp
     // Pitches are given in bytes and define the length of the source and dest scan lines.
     // Width and height of the rectangle, as well as source and destination offsets are *in pixels*.
     void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
-        const size_t src_px_off, const int width_px, const int height_px,
-        uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off);
+        const int src_px_off, const int src_py_off, const int width_px, const int height_px,
+        uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off, const int dst_py_off);
     inline void CopyPixelsRegion(const uint8_t *src_buffer, const PixelFormat fmt, const size_t src_pitch,
-        const size_t src_px_off, const int width_px, const int height_px,
-        uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
+        const int src_px_off, const int width_px, const int height_px,
+        uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off)
     {
         CopyPixelsRegion(src_buffer, PixelFormatToPixelBytes(fmt), src_pitch,
-            src_px_off, width_px, height_px, dst_buffer, dst_pitch, dst_px_off);
+            src_px_off, 0, width_px, height_px, dst_buffer, dst_pitch, dst_px_off, 0);
     }
+
+    // Copy a portion of pixel data and return as a new PixelBuffer.
+    // Position and size of the region is in pixels.
+    PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width, const int height);
 
     // Copies pixels from source to dest buffer, possibly converting between source
     // and dest pixel format. The destination buffer must be properly allocated

@@ -209,6 +209,7 @@ public:
         : _out(std::move(out)) {}
     ~SpriteFileWriter() = default;
 
+    sprkey_t GetLastWrittenSlot() const { return _index.Offsets.size() > 0 ? static_cast<sprkey_t>(_index.Offsets.size() - 1) : -1; }
     // Get the sprite index, accumulated after write
     const SpriteFileIndex &GetIndex() const { return _index; }
 
@@ -223,6 +224,8 @@ public:
     void WriteEmptySlot();
     // Writes a raw sprite data without any additional processing
     void WriteRawData(const SpriteDatHeader &hdr, const uint8_t *data, size_t data_sz);
+    inline void WriteRawData(const SpriteDatHeader &hdr, const std::vector<uint8_t> &data)
+        { WriteRawData(hdr, data.data(), data.size()); }
     // Finalizes current format; no further writing is possible after this
     void Finalize();
 

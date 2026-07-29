@@ -530,6 +530,8 @@ void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
 void ReadScriptList(std::vector<String> &script_list, DocElem root);
 // Reads an ordered list of script header module names (their order determines dependency).
 void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
+// Reads a list of all the sprite import specs from the game data
+void ReadSpriteList(std::vector<DataUtil::SpriteData> &sprites, DocElem root);
 // Reads a list of translation names.
 void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 

@@ -142,6 +142,8 @@ target_sources(libtools
         data/script_utils.h
         data/scriptgen.cpp
         data/scriptgen.h
+        data/sprite_utils.cpp
+        data/sprite_utils.h
         data/tra_utils.cpp
         data/tra_utils.h
         ${TOOLS_COMMON_SOURCES}
@@ -199,6 +201,17 @@ set_target_properties(crmpak PROPERTIES
         CXX_EXTENSIONS NO
         )
 target_link_libraries(crmpak PUBLIC libtools)
+
+#----- spritepak -------------------------------------------------
+add_executable(spriteimport spriteimport/main.cpp
+        spriteimport/commands.h
+        spriteimport/commands.cpp
+        )
+set_target_properties(spriteimport PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(spriteimport PUBLIC libtools)
 
 #----- spritepak -------------------------------------------------
 add_executable(spritepak spritepak/main.cpp

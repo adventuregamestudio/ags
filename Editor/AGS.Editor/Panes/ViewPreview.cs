@@ -23,6 +23,7 @@ namespace AGS.Editor
         private bool _autoResize = false;
         private bool _autoFrameFill = false;
         private Point _defaultFramePos;
+        private Size _autoScrollPanelRightBottomOffset;
         private List<IAudioPreviewer> _frameAudio = new List<IAudioPreviewer>();
         private Size _maxLoopFrameSize;
         private Point _loopFrameLeftTopOrigin;
@@ -35,6 +36,8 @@ namespace AGS.Editor
             InitializeComponent();
             _defaultFramePos = panelAutoScroll.Location;
             _defaultFrameSize = previewPanel.ClientSize;
+            _autoScrollPanelRightBottomOffset = new Size(this.ClientSize.Width - panelAutoScroll.Bounds.Right,
+                this.ClientSize.Height - panelAutoScroll.Bounds.Bottom);
         }
 
         public string Title
@@ -49,18 +52,30 @@ namespace AGS.Editor
             set { _view = value; UpdateFromView(_view);  }
         }
 
+        /// <summary>
+        /// Whether the sprite's origin is aligned at bottom-center.
+        /// </summary>
+        [Description("Whether the sprite's origin is aligned at bottom-center.")]
         public bool IsCharacterView
         {
             get { return chkCentrePivot.Checked; }
             set { chkCentrePivot.Checked = value; }
         }
 
-		public bool DynamicUpdates
+        /// <summary>
+        /// Whether the preview control should sync with the View automatically whenever the frame is changed.
+        /// </summary>
+        [Description("Whether the preview control should sync with the View automatically whenever the frame is changed.")]
+        public bool DynamicUpdates
 		{
 			get { return _dynamicUpdates; }
 			set { _dynamicUpdates = value; }
 		}
 
+        /// <summary>
+        /// Current zoom level, in percents.
+        /// </summary>
+        [Description("Current zoom level, in percents.")]
         public float ZoomLevel
         {
             get
@@ -78,6 +93,7 @@ namespace AGS.Editor
         /// Whether the preview frame should automatically fill
         /// available control space, disregarding zoom level.
         /// </summary>
+        [Description("Whether the preview frame should automatically fill available control space, disregarding zoom level.")]
         public bool AutoFrameFill
         {
             get
@@ -108,9 +124,10 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Whether ViewPreview control should automatically resize itself
+        /// Whether preview control should automatically resize itself
         /// whenever preview frame gets too large or small.
         /// </summary>
+        [Description("Whether preview control should automatically resize itself whenever preview frame gets too large or small.")]
         public bool AutoResize
         {
             get
@@ -213,31 +230,37 @@ namespace AGS.Editor
             // see if the frame may be resized within the control's client size
             Size viewSize = Utilities.GetSizeViewWillBeRenderedInGame(_view);
             viewSize = MathExtra.SafeScale(viewSize, _zoomLevel);
+            Size previewSize;
             if (previewPanel.ClientSize.Width < viewSize.Width ||
                 previewPanel.ClientSize.Height < viewSize.Height)
             {
-                previewPanel.ClientSize = new Size(
+                previewSize = new Size(
                     Math.Max(previewPanel.ClientSize.Width, viewSize.Width),
                     Math.Max(previewPanel.ClientSize.Height, viewSize.Height));
             }
             else
             {
-                previewPanel.ClientSize = new Size(
+                previewSize = new Size(
                     Math.Max(_defaultFrameSize.Width, viewSize.Width),
                     Math.Max(_defaultFrameSize.Height, viewSize.Height));
             }
-            previewPanel.Invalidate();
 
             if (_autoResize)
             {
+                panelAutoScroll.ClientSize = previewSize;
                 // Try to calculate necessary size, knowing the previewPanel's
                 // location relative to client edges, and its new size
                 // (actually use panelAutoScroll as a reference here, as it's
                 // previewPanel's immediate parent).
                 this.ClientSize = new Size(
-                    panelAutoScroll.Left + (this.ClientRectangle.Right - panelAutoScroll.Right) + previewPanel.Width,
-                    panelAutoScroll.Top + (this.ClientRectangle.Bottom - panelAutoScroll.Bottom) + previewPanel.Height);
+                    panelAutoScroll.Left + previewPanel.Width + _autoScrollPanelRightBottomOffset.Width,
+                    panelAutoScroll.Top + previewPanel.Height + _autoScrollPanelRightBottomOffset.Height);
             }
+            else
+            {
+                previewPanel.ClientSize = previewSize;
+            }
+            previewPanel.Invalidate();
         }
 
         private void PrecalculateMaxLoopFrameSize()
@@ -280,7 +303,7 @@ namespace AGS.Editor
             {
                 spriteCanvasSize = MathExtra.SafeScale(spriteCanvasSize, _zoomLevel);
             }
-                        
+
             int targetX, targetY, targetWidth, targetHeight;
             if (spriteCanvasSize.Width <= previewPanel.ClientSize.Width && spriteCanvasSize.Height <= previewPanel.ClientSize.Height)
             {

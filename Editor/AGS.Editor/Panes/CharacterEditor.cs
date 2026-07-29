@@ -20,8 +20,6 @@ namespace AGS.Editor
             InitializeComponent();
             _normalFont = lblIsPlayer.Font;
             _boldFont = new System.Drawing.Font(_normalFont.Name, _normalFont.Size, FontStyle.Bold);
-            viewPreview1.AutoResize = true;
-            viewPreview2.AutoResize = true;
             viewPreview1.ZoomLevel = sldZoomLevel.ZoomScale;
             viewPreview2.ZoomLevel = sldZoomLevel.ZoomScale;
         }
@@ -30,10 +28,6 @@ namespace AGS.Editor
         {
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _character = characterToEdit;
-            viewPreview1.IsCharacterView = true;
-            viewPreview2.IsCharacterView = true;
-            viewPreview1.DynamicUpdates = true;
-            viewPreview2.DynamicUpdates = true;
             UpdateActivateCharacterText();
             UpdateViewPreview();
         }

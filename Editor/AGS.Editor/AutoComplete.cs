@@ -230,6 +230,8 @@ namespace AGS.Editor
                         state.InsideStructDefinition = new ScriptStruct(state.LastWord, string.Empty, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
                         functions = state.InsideStructDefinition.Functions;
                         variables = state.InsideStructDefinition.Variables;
+                        if (state.FindWordInList("managedbase") >= 0)
+                            state.InsideStructDefinition.IsManagedBase = true;
                     }
                     else
                     {
@@ -348,10 +350,27 @@ namespace AGS.Editor
 				}
             }
 
+            ApplyManagedBase(newCache, structsLookup);
             GenerateDynamicArrayStructs(newCache, structsLookup);
 
             scriptToCache.AutoCompleteData.CopyFrom(newCache);
 			scriptToCache.AutoCompleteData.Populated = true;
+        }
+
+        private static void ApplyManagedBase(ScriptAutoCompleteData data, List<ScriptStruct> structsLookup)
+        {
+            ScriptStruct managedBase = structsLookup.Find((s) => { return s.IsManagedBase; });
+            if (managedBase != null)
+            {
+                foreach (var s in data.Structs)
+                {
+                    if (!s.IsManagedBase && string.IsNullOrEmpty(s.ParentType))
+                    {
+                        s.ParentType = managedBase.Name;
+                        ApplyInheritedMembers(s, managedBase);
+                    }
+                }
+            }
         }
 
         private static void GenerateDynamicArrayStructs(ScriptAutoCompleteData data, List<ScriptStruct> structsLookup)
@@ -439,21 +458,26 @@ namespace AGS.Editor
         private static ScriptStruct CreateInheritedStruct(ScriptStruct baseStruct, AutoCompleteParserState state)
         {
             ScriptStruct newStruct = new ScriptStruct(state.PreviousWord2, baseStruct.Name, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
+            ApplyInheritedMembers(newStruct, baseStruct);
+            return newStruct;
+        }
+
+        private static void ApplyInheritedMembers(ScriptStruct childStruct, ScriptStruct baseStruct)
+        {
             foreach (ScriptFunction func in baseStruct.Functions)
             {
                 if (!func.NoInherit)
                 {
-                    newStruct.Functions.Add(func);
+                    childStruct.Functions.Add(func);
                 }
             }
             foreach (ScriptVariable var in baseStruct.Variables)
             {
                 if (!var.NoInherit)
                 {
-                    newStruct.Variables.Add(var);
+                    childStruct.Variables.Add(var);
                 }
             }
-            return newStruct;
         }
 
         private static void ProcessPreProcessorDirective(List<ScriptDefine> defines, ref FastString script, AutoCompleteParserState state)

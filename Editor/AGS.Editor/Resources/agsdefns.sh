@@ -21,6 +21,12 @@
 #define __format
 #endif
 
+// Redefine 'managedbase' as simply 'managed' in case the script
+// compiler does not support the former.
+#ifndef SCRIPT_EXT_MANAGEDBASE
+#define managedbase managed
+#endif
+
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
 #define FontType int
@@ -429,6 +435,17 @@ enum eKeyMod
   eKeyModMask       = 0x00FF0000
 };
 #endif // SCRIPT_API_v360
+
+#ifdef SCRIPT_API_v400_30
+// Remember: managedbase class must be the first fully-declared managed type,
+// but forward-declarations are still allowed (and we need them).
+internalstring autoptr builtin managed struct String;
+
+/// The implicit base class for all the managed types.
+managedbase struct Anything {
+    import readonly attribute String TypeName;
+};
+#endif
 
 #ifdef SCRIPT_API_v3507
 managed struct Point {

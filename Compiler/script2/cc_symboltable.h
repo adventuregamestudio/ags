@@ -81,6 +81,7 @@ enum class TQ : size_t // Type qualifier
     kImport,
     kInternalstring,
     kManaged,
+    kManagedBase,
 
     kProtected,
     kReadonly,
@@ -220,8 +221,9 @@ enum Predefined : Symbol
     kKW_Switch,         // "switch"
     kKW_While,          // "while"
     kKW_Writeprotected,  // "writeprotected"
+    kKW_ManagedBase,    // "managedbase"
 };
-constexpr Predefined kKW_LastPredefined = kKW_Writeprotected;
+constexpr Predefined kKW_LastPredefined = kKW_ManagedBase;
 constexpr Predefined kKW_Dynpointer = kKW_Multiply;
 
 // For function parameters, used in functions of the symbol table
@@ -250,6 +252,7 @@ public:
 
 struct SymbolTableEntry : public SymbolTableConstant
 {
+    Symbol Sym = kKW_NoSymbol;
     std::string Name = "";
     size_t Declared = kNoSrcLocation;    // where this was declared, pertains to _src
     size_t Scope = 0u;
@@ -356,6 +359,7 @@ struct SymbolTableEntry : public SymbolTableConstant
     } *VartypeD = nullptr;
 
     SymbolTableEntry() = default;
+    SymbolTableEntry(Symbol const sym, const std::string &name);
     // Deep copy semantics for the pointers
     SymbolTableEntry(SymbolTableEntry const &orig);
     ~SymbolTableEntry();
@@ -376,6 +380,7 @@ private:
         size_t operator() (std::pair<Vartype, VartypeType> pair) const { return hash(pair.first ^ (1021 * static_cast<int>(pair.second))); };
     };
 
+    Symbol _managedBaseSym; // the symbol that corresponds to the implicit managed struct parent
     Symbol _stringStructSym; // the symbol that corresponds to "String" or whatever the stringstruct is
     AGS::Vartype _stringStructPtrSym;
     Symbol _lastAllocated; // the last symbol that has been allocated at initialization; don't confuse with LastPredefined
@@ -425,6 +430,9 @@ public:
 
     // Don't reset _findCache: It isn't rebuilt automatically; Find() and FindOrAdd() will no longer work.
     inline void ResetCaches() const { _vartypesCache.clear(); };
+
+    void SetManagedBaseSym(Symbol s);
+    inline Symbol GetManagedBaseSym() const { return _managedBaseSym; }
 
     void SetStringStructSym(Symbol s);
     inline Symbol GetStringStructSym() const { return _stringStructSym; }

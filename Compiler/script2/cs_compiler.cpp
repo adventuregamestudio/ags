@@ -38,6 +38,8 @@ void ccGetExtensions2(std::vector<std::string> &exts)
     exts.push_back("DYNARRAY_LENGTH");
     // Compile-time check of the string formatting
     exts.push_back("FORMATCHECK");
+    // Implicit parent type for all the managed types
+    exts.push_back("MANAGEDBASE");
 }
 
 // Convert VartypeFlags to RTTI::TypeFlags

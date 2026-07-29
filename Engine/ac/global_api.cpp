@@ -15,7 +15,6 @@
 // Script API Functions
 //
 //=============================================================================
-
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -47,10 +46,43 @@
 #include "ac/string.h"
 #include "ac/room.h"
 #include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptstring.h"
 #include "media/video/video.h"
 #include "media/audio/audio_system.h"
+#include "script/runtimescript.h"
 #include "util/string_compat.h"
+
+using namespace AGS::Engine;
+
+const char *Anything_GetTypeName(void *obj)
+{
+    auto *mgr = ccGetObjectManager(obj);
+    if (!mgr)
+        return CreateNewScriptString("");
+
+    const char *name = nullptr;
+    uint32_t obj_tid = mgr->GetTypeID(obj);
+    if (obj_tid != UINT32_MAX)
+    {
+        const auto &types = RuntimeScript::GetJointRTTI()->GetTypes();
+        if (obj_tid < types.size())
+            name = types[obj_tid].name;
+    }
+    if (!name)
+    {
+        name = mgr->GetType();
+    }
+    return CreateNewScriptString(name);
+}
+
+//=============================================================================
+
+RuntimeScriptValue Sc_Anything_GetTypeName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_SELF(Anything_GetTypeName);
+    return RuntimeScriptValue().SetScriptObject((void*)Anything_GetTypeName(self), &myScriptStringImpl);
+}
 
 // void (char*texx, ...)
 RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t param_count)
@@ -868,4 +900,13 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         };
         ccAddExternalFunctions(global_api_dlgs);
     }
+
+    // Ultimate base managed class
+    // NOTE: put it here so that i wont have to make a separate cpp just for
+    // this small section. Move it elsewhere later if a better place is found.
+    ScFnRegister anything_api[] = {
+        { "Anything::get_TypeName",     API_FN_PAIR(Anything_GetTypeName) },
+    };
+
+    ccAddExternalFunctions(anything_api);
 }

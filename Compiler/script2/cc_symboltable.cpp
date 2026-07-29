@@ -49,6 +49,7 @@ AGS::SymbolTableEntry::~SymbolTableEntry()
 
 AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &orig)
 {
+    this->Sym = orig.Sym;
     this->Name = orig.Name;
     this->Declared = orig.Declared;
     this->Scope = orig.Scope;
@@ -78,6 +79,7 @@ std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymb
         { TQ::kBuiltin,         kKW_Builtin, },
         { TQ::kImport,          kKW_ImportStd, },
         { TQ::kManaged,         kKW_Managed,  },
+        { TQ::kManagedBase,     kKW_ManagedBase,  },
         { TQ::kProtected,       kKW_Protected,  },
         { TQ::kReadonly,        kKW_Readonly, },
         { TQ::kStatic,          kKW_Static, },
@@ -94,7 +96,9 @@ AGS::TypeQualifierSet AGS::TypeQualifierSet::WithoutTypedefQualifiers()
     ret[TQ::kAutoptr] =
         ret[TQ::kBuiltin] =
         ret[TQ::kInternalstring] =
-        ret[TQ::kManaged] = false;
+        ret[TQ::kManaged] =
+        ret[TQ::kManagedBase] =
+        false;
     return ret;
 }
 
@@ -137,13 +141,20 @@ void AGS::SymbolTableEntry::Clear()
     VartypeD = nullptr;
 }
 
+AGS::SymbolTableEntry::SymbolTableEntry(Symbol const sym, const std::string &name)
+    : Sym(sym)
+    , Name(name)
+{
+}
+
 AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
 {
     *this = orig;
 }
 
 AGS::SymbolTable::SymbolTable()
-    : _stringStructSym (kKW_NoSymbol)
+    : _managedBaseSym(kKW_NoSymbol)
+    , _stringStructSym(kKW_NoSymbol)
     , _stringStructPtrSym(kKW_NoSymbol)
 {
     _findCache.clear();
@@ -341,6 +352,7 @@ AGS::SymbolTable::SymbolTable()
     AddKeyword(kKW_ImportTry, "_tryimport");
     AddKeyword(kKW_Internalstring, "internalstring");
     AddKeyword(kKW_Managed, "managed");
+    AddKeyword(kKW_ManagedBase, "managedbase");
     AddKeyword(kKW_Noloopcheck, "noloopcheck");
     AddKeyword(kKW_Null, "null");
     MakeEntryLiteral(kKW_Null);
@@ -424,6 +436,11 @@ bool AGS::SymbolTable::IsVTF(Symbol s, VartypeFlag flag) const
         return false;
 
     return entries.at(s).VartypeD->Flags[flag];
+}
+
+void AGS::SymbolTable::SetManagedBaseSym(Symbol const s)
+{
+    _managedBaseSym = s;
 }
 
 void AGS::SymbolTable::SetStringStructSym(Symbol const s)
@@ -854,8 +871,7 @@ AGS::Symbol AGS::SymbolTable::Add(std::string const &name)
         entries.reserve((new_size1 < new_size2) ? new_size1 : new_size2);
     }
     int const idx_of_new_entry = entries.size();
-    entries.emplace_back();
-    entries.at(idx_of_new_entry).Name = name;
+    entries.emplace_back(idx_of_new_entry, name);
     _findCache[name] = idx_of_new_entry;
     return idx_of_new_entry;
 }
@@ -875,7 +891,8 @@ AGS::Symbol AGS::SymbolTable::FindOrMakeLiteral(std::string const &name, Vartype
 
 AGS::Symbol AGS::SymbolTable::AddNoSymbol(Predefined kw, std::string const &name)
 {
-    SymbolTableEntry &entry = entries[kw];
+    SymbolTableEntry &entry = entries.at(kw);
+    entry.Sym = kw;
     entry.Name = name;
 
     _findCache[name] = kw;
@@ -885,6 +902,7 @@ AGS::Symbol AGS::SymbolTable::AddNoSymbol(Predefined kw, std::string const &name
 AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, size_t prio, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
+    entry.Sym = kw;
     entry.Name = name;
     entry.OperatorD = new SymbolTableEntry::OperatorDesc;
     entry.OperatorD->BinaryPrio = prio;
@@ -900,6 +918,7 @@ AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, 
 AGS::Symbol AGS::SymbolTable::AddDelimeter(Predefined kw, std::string const &name, bool is_opener, Symbol partner, bool can_be_expression)
 {
     SymbolTableEntry &entry = entries.at(kw);
+    entry.Sym = kw;
     entry.Name = name;
     entry.DelimeterD = new SymbolTableEntry::DelimeterDesc;
     entry.DelimeterD->Opening = is_opener;
@@ -913,6 +932,7 @@ AGS::Symbol AGS::SymbolTable::AddDelimeter(Predefined kw, std::string const &nam
 AGS::Symbol AGS::SymbolTable::AddKeyword(Predefined kw, std::string const &name)
 {
     SymbolTableEntry &entry = entries.at(kw);
+    entry.Sym = kw;
     entry.Name = name;
     
     _findCache[name] = kw;
@@ -922,6 +942,7 @@ AGS::Symbol AGS::SymbolTable::AddKeyword(Predefined kw, std::string const &name)
 AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, bool boolean, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
+    entry.Sym = kw;
     entry.Name = name;
     entry.OperatorD = new SymbolTableEntry::OperatorDesc;
     entry.OperatorD->BinaryPrio = binary_prio;
@@ -947,6 +968,7 @@ void AGS::SymbolTable::OperatorCtFunctions(Predefined kw, CompileTimeFunc * int_
 AGS::Symbol AGS::SymbolTable::AddVartype(Predefined kw, std::string const &name, size_t size, bool is_integer_vartype)
 {
     SymbolTableEntry &entry = entries.at(kw);
+    entry.Sym = kw;
     entry.Name = name;
     entry.VartypeD = new SymbolTableEntry::VartypeDesc;
     entry.VartypeD->Size = size;

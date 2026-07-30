@@ -64,6 +64,29 @@
     <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\data\data_ext.h" />
+    <ClInclude Include="..\..\Common\data\data_helpers.h" />
+    <ClInclude Include="..\..\Common\debug\debugmanager.h" />
+    <ClInclude Include="..\..\Common\game\customproperties.h" />
+    <ClInclude Include="..\..\Common\game\interactions.h" />
+    <ClInclude Include="..\..\Common\game\roomdata.h" />
+    <ClInclude Include="..\..\Common\game\room_file.h" />
+    <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
+    <ClInclude Include="..\..\Common\gfx\image_file.h" />
+    <ClInclude Include="..\..\Common\script\cc_common.h" />
+    <ClInclude Include="..\..\Common\script\cc_script.h" />
+    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
+    <ClInclude Include="..\..\Common\util\compress.h" />
+    <ClInclude Include="..\..\Common\util\file.h" />
+    <ClInclude Include="..\..\Common\util\filestream.h" />
+    <ClInclude Include="..\..\Common\util\lzw.h" />
+    <ClInclude Include="..\..\Common\util\memorystream.h" />
+    <ClInclude Include="..\..\Common\util\path.h" />
+    <ClInclude Include="..\..\Common\util\stdio_compat.h" />
+    <ClInclude Include="..\..\Common\util\stream.h" />
+    <ClInclude Include="..\..\Common\util\string.h" />
+    <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\libsrc\stb\stb_image.h" />
     <ClInclude Include="..\..\Tools\crmpak\commands.h" />
     <ClInclude Include="..\..\Tools\data\room_utils.h" />

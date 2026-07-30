@@ -1586,7 +1586,7 @@ HSaveError WriteThisRoom(Stream *out)
     {
         out->WriteBool(play.room_bg_modified[i]);
         if (play.room_bg_modified[i])
-            WriteBitmap(thisroom.BgFrames[i].Graphic.get(), out, false /* not compressed (expect component is compressed) */);
+            WriteBitmap(thisroom.BgImages[i].get(), out, false /* not compressed (expect component is compressed) */);
     }
     out->WriteBool(raw_saved_screen != nullptr);
     if (raw_saved_screen)

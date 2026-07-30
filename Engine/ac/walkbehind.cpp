@@ -45,7 +45,7 @@ bool walk_behind_baselines_changed = false;
 void walkbehinds_generate_sprites()
 {
     const Bitmap *mask = thisroom.WalkBehindMask.get();
-    const Bitmap *bg = thisroom.BgFrames[play.bg_frame].Graphic.get();
+    const Bitmap *bg = thisroom.BgImages[play.bg_frame].get();
     
     const int coldepth = bg->GetColorDepth();
     Bitmap wbbmp; // temp buffer

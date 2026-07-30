@@ -13,7 +13,7 @@
 //=============================================================================
 //
 // This unit provides functions for reading compiled room file (CRM)
-// into the RoomStruct structure, as well as extracting separate components,
+// into the RoomData structure, as well as extracting separate components,
 // such as room scripts.
 //
 //=============================================================================
@@ -23,8 +23,8 @@
 #include <functional>
 #include <memory>
 #include <vector>
-#include "data/assetmanager.h"
 #include "game/room_version.h"
+#include "game/roomdata.h"
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -34,8 +34,6 @@ namespace AGS
 {
 namespace Common
 {
-
-class RoomStruct;
 
 enum RoomFileErrorType
 {
@@ -93,45 +91,70 @@ struct RoomDataSource
     // Name of the asset file
     String              Filename;
     // Room file format version
-    RoomFileVersion     DataVersion;
+    RoomFileVersion     DataVersion = kRoomVersion_Undefined;
     // A ponter to the opened stream
     UStream             InputStream;
 
-    RoomDataSource();
+    RoomDataSource() = default;
+    RoomDataSource(const String &filename, UStream &&stream, RoomFileVersion data_ver = kRoomVersion_Undefined)
+        : Filename(filename), InputStream(std::move(stream)), DataVersion(data_ver)
+    { }
+};
+
+// Auxiliary room data, not commonly needed for running the room at runtime,
+// but may be required for importing design-time data or other.
+class RoomDataAux
+{
+public:
+    String ScriptText;
+};
+
+// Full room data, includes both runtime and design-time data,
+// including obsolete data from 2.x editors
+class RoomDataExt : public RoomData, public RoomDataAux
+{
 };
 
 
-// Opens room data for reading from an arbitrary file
+// Opens room data for reading from the file; on success assigns a stream to RoomDataSource
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
-// Opens room data for reading from asset of a given name
-HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src, AssetManager *mgr);
+// Opens room data for reading from the arbitrary stream found in RoomDataSource
+HRoomFileError OpenRoomFile(RoomDataSource &src);
 // Reads room data
-HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
+HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
+// Reads room data and fills in auxiliary data, if one is found in the stream.
+HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
-// Loads new room data into the given RoomStruct object and upgrade it to the latest version
-HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
+HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> *sprinfos);
+// Loads new room data into the given RoomData object and upgrade it to the latest version
+HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, bool game_is_hires, const std::vector<SpriteInfo> *sprinfos);
+// Writes all room data to the stream
+HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver);
+// Writes all extended room data to the stream
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver);
+
+//
+// Helper functions for the non-standard room file reading.
+//
+
+// Additional reading options that let skip certain data.
+// Purposed mainly for the cli tools that perform individual data extraction;
+// helps to reduce operation time and memory consumption (fwiw).
+struct RoomReadOptions
+{
+    bool PartialRead = false; // tells to ignore if a block is not fully read
+    bool SkipImageData = false; // tells to skip room images (backgrounds, masks)
+};
+
+// Reads room data from the only specified room file blocks
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver,
+    const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read, const RoomReadOptions &read_opts);
+
 // Extracts text script from the room file, if it's available.
 // Historically, text sources were kept inside packed room files before AGS 3.*.
+// FIXME: this is only used by 3.x Editor when importing pre-3.x rooms, remove in 4.x.
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
-// Writes all room data to the stream
-HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver);
-
-// Reads room data header using stream assigned to RoomDataSource;
-// tests and saves its format index if successful
-HRoomFileError ReadRoomHeader(RoomDataSource &src);
-// Writes room data header
-void WriteRoomHeader(Stream *out, RoomFileVersion data_ver);
-// Writes a room data ending
-void WriteRoomEnding(Stream *out);
-
-// Type of function that writes single room block.
-typedef std::function<void(const RoomStruct *room, Stream *out)> PfnWriteRoomBlock;
-// Writes room block with a new-style string id
-void WriteRoomBlock(const RoomStruct *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
-// Writes room block with a old-style numeric id
-void WriteRoomBlock(const RoomStruct *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
 
 } // namespace Common
 } // namespace AGS

@@ -14,8 +14,8 @@
 #include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/oldgamesetupstruct.h"
-#include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
+#include "data/data_helpers.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -225,7 +225,7 @@ void GameSetupStruct::read_messages(Common::Stream *in,
         }
         else
         {
-            messages[i] = read_string_decrypt(in, mbuf);
+            messages[i] = ReadStringDecrypt(in, mbuf);
         }
     }
 }

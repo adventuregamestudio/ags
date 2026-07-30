@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../libsrc/miniz ../../libsrc/allegro/include ../../libsrc/stb
+INCDIR = ../../Common ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -46,7 +46,11 @@ COMMON_OBJS = \
 	../../Common/util/string_utils.cpp
 
 MINIMAL_ALLEGRO_OBJS = \
-	../../libsrc/allegro/src/color.c
+	../../libsrc/allegro/src/allegro.c \
+	../../libsrc/allegro/src/color.c \
+	../../libsrc/allegro/src/file.c \
+	../../libsrc/allegro/src/unicode.c \
+	../../libsrc/allegro/src/unix/ufile.c
 
 MINIZ_OBJS = \
 	../../libsrc/miniz/miniz.c

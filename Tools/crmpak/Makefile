@@ -1,4 +1,4 @@
-INCDIR = ../../Common
+INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -8,6 +8,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+	-DALLEGRO_STATICLINK \
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
@@ -24,11 +25,26 @@ CFLAGS   += -Werror=implicit-function-declaration
 
 COMMON_OBJS = \
 	../../Common/data/data_ext.cpp \
+	../../Common/data/data_helpers.cpp \
 	../../Common/debug/debugmanager.cpp \
-	../../Common/game/room_file_base.cpp \
+	../../Common/game/customproperties.cpp \
+	../../Common/game/interactions.cpp \
+	../../Common/game/room_file.cpp \
+	../../Common/game/roomdata.cpp \
+	../../Common/gfx/bitmapdata.cpp \
+	../../Common/gfx/image_bmp.cpp \
+	../../Common/gfx/image_file.cpp \
+	../../Common/gfx/image_pcx.cpp \
+	../../Common/gfx/image_png.cpp \
+	../../Common/script/cc_common.cpp \
+	../../Common/script/cc_script.cpp \
 	../../Common/util/bufferedstream.cpp \
+	../../Common/util/cmdlineopts.cpp \
+	../../Common/util/compress.cpp \
+	../../Common/util/directory.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
+	../../Common/util/lzw.cpp \
 	../../Common/util/memorystream.cpp \
 	../../Common/util/path.cpp \
 	../../Common/util/stdio_compat.c \
@@ -37,8 +53,29 @@ COMMON_OBJS = \
 	../../Common/util/string_compat.c \
 	../../Common/util/string_utils.cpp
 
+TOOL_OBJS = \
+	../../Tools/data/cc_script_stubs.cpp \
+	../../Tools/data/room_utils.cpp
+
+MINIMAL_ALLEGRO_OBJS = \
+	../../libsrc/allegro/src/allegro.c \
+	../../libsrc/allegro/src/file.c \
+	../../libsrc/allegro/src/unicode.c \
+	../../libsrc/allegro/src/unix/ufile.c
+
+MINIZ_OBJS = \
+	../../libsrc/miniz/miniz.c
+
+STB_OBJS = \
+	../../libsrc/stb/stb_image.c
+
 OBJS := main.cpp \
-	$(COMMON_OBJS)
+	commands.cpp \
+	$(COMMON_OBJS) \
+	$(TOOL_OBJS) \
+	$(MINIMAL_ALLEGRO_OBJS) \
+	$(MINIZ_OBJS) \
+	$(STB_OBJS)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 

@@ -37,13 +37,13 @@ extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
 // Raw screen writing routines - similar to old CapturedStuff
-#define RAW_START() play.raw_drawing_surface = thisroom.BgFrames[play.bg_frame].Graphic; play.room_bg_modified[play.bg_frame] = true
+#define RAW_START() play.raw_drawing_surface = thisroom.BgImages[play.bg_frame]; play.room_bg_modified[play.bg_frame] = true
 #define RAW_END()
 #define RAW_SURFACE() (play.raw_drawing_surface.get())
 
 // RawSaveScreen: copy the current screen to a backup bitmap
 void RawSaveScreen () {
-    auto source = thisroom.BgFrames[play.bg_frame].Graphic;
+    auto source = thisroom.BgImages[play.bg_frame];
     raw_saved_screen.reset(BitmapHelper::CreateBitmapCopy(source.get()));
 }
 // RawRestoreScreen: copy backup bitmap back to screen; we
@@ -54,7 +54,7 @@ void RawRestoreScreen() {
         debug_script_warn("RawRestoreScreen: unable to restore, since the screen hasn't been saved previously.");
         return;
     }
-    auto deston = thisroom.BgFrames[play.bg_frame].Graphic;
+    auto deston = thisroom.BgImages[play.bg_frame];
     deston->Blit(raw_saved_screen.get(), 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
     invalidate_screen();
     mark_current_background_dirty();
@@ -72,7 +72,7 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
 
     debug_script_log("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
-    PBitmap deston = thisroom.BgFrames[play.bg_frame].Graphic;
+    PBitmap deston = thisroom.BgImages[play.bg_frame];
     tint_image(deston.get(), raw_saved_screen.get(), red, green, blue, opacity);
     invalidate_screen();
     mark_current_background_dirty();
@@ -83,7 +83,7 @@ void RawDrawFrameTransparent (int frame, int translev) {
         (translev < 0) || (translev > 99))
         quit("!RawDrawFrameTransparent: invalid parameter (transparency must be 0-99, frame a valid BG frame)");
 
-    PBitmap bg = thisroom.BgFrames[frame].Graphic;
+    PBitmap bg = thisroom.BgImages[frame];
     if (bg->GetColorDepth() <= 8)
         quit("!RawDrawFrameTransparent: 256-colour backgrounds not supported");
 
@@ -123,7 +123,7 @@ void RawSetColorRGB(int red, int grn, int blu) {
         (blu < 0) || (blu > 255))
         quit("!RawSetColorRGB: colour values must be 0-255");
 
-    play.raw_color = makecol_depth(thisroom.BgFrames[play.bg_frame].Graphic->GetColorDepth(), red, grn, blu);
+    play.raw_color = makecol_depth(thisroom.BgImages[play.bg_frame]->GetColorDepth(), red, grn, blu);
 }
 void RawPrint (int xx, int yy, const char *text) {
     RAW_START();
@@ -260,7 +260,7 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     play.room_bg_modified[play.bg_frame] = 1;
     int ii,jj;
     // draw a line thick enough to look the same at all resolutions
-    PBitmap bg = thisroom.BgFrames[play.bg_frame].Graphic;
+    PBitmap bg = thisroom.BgImages[play.bg_frame];
     color_t draw_color = play.raw_color;
     for (ii = 0; ii < get_fixed_pixel_size(1); ii++) {
         for (jj = 0; jj < get_fixed_pixel_size(1); jj++)
@@ -274,7 +274,7 @@ void RawDrawCircle (int xx, int yy, int rad) {
     rad = data_to_game_coord(rad);
 
     play.room_bg_modified[play.bg_frame] = 1;
-    PBitmap bg = thisroom.BgFrames[play.bg_frame].Graphic;
+    PBitmap bg = thisroom.BgImages[play.bg_frame];
     bg->FillCircle(Circle (xx, yy, rad), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
@@ -284,7 +284,7 @@ void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     data_to_game_coords(&x1, &y1);
     data_to_game_round_up(&x2, &y2);
 
-    PBitmap bg = thisroom.BgFrames[play.bg_frame].Graphic;
+    PBitmap bg = thisroom.BgImages[play.bg_frame];
     bg->FillRect(Rect(x1,y1,x2,y2), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
@@ -295,7 +295,7 @@ void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     data_to_game_coords(&x2, &y2);
     data_to_game_coords(&x3, &y3);
 
-    PBitmap bg = thisroom.BgFrames[play.bg_frame].Graphic;
+    PBitmap bg = thisroom.BgImages[play.bg_frame];
     bg->DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();

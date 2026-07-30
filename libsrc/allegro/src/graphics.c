@@ -249,6 +249,8 @@ BITMAP *create_bitmap_object(int color_depth, int width, int height)
    bitmap->cl = bitmap->ct = 0;
    bitmap->vtable = vtable;
    bitmap->dat = NULL;
+   bitmap->dat_sz = 0;
+   bitmap->pitch = 0;
    bitmap->id = 0;
    bitmap->extra = NULL;
    bitmap->x_ofs = 0;
@@ -301,7 +303,11 @@ BITMAP *create_bitmap_ex(int color_depth, int width, int height)
       return NULL;
    }
 
-   assign_bitmap_lines(bitmap, bitmap->dat, bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth));
+   /* Ignore extra padding made for algorithm safety from get_bitmapdata_size,
+   * save only valid size of pixel data. */
+   bitmap->dat_sz = width * height * BYTES_PER_PIXEL(color_depth);
+   bitmap->pitch = bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth);
+   assign_bitmap_lines(bitmap, bitmap->dat, bitmap->pitch);
    return bitmap;
 }
 
@@ -357,6 +363,10 @@ BITMAP *create_bitmap_userdata(int color_depth, int width, int height,
    if (data_pitch == 0)
       data_pitch = bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth);
 
+   /* Ignore extra padding made for algorithm safety from get_bitmapdata_size,
+   * save only valid size of pixel data. */
+   bitmap->dat_sz = width * height * BYTES_PER_PIXEL(color_depth);
+   bitmap->pitch = data_pitch;
    assign_bitmap_lines(bitmap, data, data_pitch);
    return bitmap;
 }

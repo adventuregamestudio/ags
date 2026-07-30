@@ -22,9 +22,9 @@
 #include "ac/gamesetupstructbase.h"
 #include "ac/inventoryiteminfo.h"
 #include "ac/mousecursor.h"
-#include "ac/wordsdictionary.h"
 #include "ac/view.h"
 #include "data/data_file_writer.h"
+#include "data/data_helpers.h"
 #include "game/customproperties.h"
 #include "game/interactions.h"
 #include "gui/guibutton.h"
@@ -203,7 +203,7 @@ TEST(DataFileWriter, RoundTripGlobalMessagesBounds)
     for (int i = 0; i < MAXGLOBALMES; ++i)
     {
         if (info.HasMessages[i])
-            loaded.messages[i] = read_string_decrypt(in.get());
+            loaded.messages[i] = ReadStringDecrypt(in.get());
     }
 
     // The flags array enforces the format's 500-message ceiling; the text

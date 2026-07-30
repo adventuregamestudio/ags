@@ -86,8 +86,11 @@ HError DataExtParser::PostAssert()
     }
     else if (cur_pos < block_end)
     {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
-            _extID.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
+        if ((_flags & kDataExt_IgnoreUnread) == 0)
+        {
+            Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
+                _extID.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
+        }
         _in->Seek(block_end, Common::kSeekBegin);
     }
     return HError::None();
@@ -129,7 +132,7 @@ HError DataExtReader::Read()
 }
 
 // Generic function that saves a block and automatically adds its size into header
-void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writer, int flags, Stream *out)
+void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writer, const std::vector<uint8_t> *data, int flags, Stream *out)
 {
     const bool is_id32 = (flags & kDataExt_NumID32) != 0;
     // 64-bit file offsets are written for blocks with ext_id, OR File64 flag
@@ -147,8 +150,16 @@ void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writ
         out->WriteInt32(0);
     soff_t start_at = out->GetPosition();
 
-    // Call writer to save actual block contents
-    writer(out);
+    if (writer)
+    {
+        // Call writer to save actual block contents
+        writer(out);
+    }
+    else if (data)
+    {
+        // Write provided data
+        out->Write(data->data(), data->size());
+    }
 
     // Now calculate the block's size...
     soff_t end_at = out->GetPosition();
@@ -160,6 +171,16 @@ void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writ
         out->WriteInt32((int32_t)block_size);
     // ...and get back to the end of the file
     out->Seek(0, Common::kSeekEnd);
+}
+
+void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock &writer, int flags, Stream *out)
+{
+    WriteExtBlock(block, ext_id, writer, nullptr, flags, out);
+}
+
+void WriteExtBlock(int block, const String &ext_id, const std::vector<uint8_t> &data, int flags, Stream *out)
+{
+    WriteExtBlock(block, ext_id, nullptr, &data, flags, out);
 }
 
 } // namespace Common

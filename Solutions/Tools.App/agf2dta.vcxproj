@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
@@ -37,6 +38,15 @@
     <ClCompile Include="..\..\Common\util\string_compat.c" />
     <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)al_file.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)al_file.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)al_file.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)al_file.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
     <ClCompile Include="..\..\Tools\agf2dta\main.cpp" />
@@ -46,6 +56,7 @@
     <ClInclude Include="..\..\Common\ac\characterinfo.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
+    <ClInclude Include="..\..\Common\data\data_helpers.h" />
     <ClInclude Include="..\..\Common\debug\out.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />

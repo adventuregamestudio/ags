@@ -15,6 +15,11 @@
 // This unit provides functions for reading main game file into appropriate
 // data structures. Main game file contains general game data, such as global
 // options, lists of static game entities and compiled scripts modules.
+// 
+// TODO: separate game data lookup and game struct reading into different
+// code files, in order to remove dependency on AssetManager if there's a
+// tool which also needs to read game data from a file, for example.
+// AssetManager-based functions should probably exist in the engine.
 //
 //=============================================================================
 #ifndef __AGS_CN_GAME__MAINGAMEFILE_H

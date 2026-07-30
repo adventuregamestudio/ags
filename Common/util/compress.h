@@ -47,6 +47,8 @@ bool lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in, si
 void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256] = nullptr);
 // Loads bitmap decompressing
 PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
+// Skips the LZW-compressed bitmap
+void skip_lzw(Stream *in);
 
 // Deflate compression
 bool deflate_compress(const uint8_t* data, size_t data_sz, int image_bpp, Stream* out);

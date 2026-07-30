@@ -271,7 +271,7 @@ int IAGSEngine::GetCurrentBackground () {
     return play.bg_frame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
-    return (BITMAP*)thisroom.BgFrames[index].Graphic->GetAllegroBitmap();
+    return (BITMAP*)thisroom.BgImages[index]->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
     if (bmp == nullptr)

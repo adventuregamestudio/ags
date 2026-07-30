@@ -13,6 +13,9 @@
     <Filter Include="data">
       <UniqueIdentifier>{38d9244a-1b44-496a-b971-630a82d1eddc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{1e3e0b7e-9f33-4e84-bb9b-425ea62a2f1b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Tools\agspak\main.cpp">
@@ -65,6 +68,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\data\multifilelib.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -18,11 +18,11 @@
 #include "ac/keycode.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
-#include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "data/asset.h"
 #include "data/assetmanager.h"
 #include "data/data_ext.h"
+#include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
@@ -322,7 +322,7 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
             char *buffer = new char[script_text_len + 1];
             in->Read(buffer, script_text_len);
             if (data_ver > kGameVersion_260)
-                decrypt_text(buffer, script_text_len);
+                DecryptText(buffer, script_text_len);
             buffer[script_text_len] = 0;
             old_dialog_src[i] = buffer;
             delete [] buffer;
@@ -340,12 +340,12 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
         char stringbuffer[1000];
         for (bb=0;bb<thisgame.numdlgmessage;bb++) {
             if ((filever >= 26) && (encrypted))
-                read_string_decrypt(iii, stringbuffer);
+                ReadStringDecrypt(iii, stringbuffer);
             else
                 fgetstring(stringbuffer, iii);
         }
     */
-    char buffer[1000];
+    std::vector<char> buffer;
     if (data_ver <= kGameVersion_260)
     {
         // Plain text on <= 2.60
@@ -353,28 +353,22 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
 
         while (!end_reached)
         {
-            char* nextchar = buffer;
-
-            while (1)
+            buffer.clear();
+            while (buffer.back() != 0)
             {
-                *nextchar = in->ReadInt8();
-                if (*nextchar == 0)
-                    break;
-
-                if ((unsigned char)*nextchar == 0xEF)
+                buffer.push_back(in->ReadInt8());
+                // CHECKME: what is this magic? a low byte from 0xCAFEBEEF?
+                if ((unsigned char)buffer.back() == 0xEF)
                 {
                     end_reached = true;
                     in->Seek(-1);
+                    buffer.back() = 0; // replace with null terminator
                     break;
                 }
-
-                nextchar++;
             }
 
-            if (end_reached)
-                break;
-
-            old_speech_lines.push_back(buffer);
+            if (buffer.size() > 0)
+                old_speech_lines.push_back(buffer.data());
         }
     }
     else
@@ -383,17 +377,17 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
         while (1)
         {
             size_t newlen = static_cast<uint32_t>(in->ReadInt32());
-            if (newlen == 0xCAFEBEEF)  // GUI magic
+            if (newlen == 0xCAFEBEEF) // GUI magic
             {
                 in->Seek(-4);
                 break;
             }
 
-            newlen = std::min(newlen, sizeof(buffer) - 1);
-            in->Read(buffer, newlen);
-            decrypt_text(buffer, newlen);
-            buffer[newlen] = 0;
-            old_speech_lines.push_back(buffer);
+            buffer.resize(newlen);
+            in->Read(buffer.data(), newlen);
+            DecryptText(buffer.data(), newlen);
+            buffer[newlen] = 0; // safety fix
+            old_speech_lines.push_back(buffer.data());
         }
     }
 }

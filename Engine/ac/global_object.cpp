@@ -306,7 +306,7 @@ void MergeObject(int obn) {
     construct_object_gfx(obn, true);
     Bitmap *actsp = get_cached_object_image(obn);
 
-    PBitmap bg_frame = thisroom.BgFrames[play.bg_frame].Graphic;
+    PBitmap bg_frame = thisroom.BgImages[play.bg_frame];
     if (bg_frame->GetColorDepth() != actsp->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 

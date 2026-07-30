@@ -34,6 +34,10 @@ namespace ImageFile
     // "ext" parameter tells which image format to expect.
     // Optionally assigns a source pixel format, for informational purposes.
     PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
+    // Reads PixelBuffer object from the file, optionally filling in palette (if available).
+    // Filename's extension will hint which image format to expect.
+    // Optionally assigns a source pixel format, for informational purposes.
+    PixelBuffer LoadImage(const String &filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
     // Writes BitmapData object to the stream, optionally using a palette.
     // FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
     // image file size when writing 32-bit sprites without alpha. Normally this
@@ -43,6 +47,11 @@ namespace ImageFile
     // "ext" parameter tells which image format to use.
     inline bool SaveImage(const BitmapData& bmdata, Stream* out, const String& ext)
         { return SaveImage(bmdata, false, nullptr, out, ext); }
+    // Writes BitmapData object to the file, optionally using a palette.
+    bool SaveImage(const BitmapData &bmdata, bool skip_alpha, const RGB *pal, const String &filename);
+    // Writes BitmapData object to the file
+    inline bool SaveImage(const BitmapData& bmdata, const String &filename)
+        { return SaveImage(bmdata, false, nullptr, filename); }
 
     // Returns a list of supported image extensions
     std::vector<String> GetSupportedImageExts();

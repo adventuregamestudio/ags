@@ -54,19 +54,4 @@ private:
 } // Common
 } // AGS
 
-extern const char *passwencstring;
-
-// Decrypts text found in the given buffer, writes back to the same buffer
-void decrypt_text(char *buf, size_t buf_sz);
-// Reads an encrypted string from the stream and decrypts into the provided buffer
-void read_string_decrypt(AGS::Common::Stream *in, char *buf, size_t buf_sz);
-// Reads an encrypted string from the stream and returns as a string
-AGS::Common::String read_string_decrypt(AGS::Common::Stream *in);
-// Reads an encrypted string from the stream and returns as a string;
-// uses provided vector as a temporary decryption buffer (avoid extra allocs)
-AGS::Common::String read_string_decrypt(AGS::Common::Stream *in, std::vector<char> &dec_buf);
-
-void encrypt_text(char *toenc);
-void write_string_encrypt(AGS::Common::Stream *out, const char *s);
-
 #endif // __AGS_CN_UTIL__WORDSDICTIONARY_H

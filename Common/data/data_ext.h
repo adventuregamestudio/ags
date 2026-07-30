@@ -65,7 +65,9 @@ enum DataExtFlags
     // NOTE: for historical reasons this refers to blocks with numeric ID ONLY;
     // new-style blocks with a 16-char ID always write 64-bit offset
     kDataExt_File32  = 0x0000, // default
-    kDataExt_File64  = 0x0002
+    kDataExt_File64  = 0x0002,
+    // Ignore block being not read to the end (dont emit warning)
+    kDataExt_IgnoreUnread = 0x0004
 };
 
 enum DataExtErrorType
@@ -156,18 +158,33 @@ protected:
 };
 
 
+// TODO: DataExtWriter, to pair the DataExtReader
+// 
 // Type of function that writes a single data block.
 typedef std::function<void(Stream *out)> PfnWriteExtBlock;
+// Write a single data block, using a callback to write its contents
 void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writer, int flags, Stream *out);
-// Writes a block with a new-style string id
+// Write a single data block with the provided contents
+void WriteExtBlock(int block, const String &ext_id, const std::vector<uint8_t>& data, int flags, Stream *out);
+// Writes a block with a new-style string id, using a callback
 inline void WriteExtBlock(const String &ext_id, PfnWriteExtBlock writer, int flags, Stream *out)
 {
     WriteExtBlock(0, ext_id, writer, flags, out);
 }
-// Writes a block with a old-style numeric id
+// Writes a block with a old-style numeric id, using a callback
 inline void WriteExtBlock(int block, PfnWriteExtBlock writer, int flags, Stream *out)
 {
     WriteExtBlock(block, String(), writer, flags, out);
+}
+// Writes a block with a new-style string id, using provided data
+inline void WriteExtBlock(const String &ext_id, const std::vector<uint8_t>& data, int flags, Stream *out)
+{
+    WriteExtBlock(0, ext_id, data, flags, out);
+}
+// Writes a block with a old-style numeric id, using provided data
+inline void WriteExtBlock(int block, const std::vector<uint8_t>& data, int flags, Stream *out)
+{
+    WriteExtBlock(block, String(), data, flags, out);
 }
 
 } // namespace Common

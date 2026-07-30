@@ -85,9 +85,9 @@ target_sources(common
     game/plugininfo.h
     game/room_file.cpp
     game/room_file.h
-    game/room_file_base.cpp
-    game/room_file_deprecated.cpp
     game/room_version.h
+    game/roomdata.cpp
+    game/roomdata.h
     game/roomstruct.cpp
     game/roomstruct.h
     gfx/allegrobitmap.cpp
@@ -160,7 +160,6 @@ target_sources(common
     util/memorystream.cpp
     util/memorystream.h
     util/path.cpp
-    util/path_ex.cpp
     util/path.h
     util/resourcecache.h
     util/scaling.h
@@ -191,7 +190,7 @@ target_sources(common
     util/string_compat.c
     util/string_compat.h
     util/matrix.h
-
+    
     platform/platform.h
     platform/types.h
     platform/windows/windows.h
@@ -245,6 +244,7 @@ if(AGS_TESTS)
     add_executable(common_test
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
+        test/datahelpers_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
         test/indexedobjectpool_test.cpp

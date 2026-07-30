@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "data/data_helpers.h"
+#include <vector>
 
 namespace AGS
 {
@@ -59,6 +60,88 @@ String PreprocessLineForOldStyleLinebreaks(const String &line)
     out.resize(out.size() + (end_ptr - begin_ptr));
     std::copy(begin_ptr, end_ptr, out.begin() + old_size);
     return String(out.data(), out.size());
+}
+
+const char *EncryptPassword = "Avis Durgan";
+
+void DecryptText(char *buf, size_t buf_sz)
+{
+    for (size_t i = 0, psw_i = 0; i < buf_sz; ++i, ++psw_i)
+    {
+        if (psw_i > 10)
+            psw_i = 0;
+
+        buf[i] -= EncryptPassword[psw_i];
+        if (buf[i] == 0)
+            break;
+    }
+}
+
+void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz)
+{
+    size_t len = in->ReadInt32();
+    size_t slen = std::min(buf_sz - 1, len);
+    in->Read(buf, slen);
+    if (len > slen)
+        in->Seek(len - slen);
+    DecryptText(buf, slen);
+    buf[slen] = 0;
+}
+
+String ReadStringDecrypt(Stream *in)
+{
+    std::vector<char> dec_buf;
+    return ReadStringDecrypt(in, dec_buf);
+}
+
+String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf)
+{
+    size_t len = in->ReadInt32();
+    dec_buf.resize(len + 1);
+    in->Read(dec_buf.data(), len);
+    DecryptText(dec_buf.data(), len);
+    dec_buf.back() = 0; // null terminate in case read string does not have one
+    return String(dec_buf.data());
+}
+
+void EncryptText(char *buf, size_t buf_sz)
+{
+    for (size_t i = 0, psw_i = 0; i < buf_sz; ++i, ++psw_i)
+    {
+        if (psw_i > 10)
+            psw_i = 0;
+
+        char src_c = buf[i];
+        buf[i] += EncryptPassword[psw_i];
+        if (src_c == 0)
+            break;
+    }
+}
+
+const char *EncryptText(std::vector<char> &en_buf, const String &s)
+{
+    en_buf.resize(s.GetLength() + 1);
+    std::copy(s.GetCStr(), s.GetCStr() + s.GetLength() + 1, en_buf.data());
+    EncryptText(en_buf.data(), en_buf.size());
+    return en_buf.data();
+}
+
+const char *EncryptEmptyString(std::vector<char> &en_buf)
+{
+    en_buf.resize(1);
+    en_buf[0] = 0;
+    EncryptText(en_buf.data(), en_buf.size());
+    return en_buf.data();
+}
+
+void WriteStringEncrypt(Stream *out, const char *s)
+{
+    size_t len = strlen(s) + 1;
+    out->WriteInt32(len);
+    std::vector<char> buf(len);
+    std::copy(s, s + len, buf.data());
+    EncryptText(buf.data(), buf.size());
+    out->Write(buf.data(), len);
 }
 
 } // namespace Common

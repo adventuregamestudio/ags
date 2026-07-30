@@ -634,9 +634,9 @@
     <ClCompile Include="..\..\Common\game\interactions.cpp" />
     <ClCompile Include="..\..\Common\game\interactions_deprecated.cpp" />
     <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
+    <ClCompile Include="..\..\Common\game\roomdata.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
-    <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
     <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
@@ -696,7 +696,6 @@
     <ClCompile Include="..\..\Common\util\lzw.cpp" />
     <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
-    <ClCompile Include="..\..\Common\util\path_ex.cpp" />
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
@@ -825,6 +824,7 @@
     <ClInclude Include="..\..\Common\game\interactions_deprecated.h" />
     <ClInclude Include="..\..\Common\game\main_game_file.h" />
     <ClInclude Include="..\..\Common\game\plugininfo.h" />
+    <ClInclude Include="..\..\Common\game\roomdata.h" />
     <ClInclude Include="..\..\Common\game\roomstruct.h" />
     <ClInclude Include="..\..\Common\game\room_version.h" />
     <ClInclude Include="..\..\Common\game\room_file.h" />

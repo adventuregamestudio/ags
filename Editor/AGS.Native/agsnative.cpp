@@ -815,7 +815,7 @@ void draw_room_background(void *roomvoidptr, HDC hdc, int x, int y, int bgnum, f
   if (bgnum < 0 || (size_t)bgnum >= roomptr->BgFrameCount)
     return;
 
-  PBitmap srcBlock = roomptr->BgFrames[bgnum].Graphic;
+  PBitmap srcBlock = roomptr->BgImages[bgnum];
   if (srcBlock == NULL)
     return;
 
@@ -1812,10 +1812,16 @@ const char *get_mask_name(RoomAreaMask mask)
     }
 }
 
-AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
-  HAGSError err = LoadRoom(filename, &rs, AssetMgr.get(), thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
+AGSString load_room_file(RoomStruct &rs, const AGSString &filename)
+{
+  auto in = AssetMgr->OpenAsset(filename);
+  if (!in)
+      return AGSString::FromFormat("Failed to open room file %s", filename.GetCStr());
+  AGS::Common::RoomData room_data;
+  HAGSError err = LoadRoom(&room_data, std::move(in), thisgame.IsLegacyHiRes(), &thisgame.SpriteInfos);
   if (!err)
       return err->FullMessage();
+  rs = RoomStruct(std::move(room_data));
 
   // Update room palette with gamewide colours
   copy_global_palette_to_room_palette(rs);
@@ -2625,7 +2631,7 @@ static void Convert8BitARGBTo32(const AGSBitmap *src, const RGB *imgpal, AGSBitm
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-    theRoom->BgFrames[backgroundNumber].Graphic.reset();
+    theRoom->BgImages[backgroundNumber].reset();
 	
 	theRoom->BgFrameCount--;
 	room->BackgroundCount--;
@@ -2677,7 +2683,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	{
 		theRoom->BgFrameCount++;
 	}
-	theRoom->BgFrames[backgroundNumber].Graphic.reset(newbg);
+	theRoom->BgImages[backgroundNumber].reset(newbg);
 
   // if size or resolution has changed, reset masks
 	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
@@ -2694,7 +2700,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	}
 
 	room->BackgroundCount = theRoom->BgFrameCount;
-	room->ColorDepth = theRoom->BgFrames[0].Graphic->GetColorDepth();
+	room->ColorDepth = theRoom->BgImages[0]->GetColorDepth();
 }
 
 void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
@@ -2948,13 +2954,13 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap(roomptr->BgFrames[backgroundNumber].Graphic.get(), false);
+  return ConvertBlockToBitmap(roomptr->BgImages[backgroundNumber].get(), false);
 }
 
 System::Drawing::Bitmap^ getBackgroundAsBitmap32(Room ^room, int backgroundNumber) {
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
+  return ConvertBlockToBitmap32(roomptr->BgImages[backgroundNumber].get(), room->Width, room->Height, false);
 }
 
 void AdjustRoomResolution(Room ^room)
@@ -4045,7 +4051,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
     room->Height = rs.Height;
-    room->ColorDepth = rs.BgFrames[0].Graphic->GetColorDepth();
+    room->ColorDepth = rs.BgImages[0]->GetColorDepth();
     room->BackgroundAnimationDelay = rs.BgAnimSpeed;
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
@@ -4412,7 +4418,7 @@ void save_default_crm_file(Room ^room)
     convert_room_to_native(room, rs);
     // Insert default backgrounds and masks
     for (size_t i = 0; i < rs.BgFrameCount; ++i) // FIXME use of thisgame.color_depth
-        rs.BgFrames[i].Graphic.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8));
+        rs.BgImages[i].reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8));
     rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
@@ -4460,7 +4466,7 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     rs.DataVersion = kRoomVersion_Current;
     calculate_walkable_areas(rs);
 
-    rs.BackgroundBPP = rs.BgFrames[0].Graphic->GetBPP();
+    rs.BackgroundBPP = rs.BgImages[0]->GetBPP();
     for (int i = 0; i < 256; ++i)
         rs.Palette[i] = rs.BgFrames[0].Palette[i];
 
@@ -4468,9 +4474,15 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     if (out == NULL)
         quit("save_room: unable to open room file for writing.");
 
+    // FIXME: this is quite ugly, but this is the most straightforward way
+    // to save RoomData's pixelbuffers that I could figure out at the time;
+    // need to find another way!
+    // Temporarily move data to RoomData, write RoomData to the file, and then move them back.
+    rs.PrepareForWriteToFile();
     AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, out.get(), kRoomVersion_Current);
     if (!err)
         quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
+    rs.InitBitmaps();
 }
 
 

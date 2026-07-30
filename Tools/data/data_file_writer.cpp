@@ -37,12 +37,12 @@
 #include "ac/characterinfo.h"
 #include "ac/dialogtopic.h"
 #include "ac/view.h"
-#include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/game_version.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/inventoryiteminfo.h"
 #include "ac/mousecursor.h"
+#include "data/data_helpers.h"
 #include "game/customproperties.h"
 #include "game/interactions.h"
 #include "gfx/gfx_def.h"
@@ -760,7 +760,7 @@ void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
     out->WriteInt32(static_cast<int32_t>(words.size()));
     for (const auto &word : words)
     {
-        write_string_encrypt(out, word.Word.GetCStr());
+        WriteStringEncrypt(out, word.Word.GetCStr());
         out->WriteInt16(static_cast<int16_t>(word.WordGroup));
     }
 }
@@ -792,7 +792,8 @@ void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
 void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (const auto &message : game.GlobalMessages)
-        if (!message.IsEmpty()) write_string_encrypt(out, message.GetCStr());
+        if (!message.IsEmpty())
+            WriteStringEncrypt(out, message.GetCStr());
 }
 
 // Read by GUI::ReadGUI() in Common/gui/guimain.cpp; that dispatches to

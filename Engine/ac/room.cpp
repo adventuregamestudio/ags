@@ -557,7 +557,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, boo
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     RoomData room_data;
-    HRoomFileError err = LoadRoom(&room_data, std::move(in), game_is_hires, sprinfos);
+    HRoomFileError err = LoadRoom(&room_data, std::move(in), game_is_hires, &sprinfos);
     if (!err)
         return new Error(*err);
     *room = RoomStruct(room_data);

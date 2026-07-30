@@ -21,32 +21,18 @@ namespace AGS
 {
 namespace DataUtil
 {
-
-using AGS::Common::Stream;
 using AGS::Common::String;
-using AGS::Common::HError;
-using AGS::Common::RoomFileBlock;
 
 // Script names found in the room data
-struct RoomScNames
+struct RoomScriptNames
 {
     std::vector<String> ObjectNames;
     std::vector<String> HotspotNames;
 };
 
-// Following functions parse the binary room file and extract script names
-// Reads only script names from the main room block, ignores other data
-HError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver, soff_t block_len);
-// Reads room object script names block
-HError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver);
-// A room reading callback of type PfnReadRoomBlock, meant to be passed into ReadRoomData();
-// reads only blocks necessary for retrieving script names.
-HError ReadRoomScNames(RoomScNames &data, Stream *in, RoomFileBlock block, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver);
-
 // Generates room script header out of the room data;
 // the header will contain room object declarations.
-String MakeRoomScriptHeader(const RoomScNames &data);
+String MakeRoomScriptHeader(const RoomScriptNames &data);
 
 } // namespace DataUtil
 } // namespace AGS

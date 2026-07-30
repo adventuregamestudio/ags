@@ -464,6 +464,15 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
     return pxbuf;
 }
 
+void skip_lzw(Stream *in)
+{
+    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+    in->Seek(sizeof(RGB) * 256);
+    const size_t uncomp_sz = in->ReadInt32();
+    const size_t comp_sz = in->ReadInt32();
+    in->Seek(comp_sz);
+}
+
 //-----------------------------------------------------------------------------
 // Deflate
 //-----------------------------------------------------------------------------

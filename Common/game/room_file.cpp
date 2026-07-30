@@ -118,7 +118,7 @@ void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
 
 
 // Main room data
-HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     int bpp;
     if (data_ver >= kRoomVersion_208)
@@ -396,20 +396,25 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
             room->Regions[i].Tint = in->ReadInt32();
     }
 
-    // Primary background (LZW or RLE compressed depending on format)
-    if (data_ver >= kRoomVersion_pre114_5)
-        room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
-    else
-        room->BgFrames[0].GraphicBuf = load_rle_bitmap8(in);
+    if (!read_opts.SkipImageData)
+    {
+        // Primary background (LZW or RLE compressed depending on format)
+        if (data_ver >= kRoomVersion_pre114_5)
+            room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
+        else
+            room->BgFrames[0].GraphicBuf = load_rle_bitmap8(in);
 
-    // Area masks
-    if (data_ver >= kRoomVersion_255b)
-        room->RegionMaskBuf = load_rle_bitmap8(in);
-    else if (data_ver >= kRoomVersion_114)
-        skip_rle_bitmap8(in); // an old version - clear the 'shadow' area into a blank regions bmp (???)
-    room->WalkAreaMaskBuf = load_rle_bitmap8(in);
-    room->WalkBehindMaskBuf = load_rle_bitmap8(in);
-    room->HotspotMaskBuf = load_rle_bitmap8(in);
+        // Area masks
+        if (data_ver >= kRoomVersion_255b)
+            room->RegionMaskBuf = load_rle_bitmap8(in);
+        else if (data_ver >= kRoomVersion_114)
+            skip_rle_bitmap8(in); // an old version - clear the 'shadow' area into a blank regions bmp (???)
+        room->WalkAreaMaskBuf = load_rle_bitmap8(in);
+        room->WalkBehindMaskBuf = load_rle_bitmap8(in);
+        room->HotspotMaskBuf = load_rle_bitmap8(in);
+    }
+    // NOTE: we can skip the rest if we're not reading images, because they are last in block
+    
     return HError::None();
 }
 
@@ -531,7 +536,7 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ve
 }
 
 HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver)
+    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     //
     // First check classic block types, identified with a numeric id
@@ -539,7 +544,7 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
     switch (block)
     {
     case kRoomFblk_Main:
-        return ReadMainBlock(room, in, data_ver);
+        return ReadMainBlock(room, in, data_ver, read_opts);
     case kRoomFblk_Script:
         // Only read if explicitly requested to by caller
         if (room_aux)
@@ -562,7 +567,7 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
     case kRoomFblk_ObjectScNames:
         return ReadObjScNamesBlock(room, in, data_ver);
     case kRoomFblk_AnimBg:
-        return ReadAnimBgBlock(room, in, data_ver);
+        return !read_opts.SkipImageData ? ReadAnimBgBlock(room, in, data_ver) : HError::None();
     case kRoomFblk_Properties:
         return ReadPropertiesBlock(room, in, data_ver);
     case kRoomFblk_CompScript:
@@ -592,56 +597,62 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
 }
 
 
+// Type of function that reads (or skips) a single room block
+typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &room_read_opts)> PfnReadRoomBlock;
+
 // RoomBlockReader reads whole room data, block by block
 class RoomBlockReader : public DataExtReader
 {
 public:
-    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
-        : DataExtReader(std::move(in),
-            kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
+            const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr)
+        : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts))
         , _room(room)
         , _roomAux(nullptr)
         , _dataVer(data_ver)
+        , _roomReadOpts(read_opts)
+        , _readFn(pfn_read ? pfn_read : ReadRoomBlock)
     {}
 
-    RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
-        : DataExtReader(std::move(in),
-            kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+    RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
+            const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr)
+        : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts))
         , _room(room)
         , _roomAux(room_aux)
         , _dataVer(data_ver)
+        , _roomReadOpts(read_opts)
+        , _readFn(pfn_read ? pfn_read : ReadRoomBlock)
     {}
 
-    // Helper function that extracts legacy room script
-    HError ReadRoomScript(String &script)
+private:
+    static int GetDataExtFlags(RoomFileVersion data_ver, const RoomReadOptions &read_opts)
     {
-        HError err = FindOne(kRoomFblk_Script);
-        if (!err)
-            return err;
-        std::vector<char> buf;
-        err = ReadScriptBlock(buf, _in.get(), _dataVer);
-        script = buf.data();
-        return err;
+        return kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64)
+            | (kDataExt_IgnoreUnread * (read_opts.PartialRead | read_opts.SkipImageData));
     }
 
-private:
     String GetOldBlockName(int block_id) const override
     { return GetRoomBlockName((RoomFileBlock)block_id); }
     HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
-        return ReadRoomBlock(_room, _roomAux, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return _readFn(_room, _roomAux, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer, _roomReadOpts);
     }
 
     RoomData *_room {};
     RoomDataAux *_roomAux {};
     RoomFileVersion _dataVer {};
+    RoomReadOptions _roomReadOpts;
+    PfnReadRoomBlock _readFn;
 };
 
 //
 // TODO: RoomBlockWriter to pair the RoomBlockReader
 // 
+// Type of function that writes single room block.
+typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
 // Helper for new-style blocks with string id
 void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
 {
@@ -666,25 +677,6 @@ void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Strea
     WriteExtBlock(block, data, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
-
-HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
-{
-    // Cleanup source struct
-    src = RoomDataSource();
-    // Try to open room file
-    auto in = File::OpenFileRead(filename);
-    if (in == nullptr)
-        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
-    src.Filename = filename;
-    src.InputStream = std::move(in);
-    return ReadRoomHeader(src);
-}
-
-HRoomFileError OpenRoomFile(RoomDataSource &src)
-{
-    return ReadRoomHeader(src);
-}
-
 // Read room data header and check that we support this format
 HRoomFileError ReadRoomHeader(RoomDataSource &src)
 {
@@ -706,10 +698,29 @@ void WriteRoomEnding(Stream *out)
     out->WriteByte(kRoomFile_EOF);
 }
 
+
+HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
+{
+    // Cleanup source struct
+    src = RoomDataSource();
+    // Try to open room file
+    auto in = File::OpenFileRead(filename);
+    if (in == nullptr)
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+    src.Filename = filename;
+    src.InputStream = std::move(in);
+    return ReadRoomHeader(src);
+}
+
+HRoomFileError OpenRoomFile(RoomDataSource &src)
+{
+    return ReadRoomHeader(src);
+}
+
 HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
-    RoomBlockReader reader(room, room_aux, data_ver, std::move(in));
+    RoomBlockReader reader(room, room_aux, data_ver, std::move(in), {}, nullptr);
     HError err = reader.Read();
     return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
 }
@@ -724,7 +735,7 @@ HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, Roo
     return ReadRoomData(room, room, std::move(in), data_ver);
 }
 
-HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
+HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool game_is_hires, const std::vector<SpriteInfo> *sprinfos)
 {
     if (data_ver < kRoomVersion_200_final)
     {
@@ -769,7 +780,7 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool gam
                 room->Regions[i].Interaction.reset(new Interaction());
     }
 
-    // Upgade room object script names
+    // Upgrade room object script names
     if (data_ver < kRoomVersion_300a)
     {
         for (auto &obj : room->Objects)
@@ -825,10 +836,10 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool gam
     // Adjust object Y coordinate by adding sprite's height
     // NOTE: this is impossible to do without game sprite information loaded beforehand
     // NOTE: this should be done after coordinate conversion above for simplicity
-    if (data_ver < kRoomVersion_300a)
+    if ((data_ver < kRoomVersion_300a) && sprinfos)
     {
         for (auto &obj : room->Objects)
-            obj.Y += sprinfos[obj.Sprite].Height;
+            obj.Y += (*sprinfos)[obj.Sprite].Height;
     }
 
     if (data_ver >= kRoomVersion_251)
@@ -877,7 +888,7 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, bool gam
 }
 
 HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
-    bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
+    bool game_is_hires, const std::vector<SpriteInfo> *sprinfos)
 {
     room->Free();
     room->InitDefaults();
@@ -893,12 +904,30 @@ HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
     return err;
 }
 
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver,
+    const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read, const RoomReadOptions &read_opts)
+{
+    RoomBlockReader reader(room, room_aux, data_ver, std::move(in), read_opts,
+        [blocks_to_read](RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+            soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+        {
+            const auto block_id = std::make_pair(block, block != kRoomFblk_None ? "" : ext_id);
+            if (std::find(blocks_to_read.begin(), blocks_to_read.end(), block_id) != blocks_to_read.end())
+                return ReadRoomBlock(room, room_aux, in, block_id.first, block_id.second, block_len, data_ver, read_opts);
+            in->Seek(block_len); // skip ignored block
+            return HError::None();
+        });
+    HError err = reader.Read();
+    return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
+}
+
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    RoomBlockReader reader(nullptr, data_ver, std::move(in));
-    HError err = reader.ReadRoomScript(script);
+    RoomDataAux room_aux;
+    HRoomFileError err = ReadRoomData(nullptr, &room_aux, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
     if (!err)
-        new RoomFileError(kRoomFileErr_BlockListFailed, err);
+        return err;
+    script = room_aux.ScriptText;
     return HRoomFileError::None();
 }
 

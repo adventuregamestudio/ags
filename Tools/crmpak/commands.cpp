@@ -41,14 +41,32 @@ void Init()
     set_rgb_shifts(10, 5, 0, 11, 5, 0, 16, 8, 0, 16, 8, 0, 24);
 }
 
-bool LoadRoomFile(RoomDataExt &room, const String &filename)
+HRoomFileError ReadOnlyScriptNames(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    // TODO: it is potentially possible to reduce amount of loaded data
-    // by reading only particular blocks and/or skipping to certain data offset.
-    // This operation will be regulated by the list of contents we're going to work with.
-    // Such implementation would use RoomBlockReader class (currently hidden
-    // inside room_file.cpp).
+    RoomReadOptions read_opts;
+    read_opts.SkipImageData = true; // we read main block, which contains main bg and masks
+    HRoomFileError err = ReadRoomData(&room, &room, std::move(in), data_ver,
+        {{ kRoomFblk_Main, "" }, { kRoomFblk_ObjectScNames, "" }}, read_opts);
+    // Must call UpdateRoomData, because certain script names from older room formats need to be converted
+    if (err)
+        err = UpdateRoomData(&room, data_ver, false, nullptr);
+    if (!err)
+        return err;
+    return HRoomFileError::None();
+}
 
+HRoomFileError ReadOnlyCompiledScript(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+{
+    return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{ kRoomFblk_CompScript3, "" }}, {});
+}
+
+HRoomFileError ReadOnlyScriptText(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+{
+    return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
+}
+
+bool LoadRoomFile(RoomDataExt &room, const String &filename, bool cmd_readonly, const std::vector<Content> &content)
+{
     auto in = File::OpenFileRead(filename);
     if (!in)
     {
@@ -56,12 +74,30 @@ bool LoadRoomFile(RoomDataExt &room, const String &filename)
         return false;
     }
 
-    // TODO: we may probably do a simpler parsing which only checks and records
-    // available data instead of loading whole data into memory.
     RoomDataSource src(filename, std::move(in));
     HRoomFileError err = OpenRoomFile(src);
     if (err)
-        err = ReadRoomData(&room, std::move(src.InputStream), src.DataVersion);
+    {
+        // This is the basic attempt to optimize export performance by reducing amount
+        // of loaded data. Currently done only for couple of the most common use cases.
+        // But in theory this may be expanded further by utilizing RoomBlockReader class
+        // and it's feature of providing a reading delegate (see room_file.cpp).
+        if (cmd_readonly && content.size() == 1)
+        {
+            if (content[0].Type == CRMPak::kContent_Ash)
+                err = ReadOnlyScriptNames(room, std::move(src.InputStream), src.DataVersion);
+            else if (content[0].Type == CRMPak::kContent_ScriptCompiled3)
+                err = ReadOnlyCompiledScript(room, std::move(src.InputStream), src.DataVersion);
+            else if (content[0].Type == CRMPak::kContent_ScriptText)
+                err = ReadOnlyScriptText(room, std::move(src.InputStream), src.DataVersion);
+            else
+                err = ReadRoomData(&room, std::move(src.InputStream), src.DataVersion);
+        }
+        else
+        {
+            err = ReadRoomData(&room, std::move(src.InputStream), src.DataVersion);
+        }
+    }
     if (!err)
     {
         printf("Error: failed to read room data.\n");
@@ -226,11 +262,13 @@ String GetFriendlyContentName(const Content &c)
 
 bool Export_Ash(const RoomDataExt &room, const String &filename)
 {
-    DataUtil::RoomScNames names;
+    DataUtil::RoomScriptNames names;
     for (const auto &h : room.Hotspots)
-        names.HotspotNames.push_back(h.ScriptName);
+        if (!h.ScriptName.IsEmpty())
+            names.HotspotNames.push_back(h.ScriptName);
     for (const auto &o : room.Objects)
-        names.ObjectNames.push_back(o.ScriptName);
+        if (!o.ScriptName.IsEmpty())
+            names.ObjectNames.push_back(o.ScriptName);
     return SaveTextFile(DataUtil::MakeRoomScriptHeader(names), filename);
 }
 
@@ -376,7 +414,7 @@ int Command_Cut(const String &src_room, const String &dst_room, const std::vecto
     PrintContentOptions(content, "Cut");
 
     RoomDataExt room;
-    if (!LoadRoomFile(room, src_room))
+    if (!LoadRoomFile(room, src_room, false, {}))
         return -1;
 
     CutContent(room, content);
@@ -394,7 +432,7 @@ int Command_Export(const String &src_room, const std::vector<Content> &content, 
     PrintContentOptions(content, "Export");
 
     RoomDataExt room;
-    if (!LoadRoomFile(room, src_room))
+    if (!LoadRoomFile(room, src_room, true, content))
         return -1;
 
     // Export content to files
@@ -411,7 +449,7 @@ int Command_Import(const String &src_room, const String &dst_room, const std::ve
     PrintContentOptions(content, "Import");
 
     RoomDataExt room;
-    if (!LoadRoomFile(room, src_room))
+    if (!LoadRoomFile(room, src_room, false, {}))
         return -1;
 
     ImportContent(room, content);
@@ -428,7 +466,7 @@ int Command_List(const String &src_room)
     printf("Input room file: %s\n", src_room.GetCStr());
 
     RoomDataExt room;
-    if (!LoadRoomFile(room, src_room))
+    if (!LoadRoomFile(room, src_room, false, {}))
         return -1;
 
     printf("* Room backgrounds: %d\n", room.BgFrameCount);

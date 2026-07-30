@@ -65,7 +65,9 @@ enum DataExtFlags
     // NOTE: for historical reasons this refers to blocks with numeric ID ONLY;
     // new-style blocks with a 16-char ID always write 64-bit offset
     kDataExt_File32  = 0x0000, // default
-    kDataExt_File64  = 0x0002
+    kDataExt_File64  = 0x0002,
+    // Ignore block being not read to the end (dont emit warning)
+    kDataExt_IgnoreUnread = 0x0004
 };
 
 enum DataExtErrorType

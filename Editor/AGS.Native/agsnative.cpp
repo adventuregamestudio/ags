@@ -1818,7 +1818,7 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename)
   if (!in)
       return AGSString::FromFormat("Failed to open room file %s", filename.GetCStr());
   AGS::Common::RoomData room_data;
-  HAGSError err = LoadRoom(&room_data, std::move(in), thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
+  HAGSError err = LoadRoom(&room_data, std::move(in), thisgame.IsLegacyHiRes(), &thisgame.SpriteInfos);
   if (!err)
       return err->FullMessage();
   rs = RoomStruct(std::move(room_data));

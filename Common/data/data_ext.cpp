@@ -86,8 +86,11 @@ HError DataExtParser::PostAssert()
     }
     else if (cur_pos < block_end)
     {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
-            _extID.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
+        if ((_flags & kDataExt_IgnoreUnread) == 0)
+        {
+            Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
+                _extID.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
+        }
         _in->Seek(block_end, Common::kSeekBegin);
     }
     return HError::None();

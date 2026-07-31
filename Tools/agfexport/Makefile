@@ -33,6 +33,7 @@ COMMON_OBJS = \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/file.cpp \
+	../../Common/util/directory.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/ini_util.cpp \
 	../../Common/util/inifile.cpp \

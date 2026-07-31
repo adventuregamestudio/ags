@@ -36,6 +36,7 @@ COMMON_OBJS = \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/file.cpp \
+	../../Common/util/directory.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/path.cpp \
 	../../Common/util/stdio_compat.c \

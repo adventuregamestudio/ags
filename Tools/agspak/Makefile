@@ -1,6 +1,8 @@
 INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include
 LIBDIR =
 
+LD_VERSION := $(shell $(LD) --version 2>/dev/null)
+
 CFLAGS := -O2 -g \
 	-fsigned-char -fno-strict-aliasing -fwrapv \
 	-Wunused-result \
@@ -19,8 +21,12 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
+
+ifneq (,$(findstring GNU ld,$(LD_VERSION)))
+    LDFLAGS += -rdynamic -Wl,--as-needed
+endif
+LDFLAGS  += $(addprefix -L,$(LIBDIR))
 
 COMMON_OBJS = \
 	../../Common/data/multifilelib.cpp \

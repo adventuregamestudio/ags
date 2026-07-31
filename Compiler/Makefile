@@ -1,5 +1,7 @@
-INCDIR = ../Common .
+INCDIR = ../Common ../libsrc/allegro/include .
 LIBDIR =
+
+LD_VERSION := $(shell $(LD) --version 2>/dev/null)
 
 CFLAGS := -O2 -g \
 	-fsigned-char -fno-strict-aliasing -fwrapv \
@@ -19,8 +21,12 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
+
+ifneq (,$(findstring GNU ld,$(LD_VERSION)))
+	LDFLAGS += -rdynamic -Wl,--as-needed
+endif
+LDFLAGS  += $(addprefix -L,$(LIBDIR))
 
 COMMON_OBJS = \
 	../Common/script/cc_common.cpp \
@@ -51,8 +57,15 @@ COMPILER_OBJS = \
 	preproc/cc_macrotable.cpp \
 	preproc/preprocessor.cpp
 
+MINIMAL_ALLEGRO_OBJS = \
+	../libsrc/allegro/src/allegro.c \
+	../libsrc/allegro/src/file.c \
+	../libsrc/allegro/src/unicode.c \
+	../libsrc/allegro/src/unix/ufile.c
+
 OBJS := main.cpp \
 	$(COMMON_OBJS) \
+	$(MINIMAL_ALLEGRO_OBJS) \
 	$(COMPILER_OBJS)
 
 OBJS := $(OBJS:.cpp=.o)

@@ -1,5 +1,20 @@
 REVISION HISTORY
 ================
+VERSION 3.6.2 - Patch 11, August 2026
+
+Editor:
+ - Room Editor supports Del key for deleting objects.
+ - Fix clicking on a room background when in the "Character" or "Object" mode does not select the
+   Room in the property grid.
+
+Engine:
+ - Game.SimulateKeyPress() now supports composite key codes, such as eKeyCtrlA and eKeyAlt, and
+   simulates two key presses in this case (regular and mod key).
+ - Fixed key + mod combinations are not passed into the "on_key_press" callback properly when in
+   the "new" key handling mode (regression since the last patch).
+ - Fixed couple of mistakes in a smooth walk transition, introduced by the previous patch.
+
+
 VERSION 3.6.2 - Patch 10, July 2026
 
 Editor:

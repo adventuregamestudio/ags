@@ -113,12 +113,15 @@ private:
     int _lastSlot = -1;
 };
 
-HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &sprites, bool verbose)
+HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &sprites, GameColorDepth &game_color_depth, bool verbose)
 {
     AGF::AGFReader reader;
     HError err = reader.Open(src_agf.GetCStr());
     if (!err)
         return new Error(String::FromFormat("Failed to open source AGF '%s':\n", src_agf.GetCStr()), err);
+    GameSettings opt;
+    AGF::ReadGameSettings(opt, reader.GetGameRoot());
+    game_color_depth = opt.ColorDepth;
     AGF::ReadSpriteList(sprites, reader.GetGameRoot());
     return HError::None();
 }
@@ -140,18 +143,13 @@ void MapSpritesToSources(const String &src_dir, const std::vector<SpriteData> &s
     }
 }
 
-HError ConvertSpriteForGame(PixelBuffer &image, const SpriteData &sprite, bool verbose)
-{
-    // TODO! check AGS.Native
-    return HError::None();
-}
-
-HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> &sprites, SpriteWriter &writer, bool verbose)
+HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> &sprites, const GameColorDepth game_color_depth,
+    SpriteWriter &writer, bool verbose)
 {
     PixelFormat px_fmt;
-    RGB pal[256];
+    std::array<RGB, 256> pal;
     // TODO: implement loading distinct frame(s) from formats such as GIF
-    PixelBuffer image = ImageFile::LoadImage(src_file, &px_fmt, pal);
+    PixelBuffer image = ImageFile::LoadImage(src_file, &px_fmt, pal.data());
     if (!image)
     {
         // In case we output to the spritefile, we must fill all gaps with empty slot entries
@@ -167,10 +165,12 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
         PixelBuffer tile = PixelOp::CopyPixelsRegion(image, sprite.ImportOffsetX, sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
         if (tile)
         {
-            HError err = ConvertSpriteForGame(tile, sprite, verbose);
+            PixelBuffer conv_tile;
+            // NOTE: GameColorDepth's values match byte per pixel of a respective color depth type
+            HError err = ConvertSpriteForGame(tile, &pal, conv_tile, static_cast<int>(game_color_depth) * 8, sprite);
             if (err)
             {
-                writer.WriteSprite(tile, sprite.Slot);
+                writer.WriteSprite(conv_tile, sprite.Slot);
             }
             else
             {
@@ -182,7 +182,7 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
     return HError::None();
 }
 
-HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_sprite,
+HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_sprite, const GameColorDepth game_color_depth,
     SpriteWriter &writer, std::map<sprkey_t, sprkey_t> *out_sprite_order, bool verbose)
 {
     writer.Begin(source_to_sprite.size() > 0 ? source_to_sprite.size() - 1 : -1);
@@ -204,7 +204,7 @@ HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_spri
                 (*out_sprite_order)[s.Slot] = out_index++;
         }
 
-        HError err = CutSpritesAndWrite(this_source, sprite_group, writer, verbose);
+        HError err = CutSpritesAndWrite(this_source, sprite_group, game_color_depth, writer, verbose);
         if (!err)
         {
             printf("Error: failed to import sprite(s) from source file '%s':\n", this_source.GetCStr());
@@ -215,7 +215,8 @@ HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_spri
     return HError::None();
 }
 
-HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_sprite, const String &dst_path, const CommandOptions &opts, bool verbose)
+HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_sprite, const GameColorDepth game_color_depth,
+    const String &dst_path, const CommandOptions &opts, bool verbose)
 {
     // The strategy: because we sort sprites by sources, we might end up having them
     // in the non-sequential order. While spritefile is supposed to have them strictly
@@ -237,7 +238,7 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
     std::unique_ptr<SpriteFileWriter> sf_writer(new SpriteFileWriter(std::move(proxy_out)));
     SpriteWriter writer(std::move(sf_writer), opts.StorageFlags, opts.Compress, true);
     std::map<sprkey_t, sprkey_t> out_sprite_order;
-    HError err = ImportSpritesImpl(source_to_sprite, writer, &out_sprite_order, verbose);
+    HError err = ImportSpritesImpl(source_to_sprite, game_color_depth, writer, &out_sprite_order, verbose);
     if (!err)
         return err;
 
@@ -286,7 +287,8 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
     return HError::None();
 }
 
-HError ImportToDirectory(const std::multimap<String, SpriteData> &source_to_sprite, const String &dst_path, const CommandOptions &opts, bool verbose)
+HError ImportToDirectory(const std::multimap<String, SpriteData> &source_to_sprite, const GameColorDepth game_color_depth,
+    const String &dst_path, const CommandOptions &opts, bool verbose)
 {
     if (!File::IsDirectory(dst_path))
         return new Error(String::FromFormat("Not a valid directory: %s", dst_path.GetCStr()));
@@ -295,13 +297,14 @@ HError ImportToDirectory(const std::multimap<String, SpriteData> &source_to_spri
     if (!ResolveImageFilePattern(opts.ImageFilePattern, image_pattern))
         return new Error(String::FromFormat("Image file pattern \"%s\" is not a valid pattern.\n", opts.ImageFilePattern.GetCStr()));
     SpriteWriter writer(dst_path, image_pattern);
-    return ImportSpritesImpl(source_to_sprite, writer, nullptr, verbose);
+    return ImportSpritesImpl(source_to_sprite, game_color_depth, writer, nullptr, verbose);
 }
 
 int Command_Import(const String &src_agf, const String &dst_path, const CommandOptions &opts, bool verbose)
 {
     std::vector<SpriteData> sprites;
-    HError err = GatherSpriteSpecsFromAgf(src_agf, sprites, verbose);
+    GameColorDepth game_color_depth;
+    HError err = GatherSpriteSpecsFromAgf(src_agf, sprites, game_color_depth, verbose);
     if (!err)
     {
         printf("Error: failed to gather sprite specs from '%s':\n", src_agf.GetCStr());
@@ -316,9 +319,9 @@ int Command_Import(const String &src_agf, const String &dst_path, const CommandO
     MapSpritesToSources(src_dir, sprites, source_to_sprite);
 
     if (opts.OutputToSpritePak)
-        err = ImportToSpritePak(source_to_sprite, dst_path, opts, verbose);
+        err = ImportToSpritePak(source_to_sprite, game_color_depth, dst_path, opts, verbose);
     else
-        err = ImportToDirectory(source_to_sprite, dst_path, opts, verbose);
+        err = ImportToDirectory(source_to_sprite, game_color_depth, dst_path, opts, verbose);
     if (!err)
     {
         printf("Error: failed to write imported sprites to their destination:\n");

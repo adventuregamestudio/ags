@@ -394,6 +394,30 @@ int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b)
 
 
 
+/* get_replacement_mask_color:
+ *  Gets a nearest replacement color for the bitmap's mask color.
+ */
+int replacement_mask_color(int depth, int mask_color)
+{
+   int c, g = 0;
+
+   if (depth == 8) {
+      if (rgb_map)
+         return rgb_map->data[31][1][31];
+      else
+         return bestfit_color(_current_palette, 63, 1, 63);
+   }
+   else {
+      do
+         c = makecol_depth(depth, 255, ++g, 255);
+      while (c == mask_color);
+
+      return c;
+   }
+}
+
+
+
 /* makecol8: 
  *  Converts R, G, and B values (ranging 0-255) to an 8 bit paletted color.
  *  If the global rgb_map table is initialised, it uses that, otherwise

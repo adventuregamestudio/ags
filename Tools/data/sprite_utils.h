@@ -16,7 +16,10 @@
 
 #include <regex>
 #include <vector>
+#include <allegro.h>
 #include "ac/spritefile.h"
+#include "data/game_utils.h"
+#include "gfx/bitmapdata.h"
 #include "util/error.h"
 #include "util/string.h"
 
@@ -33,6 +36,10 @@ namespace DataUtil
     bool ResolveImageFilePattern(const String &pattern, String &res_pattern, String &regex_pattern);
     // TODO: move elsewhere, more generic utils?
     HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, const std::regex &regex);
+
+    // Converts image in accordance to the sprite specs.
+    HError ConvertSpriteForGame(Common::PixelBuffer &image, std::array<RGB, 256> *pal,
+        Common::PixelBuffer &dst_image, const int game_color_depth, const SpriteData &sprite);
 
 } // namespace DataUtil
 } // namespace AGS

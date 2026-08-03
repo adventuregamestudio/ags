@@ -29,6 +29,7 @@ namespace SpriteImport
         String ImageFilePattern;
         SpriteStorage StorageFlags = AGS::Common::kSprStore_OptimizeForSize;
         SpriteCompression Compress = AGS::Common::kSprCompress_Deflate;
+        String RoomDirectory;
     };
 
     void Init();

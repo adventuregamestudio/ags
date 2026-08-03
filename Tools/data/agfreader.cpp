@@ -1389,6 +1389,24 @@ static void ReadGameCommon(DataUtil::GameRef &game, DocElem root)
     ReadGameSettings(game.Settings, root);
 }
 
+void ReadGamePalette(std::vector<DataUtil::PaletteEntryData> &pal_data, DocElem root)
+{
+    DocElem palette = root->FirstChildElement("Palette");
+    for (DocElem entry = palette ? palette->FirstChildElement("PaletteEntry") : nullptr;
+        entry; entry = entry->NextSiblingElement("PaletteEntry"))
+    {
+        const int index = ValueParser::ReadAttributeInt(entry, "Index", -1);
+        if (index < 0 || index >= 256) continue;
+        if (pal_data.size() <= static_cast<uint8_t>(index))
+            pal_data.resize(index + 1);
+        auto &data = pal_data[index];
+        data.ColourType = ReadColourType(ValueParser::ReadAttributeString(entry, "Type", "Gamewide"));
+        data.Red = ValueParser::ReadAttributeInt(entry, "Red");
+        data.Green = ValueParser::ReadAttributeInt(entry, "Green");
+        data.Blue = ValueParser::ReadAttributeInt(entry, "Blue");
+    }
+}
+
 static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem root)
 {
     std::vector<DocElem> elems;
@@ -1599,18 +1617,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     }
 
     game.Palette.resize(256);
-    DocElem palette = root->FirstChildElement("Palette");
-    for (DocElem entry = palette ? palette->FirstChildElement("PaletteEntry") : nullptr;
-         entry; entry = entry->NextSiblingElement("PaletteEntry"))
-    {
-        const int index = ValueParser::ReadAttributeInt(entry, "Index", -1);
-        if (index < 0 || index >= 256) continue;
-        auto &data = game.Palette[index];
-        data.ColourType = ReadColourType(ValueParser::ReadAttributeString(entry, "Type", "Gamewide"));
-        data.Red = ValueParser::ReadAttributeInt(entry, "Red");
-        data.Green = ValueParser::ReadAttributeInt(entry, "Green");
-        data.Blue = ValueParser::ReadAttributeInt(entry, "Blue");
-    }
+    ReadGamePalette(game.Palette, root);
 
     GetAllSprites(game.Sprites, root);
 

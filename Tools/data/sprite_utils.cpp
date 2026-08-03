@@ -109,7 +109,7 @@ HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, cons
     return HError::None();
 }
 
-static bool DoesPaletteHaveAlpha(const std::array<RGB, 256> &pal)
+static bool DoesPaletteHaveAlpha(const Palette &pal)
 {
     for (const auto &rgb : pal)
         if ((rgb.a != 0) && (rgb.a != 255))
@@ -117,7 +117,7 @@ static bool DoesPaletteHaveAlpha(const std::array<RGB, 256> &pal)
     return false;
 }
 
-static bool DoesBitmapHaveAlpha(const PixelBuffer &image, const std::array<RGB, 256> *pal)
+static bool DoesBitmapHaveAlpha(const PixelBuffer &image, const Palette *pal)
 {
     if (PixelFormatHasAlpha(image.GetFormat()))
         return true;
@@ -130,7 +130,7 @@ static bool DoesBitmapHaveAlpha(const PixelBuffer &image, const std::array<RGB, 
 
 // Forces transparency color to the palette index 0
 // This must be done, because AGS (or rather Allegro 4) hardcodes transparent color index as 0.
-static void NormalizePaletteTransparency(BitmapData &bm_data, std::array<RGB, 256> &dst_pal, const int pal_len = 256)
+static void NormalizePaletteTransparency(BitmapData &bm_data, Palette &dst_pal, const int pal_len = 256)
 {
     assert(PixelFormatIndexed(bm_data.GetFormat()));
     // Determine actual transparency index in the palette
@@ -198,7 +198,7 @@ static void NormalizePaletteTransparency(BitmapData &bm_data, std::array<RGB, 25
 
 // Converts imported image's palette to the native AGS format
 static void ConvertPaletteToGameFormat(BitmapData &bm_data, const int game_color_depth,
-    const std::array<RGB, 256> &src_pal, std::array<RGB, 256> &dst_pal, bool normalize_trans)
+    const Palette &src_pal, Palette &dst_pal, bool normalize_trans)
 {
     assert(PixelFormatIndexed(bm_data.GetFormat()));
     // FIXME: currently we do not have means to get used palette slots here.
@@ -245,7 +245,7 @@ template <> uint16_t makecol_frompal_opaque(const RGB &c) { return makecol16(c.r
 template <> uint32_t makecol_frompal_opaque(const RGB &c) { return makeacol32(c.r, c.g, c.b, 255); }
 
 template <typename PxType>
-static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_end, const std::array<RGB, 256> &src_pal,
+static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_end, const Palette &src_pal,
     uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride)
 {
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
@@ -259,7 +259,7 @@ static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_
 }
 
 template <typename PxType>
-static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_end, const std::array<RGB, 256> &src_pal,
+static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_end, const Palette &src_pal,
     uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride, const uint32_t maskcolor, const uint32_t safe_magenta)
 {
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
@@ -282,7 +282,7 @@ static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_
 // Converts 8-bit pixel data with RGB palette to either 16-bit or 32-bit buffer.
 // TODO: this should be a part of PixelOp::CopyConvert
 // TODO: rewrite as a template function, having respective integer type as pixel size.
-static void Convert8BitToHiColor(const BitmapData &src, const std::array<RGB, 256> &src_pal, PixelBuffer &dst, const bool keep_transparency)
+static void Convert8BitToHiColor(const BitmapData &src, const Palette &src_pal, PixelBuffer &dst, const bool keep_transparency)
 {
     assert(dst.GetBytesPerPixel() == 16 || dst.GetBytesPerPixel() == 32);
     const int dst_depth = PixelFormatToPixelBits(dst.GetFormat());
@@ -326,7 +326,7 @@ static void Convert8BitToHiColor(const BitmapData &src, const std::array<RGB, 25
 
 // Converts 8-bit pixel data with ARGB palette to 32-bit buffer.
 // TODO: this should be a part of PixelOp::CopyConvert
-static void Convert8BitARGBTo32(const BitmapData &src, const std::array<RGB, 256> &src_pal, PixelBuffer &dst)
+static void Convert8BitARGBTo32(const BitmapData &src, const Palette &src_pal, PixelBuffer &dst)
 {
     assert(dst.GetBytesPerPixel() == 32);
     const uint8_t *src_buf = src.GetData();
@@ -407,8 +407,8 @@ static void ConvertAndFixMaskColor(const BitmapData &src, PixelBuffer &dst, cons
 // - a moved source buffer, when no changes whatsoever were necessary.
 // - a moved and modified source buffer with the same pixel format, when only colors need to be replaces.
 // - new pixel data, when full format conversion was necessary.
-HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const std::array<RGB, 256> *src_pal,
-    std::array<RGB, 256> *dst_pal, const int game_color_depth, const bool fix_color_depth,
+static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const Palette *src_pal,
+    Palette *dst_pal, const int game_color_depth, const bool fix_color_depth,
     const bool import_alpha, const bool keep_transparency, const bool fix_pal)
 {
     assert((src.GetColorDepth() > 8) || (src_pal && dst_pal));
@@ -495,7 +495,7 @@ HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const std::ar
 // FIXME: this operation is kind of non-sensical for arbitrary image; by the looks of its code
 // is purposed for 8-bit paletted image, not any image.
 // TODO: should be a part of PixelOp namespace
-void RemoveTransparency(BitmapData &bm_data, const int transcol)
+static void RemoveTransparency(BitmapData &bm_data, const int transcol)
 {
     int r_color;
     if (transcol == 0)
@@ -515,7 +515,7 @@ void RemoveTransparency(BitmapData &bm_data, const int transcol)
 
 // FIXME: this function apparently does about the same as FixMaskColorImpl
 // find a way to reorganize this mess, and reuse code more.
-void MakeColorTransparent(BitmapData &bm_data, const std::array<RGB, 256> &src_pal, int src_color_depth, const int transcol)
+static void MakeColorTransparent(BitmapData &bm_data, const Palette &src_pal, int src_color_depth, const int transcol)
 {
     const int maskcolor = GetDefaultMaskColor(bm_data.GetFormat());
     int r_color = 16;
@@ -540,8 +540,8 @@ void MakeColorTransparent(BitmapData &bm_data, const std::array<RGB, 256> &src_p
 }
 
 // Adjusts sprite's transparency using the chosen method
-void SortOutTransparency(BitmapData &bm_data, const SpriteImportTransparency sprite_trans, int trans_index,
-    const std::array<RGB, 256> &src_pal, const int src_color_depth, int &transcol)
+static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTransparency sprite_trans, int trans_index,
+    const Palette &src_pal, const int src_color_depth, int &transcol)
 {
     if (sprite_trans == kSpriteImport_LeaveAsIs)
     {
@@ -598,45 +598,44 @@ void SortOutTransparency(BitmapData &bm_data, const SpriteImportTransparency spr
     MakeColorTransparent(bm_data, src_pal, src_color_depth, transcol);
 }
 
-/*
-* FIXME: reimplement this, need to pass palette information from the game data.
-* need to be able to use both game and room bg palette.
-* 
 // Adjusts 8-bit sprite's palette
-void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int transcol)
+static void SortOutPalette(BitmapData &bm_data, Palette &pal, const Palette &game_pal,
+    const std::array<PaletteColourType, PAL_SIZE> &paluses, bool use_bg_slots, int transcol)
 {
-    set_palette_range(palette, 0, 255, 0);
-    if ((thisgame.color_depth == 1) && (itspal != NULL)) { 
-        // 256-colour mode only
-        if (transcol!=0)
-            itspal[transcol] = itspal[0];
-        wsetrgb(0,0,0,0,itspal); // set index 0 to black
-        RGB oldpale[256];
-        for (int uu=0;uu<255;uu++) {
-            if (useBgSlots)  //  use background scene palette
-                oldpale[uu]=palette[uu];
-            else if (thisgame.paluses[uu]==PAL_BACKGROUND)
-                wsetrgb(uu,0,0,0,oldpale);
-            else 
-                oldpale[uu]=palette[uu];
-        }
-        wremap(itspal,toimp,oldpale); 
-        set_palette_range(palette, 0, 255, 0);
-    }
-    else if (toimp->GetColorDepth() == 8) {  // hi-colour game
-        set_palette(itspal);
-    }
-}
-*/
+    if (transcol != 0)
+        pal[transcol] = pal[0];
 
-HError ConvertSpriteForGame(PixelBuffer &image, std::array<RGB, 256> *pal,
-    PixelBuffer &dst_image, const int game_color_depth, const SpriteData &sprite)
+    PaletteOp::SetRGB(pal, 0, 0, 0, 0); // set index 0 to black
+    Palette dst_pal;
+    for (int i = 0; i < 255; ++i) // CHECKME: 255th index is ignored?
+    {
+        if (use_bg_slots) // use either slots
+            dst_pal[i] = game_pal[i];
+        else if (paluses[i] == kPaletteColourType_Background) // else ignore background slots
+            PaletteOp::SetRGB(dst_pal, i, 0, 0, 0);
+        else
+            dst_pal[i] = game_pal[i];
+    }
+    PaletteOp::Remap(bm_data, pal, dst_pal);
+}
+
+void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &room_pal, const std::array<PaletteColourType, PAL_SIZE> &pal_uses)
 {
+    std::copy(game_pal.begin(), game_pal.end(), dest_pal.begin());
+    for (size_t i = 0; i < PAL_SIZE; ++i)
+        if (pal_uses[i] == kPaletteColourType_Background)
+            dest_pal[i] = room_pal[i];
+}
+
+HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
+    PixelBuffer &dst_image, const GameColorSettings &game_color_opt, const RoomPaletteCache &room_cache, const SpriteData &sprite)
+{
+    const int game_color_depth = static_cast<int>(game_color_opt.ColorDepth) * 8;
     // Safety check: if requested alpha channel, test if bitmap contains one
     const bool alpha_channel = sprite.ImportAlphaChannel && (game_color_depth == 32) && DoesBitmapHaveAlpha(image, pal);
     const int src_color_depth = image.GetColorDepth();
 
-    std::array<RGB, 256> img_pal_buf;
+    Palette img_pal_buf;
     const SpriteImportTransparency sprite_trans = sprite.TransparentColour;
     const int trans_color = sprite.TransparentColourIndex;
     const bool keep_trans = (sprite_trans != kSpriteImport_NoTransparency);
@@ -653,12 +652,28 @@ HError ConvertSpriteForGame(PixelBuffer &image, std::array<RGB, 256> *pal,
     SortOutTransparency(final_buf, sprite_trans, trans_color, img_pal_buf, src_color_depth, transcol);
     if (game_color_depth == 8)
     {
-        /*
-        * FIXME: reimplement this, need to pass palette information from the game data.
-        * need to be able to use both game and room bg palette.
         if (remap_colors)
-            SortOutPalette(final_buf, img_pal_buf, use_room_pal, transcol);
-            */
+        {
+            // Merge game and room palettes
+            Palette *room_pal = nullptr;
+            if (sprite.ColoursLockedToRoom >= 0)
+            {
+                auto it_pal = room_cache.find(sprite.ColoursLockedToRoom);
+                if (it_pal != room_cache.end())
+                    room_pal = it_pal->second.get();
+            }
+
+            if (room_pal)
+            {
+                Palette combined_pal;
+                MergePalettes(combined_pal, game_color_opt.Palette, *room_pal, game_color_opt.PalUses);
+                SortOutPalette(final_buf, img_pal_buf, combined_pal, game_color_opt.PalUses, use_room_pal, transcol);
+            }
+            else
+            {
+                SortOutPalette(final_buf, img_pal_buf, game_color_opt.Palette, game_color_opt.PalUses, use_room_pal, transcol);
+            }
+        }
     }
 
     if (alpha_channel)

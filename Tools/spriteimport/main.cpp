@@ -60,7 +60,8 @@ const char *HELP_STRING = "Usage:\n"
 "                   If no pattern is provided, the program will use \"spr%6N%\"\n"
 "                   pattern by default. If no extension is specified in the\n"
 "                   pattern, then \".png\" will be used as an extension.\n"
-// -r, --room-dir   RESERVED: input rooms for 8-bit games (need to read palettes)
+"  -r, --room-dir   directory to search for the room files (roomN.crm);\n"
+"                   this is needed for 8-bit games (require room palettes)\n"
 "  -s, --storage-flags <flags>\n"
 "                   when output is the spritefile: use additional storage\n"
 "                   options, defined using a hexadecimal bitset:\n"
@@ -116,6 +117,10 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         {
             opts.ImageFilePattern = opt_with_value.second;
         }
+        else if (opt_with_value.first == "-r" || opt_with_value.first == "--room-dir")
+        {
+            opts.RoomDirectory = opt_with_value.second;
+        }
         else if (opt_with_value.first == "-s" || opt_with_value.first == "--storage-flags")
         {
             opts.StorageFlags = static_cast<SpriteImport::SpriteStorage>(StrUtil::StringToIntHex(opt_with_value.second));
@@ -163,7 +168,7 @@ int main(int argc, char *argv[])
     printf("%s\n", BIN_STRING);
 
     CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv,
-        { "-n", "--index", "-p", "--pattern", "-s", "--storage-flags", "-z", "--compress"});
+        { "-n", "--index", "-p", "--pattern", "-r", "--room-dir", "-s", "--storage-flags", "-z", "--compress"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

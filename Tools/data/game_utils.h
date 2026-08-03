@@ -41,6 +41,7 @@ using ::ScreenTransitionStyle;
 
 enum GameColorDepth
 {
+    kGameColorDepth_Undefined = 0,
     kGameColorDepth_Palette = 1,
     kGameColorDepth_HighColor = 2,
     kGameColorDepth_TrueColor = 4
@@ -77,6 +78,7 @@ enum GUIPopupStyle
 enum PaletteColourType
 {
     kPaletteColourType_Gamewide = 0,
+    kPaletteColourType_Locked = 1, // commonly unused
     kPaletteColourType_Background = 2
 };
 

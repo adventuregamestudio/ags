@@ -15,6 +15,7 @@
 #define __AGS_TOOL_DATA__SPRITEFILEUTILS_H
 
 #include <regex>
+#include <map>
 #include <vector>
 #include <allegro.h>
 #include "ac/spritefile.h"
@@ -29,6 +30,8 @@ namespace DataUtil
 {
     using HError = AGS::Common::HError;
     using String = AGS::Common::String;
+    using Palette = AGS::Common::Palette;
+    using PixelBuffer = AGS::Common::PixelBuffer;
 
     String GetCompressionName(Common::SpriteCompression compress);
     Common::SpriteCompression CompressionFromName(const String &compress_name);
@@ -37,9 +40,22 @@ namespace DataUtil
     // TODO: move elsewhere, more generic utils?
     HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, const std::regex &regex);
 
+    struct GameColorSettings
+    {
+        GameColorDepth ColorDepth = kGameColorDepth_Undefined;
+        Palette Palette;
+        std::array<PaletteColourType, PAL_SIZE> PalUses;
+    };
+
+    // A cache of room background palettes
+    typedef std::map<int, std::unique_ptr<Palette>> RoomPaletteCache;
+
+    // Merges game and room palettes into the destination paletter, according to the "pal uses" rules
+    void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &room_pal, const std::array<PaletteColourType, PAL_SIZE> &pal_uses);
     // Converts image in accordance to the sprite specs.
-    HError ConvertSpriteForGame(Common::PixelBuffer &image, std::array<RGB, 256> *pal,
-        Common::PixelBuffer &dst_image, const int game_color_depth, const SpriteData &sprite);
+    HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
+        PixelBuffer &dst_image, const GameColorSettings &game_color_opts,
+        const RoomPaletteCache &room_cache, const SpriteData &sprite);
 
 } // namespace DataUtil
 } // namespace AGS

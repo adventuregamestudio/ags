@@ -734,7 +734,12 @@ void engine_init_game_settings()
     play.text_align = kHAlignLeft;
     // Make the default alignment to the right with right-to-left text
     if (game.options[OPT_RIGHTLEFTWRITE])
+    {
         play.text_align = kHAlignRight;
+        play.speech_text_align = kHAlignRight;
+        if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
+            play.dialog_options_textalign = kHAlignRight;
+    }
 
     play.speech_bubble_width = 100;
     play.bg_frame=0;

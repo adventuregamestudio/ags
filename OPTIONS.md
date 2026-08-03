@@ -144,7 +144,7 @@ Locations of two latter files differ between running platforms:
 * **\[override_behavior\]** - options, overriding backwards-compatible engine behavior. When running old games, the engine tries to emulate old behavior as close as possible. This may include various restrictions and inconveniences. These options allow to enable *modern* behavior on a per-case basis. NOTE: you can only enable new behavior in old games, you won't be able to disable modern behavior in games where it is a standard.
   * smooth_walk = \[0; 1\] - enable seamless transition between consecutive walk commands. WARNING: may cause script errors in certain old games.
   * gui_text_direction = \[0; 1\] - enable applying text direction on gui controls other than labels (labels support it always).
-  * dialog_opt_text_direction = \[0; 1\] - enable applying text direction on dialog options.
+  * dialog_opt_text_alignment = \[0; 1\] - enable applying text alignment in dialog options.
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.
   * gfxdrivers = \[0; 1\] - tells to lock "Graphics driver" selection in a default state;
   * \<gfxdriver id\> = \[0; 1\] - tells to remove particular graphics driver from the selection list;

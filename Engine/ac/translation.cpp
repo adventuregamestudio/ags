@@ -145,15 +145,14 @@ bool init_translation(const String &lang, const String &fallback_lang)
         SetNormalFont(trans.NormalFont);
     if (trans.SpeechFont >= 0)
         SetSpeechFont(trans.SpeechFont);
-    if (trans.RightToLeft == 1)
+    if (trans.RightToLeft != kTextDirection_Default)
     {
-        play.text_align = kHAlignLeft;
-        game.options[OPT_RIGHTLEFTWRITE] = 0;
-    }
-    else if (trans.RightToLeft == 2)
-    {
-        play.text_align = kHAlignRight;
-        game.options[OPT_RIGHTLEFTWRITE] = 1;
+        game.options[OPT_RIGHTLEFTWRITE] = trans.RightToLeft == kTextDirection_LTR ? 0 : 1;
+        HorAlignment align = game.options[OPT_RIGHTLEFTWRITE] ? kHAlignRight : kHAlignLeft;
+        play.text_align = align;
+        play.speech_text_align = align;
+        if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
+            play.dialog_options_textalign = align;
     }
     game.options[OPT_AUTOTRANSPARSERSAID] = (trans.OptFlags & kTraOpt_AutoTranslateSaid) != 0;
 

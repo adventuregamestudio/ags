@@ -238,7 +238,9 @@ Engine:
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Only the first found active TextBox control will receive input events.
- - Standard Dialog options now support Right-to-left text mode.
+ - Standard Dialog options are now properly positioned depending on Right-to-left text mode,
+   and support text alignment set in script. Parser input textbox in dialog options also supports
+   Right-to-left text direction.
  - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving PNG
    files, also 32-bit BMP files with alpha channel.
  - Removed hard limit of Timers (was 20).
@@ -276,8 +278,8 @@ Engine:
  - Added "override_behavior" config section, its options are purposed to override game's backwards-
    compatible behavior and enforce new behavior when running old games. Currently supported options
    include: "smooth_walk" (allows smooth walk transitions), "gui_text_direction" (apply text
-   direction to non-label gui controls), "dialog_opt_text_direction" (apply text direction to
-   built-in dialog options).
+   direction to non-label gui controls), "dialog_opt_text_alignment" (auto-set text alignment of
+   built-in dialog options when the translation is loaded).
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.
  - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.

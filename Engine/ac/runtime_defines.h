@@ -302,8 +302,8 @@ enum RuntimeBehaviorSwitch
     kRBO_SmoothWalkTransition,
     // Apply text direction for GUI controls (except Labels, where it's always applied)
     kRBO_ApplyGUITextDirection,
-    // Apply text direction for dialog options
-    kRBO_ApplyDialogOptionTextDirection,
+    // Apply text alignment for dialog options (and auto-switch when translation changes)
+    kRBO_ApplyDialogOptionTextAlignment,
     kNum_RBS
 };
 

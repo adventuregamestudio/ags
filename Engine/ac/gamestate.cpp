@@ -43,7 +43,7 @@ std::array<const char*, kNum_RBS> RBSwitchNames =
     "dummy",                        // kRBS_Dummy
     "smooth_walk",                  // kRBO_SmoothWalkTransition
     "gui_text_direction",           // kRBO_ApplyGUITextDirection
-    "dialog_opt_text_direction",    // kRBO_ApplyDialogOptionTextDirection 
+    "dialog_opt_text_alignment",    // kRBO_ApplyDialogOptionTextAlignment
 }};
 
 GamePlayState::GamePlayState()

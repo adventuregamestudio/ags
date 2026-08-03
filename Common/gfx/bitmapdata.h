@@ -18,7 +18,9 @@
 #ifndef __AGS_CN_GFX__BITMAPDATA_H
 #define __AGS_CN_GFX__BITMAPDATA_H
 
+#include <array>
 #include <memory>
+#include <allegro.h> // RGB and PALETTE types, MASK_COLOR constants
 #include "debug/assert.h"
 #include "platform/types.h"
 #include "util/string.h"
@@ -137,13 +139,16 @@ inline int GetDefaultMaskColor(PixelFormat fmt)
         // All the indexed formats use 0 index as the default mask color
         return 0;
     // Following correspond to magenta (aka "magic pink")
-    case kPxFmt_R5G5B5:     return 0x7C1F;
-    case kPxFmt_R5G6B5:     return 0xF81F;
-    case kPxFmt_R8G8B8:     return 0xFF00FF;
-    case kPxFmt_A8R8G8B8:   return 0xFF00FF; // NOTE: it's a value without alpha
+    case kPxFmt_R5G5B5:     return MASK_COLOR_15;
+    case kPxFmt_R5G6B5:     return MASK_COLOR_16;
+    case kPxFmt_R8G8B8:     return MASK_COLOR_24;
+    case kPxFmt_A8R8G8B8:   return MASK_COLOR_32; // NOTE: it's a value without alpha
     default: assert(false); return 0;
     }
 }
+
+
+typedef std::array<RGB, PAL_SIZE> Palette;
 
 
 // BitmapData is a non-owning wrapper over a pixel buffer,
@@ -301,6 +306,7 @@ private:
 };
 
 
+// Various operations with the pixel buffers: copying, converting, etc.
 namespace PixelOp
 {
     // Copy pixel data from one memory buffer to another. It is required that the
@@ -375,6 +381,37 @@ namespace PixelOp
     void MakeOpaqueSkipMask(BitmapData &bm_data);
     // Replaces pixels with alpha <= threshold with standard mask color.
     void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold = 0);
+}
+
+// Various operations with palette
+namespace PaletteOp
+{
+    inline void SetRGB(Palette &pal, int index, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF)
+    {
+        pal[index] = { r, g, b, a };
+    }
+
+    // FIXME: this is a temporary unsafe variant, use ref to PALETTE (RGB[256]), not pointer to array of unknown size
+    // (will require fixes around the code in AGS.Native)
+    inline void SetRGB(PALETTE pal, int index, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF)
+    {
+        pal[index] = { r, g, b, a };
+    }
+
+    // Rotates palette colors in the range [first, last], in the given direction
+    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left);
+    inline void Rotate(Palette &pal, uint8_t first, uint8_t last, bool to_left)
+    {
+        Rotate(pal.data(), first, last, to_left);
+    }
+    // Remaps bitmap's colors between source and destination palettes, trying to
+    // find the closest match to source palette colors. If told to keep transparency,
+    // the mask color will be translated exclusively, preventing any occasional matches.
+    void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent = true);
+    inline void Remap(BitmapData &bm_data, const Palette &src_pal, const Palette &dst_pal, bool keep_transparent = true)
+    {
+        Remap(bm_data, src_pal.data(), dst_pal.data(), keep_transparent);
+    }
 }
 
 } // namespace Common

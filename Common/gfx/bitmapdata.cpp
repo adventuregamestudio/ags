@@ -366,5 +366,62 @@ void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold)
 
 } // namespace PixelOperations
 
+namespace PaletteOp
+{
+    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left)
+    {
+        assert(first < last);
+        if (last <= first)
+            return; // nothing to do
+
+        RGB wrap = pal[to_left ? first : last];
+        if (to_left)
+        {
+            for (int i = first; i < last; ++i)
+                pal[i] = pal[i + 1];
+        }
+        else
+        {
+            for (int i = last; i > first; --i)
+                pal[i] = pal[i - 1];
+        }
+        pal[to_left ? last : first] = wrap;
+    }
+
+    void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent)
+    {
+        uint8_t color_mapped_table[256];
+        for (int i = 0; i < 256; ++i)
+        {
+            if ((src_pal[i].r == 0) && (src_pal[i].g == 0) && (src_pal[i].b == 0))
+            {
+                color_mapped_table[i] = 0;
+            }
+            else
+            {
+                color_mapped_table[i] = bestfit_color(dst_pal, src_pal[i].r, src_pal[i].g, src_pal[i].b);
+            }
+        }
+
+        if (keep_transparent)
+        {
+            // keep transparency
+            color_mapped_table[0] = 0;
+            // any other pixels which are being mapped to 0, map to 16 instead
+            for (int i = 1; i < 256; ++i)
+            {
+                if (color_mapped_table[i] == 0)
+                    color_mapped_table[i] = 16;
+            }
+        }
+
+        // Remap pixels to the new palette
+        for (uint8_t *ptr = bm_data.GetData(); ptr < bm_data.GetData() + bm_data.GetDataSize(); ++ptr)
+        {
+            *ptr = color_mapped_table[*ptr];
+        }
+    }
+}
+
 } // namespace Common
 } // namespace AGS

@@ -78,8 +78,16 @@ ParseResult Parse(int argc, const char *const argv[], const std::set<String> &op
         }
 
         // picks up `--opt Val`
-        parseResult.OptWithValue.emplace_back(arg, args[i + 1]);
-        ++i; // skip next value, it is not a free parameter
+        // we guard agains the last one missing the value, cause we would access an invalid position
+        if (i + 1 < args.size())
+        {
+            parseResult.OptWithValue.emplace_back(arg, args[i + 1]);
+            ++i; // skip next value, it is not a free parameter (it's Val!)
+        }
+        else
+        {
+            parseResult.OptWithMissingValue = arg;
+        }
     }
 
     return parseResult;

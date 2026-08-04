@@ -148,3 +148,27 @@ TEST(CmdLineOpts, ParserOptWithValues) {
     ASSERT_STREQ(parseResult.OptWithValue[3].second.GetCStr(),"eee");
     ASSERT_EQ(parseResult.PosArgs.size(),0);
 }
+
+
+TEST(CmdLineOpts, ParserOptWithValuesTrailingEmpty) {
+    ParseResult parseResult = {};
+    std::set<String> optParamsWithValues;
+
+    optParamsWithValues = { "-a", "-b", "-c"};
+    const char* argv_a[] = { "program","-a","PARAMa","-b","PARAMb","-c","PARAMc","-v"};
+    int argc_a = 8;
+
+    parseResult = Parse(argc_a, argv_a, optParamsWithValues);
+
+    ASSERT_EQ(parseResult.HelpRequested, false);
+    ASSERT_EQ(parseResult.Opt.size(), 1);
+    ASSERT_TRUE(parseResult.Opt.count("-v"));
+    ASSERT_EQ(parseResult.OptWithValue.size(), 3);
+    ASSERT_STREQ(parseResult.OptWithValue[0].first.GetCStr(), "-a");
+    ASSERT_STREQ(parseResult.OptWithValue[0].second.GetCStr(), "PARAMa");
+    ASSERT_STREQ(parseResult.OptWithValue[1].first.GetCStr(), "-b");
+    ASSERT_STREQ(parseResult.OptWithValue[1].second.GetCStr(), "PARAMb");
+    ASSERT_STREQ(parseResult.OptWithValue[2].first.GetCStr(), "-c");
+    ASSERT_STREQ(parseResult.OptWithValue[2].second.GetCStr(), "PARAMc");
+    ASSERT_EQ(parseResult.PosArgs.size(), 0);
+}

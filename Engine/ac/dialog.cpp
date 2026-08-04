@@ -749,7 +749,7 @@ private:
     // Backwards compatibility parameters (nasty stuff);
     // remove these whenever you don't care about keeping precise alignment in old games
     int line_x_off = 0; // extra X offset for option lines (normal GUI or def surf)
-    int normal_area_width_mod = 0; // inc/dec for the options drawable area (normal GUI or def surf)
+    int normal_area_counter_align_pad = 0; // extra padding for the side *opposite* to text alignment (normal GUI or def surf)
     int tw_area_width_mod = 0; // inc/dec for the options drawable area (TextWindow case)
     int fixed_padding = 0; // a fixed padding value added to the setup property (normal GUI or def surf)
     int linewrap_padding = 0; // padding sum used only for linewrapping
@@ -910,13 +910,18 @@ void DialogOptions::Begin()
     parserInput = nullptr;
     said_text = 0;
 
+    // FIXME: the option arrangement logic here is a tremendous mess.
+    // need to strictly define the terms and rules of this arrangement,
+    // with defined text area and general padding, and any additional shifts,
+    // and make sure that it's consistent.
+
     // Historically dialog options alignment calculation had pretty
     // inconsistent rules. We keep some of these strictly for backwards
     // compatible mode. Should remove these variables if we drop compatibility.
     if (loaded_game_file_version < kGameVersion_363)
     {
         line_x_off = 1; // extra X offset for option lines
-        normal_area_width_mod = -5; // extra reduction for the options text (normal gui)
+        normal_area_counter_align_pad = 5; // extra padding opposite to alignment (normal gui)
         tw_area_width_mod = +4; // extra increment for the options text (textwindow)
         fixed_padding = TEXTWINDOW_PADDING_DEFAULT;
     }
@@ -1017,7 +1022,7 @@ void DialogOptions::Begin()
             is_normalgui = true;
             position = guib->GetRect();
 
-            areawid = guib->GetWidth() + normal_area_width_mod;
+            areawid = guib->GetWidth();
             linewrap_padding = play.dialog_options_pad_x + fixed_padding;
             needheight = CalcOptionsHeight(linewrap_padding);
 
@@ -1033,7 +1038,7 @@ void DialogOptions::Begin()
     {
         // Default plain surface
         const Rect &ui_view = play.GetUIViewport();
-        areawid = ui_view.GetWidth() + normal_area_width_mod;
+        areawid = ui_view.GetWidth();
         linewrap_padding = play.dialog_options_pad_x + fixed_padding;
         needheight = CalcOptionsHeight(linewrap_padding);
 
@@ -1123,6 +1128,7 @@ void DialogOptions::Draw()
         inner_position = text_window_offset;
         // NOTE: presumably, txoffs and tyoffs are already offset by padding,
         // although it's not entirely reliable, because these calculations are done inside draw_text_window.
+        // NOTE: text window is generated around text, so guaranteed to be always padded equally from both sides.
         const int opts_areawid = areawid - (2 * padding + 2);
         curyp = write_dialog_options(options_bmp, inner_position.X, inner_position.Y, opts_areawid,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
@@ -1150,10 +1156,16 @@ void DialogOptions::Draw()
             GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
             draw_gui_for_dialog_options(ds, guib, 0, 0);
         }
-        inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
-        const int opts_areawid = areawid - (2 * linewrap_padding + 2);
-        curyp = inner_position.Y;
-        curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawid,
+        // FIXME: alignment of the "text options area" here is very broken;
+        // probably a combined result of code refactor + attempts to emulate old game behavior.
+        // linewrap_padding == play.dialog_options_pad_x + fixed_padding, and this is subtracted
+        // from areawid. But then, why the area X is not shifted by fixed_padding?
+        const int opts_areawidth = areawid - (2 * linewrap_padding + 2) - normal_area_counter_align_pad;
+        if (play.dialog_options_textalign == kHAlignLeft)
+            inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
+        else if (play.dialog_options_textalign == kHAlignRight) // FIXME: following is a hotfix to counter areawid's reduction
+            inner_position = Point(areawid - opts_areawidth - (play.dialog_options_pad_x + line_x_off), play.dialog_options_pad_y);
+        curyp = write_dialog_options(ds, inner_position.X, inner_position.Y, opts_areawidth,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
                                     usingfont, linespacing, forecol,
                                     dtop, numdisp, mouseison, items);

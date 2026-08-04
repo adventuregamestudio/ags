@@ -1804,5 +1804,14 @@ void ReadTranslationList(std::vector<String> &trs_list, DocElem root)
     }
 }
 
+void ReadDialogList(std::vector<int>& dialog_list, DocElem root)
+{
+    AGF::Dialogs dialogs;
+    std::vector<DocElem> dlg_els;
+    dialogs.GetAll(root, dlg_els);
+    for (size_t i = 0; i < dlg_els.size(); ++i)
+        dialog_list.push_back(static_cast<int>(i));
+}
+
 } // namespace AGF
 } // namespace AGS

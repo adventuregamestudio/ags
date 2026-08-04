@@ -36,6 +36,7 @@ namespace CmdLineOpts
         std::vector<std::pair<String, String>> OptWithValue{};
         std::vector<String> PosArgs;
         std::multiset<String> Opt;
+        String OptWithMissingValue{};
     };
 
     // opt_params_with_values are the options that always take an argument.

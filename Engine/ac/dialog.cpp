@@ -1220,13 +1220,12 @@ void DialogOptions::Draw()
         // probably a combined result of code refactor + attempts to emulate old game behavior.
         // linewrap_padding == play.dialog_options_pad_x + fixed_padding, and this is subtracted
         // from areawid. But then, why the area X is not shifted by fixed_padding?
-        const int opts_areawid = areawid - (2 * linewrap_padding + 2) - normal_area_counter_align_pad;
-        inner_position = Point(play.dialog_options_pad_x, play.dialog_options_pad_y);
+        const int opts_areawidth = areawid - (2 * linewrap_padding + 2) - normal_area_counter_align_pad;
         if (play.dialog_options_textalign == kHAlignLeft)
-            inner_position.X += line_x_off;
+            inner_position = Point(play.dialog_options_pad_x + line_x_off, play.dialog_options_pad_y);
         else if (play.dialog_options_textalign == kHAlignRight) // FIXME: following is a hotfix to counter areawid's reduction
-            inner_position.X += 2 * fixed_padding + 2 + normal_area_counter_align_pad;
-        curyp = write_dialog_options(ds, options_have_alpha, inner_position.X, inner_position.Y, opts_areawid,
+            inner_position = Point(areawid - opts_areawidth - (play.dialog_options_pad_x + line_x_off), play.dialog_options_pad_y);
+        curyp = write_dialog_options(ds, options_have_alpha, inner_position.X, inner_position.Y, opts_areawidth,
                                     bullet_wid, game.dialog_bullet, bullet_picwid,
                                     usingfont, linespacing, forecol,
                                     dtop, numdisp, mouseison, items);

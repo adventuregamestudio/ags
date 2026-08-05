@@ -492,11 +492,13 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
 }
 
 // Removes all transparency pixels (change them to a close non-trnasparent colour)
-// FIXME: this operation is kind of non-sensical for arbitrary image; by the looks of its code
-// is purposed for 8-bit paletted image, not any image.
 // TODO: should be a part of PixelOp namespace
 static void RemoveTransparency(BitmapData &bm_data, const int transcol)
 {
+    // FIXME: this replacement is kind of non-sensical for arbitrary image; by the looks of its code
+    // is purposed for 8-bit paletted image, where color 0 is replaced with color 16 which is also "black".
+    // Then, for hi-res color depth, IIRC there was a function in Allegro called something like
+    // "best_color_match" or similar, which may be of better use here, instead of "transcol - 1".
     int r_color;
     if (transcol == 0)
         r_color = 16;
@@ -648,6 +650,20 @@ HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
     if (!err)
         return err;
 
+    // Prior to transparency conversion, deal with 32-bit alpha channel:
+    // either convert zero-alpha pixels to standard mask color, or to opaque color
+    if (final_buf.GetColorDepth() == 32)
+    {
+        if (alpha_channel)
+        {
+            PixelOp::ReplaceAlphaWithRGBMask(final_buf);
+        }
+        else
+        {
+            PixelOp::MakeOpaqueSkipMask(final_buf);
+        }
+    }
+
     int transcol = 0;
     SortOutTransparency(final_buf, sprite_trans, trans_color, img_pal_buf, src_color_depth, transcol);
     if (game_color_depth == 8)
@@ -674,18 +690,6 @@ HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
                 SortOutPalette(final_buf, img_pal_buf, game_color_opt.Palette, game_color_opt.PalUses, use_room_pal, transcol);
             }
         }
-    }
-
-    if (alpha_channel)
-    {
-        if (final_buf.GetColorDepth() == 32)
-        {
-            PixelOp::ReplaceAlphaWithRGBMask(final_buf);
-        }
-    }
-    else if (final_buf.GetColorDepth() == 32)
-    {
-        PixelOp::MakeOpaqueSkipMask(final_buf);
     }
 
     dst_image = std::move(final_buf);

@@ -2775,26 +2775,28 @@ AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMeth
     AGSBitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true,
         alphaChannel, keep_trans, fix_palette, &importedColourDepth);
 
+    // Prior to transparency conversion, deal with 32-bit alpha channel:
+    // either convert zero-alpha pixels to standard mask color, or to opaque color
+    int flags = 0;
+    if (tempsprite->GetColorDepth() == 32)
+    {
+        if (alphaChannel)
+        {
+            flags |= SPF_ALPHACHANNEL;
+            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
+        }
+        else
+        {
+            BitmapHelper::MakeOpaqueSkipMask(tempsprite);
+        }
+    }
+
     int transcol = 0;
     sort_out_transparency(tempsprite, spriteImportMethod, transColour, imgPalBuf, importedColourDepth, transcol);
     if (thisgame.color_depth == 1)
     {
         if (remapColours)
             sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
-    }
-
-    int flags = 0;
-    if (alphaChannel)
-    {
-        flags |= SPF_ALPHACHANNEL;
-        if (tempsprite->GetColorDepth() == 32)
-        {
-            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
-        }
-    }
-    else if (tempsprite->GetColorDepth() == 32)
-    {
-        BitmapHelper::MakeOpaqueSkipMask(tempsprite);
     }
 
     if (out_flags)

@@ -311,11 +311,12 @@ struct SpriteData
     // just for a quick reference in Game.agf? need to double check their use.
     int Width = 0;
     int Height = 0;
-    int ColorDepth = 0;
+    int ColorDepth = 0; // bits per pixel
     SpriteImportResolution Resolution = kSpriteImport_Real;
     // This is a reference to where it actually has one, but ImportAlphaChannel
     // is one that controls sprite import.
     bool AlphaChannel = false;
+    // Import settings
     String SourceFile;
     bool ImportAlphaChannel = false;
     int ColoursLockedToRoom = -1;

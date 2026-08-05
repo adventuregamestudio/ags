@@ -857,9 +857,10 @@ TEST(DataFileWriter, RoundTripFontBlock)
 TEST(DataFileWriter, RoundTripSpriteFlags)
 {
     DataUtil::GameData game;
+
     game.Sprites = {
-        { 1, DataUtil::kSpriteImport_Real, true },
-        { 3, DataUtil::kSpriteImport_HighRes, false }
+        { 1, 0, 0, 0, DataUtil::kSpriteImport_Real, true },
+        { 3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false }
     };
 
     std::vector<uint8_t> buffer = WriteGameBlock(game,

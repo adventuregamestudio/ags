@@ -284,7 +284,7 @@ static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_
 // TODO: rewrite as a template function, having respective integer type as pixel size.
 static void Convert8BitToHiColor(const BitmapData &src, const Palette &src_pal, PixelBuffer &dst, const bool keep_transparency)
 {
-    assert(dst.GetBytesPerPixel() == 16 || dst.GetBytesPerPixel() == 32);
+    assert(dst.GetColorDepth() == 16 || dst.GetColorDepth() == 32);
     const int dst_depth = PixelFormatToPixelBits(dst.GetFormat());
 
     if (keep_transparency)
@@ -383,7 +383,7 @@ static void ConvertAndFixMaskColor(const BitmapData &src, PixelBuffer &dst, cons
     if (keep_transparency)
     {
         const int src_depth = src.GetColorDepth();
-        const int dst_depth = src.GetColorDepth();
+        const int dst_depth = dst.GetColorDepth();
         if (src_depth == 16 && dst_depth == 32)
         {
             FixMaskColorImpl<uint16_t, uint32_t>(src.GetData(), src.GetData() + src.GetHeight() * src.GetStride(), dst.GetData(),
@@ -432,7 +432,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
         dst_depth = 32; // convert to 32-bit
         break;
     default:
-        return new Error(String::FromFormat("Unsupported pixel format: %s", PixelFormatName(src.GetFormat())));
+        return new Error(String::FromFormat("Unsupported pixel format: %s", PixelFormatName(src.GetFormat()).GetCStr()));
     }
 
     if ((game_color_depth == 8) && (src_depth > 8))
@@ -499,6 +499,7 @@ static void RemoveTransparency(BitmapData &bm_data, const int transcol)
     // is purposed for 8-bit paletted image, where color 0 is replaced with color 16 which is also "black".
     // Then, for hi-res color depth, IIRC there was a function in Allegro called something like
     // "best_color_match" or similar, which may be of better use here, instead of "transcol - 1".
+    // (unless I am confusing this with something else...)
     int r_color;
     if (transcol == 0)
         r_color = 16;
@@ -528,7 +529,8 @@ static void MakeColorTransparent(BitmapData &bm_data, const Palette &src_pal, in
         else
             r_color = 0;
     }
-    // swap all transparent pixels with index 0 pixels (???)
+    // swap all transparent pixels with standard mask color
+    // swap all existing mask color pixels with replacement color (zero-alpha black)
     for (int y = 0; y < bm_data.GetHeight(); ++y)
     {
         for (int x = 0; x < bm_data.GetWidth(); ++x)
@@ -604,10 +606,13 @@ static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTranspare
 static void SortOutPalette(BitmapData &bm_data, Palette &pal, const Palette &game_pal,
     const std::array<PaletteColourType, PAL_SIZE> &paluses, bool use_bg_slots, int transcol)
 {
+    // Ensure that transparent color is index 0
     if (transcol != 0)
+    {
         pal[transcol] = pal[0];
+        PaletteOp::SetRGB(pal, 0, 0, 0, 0); // set index 0 to black
+    }
 
-    PaletteOp::SetRGB(pal, 0, 0, 0, 0); // set index 0 to black
     Palette dst_pal;
     for (int i = 0; i < PAL_SIZE; ++i)
     {
@@ -629,9 +634,13 @@ void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &ro
             dest_pal[i] = room_pal[i];
 }
 
-HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
-    PixelBuffer &dst_image, const GameColorSettings &game_color_opt, const RoomPaletteCache &room_cache, const SpriteData &sprite)
+HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
+    PixelBuffer &dst_image, const GameColorSettings &game_color_opt, const RoomPaletteCache *room_cache, const SpriteData &sprite)
 {
+    assert(image);
+    if (!image)
+        return new Error("No image data provided");
+
     const int game_color_depth = static_cast<int>(game_color_opt.ColorDepth) * 8;
     // Safety check: if requested alpha channel, test if bitmap contains one
     const bool alpha_channel = sprite.ImportAlphaChannel && (game_color_depth == 32) && DoesBitmapHaveAlpha(image, pal);
@@ -672,10 +681,10 @@ HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
         {
             // Merge game and room palettes
             Palette *room_pal = nullptr;
-            if (sprite.ColoursLockedToRoom >= 0)
+            if ((sprite.ColoursLockedToRoom >= 0) && room_cache)
             {
-                auto it_pal = room_cache.find(sprite.ColoursLockedToRoom);
-                if (it_pal != room_cache.end())
+                auto it_pal = room_cache->find(sprite.ColoursLockedToRoom);
+                if (it_pal != room_cache->end())
                     room_pal = it_pal->second.get();
             }
 

@@ -60,9 +60,6 @@
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc">
-      <Filter>Test</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc">
       <Filter>Test</Filter>
     </ClCompile>
@@ -140,6 +137,15 @@
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\gtest_main.cc">
+      <Filter>Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -221,14 +227,20 @@
     <ClInclude Include="..\..\Tools\data\data_file_writer.h">
       <Filter>data</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Tools\data\game_utils.h">
-      <Filter>data</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
       <Filter>libsrc\tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\memorystream.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\game_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\sprite_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\test\spriteimport_env.h">
+      <Filter>Test</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,7 +30,6 @@ namespace DataUtil
 {
     using HError = AGS::Common::HError;
     using String = AGS::Common::String;
-    using Palette = AGS::Common::Palette;
     using PixelBuffer = AGS::Common::PixelBuffer;
 
     String GetCompressionName(Common::SpriteCompression compress);
@@ -43,9 +42,17 @@ namespace DataUtil
     struct GameColorSettings
     {
         GameColorDepth ColorDepth = kGameColorDepth_Undefined;
-        Palette Palette;
+        AGS::Common::Palette Palette;
         std::array<PaletteColourType, PAL_SIZE> PalUses;
+
+        GameColorSettings()
+        {
+            std::fill(Palette.begin(), Palette.end(), RGB{0,0,0,0});
+            std::fill(PalUses.begin(), PalUses.end(), kPaletteColourType_Gamewide);
+        }
     };
+
+    using Palette = AGS::Common::Palette;
 
     // A cache of room background palettes
     typedef std::map<int, std::unique_ptr<Palette>> RoomPaletteCache;
@@ -53,9 +60,12 @@ namespace DataUtil
     // Merges game and room palettes into the destination paletter, according to the "pal uses" rules
     void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &room_pal, const std::array<PaletteColourType, PAL_SIZE> &pal_uses);
     // Converts image in accordance to the sprite specs.
-    HError ConvertSpriteForGame(PixelBuffer &image, Palette *pal,
+    // The final image will be located in dst_image.
+    // If no format conversion is necessary, then moves original image to dst_image,
+    // however, the pixel values may still be changed even then (transparency conversion).
+    HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
         PixelBuffer &dst_image, const GameColorSettings &game_color_opts,
-        const RoomPaletteCache &room_cache, const SpriteData &sprite);
+        const RoomPaletteCache *room_cache, const SpriteData &sprite);
 
 } // namespace DataUtil
 } // namespace AGS

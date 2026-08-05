@@ -287,6 +287,8 @@ if(AGS_TESTS)
       test/data_file_writer_test.cpp
       test/data_helpers_test.cpp
       test/include_utils_test.cpp
+      test/spriteimport_test.cpp
+      test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
    set_target_properties(tools_test PROPERTIES
       CXX_STANDARD 11
@@ -300,7 +302,7 @@ if(AGS_TESTS)
       libtools
       AlFont::AlFont
       AAStr::AAStr
-      gtest_main
+      gtest
    )
 
    include(GoogleTest)

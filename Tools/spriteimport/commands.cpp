@@ -214,7 +214,7 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
         {
             PixelBuffer conv_tile;
             // NOTE: GameColorDepth's values match byte per pixel of a respective color depth type
-            HError err = ConvertSpriteForGame(tile, &pal, conv_tile, game_color_opts, room_cache, sprite);
+            HError err = ConvertSpriteForGame(tile, &pal, conv_tile, game_color_opts, &room_cache, sprite);
             if (err)
             {
                 writer.WriteSprite(conv_tile, sprite.Slot);

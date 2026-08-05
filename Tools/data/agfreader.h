@@ -534,6 +534,8 @@ void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
 void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 // Reads a list of dialogs (indexes)
 void ReadDialogList(std::vector<int>& dialog_list, DocElem root);
+// Reads the Game FileName
+void ReadGameFileName(String & game_filename, DocElem root);
 
 } // namespace AGF
 } // namespace AGS

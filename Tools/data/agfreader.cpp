@@ -1813,5 +1813,33 @@ void ReadDialogList(std::vector<int>& dialog_list, DocElem root)
         dialog_list.push_back(static_cast<int>(i));
 }
 
+void ReadGameFileName(String& game_filename, DocElem root)
+{
+    AGF::Game p_game;
+    AGF::GameSettings p_settings;
+    DataUtil::GameSettings settings;
+    p_settings.ReadAllData(p_game.GetSettings(root), settings);
+    if (!settings.GameFileName.IsEmpty())
+    {
+        game_filename = settings.GameFileName;
+    }
+    else
+    {
+        // I actually don't remember if this is possible from the editor?
+        String game_name = settings.GameName;
+        String filename;
+        for (size_t c = 0; c < game_name.GetLength(); ++c)
+        {
+            if (StrUtil::IsScriptWordChar(game_name[c]))
+                filename.AppendChar(game_name[c]);
+            else
+                filename.AppendChar('_');
+        }
+        game_filename = filename;
+    }
+    if (game_filename.IsEmpty())
+        game_filename = "game";
+}
+
 } // namespace AGF
 } // namespace AGS

@@ -337,7 +337,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
     chap->wait = 0;
     chap->walkwait = 0;
     charextra[chap->index_id].animwait = 0;
-    FindReasonableLoopForCharacter(chap);
+    FindReasonableLoopForCharacter(chap, true);
 }
 
 enum DirectionalLoop
@@ -1124,11 +1124,9 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     {
         Character_StopMoving(chaa);
     }
-    if (chaa->view >= 0) {
-        int maxloop = views[chaa->view].numLoops;
-        if (((chaa->flags & CHF_NODIAGONAL)!=0) && (maxloop > 4))
-            maxloop = 4;
-        FindReasonableLoopForCharacter(chaa);
+    if (chaa->view >= 0)
+    {
+        FindReasonableLoopForCharacter(chaa, true);
     }
     stop_character_anim(chaa);
     // Restart idle timer
@@ -2581,9 +2579,15 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     return true;
 }
 
-void FindReasonableLoopForCharacter(CharacterInfo *chap) {
-
-    if (chap->loop >= views[chap->view].numLoops)
+void FindReasonableLoopForCharacter(CharacterInfo *chap, bool is_walk_view)
+{
+    int loop_limit = views[chap->view].numLoops;
+    if (is_walk_view)
+    {
+        if (((chap->flags & CHF_NODIAGONAL)!=0) && (loop_limit > 4))
+            loop_limit = 4;
+    }
+    if (chap->loop >= loop_limit)
         chap->loop=kDirLoop_Default;
     if (views[chap->view].numLoops < 1)
         quitprintf("!View %d does not have any loops", chap->view + 1);
@@ -2591,7 +2595,7 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
     // if the current loop has no frames, find one that does
     if (views[chap->view].loops[chap->loop].numFrames < 1)
     {
-        for (int i = 0; i < views[chap->view].numLoops; i++)
+        for (int i = 0; i < loop_limit; i++)
         {
             if (views[chap->view].loops[i].numFrames > 0) {
                 chap->loop = i;

@@ -193,7 +193,7 @@ void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
 // Start character walk the straight line until any non-passable area is met
 void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
 void MoveCharacterToHotspot(int chaa, int hotsp);
-void FindReasonableLoopForCharacter(CharacterInfo *chap);
+void FindReasonableLoopForCharacter(CharacterInfo *chap, bool is_walk_view = false);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 int GetCharacterWidth(int charid);

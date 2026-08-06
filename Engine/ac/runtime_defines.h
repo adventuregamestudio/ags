@@ -94,9 +94,13 @@ const int LegacyRoomVolumeFactor            = 30;
 #define NUM_STANDARD_VERBS 10
 
 // Fixed Overlay IDs
+// Standard message box (see Display command)
 #define OVER_TEXTMSG  1
+// Complete speech overlay (QFG4 speech style)
 #define OVER_COMPLETE 2
+// Speech portrait
 #define OVER_PICTURE  3
+// Speech text (in textwindow or not)
 #define OVER_TEXTSPEECH 4
 #define OVER_FIRSTFREE 5
 #define OVER_CUSTOM   -1

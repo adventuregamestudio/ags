@@ -445,9 +445,14 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
         over.SetSpriteNum(sprnum, pic_offx, pic_offy);
     }
     over.SetPosition(x, y);
-    // by default draw speech and portraits over GUI, and the rest under GUI
-    over.SetZOrder((roomlayer || type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH) ?
-        INT_MAX : INT_MIN);
+    // By default draw speech and portraits are over GUI, and the rest under GUI;
+    // room overlays are created above all by default as well
+    if (roomlayer || type == OVER_TEXTMSG)
+        over.SetZOrder(INT32_MAX);
+    else if (type == OVER_PICTURE || type == OVER_TEXTSPEECH)
+        over.SetZOrder(play.speech_zorder);
+    else
+        over.SetZOrder(INT_MIN);
     over.SetRoomLayer(roomlayer);
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE)

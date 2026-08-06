@@ -1792,7 +1792,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Game State",
-        kGSSvgVersion_363_04,
+        kGSSvgVersion_Current,
         kGSSvgVersion_Initial,
         kSaveCmp_GameState,
         WriteGameState,

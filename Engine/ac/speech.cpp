@@ -196,6 +196,16 @@ CharacterInfo* Speech_GetSpeakingCharacter()
     return char_speaking >= 0 ? &game.chars[char_speaking] : nullptr;
 }
 
+int Speech_GetOverlayZOrder()
+{
+    return play.speech_zorder;
+}
+
+void Speech_SetOverlayZOrder(int zorder)
+{
+    play.speech_zorder = zorder;
+}
+
 int Speech_GetAnimationStopTimeMargin()
 {
     return play.close_mouth_speech_time;
@@ -432,6 +442,16 @@ RuntimeScriptValue Sc_Speech_GetSpeakingCharacter(const RuntimeScriptValue *para
     API_SCALL_OBJ(CharacterInfo, ccDynamicCharacter, Speech_GetSpeakingCharacter);
 }
 
+RuntimeScriptValue Sc_Speech_GetOverlayZOrder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Speech_GetOverlayZOrder);
+}
+
+RuntimeScriptValue Sc_Speech_SetOverlayZOrder(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Speech_SetOverlayZOrder);
+}
+
 extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
@@ -455,6 +475,8 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "Speech::get_SkipStyle",              Sc_Speech_GetSkipStyle, GetSkipSpeech },
         { "Speech::set_SkipStyle",              API_FN_PAIR(SetSkipSpeech) },
         { "Speech::get_SpeakingCharacter",      API_FN_PAIR(Speech_GetSpeakingCharacter) },
+        { "Speech::get_OverlayZOrder",          API_FN_PAIR(Speech_GetOverlayZOrder) },
+        { "Speech::set_OverlayZOrder",          API_FN_PAIR(Speech_SetOverlayZOrder) },
         { "Speech::get_Style",                  API_FN_PAIR(Speech_GetStyle) },
         { "Speech::set_Style",                  API_FN_PAIR(SetSpeechStyle) },
         { "Speech::get_TextAlignment",          API_FN_PAIR(Speech_GetTextAlignment) },

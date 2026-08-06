@@ -3722,6 +3722,10 @@ builtin struct Speech {
   /// Gets the currently speaking Character (only works for blocking speech).
   import static readonly attribute Character* SpeakingCharacter;
 #endif; // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets z-order for all the currently displayed and future blocking speech overlays (TextOverlay and PortraitOverlay).
+  import static attribute int OverlayZOrder;
+#endif
 };
 #endif // SCRIPT_API_v330
 

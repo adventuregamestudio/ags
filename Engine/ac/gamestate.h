@@ -67,6 +67,8 @@ enum GameStateSvgVersion
     kGSSvgVersion_363       = 3060300,
     kGSSvgVersion_363_02    = 3060302,
     kGSSvgVersion_363_04    = 3060304,
+    kGSSvgVersion_363_13    = 3060313,
+    kGSSvgVersion_Current   = kGSSvgVersion_363_13
 };
 
 // SavedLocationType defines the type of location which
@@ -241,6 +243,7 @@ struct GamePlayState
     bool  voice_avail = false; // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int   speech_skip_style = 0; // stores SKIP_* flags
+    int   speech_zorder = INT32_MAX; // z-order for the blocking speech overlays (text & portrait)
     int   sound_volume = 0;
     int   speech_volume = 0;
     int   normal_font = 0;

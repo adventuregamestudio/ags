@@ -56,7 +56,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
 
     // Rules
     writer.Rule("agf2autoash", "$AGFEXPORT autoash $in $out");
-    writer.Rule("agf2glvar", "$AGFEXPORT glvar $in $out1 $out2");
+    writer.Rule("agf2glvar", "$AGFEXPORT glvar $in $out1 $out2"); // FIX-ME: is out1 and out2 really supported in ninja??
     writer.Rule("agf2dlgasc", "$AGF2DLASC $in $out");
     writer.Rule("agscc", "$AGSCC $in -o $out -H $headers");
     writer.Rule("trac", "$TRAC $in $out");
@@ -97,6 +97,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
 
         std::vector<String> this_script_headers(headers_base);
         this_script_headers.insert(this_script_headers.end(), project_headers.begin(), project_headers.end());
+        // FIX-ME: revise this, I think I forgot the header of the script that is actually passed to agscc!!
         String headers = Join(":", this_script_headers);
 
         writer.Build({obj}, "agscc", {asc}, this_script_headers, {}, {{"headers", headers}});

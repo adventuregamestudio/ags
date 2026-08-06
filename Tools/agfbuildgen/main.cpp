@@ -137,6 +137,11 @@ void fill_options_from_project(GeneratorOptions& opt, const AGF::AGFReader &read
     opt.GameFileName = String::FromFormat("%s.ags", game_filename.GetCStr());
 }
 
+// this is meant to check specific file path, not actually the PATH environment var.
+// The original idea was in case it was possible to set each tool path or a tools dir
+// through command line args...
+// Should they instead use environment variables??
+// NOTE: should I make an additional function for checking things in PATH env var??
 bool tool_exists_in_path(const char* tool_path)
 {
     String tool_exe = String::FromFormat("%s.exe", tool_path);
@@ -214,6 +219,7 @@ int main(const int argc, const char* const argv[])
         return -1;
     }
     // skipping check for opt.AgsDefnsFile for now ...
+    // FIX-ME: need to check opt.AgsDefnsFile!
     if (!tool_exists_in_path(opt.ToolAgspak.GetCStr()))
         return -1;
     if (!tool_exists_in_path(opt.ToolTrac.GetCStr()))

@@ -76,6 +76,7 @@ void GenerateMakefile(const GeneratorOptions &opt, std::unique_ptr<Stream> &&out
 
         std::vector<String> this_script_headers(headers_base);
         this_script_headers.insert(this_script_headers.end(), project_headers.begin(), project_headers.begin() + i);
+        // FIX-ME: revise this, I think I forgot the header of the script that is actually passed to agscc!!
         String headers = Join(":", this_script_headers);
 
         std::vector<String> dependencies(this_script_headers);

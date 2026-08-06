@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cinttypes>
 #include "commands.h"
 #include "data/mfl_utils.h"
 #include "data/include_utils.h"
@@ -66,8 +67,8 @@ static HError CopyAssetLibraryIntoFile(const String &pak_file, const String &dst
     if (verbose)
     {
         append ?
-            printf("Info: appended asset pack attachement:\n\t%lld bytes copied over.\n", copy_count) :
-            printf("Info: written new asset pack:\n\t%lld bytes copied over.\n", copy_count);
+            printf("Info: appended asset pack attachement:\n\t%" PRId64 " bytes copied over.\n", copy_count) :
+            printf("Info: written new asset pack:\n\t%" PRId64 " bytes copied over.\n", copy_count);
     }
     if (has_ender)
         MFLUtil::OverwriteEnder(out_lib_offset, lib_version, pak_out.get());
@@ -106,7 +107,7 @@ static HError CutAssetLibrary(const String &pak_file, bool verbose)
         return new Error("Failed to cut existing asset pack attachement.");
     const soff_t new_size = File::GetFileSize(pak_file);
     if (verbose)
-        printf("Info: cut existing asset pack attachement:\n\ttruncated from %lld to %lld, %lld bytes cut.\n", old_size, new_size, old_size - new_size);
+        printf("Info: cut existing asset pack attachement:\n\ttruncated from %" PRId64 " to %" PRId64 ", %" PRId64 " bytes cut.\n", old_size, new_size, old_size - new_size);
     return HError::None();
 }
 
@@ -463,7 +464,7 @@ int Command_List(const String &src_pak)
     // TODO: print more info, but perhaps require cmd arguments for that? (because it's not always useful)
     for (const auto &asset : lib.AssetInfos)
     {
-        printf("* %-40s[%10lld]\n", asset.FileName.GetCStr(), asset.Size);
+        printf("* %-40s[%10" PRId64 "]\n", asset.FileName.GetCStr(), asset.Size);
     }
     printf("Done.\n");
     return 0;

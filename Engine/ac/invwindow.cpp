@@ -385,15 +385,19 @@ bool InventoryScreen::Run()
     refresh_gui_screen();
 
     // Handle mouse over options
-    // NOTE: this is because old code was working with full game screen
-    const int mx = ::mousex - windowxp;
-    const int my = ::mousey - windowyp;
+    int isonitem = -1, mx = -1, my = -1;
+    if (play.mouse_input_enabled)
+    {
+        // NOTE: this is because old code was working with full game screen
+        mx = ::mousex - windowxp;
+        my = ::mousey - windowyp;
 
-    int isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
-    if (my<=bartop) isonitem=-1;
-    else if (isonitem >= 0) isonitem += top_item;
-    if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
-        isonitem=-1;
+        int isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
+        if (my<=bartop) isonitem=-1;
+        else if (isonitem >= 0) isonitem += top_item;
+        if ((isonitem<0) || (isonitem>=numitems) || (isonitem >= top_item + num_visible_items))
+            isonitem=-1;
+    }
 
     is_done = false;
     // Handle player's input
@@ -443,7 +447,7 @@ bool InventoryScreen::RunControls(int mx, int my, int isonitem)
             eAGSMouseButton mbut;
             if (!run_service_mb_controls(mbut) || state_handled)
                 continue; // handled by engine layer, or resolved
-            if (!play.IsIgnoringInput() && RunMouse(mbut, mx, my, isonitem))
+            if (play.mouse_input_enabled && !play.IsIgnoringInput() && RunMouse(mbut, mx, my, isonitem))
             {
                 state_handled = true; // handled
             }

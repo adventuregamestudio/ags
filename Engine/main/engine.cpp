@@ -761,7 +761,8 @@ void engine_init_game_settings()
     play.bg_frame_locked=0;
     play.bg_anim_delay=0;
     play.anim_background_speed = 0;
-    play.mouse_cursor_hidden = 0;
+    play.mouse_input_enabled = true;
+    play.mouse_cursor_shown = true;
     play.silent_midi = 0;
     play.current_music_repeating = 0;
     play.skip_until_char_stops = -1;

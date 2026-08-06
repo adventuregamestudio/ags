@@ -738,6 +738,9 @@ int GetLocationType2(int x, int y)
 
 void SaveCursorForLocationChange()
 {
+    if (!play.mouse_input_enabled)
+        return;
+
     // update the current location name (ignore return value)
     GetLocationName(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable);
 

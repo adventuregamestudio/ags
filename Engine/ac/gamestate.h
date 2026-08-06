@@ -265,7 +265,11 @@ struct GamePlayState
     bool  room_mask_modified[kNumRoomAreaTypes]{};
     int16_t filenumbers[LEGACY_MAXSAVEGAMES]{};
     int   room_changes = 0;
-    int   mouse_cursor_hidden = 0;
+
+    // Disables mouse input *in game*. Note that the mouse input may still affect the "engine layer",
+    // if it's used in debugging menus or whatever other purposes.
+    bool  mouse_input_enabled = true;
+    bool  mouse_cursor_shown = true;
     int   silent_midi = 0;
     int   silent_midi_channel = 0;
     int   current_music_repeating = 0;  // remember what the loop flag was when this music started
@@ -455,6 +459,9 @@ struct GamePlayState
     // Tells if the smooth walk mode is enabled for characters
     // (this means - smooth transition between two separate walks, without stopping)
     bool ShouldSmoothWalk() const { return _rbSwitches[kRBO_SmoothWalkTransition]; }
+
+    // Tells if the mouse cursor should be drawn on screen
+    bool ShouldDrawMouseCursor() const { return mouse_input_enabled && mouse_cursor_shown; }
 
     //
     // User input management

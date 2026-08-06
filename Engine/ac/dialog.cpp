@@ -1331,7 +1331,7 @@ bool DialogOptions::Run()
     else if (usingCustomRendering)
     {
         // Old custom rendering
-        if (position.IsInside(mousex, mousey))
+        if (play.mouse_input_enabled && position.IsInside(mousex, mousey))
         {
             // Run "dialog_options_get_active"
             getDialogOptionUnderCursorFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
@@ -1351,19 +1351,23 @@ bool DialogOptions::Run()
             ccDialogOptionsRendering->activeOptionID = -1;
         }
     }
-    else if (Rect(position.Left + inner_position.X,
-                  position.Top  + inner_position.Y,
-                  position.Left + inner_position.X + areawid,
-                  position.Top  + curyp).IsInside(mousex, mousey))
+    else
     {
         // Default rendering: detect option under mouse
-        const int rel_mousey = mousey - position.Top;
-        mouseison = numdisp-1;
-        for (int i = 0; i < numdisp; ++i)
+        if (play.mouse_input_enabled && 
+            Rect(position.Left + inner_position.X,
+                position.Top + inner_position.Y,
+                position.Left + inner_position.X + areawid,
+                position.Top + curyp).IsInside(mousex, mousey))
         {
-            if (rel_mousey < items[i].Position.Top) { mouseison=i-1; break; }
+            const int rel_mousey = mousey - position.Top;
+            mouseison = numdisp-1;
+            for (int i = 0; i < numdisp; ++i)
+            {
+                if (rel_mousey < items[i].Position.Top) { mouseison=i-1; break; }
+            }
+            if ((mouseison<0) || (mouseison>=numdisp)) mouseison=-1;
         }
-        if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
     }
 
     // Handle mouse over parser
@@ -1921,7 +1925,7 @@ void do_conversation(int dlgnum, int start_opt)
 
     // AGS 2.x always makes the mouse cursor visible when displaying a dialog.
     if (loaded_game_file_version <= kGameVersion_272)
-        play.mouse_cursor_hidden = 0;
+        play.mouse_cursor_shown = true;
 
     // Run the global DialogStart event
     run_on_event(kScriptEvent_DialogStart, dlgnum);

@@ -2975,7 +2975,7 @@ void construct_game_screen_overlay(bool draw_cursor)
     }
 
     // Mouse cursor
-    if ((play.screen_is_faded_out == 0) && draw_cursor && !play.mouse_cursor_hidden)
+    if ((play.screen_is_faded_out == 0) && draw_cursor && play.ShouldDrawMouseCursor())
     {
         if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode

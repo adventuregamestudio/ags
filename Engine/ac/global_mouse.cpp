@@ -14,10 +14,12 @@
 #include "ac/global_mouse.h"
 #include "ac/gamestate.h"
 
-void HideMouseCursor () {
-    play.mouse_cursor_hidden = 1;
+void HideMouseCursor()
+{
+    play.mouse_cursor_shown = false;
 }
 
-void ShowMouseCursor () {
-    play.mouse_cursor_hidden = 0;
+void ShowMouseCursor ()
+{
+    play.mouse_cursor_shown = true;
 }

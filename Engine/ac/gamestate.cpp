@@ -702,7 +702,9 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     bad_parsed_word.ReadCount(in, 100);
     raw_color = in->ReadInt32();
     in->ReadArrayOfInt16( filenumbers, LEGACY_MAXSAVEGAMES);
-    mouse_cursor_hidden = in->ReadInt32();
+    uint32_t mouse_opts = in->ReadInt32();
+    mouse_cursor_shown = (mouse_opts & 0x01) == 0; // previously this field had a reverse meaning
+    mouse_input_enabled = (mouse_opts & 0x02) != 0;
     silent_midi = in->ReadInt32();
     silent_midi_channel = in->ReadInt32();
     current_music_repeating = in->ReadInt32();
@@ -936,7 +938,9 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     bad_parsed_word.WriteCount(out, 100);
     out->WriteInt32( raw_color);
     out->WriteArrayOfInt16( filenumbers, LEGACY_MAXSAVEGAMES);
-    out->WriteInt32( mouse_cursor_hidden);
+    uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown) // previously this field had a reverse meaning
+        | 0x02 * mouse_input_enabled;
+    out->WriteInt32( mouse_opts);
     out->WriteInt32( silent_midi);
     out->WriteInt32( silent_midi_channel);
     out->WriteInt32( current_music_repeating);

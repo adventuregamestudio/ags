@@ -1050,7 +1050,7 @@ builtin struct Mouse {
   import static void UseModeGraphic(CursorMode);
   /// Gets/sets the current mouse cursor mode.
   import static attribute CursorMode Mode;
-  /// Gets/sets whether the mouse cursor is visible.
+  /// Gets/sets whether the mouse cursor is visible. NOTE: hiding cursor is only a visual effect and will not prevent mouse input.
   import static attribute bool Visible;
 #ifdef SCRIPT_API_v335
   /// Gets/sets whether the user-defined factors are applied to mouse movement
@@ -1075,6 +1075,8 @@ builtin struct Mouse {
   import static Point* GetModeHotspot(CursorMode);
   /// Checks whether any mouse button is currently pressed.
   import static bool IsAnyButtonDown();
+  /// Gets/sets whether the mouse input is enabled. This restricts receiving input from both actual mouse device, and any mouse input emulation.
+  import static attribute bool Enabled;
 #endif
   /// Gets the current mouse position.
   readonly int  x,y;

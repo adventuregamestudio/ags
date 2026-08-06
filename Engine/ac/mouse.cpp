@@ -86,17 +86,17 @@ void CursorGraphicState::SetSpriteNum(int sprnum)
 
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
-void Mouse_SetVisible(int isOn) {
+void Mouse_SetVisible(int isOn)
+{
     if (isOn)
         ShowMouseCursor();
     else
         HideMouseCursor();
 }
 
-int Mouse_GetVisible() {
-    if (play.mouse_cursor_hidden)
-        return 0;
-    return 1;
+int Mouse_GetVisible()
+{
+    return play.mouse_cursor_shown ? 1 : 0;
 }
 
 void SetMouseBounds(int x1, int y1, int x2, int y2)
@@ -348,8 +348,7 @@ void disable_cursor_mode(int modd) {
 
 void RefreshMouse() {
     ags_domouse();
-    scmouse.x = game_to_data_coord(mousex);
-    scmouse.y = game_to_data_coord(mousey);
+    update_script_mouse_coords();
 }
 
 void SetMousePosition (int newx, int newy) {
@@ -373,24 +372,32 @@ int GetCursorMode() {
     return cur_mode;
 }
 
-int IsButtonDown(int which) {
+int IsButtonDown(int which)
+{
     if ((which < kMouseLeft) || (which > kMouseMiddle))
         quit("!IsButtonDown: only works with eMouseLeft, eMouseRight, eMouseMiddle");
+
+    if (!play.mouse_input_enabled)
+        return 0;
     return ags_misbuttondown(static_cast<eAGSMouseButton>(which)) ? 1 : 0;
 }
 
 bool IsAnyButtonDown()
 {
+    if (!play.mouse_input_enabled)
+        return false;
     return ags_misanybuttondown();
 }
 
-int IsModeEnabled(int which) {
+int IsModeEnabled(int which)
+{
     return (which < 0) || (which >= game.numcursors) ? 0 :
         which == MODE_USE ? playerchar->activeinv > 0 :
         (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
-void SimulateMouseClick(int button_id) {
+void SimulateMouseClick(int button_id)
+{
     ags_simulate_mouseclick(static_cast<eAGSMouseButton>(button_id));
 }
 
@@ -421,15 +428,34 @@ void Mouse_SetAutoLock(bool on)
     }
 }
 
+bool Mouse_GetEnabled()
+{
+    return play.mouse_input_enabled;
+}
+
+void Mouse_SetEnabled(bool on)
+{
+    play.mouse_input_enabled = on;
+}
+
 //=============================================================================
 
 int GetMouseCursor() {
     return cur_cursor;
 }
 
-void update_script_mouse_coords() {
-    scmouse.x = game_to_data_coord(mousex);
-    scmouse.y = game_to_data_coord(mousey);
+void update_script_mouse_coords()
+{
+    if (play.mouse_input_enabled)
+    {
+        scmouse.x = game_to_data_coord(mousex);
+        scmouse.y = game_to_data_coord(mousey);
+    }
+    else
+    {
+        scmouse.x = -1;
+        scmouse.y = -1;
+    }
 }
 
 void update_inv_cursor(int invnum)
@@ -695,6 +721,16 @@ RuntimeScriptValue Sc_Mouse_SetAutoLock(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PBOOL(Mouse_SetAutoLock);
 }
 
+RuntimeScriptValue Sc_Mouse_GetEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Mouse_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Mouse_SetEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Mouse_SetEnabled);
+}
+
 
 RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -735,6 +771,8 @@ void RegisterMouseAPI()
         { "Mouse::set_AutoLock",              API_FN_PAIR(Mouse_SetAutoLock) },
         { "Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled, Mouse::IsControlEnabled },
         { "Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled, Mouse_EnableControl },
+        { "Mouse::get_Enabled",               API_FN_PAIR(Mouse_GetEnabled) },
+        { "Mouse::set_Enabled",               API_FN_PAIR(Mouse_SetEnabled) },
         { "Mouse::get_Mode",                  API_FN_PAIR(GetCursorMode) },
         { "Mouse::set_Mode",                  API_FN_PAIR(set_cursor_mode) },
         { "Mouse::get_Speed",                 Sc_Mouse_GetSpeed, Mouse::GetSpeed },

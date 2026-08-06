@@ -306,6 +306,8 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
 
     old_dialog_scripts.resize(dlg_count);
     old_dialog_src.resize(dlg_count);
+
+    std::vector<char> buffer;
     for (int i = 0; i < dlg_count; ++i)
     {
         // NOTE: originally this was read into dialog[i].optionscripts
@@ -319,13 +321,12 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
             // Originally in the Editor +20000 bytes more were allocated, with comment:
             //   "add a large buffer because it will get added to if another option is added"
             // which probably refered to this data used by old editor directly to edit dialogs
-            char *buffer = new char[script_text_len + 1];
-            in->Read(buffer, script_text_len);
+            buffer.resize(script_text_len + 1);
+            in->Read(buffer.data(), script_text_len);
             if (data_ver > kGameVersion_260)
-                DecryptText(buffer, script_text_len);
+                DecryptText(buffer.data(), script_text_len);
             buffer[script_text_len] = 0;
-            old_dialog_src[i] = buffer;
-            delete [] buffer;
+            old_dialog_src[i] = buffer.data();
         }
         else
         {
@@ -345,16 +346,14 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
                 fgetstring(stringbuffer, iii);
         }
     */
-    std::vector<char> buffer;
     if (data_ver <= kGameVersion_260)
     {
         // Plain text on <= 2.60
         bool end_reached = false;
-
         while (!end_reached)
         {
             buffer.clear();
-            while (buffer.back() != 0)
+            do
             {
                 buffer.push_back(in->ReadInt8());
                 // CHECKME: what is this magic? a low byte from 0xCAFEBEEF?
@@ -366,6 +365,7 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
                     break;
                 }
             }
+            while (buffer.back() != 0);
 
             if (buffer.size() > 0)
                 old_speech_lines.push_back(buffer.data());
@@ -374,7 +374,7 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
     else
     {
         // Encrypted text on > 2.60
-        while (1)
+        while (true)
         {
             size_t newlen = static_cast<uint32_t>(in->ReadInt32());
             if (newlen == 0xCAFEBEEF) // GUI magic
@@ -383,7 +383,7 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
                 break;
             }
 
-            buffer.resize(newlen);
+            buffer.resize(newlen + 1);
             in->Read(buffer.data(), newlen);
             DecryptText(buffer.data(), newlen);
             buffer[newlen] = 0; // safety fix

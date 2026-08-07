@@ -1522,7 +1522,7 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
       itspal[transcol] = itspal[0];
     PaletteOp::SetRGB(itspal, 0,0,0,0); // set index 0 to black
     RGB oldpale[256];
-    for (int uu=0;uu<255;uu++) {
+    for (int uu=0;uu<PAL_SIZE;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
       else if (thisgame.paluses[uu]==PAL_BACKGROUND)

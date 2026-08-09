@@ -93,7 +93,7 @@ static void ListBox_FillSaveItems(GUIListBox *listbox, const std::vector<SaveLis
         listbox->AddItem(item.Description, item.Slot);
     }
 
-    // update the global savegameindex[] array for backward compatibilty
+    // update the global savegameindex[] array for backward compatibility
     for (size_t n = 0; n < LEGACY_MAXSAVEGAMES && n < saves.size(); ++n)
     {
         play.filenumbers[n] = saves[n].Slot;

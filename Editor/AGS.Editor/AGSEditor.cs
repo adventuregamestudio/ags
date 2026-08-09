@@ -188,15 +188,17 @@ namespace AGS.Editor
          * 
          * USER_DATA_VERSION_INDEX versions (3.0.2.1 -> 4.0.0.18 inclusive)
          * 1: 3.0.2.1
-         * 2: 3.4.0.1    - WorkspaceState section
+         * 2: 3.4.0.1     - WorkspaceState section
          * 3: 3.5.0.11
          * 4: 3.5.1 (?)
+         * 3.6.3.13       - WorkspaceState: RequiredRebuildTime
          * 
          * USER_DATA_VERSION versions:
-         * 4.00.00.20   - start using version string again.
+         * 4.00.00.20     - start using version string again.
+         * 4.00.00.30     - sync with 3.6.3.13
          * 
         */
-        public const string LATEST_USER_DATA_VERSION = "4.0.0.20";
+        public const string LATEST_USER_DATA_VERSION = "4.0.0.30";
 
         /*
          * FIRST_USER_DATA_VERSION_USING_INDEX is the old version of the Editor
@@ -1444,11 +1446,13 @@ namespace AGS.Editor
 
             Utilities.EnsureStandardSubFoldersExist();
 
+            forceRebuild |= NeedsRebuildForDebugMode();
             forceRebuild |= _game.WorkspaceState.RequiresRebuild;
+            DateTime? requiredRebuildTime = forceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
 
             if (PreCompileGame != null)
             {
-				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild);
+				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild, requiredRebuildTime);
 				evArgs.Errors = messages;
 
                 PreCompileGame(evArgs);

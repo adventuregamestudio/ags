@@ -1791,7 +1791,7 @@ namespace AGS.Editor.Components
 			return false;
 		}
 
-        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileMessages errors, bool rebuildAll)
+        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileMessages errors, bool rebuildAll, DateTime? mustRebuildSince)
         {
 			List<UnloadedRoom> roomsToRebuild = new List<UnloadedRoom>();
 			List<string> roomFileNamesToRebuild = new List<string>();
@@ -1827,8 +1827,13 @@ namespace AGS.Editor.Components
                     errors.AddRange(missingMasks.Select(f => new CompileError("File not found: " + f + "; If you deleted this file, delete the room from the Project Explorer using a context menu.")));
                     success = false;
                 }
-                else if ((rebuildAll) ||
-					(Utilities.DoesFileNeedRecompile(unloadedRoom.ScriptFileName, unloadedRoom.FileName)) ||
+                // If we're told to rebuild all, and no time is provided, then rebuild regardless of the room file's time.
+                // If we're told to rebuild all, and provided with a time anchor, then test if the room's compiled file
+                // does not exist, or is too old.
+                // If we're not told to rebuild all, then test if any relevant scripts have changed since the last build.
+                else if ((rebuildAll && mustRebuildSince == null) ||
+                    (rebuildAll && mustRebuildSince != null && Utilities.DoesFileNeedRecompile(mustRebuildSince.Value, unloadedRoom.FileName)) ||
+                    (Utilities.DoesFileNeedRecompile(unloadedRoom.ScriptFileName, unloadedRoom.FileName)) ||
 					(HaveScriptHeadersBeenUpdatedSinceRoomWasCompiled(unloadedRoom.FileName)))
                 {
 					roomsToRebuild.Add(unloadedRoom);
@@ -1902,7 +1907,7 @@ namespace AGS.Editor.Components
 
             if (evArgs.AllowCompilation)
             {
-				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(evArgs.Errors, evArgs.ForceRebuild);
+				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(evArgs.Errors, evArgs.ForceRebuild, evArgs.ForceRebuildTime);
             }
         }
 

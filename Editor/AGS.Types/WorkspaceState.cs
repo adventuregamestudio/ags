@@ -11,6 +11,7 @@ namespace AGS.Types
 	{
 		private BuildConfiguration _lastBuildConfiguration = AGS.Types.BuildConfiguration.Unknown;
         private string _lastBuildGameFileName = "";
+        private bool _requiresRebuild = false;
 
         public WorkspaceState()
 		{
@@ -21,7 +22,12 @@ namespace AGS.Types
 		public BuildConfiguration LastBuildConfiguration
 		{
 			get { return _lastBuildConfiguration; }
-			set { _lastBuildConfiguration = value; }
+			set
+            {
+                if (_lastBuildConfiguration != value)
+                    RequiredRebuildTime = DateTime.Now;
+                _lastBuildConfiguration = value;
+            }
 		}
 
         [Browsable(false)]
@@ -32,7 +38,19 @@ namespace AGS.Types
         }
 
         [Browsable(false)]
-        public bool RequiresRebuild { get; set; } = false;
+        public bool RequiresRebuild
+        {
+            get { return _requiresRebuild; }
+            set
+            {
+                _requiresRebuild = value;
+                if (value)
+                    RequiredRebuildTime = DateTime.Now;
+            }
+        }
+
+        [Browsable(false)]
+        public DateTime RequiredRebuildTime { get; set; } = DateTime.MinValue;
 
         // TODO: generic method of serializing key-value list in a string (or other xml element)
         private static string[] StringListSeparators = new string[] { "," };

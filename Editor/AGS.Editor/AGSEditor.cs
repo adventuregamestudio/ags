@@ -1271,11 +1271,13 @@ namespace AGS.Editor
 
             Utilities.EnsureStandardSubFoldersExist();
 
+            forceRebuild |= NeedsRebuildForDebugMode();
             forceRebuild |= _game.WorkspaceState.RequiresRebuild;
+            DateTime? requiredRebuildTime = forceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
 
             if (PreCompileGame != null)
             {
-				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild);
+				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild, requiredRebuildTime);
 				evArgs.Errors = errors;
 
                 PreCompileGame(evArgs);

@@ -182,11 +182,7 @@ namespace AGS.Types
             this.Description = schemaItem.Description;
             this.Name = schemaItem.Name;
             this.Type = schemaItem.Type;
-            this.AppliesToCharacters = schemaItem.AppliesToCharacters;
-            this.AppliesToHotspots = schemaItem.AppliesToHotspots;
-            this.AppliesToInvItems = schemaItem.AppliesToInvItems;
-            this.AppliesToObjects = schemaItem.AppliesToObjects;
-            this.AppliesToRooms = schemaItem.AppliesToRooms;
+            this.AppliesTo = schemaItem.AppliesTo;
             this.Translated = schemaItem.Translated;
         }
 

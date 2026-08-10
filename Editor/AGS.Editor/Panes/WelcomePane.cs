@@ -33,8 +33,7 @@ namespace AGS.Editor
             _guiContoller = guiContoller;
             InitializeComponent();
             lnkUpgrading.Links.Add(60, 18, "Upgrading from a previous version");
-            lnkUpgrading.Links.Add(104, 23, "Upgrading to AGS 3.6.1");
-            lnkUpgrading.Links.Add(133, 23, "Upgrading to AGS 3.6.2");
+            lnkUpgrading.Links.Add(103, 23, "Upgrading to AGS 3.6.3");
         }
 
         protected override string OnGetHelpKeyword()

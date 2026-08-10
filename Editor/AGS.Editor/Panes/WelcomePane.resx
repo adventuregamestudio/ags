@@ -118,25 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
-    <value>New features in AGS 3.6.2 include:
-* Freely choose a script module for object's event handler functions
-* Custom properties displayed right in the Properties Grid
-* Better support for loading saves made in older version of your game
-* A script command for prescanning and checking a range of saves for validity
-* New Dialog events in script
-* and more...
-
-New features in AGS 3.6.1 include:
-* Log Panel in the Editor lets you read engine logs when you test the game
-* Various quality of life improvements in the editor's UI
-* "Deflate" sprite compression (achieves compression level of PNG images)
-* Performance improvements in the runtime engine
-* Interaction callbacks in script receive object and verb as arguments
-* New Room and global events in script
-* Script commands for precaching sprites and views
-* and more...</value>
-  </data>
-  <data name="lnkUpgrading.Text" xml:space="preserve">
-    <value>If you've come from an older version of AGS be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 3.6.1" and "Upgrading to AGS 3.6.2" pages explain the most important changes in the recent versions.</value>
+    <value>New features in AGS 3.6.3 include:
+* New font preview, suitable for unicode fonts.
+* All GUI controls can have frame border and background color. Their colors may be changed both in the editor and script.
+* More customization properties for the standard dialog options in script.
+* Translation can define font overrides.
+* Text Parser can be translated.
+* Compressed game saves.
+* Accessibility options in game config.
+* and much more...
+</value>
   </data>
 </root>

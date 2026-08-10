@@ -1264,9 +1264,8 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
         if (sprite_flags & kSprTf_FlipY)
             ypos = (sprit->GetHeight() - 1) - ypos;
 
-        int gpcol = my_getpixel(sprit, xpos, ypos);
-
-        if ((gpcol == sprit->GetMaskColor()) || (gpcol == -1))
+        int gpcol = sprit->GetPixel(xpos, ypos);
+        if (gpcol == sprit->GetMaskColor())
             return FALSE;
     }
     return TRUE;

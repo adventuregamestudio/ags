@@ -631,7 +631,8 @@ int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
     return 0;
 }
 
-int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
+int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid)
+{
     if (objid == nullptr)
         quit("!AreCharObjColliding: invalid object number");
 
@@ -642,44 +643,40 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     // TODO: use GraphicSpace and proper transformed coords?
 
-    Bitmap *checkblk = GetObjectImage(objid->id);
-    int objWidth = checkblk->GetWidth();
-    int objHeight = checkblk->GetHeight();
-    int o1x = objs[objid->id].x;
-    int o1y = objs[objid->id].y - objHeight;
+    Bitmap *obj_pic = GetObjectImage(objid->id);
+    const int obj_w = obj_pic->GetWidth();
+    const int obj_h = obj_pic->GetHeight();
+    const Rect obj_rc = RectWH(objs[objid->id].x, objs[objid->id].y - obj_h, obj_w, obj_h);
 
-    Bitmap *charpic = GetCharacterImage(chin->index_id);
+    Bitmap *ch_pic = GetCharacterImage(chin->index_id);
+    const int char_w = ch_pic->GetWidth();
+    const int char_h = ch_pic->GetHeight();
+    // Only check feet (few bottom pixels)
+    // FIXME: why is this hardcoded as "5" pixels, how does this work in hi-res games, how to let customize this?
+    const Rect ch_rc = RectWH(chin->x - char_w / 2, charextra[chin->index_id].GetEffectiveY(chin) - 5, char_w, 5);
 
-    int charWidth = charpic->GetWidth();
-    int charHeight = charpic->GetHeight();
-    int o2x = chin->x - charWidth / 2;
-    int o2y = charextra[chin->index_id].GetEffectiveY(chin) - 5;  // only check feet
+    const Rect intersect = IntersectRects(obj_rc, ch_rc);
+    if (!intersect.IsEmpty())
+    {
+        // If no pixel-perfect test is required, then the intersection is enough
+        if (game.options[OPT_PIXPERFECT] == 0)
+            return 1;
 
-    if ((o2x >= o1x - charWidth) &&
-        (o2x <= o1x + objWidth) &&
-        (o2y >= o1y - 8) &&
-        (o2y <= o1y + objHeight)) {
-            // the character's feet are on the object
-            if (game.options[OPT_PIXPERFECT] == 0)
-                return 1;
-            // check if they're on a transparent bit of the object
-            int stxp = o2x - o1x;
-            int styp = o2y - o1y;
-            int maskcol = checkblk->GetMaskColor ();
-            int maskcolc = charpic->GetMaskColor ();
-            int thispix, thispixc;
-            // check each pixel of the object along the char's feet
-            for (int i = 0; i < charWidth; i += 1) {
-                for (int j = 0; j < 6; j += 1) {
-                    thispix = my_getpixel(checkblk, i + stxp, j + styp);
-                    thispixc = my_getpixel(charpic, i, j + (charHeight - 5));
-
-                    if ((thispix != -1) && (thispix != maskcol) &&
-                        (thispixc != -1) && (thispixc != maskcolc))
-                        return 1;
-                }
+        // Pixel-perfect test: check if they're on a non-transparent bit of the object
+        const int ch_maskcolc = ch_pic->GetMaskColor();
+        const int obj_maskcol = obj_pic->GetMaskColor();
+        for (int ix = intersect.Left, cx = intersect.Left - ch_rc.Left, ox = intersect.Left - obj_rc.Left;
+            ix <= intersect.Right; ++ix)
+        {
+            for (int iy = intersect.Top, cy = intersect.Top - ch_rc.Top, oy = intersect.Top - obj_rc.Top;
+                iy <= intersect.Bottom; ++iy)
+            {
+                int ch_px = ch_pic->GetPixel(ix + cx, iy + cy);
+                int obj_px = obj_pic->GetPixel(ix + ox, iy + oy);
+                if ((ch_px != ch_maskcolc) && (obj_px != obj_maskcol))
+                    return 1;
             }
-
+        }
     }
     return 0;
 }
@@ -2924,16 +2921,6 @@ Rect get_char_blocking_rect(int charid)
     int y2 = chi->get_blocking_bottom() + game.chars[chi->index_id].blocking_y;
 
     return Rect(x, y1, x + width - 1, y2);
-}
-
-int my_getpixel(Bitmap *blk, int x, int y) {
-    if ((x < 0) || (y < 0) || (x >= blk->GetWidth()) || (y >= blk->GetHeight()))
-        return -1;
-
-    // strip the alpha channel
-    // TODO: is there a way to do this vtable thing with Bitmap?
-    BITMAP *al_bmp = (BITMAP*)blk->GetAllegroBitmap();
-    return al_bmp->vtable->getpixel(al_bmp, x, y) & 0x00ffffff;
 }
 
 int check_click_on_character(int xx,int yy,int mood) {

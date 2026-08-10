@@ -672,9 +672,8 @@ int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
         if (flipped)
             xpos = (sprit->GetWidth() - 1) - xpos;
 
-        int gpcol = my_getpixel(sprit, xpos, ypos);
-
-        if ((gpcol == sprit->GetMaskColor()) || (gpcol == -1))
+        int gpcol = sprit->GetPixel(xpos, ypos);
+        if (gpcol == sprit->GetMaskColor())
             return FALSE;
     }
     return TRUE;

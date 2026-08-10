@@ -461,6 +461,7 @@ int Bitmap::GetPixel(int x, int y) const
 {
     if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
     {
+		// FIXME: this is frankly wrong, because -1 translates to 0xFFFFFFFF (opaque white) in case of 32-bit ARGB
         return -1; // Allegros getpixel() implementation returns -1 in this case
     }
 

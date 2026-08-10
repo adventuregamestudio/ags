@@ -491,7 +491,8 @@ Rect ClampToRect(const Rect &place, const Rect &item);
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 // Sum two rectangles, the result is the rectangle bounding them both
 Rect SumRects(const Rect &r1, const Rect &r2);
-// Intersect two rectangles, the resolt is the rectangle bounding their intersection
+// Intersect two rectangles, the resolt is the rectangle bounding their intersection.
+// If there are no intersections, then the returned rect is empty.
 Rect IntersectRects(const Rect &r1, const Rect &r2);
 
 // Calculates the size of a rectangle necessary to accomodate the rect of original size

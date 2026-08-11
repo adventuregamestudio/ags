@@ -78,7 +78,6 @@ extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
 extern RoomStatus*croom;
 extern RoomStruct thisroom;
-extern int getloctype_index;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
 
@@ -552,10 +551,9 @@ void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
     restore_after_dialog();
 }
 
-// GetLocationType exported function - just call through
-// to the main function with default 0
-int GetLocationType(int xxx,int yyy) {
-    return __GetLocationType(xxx, yyy, 0);
+int GetLocationType(int x, int y)
+{
+    return GetLocationTypeImpl(nullptr, x, y, false /* dont click-through gui */, false /* not allow hotspot0 */);
 }
 
 // Finds out what is located under the cursor;
@@ -584,7 +582,9 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
         }
     }
 
-    const int loctype = GetLocationType(x, y); // GetLocationType takes screen coords
+    int getloctype_index = -1;
+    // GetLocationType takes screen coords
+    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y);
     // Find out if we're inside the room viewport
     const VpPoint vpt = play.ScreenToRoom(x, y);
     const Point room_pt = vpt.first;
@@ -596,7 +596,7 @@ static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
     }
 
     // Get if we're above any interactable location
-    const int onhs = getloctype_index; // FIXME: stop using global variable
+    const int onhs = getloctype_index;
     if (loctype == 0)
     {
         loc_index = kSavedLocType_NoHotspot;
@@ -746,11 +746,10 @@ void SetMultitasking (int mode) {
     }
 }
 
-extern int getloctype_throughgui, getloctype_index;
-
-void RoomProcessClick(int xx,int yy,int mood) {
-    getloctype_throughgui = 1;
-    int loctype = GetLocationType (xx, yy);
+void RoomProcessClick(int xx, int yy,int mood)
+{
+    int getloctype_index = -1;
+    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, true /* ignore gui */, false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return;
@@ -788,9 +787,10 @@ void RoomProcessClick(int xx,int yy,int mood) {
         RunHotspotInteraction (getloctype_index, mood);
 }
 
-int IsInteractionAvailable (int xx,int yy,int mood) {
-    getloctype_throughgui = 1;
-    int loctype = GetLocationType (xx, yy);
+int IsInteractionAvailable (int xx, int yy, int mood)
+{
+    int getloctype_index = -1;
+    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, true /* ignore gui */, false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return 0;

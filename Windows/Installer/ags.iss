@@ -204,9 +204,10 @@ const
   // Platform check
   PLATFORM_CHECK_ERROR_MESSAGE = 'This program is only supported on Windows Vista or newer.';
 
-  // Visual C++ runtime
+  // Visual C++ runtime 14.42
   // https://download.visualstudio.microsoft.com/download/pr/5319f718-2a84-4aff-86be-8dbdefd92ca1/DD1A8BE03398367745A87A5E35BEBDAB00FDAD080CF42AF0C3F20802D08C25D4/VC_redist.x86.exe
-  VCPP_REDIST_MAJOR_VERSION = 14.42;
+  // Registry Key ("path"-like) is fixed at "14.0" for Visual C++ 2015-2022 runtimes
+  VCPP_REDIST_MAJOR_VERSION = 14;
   VCPP_REDIST_BUILD_VERSION = 34433;
 
   // .NET Framework 4.6 or newer
@@ -220,9 +221,12 @@ function VCRedistInstalled: Boolean;
 var
   bld: Cardinal;
 begin
+  // Real version is contained inside along Bld, as Major, Minor ints and a Version string
+  // But checking Bld (Build Version) only is sufficient here.
+  // Path here assumes Inno Installer is creating a 32-bit installer, in registry editor this path is under Wow64 (WOW6432Node)
   Result := (RegQueryDWordValue(
     HKLM,
-    Format('SOFTWARE\Microsoft\VisualStudio\%.1f\VC\Runtimes\X86', [VCPP_REDIST_MAJOR_VERSION]),
+    Format('SOFTWARE\Microsoft\VisualStudio\%d.0\VC\Runtimes\X86', [VCPP_REDIST_MAJOR_VERSION]),
     'Bld',
     bld)) AND (bld >= VCPP_REDIST_BUILD_VERSION);
 end;

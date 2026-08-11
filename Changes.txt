@@ -32,6 +32,8 @@ Editor:
    Text Parser's words dictionary to the translation file.
  - In Default Setup added "Compress saves" option, enabled by default.
  - On Color Finder panel added Web Color and comma-separated RGB color representation.
+ - Throughout the Editor context menus now can be opened with "Menu" key on your keyboard, as well
+   as Shift+F10 combination.
  - Merged previously paired "Color" and "Color Number" properties into the single "Color" property
    each. Color type properties will now display RGB representation in 16/32-bit games and a color
    number (palette index) in 8-bit games. They will always accept user input in any format (either
@@ -111,6 +113,12 @@ Editor:
  - Improved error reporting for game text gathering actions such as "Create voice-acting script"
    and "Update translation". Now these errors correctly tell the script location which lets you
    go there.
+ - Fixed Editor crashing on launch when there's a game with a very long name present in
+   "Recent Games" list.
+ - Fixed Room's navigation bar to not close the dropdown list whenever the mouse cursor hovers
+   another item on the horizontal list.
+ - Fixed Project Tree and View Selection tree controls flickering when being hovered over
+   by a mouse cursor.
  - Fixed Editor treating custom properties names as case-sensitive when loading them from the
    project file, although they are considered case-insensitive everywhere else.
  - Fixed deleted custom property values were remaining in objects data, apparently forever
@@ -138,8 +146,9 @@ Script API:
    positioned after letter 'A'. But the exact result depends on the "Text language" setting set
    either in General Settings or current Translation.
  - Added HitTestOptions enum with a eHit_Any and eHit_Interactable constants.
- - For each GetAtScreenXY and GetAtRoomXY function added an optional "hitOptions" parameter,
-   that lets tell whether to detect only clickable/enabled objects, or all of them regardless.
+ - For GetLocationName() and GetLocationType(), and for each of the existing GetAtScreenXY() and
+   GetAtRoomXY() functions added an optional "hitOptions" parameter, that lets tell whether to
+   detect only clickable/enabled objects, or all of them regardless.
  - Added new "maxDistance" parameter to AudioChannel.SetRoomLocation() function.
  - Added AudioClip.DefaultPriority, DefaultRepeat and DefaultVolume readonly properties.
  - Added AudioClip.PlayAsType() which lets to play audio clip using arbitrary type's rules and
@@ -156,6 +165,7 @@ Script API:
  - Added Character.IdleDelay and Character.IdleTime.
  - Added Character.Inventory[] and InventoryCount readonly properties that let iterate all items
    that character currently holds, including item duplicates (if they are allowed).
+ - Added Character.Turning readonly property that tells whether character is currently turning.
  - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
  - Added Dialog.SetOptionText().
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
@@ -188,6 +198,8 @@ Script API:
    InventoryCursorHotspotCrossColor and UseActiveInventoryGraphicForCursor properties.
  - Added Game.Pause() and Resume() functions, and Game.IsPaused property. PauseGame(),
    UnPauseGame() and IsGamePaused() functions are deprecated.
+ - For Game.SimulateKeyPress() added optional "mod" parameter that lets specify modifier keys
+   simulated alongside the main key.
  - Added Game.Speed property. Get/SetGameSpeed function is deprecated.
  - Added Game.TickCounter property that tells the number of a logical game tick (update).
  - Added Game.PlayVoiceClipAsType() which lets to play voice-over clips using arbitrary type's
@@ -204,6 +216,7 @@ Script API:
  - Added Label.TextOutlineColor property.
  - Added ListBox.TextOutlineColor property.
  - Added ListBox.SortItems() function.
+ - Added Mouse.Enabled property that lets completely disable mouse input in the game.
  - Added Mouse.GetModeHotspot().
  - Added Mouse.IsAnyButtonDown().
  - Added Overlay.Text that lets assign an arbitrary overlay tag (description), but also returns
@@ -212,6 +225,8 @@ Script API:
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.
+ - Added Speech.ZOrder property that sets default z-order value for the currently displayed
+   and all the future blocking speech overlays (text & portrait).
  - Added System.FPS that lets read current real fps.
  - Added System.LocaleName readonly property that tells which of the UTF8 locales is used for
    the game strings.
@@ -268,6 +283,8 @@ Engine:
  - Text Parser supports translation and unicode strings.
  - Parser.Said() does automatic translation of the sentence pattern (if respective option is
    enabled in the current translation).
+ - Loading translation in game will also switch speech text's and dialog option's alignment setting
+   depending on the translation's text direction setting (LTR or RTL).
  - Improved video playback's synchronization between video and audio streams.
  - Support for "Font overrides" instructed by the loaded Translation.
  - Added "enabled" config option to "mouse" section. It's on by default, but when off, this option
@@ -328,6 +345,21 @@ WinSetup:
 
 
 ---------------------------------------------------------------------------------------------------
+
+VERSION 3.6.2 - Patch 11, August 2026
+
+Editor:
+ - Room Editor supports Del key for deleting objects.
+ - Fix clicking on a room background when in the "Character" or "Object" mode does not select the
+   Room in the property grid.
+
+Engine:
+ - Game.SimulateKeyPress() now supports composite key codes, such as eKeyCtrlA and eKeyAlt, and
+   simulates two key presses in this case (regular and mod key).
+ - Fixed key + mod combinations are not passed into the "on_key_press" callback properly when in
+   the "new" key handling mode (regression since the last patch).
+ - Fixed couple of mistakes in a smooth walk transition, introduced by the previous patch.
+
 
 VERSION 3.6.2 - Patch 10, July 2026
 

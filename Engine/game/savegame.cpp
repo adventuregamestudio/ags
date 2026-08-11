@@ -572,7 +572,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
             play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i,
-                chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+                chan_info.Priority, chan_info.Repeat, chan_info.Pos, true /* HACK: pass "queue" to avoid deleting existing queue */);
         }
         else
         {

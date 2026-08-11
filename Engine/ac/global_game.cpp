@@ -557,84 +557,71 @@ int GetLocationType(int x, int y)
 }
 
 // Finds out what is located under the cursor;
-// returns location's name and "location index" using respective SavedLocationType index base.
-static const char *GetLocationNameAndIndex(int x, int y, int &loc_index)
+// returns location's name and "location reference".
+static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref)
 {
     if (displayed_room < 0)
     {
-        loc_index = kSavedLocType_Undefined;
+        loc_ref = SceneLocationRef(LOCTYPE_NOTHING);
         return ""; // no room loaded yet
     }
 
+    // Test GUI separately, because we need to detect inventory items in this case
     if (GetGUIAt(x, y, kHit_Interactable) >= 0)
     {
         // On GUI, test if we're above an inventory item
         int invitem = GetInvAt(x, y, kHit_Interactable, kHit_Interactable);
         if (invitem > 0)
         {
-            loc_index = kSavedLocType_InvItem + invitem;
+            loc_ref = SceneLocationRef(LOCTYPE_INVITEM, invitem);
             return game.invinfo[invitem].name.GetCStr();
         }
         else
         {
-            loc_index = kSavedLocType_Undefined;
+            loc_ref = SceneLocationRef(LOCTYPE_NOTHING);
             return "";
         }
     }
 
     int getloctype_index = -1;
     // GetLocationType takes screen coords
-    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y);
-    // Find out if we're inside the room viewport
-    const VpPoint vpt = play.ScreenToRoom(x, y);
-    const Point room_pt = vpt.first;
-    const int view_index = vpt.second;
-    if ((view_index < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
+    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, true /* ignore gui */, true /* allow hotspot0 */);
+    loc_ref = SceneLocationRef(loctype, getloctype_index);
+    if (loctype == LOCTYPE_NOTHING)
     {
-        loc_index = kSavedLocType_Undefined;
         return "";
     }
 
     // Get if we're above any interactable location
-    const int onhs = getloctype_index;
-    if (loctype == 0)
-    {
-        loc_index = kSavedLocType_NoHotspot;
-        return "";
-    }
-
     // on character
     if (loctype == LOCTYPE_CHAR)
     {
-        loc_index = kSavedLocType_Character + onhs;
-        return game.chars[onhs].name.GetCStr();
+        return game.chars[getloctype_index].name.GetCStr();
     }
     // on object
     if (loctype == LOCTYPE_OBJ)
     {
-        loc_index = kSavedLocType_Object + onhs;
-        return croom->obj[onhs].name.GetCStr();
+        return croom->obj[getloctype_index].name.GetCStr();
     }
     // on hotspot
-    if (onhs > 0)
+    if (getloctype_index > 0)
     {
-        loc_index = kSavedLocType_Hotspot + onhs;
-        return croom->hotspot[onhs].Name.GetCStr();
+        return croom->hotspot[getloctype_index].Name.GetCStr();
     }
     return "";
 }
 
 const char *GetLocationName(int x, int y)
 {
-    int loc_index;
-    const char *loc_name = GetLocationNameAndIndex(x, y, loc_index);
+    SceneLocationRef loc_ref;
+    const char *loc_name = GetLocationNameAndRef(x, y, loc_ref);
 
     // If it's a new location, different from the last time we checked,
     // then update "@OVERHOTSPOT@" label(s), and save the last index
-    if (play.get_loc_name_last_time != loc_index)
+    if (play.get_loc_name_last_time != loc_ref)
     {
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-        play.get_loc_name_last_time = loc_index;
+        play.get_loc_name_last_time = loc_ref;
     }
 
     return loc_name;

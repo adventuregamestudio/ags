@@ -3725,7 +3725,7 @@ builtin struct Speech {
   import static readonly attribute Character* SpeakingCharacter;
 #endif; // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
-  /// Gets/sets z-order for all the currently displayed and future blocking speech overlays (TextOverlay and PortraitOverlay).
+  /// Gets/sets default z-order for all the future blocking speech overlays (TextOverlay and PortraitOverlay).
   import static attribute int OverlayZOrder;
 #endif
 };

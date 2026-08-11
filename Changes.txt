@@ -225,8 +225,8 @@ Script API:
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.
- - Added Speech.ZOrder property that sets default z-order value for the currently displayed
-   and all the future blocking speech overlays (text & portrait).
+ - Added Speech.OverlayZOrder property that sets default z-order value for all the future blocking
+   speech overlays (text & portrait).
  - Added System.FPS that lets read current real fps.
  - Added System.LocaleName readonly property that tells which of the UTF8 locales is used for
    the game strings.

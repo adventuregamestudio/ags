@@ -751,91 +751,78 @@ void SaveCursorForLocationChange()
 }
 
 // Finds out what is located under the cursor;
-// returns location's name and "location index" using respective SavedLocationType index base.
-static const char *GetLocationNameAndIndex(int x, int y, int &loc_index, int hit_options)
+// returns location's name and "location reference".
+static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y, int hit_options)
 {
     if (displayed_room < 0)
     {
-        loc_index = kSavedLocType_Undefined;
+        loc_ref = SceneLocationRef(LOCTYPE_NOTHING);
         return ""; // no room loaded yet
     }
 
+    // Test GUI separately, because we need to detect inventory items in this case
     if (GetGUIAt(x, y, hit_options) >= 0)
     {
         // On GUI, test if we're above an inventory item
         int invitem = GetInvAt(x, y, hit_options, hit_options);
         if (invitem > 0)
         {
-            loc_index = kSavedLocType_InvItem + invitem;
+            loc_ref = SceneLocationRef(LOCTYPE_INVITEM, invitem);
             return get_translation(game.invinfo[invitem].name.GetCStr());
         }
         else
         {
-            loc_index = kSavedLocType_Undefined;
+            loc_ref = SceneLocationRef(LOCTYPE_NOTHING);
             return "";
         }
     }
 
     int getloctype_index = -1;
     // GetLocationType takes screen coords
-    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, hit_options);
-    // Find out if we're inside the room viewport
-    const VpPoint vpt = play.ScreenToRoomDivDown(x, y);
-    const Point room_pt = vpt.first;
-    const int view_index = vpt.second;
-    if ((view_index < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
+    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, hit_options, true /* ignore gui */, true /* allow hotspot0 */);
+    loc_ref = SceneLocationRef(loctype, getloctype_index);
+    if (loctype == LOCTYPE_NOTHING)
     {
-        loc_index = kSavedLocType_Undefined;
         return "";
     }
 
     // Get if we're above any interactable location
-    const int onhs = getloctype_index;
-    if (loctype == 0)
-    {
-        loc_index = kSavedLocType_NoHotspot;
-        return "";
-    }
-
     // on character
     if (loctype == LOCTYPE_CHAR)
     {
-        loc_index = kSavedLocType_Character + onhs;
-        return get_translation(game.chars2[onhs].name_new.GetCStr());
+        return get_translation(game.chars2[getloctype_index].name_new.GetCStr());
     }
     // on object
     if (loctype == LOCTYPE_OBJ)
     {
-        const char *out_name = get_translation(croom->obj[onhs].name.GetCStr());
+        const char *out_name = get_translation(croom->obj[getloctype_index].name.GetCStr());
         // Compatibility: < 3.1.1 games returned space for nameless object
         // (presumably was a bug, but fixing it affected certain games behavior)
         if (loaded_game_file_version < kGameVersion_311 && out_name[0] == 0)
         {
             out_name = " ";
         }
-        loc_index = kSavedLocType_Object + onhs;
         return out_name;
     }
     // on hotspot
-    if (onhs > 0)
+    if (getloctype_index > 0)
     {
-        loc_index = kSavedLocType_Hotspot + onhs;
-        return get_translation(croom->hotspot[onhs].Name.GetCStr());
+        return get_translation(croom->hotspot[getloctype_index].Name.GetCStr());
     }
     return "";
 }
 
 const char *GetLocationName(int x, int y, int hit_options)
 {
-    int loc_index;
-    const char *loc_name = GetLocationNameAndIndex(x, y, loc_index, hit_options);
+    SceneLocationRef loc_ref;
+    const char *loc_name = GetLocationNameAndRef(loc_ref, x, y, hit_options);
 
     // If it's a new location, different from the last time we checked,
     // then update "@OVERHOTSPOT@" label(s), and save the last index
-    if (play.get_loc_name_last_time != loc_index)
+    if (play.get_loc_name_last_time != loc_ref)
     {
         GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
-        play.get_loc_name_last_time = loc_index;
+        play.get_loc_name_last_time = loc_ref;
     }
 
     return loc_name;

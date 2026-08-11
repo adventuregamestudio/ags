@@ -97,7 +97,10 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     if (!surf)
         return;
 
-    Bitmap helper(surf, false);
+    Bitmap::PixelObjectPtr surf_ptr(surf, [](void *s){ SDL_FreeSurface(static_cast<SDL_Surface*>(s)); });
+    BitmapData bm_data(static_cast<uint8_t*>(surf->pixels), surf->pitch * surf->h,
+        surf->pitch, surf->w, surf->h, ColorDepthToPixelFormat(surf->format->BitsPerPixel));
+    Bitmap helper(std::move(surf_ptr), bm_data, false);
     Bitmap dest(destination, true);
 
     // For solid render: temporarily replace palette color at slot 1 with the text color

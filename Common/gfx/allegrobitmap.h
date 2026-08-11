@@ -27,8 +27,6 @@
 #include "gfx/bitmapdata.h"
 #include "util/string.h"
 
-struct SDL_Surface;
-
 namespace AGS
 {
 namespace Common
@@ -37,15 +35,24 @@ namespace Common
 class Bitmap
 {
 public:
-    Bitmap() = default;
+    // Pixel object deleter function that hides the deleted type under void* pointer;
+    // this prevents Bitmap class from getting extra fixed type dependencies.
+    typedef void(*PixelObjectDeleter)(void*);
+    // Pixel object owning pointer. Allows to initialize Bitmap with any arbitrary
+    // data with a custom deleter function.
+    typedef std::unique_ptr<void, PixelObjectDeleter> PixelObjectPtr;
+
+    Bitmap();
     Bitmap(int width, int height, int color_depth = 0);
     Bitmap(PixelBuffer &&pxbuf);
     // Constructs a sub-bitmap, referencing parent
     Bitmap(const Bitmap *src, const Rect &rc);
     // Wraps Allegro BITMAP object, optionally owning it
     Bitmap(BITMAP *al_bmp, bool shared_data);
-    // Wraps SDL_Surface object, optionally owning it
-    Bitmap(SDL_Surface *sdl_bmp, bool shared_data);
+    // Wraps an arbitrary pixel data object, optionally owning it;
+    // BitmapData is used to pass pixel buffer pointer and metrics, while PixelObjectPtr
+    // stores *something* that ought to be deleted using its own function.
+    Bitmap(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data);
     // Copy-constructor: constructs a full Bitmap copy
     Bitmap(const Bitmap &bmp);
     // Move-constructor: moves pixel data from another bitmap
@@ -86,8 +93,10 @@ public:
     // WARNING: this is meant strictly as a workaround in case third-party lib
     // have deleted our owned BITMAP object.
     void    ForgetAllegroBitmap();
-    // Wraps a SDL_Surface object, optionally owns it (will delete on disposal)
-    bool    WrapSDLSurface(SDL_Surface *sdl_bmp, bool shared_data);
+    // Wraps an arbitrary pixel data object, optionally owns it (will delete on disposal);
+    // BitmapData is used to pass pixel buffer pointer and metrics, while PixelObjectPtr
+    // stores *something* that ought to be deleted using its own function.
+    bool    WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data);
     // Deallocate bitmap
     void	Destroy();
 
@@ -300,10 +309,13 @@ public:
     void    SetScanLine(int index, unsigned char *data, int data_size = -1);
 
 private:
+    // Actual pixel data storage
     std::unique_ptr<uint8_t[]> _pixelData;
-    SDL_Surface *_sdlBitmap = nullptr;
+    // Arbitrary external object that contains pixel data and is deleted with a custom deleter
+    PixelObjectPtr _pixelObject = PixelObjectPtr(nullptr, nullptr);
     BITMAP *_alBitmap = nullptr;
-    bool    _isDataOwner = false;
+    bool    _ownPixelData = false; // whether owning pixel data / pixel object
+    bool    _isAlBitmapOwner = false; // whether owning BITMAP object
     int     _pitch = 0; // cached pitch (scanline length)
 };
 

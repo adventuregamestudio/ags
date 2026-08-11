@@ -560,32 +560,16 @@ int GetLocationType(int x, int y)
 // returns location's name and "location reference".
 static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref)
 {
+    // If no room loaded yet, then return nothing
     if (displayed_room < 0)
     {
-        loc_ref = SceneLocationRef(LOCTYPE_NOTHING);
-        return ""; // no room loaded yet
-    }
-
-    // Test GUI separately, because we need to detect inventory items in this case
-    if (GetGUIAt(x, y, kHit_Interactable) >= 0)
-    {
-        // On GUI, test if we're above an inventory item
-        int invitem = GetInvAt(x, y, kHit_Interactable, kHit_Interactable);
-        if (invitem > 0)
-        {
-            loc_ref = SceneLocationRef(LOCTYPE_INVITEM, invitem);
-            return game.invinfo[invitem].name.GetCStr();
-        }
-        else
-        {
-            loc_ref = SceneLocationRef(LOCTYPE_NOTHING);
-            return "";
-        }
+        loc_ref = {};
+        return "";
     }
 
     int getloctype_index = -1;
     // GetLocationType takes screen coords
-    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, true /* ignore gui */, true /* allow hotspot0 */);
+    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, false /* dont ignore gui */, true /* allow hotspot0 */);
     loc_ref = SceneLocationRef(loctype, getloctype_index);
     if (loctype == LOCTYPE_NOTHING)
     {
@@ -599,14 +583,21 @@ static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref
         return game.chars[getloctype_index].name.GetCStr();
     }
     // on object
-    if (loctype == LOCTYPE_OBJ)
+    else if (loctype == LOCTYPE_OBJ)
     {
         return croom->obj[getloctype_index].name.GetCStr();
     }
-    // on hotspot
-    if (getloctype_index > 0)
+    // on hotspot (except hotspot 0 which means "empty space")
+    else if (loctype == LOCTYPE_HOTSPOT)
     {
-        return croom->hotspot[getloctype_index].Name.GetCStr();
+        if (getloctype_index > 0)
+        {
+            return croom->hotspot[getloctype_index].Name.GetCStr();
+        }
+    }
+    else if (loctype == LOCTYPE_INVITEM)
+    {
+        return game.invinfo[getloctype_index].name.GetCStr();
     }
     return "";
 }

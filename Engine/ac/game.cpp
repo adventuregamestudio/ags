@@ -33,6 +33,7 @@
 #include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
+#include "ac/inventoryitem.h"
 #include "ac/keycode.h"
 #include "ac/lipsync.h"
 #include "ac/mouse.h"
@@ -1663,9 +1664,21 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, bool click_through_gui,
     if (locobj_index)
         *locobj_index = -1;
 
-    if (!click_through_gui && (GetGUIAt(x, y, kHit_Interactable) >= 0))
+    if (!click_through_gui)
     {
-        return LOCTYPE_NOTHING;
+        int gui_index = GetGUIAt(x, y, kHit_Interactable);
+        if (gui_index >= 0)
+        {
+            // On GUI, test if we're above an inventory item
+            int invitem_index = GetInvAt(x, y, kHit_Interactable, kHit_Interactable);
+            if (invitem_index >= 0)
+            {
+                if (locobj_index)
+                    *locobj_index = invitem_index;
+                return LOCTYPE_INVITEM;
+            }
+            return LOCTYPE_NOTHING;
+        }
     }
 
     // Find out if we're inside the room viewport

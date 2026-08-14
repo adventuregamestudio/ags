@@ -38,6 +38,7 @@ enum SkipSpeechStyle
 
 enum SpeechMode
 {
+    kSpeech_None            = -1,
     kSpeech_TextOnly        = 0,
     kSpeech_VoiceText       = 1,
     kSpeech_VoiceOnly       = 2,

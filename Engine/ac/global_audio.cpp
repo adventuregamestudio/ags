@@ -428,7 +428,8 @@ void SetVoiceMode(int newmod)
 {
     if ((newmod < kSpeech_First) | (newmod > kSpeech_Last))
         quitprintf("!SetVoiceMode: invalid mode number %d", newmod);
-    play.speech_mode = (SpeechMode)newmod;
+    if (usetup.Access.SpeechMode == kSpeech_None)
+        play.speech_mode = (SpeechMode)newmod;
 }
 
 int GetVoiceMode()

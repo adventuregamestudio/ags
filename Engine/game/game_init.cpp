@@ -585,6 +585,14 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
         play.text_speed = setup.Access.TextReadSpeed;
         play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / setup.Access.TextReadSpeed)), 1000, 3000);
     }
+    if (setup.Access.SpeechMode != kSpeech_None)
+    {
+        play.speech_mode = setup.Access.SpeechMode;
+    }
+    if (setup.Access.AlwaysWaitForText)
+    {
+        play.speech_always_wait_for_text = true;
+    }
 }
 
 void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)

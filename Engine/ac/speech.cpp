@@ -213,7 +213,8 @@ bool Speech_GetAlwaysWaitForText()
 
 void Speech_SetAlwaysWaitForText(bool on)
 {
-    play.speech_always_wait_for_text = on;
+    if (!usetup.Access.AlwaysWaitForText)
+        play.speech_always_wait_for_text = on;
 }
 
 int Speech_GetAnimationStopTimeMargin()

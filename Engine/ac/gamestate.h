@@ -51,24 +51,17 @@ struct ScriptViewport;
 struct ScriptCamera;
 struct ScriptOverlay;
 
-// SavedLocationType defines the type of location which
-// was last hovered by the mouse cursor.
-// This value is used as a index base for the respective kind of entity.
-// See GamePlayState::get_loc_name_last_time and get_loc_name_save_cursor
-enum SavedLocationType
+// A location reference, used to remember where the mouse cursor was.
+struct SceneLocationRef
 {
-    // not over a room
-    kSavedLocType_Undefined = -1,
-    // over a empty place in a room
-    kSavedLocType_NoHotspot = 0,
-    // hotspot base index
-    kSavedLocType_Hotspot   = 0,
-    // inv item base index
-    kSavedLocType_InvItem   = 1000,
-    // character base index
-    kSavedLocType_Character = 2000,
-    // room object base index
-    kSavedLocType_Object    = 3000,
+    int LocationType = LOCTYPE_NOTHING;
+    int ObjectIndex = -1;
+
+    SceneLocationRef() = default;
+    SceneLocationRef(int loc_type, int obj_index = -1) : LocationType(loc_type), ObjectIndex(obj_index) {}
+    inline bool IsDefined() const { return LocationType != LOCTYPE_NOTHING && ObjectIndex >= 0; }
+    bool operator ==(const SceneLocationRef &ref) const { return LocationType == ref.LocationType && ObjectIndex == ref.ObjectIndex; }
+    bool operator !=(const SceneLocationRef &ref) const { return LocationType != ref.LocationType || ObjectIndex != ref.ObjectIndex; }
 };
 
 
@@ -227,8 +220,8 @@ struct GamePlayState
     int   rtint_light = 0;
     bool  rtint_enabled = false;
     int   skip_until_char_stops = 0;
-    int   get_loc_name_last_time = kSavedLocType_Undefined;
-    int   get_loc_name_save_cursor = kSavedLocType_Undefined;
+    SceneLocationRef get_loc_name_last_time;
+    SceneLocationRef get_loc_name_save_cursor;
     int   restore_cursor_mode_to = 0;
     int   restore_cursor_image_to = 0;
     short crossfading_out_channel = 0;

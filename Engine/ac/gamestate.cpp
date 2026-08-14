@@ -730,8 +730,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     rtint_enabled = in->ReadBool();
     in->ReadInt32();// [DEPRECATED]
     skip_until_char_stops = in->ReadInt32();
-    get_loc_name_last_time = in->ReadInt32();
-    get_loc_name_save_cursor = in->ReadInt32();
+    in->ReadInt32(); // was get_loc_name_last_time, should not serialize
+    in->ReadInt32(); // was get_loc_name_save_cursor, should not serialize
     restore_cursor_mode_to = in->ReadInt32();
     restore_cursor_image_to = in->ReadInt32();
     in->ReadInt16(); // legacy music queue
@@ -986,8 +986,8 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteBool(rtint_enabled);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( skip_until_char_stops);
-    out->WriteInt32( get_loc_name_last_time);
-    out->WriteInt32( get_loc_name_save_cursor);
+    out->WriteInt32( 0); // was get_loc_name_last_time, should not serialize
+    out->WriteInt32( 0); // was get_loc_name_save_cursor, should not serialize
     out->WriteInt32( restore_cursor_mode_to);
     out->WriteInt32( restore_cursor_image_to);
     out->WriteInt16( 0 ); // legacy music queue

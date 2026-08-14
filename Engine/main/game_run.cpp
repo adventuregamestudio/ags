@@ -81,7 +81,6 @@ extern ScriptSystem scsystem;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern int game_paused;
-extern int getloctype_index;
 extern bool in_enters_screen;
 extern bool done_as_error;
 extern int in_leaves_screen;
@@ -1054,12 +1053,12 @@ static void UpdateSavedCursorOverLocation()
     // so it may be not necessary here.
     GetLocationName(mousex, mousey);
 
-    if ((play.get_loc_name_save_cursor >= 0) &&
+    if ((play.get_loc_name_save_cursor.IsDefined()) &&
         (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
         (mouse_on_iface < 0) && (ifacepopped < 0)) {
         // we have saved the cursor, but the mouse location has changed
         // and it's time to restore it
-        play.get_loc_name_save_cursor = kSavedLocType_Undefined;
+        play.get_loc_name_save_cursor = {};
         set_cursor_mode(play.restore_cursor_mode_to);
 
         if (cur_mode == play.restore_cursor_mode_to)
@@ -1129,11 +1128,10 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         (offsetxWas != offsetx) || (offsetyWas != offsety))) 
     {
         // mouse moves over hotspot
-        if (__GetLocationType(mousex, mousey, 1) == LOCTYPE_HOTSPOT)
+        int getloctype_index = -1;
+        if (GetLocationTypeImpl(&getloctype_index, mousex, mousey, false /* dont click-through gui */, true /* allow hotspot0 */) == LOCTYPE_HOTSPOT)
         {
-            int onhs = getloctype_index;
-
-            setevent(AGSEvent_Object(kObjEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
+            setevent(AGSEvent_Object(kObjEventType_Hotspot, getloctype_index, kHotspotEvent_MouseOver));
         }
     }
 

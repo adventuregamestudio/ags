@@ -182,7 +182,15 @@ bool check_skip_cutscene_gamepad(int gbut);
 void initialize_skippable_cutscene();
 void stop_fast_forwarding();
 
-int __GetLocationType(int xxx,int yyy, int allowHotspot0);
+// Returns location type under the given screen coordinates.
+// click_through_gui defines whether the hit test should be intercepted by a GUI.
+// allow_hotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT or LOCTYPE_NOTHING.
+// Returns LOCTYPE_NOTHING if either:
+//  - intercepted by GUI;
+//  - outside a room viewport;
+//  - on a hotspot 0 and allow_hotspot0 == false
+// If location type != LOCTYPE_NOTHING, then fills locobj_index with object's or hotspot's index.
+int GetLocationTypeImpl(int *locobj_index, int x, int y, bool click_through_gui = false, bool allow_hotspot0 = false);
 
 // Called whenever game loses input focus
 void display_switch_out();

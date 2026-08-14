@@ -167,9 +167,6 @@ unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 SaveCmpSelection load_new_game_restore_cmp = kSaveCmp_All;
 
-// TODO: refactor these global vars into function arguments
-int getloctype_index = 0, getloctype_throughgui = 0;
-
 //=============================================================================
 // Audio
 //=============================================================================
@@ -1644,24 +1641,24 @@ void stop_fast_forwarding() {
     update_music_volume();
 }
 
-// allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
-// or whether it returns 0
-int GetLocationTypeImpl(int x, int y, int hit_options, bool allow_hotspot0)
+int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui, bool allow_hotspot0)
 {
-    getloctype_index = 0;
-    // If it's not in ProcessClick, then return 0 when over a GUI
-    if ((GetGUIAt(x, y, hit_options) >= 0) && (getloctype_throughgui == 0))
-        return 0;
+    if (locobj_index)
+        *locobj_index = -1;
 
-    getloctype_throughgui = 0;
+    if (!click_through_gui && (GetGUIAt(x, y, hit_options) >= 0))
+    {
+        return LOCTYPE_NOTHING;
+    }
 
-    VpPoint vpt = play.ScreenToRoomDivDown(x, y);
-    if (vpt.second < 0)
-        return 0;
-    x = vpt.first.X;
-    y = vpt.first.Y;
-    if ((x>=thisroom.Width) || (x<0) || (y<0) || (y>=thisroom.Height))
-        return 0;
+    // Find out if we're inside the room viewport
+    const VpPoint vpt = play.ScreenToRoomDivDown(x, y);
+    const Point room_pt = vpt.first;
+    const int view_index = vpt.second;
+    if ((view_index < 0) || (!RectWH(0, 0, thisroom.Width, thisroom.Height).IsInside(room_pt)))
+    {
+        return LOCTYPE_NOTHING;
+    }
 
     // check characters, objects and walkbehinds, work out which is
     // foremost visible to the player
@@ -1672,18 +1669,20 @@ int GetLocationTypeImpl(int x, int y, int hit_options, bool allow_hotspot0)
     data_to_game_coords(&x, &y);
 
     int wbat = thisroom.WalkBehindMask->GetPixel(x, y);
+    if (wbat <= 0)
+        wbat = 0;
+    else
+        wbat = croom->walkbehind_base[wbat];
 
-    if (wbat <= 0) wbat = 0;
-    else wbat = croom->walkbehind_base[wbat];
-
-    int winner = 0;
+    int winner = LOCTYPE_NOTHING;
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
     if ((objat >= 0) && ((objs[objat].flags & OBJF_NOWALKBEHINDS) != 0))
         wbat = 0;
     if ((charat >= 0) && ((game.chars[charat].flags & CHF_NOWALKBEHINDS) != 0))
         wbat = 0;
 
-    if ((charat >= 0) && (objat >= 0)) {
+    if ((charat >= 0) && (objat >= 0))
+    {
         if ((wbat > obj_lowest_yp) && (wbat > char_lowest_yp))
             winner = LOCTYPE_HOTSPOT;
         else if (obj_lowest_yp > char_lowest_yp)
@@ -1691,34 +1690,39 @@ int GetLocationTypeImpl(int x, int y, int hit_options, bool allow_hotspot0)
         else
             winner = LOCTYPE_CHAR;
     }
-    else if (charat >= 0) {
+    else if (charat >= 0)
+    {
         if (wbat > char_lowest_yp)
             winner = LOCTYPE_HOTSPOT;
         else
             winner = LOCTYPE_CHAR;
     }
-    else if (objat >= 0) {
+    else if (objat >= 0)
+    {
         if (wbat > obj_lowest_yp)
             winner = LOCTYPE_HOTSPOT;
         else
             winner = LOCTYPE_OBJ;
     }
 
-    if (winner == 0) {
+    if (winner == 0)
+    {
         if (hsat >= 0)
             winner = LOCTYPE_HOTSPOT;
     }
 
     if ((winner == LOCTYPE_HOTSPOT) && (!allow_hotspot0) && (hsat == 0))
-        winner = 0;
+        winner = LOCTYPE_NOTHING;
 
-    if (winner == LOCTYPE_HOTSPOT)
-        getloctype_index = hsat;
-    else if (winner == LOCTYPE_CHAR)
-        getloctype_index = charat;
-    else if (winner == LOCTYPE_OBJ)
-        getloctype_index = objat;
-
+    if (locobj_index)
+    {
+        if (winner == LOCTYPE_HOTSPOT)
+            *locobj_index = hsat;
+        else if (winner == LOCTYPE_CHAR)
+            *locobj_index = charat;
+        else if (winner == LOCTYPE_OBJ)
+            *locobj_index = objat;
+    }
     return winner;
 }
 

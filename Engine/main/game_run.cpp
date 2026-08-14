@@ -78,7 +78,6 @@ extern ScriptSystem scsystem;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern int game_paused;
-extern int getloctype_index;
 extern bool in_enters_screen;
 extern bool done_as_error;
 extern int in_leaves_screen;
@@ -1049,11 +1048,11 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
         (offsetxWas != offsetx) || (offsetyWas != offsety))) 
     {
         // mouse moves over hotspot
-        if (GetLocationTypeImpl(game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable, true) == LOCTYPE_HOTSPOT)
+        int getloctype_index = -1;
+        if (GetLocationTypeImpl(&getloctype_index, game_to_data_coord(mousex), game_to_data_coord(mousey), kHit_Interactable,
+            false /* dont click-through gui */, true /* allow hotspot0 */) == LOCTYPE_HOTSPOT)
         {
-            int onhs = getloctype_index;
-
-            setevent(AGSEvent_Object(kObjEventType_Hotspot, onhs, kHotspotEvent_MouseOver));
+            setevent(AGSEvent_Object(kObjEventType_Hotspot, getloctype_index, kHotspotEvent_MouseOver));
         }
     }
 

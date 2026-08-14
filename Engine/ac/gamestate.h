@@ -243,6 +243,7 @@ struct GamePlayState
     bool  voice_avail = false; // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int   speech_skip_style = 0; // stores SKIP_* flags
+    bool  speech_always_wait_for_text = false;
     int   speech_zorder = INT32_MAX; // z-order for the blocking speech overlays (text & portrait)
     int   sound_volume = 0;
     int   speech_volume = 0;

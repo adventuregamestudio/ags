@@ -106,13 +106,17 @@ public:
         _timer--;
 
         // Special behavior when coupled with a blocking voice-over
-        if (play.speech_voice_blocking) {
+        if (play.speech_voice_blocking)
+        {
             // extend life of text if the voice hasn't finished yet
-            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
+            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0))
+            {
                 if (_timer <= 1)
                     _timer = 1;
             }
-            else { // if the voice has finished, remove the speech
+            // if the voice has finished, and we're not required to wait for text, then remove the speech
+            else if (!play.speech_always_wait_for_text)
+            {
                 _timer = 0;
             }
         }

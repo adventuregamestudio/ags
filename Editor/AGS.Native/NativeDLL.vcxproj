@@ -152,7 +152,8 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References"</Command>
+      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References"
+copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -204,7 +205,8 @@
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)..\Editor\References\x64"
-copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
+copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"
+copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -254,7 +256,8 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References"</Command>
+      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References"
+copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -306,7 +309,8 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)..\Editor\References\x64"
-copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
+copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"
+copy "$(AGS_SDL_DLL)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -403,4 +407,9 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <None Include="$(AGS_SDL_DLL)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

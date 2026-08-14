@@ -22,4 +22,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
+  <PropertyGroup Condition="'$(Platform)'=='Win32'">
+    <AGS_SDL_DLL>$(AGS_SDL_LIB)\SDL2.dll</AGS_SDL_DLL>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <AGS_SDL_DLL>$(AGS_SDL_LIB)\..\x64\SDL2.dll</AGS_SDL_DLL>
+    <AGS_SDL_DLL Condition="'$(AGS_SDL_LIB_X64)'!=''">$(AGS_SDL_LIB_X64)\SDL2.dll</AGS_SDL_DLL>
+  </PropertyGroup>
 </Project>

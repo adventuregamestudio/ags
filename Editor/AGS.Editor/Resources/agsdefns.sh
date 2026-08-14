@@ -3725,6 +3725,8 @@ builtin struct Speech {
   import static readonly attribute Character* SpeakingCharacter;
 #endif; // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
+  /// Gets/sets whether the speech's timeout must always be at least as long as text's reading time in the "voice and text" mode (otherwise skips speech as soon as the voice ends).
+  import static attribute bool AlwaysWaitForText;
   /// Gets/sets default z-order for all the future blocking speech overlays (TextOverlay and PortraitOverlay).
   import static attribute int OverlayZOrder;
 #endif

@@ -353,16 +353,24 @@ void update_speech_and_messages()
       is_voice_playing = ch && ch->is_ready();
   }
   // determine if speech text should be removed
+  // TODO: this code is similar to the Display's box update (see DisplayMessageState::Run),
+  // can we merge these two pieces of code? a kind of uniform DisplayText state?
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
-    if (play.speech_voice_blocking && !play.speech_in_post_state) {
-      if ((is_voice_playing) && (play.fast_forward == 0)) {
+    if (play.speech_voice_blocking && !play.speech_in_post_state)
+    {
+      if ((is_voice_playing) && (play.fast_forward == 0))
+      {
         if (play.messagetime <= 1)
           play.messagetime = 1;
       }
-      else  // if the voice has finished, remove the speech
+      // if the voice has finished, and we're not required to wait for text, then remove the speech
+      else if (!play.speech_always_wait_for_text)
+      {
+        // if the voice has finished, remove the speech
         play.messagetime = 0;
+      }
     }
 
     // Enter speech post-state: optionally increase final waiting time

@@ -50,6 +50,9 @@
 #define IDC_TEXTREADSPEED               1054
 #define IDC_TEXTREADSPEED_TEXT          1055
 #define IDC_COMPRESSSAVESCHECK          1055
+#define IDC_LABEL_SPEECHMODE            1056
+#define IDC_SPEECHMODE                  1057
+#define IDC_ALWAYSWAITFORTEXT           1058
 
 // Next default values for new objects
 // 

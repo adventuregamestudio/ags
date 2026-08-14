@@ -787,13 +787,15 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     {
         dialog_options_zorder = in->ReadInt32();
         speech_zorder = in->ReadInt32(); // since kGSSvgVersion_363_13
+        uint32_t speech_ex_flags = in->ReadInt32();
+        speech_always_wait_for_text = speech_ex_flags & 0x01;
         in->ReadInt32(); // reserved
-        in->ReadInt32();
     }
     else
     {
         dialog_options_zorder = INT32_MAX;
         speech_zorder = INT32_MAX;
+        speech_always_wait_for_text = false;
     }
 
     // New-style timers
@@ -1006,8 +1008,9 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     // kGSSvgVersion_363_02
     out->WriteInt32(dialog_options_zorder);
     out->WriteInt32(speech_zorder); // since kGSSvgVersion_363_13
+    uint32_t speech_ex_flags = (0x01 * speech_always_wait_for_text);
+    out->WriteInt32(speech_ex_flags); 
     out->WriteInt32(0); // reserved
-    out->WriteInt32(0);
 
     // kGSSvgVersion_363_04
     out->WriteInt32(_scriptTimers.size());

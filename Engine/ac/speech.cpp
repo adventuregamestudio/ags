@@ -206,6 +206,17 @@ void Speech_SetOverlayZOrder(int zorder)
     play.speech_zorder = zorder;
 }
 
+bool Speech_GetAlwaysWaitForText()
+{
+    return play.speech_always_wait_for_text;
+}
+
+void Speech_SetAlwaysWaitForText(bool on)
+{
+    if (!usetup.Access.AlwaysWaitForText)
+        play.speech_always_wait_for_text = on;
+}
+
 int Speech_GetAnimationStopTimeMargin()
 {
     return play.close_mouth_speech_time;
@@ -312,6 +323,16 @@ void Speech_SetUseGlobalSpeechAnimationDelay(int delay)
 }
 
 //-----------------------------------------------------------------------------
+
+RuntimeScriptValue Sc_Speech_GetAlwaysWaitForText(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Speech_GetAlwaysWaitForText);
+}
+
+RuntimeScriptValue Sc_Speech_SetAlwaysWaitForText(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Speech_SetAlwaysWaitForText);
+}
 
 RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -457,6 +478,8 @@ extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int3
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister speech_api[] = {
+        { "Speech::get_AlwaysWaitForText",      API_FN_PAIR(Speech_GetAlwaysWaitForText) },
+        { "Speech::set_AlwaysWaitForText",      API_FN_PAIR(Speech_SetAlwaysWaitForText) },
         { "Speech::get_AnimationStopTimeMargin", API_FN_PAIR(Speech_GetAnimationStopTimeMargin) },
         { "Speech::set_AnimationStopTimeMargin", API_FN_PAIR(Speech_SetAnimationStopTimeMargin) },
         { "Speech::get_CustomPortraitPlacement", API_FN_PAIR(Speech_GetCustomPortraitPlacement) },

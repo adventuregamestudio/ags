@@ -209,7 +209,13 @@ static HError PrepareAssetLibrary(AssetLibInfo &lib,
             local_asset_map.erase(rem_key);
 
         for (const auto &new_item : local_asset_map)
-            asset_map[new_item.first] = new_item.second;
+        {
+            // Safety check that assets map does not include the preexisting destination package
+            // FIXME: this is a hotfix, but is there a more elegant way to do this?
+            //     like add certain files to exclusion list ('pattern_list' arg) before passing here?
+            if (Path::ComparePaths(dst_pak, new_item.second) != 0)
+                asset_map[new_item.first] = new_item.second;
+        }
     }
 
     if (asset_map.size() == 0)

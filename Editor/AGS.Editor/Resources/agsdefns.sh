@@ -644,7 +644,7 @@ internalstring autoptr builtin managed struct String {
   import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
   /// Creates a copy of the string.
   import String  Copy();
-  /// Returns the index of the first occurrence of the needle in this string.
+  /// Returns the index of the first occurrence of the needle in this string, or -1 if it is not found.
   import int     IndexOf(const string needle);
   /// Returns a lower-cased version of this string.
   import String  LowerCase();

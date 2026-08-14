@@ -225,6 +225,8 @@ Script API:
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.
+ - Added Speech.AlwaysWaitForText property that forces speech text to remain on screen until its
+   "read time" has passed in text+voice mode.
  - Added Speech.OverlayZOrder property that sets default z-order value for all the future blocking
    speech overlays (text & portrait).
  - Added System.FPS that lets read current real fps.
@@ -290,6 +292,7 @@ Engine:
  - Added "enabled" config option to "mouse" section. It's on by default, but when off, this option
    tells engine to ignore the real mouse device completely, after which the in-game cursor may only
    be moved by the respective script commands.
+ - Added "alwayswaittext" and "speechmode" config options to "access" (accessibility) section.
  - Added "new_key_mode" config option to "override" section, that lets force the new key handling
    mode while running old games.
  - Added "override_behavior" config section, its options are purposed to override game's backwards-
@@ -341,6 +344,7 @@ Compatibility:
  - Fixed textual overlay heights in 3.6.0-3.6.1 games which fonts have incorrectly reported sizes.
 
 WinSetup:
+ - Added "Speech mode" and "Always wait for text" options to "Accessibility" tab.
  - Renamed "Custom Paths" tab to "Game Files", added "Compress saves" option.
 
 

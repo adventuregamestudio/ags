@@ -121,7 +121,7 @@ Locations of two latter files differ between running platforms:
   * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
     * all (0), verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[access\]** - accessibility options. These may override programmed game behavior for the purpose of making playing the game easier.
-  * alwayswaitspeech = \[0; 1\] - if set to 1, force game to always wait until text's reading time has finished before advancing the speech lines when speech mode is "text and voice".
+  * alwayswaittext = \[0; 1\] - if set to 1, force game to always wait until text's reading time has finished before advancing the speech lines when speech mode is "text and voice".
   * speechmode = \[string\] - assigns the speech mode to a fixed value:
     * default - do not override, use game's scripted option;
 	* text - text only;

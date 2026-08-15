@@ -795,9 +795,14 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         speech_always_wait_for_text = speech_ex_flags & 0x01;
         in->ReadInt32(); // reserved
     }
-    else
+    
+    if (svg_ver < kGSSvgVersion_363_02)
     {
         dialog_options_zorder = INT32_MAX;
+    }
+
+    if (svg_ver < kGSSvgVersion_363_13)
+    {
         speech_zorder = INT32_MAX;
         speech_always_wait_for_text = false;
     }

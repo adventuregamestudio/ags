@@ -1662,6 +1662,8 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
 
     // check characters, objects and walkbehinds, work out which is
     // foremost visible to the player
+    x = room_pt.X;
+    y = room_pt.Y;
     int charat = GetCharIDAtRoom(x, y, hit_options);
     int hsat = GetHotspotIDAtRoom(x, y, hit_options);
     int objat = GetObjectIDAtRoom(x, y, hit_options);

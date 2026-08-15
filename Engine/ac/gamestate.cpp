@@ -704,7 +704,11 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->ReadArrayOfInt16( filenumbers, LEGACY_MAXSAVEGAMES);
     uint32_t mouse_opts = in->ReadInt32();
     mouse_cursor_shown = (mouse_opts & 0x01) == 0; // previously this field had a reverse meaning
-    mouse_input_enabled = (mouse_opts & 0x02) != 0;
+    mouse_input_enabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_363_13
+    if (svg_ver < kGSSvgVersion_363_13)
+    {
+        mouse_input_enabled = true;
+    }
     silent_midi = in->ReadInt32();
     silent_midi_channel = in->ReadInt32();
     current_music_repeating = in->ReadInt32();
@@ -941,7 +945,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32( raw_color);
     out->WriteArrayOfInt16( filenumbers, LEGACY_MAXSAVEGAMES);
     uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown) // previously this field had a reverse meaning
-        | 0x02 * mouse_input_enabled;
+        | 0x02 * mouse_input_enabled; // kGSSvgVersion_363_13
     out->WriteInt32( mouse_opts);
     out->WriteInt32( silent_midi);
     out->WriteInt32( silent_midi_channel);

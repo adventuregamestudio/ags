@@ -512,6 +512,7 @@ public:
     // Constructs a non-owning StreamSection over a base stream.
     // TODO: allow end < 0 in which case the end of base stream is used
     StreamSection(IStreamBase *base, soff_t start, soff_t end);
+    ~StreamSection();
 
     StreamMode  GetMode() const override { return _base->GetMode(); }
     const char *GetPath() const override { return _base->GetPath(); }

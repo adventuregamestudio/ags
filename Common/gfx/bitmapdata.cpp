@@ -98,8 +98,8 @@ PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const i
     const size_t src_pitch = bm_data.GetStride();
     int do_src_x = src_x, do_src_y = src_y;
     int do_width = width, do_height = height;
-    Math::ClampLength(do_src_x, do_width, 0, bm_data.GetWidth() - 1);
-    Math::ClampLength(do_src_y, do_height, 0, bm_data.GetHeight() - 1);
+    Math::ClampLength(do_src_x, do_width, 0, bm_data.GetWidth());
+    Math::ClampLength(do_src_y, do_height, 0, bm_data.GetHeight());
     if (do_width == 0 || do_height == 0)
         return {};
 

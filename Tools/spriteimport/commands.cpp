@@ -78,6 +78,7 @@ public:
             for (sprkey_t last_slot = _sfWriter->GetLastWrittenSlot() + 1; last_slot < slot; ++last_slot)
                 _sfWriter->WriteEmptySlot();
 
+            printf("\t+ sprite %d\n", slot);
             if (image)
                 _sfWriter->WriteBitmap(image);
             else
@@ -87,7 +88,11 @@ public:
         else if (image)
         {
             String filename = String::FromFormat(_imagePattern.GetCStr(), slot);
-            if (!ImageFile::SaveImage(image, Path::ConcatPaths(_outDir, filename)))
+            if (ImageFile::SaveImage(image, Path::ConcatPaths(_outDir, filename)))
+            {
+                printf("\t+ %s\n", filename.GetCStr());
+            }
+            else
             {
                 return new Error(String::FromFormat("Failed to save sprite %d as the image file '%s'", slot, filename.GetCStr()));
             }
@@ -207,6 +212,7 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
         return new Error(String::FromFormat("Failed to load image file %s", src_file.GetCStr()));
     }
 
+    printf("> %s\n", src_file.GetCStr());
     for (const auto &sprite : sprites)
     {
         PixelBuffer tile = PixelOp::CopyPixelsRegion(image, sprite.ImportOffsetX, sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
@@ -217,13 +223,21 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
             HError err = ConvertSpriteForGame(tile, &pal, conv_tile, game_color_opts, &room_cache, sprite);
             if (err)
             {
-                writer.WriteSprite(conv_tile, sprite.Slot);
+                err = writer.WriteSprite(conv_tile, sprite.Slot);
+                if (!err)
+                    printf("%s", err->FullMessage().GetCStr());
             }
             else
             {
+                writer.WriteSprite({}, sprite.Slot); // write empty slot to spritefile
                 printf("Error: failed to convert the sprite %d for the game:\n", sprite.Slot);
                 printf("%s\n", err->FullMessage().GetCStr());
             }
+        }
+        else
+        {
+            writer.WriteSprite({}, sprite.Slot); // write empty slot to spritefile
+            printf("Error: failed to cut the sprite's %d tile (%d,%d,%d,%d)\n", sprite.Slot, sprite.ImportOffsetX, sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
         }
     }
     return HError::None();
@@ -281,13 +295,15 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
     // In order to prevent a temp file closing, here we make a "proxy stream",
     // which will use the base but not own one, and thus won't close.
     // TODO: this is a quick and clumsy solution for now, revise this later
-    auto proxy_out = std::make_unique<Stream>(std::make_unique<StreamSection>(temp_s->GetStreamBase(), 0, temp_s->GetStreamBase()->GetLength()));
-    std::unique_ptr<SpriteFileWriter> sf_writer(new SpriteFileWriter(std::move(proxy_out)));
-    SpriteWriter writer(std::move(sf_writer), opts.StorageFlags, opts.Compress, true);
     std::map<sprkey_t, sprkey_t> out_sprite_order;
-    HError err = ImportSpritesImpl(source_to_sprite, game_color_opts, room_cache, writer, &out_sprite_order, verbose);
-    if (!err)
-        return err;
+    {
+        auto proxy_out = std::make_unique<Stream>(std::make_unique<StreamSection>(temp_s->GetStreamBase(), 0, temp_s->GetStreamBase()->GetLength()));
+        std::unique_ptr<SpriteFileWriter> sf_writer(new SpriteFileWriter(std::move(proxy_out)));
+        SpriteWriter writer(std::move(sf_writer), opts.StorageFlags, opts.Compress, true);
+        HError err = ImportSpritesImpl(source_to_sprite, game_color_opts, room_cache, writer, &out_sprite_order, verbose);
+        if (!err)
+            return err;
+    }
 
     std::unique_ptr<Stream> out = File::CreateFile(dst_path);
     if (!out)
@@ -295,7 +311,7 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
 
     SpriteFile spr_reader;
     temp_s->Seek(0, kSeekBegin);
-    err = spr_reader.OpenFile(std::move(temp_s), {});
+    HError err = spr_reader.OpenFile(std::move(temp_s), {});
     if (!err)
         return err;
 
@@ -316,6 +332,7 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
             spr_writer.WriteEmptySlot();
     }
     spr_writer.Finalize();
+    spr_reader.Close();
 
     // Consider index file to be non-obligatory, as the index may be restored from the spritefile
     if (!opts.IndexFile.IsEmpty())

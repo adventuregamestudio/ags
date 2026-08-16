@@ -218,8 +218,12 @@ int main(const int argc, const char* const argv[])
         printf("Game project file '%s' doesn't exist\n", opt.GameProjectFile.GetCStr());
         return -1;
     }
-    // skipping check for opt.AgsDefnsFile for now ...
-    // FIX-ME: need to check opt.AgsDefnsFile!
+    if (!File::IsFile(opt.AgsDefnsFile))
+    {
+        printf("AGS Script API header file '%s' not found\n", opt.AgsDefnsFile.GetCStr());
+        return -1;
+    }
+
     if (!tool_exists_in_path(opt.ToolAgspak.GetCStr()))
         return -1;
     if (!tool_exists_in_path(opt.ToolTrac.GetCStr()))

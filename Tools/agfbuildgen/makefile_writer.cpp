@@ -40,7 +40,15 @@ void MakefileWriter::Variable(const String& key, const String& value)
 void MakefileWriter::Rule(const String& target, const std::vector<String>& dependencies, const String& command)
 {
     Line(String::FromFormat("%s: %s", target.GetCStr(), Join(" ", dependencies).GetCStr()));
-    Line(command, 1);
+    if (!command.IsNullOrSpace())
+        Line(command, 1);
+}
+
+void MakefileWriter::GroupedRule(const std::vector<String>& targets, const std::vector<String>& dependencies, const String& command)
+{
+    Line(String::FromFormat("%s &: %s", Join(" ", targets).GetCStr(), Join(" ", dependencies).GetCStr()));
+    if (!command.IsNullOrSpace())
+        Line(command, 1);
 }
 
 void MakefileWriter::Phony(const String& target)

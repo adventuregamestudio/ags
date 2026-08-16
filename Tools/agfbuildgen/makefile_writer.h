@@ -28,6 +28,7 @@ public:
     void Comment(const String& text);
     void Variable(const String& key, const String& value);
     void Rule(const String& target, const std::vector<String>& dependencies, const String& command);
+    void GroupedRule(const std::vector<String>& targets, const std::vector<String>& dependencies, const String& command);
     void Phony(const String& target);
 };
 

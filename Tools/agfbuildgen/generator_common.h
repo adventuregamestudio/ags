@@ -44,6 +44,8 @@ struct GeneratorOptions
     std::vector<String> ScriptFileList {};
     std::vector<String> RoomFileList {};
     std::vector<String> TrsFileList {};
+    std::vector<String> FontFileList {};
+    std::vector<String> CustomDataDirList {};
 };
 
 #endif // AGS_TOOL_AGFBUILDGEN__GENERATOR_COMMON_H

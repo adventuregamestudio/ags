@@ -60,7 +60,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
     writer.Rule("agf2dlgasc", "$AGF2DLGASC $in $out");
     writer.Rule("agscc", "$AGSCC $in -o $out -H \"$headers\"");
     writer.Rule("trac", "$TRAC $in $out");
-    writer.Rule("agspak", "$AGSPAK -c $out $GAME_PROJECT_DIR -D $TEMP_DIR $files --replace-dup");
+    writer.Rule("agspak", "$AGSPAK -c $recursive $out $GAME_PROJECT_DIR -D $TEMP_DIR $files --replace-dup");
     writer.Rule("agf2dta", "$AGF2DTA $in $out");
     writer.Rule("crmpak_export_ash", "$CRMPAK -e $in ash $out");
     writer.Rule("crmpak_import_obj", "$CRMPAK -i $in script $blockfile -w $out");
@@ -191,10 +191,20 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
         pak_deps.push_back("$GAME_PROJECT_DIR/acsprset.spr");
         pak_deps.push_back("$GAME_PROJECT_DIR/sprindex.dat");
 
+        for (const auto& font : opt.FontFileList)
+        {
+            pak_files.push_back(font);
+            pak_deps.push_back(String::FromFormat("$GAME_PROJECT_DIR/%s", font.GetCStr()));
+        }
+
+        for (const auto& custom_dir : opt.CustomDataDirList)
+            pak_files.push_back(String::FromFormat("%s/*", custom_dir.GetCStr()));
+
         String file_filter = Join(",", pak_files);
+        String recursive_arg = opt.CustomDataDirList.empty() ? "" : "-r";
 
         // FIX-ME: read the game name from Game.agf (using agfreader)
-        writer.Build({ "$OUTPUT_DIR/$GAME_FILENAME" }, "agspak", {}, pak_deps, {}, { {"files", file_filter} });
+        writer.Build({ "$OUTPUT_DIR/$GAME_FILENAME" }, "agspak", {}, pak_deps, {}, { {"files", file_filter}, {"recursive", recursive_arg} });
     }
 
     // Package the audio and speech files

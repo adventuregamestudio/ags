@@ -203,6 +203,37 @@ void fill_options_from_project(GeneratorOptions& opt, const AGF::AGFReader &read
     AGF::ReadDialogList(dialogs, reader.GetGameRoot());
     opt.HasDialogScripts = !dialogs.empty();
 
+    // AGS 3 stores font IDs rather than filenames.
+    // Both variants must be packaged when present.
+    // This should be simpler in AGS 4!
+    std::vector<int> font_indexes;
+    AGF::ReadFontList(font_indexes, reader.GetGameRoot());
+    for (const auto &font_index : font_indexes)
+    {
+        const String ttf_name = String::FromFormat("agsfnt%d.ttf", font_index);
+        const String wfn_name = String::FromFormat("agsfnt%d.wfn", font_index);
+        if (File::IsFile(Path::ConcatPaths(opt.GameProjectDir, ttf_name)))
+            opt.FontFileList.push_back(ttf_name);
+        if (File::IsFile(Path::ConcatPaths(opt.GameProjectDir, wfn_name)))
+            opt.FontFileList.push_back(wfn_name);
+    }
+
+    std::vector<String> custom_dirs;
+    AGF::ReadCustomDataDirectories(custom_dirs, reader.GetGameRoot());
+    for (String custom_dir : custom_dirs)
+    {
+        custom_dir.Trim();
+        if (custom_dir.IsEmpty() || !Path::IsRelativePath(custom_dir))
+            continue;
+
+        const String custom_dir_abs = Path::ConcatPaths(opt.GameProjectDir, custom_dir);
+        if (Path::ComparePaths(opt.GameProjectDir, custom_dir_abs) == 0 ||
+            !Path::IsSameOrSubDir(opt.GameProjectDir, custom_dir_abs) ||
+            !File::IsDirectory(custom_dir_abs))
+            continue;
+        opt.CustomDataDirList.push_back(custom_dir);
+    }
+
     String game_filename{};
     AGF::ReadGameFileName(game_filename, reader.GetGameRoot());
     if (game_filename.EndsWith(".ags"))

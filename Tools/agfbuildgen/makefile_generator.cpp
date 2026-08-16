@@ -204,8 +204,18 @@ void GenerateMakefile(const GeneratorOptions &opt, std::unique_ptr<Stream> &&out
         pak_deps.push_back("$(GAME_PROJECT_DIR)/acsprset.spr");
         pak_deps.push_back("$(GAME_PROJECT_DIR)/sprindex.dat");
 
+        for (const auto& font : opt.FontFileList)
+        {
+            pak_files.push_back(font);
+            pak_deps.push_back(String::FromFormat("$(GAME_PROJECT_DIR)/%s", font.GetCStr()));
+        }
+
+        for (const auto& custom_dir : opt.CustomDataDirList)
+            pak_files.push_back(String::FromFormat("%s/*", custom_dir.GetCStr()));
+
         String file_filter = Join(",", pak_files);
-        String cmd = String::FromFormat("$(AGSPAK) -c $@ $(GAME_PROJECT_DIR) -D $(TEMP_DIR) %s --replace-dup", file_filter.GetCStr());
+        const char *recursive_arg = opt.CustomDataDirList.empty() ? "" : "-r";
+        String cmd = String::FromFormat("$(AGSPAK) -c %s $@ $(GAME_PROJECT_DIR) -D $(TEMP_DIR) %s --replace-dup", recursive_arg, file_filter.GetCStr());
 
         writer.Rule("$(OUTPUT_DIR)/$(GAME_FILENAME)", pak_deps, cmd);
     }

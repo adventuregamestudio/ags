@@ -87,7 +87,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
         String obj = String::FromFormat("$TEMP_DIR/%s.o", scriptname.GetCStr());
 
         std::vector<String> this_script_headers(headers_base);
-        this_script_headers.insert(this_script_headers.end(), project_headers.begin(), project_headers.begin() + i);
+        this_script_headers.insert(this_script_headers.end(), project_headers.begin(), project_headers.begin() + i + 1);
         String headers = Join(":", this_script_headers);
 
         writer.Build({obj}, "agscc", {asc}, this_script_headers, {}, {{"headers", headers}});

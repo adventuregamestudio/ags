@@ -203,6 +203,18 @@ int main(const int argc, const char* const argv[])
     opt.ToolCrmpak = "crmpak";
     opt.ToolAgf2dta = "agf2dta";
 
+    // adjust things here as absolute paths
+    // probably it would be better to have a function that finds them, figure if they need exe extension (windows)
+    // and then put the result in place of each
+    opt.AgsDefnsFile = Path::MakeAbsolutePath(opt.AgsDefnsFile);
+    opt.ToolAgspak = Path::MakeAbsolutePath(opt.ToolAgspak);
+    opt.ToolTrac = Path::MakeAbsolutePath(opt.ToolTrac);
+    opt.ToolAgfexport = Path::MakeAbsolutePath(opt.ToolAgfexport);
+    opt.ToolAgf2dlgasc = Path::MakeAbsolutePath(opt.ToolAgf2dlgasc);
+    opt.ToolAgscc = Path::MakeAbsolutePath(opt.ToolAgscc);
+    opt.ToolCrmpak = Path::MakeAbsolutePath(opt.ToolCrmpak);
+    opt.ToolAgf2dta = Path::MakeAbsolutePath(opt.ToolAgf2dta);
+
     if (!File::IsDirectory(opt.OutputDir))
     {
         printf("Output directory '%s' doesn't exist", opt.OutputDir.GetCStr());

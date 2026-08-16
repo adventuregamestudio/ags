@@ -56,7 +56,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
 
     // Rules
     writer.Rule("agf2autoash", "$AGFEXPORT autoash $in $out");
-    writer.Rule("agf2glvar", "$AGFEXPORT glvar $in $out1 $out2"); // FIX-ME: is out1 and out2 really supported in ninja??
+    writer.Rule("agf2glvar", "$AGFEXPORT glvar $in $out");
     writer.Rule("agf2dlgasc", "$AGF2DLASC $in $out");
     writer.Rule("agscc", "$AGSCC $in -o $out -H $headers");
     writer.Rule("trac", "$TRAC $in $out");

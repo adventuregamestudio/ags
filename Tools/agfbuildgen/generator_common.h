@@ -20,7 +20,7 @@ using namespace AGS::Common;
 
 struct GeneratorOptions
 {
-    // String ToolsDir; // not sure how to support this yet...
+    String ToolsDir {};
 
     String AgsDefnsFile {}; // path to agsdefns.sh
 

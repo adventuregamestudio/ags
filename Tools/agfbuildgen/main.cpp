@@ -50,6 +50,8 @@ const char *HELP_STRING = ""
 "-f, --format FORMAT      Specify the build format to generate:\n"
 "                         ninja, makefile.\n"
 "                         Default: ninja\n"
+"-t, --tools-dir DIR      Directory containing the AGS command-line tools.\n"
+"                         Default: directory containing agfbuildgen.\n"
 "-v, --verbose            Enable verbose output for debugging.\n"
 "-h, --help               Show this help message and exit.\n"
 "";
@@ -65,6 +67,7 @@ struct ParsedOptions
     Generator Gen = Generator::kNinja;
     String GameAgf;
     String OutputDir {};
+    String ToolsDir {};
     bool Verbose = false;
     bool Exit = false;
     int ErrorCode = 0;
@@ -156,6 +159,10 @@ ParsedOptions parser_to_gen_opts(const ParseResult& parseResult)
                 return ParsedOptions(-1);
             }
         }
+        else if (opt_with_value.first == "-t" || opt_with_value.first == "--tools-dir")
+        {
+            parsedOptions.ToolsDir = opt_with_value.second;
+        }
     }
 
     parsedOptions.GameAgf = parseResult.PosArgs[0];
@@ -211,10 +218,7 @@ bool tool_exists_in_path(const char* tool_path)
 {
     String tool_exe = String::FromFormat("%s.exe", tool_path);
     if (!(File::IsFile(tool_path) || File::IsFile(tool_exe)))
-    {
-        printf("Tool '%s' not found", tool_path);
         return false;
-    }
     return true;
 }
 
@@ -229,7 +233,7 @@ int main(const int argc, const char* const argv[])
     // Parse input parameters
     //-----------------------------------------------------------------------//
 
-    ParseResult parseResult = Parse(argc,argv,{"-f", "--format"});
+    ParseResult parseResult = Parse(argc,argv,{"-f", "--format", "-t", "--tools-dir"});
     ParsedOptions parsedOptions = parser_to_gen_opts(parseResult);
 
     if(parsedOptions.Exit) return parsedOptions.ErrorCode;
@@ -255,34 +259,41 @@ int main(const int argc, const char* const argv[])
     // we don't delete the temp after or we will have to rebuild the dependencies everytime.
     // maybe call this a different name?
 
-    // all the entries below should be the default full paths
-    // but I don't know any easy way to get them...
-    // ideally it would look in the path THIS executable is (assuming there is a Tools dir)
-    // but C/C++11 doesn't have an easy api for this... (for Windows/Linux/macOS...), only in C++20
-    opt.AgsDefnsFile = "agsdefns.sh"; // need to figure a way to get this?
-    opt.ToolAgspak = "agspak"; // I think the exe extension here is optional
-    opt.ToolTrac = "trac";
-    opt.ToolAgfexport = "agfexport";
-    opt.ToolAgf2dlgasc = "agf2dlgasc";
-    opt.ToolAgscc = "agscc";
-    opt.ToolCrmpak = "crmpak";
-    opt.ToolAgf2dta = "agf2dta";
+    if (!parsedOptions.ToolsDir.IsNullOrSpace())
+    {
+        opt.ToolsDir = Path::MakeAbsolutePath(parsedOptions.ToolsDir);
+    }
+    else
+    {
+        const String executable_path = get_this_executable_path();
+        if (executable_path.IsNullOrSpace())
+        {
+            printf("Unable to determine agfbuildgen's executable path\n");
+            return -1;
+        }
+        opt.ToolsDir = Path::MakeAbsolutePath(Path::GetParent(executable_path));
+    }
 
-    // adjust things here as absolute paths
-    // probably it would be better to have a function that finds them, figure if they need exe extension (windows)
-    // and then put the result in place of each
-    opt.AgsDefnsFile = Path::MakeAbsolutePath(opt.AgsDefnsFile);
-    opt.ToolAgspak = Path::MakeAbsolutePath(opt.ToolAgspak);
-    opt.ToolTrac = Path::MakeAbsolutePath(opt.ToolTrac);
-    opt.ToolAgfexport = Path::MakeAbsolutePath(opt.ToolAgfexport);
-    opt.ToolAgf2dlgasc = Path::MakeAbsolutePath(opt.ToolAgf2dlgasc);
-    opt.ToolAgscc = Path::MakeAbsolutePath(opt.ToolAgscc);
-    opt.ToolCrmpak = Path::MakeAbsolutePath(opt.ToolCrmpak);
-    opt.ToolAgf2dta = Path::MakeAbsolutePath(opt.ToolAgf2dta);
+    // NOTE: probably this may have to be treated differently later
+    // for now let's copy this file wherever the tools are
+    opt.AgsDefnsFile = Path::ConcatPaths(opt.ToolsDir, "agsdefns.sh");
+
+    opt.ToolAgspak = Path::ConcatPaths(opt.ToolsDir, "agspak");
+    opt.ToolTrac = Path::ConcatPaths(opt.ToolsDir, "trac");
+    opt.ToolAgfexport = Path::ConcatPaths(opt.ToolsDir, "agfexport");
+    opt.ToolAgf2dlgasc = Path::ConcatPaths(opt.ToolsDir, "agf2dlgasc");
+    opt.ToolAgscc = Path::ConcatPaths(opt.ToolsDir, "agscc");
+    opt.ToolCrmpak = Path::ConcatPaths(opt.ToolsDir, "crmpak");
+    opt.ToolAgf2dta = Path::ConcatPaths(opt.ToolsDir, "agf2dta");
 
     if (!File::IsDirectory(opt.OutputDir))
     {
         printf("Output directory '%s' doesn't exist", opt.OutputDir.GetCStr());
+        return -1;
+    }
+    if (!File::IsDirectory(opt.ToolsDir))
+    {
+        printf("Tools directory '%s' doesn't exist\n", opt.ToolsDir.GetCStr());
         return -1;
     }
     if (!File::IsDirectory(opt.GameProjectDir))
@@ -302,19 +313,40 @@ int main(const int argc, const char* const argv[])
     }
 
     if (!tool_exists_in_path(opt.ToolAgspak.GetCStr()))
+    {
+        printf("Required tool 'agspak' not found at '%s'\n", opt.ToolAgspak.GetCStr());
         return -1;
+    }
     if (!tool_exists_in_path(opt.ToolTrac.GetCStr()))
+    {
+        printf("Required tool 'trac' not found at '%s'\n", opt.ToolTrac.GetCStr());
         return -1;
+    }
     if (!tool_exists_in_path(opt.ToolAgfexport.GetCStr()))
+    {
+        printf("Required tool 'agfexport' not found at '%s'\n", opt.ToolAgfexport.GetCStr());
         return -1;
+    }
     if (!tool_exists_in_path(opt.ToolAgf2dlgasc.GetCStr()))
+    {
+        printf("Required tool 'agf2dlgasc' not found at '%s'\n", opt.ToolAgf2dlgasc.GetCStr());
         return -1;
+    }
     if (!tool_exists_in_path(opt.ToolAgscc.GetCStr()))
+    {
+        printf("Required tool 'agscc' not found at '%s'\n", opt.ToolAgscc.GetCStr());
         return -1;
+    }
     if (!tool_exists_in_path(opt.ToolCrmpak.GetCStr()))
+    {
+        printf("Required tool 'crmpak' not found at '%s'\n", opt.ToolCrmpak.GetCStr());
         return -1;
+    }
     if (!tool_exists_in_path(opt.ToolAgf2dta.GetCStr()))
+    {
+        printf("Required tool 'agf2dta' not found at '%s'\n", opt.ToolAgf2dta.GetCStr());
         return -1;
+    }
 
     fill_options_from_project(opt, reader);
 

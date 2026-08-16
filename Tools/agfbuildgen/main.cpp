@@ -13,6 +13,7 @@
 //=============================================================================
 #include <iostream>
 #include <algorithm>
+#include <vector>
 #include "platform/platform.h"
 #include "util/path.h"
 #include "util/cmdlineopts.h"
@@ -26,6 +27,13 @@
 #include "util/textstreamwriter.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
+#elif AGS_PLATFORM_OS_MACOS
+#include <mach-o/dyld.h>
+#elif AGS_PLATFORM_OS_LINUX
+#include <unistd.h>
+#elif AGS_PLATFORM_OS_FREEBSD
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #endif
 
 using namespace AGS::Common;
@@ -63,6 +71,60 @@ struct ParsedOptions
     ParsedOptions() = default;
     explicit ParsedOptions(int error_code) { Exit = true; ErrorCode = error_code; }
 };
+
+// retrieves THIS executable path
+// below code is hugely based on https://github.com/DanielGibson/Snippets/blob/7bad19703feb1cc393fda4438c8415889cccb1c6/DG_misc.h#L293
+// but later adapted to AGS and readjusted using Codex GPT-5.6-Sol
+String get_this_executable_path()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    std::vector<wchar_t> path_buf(256u);
+    for (;;)
+    {
+        const DWORD path_len = GetModuleFileNameW(nullptr, path_buf.data(), static_cast<DWORD>(path_buf.size()));
+        if (path_len == 0u)
+            return {};
+        if (path_len < path_buf.size())
+            return Path::WidePathToUTF8(path_buf.data());
+        path_buf.resize(path_buf.size() * 2u);
+    }
+#elif AGS_PLATFORM_OS_MACOS
+    uint32_t path_size = 0u;
+    _NSGetExecutablePath(nullptr, &path_size);
+    if (path_size == 0u)
+        return {};
+
+    std::vector<char> path_buf(path_size);
+    if (_NSGetExecutablePath(path_buf.data(), &path_size) != 0)
+        return {};
+    return Path::MakeAbsolutePath(path_buf.data());
+#elif AGS_PLATFORM_OS_LINUX
+    std::vector<char> path_buf(256u);
+    for (;;)
+    {
+        const ssize_t path_len = readlink("/proc/self/exe", path_buf.data(), path_buf.size());
+        if (path_len < 0)
+            return {};
+        if (static_cast<size_t>(path_len) < path_buf.size())
+            return String(path_buf.data(), static_cast<size_t>(path_len));
+        path_buf.resize(path_buf.size() * 2u);
+    }
+#elif AGS_PLATFORM_OS_FREEBSD
+    int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    const size_t mib_size = sizeof(mib) / sizeof(mib[0]);
+    size_t path_size = 0u;
+    if (sysctl(mib, mib_size, nullptr, &path_size, nullptr, 0u) != 0 || path_size == 0u)
+        return {};
+
+    std::vector<char> path_buf(path_size);
+    if (sysctl(mib, mib_size, path_buf.data(), &path_size, nullptr, 0u) != 0)
+        return {};
+    return path_buf.data();
+#else
+    // Should we #error "Unsupported Platform!" ?
+    return {};
+#endif
+}
 
 ParsedOptions parser_to_gen_opts(const ParseResult& parseResult)
 {

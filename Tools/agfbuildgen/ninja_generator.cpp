@@ -58,7 +58,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
     writer.Rule("agf2autoash", "$AGFEXPORT autoash $in $out");
     writer.Rule("agf2glvar", "$AGFEXPORT glvar $in $out");
     writer.Rule("agf2dlgasc", "$AGF2DLASC $in $out");
-    writer.Rule("agscc", "$AGSCC $in -o $out -H $headers");
+    writer.Rule("agscc", "$AGSCC $in -o $out -H \"$headers\"");
     writer.Rule("trac", "$TRAC $in $out");
     writer.Rule("agspak", "$AGSPAK -c $out $GAME_PROJECT_DIR -D $TEMP_DIR $files --replace-dup");
     writer.Rule("agf2dta", "$AGF2DTA $in $out");
@@ -76,7 +76,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
 
     const std::vector<String> global_variable_headers {"$AGSDEFNS_FILE", "$TEMP_DIR/_GlobalVariables.ash"};
     writer.Build({"$TEMP_DIR/_GlobalVariables.o"}, "agscc", {"$TEMP_DIR/_GlobalVariables.asc"},
-                 global_variable_headers, {}, {{"headers", Join(":", global_variable_headers)}});
+                 global_variable_headers, {}, {{"headers", Join(";", global_variable_headers)}});
 
     for (int i=0; i<scripts_list.size(); i++)
     {
@@ -88,7 +88,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
 
         std::vector<String> this_script_headers(headers_base);
         this_script_headers.insert(this_script_headers.end(), project_headers.begin(), project_headers.begin() + i + 1);
-        String headers = Join(":", this_script_headers);
+        String headers = Join(";", this_script_headers);
 
         writer.Build({obj}, "agscc", {asc}, this_script_headers, {}, {{"headers", headers}});
     }
@@ -102,7 +102,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
         std::vector<String> this_script_headers(headers_base);
         this_script_headers.insert(this_script_headers.end(), project_headers.begin(), project_headers.end());
         // FIX-ME: revise this, I think I forgot the header of the script that is actually passed to agscc!!
-        String headers = Join(":", this_script_headers);
+        String headers = Join(";", this_script_headers);
 
         writer.Build({obj}, "agscc", {asc}, this_script_headers, {}, {{"headers", headers}});
     }
@@ -124,7 +124,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
         std::vector<String> room_headers(headers_base);
         room_headers.insert(room_headers.end(), project_headers.begin(), project_headers.end());
         room_headers.push_back(room_header);
-        String headers = Join(":", room_headers);
+        String headers = Join(";", room_headers);
 
         writer.Build({ room_obj }, "agscc", { room_asc }, room_headers, {}, { {"headers", headers} });
 

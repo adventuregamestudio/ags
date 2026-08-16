@@ -310,6 +310,11 @@ Engine:
    continue to operate this DrawingSurface object.
  - Fixed potential engine crash occuring if the game's spritefile contained less sprites than
    are defined by the game data, for any reason.
+ - Fixed loop range limit used when selecting a suitable loop after changing to another normal view
+   or unlocking a temporary view. Previously, it seems, it used full range of loops in the current
+   normal view, now it should use only first 4 or 8 standard standing loops (depending on "use
+   diagonal loops" setting).
+
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.

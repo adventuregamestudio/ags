@@ -106,6 +106,9 @@ ParsedOptions parser_to_gen_opts(const ParseResult& parseResult)
 // TO-DO: make this return errors as needed
 void fill_options_from_project(GeneratorOptions& opt, const AGF::AGFReader &reader)
 {
+    // we assume these two have matching index for script/header pairs
+    // if somehow a game is written by hand and not using the editor
+    // it is possible to have a script without a header, which would break things weirdly
     AGF::ReadScriptList(opt.ScriptFileList, reader.GetGameRoot());
     AGF::ReadScriptHeaderList(opt.HeaderFileList, reader.GetGameRoot());
 

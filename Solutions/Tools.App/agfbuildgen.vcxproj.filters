@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{fc04721b-9f43-409c-b2a0-c31d07c56e31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tinyxml2">
+      <UniqueIdentifier>{A8E3D5C9-9B72-4F41-8D2C-6E7F1B934A5E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="agfbuildgen">
+      <UniqueIdentifier>{784d4606-caec-42c9-afe9-2d566ab5c150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{46113947-7cff-4f5d-9b67-258f0bf70e21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{c1af318f-8db3-4776-97e1-ecac778774c3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\filestream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stdio_compat.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_compat.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\characterinfo.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\directory.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_utils.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp">
+      <Filter>tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agfbuildgen\main.cpp">
+      <Filter>agfbuildgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agfbuildgen\makefile_generator.cpp">
+      <Filter>agfbuildgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agfbuildgen\makefile_writer.cpp">
+      <Filter>agfbuildgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agfbuildgen\ninja_generator.cpp">
+      <Filter>agfbuildgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agfbuildgen\ninja_writer.cpp">
+      <Filter>agfbuildgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agfbuildgen\text_writer.cpp">
+      <Filter>agfbuildgen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\memorystream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\agfreader.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\game_utils.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
+      <Filter>tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\bufferedstream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\filestream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\debug\out.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\characterinfo.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\mousecursor.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\directory.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\path.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\stream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string_utils.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\memorystream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\agfreader.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\game_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agfbuildgen\makefile_generator.h">
+      <Filter>agfbuildgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agfbuildgen\makefile_writer.h">
+      <Filter>agfbuildgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agfbuildgen\ninja_generator.h">
+      <Filter>agfbuildgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agfbuildgen\ninja_writer.h">
+      <Filter>agfbuildgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agfbuildgen\text_writer.h">
+      <Filter>agfbuildgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\agfbuildgen\generator_common.h">
+      <Filter>agfbuildgen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textstreamwriter.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

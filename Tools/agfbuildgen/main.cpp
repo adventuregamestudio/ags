@@ -178,6 +178,7 @@ void fill_options_from_project(GeneratorOptions& opt, const AGF::AGFReader &read
     // we assume these two have matching index for script/header pairs
     // if somehow a game is written by hand and not using the editor
     // it is possible to have a script without a header, which would break things weirdly
+    // FIX-ME: possibly a size check, while fragile could help verify if both vectors have the same size?
     AGF::ReadScriptList(opt.ScriptFileList, reader.GetGameRoot());
     AGF::ReadScriptHeaderList(opt.HeaderFileList, reader.GetGameRoot());
 

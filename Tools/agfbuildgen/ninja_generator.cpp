@@ -42,7 +42,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
     // Variables
     writer.Variable("AGSCC", opt.ToolAgscc);
     writer.Variable("AGFEXPORT", opt.ToolAgfexport);
-    writer.Variable("AGF2DLASC", opt.ToolAgf2dlgasc);
+    writer.Variable("AGF2DLGASC", opt.ToolAgf2dlgasc);
     writer.Variable("TRAC", opt.ToolTrac);
     writer.Variable("AGSPAK", opt.ToolAgspak);
     writer.Variable("CRMPAK", opt.ToolCrmpak);
@@ -57,7 +57,7 @@ void GenerateNinjaBuild(const GeneratorOptions &opt, std::unique_ptr<Stream> &&o
     // Rules
     writer.Rule("agf2autoash", "$AGFEXPORT autoash $in $out");
     writer.Rule("agf2glvar", "$AGFEXPORT glvar $in $out");
-    writer.Rule("agf2dlgasc", "$AGF2DLASC $in $out");
+    writer.Rule("agf2dlgasc", "$AGF2DLGASC $in $out");
     writer.Rule("agscc", "$AGSCC $in -o $out -H \"$headers\"");
     writer.Rule("trac", "$TRAC $in $out");
     writer.Rule("agspak", "$AGSPAK -c $out $GAME_PROJECT_DIR -D $TEMP_DIR $files --replace-dup");

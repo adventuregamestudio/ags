@@ -133,11 +133,12 @@ namespace AGS.Editor
         private const string LATEST_USER_DATA_VERSION = "3.0.2.1";
         /*
          * 1: 3.0.2.1
-         * 2: 3.4.0.1    - WorkspaceState section
+         * 2: 3.4.0.1     - WorkspaceState section
          * 3: 3.5.0.11
          * 4: 3.5.1 (?)
+         * 3.6.3.13       - WorkspaceState: RequiredRebuildTime
         */
-        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 4;
+        public const int LATEST_USER_DATA_XML_VERSION_INDEX = 3060313;
         public const string AUDIO_VOX_FILE_NAME = "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;

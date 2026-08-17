@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include <memory>
 #include <stdexcept>
 #include <string.h> // memcpy
 #include <aastr.h>
+#include <SDL.h>
 #include "gfx/allegrobitmap.h"
 #include "util/filestream.h"
 #include "debug/assert.h"
@@ -24,6 +24,10 @@ namespace AGS
 {
 namespace Common
 {
+
+Bitmap::Bitmap()
+{
+}
 
 Bitmap::Bitmap(int width, int height, int color_depth)
 {
@@ -45,6 +49,11 @@ Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
     WrapAllegroBitmap(al_bmp, shared_data);
 }
 
+Bitmap::Bitmap(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data)
+{
+    WrapPixelObject(std::move(data_obj), bm_data, shared_data);
+}
+
 Bitmap::Bitmap(const Bitmap &bmp)
 {
     CreateCopy(&bmp);
@@ -53,10 +62,14 @@ Bitmap::Bitmap(const Bitmap &bmp)
 Bitmap::Bitmap(Bitmap &&bmp)
 {
     _pixelData = std::move(bmp._pixelData);
+    _pixelObject = std::move(bmp._pixelObject);
     _alBitmap = bmp._alBitmap;
-    _isDataOwner = bmp._isDataOwner;
+    _isAlBitmapOwner = bmp._isAlBitmapOwner;
+    _pitch = bmp._pitch;
+    bmp._ownPixelData = false;
     bmp._alBitmap = nullptr;
-    bmp._isDataOwner = false;
+    bmp._isAlBitmapOwner = false;
+    bmp._pitch = 0;
 }
 
 Bitmap::~Bitmap()
@@ -95,7 +108,9 @@ bool Bitmap::Create(int width, int height, int color_depth)
 
     _pixelData = std::move(data);
     _alBitmap = bitmap;
-    _isDataOwner = true;
+    _isAlBitmapOwner = true;
+    _ownPixelData = true;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -135,7 +150,9 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
 
     _pixelData = std::move(data);
     _alBitmap = bitmap;
-    _isDataOwner = true;
+    _isAlBitmapOwner = true;
+    _ownPixelData = true;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -146,7 +163,8 @@ bool Bitmap::CreateSubBitmap(const Bitmap *src, const Rect &rc)
 
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
-    _isDataOwner = true;
+    _isAlBitmapOwner = true;
+    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -158,6 +176,7 @@ bool Bitmap::ResizeSubBitmap(int width, int height)
     // might require amending allegro bitmap struct
     _alBitmap->w = _alBitmap->cr = width;
     _alBitmap->h = _alBitmap->cb = height;
+    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -188,26 +207,55 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 
     Destroy();
     _alBitmap = al_bmp;
-    _isDataOwner = !shared_data;
+    _isAlBitmapOwner = !shared_data;
+    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
 void Bitmap::ForgetAllegroBitmap()
 {
     _alBitmap = nullptr;
-    _isDataOwner = false;
-    _pixelData = {};
+    _isAlBitmapOwner = false;
+    Destroy(); // clean up the rest
+}
+
+bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data)
+{
+    Destroy();
+
+    _alBitmap = create_bitmap_userdata(bm_data.GetColorDepth(),
+        bm_data.GetWidth(), bm_data.GetHeight(), bm_data.GetData(), bm_data.GetDataSize(), bm_data.GetStride(), nullptr);
+    if (!_alBitmap)
+        return false;
+
+    _pixelObject = std::move(data_obj);
+    _isAlBitmapOwner = true;
+    _ownPixelData = !shared_data;
+    _pitch = bm_data.GetStride();
+    return true;
 }
 
 void Bitmap::Destroy()
 {
-    if (_isDataOwner && _alBitmap)
+    if (_alBitmap && _isAlBitmapOwner)
     {
         destroy_bitmap(_alBitmap);
     }
+    if (_ownPixelData)
+    {
+        _pixelData = {};
+        _pixelObject = {};
+    }
+    else
+    {
+        _pixelData.release();
+        _pixelObject.release();
+    }
+
     _alBitmap = nullptr;
-    _isDataOwner = false;
-    _pixelData = {};
+    _isAlBitmapOwner = false;
+    _ownPixelData = false;
+    _pitch = 0;
 }
 
 bool Bitmap::SaveToFile(const char *filename, bool skip_alpha, const RGB *palette)

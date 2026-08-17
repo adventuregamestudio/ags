@@ -821,8 +821,20 @@
       <Link>ikpMP3.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\References\ikpFlac.dll">
+    <Content Condition="'$(Platform)' == 'x86'" Include="..\References\ikpFlac.dll">
       <Link>ikpFlac.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Condition="'$(Platform)' == 'x64'" Include="..\References\x64\ikpFlac.dll">
+      <Link>ikpFlac.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Condition="'$(Platform)' == 'x86'" Include="..\References\SDL2.dll">
+      <Link>SDL2.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Condition="'$(Platform)' == 'x64'" Include="..\References\x64\SDL2.dll">
+      <Link>SDL2.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />

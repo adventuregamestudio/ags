@@ -1,5 +1,7 @@
-INCDIR = ../../Common ../../libsrc/miniz ../../libsrc/allegro/include ../../libsrc/stb
+INCDIR = ../../Common ../../Tools ../../libsrc/miniz ../../libsrc/allegro/include ../../libsrc/stb ../../libsrc/tinyxml2
 LIBDIR =
+
+LD_VERSION := $(shell $(LD) --version 2>/dev/null)
 
 CFLAGS := -O2 -g \
 	-fsigned-char -fno-strict-aliasing -fwrapv \
@@ -20,16 +22,29 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
+
+ifneq (,$(findstring GNU ld,$(LD_VERSION)))
+    LDFLAGS += -rdynamic -Wl,--as-needed
+endif
+LDFLAGS  += $(addprefix -L,$(LIBDIR))
 
 COMMON_OBJS = \
 	../../Common/ac/spritefile.cpp \
+	../../Common/data/data_ext.cpp \
+	../../Common/data/data_helpers.cpp \
+	../../Common/debug/debugmanager.cpp \
+	../../Common/game/customproperties.cpp \
+	../../Common/game/interactions.cpp \
+	../../Common/game/room_file.cpp \
+	../../Common/game/roomdata.cpp \
 	../../Common/gfx/bitmapdata.cpp \
 	../../Common/gfx/image_bmp.cpp \
 	../../Common/gfx/image_file.cpp \
 	../../Common/gfx/image_pcx.cpp \
 	../../Common/gfx/image_png.cpp \
+	../../Common/script/cc_common.cpp \
+	../../Common/script/cc_script.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/compress.cpp \
@@ -45,8 +60,17 @@ COMMON_OBJS = \
 	../../Common/util/string_compat.c \
 	../../Common/util/string_utils.cpp
 
+TOOL_OBJS = \
+	../../Tools/data/agfreader.cpp \
+	../../Tools/data/cc_script_stubs.cpp \
+	../../Tools/data/sprite_utils.cpp
+
 MINIMAL_ALLEGRO_OBJS = \
-	../../libsrc/allegro/src/color.c
+	../../libsrc/allegro/src/allegro.c \
+	../../libsrc/allegro/src/color.c \
+	../../libsrc/allegro/src/file.c \
+	../../libsrc/allegro/src/unicode.c \
+	../../libsrc/allegro/src/unix/ufile.c
 
 MINIZ_OBJS = \
 	../../libsrc/miniz/miniz.c
@@ -54,12 +78,17 @@ MINIZ_OBJS = \
 STB_OBJS = \
 	../../libsrc/stb/stb_image.c
 
+TINYXML2 = \
+	../../libsrc/tinyxml2/tinyxml2.cpp
+
 OBJS := main.cpp \
 	commands.cpp \
 	$(COMMON_OBJS) \
+	$(TOOL_OBJS) \
 	$(MINIMAL_ALLEGRO_OBJS) \
-	$(MINIZ_OBJS)
-	$(STB_OBJS)
+	$(MINIZ_OBJS) \
+	$(STB_OBJS) \
+	$(TINYXML2)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 
@@ -69,16 +98,16 @@ DEPFILES = $(OBJS:.o=.d)
 
 .PHONY: printflags clean install uninstall rebuild
 
-all: printflags spritepak
+all: printflags spriteimport
 
-spritepak: $(OBJS) 
+spriteimport: $(OBJS) 
 	@echo "Linking..."
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS) $(LIBS)
 
 debug: CXXFLAGS += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: CFLAGS   += -UNDEBUG -D_DEBUG -Og -g -pg
 debug: LDFLAGS  += -pg
-debug: printflags spritepak
+debug: printflags spriteimport
 
 -include $(DEPFILES)
 
@@ -100,11 +129,11 @@ rebuild: clean all
 
 clean:
 	@echo "Cleaning..."
-	$(CMD_PREFIX) rm -f spritepak $(OBJS) $(DEPFILES)
+	$(CMD_PREFIX) rm -f spriteimport $(OBJS) $(DEPFILES)
 
 install: spritepak
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin spritepak
+	cp -t $(PREFIX)/bin spriteimport
 
 uninstall:
-	rm -f $(PREFIX)/bin/spritepak
+	rm -f $(PREFIX)/bin/spriteimport

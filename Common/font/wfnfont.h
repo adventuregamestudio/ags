@@ -19,14 +19,20 @@
 // WFN format:
 // - signature            ( 15 )
 // - offsets table offset (  2 )
-// - characters table (for unknown number of char items):
+// - characters table (for as many char items as can fit until offsets table):
 // -     width            (  2 )
 // -     height           (  2 )
 // -     pixel bits       ( (width / 8 + 1) * height )
-// -     any unknown data
 // - offsets table (for X chars):
 // -     character offset (  2 )
 //
+// Offsets table has its index equal to a character index in the char table
+// which this font corresponds to (ASCII, ANSI, Unicode). In offsets table
+// all char indexes must be sequential, meaning that the format may support a
+// range of 0-64k glyph indexes.
+// 
+// All offsets in this format are relative to the beginning of the WFN data.
+// 
 // NOTE: unfortunately, at the moment the format does not provide means to
 // know the number of supported characters for certain, and the size of the
 // data (file) is used to determine that.

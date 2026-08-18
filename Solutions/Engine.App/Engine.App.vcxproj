@@ -113,6 +113,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -120,6 +121,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -127,6 +129,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -134,6 +137,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -141,6 +145,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_ASAN|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -148,6 +153,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -155,6 +161,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_ASAN|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -162,6 +169,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -169,6 +177,7 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -176,12 +185,13 @@
     <Import Project="..\libtheora.props" />
     <Import Project="..\libvorbis.props" />
     <Import Project="..\sdl2.props" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
-    <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(AgsFinalOutDir)</OutDir>
+    <IntDir>$(AgsObjDir)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -261,7 +271,7 @@
     <Link>
       <AdditionalDependencies>Common_d.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -291,7 +301,7 @@
     <Link>
       <AdditionalDependencies>Common_d.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -320,7 +330,7 @@
     <Link>
       <AdditionalDependencies>Common_d.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -347,7 +357,7 @@
     <Link>
       <AdditionalDependencies>Common_d.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -375,7 +385,7 @@
     <Link>
       <AdditionalDependencies>Common_d.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -404,7 +414,7 @@
     <Link>
       <AdditionalDependencies>Common_d.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -431,7 +441,7 @@
     <Link>
       <AdditionalDependencies>Common.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
@@ -466,7 +476,7 @@
     <Link>
       <AdditionalDependencies>Common.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
@@ -501,7 +511,7 @@
     <Link>
       <AdditionalDependencies>Common.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
@@ -538,7 +548,7 @@
     <Link>
       <AdditionalDependencies>Common.lib;SDL2.lib;SDL2main.lib;SDL2_sound-static.lib;d3d9.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AgsLibOutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>

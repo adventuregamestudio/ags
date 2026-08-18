@@ -197,33 +197,30 @@ String MakeGameAutoScriptHeader(const GameRef &game)
 
 String MakeVariablesScriptHeader(std::vector<Variable> &vars)
 {
-    String header, buf;
+    String header;
     for (const auto &var : vars)
     {
-        buf.Format("import %s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
-        header.Append(buf);
+        header.AppendFmt("import %s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
     }
     return header;
 }
 
 String MakeVariablesScriptBody(std::vector<Variable> &vars)
 {
-    String body, buf;
+    String body;
     // Generate declarations and init simple vars
     for (const auto &var : vars)
     {
         if ((var.Type.Compare("int") == 0 || var.Type.Compare("bool") == 0 || var.Type.Compare("float") == 0) &&
             !var.Value.IsEmpty())
         {
-            buf.Format("%s %s = %s;\n", var.Type.GetCStr(), var.Name.GetCStr(), var.Value.GetCStr());
+            body.AppendFmt("%s %s = %s;\n", var.Type.GetCStr(), var.Name.GetCStr(), var.Value.GetCStr());
         }
         else
         {
-            buf.Format("%s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
+            body.AppendFmt("%s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
         }
-        body.Append(buf);
-        buf.Format("export %s;\n", var.Name.GetCStr());
-        body.Append(buf);
+        body.AppendFmt("export %s;\n", var.Name.GetCStr());
     }
 
     // Generate initialization of String vars
@@ -235,8 +232,7 @@ String MakeVariablesScriptBody(std::vector<Variable> &vars)
             String value = var.Value;
             value.Replace("\\", "\\\\");
             value.Replace("\"", "\\\"");
-            buf.Format("  %s = \"%s\";\n", var.Name.GetCStr(), value.GetCStr());
-            body.Append(buf);
+            body.AppendFmt("  %s = \"%s\";\n", var.Name.GetCStr(), value.GetCStr());
         }
     }
     body.Append("}\n");

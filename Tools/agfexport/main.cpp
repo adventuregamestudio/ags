@@ -49,6 +49,7 @@ const char *HELP_AUDIOCLIP_LIST = ""
 #endif
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_AUTOASH = ""
@@ -56,13 +57,15 @@ const char *HELP_AUTOASH = ""
     "Writes <OUT-FILE.ASH>, the auto-generated script header from <INPUT-GAME.AGF>\n"
     "This header has global elements from the game necessary for building scripts.\n"
     "Commands:\n"
-    "  -h, --help             Show this help message\n";
+    "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n";
 
 const char *HELP_CUSTOMDATADIR_LIST = ""
     "Usage: agfexport custom-data-dir <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of custom game data directories.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_FONT_LIST = ""
@@ -70,6 +73,7 @@ const char *HELP_FONT_LIST = ""
     "Writes <OUT-FILE>, a file with a list of font files used by the game\n."
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_GAMECFG = ""
@@ -84,13 +88,15 @@ const char *HELP_GLVAR = ""
     "Writes both <HEAD.ASH> (e.g. globalvars.ash) and <BODY.ASC> (e.g. globalvars.asc).\n"
     "These are retrieved from the game project in <INPUT-GAME.AGF>.\n"
     "Commands:\n"
-    "  -h, --help             Show this help message\n";
+    "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n";
 
 const char *HELP_HEADER_LIST = ""
     "Usage: agfexport header-list <INPUT-GAME.AGF> <OUT-FILE>\n"
     "Writes <OUT-FILE>, a file with a list of headers from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_PLUGIN_LIST = ""
@@ -98,6 +104,7 @@ const char *HELP_PLUGIN_LIST = ""
     "Writes <OUT-FILE>, a file with a list of game plugins.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_ROOM_LIST = ""
@@ -105,6 +112,7 @@ const char *HELP_ROOM_LIST = ""
     "Writes <OUT-FILE>, a file with a list of rooms.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_SCRIPT_LIST = ""
@@ -112,6 +120,7 @@ const char *HELP_SCRIPT_LIST = ""
     "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_TRA_LIST = ""
@@ -119,6 +128,7 @@ const char *HELP_TRA_LIST = ""
     "Writes <OUT-FILE>, a file with a list of translations.\n"
     "Commands:\n"
     "  -h, --help             Show this help message\n"
+    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
     "  -s, --stdout           Instead print the list to stdout\n";
 
 enum CommandType
@@ -174,7 +184,23 @@ HError write_to_file(const String &content, const String &file)
     return HError::None();
 }
 
-HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout)
+HError write_to_file_if(const String &content, const String &file, bool skip_if_empty, const char *content_name)
+{
+    if (!skip_if_empty || !content.IsEmpty())
+    {
+        HError err = write_to_file(content, file);
+        if (!err)
+            return err;
+        printf("%s written successfully\n", content_name);
+    }
+    else
+    {
+        printf("%s is empty, no writing done\n", content_name);
+    }
+    return HError::None();
+}
+
+HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout, bool no_empty_files)
 {
     if (!to_stdout)
         fprintf(StdFile, "Output list file: %s\n", file.GetCStr());
@@ -269,11 +295,11 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
     }
     else
     {
-        return write_to_file(exp_data, file);
+        return write_to_file_if(exp_data, file, no_empty_files, "List");
     }
 }
 
-HError autoash_command(AGF::AGFReader &reader, const String &dst)
+HError autoash_command(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
 {
     const char *dst_autoash = dst.GetCStr();
     fprintf(StdFile, "Output script header: %s\n", dst_autoash);
@@ -281,10 +307,10 @@ HError autoash_command(AGF::AGFReader &reader, const String &dst)
     GameRef game_ref;
     AGF::ReadGameRef(game_ref, reader);
     String header = MakeGameAutoScriptHeader(game_ref);
-    return write_to_file(header, dst_autoash);
+    return write_to_file_if(header, dst_autoash, no_empty_files, "Script header");
 }
 
-HError glvar_command(AGF::AGFReader &reader, const String &header_file, const String &body_file)
+HError glvar_command(AGF::AGFReader &reader, const String &header_file, const String &body_file, bool no_empty_files)
 {
     fprintf(StdFile, "Output script header: %s\n", header_file.GetCStr());
     fprintf(StdFile, "Output script body: %s\n", body_file.GetCStr());
@@ -294,22 +320,28 @@ HError glvar_command(AGF::AGFReader &reader, const String &header_file, const St
     String header = MakeVariablesScriptHeader(vars);
     String body = MakeVariablesScriptBody(vars);
 
-    auto err = write_to_file(header, header_file);
-    if (!err)
-        return err;
+    // Write both header and script if at least one of them is not empty
+    if (!no_empty_files || !header.IsEmpty() || !body.IsEmpty())
+    {
+        auto err = write_to_file(header, header_file);
+        if (!err)
+            return err;
+        printf("Script header written successfully\n");
 
-    fprintf(StdFile, "Script header written successfully.\n");
-
-    err = write_to_file(body, body_file);
-    if (!err)
-        return err;
-
-    fprintf(StdFile, "Script body written successfully.\n");
+        err = write_to_file(body, body_file);
+        if (!err)
+            return err;
+        printf("Script body written successfully\n");
+    }
+    else
+    {
+        printf("Script is empty, no writing done\n");
+    }
 
     return HError::None();
 }
 
-HError gamecfg_command(AGF::AGFReader &reader, const String &dst)
+HError gamecfg_command(AGF::AGFReader &reader, const String &dst, bool no_empty_files)
 {
     fprintf(StdFile, "Output config file: %s\n", dst.GetCStr());
 
@@ -341,6 +373,7 @@ int main(int argc, char *argv[])
     }
 
     const bool stdout_list_print = result.Opt.count("-s") || result.Opt.count("--stdout");
+    const bool no_empty_files = result.Opt.count("-n") || result.Opt.count("--no-empty");
     if (stdout_list_print)
     {
         StdFile = stderr;
@@ -419,16 +452,16 @@ int main(int argc, char *argv[])
         case kCmdRoomList:
         case kCmdScriptList:
         case kCmdTraList:
-            err = list_command(reader, command, out_file, stdout_list_print);
+            err = list_command(reader, command, out_file, stdout_list_print, no_empty_files);
             break;
         case kCmdAutoAsh:
-            err = autoash_command(reader, out_file);
+            err = autoash_command(reader, out_file, no_empty_files);
             break;
         case kCmdGlVar:
-            err = glvar_command(reader, out_file, result.PosArgs[3]);
+            err = glvar_command(reader, out_file, result.PosArgs[3], no_empty_files);
             break;
         case kCmdGameCfg:
-            err = gamecfg_command(reader, out_file);
+            err = gamecfg_command(reader, out_file, no_empty_files);
             break;
         case kCmdMAX:
         default:

@@ -102,7 +102,8 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.EnforceNewStrings) printf("EnforceNewStrings; ");
     if (Flags.EnforceNewAudio) printf("EnforceNewAudio; ");
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
-    if(DebugMode) printf("\nDebugMode\n");
+    printf("\n");
+    if (DebugMode) printf("DebugMode\n");
 }
 
 

@@ -901,10 +901,15 @@ void SpriteFileWriter::WriteRawData(const SpriteDatHeader &hdr, const uint8_t *d
 
 void SpriteFileWriter::Finalize()
 {
-    if (!_out || _lastSlotPos < 0) return;
-    _out->Seek(_lastSlotPos, kSeekBegin);
-    _out->WriteInt32(_index.GetLastSlot());
-    _out.reset();
+    if (_out)
+    {
+        if (_lastSlotPos >= 0)
+        {
+            _out->Seek(_lastSlotPos, kSeekBegin);
+            _out->WriteInt32(_index.GetLastSlot());
+        }
+        _out.reset();
+    }
 }
 
 } // namespace Common

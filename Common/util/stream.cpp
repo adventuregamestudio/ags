@@ -187,6 +187,7 @@ size_t Stream::WriteByteCount(uint8_t b, size_t count)
 //-----------------------------------------------------------------------------
 
 StreamSection::StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, soff_t end)
+    : StreamBase(base->GetPath())
 {
     OpenSection(base.get(), start, end);
     _ownBase = std::move(base);
@@ -194,9 +195,15 @@ StreamSection::StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, 
 }
 
 StreamSection::StreamSection(IStreamBase *base, soff_t start, soff_t end)
+    : StreamBase(base->GetPath())
 {
     OpenSection(base, start, end);
     _base = base;
+}
+
+StreamSection::~StreamSection()
+{
+    Close();
 }
 
 void StreamSection::Open(IStreamBase *base)
@@ -231,6 +238,11 @@ void StreamSection::Close()
     // Only close the base stream if owning one
     if (_ownBase)
         _ownBase->Close();
+    else if (_base && CanWrite())
+        _base->Flush();
+
+    _ownBase = nullptr;
+    _base = nullptr;
 }
 
 size_t StreamSection::Read(void *buffer, size_t len)

@@ -98,6 +98,7 @@ AL_FUNC(void, hsv_to_rgb, (float h, float s, float v, int *r, int *g, int *b));
 AL_FUNC(void, rgb_to_hsv, (int r, int g, int b, float *h, float *s, float *v));
 
 AL_FUNC(int, bestfit_color, (AL_CONST PALETTE pal, int r, int g, int b));
+AL_FUNC(int, replacement_mask_color, (int depth, int mask_color));
 
 AL_FUNC(int, makecol, (int r, int g, int b));
 AL_FUNC(int, makecol8, (int r, int g, int b));

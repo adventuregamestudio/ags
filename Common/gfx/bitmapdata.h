@@ -18,9 +18,12 @@
 #ifndef __AGS_CN_GFX__BITMAPDATA_H
 #define __AGS_CN_GFX__BITMAPDATA_H
 
+#include <array>
 #include <memory>
+#include <allegro.h> // RGB and PALETTE types, MASK_COLOR constants
 #include "debug/assert.h"
 #include "platform/types.h"
+#include "util/string.h"
 
 namespace AGS
 {
@@ -90,6 +93,18 @@ inline bool PixelFormatHasAlpha(PixelFormat fmt)
     }
 }
 
+inline bool PixelFormatIndexed(PixelFormat fmt)
+{
+    switch (fmt)
+    {
+    case kPxFmt_Indexed1:
+    case kPxFmt_Indexed4:
+    case kPxFmt_Indexed8:
+        return true;
+    default: return false;
+    }
+}
+
 inline size_t GetStrideForPixelFormat(PixelFormat fmt, int width)
 {
     switch (fmt)
@@ -108,11 +123,40 @@ inline size_t GetDataSizeForPixelFormat(PixelFormat fmt, int width, int height)
     return GetStrideForPixelFormat(fmt, width) * height;
 }
 
+String PixelFormatName(PixelFormat fmt);
+
+// Returns default mask color (transparent color) for the given pixel format.
+// Note that this refers to the special color that may be optionally used as
+// a transparent, but disregards alpha channel. Images with alpha channel
+// should normally use alpha values for transparency.
+inline int GetDefaultMaskColor(PixelFormat fmt)
+{
+    switch (fmt)
+    {
+    case kPxFmt_Indexed1:
+    case kPxFmt_Indexed4:
+    case kPxFmt_Indexed8:
+        // All the indexed formats use 0 index as the default mask color
+        return 0;
+    // Following correspond to magenta (aka "magic pink")
+    case kPxFmt_R5G5B5:     return MASK_COLOR_15;
+    case kPxFmt_R5G6B5:     return MASK_COLOR_16;
+    case kPxFmt_R8G8B8:     return MASK_COLOR_24;
+    case kPxFmt_A8R8G8B8:   return MASK_COLOR_32; // NOTE: it's a value without alpha
+    default: assert(false); return 0;
+    }
+}
+
+
+typedef std::array<RGB, PAL_SIZE> Palette;
+
 
 // BitmapData is a non-owning wrapper over a pixel buffer,
 // combined with the description of its format.
 // Its purpose is to pass the buffer pointer without bringing
 // dependency on full Bitmap class.
+// TODO: consider adding optional palette field (unique_ptr with RGB array?),
+// may be useful to combine them when loading indexed images.
 class BitmapData
 {
 public:
@@ -139,6 +183,8 @@ public:
     inline size_t GetDataSize() const { return _dataSize; }
     // Gets the length of a single bitmap line, in bytes;
     // this line may have extra padding beyond the bitmap's width
+    // TODO: bring the Stride/Pitch term to a consistency among all the AGS classes and functions
+    // (BitmapData, PixelBuffer, Bitmap, and parameters in pixel & bitmap related operations).
     inline size_t GetStride() const { return _stride; }
     inline const uint8_t *GetData() const { return _cbuf; }
     inline uint8_t *GetData() { return _buf; }
@@ -155,6 +201,7 @@ public:
     }
 
     uint32_t GetPixel(int x, int y) const;
+    void SetPixel(int x, int y, uint32_t value);
 
 protected:
     BitmapData(int width, int height, PixelFormat fmt)
@@ -259,6 +306,7 @@ private:
 };
 
 
+// Various operations with the pixel buffers: copying, converting, etc.
 namespace PixelOp
 {
     // Copy pixel data from one memory buffer to another. It is required that the
@@ -277,15 +325,19 @@ namespace PixelOp
     // Pitches are given in bytes and define the length of the source and dest scan lines.
     // Width and height of the rectangle, as well as source and destination offsets are *in pixels*.
     void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
-        const size_t src_px_off, const int width_px, const int height_px,
-        uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off);
+        const int src_px_off, const int src_py_off, const int width_px, const int height_px,
+        uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off, const int dst_py_off);
     inline void CopyPixelsRegion(const uint8_t *src_buffer, const PixelFormat fmt, const size_t src_pitch,
-        const size_t src_px_off, const int width_px, const int height_px,
-        uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
+        const int src_px_off, const int width_px, const int height_px,
+        uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off)
     {
         CopyPixelsRegion(src_buffer, PixelFormatToPixelBytes(fmt), src_pitch,
-            src_px_off, width_px, height_px, dst_buffer, dst_pitch, dst_px_off);
+            src_px_off, 0, width_px, height_px, dst_buffer, dst_pitch, dst_px_off, 0);
     }
+
+    // Copy a portion of pixel data and return as a new PixelBuffer.
+    // Position and size of the region is in pixels.
+    PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width, const int height);
 
     // Copies pixels from source to dest buffer, possibly converting between source
     // and dest pixel format. The destination buffer must be properly allocated
@@ -297,9 +349,17 @@ namespace PixelOp
     //          * 16-bit    => 24-bit
     //          * 16-bit    => 32-bit
     //          add more common conversions later!
+    // FIXME: this might require a mask color parameter when converting from non-32bit
+    // to 32-bit ARGB, because otherwise the non-32bit mask color might end up opaque
+    // color which is not recognized as mask color in 32bit image.
     // FIXME: this would require a palette if conversion goes from indexed to non-indexed!
+    // Consider adding more function variants that accept mask colors and palettes.
     bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
         const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch);
+    // Copies pixels from source to dest buffer, possibly converting between source
+    // and dest pixel format. The resulting dest buffer may be possibly reallocated if it's
+    // not large enough to accomodate the converted data.
+    bool CopyConvert(const BitmapData &src, PixelBuffer &dst, const PixelFormat dst_fmt);
     // Copies pixels from source to dest buffer, swapping the RGB components, according
     // to the provided RGB shifts. This operation requires that pixel format is kept the same.
     // It is actually possible to swap in-place (where src and dst are the same buffers).
@@ -313,6 +373,45 @@ namespace PixelOp
     void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
         uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
         const int width, const int height, const PixelFormat px_fmt);
+
+    // Makes the given image opaque (full alpha), while keeping RGB unchanged.
+    void MakeOpaque(BitmapData &bm_data);
+    // Makes the given image opaque (full alpha), while keeping RGB values unchanged.
+    // Skips mask color (leaves it with zero alpha).
+    void MakeOpaqueSkipMask(BitmapData &bm_data);
+    // Replaces pixels with alpha <= threshold with standard mask color.
+    void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold = 0);
+}
+
+// Various operations with palette
+namespace PaletteOp
+{
+    inline void SetRGB(Palette &pal, int index, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF)
+    {
+        pal[index] = { r, g, b, a };
+    }
+
+    // FIXME: this is a temporary unsafe variant, use ref to PALETTE (RGB[256]), not pointer to array of unknown size
+    // (will require fixes around the code in AGS.Native)
+    inline void SetRGB(PALETTE pal, int index, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF)
+    {
+        pal[index] = { r, g, b, a };
+    }
+
+    // Rotates palette colors in the range [first, last], in the given direction
+    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left);
+    inline void Rotate(Palette &pal, uint8_t first, uint8_t last, bool to_left)
+    {
+        Rotate(pal.data(), first, last, to_left);
+    }
+    // Remaps bitmap's colors between source and destination palettes, trying to
+    // find the closest match to source palette colors. If told to keep transparency,
+    // the mask color will be translated exclusively, preventing any occasional matches.
+    void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent = true);
+    inline void Remap(BitmapData &bm_data, const Palette &src_pal, const Palette &dst_pal, bool keep_transparent = true)
+    {
+        Remap(bm_data, src_pal.data(), dst_pal.data(), keep_transparent);
+    }
 }
 
 } // namespace Common

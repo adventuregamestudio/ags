@@ -185,7 +185,6 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
     <ClCompile Include="..\..\Common\game\interactions.cpp" />
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc" />
-    <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest_main.cc" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
@@ -205,10 +204,13 @@
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
+    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
     <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_helpers_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common.Lib\Common.Lib.vcxproj">
@@ -246,6 +248,8 @@
     <ClInclude Include="..\..\Tools\data\data_file_writer.h" />
     <ClInclude Include="..\..\Tools\data\game_utils.h" />
     <ClInclude Include="..\..\Tools\data\include_utils.h" />
+    <ClInclude Include="..\..\Tools\data\sprite_utils.h" />
+    <ClInclude Include="..\..\Tools\test\spriteimport_env.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -112,13 +112,17 @@ namespace BitmapHelper
     // This function does not make an effort to retain the original image.
     void    AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, int sub_height, int color_depth);
 
+    // TODO: all the following functions may be actually reimplemented in PixelOp
+    // namespace, where they will work with raw pixel buffers instead of Bitmaps.
+    // Then these Bitmap helpers will simply delegate the work to them.
+    // 
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
-    void    MakeOpaque(Bitmap *bmp);
+    void MakeOpaque(Bitmap *bmp);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
     // Skips mask color (leaves it with zero alpha).
-    void    MakeOpaqueSkipMask(Bitmap *bmp);
+    void MakeOpaqueSkipMask(Bitmap *bmp);
     // Replaces pixels with alpha <= threshold with standard mask color.
-    void    ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold);
+    void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold);
     // Replaces fully transparent (alpha = 0) pixels with standard mask color.
     inline void ReplaceZeroAlphaWithRGBMask(Bitmap *bmp) { ReplaceAlphaWithRGBMask(bmp, 0); }
     // Replaces less than 50% transparent (alpha < 128) pixels with standard mask color.

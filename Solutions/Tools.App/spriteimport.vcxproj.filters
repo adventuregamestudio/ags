@@ -8,9 +8,6 @@
     <Filter Include="Common">
       <UniqueIdentifier>{eadadb9c-903a-4a50-8db9-a82dbf36b434}</UniqueIdentifier>
     </Filter>
-    <Filter Include="spritepak">
-      <UniqueIdentifier>{731e5dde-24bd-46ed-ae96-82f7baf41d3d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="miniz">
       <UniqueIdentifier>{3c265ae8-b584-444e-af07-9c70a00f4543}</UniqueIdentifier>
     </Filter>
@@ -20,17 +17,17 @@
     <Filter Include="stb">
       <UniqueIdentifier>{a82a002f-a4f4-4bca-84e0-19b83412b412}</UniqueIdentifier>
     </Filter>
+    <Filter Include="spriteimport">
+      <UniqueIdentifier>{731e5dde-24bd-46ed-ae96-82f7baf41d3d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="data">
-      <UniqueIdentifier>{9f7942ab-5b85-4cc8-ac20-5325364c9474}</UniqueIdentifier>
+      <UniqueIdentifier>{da53c193-4ae0-441d-96b3-8d1ecc5a5d25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tinyxml">
+      <UniqueIdentifier>{1d881862-6fc0-43f5-a907-206932f12a23}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Tools\spritepak\main.cpp">
-      <Filter>spritepak</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Tools\spritepak\commands.cpp">
-      <Filter>spritepak</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\ac\spritefile.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -100,26 +97,65 @@
     <ClCompile Include="..\..\libsrc\stb\stb_image.c">
       <Filter>stb</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp">
-      <Filter>data</Filter>
+    <ClCompile Include="..\..\Tools\spriteimport\commands.cpp">
+      <Filter>spriteimport</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+    <ClCompile Include="..\..\Tools\spriteimport\main.cpp">
+      <Filter>spriteimport</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
       <Filter>allegro</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
       <Filter>allegro</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
-      <Filter>allegro</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\agfreader.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\room_file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_ext.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\customproperties.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\interactions.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\roomdata.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_common.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_script.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Tools\spritepak\commands.h">
-      <Filter>spritepak</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ac\spritefile.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -177,8 +213,41 @@
     <ClInclude Include="..\..\libsrc\stb\stb_image.h">
       <Filter>stb</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Tools\spriteimport\commands.h">
+      <Filter>spriteimport</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Tools\data\sprite_utils.h">
       <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\agfreader.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
+      <Filter>tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\room_file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_ext.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\customproperties.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\interactions.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\roomdata.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_script.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

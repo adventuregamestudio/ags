@@ -61,6 +61,7 @@ using AGS::Common::AssetLibInfo;
 using AGS::Common::AssetManager;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace PaletteOp = AGS::Common::PaletteOp;
 using AGS::Common::GUIMain;
 using AGS::Common::GUIButton;
 using AGS::Common::GUIInvWindow;
@@ -1519,17 +1520,18 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
     // 256-colour mode only
     if (transcol!=0)
       itspal[transcol] = itspal[0];
-    wsetrgb(0,0,0,0,itspal); // set index 0 to black
+    PaletteOp::SetRGB(itspal, 0,0,0,0); // set index 0 to black
     RGB oldpale[256];
-    for (int uu=0;uu<255;uu++) {
+    for (int uu=0;uu<PAL_SIZE;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
       else if (thisgame.paluses[uu]==PAL_BACKGROUND)
-        wsetrgb(uu,0,0,0,oldpale);
+          PaletteOp::SetRGB(oldpale, uu,0,0,0);
       else 
         oldpale[uu]=palette[uu];
     }
-    wremap(itspal,toimp,oldpale); 
+    AGS::Common::BitmapData bm_data = toimp->GetBitmapData();
+    PaletteOp::Remap(bm_data, itspal, oldpale);
     set_palette_range(palette, 0, 255, 0);
   }
   else if (toimp->GetColorDepth() == 8) {  // hi-colour game
@@ -1667,7 +1669,7 @@ void free_old_game_data()
 }
 
 // remap the scene, from its current palette oldpale to palette
-void remap_background (Common::Bitmap *scene, const RGB *oldpale, RGB*palette, int exactPal) {
+void remap_background(Common::Bitmap *scene, const PALETTE oldpale, PALETTE palette, int exactPal) {
 
   if (exactPal) {
     // exact palette import (for doing palette effects, don't change)
@@ -1701,7 +1703,7 @@ void remap_background (Common::Bitmap *scene, const RGB *oldpale, RGB*palette, i
   RGB tpal[256];
   for (int a=0;a<256;a++) {
     if (thisgame.paluses[a]==PAL_BACKGROUND)
-      wsetrgb(a,0,0,0,palette);  // black out the bg slots before starting
+      PaletteOp::SetRGB(palette, a,0,0,0); // black out the bg slots before starting
     if ((oldpale[a].r==0) & (oldpale[a].g==0) & (oldpale[a].b==0)) {
       imgpalcnt[a]=0;
       continue;
@@ -1744,7 +1746,8 @@ void remap_background (Common::Bitmap *scene, const RGB *oldpale, RGB*palette, i
     }
     else tpal[a]=palette[a];
   }
-  wremapall(oldpale,scene,tpal); //palette);
+  AGS::Common::BitmapData bm_data = scene->GetBitmapData();
+  PaletteOp::Remap(bm_data, oldpale, tpal, false);
 }
 
 void validate_mask(Common::Bitmap *toValidate, const char *name, int maxColour) {
@@ -2669,7 +2672,10 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 		  	theRoom->BgFrames[0].IsPaletteShared = 1;
 
 		  if (!useExactPalette)
-			wremapall(oldpale, newbg, palette);
+          {
+            AGS::Common::BitmapData bm_data = newbg->GetBitmapData();
+			AGS::Common::PaletteOp::Remap(bm_data, oldpale, palette, false);
+          }
 		}
 		else {
 		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 0;
@@ -2769,26 +2775,28 @@ AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMeth
     AGSBitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, nullptr, true,
         alphaChannel, keep_trans, fix_palette, &importedColourDepth);
 
+    // Prior to transparency conversion, deal with 32-bit alpha channel:
+    // either convert zero-alpha pixels to standard mask color, or to opaque color
+    int flags = 0;
+    if (tempsprite->GetColorDepth() == 32)
+    {
+        if (alphaChannel)
+        {
+            flags |= SPF_ALPHACHANNEL;
+            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
+        }
+        else
+        {
+            BitmapHelper::MakeOpaqueSkipMask(tempsprite);
+        }
+    }
+
     int transcol = 0;
     sort_out_transparency(tempsprite, spriteImportMethod, transColour, imgPalBuf, importedColourDepth, transcol);
     if (thisgame.color_depth == 1)
     {
         if (remapColours)
             sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
-    }
-
-    int flags = 0;
-    if (alphaChannel)
-    {
-        flags |= SPF_ALPHACHANNEL;
-        if (tempsprite->GetColorDepth() == 32)
-        {
-            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
-        }
-    }
-    else if (tempsprite->GetColorDepth() == 32)
-    {
-        BitmapHelper::MakeOpaqueSkipMask(tempsprite);
     }
 
     if (out_flags)

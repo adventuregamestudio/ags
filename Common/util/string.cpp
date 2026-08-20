@@ -362,6 +362,11 @@ int String::ToInt() const
     return atoi(_cstr);
 }
 
+String String::Clone() const
+{
+    return String(_cstr, _len);
+}
+
 String String::Wrapper(const char *cstr)
 {
     String str;
@@ -401,6 +406,29 @@ String String::Wrapper(const char *cstr)
 {
     String str;
     str.ReadCount(in, count);
+    return str;
+}
+
+/* static */ String String::Join(const std::vector<String> &list, char separator)
+{
+    char sep_str[2] = { separator, 0 };
+    return Join(list, sep_str);
+}
+
+/* static */ String String::Join(const std::vector<String> &list, const char *separator)
+{
+    String str;
+    size_t reserve_count = list.size() > 1 ? (list.size() - 1) * strlen(separator) : 0u;
+    for (const auto &s : list)
+        reserve_count += s.GetLength();
+    str.Reserve(reserve_count);
+    if (list.size() > 0)
+        str = list[0];
+    for (size_t i = 1; i < list.size(); ++i)
+    {
+        str.Append(separator);
+        str.Append(list[i]);
+    }
     return str;
 }
 
@@ -498,17 +526,25 @@ String String::Section(char separator, size_t first, size_t last,
 
 std::vector<String> String::Split(char separator) const
 {
-    if (separator == 0)
+    char sep_str[2] = { separator, 0 };
+    return Split(sep_str);
+}
+
+std::vector<String> String::Split(const char *separator) const
+{
+    if (separator == nullptr || *separator == 0)
         return std::vector<String>{_cstr};
+
+    const size_t sep_len = strlen(separator);
 
     std::vector<String> result;
     const char *ptr = _cstr;
     while (*ptr)
     {
-        const char *found_cstr = strchr(ptr, separator);
+        const char *found_cstr = strstr(ptr, separator);
         if (!found_cstr) break;
         result.push_back(String(ptr, found_cstr - ptr));
-        ptr = found_cstr + 1;
+        ptr = found_cstr + sep_len;
     }
     result.push_back(String(ptr));
     return result;

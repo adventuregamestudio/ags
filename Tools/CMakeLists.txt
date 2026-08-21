@@ -202,7 +202,7 @@ set_target_properties(crmpak PROPERTIES
         )
 target_link_libraries(crmpak PUBLIC libtools)
 
-#----- spritepak -------------------------------------------------
+#----- spriteimport -------------------------------------------------
 add_executable(spriteimport spriteimport/main.cpp
         spriteimport/commands.h
         spriteimport/commands.cpp
@@ -238,6 +238,7 @@ list(APPEND TOOLS_TARGETS
         agfexport
         agspak
         crmpak
+        spriteimport
         spritepak
         trac
         )

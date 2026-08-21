@@ -77,7 +77,7 @@ extern RoomStruct thisroom;
 extern RoomStatus *croom;
 extern std::vector<ViewStruct> views;
 extern RoomObject*objs;
-extern ScriptInvItem scrInv[MAX_INV];
+extern std::vector<ScriptInvItem> scrInv;
 extern SpriteCache spriteset;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
@@ -152,14 +152,15 @@ void Character_AddInventory(CharacterInfo *chi, ScriptInvItem *invi, int at_inde
         at_index = -1;
 
     const int inum = invi->id;
-    if (chi->inv[inum] == INT16_MAX)
+    const int quant = chi->get_item_quantity(inum);
+    if (quant == INT32_MAX)
     {
         debug_script_warn("Character.AddInventory: char %s, item %s: cannot carry more than %d of one inventory item",
-            chi->scrname.GetCStr(), game.invScriptNames[inum].GetCStr(), INT16_MAX);
+            chi->scrname.GetCStr(), game.invScriptNames[inum].GetCStr(), INT32_MAX);
         return;
     }
 
-    chi->inv[inum]++;
+    chi->set_item_quantity(inum, quant + 1);
     auto &chex = charextra[chi->index_id];
 
     if (game.options[OPT_DUPLICATEINV] == 0)
@@ -771,17 +772,20 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
         quit("!LoseInventoryFromCharacter: invalid inventory number");
 
     const int inum = invi->id;
-    if (chap->inv[inum] == 0)
+    const int quant = chap->get_item_quantity(inum);
+    if (quant == 0)
     {
         debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
             chap->scrname.GetCStr(), game.invScriptNames[inum].GetCStr());
         return;
     }
     
-    chap->inv[inum]--;
+    chap->set_item_quantity(inum, quant - 1);
+    const bool no_item_left = (quant - 1) == 0;
+
     // If this was a selected item, and its quantity drops to zero,
     // then reset the active inventory and "use inv" cursor
-    if ((chap->activeinv == inum) && (chap->inv[inum] == 0))
+    if ((chap->activeinv == inum) && no_item_left)
     {
         chap->activeinv = -1;
         if ((chap == playerchar) && (is_current_cursor_mode(kCursorRole_UseInv)))
@@ -790,7 +794,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
 
     int charid = chap->index_id;
     // Remove one item of this kind (it will be the only item if no duplicates allowed)
-    if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
+    if (no_item_left || (game.options[OPT_DUPLICATEINV] > 0))
     {
         auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
         if (it_found != charextra[charid].inventory.end())
@@ -861,7 +865,7 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 void SetActiveInventory(int iit) {
 
     ScriptInvItem *tosend = nullptr;
-    if ((iit > 0) && (iit < game.numinvitems))
+    if ((iit >= 0) && (iit < game.numinvitems))
         tosend = &scrInv[iit];
     else if (iit != -1)
         quitprintf("!SetActiveInventory: invalid inventory number %d", iit);
@@ -889,7 +893,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     else   // make sure it doesn't run the region interactions
         play.player_on_region = GetRegionIDAtRoom(playerchar->x, playerchar->y, kHit_Interactable);
 
-    if ((playerchar->activeinv >= 0) && (playerchar->inv[playerchar->activeinv] < 1))
+    if ((playerchar->activeinv >= 0) && !playerchar->has_any_of_item(playerchar->activeinv))
         playerchar->activeinv = -1;
 
     // They had inv selected, so change the cursor
@@ -1326,7 +1330,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
         return;
     }
 
-    if (chaa->inv[iit->id] < 1)
+    if (!chaa->has_any_of_item(iit->id))
     {
         debug_script_warn("SetActiveInventory: character doesn't have any of that inventory");
         return;
@@ -1555,10 +1559,10 @@ int Character_GetIdleView(CharacterInfo *chaa)
 }
 
 int Character_GetIInventoryQuantity(CharacterInfo *chaa, int index) {
-    if ((index < 1) || (index >= game.numinvitems))
+    if ((index < 0) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
-    return chaa->inv[index];
+    return chaa->get_item_quantity(index);
 }
 
 int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
@@ -1566,12 +1570,12 @@ int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
     if (invi == nullptr)
         quit("!Character.HasInventory: NULL inventory item supplied");
 
-    return (chaa->inv[invi->id] > 0) ? 1 : 0;
+    return chaa->has_any_of_item(invi->id) ? 1 : 0;
 }
 
 void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
 {
-    if ((index < 1) || (index >= game.numinvitems))
+    if ((index < 0) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
     if ((quant < 0) || (quant > INT16_MAX))
@@ -1581,12 +1585,11 @@ void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
         quant = Math::Clamp<int>(quant, 0, INT16_MAX);
     }
 
-    int old_quant = chi->inv[index];
-    chi->inv[index] = quant;
-
+    const int old_quant = chi->get_item_quantity(index);
     if ((quant == old_quant) || (loaded_game_file_version < kGameVersion_363_10))
         return;
 
+    chi->set_item_quantity(index, quant);
     auto &chex = charextra[chi->index_id];
     if (game.options[OPT_DUPLICATEINV] != 0)
     {
@@ -3604,7 +3607,7 @@ void UpdateInventory()
         // (or multiple times if requested) to the list.
         for (int item = 0; (item < game.numinvitems) && (chex.inventory.size() != MAX_CHAR_INVENTORY); ++item)
         {
-            int item_count = game.chars[cc].inv[item];
+            int item_count = game.chars[cc].get_item_quantity(item);
             if ((game.options[OPT_DUPLICATEINV] == 0) && (item_count > 1))
                 item_count = 1;
 

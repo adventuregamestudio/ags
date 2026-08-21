@@ -1676,12 +1676,6 @@ namespace AGS.Editor
             {
                 writer.Write(spriteFlags[i]);
             }
-            if (game.InventoryItems.Count > NativeConstants.MAX_INV)
-            {
-                errors.Add(new CompileError("Too many inventory items"));
-                return false;
-            }
-            writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 // legacy name field of fixed length
@@ -1815,16 +1809,7 @@ namespace AGS.Editor
                     (short)character.MovementSpeed :
                     (short)character.MovementSpeedX);
                 writer.Write((short)character.AnimationDelay);         // animspeed
-                bool isPlayer = (character == game.PlayerCharacter);
-                foreach (InventoryItem invItem in game.InventoryItems) // inv[MAX_INV]
-                {
-                    if ((isPlayer) && (invItem.PlayerStartsWithItem)) writer.Write((short)1);
-                    else writer.Write((short)0);
-                }
-                if (game.InventoryItems.Count < NativeConstants.MAX_INV)
-                {
-                    writer.Write(new byte[(NativeConstants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
-                }
+                // Here was MAX_INV int16s, removed in kGameVersion_400_33
                 writer.Write((short)0);                                // [UNUSED] (actx)
                 writer.Write((short)0);                                // [UNUSED] (acty)
                 // legacy name and scriptname fields of fixed length
@@ -1961,6 +1946,7 @@ namespace AGS.Editor
             WriteGameExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
             WriteGameExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
             WriteGameExtension("v400_charopts2", WriteExt_400CharacterOptions2, writer, gameEnts, errors);
+            WriteGameExtension("v400_charinv", WriteExt_400CharacterInventory, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2512,6 +2498,32 @@ namespace AGS.Editor
                 writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);
+            }
+        }
+
+        private static void WriteExt_400CharacterInventory(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.Game.Characters.Count);
+            foreach (var ch in ents.Game.Characters)
+            {
+                // Currently only write starting inventory contents for the player character
+                if (ch == ents.Game.PlayerCharacter)
+                {
+                    int inv_count = ents.Game.InventoryItems.Count((invItem) => { return invItem.PlayerStartsWithItem; });
+                    writer.Write(inv_count);
+                    foreach (InventoryItem invItem in ents.Game.InventoryItems)
+                    {
+                        if (invItem.PlayerStartsWithItem)
+                        {
+                            writer.Write(invItem.ID);
+                            writer.Write(1); // quantity
+                        }
+                    }
+                }
+                else
+                {
+                    writer.Write(0); // no items
+                }
             }
         }
 

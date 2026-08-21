@@ -624,6 +624,7 @@ protected:
     HError ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents);
     void   ReadGUIControlExtGraphics(Stream *in, GUIControl &obj);
     HError ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents);
+    HError ReadCharacterInventories(Stream *in, LoadedGameEntities &ents);
 
     LoadedGameEntities &_ents;
     GameDataVersion _dataVer {};
@@ -737,7 +738,7 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
     HError err = ReadScriptEventsTablesForObjects(ents.Game.chars, "characters", in);
     if (!err)
         return err;
-    err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, ents.Game.numinvitems, "inventory items", in);
+    err = ReadScriptEventsTablesForObjects(ents.Game.invinfo, "inventory items", in);
     if (!err)
         return err;
     err = ReadScriptEventsTablesForObjects(ents.Guis, "GUIs", in);
@@ -772,6 +773,24 @@ HError GameDataExtReader::ReadNewScriptEventTables(Stream *in, LoadedGameEntitie
         in->ReadInt32();
         in->ReadInt32();
         in->ReadInt32();
+    }
+    return HError::None();
+}
+
+HError GameDataExtReader::ReadCharacterInventories(Stream *in, LoadedGameEntities &ents)
+{
+    HError err;
+    if (!ReadAndAssertCount(in, "characters", static_cast<uint32_t>(ents.Game.chars.size()), err))
+        return err;
+    for (auto &chin : ents.Game.chars)
+    {
+        int start_inv_count = in->ReadInt32();
+        for (int i = 0; i < start_inv_count; ++i)
+        {
+            int item_id = in->ReadInt32();
+            int item_q = in->ReadInt32();
+            chin.set_item_quantity(item_id, item_q);
+        }
     }
     return HError::None();
 }
@@ -1064,6 +1083,12 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             in->ReadInt32();
             in->ReadInt32();
         }
+    }
+    else if (ext_id.CompareNoCase("v400_charinv") == 0)
+    {
+        HError err = ReadCharacterInventories(in, _ents);
+        if (!err)
+            return err;
     }
     else
     {

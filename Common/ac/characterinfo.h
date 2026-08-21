@@ -15,6 +15,7 @@
 #define __AC_CHARACTERINFO_H
 
 #include <algorithm>
+#include <unordered_map>
 #include <vector>
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
@@ -125,7 +126,8 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_26  = 4000026, // sync with kCharSvgVersion_36304
     kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
     kCharSvgVersion_400_29  = 4000029, // rotation pivot
-    kCharSvgVersion_Current = kCharSvgVersion_400_29
+    kCharSvgVersion_400_33  = 4000033, // removed MAX_INV
+    kCharSvgVersion_Current = kCharSvgVersion_400_33
 };
 
 // Character event indexes
@@ -181,7 +183,9 @@ struct CharacterInfo
     int16_t walking     = 0; // stores movelist index
     int16_t walkspeed   = 0;
     int16_t animspeed   = 0;
-    int16_t inv[MAX_INV] = { 0 }; // quantities of each inventory item in game
+    // Quantities of inventory items, by item ID;
+    // these may be read from the game data, in case it sets up character start with certain items
+    std::unordered_map<int, int> invq;
     AGS::Common::String scrname = {}; // script name
     AGS::Common::String name = {}; // regular name (aka description)
     // Interaction events (cursor-based)
@@ -240,6 +244,18 @@ struct CharacterInfo
     {
         flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
+
+    bool has_any_of_item(int item_id) const
+    {
+        return invq.count(item_id) > 0 && invq.at(item_id) > 0;
+    }
+
+    int get_item_quantity(int item_id) const
+    {
+        return invq.count(item_id) > 0 ? invq.at(item_id) : 0;
+    }
+
+    void set_item_quantity(int item_id, int quant);
 
     CharacterInfo() = default;
     CharacterInfo(const CharacterInfo&) = default;

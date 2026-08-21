@@ -41,12 +41,12 @@ struct GameSetupStruct : public GameSetupStructBase
     // font parameters are then put and queried in the fonts module
     // TODO: split into installation params (used only when reading) and runtime params
     std::vector<FontInfo> fonts;
-    InventoryItemInfo invinfo[MAX_INV]{};
+    std::vector<InventoryItemInfo> invinfo;
     std::vector<MouseCursor> mcurs;
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     Common::PropertySchema propSchema;
     std::vector<Common::StringIMap> charProps;
-    Common::StringIMap invProps[MAX_INV];
+    std::vector<Common::StringIMap> invProps;
     std::vector<AGS::Common::StringIMap> audioclipProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
@@ -55,7 +55,7 @@ struct GameSetupStruct : public GameSetupStructBase
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.
     std::vector<Common::String> viewNames;
-    Common::String    invScriptNames[MAX_INV];
+    std::vector<Common::String> invScriptNames; // TODO: move to InventoryItemInfo
     // TODO: move this array out of Game struct, but need to read legacy data
     // into some sort of a temporary container for post-load upgrading.
     std::vector<Common::String> dialogScriptNames;

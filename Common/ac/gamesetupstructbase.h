@@ -50,7 +50,7 @@ struct GameSetupStructBase
     int               numviews = 0;
     int               numcharacters = 0;
     int               playercharacter = -1;
-    int               numinvitems = 0;
+    uint16_t          numinvitems = 0u;
     int               numdialog = 0;
     int               numdlgmessage = 0;    // [DEPRECATED]
     int               numfonts = 0;

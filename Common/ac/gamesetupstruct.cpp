@@ -62,6 +62,7 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
 
 void GameSetupStruct::ReadInvInfo(Stream *in)
 {
+    invinfo.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
     {
         invinfo[i].ReadFromFile(in);
@@ -161,8 +162,6 @@ void GameSetupStruct::WriteCharacters(Stream *out)
 
 HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
-    dialogScriptNames.resize(numdialog);
-    viewNames.resize(numviews);
     if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
         return new MainGameFileError(kMGFErr_InvalidPropertySchema);
 
@@ -173,6 +172,7 @@ HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVer
     {
         errors += Properties::ReadValues(charProps[i], in);
     }
+    invProps.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
     {
         errors += Properties::ReadValues(invProps[i], in);
@@ -181,12 +181,15 @@ HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVer
     if (errors > 0)
         return new MainGameFileError(kMGFErr_InvalidPropertyValues);
 
+    viewNames.resize(numviews);
     for (int i = 0; i < numviews; ++i)
         viewNames[i] = String::FromStream(in);
 
+    invScriptNames.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
         invScriptNames[i] = String::FromStream(in);
 
+    dialogScriptNames.resize(numdialog);
     for (int i = 0; i < numdialog; ++i)
         dialogScriptNames[i] = String::FromStream(in);
     return HGameFileError::None();

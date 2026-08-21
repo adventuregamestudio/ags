@@ -19,8 +19,7 @@
 
 using namespace AGS::Common;
 extern std::vector<int> StaticInventoryArray;
-
-extern ScriptInvItem scrInv[MAX_INV];
+extern std::vector<ScriptInvItem> scrInv;
 
 // return the type name of the object
 const char *CCInventory::GetType() {

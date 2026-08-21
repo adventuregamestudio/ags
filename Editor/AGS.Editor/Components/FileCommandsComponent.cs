@@ -193,7 +193,7 @@ namespace AGS.Editor.Components
 
                 sb.AppendFormat("Total views:\t{0}\n", game.ViewCount);
                 sb.AppendFormat("Total GUIs:\t{0}\n", game.RootGUIFolder.GetAllItemsCount());
-                sb.AppendFormat("Inventory Items:\t{0} / {1}\n", game.RootInventoryItemFolder.GetAllItemsCount(), Game.MAX_INV_ITEMS);
+                sb.AppendFormat("Inventory Items:\t{0}\n", game.RootInventoryItemFolder.GetAllItemsCount());
                 sb.AppendFormat("Characters:\t{0}\n", game.RootCharacterFolder.GetAllItemsCount());
                 sb.AppendFormat("Dialog topics:\t{0}\n", game.RootDialogFolder.GetAllItemsCount());
 

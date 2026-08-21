@@ -156,7 +156,7 @@ CCAudioChannel ccDynamicAudio;
 
 std::vector<ScriptDialog> scrDialog;
 std::vector<ScriptGUI> scrGui;
-ScriptInvItem scrInv[MAX_INV];
+std::vector<ScriptInvItem> scrInv;
 ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 ScriptObject scrObj[MAX_ROOM_OBJECTS];
 ScriptRegion scrRegion[MAX_ROOM_REGIONS];

@@ -65,7 +65,7 @@ void InvItems_RegisterDynamicSpriteCallbacks()
 
 void set_inv_item_pic(int invi, int piccy)
 {
-    if ((invi < 1) || (invi > game.numinvitems))
+    if ((invi < 0) || (invi >= game.numinvitems))
         quit("!SetInvItemPic: invalid inventory item specified");
 
     if (game.invinfo[invi].pic == piccy)
@@ -139,7 +139,7 @@ void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
 }
 
 void SetInvItemName(int invi, const char *newName) {
-    if ((invi < 1) || (invi > game.numinvitems))
+    if ((invi < 0) || (invi >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
     game.invinfo[invi].name = newName;

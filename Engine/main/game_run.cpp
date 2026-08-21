@@ -1084,7 +1084,7 @@ static void UpdateGUIContext(int mwasatx, int mwasaty)
     // OTOH it may be inconvenient to have this in every place where this data changes.
     GUI::Context.GameTitle = play.game_name;
 
-    if (playerchar->activeinv < 1 || playerchar->activeinv >= game.numinvitems)
+    if (playerchar->activeinv < 0 || playerchar->activeinv >= game.numinvitems)
         GUI::Context.InventoryPic = -1;
     else
         GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;

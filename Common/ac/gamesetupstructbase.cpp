@@ -48,7 +48,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     numcharacters = in->ReadInt32();
     playercharacter = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
-    numinvitems = in->ReadInt16();
+    numinvitems = static_cast<uint16_t>(in->ReadInt16());
     in->ReadInt16(); // alignment padding to int32
     numdialog = in->ReadInt32();
     numdlgmessage = in->ReadInt32();

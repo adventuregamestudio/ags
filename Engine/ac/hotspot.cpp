@@ -98,7 +98,7 @@ void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
-    return CreateNewScriptString(get_translation(croom->hotspot[hss->id].Name.GetCStr()));
+    return CreateNewScriptString(get_compat_prop_translation(croom->hotspot[hss->id].Name.GetCStr()));
 }
 
 void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {

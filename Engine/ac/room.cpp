@@ -220,6 +220,7 @@ const char* Room_GetMessages(int index) {
         return nullptr;
     }
     char buffer[STD_BUFFER_SIZE];
+    // Must translate here, as it's potentially a formatted string with macros.
     replace_tokens(get_translation(thisroom.Messages[index].GetCStr()), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }

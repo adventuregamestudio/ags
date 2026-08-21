@@ -412,7 +412,7 @@ void GetObjectName(int obj, char *buffer) {
     if (!is_valid_object(obj))
         quit("!GetObjectName: invalid object number");
 
-    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->obj[obj].name.GetCStr()));
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_compat_prop_translation(croom->obj[obj].name.GetCStr()));
 }
 
 void MoveObject(int objj,int xx,int yy,int spp) {

@@ -18,11 +18,18 @@
 #ifndef __AGS_EE_AC__GLOBALTRANSLATION_H
 #define __AGS_EE_AC__GLOBALTRANSLATION_H
 
-// WARNING: get_translation returns original char* if no translation is found;
+// Use the provided text as a key and returns the mapped translation.
+// Returns the original text back if no matching translation found.
+// WARNING: get_translation returns original char* ptr if no translation is found;
 // for that reason make sure that you don't pass temporary buffer there, unless
 // you use returned value immediately or save it in another buffer.
-const char *get_translation (const char *text);
-int IsTranslationAvailable ();
+const char *get_translation(const char *text);
+// A backwards compatible translation of the script property values.
+// For 3.6.3+ games it does NO translation and always returns original string.
+// For < 3.6.3 games it acts like get_translation(), unless
+// kRBO_NoTextPropertyAutoTranslate behavior switch is set by config.
+const char *get_compat_prop_translation(const char *text);
+int IsTranslationAvailable();
 // GetTranslationName assumes a string buffer of MAX_MAXSTRLEN
 int GetTranslationName(char *buffer);
 

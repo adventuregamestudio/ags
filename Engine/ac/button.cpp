@@ -108,7 +108,7 @@ void Button_GetText(GUIButton *butt, char *buffer) {
 }
 
 void Button_SetText(GUIButton *butt, const char *newtx) {
-    newtx = get_translation(newtx);
+    newtx = get_compat_prop_translation(newtx);
 
     if (butt->GetText() != newtx) {
         butt->SetText(newtx);

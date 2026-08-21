@@ -172,7 +172,7 @@ const char *Dialog_GetOptionText(ScriptDialog *sd, int option)
 
     option--; // option id is 1-based in script, and 0 is entry point
 
-    return CreateNewScriptString(get_translation(dialog[sd->id].Options[option].Text.GetCStr()));
+    return CreateNewScriptString(get_compat_prop_translation(dialog[sd->id].Options[option].Text.GetCStr()));
 }
 
 void Dialog_SetOptionText(ScriptDialog *sd, int option, const char *text)
@@ -450,7 +450,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
             param1 = game.playercharacter;
 
           if (param1 == DCHAR_NARRATOR)
-            Display(get_translation(old_speech_lines[param2].GetCStr()));
+            Display(old_speech_lines[param2].GetCStr()); // translated inside Display
           else
             DisplaySpeech(get_translation(old_speech_lines[param2].GetCStr()), param1);
 

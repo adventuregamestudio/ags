@@ -308,6 +308,8 @@ enum RuntimeBehaviorSwitch
     kRBO_ApplyGUITextDirection,
     // Apply text alignment for dialog options (and auto-switch when translation changes)
     kRBO_ApplyDialogOptionTextAlignment,
+    // Do not auto-translate values of text properties; only translate displayed text
+    kRBO_NoTextPropertyAutoTranslate,
     kNum_RBS
 };
 

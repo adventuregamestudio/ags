@@ -26,10 +26,11 @@ using namespace AGS::Common::Memory;
 
 extern AGSPlatformDriver *platform;
 
-const char *get_translation (const char *text) {
-    if (text == nullptr)
-        quit("!Null string supplied to CheckForTranslations");
-
+const char *get_translation(const char *text)
+{
+    if (!text)
+        text = "";
+    // FIXME: dont use global variable, remake into the function parameter!
     source_text_length = GetTextDisplayLength(text);
     if (text[0] == 0)
         return ""; // don't try translating an empty line
@@ -46,6 +47,14 @@ const char *get_translation (const char *text) {
         return it->second.GetCStr();
     // return the original text
     return text;
+}
+
+const char *get_compat_prop_translation(const char *text)
+{
+    if (play.GetRBSwitches()[kRBO_NoTextPropertyAutoTranslate])
+        return text;
+    else
+        return get_translation(text);
 }
 
 int IsTranslationAvailable () {

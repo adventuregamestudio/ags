@@ -92,7 +92,7 @@ void GetHotspotName(int hotspot, char *buffer) {
     if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
         quit("!GetHotspotName: invalid hotspot number");
 
-    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->hotspot[hotspot].Name.GetCStr()));
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_compat_prop_translation(croom->hotspot[hotspot].Name.GetCStr()));
 }
 
 void RunHotspotInteraction (int hotspothere, int mood) {

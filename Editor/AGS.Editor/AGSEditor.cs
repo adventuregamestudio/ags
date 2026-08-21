@@ -148,9 +148,9 @@ namespace AGS.Editor
          *                  and other properties (BlockingRectangle etc)
          * 4.00.00.27     - Character.GraphicAnchor/Offset.
          * 4.00.00.29     - Sync with 3.6.3.10.
-         * 4.00.00.30     - Script names for Regions, Walkable areas and Walk-behinds.
+         * 4.00.00.33     - Script names for Regions, Walkable areas and Walk-behinds.
         */
-        public const string LATEST_XML_VERSION = "4.0.0.29";
+        public const string LATEST_XML_VERSION = "4.0.0.33";
 
         /*
          * FIRST_XML_VERSION is the very first version of the Editor using XML project file.

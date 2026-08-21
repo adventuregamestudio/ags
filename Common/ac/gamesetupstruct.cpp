@@ -95,6 +95,7 @@ HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVer
             return err;
     }
     // NOTE: inventory item events are loaded starting from index 1, because index 0 is an unused item
+    invinfo.resize(numinvitems); // safety precaution
     for (size_t i = 1; i < (size_t)numinvitems; ++i)
     {
         err = invinfo[i].interactions.Read_v361(in);

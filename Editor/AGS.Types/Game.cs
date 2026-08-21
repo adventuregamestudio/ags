@@ -18,7 +18,6 @@ namespace AGS.Types
             "hotspot", "region", "dialog", "gui", "GUI"};
         private const int PALETTE_SIZE = 256;
 
-        public const int MAX_INV_ITEMS = 300;
         public const int MAX_SOUND_CHANNELS = 32;
         public const int MAX_USER_SOUND_CHANNELS = MAX_SOUND_CHANNELS - 1; // 1 reserved for Speech
 

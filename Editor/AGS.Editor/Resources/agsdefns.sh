@@ -31,9 +31,11 @@
 #define CursorMode int
 #define FontType int
 #define AudioType int
+#ifdef SCRIPT_COMPAT_v400_33
 // MAX_INV is a topmost index, AGS_MAX_INV_ITEMS is max count
 #define MAX_INV 301
 #define AGS_MAX_INV_ITEMS 300
+#endif
 #define AGS_MAX_OBJECTS   256
 #define AGS_MAX_HOTSPOTS  50
 #define AGS_MAX_REGIONS   16

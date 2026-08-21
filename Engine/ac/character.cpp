@@ -865,7 +865,7 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 void SetActiveInventory(int iit) {
 
     ScriptInvItem *tosend = nullptr;
-    if ((iit > 0) && (iit < game.numinvitems))
+    if ((iit >= 0) && (iit < game.numinvitems))
         tosend = &scrInv[iit];
     else if (iit != -1)
         quitprintf("!SetActiveInventory: invalid inventory number %d", iit);
@@ -1559,7 +1559,7 @@ int Character_GetIdleView(CharacterInfo *chaa)
 }
 
 int Character_GetIInventoryQuantity(CharacterInfo *chaa, int index) {
-    if ((index < 1) || (index >= game.numinvitems))
+    if ((index < 0) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
     return chaa->get_item_quantity(index);
@@ -1575,7 +1575,7 @@ int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
 
 void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
 {
-    if ((index < 1) || (index >= game.numinvitems))
+    if ((index < 0) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
     if ((quant < 0) || (quant > INT16_MAX))

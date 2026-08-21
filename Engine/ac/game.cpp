@@ -664,9 +664,9 @@ void Game_SetInventoryCursorHotspotCrossColor(int color)
     }
 }
 
-int Game_GetInventoryItemCount() {
-    // because of the dummy item 0, this is always one higher than it should be
-    return game.numinvitems - 1;
+int Game_GetInventoryItemCount()
+{
+    return game.numinvitems;
 }
 
 bool Game_GetIsPaused()

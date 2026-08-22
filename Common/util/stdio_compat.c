@@ -182,21 +182,37 @@ int ags_file_remove(const char *path)
 #if AGS_PLATFORM_OS_WINDOWS
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
-    return _wremove(wstr);
+    return !DeleteFileW(wstr); // inverse DeleteFile's result to match 0 = success
 #else // POSIX
     return remove(path);
 #endif // POSIX
 }
 
-int ags_file_rename(const char *src, const char *dst)
+int ags_file_rename(const char *src, const char *dst, int overwrite)
 {
 #if AGS_PLATFORM_OS_WINDOWS
     WCHAR wsrc[MAX_PATH_SZ], wdst[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, src, -1, wsrc, MAX_PATH_SZ);
     MultiByteToWideChar(CP_UTF8, 0, dst, -1, wdst, MAX_PATH_SZ);
-    return _wrename(wsrc, wdst);
+    // Windows errors when trying to rename to an existing file
+    if (PathFileExistsW(wdst))
+    {
+        if (overwrite)
+        {
+            if (!DeleteFileW(wdst))
+                return 1;
+            return !MoveFileW(wsrc, wdst); // inverse MoveFile's result to match 0 = success
+        }
+        return 0; // if we're told to not overwrite, then return success
+    }
+    else
+    {
+        return !MoveFileW(wsrc, wdst); // inverse MoveFile's result to match 0 = success
+    }
 #else // POSIX
-    return rename(src, dst);
+    if (overwrite || !ags_file_exists(dst))
+        return rename(src, dst);
+    return 0;
 #endif // POSIX
 }
 
@@ -246,6 +262,21 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
         return -1;
     // At this point read_num contains either 0 or -1 as error
     return read_num;
+#endif // POSIX
+}
+
+int ags_file_link(const char *src, const char *dst, int overwrite)
+{
+    // Since link() does not overwrite, we have to test link's presence and remove existing first
+    if (ags_file_exists(dst) != 0)
+        ags_file_remove(dst);
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wsrc[MAX_PATH_SZ], wdst[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, src, -1, wsrc, MAX_PATH_SZ);
+    MultiByteToWideChar(CP_UTF8, 0, dst, -1, wdst, MAX_PATH_SZ);
+    return !CreateHardLinkW(wdst, wsrc, NULL); // inverse CreateHardLinkW's result to match 0 = success
+#else // POSIX
+    return link(src, dst);
 #endif // POSIX
 }
 

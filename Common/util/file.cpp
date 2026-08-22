@@ -131,14 +131,19 @@ bool File::DeleteFile(const String &filename)
     return true;
 }
 
-bool File::RenameFile(const String &old_name, const String &new_name)
+bool File::RenameFile(const String &old_name, const String &new_name, bool overwrite)
 {
-    return ags_file_rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
+    return ags_file_rename(old_name.GetCStr(), new_name.GetCStr(), overwrite) == 0;
 }
 
 bool File::CopyFile(const String &src_path, const String &dst_path, bool overwrite)
 {
     return ags_file_copy(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
+}
+
+bool File::LinkFile(const String &src_path, const String &dst_path, bool overwrite)
+{
+    return ags_file_link(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
 }
 
 bool File::TruncateFile(const String &filename, soff_t length)

@@ -206,6 +206,7 @@ namespace StrUtil
     // if no separator is found, then returns the key as the source string, with empty value.
     std::pair<String, String> GetKeyValue(const String &s, char key_val_separator = '=');
 
+    // TODO: function variants that return std::vector<wchar_t> instead of requesting user to provide a buffer!
     // Convert utf-8 string to ascii/ansi representation;
     // writes into out_cstr buffer limited by out_sz bytes; returns bytes written.
     size_t ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz);

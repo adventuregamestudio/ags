@@ -28,6 +28,7 @@
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "util/path.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -156,7 +157,7 @@ int loadgamedialog(int min_slot, int max_slot)
         else {
           toret = filenumbers[cursel];
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path.GetCStr());
+          ags_strncpy_s(bufTemp, sizeof(bufTemp), path.GetCStr(), path.GetLength());
           lpTemp = &bufTemp[0];
         }
       } else if (mes.id == ctrlcancel) {
@@ -278,7 +279,7 @@ int savegamedialog(int min_slot, int max_slot)
 
           toret = highestnum + 1;
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path.GetCStr());
+          ags_strncpy_s(bufTemp, sizeof(bufTemp), path.GetCStr(), path.GetLength());
         } 
         else {
           toret = filenumbers[cursell];
@@ -288,7 +289,7 @@ int savegamedialog(int min_slot, int max_slot)
         if (bufTemp[0] == 0)
         {
           String path = get_save_game_path(toret);
-          strcpy(bufTemp, path.GetCStr());
+          ags_strncpy_s(bufTemp, sizeof(bufTemp), path.GetCStr(), path.GetLength());
         }
 
         lpTemp = &bufTemp[0];

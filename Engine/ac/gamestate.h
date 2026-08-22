@@ -113,7 +113,6 @@ struct GamePlayState
     int  messagetime = 0;           // time left for auto-remove messages
     int  usedinv = 0;               // inventory item last used
     int  text_speed = 0;            // how quickly text is removed
-    int  sierra_inv_color = 0;      // background used to paint defualt inv window
     int  talkanim_speed = 0;        // animation speed of talking anims
     int  inv_item_wid,inv_item_hit = 0;  // set by SetInvDimensions
     int  speech_text_shadow = 0;         // colour of outline fonts (default black)

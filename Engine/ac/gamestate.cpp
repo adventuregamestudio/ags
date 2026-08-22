@@ -589,7 +589,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     in->ReadInt32();
     in->ReadInt32();
     text_speed = in->ReadInt32();
-    sierra_inv_color = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     talkanim_speed = in->ReadInt32();
     inv_item_wid = in->ReadInt32();
     inv_item_hit = in->ReadInt32();
@@ -861,7 +861,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(text_speed);
-    out->WriteInt32(sierra_inv_color);
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(talkanim_speed);
     out->WriteInt32(inv_item_wid);
     out->WriteInt32(inv_item_hit);

@@ -3388,7 +3388,7 @@ builtin struct GameState {
   int  usedinv;
   readonly int  unused__2[4];   // $AUTOCOMPLETEIGNORE$
   int  text_speed;
-  int  sierra_inv_color;
+  readonly int  unused__3;  // $AUTOCOMPLETEIGNORE$
   int  talkanim_speed;  // $AUTOCOMPLETEIGNORE$
   int  inv_item_wid;
   int  inv_item_hit;
@@ -3396,7 +3396,7 @@ builtin struct GameState {
   int  swap_portrait;
   int  speech_text_gui;
   int  following_room_timer;
-  readonly int  unused__3;  // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__4;  // $AUTOCOMPLETEIGNORE$
   int  skip_display;
   int  no_multiloop_repeat;
   int  roomscript_finished;
@@ -3407,22 +3407,22 @@ builtin struct GameState {
   int  bgspeech_game_speed;
   int  bgspeech_stay_on_display;
   int  unfactor_speech_from_textlength;
-  readonly int  unused__4;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__5;   // $AUTOCOMPLETEIGNORE$
   int  speech_music_drop;
   readonly int  in_cutscene;
   readonly int  skipping_cutscene;
   readonly int  room_width;
   readonly int  room_height;
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
-  readonly int  unused__5;  // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__6;  // $AUTOCOMPLETEIGNORE$
   int  previous_game_data;
-  readonly int  unused__6; // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__7; // $AUTOCOMPLETEIGNORE$
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
-  readonly int  unused__7;   // $AUTOCOMPLETEIGNORE$
-  int  lipsync_speed;
   readonly int  unused__8;   // $AUTOCOMPLETEIGNORE$
+  int  lipsync_speed;
+  readonly int  unused__9;   // $AUTOCOMPLETEIGNORE$
   int  disable_antialiasing;
   int  text_speed_modifier;
   int  text_align;
@@ -3438,10 +3438,10 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-  readonly int  unused__9;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__10;   // $AUTOCOMPLETEIGNORE$
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-  readonly int  unused__10;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__11;   // $AUTOCOMPLETEIGNORE$
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;
@@ -3449,11 +3449,11 @@ builtin struct GameState {
   int  show_single_dialog_option;
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
-  readonly int  unused__11;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__12;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__13;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__14;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__15;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__16;   // $AUTOCOMPLETEIGNORE$
   int  dialog_options_highlight_color;
   };
   

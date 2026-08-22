@@ -131,7 +131,7 @@ void GetInvName(int indx, char*buff)
     VALIDATE_STRING(buff);
     if (!ValidateInventoryItem("GetInvName", indx))
         return;
-    snprintf(buff, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[indx].name.GetCStr()));
+    snprintf(buff, MAX_MAXSTRLEN, "%s", get_compat_prop_translation(game.invinfo[indx].name.GetCStr()));
 }
 
 int GetInvGraphic(int indx)

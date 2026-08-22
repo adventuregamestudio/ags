@@ -1012,7 +1012,10 @@ const char* Game_GetGlobalMessages(int index) {
         return nullptr;
     }
     char buffer[STD_BUFFER_SIZE];
-    replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
+    // Must translate here, as it's potentially a formatted string with macros.
+    // FIXME: get_global_message() already does get_translation(), but IMO that's wrong,
+    // and should be refactored. Instead call get_translation() after getting a message text.
+    replace_tokens(get_global_message(index), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 

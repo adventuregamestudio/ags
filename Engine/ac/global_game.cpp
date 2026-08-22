@@ -768,7 +768,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
         if (invitem > 0)
         {
             loc_ref = SceneLocationRef(LOCTYPE_INVITEM, invitem);
-            return get_translation(game.invinfo[invitem].name.GetCStr());
+            return get_compat_prop_translation(game.invinfo[invitem].name.GetCStr());
         }
         else
         {
@@ -790,12 +790,12 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     // on character
     if (loctype == LOCTYPE_CHAR)
     {
-        return get_translation(game.chars2[getloctype_index].name_new.GetCStr());
+        return get_compat_prop_translation(game.chars2[getloctype_index].name_new.GetCStr());
     }
     // on object
     if (loctype == LOCTYPE_OBJ)
     {
-        const char *out_name = get_translation(croom->obj[getloctype_index].name.GetCStr());
+        const char *out_name = get_compat_prop_translation(croom->obj[getloctype_index].name.GetCStr());
         // Compatibility: < 3.1.1 games returned space for nameless object
         // (presumably was a bug, but fixing it affected certain games behavior)
         if (loaded_game_file_version < kGameVersion_311 && out_name[0] == 0)
@@ -807,7 +807,7 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
     // on hotspot
     if (getloctype_index > 0)
     {
-        return get_translation(croom->hotspot[getloctype_index].Name.GetCStr());
+        return get_compat_prop_translation(croom->hotspot[getloctype_index].Name.GetCStr());
     }
     return "";
 }

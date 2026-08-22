@@ -47,7 +47,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 59: return 0;// [DEPRECATED]
     case 60: return 0;// [DEPRECATED]
     case 61: return play.text_speed;
-    case 62: return play.sierra_inv_color;
+    case 62: return 0;// [DEPRECATED]
     case 63: return play.talkanim_speed;
     case 64: return play.inv_item_wid;
     case 65: return play.inv_item_hit;
@@ -144,7 +144,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
         if (usetup.Access.TextReadSpeed <= 0)
             play.text_speed = val;
         break;
-    case 62:  play.sierra_inv_color = val; break;
+    case 62:  break; // [DEPRECATED]
     case 63:  play.talkanim_speed = val; break;
     case 64:  play.inv_item_wid = val; break;
     case 65:  play.inv_item_hit = val; break;

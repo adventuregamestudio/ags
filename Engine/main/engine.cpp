@@ -702,7 +702,6 @@ void engine_init_game_settings()
 
     //
     // TODO: following big initialization sequence could be in GameState ctor
-    play.sierra_inv_color=7;
     // copy the value set by the editor
     if (game.options[OPT_GLOBALTALKANIMSPD] >= 0)
     {

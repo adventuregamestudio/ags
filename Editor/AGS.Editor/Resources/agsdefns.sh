@@ -1330,10 +1330,10 @@ builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions invHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the inventory item by its script name
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the inventory item by its script name
@@ -1353,10 +1353,10 @@ builtin managed struct InventoryItem {
   import attribute int  Graphic;
   /// Gets the ID number of the inventory item.
   readonly import attribute int ID;
-#ifdef SCRIPT_COMPAT_v400_33
+#ifdef SCRIPT_COMPAT_v400_24
   /// Gets/sets the human-readable name of the inventory item.
   import attribute String Name;
-#endif // SCRIPT_COMPAT_v400_33
+#endif // SCRIPT_COMPAT_v400_24
 #ifdef SCRIPT_API_v400_33
   /// Gets/sets the human-readable name of the inventory item.
   import attribute String DisplayName;
@@ -1734,10 +1734,10 @@ builtin managed struct GUIControl {
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
   import static GUIControl* GetAtScreenXY(int x, int y, HitTestOptions guiHitOptions = eHit_Interactable, HitTestOptions controlHitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the GUI Control by its script name
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the GUI Control by its script name
@@ -2069,10 +2069,10 @@ builtin managed struct GUI {
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the GUI by its script name
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the GUI by its script name
@@ -2203,10 +2203,10 @@ builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the hotspot by its script name
   import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the hotspot by its script name
@@ -2222,10 +2222,10 @@ builtin managed struct Hotspot {
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
   readonly import attribute int ID;
-#ifdef SCRIPT_COMPAT_v400_33
+#ifdef SCRIPT_COMPAT_v400_24
   /// Gets/sets the human-readable name of the hotspot.
   import attribute String Name;
-#endif // SCRIPT_COMPAT_v400_33
+#endif // SCRIPT_COMPAT_v400_24
 #ifdef SCRIPT_API_v400_33
   /// Gets/sets the human-readable name of the hotspot.
   import attribute String DisplayName;
@@ -2365,10 +2365,10 @@ builtin managed struct Walkbehind {
 
 builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the dialog by its script name
   import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the dialog by its script name
@@ -2630,10 +2630,10 @@ builtin managed struct AudioChannel {
 
 builtin managed struct AudioClip {
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the audio clip by its script name
   import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the audio clip by its script name
@@ -2791,10 +2791,10 @@ builtin managed struct Object {
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the object by its script name
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the object by its script name
@@ -2844,10 +2844,10 @@ builtin managed struct Object {
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
   readonly import attribute bool Moving;
-#ifdef SCRIPT_COMPAT_v400_33
+#ifdef SCRIPT_COMPAT_v400_24
   /// Gets/sets the human-readable name of the object.
   import attribute String Name;
-#endif // SCRIPT_COMPAT_v400_33
+#endif // SCRIPT_COMPAT_v400_24
 #ifdef SCRIPT_API_v400_33
   /// Gets/sets the human-readable name of the object.
   import attribute String DisplayName;
@@ -3008,10 +3008,10 @@ builtin managed struct Character {
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y, HitTestOptions hitOptions = eHit_Interactable); // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
-  #ifdef SCRIPT_COMPAT_v400
+  #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the character by its script name
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
-  #endif // SCRIPT_COMPAT_v400
+  #endif // SCRIPT_COMPAT_v400_24
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400_33
   /// Gets the character by its script name
@@ -3120,10 +3120,10 @@ builtin managed struct Character {
   import attribute bool MovementLinkedToAnimation;
   /// Gets whether the character is currently moving.
   readonly import attribute bool Moving;
-#ifdef SCRIPT_COMPAT_v400_33
+#ifdef SCRIPT_COMPAT_v400_24
   /// Gets/sets the human-readable character's name.
   import attribute String Name;
-#endif // SCRIPT_COMPAT_v400_33
+#endif // SCRIPT_COMPAT_v400_24
 #ifdef SCRIPT_API_v400_33
   /// Gets/sets the human-readable character's name.
   import attribute String DisplayName;
@@ -3322,10 +3322,10 @@ builtin struct Game {
   import static int    GetColorFromRGB(int red, int green, int blue);
   /// Gets the number of frames in the specified view loop.
   import static int    GetFrameCountForLoop(int view, int loop);
-#ifdef SCRIPT_COMPAT_v400_33
+#ifdef SCRIPT_COMPAT_v400_24
   /// Gets the name of whatever is on the screen at (x,y)
   import static String GetLocationName(int x, int y);
-#endif // SCRIPT_COMPAT_v400_33
+#endif // SCRIPT_COMPAT_v400_24
   /// Gets the human-readable name of whatever is on the screen at (x,y)
   import static String GetDisplayNameAt(int x, int y);
   /// Gets the number of loops in the specified view.

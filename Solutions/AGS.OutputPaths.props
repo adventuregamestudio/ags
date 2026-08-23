@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared output-path definitions for every AGS native (.vcxproj) and managed (.csproj)
+  project in the repository.
+
+  This file gives every project the same four properties to build their OutDir/IntDir from:
+
+    Solutions/.build/<Platform>/<Configuration>/                 final linked binaries
+                                                                   (exe, dll, editor, tools, ...)
+    Solutions/.lib/<Platform>/<Configuration>/                   static libraries
+                                                                   (Common.Lib, Compiler.Lib)
+    Solutions/.test/<Platform>/<Configuration>/                  test binaries
+    Solutions/.obj/<Platform>/<Configuration>/<ProjectName>/     intermediate/object files
+                                                                   for every project kind
+
+  <Platform> on disk is always "x86" or "x64", even though the underlying vcxproj toolchain 
+  platform is still internally named "Win32" for 32-bit native configurations.
+  Win32 is fixed by the MSVC toolset and can't be renamed. See docs:
+  https://learn.microsoft.com/en-us/visualstudio/ide/how-to-configure-projects-to-target-platforms
+-->
+<Project>
+  <PropertyGroup>
+    <!-- This file should be placed in the Solutions/ dir, so the other paths resolve from here -->
+    <AgsSolutionsDir>$(MSBuildThisFileDirectory)</AgsSolutionsDir>
+
+    <!-- each vcxproj has to have Win32 aliased to "x86" for the output directories -->
+    <!-- if we add the condition here it gets picked up by the csproj files too -->
+    <!-- they don't need it but it will make it show up in VS config manager and batch build menus -->
+    <PlatformFolderName Condition="'$(PlatformFolderName)'==''">$(Platform)</PlatformFolderName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AgsFinalOutDir>$(AgsSolutionsDir).build\$(PlatformFolderName)\$(Configuration)\</AgsFinalOutDir>
+    <AgsLibOutDir>$(AgsSolutionsDir).lib\$(PlatformFolderName)\$(Configuration)\</AgsLibOutDir>
+    <AgsTestOutDir>$(AgsSolutionsDir).test\$(PlatformFolderName)\$(Configuration)\</AgsTestOutDir>
+    <AgsObjDir>$(AgsSolutionsDir).obj\$(PlatformFolderName)\$(Configuration)\$(MSBuildProjectName)\</AgsObjDir>
+  </PropertyGroup>
+</Project>

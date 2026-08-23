@@ -324,25 +324,25 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run Compiler tests (x86)
-        run: Solutions\.test\Release\Compiler.Lib.Test.exe
+        run: Solutions\.test\x86\Release\Compiler.Lib.Test.exe
 
       - name: Build AGS test runners (x86)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run Common tests (x86)
-        run: Solutions\.test\Release\Common.Lib.Test.exe
+        run: Solutions\.test\x86\Release\Common.Lib.Test.exe
 
       - name: Run Engine tests (x86)
-        run: Solutions\.test\Release\Engine.App.Test.exe
+        run: Solutions\.test\x86\Release\Engine.App.Test.exe
 
       - name: Run Tools tests (x86)
-        run: Solutions\.test\Release\Tools.Test.exe
+        run: Solutions\.test\x86\Release\Tools.Test.exe
 
       - name: Clean up
         shell: cmd
@@ -355,7 +355,7 @@ jobs:
           msbuild Compiler.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Compiler tests (x64)
-        run: Solutions\.test\Release\Compiler.Lib.Test.exe
+        run: Solutions\.test\x64\Release\Compiler.Lib.Test.exe
 
       - name: Build AGS test runners (x64)
         shell: cmd
@@ -364,13 +364,13 @@ jobs:
           msbuild Tests.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Common tests (x64)
-        run: Solutions\.test\Release\Common.Lib.Test.exe
+        run: Solutions\.test\x64\Release\Common.Lib.Test.exe
 
       - name: Run Engine tests (x64)
-        run: Solutions\.test\Release\Engine.App.Test.exe
+        run: Solutions\.test\x64\Release\Engine.App.Test.exe
 
       - name: Run Tools tests (x64)
-        run: Solutions\.test\Release\Tools.Test.exe
+        run: Solutions\.test\x64\Release\Tools.Test.exe
 
   windows-msvc-engine:
     name: Windows MSVC Engine
@@ -402,20 +402,20 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
       - name: Build Engine (x86 Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Engine.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Upload x86 Engine PDBs
         uses: actions/upload-artifact@v7
         with:
           name: windows-engine-pdb-x86
           include-hidden-files: true
-          path: Solutions/.build/*/acwin.pdb
+          path: Solutions/.build/*/*/acwin.pdb
 
       - name: Delete x86 PDB / intermediate files
         shell: cmd
@@ -430,7 +430,7 @@ jobs:
           include-hidden-files: true
           path: Solutions/.build/*/*
 
-      - name: Delete Win32 build output
+      - name: Delete x86 build output
         shell: cmd
         run: cd Solutions && rd /s /q .build
 
@@ -445,7 +445,7 @@ jobs:
         with:
           name: windows-engine-pdb-x64
           include-hidden-files: true
-          path: Solutions/.build/*/acwin.pdb
+          path: Solutions/.build/*/*/acwin.pdb
 
       - name: Delete x64 PDB / intermediate files
         shell: cmd
@@ -491,7 +491,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
       - name: Build Tools (x86 Release)
         shell: cmd
@@ -503,14 +503,14 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Compiler.App.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Upload x86 Tools PDBs
         uses: actions/upload-artifact@v7
         with:
           name: windows-tools-pdb-x86
           include-hidden-files: true
-          path: Solutions/.build/*/*.pdb
+          path: Solutions/.build/*/*/*.pdb
 
       - name: Delete x86 PDB / intermediate files
         shell: cmd
@@ -525,7 +525,7 @@ jobs:
           include-hidden-files: true
           path: Solutions/.build/*/*
 
-      - name: Delete Win32 build output
+      - name: Delete x86 build output
         shell: cmd
         run: cd Solutions && rd /s /q .build
 
@@ -546,7 +546,7 @@ jobs:
         with:
           name: windows-tools-pdb-x64
           include-hidden-files: true
-          path: Solutions/.build/*/*.pdb
+          path: Solutions/.build/*/*/*.pdb
 
       - name: Delete x64 PDB / intermediate files
         shell: cmd
@@ -624,7 +624,7 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=Win32 /maxcpucount /nologo
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run NUnit tests (Debug)
         shell: cmd
@@ -633,13 +633,13 @@ jobs:
           pushd Solutions\packages\NUnit.ConsoleRunner.3.*
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
-          cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
 
       - name: Build Editor (Release)
         shell: cmd
         run: |
           cd Solutions
-          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+          msbuild AGS.Editor.Full.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run NUnit tests (Release)
         shell: cmd
@@ -648,7 +648,7 @@ jobs:
           pushd Solutions\packages\NUnit.ConsoleRunner.3.*
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
-          cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
 
       - name: Upload test results
         if: always()
@@ -663,9 +663,7 @@ jobs:
         with:
           name: windows-editor-pdb
           include-hidden-files: true
-          path: |
-            Solutions/.build/*/*.pdb
-            Editor/AGS.Native/*/AGS.Native.pdb
+          path: Solutions/.build/*/*/*.pdb
 
       - name: Delete Editor PDBs and XML docs
         shell: cmd
@@ -678,7 +676,7 @@ jobs:
         with:
           name: windows-editor-binaries
           include-hidden-files: true
-          path: Solutions/.build/Release/*
+          path: Solutions/.build/x86/Release/*
 
   package-pdbs:
     name: PDB Packaging
@@ -860,7 +858,7 @@ jobs:
           mkdir Windows\Installer\Source\Redist
           mkdir Windows\Installer\Source\Engine
           copy C:\Lib\VcRedist\vc_redist.x86.exe Windows\Installer\Source\Redist\vc_redist.x86.exe
-          copy Windows\Installer\Source\Engine_tmp\Release\acwin.exe Windows\Installer\Source\Engine\acwin.exe
+          copy Windows\Installer\Source\Engine_tmp\x86\Release\acwin.exe Windows\Installer\Source\Engine\acwin.exe
           copy %AGS_SDL_LIB%\SDL2.dll Windows\Installer\Source\Engine\SDL2.dll
 
       - name: Download AGS manual

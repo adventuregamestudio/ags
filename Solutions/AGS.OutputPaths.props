@@ -23,8 +23,9 @@
     <!-- This file should be placed in the Solutions/ dir, so the other paths resolve from here -->
     <AgsSolutionsDir>$(MSBuildThisFileDirectory)</AgsSolutionsDir>
 
-    <!-- vcxproj Win32 is aliased to "x86" only to adjust its output directories -->
-    <PlatformFolderName Condition="'$(Platform)'=='Win32'">x86</PlatformFolderName>
+    <!-- each vcxproj has to have Win32 aliased to "x86" for the output directories -->
+    <!-- if we add the condition here it gets picked up by the csproj files too -->
+    <!-- they don't need it but it will make it show up in VS config manager and batch build menus -->
     <PlatformFolderName Condition="'$(PlatformFolderName)'==''">$(Platform)</PlatformFolderName>
   </PropertyGroup>
 

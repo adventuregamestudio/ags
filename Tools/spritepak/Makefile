@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
+INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
 LIBDIR =
 
 LD_VERSION := $(shell $(LD) --version 2>/dev/null)
@@ -51,6 +51,9 @@ COMMON_OBJS = \
 	../../Common/util/string_compat.c \
 	../../Common/util/string_utils.cpp
 
+TOOL_OBJS = \
+	../../Tools/data/sprite_utils.cpp
+
 MINIMAL_ALLEGRO_OBJS = \
 	../../libsrc/allegro/src/allegro.c \
 	../../libsrc/allegro/src/color.c \
@@ -67,6 +70,7 @@ STB_OBJS = \
 OBJS := main.cpp \
 	commands.cpp \
 	$(COMMON_OBJS) \
+	$(TOOL_OBJS) \
 	$(MINIMAL_ALLEGRO_OBJS) \
 	$(MINIZ_OBJS) \
 	$(STB_OBJS)

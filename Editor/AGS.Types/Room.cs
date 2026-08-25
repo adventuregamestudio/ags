@@ -10,9 +10,9 @@ namespace AGS.Types
     [DefaultProperty("Description")]
     public class Room : UnloadedRoom, IChangeNotification, ILoadedRoom
     {
-        // These constants are also defined in the native code, if you change
-        // them you need to update the Native DLL as well
-        public const int MAX_BACKGROUNDS = 5;
+        // These constants are also defined in the engine's code, if you change
+        // them you need to update the engine as well
+        public const int MAX_BACKGROUNDS = 256;
         public const int MAX_OBJECTS = 256;
         public const int MAX_HOTSPOTS = 50;
         public const int MAX_WALKABLE_AREAS = 16;

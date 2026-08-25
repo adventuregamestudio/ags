@@ -51,7 +51,8 @@ RoomStruct &RoomStruct::operator =(RoomData &&room_data)
 
 void RoomStruct::InitBitmaps()
 {
-    for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
+    BgImages.resize(BgFrames.size());
+    for (size_t i = 0; i < BgFrames.size(); ++i)
         if (BgFrames[i].GraphicBuf)
             BgImages[i].reset(new Bitmap(std::move(BgFrames[i].GraphicBuf)));
     if (HotspotMaskBuf)
@@ -66,7 +67,8 @@ void RoomStruct::InitBitmaps()
 
 void RoomStruct::PrepareForWriteToFile()
 {
-    for (size_t i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+    BgFrames.resize(BgImages.size());
+    for (size_t i = 0; i < BgFrames.size(); ++i)
         if (BgImages[i])
             BgFrames[i].GraphicBuf = std::move(BgImages[i]->ReleasePixelData());
     if (HotspotMask)
@@ -83,8 +85,7 @@ void RoomStruct::Free()
 {
     RoomData::Free();
 
-    for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
-        BgImages[i].reset();
+    BgImages = {};
     HotspotMask.reset();
     RegionMask.reset();
     WalkAreaMask.reset();

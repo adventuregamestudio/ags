@@ -39,6 +39,7 @@
 #ifndef __AGS_CN_GAME__ROOMDATA_H
 #define __AGS_CN_GAME__ROOMDATA_H
 #include <memory>
+#include <vector>
 #include <allegro.h> // RGB
 #include "ac/common_defines.h"
 #include "game/interactions.h"
@@ -95,7 +96,9 @@ enum RoomFlags
 // Flags tells that room is not linked to particular game ID
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 
-#define MAX_ROOM_BGFRAMES  5   // max number of frames in animating bg scene
+// Max number of room background frames
+#define MAX_ROOM_BGFRAMES_      256
+#define MAX_ROOM_BGFRAMES_321   5
 
 #define MAX_ROOM_HOTSPOTS  50  // v2.62: 20 -> 30; v2.8: -> 50
 #define MAX_ROOM_OBJECTS_v300 40 // for some legacy logic support
@@ -375,7 +378,7 @@ public:
     // Background frames
     int32_t                 BackgroundBPP; // bytes per pixel
     uint32_t                BgFrameCount;
-    RoomBgFrame             BgFrames[MAX_ROOM_BGFRAMES];
+    std::vector<RoomBgFrame> BgFrames;
     // Speed at which background frames are changing, 0 - no auto animation
     int32_t                 BgAnimSpeed;
     // Edges

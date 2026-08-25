@@ -190,7 +190,7 @@ RoomData &RoomData::operator =(const RoomData &src)
 
     BackgroundBPP = src.BackgroundBPP;
     BgFrameCount = src.BgFrameCount;
-    std::copy(src.BgFrames, src.BgFrames + MAX_ROOM_BGFRAMES, BgFrames);
+    BgFrames = src.BgFrames;
     BgAnimSpeed = src.BgAnimSpeed;
     Edges = src.Edges;
     HotspotMaskBuf = src.HotspotMaskBuf;
@@ -224,8 +224,7 @@ RoomData &RoomData::operator =(const RoomData &src)
 
 void RoomData::Free()
 {
-    for (size_t i = 0; i < (size_t)MAX_ROOM_BGFRAMES; ++i)
-        BgFrames[i].GraphicBuf = {};
+    BgFrames = {};
     HotspotMaskBuf = {};
     RegionMaskBuf = {};
     WalkAreaMaskBuf = {};
@@ -292,6 +291,8 @@ void RoomData::InitDefaults()
     WalkAreaCount   = 0;
     WalkBehindCount = 0;
     MessageCount    = 0;
+
+    BgFrames.resize(BgFrameCount);
 
     for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
         Hotspots[i] = RoomHotspot();

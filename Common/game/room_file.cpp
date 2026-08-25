@@ -396,6 +396,9 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
             room->Regions[i].Tint = in->ReadInt32();
     }
 
+    // NOTE: order of reading blocks may be varied, so assume BgFrameCount may be already read
+    room->BgFrameCount = std::max(1u, room->BgFrameCount);
+    room->BgFrames.resize(room->BgFrameCount);
     if (!read_opts.SkipImageData)
     {
         // Primary background (LZW or RLE compressed depending on format)
@@ -477,11 +480,10 @@ HError ReadObjScNamesBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 // Secondary backgrounds
 HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
-    room->BgFrameCount = in->ReadInt8();
-    if (room->BgFrameCount > MAX_ROOM_BGFRAMES)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many room backgrounds (in room: %d, max: %d).", room->BgFrameCount, MAX_ROOM_BGFRAMES));
-
+    room->BgFrameCount = std::max<uint8_t>(1u, static_cast<uint8_t>(in->ReadInt8()));
     room->BgAnimSpeed = static_cast<uint8_t>(in->ReadInt8());
+
+    room->BgFrames.resize(room->BgFrameCount);
     if (data_ver >= kRoomVersion_255a)
     {
         for (size_t i = 0; i < room->BgFrameCount; ++i)

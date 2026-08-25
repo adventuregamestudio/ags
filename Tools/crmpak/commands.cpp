@@ -330,7 +330,14 @@ void ImportContent(RoomDataExt &room, const std::vector<Content> &content)
             {
             case kContent_Background:
                 if (c.Index >= 0 && static_cast<uint32_t>(c.Index) < MAX_ROOM_BGFRAMES)
+                {
+                    if (static_cast<uint32_t>(c.Index) >= room.BgFrameCount)
+                    {
+                        room.BgFrameCount = c.Index + 1u;
+                        room.BgFrames.resize(room.BgFrameCount);
+                    }
                     result = LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
+                }
                 if (result && c.Index == 0)
                     room.BackgroundBPP = room.BgFrames[c.Index].GraphicBuf.GetBytesPerPixel();
                 break;

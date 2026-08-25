@@ -2653,6 +2653,10 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	theRoom->SetLegacyResolution((AGS::Common::RoomResolutionType)room->Resolution);
     theRoom->MaskResolution = room->MaskResolution;
 
+    theRoom->BgFrameCount = std::max<uint32_t>(theRoom->BgFrameCount, backgroundNumber + 1u);
+    theRoom->BgFrames.resize(theRoom->BgFrameCount);
+    theRoom->BgImages.resize(theRoom->BgFrameCount);
+
 	if (newbg->GetColorDepth() == 8) 
 	{
 		for (int aa = 0; aa < 256; aa++) {
@@ -2679,11 +2683,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
     copy_room_palette_to_global_palette(*theRoom);
 	}
 
-	if ((size_t)backgroundNumber >= theRoom->BgFrameCount)
-	{
-		theRoom->BgFrameCount++;
-	}
-	theRoom->BgImages[backgroundNumber].reset(newbg);
+    theRoom->BgImages[backgroundNumber].reset(newbg);
 
   // if size or resolution has changed, reset masks
 	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||

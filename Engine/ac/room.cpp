@@ -104,7 +104,7 @@ int new_room_flags=0;
 int gs_to_newroom=-1;
 // TODO: find a way to merge these with DynamicSpriteDSRef
 // Drawing Surface handles, for backgrounds
-int RoomBgDS[MAX_ROOM_BGFRAMES];
+std::vector<int> RoomBgDS;
 // Drawing Surface handles, for room masks
 int RoomMaskDS[kNumRoomAreaTypes];
 
@@ -118,7 +118,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
         backgroundNumber = play.bg_frame;
     }
 
-    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.BgFrameCount))
+    if ((backgroundNumber < 0) || (static_cast<uint32_t>(backgroundNumber) >= thisroom.BgFrameCount))
     {
         debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
         return nullptr;
@@ -358,8 +358,7 @@ void unload_old_room()
     play.bg_frame_locked = 0;
     remove_all_overlays();
     raw_saved_screen = nullptr;
-    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
-        play.room_bg_modified[i] = false;
+    std::fill(play.room_bg_modified.begin(), play.room_bg_modified.end(), false);
     for (int i = 0; i < kNumRoomAreaTypes; ++i)
         play.room_mask_modified[i] = false;
     for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_INTERACTION_VARIABLES; ++i)
@@ -616,6 +615,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     play.room_height = thisroom.Height;
     play.anim_background_speed = thisroom.BgAnimSpeed;
     play.bg_anim_delay = play.anim_background_speed;
+    play.room_bg_modified.resize(thisroom.BgFrameCount);
 
     // Fixup the frame index, in case the new room does not have enough background frames
     if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
@@ -989,6 +989,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     init_room_pathfinder();
     init_room_drawdata();
+    RoomBgDS.resize(thisroom.BgFrameCount);
 
     set_our_eip(212);
     invalidate_screen();
@@ -1064,7 +1065,7 @@ void set_room_placeholder()
 {
     thisroom.InitDefaults();
     std::shared_ptr<Bitmap> dummy_bg(new Bitmap(1, 1, 8));
-    thisroom.BgImages[0] = dummy_bg;
+    thisroom.BgImages.resize(1, dummy_bg);
     thisroom.HotspotMask = dummy_bg;
     thisroom.RegionMask = dummy_bg;
     thisroom.WalkAreaMask = dummy_bg;
@@ -1168,9 +1169,9 @@ void croom_ptr_clear()
     objs = nullptr;
 }
 
-ScriptDrawingSurface *get_room_bg_surface(int bgindex)
+ScriptDrawingSurface *get_room_bg_surface(uint32_t bgindex)
 {
-    assert(bgindex >= 0 && bgindex < MAX_ROOM_BGFRAMES);
+    assert(bgindex >= 0 && bgindex < RoomBgDS.size());
     if (bgindex >= 0 && bgindex && RoomBgDS[bgindex] > 0)
     {
         ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomBgDS[bgindex]));
@@ -1192,10 +1193,10 @@ ScriptDrawingSurface *get_room_mask_surface(RoomAreaMask mask)
     return nullptr;
 }
 
-void attach_room_bg_surface(int bgindex, int surface_handle)
+void attach_room_bg_surface(uint32_t bgindex, int surface_handle)
 {
-    assert(bgindex >= 0 && bgindex < MAX_ROOM_BGFRAMES);
-    if (bgindex >= 0 && bgindex < MAX_ROOM_BGFRAMES)
+    assert(bgindex >= 0 && bgindex < RoomBgDS.size());
+    if (bgindex >= 0 && bgindex < RoomBgDS.size())
         RoomBgDS[bgindex] = surface_handle;
 }
 
@@ -1231,7 +1232,7 @@ void detach_room_bg_surfaces()
     }
 }
 
-void on_room_bg_surface_release(int bgindex, bool modified)
+void on_room_bg_surface_release(uint32_t bgindex, bool modified)
 {
     if (modified)
     {

@@ -255,7 +255,7 @@ struct GamePlayState
     int   raw_color = 0;
     Common::PBitmap raw_drawing_surface;
     // Tells which room background frames were modified by script drawing operations
-    bool  room_bg_modified[MAX_ROOM_BGFRAMES]{};
+    std::vector<bool> room_bg_modified;
     bool  room_mask_modified[kNumRoomAreaTypes]{};
     int16_t filenumbers[LEGACY_MAXSAVEGAMES]{};
     int   room_changes = 0;

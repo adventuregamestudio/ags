@@ -97,7 +97,7 @@ enum RoomFlags
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 
 // Max number of room background frames
-#define MAX_ROOM_BGFRAMES_      256
+#define MAX_ROOM_BGFRAMES       256
 #define MAX_ROOM_BGFRAMES_321   5
 
 #define MAX_ROOM_HOTSPOTS  50  // v2.62: 20 -> 30; v2.8: -> 50

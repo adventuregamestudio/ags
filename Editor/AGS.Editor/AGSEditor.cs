@@ -1127,26 +1127,6 @@ namespace AGS.Editor
             return null;
         }
 
-		private void ReportErrorsIfAppropriate(CompileMessages errors)
-		{
-			if (errors.HasErrors)
-			{
-				if ((_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
-                    || StdConsoleWriter.IsEnabled)
-				{
-					Factory.GUIController.ShowMessage("There were compilation errors. See the output window for details.", MessageBoxIcon.Warning);
-				}
-			}
-			else if (errors.Count > 0)
-			{
-				if ((_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
-                    || StdConsoleWriter.IsEnabled)
-                {
-                    Factory.GUIController.ShowMessage("There were warnings compiling your game. See the output window for details.", MessageBoxIcon.Warning);
-				}
-			}
-		}
-
         private void RunPreCompilationChecks(CompileMessages errors)
         {
             if (_game.PlayerCharacter == null)
@@ -1300,8 +1280,7 @@ namespace AGS.Editor
 
                 if (!evArgs.AllowCompilation)
                 {
-                    Factory.GUIController.ShowOutputPanel(errors);
-					ReportErrorsIfAppropriate(errors);
+                    Factory.GUIController.PostOutputAndReportErrors(errors, "when compiling the game");
                     return errors;
                 }
             }
@@ -1329,10 +1308,7 @@ namespace AGS.Editor
                 }
 			}
 
-            Factory.GUIController.ShowOutputPanel(errors);
-
-			ReportErrorsIfAppropriate(errors);
-
+            Factory.GUIController.PostOutputAndReportErrors(errors, "when compiling the game");
             return errors;
         }
 

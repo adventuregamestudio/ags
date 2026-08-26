@@ -2,14 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.Xml;
 using AGS.Types;
-using WeifenLuo.WinFormsUI.Docking;
-using System.Threading;
 
 namespace AGS.Editor.Components
 {
@@ -594,13 +590,7 @@ namespace AGS.Editor.Components
                 SaveRoomButDoNotShowAnyErrors(room, errors, "Please wait while the room is saved...");
             }
 
-            _guiController.ShowOutputPanel(errors);
-
-            if (errors.HasErrors)
-            {
-                Factory.GUIController.ShowMessage("There were errors or warnings when saving the room. Please consult the output window for details.", MessageBoxIcon.Warning);
-            }
-
+            _guiController.PostOutputAndReportErrors(errors, "when saving the room");
             return !errors.HasErrors;
         }
 

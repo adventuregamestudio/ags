@@ -83,6 +83,106 @@ namespace AGS.Editor
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Not.Null);
         }
 
+        // TODO: following tests require that AutoComplete is fixed to manage possible
+        // comments and/or literals within variable declarations and assignment.
+        /*
+        [Test]
+        public void CheckHandlingStringLiterals()
+        {
+            string scriptCode = "String assign_literal = \"int a = 5; int b = 10;\"\nint c = 15;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("c"), Is.Not.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("assign_literal"), Is.Not.Null);
+        }
+
+        [Test]
+        public void CheckHandlingStringLiteralsWithEscapedQuotes()
+        {
+            string scriptCode = "String assign_literal = \"int a = 5;\\\"int b = 10;\\\\\"\nint c = 15;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("c"), Is.Not.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("assign_literal"), Is.Not.Null);
+        }
+        */
+
+        [Test]
+        public void UnterminatedComment()
+        {
+            string scriptCode = "int a;\n/*";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Not.Null);
+        }
+
+        [Test]
+        public void UnterminatedCommentInsideBraces()
+        {
+            string scriptCode = "struct S{\n/*";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+            // Just assert that there are no exceptions
+        }
+
+        [Test]
+        public void UnterminatedStringLiteral()
+        {
+            string scriptCode = "int a;\nString s = \"";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Not.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("s"), Is.Not.Null);
+        }
+
+        [Test]
+        public void UnterminatedStringLiteralInsideBraces()
+        {
+            string scriptCode = "struct S{\nString s = \"";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+            // Just assert that there are no exceptions
+        }
+
+        [Test]
+        public void SkipBracedSection()
+        {
+            // This code does not make much sense syntactically, but helps to test parsing of braced section
+            string scriptCode = "{};\nint a = 0;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Not.Null);
+        }
+
+        [Test]
+        public void SkipBracedSectionWithCommentInside()
+        {
+            // This code does not make much sense syntactically, but helps to test parsing of braced section
+            string scriptCode = "{/* comment };int b = 0; */\n// comment }; int c = 0;\n};\nint a = 0;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Not.Null);
+        }
+
+        [Test]
+        public void SkipBracedSectionWithStringLiteralsInside()
+        {
+            // This code does not make much sense syntactically, but helps to test parsing of braced section
+            string scriptCode = "{\" some text here };int b = 0; \\\" }; int c = 0; \\\\\"};\nint a = 0;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Not.Null);
+        }
+
         [Test]
         public void ContainsVariable()
         {

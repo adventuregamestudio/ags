@@ -76,9 +76,9 @@ namespace AGS.Editor
             }
         }
 
-        private static bool IncrementIndexToSkipAnyComments(FastString script, ref int index)
+        private static bool SkipAnyComments(FastString script, ref int index)
         {
-            while (index < script.Length - 1 && (script[index] == '/'))
+            while ((index < script.Length - 1) && (script[index] == '/'))
             {
                 if ((script[index + 1] == '/'))
                 {
@@ -97,9 +97,34 @@ namespace AGS.Editor
                         {
                             index = script.Length;
                         }
+                        else
+                        {
+                            index += 2; // move past the closing comment sequence
+                        }
                     }
                     else
                     {
+                        break;
+                    }
+                }
+            }
+            return index == script.Length;
+        }
+
+        private static bool SkipAnyLiterals(FastString script, ref int index)
+        {
+            while ((index < script.Length - 1) &&
+                ((script[index] == '"') || (script[index] == '\'')))
+            {
+                char firstChar = script[index];
+                while (++index < script.Length - 1)
+                {
+                    if ((script[index] == firstChar) &&
+                        // FIXME: this is of course naive, we must backtrace and find ALL the escape characters
+                        // and see if their count is odd or even
+                        ((script[index - 1] != '\\') || (script[index - 2] == '\\')))
+                    {
+                        index++;
                         break;
                     }
                 }
@@ -112,25 +137,16 @@ namespace AGS.Editor
             int braceIndent = 1, index = 0;
             while ((braceIndent > 0) && (index < script.Length))
             {
-                if (IncrementIndexToSkipAnyComments(script, ref index))
+                if (SkipAnyComments(script, ref index))
                 {
                     break;
                 }
 
-                if ((script[index] == '"') || (script[index] == '\''))
+                if (SkipAnyLiterals(script, ref index))
                 {
-                    char firstChar = script[index];
-                    index++;
-                    while (index < script.Length - 1)
-                    {
-                        if ((script[index] == firstChar) && 
-                            ((script[index - 1] != '\\') || (script[index - 2] == '\\')))
-                        {
-                            break;
-                        }
-                        index++;
-                    }
+                    break;
                 }
+
                 if (script[index] == openBrace)
                 {
                     braceIndent++;

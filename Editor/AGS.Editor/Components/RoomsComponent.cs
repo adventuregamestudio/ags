@@ -1,18 +1,17 @@
+using AGS.Types;
+using AGS.Types.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Types;
-using System.Drawing.Imaging;
-using System.Threading.Tasks;
-using System.Reflection;
 using System.Xml.Linq;
-using AGS.Types.Interfaces;
 
 namespace AGS.Editor.Components
 {
@@ -848,13 +847,7 @@ namespace AGS.Editor.Components
                 SaveRoomButDoNotShowAnyErrors(room, errors, "Please wait while the room is saved...");
             }
 
-            _guiController.ShowOutputPanel(errors);
-
-            if (errors.HasErrorsOrWarnings)
-            {
-                Factory.GUIController.ShowMessage("There were errors or warnings when saving the room. Please consult the output window for details.", MessageBoxIcon.Warning);
-            }
-
+            Factory.GUIController.PostOutputAndReportErrors(errors, "while saving the room");
             return !errors.HasErrors;
         }
 

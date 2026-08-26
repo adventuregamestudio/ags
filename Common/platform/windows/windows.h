@@ -34,6 +34,7 @@
 #undef DeleteFile
 #undef GetCurrentDirectory
 #undef SetCurrentDirectory
+#undef CreateProcess
 
 #endif // _WINDOWS_
 #endif // AGS_PLATFORM_OS_WINDOWS

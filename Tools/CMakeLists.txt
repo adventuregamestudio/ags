@@ -181,6 +181,19 @@ set_target_properties(agfexport PROPERTIES
         )
 target_link_libraries(agfexport PUBLIC libtools)
 
+#----- agsbuild -------------------------------------------------
+add_executable(agsbuild agsbuild/main.cpp
+        agsbuild/pipedprocess.h
+        agsbuild/pipedprocess.cpp
+        agsbuild/taskmanager.h
+        agsbuild/taskmanager.cpp
+        )
+set_target_properties(agsbuild PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(agsbuild PUBLIC libtools)
+
 #----- agspak -------------------------------------------------
 add_executable(agspak agspak/main.cpp
         agspak/commands.h
@@ -236,6 +249,7 @@ list(APPEND TOOLS_TARGETS
         agf2dlgasc
         agf2dta
         agfexport
+        agsbuild
         agspak
         crmpak
         spriteimport

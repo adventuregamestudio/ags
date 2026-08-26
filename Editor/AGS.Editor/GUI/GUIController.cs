@@ -1,19 +1,16 @@
+using AGS.Editor.Components;
+using AGS.Editor.Preferences;
+using AGS.Types;
+using AGS.Types.AutoComplete;
+using AGS.Types.Enums;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Text;
-using System.Windows.Forms;
-using System.Xml;
-using Microsoft.Win32;
-using AGS.Editor.Components;
-using AGS.Types;
-using AGS.Types.Enums;
-using AGS.Types.AutoComplete;
-using AGS.Types.Interfaces;
-using AGS.Editor.Preferences;
 using System.Drawing.Text;
+using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
@@ -1415,7 +1412,33 @@ namespace AGS.Editor
             }
         }
 
-		public void ShowCreateVoiceActingScriptWizard()
+        public void PostOutputAndReportErrors(CompileMessages messages, string whenPerformingWhat)
+        {
+            ShowOutputPanel(messages);
+            ReportErrorsIfAppropriate(messages, whenPerformingWhat);
+        }
+
+        private void ReportErrorsIfAppropriate(CompileMessages errors, string whenPerformingWhat)
+        {
+            if (errors.HasErrors)
+            {
+                if ((_agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
+                    || StdConsoleWriter.IsEnabled)
+                {
+                    ShowMessage($"There were errors {whenPerformingWhat}. See the output window for details.", MessageBoxIcon.Warning);
+                }
+            }
+            else if (errors.HasErrorsOrWarnings)
+            {
+                if ((_agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
+                    || StdConsoleWriter.IsEnabled)
+                {
+                    ShowMessage($"There were warnings {whenPerformingWhat}. See the output window for details.", MessageBoxIcon.Warning);
+                }
+            }
+        }
+
+        public void ShowCreateVoiceActingScriptWizard()
 		{
 			List<WizardPage> pages = new List<WizardPage>();
 			CreateVoiceActingScriptPage mainPage = new CreateVoiceActingScriptPage();

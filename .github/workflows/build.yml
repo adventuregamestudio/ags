@@ -814,6 +814,159 @@ jobs:
           name: ags-bundle-linux
           path: ags_*_linux.tar.gz
 
+  macos-tools-builds:
+    name: macOS Tools (arm64)
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build Tools on macOS
+        run: |
+          set -e
+          PREFIX="$PWD/dist-tools/usr/local"
+          find Tools -name Makefile -execdir make -j4 PREFIX="$PREFIX" install \;
+          make -j4 --directory=Compiler PREFIX="$PREFIX" install
+
+      - name: Create macOS Tools archive
+        run: |
+          set -e
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
+          mkdir -p MacOS/Tools/arm64
+          cp -v dist-tools/usr/local/bin/* MacOS/Tools/arm64/
+          bsdtar -f "AGS-Tools-${version}-macos.tar.gz" -cvzC MacOS/Tools arm64
+
+      - name: Upload macOS Tools artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tools-macos-archive
+          path: AGS-Tools-*-macos.tar.gz
+
+  linux-make-tools:
+    name: Linux Tools (${{ matrix.platform.archname }})
+    runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { arch: amd64, archname: x64, os: ubuntu-latest }
+        - { arch: i386,  archname: x86, os: ubuntu-latest }
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install bsdtar
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+        
+      - name: Log in to GHCR
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run build inside container ${{ matrix.platform.archname }}
+        run: |
+          TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
+          IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"
+  
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            "$IMAGE" \
+            bash -c 'find Tools -name Makefile -execdir make -j4 PREFIX=/workspace/dist-tools/usr/local install \; && make -j4 --directory=Compiler PREFIX=/workspace/dist-tools/usr/local install'
+    
+      - name: Create Linux Tools archive ${{ matrix.platform.archname }}
+        run: |
+          bsdtar -f "linux-tools-${{ matrix.platform.archname }}.tar.gz" -cvzC dist-tools/usr/local/bin .
+
+      - name: Upload Linux Tools artifact ${{ matrix.platform.archname }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: tools-linux-archive-${{ matrix.platform.archname }}
+          path: linux-tools-${{ matrix.platform.archname }}.tar.gz
+
+  package-tools-archives:
+    name: Tools Packaging
+    runs-on: ubuntu-latest
+    needs:
+      - windows-msvc-tools
+      - linux-make-tools
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install bsdtar
+        run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
+
+      - name: Download Windows x64 Tools binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-tools-binaries-x64
+          path: tmp_win_tools/x64
+
+      - name: Download Windows x86 Tools binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-tools-binaries-x86
+          path: tmp_win_tools/x86
+
+      - name: Create Windows Tools archive
+        run: |
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
+          mkdir -p Win/Tools/x86
+          mkdir -p Win/Tools/x64
+          cp tmp_win_tools/x86/x86/Release/*.exe Win/Tools/x86/
+          cp tmp_win_tools/x64/x64/Release/*.exe Win/Tools/x64/
+          bsdtar -f "AGS-Tools-${version}.zip" -acvC Win/Tools x86 x64
+          rm -rf tmp_win_tools
+          rm -rf Win/Tools
+
+      - name: Upload Windows Tools archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: tools-windows-archive
+          include-hidden-files: true
+          path: AGS-Tools-*.zip
+
+      - name: Download Linux x64 Tools binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: tools-linux-archive-x64
+          path: tmp_linux_tools/x64
+
+      - name: Download Linux x86 Tools binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: tools-linux-archive-x86
+          path: tmp_linux_tools/x86
+
+      - name: Create Linux Tools archive
+        run: |
+          version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
+          mkdir -p Linux/Tools/x86
+          mkdir -p Linux/Tools/x64
+          bsdtar -f tmp_linux_tools/x86/linux-tools-x86.tar.gz -xvzC Linux/Tools/x86
+          bsdtar -f tmp_linux_tools/x64/linux-tools-x64.tar.gz -xvzC Linux/Tools/x64
+          bsdtar -f "AGS-Tools-${version}-Linux.tar.gz" -cvzC Linux/Tools x86 x64
+          rm -rf tmp_linux_tools
+          rm -rf Linux/Tools
+
+      - name: Upload Linux Tools archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: tools-linux-archive
+          include-hidden-files: true
+          path: AGS-Tools-*-Linux.tar.gz  
+
   windows-packaging:
     name: Windows Packaging
     runs-on: windows-2022
@@ -969,6 +1122,7 @@ jobs:
       - build-android-bundle
       - build-linux-bundle
       - windows-packaging
+      - package-tools-archives
       - package-pdbs
     steps:
       - uses: actions/checkout@v6
@@ -1055,6 +1209,18 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: ags-bundle-android
+          path: /tmp/github_release
+
+      - name: Download Windows Tools archive
+        uses: actions/download-artifact@v8
+        with:
+          name: tools-windows-archive
+          path: /tmp/github_release
+
+      - name: Download Linux Tools archive
+        uses: actions/download-artifact@v8
+        with:
+          name: tools-linux-archive
           path: /tmp/github_release
 
       - name: Generate SHA-256 checksums

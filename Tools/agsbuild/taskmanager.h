@@ -114,21 +114,28 @@ public:
         : Task(name, mgr, input_tasks) {}
 };
 
+enum class FileMoveOp
+{
+    Move,
+    Copy,
+    Hardlink
+};
+
 class TaskMoveFiles : public Task
 {
 public:
     TaskMoveFiles(const String &name, ITaskManager *mgr, const std::vector<std::pair<String, String>> &files,
-        bool do_copy, bool skip_if_no_src)
+        FileMoveOp file_op, bool skip_if_no_src)
         : Task(name, mgr)
         , _files(Clone(files))
-        , _doCopy(do_copy)
+        , _fileOp(file_op)
         , _skipIfNoSrc(skip_if_no_src)
     {}
     TaskMoveFiles(const String &name, ITaskManager *mgr, const std::vector<std::pair<String, String>> &files,
-        bool do_copy, bool skip_if_no_src, const std::vector<TaskInput> &input_tasks)
+        FileMoveOp file_op, bool skip_if_no_src, const std::vector<TaskInput> &input_tasks)
         : Task(name, mgr, input_tasks)
         , _files(Clone(files))
-        , _doCopy(do_copy)
+        , _fileOp(file_op)
         , _skipIfNoSrc(skip_if_no_src)
     {}
 
@@ -136,7 +143,7 @@ private:
     HError RunImpl() override;
 
     std::vector<std::pair<String, String>> _files;
-    bool _doCopy = false;
+    FileMoveOp _fileOp = FileMoveOp::Move;
     bool _skipIfNoSrc = false;
 };
 

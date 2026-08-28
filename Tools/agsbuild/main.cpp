@@ -230,7 +230,6 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     // Lists of packed files from various locations (filenames only)
     // TODO: figure out a more efficient way to store these
     std::vector<String> pak_src_files;
-    std::vector<String> pak_custom_dirs;
     std::vector<String> pak_temp_files;
     std::vector<String> pak_src_audio_files;
     std::vector<String> pak_temp_audio_files;
@@ -238,6 +237,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     std::vector<String> avox_temp_files;
     // Extra files that may be created as output, but not packed nor deployed
     std::vector<String> clnup_temp_files;
+    std::vector<String> clnup_avox_temp_files;
     // files that should be not packed but copied along with the game.ags
     std::vector<String> deploy_temp_files;
     // tasks to complete before packaging game files
@@ -350,7 +350,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         std::vector<std::pair<String, String>> copy_rooms;
         for (const auto &r : room_list_crm)
             copy_rooms.push_back(std::make_pair(Path::ConcatPaths(src_dir, r), Path::ConcatPaths(temp_dir, r)));
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("copy-rooms", &taskmgr, copy_rooms, true /* copy */, false /* no skip */)));
+        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("copy-rooms", &taskmgr, copy_rooms, FileMoveOp::Copy, false /* no skip */)));
 
         // Add tasks for each room
         for (const auto &r : room_list_crm)
@@ -434,6 +434,11 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     // collect either ones in source dir, or the ones we import onto the temp dir to the list of packed files
     if (aclip_list.size() > 0)
     {
+        // Create temp AudioCache dir always, because we use it to make hardlinks, write include file and package audio files
+        const String temp_audio_dir = Path::ConcatPaths(bopts.TempDir, "AudioCache");
+        if (!Directory::CreateDirectory(temp_audio_dir))
+            return new Error(String::FromFormat("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr()));
+
         std::vector<DataUtil::AudioClipData> src_clips;
         std::vector<DataUtil::AudioClipData> temp_clips;
         for (const auto &aclip : aclip_list)
@@ -447,10 +452,6 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
 
         if (temp_clips.size() > 0)
         {
-            const String temp_audio_dir = Path::ConcatPaths(bopts.TempDir, "AudioCache");
-            if (!Directory::CreateDirectory(temp_audio_dir))
-                return new Error(String::FromFormat("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr()));
-
             std::vector<std::pair<String, String>> copy_aclips;
             for (const auto &aclip : temp_clips)
             {
@@ -462,7 +463,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
                     avox_temp_files.push_back(aclip.CacheFileName);
             }
             taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("import-audio", &taskmgr, copy_aclips,
-                true /* copy */, true /* skip non-existing */, {})));
+                FileMoveOp::Hardlink, true /* skip non-existing */, {})));
             pre_pack_tasks.push_back({"import-audio"});
             pre_avox_tasks.push_back({"import-audio"});
         }
@@ -496,54 +497,81 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
             if (!Path::IsRelativePath(cd))
                 continue;
 
+            const String full_cd = Path::ConcatPaths(src_dir, cd);
             // Don't let a custom path equal to the source dir
-            if (Path::ComparePaths(src_dir, cd) == 0)
+            if (Path::ComparePaths(src_dir, full_cd) == 0)
                 continue;
 
             // Don't allow paths to outside of the source dir
-            if (!Path::IsSameOrSubDir(src_dir, cd))
+            if (!Path::IsSameOrSubDir(src_dir, full_cd))
                 continue;
 
             // TODO: // don't allow paths that match or inside restricted folders,
             // or folders that were already used to make a list of assets
 
-            pak_custom_dirs.push_back(cd);
+            // Create same custom directory inside temporary dir
+            const String temp_cd = Path::ConcatPaths(temp_dir, cd);
+            if (!Directory::CreateDirectory(temp_cd))
+                return new Error(String::FromFormat("Error: failed to create temporary custom data directory '%s'", temp_cd.GetCStr()));
+
+            for (FindFile ff = FindFile::Open(full_cd, "*", true, false); !ff.AtEnd(); ff.Next())
+                pak_src_files.push_back(Path::ConcatPaths(cd, ff.Current()));
         }
     }
 
     // Pack selected files into game.ags
     {
         const String tool_agspak = Path::ConcatPaths(sys_dir, ToolAgsPak);
-
-        // TODO: write a include file instead, as list of files may become far too large of a command line arg!
-        String file_filter;
-        for (const auto &f : pak_src_files)
-            file_filter.AppendFmt("%s,", f.GetCStr());
-        for (const auto &f : pak_temp_files)
-            file_filter.AppendFmt("%s,", f.GetCStr());
-        for (const auto &f : pak_src_audio_files)
-            file_filter.AppendFmt("%s,", f.GetCStr());
-        for (const auto &f : pak_temp_audio_files)
-            file_filter.AppendFmt("%s,", f.GetCStr());
-        for (const auto &cd : pak_custom_dirs)
-            file_filter.AppendFmt("%s/*,", cd.GetCStr());
-        file_filter.ClipRight(1); // cut last comma
-
-        const String game_pack_name = String::FromFormat("%s.ags", game_opts.FileName.GetCStr());
         const String audio_cache_dir = Path::ConcatPaths(src_dir, "AudioCache");
         const String audio_cache_temp_dir = Path::ConcatPaths(temp_dir, "AudioCache");
+
+        std::vector<TaskInput> final_pre_pack_tasks = pre_pack_tasks;
+
+        // Hardlink all packaged files from src dir into the temp dir,
+        // this is done to let use patterns file in the single location
+        std::vector<std::pair<String, String>> hl_files;
+        for (const auto &f : pak_src_files)
+            hl_files.push_back(std::make_pair(Path::ConcatPaths(src_dir, f), Path::ConcatPaths(temp_dir, f)));
+        for (const auto &f : pak_src_audio_files)
+            hl_files.push_back(std::make_pair(Path::ConcatPaths(audio_cache_dir, f), Path::ConcatPaths(audio_cache_temp_dir, f)));
+        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("hardlink-src", &taskmgr, hl_files, FileMoveOp::Hardlink, false /* no skip */, pre_pack_tasks)));
+        std::copy(pak_src_files.begin(), pak_src_files.end(), std::back_inserter(pak_temp_files));
+        std::copy(pak_src_audio_files.begin(), pak_src_audio_files.end(), std::back_inserter(pak_temp_audio_files));
+        final_pre_pack_tasks.push_back({"hardlink-src"});
+
+        // Write patterns file for main data packed into game.ags
+        std::vector<String> file_pat;
+        for (const auto &f : pak_temp_files)
+            file_pat.push_back(f);
+        const String include_file = "agspak-include.files";
+        taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-agspak-includefile:root", &taskmgr,
+            Path::ConcatPaths(temp_dir, include_file), file_pat, pre_pack_tasks)));
+        clnup_temp_files.push_back(include_file);
+        final_pre_pack_tasks.push_back({"write-agspak-includefile:root"});
+
+        // Write patterns file for the audio packed into game.ags (if necessary)
+        if (pak_temp_audio_files.size())
+        {
+            file_pat.clear();
+            for (const auto &f : pak_temp_audio_files)
+                file_pat.push_back(f);
+            taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-agspak-includefile:audiocache", &taskmgr,
+                Path::ConcatPaths(audio_cache_temp_dir, include_file), file_pat, pre_pack_tasks)));
+            clnup_avox_temp_files.push_back(include_file);
+            final_pre_pack_tasks.push_back({"write-agspak-includefile:audiocache"});
+        }
+
+        const String game_pack_name = String::FromFormat("%s.ags", game_opts.FileName.GetCStr());
         taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess("agspak:game.ags", &taskmgr,
-            PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/%s\" \"%s\" -D \"%s\" -D \"%s\" -D \"%s\" \"%s\" --replace-dup %s",
+            PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/%s\" \"%s\" -r -D \"%s\" -f \"%s\" --replace-dup %s",
                 temp_dir.GetCStr(), // output pak dir
                 game_pack_name.GetCStr(), // game.ags name
-                src_dir.GetCStr(), // main input dir
-                temp_dir.GetCStr(), // temp output dir (additional input dir)
-                audio_cache_dir.GetCStr(), // src audio cache (for audio clips embedded into game.ags)
-                audio_cache_temp_dir.GetCStr(), // temp audio cache (made if any files were missing in src)
-                file_filter.GetCStr(), // file match filter
+                temp_dir.GetCStr(), // temp output dir
+                audio_cache_temp_dir.GetCStr(), // temp audio cache (for audio clips embedded into game.ags)
+                include_file.GetCStr(), // patterns file
                 verbose
-            )), pre_pack_tasks)));
-
+            )), final_pre_pack_tasks)));
+        
         deploy_temp_files.push_back(game_pack_name);
         pre_deploy_tasks.push_back({"agspak:game.ags"});
     }
@@ -552,24 +580,40 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     if (avox_src_files.size() > 0 || avox_temp_files.size() > 0)
     {
         const String tool_agspak = Path::ConcatPaths(sys_dir, ToolAgsPak);
+        const String audio_cache_dir = Path::ConcatPaths(src_dir, "AudioCache");
+        const String audio_cache_temp_dir = Path::ConcatPaths(temp_dir, "AudioCache");
 
-        // TODO: write a include file instead, as list of files may become far too large of a command line arg!
-        String file_filter;
+        std::vector<TaskInput> final_pre_avox_tasks = pre_avox_tasks;
+
+        // Hardlink all packaged files from src dir into the temp dir,
+        // this is done to let use patterns file in the single location
+        std::vector<std::pair<String, String>> hl_files;
         for (const auto &f : avox_src_files)
-            file_filter.AppendFmt("%s,", f.GetCStr());
+            hl_files.push_back(std::make_pair(Path::ConcatPaths(audio_cache_dir, f), Path::ConcatPaths(audio_cache_temp_dir, f)));
+        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("hardlink-avox-src", &taskmgr, hl_files, FileMoveOp::Hardlink, false /* no skip */, pre_avox_tasks)));
+        std::copy(avox_src_files.begin(), avox_src_files.end(), std::back_inserter(avox_temp_files));
+        final_pre_avox_tasks.push_back({"hardlink-avox-src"});
+
+        // Write patterns file
+        std::vector<String> file_pat;
         for (const auto &f : avox_temp_files)
-            file_filter.AppendFmt("%s,", f.GetCStr());
-        file_filter.ClipRight(1); // cut last comma
+            file_pat.push_back(f);
+
+        const String include_file = "avox-include.files";
+        taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-avox-includefile", &taskmgr,
+            Path::ConcatPaths(audio_cache_temp_dir, include_file), file_pat, pre_avox_tasks)));
+        clnup_avox_temp_files.push_back(include_file);
+        final_pre_avox_tasks.push_back({"write-avox-includefile"});
 
         taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess("agspak:audio.vox", &taskmgr,
-            PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/audio.vox\" \"%s/AudioCache\" -D \"%s/AudioCache\" \"%s\" --replace-dup %s",
+            PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/audio.vox\" \"%s\" -f \"%s\" --replace-dup %s",
                 temp_dir.GetCStr(), // output pak dir
-                src_dir.GetCStr(), // main input dir
-                temp_dir.GetCStr(), // temp output dir (additional input dir)
-                file_filter.GetCStr(), // file match filter
+                audio_cache_temp_dir.GetCStr(), // temp output dir
+                include_file.GetCStr(), // file match filter
                 verbose
-            )), pre_avox_tasks)));
+            )), final_pre_avox_tasks)));
 
+        std::copy(avox_src_files.begin(), avox_src_files.end(), std::back_inserter(clnup_avox_temp_files));
         deploy_temp_files.push_back("audio.vox");
         pre_deploy_tasks.push_back({"agspak:audio.vox"});
     }
@@ -614,7 +658,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         for (const auto &f : deploy_temp_files)
             deploy_data.push_back(std::make_pair(Path::ConcatPaths(temp_dir, f), Path::ConcatPaths(out_dir, f)));
         taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("deploy-data", &taskmgr, deploy_data,
-            false /* move */, false /* no skip */, pre_deploy_tasks)));
+            FileMoveOp::Move, false /* no skip */, pre_deploy_tasks)));
     }
 
     // Cleanup on success
@@ -631,6 +675,8 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         for (const auto &f : pak_temp_audio_files)
             cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
         for (const auto &f : avox_temp_files)
+            cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
+        for (const auto &f : clnup_avox_temp_files)
             cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
         taskmgr.AddTask(std::unique_ptr<Task>(new TaskDeleteFiles("cleanup-temp", &taskmgr, cleanup_files,
             {{"deploy-data"}})));
@@ -771,7 +817,9 @@ int main(int argc, char *argv[])
             Directory::DeleteDirectory(bopts.TempDir);
     }
 
-    if (!err)
+    if (err)
+        printf("Done.\n");
+    else
         printf("%s\n", err->FullMessage().GetCStr());
     return err ? 0 : -1;
 }

@@ -168,6 +168,13 @@ HError Task::Run()
 
 HError TaskMoveFiles::RunImpl()
 {
+    assert(_fileOp >= FileMoveOp::Move && _fileOp <= FileMoveOp::Hardlink);
+    if (_fileOp < FileMoveOp::Move || _fileOp > FileMoveOp::Hardlink)
+        _fileOp = FileMoveOp::Copy;
+
+    const char *op_names[] = { "Move", "Copy", "Hardlink" };
+    const char *op_names2[] = { "move", "copy", "hardlink" };
+
     for (const auto item : _files)
     {
         const String src_filepath = item.first;
@@ -176,18 +183,29 @@ HError TaskMoveFiles::RunImpl()
         if (File::IsFile(src_filepath))
         {
             bool success = false;
-            if (_doCopy)
+            switch (_fileOp)
+            {
+            case FileMoveOp::Move: success = File::RenameFile(src_filepath, dst_filepath); break;
+            case FileMoveOp::Copy: success = File::CopyFile(src_filepath, dst_filepath, true); break;
+            case FileMoveOp::Hardlink: success = File::LinkFile(src_filepath, dst_filepath, true); break;
+            default: assert(false); break;
+            }
+
+            FileMoveOp do_op = _fileOp;
+            if (!success && _fileOp != FileMoveOp::Copy)
+            {
+                _logWriter->WriteFormat("Failed to %s file %s to %s, fallback to Copy\n", op_names2[(int)_fileOp], src_filepath.GetCStr(), dst_filepath.GetCStr());
                 success = File::CopyFile(src_filepath, dst_filepath, true);
-            else
-                success = File::RenameFile(src_filepath, dst_filepath);
+                do_op = FileMoveOp::Copy;
+            }
 
             if (success)
             {
-                _logWriter->WriteFormat("+ %s: %s -> %s\n", _doCopy ? "Copy" : "Move", src_filepath.GetCStr(), dst_filepath.GetCStr());
+                _logWriter->WriteFormat("+ %s: %s -> %s\n", op_names[(int)do_op], src_filepath.GetCStr(), dst_filepath.GetCStr());
             }
             else
             {
-                return new Error(String::FromFormat("Failed to %s file %s to %s", _doCopy ? "copy" : "move", src_filepath.GetCStr(), dst_filepath.GetCStr()));
+                return new Error(String::FromFormat("Failed to %s file %s to %s", op_names2[(int)do_op], src_filepath.GetCStr(), dst_filepath.GetCStr()));
             }
         }
         else if (_skipIfNoSrc)
@@ -550,6 +568,9 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
 
 void TaskManager::CancelTask(Task *task, const String &parent_task, std::vector<String> &cancel_tasks)
 {
+    TaskState state = task->GetState();
+    if (state == TaskState::Cancelled || state == TaskState::Failure)
+        return; // already cancelled or failed
     if (parent_task.IsEmpty())
         printf("Task %s: cancel (input(s) not available)\n", task->GetName().GetCStr());
     else

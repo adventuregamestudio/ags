@@ -420,6 +420,7 @@ enum eKeyCode
 #ifdef SCRIPT_API_v360
 enum eKeyMod
 {
+  eKeyModNone       = 0,
   eKeyModShiftLeft  = 0x00010000,
   eKeyModShiftRight = 0x00020000,
   eKeyModShift      = 0x00030000,
@@ -1118,7 +1119,7 @@ import void DeleteSaveSlot(int slot);
 /// Sets this as the point at which the game will be restarted.
 import void SetRestartPoint();
 /// Gets what type of thing is in the room at the specified co-ordinates.
-import LocationType GetLocationType(int x, int y);
+import LocationType GetLocationType(int x, int y, HitTestOptions hitOptions = eHit_Interactable);
 #ifdef SCRIPT_COMPAT_v399
 #ifdef SCRIPT_API_v3507
 /// Returns which walkable area is at the specified position on screen.
@@ -3239,6 +3240,8 @@ builtin managed struct Character {
   import readonly attribute int InventoryCount;
   /// Gets inventory items which character has in its inventory.
   import readonly attribute InventoryItem* Inventory[];
+  /// Gets whether the object is currently turning, which is either turning on spot by command, or turning while walking.
+  import readonly attribute bool Turning;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Moves the character along the path, ignoring walkable areas, without playing his walking animation.
@@ -3324,7 +3327,7 @@ builtin struct Game {
   import static int    GetFrameCountForLoop(int view, int loop);
 #ifdef SCRIPT_COMPAT_v400_24
   /// Gets the name of whatever is on the screen at (x,y)
-  import static String GetLocationName(int x, int y);
+  import static String GetLocationName(int x, int y, HitTestOptions hitOptions = eHit_Interactable);
 #endif // SCRIPT_COMPAT_v400_24
   /// Gets the human-readable name of whatever is on the screen at (x,y)
   import static String GetDisplayNameAt(int x, int y);
@@ -3400,7 +3403,7 @@ builtin struct Game {
   /// Play speech voice-over in non-blocking mode, optionally apply music and sound volume reduction
   import static AudioChannel* PlayVoiceClip(Character*, int cue, bool as_speech = true);
   /// Simulate a keypress on the keyboard.
-  import static void   SimulateKeyPress(eKeyCode key);
+  import static void   SimulateKeyPress(eKeyCode key, eKeyMod mod = eKeyModNone);
 #endif // SCRIPT_API_v350
 #ifdef SCRIPT_API_v3507
   /// Gets the primary camera

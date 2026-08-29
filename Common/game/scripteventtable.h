@@ -227,7 +227,7 @@ struct ScriptEventHandlers : public ScriptEventsBase
 
     // Read pre-3.6.2 version of the ScriptEventHandlers
     // (this is still may be used by contemporary room structs, because they didn't need some data)
-    void Read_v361(Stream *in);
+    HError Read_v361(Stream *in);
     // Read 3.6.2+ version of the ScriptEventHandlers
     HError Read(Stream *in);
     void Write_v361(Stream *out) const;

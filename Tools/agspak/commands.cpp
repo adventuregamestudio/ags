@@ -110,15 +110,12 @@ static HError CutAssetLibrary(const String &pak_file, bool verbose)
     return HError::None();
 }
 
-static HError PrepareAssetLibrary(AssetLibInfo &lib,
-    const String &src_dir, const String &dst_pak,
-    const std::vector<String> &pattern_list, const String &pattern_file,
-    bool do_subdirs, size_t part_size_mb, bool verbose)
+// Makes the list of assets from a single input directory, applying pattern list and/or rules from pattern file.
+// Fills a map of asset-name -> filepath pairs.
+static HError MakeAssetMapFromADir(const String &asset_dir, StringIMap &asset_map,
+    const std::vector<String> &pattern_list, const String &pattern_file, bool do_subdirs, bool verbose)
 {
-    const String &asset_dir = src_dir;
-    const String &lib_basefile = dst_pak;
     const bool has_pattern_file = !pattern_file.IsEmpty();
-
     std::vector<String> files;
     HError err = MakeListOfFiles(files, asset_dir, do_subdirs);
     if (!err)
@@ -157,28 +154,72 @@ static HError PrepareAssetLibrary(AssetLibInfo &lib,
         files = std::move(output_files);
     }
 
+    MakeAssetMapFromFileList(asset_map, files, asset_dir);
+    return HError::None();
+}
+
+// Configure the full asset library table of contents, by searching in all
+// the provided input directories, and picking files according to the pattern
+// list and/or pattern file.
+// Fills a map of asset-name -> filepath pairs.
+static HError PrepareAssetLibrary(AssetLibInfo &lib,
+    const std::vector<std::pair<String, bool>> &src_dirs, const String &dst_pak,
+    StringIMap &asset_map,
+    const std::vector<String> &pattern_list, const String &pattern_file,
+    DuplicateAssetAction dup_action,
+    size_t part_size_mb, bool verbose)
+{
+    const String &lib_basefile = dst_pak;
     std::vector<AssetInfo> assets;
-    err = MakeAssetListFromFileList(files, assets, asset_dir);
-    if (!err)
+    HError err;
+    for (const auto &src_dir : src_dirs)
     {
-        printf("Error: failed to prepare list of assets:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return err;
+        StringIMap local_asset_map;
+        err = MakeAssetMapFromADir(src_dir.first, local_asset_map, pattern_list, pattern_file, src_dir.second, verbose);
+        if (!err)
+            return err;
+
+        // Handle asset duplicates
+        std::vector<String> remove_keys;
+        for (const auto &asset_entry : local_asset_map)
+        {
+            const auto it_exist = asset_map.find(asset_entry.first);
+            if (it_exist != asset_map.end())
+            {
+                switch (dup_action)
+                {
+                case kAssetDup_Replace:
+                    printf("Warning: duplicate asset '%s' [replace]: first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
+                        it_exist->second.GetCStr(), asset_entry.second.GetCStr());
+                    break;
+                case kAssetDup_Skip:
+                    printf("Warning: duplicate asset '%s' [skip]: first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
+                        it_exist->second.GetCStr(), asset_entry.second.GetCStr());
+                    remove_keys.push_back(asset_entry.first);
+                    break;
+                default:
+                    return new Error(String::FromFormat("Duplicate asset '%s': first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
+                        it_exist->second.GetCStr(), asset_entry.second.GetCStr()));
+                }
+            }
+        }
+
+        for (const auto &rem_key : remove_keys)
+            local_asset_map.erase(rem_key);
+
+        for (const auto &new_item : local_asset_map)
+            asset_map[new_item.first] = new_item.second;
     }
-    if (assets.size() == 0)
+
+    if (asset_map.size() == 0)
     {
-        printf("No valid assets found in the provided directory.\nDone.\n");
-        return HError::None();
+        return new Error("No valid assets found in any of the provided input location(s)");
     }
 
     soff_t part_size_b = part_size_mb * 1024 * 1024; // MB to bytes
-    err = MakeAssetLib(lib, lib_basefile, assets, part_size_b);
+    err = MakeAssetLib(lib, lib_basefile, asset_map, part_size_b);
     if (!err)
-    {
-        printf("Error: failed to configure asset library:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
         return err;
-    }
 
     return HError::None();
 }
@@ -212,7 +253,7 @@ int Command_Attach(const String &src_pak, const String &dst_file, bool verbose)
     return 0;
 }
 
-int Command_Cut(const String &src_pak, bool verbose)
+int Command_CutAttachment(const String &src_pak, bool verbose)
 {
     printf("Input pack file: %s\n", src_pak.GetCStr());
 
@@ -227,31 +268,55 @@ int Command_Cut(const String &src_pak, bool verbose)
     return 0;
 }
 
-int Command_Create(const String &src_dir, const String &dst_pak, bool append,
-                   const std::vector<String> &pattern_list, const String &pattern_file,
-                   bool do_subdirs, size_t part_size_mb, bool verbose)
+int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String &dst_pak, bool append,
+                   const std::vector<String> &pattern_list, const String &pattern_file, DuplicateAssetAction dup_action,
+                   size_t part_size_mb, bool verbose)
 {
-    printf("Input directory: %s\n", src_dir.GetCStr());
+    if (src_dirs.size() == 1)
+    {
+        printf("Input directory: %s\n", src_dirs[0].first.GetCStr());
+    }
+    else if (src_dirs.size() > 1)
+    {
+        printf("Input directories: %s%s\n", src_dirs[0].first.GetCStr(), src_dirs[0].second ? " [recursive]" : "");
+        for (size_t i = 1; i < src_dirs.size(); ++i)
+            printf("                   %s%s\n", src_dirs[i].first.GetCStr(), src_dirs[i].second ? " [recursive]" : "");
+    }
     printf("Output pack file: %s\n", dst_pak.GetCStr());
     const bool has_pattern_file = !pattern_file.IsEmpty();
     if (has_pattern_file)
         printf("Pattern file name: %s\n", pattern_file.GetCStr());
 
-    if (!File::IsDirectory(src_dir))
+    size_t valid_src_dirs = src_dirs.size();
+    for (const auto &dir : src_dirs)
     {
-        printf("Error: not a valid input directory.\n");
+        if (!File::IsDirectory(dir.first))
+        {
+            printf("Warning: not a valid input directory: %s.\n", dir.first.GetCStr());
+            valid_src_dirs--;
+        }
+    }
+
+    if (valid_src_dirs == 0)
+    {
+        printf("Error: no valid input directories provided\n");
         return -1;
     }
 
     //-----------------------------------------------------------------------//
     // Gather list of files and set up library info
     //-----------------------------------------------------------------------//
-    const String &asset_dir = src_dir;
+    // This will be the list of input file -> asset entry pairs
     const String &lib_basefile = dst_pak;
+    StringIMap asset_map;
     AssetLibInfo lib;
-    HError err = PrepareAssetLibrary(lib, asset_dir, lib_basefile, pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
+    HError err = PrepareAssetLibrary(lib, src_dirs, lib_basefile, asset_map, pattern_list, pattern_file, dup_action, part_size_mb, verbose);
     if (!err)
+    {
+        printf("Error: failed to prepare asset library:\n");
+        printf("%s\n", err->FullMessage().GetCStr());
         return -1;
+    }
 
     //-----------------------------------------------------------------------//
     // If we are appending, then check for the existing library in the
@@ -272,7 +337,7 @@ int Command_Create(const String &src_dir, const String &dst_pak, bool append,
     // Write pack file
     //-----------------------------------------------------------------------//
     String lib_dir = Path::GetParent(lib_basefile);
-    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, append, verbose);
+    err = WriteLibrary(lib, asset_map, lib_dir, MFLUtil::kMFLVersion_MultiV30, append, verbose);
     if (!err)
     {
         printf("Error: failed to write pack file:\n");
@@ -398,7 +463,7 @@ int Command_List(const String &src_pak)
     // TODO: print more info, but perhaps require cmd arguments for that? (because it's not always useful)
     for (const auto &asset : lib.AssetInfos)
     {
-        printf("* %s\n", asset.FileName.GetCStr());
+        printf("* %-40s[%10lld]\n", asset.FileName.GetCStr(), asset.Size);
     }
     printf("Done.\n");
     return 0;

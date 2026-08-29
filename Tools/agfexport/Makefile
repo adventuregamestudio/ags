@@ -28,16 +28,20 @@ COMMON_OBJS = \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
+	../../Common/util/ini_util.cpp \
+	../../Common/util/inifile.cpp \
 	../../Common/util/path.cpp \
 	../../Common/util/stdio_compat.c \
 	../../Common/util/stream.cpp \
 	../../Common/util/string.cpp \
 	../../Common/util/string_compat.c \
 	../../Common/util/string_utils.cpp \
-	../../Common/util/textstreamreader.cpp
+	../../Common/util/textstreamreader.cpp \
+	../../Common/util/textstreamwriter.cpp
 
 TOOL_OBJS = \
 	../../Tools/data/agfreader.cpp \
+	../../Tools/data/game_utils.cpp \
 	../../Tools/data/scriptgen.cpp
 
 TINYXML2 = \

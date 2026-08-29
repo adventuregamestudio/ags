@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ProjectPanel));
-            this.projectTree = new AGS.Editor.TreeViewWithDragDrop();
+            this.projectTree = new AGS.Controls.TreeViewWithDragDrop();
             this.SuspendLayout();
             // 
             // projectTree
@@ -60,6 +60,6 @@
 
         #endregion
 
-        internal AGS.Editor.TreeViewWithDragDrop projectTree;
+        internal AGS.Controls.TreeViewWithDragDrop projectTree;
     }
 }

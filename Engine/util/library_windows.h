@@ -126,8 +126,8 @@ private:
             FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, GetLastError(),
                 MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), // always en_US, because our logs are in English
                 wbuffer.data(), wbuffer.size(), NULL);
-            std::vector<char> err_msg(1024);
-            Common::StrUtil::ConvertWstrToUtf8(wbuffer.data(), err_msg.data(), err_msg.size());
+            std::vector<char> err_msg;
+            Common::StrUtil::ConvertWstrToUtf8(wbuffer.data(), err_msg);
             Common::Debug::Printf("LoadLibrary error: %s", err_msg.data());
         }
         return hmodule;
@@ -146,9 +146,9 @@ private:
         for (const auto p : lookup)
         {
             path = Common::Path::ConcatPaths(p, libfile);
-            std::vector<WCHAR> wbuffer(1024);
-            Common::StrUtil::ConvertUtf8ToWstr(p.GetCStr(), wbuffer.data(), wbuffer.size());
-            SetDllDirectoryW(wbuffer.data());
+            WCHAR wpath[MAX_PATH_SZ] = L"";
+            Common::StrUtil::ConvertUtf8ToWstr(p.GetCStr(), wpath, MAX_PATH_SZ);
+            SetDllDirectoryW(wpath);
             lib = TryLoad(path);
             SetDllDirectoryW(NULL);
             if (lib)

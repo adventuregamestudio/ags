@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace AGS.Editor
+namespace AGS.Controls
 {
     /// <summary>
     /// Extender methods for the ListView control.

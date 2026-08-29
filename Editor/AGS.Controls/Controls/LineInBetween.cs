@@ -4,7 +4,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace AGS.Editor
+namespace AGS.Controls
 {
     class LineInBetween : Control
     {

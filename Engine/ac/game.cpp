@@ -1003,8 +1003,14 @@ const char* Game_InputBox(const char *msg) {
     return CreateNewScriptString(buffer);
 }
 
-const char* Game_GetLocationName(int x, int y) {
-    return CreateNewScriptString(GetLocationName(x, y));
+const char* Game_GetLocationName(int x, int y, int hit_options)
+{
+    return CreateNewScriptString(GetLocationName(x, y, hit_options));
+}
+
+const char* Game_GetLocationName2(int x, int y)
+{
+    return Game_GetLocationName(x, y, kHit_Interactable);
 }
 
 int Game_GetSpeechFont() {
@@ -1103,9 +1109,41 @@ ScriptCamera* Game_GetAnyCamera(int index)
     return play.GetScriptCamera(index);
 }
 
-void Game_SimulateKeyPress(int key)
+void Game_SimulateKeyPress(int key, int mod)
 {
-    ags_simulate_keypress(static_cast<eAGSKeyCode>(key), (game.options[OPT_KEYHANDLEAPI] == 0));
+    const bool old_key_mode = game.options[OPT_KEYHANDLEAPI] == 0;
+    eAGSKeyCode modkey = eAGSKeyCodeNone;
+    eAGSKeyMod mod_ex = eAGSModNone;
+    // Support combo-keys, split them into key + mod and pass as separate events.
+    // If game is running in the old-key mode, then they will become re-combined again on receival.
+    if (key >= eAGSKeyCodeCtrlA && key <= eAGSKeyCodeCtrlZ)
+    {
+        key = key - eAGSKeyCodeCtrlA + eAGSKeyCodeA;
+        modkey = eAGSKeyCodeLCtrl;
+        mod_ex = eAGSModCtrl;
+    }
+    else if (key >= eAGSKeyCodeAltA && key <= eAGSKeyCodeAltZ)
+    {
+        key = AGS_EXT_KEY_TOALPHA(key);
+        modkey = eAGSKeyCodeLAlt;
+        mod_ex = eAGSModAlt;
+    }
+
+    if (modkey > 0)
+    {
+        ags_simulate_keydown(modkey);
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod | mod_ex), old_key_mode);
+        ags_simulate_keyup(modkey);
+    }
+    else
+    {
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod), old_key_mode);
+    }
+}
+
+void Game_SimulateKeyPressOld(int key)
+{
+    Game_SimulateKeyPress(key, 0);
 }
 
 int Game_BlockingWaitCounter()
@@ -1659,7 +1697,9 @@ void stop_fast_forwarding() {
     }
 }
 
-int GetLocationTypeImpl(int *locobj_index, int x, int y, bool click_through_gui, bool allow_hotspot0)
+// allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
+// or whether it returns 0
+int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui, bool allow_hotspot0)
 {
     if (locobj_index)
         *locobj_index = -1;
@@ -1694,9 +1734,9 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, bool click_through_gui,
     // foremost visible to the player
     x = room_pt.X;
     y = room_pt.Y;
-    int charat = GetCharIDAtRoom(x, y, kHit_Interactable);
-    int hsat = GetHotspotIDAtRoom(x, y, kHit_Interactable);
-    int objat = GetObjectIDAtRoom(x, y, kHit_Interactable);
+    int charat = GetCharIDAtRoom(x, y, hit_options);
+    int hsat = GetHotspotIDAtRoom(x, y, hit_options);
+    int objat = GetObjectIDAtRoom(x, y, hit_options);
 
     int wbat = thisroom.WalkBehindMask->GetPixel(x, y);
     if (wbat <= 0)
@@ -2153,10 +2193,14 @@ RuntimeScriptValue Sc_Game_GetFrameCountForLoop(const RuntimeScriptValue *params
     API_SCALL_INT_PINT2(Game_GetFrameCountForLoop);
 }
 
-// const char* (int x, int y)
 RuntimeScriptValue Sc_Game_GetLocationName(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, Game_GetLocationName);
+    API_SCALL_OBJ_PINT3(const char, myScriptStringImpl, Game_GetLocationName);
+}
+
+RuntimeScriptValue Sc_Game_GetLocationName2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, Game_GetLocationName2);
 }
 
 // int (int viewNumber)
@@ -2478,7 +2522,12 @@ RuntimeScriptValue Sc_Game_GetAnyCamera(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Game_SimulateKeyPress);
+    API_SCALL_VOID_PINT2(Game_SimulateKeyPress);
+}
+
+RuntimeScriptValue Sc_Game_SimulateKeyPressOld(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SimulateKeyPressOld);
 }
 
 RuntimeScriptValue Sc_Game_BlockingWaitCounter(const RuntimeScriptValue *params, int32_t param_count)
@@ -2605,7 +2654,8 @@ void RegisterGameAPI()
         { "Game::GetDisplayNameAt^2",                     API_FN_PAIR(Game_GetLocationName) },
         { "Game::GetFrameCountForLoop^2",                 API_FN_PAIR(Game_GetFrameCountForLoop) },
         // [OBSOLETE] GetLocationName => GetDisplayNameAt
-        { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName) },
+        { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName2) },
+        { "Game::GetLocationName^3",                      API_FN_PAIR(Game_GetLocationName) },
         { "Game::GetLoopCountForView^1",                  API_FN_PAIR(Game_GetLoopCountForView) },
         { "Game::GetRunNextSettingForLoop^2",             API_FN_PAIR(Game_GetRunNextSettingForLoop) },
         { "Game::GetSaveSlotDescription^1",               API_FN_PAIR(Game_GetSaveSlotDescription) },
@@ -2622,7 +2672,8 @@ void RegisterGameAPI()
         { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::Resume",                                 API_FN_PAIR(Game_Resume) },
-        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
+        { "Game::SimulateKeyPress^1",                     API_FN_PAIR(Game_SimulateKeyPressOld) },
+        { "Game::SimulateKeyPress^2",                     API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::GetSaveSlots^4",                         API_FN_PAIR(Game_GetSaveSlots) },
         { "Game::ScanSaveSlots^6",                        API_FN_PAIR(Game_ScanSaveSlots) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace AGS.Editor
+namespace AGS.Controls
 {
     public class TreeItemDragEventArgs : DragEventArgs
     {

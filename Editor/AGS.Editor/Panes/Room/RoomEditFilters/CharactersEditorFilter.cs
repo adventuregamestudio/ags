@@ -117,16 +117,16 @@ namespace AGS.Editor
             Utilities.CopyTextToClipboard(textToCopy);
         }
 
-        protected override void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+        protected override void ShowContextMenu(Point position, RoomEditorState state)
         {
+            ContextMenuStrip menu = new ContextMenuStrip();
             if (_selectedObject != null)
             {
                 EventHandler onClick = new EventHandler(CharCoordMenuEventHandler);
-                ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.Add(new ToolStripMenuItem("Copy Character coordinates to clipboard", null, onClick, MENU_ITEM_COPY_CHAR_COORDS));
-                OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, e.X, e.Y));
-                menu.Show(_panel, e.X, e.Y);
             }
+            OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, position.X, position.Y));
+            menu.Show(_panel, position.X, position.Y);
         }
 
         public override void Paint(Graphics graphics, RoomEditorState state)
@@ -147,6 +147,8 @@ namespace AGS.Editor
 
             if (!Enabled || _selectedObject == null)
                 return;
+
+            // TODO: this following algorithm could be in the base class BaseThingEditorFilter?
 
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
@@ -324,6 +326,14 @@ namespace AGS.Editor
         {
             curX = obj.StartX;
             curY = obj.StartY;
+        }
+
+        /// <summary>
+        /// Get current object's bounding rectangle.
+        /// </summary>
+        protected override Rectangle GetObjectRectangle(Character obj)
+        {
+            return GetCharacterRectInRoom(obj);
         }
 
         /// <summary>

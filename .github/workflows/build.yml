@@ -882,11 +882,12 @@ jobs:
           version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/ac/def_version.h)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
+      # source archive formats used by downstream when packaging ags
       - name: Create source archives
         run: |
           version=${{ steps.version.outputs.version }}
           mkdir -p /tmp/github_release
-          for ext in tar.gz zip; do
+          for ext in tar.gz tar.xz zip; do
             echo "Writing ${ext} archive..."
             bsdtar -f "/tmp/github_release/ags_${version}_source.${ext}" \
               -acs "!\./\(.*\)!ags_${version}_source/\1!" \

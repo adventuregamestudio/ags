@@ -60,10 +60,12 @@ public:
     void Close();
 
     inline DocElem GetGameRoot() const { return _gameRoot; }
+    inline const String &GetEditorVersion() const { return _editorVersion; }
 
 private:
     std::unique_ptr<Document> _doc;
     DocElem _gameRoot;
+    String _editorVersion;
 };
 
 // Helper class, providing static methods for reading values from a doc element
@@ -73,11 +75,18 @@ protected:
     ValueParser() = default;
     ~ValueParser() = default;
 
+public:
     // Helper functions for reading certain field;
     // all of them return default value if the field cannot be read
     static const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
     static int ReadInt(DocElem elem, const char *field, int def_value = 0);
+    static float ReadFloat(DocElem elem, const char *field, float def_value = 0.f);
     static bool ReadBool(DocElem elem, const char *field, bool def_value = false);
+
+    // Read values stored as XML attributes rather than child elements.
+    static const char *ReadAttributeString(DocElem elem, const char *field, const char *def_value = "");
+    static int ReadAttributeInt(DocElem elem, const char *field, int def_value = 0);
+    static bool ReadAttributeBool(DocElem elem, const char *field, bool def_value = false);
 };
 
 // EntityParser: parent class meant for parsing a game entity
@@ -137,6 +146,7 @@ public:
     String ReadType(DocElem elem) override { return "AudioClip"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
+    void ReadAllData(DocElem elem, DataUtil::AudioClipData &data);
 };
 
 // AudioType data parser
@@ -145,7 +155,8 @@ class AudioType : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "TypeID"); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
+    void ReadAllData(DocElem elem, DataUtil::AudioTypeData &data);
 };
 
 // Character data parser
@@ -155,6 +166,7 @@ public:
     String ReadType(DocElem elem) override { return "Character"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName");  }
+    void ReadAllData(DocElem elem, DataUtil::CharacterData &data);
 };
 
 // Cursor data parser
@@ -163,7 +175,8 @@ class Cursor : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
+    void ReadAllData(DocElem elem, DataUtil::CursorData &data);
 };
 
 // Dialog data parser
@@ -184,7 +197,8 @@ class Font : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
+    void ReadAllData(DocElem elem, DataUtil::FontData &data);
 };
 
 // GUI Control data parser
@@ -194,6 +208,13 @@ public:
     String ReadType(DocElem elem) override;
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    void ReadAllData(DocElem elem, DataUtil::GUIControlData& data);
+    void ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data);
+    void ReadLabelData(DocElem elem, DataUtil::GUILabelData& data);
+    void ReadSliderData(DocElem elem, DataUtil::GUISliderData& data);
+    void ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData& data);
+    void ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData& data);
+    void ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData& data);
 };
 
 // GUI data parser
@@ -203,6 +224,7 @@ public:
     String ReadType(DocElem elem) override { return "GUI"; }
     int ReadID(DocElem elem) override;
     String ReadScriptName(DocElem elem) override;
+    void ReadAllData(DocElem elem, DataUtil::GUIData& gui_data);
 
 private:
     DocElem GetNormalGUI(DocElem elem);
@@ -216,6 +238,7 @@ public:
     String ReadType(DocElem elem) override { return "InventoryItem"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    void ReadAllData(DocElem elem, DataUtil::InventoryItemData &data);
 };
 
 // View data parser
@@ -225,6 +248,7 @@ public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    void ReadAllData(DocElem elem, DataUtil::ViewData &data);
 };
 
 
@@ -344,6 +368,18 @@ public:
     void GetAll(DocElem root, std::vector<DocElem> &elems) override;
 };
 
+class CustomPropertySchemaItem : public ValueParser
+{
+public:
+    void ReadAllData(DocElem elem, DataUtil::CustomPropertySchemaItem &data);
+};
+
+class CustomPropertySchema : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override;
+};
+
 class Game : public EntityParser
 {
 public:
@@ -352,6 +388,7 @@ public:
     String ReadScriptName(DocElem elem) override { return ""; }
 
     DocElem GetSettings(DocElem elem);
+    DocElem GetDefaultSetup(DocElem elem);
 };
 
 class GameSettings : public EntityParser
@@ -360,9 +397,16 @@ public:
     String ReadType(DocElem elem) override { return "GameSettings"; }
     int    ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
+    void   ReadAllData(DocElem elem, DataUtil::GameSettings& s);
+};
 
-    String ReadSayFunction(DocElem elem) { return ReadString(elem, "DialogScriptSayFunction"); }
-    String ReadNarrateFunction(DocElem elem) { return ReadString(elem, "DialogScriptNarrateFunction"); }
+class RuntimeSetup : public EntityParser
+{
+public:
+    String ReadType(DocElem elem) override { return "RuntimeSetup"; }
+    int    ReadID(DocElem elem) override { return -1; }
+    String ReadScriptName(DocElem elem) override { return ""; }
+    void   ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup);
 };
 
 // Parses a description of an individual script file (header or body)
@@ -391,6 +435,23 @@ public:
     }
 };
 
+// Parses a description of a game plugin
+class Plugin : public ValueParser
+{
+public:
+    String ReadFileName(DocElem elem) { return ReadString(elem, "FileName"); }
+};
+
+// Parses a list of game plugins
+class Plugins : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, nullptr, "Plugins", "Plugin");
+    }
+};
+
 // Parses a description of a room
 class Room : public ValueParser
 {
@@ -409,10 +470,32 @@ public:
     }
 };
 
+// Parses a description of a translation
+class Translation : public ValueParser
+{
+public:
+    String ReadName(DocElem elem) { return ReadString(elem, "Name"); }
+};
+
+// Parses a list of translations
+class Translations : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, nullptr, "Translations", "Translation");
+    }
+};
+
 
 //
 // Helper functions
 //
+
+// exposing to enable testing
+// Convert serialized (string) enum names to their internal values (ints).
+DataUtil::SkipSpeechStyle ReadSkipSpeech(const String &value);
+DataUtil::LipSyncType ReadLipSyncType(const String &value);
 
 // Read entity reference data using given parser from the given doc element
 void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem);
@@ -422,16 +505,33 @@ void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser 
     EntityParser &parser, DocElem root);
 // Reads global variables defined inside the game project from the given doc root element.
 void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root);
+// Reads custom property schema definitions from the given doc root element.
+void ReadCustomPropertySchema(std::vector<DataUtil::CustomPropertySchemaItem> &schema, DocElem root);
 // Reads game settings from the given doc root element.
 void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 // Reads full game reference data using AGFReader
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
+// Reads full game data required for serializing a compiled game.
+void ReadGameData(DataUtil::GameData &game, AGFReader &reader);
+// Reads default runtime game setup data
+void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem root);
+// Reads a list of audio clips for this project
+void ReadAudioClips(std::vector<DataUtil::AudioClipData> &clips, DocElem root);
+// Reads a list of custom asset directories for this project
+void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root);
+// Reads a list of font IDs.
+// In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
+void ReadFontList(std::vector<int> &font_list, DocElem root);
+// Reads a list of plugins registered for this game project.
+void ReadPluginList(std::vector<String> &plugin_list, DocElem root);
+// Reads a list of room ID and descriptions found in the game document.
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
 // Reads an ordered list of script module names (their order determines dependency).
 void ReadScriptList(std::vector<String> &script_list, DocElem root);
 // Reads an ordered list of script header module names (their order determines dependency).
 void ReadScriptHeaderList(std::vector<String> &script_list, DocElem root);
-// Reads a list of room ID and descriptions found in the game document.
-void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
+// Reads a list of translation names.
+void ReadTranslationList(std::vector<String> &trs_list, DocElem root);
 
 } // namespace AGF
 } // namespace AGS

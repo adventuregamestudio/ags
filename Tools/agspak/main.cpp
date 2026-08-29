@@ -32,8 +32,8 @@
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
-const char *BIN_STRING = "agspak v0.4.0 - AGS game packaging tool\n"
-    "Copyright (c) 2025 AGS Team and contributors\n";
+const char *BIN_STRING = "agspak v0.5.0 - AGS game packaging tool\n"
+    "Copyright (c) 2026 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"
    //--------------------------------------------------------------------------------|
@@ -62,11 +62,16 @@ const char *HELP_STRING = "Usage:\n"
     "                         If no asset data is found, then nothing will be done.\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
+    // -i, --import           RESERVED: import (add, overwrite) asset(s) to the pack
     "  -l, --list             print pack file's contents.\n"
-    "  -x, --cut              cut (deletes) appended asset data from a file.\n"
+    // -x, --cut              RESERVED: cut (delete) selected asset(s) from the pack
+    "  -X, --cut-attachment   cut (delete) all appended asset data from a file.\n"
     "                         If no asset data is found, then nothing will be done.\n"
     "\n"
     "Command options:\n"
+    "  -D, --dir <directory>  when creating a pack file, additionally include files\n"
+    "                         from this input directory. These files will be put into\n"
+    "                         the root level of the asset pack's virtual filesystem.\n"
     "  -f, --pattern-file <file>\n"
     "                         when creating a pack file, use pattern file with the\n"
     "                         include/exclude patterns\n"
@@ -76,6 +81,16 @@ const char *HELP_STRING = "Usage:\n"
     "                         partition\n"
     "  -r, --recursive        when creating a pack file, include all subdirectories\n"
     "                         of a working directory too\n"
+    "  -R, --recursive-dir <directory>\n"
+    "                         when creating a pack file, additionally include files\n"
+    "                         from this directory and all of its subdirectories.\n"
+    "                         These files will be put into respective subdirs\n"
+    "                         relative to the asset pack's root.\n"
+    "  --replace-dup          when creating a pack file from multiple input dirs\n"
+    "                         replace any assets with duplicate names with the last\n"
+    "                         asset file found.\n"
+    "  --skip-dup             when creating a pack file from multiple input dirs\n"
+    "                         skip any assets with duplicate names.\n"
     "\n"
     "Other options:\n"
     "  -v, --verbose          print operation details"
@@ -108,9 +123,9 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'a';
             break;
         }
-        if (opt == "-x" || opt == "--cut")
+        if (opt == "-X" || opt == "--cut-attachment")
         {
-            command = 'x';
+            command = 'X';
             break;
         }
         if (opt == "-d" || opt == "--detach")
@@ -131,14 +146,18 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     const String dst_file = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
     const String file_list_str = cmdargs.PosArgs.size() > 2 ? cmdargs.PosArgs[2] : String();
     // Common options
+    const bool do_subdirs = cmdargs.Opt.count("-r") || cmdargs.Opt.count("--recursive");
+    const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
+    size_t part_size_mb = 0;
+
     // a include pattern file that should be inside the input-dir
     // TO-DO: support nested include pattern files in input-dir
     String pattern_file;
-
+    std::vector<std::pair<String, bool>> work_dirs;
+    work_dirs.push_back(std::make_pair(work_dir, do_subdirs));
     // TODO: easier way to:
     //  - get either short or long named option;
     //  - get option's value without the search loop in the code
-    size_t part_size_mb = 0;
     for (const auto &opt_with_value : cmdargs.OptWithValue)
     {
         if (opt_with_value.first == "-f" || opt_with_value.first == "--pattern-file")
@@ -149,9 +168,15 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         {
             part_size_mb = StrUtil::StringToInt(opt_with_value.second);
         }
+        else if (opt_with_value.first == "-D" || opt_with_value.first == "--dir")
+        {
+            work_dirs.push_back(std::make_pair(opt_with_value.second, false));
+        }
+        else if (opt_with_value.first == "-R" || opt_with_value.first == "--recursive-dir")
+        {
+            work_dirs.push_back(std::make_pair(opt_with_value.second, true));
+        }
     }
-    const bool do_subdirs = cmdargs.Opt.count("-r") || cmdargs.Opt.count("--recursive");
-    const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
 
     std::vector<String> pattern_list;
     if (!file_list_str.IsEmpty())
@@ -171,7 +196,14 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         {
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
-            return AGSPak::Command_Create(work_dir, pak_file, command == 'A', pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
+
+            AGSPak::DuplicateAssetAction dup_action = AGSPak::kAssetDup_Error;
+            if (cmdargs.Opt.count("--replace-dup") != 0)
+                dup_action = AGSPak::kAssetDup_Replace;
+            else if (cmdargs.Opt.count("--skip-dup") != 0)
+                dup_action = AGSPak::kAssetDup_Skip;
+
+            return AGSPak::Command_Create(work_dirs, pak_file, command == 'A', pattern_list, pattern_file, dup_action, part_size_mb, verbose);
         }
     case 'd': // detach
         {
@@ -191,11 +223,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
                 break; // not enough args
             return AGSPak::Command_List(pak_file);
         }
-    case 'x': // cut
+    case 'X': // cut-attachment
         {
             if (cmdargs.PosArgs.size() < 1)
                 break; // not enough args
-            return AGSPak::Command_Cut(pak_file, verbose);
+            return AGSPak::Command_CutAttachment(pak_file, verbose);
         }
     default:
         printf("Error: no valid command is specified\n");
@@ -212,7 +244,7 @@ int main(int argc, char *argv[])
 {
     printf("%s\n", BIN_STRING);
 
-    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-p", "-f", "--pattern-file"});
+    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-p", "-f", "--pattern-file", "-D", "--dir", "-R", "--recursive-dir"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

@@ -230,8 +230,8 @@ bool MoveList::OnProgressChanged(float step)
         if (NextStage())
         {
             // Smooth out next stage transition by carrying over remaining % of the previous move
-            const float frac_complete_x = (max_xps != old_xps) ? (xps - old_xps) / (max_xps - old_xps) : 0.f;
-            const float frac_complete_y = (max_yps != old_yps) ? (yps - old_yps) / (max_yps - old_yps) : 0.f;
+            const float frac_complete_x = (max_xps != old_xps) ? (xps - old_xps) / (max_xps - old_xps) : 1.f;
+            const float frac_complete_y = (max_yps != old_yps) ? (yps - old_yps) / (max_yps - old_yps) : 1.f;
             const float lost_frac = std::max(1.f - frac_complete_x, 1.f - frac_complete_y);
             onpart += lost_frac;
             return true; // proceed to the next stage

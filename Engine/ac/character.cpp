@@ -2069,6 +2069,11 @@ void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
         chaa->flags |= CHF_NOTURNWHENWALK;
 }
 
+bool Character_GetTurning(CharacterInfo *chaa)
+{
+    return charextra[chaa->index_id].IsTurning();
+}
+
 int Character_GetTurnWhenFacing(CharacterInfo *chaa) {
     return ((chaa->flags & CHF_TURNWHENFACE) != 0) ? 1 : 0;
 }
@@ -2493,12 +2498,17 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
     MoveList &mlist = *get_movelist(chi->get_movelist_id());
     // For the purpose smooth walk transition keep moving even across multiple stages,
     // until all the "current move" is not depleted OR until we have to turn.
+    // NOTE: due to how this function acts, the movelist progress will only increment
+    // by +1.0 once here, either if we did not reach next stage yet, or if we did and
+    // then depleted all the move remainer.
     while (do_movelist_move(chi->walking, chi->x, chi->y) == kMoveResult_NextStage)
     {
-        // Character just switched to the next path segment
+        // Character just switched to the next path segment, test if we need to turn.
         if (chi->is_moving_walkanim())
             fix_player_sprite(chi, mlist);
-        if (charextra[chi->index_id].IsTurning() || mlist.onpart <= 0.f)
+        // If character started to turn, then force reset stage progress to zero,
+        // so to eliminate any unused remainder.
+        if (charextra[chi->index_id].IsTurning())
         {
             // cancel any walk progress transition since the previous stage
             mlist.onpart = 0.f;
@@ -4520,12 +4530,17 @@ RuntimeScriptValue Sc_Character_SetTurnBeforeWalking(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnBeforeWalking);
 }
 
-RuntimeScriptValue Sc_Character_GetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetTurning(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTurnWhenFacing );
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetTurning);
 }
 
-RuntimeScriptValue Sc_Character_SetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetTurnWhenFacing(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTurnWhenFacing);
+}
+
+RuntimeScriptValue Sc_Character_SetTurnWhenFacing(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnWhenFacing);
 }
@@ -4943,6 +4958,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
+        { "Character::get_Turning",               API_FN_PAIR(Character_GetTurning) },
         { "Character::get_TurnWhenFacing",        API_FN_PAIR(Character_GetTurnWhenFacing ) },
         { "Character::set_TurnWhenFacing",        API_FN_PAIR(Character_SetTurnWhenFacing ) },
         { "Character::get_View",                  API_FN_PAIR(Character_GetView) },

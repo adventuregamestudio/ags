@@ -57,10 +57,12 @@ namespace AGS.Editor
             if (!design.Visible)
                 return;
 
-            var drawSelPos = GetObjectRectInWindow(_selectedObject, state);
+            // TODO: this following algorithm could be in the base class BaseThingEditorFilter?
+
+            Rectangle objRect = state.RoomRectangleToWindow(GetObjectRectImpl(_selectedObject));
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
-            graphics.DrawRectangle(pen, drawSelPos.X, drawSelPos.Y, drawSelPos.Width, drawSelPos.Height);
+            graphics.DrawRectangle(pen, objRect);
 
             if (IsMovingObject)
             {
@@ -69,8 +71,8 @@ namespace AGS.Editor
                 string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
                 var textSize = graphics.MeasureString(toDraw, font);
-                int scaledx = drawSelPos.X + (drawSelPos.Width / 2) - ((int)textSize.Width / 2);
-                int scaledy = drawSelPos.Y - (int)textSize.Height;
+                int scaledx = objRect.X + (objRect.Width / 2) - ((int)textSize.Width / 2);
+                int scaledy = objRect.Y - (int)textSize.Height;
                 if (scaledx < 0) scaledx = 0;
                 if (scaledy < 0) scaledy = 0;
                 if (scaledx + textSize.Width >= graphics.VisibleClipBounds.Width)
@@ -84,7 +86,7 @@ namespace AGS.Editor
             else if (design.Locked)
             {
                 pen = new Pen(Color.Goldenrod, 2);
-                Point center = new Point(drawSelPos.X + drawSelPos.Width / 2, drawSelPos.Y - drawSelPos.Height / 2);
+                Point center = new Point(objRect.X + objRect.Width / 2, objRect.Y - objRect.Height / 2);
                 graphics.DrawLine(pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
                 graphics.DrawLine(pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
             }
@@ -105,7 +107,7 @@ namespace AGS.Editor
         /// <summary>
         /// Gets object's rectangle in room coordinates.
         /// </summary>
-        private Rectangle GetObjectRectInRoom(RoomObject obj)
+        private Rectangle GetObjectRectImpl(RoomObject obj)
         {
             int width, height;
             Utilities.GetSizeSpriteWillBeRenderedInGame(obj.Image, out width, out height);
@@ -117,7 +119,7 @@ namespace AGS.Editor
         /// </summary>
         private Rectangle GetObjectRectInWindow(RoomObject obj, RoomEditorState state)
         {
-            var bbox = GetObjectRectInRoom(obj);
+            var bbox = GetObjectRectImpl(obj);
             return new Rectangle(
                 state.RoomXToWindow(bbox.X),
                 state.RoomYToWindow(bbox.Y + 1), // + 1 for compensating minus height (??)
@@ -128,8 +130,64 @@ namespace AGS.Editor
 
         private bool HitTest(RoomObject obj, int x, int y)
         {
-            var bbox = GetObjectRectInRoom(obj);
+            var bbox = GetObjectRectImpl(obj);
             return bbox.Contains(x, y);
+        }
+
+        private void CommandNewObject()
+        {
+            if (_room.Objects.Count >= Room.MAX_OBJECTS)
+            {
+                Factory.GUIController.ShowMessage("This room already has the maximum " + Room.MAX_OBJECTS + " objects.", MessageBoxIcon.Information);
+                return;
+            }
+            RoomObject newObj = new RoomObject(_room);
+            newObj.ID = _room.Objects.Count;
+            newObj.ScriptName = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
+            newObj.StartX = MenuClickPos.X;
+            newObj.StartY = MenuClickPos.Y;
+            newObj.Interactions.ScriptModule = _room.Interactions.ScriptModule;
+            _room.Objects.Add(newObj);
+            AddObjectRef(newObj);
+            OnItemsChanged(this, null);
+            SetSelectedObject(newObj);
+            SetPropertyGridList();
+            Factory.GUIController.SetPropertyGridObject(newObj);
+            _room.Modified = true;
+            _panel.Invalidate();
+        }
+
+        private void CommandDeleteObject()
+        {
+            if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this object?") == DialogResult.Yes)
+            {
+                _room.Objects.Remove(_selectedObject);
+                _objectBaselines.Remove(_selectedObject);
+                RemoveObjectRef(_selectedObject);
+                foreach (RoomObject obj in _room.Objects)
+                {
+                    if (obj.ID >= _selectedObject.ID)
+                    {
+                        string oldID = GetItemID(obj);
+                        obj.ID--;
+                        UpdateObjectRef(obj, oldID);
+                    }
+                }
+                OnItemsChanged(this, null);
+                _selectedObject = null;
+                Factory.GUIController.SetPropertyGridObject(_room);
+                SetPropertyGridList();
+                _room.Modified = true;
+                _panel.Invalidate();
+            }
+        }
+
+        private void CommandGetObjectCoords()
+        {
+            int tempx = _selectedObject.StartX;
+            int tempy = _selectedObject.StartY;
+            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
+            Utilities.CopyTextToClipboard(textToCopy);
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)
@@ -137,65 +195,25 @@ namespace AGS.Editor
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             if (item.Name == MENU_ITEM_DELETE)
             {
-                if (Factory.GUIController.ShowQuestion("Are you sure you want to delete this object?") == DialogResult.Yes)
-                {
-                    _room.Objects.Remove(_selectedObject);
-                    _objectBaselines.Remove(_selectedObject);
-                    RemoveObjectRef(_selectedObject);
-                    foreach (RoomObject obj in _room.Objects)
-                    {
-                        if (obj.ID >= _selectedObject.ID)
-                        {
-                            string oldID = GetItemID(obj);
-                            obj.ID--;
-                            UpdateObjectRef(obj, oldID);
-                        }
-                    }
-                    OnItemsChanged(this, null);
-                    _selectedObject = null;
-                    Factory.GUIController.SetPropertyGridObject(_room);
-                    SetPropertyGridList();
-                    _room.Modified = true;
-                    _panel.Invalidate();
-                }
+                CommandDeleteObject();
             }
             else if (item.Name == MENU_ITEM_NEW)
             {
-                if (_room.Objects.Count >= Room.MAX_OBJECTS)
-                {
-                    Factory.GUIController.ShowMessage("This room already has the maximum " + Room.MAX_OBJECTS + " objects.", MessageBoxIcon.Information);
-                    return;
-                }
-                RoomObject newObj = new RoomObject(_room);
-                newObj.ID = _room.Objects.Count;
-                newObj.ScriptName = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
-                newObj.StartX = MenuClickPos.X;
-                newObj.StartY = MenuClickPos.Y;
-                _room.Objects.Add(newObj);
-                AddObjectRef(newObj);
-                OnItemsChanged(this, null);
-                SetSelectedObject(newObj);
-                SetPropertyGridList();
-                Factory.GUIController.SetPropertyGridObject(newObj);
-                _room.Modified = true;
-                _panel.Invalidate();
+                CommandNewObject();
             }
             else if (item.Name == MENU_ITEM_OBJECT_COORDS)
             {
-                int tempx = _selectedObject.StartX;
-                int tempy = _selectedObject.StartY;
-                string textToCopy = tempx.ToString() + ", " + tempy.ToString();
-                Utilities.CopyTextToClipboard(textToCopy);
+                CommandGetObjectCoords();
             }
         }
 
-        protected override void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+        protected override void ShowContextMenu(Point position, RoomEditorState state)
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
             if (_selectedObject != null)
             {
-                menu.Items.Add(new ToolStripMenuItem("Delete", null, onClick, MENU_ITEM_DELETE));
+                menu.Items.Add(ToolStripExtensions.CreateMenuItem("Delete", null, onClick, MENU_ITEM_DELETE, Keys.Delete));
                 menu.Items.Add(new ToolStripSeparator());
             }
             menu.Items.Add(new ToolStripMenuItem("Place New Object Here", null, onClick, MENU_ITEM_NEW));
@@ -203,8 +221,8 @@ namespace AGS.Editor
             {
                 menu.Items.Add(new ToolStripMenuItem("Copy Object Coordinates to Clipboard", null, onClick, MENU_ITEM_OBJECT_COORDS));
             }
-            OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, e.X, e.Y));
-            menu.Show(_panel, e.X, e.Y);
+            OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, position.X, position.Y));
+            menu.Show(_panel, position.X, position.Y);
         }
 
 		public override bool DoubleClick(RoomEditorState state)
@@ -228,6 +246,20 @@ namespace AGS.Editor
 
         protected override void FilterDeactivated()
         {
+        }
+
+        protected override bool HandleKeyPress(Keys key)
+        {
+            if (_selectedObject != null)
+            {
+                if (key == Keys.Delete)
+                {
+                    CommandDeleteObject();
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override void CommandClick(string command)
@@ -312,6 +344,14 @@ namespace AGS.Editor
         {
             curX = obj.StartX;
             curY = obj.StartY;
+        }
+
+        /// <summary>
+        /// Get current object's bounding rectangle.
+        /// </summary>
+        protected override Rectangle GetObjectRectangle(RoomObject obj)
+        {
+            return GetObjectRectImpl(obj);
         }
 
         /// <summary>

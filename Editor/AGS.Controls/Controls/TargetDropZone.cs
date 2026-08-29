@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AGS.Editor
+namespace AGS.Controls
 {
     public enum TargetDropZone
     {

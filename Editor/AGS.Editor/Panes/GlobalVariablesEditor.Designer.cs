@@ -29,7 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.mainFrame = new System.Windows.Forms.GroupBox();
-            this.lvwVars = new AGS.Editor.SortableListView();
+            this.lvwVars = new AGS.Controls.SortableListView();
             this.clmName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clmType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clmDefaultValue = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -65,7 +65,7 @@ namespace AGS.Editor
             this.lvwVars.UseCompatibleStateImageBehavior = false;
             this.lvwVars.View = System.Windows.Forms.View.Details;
             this.lvwVars.ItemActivate += new System.EventHandler(this.lvwVars_ItemActivate);
-            this.lvwVars.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwVars_MouseUp);
+            this.lvwVars.ContextMenuTrigger += LvwVars_ContextMenuTrigger;
             // 
             // clmName
             // 
@@ -115,7 +115,7 @@ namespace AGS.Editor
         #endregion
 
         private System.Windows.Forms.GroupBox mainFrame;
-        private AGS.Editor.SortableListView lvwVars;
+        private AGS.Controls.SortableListView lvwVars;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ColumnHeader clmName;
         private System.Windows.Forms.ColumnHeader clmType;

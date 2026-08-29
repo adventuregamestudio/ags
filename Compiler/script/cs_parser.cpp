@@ -115,7 +115,7 @@ static int is_part_of_symbol(char thischar, char startchar) {
     if (((startchar >= 'a') && (startchar <= 'z')) ||
         ((startchar >= 'A') && (startchar <= 'Z')) ||
         (startchar == '_')) {
-            if (IsScriptWordChar(thischar)) return 1;
+            if (Common::StrUtil::IsScriptWordChar(thischar)) return 1;
             return 0;
     }
     // ==, >=, <=, !=, etc

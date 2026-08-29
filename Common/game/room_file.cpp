@@ -149,19 +149,27 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     // Interaction script links
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection
-    room->Interactions.Read_v361(in);
+    HError err = room->Interactions.Read_v361(in);
+    if (!err)
+        return err;
 
     for (uint32_t i = 0; i < room->HotspotCount; ++i)
     {
-        room->Hotspots[i].Interactions.Read_v361(in);
+        err = room->Hotspots[i].Interactions.Read_v361(in);
+        if (!err)
+            return err;
     }
     for (auto &obj : room->Objects)
     {
-        obj.Interactions.Read_v361(in);
+        err = obj.Interactions.Read_v361(in);
+        if (!err)
+            return err;
     }
     for (uint32_t i = 0; i < room->RegionCount; ++i)
     {
-        room->Regions[i].Interactions.Read_v361(in);
+        err = room->Regions[i].Interactions.Read_v361(in);
+        if (!err)
+            return err;
     }
 
     // Room object baselines

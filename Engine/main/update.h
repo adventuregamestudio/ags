@@ -28,8 +28,15 @@ enum MoveResult
     kMoveResult_NextStage = 2
 };
 
-// Update MoveList of certain index, save current position;
-// *resets* mslot to zero if path is complete.
+// Update MoveList of certain index, save current position. Returns result
+// (see MoveResult enum), telling where it's ended on path.
+// If still in the middle of a stage, then makes a step forward, that is -
+// increments the progress by 1.0.
+// If reached the stage's end, then does not make a step forward, but may still
+// increment progress by the amount that was "unused" by the previous stage.
+// If reached end of path, then *resets* mslot
+// NOTE: in smooth move mode, when the next path's segment is reached,
+// will carry over remaining progress onto the next segment. Otherwise won't.
 // TODO: do not reset mslot in this function, reset externally instead.
 MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y);
 // Update various things on the game frame:

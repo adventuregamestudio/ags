@@ -445,7 +445,7 @@ int Mouse_IsModeEnabled(int which) {
 
 void Mouse_SaveCursorForLocationChange() {
     // update the current location name
-    GetLocationName(mousex, mousey);
+    GetLocationName(mousex, mousey, kHit_Interactable);
 
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;

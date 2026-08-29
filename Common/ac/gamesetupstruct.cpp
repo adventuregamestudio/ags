@@ -83,14 +83,24 @@ HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
     return HGameFileError::None();
 }
 
-void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
+HError GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
     chars.resize(numcharacters); // safety precaution, because chars may be read later
+    HError err;
     for (size_t i = 0; i < (size_t)numcharacters; ++i)
-        chars[i].interactions.Read_v361(in);
+    {
+        err = chars[i].interactions.Read_v361(in);
+        if (!err)
+            return err;
+    }
     // NOTE: inventory item events are loaded starting from index 1, because index 0 is an unused item
     for (size_t i = 1; i < (size_t)numinvitems; ++i)
-        invinfo[i].interactions.Read_v361(in);
+    {
+        err = invinfo[i].interactions.Read_v361(in);
+        if (!err)
+            return err;
+    }
+    return HError::None();
 }
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)

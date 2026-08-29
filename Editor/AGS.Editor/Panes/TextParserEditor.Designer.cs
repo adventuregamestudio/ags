@@ -29,7 +29,7 @@ namespace AGS.Editor
         private void InitializeComponent()
         {
             this.mainFrame = new System.Windows.Forms.GroupBox();
-            this.lvwWords = new System.Windows.Forms.ListView();
+            this.lvwWords = new AGS.Controls.ListViewExtended();
             this.clmWordGroup = new System.Windows.Forms.ColumnHeader();
             this.clmWord = new System.Windows.Forms.ColumnHeader();
             this.clmWordType = new System.Windows.Forms.ColumnHeader();
@@ -66,8 +66,7 @@ namespace AGS.Editor
             this.lvwWords.View = System.Windows.Forms.View.Details;
             this.lvwWords.ItemActivate += new System.EventHandler(this.lvwWords_ItemActivate);
             this.lvwWords.SelectedIndexChanged += new System.EventHandler(this.lvwWords_SelectedIndexChanged);
-            this.lvwWords.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lvwWords_MouseClick);
-            this.lvwWords.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwWords_MouseUp);
+            this.lvwWords.ContextMenuTrigger += LvwWords_ContextMenuTrigger;
             // 
             // clmWordGroup
             // 
@@ -116,7 +115,7 @@ namespace AGS.Editor
         #endregion
 
         private System.Windows.Forms.GroupBox mainFrame;
-        private System.Windows.Forms.ListView lvwWords;
+        private AGS.Controls.ListViewExtended lvwWords;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ColumnHeader clmWordGroup;
         private System.Windows.Forms.ColumnHeader clmWord;

@@ -551,14 +551,19 @@ void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
     restore_after_dialog();
 }
 
-int GetLocationType(int x, int y)
+int GetLocationType(int x, int y, int hit_options)
 {
-    return GetLocationTypeImpl(nullptr, x, y, false /* dont click-through gui */, false /* not allow hotspot0 */);
+    return GetLocationTypeImpl(nullptr, x, y, hit_options, false /* dont click-through gui */, false /* not allow hotspot0 */);
+}
+
+int GetLocationType2(int x, int y)
+{
+    return GetLocationTypeImpl(nullptr, x, y, kHit_Interactable, false /* dont click-through gui */, false /* not allow hotspot0 */);
 }
 
 // Finds out what is located under the cursor;
 // returns location's name and "location reference".
-static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref)
+static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref, int hit_options)
 {
     // If no room loaded yet, then return nothing
     if (displayed_room < 0)
@@ -569,7 +574,7 @@ static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref
 
     int getloctype_index = -1;
     // GetLocationType takes screen coords
-    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, false /* dont ignore gui */, true /* allow hotspot0 */);
+    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, hit_options, false /* dont ignore gui */, true /* allow hotspot0 */);
     loc_ref = SceneLocationRef(loctype, getloctype_index);
     if (loctype == LOCTYPE_NOTHING)
     {
@@ -602,10 +607,10 @@ static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref
     return "";
 }
 
-const char *GetLocationName(int x, int y)
+const char *GetLocationName(int x, int y, int hit_options)
 {
     SceneLocationRef loc_ref;
-    const char *loc_name = GetLocationNameAndRef(x, y, loc_ref);
+    const char *loc_name = GetLocationNameAndRef(x, y, loc_ref, hit_options);
 
     // If it's a new location, different from the last time we checked,
     // then update "@OVERHOTSPOT@" label(s), and save the last index
@@ -618,17 +623,9 @@ const char *GetLocationName(int x, int y)
     return loc_name;
 }
 
-// GetLocationNameInBuf assumes a string buffer of MAX_MAXSTRLEN
-void GetLocationNameInBuf(int x, int y, char *buf)
+const char *GetLocationName2(int x, int y)
 {
-    VALIDATE_STRING(buf);
-    buf[0] = 0;
-
-    const char *name = GetLocationName(x, y);
-    if (!name)
-        return;
-
-    snprintf(buf, MAX_MAXSTRLEN, "%s", name);
+    return GetLocationName(x, y, kHit_Interactable);
 }
 
 int IsKeyPressed(int keycode)
@@ -768,7 +765,7 @@ void RoomProcessClick(int xx, int yy,int mood)
 int IsInteractionAvailable (int xx, int yy, int mood)
 {
     int getloctype_index = -1;
-    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, true /* ignore gui */, false /* not allow hotspot0 */);
+    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, kHit_Interactable, true /* ignore gui */, false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return 0;

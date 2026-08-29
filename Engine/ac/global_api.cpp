@@ -249,10 +249,14 @@ RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT(GetGameSpeed);
 }
 
-// int (int xxx,int yyy)
 RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(GetLocationType);
+    API_SCALL_INT_PINT3(GetLocationType);
+}
+
+RuntimeScriptValue Sc_GetLocationType2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(GetLocationType2);
 }
 
 // int  (int x, int y)
@@ -795,7 +799,9 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
-        { "GetLocationType",          API_FN_PAIR(GetLocationType) },
+        { "GetLocationType^3",        API_FN_PAIR(GetLocationType) },
+        { "GetLocationType^2",        API_FN_PAIR(GetLocationType2) },
+        { "GetLocationType",          API_FN_PAIR(GetLocationType2) },
         { "GetScalingAt",             API_FN_PAIR(GetScalingAt) },
         { "GetTextHeight",            API_FN_PAIR(GetTextHeight) },
         { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },

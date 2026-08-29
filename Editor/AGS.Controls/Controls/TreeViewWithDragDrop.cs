@@ -3,7 +3,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace AGS.Editor
+namespace AGS.Controls
 {
     /// <summary>
     /// TreeViewWithDragDrop is an extended type of TreeView that handles drag and drop

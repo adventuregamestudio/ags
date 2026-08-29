@@ -167,7 +167,6 @@
     <Compile Include="Entities\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Entities\CompilationStepArgs.cs" />
     <Compile Include="Entities\CompileWarningEx.cs" />
-    <Compile Include="Entities\TreeItemDragEventArgs.cs" />
     <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
     <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Config\IObjectConfig.cs" />
@@ -178,7 +177,6 @@
     <Compile Include="Entities\OutputCreationStepArgs.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
-    <Compile Include="Entities\TreeItemTryDragEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
@@ -187,7 +185,6 @@
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOptionalTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameUtils.cs" />
-    <Compile Include="Enums\TargetDropZone.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
       <SubType>Form</SubType>
@@ -238,10 +235,6 @@
     <Compile Include="GUI\ImportTTFDialog.Designer.cs">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\LineInBetween.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="GUI\ListViewExtensions.cs" />
     <Compile Include="GUI\LogPanel.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -306,9 +299,6 @@
     <Compile Include="GUI\Progress.Designer.cs">
       <DependentUpon>Progress.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\SortableListView.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="GUI\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -332,10 +322,6 @@
     </Compile>
     <Compile Include="GUI\SpriteChooser.Designer.cs">
       <DependentUpon>SpriteChooser.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\TreeViewExtensions.cs" />
-    <Compile Include="GUI\TreeViewWithDragDrop.cs">
-      <SubType>Component</SubType>
     </Compile>
     <Compile Include="GUI\ViewChooser.cs">
       <SubType>Form</SubType>
@@ -1128,9 +1114,6 @@
     <Compile Include="GUI\GotoLineDialog.Designer.cs">
       <DependentUpon>GotoLineDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="GUI\MenuStripExtended.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="GUI\ProjectPanel.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1154,9 +1137,6 @@
     </Compile>
     <Compile Include="GUI\SplashPage.Designer.cs">
       <DependentUpon>SplashPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\ToolStripExtended.cs">
-      <SubType>Component</SubType>
     </Compile>
     <Compile Include="GUI\WindowsLayoutManager.cs" />
     <Compile Include="GUI\WindowsMenuManager.cs" />

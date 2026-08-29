@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor
 {
@@ -174,6 +175,11 @@ namespace AGS.Editor
             menu.Show(lvwWords, menuPosition);
         }
 
+        private void LvwWords_ContextMenuTrigger(object sender, ListViewContextMenuEventArgs e)
+        {
+            ShowContextMenu(e.Position);
+        }
+
         private void lvwWords_ItemActivate(object sender, EventArgs e)
         {
             if (lvwWords.SelectedItems.Count == 0)
@@ -198,18 +204,6 @@ namespace AGS.Editor
             {
                 return ((TextParserWord)((ListViewItem)x).Tag).WordGroup - ((TextParserWord)((ListViewItem)y).Tag).WordGroup;
             }
-        }
-
-        private void lvwWords_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                ShowContextMenu(e.Location);
-            }
-        }
-
-        private void lvwWords_MouseClick(object sender, MouseEventArgs e)
-        {
         }
 
         private void LoadColorTheme(ColorTheme t)

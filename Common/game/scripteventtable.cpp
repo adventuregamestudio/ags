@@ -112,7 +112,7 @@ void ScriptEventHandlers::Remap(const std::vector<uint32_t> &remap)
     _handlers = std::move(new_handlers);
 }
 
-void ScriptEventHandlers::Read_v361(Stream *in)
+HError ScriptEventHandlers::Read_v361(Stream *in)
 {
     _handlers.clear();
     const size_t evt_count = in->ReadInt32();
@@ -121,6 +121,7 @@ void ScriptEventHandlers::Read_v361(Stream *in)
     {
         _handlers[i] = { String::FromStream(in) };
     }
+    return HError::None();
 }
 
 HError ScriptEventHandlers::Read(Stream *in)

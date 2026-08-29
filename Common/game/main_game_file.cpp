@@ -1130,7 +1130,9 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     err = game.read_cursors(in);
     if (!err)
         return err;
-    game.read_interaction_scripts(in, data_ver);
+    HError inter_err = game.read_interaction_scripts(in, data_ver);
+    if (!inter_err)
+        return new MainGameFileError(kMGFErr_GameEntityFailed, inter_err);
     if (sinfo.HasWordsDict)
         game.read_words_dictionary(in);
 

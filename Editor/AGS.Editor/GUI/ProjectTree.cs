@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Controls;
 
 namespace AGS.Editor
 {
@@ -40,6 +41,7 @@ namespace AGS.Editor
             _projectTree.AfterSelect += projectTree_AfterSelect;
             _projectTree.KeyPress += projectTree_KeyPress;
             _projectTree.KeyDown += projectTree_KeyDown;
+            _projectTree.KeyUp += _projectTree_KeyUp;
             _projectTree.BeforeLabelEdit += projectTree_BeforeLabelEdit;
 			_projectTree.BeforeExpand += _projectTree_BeforeExpand;
 			_projectTree.BeforeCollapse += _projectTree_BeforeCollapse;
@@ -262,16 +264,26 @@ namespace AGS.Editor
         {
             if (e.Button == MouseButtons.Right)
             {
-                TreeNode node = _projectTree.HitTest(e.Location).Node;
-                if (node != null)
-                {
-                    _projectTree.SelectedNode = node;
-                    IList<MenuCommand> contextMenu = ProcessClickOnNode(node.Name, MouseButtons.Right);
-                    if ((contextMenu != null) && (contextMenu.Count > 0))
-                    {
-                        ShowTreeContextMenu(contextMenu, e);
-                    }
-                }
+                TriggerContextMenuAt(e.Location);
+            }
+        }
+
+        private void TriggerContextMenuAt(Point position)
+        {
+            TreeNode node = _projectTree.HitTest(position).Node;
+            if (node != null)
+            {
+                TriggerContextMenuForNode(node, position);
+            }
+        }
+
+        private void TriggerContextMenuForNode(TreeNode node, Point position)
+        {
+            _projectTree.SelectedNode = node;
+            IList<MenuCommand> contextMenu = ProcessClickOnNode(node.Name, MouseButtons.Right);
+            if ((contextMenu != null) && (contextMenu.Count > 0))
+            {
+                ShowTreeContextMenu(contextMenu, position);
             }
         }
 
@@ -284,7 +296,7 @@ namespace AGS.Editor
             }
         }
 
-        private void ShowTreeContextMenu(IList<MenuCommand> commands, MouseEventArgs e)
+        private void ShowTreeContextMenu(IList<MenuCommand> commands, Point position)
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
@@ -311,7 +323,7 @@ namespace AGS.Editor
                 }
             }
 
-            menu.Show(_projectTree, e.Location);
+            menu.Show(_projectTree, position);
         }
 
 		private void AllowPluginsToModifyContextMenu(string nodeID, IList<MenuCommand> commands, IEditorComponent component)
@@ -438,6 +450,26 @@ namespace AGS.Editor
             {
                 if (_projectTree.SelectedNode != null)
                     _projectTree.SelectedNode.BeginEdit();
+            }
+        }
+
+        private void _projectTree_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Apps || (e.KeyCode == Keys.F10 && e.Modifiers == Keys.Shift))
+            {
+                var selectedNode = _projectTree.SelectedNode;
+                if (selectedNode != null)
+                {
+                    TriggerContextMenuForNode(selectedNode, new Point(selectedNode.Bounds.Left + selectedNode.Bounds.Width / 2, selectedNode.Bounds.Bottom));
+                }
+                else
+                {
+                    var showMenuAt = _projectTree.PointToClient(Control.MousePosition);
+                    if (_projectTree.ClientRectangle.Contains(showMenuAt))
+                    {
+                        TriggerContextMenuAt(showMenuAt);
+                    }
+                }
             }
         }
 

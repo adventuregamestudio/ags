@@ -17,6 +17,7 @@
 #include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
 #include "script/cc_common.h"
+#include "util/string_utils.h"
 #include "util/textstreamwriter.h"
 #include "util/textreader.h"
 
@@ -207,7 +208,7 @@ namespace Preprocessor {
     String Preprocessor::GetNextWord(String &text, const bool trimText, const bool includeDots) {
         size_t i = 0;
         while ((i < text.GetLength()) &&
-               (IsScriptWordChar(text[i]) ||
+               (StrUtil::IsScriptWordChar(text[i]) ||
                 (includeDots && (text[i] == '.')))
                 ) {
             i++;
@@ -408,7 +409,7 @@ namespace Preprocessor {
         while (line.GetLength() > 0)
         {
             size_t i = 0;
-            while ((i < line.GetLength()) && (!IsScriptWordChar(line[i])))
+            while ((i < line.GetLength()) && (!StrUtil::IsScriptWordChar(line[i])))
             {
                 if ((line[i] == '"') || (line[i] == '\''))
                 {

@@ -114,7 +114,7 @@ int Game_GetInSkippableCutscene();
 
 int Game_GetColorFromRGB(int red, int grn, int blu);
 const char* Game_InputBox(const char *msg);
-const char* Game_GetLocationName(int x, int y);
+const char* Game_GetLocationName(int x, int y, int hit_options);
 
 int Game_GetSpeechFont();
 int Game_GetNormalFont();
@@ -190,7 +190,7 @@ void stop_fast_forwarding();
 //  - outside a room viewport;
 //  - on a hotspot 0 and allow_hotspot0 == false
 // If location type != LOCTYPE_NOTHING, then fills locobj_index with object's or hotspot's index.
-int GetLocationTypeImpl(int *locobj_index, int x, int y, bool click_through_gui = false, bool allow_hotspot0 = false);
+int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui = false, bool allow_hotspot0 = false);
 
 // Called whenever game loses input focus
 void display_switch_out();

@@ -156,7 +156,7 @@ CCAudioChannel ccDynamicAudio;
 
 std::vector<ScriptDialog> scrDialog;
 std::vector<ScriptGUI> scrGui;
-ScriptInvItem scrInv[MAX_INV];
+std::vector<ScriptInvItem> scrInv;
 ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 ScriptObject scrObj[MAX_ROOM_OBJECTS];
 ScriptRegion scrRegion[MAX_ROOM_REGIONS];
@@ -664,9 +664,9 @@ void Game_SetInventoryCursorHotspotCrossColor(int color)
     }
 }
 
-int Game_GetInventoryItemCount() {
-    // because of the dummy item 0, this is always one higher than it should be
-    return game.numinvitems - 1;
+int Game_GetInventoryItemCount()
+{
+    return game.numinvitems;
 }
 
 bool Game_GetIsPaused()

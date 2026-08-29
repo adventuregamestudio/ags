@@ -675,7 +675,6 @@ void engine_init_game_settings()
     }
 
     for (ee=0;ee<game.numcharacters;ee++) {
-        memset(&game.chars[ee].inv[0],0,MAX_INV*sizeof(short));
         game.chars[ee].activeinv=-1;
         game.chars[ee].idleleft=game.chars[ee].idledelay;
         game.chars[ee].walkwaitcounter = 0;
@@ -695,9 +694,10 @@ void engine_init_game_settings()
     }
 
     set_our_eip(-5);
-    for (ee=0;ee<game.numinvitems;ee++) {
-        if (game.invinfo[ee].flags & IFLG_STARTWITH) playerchar->inv[ee]=1;
-        else playerchar->inv[ee]=0;
+    for (ee=0;ee<game.numinvitems;ee++)
+    {
+        if (game.invinfo[ee].flags & IFLG_STARTWITH)
+            playerchar->set_item_quantity(ee, 1);
     }
 
     //

@@ -99,8 +99,8 @@ void script_debug(int cmdd,int dataa) {
 
     if (cmdd==0)
     {
-        for (int i = 1; i < game.numinvitems; ++i)
-            playerchar->inv[i]=1;
+        for (int i = 0; i < game.numinvitems; ++i)
+            playerchar->set_item_quantity(i, 1);
         UpdateInventory();
     }
     else if (cmdd==1)

@@ -131,7 +131,7 @@ clean:
 	@echo "Cleaning..."
 	$(CMD_PREFIX) rm -f spriteimport $(OBJS) $(DEPFILES)
 
-install: spritepak
+install: spriteimport
 	mkdir -p $(PREFIX)/bin
 	cp -t $(PREFIX)/bin spriteimport
 

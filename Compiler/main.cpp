@@ -26,6 +26,7 @@ using namespace AGS::Common::CmdLineOpts;
 
 const char *HELP_STRING = R"EOS(Usage: agscc [options] <INPUT.asc>
 -A <version>                 Script API Version               (default:Highest)
+--ascii                      ASCII mode
 -C <version>                 Script API Compatibility version (default:Highest)
 -H, --Headers <H1>[:<H2>...] Header Files in order  (; as separator in cmd.exe)
 -D <macro>[=<val>]           Define <macro> to <val> (or 1 if <val> omitted)
@@ -101,6 +102,7 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
 
     compilerOptions.PreprocessOnly = parseResult.Opt.count("-E");
     compilerOptions.DebugMode = parseResult.Opt.count("-g");
+    compilerOptions.UnicodeMode = !parseResult.Opt.count("--ascii");
 
     for(const auto& opt_with_value : parseResult.OptWithValue)
     {

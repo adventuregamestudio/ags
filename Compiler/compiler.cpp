@@ -205,6 +205,8 @@ int Compile(const CompilerOptions& comp_opts)
     ccSetOption(SCOPT_LEFTTORIGHT, comp_opts.Flags.LeftToRightPrecedence);
     ccSetOption(SCOPT_OLDSTRINGS, !comp_opts.Flags.EnforceNewStrings);
 
+    ccSetOption(SCOPT_UTF8, comp_opts.UnicodeMode);
+
     ccRemoveDefaultHeaders();
 
     //-----------------------------------------------------------------------//

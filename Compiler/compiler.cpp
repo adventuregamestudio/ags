@@ -160,12 +160,14 @@ int Compile(const CompilerOptions& comp_opts)
     }
     // Set API Compatibility macros (starting from highest requested and all below)
     {
-        int highest_compat;
-        for (highest_compat = ScriptAPIs.size() - 1;
-            (highest_compat >= 0) && (comp_opts.ScriptAPI.ScriptCompatLevel != ScriptAPIs[highest_compat]); --highest_compat);
-        if (highest_compat == ScriptAPIs.size() - 1)
-            highest_compat = ScriptAPIs.size() - 2; // skip "Highest" when declaring macros
-        for (int i = highest_compat; i >= 0; i--){
+        const int highest_compat = static_cast<int>(ScriptAPIs.size()) - 1;
+        int lowest_compat = highest_compat;
+        for (; (lowest_compat > 0) && (comp_opts.ScriptAPI.ScriptCompatLevel != ScriptAPIs[lowest_compat]); --lowest_compat);
+        // If set to "Highest" constant then select the highest actual version
+        if (lowest_compat == highest_compat)
+            lowest_compat--;
+        for (int i = lowest_compat; i < highest_compat; i++)
+        {
             pp.DefineMacro(scriptCompatLevelMacros[i].c_str(), "1");
         }
     }

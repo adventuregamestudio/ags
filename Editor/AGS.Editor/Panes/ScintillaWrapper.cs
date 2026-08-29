@@ -1421,10 +1421,10 @@ namespace AGS.Editor
                         int checkChar = scintillaControl1.GetCharAt(cursorPos);
                         if (checkChar == ']') bracketDepth++;
                         if (checkChar == '[') bracketDepth--;
+                        // FIXME: why do we stop at the linebreak? opening and closing brackets are allowed to be on separate lines!
                         if ((checkChar == '\n') || (checkChar == '\r'))
                         {
-                            cursorPos++;
-                            break;
+                            break; // don't advance cursorPos here, that may lead to infinite loop if ']' is a first char in the line
                         }
                         cursorPos--;
                     }
@@ -1689,7 +1689,7 @@ namespace AGS.Editor
             int dimAccess = 0;
             staticAccess = false;
             string thisWord = ReadNextWord(ref pathedExpression, out indexedAccess, out dimAccess);
-            ScriptStruct foundType;
+            ScriptStruct foundType = null;
 
             if (thisWord == THIS_STRUCT)
             {
@@ -1699,7 +1699,7 @@ namespace AGS.Editor
                 // force this to false for the "this" variable
                 staticAccess = false;
             }
-            else
+            else if (thisWord.Length > 0)
             {
                 // First try search for a type that has this name
                 foundType = FindGlobalType(thisWord);
@@ -1720,7 +1720,7 @@ namespace AGS.Editor
                 }
 
                 // Not a type or global variable? try if that's a local variable
-                if ((foundType == null) && (thisWord.Length > 0))
+                if (foundType == null)
                 {
                     ScriptVariable var = FindLocalVariableWithName(startAtPos, thisWord);
                     if (var != null)

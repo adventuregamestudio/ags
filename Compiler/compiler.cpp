@@ -104,6 +104,8 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
     printf("\n");
     if (DebugMode) printf("DebugMode\n");
+    if (UnicodeMode) printf("Unicode mode\n");
+    else printf("ASCII mode\n");
 }
 
 
@@ -190,6 +192,8 @@ int Compile(const CompilerOptions& comp_opts)
 
     ccSetOption(SCOPT_LEFTTORIGHT, comp_opts.Flags.LeftToRightPrecedence);
     ccSetOption(SCOPT_OLDSTRINGS, !comp_opts.Flags.EnforceNewStrings);
+
+    ccSetOption(SCOPT_UTF8, comp_opts.UnicodeMode);
 
     ccRemoveDefaultHeaders();
 

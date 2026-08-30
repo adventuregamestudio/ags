@@ -629,11 +629,10 @@ jobs:
       - name: Run NUnit tests (Debug)
         shell: cmd
         run: |
-          curl -fLOJ https://github.com/nunit/nunit-transforms/raw/master/nunit3-junit/nunit3-junit.xslt
           pushd Solutions\packages\NUnit.ConsoleRunner.3.*
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
-          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
 
       - name: Build Editor (Release)
         shell: cmd
@@ -644,11 +643,10 @@ jobs:
       - name: Run NUnit tests (Release)
         shell: cmd
         run: |
-          curl -fLOJ https://github.com/nunit/nunit-transforms/raw/master/nunit3-junit/nunit3-junit.xslt
           pushd Solutions\packages\NUnit.ConsoleRunner.3.*
           set RUNNER="%CD%\tools\nunit3-console.exe"
           popd
-          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
+          cmd /v:on /c "!RUNNER! Solutions\.test\x86\Release\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=Editor\AGS.Editor.Tests\nunit3-junit.xslt"
 
       - name: Upload test results
         if: always()

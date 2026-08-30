@@ -118,7 +118,7 @@ clean:
 
 install: spritepak
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin spritepak
+	cp spritepak $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/spritepak

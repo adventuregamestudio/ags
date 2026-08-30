@@ -105,7 +105,7 @@ clean:
 
 install: trac
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin trac
+	cp trac $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/trac

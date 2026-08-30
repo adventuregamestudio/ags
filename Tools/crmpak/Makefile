@@ -127,7 +127,7 @@ clean:
 
 install: crmpak
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin crmpak
+	cp crmpak $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/crmpak

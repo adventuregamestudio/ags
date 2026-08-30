@@ -109,7 +109,7 @@ clean:
 
 install: agsbuild
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agsbuild
+	cp agsbuild $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agsbuild

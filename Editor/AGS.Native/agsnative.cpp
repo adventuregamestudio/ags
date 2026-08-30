@@ -2631,15 +2631,15 @@ static void Convert8BitARGBTo32(const AGSBitmap *src, const RGB *imgpal, AGSBitm
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-    theRoom->BgImages[backgroundNumber].reset();
+
+    if (backgroundNumber < 0 || backgroundNumber >= theRoom->BgFrameCount)
+        return;
 	
 	theRoom->BgFrameCount--;
-	room->BackgroundCount--;
-	for (size_t i = backgroundNumber; i < theRoom->BgFrameCount; i++) 
-	{
-		theRoom->BgFrames[i] = theRoom->BgFrames[i + 1];
-		theRoom->BgFrames[i].IsPaletteShared = theRoom->BgFrames[i + 1].IsPaletteShared;
-	}
+    theRoom->BgFrames.erase(theRoom->BgFrames.begin() + backgroundNumber);
+    theRoom->BgImages.erase(theRoom->BgImages.begin() + backgroundNumber);
+
+    room->BackgroundCount = theRoom->BgFrameCount;
 }
 
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 

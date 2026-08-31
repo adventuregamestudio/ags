@@ -31,8 +31,6 @@ set(TOOLS_COMMON_SOURCES
         ../Common/debug/debugmanager.h
         ../Common/game/customproperties.cpp
         ../Common/game/customproperties.h
-        ../Common/game/interactions.cpp
-        ../Common/game/interactions.h
         ../Common/game/room_file.cpp
         ../Common/game/roomdata.cpp
         ../Common/gfx/bitmapdata.cpp
@@ -253,7 +251,6 @@ if(AGS_TESTS)
       ../Common/font/ttffontrenderer.cpp # needed by fonts.cpp
       ../Common/font/wfnfont.cpp # needed by fonts.cpp
       ../Common/font/wfnfontrenderer.cpp # needed by fonts.cpp
-      ../Common/game/interactions.cpp # needed by data_file_writer_test
       ../Common/game/customproperties.cpp # needed by data_file_writer_test
       ../Common/gfx/allegrobitmap.cpp # needed by GUI readers in data_file_writer_test
       ../Common/gfx/bitmap.cpp # needed by allegrobitmap.cpp

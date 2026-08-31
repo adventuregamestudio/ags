@@ -108,6 +108,20 @@ struct RoomDataSource
     { }
 };
 
+// Auxiliary room data, not commonly needed for running the room at runtime,
+// but may be required for importing design-time data or other.
+class RoomDataAux
+{
+public:
+    String ScriptText;
+};
+
+// Full room data, includes both runtime and design-time data,
+// including obsolete data from 2.x editors
+class RoomDataExt : public RoomData, public RoomDataAux
+{
+};
+
 
 // Opens room data for reading from the file; on success assigns a stream to RoomDataSource
 HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
@@ -115,31 +129,39 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src);
 HRoomFileError OpenRoomFile(RoomDataSource &src);
 // Reads room data
 HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
+// Reads room data and fills in auxiliary data, if one is found in the stream.
+HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos);
+HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos);
 // Loads new room data into the given RoomData object and upgrade it to the latest version
-HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> &sprinfos);
+HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos);
+// Writes all room data to the stream
+HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
+// Writes all extended room data to the stream
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
+
+//
+// Helper functions for the non-standard room file reading.
+//
+
+// Additional reading options that let skip certain data.
+// Purposed mainly for the cli tools that perform individual data extraction;
+// helps to reduce operation time and memory consumption (fwiw).
+struct RoomReadOptions
+{
+    bool PartialRead = false; // tells to ignore if a block is not fully read
+    bool SkipImageData = false; // tells to skip room images (backgrounds, masks)
+};
+
+// Reads room data from the only specified room file blocks
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver,
+    const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read, const RoomReadOptions &read_opts);
+
 // Extracts text script from the room file, if it's available.
 // Historically, text sources were kept inside packed room files before AGS 3.*.
+// FIXME: this is only used by 3.x Editor when importing pre-3.x rooms, remove in 4.x.
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver);
-// Writes all room data to the stream
-HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
-
-// Reads room data header using stream assigned to RoomDataSource;
-// tests and saves its format index if successful
-HRoomFileError ReadRoomHeader(RoomDataSource &src);
-// Writes room data header
-void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compiled_with);
-// Writes a room data ending
-void WriteRoomEnding(Stream *out);
-
-// Type of function that writes single room block.
-typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
-// Writes room block with a new-style string id
-void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out);
-// Writes room block with a old-style numeric id
-void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out);
 
 } // namespace Common
 } // namespace AGS

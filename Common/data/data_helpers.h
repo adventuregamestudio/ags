@@ -20,7 +20,6 @@
 #include "util/error.h"
 #include "util/stream.h"
 #include "util/string.h"
-#include "util/stream.h"
 
 namespace AGS
 {

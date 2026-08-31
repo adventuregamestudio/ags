@@ -11,30 +11,20 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#ifndef __AGS_TOOL_DATA__CRMUTIL_H
-#define __AGS_TOOL_DATA__CRMUTIL_H
+// 
+// Stubs for the certain project-dependent script-related cc_* functions.
+// 
+//=============================================================================
+#include "util/string.h"
 
-#include <vector>
-#include "game/room_file.h"
+using namespace AGS::Common;
 
-namespace AGS
+String cc_format_error(const String &message)
 {
-namespace DataUtil
+    return message;
+}
+
+String cc_get_callstack(int max_lines)
 {
-using AGS::Common::String;
-
-// Script names found in the room data
-struct RoomScriptNames
-{
-    std::vector<String> ObjectNames;
-    std::vector<String> HotspotNames;
-};
-
-// Generates room script header out of the room data;
-// the header will contain room object declarations.
-String MakeRoomScriptHeader(const RoomScriptNames &data);
-
-} // namespace DataUtil
-} // namespace AGS
-
-#endif // __AGS_TOOL_DATA__CRMUTIL_H
+    return {};
+}

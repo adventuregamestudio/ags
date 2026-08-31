@@ -62,6 +62,21 @@ void RoomStruct::InitBitmaps()
         WalkBehindMask.reset(new Bitmap(std::move(WalkBehindMaskBuf)));
 }
 
+void RoomStruct::PrepareForWriteToFile()
+{
+    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+        if (BgImages[i])
+            BgFrames[i].GraphicBuf = std::move(BgImages[i]->ReleasePixelData());
+    if (HotspotMask)
+        HotspotMaskBuf = std::move(HotspotMask->ReleasePixelData());
+    if (RegionMask)
+        RegionMaskBuf = std::move(RegionMask->ReleasePixelData());
+    if (WalkAreaMask)
+        WalkAreaMaskBuf = std::move(WalkAreaMask->ReleasePixelData());
+    if (WalkBehindMask)
+        WalkBehindMaskBuf = std::move(WalkBehindMask->ReleasePixelData());
+}
+
 void RoomStruct::Free()
 {
     RoomData::Free();

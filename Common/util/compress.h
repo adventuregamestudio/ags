@@ -47,6 +47,8 @@ bool lzw_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in, si
 void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256] = nullptr);
 // Loads bitmap decompressing
 PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
+// Skips the LZW-compressed bitmap
+void skip_lzw(Stream *in);
 
 // Base64 encoding
 Common::String base64_encode(const void *addr, size_t input_size);

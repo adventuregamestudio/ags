@@ -647,7 +647,6 @@
     <ClCompile Include="..\..\Common\game\roomdata.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
-    <ClCompile Include="..\..\Common\game\room_file_base.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmapdata.cpp" />

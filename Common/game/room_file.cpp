@@ -22,6 +22,9 @@
 #include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
+#include "util/file.h"
+#include "util/memory_compat.h"
+#include "util/memorystream.h"
 #include "util/string_utils.h"
 
 // default number of hotspots to read from the room file
@@ -36,6 +39,57 @@ namespace AGS
 {
 namespace Common
 {
+
+String GetRoomFileErrorText(RoomFileErrorType err)
+{
+    switch (err)
+    {
+    case kRoomFileErr_NoError:
+        return "No error.";
+    case kRoomFileErr_FileOpenFailed:
+        return "Room file was not found or could not be opened.";
+    case kRoomFileErr_SignatureFailed:
+        return "Not an AGS room file or an unsupported format.";
+    case kRoomFileErr_FormatNotSupported:
+        return "Format version not supported.";
+    case kRoomFileErr_BlockListFailed:
+        return "There was error reading room data.";
+    case kRoomFileErr_UnknownBlockType:
+        return "Unknown block type.";
+    case kRoomFileErr_OldBlockNotSupported:
+        return "Block type is too old and not supported by this version of the engine.";
+    case kRoomFileErr_IncompatibleEngine:
+        return "This engine cannot handle requested room content.";
+    case kRoomFileErr_ScriptLoadFailed:
+        return "Script load failed.";
+    case kRoomFileErr_InconsistentData:
+        return "Inconsistent room data, or file is corrupted.";
+    case kRoomFileErr_PropertiesBlockFormat:
+        return "Unknown format of the custom properties block.";
+    case kRoomFileErr_InvalidPropertyValues:
+        return "Errors encountered when reading custom properties.";
+    case kRoomFileErr_BlockNotFound:
+        return "Required block was not found.";
+    default: return "Unknown error.";
+    }
+}
+
+String GetRoomBlockName(RoomFileBlock id)
+{
+    switch (id)
+    {
+    case kRoomFblk_Main: return "Main";
+    case kRoomFblk_Script: return "TextScript";
+    case kRoomFblk_CompScript: return "CompScript";
+    case kRoomFblk_CompScript2: return "CompScript2";
+    case kRoomFblk_ObjectNames: return "ObjNames";
+    case kRoomFblk_AnimBg: return "AnimBg";
+    case kRoomFblk_CompScript3: return "CompScript3";
+    case kRoomFblk_Properties: return "Properties";
+    case kRoomFblk_ObjectScNames: return "ObjScNames";
+    default: return "unknown";
+    }
+}
 
 // Read base room object's fields
 void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
@@ -63,7 +117,7 @@ void WriteRoomObjectBase(const RoomObjectInfo &obj, Stream *out)
 }
 
 // Main room data
-HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
+HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     room->BackgroundBPP = in->ReadInt32();
     if (room->BackgroundBPP < 1)
@@ -78,8 +132,6 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
         room->WalkBehinds[i].Baseline = in->ReadInt16();
 
     room->HotspotCount = in->ReadInt32();
-    if (room->HotspotCount == 0)
-        room->HotspotCount = MIN_ROOM_HOTSPOTS;
     if (room->HotspotCount > MAX_ROOM_HOTSPOTS)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many hotspots (in room: %d, max: %d).", room->HotspotCount, MAX_ROOM_HOTSPOTS));
 
@@ -213,14 +265,18 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
         room->Regions[i].Light = in->ReadInt16();
     for (uint32_t i = 0; i < room->RegionCount; ++i)
         room->Regions[i].Tint = in->ReadInt32();
-
-    // Primary background
-    room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
-    // Area masks
-    room->RegionMaskBuf = load_rle_bitmap8(in);
-    room->WalkAreaMaskBuf = load_rle_bitmap8(in);
-    room->WalkBehindMaskBuf = load_rle_bitmap8(in);
-    room->HotspotMaskBuf = load_rle_bitmap8(in);
+    if (!read_opts.SkipImageData)
+    {
+        // Primary background
+        room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
+            // Area masks
+        room->RegionMaskBuf = load_rle_bitmap8(in);
+        room->WalkAreaMaskBuf = load_rle_bitmap8(in);
+        room->WalkBehindMaskBuf = load_rle_bitmap8(in);
+        room->HotspotMaskBuf = load_rle_bitmap8(in);
+    }
+    // NOTE: we can skip the rest if we're not reading images, because they are last in block
+    
     return HError::None();
 }
 
@@ -493,8 +549,8 @@ HError ReadExt_400_AreaNames(RoomData *room, Stream *in, RoomFileVersion data_ve
     return HError::None();
 }
 
-HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver)
+HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
 {
     //
     // First check classic block types, identified with a numeric id
@@ -502,9 +558,21 @@ HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const Stri
     switch (block)
     {
     case kRoomFblk_Main:
-        return ReadMainBlock(room, in, data_ver);
+        return ReadMainBlock(room, in, data_ver, read_opts);
     case kRoomFblk_Script:
-        in->Seek(block_len); // no longer read source script text into RoomData
+        // Only read if explicitly requested to by caller
+        if (room_aux)
+        {
+            std::vector<char> buf;
+            HError err = ReadScriptBlock(buf, in, data_ver);
+            if (!err)
+                return err;
+            room_aux->ScriptText = buf.data();
+        }
+        else
+        {
+            in->Seek(block_len);
+        }
         return HError::None();
     case kRoomFblk_CompScript3:
         return ReadCompSc3Block(room, in, data_ver);
@@ -513,7 +581,7 @@ HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const Stri
     case kRoomFblk_ObjectScNames:
         return ReadObjScNamesBlock(room, in, data_ver);
     case kRoomFblk_AnimBg:
-        return ReadAnimBgBlock(room, in, data_ver);
+        return !read_opts.SkipImageData ? ReadAnimBgBlock(room, in, data_ver) : HError::None();
     case kRoomFblk_Properties:
         return ReadPropertiesBlock(room, in, data_ver);
     case kRoomFblk_CompScript:
@@ -572,52 +640,170 @@ HError ReadRoomBlock(RoomData *room, Stream *in, RoomFileBlock block, const Stri
 }
 
 
+// Type of function that reads (or skips) a single room block
+typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &room_read_opts)> PfnReadRoomBlock;
+
 // RoomBlockReader reads whole room data, block by block
 class RoomBlockReader : public DataExtReader
 {
 public:
-    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
-        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
+    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
+            const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr)
+        : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts))
         , _room(room)
+        , _roomAux(nullptr)
         , _dataVer(data_ver)
+        , _roomReadOpts(read_opts)
+        , _readFn(pfn_read ? pfn_read : ReadRoomBlock)
     {}
 
-    // Helper function that extracts legacy room script
-    HError ReadRoomScript(String &script)
-    {
-        HError err = FindOne(kRoomFblk_Script);
-        if (!err)
-            return err;
-        std::vector<char> buf;
-        err = ReadScriptBlock(buf, _in.get(), _dataVer);
-        script = buf.data();
-        return err;
-    }
+    RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
+            const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr)
+        : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts))
+        , _room(room)
+        , _roomAux(room_aux)
+        , _dataVer(data_ver)
+        , _roomReadOpts(read_opts)
+        , _readFn(pfn_read ? pfn_read : ReadRoomBlock)
+    {}
 
 private:
+    static int GetDataExtFlags(RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+    {
+        return kDataExt_NumID8 | kDataExt_File64
+            | (kDataExt_IgnoreUnread * (read_opts.PartialRead | read_opts.SkipImageData));
+    }
+
     String GetOldBlockName(int block_id) const override
     { return GetRoomBlockName((RoomFileBlock)block_id); }
     HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
-        return ReadRoomBlock(_room, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return _readFn(_room, _roomAux, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer, _roomReadOpts);
     }
 
     RoomData *_room {};
+    RoomDataAux *_roomAux {};
     RoomFileVersion _dataVer {};
+    RoomReadOptions _roomReadOpts;
+    PfnReadRoomBlock _readFn;
 };
 
+//
+// TODO: RoomBlockWriter to pair the RoomBlockReader
+// 
+// Type of function that writes single room block.
+typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
+// Helper for new-style blocks with string id
+void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
+{
+    WriteExtBlock(ext_id, [room, writer](Stream *out) { writer(room, out); },
+        kDataExt_NumID8 | kDataExt_File64, out);
+}
 
-HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stream *out)
+{
+    WriteExtBlock(ext_id, data, kDataExt_NumID8 | kDataExt_File64, out);
+}
+
+// Helper for old-style blocks with only numeric id
+void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
+{
+    WriteExtBlock(block, [room, writer](Stream *out) { writer(room, out); },
+        kDataExt_NumID8 | kDataExt_File64, out);
+}
+
+void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Stream *out)
+{
+    WriteExtBlock(block, data, kDataExt_NumID8 | kDataExt_File64, out);
+}
+
+const String RoomDataSource::Signature = "AGS Room File v2";
+
+// Read room data header and check that we support this format
+HRoomFileError ReadRoomHeader(RoomDataSource &src)
+{
+    Stream *in = src.InputStream.get();
+    // Older format started with a 16-bit version number right away.
+    // The new format has this field filled with 0xFFFF
+    uint16_t old_room_ver = in->ReadInt16();
+    if (old_room_ver == 0xFFFF)
+    {
+        // New format
+        String data_sig = String::FromStreamCount(in, RoomDataSource::Signature.GetLength());
+        if (data_sig.Compare(RoomDataSource::Signature))
+            return new RoomFileError(kRoomFileErr_SignatureFailed);
+        src.DataVersion = static_cast<RoomFileVersion>(in->ReadInt32());
+        src.CompiledWith = StrUtil::ReadString(in);
+    }
+    else
+    {
+        // Old format
+        src.DataVersion = static_cast<RoomFileVersion>(old_room_ver);
+    }
+
+    if (src.DataVersion < kRoomVersion_LowSupport || src.DataVersion > kRoomVersion_Current)
+    {
+        return new RoomFileError(kRoomFileErr_FormatNotSupported,
+            String::FromFormat("Room was compiled with %s. Required format version: %d, supported %d - %d",
+                !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion, kRoomVersion_LowSupport, kRoomVersion_Current));
+    }
+    return HRoomFileError::None();
+}
+
+void WriteRoomHeader(Stream *out, RoomFileVersion data_ver, const String &compiled_with)
+{
+    out->WriteInt16(0xFFFF); // old 16-bit version field, mark as extended version
+    out->Write(RoomDataSource::Signature.GetCStr(), RoomDataSource::Signature.GetLength());
+    out->WriteInt32(data_ver);
+    StrUtil::WriteString(compiled_with, out);
+}
+
+void WriteRoomEnding(Stream *out)
+{
+    out->WriteByte(kRoomFile_EOF);
+}
+
+
+HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
+{
+    // Cleanup source struct
+    src = RoomDataSource();
+    // Try to open room file
+    auto in = File::OpenFileRead(filename);
+    if (in == nullptr)
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+    src.Filename = filename;
+    src.InputStream = std::move(in);
+    return ReadRoomHeader(src);
+}
+
+HRoomFileError OpenRoomFile(RoomDataSource &src)
+{
+    return ReadRoomHeader(src);
+}
+
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
-    RoomBlockReader reader(room, data_ver, std::move(in));
+    RoomBlockReader reader(room, room_aux, data_ver, std::move(in), {}, nullptr);
     HError err = reader.Read();
     return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
 }
 
-HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
+HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+{
+    return ReadRoomData(room, nullptr, std::move(in), data_ver);
+}
+
+HRoomFileError ReadRoomData(RoomDataExt *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+{
+    return ReadRoomData(room, room, std::move(in), data_ver);
+}
+
+HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> *sprinfos)
 {
     // Enforce sequential numeric IDs
     for (int id = 0; id < room->Objects.size(); ++id)
@@ -669,7 +855,7 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const st
 }
 
 HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
-    const std::vector<SpriteInfo> &sprinfos)
+    const std::vector<SpriteInfo> *sprinfos)
 {
     room->Free();
     room->InitDefaults();
@@ -685,12 +871,30 @@ HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in,
     return err;
 }
 
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver,
+    const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read, const RoomReadOptions &read_opts)
+{
+    RoomBlockReader reader(room, room_aux, data_ver, std::move(in), read_opts,
+        [blocks_to_read](RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
+            soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &read_opts)
+        {
+            const auto block_id = std::make_pair(block, block != kRoomFblk_None ? "" : ext_id);
+            if (std::find(blocks_to_read.begin(), blocks_to_read.end(), block_id) != blocks_to_read.end())
+                return ReadRoomBlock(room, room_aux, in, block_id.first, block_id.second, block_len, data_ver, read_opts);
+            in->Seek(block_len); // skip ignored block
+            return HError::None();
+        });
+    HError err = reader.Read();
+    return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
+}
+
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    RoomBlockReader reader(nullptr, data_ver, std::move(in));
-    HError err = reader.ReadRoomScript(script);
+    RoomDataAux room_aux;
+    HRoomFileError err = ReadRoomData(nullptr, &room_aux, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
     if (!err)
-        new RoomFileError(kRoomFileErr_BlockListFailed, err);
+        return err;
+    script = room_aux.ScriptText;
     return HRoomFileError::None();
 }
 
@@ -731,7 +935,7 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     }
 
     out->WriteInt32(0); // legacy interaction vars
-    out->WriteInt32(MAX_ROOM_REGIONS);
+    out->WriteInt32(MAX_ROOM_REGIONS); // NOTE: always writes MAX_ROOM_REGIONS!
 
     // NOTE: we keep pre-3.6.2 interaction format for now, room interactions don't need module selection;
     // if we want to use newer format, then we need to up the room format version too.
@@ -755,6 +959,7 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     out->WriteInt16(room->MaskResolution);
 
     // write the zoom and light levels
+    // NOTE: always writes MAX_WALK_AREAS!
     out->WriteInt32(MAX_WALK_AREAS);
     for (uint32_t i = 0; i < (uint32_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingFar);
@@ -788,11 +993,13 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt32(room->Regions[i].Tint);
 
-    save_lzw(out, room->BgFrames[0].GraphicBuf, &room->Palette);
-    save_rle_bitmap8(out, room->RegionMaskBuf);
-    save_rle_bitmap8(out, room->WalkAreaMaskBuf);
-    save_rle_bitmap8(out, room->WalkBehindMaskBuf);
-    save_rle_bitmap8(out, room->HotspotMaskBuf);
+    // NOTE: it looks like our lzw impl cannot expand properly if the image is less than 4x4 :(
+    PixelBuffer dummy_buf(4, 4, kPxFmt_Indexed8);
+    save_lzw(out, room->BgFrames[0].GraphicBuf ? room->BgFrames[0].GraphicBuf : dummy_buf, &room->Palette);
+    save_rle_bitmap8(out, room->RegionMaskBuf ? room->RegionMaskBuf : dummy_buf);
+    save_rle_bitmap8(out, room->WalkAreaMaskBuf ? room->WalkAreaMaskBuf : dummy_buf);
+    save_rle_bitmap8(out, room->WalkBehindMaskBuf ? room->WalkBehindMaskBuf : dummy_buf);
+    save_rle_bitmap8(out, room->HotspotMaskBuf ? room->HotspotMaskBuf : dummy_buf);
 }
 
 void WriteCompSc3Block(const RoomData *room, Stream *out)
@@ -984,7 +1191,16 @@ void WriteExt_400_AreaNames(const RoomData *room, Stream *out)
     }
 }
 
-HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
+void WriteAux_ScriptBlock(const RoomDataAux *room_aux, Stream *out)
+{
+    std::vector<uint8_t> data;
+    Stream mems(std::make_unique<VectorStream>(data, kStream_Write));
+    mems.WriteInt32(room_aux->ScriptText.GetLength());
+    WriteStringEncrypt(&mems, room_aux->ScriptText.GetCStr());
+    WriteRoomBlock(kRoomFblk_Script, data, out);
+}
+
+HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
 {
     if (data_ver < kRoomVersion_Current)
         return new RoomFileError(kRoomFileErr_FormatNotSupported, "We no longer support saving room in the older format.");
@@ -1017,9 +1233,27 @@ HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion 
     WriteRoomBlock(room, "v400_objopts2", WriteExt_400_ObjectOptions2, out);
     WriteRoomBlock(room, "v400_areanames", WriteExt_400_AreaNames, out);
 
+    //
+    // Optional, auxiliary blocks
+    //
+    if (room_aux)
+    {
+        WriteAux_ScriptBlock(room_aux, out);
+    }
+
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);
     return HRoomFileError::None();
+}
+
+HRoomFileError WriteRoomData(const RoomData *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
+{
+    return WriteRoomData(room, nullptr, out, data_ver, compiled_with);
+}
+
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with)
+{
+    return WriteRoomData(room, room, out, data_ver, compiled_with);
 }
 
 } // namespace Common

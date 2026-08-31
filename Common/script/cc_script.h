@@ -69,7 +69,7 @@ public:
     void        SetScriptName(const std::string &name);
 
     // write the script to disk (after compiling)
-    void        Write(Common::Stream *out);
+    void        Write(Common::Stream *out) const;
     // read back a script written with Write
     bool        Read(Common::Stream *in);
 };

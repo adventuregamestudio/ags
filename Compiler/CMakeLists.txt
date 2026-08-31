@@ -110,9 +110,45 @@ else ()
     set(COMPILER_TEST_SOURCES ${NEW_COMPILER_TEST_SOURCES})
 endif ()
 
+#-----------------------------------------------------------------------------#
+# Minimal Allegro config
+#-----------------------------------------------------------------------------#
+
+include(TestBigEndian)
+
+test_big_endian(ALLEGRO_BIG_ENDIAN)
+if(NOT ALLEGRO_BIG_ENDIAN)
+   set(ALLEGRO_LITTLE_ENDIAN 1)
+endif(NOT ALLEGRO_BIG_ENDIAN)
+
+if(CMAKE_COMPILER_IS_GNUCC)
+    set(ALLEGRO_GCC 1)
+endif(CMAKE_COMPILER_IS_GNUCC)
+
+if(MSVC)
+    set(ALLEGRO_MSVC 1)
+endif()
+
+#-----------------------------------------------------------------------------#
+
+target_include_directories(compiler PUBLIC ../libsrc/allegro/include)
+set(COMPILER_MINIMAL_ALLEGRO_SOURCES
+        ../libsrc/allegro/src/allegro.c
+        ../libsrc/allegro/src/file.c
+        ../libsrc/allegro/src/unicode.c)
+if(WIN32)
+    list(APPEND COMPILER_MINIMAL_ALLEGRO_SOURCES ../libsrc/allegro/src/win/wfile.c)
+else()
+    list(APPEND COMPILER_MINIMAL_ALLEGRO_SOURCES ../libsrc/allegro/src/unix/ufile.c)
+endif()
+target_compile_definitions(compiler PRIVATE ALLEGRO_STATICLINK)
+
+#-----------------------------------------------------------------------------#
+
 target_sources(compiler PRIVATE
         ${COMPILER_SOURCES}
-        ${COMPILER_COMMON_SOURCES})
+        ${COMPILER_COMMON_SOURCES}
+        ${COMPILER_MINIMAL_ALLEGRO_SOURCES})
 
 if (WIN32)
     target_link_libraries(compiler PUBLIC shlwapi)

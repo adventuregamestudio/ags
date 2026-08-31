@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36310.24 d17.14
+VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crm2ash", "Tools.App\crm2ash.vcxproj", "{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agf2dlgasc", "Tools.App\afg2dlgasc.vcxproj", "{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "trac", "Tools.App\trac.vcxproj", "{0981C97D-C8AE-43CE-8A4B-3231B6468AE7}"
@@ -27,14 +25,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Debug|x64.ActiveCfg = Debug|x64
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Debug|x64.Build.0 = Debug|x64
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Debug|x86.ActiveCfg = Debug|Win32
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Debug|x86.Build.0 = Debug|Win32
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Release|x64.ActiveCfg = Release|x64
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Release|x64.Build.0 = Release|x64
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Release|x86.ActiveCfg = Release|Win32
-		{1BCFCAFE-B38D-4960-AB33-F76FDA316FB6}.Release|x86.Build.0 = Release|Win32
 		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x64.ActiveCfg = Debug|x64
 		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x64.Build.0 = Debug|x64
 		{D0CB449B-83AB-43B2-9286-0FAE4C37D73F}.Debug|x86.ActiveCfg = Debug|Win32

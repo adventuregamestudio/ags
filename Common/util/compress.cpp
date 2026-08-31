@@ -390,6 +390,7 @@ void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256])
         {
         case 1: memws.Write(bmdata.GetData(), w * h * bpp); break;
         case 2: memws.WriteArrayOfInt16(reinterpret_cast<const int16_t*>(bmdata.GetData()), w * h); break;
+        case 3: memws.WriteArrayOfUInt24(reinterpret_cast<const uint8_t*>(bmdata.GetData()), w * h); break;
         case 4: memws.WriteArrayOfInt32(reinterpret_cast<const int32_t*>(bmdata.GetData()), w * h); break;
         default: assert(0); break;
         }
@@ -452,6 +453,7 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
     {
     case 1: mem_in.Read(bmp_data, num_pixels); break;
     case 2: mem_in.ReadArrayOfInt16(reinterpret_cast<int16_t*>(bmp_data), num_pixels); break;
+    case 3: mem_in.ReadArrayOfUInt24(reinterpret_cast<uint8_t*>(bmp_data), num_pixels); break;
     case 4: mem_in.ReadArrayOfInt32(reinterpret_cast<int32_t*>(bmp_data), num_pixels); break;
     default: assert(0); break;
     }
@@ -460,6 +462,15 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
         in->Seek(end_pos, kSeekBegin);
 
     return pxbuf;
+}
+
+void skip_lzw(Stream *in)
+{
+    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+    in->Seek(sizeof(RGB) * 256);
+    const size_t uncomp_sz = in->ReadInt32();
+    const size_t comp_sz = in->ReadInt32();
+    in->Seek(comp_sz);
 }
 
 //-----------------------------------------------------------------------------

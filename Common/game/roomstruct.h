@@ -22,9 +22,6 @@
 #include "game/roomdata.h"
 #include "gfx/bitmap.h"
 
-#include "game/roomdata.h"
-#include "gfx/bitmap.h"
-
 namespace AGS
 {
 namespace Common
@@ -52,6 +49,11 @@ public:
     // CHECKME: this should be a private method; currently only accessed by a
     // (possibly temporary) code in the Editor.
     void    InitBitmaps();
+    // Initializes RoomData's pixel buffers from bitmaps,
+    // this lets to write this RoomStruct as RoomData back to the file.
+    // CHECKME: idk if this should exist; currently only accessed by a
+    // (possibly temporary) code in the Editor.
+    void    PrepareForWriteToFile();
     // Releases room resources
     void    Free();
 
@@ -73,7 +75,6 @@ public:
     PBitmap WalkAreaMask;
     PBitmap WalkBehindMask;
 };
-
 
 // Ensures that all existing room masks match room background size and
 // MaskResolution property, resizes mask bitmaps if necessary.

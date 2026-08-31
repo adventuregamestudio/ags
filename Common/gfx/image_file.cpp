@@ -13,6 +13,8 @@
 //=============================================================================
 #include <allegro.h>
 #include "gfx/image_file.h"
+#include "util/file.h"
+#include "util/path.h"
 #include "util/stream.h"
 
 namespace AGS
@@ -68,7 +70,15 @@ PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat* src_fmt, RGB *
     return {};
 }
 
-bool SaveImage(const BitmapData &pxdata, bool skip_alpha, const RGB *pal, Stream *out, const String &ext)
+PixelBuffer LoadImage(const String &filename, PixelFormat *src_fmt, RGB *pal)
+{
+    auto in = File::OpenFileRead(filename);
+    if (!in)
+        return {};
+    return LoadImage(in.get(), Path::GetFileExtension(filename), src_fmt, pal);
+}
+
+bool SaveImage(const BitmapData &bmdata, bool skip_alpha, const RGB *pal, Stream *out, const String &ext)
 {
     PALETTE tmppal;
     if (!pal) // palette is required by the format save functions
@@ -82,10 +92,18 @@ bool SaveImage(const BitmapData &pxdata, bool skip_alpha, const RGB *pal, Stream
     {
         if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr)
         {
-            return FormatProcs[i].SaveFmt(pxdata, skip_alpha, pal, out);
+            return FormatProcs[i].SaveFmt(bmdata, skip_alpha, pal, out);
         }
     }
     return false;
+}
+
+bool SaveImage(const BitmapData &bmdata, bool skip_alpha, const RGB *pal, const String &filename)
+{
+    auto out = File::CreateFile(filename);
+    if (!out)
+        return false;
+    return SaveImage(bmdata, skip_alpha, pal, out.get(), Path::GetFileExtension(filename));
 }
 
 } // namespace ImageFile

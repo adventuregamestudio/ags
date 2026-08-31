@@ -235,6 +235,17 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
     return true;
 }
 
+PixelBuffer Bitmap::ReleasePixelData()
+{
+	if (!_alBitmap)
+		return {};
+
+	auto pxbuf = PixelBuffer(std::move(_pixelData), _alBitmap->dat_sz, _alBitmap->w, _alBitmap->h,
+		ColorDepthToPixelFormat(GetColorDepth()), _alBitmap->pitch);
+	Destroy();
+	return pxbuf;
+}
+
 void Bitmap::Destroy()
 {
     if (_alBitmap && _isBmOwner)

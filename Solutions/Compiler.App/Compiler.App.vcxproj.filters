@@ -19,6 +19,9 @@
     <Filter Include="Common Header Files">
       <UniqueIdentifier>{221fe9d4-2764-4efd-a966-575ae48a8828}</UniqueIdentifier>
     </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{7c5d83eb-97f5-46d9-b46c-f5df291734fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Compiler\compiler.h">
@@ -91,6 +94,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Common\data\data_ext.cpp">
       <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

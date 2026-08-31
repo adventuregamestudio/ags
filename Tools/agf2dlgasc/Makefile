@@ -1,4 +1,4 @@
-INCDIR = ../../Common ../../Tools ../../libsrc/tinyxml2
+INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include ../../libsrc/tinyxml2
 LIBDIR =
 
 CFLAGS := -O2 -g \
@@ -41,12 +41,19 @@ TOOL_OBJS = \
 	../../Tools/data/dialogscriptconv.cpp \
 	../../Tools/data/script_utils.cpp
 
+MINIMAL_ALLEGRO_OBJS = \
+	../../libsrc/allegro/src/allegro.c \
+	../../libsrc/allegro/src/file.c \
+	../../libsrc/allegro/src/unicode.c \
+	../../libsrc/allegro/src/unix/ufile.c
+
 TINYXML2 = \
 	../../libsrc/tinyxml2/tinyxml2.cpp
 
 OBJS := main.cpp \
 	$(COMMON_OBJS) \
 	$(TOOL_OBJS) \
+	$(MINIMAL_ALLEGRO_OBJS) \
 	$(TINYXML2)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)

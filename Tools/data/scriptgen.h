@@ -19,12 +19,10 @@
 
 namespace AGS
 {
-
 namespace DataUtil
 {
 
 using AGS::Common::String;
-struct RoomScNames;
 
 // Generates game auto script header out of the game data;
 // the header will contain game object and array declarations.
@@ -35,9 +33,6 @@ String MakeVariablesScriptHeader(std::vector<Variable> &vars);
 // Generates a script body for the given list of variables;
 // the script will contain variable declarations and exports.
 String MakeVariablesScriptBody(std::vector<Variable> &vars);
-// Generates room script header out of the room data;
-// the header will contain room object declarations.
-String MakeRoomScriptHeader(const RoomScNames &data);
 
 } // namespace DataUtil
 } // namespace AGS

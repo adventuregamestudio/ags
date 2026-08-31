@@ -80,9 +80,9 @@ SysBitmap ^NativeRoom::GetBackground(int bgnum)
             "Invalid background number {0}", bgnum));
     }
     if (_rs->BackgroundBPP == 1)
-      return ConvertBlockToBitmap(_rs->BgFrames[bgnum].Graphic.get());
+      return ConvertBlockToBitmap(_rs->BgImages[bgnum].get());
 
-    return ConvertBlockToBitmap32(_rs->BgFrames[bgnum].Graphic.get(), _rs->Width, _rs->Height, true /* opaque */);
+    return ConvertBlockToBitmap32(_rs->BgImages[bgnum].get(), _rs->Width, _rs->Height, true /* opaque */);
 }
 
 SysBitmap ^NativeRoom::GetAreaMask(AGS::Types::RoomAreaMaskType maskType)

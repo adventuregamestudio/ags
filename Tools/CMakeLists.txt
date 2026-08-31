@@ -29,14 +29,23 @@ set(TOOLS_COMMON_SOURCES
         ../Common/data/tra_file.h
         ../Common/debug/debugmanager.cpp
         ../Common/debug/debugmanager.h
-        ../Common/game/room_file_base.cpp
+        ../Common/game/customproperties.cpp
+        ../Common/game/customproperties.h
+        ../Common/game/interactions.cpp
+        ../Common/game/interactions.h
+        ../Common/game/room_file.cpp
+        ../Common/game/roomdata.cpp
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
-		../Common/gfx/image_bmp.cpp
+        ../Common/gfx/image_bmp.cpp
         ../Common/gfx/image_file.cpp
         ../Common/gfx/image_file.h
-		../Common/gfx/image_pcx.cpp
-		../Common/gfx/image_png.cpp
+        ../Common/gfx/image_pcx.cpp
+        ../Common/gfx/image_png.cpp
+        ../Common/script/cc_common.cpp
+        ../Common/script/cc_common.h
+        ../Common/script/cc_script.cpp
+        ../Common/script/cc_script.h
         ../Common/util/bufferedstream.cpp
         ../Common/util/bufferedstream.h
         ../Common/util/cmdlineopts.cpp
@@ -119,6 +128,7 @@ target_sources(libtools
         data/data_file_writer.h
         data/dialogscriptconv.cpp
         data/dialogscriptconv.h
+        data/cc_script_stubs.cpp
         data/game_utils.h
         data/game_utils.cpp
         data/include_utils.cpp
@@ -180,16 +190,10 @@ set_target_properties(agspak PROPERTIES
         )
 target_link_libraries(agspak PUBLIC libtools)
 
-#----- crm2ash ------------------------------------------------
-add_executable(crm2ash crm2ash/main.cpp)
-set_target_properties(crm2ash PROPERTIES
-        CXX_STANDARD 11
-        CXX_EXTENSIONS NO
-        )
-target_link_libraries(crm2ash PUBLIC libtools)
-
 #----- crmpak -------------------------------------------------
-add_executable(crmpak crmpak/main.cpp)
+add_executable(crmpak crmpak/main.cpp
+        crmpak/commands.h
+        crmpak/commands.cpp)
 set_target_properties(crmpak PROPERTIES
         CXX_STANDARD 11
         CXX_EXTENSIONS NO
@@ -220,7 +224,6 @@ list(APPEND TOOLS_TARGETS
         agf2dta
         agfexport
         agspak
-        crm2ash
         crmpak
         spritepak
         trac

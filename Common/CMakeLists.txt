@@ -79,7 +79,6 @@ target_sources(common
     game/plugininfo.h
     game/room_file.cpp
     game/room_file.h
-    game/room_file_base.cpp
     game/room_version.h
     game/roomdata.cpp
     game/roomdata.h
@@ -196,7 +195,7 @@ target_sources(common
     util/version.h
     util/wgt2allg.cpp
     util/wgt2allg.h
-
+    
     platform/platform.h
     platform/types.h
     platform/windows/windows.h

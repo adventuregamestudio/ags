@@ -163,6 +163,10 @@ void VectorStream::Close()
 
 size_t VectorStream::Write(const void *buffer, size_t size)
 {
+    assert(_vec);
+    if (!_vec)
+        return 0u;
+
     if (_pos + size > _len)
     {
         _vec->resize(_pos + size);
@@ -175,6 +179,10 @@ size_t VectorStream::Write(const void *buffer, size_t size)
 
 int32_t VectorStream::WriteByte(uint8_t val)
 {
+    assert(_vec);
+    if (!_vec)
+        return -1;
+
     if (_pos == _len)
     {
         _vec->push_back(val);

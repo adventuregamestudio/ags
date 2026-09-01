@@ -195,10 +195,11 @@ namespace AGS.Editor
          * 3.6.3.13       - WorkspaceState: RequiredRebuildTime
          * 
          * USER_DATA_VERSION versions:
-         * 4.00.00.20   - start using version string again.
+         * 4.00.00.20     - start using version string again.
+         * 4.00.00.33     - sync with 3.6.3.13.
          * 
         */
-        public const string LATEST_USER_DATA_VERSION = "4.0.0.20";
+        public const string LATEST_USER_DATA_VERSION = "4.0.0.33";
 
         /*
          * FIRST_USER_DATA_VERSION_USING_INDEX is the old version of the Editor

@@ -39,6 +39,7 @@ void    Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newP
 void    Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);
 void    Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction);
 void    Character_ChangeView(CharacterInfo *chap, int vii);
+void    Character_SetViewDirect(CharacterInfo *chap, int vii, bool is_walk_view);
 void    Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle);
 void    Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle);
 void    Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle);

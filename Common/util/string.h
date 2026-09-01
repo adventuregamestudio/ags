@@ -228,6 +228,8 @@ public:
     //-------------------------------------------------------------------------
     // Factory methods
     //-------------------------------------------------------------------------
+    // Allocates a copy of this string
+    String  Clone() const;
 
     // Wraps the given string buffer without owning it, won't count references,
     // won't delete it at destruction. Can be used with string literals.
@@ -244,6 +246,11 @@ public:
     static String FromStream(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // Reads up to N chars from stream
     static String FromStreamCount(Stream *in, size_t count);
+
+    // Joins a vector of strings together, optionally inserting separator between elements
+    static String Join(const std::vector<String> &list, char separator);
+    static String Join(const std::vector<String> &list, const char *separator);
+    static String Join(const std::vector<String> &list, const String &separator) { return Join(list, separator.GetCStr()); }
 
     // Creates a lowercased copy of the string
     String  Lower() const;
@@ -275,6 +282,8 @@ public:
     // including empty segments e.g. if separators follow each other;
     // returns at least one segment (equal to full string if no separator was found)
     std::vector<String> Split(char separator) const;
+    std::vector<String> Split(const char *separator) const;
+    std::vector<String> Split(const String &separator) const { return Split(separator.GetCStr()); }
 
     //-------------------------------------------------------------------------
     // String modification methods

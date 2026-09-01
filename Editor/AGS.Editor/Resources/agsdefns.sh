@@ -3331,8 +3331,10 @@ builtin struct Game {
   /// Gets the name of whatever is on the screen at (x,y)
   import static String GetLocationName(int x, int y, HitTestOptions hitOptions = eHit_Interactable);
 #endif // SCRIPT_COMPAT_v400_24
+#ifdef SCRIPT_API_v400_33
   /// Gets the human-readable name of whatever is on the screen at (x,y)
-  import static String GetDisplayNameAt(int x, int y);
+  import static String GetDisplayNameAt(int x, int y, HitTestOptions hitOptions = eHit_Interactable);
+#endif // SCRIPT_API_v400_33
   /// Gets the number of loops in the specified view.
   import static int    GetLoopCountForView(int view);
   /// Gets whether the "Run next loop after this" setting is checked for the specified loop.

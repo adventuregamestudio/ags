@@ -359,6 +359,7 @@ enum RuntimeBehaviorSwitch
 {
     // Is here to have at least one valid constant
     kRBS_Dummy = 0,
+    // CLNUP: remove in AGS 4 (all of the below relate to running pre-3.6.3 versions)
     // Enables smooth transition between two consecutive walk orders
     kRBO_SmoothWalkTransition,
     // Apply text direction for GUI controls (except Labels, where it's always applied)

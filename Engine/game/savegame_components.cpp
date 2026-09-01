@@ -1712,7 +1712,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
 
     // modified room backgrounds
     uint8_t bg_count = MAX_ROOM_BGFRAMES_321;
-    if (cmp_ver >= kRoomStatSvgVersion_36314)
+    if (((cmp_ver >= kRoomStatSvgVersion_36314) && (cmp_ver < kRoomStatSvgVersion_400)) || (cmp_ver >= kRoomStatSvgVersion_40033))
         bg_count = static_cast<uint8_t>(in->ReadInt8());
     r_data.RoomBkgScene.resize(bg_count);
     for (uint8_t i = 0; i < bg_count; ++i)

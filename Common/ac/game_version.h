@@ -166,6 +166,8 @@ sync with 3.6.3.4/6
 sync with 3.6.3.8
 4.0.0.29:
 sync with 3.6.3.10
+4.0.0.33:
+sync with 3.6.3.14
 */
 
 enum GameDataVersion
@@ -203,8 +205,9 @@ enum GameDataVersion
     kGameVersion_400_26         = 4000026,
     kGameVersion_400_27         = 4000027,
     kGameVersion_400_29         = 4000029,
+    kGameVersion_400_33         = 4000033,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_29
+    kGameVersion_Current        = kGameVersion_400_33
 };
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

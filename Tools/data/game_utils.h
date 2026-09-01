@@ -41,6 +41,7 @@ using ::ScreenTransitionStyle;
 
 enum GameColorDepth
 {
+    kGameColorDepth_Undefined = 0,
     kGameColorDepth_Palette = 1,
     kGameColorDepth_HighColor = 2,
     kGameColorDepth_TrueColor = 4
@@ -77,6 +78,7 @@ enum GUIPopupStyle
 enum PaletteColourType
 {
     kPaletteColourType_Gamewide = 0,
+    kPaletteColourType_Locked = 1, // commonly unused
     kPaletteColourType_Background = 2
 };
 
@@ -149,6 +151,26 @@ enum SpriteImportResolution
     kSpriteImport_Real = -1,
     kSpriteImport_LowRes = 0,
     kSpriteImport_HighRes = 1
+};
+
+enum SpriteImportTransparency
+{
+    // Pixels of palette index 0 will be transparent (256-colour games only)
+    kSpriteImport_PaletteIndex0 = 0,
+    // The top-left pixel will be the transparent colour for this sprite
+    kSpriteImport_TopLeft,
+    // The bottom-left pixel will be the transparent colour for this sprite
+    kSpriteImport_BottomLeft,
+    // The top-right pixel will be the transparent colour for this sprite
+    kSpriteImport_TopRight,
+    // The bottom-right pixel will be the transparent colour for this sprite
+    kSpriteImport_BottomRight,
+    // AGS will leave the sprite's pixels as they are. Any pixels that match the AGS Transparent Colour will be invisible.
+    kSpriteImport_LeaveAsIs,
+    // AGS will remove all transparent pixels by changing them to a very similar non-transparent colour
+    kSpriteImport_NoTransparency,
+    // Pixels of chosen palette index will be transparent (256-colour games only)
+    kSpriteImport_PaletteIndex
 };
 
 enum AudioFileBundlingType
@@ -286,9 +308,30 @@ struct FontData : EntityRef
 
 struct SpriteData
 {
-    int Slot{};
+    int Slot = -1;
+    // CHECKME: these are duplicating ImportWidth/Height, and seem to be
+    // just for a quick reference in Game.agf? need to double check their use.
+    int Width = 0;
+    int Height = 0;
+    int ColorDepth = 0; // bits per pixel
     SpriteImportResolution Resolution = kSpriteImport_Real;
+    // This is a reference to where it actually has one, but ImportAlphaChannel
+    // is one that controls sprite import.
     bool AlphaChannel = false;
+    // Import settings
+    String SourceFile;
+    bool ImportAlphaChannel = false;
+    int ColoursLockedToRoom = -1;
+    int ImportOffsetX = 0;
+    int ImportOffsetY = 0;
+    int ImportWidth = 0;
+    int ImportHeight = 0;
+    bool ImportAsTile = false;
+    int ImportFrame = 0;
+    SpriteImportTransparency TransparentColour = kSpriteImport_LeaveAsIs;
+    int TransparentColourIndex = 0;
+    bool RemapToGamePalette = false;
+    bool RemapToRoomPalette = false;
 };
 
 struct PaletteEntryData

@@ -192,6 +192,8 @@ struct GamePlayState
     bool  voice_avail = false;      // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
     int   speech_skip_style = 0; // stores SKIP_* flags
+    bool  speech_always_wait_for_text = false;
+    int   speech_zorder = INT32_MAX; // z-order for the blocking speech overlays (text & portrait)
     int   speech_volume = 0; // in 0-255 !!
     int   normal_font = 0;
     int   speech_font = 0;
@@ -205,10 +207,14 @@ struct GamePlayState
     std::vector<uint16_t> parsed_words;
     Common::String bad_parsed_word;
     // Tells which room background frames were modified by script drawing operations
-    bool  room_bg_modified[MAX_ROOM_BGFRAMES]{};
+    std::vector<bool> room_bg_modified;
     bool  room_mask_modified[kNumRoomAreaTypes]{};
     int   room_changes = 0;
-    int   mouse_cursor_hidden = 0;
+
+    // Disables mouse input *in game*. Note that the mouse input may still affect the "engine layer",
+    // if it's used in debugging menus or whatever other purposes.
+    bool  mouse_input_enabled = true;
+    bool  mouse_cursor_shown = true;
     uint32_t shakesc_delay = 0; // unsigned to match loopcounter
     int   shakesc_amount = 0;
     int   shakesc_length = 0;
@@ -396,6 +402,9 @@ struct GamePlayState
 
     // Tells if engine should apply AA (linear) scaling to the game sprites
     bool ShouldAASprites() const { return enable_antialiasing && (disable_antialiasing == 0); }
+
+    // Tells if the mouse cursor should be drawn on screen
+    bool ShouldDrawMouseCursor() const { return mouse_input_enabled && mouse_cursor_shown; }
 
     //
     // User input management

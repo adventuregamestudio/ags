@@ -182,6 +182,7 @@ int  doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex);
 // Tells if character is currently moving, in eWalkableAreas mode
 bool is_char_walking_ndirect(CharacterInfo *chi);
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst);
+void FindReasonableLoopForCharacter(CharacterInfo *chap, bool is_walk_view);
 // Start character walk or move; calculate path using destination and optionally "ignore walls" flag 
 void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);
 // Start character walk or move, using a predefined path
@@ -193,7 +194,6 @@ void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
 // Start character walk the straight line until any non-passable area is met
 void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
 void MoveCharacterToHotspot(int chaa, int hotsp);
-void FindReasonableLoopForCharacter(CharacterInfo *chap);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 int GetCharacterWidth(int charid);
@@ -208,7 +208,6 @@ void update_character_scale(int charid);
 // Get character ID at the given room coordinates
 int GetCharIDAtRoom(int x, int y, int hit_options);
 Rect get_char_blocking_rect(int charid);
-int my_getpixel(Common::Bitmap *blk, int x, int y);
 int check_click_on_character(int xx, int yy,int mood);
 void DisplaySpeechCore(int chid, const char *displbuf);
 void DisplayThoughtCore(int chid, const char *displbuf);

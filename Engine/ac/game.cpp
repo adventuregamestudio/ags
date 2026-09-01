@@ -1697,8 +1697,6 @@ void stop_fast_forwarding() {
     }
 }
 
-// allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
-// or whether it returns 0
 int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui, bool allow_hotspot0)
 {
     if (locobj_index)
@@ -1706,11 +1704,11 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
 
     if (!click_through_gui)
     {
-        int gui_index = GetGUIAt(x, y, kHit_Interactable);
+        int gui_index = GetGUIAt(x, y, hit_options);
         if (gui_index >= 0)
         {
             // On GUI, test if we're above an inventory item
-            int invitem_index = GetInvAt(x, y, kHit_Interactable, kHit_Interactable);
+            int invitem_index = GetInvAt(x, y, hit_options, hit_options);
             if (invitem_index >= 0)
             {
                 if (locobj_index)

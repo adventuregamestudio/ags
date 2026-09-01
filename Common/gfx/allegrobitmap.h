@@ -184,7 +184,7 @@ public:
     // Gets pitch (a single scaneline) length in bytes
 	inline int  GetPitch() const
     {
-        return _pitch;
+        return _alBitmap->pitch;
     }
 
 	// Gets a pointer to underlying graphic data
@@ -322,7 +322,6 @@ private:
     bool    _ownPixelData = false; // whether owning pixel data / pixel object
     // FIXME: use std::unique_ptr<BITMAP> with no-op deleter
     bool    _isBmOwner = false; // whether owning BITMAP object
-    int     _pitch = 0; // cached pitch (scanline length)
 };
 
 

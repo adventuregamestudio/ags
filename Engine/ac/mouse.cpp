@@ -83,19 +83,14 @@ void CursorGraphicState::SetSpriteNum(int sprnum)
 }
 
 
-// The Mouse:: functions are static so the script doesn't pass
-// in an object parameter
-void Mouse_SetVisible(int isOn) {
-    if (isOn)
-        play.mouse_cursor_hidden = 0;
-    else
-        play.mouse_cursor_hidden = 1;
+void Mouse_SetVisible(int on)
+{
+    play.mouse_cursor_shown = on;
 }
 
-int Mouse_GetVisible() {
-    if (play.mouse_cursor_hidden)
-        return 0;
-    return 1;
+int Mouse_GetVisible()
+{
+    return play.mouse_cursor_shown ? 1 : 0;
 }
 
 void Mouse_SetBounds(int x1, int y1, int x2, int y2)
@@ -402,8 +397,7 @@ void Mouse_DisableCursorMode(int mode)
 
 void Mouse_Refresh() {
     ags_domouse();
-    scmouse.x = mousex;
-    scmouse.y = mousey;
+    update_script_mouse_coords();
 }
 
 void Mouse_SetPosition (int newx, int newy) {
@@ -426,28 +420,40 @@ int Mouse_GetCursorMode() {
     return cur_mode;
 }
 
-int Mouse_IsButtonDown(int which) {
+int Mouse_IsButtonDown(int which)
+{
     if ((which < kMouseLeft) || (which > kMouseMiddle))
         quit("!IsButtonDown: only works with eMouseLeft, eMouseRight, eMouseMiddle");
+
+    if (!play.mouse_input_enabled)
+        return 0;
     return ags_misbuttondown(static_cast<eAGSMouseButton>(which)) ? 1 : 0;
 }
 
 bool IsAnyButtonDown()
 {
+    if (!play.mouse_input_enabled)
+        return false;
     return ags_misanybuttondown();
 }
 
-int Mouse_IsModeEnabled(int which) {
+int Mouse_IsModeEnabled(int which)
+{
     return (which < 0) || (which >= game.numcursors) ? 0 :
         game.HasCursorRole(which, kCursorRole_UseInv) ? playerchar->activeinv > 0 :
         (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
-void Mouse_SaveCursorForLocationChange() {
-    // update the current location name
+void Mouse_SaveCursorForLocationChange()
+{
+    if (!play.mouse_input_enabled)
+        return;
+
+    // update the current location name (ignore return value)
     GetLocationName(mousex, mousey, kHit_Interactable);
 
-    if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
+    if (play.get_loc_name_save_cursor != play.get_loc_name_last_time)
+    {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;
         play.restore_cursor_mode_to = Mouse_GetCursorMode();
         play.restore_cursor_image_to = Mouse_GetCursor();
@@ -455,7 +461,8 @@ void Mouse_SaveCursorForLocationChange() {
     }
 }
 
-void Mouse_SimulateClick(int button_id) {
+void Mouse_SimulateClick(int button_id)
+{
     ags_simulate_mouseclick(static_cast<eAGSMouseButton>(button_id));
 }
 
@@ -486,6 +493,17 @@ void Mouse_SetAutoLock(bool on)
     }
 }
 
+
+bool Mouse_GetEnabled()
+{
+    return play.mouse_input_enabled;
+}
+
+void Mouse_SetEnabled(bool on)
+{
+    play.mouse_input_enabled = on;
+}
+
 ScriptShaderInstance *Mouse_GetCursorShader()
 {
     return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
@@ -500,9 +518,18 @@ void Mouse_SetCursorShader(ScriptShaderInstance *shader_inst)
 
 //=============================================================================
 
-void update_script_mouse_coords() {
-    scmouse.x = mousex;
-    scmouse.y = mousey;
+void update_script_mouse_coords()
+{
+    if (play.mouse_input_enabled)
+    {
+        scmouse.x = mousex;
+        scmouse.y = mousey;
+    }
+    else
+    {
+        scmouse.x = -1;
+        scmouse.y = -1;
+    }
 }
 
 void update_inv_cursor(int invnum)
@@ -771,6 +798,16 @@ RuntimeScriptValue Sc_Mouse_SetAutoLock(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PBOOL(Mouse_SetAutoLock);
 }
 
+RuntimeScriptValue Sc_Mouse_GetEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Mouse_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Mouse_SetEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Mouse_SetEnabled);
+}
+
 RuntimeScriptValue Sc_Mouse_GetCursorShader(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptShaderInstance, Mouse_GetCursorShader);
@@ -780,6 +817,7 @@ RuntimeScriptValue Sc_Mouse_SetCursorShader(const RuntimeScriptValue *params, in
 {
     API_SCALL_VOID_POBJ(Mouse_SetCursorShader, ScriptShaderInstance);
 }
+
 
 RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -820,6 +858,8 @@ void RegisterMouseAPI()
         { "Mouse::set_AutoLock",              API_FN_PAIR(Mouse_SetAutoLock) },
         { "Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled, Mouse::IsControlEnabled },
         { "Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled, Mouse_EnableControl },
+        { "Mouse::get_Enabled",               API_FN_PAIR(Mouse_GetEnabled) },
+        { "Mouse::set_Enabled",               API_FN_PAIR(Mouse_SetEnabled) },
         { "Mouse::get_CursorShader",          API_FN_PAIR(Mouse_GetCursorShader) },
         { "Mouse::set_CursorShader",          API_FN_PAIR(Mouse_SetCursorShader) },
         { "Mouse::get_Mode",                  API_FN_PAIR(Mouse_GetCursorMode) },

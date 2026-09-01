@@ -733,14 +733,20 @@ void engine_init_game_settings()
     play.text_align = kHAlignLeft;
     // Make the default alignment to the right with right-to-left text
     if (game.options[OPT_RIGHTLEFTWRITE])
+    {
         play.text_align = kHAlignRight;
+        play.speech_text_align = kHAlignRight;
+        if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
+            play.dialog_options_textalign = kHAlignRight;
+    }
 
     play.speech_bubble_width = 100;
     play.bg_frame=0;
     play.bg_frame_locked=0;
     play.bg_anim_delay=0;
     play.anim_background_speed = 0;
-    play.mouse_cursor_hidden = 0;
+    play.mouse_input_enabled = true;
+    play.mouse_cursor_shown = true;
     play.skip_until_char_stops = -1;
     play.get_loc_name_last_time = {};
     play.get_loc_name_save_cursor = {};
@@ -829,8 +835,6 @@ void engine_init_game_settings()
     play.game_name = game.gamename;
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
-    for (ee = 0; ee < MAX_ROOM_BGFRAMES; ee++) 
-        play.room_bg_modified[ee] = false;
     play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;

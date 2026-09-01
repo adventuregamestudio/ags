@@ -1118,10 +1118,10 @@ namespace AGS.Editor
             if (_interactiveTasks.LoadGameFromDisk(projectPath))
             {
                 error = false;
-                bool forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
-                var messages = _agsEditor.CompileGame(forceRebuild, false);
-                if (forceRebuild)
-                    _agsEditor.SaveUserDataFile(); // in case pending config is applied
+                var messages = _agsEditor.CompileGame(false, false);
+                // The user data may have been amended by the building process
+                if (!messages.HasErrors)
+                    _agsEditor.SaveUserDataFile();
 
                 _batchProcessShutdown = true;
                 if (!messages.HasErrors)
@@ -1144,10 +1144,10 @@ namespace AGS.Editor
             if (_interactiveTasks.LoadGameFromDisk(projectPath))
             {
                 error = false;
-                bool forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
-                _agsEditor.CompileGame(forceRebuild, false);
-                if (forceRebuild)
-                    _agsEditor.SaveUserDataFile(); // in case pending config is applied
+                var messages = _agsEditor.CompileGame(false, false);
+                // The user data may have been amended by the building process
+                if (!messages.HasErrors)
+                    _agsEditor.SaveUserDataFile();
 
                 _batchProcessShutdown = true;
 
@@ -1338,9 +1338,10 @@ namespace AGS.Editor
                         MessageBoxOnCompile oldMessageBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
                         Factory.AGSEditor.Settings.MessageBoxOnCompile = MessageBoxOnCompile.Never;
 
-                        _agsEditor.CompileGame(true, false);
+                        var messages = _agsEditor.CompileGame(true, false);
                         // The user data may have been amended by the building process
-                        _agsEditor.SaveUserDataFile();
+                        if (!messages.HasErrors)
+                            _agsEditor.SaveUserDataFile();
 
                         Factory.AGSEditor.Settings.MessageBoxOnCompile = oldMessageBoxSetting;
                     }

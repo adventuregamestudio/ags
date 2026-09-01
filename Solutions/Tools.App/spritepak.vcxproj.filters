@@ -20,6 +20,9 @@
     <Filter Include="stb">
       <UniqueIdentifier>{a82a002f-a4f4-4bca-84e0-19b83412b412}</UniqueIdentifier>
     </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{9f7942ab-5b85-4cc8-ac20-5325364c9474}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Tools\spritepak\main.cpp">
@@ -97,6 +100,9 @@
     <ClCompile Include="..\..\libsrc\stb\stb_image.c">
       <Filter>stb</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\file.c">
       <Filter>allegro</Filter>
     </ClCompile>
@@ -170,6 +176,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\stb\stb_image.h">
       <Filter>stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\sprite_utils.h">
+      <Filter>data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

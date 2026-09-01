@@ -101,19 +101,39 @@ namespace AGS.Editor.Components
             return name + "     (" + path + ")";
         }
 
-        private string GetRecentGameMenuText(Preferences.RecentGame game, int maxPrintSize)
+        private string GetRecentGameMenuText(Preferences.RecentGame game, int maxPrintSize, int minPrintPathSize)
         {
-            int maxPrintPathSize = maxPrintSize - GetRecentGameText(game.Name, string.Empty).Length;
+            if (minPrintPathSize < 0 )
+            {
+                throw new ArgumentOutOfRangeException("minPrintPathSize cannot be negative");
+            }
+            if (maxPrintSize < 0 )
+            {
+                throw new ArgumentOutOfRangeException("maxPrintSize cannot be negative");
+            }
+
+            string gameName = game.Name;
+            int maxPrintPathSize = maxPrintSize - GetRecentGameText(gameName, string.Empty).Length;
+            if (maxPrintPathSize < minPrintPathSize)
+            {
+                // it looks like the game name is too big, let's truncate the game name
+                // and add some ellipsis so it show a little bit of the game path.
+                int keep = Math.Min(gameName.Length, maxPrintSize - minPrintPathSize);
+                if (keep < gameName.Length)
+                    gameName = gameName.Substring(0, keep) + "...";
+                maxPrintPathSize = maxPrintSize - GetRecentGameText(gameName, string.Empty).Length;
+            }
             string printablePath = game.Path.Length > maxPrintPathSize
                 ? "..." + game.Path.Substring(game.Path.Length - maxPrintPathSize)
                 : game.Path;
 
-            return GetRecentGameText(game.Name, printablePath);
+            return GetRecentGameText(gameName, printablePath);
         }
 
         private List<MenuCommand> GetRecentGamesSubcommands()
         {
             const int maxPrintSize = 80; // Maximum char length for recent games text
+            const int minPrintPathSize = 30; // Minimal char length for recent games dir path
             var subCommands = new List<MenuCommand>();
             
             if(Factory.AGSEditor.Settings.RecentGames.Count <= 1)
@@ -134,7 +154,7 @@ namespace AGS.Editor.Components
                 string projectPath = Path.Combine(game.Path, AGSEditor.GAME_FILE_NAME);
                 if (File.Exists(projectPath))
                 {
-                    string cmdText = GetRecentGameMenuText(game, maxPrintSize);
+                    string cmdText = GetRecentGameMenuText(game, maxPrintSize, minPrintPathSize);
                     MenuCommand cmd = new MenuCommand(OPEN_RECENT_GAME_COMMAND + i.ToString(), cmdText);
                     subCommands.Add(cmd);
                 }

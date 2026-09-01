@@ -1,6 +1,8 @@
 INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
 LIBDIR =
 
+LD_VERSION := $(shell $(LD) --version 2>/dev/null)
+
 CFLAGS := -O2 -g \
 	-fsigned-char -fno-strict-aliasing -fwrapv \
 	-Wunused-result \
@@ -20,8 +22,12 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
+
+ifneq (,$(findstring GNU ld,$(LD_VERSION)))
+    LDFLAGS += -rdynamic -Wl,--as-needed
+endif
+LDFLAGS  += $(addprefix -L,$(LIBDIR))
 
 COMMON_OBJS = \
 	../../Common/data/data_ext.cpp \
@@ -58,6 +64,7 @@ TOOL_OBJS = \
 	../../Tools/data/room_utils.cpp
 
 MINIMAL_ALLEGRO_OBJS = \
+	../../libsrc/allegro/src/color.c \
 	../../libsrc/allegro/src/allegro.c \
 	../../libsrc/allegro/src/file.c \
 	../../libsrc/allegro/src/unicode.c \

@@ -121,11 +121,18 @@ Locations of two latter files differ between running platforms:
   * sdl = LEVEL - setup SDL's own logging level, defined either by name or numeric ID:
     * all (0), verbose (1), debug (2), info (3), warn (4), error (5), critical (6).
 * **\[access\]** - accessibility options. These may override programmed game behavior for the purpose of making playing the game easier.
+  * alwayswaittext = \[0; 1\] - if set to 1, force game to always wait until text's reading time has finished before advancing the speech lines when speech mode is "text and voice".
+  * speechmode = \[string\] - assigns the speech mode to a fixed value:
+    * default - do not override, use game's scripted option;
+	* text - text only;
+	* voice - voice only;
+	* textvoice - text and voice.
   * speechskip = \[string\] - assigns the speech skip style to a fixed value:
     * default - do not override, use game's scripted option;
 	* input - skip speech by player's input only;
 	* time - skip speech by time-out only;
 	* any - skip speech either by player's input or time-out.
+  * textreadspeed = \[integer\] - sets the text reading speed (characters per second); value 0 would use the game's own setting.
   * textskip = \[string\] - assigns the text message skip style to a fixed value; values are the same as for "speechskip" option.
 * **\[override\]** - special options, overriding standard engine behavior. These are purposed as emergency "hacks", when something prevents from playing a game properly.
   * noplugins = \[0; 1\] - disable plugin loading. Engine will fallback to built-in plugins or stubs, if they are available.
@@ -142,9 +149,10 @@ Locations of two latter files differ between running platforms:
   game looks.
   * new_key_mode = \[0; 1\] - enforce new key handling mode, where each button is firing separate event, and button codes do not depend on the keyboard layout. WARNING: may cause script errors in certain old games.
 * **\[override_behavior\]** - options, overriding backwards-compatible engine behavior. When running old games, the engine tries to emulate old behavior as close as possible. This may include various restrictions and inconveniences. These options allow to enable *modern* behavior on a per-case basis. NOTE: you can only enable new behavior in old games, you won't be able to disable modern behavior in games where it is a standard.
-  * smooth_walk = \[0; 1\] - enable seamless transition between consecutive walk commands. WARNING: may cause script errors in certain old games.
+  * dialog_opt_text_alignment = \[0; 1\] - enable applying text alignment in dialog options.
   * gui_text_direction = \[0; 1\] - enable applying text direction on gui controls other than labels (labels support it always).
-  * dialog_opt_text_direction = \[0; 1\] - enable applying text direction on dialog options.
+  * no_textprop_autotranslate = \[0; 1\] - disable auto-translation of text property values that are get or set in script.
+  * smooth_walk = \[0; 1\] - enable seamless transition between consecutive walk commands. WARNING: may cause logical errors in certain old games.
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.
   * gfxdrivers = \[0; 1\] - tells to lock "Graphics driver" selection in a default state;
   * \<gfxdriver id\> = \[0; 1\] - tells to remove particular graphics driver from the selection list;

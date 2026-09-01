@@ -1,5 +1,7 @@
-INCDIR = ../../Common ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
+INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include ../../libsrc/miniz ../../libsrc/stb
 LIBDIR =
+
+LD_VERSION := $(shell $(LD) --version 2>/dev/null)
 
 CFLAGS := -O2 -g \
 	-fsigned-char -fno-strict-aliasing -fwrapv \
@@ -20,8 +22,12 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
+
+ifneq (,$(findstring GNU ld,$(LD_VERSION)))
+    LDFLAGS += -rdynamic -Wl,--as-needed
+endif
+LDFLAGS  += $(addprefix -L,$(LIBDIR))
 
 COMMON_OBJS = \
 	../../Common/ac/spritefile.cpp \
@@ -45,6 +51,9 @@ COMMON_OBJS = \
 	../../Common/util/string_compat.c \
 	../../Common/util/string_utils.cpp
 
+TOOL_OBJS = \
+	../../Tools/data/sprite_utils.cpp
+
 MINIMAL_ALLEGRO_OBJS = \
 	../../libsrc/allegro/src/allegro.c \
 	../../libsrc/allegro/src/color.c \
@@ -61,8 +70,9 @@ STB_OBJS = \
 OBJS := main.cpp \
 	commands.cpp \
 	$(COMMON_OBJS) \
+	$(TOOL_OBJS) \
 	$(MINIMAL_ALLEGRO_OBJS) \
-	$(MINIZ_OBJS)
+	$(MINIZ_OBJS) \
 	$(STB_OBJS)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)

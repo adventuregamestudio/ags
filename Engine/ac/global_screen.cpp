@@ -65,7 +65,7 @@ public:
         play.shakesc_length = compat_duration;
         play.shakesc_delay = 2 * compat_shake_delay;
         play.shakesc_amount = _severe;
-        play.mouse_cursor_hidden++;
+        play.mouse_cursor_shown = false;
 
         // Optimized variant for software render: create game scene once and shake it
         // TODO: split implementations into two state classes?
@@ -85,7 +85,7 @@ public:
             clear_letterbox_borders();
             render_to_screen();
         }
-        play.mouse_cursor_hidden--;
+        play.mouse_cursor_shown = true;
         play.shakesc_length = 0;
         play.shakesc_delay = 0;
         play.shakesc_amount = 0;

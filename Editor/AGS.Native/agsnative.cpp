@@ -61,6 +61,7 @@ using AGS::Common::AssetLibInfo;
 using AGS::Common::AssetManager;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace PaletteOp = AGS::Common::PaletteOp;
 using AGS::Common::GUIMain;
 using AGS::Common::GUIButton;
 using AGS::Common::GUIInvWindow;
@@ -1214,17 +1215,18 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
     // 256-colour mode only
     if (transcol!=0)
       itspal[transcol] = itspal[0];
-    wsetrgb(0,0,0,0,itspal); // set index 0 to black
+    PaletteOp::SetRGB(itspal, 0,0,0,0); // set index 0 to black
     RGB oldpale[256];
-    for (int uu=0;uu<255;uu++) {
+    for (int uu=0;uu<PAL_SIZE;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
       else if (thisgame.paluses[uu]==PAL_BACKGROUND)
-        wsetrgb(uu,0,0,0,oldpale);
+          PaletteOp::SetRGB(oldpale, uu,0,0,0);
       else 
         oldpale[uu]=palette[uu];
     }
-    wremap(itspal,toimp,oldpale); 
+    AGS::Common::BitmapData bm_data = toimp->GetBitmapData();
+    PaletteOp::Remap(bm_data, itspal, oldpale);
     set_palette_range(palette, 0, 255, 0);
   }
   else if (toimp->GetColorDepth() == 8) {  // hi-colour game
@@ -2214,31 +2216,31 @@ AGSBitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int destColorDepth, 
     if (!tempsprite)
         return nullptr;
 
+    // Prior to transparency conversion, deal with 32-bit alpha channel:
+    // either convert zero-alpha pixels to standard mask color, or to opaque color
+
+    int flags = 0;// assign sprite flags as necessary
+    if (tempsprite->GetColorDepth() == 32)
+    {
+        if (alphaChannel)
+        {
+            // For compatibility with the internal AGS bitmap format:
+            // change pixels with alpha 0 to MASK_COLOR_X
+            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
+        }
+        else
+        {
+            // Ensure that every pixel has full alpha (0xFF)
+            BitmapHelper::MakeOpaqueSkipMask(tempsprite);
+        }
+    }
+
     int transcol = 0;
     sort_out_transparency(tempsprite, spriteImportMethod, transColour, imgPalBuf, importedColourDepth, transcol);
     if (tempsprite->GetColorDepth() == 8)
     {
         if (remapColours)
             sort_out_palette(tempsprite, imgPalBuf, useRoomBackgroundColours, transcol);
-    }
-
-    int flags = 0;// assign sprite flags as necessary
-    if (alphaChannel)
-    {
-        // For compatibility with the internal AGS bitmap format:
-        // change pixels with alpha 0 to MASK_COLOR_X
-        if (tempsprite->GetColorDepth() == 32)
-        {
-            BitmapHelper::ReplaceZeroAlphaWithRGBMask(tempsprite);
-        }
-    }
-    else
-    {
-        // Ensure that every pixel has full alpha (0xFF)
-        if (tempsprite->GetColorDepth() == 32)
-        {
-            BitmapHelper::MakeOpaqueSkipMask(tempsprite);
-        }
     }
 
     if (out_flags)

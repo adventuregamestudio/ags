@@ -82,7 +82,8 @@ private:
     soff_t _end = 0; // valid section ending offset
     soff_t _position = 0; // absolute read/write offset
     soff_t _bufferPosition = 0; // buffer's location relative to base stream
-    std::vector<uint8_t> _buffer;
+    std::vector<uint8_t> _buffer; // buffer, accumulating data in read or write mode
+    StreamMode _bufferMode = kStream_None; // current buffer mode (can be *only* read OR write)
 };
 
 } // namespace Common

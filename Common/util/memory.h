@@ -256,7 +256,7 @@ namespace Memory
     //-------------------------------------------------------------------------
     // Copies a block of 2D data from source buffer into destination buffer.
     // Pitches, offsets and width are in bytes, height is a number of lines.
-    // FIXME: a safer version that requires to assert buffer size
+    // FIXME: a safer version that requires to pass and assert buffer size
     inline void BlockCopy( const uint8_t *src, const size_t src_pitch, const size_t src_offset,
         const size_t width, const size_t height,
         uint8_t *dst, const size_t dst_pitch, const size_t dst_offset)

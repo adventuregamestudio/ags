@@ -14,8 +14,7 @@
 #ifndef __AGS_TOOL_SPRITEPAK__COMMANDS_H
 #define __AGS_TOOL_SPRITEPAK__COMMANDS_H
 
-#include "ac/spritefile.h"
-#include "util/string.h"
+#include "data/sprite_utils.h"
 
 namespace SpritePak
 {
@@ -31,9 +30,6 @@ namespace SpritePak
         SpriteStorage StorageFlags = AGS::Common::kSprStore_OptimizeForSize;
         SpriteCompression Compress = AGS::Common::kSprCompress_Deflate;
     };
-
-    String GetCompressionName(SpriteCompression compress);
-    SpriteCompression CompressionFromName(const String &compress_name);
 
     void Init();
     int Command_Create(const String &src_dir, const String &dst_pak, const CommandOptions &opts, bool verbose);

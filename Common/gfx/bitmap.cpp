@@ -152,31 +152,14 @@ void AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, in
 
 void MakeOpaque(Bitmap *bmp)
 {
-    if (bmp->GetColorDepth() < 32)
-        return; // no alpha channel
-
-    for (int i = 0; i < bmp->GetHeight(); ++i)
-    {
-        uint32_t *line = reinterpret_cast<uint32_t*>(bmp->GetScanLineForWriting(i));
-        uint32_t *line_end = line + bmp->GetWidth();
-        for (uint32_t *px = line; px != line_end; ++px)
-            *px = makeacol32(getr32(*px), getg32(*px), getb32(*px), 255);
-    }
+    auto bm_data = bmp->GetBitmapData();
+    PixelOp::MakeOpaque(bm_data);
 }
 
 void MakeOpaqueSkipMask(Bitmap *bmp)
 {
-    if (bmp->GetColorDepth() < 32)
-        return; // no alpha channel
-
-    for (int i = 0; i < bmp->GetHeight(); ++i)
-    {
-        uint32_t *line = reinterpret_cast<uint32_t*>(bmp->GetScanLineForWriting(i));
-        uint32_t *line_end = line + bmp->GetWidth();
-        for (uint32_t *px = line; px != line_end; ++px)
-            if (*px != MASK_COLOR_32)
-                *px = makeacol32(getr32(*px), getg32(*px), getb32(*px), 255);
-    }
+    auto bm_data = bmp->GetBitmapData();
+    PixelOp::MakeOpaqueSkipMask(bm_data);
 }
 
 // TODO: maybe merge this algorithm with ApplyMask found below
@@ -216,17 +199,8 @@ void ReplaceColor(Bitmap *bmp, int color1, int color2)
 
 void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold)
 {
-    if (bmp->GetColorDepth() < 32)
-        return; // no alpha channel
-
-    for (int i = 0; i < bmp->GetHeight(); ++i)
-    {
-        uint32_t *line = reinterpret_cast<uint32_t*>(bmp->GetScanLineForWriting(i));
-        uint32_t *line_end = line + bmp->GetWidth();
-        for (uint32_t *px = line; px != line_end; ++px)
-            if (geta32(*px) <= alpha_threshold)
-                *px = MASK_COLOR_32;
-    }
+    auto bm_data = bmp->GetBitmapData();
+    PixelOp::ReplaceAlphaWithRGBMask(bm_data);
 }
 
 

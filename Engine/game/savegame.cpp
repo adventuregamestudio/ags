@@ -572,7 +572,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
             play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i,
-                chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+                chan_info.Priority, chan_info.Repeat, chan_info.Pos, true /* HACK: pass "queue" to avoid deleting existing queue */);
         }
         else
         {
@@ -744,11 +744,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // Re-export any missing audio channel script objects, e.g. if restoring old save
     export_missing_audiochans();
 
-    if (!LinkGlobalScripts())
+    HError err = LinkGlobalScripts();
+    if (!err)
     {
-        return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Failed to link global script: %s",
-                cc_get_error().ErrorString.GetCStr()));
+        return new SavegameError(kSvgErr_GameObjectInitFailed, "Failed to link script modules", err);
     }
 
     // read the global data into the newly created script
@@ -816,10 +815,11 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
             play.bg_frame = 0;
 
-        for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+        for (size_t i = 0; i < std::min(thisroom.BgImages.size(), r_data.RoomBkgScene.size()); ++i)
         {
             if (r_data.RoomBkgScene[i])
             {
+                play.room_bg_modified[i] = true;
                 // Blit, don't replace image, in case we restored a image of different size
                 thisroom.BgImages[i]->Clear(0);
                 thisroom.BgImages[i]->Blit(r_data.RoomBkgScene[i].get());
@@ -830,6 +830,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
         {
             if (r_data.RoomMask[i])
             {
+                play.room_mask_modified[i] = true;
                 // Blit, don't replace mask, in case we restored a mask of different size
                 thisroom.CopyMask(static_cast<RoomAreaMask>(i), r_data.RoomMask[i].get());
             }

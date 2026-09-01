@@ -419,17 +419,23 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
 
 void SpriteCache::RemapSpriteToPlaceholder(sprkey_t index)
 {
-    assert((index > 0) && ((size_t)index < _spriteData.size()));
-    _sprInfos[index] = SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), _placeholder->GetColorDepth(), 0);
-    _spriteData[index].Flags |= SPRCACHEFLAG_ERROR;
-    SprCacheLog("RemapSpriteToPlaceholder: %d", index);
+    assert((index >= 0) && ((size_t)index < _spriteData.size()));
+    if ((index >= 0) && ((size_t)index < _spriteData.size()))
+    {
+        _sprInfos[index] = SpriteInfo(_placeholder->GetWidth(), _placeholder->GetHeight(), _placeholder->GetColorDepth(), 0);
+        _spriteData[index].Flags |= SPRCACHEFLAG_ERROR;
+        SprCacheLog("RemapSpriteToPlaceholder: %d", index);
+    }
 }
 
 void SpriteCache::InitNullSprite(sprkey_t index)
 {
-    assert(index >= 0);
-    _sprInfos[index] = SpriteInfo();
-    _spriteData[index] = SpriteData();
+    assert((index >= 0) && ((size_t)index < _spriteData.size()));
+    if ((index >= 0) && ((size_t)index < _spriteData.size()))
+    {
+        _sprInfos[index] = SpriteInfo();
+        _spriteData[index] = SpriteData();
+    }
 }
 
 std::vector<std::pair<bool, BitmapData>> SpriteCache::PrepareSpriteData()

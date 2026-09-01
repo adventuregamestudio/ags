@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace AGS.Controls
@@ -13,6 +14,24 @@ namespace AGS.Controls
     /// </summary>
     public static class TreeViewExtensions
     {
+        private const int TVM_SETEXTENDEDSTYLE = 0x1100 + 44;
+        private const int TVM_GETEXTENDEDSTYLE = 0x1100 + 45;
+        private const int TVS_EX_DOUBLEBUFFER = 0x0004;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
+
+        /// <summary>
+        /// Enables double buffering so that the control does not flicker.
+        /// 
+        /// See <see href="https://stackoverflow.com/a/10364283/20494">this StackOverflow answer</see> for more details.
+        /// </summary>
+        /// <param name="control"></param>
+        public static void EnableDoubleBuffering(this TreeView control)
+        {
+            SendMessage(control.Handle, TVM_SETEXTENDEDSTYLE, (IntPtr)TVS_EX_DOUBLEBUFFER, (IntPtr)TVS_EX_DOUBLEBUFFER);
+        }
+
         public static List<string> GetExpansionState(this TreeNodeCollection nodes)
         {
             return nodes.Descendants()

@@ -43,7 +43,8 @@ std::array<const char*, kNum_RBS> RBSwitchNames =
     "dummy",                        // kRBS_Dummy
     "smooth_walk",                  // kRBO_SmoothWalkTransition
     "gui_text_direction",           // kRBO_ApplyGUITextDirection
-    "dialog_opt_text_direction",    // kRBO_ApplyDialogOptionTextDirection 
+    "dialog_opt_text_alignment",    // kRBO_ApplyDialogOptionTextAlignment
+    "no_textprop_autotranslate",    // kRBO_NoTextPropertyAutoTranslate
 }};
 
 GamePlayState::GamePlayState()
@@ -715,7 +716,13 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     bad_parsed_word.ReadCount(in, 100);
     in->ReadInt32();// [DEPRECATED]
     in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
-    mouse_cursor_hidden = in->ReadInt32();
+    uint32_t mouse_opts = in->ReadInt32();
+    mouse_cursor_shown = (mouse_opts & 0x01) == 0; // previously this field had a reverse meaning
+    mouse_input_enabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_363_13
+    if (svg_ver < kGSSvgVersion_363_13)
+    {
+        mouse_input_enabled = true;
+    }
     in->ReadInt32();// [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
@@ -800,13 +807,21 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     if ((svg_ver >= kGSSvgVersion_363_02 && svg_ver < kGSSvgVersion_400) || svg_ver >= kGSSvgVersion_400_24)
     {
         dialog_options_zorder = in->ReadInt32();
-        in->ReadInt32(); // reserved up to 4 ints
-        in->ReadInt32();
-        in->ReadInt32();
+        speech_zorder = in->ReadInt32(); // since kGSSvgVersion_363_13
+        uint32_t speech_ex_flags = in->ReadInt32();
+        speech_always_wait_for_text = speech_ex_flags & 0x01;
+        in->ReadInt32(); // reserved
     }
-    else
+    
+    if (svg_ver < kGSSvgVersion_363_02)
     {
         dialog_options_zorder = INT32_MAX;
+    }
+
+    if (svg_ver < kGSSvgVersion_363_13)
+    {
+        speech_zorder = INT32_MAX;
+        speech_always_wait_for_text = false;
     }
 
     // New-style timers
@@ -971,7 +986,9 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     bad_parsed_word.WriteCount(out, 100);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
-    out->WriteInt32( mouse_cursor_hidden);
+    uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown) // previously this field had a reverse meaning
+        | 0x02 * mouse_input_enabled; // kGSSvgVersion_363_13
+    out->WriteInt32( mouse_opts);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( 0);
     out->WriteInt32( 0);
@@ -1036,9 +1053,10 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(dialog_options_font);
     // kGSSvgVersion_363_02, kGSSvgVersion_400_24
     out->WriteInt32(dialog_options_zorder);
-    out->WriteInt32(0); // reserved up to 4 ints
-    out->WriteInt32(0);
-    out->WriteInt32(0);
+    out->WriteInt32(speech_zorder); // since kGSSvgVersion_363_13
+    uint32_t speech_ex_flags = (0x01 * speech_always_wait_for_text);
+    out->WriteInt32(speech_ex_flags); 
+    out->WriteInt32(0); // reserved
 
     // kGSSvgVersion_363_04
     out->WriteInt32(_scriptTimers.size());

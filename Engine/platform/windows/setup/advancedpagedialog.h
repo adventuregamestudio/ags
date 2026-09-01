@@ -158,6 +158,8 @@ private:
     HWND _hTextSkipStyle = NULL;
     HWND _hTextReadSpeed = NULL;
     HWND _hTextReadSpeedText = NULL;
+    HWND _hSpeechMode = NULL;
+    HWND _hAlwaysWaitForText = NULL;
 
     ConfigTree &_cfgOut;
     bool _disabledSkipStyle = false;

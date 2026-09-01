@@ -563,7 +563,7 @@ int GetLocationType2(int x, int y)
 
 // Finds out what is located under the cursor;
 // returns location's name and "location reference".
-static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref, int hit_options)
+static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y, int hit_options)
 {
     // If no room loaded yet, then return nothing
     if (displayed_room < 0)
@@ -610,7 +610,7 @@ static const char *GetLocationNameAndRef(int x, int y, SceneLocationRef &loc_ref
 const char *GetLocationName(int x, int y, int hit_options)
 {
     SceneLocationRef loc_ref;
-    const char *loc_name = GetLocationNameAndRef(x, y, loc_ref, hit_options);
+    const char *loc_name = GetLocationNameAndRef(loc_ref, x, y, hit_options);
 
     // If it's a new location, different from the last time we checked,
     // then update "@OVERHOTSPOT@" label(s), and save the last index
@@ -724,7 +724,7 @@ void SetMultitasking (int mode) {
 void RoomProcessClick(int xx, int yy,int mood)
 {
     int getloctype_index = -1;
-    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, true /* ignore gui */, false /* not allow hotspot0 */);
+    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, kHit_Interactable, true /* ignore gui */, false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return;

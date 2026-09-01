@@ -363,6 +363,8 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
     _hTextSkipStyle         = GetDlgItem(_hwnd, IDC_TEXTSKIPSTYLE);
     _hTextReadSpeed         = GetDlgItem(_hwnd, IDC_TEXTREADSPEED);
     _hTextReadSpeedText     = GetDlgItem(_hwnd, IDC_TEXTREADSPEED_TEXT);
+    _hSpeechMode            = GetDlgItem(_hwnd, IDC_SPEECHMODE);
+    _hAlwaysWaitForText     = GetDlgItem(_hwnd, IDC_ALWAYSWAITFORTEXT);
 
     SetSliderRange(_hTextReadSpeed, TextReadSpeedMin, TextReadSpeedMax);
 
@@ -376,6 +378,11 @@ INT_PTR AccessibilityPageDialog::OnInitDialog()
         AddString(_hSpeechSkipStyle, val.first, val.second);
         AddString(_hTextSkipStyle, val.first, val.second);
     }
+    ResetContent(_hSpeechMode);
+    AddString(_hSpeechMode, "Game Default", kSpeech_None);
+    AddString(_hSpeechMode, "Text Only", kSpeech_TextOnly);
+    AddString(_hSpeechMode, "Voice Only", kSpeech_VoiceOnly);
+    AddString(_hSpeechMode, "Voice and Text", kSpeech_VoiceText);
 
     _disabledSkipStyle = CfgReadBoolInt(_cfgIn, "disabled", "access_skipstyle");
     // If all Accessibility options are disabled, then disable the "enable" checkbox too
@@ -423,14 +430,17 @@ INT_PTR AccessibilityPageDialog::OnCommand(WORD id)
 void AccessibilityPageDialog::OnEnableAccessCheck()
 {
     const bool enable = GetCheck(_hEnableAccess);
-    const bool enable_skipstyles = !_disabledSkipStyle && enable;
-    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_SPEECHSKIPSTYLE), enable_skipstyles ? TRUE : FALSE);
-    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTSKIPSTYLE), enable_skipstyles ? TRUE : FALSE);
-    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTREADSPEED), enable_skipstyles ? TRUE : FALSE);
-    EnableWindow(_hSpeechSkipStyle, enable_skipstyles ? TRUE : FALSE);
-    EnableWindow(_hTextSkipStyle, enable_skipstyles ? TRUE : FALSE);
-    EnableWindow(_hTextReadSpeed, enable_skipstyles ? TRUE : FALSE);
-    EnableWindow(_hTextReadSpeedText, enable_skipstyles ? TRUE : FALSE);
+    const BOOL enable_skipstyles = (!_disabledSkipStyle && enable) ? TRUE : FALSE;
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_SPEECHSKIPSTYLE), enable_skipstyles);
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTSKIPSTYLE), enable_skipstyles);
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_TEXTREADSPEED), enable_skipstyles);
+    EnableWindow(GetDlgItem(_hwnd, IDC_LABEL_SPEECHMODE), enable_skipstyles);
+    EnableWindow(_hSpeechSkipStyle, enable_skipstyles);
+    EnableWindow(_hTextSkipStyle, enable_skipstyles);
+    EnableWindow(_hTextReadSpeed, enable_skipstyles);
+    EnableWindow(_hTextReadSpeedText, enable_skipstyles);
+    EnableWindow(_hSpeechMode, enable_skipstyles);
+    EnableWindow(_hAlwaysWaitForText, enable_skipstyles);
 }
 
 void AccessibilityPageDialog::UpdateTextReadSpeed()
@@ -447,6 +457,8 @@ void AccessibilityPageDialog::ResetSetup(const ConfigTree &cfg_from)
         || (_winCfg.Access.SpeechSkipStyle != kSkipSpeechNone)
         || (_winCfg.Access.TextSkipStyle != kSkipSpeechNone)
         || (_winCfg.Access.TextReadSpeed > 0)
+        || (_winCfg.Access.SpeechMode != kSpeech_None)
+        || (_winCfg.Access.AlwaysWaitForText)
         ;
 
     SetCheck(_hEnableAccess, enable_access ? TRUE : FALSE);
@@ -456,6 +468,8 @@ void AccessibilityPageDialog::ResetSetup(const ConfigTree &cfg_from)
     SetCurSelToItemData(_hTextSkipStyle, _winCfg.Access.TextSkipStyle);
     int slider_pos = Math::Clamp(_winCfg.Access.TextReadSpeed, TextReadSpeedMin, TextReadSpeedMax);
     SetSliderPos(_hTextReadSpeed, slider_pos);
+    SetCurSelToItemData(_hSpeechMode, _winCfg.Access.SpeechMode);
+    SetCheck(_hAlwaysWaitForText, _winCfg.Access.AlwaysWaitForText);
     UpdateTextReadSpeed();
 }
 
@@ -472,12 +486,16 @@ void AccessibilityPageDialog::SaveSetup()
         _winCfg.Access.SpeechSkipStyle = (SkipSpeechStyle)GetCurItemData(_hSpeechSkipStyle, kSkipSpeechNone);
         _winCfg.Access.TextSkipStyle = (SkipSpeechStyle)GetCurItemData(_hTextSkipStyle, kSkipSpeechNone);  
         _winCfg.Access.TextReadSpeed = GetSliderPos(_hTextReadSpeed);
+        _winCfg.Access.SpeechMode = (SpeechMode)GetCurItemData(_hSpeechMode, kSpeech_None);
+        _winCfg.Access.AlwaysWaitForText = GetCheck(_hAlwaysWaitForText);
     }
     else
     {
         _winCfg.Access.SpeechSkipStyle = kSkipSpeechNone;
         _winCfg.Access.TextSkipStyle = kSkipSpeechNone;
         _winCfg.Access.TextReadSpeed = 0;
+        _winCfg.Access.SpeechMode = kSpeech_None;
+        _winCfg.Access.AlwaysWaitForText = false;
     }
 }
 

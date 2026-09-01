@@ -168,16 +168,13 @@ namespace AGS.Editor.Components
 
         private void TestGame(bool withDebugger)
         {
-            bool forceRebuild;
-
-            forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
             if (_agsEditor.SaveGameFiles())
             {
-                var messages = _agsEditor.CompileGame(forceRebuild, true);
-                // The user data may have been amended by the building process
-                _agsEditor.SaveUserDataFile();
+                var messages = _agsEditor.CompileGame(false, true);
                 if (!messages.HasErrors)
                 {
+                    // The user data may have been amended by the building process
+                    _agsEditor.SaveUserDataFile();
                     _testGameInProgress = true;
                     _guiController.InteractiveTasks.TestGame(withDebugger);
                     // Depending on which panels are enabled, one of them may end up being shown on top
@@ -264,12 +261,13 @@ namespace AGS.Editor.Components
 
 		private void CompileGame(bool forceRebuild)
 		{
-			forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
-			if (_agsEditor.SaveGameFiles())
+            _agsEditor.CurrentGame.WorkspaceState.RequiredRebuildTime = DateTime.Now;
+            if (_agsEditor.SaveGameFiles())
 			{
                 var messages = _agsEditor.CompileGame(forceRebuild, false);
                 // The user data may have been amended by the building process
-                _agsEditor.SaveUserDataFile();
+                if (!messages.HasErrors)
+                    _agsEditor.SaveUserDataFile();
                 if (messages.Count == 0)
 				{
                     ShowCompileSuccessMessage();

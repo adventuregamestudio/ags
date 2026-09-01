@@ -381,6 +381,9 @@ static int wasongui = 0;
 // Runs default handling of mouse movement, button state, and wheel
 static void check_mouse_state(int &was_mouse_on_iface)
 {
+    if (!play.mouse_input_enabled)
+        return;
+
     mouse_on_iface = gui_on_mouse_move(mousex, mousey);
     was_mouse_on_iface = mouse_on_iface;
 
@@ -409,7 +412,19 @@ static void check_mouse_controls(const int was_mouse_on_iface)
 {
     eAGSMouseButton mbut;
     Point mpos;
-    if (run_service_mb_controls(mbut, &mpos) && mbut > kMouseNone) {
+    if (run_service_mb_controls(mbut, &mpos) && mbut > kMouseNone)
+    {
+        // NOTE: this option disables mouse *in game*, the "service" controls are always run.
+        if (!play.mouse_input_enabled)
+        {
+            // Still run the plugin hooks though, as it may be overriding game logic
+            // TODO: we might consider to expand plugin api, having this issue in mind
+            // (i.e. have separate events for any mouse click and in-game mouse click)
+            if (pl_run_plugin_hooks(kPluginEvt_MouseClick, mbut))
+                debug_script_log("Plugin handled mouse button %d", mbut);
+            return;
+        }
+
         check_skip_cutscene_mclick(mbut);
 
         if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
@@ -1008,7 +1023,7 @@ static void update_cursor_over_gui()
 {
     if (((debug_flags & DBG_NOIFACE) != 0) || (displayed_room < 0))
         return; // GUI is disabled (debug flag) or room is not loaded
-    if (!IsInterfaceEnabled())
+    if (!IsInterfaceEnabled() || !play.mouse_input_enabled)
         return; // interface is disabled (by script or blocking action)
     // Poll guis
     for (auto &gui : guis)
@@ -1025,6 +1040,8 @@ extern int mouse_frame, mouse_delay;
 static void update_cursor_view()
 {
     // update animating mouse cursor
+    // NOTE: we are still doing this even if the in-game mouse input is disabled,
+    // or mouse cursor is hidden, the animation logic keeps running in the background.
     const auto &mcur = game.mcurs[cur_cursor];
     if (mcur.view >= 0 && mcur.view < game.numviews)
     {
@@ -1055,6 +1072,9 @@ static void update_cursor_view()
 // Update the "saved cursor until it leaves location" state
 static void UpdateSavedCursorOverLocation()
 {
+    if (!play.mouse_input_enabled)
+        return;
+
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
     // CHECKME: this is also likely called in the main game update function,
@@ -1102,7 +1122,7 @@ static void UpdateGUIContext(int mwasatx, int mwasaty)
     // on game object positions, and game state changes, and we cannot track all of that here.
     //
     // While game is in Wait mode, or in room transition: set empty overhotspot text.
-    if (!IsInterfaceEnabled() || in_room_transition)
+    if (!IsInterfaceEnabled() || in_room_transition || !play.mouse_input_enabled)
         GUI::Context.Overhotspot = "";
     // Games prior to 3.6.0 had a slightly different order of updates, so use old cursor pos for them
     else if (loaded_game_file_version < kGameVersion_360_21)
@@ -1116,7 +1136,7 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
 {
     if (play.fast_forward)
         return;
-    if (displayed_room < 0)
+    if (displayed_room < 0 || !play.mouse_input_enabled)
         return;
 
     auto view = play.GetRoomViewportAt(mousex, mousey);
@@ -1137,7 +1157,8 @@ static void update_cursor_over_location(int mwasatx, int mwasaty)
     {
         // mouse moves over hotspot
         int getloctype_index = -1;
-        if (GetLocationTypeImpl(&getloctype_index, mousex, mousey, kHit_Interactable, false /* dont click-through gui */, true /* allow hotspot0 */) == LOCTYPE_HOTSPOT)
+        if (GetLocationTypeImpl(&getloctype_index, mousex, mousey, kHit_Interactable,
+            false /* dont click-through gui */, true /* allow hotspot0 */) == LOCTYPE_HOTSPOT)
         {
             setevent(AGSEvent_Object(kObjEventType_Hotspot, getloctype_index, kHotspotEvent_MouseOver));
         }

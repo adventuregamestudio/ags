@@ -1,6 +1,8 @@
 INCDIR = ../../Common ../../Tools ../../libsrc/allegro/include ../../libsrc/tinyxml2
 LIBDIR =
 
+LD_VERSION := $(shell $(LD) --version 2>/dev/null)
+
 CFLAGS := -O2 -g \
 	-fsigned-char -fno-strict-aliasing -fwrapv \
 	-Wunused-result \
@@ -8,6 +10,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+	-DALLEGRO_STATICLINK \
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
@@ -19,13 +22,18 @@ AR ?= ar
 CFLAGS   += $(addprefix -I,$(INCDIR))
 CXXFLAGS += $(CFLAGS)
 ASFLAGS  += $(CFLAGS)
-LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
+
+ifneq (,$(findstring GNU ld,$(LD_VERSION)))
+    LDFLAGS += -rdynamic -Wl,--as-needed
+endif
+LDFLAGS  += $(addprefix -L,$(LIBDIR))
 
 COMMON_OBJS = \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/file.cpp \
+	../../Common/util/directory.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/memorystream.cpp \
 	../../Common/util/path.cpp \

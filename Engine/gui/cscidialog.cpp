@@ -245,6 +245,9 @@ int CSCISendControlMessage(int haa, int mess, int wPar, intptr_t ipPar)
 // TODO: this is silly, make a uniform formula
 int checkcontrols()
 {
+    if (!play.mouse_input_enabled)
+        return 0;
+
     // NOTE: this is because old code was working with full game screen
     const int mx = ::mousex - win_x;
     const int my = ::mousey - win_y;

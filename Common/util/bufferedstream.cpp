@@ -62,7 +62,7 @@ BufferedStream::~BufferedStream()
 
 std::unique_ptr<IStreamBase> BufferedStream::ReleaseStreamBase()
 {
-    if (_base && CanWrite())
+    if (_base && (_bufferMode == kStream_Write))
         FlushBuffer(_position);
     return std::move(_base);
 }
@@ -80,17 +80,19 @@ void BufferedStream::FillBufferFromPosition(soff_t position)
     _buffer.resize(fill_size);
     auto sz = _base->Read(_buffer.data(), fill_size);
     _buffer.resize(sz);
+    _bufferMode = kStream_Read;
     _bufferPosition = position;
 }
 
 void BufferedStream::FlushBuffer(soff_t position)
 {
-    assert(_base);
-    if (!_base)
+    assert(_base && (_bufferMode == kStream_Write));
+    if (!_base || (_bufferMode != kStream_Write))
         return;
 
     size_t sz = _buffer.size() > 0 ? _base->Write(_buffer.data(), _buffer.size()) : 0u;
     _buffer.clear(); // will start from the clean buffer next time
+    _bufferMode = kStream_None;
     _bufferPosition += sz;
     if (position != _bufferPosition)
     {
@@ -118,17 +120,19 @@ void BufferedStream::Close()
 {
     if (_base)
     {
-        if (CanWrite())
+        if (_bufferMode == kStream_Write)
             FlushBuffer(_position);
         _base->Close();
     }
+
+    _base = nullptr;
 }
 
 bool BufferedStream::Flush()
 {
     if (_base)
     {
-        if (CanWrite())
+        if (_bufferMode == kStream_Write)
             FlushBuffer(_position);
         return _base->Flush();
     }
@@ -155,8 +159,15 @@ size_t BufferedStream::Read(void *buffer, size_t size)
     }
 
     auto *to = static_cast<uint8_t*>(buffer);
-    while(size > 0)
+    while (size > 0)
     {
+        // If the buffer filled with bytes to write, then flush it into the stream
+        if (_bufferMode == kStream_Write)
+        {
+            FlushBuffer(_position);
+        }
+
+        // Fill the buffer for reading, if necessary
         if (_position < _bufferPosition ||
             static_cast<uint64_t>(_position) >= static_cast<uint64_t>(_bufferPosition + _buffer.size()))
         {
@@ -193,9 +204,19 @@ size_t BufferedStream::Write(const void *buffer, size_t size)
     const uint8_t *from = static_cast<const uint8_t*>(buffer);
     while (size > 0)
     {
-        if (_position < _bufferPosition || // seeked before buffer pos
+        // If the buffer is not holding written bytes, then clear it and reposition the stream
+        if (_bufferMode != kStream_Write)
+        {
+            _buffer.clear();
+            _base->Seek(_position, kSeekBegin);
+            _bufferPosition = _position;
+        }
+
+        // Flush the written buffer into the stream, if necessary
+        if ((_bufferMode == kStream_Write) &&
+           (_position < _bufferPosition || // seeked before buffer pos
             _position > _bufferPosition + static_cast<soff_t>(_buffer.size()) || // seeked beyond buffer pos
-            _position >= _bufferPosition + static_cast<soff_t>(BufferSize)) // seeked, or exceeded buffer limit
+            _position >= _bufferPosition + static_cast<soff_t>(BufferSize))) // seeked, or exceeded buffer limit
         {
             FlushBuffer(_position);
         }
@@ -204,6 +225,7 @@ size_t BufferedStream::Write(const void *buffer, size_t size)
         if (_buffer.size() < pos_in_buff + chunk_sz)
             _buffer.resize(pos_in_buff + chunk_sz);
         memcpy(_buffer.data() + pos_in_buff, from, chunk_sz);
+        _bufferMode = kStream_Write;
         _position += chunk_sz;
         from += chunk_sz;
         size -= chunk_sz;

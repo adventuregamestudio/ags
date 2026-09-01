@@ -256,6 +256,7 @@ if(AGS_TESTS)
         test/inifile_test.cpp
         test/math_test.cpp
         test/memory_test.cpp
+        test/paletteop_test.cpp
         test/path_test.cpp
         test/splitline_test.cpp
 		test/spritecache_test.cpp

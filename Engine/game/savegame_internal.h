@@ -179,7 +179,7 @@ struct RestoredData
     AGSDeSerializer         ManObjReader;
     // Room data (has to be be preserved until room is loaded)
     int                     Room;
-    std::unique_ptr<Bitmap> RoomBkgScene[MAX_ROOM_BGFRAMES];
+    std::vector<std::unique_ptr<Bitmap>> RoomBkgScene;
     std::unique_ptr<Bitmap> RoomMask[kNumRoomAreaTypes];
     short                   RoomLightLevels[MAX_ROOM_REGIONS];
     int                     RoomTintLevels[MAX_ROOM_REGIONS];

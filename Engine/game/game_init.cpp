@@ -120,10 +120,8 @@ String GetGameInitErrorText(GameInitErrorType err)
         return "Failed to initialize game entities.";
     case kGameInitErr_PluginNameInvalid:
         return "Plugin name is invalid.";
-    case kGameInitErr_NoGlobalScript:
-        return "No global script in game.";
-    case kGameInitErr_ScriptLinkFailed:
-        return "Script link failed.";
+    case kGameInitErr_ScriptInitFailed:
+        return "Failed to initialize runtime scripts.";
     }
     return "Unknown error.";
 }
@@ -498,16 +496,16 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // NOTE: we must do this after plugins, because some plugins may export
     // script symbols too.
     //
-    if (!ents.GlobalScript)
-        return new GameInitError(kGameInitErr_NoGlobalScript);
-    gamescript = std::move(RuntimeScript::Create(ents.GlobalScript.get()));
-    dialogScriptsScript= std::move(RuntimeScript::Create(ents.DialogScript.get()));
-    numScriptModules = ents.ScriptModules.size();
-    for (size_t i = 0; i < ents.ScriptModules.size(); ++i)
-        scriptModules.push_back(std::shared_ptr<RuntimeScript>(RuntimeScript::Create(ents.ScriptModules[i].get())));
-    AllocScriptModules();
-    if (!LinkGlobalScripts())
-        return new GameInitError(kGameInitErr_ScriptLinkFailed, cc_get_error().ErrorString);
+
+    std::vector<ccScript*> sc_modules;
+    for (const auto &us : ents.ScriptModules)
+        sc_modules.push_back(us.get());
+    err = CreateRuntimeScripts(ents.GlobalScript.get(), sc_modules, ents.ScriptModuleNames, ents.DialogScript.get());
+    if (!err)
+        return new GameInitError(kGameInitErr_ScriptInitFailed, err);
+    err = LinkGlobalScripts();
+    if (!err)
+        return new GameInitError(kGameInitErr_ScriptInitFailed, err);
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.
@@ -539,6 +537,14 @@ void ApplyAccessibilityOptions(GamePlayState &play, const GameSetup &setup)
         play.text_speed = setup.Access.TextReadSpeed;
         play.text_min_display_time_ms = Math::Clamp((int)(1000 * (15.f / setup.Access.TextReadSpeed)), 1000, 3000);
     }
+    if (setup.Access.SpeechMode != kSpeech_None)
+    {
+        play.speech_mode = setup.Access.SpeechMode;
+    }
+    if (setup.Access.AlwaysWaitForText)
+    {
+        play.speech_always_wait_for_text = true;
+    }
 }
 
 void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const GameSetup &setup)
@@ -549,7 +555,8 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     std::array<bool, kNum_RBS> rbo = {0};
     rbo[kRBO_SmoothWalkTransition] = (loaded_game_file_version >= kGameVersion_361);
     rbo[kRBO_ApplyGUITextDirection] = (loaded_game_file_version >= kGameVersion_361);
-    rbo[kRBO_ApplyDialogOptionTextDirection]= (loaded_game_file_version >= kGameVersion_363);
+    rbo[kRBO_ApplyDialogOptionTextAlignment]= (loaded_game_file_version >= kGameVersion_363);
+    rbo[kRBO_NoTextPropertyAutoTranslate]= (loaded_game_file_version >= kGameVersion_363_14);
 
     // Now apply overrides from config, *BUT* these only enable disabled options,
     // and never disable enabled ones (because that might break or "downgrade" modern games).

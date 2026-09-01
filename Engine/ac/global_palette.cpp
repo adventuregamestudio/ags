@@ -33,12 +33,12 @@ void CyclePalette(int strt,int eend) {
 
     if (eend > strt) {
         // forwards
-        wcolrotate(strt, eend, 0, palette);
+        PaletteOp::Rotate(palette, strt, eend, true);
         set_palette_range(palette, strt, eend, 0);
     }
     else {
         // backwards
-        wcolrotate(eend, strt, 1, palette);
+        PaletteOp::Rotate(palette, eend, strt, false);
         set_palette_range(palette, eend, strt, 0);
     }
 
@@ -47,7 +47,7 @@ void SetPalRGB(int inndx,int rr,int gg,int bb) {
     if (game.color_depth > 1)
         invalidate_screen();
 
-    wsetrgb(inndx,rr,gg,bb,palette);
+    PaletteOp::SetRGB(palette, inndx, rr, gg, bb);
     set_palette_range(palette, inndx, inndx, 0);
 }
 

@@ -58,9 +58,13 @@
 #define FONT_SPEECH     play.speech_font
 
 // Fixed Overlay IDs
+// Standard message box (see Display command)
 #define OVER_TEXTMSG  1
+// Complete speech overlay (QFG4 speech style)
 #define OVER_COMPLETE 2
+// Speech portrait
 #define OVER_PICTURE  3
+// Speech text (in textwindow or not)
 #define OVER_TEXTSPEECH 4
 #define OVER_FIRSTFREE 5
 #define OVER_CUSTOM   -1
@@ -359,8 +363,10 @@ enum RuntimeBehaviorSwitch
     kRBO_SmoothWalkTransition,
     // Apply text direction for GUI controls (except Labels, where it's always applied)
     kRBO_ApplyGUITextDirection,
-    // Apply text direction for dialog options
-    kRBO_ApplyDialogOptionTextDirection,
+    // Apply text alignment for dialog options (and auto-switch when translation changes)
+    kRBO_ApplyDialogOptionTextAlignment,
+    // Do not auto-translate values of text properties; only translate displayed text
+    kRBO_NoTextPropertyAutoTranslate,
     kNum_RBS
 };
 

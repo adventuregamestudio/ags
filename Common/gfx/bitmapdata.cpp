@@ -39,6 +39,38 @@ uint32_t BitmapData::GetPixel(int x, int y) const
     }
 }
 
+void BitmapData::SetPixel(int x, int y, uint32_t value)
+{
+    uint8_t *line = GetLine(y);
+    switch (_bitsPerPixel)
+    {
+    // for 1-bit and 4-bit: clear the bit(s) position to zero and then write new value
+    case 1: line[x / 8] = line[x / 8] & ~(1 << (7 - x % 8)) | ((value & 1) << (7 - x % 8)); break;
+    case 4: line[x / 2] = line[x / 2] & ~(4 << (1 - x % 2)) | ((value & 4) << (1 - x % 2)); break;
+    case 8: line[x] = static_cast<uint8_t>(value & 0xFF); break;
+    case 15: /* same as 16 */
+    case 16: *reinterpret_cast<uint16_t*>(&line[x * 2]) = value; break;
+    case 24: Memory::WriteInt24(&line[x * 3], value); break;
+    case 32: *reinterpret_cast<uint32_t*>(&line[x * 4]) = value; break;
+    default: assert(false); break;
+    }
+}
+
+String PixelFormatName(PixelFormat fmt)
+{
+    switch (fmt)
+    {
+    case kPxFmt_Indexed1:   return "1-bit indexed";
+    case kPxFmt_Indexed4:   return "4-bit indexed";
+    case kPxFmt_Indexed8:   return "8-bit indexed";
+    case kPxFmt_R5G5B5:     return "15-bit R5G5B5";
+    case kPxFmt_R5G6B5:     return "16-bit R5G6B5";
+    case kPxFmt_R8G8B8:     return "24-bit R8G8B8";
+    case kPxFmt_A8R8G8B8:   return "32-bit A8R8G8B8";
+    default:                return "unknown";
+    }
+}
+
 
 namespace PixelOp
 {
@@ -46,20 +78,38 @@ namespace PixelOp
 void CopyPixels(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
     const int width, const int height, uint8_t *dst_buffer, const size_t dst_pitch)
 {
-    CopyPixelsRegion(src_buffer, bpp, src_pitch, 0u, width, height, dst_buffer, dst_pitch, 0u);
+    CopyPixelsRegion(src_buffer, bpp, src_pitch, 0, 0, width, height, dst_buffer, dst_pitch, 0, 0);
 }
 
 void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
-    const size_t src_px_off, const int width_px, const int height_px,
-    uint8_t *dst_buffer, const size_t dst_pitch, const size_t dst_px_off)
+    const int src_px_off, const int src_py_off, const int width_px, const int height_px,
+    uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off, const int dst_py_off)
 {
-    const size_t src_boff = src_px_off * bpp;
-    const size_t dst_boff = dst_px_off * bpp;
+    const size_t src_boff = (src_py_off * src_pitch) + (src_px_off * bpp);
+    const size_t dst_boff = (dst_py_off * dst_pitch) + (dst_px_off * bpp);
     const size_t width_b = width_px * bpp;
     // NOTE: all assertions are done further in Memory::BlockCopy
     Memory::BlockCopy(src_buffer, src_pitch, src_boff, width_b, height_px, dst_buffer, dst_pitch, dst_boff);
 }
 
+PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width, const int height)
+{
+    const int src_bpp = bm_data.GetBytesPerPixel();
+    const size_t src_pitch = bm_data.GetStride();
+    int do_src_x = src_x, do_src_y = src_y;
+    int do_width = width, do_height = height;
+    Math::ClampLength(do_src_x, do_width, 0, bm_data.GetWidth());
+    Math::ClampLength(do_src_y, do_height, 0, bm_data.GetHeight());
+    if (do_width == 0 || do_height == 0)
+        return {};
+
+    PixelBuffer out_buf(do_width, do_height, bm_data.GetFormat());
+    CopyPixelsRegion(bm_data.GetData(), src_bpp, src_pitch, do_src_x, do_src_y, do_width, do_height, out_buf.GetData(), out_buf.GetStride(), 0, 0);
+    return out_buf;
+}
+
+// TODO: quite possibly may be *at least partially* reimplemented as a template function,
+// with parameters defining pixel sizes and rgb shifts.
 bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
     const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch)
 {
@@ -184,6 +234,14 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
     return false;
 }
 
+bool CopyConvert(const BitmapData &src, PixelBuffer &dst, const PixelFormat dst_fmt)
+{
+    if (dst.GetDataSize() != GetDataSizeForPixelFormat(dst_fmt, src.GetWidth(), src.GetHeight()))
+        dst = PixelBuffer(src.GetWidth(), src.GetHeight(), dst_fmt);
+    return CopyConvert(src.GetData(), src.GetFormat(), src.GetStride(), src.GetWidth(), src.GetHeight(),
+        dst.GetData(), dst_fmt, dst.GetStride());
+}
+
 void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
     uint8_t *dst_buffer, const size_t dst_pitch, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
     const int width, const int height, const PixelFormat px_fmt)
@@ -262,7 +320,108 @@ void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, i
         dst_buffer, pitch, dst_r_shift, dst_g_shift, dst_b_shift, dst_a_shift, width, height, px_fmt);
 }
 
+void MakeOpaque(BitmapData &bm_data)
+{
+    if (bm_data.GetColorDepth() < 32)
+        return; // no alpha channel
+
+    for (int i = 0; i < bm_data.GetHeight(); ++i)
+    {
+        uint32_t *line = reinterpret_cast<uint32_t*>(bm_data.GetLine(i));
+        uint32_t *line_end = line + bm_data.GetWidth();
+        for (uint32_t *px = line; px != line_end; ++px)
+            *px = makeacol32(getr32(*px), getg32(*px), getb32(*px), 255);
+    }
+}
+
+void MakeOpaqueSkipMask(BitmapData &bm_data)
+{
+    if (bm_data.GetColorDepth() < 32)
+        return; // no alpha channel
+
+    for (int i = 0; i < bm_data.GetHeight(); ++i)
+    {
+        uint32_t *line = reinterpret_cast<uint32_t*>(bm_data.GetLine(i));
+        uint32_t *line_end = line + bm_data.GetWidth();
+        for (uint32_t *px = line; px != line_end; ++px)
+            if (*px != MASK_COLOR_32)
+                *px = makeacol32(getr32(*px), getg32(*px), getb32(*px), 255);
+    }
+}
+
+void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold)
+{
+    if (bm_data.GetColorDepth() < 32)
+        return; // no alpha channel
+
+    for (int i = 0; i < bm_data.GetHeight(); ++i)
+    {
+        uint32_t *line = reinterpret_cast<uint32_t*>(bm_data.GetLine(i));
+        uint32_t *line_end = line + bm_data.GetWidth();
+        for (uint32_t *px = line; px != line_end; ++px)
+            if (geta32(*px) <= alpha_threshold)
+                *px = MASK_COLOR_32;
+    }
+}
+
 } // namespace PixelOperations
+
+namespace PaletteOp
+{
+    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left)
+    {
+        assert(first < last);
+        if (last <= first)
+            return; // nothing to do
+
+        RGB wrap = pal[to_left ? first : last];
+        if (to_left)
+        {
+            for (int i = first; i < last; ++i)
+                pal[i] = pal[i + 1];
+        }
+        else
+        {
+            for (int i = last; i > first; --i)
+                pal[i] = pal[i - 1];
+        }
+        pal[to_left ? last : first] = wrap;
+    }
+
+    void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent)
+    {
+        uint8_t color_mapped_table[256];
+        for (int i = 0; i < 256; ++i)
+        {
+            if ((src_pal[i].r == 0) && (src_pal[i].g == 0) && (src_pal[i].b == 0))
+            {
+                color_mapped_table[i] = 0;
+            }
+            else
+            {
+                color_mapped_table[i] = bestfit_color(dst_pal, src_pal[i].r, src_pal[i].g, src_pal[i].b);
+            }
+        }
+
+        if (keep_transparent)
+        {
+            // keep transparency
+            color_mapped_table[0] = 0;
+            // any other pixels which are being mapped to 0, map to 16 instead
+            for (int i = 1; i < 256; ++i)
+            {
+                if (color_mapped_table[i] == 0)
+                    color_mapped_table[i] = 16;
+            }
+        }
+
+        // Remap pixels to the new palette
+        for (uint8_t *ptr = bm_data.GetData(); ptr < bm_data.GetData() + bm_data.GetDataSize(); ++ptr)
+        {
+            *ptr = color_mapped_table[*ptr];
+        }
+    }
+}
 
 } // namespace Common
 } // namespace AGS

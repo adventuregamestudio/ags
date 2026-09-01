@@ -134,6 +134,9 @@ Expanded Color properties for GUI Controls. TextBox's TextAlignment.
 Character blocking rectangle set up at design time.
 3.6.3.10:
 Updated inventory behavior; don't secretly disable all Labels on startup.
+3.6.3.14:
+Do not auto-translate text properties which are set or get in script
+(by principle, only translate texts that are about to be displayed on screen).
 
 3.9.9 :
 BlendModes
@@ -185,6 +188,7 @@ enum GameDataVersion
     kGameVersion_363_06         = 3060306,
     kGameVersion_363_08         = 3060308,
     kGameVersion_363_10         = 3060310,
+    kGameVersion_363_14         = 3060314,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,

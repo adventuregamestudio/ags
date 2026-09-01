@@ -329,6 +329,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_363       = 3060300,
     kGSSvgVersion_363_02    = 3060302,
     kGSSvgVersion_363_04    = 3060304,
+    kGSSvgVersion_363_13    = 3060313,
     kGSSvgVersion_400       = 4000000,
     kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
     kGSSvgVersion_400_08    = 4000008, // palette component range 64->256

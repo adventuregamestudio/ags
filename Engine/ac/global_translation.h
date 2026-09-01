@@ -18,10 +18,12 @@
 #ifndef __AGS_EE_AC__GLOBALTRANSLATION_H
 #define __AGS_EE_AC__GLOBALTRANSLATION_H
 
-// WARNING: get_translation returns original char* if no translation is found;
+// Use the provided text as a key and returns the mapped translation.
+// Returns the original text back if no matching translation found.
+// WARNING: get_translation returns original char* ptr if no translation is found;
 // for that reason make sure that you don't pass temporary buffer there, unless
 // you use returned value immediately or save it in another buffer.
-const char *get_translation (const char *text);
-int IsTranslationAvailable ();
+const char *get_translation(const char *text);
+int IsTranslationAvailable();
 
 #endif // __AGS_EE_AC__GLOBALTRANSLATION_H

@@ -95,6 +95,13 @@ SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def
     return StrUtil::ParseEnumOptions<SkipSpeechStyle>(option, skip_speech_arr, def_value);
 }
 
+SpeechMode parse_speechmode(const String &option, SpeechMode def_value)
+{
+    const std::array<std::pair<const char*, SpeechMode>, 4> speechmode_arr{
+        { { "default", kSpeech_None }, { "text", kSpeech_TextOnly }, { "voice", kSpeech_VoiceOnly }, { "textvoice", kSpeech_VoiceText } } };
+    return StrUtil::ParseEnumOptions<SpeechMode>(option, speechmode_arr, def_value);
+}
+
 void parse_asset_dirs(const String &option, std::vector<std::pair<String, String>> &opt_dirs)
 {
     const auto asset_dirs = option.Split(',');
@@ -126,6 +133,7 @@ String make_window_mode_option(const WindowSetup &ws)
     return String::FromFormat("%dx%d", ws.Size.Width, ws.Size.Height);
 }
 
+// FIXME: use same array of strings both when reading and writing enums!
 String make_scaling_option(FrameScaleDef scale_def)
 {
     switch (scale_def)
@@ -139,6 +147,7 @@ String make_scaling_option(FrameScaleDef scale_def)
     }
 }
 
+// FIXME: use same array of strings both when reading and writing enums!
 String make_speechskip_option(SkipSpeechStyle style)
 {
     switch (style)
@@ -146,6 +155,18 @@ String make_speechskip_option(SkipSpeechStyle style)
     case kSkipSpeech_AnyInput: return "input";
     case kSkipSpeech_AnyInputOrTime: return "any";
     case kSkipSpeechTime: return "time";
+    default: return "default";
+    }
+}
+
+// FIXME: use same array of strings both when reading and writing enums!
+String make_speechmode_option(SpeechMode mode)
+{
+    switch (mode)
+    {
+    case kSpeech_TextOnly: return "text";
+    case kSpeech_VoiceOnly: return "voice";
+    case kSpeech_VoiceText: return "textvoice";
     default: return "default";
     }
 }
@@ -295,6 +316,8 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     setup.Access.SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
     setup.Access.TextSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "textskip"));
     setup.Access.TextReadSpeed = CfgReadInt(cfg, "access", "textreadspeed");
+    setup.Access.SpeechMode = parse_speechmode(CfgReadString(cfg, "access", "speechmode"));
+    setup.Access.AlwaysWaitForText = CfgReadBoolInt(cfg, "access", "alwayswaittext");
 }
 
 void apply_config(const ConfigTree &cfg, GameSetup &setup)
@@ -390,6 +413,8 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
     CfgWriteString(cfg, "access", "speechskip", make_speechskip_option(setup.Access.SpeechSkipStyle));
     CfgWriteString(cfg, "access", "textskip", make_speechskip_option(setup.Access.TextSkipStyle));
     CfgWriteInt(cfg, "access", "textreadspeed", setup.Access.TextReadSpeed);
+    CfgWriteString(cfg, "access", "speechmode", make_speechmode_option(setup.Access.SpeechMode));
+    CfgWriteBoolInt(cfg, "access", "alwayswaittext", setup.Access.AlwaysWaitForText);
 }
 
 void save_runtime_config_file()

@@ -43,8 +43,7 @@ enum GameInitErrorType
     kGameInitErr_NoFonts,
     kGameInitErr_EntityInitFail,
     kGameInitErr_PluginNameInvalid,
-    kGameInitErr_NoGlobalScript,
-    kGameInitErr_ScriptLinkFailed,
+    kGameInitErr_ScriptInitFailed
 };
 
 String GetGameInitErrorText(GameInitErrorType err);

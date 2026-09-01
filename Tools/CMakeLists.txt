@@ -139,6 +139,8 @@ target_sources(libtools
         data/script_utils.h
         data/scriptgen.cpp
         data/scriptgen.h
+        data/sprite_utils.cpp
+        data/sprite_utils.h
         data/tra_utils.cpp
         data/tra_utils.h
         ${TOOLS_COMMON_SOURCES}
@@ -198,6 +200,17 @@ set_target_properties(crmpak PROPERTIES
         )
 target_link_libraries(crmpak PUBLIC libtools)
 
+#----- spriteimport -------------------------------------------------
+add_executable(spriteimport spriteimport/main.cpp
+        spriteimport/commands.h
+        spriteimport/commands.cpp
+        )
+set_target_properties(spriteimport PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(spriteimport PUBLIC libtools)
+
 #----- spritepak -------------------------------------------------
 add_executable(spritepak spritepak/main.cpp
         spritepak/commands.h
@@ -223,6 +236,7 @@ list(APPEND TOOLS_TARGETS
         agfexport
         agspak
         crmpak
+        spriteimport
         spritepak
         trac
         )
@@ -270,6 +284,8 @@ if(AGS_TESTS)
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
       test/include_utils_test.cpp
+      test/spriteimport_test.cpp
+      test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
    set_target_properties(tools_test PROPERTIES
       CXX_STANDARD 11
@@ -283,7 +299,7 @@ if(AGS_TESTS)
       libtools
       AlFont::AlFont
       AAStr::AAStr
-      gtest_main
+      gtest
    )
 
    include(GoogleTest)

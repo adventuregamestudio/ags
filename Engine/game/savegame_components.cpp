@@ -1660,7 +1660,9 @@ HSaveError WriteThisRoom(Stream *out)
         return HSaveError::None();
 
     // modified room backgrounds
-    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+    // -- varied count since kRoomStatSvgVersion_36314
+    out->WriteInt8(static_cast<uint8_t>(thisroom.BgImages.size()));
+    for (size_t i = 0; i < thisroom.BgImages.size(); ++i)
     {
         out->WriteBool(play.room_bg_modified[i]);
         if (play.room_bg_modified[i])
@@ -1709,10 +1711,14 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
         return HSaveError::None();
 
     // modified room backgrounds
-    for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
+    uint8_t bg_count = MAX_ROOM_BGFRAMES_321;
+    if (cmp_ver >= kRoomStatSvgVersion_36314)
+        bg_count = static_cast<uint8_t>(in->ReadInt8());
+    r_data.RoomBkgScene.resize(bg_count);
+    for (uint8_t i = 0; i < bg_count; ++i)
     {
-        play.room_bg_modified[i] = in->ReadBool();
-        if (play.room_bg_modified[i])
+        bool is_modified = in->ReadBool();
+        if (is_modified)
             r_data.RoomBkgScene[i].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
     }
     if (in->ReadBool())
@@ -1724,8 +1730,8 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     {
         for (int i = 0; i < kNumRoomAreaTypes; ++i)
         {
-            play.room_mask_modified[i] = in->ReadBool();
-            if (play.room_mask_modified[i])
+            bool is_modified = in->ReadBool();
+            if (is_modified)
                 r_data.RoomMask[i].reset(ReadBitmap(in, false /* not compressed (expect component is compressed) */));
         }
     }

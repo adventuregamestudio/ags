@@ -51,6 +51,7 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
     <ClCompile Include="..\..\libsrc\miniz\miniz.c" />
     <ClCompile Include="..\..\libsrc\stb\stb_image.c" />
+    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
     <ClCompile Include="..\..\Tools\spritepak\main.cpp" />
     <ClCompile Include="..\..\Tools\spritepak\commands.cpp" />
   </ItemGroup>
@@ -74,6 +75,7 @@
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\libsrc\miniz\miniz.h" />
     <ClInclude Include="..\..\libsrc\stb\stb_image.h" />
+    <ClInclude Include="..\..\Tools\data\sprite_utils.h" />
     <ClInclude Include="..\..\Tools\spritepak\commands.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -81,6 +83,10 @@
     <RootNamespace>MakeRoomHeader</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>spritepak</ProjectName>
+  </PropertyGroup>
+  <!-- vcxproj Win32 alias to "x86" to adjust output directories before AGS.OutputPaths.props -->
+  <PropertyGroup>
+    <PlatformFolderName Condition="'$(Platform)'=='Win32'">x86</PlatformFolderName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -116,20 +122,24 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AGS.OutputPaths.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <OutDir>$(AgsFinalOutDir)</OutDir>
+    <IntDir>$(AgsObjDir)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
   </PropertyGroup>

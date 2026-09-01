@@ -217,8 +217,12 @@ namespace AGS.Editor
 
             if (_selectedObject != null)
             {
-                Factory.GUIController.SetPropertyGridObject(_selectedObject);
+                SetPropertyGridObject(_selectedObject);
                 return true;
+            }
+            else
+            {
+                SetPropertyGridObject(_room);
             }
             return false;
         }

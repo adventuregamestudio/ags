@@ -242,7 +242,7 @@ void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
             UnPauseGame();
         }
 
-        if (g.IsDisplayed())
+        if (g.IsDisplayed() && play.mouse_input_enabled)
         {
             g.Poll(mousex, mousey);
         }
@@ -644,7 +644,7 @@ void remove_popup_interface(int ifacenum) {
     ifacepopped=-1;
     UnPauseGame();
     guis[ifacenum].SetConceal(true);
-    if (mousey<=guis[ifacenum].GetPopupAtY())
+    if (play.mouse_input_enabled && mousey<=guis[ifacenum].GetPopupAtY())
         Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first

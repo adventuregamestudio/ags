@@ -213,6 +213,64 @@ int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handle
     return 0;
 }
 
+static void AllocScriptFuncRefs()
+{
+    // NOTE: this preallocation possibly required to safeguard some algorithms
+    moduleRepExecAddr.resize(numScriptModules);
+    repExecAlways.ModuleHasFunction.resize(numScriptModules, true);
+    lateRepExecAlways.ModuleHasFunction.resize(numScriptModules, true);
+    getDialogOptionsDimensionsFunc.ModuleHasFunction.resize(numScriptModules, true);
+    renderDialogOptionsFunc.ModuleHasFunction.resize(numScriptModules, true);
+    getDialogOptionUnderCursorFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionMouseClickHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionKeyPressHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionTextInputHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionRepExecFunc.ModuleHasFunction.resize(numScriptModules, true);
+    runDialogOptionCloseFunc.ModuleHasFunction.resize(numScriptModules, true);
+    for (auto &val : moduleRepExecAddr)
+    {
+        val.Invalidate();
+    }
+}
+
+HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript*> &scmodules, const std::vector<String> &scmodule_names, const ccScript *dlgscript)
+{
+    assert(scmodule_names.size() == scmodules.size());
+
+    if (!glscript)
+        return new Error(String::FromFormat("Global script was not loaded"));
+    gamescript = std::move(RuntimeScript::Create(glscript));
+    if (!gamescript)
+        return new Error(String::FromFormat("Failed to create the global script:\n%s",
+            cc_get_error().ErrorString.GetCStr()));
+    Debug::Printf("Created global script");
+
+    numScriptModules = scmodules.size();
+    for (size_t i = 0; i < scmodules.size(); ++i)
+    {
+        if (!scmodules[i])
+            return new Error(String::FromFormat("Script module (%d) '%s' was not loaded", i, scmodule_names[i].GetCStr()));
+        std::shared_ptr<RuntimeScript> runtime_scm(RuntimeScript::Create(scmodules[i]));
+        if (!runtime_scm)
+            return new Error(String::FromFormat("Failed to create the script module (%d) '%s':\n%s",
+                i, scmodules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
+        scriptModules.push_back(runtime_scm);
+    }
+
+    // Dialog script is optional
+    if (dlgscript)
+    {
+        dialogScriptsScript = std::move(RuntimeScript::Create(dlgscript));
+        if (!dialogScriptsScript)
+            return new Error(String::FromFormat("Failed to create the dialog script:\n%s",
+                cc_get_error().ErrorString.GetCStr()));
+        Debug::Printf("Created dialog script");
+    }
+
+    AllocScriptFuncRefs();
+    return HError::None();
+}
+
 void SetupBuiltinTypeAliases()
 {
     // Add aliases for the location "ags":
@@ -225,7 +283,7 @@ void SetupBuiltinTypeAliases()
         RuntimeScript::AddGlobalTypeAliases(name);
 }
 
-bool LinkGlobalScripts()
+HError LinkGlobalScripts()
 {
     ccSetOption(SCOPT_AUTOIMPORT, 1);
 
@@ -255,14 +313,15 @@ bool LinkGlobalScripts()
     for (auto &inst : all_insts)
     {
         if (!inst->ResolveImports(simp))
-            return false;
+            return new Error(String::FromFormat("Failed to resolve script imports:\n%s",
+                cc_get_error().ErrorString.GetCStr()));
     }
 
     // Record addresses for 'repeatedly_execute'
     // TODO: find out why do we have to do that here
-    for (size_t module_idx = 0; module_idx < numScriptModules; module_idx++)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
-        moduleRepExecAddr[module_idx] = scriptModules[module_idx]->GetSymbolAddress(REP_EXEC_NAME);
+        moduleRepExecAddr[i] = scriptModules[i]->GetSymbolAddress(REP_EXEC_NAME);
     }
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
@@ -281,7 +340,7 @@ bool LinkGlobalScripts()
         }
     }
 
-    return true;
+    return HError::None();
 }
 
 void AbortAllScripts()
@@ -638,27 +697,6 @@ void ShutdownScriptExec()
     scriptExecutor = {};
     scriptThreadMain = {};
     scriptThreadNonBlocking = {};
-}
-
-void AllocScriptModules()
-{
-    // NOTE: this preallocation possibly required to safeguard some algorithms
-    scriptModules.resize(numScriptModules);
-    moduleRepExecAddr.resize(numScriptModules);
-    repExecAlways.ModuleHasFunction.resize(numScriptModules, true);
-    lateRepExecAlways.ModuleHasFunction.resize(numScriptModules, true);
-    getDialogOptionsDimensionsFunc.ModuleHasFunction.resize(numScriptModules, true);
-    renderDialogOptionsFunc.ModuleHasFunction.resize(numScriptModules, true);
-    getDialogOptionUnderCursorFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionMouseClickHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionKeyPressHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionTextInputHandlerFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionRepExecFunc.ModuleHasFunction.resize(numScriptModules, true);
-    runDialogOptionCloseFunc.ModuleHasFunction.resize(numScriptModules, true);
-    for (auto &val : moduleRepExecAddr)
-    {
-        val.Invalidate();
-    }
 }
 
 void UnlinkAllScripts()

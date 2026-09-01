@@ -769,7 +769,7 @@ internalstring autoptr builtin managed struct String {
   import int     Contains(const string needle);   // $AUTOCOMPLETEIGNORE$
   /// Creates a copy of the string.
   import String  Copy();
-  /// Returns the index of the first occurrence of the needle in this string, after specified index. A count 0 will run until string end.
+  /// Returns the index of the first occurrence of the needle in this string, after specified index, or -1 if it is not found.. A count 0 will run until string end.
   import int     IndexOf(const string needle, StringCompareStyle style = eCaseInsensitive, int index = 0, int count = 0);
   /// Returns a lower-cased version of this string.
   import String  LowerCase();
@@ -1180,7 +1180,7 @@ builtin struct Mouse {
   import static void UseModeGraphic(CursorMode);
   /// Gets/sets the current mouse cursor mode.
   import static attribute CursorMode Mode;
-  /// Gets/sets whether the mouse cursor is visible.
+  /// Gets/sets whether the mouse cursor is visible. NOTE: hiding cursor is only a visual effect and will not prevent mouse input.
   import static attribute bool Visible;
   /// Gets/sets whether the user-defined factors are applied to mouse movement
   import static attribute bool ControlEnabled;
@@ -1199,6 +1199,8 @@ builtin struct Mouse {
   import static Point* GetModeHotspot(CursorMode);
   /// Checks whether any mouse button is currently pressed.
   import static bool IsAnyButtonDown();
+  /// Gets/sets whether the mouse input is enabled. This restricts receiving input from both actual mouse device, and any mouse input emulation.
+  import static attribute bool Enabled;
 #endif
 #ifdef SCRIPT_API_v400_18
   /// Gets/sets the shader applied to the mouse cursor.
@@ -3642,6 +3644,12 @@ builtin struct Speech {
   /// Gets the currently speaking Character (only works for blocking speech).
   import static readonly attribute Character* SpeakingCharacter;
 #endif; // SCRIPT_API_v362
+#ifdef SCRIPT_API_v363
+  /// Gets/sets whether the speech's timeout must always be at least as long as text's reading time in the "voice and text" mode (otherwise skips speech as soon as the voice ends).
+  import static attribute bool AlwaysWaitForText;
+  /// Gets/sets default z-order for all the future blocking speech overlays (TextOverlay and PortraitOverlay).
+  import static attribute int OverlayZOrder;
+#endif
 };
 
 #ifdef SCRIPT_API_v3507

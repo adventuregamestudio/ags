@@ -67,7 +67,7 @@ public:
     void    CopyMask(RoomAreaMask mask, const Bitmap *bitmap);
 
     // Background bitmaps
-    PBitmap BgImages[MAX_ROOM_BGFRAMES];
+    std::vector<PBitmap> BgImages;
 
     // Region masks
     PBitmap HotspotMask;

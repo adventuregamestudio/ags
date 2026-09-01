@@ -38,6 +38,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36214    = 3060214, // serialize current room's changes to masks
     kRoomStatSvgVersion_36304    = 3060304, // room object's blocking rect x,y
     kRoomStatSvgVersion_36310    = 3060310, // audio panning and speed
+    kRoomStatSvgVersion_36314    = 3060314, // arbitrary number of room bgs
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
     kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
     kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas

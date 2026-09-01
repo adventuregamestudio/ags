@@ -23,6 +23,7 @@
 #include "script/scriptexecutor.h"
 #include "util/string.h"
 
+using AGS::Common::HError;
 using AGS::Common::String;
 using AGS::Common::ScriptEventsBase;
 
@@ -164,11 +165,12 @@ RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFun
 void    InitScriptExec();
 // Frees script executor and all threads
 void    ShutdownScriptExec();
-// Preallocates script module instances
-void    AllocScriptModules();
+// Create runtime script instances
+// TODO: pick out a struct for holding only game scripts
+HError  CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript*> &scmodules, const std::vector<String> &scmodule_names, const ccScript *dlgscript);
 // Link all script modules into a single program,
 // registers script exports in a global symbol table
-bool    LinkGlobalScripts();
+HError  LinkGlobalScripts();
 // Cancel any running scripts
 void    AbortAllScripts();
 // Unlinks scripts, unregister script exports

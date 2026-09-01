@@ -65,11 +65,9 @@ Bitmap::Bitmap(Bitmap &&bmp)
     _pixelObject = std::move(bmp._pixelObject);
     _alBitmap = bmp._alBitmap;
     _isBmOwner = bmp._isBmOwner;
-    _pitch = bmp._pitch;
     bmp._ownPixelData = false;
     bmp._alBitmap = nullptr;
     bmp._isBmOwner = false;
-    bmp._pitch = 0;
 }
 
 Bitmap::~Bitmap()
@@ -110,7 +108,6 @@ bool Bitmap::Create(int width, int height, int color_depth)
     _alBitmap = bitmap;
     _isBmOwner = true;
     _ownPixelData = true;
-    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -152,7 +149,6 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
     _alBitmap = bitmap;
     _isBmOwner = true;
     _ownPixelData = true;
-    _pitch = GetWidth() * GetBPP();
     return true;
 }
 
@@ -164,7 +160,6 @@ bool Bitmap::CreateSubBitmap(const Bitmap *src, const Rect &rc)
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
     _isBmOwner = true;
-    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -176,7 +171,7 @@ bool Bitmap::ResizeSubBitmap(int width, int height)
     // might require amending allegro bitmap struct
     _alBitmap->w = _alBitmap->cr = width;
     _alBitmap->h = _alBitmap->cb = height;
-    _pitch = GetWidth() * GetBPP();
+    _alBitmap->pitch = width * GetBPP();
     return true;
 }
 
@@ -208,7 +203,6 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
     Destroy();
     _alBitmap = al_bmp;
     _isBmOwner = !shared_data;
-    _pitch = GetWidth() * GetBPP();
     return _alBitmap != nullptr;
 }
 
@@ -231,7 +225,6 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
     _pixelObject = std::move(data_obj);
     _isBmOwner = true;
     _ownPixelData = !shared_data;
-    _pitch = bm_data.GetStride();
     return true;
 }
 
@@ -266,7 +259,6 @@ void Bitmap::Destroy()
     _alBitmap = nullptr;
     _isBmOwner = false;
     _ownPixelData = false;
-    _pitch = 0;
 }
 
 bool Bitmap::SaveToFile(const char *filename, bool skip_alpha, const RGB *palette)
@@ -534,6 +526,7 @@ int Bitmap::GetPixel(int x, int y) const
 {
     if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
     {
+		// FIXME: this is frankly wrong, because -1 translates to 0xFFFFFFFF (opaque white) in case of 32-bit ARGB
         return -1; // Allegros getpixel() implementation returns -1 in this case
     }
 

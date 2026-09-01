@@ -1587,6 +1587,7 @@
     <None Include="..\..\Engine\ac\route_finder_jps.inl">
       <Filter>Header Files\ac</Filter>
     </None>
+    <None Include="$(AGS_SDL_DLL)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\Engine\resource\version.rc">

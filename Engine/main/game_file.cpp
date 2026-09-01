@@ -45,10 +45,12 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern int ifacepopped;
+// Standard script names, used historically by AGS Editor
+const String GlobalScriptObj = "GlobalScript.o";
+const String DialogScriptObj = "__DialogScripts.o";
+const String ScriptModulesList = "ScriptModules.lst";
 
 extern GameSetupStruct game;
-
 extern AGSPlatformDriver *platform;
 
 
@@ -117,63 +119,60 @@ HError preload_game_data()
     return HError::None();
 }
 
-static inline HError MakeScriptLoadError(const char *name)
+// Tries to load a script asset and create a script object.
+// If script was loaded successfully, then returns a new script object. Otherwise returns 'existing script'.
+UScript TryLoadScriptAsset(UScript &&existing_script, const String &script_obj_name, bool is_requested)
 {
-    return new Error(String::FromFormat(
-        "Failed to load a script module: %s", name),
-        cc_get_error().ErrorString);
+    // Don't error here, as the script asset is optional
+    auto in = AssetMgr->OpenAsset(script_obj_name);
+    if (in)
+    {
+        UScript script(ccScript::CreateFromStream(Path::ReplaceExtension(script_obj_name, "asc").ToStdString(), in.get()));
+        if (script)
+        {
+            Debug::Printf(kDbgMsg_Info, "Script module asset '%s' is found and loaded", script_obj_name.GetCStr());
+            return script;
+        }
+        Debug::Printf(kDbgMsg_Error, "Failed to load a script module asset '%s':\n\t%s", script_obj_name.GetCStr(), cc_get_error().ErrorString.GetCStr());
+        return std::move(existing_script);
+    }
+    if (is_requested)
+        Debug::Printf(kDbgMsg_Error, "Script module asset '%s' is not present!", script_obj_name.GetCStr());
+    return std::move(existing_script);
 }
 
 // Looks up for the game scripts available as separate assets.
 // These are optional, so no error is raised if some of these are not found.
 // For those that do exist, reads them and replaces any scripts of same kind
 // in the already loaded game data.
-HError LoadGameScripts(LoadedGameEntities &ents)
+void TryLoadGameScripts(LoadedGameEntities &ents)
 {
     // Global script
-    auto in = AssetMgr->OpenAsset("GlobalScript.o");
-    if (in)
-    {
-        UScript script(ccScript::CreateFromStream("GlobalScript.asc", in.get()));
-        if (!script)
-            return MakeScriptLoadError("GlobalScript.o");
-        ents.GlobalScript = std::move(script);
-    }
+    ents.GlobalScript = TryLoadScriptAsset(std::move(ents.GlobalScript), GlobalScriptObj, false);
     // Dialog script
-    in = AssetMgr->OpenAsset("DialogScripts.o");
-    if (in)
-    {
-        UScript script(ccScript::CreateFromStream("__DialogScripts.asc", in.get()));
-        if (!script)
-            return MakeScriptLoadError("DialogScripts.o");
-        ents.DialogScript = std::move(script);
-    }
+    ents.DialogScript = TryLoadScriptAsset(std::move(ents.DialogScript), DialogScriptObj, false);
     // Script modules
     // First load a modules list
     std::vector<String> modules;
-    in = AssetMgr->OpenAsset("ScriptModules.lst");
+    auto in = AssetMgr->OpenAsset(ScriptModulesList);
     if (in)
     {
         TextStreamReader reader(std::move(in));
         while (!reader.EOS())
             modules.push_back(reader.ReadLine());
+        Debug::Printf(kDbgMsg_Info, "Script modules list '%s' is found and loaded", ScriptModulesList.GetCStr());
     }
     if (modules.size() > ents.ScriptModules.size())
+    {
         ents.ScriptModules.resize(modules.size());
+        ents.ScriptModuleNames.resize(modules.size());
+    }
     // Now run by the list and try loading everything
     for (size_t i = 0; i < modules.size(); ++i)
     {
-        in = AssetMgr->OpenAsset(modules[i]);
-        if (in)
-        {
-            String script_name = Path::ReplaceExtension(modules[i], "asc");
-            UScript script(ccScript::CreateFromStream(script_name.ToStdString(), in.get()));
-            if (!script)
-                return MakeScriptLoadError(modules[i].GetCStr());
-            ents.ScriptModules[i] = std::move(script);
-        }
+        ents.ScriptModules[i] = TryLoadScriptAsset(std::move(ents.ScriptModules[i]), modules[i], true);
+        ents.ScriptModuleNames[i] = ents.ScriptModules[i] ? ents.ScriptModules[i]->GetScriptName() : Path::ReplaceExtension(modules[i], "asc");
     }
-    return HError::None();
 }
 
 HError load_game_file()
@@ -202,9 +201,7 @@ HError load_game_file()
     err = (HError)UpdateGameData(ents, src.DataVersion);
     if (!err)
         return err;
-    err = LoadGameScripts(ents);
-    if (!err)
-        return err;
+    TryLoadGameScripts(ents);
     err = (HError)InitGameState(ents, src.DataVersion);
     if (!err)
         return err;
@@ -215,6 +212,6 @@ HError load_game_file()
 
 void display_game_file_error(HError err)
 {
-    platform->DisplayAlert("Loading game failed with error:\n%s.\n\nThe game files may be incomplete, corrupt or from unsupported version of AGS.",
+    platform->DisplayAlert("Loading game failed with error:\n%s\n\nThe game files may be incomplete, corrupt or from unsupported version of AGS.",
         err->FullMessage().GetCStr());
 }

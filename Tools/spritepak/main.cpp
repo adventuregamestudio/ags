@@ -16,11 +16,13 @@
 // 
 //=============================================================================
 #include "commands.h"
+#include "data/sprite_utils.h"
 #include "util/cmdlineopts.h"
 #include "util/string.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::DataUtil;
 
 
 const char *BIN_STRING = "spritepak v0.2.0 - AGS spritefile tool\n"
@@ -66,14 +68,14 @@ const char *HELP_STRING = "Usage:\n"
 "                   options, defined using a hexadecimal bitset:\n"
 "                     * 0x01 - optimize storage size when possible;\n"
 "                   e.g. write 16/32-bit images as 8-bit images with palette\n"
-"                   (only when this achieves less space). default is \"0x01\"\n"
+"                   (only when this achieves less space). Default is \"0x01\".\n"
 "  -z, --compress <type>\n"
 "                   when creating the new spritefile, use compression:\n"
 "                     * none\n"
 "                     * rle\n"
 "                     * lzw\n"
 "                     * deflate\n"
-"                   default is \"deflate\"\n"
+"                   Default is \"deflate\".\n"
 "\n"
 "Other options:\n"
 "  -v, --verbose    print operation details"
@@ -137,11 +139,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         }
         else if (opt_with_value.first == "-s" || opt_with_value.first == "--storage-flags")
         {
-            opts.StorageFlags = static_cast<SpritePak::SpriteStorage>(StrUtil::StringToIntHex(opt_with_value.second));
+            opts.StorageFlags = static_cast<SpriteStorage>(StrUtil::StringToIntHex(opt_with_value.second));
         }
         else if (opt_with_value.first == "-z" || opt_with_value.first == "--compress")
         {
-            opts.Compress = SpritePak::CompressionFromName(opt_with_value.second);
+            opts.Compress = CompressionFromName(opt_with_value.second);
         }
     }
     const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
@@ -198,7 +200,7 @@ int main(int argc, char *argv[])
     printf("%s\n", BIN_STRING);
 
     CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv,
-        { "-n", "-p", "-s", "-z", "--compress", "--index", "--out-index", "--pattern", "--storage-flags",});
+        { "-n", "--index", "-p", "--pattern", "-s", "--storage-flags", "-z", "--compress", "--out-index"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

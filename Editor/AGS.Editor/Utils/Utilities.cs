@@ -462,6 +462,19 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Returns whether the destinationFile is older than the anchorTime,
+        /// or if the destinationFile doesn't exist.
+        /// </summary>
+        public static bool DoesFileNeedRecompile(DateTime anchorTime, string destinationFile)
+        {
+            if (!File.Exists(destinationFile))
+            {
+                return true;
+            }
+            return (anchorTime >= File.GetLastWriteTime(destinationFile));
+        }
+
+        /// <summary>
         /// Attempts to delete file, handling few common exception cases.
         /// 
         /// Exceptions:

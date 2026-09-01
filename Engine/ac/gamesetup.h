@@ -57,7 +57,10 @@ struct AccessibilityGameConfig
 {
     SkipSpeechStyle SpeechSkipStyle = kSkipSpeechNone; // speech skip style; none here means "use defaults"
     SkipSpeechStyle TextSkipStyle   = kSkipSpeechNone; // display box skip style
-    int    TextReadSpeed            = 0; // text reading speed (chars per second)
+    int TextReadSpeed               = 0; // text reading speed (chars per second)
+    ::SpeechMode SpeechMode         = kSpeech_None; // speech mode (text and/or voice)
+    bool AlwaysWaitForText          = false; // keep speech text on screen for the "text reading" duration
+                                             // even when speech mode is "voice + text"
 };
 
 // Override options are for overriding game behavior in various non-standard ways.

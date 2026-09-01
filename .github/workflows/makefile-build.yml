@@ -1,0 +1,99 @@
+name: Makefile Build
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  linux-make-build:
+    name: Linux (ubuntu)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    env:
+      PREFIX: /opt/agslibs
+      PKG_CONFIG_PATH: /opt/agslibs/lib/pkgconfig
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Cache apt packages
+        uses: actions/cache@v5
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-01
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config \
+            libarchive-tools \
+            libasound2-dev libdbus-1-dev libegl1-mesa-dev libgl1-mesa-dev \
+            libgles2-mesa-dev libibus-1.0-dev libpulse-dev libsndio-dev libudev-dev libwayland-dev \
+            libx11-dev libxcursor-dev libxext-dev libxi-dev libxinerama-dev libxkbcommon-dev \
+            libxrandr-dev libxss-dev libxt-dev libxv-dev libxxf86vm-dev
+
+      - name: Cache built libsrc deps
+        id: libsrc-built-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.PREFIX }}
+          key: ${{ runner.os }}-libsrc-built-${{ hashFiles('libsrc/download.sh', 'libsrc/build_install_downloaded.sh') }}
+
+      - name: Cache libsrc downloads
+        if: steps.libsrc-built-cache.outputs.cache-hit != 'true'
+        id: libsrc-download-cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ github.workspace }}/libsrc/ogg
+            ${{ github.workspace }}/libsrc/vorbis
+            ${{ github.workspace }}/libsrc/theora
+            ${{ github.workspace }}/libsrc/SDL
+            ${{ github.workspace }}/libsrc/SDL_sound
+          key: ${{ runner.os }}-libsrc-downloads-${{ hashFiles('libsrc/download.sh') }}
+
+      - name: Download deps in libsrc
+        if: steps.libsrc-built-cache.outputs.cache-hit != 'true' && steps.libsrc-download-cache.outputs.cache-hit != 'true'
+        run: |
+          cd libsrc
+          ./download.sh
+
+      - name: Install libsrc downloads
+        if: steps.libsrc-built-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo mkdir -p "$PREFIX"
+          sudo chown -R "$(id -u):$(id -g)" "$PREFIX"
+          cd libsrc
+          ./build_install_downloaded.sh
+
+      - name: Refresh linker cache
+        run: |
+          sudo ldconfig -n "$PREFIX/lib"
+
+      - name: Setup destdir
+        run: |
+          mkdir destdir
+          arch=$(dpkg --print-architecture)
+          ln -s destdir/usr/local/bin bin_$arch
+          echo "ARCH=$arch" >> "$GITHUB_ENV"
+
+      - name: Build Engine
+        run: |
+          make -j4 PREFIX="$(cd destdir && pwd)/usr/local" --directory=Engine install
+
+      - name: Build Compiler
+        run: |
+          make -j4 PREFIX="$(cd destdir && pwd)/usr/local" --directory=Compiler install
+
+      - name: Build Tools
+        run: |
+          find Tools -name Makefile -execdir make -j4 PREFIX="$(cd destdir && pwd)/usr/local" install \;
+
+      - name: Upload binaries artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ubuntu-make-binaries-${{ env.ARCH }}
+          path: bin_*/*
+          if-no-files-found: error

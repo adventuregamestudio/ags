@@ -30,6 +30,7 @@
 #undef BITMAP
 #undef CreateFile
 #undef CreateDirectory
+#undef CopyFile
 #undef DeleteFile
 #undef GetCurrentDirectory
 #undef SetCurrentDirectory

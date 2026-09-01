@@ -33,6 +33,7 @@ public:
     // TODO: use shared ptr
     TextStreamReader(std::unique_ptr<Stream> &&stream)
         : _stream(std::move(stream)) {}
+    TextStreamReader(TextStreamReader &&reader) = default;
     ~TextStreamReader() override = default;
 
     std::unique_ptr<Stream> ReleaseStream() { return std::move(_stream); }

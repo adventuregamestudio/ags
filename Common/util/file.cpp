@@ -29,6 +29,17 @@
 #endif
 #include "util/memory_compat.h"
 
+#if AGS_PLATFORM_OS_WINDOWS
+#include "platform/windows/windows.h"
+#elif AGS_PLATFORM_OS_MACOS
+#include <mach-o/dyld.h>
+#elif AGS_PLATFORM_OS_LINUX
+#include <unistd.h>
+#elif AGS_PLATFORM_OS_FREEBSD
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 namespace AGS
 {
 namespace Common
@@ -131,9 +142,9 @@ bool File::DeleteFile(const String &filename)
     return true;
 }
 
-bool File::RenameFile(const String &old_name, const String &new_name)
+bool File::RenameFile(const String &old_name, const String &new_name, bool overwrite)
 {
-    return ags_file_rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
+    return ags_file_rename(old_name.GetCStr(), new_name.GetCStr(), overwrite) == 0;
 }
 
 bool File::CopyFile(const String &src_path, const String &dst_path, bool overwrite)
@@ -141,9 +152,69 @@ bool File::CopyFile(const String &src_path, const String &dst_path, bool overwri
     return ags_file_copy(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
 }
 
+bool File::LinkFile(const String &src_path, const String &dst_path, bool overwrite)
+{
+    return ags_file_link(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
+}
+
 bool File::TruncateFile(const String &filename, soff_t length)
 {
     return ags_file_truncate(filename.GetCStr(), length) == 0;
+}
+
+// Retrieves an absolute path to the currently executed program.
+// The code is majorly based on
+//     https://github.com/DanielGibson/Snippets/blob/7bad19703feb1cc393fda4438c8415889cccb1c6/DG_misc.h#L293
+// adapted to AGS and readjusted using Codex GPT-5.6-Sol
+String File::GetThisExePath()
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    std::vector<wchar_t> path_buf(256u);
+    for (;;)
+    {
+        const DWORD path_len = GetModuleFileNameW(nullptr, path_buf.data(), static_cast<DWORD>(path_buf.size()));
+        if (path_len == 0u)
+            return {};
+        if (path_len < path_buf.size())
+            return Path::WidePathToUTF8(path_buf.data());
+        path_buf.resize(path_buf.size() * 2u);
+    }
+#elif AGS_PLATFORM_OS_MACOS
+    uint32_t path_size = 0u;
+    _NSGetExecutablePath(nullptr, &path_size);
+    if (path_size == 0u)
+        return {};
+
+    std::vector<char> path_buf(path_size);
+    if (_NSGetExecutablePath(path_buf.data(), &path_size) != 0)
+        return {};
+    return Path::MakeAbsolutePath(path_buf.data());
+#elif AGS_PLATFORM_OS_LINUX
+    std::vector<char> path_buf(256u);
+    for (;;)
+    {
+        const ssize_t path_len = readlink("/proc/self/exe", path_buf.data(), path_buf.size());
+        if (path_len < 0)
+            return {};
+        if (static_cast<size_t>(path_len) < path_buf.size())
+            return String(path_buf.data(), static_cast<size_t>(path_len));
+        path_buf.resize(path_buf.size() * 2u);
+    }
+#elif AGS_PLATFORM_OS_FREEBSD
+    int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    const size_t mib_size = sizeof(mib) / sizeof(mib[0]);
+    size_t path_size = 0u;
+    if (sysctl(mib, mib_size, nullptr, &path_size, nullptr, 0u) != 0 || path_size == 0u)
+        return {};
+
+    std::vector<char> path_buf(path_size);
+    if (sysctl(mib, mib_size, path_buf.data(), &path_size, nullptr, 0u) != 0)
+        return {};
+    return path_buf.data();
+#else
+    // Should we #error "Unsupported Platform!" ?
+    return {};
+#endif
 }
 
 bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode)

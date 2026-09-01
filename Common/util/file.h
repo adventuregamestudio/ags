@@ -66,14 +66,19 @@ namespace File
     bool        TestWriteFile(const String &filename);
     // Create new empty file and deletes it; returns TRUE if was able to create file
     bool        TestCreateFile(const String &filename);
-    // Deletes existing file; returns TRUE if was able to delete one
+    // Deletes existing file; returns TRUE if was able to delete one (or if one did not exist)
     bool        DeleteFile(const String &filename);
     // Renames existing file to the new name; returns TRUE on success
-    bool        RenameFile(const String &old_name, const String &new_name);
+    bool        RenameFile(const String &old_name, const String &new_name, bool overwrite = true);
     // Copies a file from src_path to dst_path; returns TRUE on success
-    bool        CopyFile(const String &src_path, const String &dst_path, bool overwrite);
+    bool        CopyFile(const String &src_path, const String &dst_path, bool overwrite = true);
+    // Create a hard-link referencing the existing file; returns TRUE on success
+    bool        LinkFile(const String &src_path, const String &dst_path, bool overwrite = true);
     // Truncates existing file to the given length in bytes.
     bool        TruncateFile(const String &filename, soff_t length);
+    // Returns the absolute path to the currently executing program.
+    // WARNING: supported only on desktop platforms (Win, Linux, MacOSX, FreeBSD, and alike).
+    String      GetThisExePath();
 
     // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
     bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode);

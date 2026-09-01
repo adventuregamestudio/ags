@@ -56,10 +56,14 @@ namespace Directory
     // Makes sure all the sub-directories in the path are created. Parent path is
     // not touched, and function must fail if parent path is not accessible.
     bool   CreateAllDirectories(const String &parent, const String &sub_dirs);
+    // Deletes a directory, returns result. If no such directory existed then returns positive result.
+    bool   DeleteDirectory(const String &path);
     // Sets current working directory, returns the resulting path
     String SetCurrentDirectory(const String &path);
     // Gets current working directory
     String GetCurrentDirectory();
+
+    // TODO: support wildcard arg with multiple patterns (comma-separated?).
 
     // Get list of subdirs found in the given directory
     void   GetDirs(const String &dir_path, std::vector<String> &dirs);
@@ -71,6 +75,8 @@ namespace Directory
     void   GetFiles(const String &dir_path, std::vector<FileEntry> &files, const String &wildcard);
     // Tells whether there are any files in the given directory
     bool   HasAnyFiles(const String &dir_path);
+    // Tells whether there are any files in the given directory matching the given wildcard pattern
+    bool   HasAnyFiles(const String &dir_path, const String &wildcard);
 } // namespace Directory
 
 
@@ -163,6 +169,7 @@ private:
 // FindFile searches the directory for files or subdirs,
 // using defined sort of directory iteration (flat or recursive), and a match pattern.
 // TODO: move to its own header? with or w/o DirIterator?
+// TODO: support wildcard arg with multiple patterns (comma-separated?).
 //
 class FindFile
 {

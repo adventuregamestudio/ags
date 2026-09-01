@@ -316,6 +316,21 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
 }
 
 
+// Internal: set the character's active view directly, without changing
+// their default view. Does not validate the view number, and expects
+// it to be 0-based.
+void Character_SetViewDirect(CharacterInfo *chap, int vii, bool is_walk_view) {
+    // if the idle animation is playing we should release the view
+    stop_character_idling(chap);
+    chap->view = vii;
+    stop_character_anim(chap);
+    chap->frame = 0;
+    chap->wait = 0;
+    chap->walkwait = 0;
+    charextra[chap->index_id].animwait = 0;
+    FindReasonableLoopForCharacter(chap, is_walk_view);
+}
+
 void Character_ChangeView(CharacterInfo *chap, int vii) {
     vii--;
 
@@ -326,18 +341,9 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
     if ((chap->flags & CHF_FIXVIEW) && (chap->idleleft >= 0))
         debug_script_warn("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
 
-    // if the idle animation is playing we should release the view
-    stop_character_idling(chap);
-
     debug_script_log("%s: Change view to %d", chap->scrname.GetCStr(), vii+1);
     chap->defview = vii;
-    chap->view = vii;
-    stop_character_anim(chap);
-    chap->frame = 0;
-    chap->wait = 0;
-    chap->walkwait = 0;
-    charextra[chap->index_id].animwait = 0;
-    FindReasonableLoopForCharacter(chap, true);
+    Character_SetViewDirect(chap, vii, true);
 }
 
 enum DirectionalLoop
@@ -2837,8 +2843,10 @@ void update_character_scale(int charid)
     }
     if (chin.loop >= views[chin.view].numLoops)
     {
-        quitprintf("!The character '%s' could not be displayed because there was no loop %d of view %d.",
+        // a stale loop can survive a view change, re-select a valid loop
+        debug_script_warn("WARNING: The character '%s' was to be displayed with loop %d of view %d, which does not exist; resetting to a valid loop.",
             chin.scrname.GetCStr(), chin.loop, chin.view + 1);
+        FindReasonableLoopForCharacter(&chin);
     }
     // If frame is too high -- fallback to the frame 0;
     // there's always at least 1 dummy frame at index 0

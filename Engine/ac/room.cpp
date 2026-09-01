@@ -967,9 +967,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             play.temporarily_turned_off_character = game.playercharacter;
         }
         if (forchar->flags & CHF_FIXVIEW) ;
-        else if (thisroom.Options.PlayerView==0) forchar->view=forchar->defview;
-        else forchar->view=thisroom.Options.PlayerView-1;
-        forchar->frame=0;   // make him standing
+        else if (thisroom.Options.PlayerView==0) Character_SetViewDirect(forchar, forchar->defview, true);
+        else Character_SetViewDirect(forchar, thisroom.Options.PlayerView-1, true);
     }
     color_map = nullptr;
 

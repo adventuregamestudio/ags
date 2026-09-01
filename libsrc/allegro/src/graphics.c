@@ -427,6 +427,7 @@ BITMAP *create_sub_bitmap(BITMAP *parent, int x, int y, int width, int height)
    bitmap->cl = bitmap->ct = 0;
    bitmap->vtable = parent->vtable;
    bitmap->dat = NULL;
+   bitmap->pitch = bitmap->w * BYTES_PER_PIXEL(bitmap->vtable->color_depth);
    bitmap->extra = NULL;
    bitmap->x_ofs = x + parent->x_ofs;
    bitmap->y_ofs = y + parent->y_ofs;

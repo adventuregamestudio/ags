@@ -139,9 +139,6 @@
     <ClCompile Include="..\..\Common\game\customproperties.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\game\interactions.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\game\roomdata.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -153,6 +150,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp">
       <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\scripteventtable.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_reflect.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -237,9 +240,6 @@
     <ClInclude Include="..\..\Common\game\customproperties.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\game\interactions.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\game\roomdata.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -247,6 +247,12 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\scripteventtable.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_reflect.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

@@ -82,6 +82,9 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\data\tra_utils.h">
@@ -94,6 +97,12 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\textstreamwriter.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\wordsdictionary.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

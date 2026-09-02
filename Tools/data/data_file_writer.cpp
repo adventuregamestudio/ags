@@ -44,7 +44,6 @@
 #include "ac/mousecursor.h"
 #include "data/data_helpers.h"
 #include "game/customproperties.h"
-#include "game/interactions.h"
 #include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guidefines.h"
@@ -165,7 +164,7 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
             out->WriteInt16(0);
             out->WriteInt16(static_cast<int16_t>(frame.Delay));
             out->WriteInt16(0);
-            out->WriteInt32(frame.Flipped ? VFLG_FLIPSPRITE : 0);
+            out->WriteInt32(frame.Flipped ? kSprTf_FlipX : 0);
             out->WriteInt32(GetAudioID(game, frame.Sound));
             out->WriteInt32(0);
             out->WriteInt32(0);
@@ -179,10 +178,8 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     const DataUtil::CharacterData &ref, int index)
 {
     CharacterInfo chinfo;
-    CharacterInfo2 chinfo2;
 
     chinfo.index_id = ref.ID >= 0 ? ref.ID : index;
-    chinfo.on = 1;
     chinfo.defview = ref.NormalView - 1;
     chinfo.talkview = ref.SpeechView - 1;
     chinfo.view = ref.NormalView - 1;
@@ -203,6 +200,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     chinfo.blocking_height = static_cast<int16_t>(ref.BlockingHeight);
     chinfo.walkspeed = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
     chinfo.animspeed = static_cast<int16_t>(ref.AnimationDelay);
+    chinfo.flags |= CHF_ENABLED | CHF_VISIBLE; // FIXME: read from ags4 properties
     if (ref.AdjustSpeedWithScaling) chinfo.flags |= CHF_SCALEMOVESPEED;
     if (ref.AdjustVolumeWithScaling) chinfo.flags |= CHF_SCALEVOLUME;
     if (!ref.Clickable) chinfo.flags |= CHF_NOINTERACT;
@@ -216,16 +214,13 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     if ((ref.ID >= 0 ? ref.ID : index) == game.PlayerCharacter)
         for (const auto &item : game.Inventory)
             if (item.PlayerStartsWith && item.ID >= 0 && item.ID < MAX_INV) chinfo.inv[item.ID] = 1;
-    chinfo2.blocking_x = ref.BlockingX;
-    chinfo2.blocking_y = ref.BlockingY;
+    chinfo.blocking_x = ref.BlockingX;
+    chinfo.blocking_y = ref.BlockingY;
 
-    const String &name = ref.RealName;
-    std::snprintf(chinfo.name, LEGACY_MAX_CHAR_NAME_LEN, "%s", name.GetCStr());
-    std::snprintf(chinfo.scrname, LEGACY_MAX_SCRIPT_NAME_LEN, "%s", ref.ScriptName.GetCStr());
-    chinfo2.name_new = name;
-    chinfo2.scrname_new = ref.ScriptName;
+    chinfo.name = ref.RealName;
+    chinfo.scrname = ref.ScriptName;
 
-    chinfo.WriteToFile(chinfo2, out);
+    chinfo.WriteToFile(out);
 }
 
 // Read by InventoryItemInfo::ReadFromFile() in
@@ -246,9 +241,7 @@ void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
 void WriteCursor(Stream *out, const DataUtil::CursorData &ref)
 {
     MouseCursor cur;
-    const String &name = ref.Name;
-    std::snprintf(cur.legacy_name, LEGACY_MAX_CURSOR_NAME_LENGTH, "%s", name.GetCStr());
-    cur.name = name;
+    cur.name = ref.Name;
     cur.pic = ref.Image;
     cur.hotx = static_cast<short>(ref.HotspotX);
     cur.hoty = static_cast<short>(ref.HotspotY);
@@ -521,9 +514,6 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     options[OPT_DIALOGGAP] = game.Settings.DialogOptionsGap;
     options[OPT_DIALOGIFACE] = game.Settings.DialogOptionsGUI;
     options[OPT_DUPLICATEINV] = game.Settings.DisplayMultipleInventory ? 1 : 0;
-    options[OPT_HIRES_FONTS] = 0;
-    options[OPT_NEWGUIALPHA] = static_cast<int>(game.Settings.GUIAlphaStyle);
-    options[OPT_SPRITEALPHA] = static_cast<int>(game.Settings.SpriteAlphaStyle);
     options[OPT_DIALOGNUMBERED] = static_cast<int>(game.Settings.NumberDialogOptions);
     options[OPT_NOSKIPTEXT] = static_cast<int>(game.Settings.SkipSpeech);
     options[OPT_PORTRAITSIDE] = static_cast<int>(game.Settings.SpeechPortraitSide);
@@ -534,19 +524,11 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     options[OPT_GAMETEXTENCODING] = ParseGameTextEncodingCodePage(game.Settings.GameTextEncoding);
     options[OPT_DEBUGMODE] = game.Settings.DebugMode ? 1 : 0;
     options[OPT_COMPRESSSPRITES] = static_cast<int>(game.Settings.CompressSpritesType);
-    options[OPT_LETTERBOX] = game.Settings.LetterboxMode ? 1 : 0;
-    options[OPT_NATIVECOORDINATES] = game.Settings.UseLowResCoordinatesInScript ? 0 : 1;
-    options[OPT_SAFEFILEPATHS] = 1;
-    options[OPT_RELATIVEASSETRES] = game.Settings.AllowRelativeAssetResolutions ? 1 : 0;
-    options[OPT_STRICTSTRINGS] = game.Settings.EnforceNewStrings ? 1 : 0;
-    options[OPT_STRICTSCRIPTING] = game.Settings.EnforceObjectBasedScript ? 1 : 0;
     options[OPT_HANDLEINVCLICKS] = game.Settings.HandleInvClicksInScript ? 1 : 0;
     options[OPT_FIXEDINVCURSOR] = game.Settings.InventoryCursors ? 0 : 1;
     options[OPT_GLOBALTALKANIMSPD] = game.Settings.UseGlobalSpeechAnimationDelay
         ? game.Settings.GlobalSpeechAnimationDelay
         : (-game.Settings.GlobalSpeechAnimationDelay - 1);
-    options[OPT_LEFTTORIGHTEVAL] = game.Settings.LeftToRightPrecedence ? 1 : 0;
-    options[OPT_MOUSEWHEEL] = game.Settings.MouseWheelEnabled ? 1 : 0;
     options[OPT_PIXPERFECT] = game.Settings.PixelPerfect ? 1 : 0;
     options[OPT_RUNGAMEDLGOPTS] = game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0;
     options[OPT_SAVESCREENSHOT] = game.Settings.SaveScreenshots ? 1 : 0;
@@ -555,7 +537,6 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     options[OPT_WALKONLOOK] = game.Settings.WalkInLookMode ? 1 : 0;
     options[OPT_CLIPGUICONTROLS] = game.Settings.ClipGUIControls ? 1 : 0;
     options[OPT_SCALECHAROFFSETS] = game.Settings.ScaleCharacterSpriteOffsets ? 1 : 0;
-    options[OPT_WALKSPEEDABSOLUTE] = game.Settings.ScaleMovementSpeedWithMaskResolution ? 0 : 1;
     options[OPT_SAVESCREENSHOTLAYER] = -1;
     options[OPT_DIALOGOPTIONSAPI] = game.Settings.UseOldCustomDialogOptionsAPI ? -1 : 1;
     options[OPT_KEYHANDLEAPI] = game.Settings.UseOldKeyboardHandling ? 0 : 1;
@@ -657,7 +638,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(0); // extension offset - none
 
     // MAXGLOBALMES; write 500 ints
-    for (int i = 0; i < MAXGLOBALMES; ++i)
+    for (int i = 0; i < GameSetupStructBase::NUM_LEGACY_GLOBALMES; ++i)
         out->WriteInt32(i < static_cast<int>(game.GlobalMessages.size()) && !game.GlobalMessages[i].IsEmpty() ? 1 : 0);
 
     out->WriteInt32(1); // dict != null
@@ -695,9 +676,6 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
     for (const auto &sprite : game.Sprites)
     {
         if (sprite.Slot < 0 || sprite.Slot > topmost) continue;
-        if (sprite.Resolution != DataUtil::kSpriteImport_Real) flags[sprite.Slot] |= SPF_VAR_RESOLUTION;
-        if (sprite.Resolution == DataUtil::kSpriteImport_HighRes) flags[sprite.Slot] |= SPF_HIRES;
-        if (sprite.AlphaChannel) flags[sprite.Slot] |= SPF_ALPHACHANNEL;
     }
     if (!flags.empty())
         out->Write(flags.data(), flags.size());
@@ -957,7 +935,7 @@ void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
 void WriteInteractionEvents(Stream *out, const String &module,
     const std::vector<String> &events)
 {
-    out->WriteInt32(kInterEvents_v362);
+    out->WriteInt32(kEventsTable_v362);
     StrUtil::WriteString(module, out);
     out->WriteInt32(static_cast<int32_t>(events.size()));
     for (const auto &event : events)
@@ -968,7 +946,7 @@ void WriteInteractionEvents(Stream *out, const String &module,
 // Common/game/interactions.cpp for unused inventory slot 0.
 void WriteEmptyInteractionEventsV362(Stream *out)
 {
-    out->WriteInt32(kInterEvents_v362);
+    out->WriteInt32(kEventsTable_v362);
     StrUtil::WriteString("", out);
     out->WriteInt32(0);
 }

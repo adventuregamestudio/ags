@@ -370,16 +370,6 @@ static DataUtil::AndroidBuildFormat ReadAndroidBuildFormat(const String &value)
     return StrUtil::ParseEnum(value, kAndroidBuildFormatNames, DataUtil::kAndroidBuild_ApkEmbedded);
 }
 
-static GameGuiAlphaRenderingStyle ReadGuiAlphaStyle(const String &value)
-{
-    return StrUtil::ParseEnum(value, kGuiAlphaStyleNames, kGuiAlphaRender_Legacy);
-}
-
-static GameSpriteAlphaRenderingStyle ReadSpriteAlphaStyle(const String &value)
-{
-    return StrUtil::ParseEnum(value, kSpriteAlphaStyleNames, kSpriteAlphaRender_Legacy);
-}
-
 static RenderAtScreenRes ReadRenderAtScreenResolution(const String &value)
 {
     return StrUtil::ParseEnum(value, kRenderAtScreenResNames, kRenderAtScreenRes_UserDefined);
@@ -791,7 +781,6 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.EnforceNewAudio = ReadBool(elem, "EnforceNewAudio");
     s.EnforceNewStrings = ReadBool(elem, "EnforceNewStrings");
     s.EnforceObjectBasedScript = ReadBool(elem, "EnforceObjectBasedScript");
-    s.GUIAlphaStyle = ReadGuiAlphaStyle(ReadString(elem, "GUIAlphaStyle"));
     s.GUIHandleOnlyLeftMouseButton = ReadBool(elem, "GUIHandleOnlyLeftMouseButton");
     s.GUIDAsString = ReadString(elem, "GUIDAsString");
     s.GameFileName = ReadString(elem, "GameFileName");
@@ -830,7 +819,6 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.SpeechPortraitSide = ReadSpeechPortraitSide(ReadString(elem, "SpeechPortraitSide"));
     s.SpeechStyle = ReadSpeechStyle(ReadString(elem, "SpeechStyle"));
     s.SplitResources = ReadString(elem, "SplitResources");
-    s.SpriteAlphaStyle = ReadSpriteAlphaStyle(ReadString(elem, "SpriteAlphaStyle"));
     s.TTFHeightDefinedBy = ReadFontHeightDefinition(ReadString(elem, "TTFHeightDefinedBy"));
     s.TTFMetricsFixup = ReadFontMetricsFixup(ReadString(elem, "TTFMetricsFixup"));
     s.TextWindowGUI = ReadInt(elem, "TextWindowGUI");

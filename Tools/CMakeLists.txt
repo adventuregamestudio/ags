@@ -33,6 +33,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/customproperties.h
         ../Common/game/room_file.cpp
         ../Common/game/roomdata.cpp
+        ../Common/game/scripteventstable.cpp
+        ../Common/game/scripteventstable.h
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
         ../Common/gfx/image_bmp.cpp

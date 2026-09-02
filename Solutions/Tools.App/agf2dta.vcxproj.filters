@@ -103,6 +103,9 @@
     <ClCompile Include="..\..\Common\data\data_helpers.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\game\scripteventtable.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
@@ -160,6 +163,9 @@
       <Filter>data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\scripteventtable.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

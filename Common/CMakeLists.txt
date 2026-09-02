@@ -95,6 +95,7 @@ target_sources(common
     gfx/blender.cpp
     gfx/blender.h
     gfx/gfx_def.h
+    gfx/graphicspace.h
     gfx/image_bmp.cpp
     gfx/image_file.cpp
     gfx/image_file.h

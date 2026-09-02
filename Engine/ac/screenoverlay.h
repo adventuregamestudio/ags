@@ -34,6 +34,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "gfx/gfx_def.h"
+#include "gfx/graphicspace.h"
 #include "util/string.h"
 
 // Forward declaration

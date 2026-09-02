@@ -21,6 +21,7 @@
 #include "ac/common_defines.h"
 #include "ac/runtime_defines.h"
 #include "gfx/gfx_def.h"
+#include "gfx/graphicspace.h"
 #include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; }}

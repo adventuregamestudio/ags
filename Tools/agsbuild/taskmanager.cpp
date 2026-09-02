@@ -340,7 +340,7 @@ void TaskManager::AddTask(std::unique_ptr<Task> &&task)
 
 HError TaskManager::RunAll()
 {
-    printf("Prepared %u tasks, running...\n", _allTasks.size());
+    printf("Prepared %zu tasks, running...\n", _allTasks.size());
 
     // Begin with running as much tasks as possible
     RunReadyTasks();

@@ -49,7 +49,7 @@ HRoomFileError ReadOnlyScriptNames(RoomDataExt &room, std::unique_ptr<Stream> &&
         {{ kRoomFblk_Main, "" }, { kRoomFblk_ObjectScNames, "" }}, read_opts);
     // Must call UpdateRoomData, because certain script names from older room formats need to be converted
     if (err)
-        err = UpdateRoomData(&room, data_ver, false, nullptr);
+        err = UpdateRoomData(&room, data_ver, nullptr);
     if (!err)
         return err;
     return HRoomFileError::None();
@@ -107,7 +107,7 @@ bool LoadRoomFile(RoomDataExt &room, const String &filename, bool cmd_readonly, 
     return true;
 }
 
-bool SaveRoomFile(const RoomDataExt &room, const String &filename)
+bool SaveRoomFile(const RoomDataExt &room, const String &filename, const String &compiled_with)
 {
     auto out = File::CreateFile(filename);
     if (!out)
@@ -116,7 +116,7 @@ bool SaveRoomFile(const RoomDataExt &room, const String &filename)
         return false;
     }
 
-    HRoomFileError err = WriteRoomData(&room, out.get(), kRoomVersion_Current);
+    HRoomFileError err = WriteRoomData(&room, out.get(), kRoomVersion_Current, compiled_with);
     if (!err)
     {
         printf("Error: failed to write room data.\n");
@@ -203,7 +203,7 @@ bool SaveTextFile(const String &text, const String &filename)
     return true;
 }
 
-bool LoadScriptFile(PScript &script, const String &filename)
+bool LoadScriptFile(UScript &script, const String &filename)
 {
     auto in = File::OpenFileRead(filename);
     if (!in)
@@ -400,21 +400,21 @@ void CutContent(RoomDataExt &room, const std::vector<Content> &content)
     }
 }
 
-int Command_Create(const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Create(const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose)
 {
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Import");
 
     RoomDataExt empty;
     ImportContent(empty, content);
-    if (!SaveRoomFile(empty, dst_room))
+    if (!SaveRoomFile(empty, dst_room, compiled_with))
         return -1;
 
     printf("Done.\n");
     return 0;
 }
 
-int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
     printf("Output room file: %s\n", dst_room.GetCStr());
@@ -426,7 +426,7 @@ int Command_Cut(const String &src_room, const String &dst_room, const std::vecto
 
     CutContent(room, content);
 
-    if (!SaveRoomFile(room, dst_room))
+    if (!SaveRoomFile(room, dst_room, compiled_with))
         return -1;
 
     printf("Done.\n");
@@ -449,7 +449,7 @@ int Command_Export(const String &src_room, const std::vector<Content> &content, 
     return 0;
 }
 
-int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
     printf("Output room file: %s\n", dst_room.GetCStr());
@@ -461,7 +461,7 @@ int Command_Import(const String &src_room, const String &dst_room, const std::ve
 
     ImportContent(room, content);
 
-    if (!SaveRoomFile(room, dst_room))
+    if (!SaveRoomFile(room, dst_room, compiled_with))
         return -1;
 
     printf("Done.\n");

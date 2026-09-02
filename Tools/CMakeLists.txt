@@ -44,6 +44,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/gfx/image_png.cpp
         ../Common/script/cc_common.cpp
         ../Common/script/cc_common.h
+        ../Common/script/cc_reflect.cpp
+        ../Common/script/cc_reflect.h
         ../Common/script/cc_script.cpp
         ../Common/script/cc_script.h
         ../Common/util/bufferedstream.cpp

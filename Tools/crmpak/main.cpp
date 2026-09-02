@@ -21,7 +21,10 @@
 
 using namespace AGS::Common;
 
-const char *BIN_STRING = "crmpak v0.2.0 - AGS compiled room's (re)packer\n"
+#define TOOL_NAME_DEF "crmpak v0.2.0"
+
+const char *TOOL_NAME = TOOL_NAME_DEF;
+const char *BIN_STRING = TOOL_NAME_DEF " - AGS compiled room's (re)packer\n"
 "Copyright (c) 2026 AGS Team and contributors";
 
 const char *HELP_STRING =
@@ -178,7 +181,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     {
         if (cmdargs.PosArgs.size() < 1)
             break; // not enough args
-        return CRMPak::Command_Create(dst_room_file, content, verbose);
+        return CRMPak::Command_Create(dst_room_file, content, TOOL_NAME, verbose);
     }
     case 'e': // export
     {
@@ -190,7 +193,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     {
         if (cmdargs.PosArgs.size() < 2)
             break; // not enough args
-        return CRMPak::Command_Import(src_room_file, dst_room_file, content, verbose);
+        return CRMPak::Command_Import(src_room_file, dst_room_file, content, TOOL_NAME, verbose);
     }
     case 'l': // list
     {
@@ -202,7 +205,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     {
         if (cmdargs.PosArgs.size() < 1)
             break; // not enough args
-        return CRMPak::Command_Cut(src_room_file, dst_room_file, content, verbose);
+        return CRMPak::Command_Cut(src_room_file, dst_room_file, content, TOOL_NAME, verbose);
     }
     default:
         printf("Error: no valid command is specified\n");

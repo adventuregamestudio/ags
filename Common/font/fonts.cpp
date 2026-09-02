@@ -336,7 +336,7 @@ int get_text_width_outlined(const char *text, int font_number)
 
 int get_text_height(const char *text, int font_number)
 {
-    if (!assert_font_number(font_number))
+    if (!assert_font_renderer(font_number))
         return 0;
     return fonts[font_number].Renderer->GetTextHeight(text, font_number);
 }

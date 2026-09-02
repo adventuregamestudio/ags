@@ -603,8 +603,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(static_cast<int32_t>(game.Settings.ColorDepth)); // color_depth in bytes per pixel
     out->WriteInt32(0); // target_win
     out->WriteInt32(game.Settings.DialogOptionsBullet);
-    out->WriteInt16(static_cast<int16_t>(game.Settings.InventoryHotspotMarkerStyle != DataUtil::kInventoryHotspot_None ?
-        game.Settings.InventoryHotspotMarkerDotColor : 0));
+    out->WriteInt16(static_cast<int16_t>(game.Settings.InventoryHotspotMarkerDotColor));
     out->WriteInt16(static_cast<int16_t>(game.Settings.InventoryHotspotMarkerCrosshairColor));
     out->WriteInt32(game.Settings.UniqueID);
     out->WriteInt32(num_gui); // GUIs.Count
@@ -630,7 +629,9 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(game.LipSyncDefaultFrame);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle == DataUtil::kInventoryHotspot_Sprite ?
         game.Settings.InventoryHotspotMarkerSprite : 0);
-    // reserved; 16 ints
+    out->WriteInt32(game.Settings.InventoryHotspotMarkerDotColor);
+    out->WriteInt32(game.Settings.InventoryHotspotMarkerCrosshairColor);
+    // reserved; NUM_INTS_RESERVED ints
     for (int i = 0; i < GameSetupStructBase::NUM_INTS_RESERVED; ++i)
         out->WriteInt32(0);
 

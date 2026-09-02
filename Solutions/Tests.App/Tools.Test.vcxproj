@@ -100,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -119,7 +119,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -140,7 +140,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -163,7 +163,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;AGS_PLATFORM_TEST;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Tools;..\..\Common;..\..\Common\libsrc\googletest\googletest;..\..\Common\libsrc\googletest\googletest\include;..\..\libsrc\allegro\include;..\..\libsrc\tinyxml2;..\..\libsrc\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
@@ -178,6 +178,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
     <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
     <ClCompile Include="..\..\Common\ac\audiocliptype.cpp" />
     <ClCompile Include="..\..\Common\ac\characterinfo.cpp" />
@@ -190,8 +191,8 @@
     <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
     <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
     <ClCompile Include="..\..\Common\game\customproperties.cpp" />
-    <ClCompile Include="..\..\Common\game\interactions.cpp" />
     <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc" />
+    <ClCompile Include="..\..\Common\test\sdl2_stubs.c" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
@@ -236,7 +237,7 @@
     <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
     <ClInclude Include="..\..\Common\game\customproperties.h" />
-    <ClInclude Include="..\..\Common\game\interactions.h" />
+    <ClInclude Include="..\..\Common\game\scripteventtable.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />

@@ -16,6 +16,7 @@
 // This assumes that the part of the code that uses these is never tested.
 // 
 //=============================================================================
+#include <stddef.h>
 #include <stdint.h>
 
 typedef uint32_t Uint32;

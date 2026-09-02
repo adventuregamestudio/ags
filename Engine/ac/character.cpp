@@ -2585,11 +2585,14 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 void FindReasonableLoopForCharacter(CharacterInfo *chap, bool is_walk_view)
 {
     int loop_limit = views[chap->view].numLoops;
+    // If it's a standard purpose walking view, then limit the loop to
+    // walking directions (depending on "use diagonal loops" character option)
     if (is_walk_view)
     {
-        if (((chap->flags & CHF_NODIAGONAL)!=0) && (loop_limit > 4))
-            loop_limit = 4;
+        loop_limit = ((chap->flags & CHF_NODIAGONAL) != 0) ?
+            std::min(loop_limit, 4) : std::min(loop_limit, 8);
     }
+
     if (chap->loop >= loop_limit)
         chap->loop=kDirLoop_Default;
     if (views[chap->view].numLoops < 1)

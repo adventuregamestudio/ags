@@ -1002,32 +1002,6 @@ namespace AGS.Editor
                 return FindEventHandlers(scriptModule, lookupFunctionNames);
         }
 
-        /*
-        public Dictionary<string, FunctionLocation> FindEventHandlers(string scriptName, Dictionary<string, string> functionNames)
-        {
-            // We generate default function names for those events that *DO NOT* have a function linked.
-            var functionNames = checkDefaultMatches ?
-                eventFunctions
-                    .Select((f) => { return !string.IsNullOrEmpty(f.Item2) ? f.Item2 : $"{objectName}_{f.Item1}"; })
-                    .ToArray()
-                : eventFunctions.Select((fn) => { return fn.Item2; }).Where(fn => !string.IsNullOrEmpty(fn)).ToArray();
-
-            return FindEventHandlers(scriptName, functionNames);
-        }
-
-        public FunctionLocation?[] FindEventHandlers(string objectName, string scriptName, ScriptAutoCompleteData scriptData, Tuple<string, string>[] eventFunctions, bool checkDefaultMatches)
-        {
-            // We generate default function names for those events that *DO NOT* have a function linked.
-            var functionNames = checkDefaultMatches ?
-                eventFunctions
-                    .Select((f) => { return !string.IsNullOrEmpty(f.Item2) ? f.Item2 : $"{objectName}_{f.Item1}"; })
-                    .ToArray()
-                : eventFunctions.Select((fn) => { return fn.Item2; }).Where(fn => !string.IsNullOrEmpty(fn)).ToArray();
-
-            return FindEventHandlers(scriptName, scriptData, functionNames);
-        }
-        */
-
         /// <summary>
         /// Scans the script module looking for the list of functions.
         /// Creates a dictionary of FunctionLocations with event names as keys.

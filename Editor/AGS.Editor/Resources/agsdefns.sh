@@ -96,6 +96,7 @@
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59
 #define OPT_TURNORDERPRIORITY 60
 #define OPT_TEXTBOXCLAIMSKEYS 61
+#define OPT_DIALOGOPTIONSMODE 62
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT -1
@@ -597,6 +598,13 @@ enum TextBoxKeyClaimStyle
   eTextBoxKeyClaimAll          = 0,
   eTextBoxKeyClaimHandled      = 1,
   eTextBoxKeyClaimTextOnly     = 2
+};
+
+enum DialogOptionsMode
+{
+  eDialogOptMode_Auto          = 0,
+  eDialogOptMode_Default       = 1,
+  eDialogOptMode_Custom        = 2,
 };
 #endif // SCRIPT_API_v363
 

@@ -33,17 +33,20 @@ namespace AGS.Editor
             return tasks.ToArray();
         }
 
-        private static IUpgradeGameTask[] GetTasksForGameVersion(System.Version gameVersion, int? gameVersionIndex)
+        private static IUpgradeGameTask[] GetTasksForGame(Game game)
         {
             var allTasks = GetAllTasks();
 
             List<IUpgradeGameTask> tasks = new List<IUpgradeGameTask>();
+            var gameVersion = game.SavedXmlVersion;
+            var gameVersionIndex = game.SavedXmlVersionIndex;
             bool needBackup = false;
             foreach (var task in allTasks)
             {
-                if ((task.GameVersion == null) || // if no version is defined, then run always
+                if (((task.GameVersion == null) || // if no version is defined, then run always
                     (gameVersion < task.GameVersion) ||
                     (task.GameVersionIndex.HasValue && gameVersionIndex.HasValue && gameVersionIndex < task.GameVersionIndex))
+                    && task.ShouldApplyToGame(game))
                 {
                     tasks.Add(task);
                     // We request Backup task whenever there's a non-implicit upgrade task
@@ -202,7 +205,7 @@ namespace AGS.Editor
 
         public static bool UpgradeWithoutWizard(Game game, Dictionary<string, string> options, CompileMessages errors, out UpgradeGameResult result)
         {
-            var tasks = GetTasksForGameVersion(game.SavedXmlVersion, game.SavedXmlVersionIndex);
+            var tasks = GetTasksForGame(game);
             bool hasExplicitTasks = tasks.FirstOrDefault(task => !task.Implicit) != null;
             // TODO: apply options to Tasks
             var execData = new ExecuteTasksData(game, tasks, errors);
@@ -213,7 +216,7 @@ namespace AGS.Editor
 
         public static bool UpgradeWithWizard(Game game, CompileMessages errors, out UpgradeGameResult result)
         {
-            var tasks = GetTasksForGameVersion(game.SavedXmlVersion, game.SavedXmlVersionIndex);
+            var tasks = GetTasksForGame(game);
             // No tasks counts as auto-success, where we skip upgrading and end opening the project
             if (tasks.Length == 0)
             {

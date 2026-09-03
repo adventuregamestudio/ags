@@ -75,6 +75,12 @@ namespace AGS.Editor
         bool Enabled { get; set; }
 
         /// <summary>
+        /// Tells whether this task should be applied to this game.
+        /// This method can have additional conditions, besides the default version check.
+        /// </summary>
+        bool ShouldApplyToGame(Game game);
+
+        /// <summary>
         /// Provides WizardPage control(s) used to represent this upgrade task.
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.

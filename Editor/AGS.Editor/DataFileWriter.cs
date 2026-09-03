@@ -597,10 +597,7 @@ namespace AGS.Editor
             ext_off_pos = writer.BaseStream.Position;
             writer.Write((uint)0);
 
-            for (int i = 0; i < 500; ++i) // [DEPRECATED]; write 500 ints
-            {
-                writer.Write(0);
-            }
+            // [DEPRECATED] skip 500 int32s since kGameVersion_400_33
             writer.Write(1); // dict != null
             writer.Write(0); // globalscript != null
             writer.Write(0); // chars != null

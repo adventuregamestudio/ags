@@ -74,7 +74,10 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
     info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
 
-    in->ReadArrayOfInt32(info.HasMessages.data(), NUM_LEGACY_GLOBALMES);
+    if (game_ver < kGameVersion_400_33)
+    {
+        in->ReadArrayOfInt32(info.HasMessages.data(), NUM_LEGACY_GLOBALMES);
+    }
     info.HasWordsDict = in->ReadInt32() != 0;
     in->ReadInt32(); // globalscript (dummy 32-bit pointer value)
     in->ReadInt32(); // chars (dummy 32-bit pointer value)
@@ -117,7 +120,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(inv_hot_color);
     out->WriteInt32(inv_hot_cross_color);
     out->WriteArrayOfInt32(reserved, NUM_INTS_RESERVED);
-    out->WriteByteCount(0, sizeof(int32_t) * NUM_LEGACY_GLOBALMES);
+    // skip NUM_LEGACY_GLOBALMES int32s since kGameVersion_400_33
     out->WriteInt32(dict ? 1 : 0);
     out->WriteInt32(0); // globalscript (dummy 32-bit pointer value)
     out->WriteInt32(0); // chars  (dummy 32-bit pointer value)

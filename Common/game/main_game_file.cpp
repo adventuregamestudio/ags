@@ -1158,7 +1158,10 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
 
     game.read_characters(in, data_ver);
     game.read_lipsync(in, data_ver);
-    game.skip_messages(in, sinfo.HasMessages, data_ver);
+    if (data_ver < kGameVersion_400_33)
+    {
+        game.skip_messages(in, sinfo.HasMessages, data_ver);
+    }
 
     ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
     GUIRefCollection guictrl_refs(ents.GuiControls);

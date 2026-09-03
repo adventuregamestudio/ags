@@ -52,6 +52,7 @@ target_sources(common
     data/assetmanager.h
     data/data_ext.cpp
     data/data_ext.h
+    data/data_helpers.cpp
     data/data_helpers.h
     data/multifilelib.h
     data/multifilelib.cpp
@@ -95,6 +96,7 @@ target_sources(common
     gfx/blender.cpp
     gfx/blender.h
     gfx/gfx_def.h
+    gfx/graphicspace.h
     gfx/image_bmp.cpp
     gfx/image_file.cpp
     gfx/image_file.h

@@ -34,8 +34,6 @@ using AGS::Common::GuiDisableStyle;
 using AGS::Common::PropertyType;
 using AGS::Common::SpriteCompression;
 using ::DialogOptionNumbering;
-using ::GameGuiAlphaRenderingStyle;
-using ::GameSpriteAlphaRenderingStyle;
 using ::RenderAtScreenRes;
 using ::ScreenTransitionStyle;
 
@@ -563,7 +561,6 @@ struct GameSettings
     bool EnforceNewAudio;
     bool EnforceNewStrings;
     bool EnforceObjectBasedScript;
-    GameGuiAlphaRenderingStyle GUIAlphaStyle = ::kGuiAlphaRender_Proper;
     bool GUIHandleOnlyLeftMouseButton;
     String GUIDAsString;
     String GameFileName;
@@ -602,7 +599,6 @@ struct GameSettings
     DataUtil::SpeechPortraitSide SpeechPortraitSide = kSpeechPortrait_Left;
     DataUtil::SpeechStyle SpeechStyle = kSpeechStyle_Lucasarts;
     String SplitResources;
-    GameSpriteAlphaRenderingStyle SpriteAlphaStyle = ::kSpriteAlphaRender_Proper;
     FontHeightDefinition TTFHeightDefinedBy = kFontHeight_NominalHeight;
     FontMetricsFixup TTFMetricsFixup = kFontMetrics_None;
     int TextWindowGUI;

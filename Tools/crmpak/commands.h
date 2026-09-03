@@ -54,10 +54,10 @@ namespace CRMPak
     const AGS::Common::CstrArr<kNumContentTypes> &GetContentNames();
 
     void Init();
-    int Command_Create(const String &dst_room, const std::vector<Content> &content, bool verbose);
-    int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content, bool verbose);
+    int Command_Create(const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose);
+    int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose);
     int Command_Export(const String &src_room, const std::vector<Content> &content, bool verbose);
-    int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, bool verbose);
+    int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose);
     int Command_List(const String &src_room);
 }
 

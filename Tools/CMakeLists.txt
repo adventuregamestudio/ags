@@ -20,6 +20,7 @@ set(TOOLS_COMMON_SOURCES
         ../Common/ac/wordsdictionary.cpp
         ../Common/ac/wordsdictionary.h
         ../Common/data/asset.h
+        ../Common/data/data_helpers.cpp
         ../Common/data/data_helpers.h
         ../Common/data/data_ext.cpp
         ../Common/data/data_ext.h
@@ -33,6 +34,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/customproperties.h
         ../Common/game/room_file.cpp
         ../Common/game/roomdata.cpp
+        ../Common/game/scripteventtable.cpp
+        ../Common/game/scripteventtable.h
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
         ../Common/gfx/image_bmp.cpp
@@ -42,6 +45,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/gfx/image_png.cpp
         ../Common/script/cc_common.cpp
         ../Common/script/cc_common.h
+        ../Common/script/cc_reflect.cpp
+        ../Common/script/cc_reflect.h
         ../Common/script/cc_script.cpp
         ../Common/script/cc_script.h
         ../Common/util/bufferedstream.cpp
@@ -268,7 +273,9 @@ if(AGS_TESTS)
       ../Common/game/customproperties.cpp # needed by data_file_writer_test
       ../Common/gfx/allegrobitmap.cpp # needed by GUI readers in data_file_writer_test
       ../Common/gfx/bitmap.cpp # needed by allegrobitmap.cpp
+      ../Common/gfx/blender.cpp # needed by ttffontrenderer.cpp
       ../Common/gui/guibutton.cpp # needed by data_file_writer_test
+      ../Common/gui/guicontrol.cpp # needed by data_file_writer_test
       ../Common/gui/guiinv.cpp # needed by data_file_writer_test
       ../Common/gui/guilabel.cpp # needed by data_file_writer_test
       ../Common/gui/guilistbox.cpp # needed by data_file_writer_test
@@ -279,8 +286,10 @@ if(AGS_TESTS)
       ../Common/gui/guitextbox.cpp # needed by data_file_writer_test
       ../Common/util/geometry.cpp # needed by GUI readers in data_file_writer_test
       ../Common/util/path.cpp # needed by assetmanager.cpp
+      ../Common/util/sdl2_util.cpp
       ../Common/util/version.cpp # needed by common_stubs.cpp
       ../Common/util/wgt2allg.cpp # needed by Common bitmap/font implementations
+      ../Common/test/sdl2_stubs.c
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
       test/include_utils_test.cpp
@@ -296,8 +305,8 @@ if(AGS_TESTS)
    )
    target_link_libraries(tools_test
       Allegro::Allegro
+      SDL_ttf::SDL_ttf
       libtools
-      AlFont::AlFont
       AAStr::AAStr
       gtest
    )

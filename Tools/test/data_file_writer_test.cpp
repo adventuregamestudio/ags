@@ -26,7 +26,6 @@
 #include "data/data_file_writer.h"
 #include "data/data_helpers.h"
 #include "game/customproperties.h"
-#include "game/interactions.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
@@ -134,8 +133,6 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     game.Fonts.resize(1);
     game.GUI.resize(1);
     game.Cursors.resize(2);
-    game.GlobalMessages.resize(4);
-    game.GlobalMessages[3] = "message";
 
     std::vector<uint8_t> buffer;
     auto out = std::make_unique<Stream>(
@@ -151,7 +148,6 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
 
     EXPECT_STREQ("Round-trip game", loaded.gamename.GetCStr());
-    EXPECT_EQ(42, loaded.totalscore);
     EXPECT_EQ(2, loaded.numviews);
     EXPECT_EQ(2, loaded.numcharacters);
     EXPECT_EQ(1, loaded.playercharacter);
@@ -162,58 +158,17 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     EXPECT_EQ(4, loaded.color_depth);
     EXPECT_EQ(17, loaded.dialog_bullet);
     EXPECT_EQ(123456, loaded.uniqueid);
-    EXPECT_EQ(640, loaded.GetDefaultRes().Width);
-    EXPECT_EQ(360, loaded.GetDefaultRes().Height);
+    EXPECT_EQ(640, loaded.GetGameRes().Width);
+    EXPECT_EQ(360, loaded.GetGameRes().Height);
     EXPECT_EQ(3, loaded.default_lipsync_frame);
     EXPECT_EQ(10, loaded.inv_hot_color);
     EXPECT_EQ(11, loaded.inv_hot_cross_color);
     EXPECT_EQ(12, loaded.inv_hot_sprite);
     EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly, loaded.options[OPT_NOSKIPTEXT]);
     EXPECT_EQ(1, loaded.options[OPT_LIPSYNCTEXT]);
-    EXPECT_EQ(1, info.HasMessages[3]);
     EXPECT_TRUE(info.HasWordsDict);
     EXPECT_FALSE(info.HasCCScript);
     EXPECT_EQ(0u, info.ExtensionOffset);
-}
-
-TEST(DataFileWriter, RoundTripGlobalMessagesBounds)
-{
-    DataUtil::GameData game;
-    game.GlobalMessages.resize(MAXGLOBALMES);
-    game.GlobalMessages[0] = "first message";
-    game.GlobalMessages[MAXGLOBALMES - 1] = "last valid message";
-
-    std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
-    soff_t extension_offset_pos = 0;
-    DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
-    DataFileWriter::WriteGlobalMessagesBlock(game, out.get());
-    out.reset();
-
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
-    GameSetupStructBase loaded;
-    GameSetupStructBase::SerializeInfo info;
-    loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
-
-    // GameSetupStruct::read_messages() performs this same flag-driven loop,
-    // but linking that aggregate class would pull Engine runtime dependencies
-    // into this data-only test target.
-    for (int i = 0; i < MAXGLOBALMES; ++i)
-    {
-        if (info.HasMessages[i])
-            loaded.messages[i] = ReadStringDecrypt(in.get());
-    }
-
-    // The flags array enforces the format's 500-message ceiling; the text
-    // block itself does not write a count.
-    EXPECT_EQ(1, info.HasMessages[0]);
-    EXPECT_EQ(1, info.HasMessages[MAXGLOBALMES - 1]);
-    EXPECT_STREQ("first message", loaded.messages[0].GetCStr());
-    EXPECT_STREQ("last valid message",
-        loaded.messages[MAXGLOBALMES - 1].GetCStr());
-    EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
 TEST(DataFileWriter, RoundTripCharacter)
@@ -256,8 +211,7 @@ TEST(DataFileWriter, RoundTripCharacter)
     auto in = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer));
     CharacterInfo loaded;
-    CharacterInfo2 loaded_ext;
-    loaded.ReadFromFile(loaded_ext, in.get(), kGameVersion_Current);
+    loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
     EXPECT_EQ(7, loaded.index_id);
     EXPECT_EQ(2, loaded.defview);
@@ -269,10 +223,10 @@ TEST(DataFileWriter, RoundTripCharacter)
     EXPECT_NE(0, loaded.flags & CHF_SCALEMOVESPEED);
     EXPECT_NE(0, loaded.flags & CHF_TURNWHENFACE);
     EXPECT_EQ(1, loaded.inv[2]);
-    EXPECT_STREQ("Hero", loaded_ext.name_new.GetCStr());
-    EXPECT_STREQ("cHero", loaded_ext.scrname_new.GetCStr());
-    EXPECT_EQ(-4, loaded_ext.blocking_x);
-    EXPECT_EQ(8, loaded_ext.blocking_y);
+    EXPECT_STREQ("Hero", loaded.name.GetCStr());
+    EXPECT_STREQ("cHero", loaded.scrname.GetCStr());
+    EXPECT_EQ(-4, loaded.blocking_x);
+    EXPECT_EQ(8, loaded.blocking_y);
 }
 
 TEST(DataFileWriter, RoundTripInventoryItem)
@@ -457,7 +411,7 @@ TEST(DataFileWriter, RoundTripView)
     EXPECT_TRUE(loaded.loops[0].RunNextLoop());
     EXPECT_EQ(12, loaded.loops[0].frames[0].pic);
     EXPECT_EQ(3, loaded.loops[0].frames[0].speed);
-    EXPECT_NE(0, loaded.loops[0].frames[0].flags & VFLG_FLIPSPRITE);
+    EXPECT_NE(0, loaded.loops[0].frames[0].flags & kSprTf_FlipX);
     EXPECT_EQ(99, loaded.loops[0].frames[0].sound);
 }
 
@@ -489,7 +443,7 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     ASSERT_EQ(1u, loaded[1].loops[0].frames.size());
     EXPECT_EQ(10, loaded[0].loops[0].frames[0].pic);
     EXPECT_EQ(20, loaded[1].loops[0].frames[0].pic);
-    EXPECT_NE(0, loaded[1].loops[0].frames[0].flags & VFLG_FLIPSPRITE);
+    EXPECT_NE(0, loaded[1].loops[0].frames[0].flags & kSprTf_FlipX);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -513,13 +467,12 @@ TEST(DataFileWriter, RoundTripCharactersBlock)
         std::make_unique<VectorStream>(buffer));
 
     CharacterInfo loaded[2];
-    CharacterInfo2 loaded_ext[2];
     for (int i = 0; i < 2; ++i)
-        loaded[i].ReadFromFile(loaded_ext[i], in.get(), kGameVersion_Current);
+        loaded[i].ReadFromFile(in.get(), kGameVersion_Current);
     EXPECT_EQ(0, loaded[0].index_id);
     EXPECT_EQ(1, loaded[1].index_id);
-    EXPECT_STREQ("First", loaded_ext[0].name_new.GetCStr());
-    EXPECT_STREQ("Second", loaded_ext[1].name_new.GetCStr());
+    EXPECT_STREQ("First", loaded[0].name.GetCStr());
+    EXPECT_STREQ("Second", loaded[1].name.GetCStr());
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -858,6 +811,7 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
 {
     DataUtil::GameData game;
 
+    // FIXME: proper AGS 4 test
     game.Sprites = {
         { 1, 0, 0, 0, DataUtil::kSpriteImport_Real, true },
         { 3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false }
@@ -873,11 +827,7 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
     in->Read(flags.data(), flags.size());
 
     EXPECT_EQ(0, flags[0]);
-    EXPECT_EQ(SPF_ALPHACHANNEL, flags[1] & SPF_ALPHACHANNEL);
     EXPECT_EQ(0, flags[2]);
-    EXPECT_EQ(SPF_VAR_RESOLUTION, flags[3] & SPF_VAR_RESOLUTION);
-    EXPECT_EQ(SPF_HIRES, flags[3] & SPF_HIRES);
-    EXPECT_EQ(0, flags[3] & SPF_ALPHACHANNEL);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -895,11 +845,10 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
     // unused inventory slot 0 has no v361 record in this block.
     for (int i = 0; i < 4; ++i)
     {
-        HError error;
-        auto events = InteractionEvents::CreateFromStream_v361(in.get(), error);
+        ScriptEventHandlers handlers;
+        HError error = handlers.Read_v361(in.get());
         ASSERT_TRUE(error);
-        ASSERT_NE(nullptr, events);
-        EXPECT_TRUE(events->Events.empty());
+        EXPECT_TRUE(handlers.GetHandlers().empty());
     }
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
@@ -1140,30 +1089,29 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // dialog script asset
     EXPECT_EQ(0, in->ReadInt32()); // separately stored script modules
     ASSERT_EQ(2, in->ReadInt32());
-    HError error;
-    auto loaded_hero = InteractionEvents::CreateFromStream_v362(in.get(), error);
+    ScriptEventHandlers loaded_hero;
+    HError error = loaded_hero.Read(in.get());
     ASSERT_TRUE(error);
-    ASSERT_NE(nullptr, loaded_hero);
-    EXPECT_STREQ("HeroModule", loaded_hero->ScriptModule.GetCStr());
-    ASSERT_EQ(2u, loaded_hero->Events.size());
-    EXPECT_STREQ("TalkToHero", loaded_hero->Events[1].FunctionName.GetCStr());
-    auto loaded_npc = InteractionEvents::CreateFromStream_v362(in.get(), error);
+    EXPECT_STREQ("HeroModule", loaded_hero.GetScriptModule().GetCStr());
+    ASSERT_EQ(2u, loaded_hero.GetHandlers().size());
+    EXPECT_STREQ("TalkToHero", loaded_hero.GetHandlers()[1].FunctionName.GetCStr());
+    ScriptEventHandlers loaded_npc;
+    error = loaded_npc.Read(in.get());
     ASSERT_TRUE(error);
-    ASSERT_NE(nullptr, loaded_npc);
-    EXPECT_STREQ("NpcModule", loaded_npc->ScriptModule.GetCStr());
+    EXPECT_STREQ("NpcModule", loaded_npc.GetScriptModule().GetCStr());
 
     ASSERT_EQ(2, in->ReadInt32()); // unused slot 0 plus one real item
-    auto unused_item = InteractionEvents::CreateFromStream_v362(in.get(), error);
+    ScriptEventHandlers unused_item;
+    error = unused_item.Read(in.get());
     ASSERT_TRUE(error);
-    ASSERT_NE(nullptr, unused_item);
-    EXPECT_TRUE(unused_item->ScriptModule.IsEmpty());
-    EXPECT_TRUE(unused_item->Events.empty());
-    auto loaded_key = InteractionEvents::CreateFromStream_v362(in.get(), error);
+    EXPECT_TRUE(unused_item.GetScriptModule().IsEmpty());
+    EXPECT_TRUE(unused_item.GetHandlers().empty());
+    ScriptEventHandlers loaded_key;
+    error = loaded_key.Read(in.get());
     ASSERT_TRUE(error);
-    ASSERT_NE(nullptr, loaded_key);
-    EXPECT_STREQ("InventoryModule", loaded_key->ScriptModule.GetCStr());
-    ASSERT_EQ(1u, loaded_key->Events.size());
-    EXPECT_STREQ("UseKey", loaded_key->Events[0].FunctionName.GetCStr());
+    EXPECT_STREQ("InventoryModule", loaded_key.GetScriptModule().GetCStr());
+    ASSERT_EQ(1u, loaded_key.GetHandlers().size());
+    EXPECT_STREQ("UseKey", loaded_key.GetHandlers()[0].FunctionName.GetCStr());
 
     ASSERT_EQ(1, in->ReadInt32());
     EXPECT_STREQ("GuiModule", StrUtil::ReadString(in.get()).GetCStr());
@@ -1211,7 +1159,7 @@ struct LoadedGuiBlock
 {
     std::vector<GUIMain> Guis;
     GUICollection Objects;
-    GuiVersion Version = kGuiVersion_Initial;
+    GuiVersion Version = kGuiVersion_Undefined;
     soff_t StreamLength = 0;
     soff_t StreamPosition = 0;
 };
@@ -1274,7 +1222,7 @@ std::shared_ptr<T> MakeControl(const char *name)
 }
 
 void ExpectControlBase(const DataUtil::GUIControlData &expected,
-    const GUIObject &actual)
+    const GUIControl &actual)
 {
     EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.GetName().GetCStr());
     EXPECT_EQ(expected.Left, actual.GetX());
@@ -1300,7 +1248,7 @@ void SetControlLooks(DataUtil::GUIControlData &control, int base)
 }
 
 void ExpectControlLooks(const DataUtil::GUIControlData &expected,
-    const GUIObject &actual)
+    const GUIControl &actual)
 {
     EXPECT_EQ(expected.BackgroundColor, actual.GetBackColor());
     EXPECT_EQ(expected.BorderColor, actual.GetBorderColor());
@@ -1330,7 +1278,7 @@ TEST(DataFileWriter, RoundTripGuiMain)
     const GUIMain &actual = loaded.Guis[0];
     EXPECT_EQ(kGuiVersion_Current, loaded.Version);
     EXPECT_STREQ("gMain", actual.GetName().GetCStr());
-    EXPECT_STREQ("gMain_OnClick", actual.GetOnClickHandler().GetCStr());
+    EXPECT_STREQ("gMain_OnClick", actual.GetEventHandler(kGUIEvent_OnClick).GetCStr());
     EXPECT_EQ(gui.Left, actual.GetX());
     EXPECT_EQ(gui.Top, actual.GetY());
     EXPECT_EQ(gui.Width, actual.GetWidth());
@@ -1529,6 +1477,16 @@ TEST(DataFileWriter, RoundTripGuiListBox)
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
 
+class DummyGUIControl : public GUIControl
+{
+public:
+    DummyGUIControl() : GUIControl(&_defaultSchema) {}
+private:
+    static ScriptEventSchema _defaultSchema;
+};
+
+ScriptEventSchema DummyGUIControl::_defaultSchema;
+
 TEST(DataFileWriter, RoundTripGuiControlLooks363)
 {
     DataUtil::GUIControlData control;
@@ -1541,7 +1499,7 @@ TEST(DataFileWriter, RoundTripGuiControlLooks363)
     auto in = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer));
 
-    GUIObject loaded;
+    DummyGUIControl loaded;
     loaded.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
     ExpectControlLooks(control, loaded);
     EXPECT_EQ(in->GetLength(), in->GetPosition());

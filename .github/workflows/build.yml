@@ -312,10 +312,10 @@ jobs:
         shell: cmd
         run: |
           cd Solutions
-          msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+          msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
 
       - name: Run Legacy Compiler tests (x86)
-        run: Solutions\.test\Release\Compiler2.Lib.Test.exe
+        run: Solutions\.test\x86\Release\Compiler2.Lib.Test.exe
 
       - name: Build AGS test runners (x86)
         shell: cmd
@@ -352,7 +352,7 @@ jobs:
           msbuild Compiler2.Lib.sln /m /p:MultiProcessorCompilation=true /p:PlatformToolset=v142 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
 
       - name: Run Legacy Compiler tests (x64)
-        run: Solutions\.test\Release\Compiler2.Lib.Test.exe
+        run: Solutions\.test\x64\Release\Compiler2.Lib.Test.exe
 
       - name: Build AGS test runners (x64)
         shell: cmd

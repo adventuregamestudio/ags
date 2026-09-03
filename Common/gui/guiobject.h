@@ -20,7 +20,7 @@
 
 #include "game/scripteventtable.h"
 #include "gfx/gfx_def.h"
-#include "util/geometry.h"
+#include "gfx/graphicspace.h"
 #include "util/string.h"
 
 namespace AGS

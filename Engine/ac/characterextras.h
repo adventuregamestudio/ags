@@ -30,6 +30,7 @@
 #include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "gfx/gfx_def.h"
+#include "gfx/graphicspace.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AGS.Types
 {
@@ -79,6 +80,11 @@ namespace AGS.Types
                 _events = value;
                 Changed?.Invoke(this, new InteractionSchemaChangedEventArgs(oldEvents, _events));
             }
+        }
+
+        public InteractionEvent FindByUID(string uid)
+        {
+            return _events.FirstOrDefault((e) => { return e.UID == uid; });
         }
 
         public delegate void SchemaChanged(object sender, InteractionSchemaChangedEventArgs args);

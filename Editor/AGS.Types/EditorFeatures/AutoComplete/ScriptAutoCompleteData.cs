@@ -26,6 +26,9 @@ namespace AGS.Types
 
         public ScriptFunction FindFunction(string name)
         {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             foreach (ScriptFunction func in _functions)
             {
                 if (func.FunctionName == name)

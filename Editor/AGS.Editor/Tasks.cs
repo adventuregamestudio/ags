@@ -990,7 +990,10 @@ namespace AGS.Editor
             string functionPrefix = isRoom ? "room" : objectName;
             var lookupFunctionNames = checkDefaultMatches ?
                 eventHandlers
-                    .Select(f => { return new KeyValuePair<string, string>(f.Key, !string.IsNullOrEmpty(f.Value) ? f.Value : $"{functionPrefix}_{events[f.Key].Suffix}"); })
+                    .Select(f => { return new KeyValuePair<string, string>(f.Key,
+                        // Get or generate expected function name
+                        !string.IsNullOrEmpty(f.Value) ? f.Value : (events.ContainsKey(f.Key) ? $"{functionPrefix}_{events[f.Key].Suffix}" : string.Empty)
+                        ); })
                     .ToDictionary(f => f.Key, f => f.Value)
                 : eventHandlers;
             if (autoCompleteData != null)

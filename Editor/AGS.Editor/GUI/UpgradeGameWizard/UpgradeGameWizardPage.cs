@@ -25,5 +25,21 @@ namespace AGS.Editor
             _game = game;
             _upgradeTask = task;
         }
+
+        public override string TitleText
+        {
+            get { return Task != null ? Task.Title : string.Empty; }
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // UpgradeGameWizardPage
+            // 
+            this.Name = "UpgradeGameWizardPage";
+            this.Size = new System.Drawing.Size(1523, 582);
+            this.ResumeLayout(false);
+        }
     }
 }

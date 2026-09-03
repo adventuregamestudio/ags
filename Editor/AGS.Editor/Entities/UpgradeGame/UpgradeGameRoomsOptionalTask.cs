@@ -75,6 +75,15 @@ namespace AGS.Editor
         /// </summary>
         public bool Enabled { get; set; }
 
+        /// <summary>
+        /// Tells whether this task should be applied to this game.
+        /// This method can have additional conditions, besides the default version check.
+        /// </summary>
+        public bool ShouldApplyToGame(Game game)
+        {
+            return true;
+        }
+
         internal RoomsComponent.UpgradeOptions Options
         {
             get { return _options; }

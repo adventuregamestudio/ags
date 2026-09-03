@@ -106,7 +106,11 @@ namespace AGS.Types
 
                 Interactions interactions = (Interactions)interactionsProperty.GetValue(obj, null);
                 foreach (var fn in interactions.ScriptFunctionNames)
-                    scriptFunctions.Add(fn.Key, fn.Value);
+                {
+                    var evt = interactions.Schema.FindByUID(fn.Key);
+                    if (evt != null)
+                        scriptFunctions.Add(evt.EventName, fn.Value);
+                }
             }
         }
     }

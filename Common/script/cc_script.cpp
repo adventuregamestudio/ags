@@ -107,7 +107,8 @@ ccScript &ccScript::operator =(const ccScript &src)
     export_addr = src.export_addr;
     sectionNames = src.sectionNames;
     sectionOffsets = src.sectionOffsets;
-    rtti.reset(new RTTI(*src.rtti));
+    if (src.rtti)
+        rtti.reset(new RTTI(*src.rtti));
     return *this;
 }
 

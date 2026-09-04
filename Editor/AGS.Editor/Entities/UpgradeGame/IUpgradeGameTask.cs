@@ -5,6 +5,16 @@ using AGS.Types;
 namespace AGS.Editor
 {
     /// <summary>
+    /// Defines which stage a task has to be run on.
+    /// </summary>
+    public enum UpgradeGameTaskStage
+    {
+        None,
+        PreStage,
+        PostStage
+    }
+
+    /// <summary>
     /// IUpgradeGameTask represents a single step operation in the game upgrade
     /// process. The operation itself may include multiple adjustments to the
     /// game's data. A distinct upgrade task is required when particular changes
@@ -68,6 +78,10 @@ namespace AGS.Editor
         /// continue the upgrade process in case this task had errors.
         /// </summary>
         bool RequestConfirmationOnErrors { get; }
+        /// <summary>
+        /// Tells which stage should this task be run on.
+        /// </summary>
+        UpgradeGameTaskStage Stage { get; }
 
         /// <summary>
         /// Whether this task is enabled, otherwise should be skipped.

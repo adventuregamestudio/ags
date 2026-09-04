@@ -69,6 +69,10 @@ namespace AGS.Editor
         /// continue the upgrade process in case this task had errors.
         /// </summary>
         public bool RequestConfirmationOnErrors { get { return true; } }
+        /// <summary>
+        /// Tells which stage should this task be run on.
+        /// </summary>
+        public UpgradeGameTaskStage Stage { get { return UpgradeGameTaskStage.None; } }
 
         /// <summary>
         /// Whether this task is enabled, otherwise should be skipped.

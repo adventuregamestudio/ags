@@ -164,6 +164,7 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\GameTextEncodingChangedArgs.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="Config\ConfigUtils.cs" />
     <Compile Include="Entities\CharacterDescriptionChangedEventArgs.cs" />
@@ -182,6 +183,7 @@
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameTextEncodingTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameIntroAndBackupTask.cs" />

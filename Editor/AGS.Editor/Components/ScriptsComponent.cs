@@ -1,15 +1,12 @@
+using AGS.Editor.Preferences;
+using AGS.Editor.Utils;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml;
-using AGS.Editor.Preferences;
-using AGS.Editor.Utils;
-using AGS.Types;
-using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor.Components
 {
@@ -76,6 +73,7 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.OnAfterLabelEdit += ProjectTree_OnAfterLabelEdit;
 
             Factory.Events.GamePostLoad += Events_GamePostLoad;
+            Factory.Events.GameTextEncodingChanged += Events_GameTextEncodingChanged;
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -959,6 +957,31 @@ namespace AGS.Editor.Components
                     // CHECKME: do not save the script here, in case user made a mistake opening this in a newer editor
                     // and closes project without saving after upgrade? Upgrade process is not well defined...
                 }
+            }
+        }
+
+        private void Events_GameTextEncodingChanged(GameTextEncodingChangedArgs evArgs)
+        {
+            // Convert all scripts
+            IWorkProgress progress = evArgs.Progress;
+            int total = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders.Count;
+            int current = 0;
+            foreach (var script in Factory.AGSEditor.CurrentGame.ScriptsAndHeaders)
+            {
+                // TODO: this is ugly, make TextEncoding non-static per script property?
+                // or pass into Load/Save method (but some more changes are necessary)
+                Script.TextEncoding = evArgs.OldEncoding;
+                script.Header.LoadFromDisk();
+                script.Script.LoadFromDisk();
+                Script.TextEncoding = evArgs.Game.TextEncoding;
+                script.Header.Modified = true;
+                script.Header.SaveToDisk();
+                script.Script.Modified = true;
+                script.Script.SaveToDisk();
+
+                if (progress != null)
+                    progress.SetProgress(total, current, $"Game scripts: {current} / {total}", false);
+                current++;
             }
         }
     }

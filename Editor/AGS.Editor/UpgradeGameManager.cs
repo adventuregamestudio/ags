@@ -38,6 +38,8 @@ namespace AGS.Editor
             var allTasks = GetAllTasks();
 
             List<IUpgradeGameTask> tasks = new List<IUpgradeGameTask>();
+            List<IUpgradeGameTask> preTasks = new List<IUpgradeGameTask>();
+            List<IUpgradeGameTask> postTasks = new List<IUpgradeGameTask>();
             var gameVersion = game.SavedXmlVersion;
             var gameVersionIndex = game.SavedXmlVersionIndex;
             bool needBackup = false;
@@ -48,11 +50,25 @@ namespace AGS.Editor
                     (task.GameVersionIndex.HasValue && gameVersionIndex.HasValue && gameVersionIndex < task.GameVersionIndex))
                     && task.ShouldApplyToGame(game))
                 {
-                    tasks.Add(task);
-                    // We request Backup task whenever there's a non-implicit upgrade task
+                    switch (task.Stage)
+                    {
+                        case UpgradeGameTaskStage.PreStage: preTasks.Add(task); break;
+                        case UpgradeGameTaskStage.PostStage: postTasks.Add(task); break;
+                        default: tasks.Add(task); break;
+                    }
+                    
+                    // We request Backup task whenever there's a non-implicit upgrade task;
+                    // the reasoning here is that explicit tasks define sensitive updates
+                    // that either changes project format, or may potentially alter the game's behavior.
                     needBackup |= !task.Implicit;
                 }
             }
+
+            // Insert pre- post- tasks either at the beginning or end of the main task list
+            foreach (var task in preTasks)
+                tasks.Insert(0, task);
+            foreach (var task in postTasks)
+                tasks.Add(task);
 
             // If need a project backup task, always insert one at the beginning of the list
             if (needBackup)

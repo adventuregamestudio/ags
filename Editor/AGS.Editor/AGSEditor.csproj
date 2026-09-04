@@ -30,6 +30,13 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
+  <!-- csproj AnyCPU alias to "x86" to adjust output directories before AGS.OutputPaths.props -->
+  <PropertyGroup>
+    <PlatformFolderName Condition="'$(Platform)'=='AnyCPU'">x86</PlatformFolderName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>AGS.Editor.Program</StartupObject>
+  </PropertyGroup>
   <Import Project="..\..\Solutions\AGS.OutputPaths.props" />
   <PropertyGroup>
     <IntermediateOutputPath>$(AgsObjDir)</IntermediateOutputPath>
@@ -67,24 +74,25 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>$(AgsFinalOutDir)</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <Optimize>false</Optimize>
     <LangVersion>6</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>$(AgsFinalOutDir)</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <LangVersion>6</LangVersion>
     <ErrorReport>prompt</ErrorReport>
@@ -92,7 +100,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Condition="'$(Platform)' == 'x86'" Include="AGS.Native, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Condition="'$(Platform)' == 'AnyCPU'" Include="AGS.Native, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\AGS.Native.dll</HintPath>
     </Reference>
@@ -100,7 +108,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\x64\AGS.Native.dll</HintPath>
     </Reference>
-    <Reference Condition="'$(Platform)' == 'x86'" Include="irrKlang.NET4">
+    <Reference Condition="'$(Platform)' == 'AnyCPU'" Include="irrKlang.NET4">
       <HintPath>..\References\irrKlang.NET4.dll</HintPath>
     </Reference>
     <Reference Include="Magick.NET-Q8-AnyCPU, Version=7.10.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
@@ -721,7 +729,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Condition="'$(Platform)' == 'x86'" Include="..\References\ikpMP3.dll">
+    <Content Condition="'$(Platform)' == 'AnyCPU'" Include="..\References\ikpMP3.dll">
       <Link>ikpMP3.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -1290,7 +1298,7 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <ItemGroup Condition="'$(OS)' != 'Unix' And $(Platform) == 'x86'">
+  <ItemGroup Condition="'$(OS)' != 'Unix' And $(Platform) == 'AnyCPU'">
     <NativeDLL Include="..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\runtimes\win-x86\native\*.Native.dll" />
     <Content Include="@(NativeDLL)">
       <Link>%(FileName)%(Extension)</Link>

@@ -68,8 +68,8 @@ namespace AGS.Editor
             {
                 mediaRes = new string[]
                 {
-                    $"{AudioComponent.AUDIO_CACHE_DIRECTORY}\\*.*",
-                    $"{SpeechComponent.SPEECH_DIRECTORY}\\*.*",
+                    $"{AudioComponent.AUDIO_CACHE_DIRECTORY}/*",
+                    $"{SpeechComponent.SPEECH_DIRECTORY}/*",
                     "preload.pcx",
                     "flic*.fl?",
                     "*.ogv"

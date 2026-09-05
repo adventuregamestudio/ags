@@ -233,7 +233,7 @@ static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortSty
         break;
     case kScSaveGameSort_Description:
     {
-        SaveItemCmpByDesc cmp_by_desc(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, false, play.GetTextLocaleName().GetCStr()));
+        SaveItemCmpByDesc cmp_by_desc(StrUtil::GetStrCmpImplFor(true, false, play.GetTextLocaleName().GetCStr()));
         if (ascending)
             std::sort(saves.begin(), saves.end(), cmp_by_desc);
         else

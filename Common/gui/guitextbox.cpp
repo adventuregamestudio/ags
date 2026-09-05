@@ -68,16 +68,9 @@ void GUITextBox::Draw(Bitmap *ds, int x, int y)
 // TODO: a shared utility function
 static void Backspace(String &text)
 {
-    if (get_uformat() == U_UTF8)
-    {// Find where the last utf8 char begins
-        const char *ptr_end = text.GetCStr() + text.GetLength();
-        const char *ptr_prev = Utf8::BackOneChar(ptr_end, text.GetCStr());
-        text.ClipRight(ptr_end - ptr_prev);
-    }
-    else
-    {
-        text.ClipRight(1);
-    }
+    const char *ptr_end = text.GetCStr() + text.GetLength();
+    const char *ptr_prev = Utf8::BackOneChar(ptr_end, text.GetCStr());
+    text.ClipRight(ptr_end - ptr_prev);
 }
 
 bool GUITextBox::OnKeyPress(const KeyInput &ki)
@@ -97,12 +90,7 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
     if (ki.UChar == 0)
         return false; // not a textual event, don't handle
 
-    if (get_uformat() == U_UTF8)
-        _text.Append(ki.Text); // proper unicode char
-    else if (ki.UChar < 256)
-        _text.AppendChar(static_cast<uint8_t>(ki.UChar)); // ascii/ansi-range char in ascii mode
-    else
-        return true; // char from an unsupported range, don't print but still report as handled
+    _text.Append(ki.Text);
     // if the new string is too long, remove the new character
     if (get_text_width(_text.GetCStr(), _font) > (_width - (6 + 5)))
         Backspace(_text);

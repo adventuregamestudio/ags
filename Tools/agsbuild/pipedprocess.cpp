@@ -31,11 +31,9 @@ PipedProcess::PipedProcess(const String &exe_path, const String &params, TextStr
     , _params(params)
     , _logWriter(log_writer)
 {
-#if (AGS_PLATFORM_OS_WINDOWS)
-    _command = String::FromFormat("%s.exe %s", exe_path.GetCStr(), params.GetCStr());
-    memset(&_pi, 0, sizeof(_pi));
-#else
     _command = String::FromFormat("%s %s", exe_path.GetCStr(), params.GetCStr());
+#if (AGS_PLATFORM_OS_WINDOWS)
+    memset(&_pi, 0, sizeof(_pi));
 #endif
 }
 

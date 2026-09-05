@@ -69,6 +69,11 @@ namespace Path
     // Tells if this path has only filename and no directory parts
     bool    IsOnlyFilename(const String &path);
 
+    // Wraps the path in double quotes, which will help in case it's used as a
+    // shell command or argument and has special characters used as command
+    // separators inside (e.g. spaces). This function checks if there are
+    // double quotes around path already and does not add more in case there are.
+    String  EscapePath(const String &path);
     // Makes a path have only '/' slashes; this is to make it easier to work
     // with path, knowing it contains only one type of directory separators
     void    FixupPath(String &path);
@@ -85,6 +90,12 @@ namespace Path
     String  MakeRelativePath(const String &base, const String &path);
     // Creates path by combining directory, file name and extension
     String  MakePath(const String &parent, const String &filename, const String &ext);
+    // Creates path by combining directory and executable file name,
+    // ensures a executable's extension depending on the current platform (i.e. ".exe" on Windows).
+    String  MakeExePath(const String &parent_path, const String &exe_filename);
+    // Creates a executable path and escapes it with double quotes for use as a shell cmd
+    inline String MakeEscapedExePath(const String &parent_path, const String &exe_filename)
+        { return EscapePath(MakeExePath(parent_path, exe_filename)); }
     // Appends another section to existing path
     String &AppendPath(String &path, const String &child);
     // Concatenates parent and relative paths

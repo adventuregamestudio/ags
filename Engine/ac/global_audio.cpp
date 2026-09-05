@@ -59,25 +59,21 @@ int IsMusicVoxAvailable () {
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 // Construct an asset name for the voice-over clip for the given character and cue id
-static String get_cue_filename(int charid, int sndid, bool old_style)
+static String get_cue_filename(int charid, int sndid)
 {
     // Clip name generation rule:
     // Cut a small case 'c' prefix from the character's script name,
     // this is a ugly hack, but is still done, because in AGS
     // characters were traditionally named as 'cEgo'.
-    // New-style: use full script name (past the prefix),
+    // Naming format: use full script name (past the prefix),
     //            clip number (X) is separated by a dot:
     //            "CHARNAME.X"
-    // Old-style: use only first 4 characters (past the prefix).
-    //            clip number (X) is not separated:
-    //            "CHARX"
     const char *charname = (charid >= 0) ? game.chars[charid].scrname.GetCStr()
         : "narrator";
     size_t from = (charname[0] == 'c') ? 1 : 0u;
-    size_t len = old_style ? 4 : SIZE_MAX;
-    String charname_fix(charname + from, len);
+    String charname_fix(charname + from, SIZE_MAX);
     
-    const char *fmt_str = old_style ? "%s%d" : "%s.%d";
+    const char *fmt_str = "%s.%d";
     String asset_filename = String::FromFormat(fmt_str, charname_fix.GetCStr(), sndid);
     return Path::ConcatPaths(get_voice_assetpath(), asset_filename);
 }
@@ -165,7 +161,7 @@ bool play_voice_speech(int charid, int sndid)
     if (!play.ShouldPlayVoiceSpeech())
         return false;
 
-    String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
+    String voice_file = get_cue_filename(charid, sndid);
     if (!play_voice_clip_impl(voice_file, true, true))
         return false;
 
@@ -201,7 +197,7 @@ bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
     if (as_speech && play.IsBlockingVoiceSpeech())
         return false;
 
-    String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
+    String voice_file = get_cue_filename(charid, sndid);
     return play_voice_clip_impl(voice_file, as_speech, false);
 }
 
@@ -211,7 +207,7 @@ const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int typ
     if (!play.ShouldPlayVoiceSpeechNonBlocking())
         return nullptr;
 
-    String voice_file = get_cue_filename(charid, sndid, !game.options[OPT_VOICECLIPNAMERULE]);
+    String voice_file = get_cue_filename(charid, sndid);
     AssetPath apath = find_voice_clip(voice_file);
     if (!apath)
         return nullptr;

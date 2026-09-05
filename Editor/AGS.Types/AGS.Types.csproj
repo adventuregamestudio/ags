@@ -2,7 +2,7 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</ProjectGuid>
@@ -42,9 +42,42 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <TargetFrameworkProfile />
   </PropertyGroup>
+  <!-- csproj AnyCPU alias to "x86" to adjust output directories before AGS.OutputPaths.props -->
+  <PropertyGroup>
+    <PlatformFolderName Condition="'$(Platform)'=='AnyCPU'">x86</PlatformFolderName>
+  </PropertyGroup>
   <Import Project="..\..\Solutions\AGS.OutputPaths.props" />
   <PropertyGroup>
     <IntermediateOutputPath>$(AgsObjDir)</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>$(AgsFinalOutDir)</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DocumentationFile>$(AgsFinalOutDir)AGS.Types.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <LangVersion>6</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>$(AgsFinalOutDir)</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>$(AgsFinalOutDir)AGS.Types.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <LangVersion>6</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -72,30 +105,6 @@
     <NoWarn>1591</NoWarn>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>6</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(AgsFinalOutDir)</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DocumentationFile>$(AgsFinalOutDir)AGS.Types.XML</DocumentationFile>
-    <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>6</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>$(AgsFinalOutDir)</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>$(AgsFinalOutDir)AGS.Types.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
     <LangVersion>6</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>

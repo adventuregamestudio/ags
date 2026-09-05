@@ -638,9 +638,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     ext_offset_pos = out->GetPosition();
     out->WriteInt32(0); // extension offset - none
 
-    // MAXGLOBALMES; write 500 ints
-    for (int i = 0; i < GameSetupStructBase::NUM_LEGACY_GLOBALMES; ++i)
-        out->WriteInt32(i < static_cast<int>(game.GlobalMessages.size()) && !game.GlobalMessages[i].IsEmpty() ? 1 : 0);
+    // skip NUM_LEGACY_GLOBALMES int32s since kGameVersion_400_33
 
     out->WriteInt32(1); // dict != null
     out->WriteInt32(0); // globalscript != null

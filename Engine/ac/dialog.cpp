@@ -1429,8 +1429,6 @@ bool DialogOptions::RunControls()
 
 bool DialogOptions::RunKey(const KeyInput &ki)
 {
-    const bool old_keyhandle = game.options[OPT_KEYHANDLEAPI] == 0;
-
     const eAGSKeyCode agskey = ki.Key;
     if (parserInput)
     {
@@ -1462,20 +1460,20 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     }
     else if (newCustomRender)
     {
-        if (old_keyhandle || (ki.UChar == 0))
+        if (ki.UChar == 0)
         { // "dialog_options_key_press"
             runDialogOptionKeyPressHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionKeyPressHandlerFunc.Params[1].SetInt32(AGSKeyToScriptKey(ki.Key));
             runDialogOptionKeyPressHandlerFunc.Params[2].SetInt32(ki.Mod);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
-        if (!old_keyhandle && (ki.UChar > 0))
+        if (ki.UChar > 0)
         { // "dialog_options_text_input"
             runDialogOptionTextInputHandlerFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
             runDialogOptionTextInputHandlerFunc.Params[1].SetInt32(ki.UChar);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
-        return (old_keyhandle || (ki.UChar == 0)) || (!old_keyhandle && (ki.UChar > 0));
+        return ki.UChar >= 0;
     }
     // Allow selection of options by keyboard shortcuts
     else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&

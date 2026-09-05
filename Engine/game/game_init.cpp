@@ -566,11 +566,6 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
     }
     play.SetRBSwitches(rbo);
 
-    if (setup.Override.NewKeyHandling)
-    {
-        game.options[OPT_KEYHANDLEAPI] = 1;
-    }
-
     GUI::Options.ApplyTextDirection = play.GetRBSwitches()[kRBO_ApplyGUITextDirection];
 }
 

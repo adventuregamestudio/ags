@@ -1,3 +1,5 @@
+using AGS.CScript.Compiler;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -5,11 +7,12 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.Security;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Types;
 
 namespace AGS.Editor.Components
 {
@@ -40,6 +43,12 @@ namespace AGS.Editor.Components
         {
             _agsEditor.ExtraCompilationStep += _agsEditor_ExtraCompilationStep;
             _agsEditor.ExtraOutputCreationStep += _agsEditor_ExtraOutputCreationStep;
+            Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
+        }
+
+        private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
+        {
+            args.Tasks.Add(new UpgradeGameVoiceClipsTask(ConvertVoiceClipsToNewNamingStyle));
         }
 
         private void _agsEditor_ExtraCompilationStep(CompilationStepArgs args)
@@ -135,27 +144,71 @@ namespace AGS.Editor.Components
         /// </summary>
         private void CheckSpeechFilesForConsistency(string dir, CompileMessages messages)
         {
-            string[] audioClipList = ConstructFileListForSpeechVOX(dir, true);
+            // TODO: perhaps test if there are any files not matching supported format / naming convention?
+            //string[] audioClipList = ConstructFileListForSpeechVOX(dir, true);
+        }
 
-            if (_agsEditor.CurrentGame.Settings.UseOldVoiceClipNaming)
+        private void ConvertVoiceClipsToNewNamingStyle(Game game, IWorkProgress progress, CompileMessages messages)
+        {
+            var dirs = Directory.GetDirectories(SPEECH_DIRECTORY).ToList();
+            dirs.Insert(0, SPEECH_DIRECTORY);
+            progress.SetProgress(dirs.Count, 0, "Upgrading speech files", autoFormatProgress: false);
+
+            int progressCount = 0;
+            int renamedCount = 0;
+            foreach (string dir in dirs)
             {
-                var regNewStyle = new Regex(@"^\w+\.\d+\.\w+");
-                foreach (string clipFile in audioClipList)
-                {
-                    if (regNewStyle.IsMatch(Path.GetFileName(clipFile)))
-                    {
-                        messages.Add(new CompileWarning($"Speech file \"{clipFile}\" matches the new voice clip naming rule, but the game is set to use the old rule (see General Settings)."));
-                    }
-                }
+                ConvertVoiceClipsToNewNamingStyle(game, dir, messages, ref renamedCount);
+                progress.SetProgress(dirs.Count, progressCount, $"Upgrading speech files: {progressCount} of {dirs.Count} directories", autoFormatProgress: false);
+                progressCount++;
             }
-            else
+            messages.Add(new CompileInformation($"Converted {renamedCount} speech-related files to new style naming format"));
+        }
+
+        /// <summary>
+        /// Scan the given speech directory, find any files in old-style names,
+        /// and rename them to respective new-style names.
+        /// </summary>
+        private void ConvertVoiceClipsToNewNamingStyle(Game game, string dir, CompileMessages messages, ref int renamedCount)
+        {
+            string[] audioClipList = ConstructFileListForSpeechVOX(dir, true);
+            var regOldStyle = new Regex(@"^(\w{1,4})(\d+)\.(\w+)");
+            foreach (string clipFile in audioClipList)
             {
-                var regOldStyle = new Regex(@"^\w{1,4}\d+\.\w+");
-                foreach (string clipFile in audioClipList)
+                var match = regOldStyle.Match(Path.GetFileName(clipFile));
+                // 4 groups total, because group 0 is full string
+                if (match.Success && match.Groups.Count == 4)
                 {
-                    if (regOldStyle.IsMatch(Path.GetFileName(clipFile)))
+                    var charNameShort = match.Groups[1].Value;
+                    var cue = match.Groups[2].Value;
+                    var ext = match.Groups[3].Value;
+                    string charNameFull = null;
+                    // Find first character whose script name's first 4 letters (without first 'c') match the clip's name
+                    foreach (var character in game.Characters)
                     {
-                        messages.Add(new CompileWarning($"Speech file \"{clipFile}\" matches the old voice clip naming rule, but the game is set to use the new rule (see General Settings)."));
+                        if (!string.IsNullOrEmpty(character.ScriptName))
+                        {
+                            var nameWithoutC = character.ScriptName.StartsWith("c") ? character.ScriptName.Substring(1) : character.ScriptName;
+                            if (string.Compare(charNameShort, nameWithoutC.Substring(0, 4), true) == 0)
+                            {
+                                charNameFull = nameWithoutC;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (charNameFull != null)
+                    {
+                        var newClipFile = Path.Combine(dir, $"{charNameFull}.{cue}.{ext}");
+                        try
+                        {
+                            File.Move(clipFile, newClipFile);
+                            renamedCount++;
+                        }
+                        catch (Exception e)
+                        {
+                            messages.Add(new CompileError($"Failed to rename speech file {Path.GetFileName(clipFile)} to {Path.GetFileName(newClipFile)}", e));
+                        }
                     }
                 }
             }
@@ -356,6 +409,9 @@ namespace AGS.Editor.Components
 
         private string[] ConstructFileListForSpeechVOX(string sourceDir, bool audioOnly = false)
         {
+            // TODO: only gather voice files that match the naming style?
+            // var regNewStyle = new Regex(@"^\w+\.\d+\.\w+");
+
             List<string> files = new List<string>();
             if (!audioOnly)
                 Utilities.AddAllMatchingFiles(files, sourceDir, LIP_SYNC_DATA_OUTPUT, true);

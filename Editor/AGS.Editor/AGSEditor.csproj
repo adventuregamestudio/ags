@@ -164,6 +164,7 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\GameTextEncodingChangedArgs.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="Config\ConfigUtils.cs" />
     <Compile Include="Entities\CharacterDescriptionChangedEventArgs.cs" />
@@ -182,6 +183,7 @@
     <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameTextEncodingTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameIntroAndBackupTask.cs" />
@@ -189,6 +191,7 @@
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOpenFormatTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameRoomsOptionalTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameUtils.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameVoiceClipsTask.cs" />
     <Compile Include="Enums\AdjustMaskOptions.cs" />
     <Compile Include="GUI\AdjustMasksDialog.cs">
       <SubType>Form</SubType>
@@ -280,6 +283,12 @@
     </Compile>
     <Compile Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.Designer.cs">
       <DependentUpon>UpgradeGameIntroPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameVoiceClipsPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\UpgradeGameWizard\UpgradeGameVoiceClipsPage.Designer.cs">
+      <DependentUpon>UpgradeGameVoiceClipsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\UpgradeGameWizard\UpgradeGameWizardPage.cs">
       <SubType>UserControl</SubType>
@@ -569,6 +578,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\UpgradeGameWizard\UpgradeGameIntroPage.resx">
       <DependentUpon>UpgradeGameIntroPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\UpgradeGameWizard\UpgradeGameVoiceClipsPage.resx">
+      <DependentUpon>UpgradeGameVoiceClipsPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\UpgradeGameWizard\UpgradeGameWizardPage.resx">
+      <DependentUpon>UpgradeGameWizardPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\WatchVariablesPanel.resx">
       <DependentUpon>WatchVariablesPanel.cs</DependentUpon>

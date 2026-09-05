@@ -59,7 +59,7 @@ extern bool measure_font_height(const AGSString &filename, int pixel_height, int
 extern void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox);
 extern void GetFontValidCharacters(int fontnum, std::vector<int> &char_codes);
 // Draws font char sheet on the provided context
-extern void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
+extern void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
     int dc_atx, int dc_aty, int draw_atx, int draw_aty,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y,
     int col_count, int row_count, int first_cell,
@@ -368,13 +368,13 @@ namespace AGS
             return arr;
         }
 
-        void NativeMethods::DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
+        void NativeMethods::DrawFont(int hDC, int fontNum, bool only_valid_chars,
             int dc_atx, int dc_aty, int draw_atx, int draw_aty,
             int cell_w, int cell_h, int cell_space_x, int cell_space_y,
             int col_count, int row_count, int first_cell,
             float scaling)
         {
-            return DrawFontAt((HDC)hDC, fontNum, ansi_mode, only_valid_chars,
+            return DrawFontAt((HDC)hDC, fontNum, only_valid_chars,
                 dc_atx, dc_aty, draw_atx, draw_aty,
                 cell_w, cell_h, cell_space_x, cell_space_y,
                 col_count, row_count, first_cell, scaling);

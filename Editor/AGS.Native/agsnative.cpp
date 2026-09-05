@@ -687,7 +687,7 @@ void GetFontValidCharacters(int fontnum, std::vector<int> &char_codes)
         char_codes = *codes;
 }
 
-void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
+void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
     int dc_atx, int dc_aty, int draw_atx, int draw_aty,
     int cell_w, int cell_h, int cell_space_x, int cell_space_y,
     int col_count, int row_count, int first_cell,
@@ -730,9 +730,7 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
     else
     {
         int first_char = 0;
-        int last_char = ansi_mode ?
-            std::min(255, get_font_topmost_char_code(fontnum)) :
-            get_font_topmost_char_code(fontnum);
+        int last_char = get_font_topmost_char_code(fontnum);
         char_count = last_char - first_char + 1;
     }
 
@@ -742,48 +740,20 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
     tempblock->Fill(0);
     const color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
     const int old_uformat = get_uformat();
-    const int want_uformat = ansi_mode ? U_ASCII : U_UTF8;
+    const int want_uformat = U_UTF8;
     if (old_uformat != want_uformat)
         set_uformat(want_uformat);
-    if (want_uformat == U_ASCII)
+    for (int i = first_cell; i < char_count; ++i)
     {
-        // ASCII / ANSI variant
-        for (int i = first_cell; i < char_count; ++i)
-        {
-            int c;
-            if (only_valid_chars)
-            {
-                c = (*char_codes)[i];
-                if (c > 255)
-                    break; // in ansi mode do not print characters above code 255
-            }
-            else
-            {
-                c = i;
-            }
-            const int char_col = ((i - first_cell) % col_count);
-            const int char_row = ((i - first_cell) / col_count);
-            woutprintf(tempblock.get(),
-                       draw_atx + char_col * (cell_w + cell_space_x) + char_off.X,
-                       draw_aty + char_row * (cell_h + cell_space_y) + char_off.Y,
-                       fontnum, text_color, "%c", c);
-        }
-    }
-    else if (want_uformat == U_UTF8)
-    {
-        // UTF-8 variant
-        for (int i = first_cell; i < char_count; ++i)
-        {
-            const int c = only_valid_chars ? (*char_codes)[i] : i;
-            char uchar[Utf8::UtfSz + 1];
-            uchar[Utf8::SetChar(c, uchar, sizeof(uchar))] = 0;
-            const int char_col = ((i - first_cell) % col_count);
-            const int char_row = ((i - first_cell) / col_count);
-            wouttextxy(tempblock.get(),
-                       draw_atx + char_col * (cell_w + cell_space_x) + char_off.X,
-                       draw_aty + char_row * (cell_h + cell_space_y) + char_off.Y,
-                       fontnum, text_color, uchar);
-        }
+        const int c = only_valid_chars ? (*char_codes)[i] : i;
+        char uchar[Utf8::UtfSz + 1];
+        uchar[Utf8::SetChar(c, uchar, sizeof(uchar))] = 0;
+        const int char_col = ((i - first_cell) % col_count);
+        const int char_row = ((i - first_cell) / col_count);
+        wouttextxy(tempblock.get(),
+            draw_atx + char_col * (cell_w + cell_space_x) + char_off.X,
+            draw_aty + char_row * (cell_h + cell_space_y) + char_off.Y,
+            fontnum, text_color, uchar);
     }
     if (old_uformat != want_uformat)
         set_uformat(old_uformat);
@@ -1709,7 +1679,7 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 
 void GameUpdated(Game ^game, bool forceUpdate)
 {
-  set_uformat(game->UnicodeMode ? U_UTF8 : U_ASCII);
+  set_uformat(U_UTF8);
   // TODO: this function may get called when only one item is added/removed or edited;
   // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;

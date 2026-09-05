@@ -15,9 +15,7 @@ namespace AGS.Editor
         private int[] _charCodes;
         // Character code to preview index lookup table
         private Dictionary<int, int> _charcodeToCellIndex;
-        private int _lastANSICharCodeIndex = -1;
         private float _scaling = 1.0f;
-        private bool _ansiMode = false;
         private bool _hideMissingChars = true;
         private int _selectedChar = -1;
         private bool _displayCodes = false;
@@ -65,19 +63,6 @@ namespace AGS.Editor
                     throw new ArgumentOutOfRangeException();
 
                 _scaling = value;
-                if (!DesignMode)
-                {
-                    UpdateAndRepaint(false);
-                }
-            }
-        }
-
-        public bool ANSIMode
-        {
-            get { return _ansiMode; }
-            set
-            {
-                _ansiMode = value;
                 if (!DesignMode)
                 {
                     UpdateAndRepaint(false);
@@ -200,8 +185,6 @@ namespace AGS.Editor
                     for (int i = 0; i < _charCodes.Length; ++i)
                     {
                         _charcodeToCellIndex.Add(_charCodes[i], i);
-                        if (_charCodes[i] < 256)
-                            _lastANSICharCodeIndex = i;
                     }
                 }
             }
@@ -210,7 +193,6 @@ namespace AGS.Editor
                 _fontMetrics = FontMetrics.Empty;
                 _charCodes = null;
                 _charcodeToCellIndex = null;
-                _lastANSICharCodeIndex = -1;
             }
 
             PrecalculatePreviewGrid();
@@ -249,17 +231,13 @@ namespace AGS.Editor
             {
                 if (_charCodes.Length > 0)
                 {
-                    char_count = ANSIMode ?
-                        _lastANSICharCodeIndex + 1 :
-                        _charCodes.Length;
+                    char_count = _charCodes.Length;
                 }
             }
             else
             {
                 int first_char = 0;
                 int last_char = _fontMetrics.LastCharCode;
-                if (ANSIMode)
-                    last_char = Math.Min(last_char, 255);
                 char_count = (last_char - first_char + 1);
             }
 
@@ -497,7 +475,7 @@ namespace AGS.Editor
             {
                 int firstRowDrawPos = _grid.CellSpaceY + firstVisibleRow * (_grid.CellHeight + _grid.CellSpaceY)
                     - scroll_y;
-                Factory.NativeProxy.DrawFont(g.GetHdc(), _font.ID, ANSIMode, HideMissingCharacters,
+                Factory.NativeProxy.DrawFont(g.GetHdc(), _font.ID, HideMissingCharacters,
                     0, 0, _grid.CellSpaceX, firstRowDrawPos,
                     _grid.CellWidth, _grid.CellHeight, _grid.CellSpaceX, _grid.CellSpaceY,
                     _grid.CharsPerRow, lastVisibleRow - firstVisibleRow + 1, firstVisibleCell,
@@ -530,8 +508,6 @@ namespace AGS.Editor
             if (DisplayCodes)
             {
                 int lastCharCode = _fontMetrics.LastCharCode;
-                if (ANSIMode)
-                    lastCharCode = Math.Min(lastCharCode, 255);
                 for (int cell = firstVisibleCell, row = firstVisibleRow; row <= lastVisibleRow && cell <= lastVisibleCell; ++row)
                 {
                     for (int col = 0; col < _grid.CharsPerRow && cell <= lastVisibleCell; ++col, ++cell)
@@ -545,10 +521,7 @@ namespace AGS.Editor
                         Rectangle pos = new Rectangle(cellLeftBottom.X, cellLeftBottom.Y - _codeCue.Height,
                             _codeCue.Width, _codeCue.Height);
                         g.FillRectangle(Brushes.LightGray, pos);
-                        if (ANSIMode)
-                            g.DrawString(code.ToString(), _codeCue.Font, Brushes.Black, pos.X + 1, pos.Y + 1);
-                        else
-                            g.DrawString(code.ToString("X4"), _codeCue.Font, Brushes.Black, pos.X + 1, pos.Y + 1);
+                        g.DrawString(code.ToString("X4"), _codeCue.Font, Brushes.Black, pos.X + 1, pos.Y + 1);
                     }
                 }
             }

@@ -1,31 +1,33 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using AGS.Editor.Components;
-using AGS.Types;
 
 namespace AGS.Editor
 {
     /// <summary>
-    /// UpgradeGameIntroAndBackupTask performs an optional project backup;
-    /// is supposed to be executed prior to any other upgrade tasks.
+    /// UpgradeGameVoiceClips renames old-style voice clips to new-style format.
     /// </summary>
-    public class UpgradeGameIntroAndBackupTask : IUpgradeGameTask
+    public class UpgradeGameVoiceClipsTask : IUpgradeGameTask
     {
-        public UpgradeGameIntroAndBackupTask()
+        internal delegate void ProcessSpeechFiles(Game game, IWorkProgress progress, CompileMessages errors);
+        private ProcessSpeechFiles _procSpeechFiles;
+
+        internal UpgradeGameVoiceClipsTask(ProcessSpeechFiles proc)
         {
+            _procSpeechFiles = proc;
             Enabled = true;
         }
 
         /// <summary>
         /// A unique string identifier of this upgrade step.
         /// </summary>
-        public string ID { get { return "UpgradeGameIntroAndBackup"; } }
+        public string ID { get { return "UpgradeGameVoiceClips"; } }
         /// <summary>
         /// An arbitrary title, used to identify this step when
         /// presenting to a user.
         /// </summary>
-        public string Title { get { return "Backup project files"; } }
+        public string Title { get { return "Convert old-style voice clips"; } }
         /// <summary>
         /// An arbitrary description, may contain any amount of text.
         /// </summary>
@@ -35,12 +37,12 @@ namespace AGS.Editor
         /// If a loaded game has a less project version, then this step
         /// must be applied, otherwise it should not.
         /// </summary>
-        public System.Version GameVersion { get { return null; /* any version where needed */ } }
+        public System.Version GameVersion { get { return new System.Version("4.0.0.33"); } }
         /// <summary>
         /// A game project version in form of a numeric index, for the projects
         /// which used these.
         /// </summary>
-        public int? GameVersionIndex { get { return null; } }
+        public int? GameVersionIndex { get { return 4000033; } }
         /// <summary>
         /// Tells whether this upgrade step is to be executed unconditionally,
         /// without warning user about it.
@@ -63,7 +65,7 @@ namespace AGS.Editor
         /// <summary>
         /// Tells which stage should this task be run on.
         /// </summary>
-        public UpgradeGameTaskStage Stage { get { return UpgradeGameTaskStage.PreStage; } }
+        public UpgradeGameTaskStage Stage { get { return UpgradeGameTaskStage.None; } }
 
         /// <summary>
         /// Whether this task is enabled, otherwise should be skipped.
@@ -71,17 +73,14 @@ namespace AGS.Editor
         public bool Enabled { get; set; }
 
         /// <summary>
-        /// A directory to copy backup files to.
-        /// </summary>
-        public string BackupPath { get; set; }
-
-        /// <summary>
         /// Tells whether this task should be applied to this game.
         /// This method can have additional conditions, besides the default version check.
         /// </summary>
         public bool ShouldApplyToGame(Game game)
         {
-            return true;
+#pragma warning disable 0612
+            return game.Settings.UseOldVoiceClipNaming;
+#pragma warning restore 0612
         }
 
         /// <summary>
@@ -91,7 +90,7 @@ namespace AGS.Editor
         /// </summary>
         public UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
-            return new UpgradeGameWizardPage[] { new UpgradeGameIntroPage(game, this) };
+            return new UpgradeGameWizardPage[] { new UpgradeGameVoiceClipsPage(game, this) };
         }
         /// <summary>
         /// Apply task options reading them from the dictionary of key-values.
@@ -106,31 +105,7 @@ namespace AGS.Editor
         /// </summary>
         public void Execute(Game game, IWorkProgress progress, CompileMessages errors)
         {
-            if (string.IsNullOrEmpty(BackupPath))
-            {
-                errors.Add(new CompileError("Invalid backup location"));
-                return;
-            }
-
-            // CHECKME: not sure if we should backup media resources here
-            string[] patternStr = AGSEditor.Instance.Tasks.GetPatternsForStandardGameFiles(game, mediaResources: true);
-            var patterns = IncludeUtils.CreatePatternList(patternStr, IncludeUtils.MatchOption.CaseInsensitive);
-            string[] filesToBackup = Utilities.GetDirectoryFileList(game.DirectoryPath, "*", SearchOption.AllDirectories, relativePaths: true);
-            filesToBackup = IncludeUtils.FilterItemList(filesToBackup, patterns, IncludeUtils.MatchOption.CaseInsensitive);
-
-            foreach (string file in filesToBackup)
-            {
-                string relativeFile = Utilities.GetRelativeToProjectPath(file);
-                string destinationFile = Path.Combine(BackupPath, relativeFile);
-                string destinationDirectory = Path.GetDirectoryName(destinationFile);
-                if (!Directory.Exists(destinationDirectory))
-                {
-                    Directory.CreateDirectory(destinationDirectory);
-                }
-                File.Copy(file, destinationFile);
-            }
-
-            errors.Add(new CompileInformation($"Original game files are backed up in {BackupPath}"));
+            _procSpeechFiles(game, progress, errors);
         }
     }
 }

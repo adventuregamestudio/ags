@@ -17,6 +17,8 @@ namespace AGS.Editor
         public event GamePrepareUpgradeHandler GamePrepareUpgrade;
         public delegate void GamePostLoadHandler(Game game);
         public event GamePostLoadHandler GamePostLoad;
+        public delegate void GameTextEncodingChangedHandler(GameTextEncodingChangedArgs evArgs);
+        public event GameTextEncodingChangedHandler GameTextEncodingChanged;
         public delegate void SavingGameHandler(XmlTextWriter writer);
         public event SavingGameHandler SavingGame;
         public delegate void SavingUserDataHandler(XmlTextWriter writer);
@@ -65,6 +67,11 @@ namespace AGS.Editor
             {
                 GamePostLoad(game);
             }
+        }
+
+        public void OnGameTextEncodingChanged(GameTextEncodingChangedArgs args)
+        {
+            GameTextEncodingChanged?.Invoke(args);
         }
 
         public void OnSavingGame(XmlTextWriter writer)

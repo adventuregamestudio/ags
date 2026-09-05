@@ -50,8 +50,7 @@ enum AGS_SDLUserEvents
 //
 // Converts SDL key data to eAGSKeyCode, which may be also directly used as an ASCII char
 // if it is in proper range, see comments to eAGSKeyCode for details.
-// Optionally works in bacward compatible mode (old_keyhandle)
-KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle);
+KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event);
 // Converts eAGSKeyCode to SDL key scans (up to 3 values, because this is not a 1:1 match);
 // NOTE: fails at Ctrl+ or Alt+ AGS keys, or any unknown key codes.
 bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);
@@ -116,7 +115,7 @@ bool ags_isanykeydown();
 // Returns a list of keys that are currently down
 const std::vector<SDL_Keysym> &ags_getkeysdown();
 // Simulates key press with the given AGS key (sends key down, then key up event)
-void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod, bool old_keyhandle);
+void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod);
 // Simulates key down event with the given AGS key
 void ags_simulate_keydown(eAGSKeyCode ags_key);
 // Simulates key up event with the given AGS key

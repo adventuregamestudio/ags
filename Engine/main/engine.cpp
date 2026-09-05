@@ -634,14 +634,18 @@ void engine_init_game_settings()
         play.separate_music_lib = false;
     }
 
-    // Setup a text encoding mode depending on the game data hint
+    // Since 4.0 AGS engine always works in UTF-8 mode
+    set_uformat(U_UTF8);
+    String game_encoding;
     if (game.options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
-        set_uformat(U_UTF8);
+        game_encoding = "UTF-8";
     else
-        set_uformat(U_ASCII);
+        game_encoding = "ASCII";
     Debug::Printf("Game text encoding: %s, text language: %s",
-        get_uformat() == U_UTF8 ? "UTF-8" : "ASCII",
+        game_encoding.GetCStr(),
         game.GameTextLanguage.IsEmpty() ? "not set" : game.GameTextLanguage.GetCStr());
+    if (game.options[OPT_GAMETEXTENCODING] != 65001)
+        Debug::Printf(kDbgMsg_Warn, "WARNING: game's text encoding is not UTF-8, and may be displayed incorrectly");
 
     int ee;
 

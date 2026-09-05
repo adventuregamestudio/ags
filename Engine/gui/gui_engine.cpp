@@ -66,17 +66,7 @@ namespace Common
 String GUI::ApplyTextDirection(const String &text)
 {
     const bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
-    if (get_uformat() == U_UTF8)
-    {
-        return StrUtil::ApplyTextDirection(text, rtl_mode);
-    }
-    else if (rtl_mode)
-    {
-        String res_text = text;
-        res_text.Reverse();
-        return res_text;
-    }
-    return text;
+    return StrUtil::ApplyTextDirection(text, rtl_mode);
 }
 
 String GUI::TransformTextForDrawing(const String &text, bool translate, bool apply_direction)

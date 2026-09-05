@@ -284,7 +284,7 @@ void GUIListBox::RemoveItem(int index)
 
 void GUIListBox::SortItems(bool nocase, bool locale_aware, bool ascending)
 {
-    auto str_less = StrUtil::GetStrLessAutoFor(get_uformat() == U_UTF8, nocase, locale_aware ? GUI::Context.TextLocaleName.GetCStr() : nullptr);
+    auto str_less = StrUtil::GetStrLessAutoFor(true, nocase, locale_aware ? GUI::Context.TextLocaleName.GetCStr() : nullptr);
     if (ascending)
         std::sort(_items.begin(), _items.end(), str_less);
     else

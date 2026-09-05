@@ -34,7 +34,6 @@ struct SystemConfig
     // (moving, resizing, closing), only mouse interaction within the
     // game window.
     bool MouseEnabled = true;
-    bool OldStyleKeyHandling = false; // CLNUP: remove in AGS 4
     // Used to tell the current display mode
     Size DisplayMode;
 };

@@ -468,7 +468,6 @@ bool run_service_key_controls(KeyInput &out_key)
     if (ags_inputevent_ready() != kInputKeyboard)
         return false; // there was no key event
 
-    const bool old_keyhandle = (game.options[OPT_KEYHANDLEAPI] == 0);
     const SDL_Event key_evt = ags_get_next_inputevent();
     bool handled = false;
 
@@ -529,10 +528,10 @@ bool run_service_key_controls(KeyInput &out_key)
     sys_modkeys_fired = sys_modkeys_fired && (cur_mod != 0);
 
     // If mods are handled, or is in backward input mode, then stop here
-    if (handled || (old_keyhandle && is_only_mod_key))
+    if (handled)
         return false;
 
-    KeyInput ki = sdl_keyevt_to_ags_key(key_evt, old_keyhandle);
+    KeyInput ki = sdl_keyevt_to_ags_key(key_evt);
     if ((ki.Key == eAGSKeyCodeNone) && (ki.UChar == 0))
         return false; // should skip this key event
 
@@ -623,7 +622,6 @@ bool run_service_key_controls(KeyInput &out_key)
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {
-    const bool old_keyhandle = game.options[OPT_KEYHANDLEAPI] == 0;
     // First check for service engine's combinations (mouse lock, display mode switch, and so forth)
     KeyInput ki;
     if (!run_service_key_controls(ki)) {
@@ -721,13 +719,13 @@ static void check_keyboard_controls()
     }
 
     // Pass the key event to the script.
-    if (old_keyhandle || (ki.UChar == 0))
+    if (ki.UChar == 0)
     {
         const int agskeymod = ki.Mod;
         debug_script_log("Running on_key_press keycode %d, mod %d", agskey, agskeymod);
         setevent(AGSEvent_Script(kTS_KeyPress, agskey, agskeymod));
     }
-    if (!old_keyhandle && (ki.UChar > 0))
+    if (ki.UChar > 0)
     {
         debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
         setevent(AGSEvent_Script(kTS_TextInput, ki.UChar));

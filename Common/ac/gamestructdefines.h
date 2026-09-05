@@ -83,7 +83,7 @@
 #define OPT_OBSOLETE_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
 #define OPT_CLIPGUICONTROLS    48 // clip drawn gui control contents to the control's rectangle
 #define OPT_GAMETEXTENCODING   49 // how the text in the game data should be interpreted
-#define OPT_KEYHANDLEAPI       50 // key handling mode (old/new)
+#define OPT_KEYHANDLEAPI       50 // key handling mode version
 #define OPT_CUSTOMENGINETAG    51 // custom engine tag (for overriding behavior)
 #define OPT_SCALECHAROFFSETS   52 // apply character scaling to the sprite offsets (z, locked offs)
 #define OPT_SAVESCREENSHOTLAYER 53 // which render layers to include into savegame screenshot

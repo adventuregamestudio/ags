@@ -150,7 +150,6 @@ void engine_setup_window()
     SystemConfig sys_cfg;
     sys_cfg.DisplayMode = static_cast<Size>(gfxDriver->GetDisplayMode());
     sys_cfg.MouseEnabled = usetup.MouseEnabled;
-    sys_cfg.OldStyleKeyHandling = game.options[OPT_KEYHANDLEAPI] == 0;
     sys_set_config(sys_cfg);
     sys_evt_set_quit_callback(winclosehook);
     set_our_eip(-197);

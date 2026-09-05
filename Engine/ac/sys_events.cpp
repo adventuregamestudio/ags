@@ -50,28 +50,29 @@ int sdl_mod_to_ags_mod(const Uint16 mod)
     return ags_mod;
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod, bool old_keyhandle)
+static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod, bool combo_keys)
 {
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') may be misleading, as they are NOT
     // received when user presses for example Shift + 1 on regular keyboard, but only on
     // systems where single keypress can produce that symbol.
 
-    // Old mode: Ctrl and Alt combinations realign the letter code to certain offset
-    if (old_keyhandle && (sym >= SDLK_a && sym <= SDLK_z))
+    // Combo key request: Ctrl and Alt combinations realign the letter code to certain offset
+    if (combo_keys && (sym >= SDLK_a && sym <= SDLK_z))
     {
         if ((mod & KMOD_CTRL) != 0) // align letters to code 1
             return static_cast<eAGSKeyCode>( 0 + (sym - SDLK_a) + 1 );
         else if ((mod & KMOD_ALT) != 0) // align letters to code 301
             return static_cast<eAGSKeyCode>( AGS_EXT_KEY_SHIFT + (sym - SDLK_a) + 1 );
     }
-    // New mode: also handle common key range
-    else if (!old_keyhandle && (sym >= SDLK_SPACE && sym <= SDLK_z))
+
+    // Handle common key range
+    if (sym >= SDLK_SPACE && sym <= SDLK_z)
     {
         return static_cast<eAGSKeyCode>(sym);
     }
 
     // NumPad with NumLock on
-    if (!old_keyhandle && (sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
+    if ((sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
     {
         switch (sym)
         {
@@ -158,9 +159,9 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode key, const SDL_Scancode scancod
     return sdl_key_to_ags_key(key, scancode, mod, false);
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_Keysym &key, bool old_keyhandle)
+static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keysym &key, bool combo_keys)
 {
-    return sdl_key_to_ags_key(key.sym, key.scancode, key.mod, old_keyhandle);
+    return sdl_key_to_ags_key(key.sym, key.scancode, key.mod, combo_keys);
 }
 
 // Converts ags key to SDL key scans (up to 3 values, because this is not a 1:1 match);
@@ -272,38 +273,19 @@ int ags_mod_to_sdl_mod(eAGSKeyMod mod)
 }
 
 // Converts SDL scan and key codes to the ags keycode
-KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
+KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event)
 {
     KeyInput ki;
-    // Normally SDL_TEXTINPUT is meant for handling the printable characters,
-    // and not the actual key presses.
-    // But in the "old key handle" mode we use it also to get the full range
-    // of key codes corresponding to chars, including combos (SHIFT + 3 = #).
-    // TODO: find out if it's feasible to just convert keydown + SHIFT combos
-    // ourselves: then we can utilize SDL_KEYDOWN for both modes and leave
-    // TEXTINPUT for char print only.
     switch (event.type)
     {
     case SDL_TEXTINPUT:
-        if (old_keyhandle)
-        {
-            char ascii[sizeof(SDL_TextInputEvent::text)];
-            StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
-            if (ascii[0] >= 32)
-            {
-                ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
-                ki.CompatKey = ki.Key;
-            }
-        }
         ags_strncpy_s(ki.Text, KeyInput::UTF8_ARR_SIZE, event.text.text, KeyInput::UTF8_ARR_SIZE - 1);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
     case SDL_KEYDOWN:
         ki.Mod = sdl_mod_to_ags_mod(event.key.keysym.mod);
-        ki.Key = sdl_key_to_ags_key(event.key.keysym, old_keyhandle);
+        ki.Key = sdl_key_to_ags_key(event.key.keysym, false);
         ki.CompatKey = sdl_key_to_ags_key(event.key.keysym, true);
-        if (!old_keyhandle && (ki.CompatKey == eAGSKeyCodeNone))
-            ki.CompatKey = ki.Key; // in the new mode also assign letter-range keys
         return ki;
     default:
         return ki;
@@ -392,13 +374,6 @@ void ags_drop_next_inputevent()
 
 bool ags_iskeydown(eAGSKeyCode ags_key)
 {
-    // old input handling: update key state in realtime
-    // left only in case if necessary for some ancient game, but
-    // this really may only be required if there's a key waiting loop in
-    // script without Wait(1) to let engine poll events in a natural way.
-    if (gl_SysConfig.OldStyleKeyHandling)
-        SDL_PumpEvents();
-
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
@@ -416,7 +391,7 @@ const std::vector<SDL_Keysym> &ags_getkeysdown()
     return sys_keysdown;
 }
 
-void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod, bool old_keyhandle)
+void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod)
 {
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
@@ -429,14 +404,6 @@ void ags_simulate_keypress(eAGSKeyCode ags_key, eAGSKeyMod mod, bool old_keyhand
     sdlevent.key.keysym.scancode = scan[0];
     sdlevent.key.keysym.mod = ags_mod_to_sdl_mod(mod) | SDL_GetModState();
     SDL_PushEvent(&sdlevent);
-    // Push a text input event for ascii printable characters;
-    // in case of "old key handling mode" this instead will trigger on_key_press for them.
-    if (old_keyhandle && (key_sym >= SDLK_SPACE && key_sym <= SDLK_z))
-    {
-        sdlevent.type = SDL_TEXTINPUT;
-        sdlevent.text.text[0] = static_cast<char>(key_sym);
-        SDL_PushEvent(&sdlevent);
-    }
     sdlevent.type = SDL_KEYUP;
     SDL_PushEvent(&sdlevent);
 }

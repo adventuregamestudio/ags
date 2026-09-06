@@ -13,92 +13,16 @@ namespace AGS.Editor
     /// that do not require user's attention. This task is run implicitly
     /// whenever AGS Editor loads an older project.
     /// </summary>
-    public class UpgradeGameCommonTask : IUpgradeGameTask
+    public class UpgradeGameCommonTask : UpgradeGameTaskBase
     {
-        public UpgradeGameCommonTask()
+        public UpgradeGameCommonTask() : base("UpgradeGameCommon")
         {
+            Title = "Update Game to the new version";
+            Implicit = true; // executed unconditionally
+            Optional = false;
+            AllowToSkipIfHadErrors = true; // ignore, but will report errors after
+            RequestConfirmationOnErrors = false;
             Enabled = true;
-        }
-
-        /// <summary>
-        /// A unique string identifier of this upgrade task.
-        /// </summary>
-        public string ID { get { return "UpgradeGameCommon"; } }
-        /// <summary>
-        /// An arbitrary title, used to identify this task when
-        /// presenting to a user.
-        /// </summary>
-        public string Title { get { return "Update Game to the new version"; } }
-        /// <summary>
-        /// An arbitrary description, may contain any amount of text.
-        /// </summary>
-        public string Description { get { return ""; } }
-        /// <summary>
-        /// A game project version that introduced this upgrade task.
-        /// If a loaded game has a less project version, then this task
-        /// must be applied, otherwise it should not.
-        /// Returns null if should be applied regardless of the game version
-        /// (but the execution process may still have version checks inside).
-        /// </summary>
-        public System.Version GameVersion { get { return null; /* any version */ } }
-        /// <summary>
-        /// A game project version in form of a numeric index, for the projects
-        /// which used these.
-        /// </summary>
-        public int? GameVersionIndex { get { return null; /* any version */ } }
-        /// <summary>
-        /// Tells whether this upgrade task is to be executed unconditionally,
-        /// without warning user about it.
-        /// </summary>
-        public bool Implicit { get { return true; } }
-        /// <summary>
-        /// Tells whether this upgrade task may be disabled by user's choice.
-        /// </summary>
-        public bool Optional { get { return false; } }
-        /// <summary>
-        /// Tells whether the upgrade process is allowed to continue if this
-        /// task had errors.
-        /// </summary>
-        public bool AllowToSkipIfHadErrors { get { return true; } }
-        /// <summary>
-        /// Tells whether user should be asked for a confirmation in order to
-        /// continue the upgrade process in case this task had errors.
-        /// </summary>
-        public bool RequestConfirmationOnErrors { get { return false; } }
-        /// <summary>
-        /// Tells which stage should this task be run on.
-        /// </summary>
-        public UpgradeGameTaskStage Stage { get { return UpgradeGameTaskStage.None; } }
-
-        /// <summary>
-        /// Whether this task is enabled, otherwise should be skipped.
-        /// </summary>
-        public bool Enabled { get; set; }
-
-        /// <summary>
-        /// Tells whether this task should be applied to this game.
-        /// This method can have additional conditions, besides the default version check.
-        /// </summary>
-        public bool ShouldApplyToGame(Game game)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Provides WizardPage control(s) used to represent this upgrade task.
-        /// The page implementation may have this IUpgradeGameTask passed into
-        /// constructor in order to assign settings right into it.
-        /// </summary>
-        public UpgradeGameWizardPage[] CreateWizardPages(Game game)
-        {
-            return null;
-        }
-        /// <summary>
-        /// Apply task options reading them from the dictionary of key-values.
-        /// </summary>
-        public void ApplyOptions(Dictionary<string, string> options)
-        {
-            // does not have any options
         }
 
         struct CursorDefinition
@@ -121,7 +45,7 @@ namespace AGS.Editor
         /// Execute the upgrade task over the given Game project.
         /// Fills any errors or warnings into the provided "errors" collection.
         /// </summary>
-        public void Execute(Game game, IWorkProgress progress, CompileMessages errors)
+        public override void Execute(Game game, IWorkProgress progress, CompileMessages errors)
         {
 #pragma warning disable 0612, 0618
             int xmlVersionIndex = 0;

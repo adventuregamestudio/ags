@@ -170,6 +170,19 @@ bool IsOnlyFilename(const String &path)
 #endif
 }
 
+String EscapePath(const String &path)
+{
+    const bool has_start = path.StartsWith("\""), has_end = path.EndsWith("\"");
+    if (has_start && has_end)
+        return path;
+    else if (has_start)
+        return String::FromFormat("%s\"", path.GetCStr());
+    else if (has_end)
+        return String::FromFormat("\"%s", path.GetCStr());
+    else
+        return String::FromFormat("\"%s\"", path.GetCStr());
+}
+
 void FixupPath(String &path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -278,6 +291,15 @@ String MakePath(const String &parent, const String &filename, const String &ext)
     String path = String::FromFormat("%s/%s.%s", parent.GetCStr(), filename.GetCStr(), ext.GetCStr());
     FixupPath(path);
     return path;
+}
+
+String MakeExePath(const String &parent_path, const String &exe_filename)
+{
+#if (AGS_PLATFORM_OS_WINDOWS)
+    if (exe_filename.CompareRightNoCase(".exe") != 0)
+        return Path::MakePath(parent_path, exe_filename, "exe");
+#endif
+    return Path::MakePath(parent_path, exe_filename);
 }
 
 std::vector<String> Split(const String &path)

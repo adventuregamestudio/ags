@@ -731,11 +731,13 @@ void engine_init_game_settings()
     play.rtint_light = 0;
     play.text_speed_modifier = 0;
     play.text_align = kHAlignLeft;
-    // Make the default alignment to the right with right-to-left text
+    play.speech_text_align = kHAlignCenter;
+    play.dialog_options_textalign = kHAlignLeft;
+    // Make the default text alignment to the right with right-to-left text;
+    // except speech text, which is centered by default
     if (game.options[OPT_RIGHTLEFTWRITE])
     {
         play.text_align = kHAlignRight;
-        play.speech_text_align = kHAlignRight;
         if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
             play.dialog_options_textalign = kHAlignRight;
     }
@@ -804,7 +806,6 @@ void engine_init_game_settings()
     play.top_bar_font = -1;
     play.screenshot_width = 160;
     play.screenshot_height = 100;
-    play.speech_text_align = kHAlignCenter;
     play.auto_use_walkto_points = 1;
     play.inventory_greys_out = 0;
     play.skip_speech_specific_key = 0;

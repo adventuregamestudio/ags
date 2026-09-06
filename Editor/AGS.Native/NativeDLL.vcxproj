@@ -395,6 +395,14 @@ copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
   <ItemGroup>
     <ClInclude Include="..\Native\ac\actiontype.h" />
     <ClInclude Include="..\Native\ac\scriptmodule.h" />
+    <ClInclude Include="..\scintilla\include\Compat.h" />
+    <ClInclude Include="..\scintilla\include\ILexer.h" />
+    <ClInclude Include="..\scintilla\include\ILoader.h" />
+    <ClInclude Include="..\scintilla\include\Platform.h" />
+    <ClInclude Include="..\scintilla\include\SciLexer.h" />
+    <ClInclude Include="..\scintilla\include\Scintilla.h" />
+    <ClInclude Include="..\scintilla\include\ScintillaWidget.h" />
+    <ClInclude Include="..\scintilla\include\Sci_Position.h" />
     <ClInclude Include="agsnative.h" />
     <ClInclude Include="IScriptCompiler.h" />
     <ClInclude Include="NativeMethods.h" />

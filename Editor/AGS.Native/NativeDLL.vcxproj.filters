@@ -38,6 +38,9 @@
     <Filter Include="Scintilla\win32">
       <UniqueIdentifier>{da98ad13-ce0a-4516-acea-168c64b051f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scintilla\include">
+      <UniqueIdentifier>{0649598e-6343-466a-aee8-45d2d0434f40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Native\acgui_agsnative.cpp">
@@ -233,6 +236,30 @@
     </ClInclude>
     <ClInclude Include="CompiledScript.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\Compat.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\ILexer.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\ILoader.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\Platform.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\Sci_Position.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\SciLexer.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\Scintilla.h">
+      <Filter>Scintilla\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scintilla\include\ScintillaWidget.h">
+      <Filter>Scintilla\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

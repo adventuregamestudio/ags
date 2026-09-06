@@ -242,10 +242,10 @@ HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, Game
 void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
 {
     views.resize(game.numviews);
-        for (int i = 0; i < game.numviews; ++i)
-        {
-            views[i].ReadFromFile(in);
-        }
+    for (int i = 0; i < game.numviews; ++i)
+    {
+        views[i].ReadFromFile(in);
+    }
 }
 
 void ReadDialogs(std::vector<DialogTopic> &dialog, Stream *in, GameDataVersion data_ver, int dlg_count)
@@ -255,9 +255,6 @@ void ReadDialogs(std::vector<DialogTopic> &dialog, Stream *in, GameDataVersion d
     {
         dialog[i].ReadFromFile_v321(in);
     }
-
-    std::vector<char> buffer;
-            while (buffer.back() != 0);
 }
 
 HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)

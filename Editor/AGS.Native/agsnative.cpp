@@ -3622,14 +3622,14 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
     if (out == NULL)
         quit("save_room: unable to open room file for writing.");
 
-    // NOTE: the "compiled with" field value should match the one written into the main game data file
-    AGSString compiled_with = GetEditorVersionAsNativeString();
-    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, nullptr, out.get(), kRoomVersion_Current, compiled_with);
     // FIXME: this is quite ugly, but this is the most straightforward way
     // to save RoomData's pixelbuffers that I could figure out at the time;
     // need to find another way!
     // Temporarily move data to RoomData, write RoomData to the file, and then move them back.
     rs.PrepareForWriteToFile();
+    // NOTE: the "compiled with" field value should match the one written into the main game data file
+    AGSString compiled_with = GetEditorVersionAsNativeString();
+    AGS::Common::HRoomFileError err = AGS::Common::WriteRoomData(&rs, nullptr, out.get(), kRoomVersion_Current, compiled_with);
     if (!err)
         quit(AGSString::FromFormat("save_room: unable to write room data, error was:\r\n%s", err->FullMessage()));
     rs.InitBitmaps();

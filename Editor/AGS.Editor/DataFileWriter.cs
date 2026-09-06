@@ -538,9 +538,9 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_RENDERATSCREENRES] = (int)game.Settings.RenderAtScreenResolution;
             options[NativeConstants.GameOptions.OPT_CLIPGUICONTROLS] = (game.Settings.ClipGUIControls ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_GAMETEXTENCODING] = game.TextEncoding.CodePage;
-            options[NativeConstants.GameOptions.OPT_KEYHANDLEAPI] = (game.Settings.UseOldKeyboardHandling ? 0 : 1); // inverted, 0 for old
+            options[NativeConstants.GameOptions.OPT_KEYHANDLEAPI] = 1; // always use new one
             options[NativeConstants.GameOptions.OPT_SCALECHAROFFSETS] = (game.Settings.ScaleCharacterSpriteOffsets ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_VOICECLIPNAMERULE] = (game.Settings.UseOldVoiceClipNaming ? 0 : 1); // inverted, 0 for old
+            options[NativeConstants.GameOptions.OPT_VOICECLIPNAMERULE] = 1; // always use new one
             options[NativeConstants.GameOptions.OPT_GAMEFPS] = game.Settings.GameFPS;
             options[NativeConstants.GameOptions.OPT_GUICONTROLMOUSEBUT] = (game.Settings.GUIHandleOnlyLeftMouseButton ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISPLAYSINGLEDIALOGOPTION] = (game.Settings.DisplaySingleDialogOption ? 1 : 0);

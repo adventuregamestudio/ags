@@ -15,7 +15,6 @@
 // Containers script API.
 //
 //=============================================================================
-#include <allegro.h> // get_uformat
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/string.h"
@@ -47,41 +46,21 @@ ScriptDictBase *Dict_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparis
     ScriptDictBase *dic;
     if (sorted)
     {
-        if (get_uformat() == U_UTF8)
-        {
-            if (case_sensitive)
-                dic = locale_aware ?
-                    (ScriptDictBase*)new ScriptDictLocaleAware(LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
-                    : new ScriptDict();
-            else
-                dic = locale_aware ?
-                    (ScriptDictBase*)new ScriptDictLocaleAwareCI(LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
-                    : new ScriptDictUtf8CI();
-        }
+        if (case_sensitive)
+            dic = locale_aware ?
+            (ScriptDictBase*)new ScriptDictLocaleAware(LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
+            : new ScriptDict();
         else
-        {
-            if (case_sensitive)
-                dic = new ScriptDict();
-            else
-                dic = new ScriptDictCI();
-        }
+            dic = locale_aware ?
+            (ScriptDictBase*)new ScriptDictLocaleAwareCI(LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
+            : new ScriptDictUtf8CI();
     }
     else
     {
-        if (get_uformat() == U_UTF8)
-        {
-            if (case_sensitive)
-                dic = new ScriptHashDict();
-            else
-                dic = new ScriptHashDictUtf8CI();
-        }
+        if (case_sensitive)
+            dic = new ScriptHashDict();
         else
-        {
-            if (case_sensitive)
-                dic = new ScriptHashDict();
-            else
-                dic = new ScriptHashDictCI();
-        }
+            dic = new ScriptHashDictUtf8CI();
     }
     return dic;
 }
@@ -239,41 +218,21 @@ ScriptSetBase *Set_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison
     ScriptSetBase *set;
     if (sorted)
     {
-        if (get_uformat() == U_UTF8)
-        {
-            if (case_sensitive)
-                set = locale_aware ?
-                    (ScriptSetBase*)new ScriptSetLocaleAware(LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
-                    : new ScriptSet();
-            else
-                set = locale_aware ?
-                    (ScriptSetBase*)new ScriptSetLocaleAwareCI(LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
-                    : new ScriptSetUtf8CI();
-        }
+        if (case_sensitive)
+            set = locale_aware ?
+            (ScriptSetBase*)new ScriptSetLocaleAware(LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
+            : new ScriptSet();
         else
-        {
-            if (case_sensitive)
-                set = new ScriptSet();
-            else
-                set = new ScriptSetCI();
-        }
+            set = locale_aware ?
+            (ScriptSetBase*)new ScriptSetLocaleAwareCI(LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
+            : new ScriptSetUtf8CI();
     }
     else
     {
-        if (get_uformat() == U_UTF8)
-        {
-            if (case_sensitive)
-                set = new ScriptHashSet();
-            else
-                set = new ScriptHashSetUtf8CI();
-        }
+        if (case_sensitive)
+            set = new ScriptHashSet();
         else
-        {
-            if (case_sensitive)
-                set = new ScriptHashSet();
-            else
-                set = new ScriptHashSetCI();
-        }
+            set = new ScriptHashSetUtf8CI();
     }
     return set;
 }

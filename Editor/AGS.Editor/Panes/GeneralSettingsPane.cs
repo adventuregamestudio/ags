@@ -69,7 +69,8 @@ namespace AGS.Editor
                     (IWorkProgress progress, object o) => {
                         Factory.AGSEditor.Tasks.ConvertAllGameTexts(
                             Types.Utilities.EncodingFromName(oldFormat),
-                            Types.Utilities.EncodingFromName(newFormat));
+                            Types.Utilities.EncodingFromName(newFormat),
+                            progress);
                         return null;
                     }, null);
             }

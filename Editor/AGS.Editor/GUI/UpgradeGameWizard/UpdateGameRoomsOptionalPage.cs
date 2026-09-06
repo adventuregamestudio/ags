@@ -23,11 +23,6 @@ namespace AGS.Editor
             _roomsOptionalTask = task as UpgradeGameRoomsOptionalTask;
         }
 
-        public override string TitleText
-        {
-            get { return Task.Title; }
-        }
-
         public override bool NextButtonPressed()
         {
             RoomsComponent.UpgradeOptions options = new RoomsComponent.UpgradeOptions();
@@ -112,7 +107,7 @@ namespace AGS.Editor
             this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpdateGameRoomsOptionalPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1193, 715);
+            this.Size = new System.Drawing.Size(1523, 582);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);

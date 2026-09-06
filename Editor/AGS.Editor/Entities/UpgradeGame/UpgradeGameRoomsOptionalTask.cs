@@ -9,72 +9,26 @@ namespace AGS.Editor
     /// Performs an optional all-rooms update, according to the user
     /// selection (made in related game wizard pages).
     /// </summary>
-    public class UpgradeGameRoomsOptionalTask : IUpgradeGameTask
+    public class UpgradeGameRoomsOptionalTask : UpgradeGameTaskBase
     {
         internal delegate void ProcessRooms(Game game, RoomsComponent.UpgradeOptions options, IWorkProgress progress, CompileMessages errors);
         private ProcessRooms _processRooms;
         private RoomsComponent.UpgradeOptions _options = new RoomsComponent.UpgradeOptions();
 
-        internal UpgradeGameRoomsOptionalTask(ProcessRooms processRooms)
+        internal UpgradeGameRoomsOptionalTask(ProcessRooms processRooms) : base("UpgradeGameRoomsOptional")
         {
-            _processRooms = processRooms;
+            Title = "Update Rooms (optional section)";
+            GameVersion = new System.Version(AGSEditor.FIRST_USER_DATA_VERSION_WITHOUT_INDEX);
+            Implicit = false;
+            Optional = true;
+            AllowToSkipIfHadErrors = true;
+            RequestConfirmationOnErrors = true;
             Enabled = true;
+
+            _processRooms = processRooms;
         }
 
-        /// <summary>
-        /// A unique string identifier of this upgrade task.
-        /// </summary>
-        public string ID { get { return "UpgradeGameRoomsOptional"; } }
-        /// <summary>
-        /// An arbitrary title, used to identify this task when
-        /// presenting to a user.
-        /// </summary>
-        public string Title { get { return "Update Rooms (optional section)"; } }
-        /// <summary>
-        /// An arbitrary description, may contain any amount of text.
-        /// </summary>
-        public string Description
-        {
-            get { return ""; }
-        }
-        /// <summary>
-        /// A game project version that introduced this upgrade task.
-        /// If a loaded game has a less project version, then this task
-        /// must be applied, otherwise it should not.
-        /// Returns null if should be applied regardless of the game version
-        /// (but the execution process may still have version checks inside).
-        /// </summary>
-        public System.Version GameVersion { get { return new System.Version(AGSEditor.FIRST_USER_DATA_VERSION_WITHOUT_INDEX); } }
-        /// <summary>
-        /// A game project version in form of a numeric index, for the projects
-        /// which used these.
-        /// </summary>
-        public int? GameVersionIndex { get { return null; } }
-        /// <summary>
-        /// Tells whether this upgrade task is to be executed unconditionally,
-        /// without warning user about it.
-        /// </summary>
-        public bool Implicit { get { return false; } }
-        /// <summary>
-        /// Tells whether this upgrade task may be disabled by user's choice.
-        /// </summary>
-        public bool Optional { get { return true; } }
-        /// <summary>
-        /// Tells whether the upgrade process is allowed to continue if this
-        /// task had errors.
-        /// </summary>
-        public bool AllowToSkipIfHadErrors { get { return true; } }
-        /// <summary>
-        /// Tells whether user should be asked for a confirmation in order to
-        /// continue the upgrade process in case this task had errors.
-        /// </summary>
-        public bool RequestConfirmationOnErrors { get { return true; } }
-
-        /// <summary>
-        /// Whether this task is enabled, otherwise should be skipped.
-        /// </summary>
-        public bool Enabled { get; set; }
-
+        // TODO: can we alternatively (optionally) use IUpgradeGameTask.ApplyOptions ?
         internal RoomsComponent.UpgradeOptions Options
         {
             get { return _options; }
@@ -86,7 +40,7 @@ namespace AGS.Editor
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.
         /// </summary>
-        public UpgradeGameWizardPage[] CreateWizardPages(Game game)
+        public override UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
             // NOTE: we may use game.SavedXmlVersion to decide which pages
             // and/or options to display! Return null if none are necessary.
@@ -102,17 +56,10 @@ namespace AGS.Editor
             return pages.ToArray();
         }
         /// <summary>
-        /// Apply task options reading them from the dictionary of key-values.
-        /// </summary>
-        public void ApplyOptions(Dictionary<string, string> options)
-        {
-            // does not have any options
-        }
-        /// <summary>
         /// Execute the upgrade task over the given Game project.
         /// Fills any errors or warnings into the provided "errors" collection.
         /// </summary>
-        public void Execute(Game game, IWorkProgress progress, CompileMessages errors)
+        public override void Execute(Game game, IWorkProgress progress, CompileMessages errors)
         {
             // Check if any option is enabled, prevents from unnecessary loading every room
             if (!_options.AdjustObjectsBy1YPixel)

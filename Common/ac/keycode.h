@@ -292,6 +292,8 @@ struct KeyInput
     eAGSKeyCode Key = eAGSKeyCodeNone;
     // Key code combined with mods, old-style (e.g. eAGSKeyCodeCtrlA)
     // may be used when comparing with the variables set from script.
+    // NOTE: this may be removed only if script API allows to set mod+key
+    // combos as two separate variables everywhere.
     eAGSKeyCode CompatKey = eAGSKeyCodeNone;
     // Key modifiers (see eAGSKeyMod)
     int         Mod = 0;

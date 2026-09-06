@@ -56,7 +56,7 @@ namespace Native
             FontMetrics ^GetFontMetrics(int fontNum);
             cli::array<int> ^GetFontValidCharacters(int fontNum);
             // Draws font char sheet on the provided context
-            void DrawFont(int hDC, int fontNum, bool ansi_mode, bool only_valid_chars,
+            void DrawFont(int hDC, int fontNum, bool only_valid_chars,
                 int dc_atx, int dc_aty, int draw_atx, int draw_aty,
                 int cell_w, int cell_h, int cell_space_x, int cell_space_y,
                 int col_count, int row_count, int first_cell,

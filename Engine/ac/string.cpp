@@ -61,11 +61,6 @@ size_t GetStringCharOff(const char *thisString, int index)
 {
     auto &header = ScriptString::GetHeader((void*)thisString);
     assert((index >= 0) && (static_cast<uint32_t>(index) < header.ULength));
-    // No need to calculate anything or save last results in ASCII mode
-    if (get_uformat() == U_ASCII)
-    {
-        return index;
-    }
 
     int off;
     if (header.LastCharIdx <= index)
@@ -208,31 +203,20 @@ const char* String_Truncate(const char *thisString, int length) {
     return CreateNewScriptString(std::move(buf));
 }
 
-const char * TrimFront(const char *front, const char *back) {
-    if (get_uformat() == U_UTF8) {
-        for (int c = ugetc(front); front != back && uisspace(c);) {
-            front += ucwidth(c);
-            c = ugetc(front);
-        }
-    }
-    else {
-        for (; front != back && std::isspace(*front); ++front);
+const char *TrimFront(const char *front, const char *back) {
+    for (int c = ugetc(front); front != back && uisspace(c);) {
+        front += ucwidth(c);
+        c = ugetc(front);
     }
     return front;
 }
 
-const char * TrimBack(const char *front, const char *back) {
-    if (get_uformat() == U_UTF8) {
-        const char* prev = Utf8::BackOneChar(back, front);
-        for (int c = ugetc(prev); prev != front && uisspace(c); ) {
-            back = prev;
-            prev = Utf8::BackOneChar(prev, front);
-            c = ugetc(prev);
-        }
-    }
-    else {
-        for (--back; back != front && std::isspace(*back); --back);
-        ++back;
+const char *TrimBack(const char *front, const char *back) {
+    const char* prev = Utf8::BackOneChar(back, front);
+    for (int c = ugetc(prev); prev != front && uisspace(c); ) {
+        back = prev;
+        prev = Utf8::BackOneChar(prev, front);
+        c = ugetc(prev);
     }
     return back;
 }
@@ -282,7 +266,7 @@ int String_CompareTo(const char *thisString, const char *otherString, int compar
 {
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
-    const bool locale_aware = ((compare_style & kScLocaleAwareFlag) != 0) && (get_uformat() == U_UTF8);
+    const bool locale_aware = (compare_style & kScLocaleAwareFlag) != 0;
     if (locale_aware)
     {
         if (case_sensitive)
@@ -559,16 +543,8 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     bool rtl_mode = game.options[OPT_RIGHTLEFTWRITE] != 0;
     if (apply_direction)
     {
-        if (get_uformat() == U_UTF8)
-        {
-            for (size_t rr = 0; rr < lines.Count(); rr++)
-                lines[rr] = StrUtil::ApplyTextDirection(lines[rr], rtl_mode);
-        }
-        else if (rtl_mode)
-        {
-            for (size_t rr = 0; rr < lines.Count(); rr++)
-                lines[rr].Reverse();
-        }
+        for (size_t rr = 0; rr < lines.Count(); rr++)
+            lines[rr] = StrUtil::ApplyTextDirection(lines[rr], rtl_mode);
     }
     // Calculate the longest line
     for (size_t rr = 0; rr < lines.Count(); rr++)

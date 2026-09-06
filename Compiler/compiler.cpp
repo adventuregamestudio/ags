@@ -125,6 +125,7 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     // Configure macros
     //-----------------------------------------------------------------------//
+    pp.SetAppVersion(comp_opts.Version);
     pp.DefineMacro("AGS_NEW_STRINGS", "1");
     pp.DefineMacro("AGS_SUPPORTS_IFVER", "1");
 

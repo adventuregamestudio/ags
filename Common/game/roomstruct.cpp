@@ -65,6 +65,14 @@ void RoomStruct::InitBitmaps()
 
 void RoomStruct::PrepareForWriteToFile()
 {
+    if (BgImages.size() > 0)
+        BackgroundBPP = BgImages[0]->GetBPP();
+    if (BgFrames.size() > 0)
+    {
+        for (int i = 0; i < 256; ++i)
+            Palette[i] = BgFrames[0].Palette[i];
+    }
+
     BgFrames.resize(BgImages.size());
     for (size_t i = 0; i < BgFrames.size(); ++i)
         if (BgImages[i])
@@ -88,6 +96,25 @@ void RoomStruct::Free()
     RegionMask.reset();
     WalkAreaMask.reset();
     WalkBehindMask.reset();
+}
+
+void RoomStruct::SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PALETTE *bgpal)
+{
+    assert(index >= 0 && index < MAX_ROOM_BGFRAMES);
+    if (index < 0 || index >= MAX_ROOM_BGFRAMES)
+        return;
+
+    BgFrameCount = std::max<uint8_t>(BgFrameCount, static_cast<uint8_t>(index) + 1);
+    if (BgFrames.size() < BgFrameCount)
+        BgFrames.resize(BgFrameCount);
+    if (BgImages.size() < BgFrameCount)
+        BgImages.resize(BgFrameCount);
+    BgImages[index] = std::move(bmp);
+    if (bgpal)
+    {
+        BgFrames[index].IsPaletteShared = false;
+        memcpy(BgFrames[index].Palette, *bgpal, sizeof(*bgpal));
+    }
 }
 
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const

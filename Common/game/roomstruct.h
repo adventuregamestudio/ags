@@ -57,6 +57,8 @@ public:
     // Releases room resources
     void    Free();
 
+    void    SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PALETTE *bgpal = nullptr);
+
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
     // Assigns bitmap for the particular mask layer

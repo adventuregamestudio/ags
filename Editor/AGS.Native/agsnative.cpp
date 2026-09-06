@@ -1379,14 +1379,17 @@ void copy_room_palette_to_global_palette(const RoomStruct &rs)
 
 void copy_global_palette_to_room_palette(RoomStruct &rs)
 {
-  for (int ww = 0; ww < 256; ww++) 
-  {
-    if (thisgame.paluses[ww] != PAL_BACKGROUND)
+    if (rs.BgFrames.size() > 0)
     {
-      rs.Palette[ww] = palette[ww];
-      rs.BgFrames[0].Palette[ww] = palette[ww];
+        for (int ww = 0; ww < 256; ww++) 
+        {
+            if (thisgame.paluses[ww] != PAL_BACKGROUND)
+            {
+                rs.Palette[ww] = palette[ww];
+                rs.BgFrames[0].Palette[ww] = palette[ww];
+            }
+        }
     }
-  }
 }
 
 const char *get_mask_name(RoomAreaMask mask)
@@ -2164,15 +2167,14 @@ void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber, SysBitmap ^
     }
 
     RGB bgpal[256];
-    Common::Bitmap *newbg = CreateOpaqueNativeBitmap(bmp, bgpal, true, false, NULL);
-    if (newbg->GetColorDepth() == 8)
+    std::unique_ptr<AGSBitmap> newbg(CreateOpaqueNativeBitmap(bmp, bgpal, true, false, nullptr));
+    if (!newbg)
     {
-        room.BgFrames[backgroundNumber].IsPaletteShared = 0;
-        memcpy(room.BgFrames[backgroundNumber].Palette, bgpal, sizeof(bgpal));
+        throw gcnew AGSEditorException(String::Format("SetNativeRoomBackground: failed to convert bitmap to the native format"));
     }
 
-    room.BgFrameCount = std::max<size_t>(room.BgFrameCount, (size_t)backgroundNumber + 1);
-    room.BgImages[backgroundNumber].reset(newbg);
+    // Assign new background image; for 8-bit backgrounds - assign palette
+    room.SetBackgroundImage(backgroundNumber, std::move(newbg), (newbg->GetColorDepth() == 8) ? &bgpal : nullptr);
 }
 
 static bool DoesPaletteHaveAlpha(System::Drawing::Bitmap ^bm)
@@ -3424,8 +3426,8 @@ void save_default_crm_file(Room ^room)
     RoomStruct rs;
     convert_room_to_native(room, rs);
     // Insert default backgrounds and masks
-    for (size_t i = 0; i < rs.BgFrameCount; ++i) // FIXME use of thisgame.color_depth
-        rs.BgImages[i].reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8, makeacol32(0, 0, 0, 255)));
+    for (size_t i = 0; i < room->BackgroundCount; ++i) // FIXME use of thisgame.color_depth
+        rs.SetBackgroundImage(i, std::unique_ptr<AGSBitmap>(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8, makeacol32(0, 0, 0, 255))));
     rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
@@ -3615,10 +3617,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
 {
     rs.DataVersion = kRoomVersion_Current;
     calculate_walkable_areas(rs);
-
-    rs.BackgroundBPP = rs.BgImages[0]->GetBPP();
-    for (int i = 0; i < 256; ++i)
-        rs.Palette[i] = rs.BgFrames[0].Palette[i];
 
     std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
     if (out == NULL)

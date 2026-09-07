@@ -811,14 +811,10 @@ void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskTy
 
 void draw_room_background(void *roomvoidptr, HDC hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
 {
-	RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
-
-  if (bgnum < 0 || (size_t)bgnum >= roomptr->BgFrameCount)
-    return;
-
-  PBitmap srcBlock = roomptr->BgImages[bgnum];
-  if (srcBlock == NULL)
-    return;
+    RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
+    AGSBitmap *srcBlock = roomptr->GetBackgroundImage(bgnum);
+    if (srcBlock == NULL)
+        return;
 
     auto &drawBuffer = RoomTools->drawBuffer;
     auto &roomBkgBuffer = RoomTools->roomBkgBuffer;
@@ -828,10 +824,11 @@ void draw_room_background(void *roomvoidptr, HDC hdc, int x, int y, int bgnum, f
 		    roomBkgBuffer.reset(new AGSBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth()));
     if (srcBlock->GetColorDepth() == 8)
     {
-      select_palette(roomptr->BgFrames[bgnum].Palette);
+        if (bgnum < roomptr->BgFrames.size())
+            select_palette(roomptr->BgFrames[bgnum].Palette);
     }
 
-    roomBkgBuffer->Blit(srcBlock.get(), 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
+    roomBkgBuffer->Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
     if (srcBlock->GetColorDepth() == 8)
     {
@@ -869,7 +866,7 @@ void draw_room_background(void *roomvoidptr, HDC hdc, int x, int y, int bgnum, f
             RectWH(x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor)));
 	}
 	else {
-		drawBlockScaledAt(hdc, srcBlock.get(), x, y, scaleFactor);
+		drawBlockScaledAt(hdc, srcBlock, x, y, scaleFactor);
 	}
 	
 }
@@ -1793,14 +1790,17 @@ void copy_room_palette_to_global_palette(const RoomStruct &rs)
 
 void copy_global_palette_to_room_palette(RoomStruct &rs)
 {
-  for (int ww = 0; ww < 256; ww++) 
-  {
-    if (thisgame.paluses[ww] != PAL_BACKGROUND)
+    if (rs.BgFrames.size() > 0)
     {
-      rs.Palette[ww] = palette[ww];
-      rs.BgFrames[0].Palette[ww] = palette[ww];
+        for (int ww = 0; ww < 256; ww++) 
+        {
+            if (thisgame.paluses[ww] != PAL_BACKGROUND)
+            {
+                rs.Palette[ww] = palette[ww];
+                rs.BgFrames[0].Palette[ww] = palette[ww];
+            }
+        }
     }
-  }
 }
 
 const char *get_mask_name(RoomAreaMask mask)
@@ -2634,21 +2634,27 @@ static void Convert8BitARGBTo32(const AGSBitmap *src, const RGB *imgpal, AGSBitm
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-
     if (backgroundNumber < 0 || backgroundNumber >= theRoom->BgFrameCount)
         return;
 	
-	theRoom->BgFrameCount--;
-    theRoom->BgFrames.erase(theRoom->BgFrames.begin() + backgroundNumber);
-    theRoom->BgImages.erase(theRoom->BgImages.begin() + backgroundNumber);
-
+    theRoom->DeleteBackground(backgroundNumber);
     room->BackgroundCount = theRoom->BgFrameCount;
 }
 
 void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
 {
+    if (backgroundNumber < 0 || backgroundNumber >= MAX_ROOM_BGFRAMES)
+    {
+        throw gcnew AGSEditorException(String::Format("Invalid background number {0}", backgroundNumber));
+    }
+
     RGB oldpale[256];
 	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, nullptr, true, false, false, false, nullptr);
+    if (!newbg)
+    {
+        throw gcnew AGSEditorException("Failed to convert bitmap to the native format");
+    }
+
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->Width = room->Width;
 	theRoom->Height = room->Height;
@@ -2656,22 +2662,24 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	theRoom->SetLegacyResolution((AGS::Common::RoomResolutionType)room->Resolution);
     theRoom->MaskResolution = room->MaskResolution;
 
-    theRoom->BgFrameCount = std::max<uint32_t>(theRoom->BgFrameCount, backgroundNumber + 1u);
-    theRoom->BgFrames.resize(theRoom->BgFrameCount);
-    theRoom->BgImages.resize(theRoom->BgFrameCount);
+    theRoom->SetBackgroundImage(backgroundNumber, std::unique_ptr<AGSBitmap>(newbg));
 
 	if (newbg->GetColorDepth() == 8) 
 	{
-		for (int aa = 0; aa < 256; aa++) {
+        AGS::Common::RoomBgFrame &bg_frame = theRoom->BgFrames[backgroundNumber];
+		for (int aa = 0; aa < 256; aa++)
+        {
 		  // make sure it maps to locked cols properly
 		  if (thisgame.paluses[aa] == PAL_LOCKED)
-			  theRoom->BgFrames[backgroundNumber].Palette[aa] = palette[aa];
+              bg_frame.Palette[aa] = palette[aa];
 		}
 
 		// sharing palette with main background - so copy it across
-		if (sharePalette) {
-		  memcpy (&theRoom->BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
-		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 1;
+		if (sharePalette)
+        {
+		  memcpy(&bg_frame.Palette[0], &palette[0], sizeof(RGB) * 256);
+          bg_frame.IsPaletteShared = 1;
+          // CHECKME: what is the point of this?
 		  if ((size_t)backgroundNumber >= theRoom->BgFrameCount - 1)
 		  	theRoom->BgFrames[0].IsPaletteShared = 1;
 
@@ -2681,15 +2689,14 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 			AGS::Common::PaletteOp::Remap(bm_data, oldpale, palette, false);
           }
 		}
-		else {
-		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 0;
-		  remap_background (newbg, oldpale, theRoom->BgFrames[backgroundNumber].Palette, useExactPalette);
+		else
+        {
+            bg_frame.IsPaletteShared = 0;
+		  remap_background(newbg, oldpale, bg_frame.Palette, useExactPalette);
 		}
 
-    copy_room_palette_to_global_palette(*theRoom);
+        copy_room_palette_to_global_palette(*theRoom);
 	}
-
-    theRoom->BgImages[backgroundNumber].reset(newbg);
 
   // if size or resolution has changed, reset masks
 	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
@@ -2706,7 +2713,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	}
 
 	room->BackgroundCount = theRoom->BgFrameCount;
-	room->ColorDepth = theRoom->BgImages[0]->GetColorDepth();
+	room->ColorDepth = theRoom->BgImages[0] ? theRoom->BgImages[0]->GetColorDepth() : 0;
 }
 
 void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
@@ -2962,13 +2969,13 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap(roomptr->BgImages[backgroundNumber].get(), false);
+  return ConvertBlockToBitmap(roomptr->GetBackgroundImage(backgroundNumber), false);
 }
 
 System::Drawing::Bitmap^ getBackgroundAsBitmap32(Room ^room, int backgroundNumber) {
 
   RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap32(roomptr->BgImages[backgroundNumber].get(), room->Width, room->Height, false);
+  return ConvertBlockToBitmap32(roomptr->GetBackgroundImage(backgroundNumber), room->Width, room->Height, false);
 }
 
 void AdjustRoomResolution(Room ^room)
@@ -4059,7 +4066,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
     room->Height = rs.Height;
-    room->ColorDepth = rs.BgImages[0]->GetColorDepth();
+    AGSBitmap *bg = rs.GetBackgroundImage(0);
+    room->ColorDepth = bg ? bg->GetColorDepth() : 0;
     room->BackgroundAnimationDelay = rs.BgAnimSpeed;
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
@@ -4299,8 +4307,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.Edges.Top = room->TopEdgeY;
 	rs.Width = room->Width;
 	rs.Height = room->Height;
+    // NOTE: should not set BgFrameCount here, it's added by adding background images
 	rs.BgAnimSpeed = room->BackgroundAnimationDelay;
-	rs.BgFrameCount = room->BackgroundCount;
     rs.Options.Flags = 0;
     if (!room->BackgroundAnimationEnabled)
         rs.Options.Flags |= kRoomFlag_BkgFrameLocked;
@@ -4425,8 +4433,8 @@ void save_default_crm_file(Room ^room)
     RoomStruct rs;
     convert_room_to_native(room, rs);
     // Insert default backgrounds and masks
-    for (size_t i = 0; i < rs.BgFrameCount; ++i) // FIXME use of thisgame.color_depth
-        rs.BgImages[i].reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8));
+    for (size_t i = 0; i < room->BackgroundCount; ++i) // FIXME use of thisgame.color_depth
+        rs.SetBackgroundImage(i, std::unique_ptr<AGSBitmap>(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8)));
     rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
@@ -4473,10 +4481,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
 {
     rs.DataVersion = kRoomVersion_Current;
     calculate_walkable_areas(rs);
-
-    rs.BackgroundBPP = rs.BgImages[0]->GetBPP();
-    for (int i = 0; i < 256; ++i)
-        rs.Palette[i] = rs.BgFrames[0].Palette[i];
 
     std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
     if (out == NULL)

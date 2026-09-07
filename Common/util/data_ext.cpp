@@ -118,12 +118,17 @@ HError DataExtReader::Read()
         // Call the reader function to read current block's data
         read_next = true;
         err = ReadBlock(_in.get(), _blockID, _extID, _blockLen, read_next);
+        if (err)
+        {
+            // Test that we did not read too much or too little
+            err = PostAssert();
+        }
         if (!err)
-            return err;
-        // Test that we did not read too much or too little
-        err = PostAssert();
-        if (!err)
-            return err;
+        {
+            String use_block_name = _extID.IsEmpty() ? String::FromFormat("%d", _blockID)
+                : (_blockID > 0 ? String::FromFormat("%d ('%s')", _blockID, _extID.GetCStr()) : _extID);
+            return new Error(String::FromFormat("Error reading extension block '%s'.", use_block_name.GetCStr()), err);
+        }
     }
     return err;
 }

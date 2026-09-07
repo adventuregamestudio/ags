@@ -90,6 +90,16 @@ There are other repositories which contain additional resources and may be of in
 - [ags-template-source](https://github.com/adventuregamestudio/ags-template-source) - this is where template sources are developed - these are essentially AGS game projects.
 
 
+## AI policy
+
+We are sometimes asked whether AGS itself is written with the help of AI tools, and we think that both the people who contribute to AGS and the people who make games with it deserve a plain answer.
+
+**Generated content is not accepted into AGS.** No artwork, sprites, icons, fonts, sound, music, user interface design or user-facing text in this program comes from a diffusion model or any other content generator. These are made by people, and we intend to keep it that way. The same goes for the material we distribute alongside AGS, such as the game templates and the demo game.
+
+**Program code** may be written with the help of AI tooling, under stated constraints. Every contribution is written and submitted by a person who is answerable for it and can explain it, and every contribution is reviewed by a human maintainer before it is merged; contributors are asked to disclose when such tools were involved.
+
+The policy in full is part of our contribution guidelines: [Use of AI Tooling](CONTRIBUTING.md#use-of-ai-tooling).
+
 ## Contributing
 
 If you would like to contribute to the project, please read the [CONTRIBUTING.md](CONTRIBUTING.md). Below is a brief summary of the process.

@@ -93,8 +93,8 @@
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59 // display dialog options even if only one is enabled
 #define OPT_TURNORDERPRIORITY 60 // which turn order to choose if cw and ccw turns are equally short
 #define OPT_TEXTBOXCLAIMSKEYS 61 // when does textbox control claim key events
-#define OPT_DIALOGOPTIONSMODE 62 // explicitly select dialog options mode (default, custom rendering, ...)
-#define OPT_HIGHESTOPTION   OPT_DIALOGOPTIONSMODE
+#define OPT_DIALOGOPTIONSDRAWMODE 62 // explicitly select dialog options draw mode (default, custom rendering, ...)
+#define OPT_HIGHESTOPTION   OPT_DIALOGOPTIONSDRAWMODE
 #define OPT_NOMODMUSIC      98 // [DEPRECATED]
 #define OPT_LIPSYNCTEXT     99
 

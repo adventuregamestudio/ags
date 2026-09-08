@@ -142,8 +142,8 @@ Script API:
    they have their own special handling for RMB).
  - Added new game-wide option OPT_TEXTBOXCLAIMSKEYS that defines what kind of key input events are
    claimed ("stolen") by the active TextBox control. This option uses TextBoxKeyClaimStyle enum.
- - Added new game-wide option OPT_DIALOGOPTIONSMODE that lets explicitly select dialog options
-   looks between default or custom rendered mode. This option uses DialogOptionsMode enum.
+ - Added new game-wide option OPT_DIALOGOPTIONSDRAWMODE that lets explicitly select dialog options
+   looks between default or custom rendered mode. This option uses DialogOptionsDrawMode enum.
  - Moved eAlignHas* constants from Alignment to AlignmentMask enum.
  - Added eUndefinedFont constant that may be used in certain font properties as a indication that
    they are not initialized, and engine should go for a default fallback value instead.
@@ -179,6 +179,7 @@ Script API:
  - Added Dialog.StartOption() that runs dialog starting with the given option. The option's state
    (turned off, turned off forever) is disregarded in this case.
  - Added DialogOptionsNumbering enum, to use when setting dialog options numbering mode.
+ - Added DialogOptions.DrawMode property and DialogOptionsDrawMode enum.
  - Added new DialogOptions struct featuring multiple new properties: BulletGraphic, Font, GUIX,
    GUIY, HighlightColor, ItemGap, ItemNumbering, MaxGUIWidth, MinGUIWidth, PaddingX, PaddingY,
    ReadColor, TemplateGUI, TextAlignment, ZOrder.

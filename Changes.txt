@@ -111,6 +111,7 @@ Editor:
    "//$ANNOTATION: VALUE", which will be kept intact during translation update.
  - When updating a translation source, obsolete entries will now be removed, and if there's already
    a translated line present, then marked with a "//$OBSOLETE" tag for user to notice them.
+ - Editor's setting "Popup message on compile" will be applied when saving rooms too.
  - Improved error reporting for game text gathering actions such as "Create voice-acting script"
    and "Update translation". Now these errors correctly tell the script location which lets you
    go there.
@@ -125,6 +126,10 @@ Editor:
  - Fixed deleted custom property values were remaining in objects data, apparently forever
    (they were not visible, unless you re-add the property under same name).
  - Fixed sprites loosing alpha channel when being copy/pasted in the Sprite Manager.
+ - Fixed autocomplete registering non-existing variables if a string literal contained a variable
+   declaration syntax as a part of a string.
+ - Fixed script editor hanging forever when there's a "]" character typed right at the beginning
+   of a new line.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -137,6 +142,8 @@ Script API:
    they have their own special handling for RMB).
  - Added new game-wide option OPT_TEXTBOXCLAIMSKEYS that defines what kind of key input events are
    claimed ("stolen") by the active TextBox control. This option uses TextBoxKeyClaimStyle enum.
+ - Added new game-wide option OPT_DIALOGOPTIONSMODE that lets explicitly select dialog options
+   looks between default or custom rendered mode. This option uses DialogOptionsMode enum.
  - Moved eAlignHas* constants from Alignment to AlignmentMask enum.
  - Added eUndefinedFont constant that may be used in certain font properties as a indication that
    they are not initialized, and engine should go for a default fallback value instead.
@@ -314,6 +321,10 @@ Engine:
    continue to operate this DrawingSurface object.
  - Fixed potential engine crash occuring if the game's spritefile contained less sprites than
    are defined by the game data, for any reason.
+ - Fixed a Room applying special view for the player character did not adjust the loop to be
+   within a valid range.
+ - Fixed that when character's walking loop is adjusted into the valid range, the character with
+   diagonal loops will be restricted to first 8 loops (was not restricted previously).
  - Fixed loop range limit used when selecting a suitable loop after changing to another normal view
    or unlocking a temporary view. Previously, it seems, it used full range of loops in the current
    normal view, now it should use only first 4 or 8 standard standing loops (depending on "use

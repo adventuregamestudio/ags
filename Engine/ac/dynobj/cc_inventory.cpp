@@ -21,8 +21,11 @@ using namespace AGS::Common;
 extern std::vector<int> StaticInventoryArray;
 extern std::vector<ScriptInvItem> scrInv;
 
+ScriptInvItem CCInventory::_dummy;
+
 // return the type name of the object
-const char *CCInventory::GetType() {
+const char *CCInventory::GetType()
+{
     return "Inventory";
 }
 
@@ -31,12 +34,25 @@ size_t CCInventory::CalcSerializeSize(const void* /*address*/)
     return sizeof(int32_t);
 }
 
-void CCInventory::Serialize(const void *address, Stream *out) {
+void CCInventory::Serialize(const void *address, Stream *out)
+{
     const ScriptInvItem *shh = static_cast<const ScriptInvItem*>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCInventory::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCInventory::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
+    // NOTE: older versions apparently had MAX_INV script objects registered in managed memory.
+    // TODO: share this algorithm with all managed object unserialization (make template function?).
     int num = in->ReadInt32();
-    StaticInventoryArray[num] = ccRegisterUnserializedPersistentObject(index, &scrInv[num], this);
+    if (num >= 0 && static_cast<uint32_t>(num) < scrInv.size())
+    {
+        StaticInventoryArray[num] = ccRegisterUnserializedPersistentObject(index, &scrInv[num], this);
+    }
+    else
+    {
+        // WARNING: we must not reallocate StaticInventoryArray or scrInv, because that will break script array
+        // and script objects registration respectively.
+        ccRegisterUnserializedPersistentObject(index, &_dummy, this);
+    }
 }

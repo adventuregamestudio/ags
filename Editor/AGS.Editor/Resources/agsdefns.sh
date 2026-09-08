@@ -603,7 +603,7 @@ enum TextBoxKeyClaimStyle
 enum DialogOptionsDrawMode
 {
   eDialogOptDraw_Auto          = 0,
-  eDialogOptDraw_Default       = 1,
+  eDialogOptDraw_Standard      = 1,
   eDialogOptDraw_Custom        = 2,
 };
 #endif // SCRIPT_API_v363

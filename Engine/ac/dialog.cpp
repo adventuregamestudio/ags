@@ -1029,7 +1029,7 @@ void DialogOptions::Begin()
     ccDialogOptionsRendering = new ScriptDialogOptionsRendering();
     ccAddObjectReference(ccRegisterManagedObject(ccDialogOptionsRendering, ccDialogOptionsRendering));
 
-    if (((game.options[OPT_DIALOGOPTIONSDRAWMODE] == kDialogOptMode_Auto) || (game.options[OPT_DIALOGOPTIONSDRAWMODE] == kDialogOptMode_Custom))
+    if (((game.options[OPT_DIALOGOPTIONSDRAWMODE] == kDialogOptDraw_Auto) || (game.options[OPT_DIALOGOPTIONSDRAWMODE] == kDialogOptDraw_Custom))
         && get_custom_dialog_options_dimensions(ccDialogOptionsRendering, dlgnum))
     {
         // Custom dialog options rendering

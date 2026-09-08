@@ -254,13 +254,13 @@ enum GameGuiAlphaRenderingStyle
     kGuiAlphaRender_Proper
 };
 
-enum DialogOptionsMode
+enum DialogOptionsDrawMode
 {
     // Automatic mode: if engine finds custom rendering callbacks in script,
-    // then it will use them, otherwise uses default options mode.
-    kDialogOptMode_Auto     = 0,
-    kDialogOptMode_Default  = 1,
-    kDialogOptMode_Custom   = 2
+    // then it will use them, otherwise uses standard options mode.
+    kDialogOptDraw_Auto     = 0,
+    kDialogOptDraw_Standard = 1,
+    kDialogOptDraw_Custom   = 2
 };
 
 

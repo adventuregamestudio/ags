@@ -130,6 +130,9 @@ Editor:
    declaration syntax as a part of a string.
  - Fixed script editor hanging forever when there's a "]" character typed right at the beginning
    of a new line.
+ - Fixed that Editor would recompile all rooms over again whenever a project was just upgraded from
+   the new version, and any errors were found in script(s) during game recompilation. Now it will
+   only recompile those rooms which were either modified or not compiled yet.
 
 Compiler:
  - Removed hard limit of script function parameters.

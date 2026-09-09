@@ -118,7 +118,8 @@ namespace AGS.Editor
          * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
          * 3.6.3.8        - Font Overrides in Translation, TextOutlineColor in GUI controls.
-         * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption
+         * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption;
+         *                  InventoryItem.Hotspot now treats value 0,0 exactly, and not "centered in graphic"
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms. Deprecate '[' as a linebreak.

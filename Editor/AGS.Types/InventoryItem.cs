@@ -76,18 +76,7 @@ namespace AGS.Types
         public int CursorImage
         {
             get { return _cursorImage; }
-            set
-            {
-                if (value != _cursorImage)
-                {
-                    if ((_cursorImage != 0) && (!_currentlyDeserializing))
-                    {
-                        _hotspotX = 0;
-                        _hotspotY = 0;
-                    }
-                    _cursorImage = Math.Max(0, value);
-                }
-            }
+            set { _cursorImage = Math.Max(0, value); }
         }
 
         [Description("Sprite used to display the inventory item")]

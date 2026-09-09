@@ -308,6 +308,7 @@ VERSION 3.6.3 - Beta, June 2026
 Common:
  - Removed limit of Dialog's options (was 30).
  - Increased number of Audio Channels to 32 (was 16).
+ - Inventory Item's hotspot now treats 0,0 value exactly, and not as "centered in graphic".
 
 Editor:
  - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
@@ -538,7 +539,6 @@ Engine:
    (was 500).
  - Changing Character.InventoryQuantity[] now automatically adds and removes items from the
    Character's list of items; there's no need to call UpdateInventory() anymore.
- - Inventory Item's hotspot now treats 0,0 value exactly, and not as "centered in graphic".
  - Inventory Item's hotspot marker can now be drawn outside of the cursor graphic's boundaries.
  - Speech skip key will also apply to skipping Display messages.
  - Engine now supports Unicode control characters LRE (U+202A) and RLE (U+202B) when applying

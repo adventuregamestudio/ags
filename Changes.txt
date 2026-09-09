@@ -324,8 +324,6 @@ Engine:
    are defined by the game data, for any reason.
  - Fixed a Room applying special view for the player character did not adjust the loop to be
    within a valid range.
- - Fixed that when character's walking loop is adjusted into the valid range, the character with
-   diagonal loops will be restricted to first 8 loops (was not restricted previously).
  - Fixed loop range limit used when selecting a suitable loop after changing to another normal view
    or unlocking a temporary view. Previously, it seems, it used full range of loops in the current
    normal view, now it should use only first 4 or 8 standard standing loops (depending on "use

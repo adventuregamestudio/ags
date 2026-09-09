@@ -99,7 +99,7 @@ void script_debug(int cmdd,int dataa) {
     if (cmdd==0)
     {
         for (int i = 1; i < game.numinvitems; ++i)
-            playerchar->inv[i]=1;
+            playerchar->inv[i] = std::max<int16_t>(1, playerchar->inv[i]);
         update_invorder();
     }
     else if (cmdd==1)

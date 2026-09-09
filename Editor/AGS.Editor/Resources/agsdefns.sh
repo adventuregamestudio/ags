@@ -600,11 +600,11 @@ enum TextBoxKeyClaimStyle
   eTextBoxKeyClaimTextOnly     = 2
 };
 
-enum DialogOptionsMode
+enum DialogOptionsDrawMode
 {
-  eDialogOptMode_Auto          = 0,
-  eDialogOptMode_Default       = 1,
-  eDialogOptMode_Custom        = 2,
+  eDialogOptDraw_Auto          = 0,
+  eDialogOptDraw_Standard      = 1,
+  eDialogOptDraw_Custom        = 2,
 };
 #endif // SCRIPT_API_v363
 
@@ -2515,6 +2515,8 @@ struct DialogOptions
   import static readonly attribute bool AreDisplayed; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
   import static attribute int BulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets which looks mode should the dialog options use when displayed.
+  import static attribute DialogOptionsDrawMode DrawMode; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the font to use when displaying dialog options
   import static attribute FontType Font; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement

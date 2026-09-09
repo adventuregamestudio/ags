@@ -93,8 +93,8 @@
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59 // display dialog options even if only one is enabled
 #define OPT_TURNORDERPRIORITY 60 // which turn order to choose if cw and ccw turns are equally short
 #define OPT_TEXTBOXCLAIMSKEYS 61 // when does textbox control claim key events
-#define OPT_DIALOGOPTIONSMODE 62 // explicitly select dialog options mode (default, custom rendering, ...)
-#define OPT_HIGHESTOPTION   OPT_DIALOGOPTIONSMODE
+#define OPT_DIALOGOPTIONSDRAWMODE 62 // explicitly select dialog options draw mode (default, custom rendering, ...)
+#define OPT_HIGHESTOPTION   OPT_DIALOGOPTIONSDRAWMODE
 #define OPT_NOMODMUSIC      98 // [DEPRECATED]
 #define OPT_LIPSYNCTEXT     99
 
@@ -254,13 +254,13 @@ enum GameGuiAlphaRenderingStyle
     kGuiAlphaRender_Proper
 };
 
-enum DialogOptionsMode
+enum DialogOptionsDrawMode
 {
     // Automatic mode: if engine finds custom rendering callbacks in script,
-    // then it will use them, otherwise uses default options mode.
-    kDialogOptMode_Auto     = 0,
-    kDialogOptMode_Default  = 1,
-    kDialogOptMode_Custom   = 2
+    // then it will use them, otherwise uses standard options mode.
+    kDialogOptDraw_Auto     = 0,
+    kDialogOptDraw_Standard = 1,
+    kDialogOptDraw_Custom   = 2
 };
 
 

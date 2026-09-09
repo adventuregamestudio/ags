@@ -126,6 +126,7 @@ Editor:
  - Fixed deleted custom property values were remaining in objects data, apparently forever
    (they were not visible, unless you re-add the property under same name).
  - Fixed sprites loosing alpha channel when being copy/pasted in the Sprite Manager.
+ - Fixed autocomplete crashing if there's an unclosed string literal in script.
  - Fixed autocomplete registering non-existing variables if a string literal contained a variable
    declaration syntax as a part of a string.
  - Fixed script editor hanging forever when there's a "]" character typed right at the beginning

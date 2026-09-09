@@ -432,12 +432,12 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
         dst_depth = 32; // convert to 32-bit
         break;
     default:
-        return new Error(String::FromFormat("Unsupported pixel format: %s", PixelFormatName(src.GetFormat()).GetCStr()));
+        return new Error("Unsupported pixel format: %s", PixelFormatName(src.GetFormat()).GetCStr());
     }
 
     if ((game_color_depth == 8) && (src_depth > 8))
     {
-        return new Error(String::FromFormat("Cannot import a hi-colour or true-colour image into a 256-colour game."));
+        return new Error("Cannot import a hi-colour or true-colour image into a 256-colour game.");
     }
 
     // Convert pixels to the format, supported by the bitmap library.
@@ -448,7 +448,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
     {
         if (!PixelOp::CopyConvert(src, compat_buf, ColorDepthToPixelFormat(dst_depth)))
         {
-            return new Error(String::FromFormat("Failed to convert an input image into the compatible game format."));
+            return new Error("Failed to convert an input image into the compatible game format.");
         }
     }
 

@@ -130,7 +130,7 @@ HError DataExtReader::Read()
         {
             String use_block_name = _extID.IsEmpty() ? String::FromFormat("%d", _blockID)
                 : (_blockID > 0 ? String::FromFormat("%d ('%s')", _blockID, _extID.GetCStr()) : _extID);
-            return new Error(String::FromFormat("Error reading extension block '%s'.", use_block_name.GetCStr()), err);
+            return new Error(err, "Error reading extension block '%s'.", use_block_name.GetCStr());
         }
     }
     return err;

@@ -184,7 +184,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         AGF::AGFReader reader;
         HError err = reader.Open(src_agf.GetCStr());
         if (!err)
-            return new Error(String::FromFormat("Failed to open and/or read %s", src_agf.GetCStr()), err);
+            return new Error(err, "Failed to open and/or read %s", src_agf.GetCStr());
 
         DataUtil::GameSettings opts;
         AGF::ReadGameSettings(opts, reader.GetGameRoot());
@@ -437,7 +437,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         // Create temp AudioCache dir always, because we use it to make hardlinks, write include file and package audio files
         const String temp_audio_dir = Path::ConcatPaths(bopts.TempDir, "AudioCache");
         if (!Directory::CreateDirectory(temp_audio_dir))
-            return new Error(String::FromFormat("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr()));
+            return new Error("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr());
 
         std::vector<DataUtil::AudioClipData> src_clips;
         std::vector<DataUtil::AudioClipData> temp_clips;
@@ -512,7 +512,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
             // Create same custom directory inside temporary dir
             const String temp_cd = Path::ConcatPaths(temp_dir, cd);
             if (!Directory::CreateDirectory(temp_cd))
-                return new Error(String::FromFormat("Error: failed to create temporary custom data directory '%s'", temp_cd.GetCStr()));
+                return new Error("Error: failed to create temporary custom data directory '%s'", temp_cd.GetCStr());
 
             for (FindFile ff = FindFile::Open(full_cd, "*", true, false); !ff.AtEnd(); ff.Next())
                 pak_src_files.push_back(Path::ConcatPaths(cd, ff.Current()));

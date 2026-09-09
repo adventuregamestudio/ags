@@ -1093,7 +1093,7 @@ HError pl_load_plugin(EnginePlugin *apl, const std::vector<String> lookup_dirs)
 
     auto *startup_function = apl->library.GetFunctionAddress("AGS_EngineStartup");
     if (startup_function == nullptr)
-        return new Error("Not a valid AGS plugin: no engine startup entry point 'AGS_EngineStartup' exported.", apl->filename.GetCStr());
+        return new Error("Not a valid AGS plugin '%s': no engine startup entry point 'AGS_EngineStartup' exported.", apl->filename.GetCStr());
 
     apl->engineStartup = (void(*)(IAGSEngine*))startup_function;
     apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");

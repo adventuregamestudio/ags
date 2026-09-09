@@ -599,8 +599,8 @@ HError engine_init_sprites()
     auto sprite_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteFileName);
     if (!sprite_file)
     {
-        return new Error(String::FromFormat("Failed to open spriteset file '%s'.",
-            SpriteFile::DefaultSpriteFileName.GetCStr()));
+        return new Error("Failed to open spriteset file '%s'.",
+            SpriteFile::DefaultSpriteFileName.GetCStr());
     }
     auto index_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName);
     HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
@@ -944,9 +944,9 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     {
         // If not a valid path - bail out
         if (!File::IsFileOrDir(cmdGameDataPath))
-            return new Error(String::FromFormat("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",
+            return new Error("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",
                 Directory::GetCurrentDirectory().GetCStr(),
-                cmdGameDataPath.GetCStr()));
+                cmdGameDataPath.GetCStr());
         // If it's a file, then keep it and proceed
         if (File::IsFile(cmdGameDataPath))
         {
@@ -962,8 +962,10 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     data_path = search_for_game_data_file(startup_dir);
     if (data_path.IsEmpty())
     {
-        return new Error("Engine was not able to find any compatible game data.",
-            startup_dir.IsEmpty() ? String() : String::FromFormat("Searched in: %s", startup_dir.GetCStr()));
+        if (startup_dir.IsEmpty())
+            return new Error("Engine was not able to find any compatible game data.");
+        else
+            return new Error("Engine was not able to find any compatible game data.\nSearched in: %s", startup_dir.GetCStr());
     }
     data_path = Path::MakeAbsolutePath(data_path);
     Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());

@@ -298,7 +298,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     svg_ver = (SavegameVersion)in->ReadInt32();
     if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
+            "Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current);
 
     // File format info
     if (svg_ver >= kSvgVersion_363)
@@ -395,7 +395,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
-        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+        return new SavegameError(kSvgErr_FileOpenFailed, "Requested filename: %s.", filename.GetCStr());
 
     // Check saved game signature
     SavegameVersion sig_ver = CheckSaveSignature(in.get());
@@ -410,7 +410,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 
     if (sig_ver < kSvgVersion_Components)
     {
-        return new SavegameError(kSvgErr_FormatVersionNotSupported, String::FromFormat("Engine no longer supports pre-3.5.0 saves."));
+        return new SavegameError(kSvgErr_FormatVersionNotSupported, "Engine no longer supports pre-3.5.0 saves.");
     }
 
     SavegameVersion svg_ver;
@@ -581,7 +581,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
             if ((size_t)chan_info.ClipID >= game.audioClips.size())
             {
                 return new SavegameError(kSvgErr_GameObjectInitFailed,
-                                         String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
+                                         "Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size());
             }
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
@@ -795,7 +795,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     HError err = create_game_scripts();
     if (!err)
     {
-        return new SavegameError(kSvgErr_GameObjectInitFailed, "Unable to recreate game scripts", err);
+        return new SavegameError(err, kSvgErr_GameObjectInitFailed, "Unable to recreate game scripts");
     }
 
     // read the global data into the newly created script
@@ -1266,7 +1266,7 @@ HSaveError SaveGame(const String &filename, const String &user_text, const Bitma
     format.Flags = kSvgFmt_DeflateComponents * compress_data;
     std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, format));
     if (!out)
-        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+        return new SavegameError(kSvgErr_FileOpenFailed, "Requested filename: %s.", filename.GetCStr());
 
     format.GameDataOffset = out->GetPosition();
     SaveGameState(out.get(), select_cmp, compress_data);

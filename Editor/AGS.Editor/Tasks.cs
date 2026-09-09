@@ -606,6 +606,18 @@ namespace AGS.Editor
                     foreach (GUIControl gc in gui.Controls)
                     {
                         SetDefaultColors(game, gc, xmlVersionIndex);
+
+                        // Special case: buttons that had NO graphic and NO text were not drawn previously.
+                        // Now they are. In order to emulate same behavior, we disable their background and border
+                        if (gc is GUIButton)
+                        {
+                            GUIButton button = gc as GUIButton;
+                            if (button.Image == 0 && string.IsNullOrEmpty(button.Text))
+                            {
+                                button.SolidBackground = false;
+                                button.ShowBorder = false;
+                            }
+                        }
                     }
                 }
             }
@@ -623,6 +635,24 @@ namespace AGS.Editor
                         if (gc is GUILabel)
                         {
                             gc.Clickable = false;
+                        }
+                    }
+                }
+
+                foreach (InventoryItem item in game.InventoryItems)
+                {
+                    // Convert inventory cursor hotspot from 0,0 to centered in graphic
+                    if (item.HotspotX == 0 && item.HotspotY == 0)
+                    {
+                        int spriteNum = item.CursorImage > 0 ? item.CursorImage : item.Image;
+                        if (spriteNum >= 0)
+                        {
+                            Sprite spr = game.RootSpriteFolder.FindSpriteByID(spriteNum, true);
+                            if (spr != null)
+                            {
+                                item.HotspotX = spr.Width / 2;
+                                item.HotspotY = spr.Height / 2;
+                            }
                         }
                     }
                 }

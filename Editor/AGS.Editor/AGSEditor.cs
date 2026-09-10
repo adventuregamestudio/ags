@@ -1266,7 +1266,7 @@ namespace AGS.Editor
 
                 if (!evArgs.AllowCompilation)
                 {
-                    Factory.GUIController.PostOutputAndReportErrors(errors, "when compiling the game");
+                    Factory.GUIController.PostOutputAndReportErrors(errors, "The game compiled");
                     return errors;
                 }
             }
@@ -1294,7 +1294,7 @@ namespace AGS.Editor
                 }
 			}
 
-            Factory.GUIController.PostOutputAndReportErrors(errors, "when compiling the game");
+            Factory.GUIController.PostOutputAndReportErrors(errors, "The game compiled");
             return errors;
         }
 

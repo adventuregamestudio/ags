@@ -37,13 +37,53 @@ String trans_name;
 String trans_filename;
 Translation trans;
 
+FontInfo construct_font_override(FontInfo *base_finfo, const FontInfo &finfo, int fields)
+{
+    if (base_finfo)
+    {
+        FontInfo out_info = *base_finfo;
+        if (fields & kFontField_Size)
+        {
+            out_info.Size = finfo.Size;
+            out_info.SizeMultiplier = finfo.SizeMultiplier;
+        }
+        if (fields & kFontField_OutlineStyle)
+            out_info.Outline = finfo.Outline;
+        if (fields & kFontField_AutoOutlineStyle)
+            out_info.AutoOutlineStyle = finfo.AutoOutlineStyle;
+        if (fields & kFontField_AutoOutlineThickness)
+            out_info.AutoOutlineThickness = finfo.AutoOutlineThickness;
+        if (fields & kFontField_VerticalOffset)
+            out_info.YOffset = finfo.YOffset;
+        if (fields & kFontField_LineSpacing)
+            out_info.LineSpacing = finfo.LineSpacing;
+        if (fields & kFontField_CharacterSpacing)
+            out_info.CharacterSpacing = finfo.CharacterSpacing;
+        if (fields & kFontField_TTFMetricsFixup)
+            out_info.Flags = (out_info.Flags & ~FFLG_ASCENDERFIXUP) | (finfo.Flags & FFLG_ASCENDERFIXUP);
+        if (fields & kFontField_HeightDefinition)
+        {
+            out_info.Flags = (out_info.Flags & ~FFLG_FONTHEIGHTMASK) | (finfo.Flags & FFLG_FONTHEIGHTMASK);
+            out_info.CustomHeight = finfo.CustomHeight;
+        }
+        // FIXME: this is hacky, figure out a better method to update internal fields based on flags
+        out_info.SetFlags(out_info.Flags);
+        return out_info;
+    }
+    else
+    {
+        return finfo;
+    }
+}
 
 void init_font_overrides(const Translation &trans)
 {
     for (const auto &font_override : trans.FontOverrides)
     {
         const int font_id = font_override.first;
-        const auto finfo = font_override.second;
+        const auto &fover = font_override.second;
+        const auto &finfo = fover.Finfo;
+        const auto &fields = fover.Fields;
         // If FontID is available, this means we should copy another existing font,
         // otherwise use FontInfo properties to load a new font
         const int use_font_id = finfo.FontID;
@@ -51,18 +91,24 @@ void init_font_overrides(const Translation &trans)
         {
             if (static_cast<uint32_t>(use_font_id) < game.fonts.size())
             {
-                Debug::Printf("Init font's %d override with default font %d", font_id, use_font_id);
-                load_game_font(font_id, game.fonts[use_font_id], loaded_game_file_version);
+                Debug::Printf("Init font's %d override using replacement font %d and provided parameters", font_id, use_font_id);
+                FontInfo use_finfo = construct_font_override(&game.fonts[use_font_id], finfo, fields);
+                load_game_font(font_id, use_finfo, loaded_game_file_version);
             }
             else
             {
-                Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: font %d does not exist", font_id, use_font_id);
+                Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: replacement font %d does not exist", font_id, use_font_id);
             }
         }
         else if (!finfo.FileName.IsEmpty())
         {
             Debug::Printf("Init font's %d override using file %s and provided parameters", font_id, finfo.FileName.GetCStr());
-            load_game_font(font_override.first, font_override.second, loaded_game_file_version);
+            FontInfo use_finfo = construct_font_override(nullptr, finfo, fields);
+            load_game_font(font_id, use_finfo, loaded_game_file_version);
+        }
+        else
+        {
+            Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: neither replacement font ID nor filename provided", font_id);
         }
     }
 }

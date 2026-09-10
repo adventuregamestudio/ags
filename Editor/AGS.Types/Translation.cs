@@ -44,7 +44,7 @@ namespace AGS.Types
         private string _encodingHint;
         private Encoding _encoding;
         private string _language;
-        private Dictionary<int, Font> _fontOverrides = new Dictionary<int, Font>();
+        private Dictionary<int, FontOverride> _fontOverrides = new Dictionary<int, FontOverride>();
         private Dictionary<string, string> _translatedLines = new Dictionary<string, string>();
         private Dictionary<string, TranslationEntryOptions> _entryOptions = new Dictionary<string, TranslationEntryOptions>();
         private Dictionary<string, TranslationSection> _translationSections = new Dictionary<string, TranslationSection>();
@@ -177,7 +177,7 @@ namespace AGS.Types
         /// Otherwise, this instructs that the new font should be generated with
         /// the given set of properties.
         /// </summary>
-        public Dictionary<int, Font> FontOverrides
+        public Dictionary<int, FontOverride> FontOverrides
         {
             get { return _fontOverrides; }
             set { _fontOverrides = value; }
@@ -396,7 +396,7 @@ namespace AGS.Types
         // in a translation file parser/serializer.
         private bool LoadDataImpl(StreamReader sr, CompileMessages errors)
         {
-            _fontOverrides = new Dictionary<int, Font>();
+            _fontOverrides = new Dictionary<int, FontOverride>();
             _translatedLines = new Dictionary<string, string>();
             _entryOptions = new Dictionary<string, TranslationEntryOptions>();
             _translationSections = new Dictionary<string, TranslationSection>();
@@ -561,52 +561,67 @@ namespace AGS.Types
             {
                 StringBuilder sb = new StringBuilder();
                 int fontIndex = fontOverride.Key;
-                Font font = fontOverride.Value;
+                Font font = fontOverride.Value.Font;
+                FontFields fields = fontOverride.Value.Fields;
                 sb.Append($"//#Font{fontIndex}=");
+                // The font override's source is defined either as another font's index, or font file
                 if (font.ID >= 0)
-                {
-                    sb.Append($"Font{font.ID}");
-                }
-                else
-                {
-                    // Only write non-default values. Unfortunately there's no way to know
-                    // which values user set in the original source file.
+                    sb.Append($"Font{font.ID};");
+                else if (!string.IsNullOrEmpty(font.ProjectFilename))
                     sb.Append($"File={font.ProjectFilename};");
-                    if (font.PointSize > 0)
-                        sb.Append($"Size={font.PointSize.ToString()};");
-                    if (font.SizeMultiplier > 1)
-                        sb.Append($"SizeMultiplier={font.SizeMultiplier.ToString()};");
 
-                    if (font.OutlineStyle == FontOutlineStyle.Automatic)
+                //
+                // Use fields value to know which properties have been specified
+                //
+
+                if (fields.HasFlag(FontFields.Size) && font.PointSize > 0)
+                    sb.Append($"Size={font.PointSize.ToString()};");
+                if (fields.HasFlag(FontFields.Size) && font.SizeMultiplier > 0)
+                    sb.Append($"SizeMultiplier={font.SizeMultiplier.ToString()};");
+
+                if (fields.HasFlag(FontFields.OutlineStyle))
+                {
+                    if (font.OutlineStyle == FontOutlineStyle.None)
+                        sb.Append($"Outline=NONE;");
+                    else if (font.OutlineStyle == FontOutlineStyle.Automatic)
                         sb.Append($"Outline=AUTO;");
-                    else if(font.OutlineStyle == FontOutlineStyle.UseOutlineFont)
+                    else if (font.OutlineStyle == FontOutlineStyle.UseOutlineFont)
                         sb.Append($"Outline=Font{font.OutlineFont};");
+                }
 
-                    if (font.OutlineStyle == FontOutlineStyle.Automatic)
-                    {
-                        if (font.AutoOutlineStyle == FontAutoOutlineStyle.Rounded)
-                            sb.Append($"AutoOutline=ROUND;");
+                if (fields.HasFlag(FontFields.AutoOutlineStyle))
+                {
+                    if (font.AutoOutlineStyle == FontAutoOutlineStyle.Squared)
+                        sb.Append($"AutoOutline=SQUARED;");
+                    else if (font.AutoOutlineStyle == FontAutoOutlineStyle.Rounded)
+                        sb.Append($"AutoOutline=ROUND;");
+                }
 
-                        sb.Append($"AutoOutlineThickness={font.AutoOutlineThickness};");
-                    }
+                if (fields.HasFlag(FontFields.AutoOutlineThickness) && font.AutoOutlineThickness > 0)
+                    sb.Append($"AutoOutlineThickness={font.AutoOutlineThickness};");
 
-                    if (font.HeightDefinedBy == FontHeightDefinition.PixelHeight)
-                        sb.Append($"HeightDefinition=REAL;");
-                    else if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
-                        sb.Append($"HeightDefinition=CUSTOM;");
-
+                if (fields.HasFlag(FontFields.HeightDefinition))
+                {
                     if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
+                        sb.Append($"HeightDefinition=CUSTOM;");
+                    else if (font.HeightDefinedBy == FontHeightDefinition.NominalHeight)
+                        sb.Append($"HeightDefinition=NOMINAL;");
+                    else if (font.HeightDefinedBy == FontHeightDefinition.PixelHeight)
+                        sb.Append($"HeightDefinition=REAL;");
+
+                    if (font.HeightDefinedBy == FontHeightDefinition.CustomValue && font.CustomHeightValue > 0)
                     {
                         sb.Append($"CustomHeight={font.CustomHeightValue};");
                     }
-
-                    if (font.VerticalOffset != 0)
-                        sb.Append($"VerticalOffset={font.VerticalOffset};");
-                    if (font.LineSpacing != 0)
-                        sb.Append($"LineSpacing={font.LineSpacing};");
-                    if (font.CharacterSpacing != 0)
-                        sb.Append($"CharacterSpacing={font.CharacterSpacing};");
                 }
+
+                if (fields.HasFlag(FontFields.VerticalOffset) && font.VerticalOffset != 0)
+                    sb.Append($"VerticalOffset={font.VerticalOffset};");
+                if (fields.HasFlag(FontFields.LineSpacing) && font.LineSpacing != 0)
+                    sb.Append($"LineSpacing={font.LineSpacing};");
+                if (fields.HasFlag(FontFields.CharacterSpacing) && font.CharacterSpacing != 0)
+                    sb.Append($"CharacterSpacing={font.CharacterSpacing};");
+
                 sw.WriteLine(sb.ToString());
             }
         }
@@ -622,112 +637,119 @@ namespace AGS.Types
             return -1;
         }
 
-        private Font ParseFontOverride(string value)
+        private FontOverride ParseFontOverride(string value)
         {
-            // Format 1:
-            //    FontN
-            // Format 2:
-            //    Property1=Value1;Property2=Value2;Property3=Value3;...
+            // Format:
+            //    [FontN;]Property1=Value1;Property2=Value2;Property3=Value3;...
             var options = value.Split(';');
-            string fontRef = options.Length > 0 ? options[0] : string.Empty;
-            int reFontNumber = ParseFontN(fontRef);
-            if (reFontNumber >= 0)
+            var font = new Font();
+            FontFields fields = 0;
+            var keyValues = options.Select(s =>
             {
-                var font = new Font();
-                font.ID = reFontNumber;
-                return font;
-            }
-            else
+                return Utilities.ParseKeyValue(s, OPTION_SEPARATOR);
+            }).ToArray();
+            foreach (var option in keyValues)
             {
-                var font = new Font();
-                font.ID = -1; // mark it as not one of the game's font
-                var keyValues = options.Select(s =>
+                if (option.Key == "Font")
                 {
-                    return Utilities.ParseKeyValue(s, OPTION_SEPARATOR);
-                }).ToArray();
-                foreach (var option in keyValues)
-                {
-                    if (option.Key == "File")
-                    {
-                        font.ProjectFilename = option.Value;
-                    }
-                    else if (option.Key == "Size")
-                    {
-                        font.PointSize = option.Value.ParseIntOrDefault();
-                    }
-                    else if (option.Key == "SizeMultiplier")
-                    {
-                        font.SizeMultiplier = option.Value.ParseIntOrDefault();
-                    }
-                    else if (option.Key == "Outline")
-                    {
-                        if (option.Value == "NONE")
-                        {
-                            font.OutlineStyle = FontOutlineStyle.None;
-                        }
-                        else if (option.Value == "AUTO")
-                        {
-                            font.OutlineStyle = FontOutlineStyle.Automatic;
-                        }
-                        else
-                        {
-                            int outFontID = ParseFontN(option.Value);
-                            if (outFontID >= 0)
-                            {
-                                font.OutlineStyle = FontOutlineStyle.UseOutlineFont;
-                                font.OutlineFont = outFontID;
-                            }
-                        }
-                    }
-                    else if (option.Key == "AutoOutline")
-                    {
-                        if (option.Value == "SQUARED")
-                        {
-                            font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
-                        }
-                        else if (option.Value == "ROUND")
-                        {
-                            font.AutoOutlineStyle = FontAutoOutlineStyle.Rounded;
-                        }
-                    }
-                    else if (option.Key == "AutoOutlineThickness")
-                    {
-                        font.AutoOutlineThickness = option.Value.ParseIntOrDefault();
-                    }
-                    else if (option.Key == "HeightDefinition")
-                    {
-                        if (option.Value == "NOMINAL")
-                        {
-                            font.HeightDefinedBy = FontHeightDefinition.NominalHeight;
-                        }
-                        else if (option.Value == "REAL")
-                        {
-                            font.HeightDefinedBy = FontHeightDefinition.PixelHeight;
-                        }
-                        else if (option.Value == "CUSTOM")
-                        {
-                            font.HeightDefinedBy = FontHeightDefinition.CustomValue;
-                        }
-                    }
-                    else if (option.Key == "CustomHeight")
-                    {
-                        font.CustomHeightValue = option.Value.ParseIntOrDefault();
-                    }
-                    else if (option.Key == "VerticalOffset")
-                    {
-                        font.VerticalOffset = option.Value.ParseIntOrDefault();
-                    }
-                    else if (option.Key == "LineSpacing")
-                    {
-                        font.LineSpacing = option.Value.ParseIntOrDefault();
-                    }
-                    else if (option.Key == "CharacterSpacing")
-                    {
-                        font.CharacterSpacing = option.Value.ParseIntOrDefault();
-                    }
+                    font.ID = option.Value.ParseIntOrDefault();
                 }
-                return font;
+                else if (option.Key.StartsWith("Font"))
+                {
+                    int reFontNumber = ParseFontN(option.Key);
+                    if (reFontNumber >= 0)
+                        font.ID = reFontNumber;
+                }
+                else if (option.Key == "File")
+                {
+                    font.ProjectFilename = option.Value;
+                }
+                else if (option.Key == "Size")
+                {
+                    font.PointSize = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.Size;
+                }
+                else if (option.Key == "SizeMultiplier")
+                {
+                    font.SizeMultiplier = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.Size;
+                }
+                else if (option.Key == "Outline")
+                {
+                    if (option.Value == "NONE")
+                    {
+                        font.OutlineStyle = FontOutlineStyle.None;
+                    }
+                    else if (option.Value == "AUTO")
+                    {
+                        font.OutlineStyle = FontOutlineStyle.Automatic;
+                    }
+                    else
+                    {
+                        int outFontID = ParseFontN(option.Value);
+                        if (outFontID >= 0)
+                        {
+                            font.OutlineStyle = FontOutlineStyle.UseOutlineFont;
+                            font.OutlineFont = outFontID;
+                        }
+                    }
+                    fields |= FontFields.OutlineStyle;
+                }
+                else if (option.Key == "AutoOutline")
+                {
+                    if (option.Value == "SQUARED")
+                    {
+                        font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
+                    }
+                    else if (option.Value == "ROUND")
+                    {
+                        font.AutoOutlineStyle = FontAutoOutlineStyle.Rounded;
+                    }
+                    fields |= FontFields.AutoOutlineStyle;
+                }
+                else if (option.Key == "AutoOutlineThickness")
+                {
+                    font.AutoOutlineThickness = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.AutoOutlineThickness;
+                }
+                else if (option.Key == "HeightDefinition")
+                {
+                    if (option.Value == "NOMINAL")
+                    {
+                        font.HeightDefinedBy = FontHeightDefinition.NominalHeight;
+                    }
+                    else if (option.Value == "REAL")
+                    {
+                        font.HeightDefinedBy = FontHeightDefinition.PixelHeight;
+                    }
+                    else if (option.Value == "CUSTOM")
+                    {
+                        font.HeightDefinedBy = FontHeightDefinition.CustomValue;
+                    }
+                    fields |= FontFields.HeightDefinition;
+                }
+                else if (option.Key == "CustomHeight")
+                {
+                    font.CustomHeightValue = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.HeightDefinition;
+                }
+                else if (option.Key == "VerticalOffset")
+                {
+                    font.VerticalOffset = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.VerticalOffset;
+                }
+                else if (option.Key == "LineSpacing")
+                {
+                    font.LineSpacing = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.LineSpacing;
+                }
+                else if (option.Key == "CharacterSpacing")
+                {
+                    font.CharacterSpacing = option.Value.ParseIntOrDefault();
+                    fields |= FontFields.CharacterSpacing;
+                }
             }
+            return new FontOverride(font, fields);
         }
 
         private TranslationEntryOptions CreateEntryOptions(List<string> annotations)

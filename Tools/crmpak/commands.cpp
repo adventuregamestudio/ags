@@ -12,9 +12,12 @@
 //
 //=============================================================================
 #include "commands.h"
+#include <cinttypes>
+#include "data/data_ext.h"
 #include "data/room_utils.h"
 #include "game/roomdata.h"
 #include "game/room_file.h"
+#include "game/room_file_blocks.h"
 #include "gfx/image_file.h"
 #include "script/cc_script.h"
 #include "util/file.h"
@@ -65,6 +68,31 @@ HRoomFileError ReadOnlyScriptText(RoomDataExt &room, std::unique_ptr<Stream> &&i
     return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
 }
 
+bool LoadBlockList(std::vector<DataExtBlockInfo> &blk_infos, const String &filename)
+{
+    auto in = File::OpenFileRead(filename);
+    if (!in)
+    {
+        printf("Error: failed to open room file for reading.\n");
+        return false;
+    }
+
+    RoomDataSource src(filename, std::move(in));
+    HError err = OpenRoomFile(src);
+    if (err)
+    {
+        RoomBlockParser parser(std::move(src.InputStream), src.DataVersion);
+        err = ReadExtBlockList(blk_infos, parser);
+    }
+    if (!err)
+    {
+        printf("Error: failed to read list of room blocks.\n");
+        printf("%s\n", err->FullMessage().GetCStr());
+        return false;
+    }
+    return true;
+}
+
 bool LoadRoomFile(RoomDataExt &room, const String &filename, bool cmd_readonly, const std::vector<Content> &content)
 {
     auto in = File::OpenFileRead(filename);
@@ -104,6 +132,7 @@ bool LoadRoomFile(RoomDataExt &room, const String &filename, bool cmd_readonly, 
         printf("%s\n", err->FullMessage().GetCStr());
         return false;
     }
+
     return true;
 }
 
@@ -472,8 +501,21 @@ int Command_List(const String &src_room)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
 
+    std::vector<DataExtBlockInfo> blk_infos;
+    if (!LoadBlockList(blk_infos, src_room))
+        return -1;
+
+    printf("Data blocks count: %zu\n", blk_infos.size());
+    printf("------ Block ID ------|------- Offset -------|--- Size --\n");
+    for (const auto &blk_info : blk_infos)
+    {
+        printf(" %-16s (%d) | %-20" PRId64 " | %-10zu\n",
+            blk_info.ID.Name.GetCStr(), blk_info.ID.ID, blk_info.Offset, static_cast<size_t>(blk_info.Length));
+    }
+    printf("---------------------------------------------------------\n\n");
+
     RoomDataExt room;
-    if (!LoadRoomFile(room, src_room, false, {}))
+    if (!LoadRoomFile(room, src_room, true, {}))
         return -1;
 
     printf("* Room backgrounds: %d\n", room.BgFrameCount);
@@ -512,6 +554,11 @@ int Command_List(const String &src_room)
     {
         printf("* Compiled script:\n\tbytecode %zu bytes\n\tvariables %zu bytes\n\tstrings %zu bytes\n",
             room.CompiledScript->code.size(), room.CompiledScript->globaldata.size(), room.CompiledScript->strings.size());
+    }
+
+    if (!room.ScriptText.IsEmpty())
+    {
+        printf("* Script text: %zu bytes\n", room.ScriptText.GetLength() + 1);
     }
 
     printf("Done.\n");

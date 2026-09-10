@@ -193,7 +193,7 @@ public:
         HError err = FindOne(kTraFblk_GameID);
         if (!err)
             return err;
-        return ReadTraBlock(_tra, _in.get(), kTraFblk_GameID, "", _blockLen);
+        return ReadTraBlock(_tra, _in.get(), kTraFblk_GameID, "", _block.Length);
     }
 
 private:

@@ -35,7 +35,11 @@ set(TOOLS_COMMON_SOURCES
         ../Common/game/interactions.cpp
         ../Common/game/interactions.h
         ../Common/game/room_file.cpp
+        ../Common/game/room_file.h
+        ../Common/game/room_file_blocks.h
+        ../Common/game/room_file_blocks.cpp
         ../Common/game/roomdata.cpp
+        ../Common/game/roomdata.h
         ../Common/gfx/bitmapdata.cpp
         ../Common/gfx/bitmapdata.h
         ../Common/gfx/image_bmp.cpp

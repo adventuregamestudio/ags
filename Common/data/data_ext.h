@@ -82,6 +82,22 @@ String GetDataExtErrorText(DataExtErrorType err);
 typedef TypedCodeError<DataExtErrorType, GetDataExtErrorText> DataExtError;
 
 
+// Block ID is a combination of a numeric ID and a string ID.
+// A valid block ID has either numeric ID > 0 or a non-empty string ID.
+struct DataExtBlockID
+{
+    int ID = 0;
+    String Name;
+};
+
+// DataExtBlockInfo describes a single block, with its ID, start offset and length in bytes
+struct DataExtBlockInfo
+{
+    DataExtBlockID ID;
+    soff_t Offset = 0;
+    soff_t Length = 0;
+};
+
 // DataExtReader parses a generic extendable block list and
 // does format checks, but does not read any data itself.
 // Use it to open blocks, and assert reading correctness.
@@ -103,16 +119,11 @@ public:
     inline std::unique_ptr<Stream> ReleaseStream() { return std::move(_in); }
 
     // Tells if the end of the block list was reached
-    inline bool AtEnd() const { return _blockID < 0; }
+    inline bool AtEnd() const { return _block.ID.ID < 0; }
     // Gets parser flags
     inline int GetFlags() const { return _flags; }
-    // Gets current block ID
-    inline int GetBlockID() const { return _blockID; }
-    inline String GetBlockName() const
-    { return _blockID < 0 ? "" : (_blockID > 0 ? GetOldBlockName(_blockID) : _extID); }
-    inline soff_t GetBlockOffset() const { return _blockStart; }
-    // Gets current block length
-    inline soff_t GetBlockLength() const { return _blockLen; }
+    // Gets current block info
+    const DataExtBlockInfo &GetBlockInfo() const { return _block; }
     // Tries to opens a next standard block from the stream,
     // fills in identifier and length on success
     HError OpenBlock();
@@ -128,10 +139,7 @@ protected:
     std::unique_ptr<Stream> _in;
     int _flags {};
 
-    int _blockID {-1};
-    String _extID;
-    soff_t _blockStart {};
-    soff_t _blockLen {};
+    DataExtBlockInfo _block;
 };
 
 // DataExtReader is a virtual base class of a block list reader; provides
@@ -156,6 +164,12 @@ protected:
     virtual HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) = 0;
 };
+
+
+// Parses the data ext format and queries list of data blocks; uses default DataExtParser
+HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, std::unique_ptr<Stream> &&in, int data_ext_flags);
+// Parses the data ext format and queries list of data blocks; uses provided DataExtParser implementation
+HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, DataExtParser &parser);
 
 
 // TODO: DataExtWriter, to pair the DataExtReader

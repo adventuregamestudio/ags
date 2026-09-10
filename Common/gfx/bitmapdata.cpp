@@ -197,6 +197,7 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
                 Memory::WriteInt24(dst_ptr, c2);
             }
         }
+        return true;
     }
     // 16-bit RGB -> 32-bit ARGB
     else if (src_fmt == kPxFmt_R5G6B5 && dst_fmt == kPxFmt_A8R8G8B8)
@@ -216,6 +217,7 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
                     0xFF << _rgb_a_shift_32;
             }
         }
+        return true;
     }
     // 32-bit RGB -> 24-bit ARGB (cut alpha channel)
     else if (src_fmt == kPxFmt_A8R8G8B8 && dst_fmt == kPxFmt_R8G8B8)
@@ -230,6 +232,7 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
                 Memory::WriteInt24(dst_ptr, (*(src_ptr++) & 0xFFFFFF));
             }
         }
+        return true;
     }
     return false;
 }

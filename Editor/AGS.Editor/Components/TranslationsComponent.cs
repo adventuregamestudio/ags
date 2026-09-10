@@ -18,6 +18,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_UPDATE_SOURCE = "UpdateTranslation";
         private const string COMMAND_UPDATE_ALL = "UpdateAllTranslations";
         private const string COMMAND_COMPILE = "CompileTranslation";
+        private const string COMMAND_COMPILE_ALL = "CompileAllTranslations";
         private const string COMMAND_MAKE_DEFAULT = "MakeDefaultTranslation";
 
         private const string COMPILED_TRANSLATION_FILE_SIGNATURE = "AGSTranslation\0";
@@ -579,6 +580,24 @@ namespace AGS.Editor.Components
             return messages;
         }
 
+        private void CompileTranslations(IList<Translation> translations)
+        {
+            var errors = new CompileMessages();
+            foreach (var translation in translations)
+            {
+                try
+                {
+                    CompileTranslation(translation, errors);
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new CompileError(e.Message));
+                }
+            }
+
+            _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled", true);
+        }
+
         public override void CommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
@@ -624,24 +643,13 @@ namespace AGS.Editor.Components
             }
             else if (controlID == COMMAND_COMPILE)
             {
-                CompileMessages errors = new CompileMessages();
-                try
-                {
-                    CompileTranslation(_itemRightClicked, errors);
-                }
-                catch (Exception e)
-                {
-                    errors.Add(new CompileError(e.Message));
-                }
-                if (errors.Count > 0)
-                {
-                    _guiController.ShowMessage(string.Format("Translation compiled with errors: \n\n{0}",
-                        errors[0].Message), MessageBoxIcon.Warning);
-                }
-                else
-                {
-                    _guiController.ShowMessage("Translation compiled successfully.", MessageBoxIcon.Information);
-                }
+                List<Translation> translations = new List<Translation>();
+                translations.Add(_itemRightClicked);
+                CompileTranslations(translations);
+            }
+            else if (controlID == COMMAND_COMPILE_ALL)
+            {
+                CompileTranslations(_agsEditor.CurrentGame.Translations);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -683,6 +691,7 @@ namespace AGS.Editor.Components
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
                 menu.Add(new MenuCommand(COMMAND_UPDATE_ALL, "Update all", null));
+                menu.Add(new MenuCommand(COMMAND_COMPILE_ALL, "Compile all", null));
                 menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New translation", null));
 

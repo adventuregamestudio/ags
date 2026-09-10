@@ -63,84 +63,85 @@ String PreprocessLineForOldStyleLinebreaks(const String &line)
 }
 
 const char *EncryptPassword = "Avis Durgan";
+// The inversed password used to emulate a opposite math operation ('+' vs '-') when en/de-crypting
+const char  EncryptPasswordInversed[12] =
+    { (char)(-'A'), (char)(-'v'), (char)(-'i'), (char)(-'s'), (char)(-' '),
+      (char)(-'D'), (char)(-'u'), (char)(-'r'), (char)(-'g'), (char)(-'a'),
+      (char)(-'n'), 0 };
 
-void DecryptText(char *buf, size_t buf_sz)
+void DecryptText(char *buf, size_t buf_sz, bool inverse)
 {
-    for (size_t i = 0, psw_i = 0; i < buf_sz; ++i, ++psw_i)
+    const char *password = inverse ? EncryptPasswordInversed : EncryptPassword;
+    for (size_t i = 0, i_psw = 0; i < buf_sz; ++i, i_psw = (i_psw == 10 ? 0 : i_psw + 1))
     {
-        if (psw_i > 10)
-            psw_i = 0;
-
-        buf[i] -= EncryptPassword[psw_i];
+        buf[i] -= password[i_psw];
         if (buf[i] == 0)
             break;
     }
 }
 
-void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz)
+void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse)
 {
     size_t len = in->ReadInt32();
     size_t slen = std::min(buf_sz - 1, len);
     in->Read(buf, slen);
     if (len > slen)
         in->Seek(len - slen);
-    DecryptText(buf, slen);
+    DecryptText(buf, slen, inverse);
     buf[slen] = 0;
 }
 
-String ReadStringDecrypt(Stream *in)
+String ReadStringDecrypt(Stream *in, bool inverse)
 {
     std::vector<char> dec_buf;
-    return ReadStringDecrypt(in, dec_buf);
+    return ReadStringDecrypt(in, dec_buf, inverse);
 }
 
-String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf)
+String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf, bool inverse)
 {
     size_t len = in->ReadInt32();
     dec_buf.resize(len + 1);
     in->Read(dec_buf.data(), len);
-    DecryptText(dec_buf.data(), len);
+    DecryptText(dec_buf.data(), len, inverse);
     dec_buf.back() = 0; // null terminate in case read string does not have one
     return String(dec_buf.data());
 }
 
-void EncryptText(char *buf, size_t buf_sz)
+void EncryptText(char *buf, size_t buf_sz, bool inverse)
 {
-    for (size_t i = 0, psw_i = 0; i < buf_sz; ++i, ++psw_i)
+    const char *password = inverse ? EncryptPasswordInversed : EncryptPassword;
+    for (size_t i = 0, i_psw = 0; i < buf_sz; ++i, i_psw = (i_psw == 10 ? 0 : i_psw + 1))
     {
-        if (psw_i > 10)
-            psw_i = 0;
-
-        char src_c = buf[i];
-        buf[i] += EncryptPassword[psw_i];
+        const char src_c = buf[i];
+        buf[i] += password[i_psw];
         if (src_c == 0)
             break;
     }
 }
 
-const char *EncryptText(std::vector<char> &en_buf, const String &s)
+const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse)
 {
     en_buf.resize(s.GetLength() + 1);
     std::copy(s.GetCStr(), s.GetCStr() + s.GetLength() + 1, en_buf.data());
-    EncryptText(en_buf.data(), en_buf.size());
+    EncryptText(en_buf.data(), en_buf.size(), inverse);
     return en_buf.data();
 }
 
-const char *EncryptEmptyString(std::vector<char> &en_buf)
+const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse)
 {
     en_buf.resize(1);
     en_buf[0] = 0;
-    EncryptText(en_buf.data(), en_buf.size());
+    EncryptText(en_buf.data(), en_buf.size(), inverse);
     return en_buf.data();
 }
 
-void WriteStringEncrypt(Stream *out, const char *s)
+void WriteStringEncrypt(Stream *out, const char *s, bool inverse)
 {
     size_t len = strlen(s) + 1;
     out->WriteInt32(len);
     std::vector<char> buf(len);
     std::copy(s, s + len, buf.data());
-    EncryptText(buf.data(), buf.size());
+    EncryptText(buf.data(), buf.size(), inverse);
     out->Write(buf.data(), len);
 }
 

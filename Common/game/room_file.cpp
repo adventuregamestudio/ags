@@ -422,13 +422,9 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
 }
 
 // Room script sources (original text)
-HError ReadScriptBlock(std::vector<char> &buf, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadScriptBlock(String &buf, Stream *in, RoomFileVersion /*data_ver*/)
 {
-    size_t len = in->ReadInt32();
-    buf.resize(len + 1);
-    in->Read(buf.data(), len);
-    buf[len] = 0; // safety fix
-    DecryptText(buf.data(), len);
+    buf = ReadStringDecrypt(in, true /* room script requires inverse operation */);
     return HError::None();
 }
 
@@ -551,11 +547,9 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
         // Only read if explicitly requested to by caller
         if (room_aux)
         {
-            std::vector<char> buf;
-            HError err = ReadScriptBlock(buf, in, data_ver);
+            HError err = ReadScriptBlock(room_aux->ScriptText, in, data_ver);
             if (!err)
                 return err;
-            room_aux->ScriptText = buf.data();
         }
         else
         {
@@ -1106,8 +1100,8 @@ void WriteAux_ScriptBlock(const RoomDataAux *room_aux, Stream *out)
 {
     std::vector<uint8_t> data;
     Stream mems(std::make_unique<VectorStream>(data, kStream_Write));
-    mems.WriteInt32(room_aux->ScriptText.GetLength());
-    WriteStringEncrypt(&mems, room_aux->ScriptText.GetCStr());
+    WriteStringEncrypt(&mems, room_aux->ScriptText.GetCStr(), true /* room script requires inverse operation */);
+
     WriteRoomBlock(kRoomFblk_Script, data, out);
 }
 

@@ -174,7 +174,7 @@ void PrintContentOptions(const std::vector<Content> &content, const char *operat
     }
 }
 
-bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename)
+bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename, int import_bpp = 0)
 {
     auto in = File::OpenFileRead(filename);
     if (!in)
@@ -185,10 +185,22 @@ bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename)
     auto px_buf = ImageFile::LoadImage(in.get(), Path::GetFileExtension(filename), nullptr, pal);
     if (!px_buf)
     {
-        printf("Error: failed to write image to file: %s\n", filename.GetCStr());
+        printf("Error: failed to read image from file: %s\n", filename.GetCStr());
         return false;
     }
-    out_px_buf = px_buf;
+    if (import_bpp == 0)
+    {
+        out_px_buf = px_buf;
+    }
+    else
+    {
+        if (!PixelOp::CopyConvert(px_buf, out_px_buf, ColorDepthToPixelFormat(import_bpp)))
+        {
+            printf("Error: failed to convert input image (%d bpp) to destination format (%d bpp)\n", px_buf.GetColorDepth(), import_bpp);
+            return false;
+        }
+    }
+    
     return true;
 }
 
@@ -348,7 +360,7 @@ void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
     }
 }
 
-void ImportContent(RoomDataExt &room, const std::vector<Content> &content)
+void ImportContent(RoomDataExt &room, const std::vector<Content> &content, int import_bpp)
 {
     for (const auto &c : content)
     {
@@ -365,22 +377,22 @@ void ImportContent(RoomDataExt &room, const std::vector<Content> &content)
                         room.BgFrameCount = c.Index + 1u;
                         room.BgFrames.resize(room.BgFrameCount);
                     }
-                    result = LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
+                    result = LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName, import_bpp);
                 }
                 if (result && c.Index == 0)
                     room.BackgroundBPP = room.BgFrames[c.Index].GraphicBuf.GetBytesPerPixel();
                 break;
             case kContent_Hotspot:
-                result = LoadImageFile(room.HotspotMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.HotspotMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_Region:
-                result = LoadImageFile(room.RegionMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.RegionMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_WalkArea:
-                result = LoadImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_WalkBehind:
-                result = LoadImageFile(room.WalkBehindMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.WalkBehindMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_ScriptCompiled3:
                 result = LoadScriptFile(room.CompiledScript, c.FileName);
@@ -429,13 +441,13 @@ void CutContent(RoomDataExt &room, const std::vector<Content> &content)
     }
 }
 
-int Command_Create(const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Create(const String &dst_room, const std::vector<Content> &content, int import_bpp, bool verbose)
 {
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Import");
 
     RoomDataExt empty;
-    ImportContent(empty, content);
+    ImportContent(empty, content, import_bpp);
     if (!SaveRoomFile(empty, dst_room))
         return -1;
 
@@ -478,7 +490,7 @@ int Command_Export(const String &src_room, const std::vector<Content> &content, 
     return 0;
 }
 
-int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, int import_bpp, bool verbose)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
     printf("Output room file: %s\n", dst_room.GetCStr());
@@ -488,7 +500,7 @@ int Command_Import(const String &src_room, const String &dst_room, const std::ve
     if (!LoadRoomFile(room, src_room, false, {}))
         return -1;
 
-    ImportContent(room, content);
+    ImportContent(room, content, import_bpp);
 
     if (!SaveRoomFile(room, dst_room))
         return -1;

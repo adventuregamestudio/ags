@@ -33,30 +33,32 @@ namespace Common
     // while "\\[" will be converted to "\[" by merging "\\" pair.
     String PreprocessLineForOldStyleLinebreaks(const String &line);
 
-    // Text encryption/decryption functions which apply a password string
-    // using ADD operation (SUB when decrypting).
-    // Decrypts text found in the given buffer, writes back to the same buffer
-    void DecryptText(char *buf, size_t buf_sz);
-    // Reads an encrypted string from the stream and decrypts into the provided buffer
-    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz);
-    // Reads an encrypted string from the stream and returns as a string
-    String ReadStringDecrypt(Stream *in);
-    // Reads an encrypted string from the stream and returns as a string;
-    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
-    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf);
-
     // Password used for encryption; exposed for tests and editor (temporarily)
     extern const char *EncryptPassword;
 
+    // Text encryption/decryption functions which apply a password string
+    // using ADD operation when encrypting and SUB when decrypting by default.
+    // Optionally may switch the enc/dec operation (required for certain cases).
+    // 
+    // Decrypts text found in the given buffer, writes back to the same buffer
+    void DecryptText(char *buf, size_t buf_sz, bool inverse = false);
+    // Reads an encrypted string from the stream and decrypts into the provided buffer
+    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse = false);
+    // Reads an encrypted string from the stream and returns as a string
+    String ReadStringDecrypt(Stream *in, bool inverse = false);
+    // Reads an encrypted string from the stream and returns as a string;
+    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
+    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf, bool inverse = false);
+
     // Encrypts string in-place
-    void EncryptText(char *buf, size_t buf_sz);
+    void EncryptText(char *buf, size_t buf_sz, bool inverse = false);
     // Encrypts input string and stores result in the vector of chars;
     // returns a pointer to the buffer.
-    const char *EncryptText(std::vector<char> &en_buf, const String &s);
+    const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse = false);
     // Encrypts empty string. A helper function in case you don't have any source text
-    const char *EncryptEmptyString(std::vector<char> &en_buf);
+    const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse = false);
     // Encrypts string and writes into the output stream
-    void WriteStringEncrypt(Stream *out, const char *s);
+    void WriteStringEncrypt(Stream *out, const char *s, bool inverse = false);
 
 } // namespace Common
 } // namespace AGS

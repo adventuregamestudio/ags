@@ -114,7 +114,7 @@ int Command_Decompile(const String &src, const String &dst)
 
 int main(int argc, char *argv[])
 {
-    printf("trac v0.9.5 - AGS translation compiler and decompiler (TRS <-> TRA)\n"\
+    printf("trac v0.9.6 - AGS translation compiler and decompiler (TRS <-> TRA)\n"\
         "Copyright (c) 2021-2026 AGS Team and contributors\n");
     for (int i = 1; i < argc; ++i)
     {

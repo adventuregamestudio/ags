@@ -192,6 +192,7 @@
     <Compile Include="Exceptions\SpriteInUseException.cs" />
     <Compile Include="Font.cs" />
     <Compile Include="EditorFeatures\GameTemplate.cs" />
+    <Compile Include="FontOverride.cs" />
     <Compile Include="GlobalVariable.cs" />
     <Compile Include="GlobalVariables.cs" />
     <Compile Include="GUIControlGroup.cs" />

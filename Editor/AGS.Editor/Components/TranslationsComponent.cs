@@ -175,23 +175,24 @@ namespace AGS.Editor.Components
         private void WriteExtFontOverrides(BinaryWriter bw, Translation translation, CompileMessages errors)
         {
             bw.Write(translation.FontOverrides.Count);
-            foreach (var fontOverride in translation.FontOverrides)
+            // data version (matches current game data); determines which font info extensions are written
+            bw.Write(NativeConstants.GAME_DATA_VERSION_CURRENT);
+
+            foreach (var overrideEntry in translation.FontOverrides)
             {
-                bw.Write(fontOverride.Key); // font to override
-                var font = fontOverride.Value; // font to override with
-                bw.Write(font.ID);
-                // ID >= 0 means a replacement is another built-in font
-                // ID < 0 means a replacement is a runtime-generated font
-                if (font.ID < 0)
-                {
-                    DataFileWriter.WriteFontInfo(bw, font);
-                    // NOTE: we write 3.6.0 extension right away, because this TRA
-                    // extension is introduced later. But if there will be more
-                    // font extensions, then we must have a distinct ext in TRA as well!
-                    DataFileWriter.WriteFontInfo_Ex360(bw, font);
-                    // Explicit font's filename: this corresponds to 4.* font's FileName.
-                    DataFileWriter.FilePutString(font.ProjectFilename, bw);
-                }
+                var fontOverride = overrideEntry.Value;
+                var font = fontOverride.Font; // font to override with
+                var fields = fontOverride.Fields; // valid fields
+
+                bw.Write(overrideEntry.Key); // font to override
+                bw.Write(font.ID); // replacement font ID (or -1 if font is determined by its filename)
+                bw.Write((int)fields); // which font fields are valid
+                bw.Write((int)0); // reserved field (more flags?)
+                // Font data, format matches various font-related sections of the main game file
+                DataFileWriter.WriteFontInfo(bw, font);
+                DataFileWriter.WriteFontInfo_Ex360(bw, font);
+                // Explicit font's filename: this corresponds to 4.* font's FileName ("v400_fontfiles" ext).
+                DataFileWriter.FilePutString(font.ProjectFilename, bw);
             }
         }
 

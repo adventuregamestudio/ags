@@ -30,6 +30,7 @@ namespace AGS.Types
 
         public Font()
         {
+            _id = -1;
             _name = string.Empty;
             _fontSize = 0;
             _outlineFont = 0;

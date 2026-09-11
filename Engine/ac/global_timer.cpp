@@ -21,7 +21,7 @@ bool AssertTimerID(const char *api_name, int tnum)
 {
     if (tnum < 0)
     {
-        debug_script_warn("%s: invalid timer id %d, must be a number >= 0", api_name, tnum);
+        debug_script_error("%s: invalid timer id %d, must be a number >= 0", api_name, tnum);
         return false;
     }
     return true;

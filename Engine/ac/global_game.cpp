@@ -553,7 +553,7 @@ int SetGameOption (int opt, int newval)
 {
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
-        debug_script_warn("SetGameOption: invalid option specified: %d", opt);
+        debug_script_error("SetGameOption: invalid option specified: %d", opt);
         return 0;
     }
 

@@ -403,6 +403,15 @@ void debug_script_warn(const char *msg, ...)
     debug_script_print_impl(full_msg, kDbgMsg_Warn);
 }
 
+void debug_script_error(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
+    va_end(ap);
+    debug_script_print_impl(full_msg, kDbgMsg_Error);
+}
+
 void debug_script_log(const char *msg, ...)
 {
     va_list ap;

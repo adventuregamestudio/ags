@@ -195,7 +195,7 @@ void GetRoomPropertyText (const char *property, char *bufer)
 void SetBackgroundFrame(int frnum) {
     if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
     {
-        debug_script_warn("SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
+        debug_script_error("SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
         return;
     }
 

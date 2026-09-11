@@ -175,7 +175,7 @@ bool AssertAudioType(const char *api_name, int audio_type)
 {
     if ((audio_type < 0) || ((size_t)audio_type >= game.audioClipTypes.size()))
     {
-        debug_script_warn("%s: invalid audio type: %d, valid range is 0..%d", api_name, audio_type, static_cast<int>(game.audioClipTypes.size()) - 1);
+        debug_script_error("%s: invalid audio type: %d, valid range is 0..%d", api_name, audio_type, static_cast<int>(game.audioClipTypes.size()) - 1);
         return false;
     }
     return true;

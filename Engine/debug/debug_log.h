@@ -31,6 +31,9 @@ void debug_script_print(AGS::Common::MessageType mt, const char *msg, ...);
 // prints formatted debug warnings tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
 void debug_script_warn(const char *msg, ...);
+// prints formatted debug errors tagged with kDbgGroup_Game,
+// prepending it with current room number and script position info
+void debug_script_error(const char *msg, ...);
 // prints formatted debug message tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
 void debug_script_log(const char *msg, ...);

@@ -1369,7 +1369,7 @@ int SaveInfo_GetGUIControlCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().GUIControls.size())
     {
-        debug_script_warn("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().GUIs);
+        debug_script_error("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().GUIs);
         return 0;
     }
     return info->GetCounts().GUIControls[index];
@@ -1394,7 +1394,7 @@ int SaveInfo_GetViewLoopCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewLoops.size())
     {
-        debug_script_warn("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        debug_script_error("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
         return 0;
     }
     return info->GetCounts().ViewLoops[index];
@@ -1404,7 +1404,7 @@ int SaveInfo_GetViewFrameCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewFrames.size())
     {
-        debug_script_warn("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        debug_script_error("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
         return 0;
     }
     return info->GetCounts().ViewFrames[index];
@@ -1424,7 +1424,7 @@ const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int inde
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
-        debug_script_warn("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        debug_script_error("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
         return 0;
     }
     return CreateNewScriptString(info->GetCounts().ScriptModuleNames[index]);
@@ -1434,7 +1434,7 @@ int SaveInfo_GetScriptModuleDataSizes(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
-        debug_script_warn("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        debug_script_error("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
         return 0;
     }
     return info->GetCounts().ScriptModuleDataSz[index];

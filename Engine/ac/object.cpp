@@ -55,9 +55,9 @@ extern IGraphicsDriver *gfxDriver;
 extern CCObject ccDynamicObject;
 
 
-bool is_valid_object(int obj_id)
+bool IsValidObject(int obj_id)
 {
-    return (obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj);
+    return ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj));
 }
 
 bool AssertObject(const char *apiname, int obj_id)
@@ -68,7 +68,8 @@ bool AssertObject(const char *apiname, int obj_id)
     return false;
 }
 
-int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
+int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2)
+{
     return AreObjectsColliding(objj->id, obj2->id);
 }
 
@@ -114,8 +115,8 @@ void Object_SetTransparency(ScriptObject *objj, int trans) {
 }
 
 int Object_GetTransparency(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Transparent: invalid object number specified");
+    if (!AssertObject("Object.Transparent", objj->id))
+        return 0;
 
     return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
 }
@@ -137,7 +138,6 @@ int Object_GetAudioSpeed(ScriptObject *objj)
 
 void Object_SetAudioSpeed(ScriptObject *objj, int newval)
 {
-
     objs[objj->id].audio_speed = newval;
 }
 
@@ -148,7 +148,6 @@ int Object_GetAudioVolume(ScriptObject *objj)
 
 void Object_SetAudioVolume(ScriptObject *objj, int newval)
 {
-
     objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
@@ -174,8 +173,8 @@ void Object_Animate6(ScriptObject *objj, int loop, int delay, int repeat, int bl
 }
 
 void Object_StopAnimating(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.StopAnimating: invalid object number");
+    if (!AssertObject("Object.StopAnimating", objj->id))
+        return;
 
     if (objs[objj->id].cycling) {
         objs[objj->id].cycling = 0;
@@ -229,7 +228,8 @@ int Object_GetGraphic(ScriptObject *objj) {
 }
 
 int GetObjectX (int objj) {
-    if (!is_valid_object(objj)) quit("!GetObjectX: invalid object number");
+    if (!AssertObject("GetObjectX", objj))
+        return 0;
     return objs[objj].x;
 }
 
@@ -266,10 +266,10 @@ int Object_GetLightLevel(ScriptObject *obj)
 
 void Object_SetLightLevel(ScriptObject *objj, int light_level)
 {
-    int obj = objj->id;
-    if (!is_valid_object(obj))
-        quit("!SetObjectTint: invalid object number specified");
+    if (!AssertObject("Object.LightLevel", objj->id))
+        return;
 
+    int obj = objj->id;
     objs[obj].tint_light = light_level;
     objs[obj].flags &= ~OBJF_HASTINT;
     objs[obj].flags |= OBJF_HASLIGHT;
@@ -317,15 +317,15 @@ void Object_GetName(ScriptObject *objj, char *buffer) {
 }
 
 const char* Object_GetName_New(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Name: invalid object number");
+    if (!AssertObject("Object.Name", objj->id))
+        return nullptr;
 
     return CreateNewScriptString(get_compat_prop_translation(croom->obj[objj->id].name.GetCStr()));
 }
 
 void Object_SetName(ScriptObject *objj, const char *newName) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Name: invalid object number");
+    if (!AssertObject("Object.Name", objj->id))
+        return;
     croom->obj[objj->id].name = newName;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
@@ -354,8 +354,8 @@ void Object_SetClickable(ScriptObject *objj, int clik) {
 }
 
 int Object_GetClickable(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Clickable: Invalid object specified");
+    if (!AssertObject("Object.Clickable", objj->id))
+        return 0;
 
     if (objs[objj->id].flags & OBJF_NOINTERACT)
         return 0;
@@ -364,8 +364,8 @@ int Object_GetClickable(ScriptObject *objj) {
 
 int Object_GetDestinationX(ScriptObject *objj)
 {
-    if (!is_valid_object(objj->id))
-        quit("!Object.DestionationX: Invalid object specified");
+    if (!AssertObject("Object.DestinationX", objj->id))
+        return 0;
 
     if (objs[objj->id].moving)
     {
@@ -377,8 +377,8 @@ int Object_GetDestinationX(ScriptObject *objj)
 
 int Object_GetDestinationY(ScriptObject *objj)
 {
-    if (!is_valid_object(objj->id))
-        quit("!Object.DestionationX: Invalid object specified");
+    if (!AssertObject("Object.DestinationY", objj->id))
+        return 0;
 
     if (objs[objj->id].moving)
     {
@@ -397,16 +397,16 @@ void Object_SetManualScaling(ScriptObject *objj, bool on)
 }
 
 void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.IgnoreScaling: Invalid object specified");
+    if (!AssertObject("Object.IgnoreScaling", objj->id))
+        return;
     if (newval)
         objs[objj->id].zoom = 100; // compatibility, for before manual scaling existed
     Object_SetManualScaling(objj, newval != 0);
 }
 
 int Object_GetIgnoreScaling(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.IgnoreScaling: Invalid object specified");
+    if (!AssertObject("Object.IgnoreScaling", objj->id))
+        return 0;
 
     if (objs[objj->id].flags & OBJF_USEROOMSCALING)
         return 0;
@@ -487,19 +487,19 @@ void Object_SetIgnoreWalkbehinds(ScriptObject *chaa, int clik) {
     SetObjectIgnoreWalkbehinds(chaa->id, clik);
 }
 
-int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
-    if (!is_valid_object(chaa->id))
-        quit("!Object.IgnoreWalkbehinds: Invalid object specified");
+int Object_GetIgnoreWalkbehinds(ScriptObject *objj) {
+    if (!AssertObject("Object.IgnoreWalkbehinds", objj->id))
+        return 0;
 
-    if (objs[chaa->id].flags & OBJF_NOWALKBEHINDS)
+    if (objs[objj->id].flags & OBJF_NOWALKBEHINDS)
         return 1;
     return 0;
 }
 
 void move_object(int objj, int tox, int toy, int speed, int ignwal) {
 
-    if (!is_valid_object(objj))
-        quit("!MoveObject: invalid object number");
+    if (!AssertObject("MoveObject", objj))
+        return;
 
     auto &obj = objs[objj];
     // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition

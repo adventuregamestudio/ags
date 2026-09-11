@@ -1002,8 +1002,8 @@ int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandLi
             NewRoomEx (IPARAM1, IPARAM2, IPARAM3);
             return -1;
         case 26: // Move NPC to different room
-            if (!is_valid_character(IPARAM1))
-                quit("!Move NPC to different room: invalid character specified");
+            if (!AssertCharacter("Move NPC to different room", IPARAM1))
+                break;
             game.chars[IPARAM1].room = IPARAM2;
             break;
         case 27: // Set character view

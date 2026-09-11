@@ -121,8 +121,8 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
         (luminance < 0) || (luminance > 100))
         quit("!SetObjectTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
 
-    if (!is_valid_object(obj))
-        quit("!SetObjectTint: invalid object number specified");
+    if (!AssertObject("SetObjectTint", obj))
+        return;
 
     debug_script_log("Set object %d tint RGB(%d,%d,%d) %d%%", obj, red, green, blue, opacity);
 
@@ -136,8 +136,8 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
 }
 
 void RemoveObjectTint(int obj) {
-    if (!is_valid_object(obj))
-        quit("!RemoveObjectTint: invalid object");
+    if (!AssertObject("RemoveObjectTint", obj))
+        return;
 
     if (objs[obj].flags & (OBJF_HASTINT | OBJF_HASLIGHT)) {
         debug_script_log("Un-tint object %d", obj);
@@ -155,8 +155,8 @@ void SetObjectView(int obn, int vii) {
 }
 
 bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
-    if (!is_valid_object(obn))
-        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
+    if (!AssertObject("SetObjectFrame", obn))
+        return false;
     viw--;
     AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obn].ScriptName.GetCStr(), viw);
 
@@ -211,7 +211,8 @@ void SetObjectFrame(int obn, int viw, int lop, int fra) {
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
 void SetObjectTransparency(int obn,int trans) {
-    if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
+    if (!AssertObject("SetObjectTransparent", obn))
+        return;
     if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
 
     objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
@@ -220,7 +221,8 @@ void SetObjectTransparency(int obn,int trans) {
 
 
 void SetObjectBaseline (int obn, int basel) {
-    if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
+    if (!AssertObject("SetObjectBaseline", obn))
+        return;
     // baseline has changed, invalidate the cache
     if (objs[obn].baseline != basel) {
         objs[obn].baseline = basel;
@@ -229,7 +231,8 @@ void SetObjectBaseline (int obn, int basel) {
 }
 
 int GetObjectBaseline(int obn) {
-    if (!is_valid_object(obn)) quit("!GetObjectBaseline: invalid object number specified");
+    if (!AssertObject("GetObjectBaseline", obn))
+        return 0;
 
     if (objs[obn].baseline < 1)
         return 0;
@@ -240,8 +243,8 @@ int GetObjectBaseline(int obn) {
 void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking,
     int sframe, int volume)
 {
-    if (!is_valid_object(obn))
-        quit("!AnimateObject: invalid object number specified");
+    if (!AssertObject("AnimateObject", obn))
+        return;
 
     const RoomObjectInfo &obji = thisroom.Objects[obn];
     RoomObject &obj = objs[obn];
@@ -300,7 +303,8 @@ void AnimateObject4(int obn, int loopn, int spdd, int rept) {
 }
 
 void MergeObject(int obn) {
-    if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");
+    if (!AssertObject("MergeObject", obn))
+        return;
 
     update_object_scale(obn); // make sure sprite transform is up to date
     construct_object_gfx(obn, true);
@@ -324,15 +328,16 @@ void MergeObject(int obn) {
 }
 
 void StopObjectMoving(int objj) {
-    if (!is_valid_object(objj))
-        quit("!StopObjectMoving: invalid object number");
+    if (!AssertObject("StopObjectMoving", objj))
+        return;
     objs[objj].moving = 0;
 
     debug_script_log("Object %d stop moving", objj);
 }
 
 void ObjectOff(int obn) {
-    if (!is_valid_object(obn)) quit("!ObjectOff: invalid object specified");
+    if (!AssertObject("ObjectOff", obn))
+        return;
     // don't change it if on == 2 (merged)
     if (objs[obn].on == OBJ_STATE_ENABLED) {
         objs[obn].on = OBJ_STATE_DISABLED;
@@ -342,7 +347,8 @@ void ObjectOff(int obn) {
 }
 
 void ObjectOn(int obn) {
-    if (!is_valid_object(obn)) quit("!ObjectOn: invalid object specified");
+    if (!AssertObject("ObjectOn", obn))
+        return;
     if (objs[obn].on == OBJ_STATE_DISABLED) {
         objs[obn].on = OBJ_STATE_ENABLED;
         debug_script_log("Object %d turned on", obn);
@@ -350,7 +356,8 @@ void ObjectOn(int obn) {
 }
 
 int IsObjectOn (int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectOn: invalid object number");
+    if (!AssertObject("IsObjectOn", objj))
+        return 0;
 
     if (objs[objj].on == OBJ_STATE_ENABLED)
         return 1;
@@ -359,7 +366,8 @@ int IsObjectOn (int objj) {
 }
 
 void SetObjectGraphic(int obn,int slott) {
-    if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
+    if (!AssertObject("SetObjectGraphic", obn))
+        return;
 
     if (objs[obn].num != slott) {
         objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
@@ -374,28 +382,32 @@ void SetObjectGraphic(int obn,int slott) {
 }
 
 int GetObjectGraphic(int obn) {
-    if (!is_valid_object(obn)) quit("!GetObjectGraphic: invalid object specified");
+    if (!AssertObject("GetObjectGraphic", obn))
+        return 0;
     return objs[obn].num;
 }
 
 int GetObjectY (int objj) {
-    if (!is_valid_object(objj)) quit("!GetObjectY: invalid object number");
+    if (!AssertObject("GetObjectY", objj))
+        return 0;
     return objs[objj].y;
 }
 
 int IsObjectAnimating(int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectAnimating: invalid object number");
+    if (!AssertObject("IsObjectAnimating", objj))
+        return 0;
     return (objs[objj].cycling != 0) ? 1 : 0;
 }
 
 int IsObjectMoving(int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectMoving: invalid object number");
+    if (!AssertObject("IsObjectMoving", objj))
+        return 0;
     return (objs[objj].moving > 0) ? 1 : 0;
 }
 
 void SetObjectPosition(int objj, int tox, int toy) {
-    if (!is_valid_object(objj))
-        quit("!SetObjectPosition: invalid object number");
+    if (!AssertObject("SetObjectPosition", objj))
+        return;
 
     if (objs[objj].moving > 0)
     {
@@ -409,8 +421,8 @@ void SetObjectPosition(int objj, int tox, int toy) {
 
 void GetObjectName(int obj, char *buffer) {
     VALIDATE_STRING(buffer);
-    if (!is_valid_object(obj))
-        quit("!GetObjectName: invalid object number");
+    if (!AssertObject("GetObjectName", obj))
+        return;
 
     snprintf(buffer, MAX_MAXSTRLEN, "%s", get_compat_prop_translation(croom->obj[obj].name.GetCStr()));
 }
@@ -423,16 +435,16 @@ void MoveObjectDirect(int objj,int xx,int yy,int spp) {
 }
 
 void SetObjectClickable (int cha, int clik) {
-    if (!is_valid_object(cha))
-        quit("!SetObjectClickable: Invalid object specified");
+    if (!AssertObject("SetObjectClickable", cha))
+        return;
     objs[cha].flags&=~OBJF_NOINTERACT;
     if (clik == 0)
         objs[cha].flags|=OBJF_NOINTERACT;
 }
 
 void SetObjectIgnoreWalkbehinds (int cha, int clik) {
-    if (!is_valid_object(cha))
-        quit("!SetObjectIgnoreWalkbehinds: Invalid object specified");
+    if (!AssertObject("SetObjectIgnoreWalkbehinds", cha))
+        return;
     if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350)
         debug_script_warn("IgnoreWalkbehinds is not recommended for use, consider other solutions");
     objs[cha].flags&=~OBJF_NOWALKBEHINDS;
@@ -442,8 +454,8 @@ void SetObjectIgnoreWalkbehinds (int cha, int clik) {
 }
 
 void RunObjectInteraction (int aa, int mood) {
-    if (!is_valid_object(aa))
-        quit("!RunObjectInteraction: invalid object number for current room");
+    if (!AssertObject("RunObjectInteraction", aa))
+        return;
 
     // convert cursor mode to event index (in character event table)
     // TODO: probably move this conversion table elsewhere? should be a global info
@@ -486,15 +498,15 @@ void RunObjectInteraction (int aa, int mood) {
 }
 
 int AreObjectsColliding(int obj1,int obj2) {
-    if (!is_valid_object(obj1) || !is_valid_object(obj2))
-        quit("!AreObjectsColliding: invalid object specified");
+    if (!AssertObject("AreObjectsColliding", obj1) || !AssertObject("AreObjectsColliding", obj2))
+        return 0;
 
     return (AreThingsOverlapping(obj1 + OVERLAPPING_OBJECT, obj2 + OVERLAPPING_OBJECT)) ? 1 : 0;
 }
 
 static int GetThingRect(int thing, Rect *rect)
 {
-    if (is_valid_character(thing))
+    if (IsValidCharacter(thing))
     {
         if (game.chars[thing].room != displayed_room)
             return 0;
@@ -506,7 +518,7 @@ static int GetThingRect(int thing, Rect *rect)
             charextra[thing].GetEffectiveY(&game.chars[thing]) - charh + 1,
             charw, charh);
     }
-    else if (is_valid_object(thing - OVERLAPPING_OBJECT))
+    else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {
         int objid = thing - OVERLAPPING_OBJECT;
         if (objs[objid].on != OBJ_STATE_ENABLED)
@@ -556,8 +568,8 @@ int AreThingsOverlapping(int thing1, int thing2)
 
 int GetObjectProperty (int hss, const char *property)
 {
-    if (!is_valid_object(hss))
-        quit("!GetObjectProperty: invalid object");
+    if (!AssertObject("GetObjectProperty", hss))
+        return 0;
     return get_int_property(thisroom.Objects[hss].Properties, croom->objProps[hss], property);
 }
 

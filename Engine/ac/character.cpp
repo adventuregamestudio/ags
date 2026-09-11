@@ -133,7 +133,7 @@ bool AssertCharacter(const char *apiname, int char_id)
 {
     if ((char_id >= 0) && (char_id < game.numcharacters))
         return true;
-    debug_script_warn("%s: invalid character id %d (range is 0..%d)", apiname, char_id, game.numcharacters > 0 ? game.numcharacters - 1 : 0);
+    debug_script_error("%s: invalid character id %d (range is 0..%d)", apiname, char_id, game.numcharacters > 0 ? game.numcharacters - 1 : 0);
     return false;
 }
 

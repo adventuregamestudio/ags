@@ -49,7 +49,7 @@ void Utils_SortStrings(void* arrobj, int compare_style, int sort_dir)
     std::vector<DynObjectRef> string_objs;
     if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, string_objs))
     {
-        debug_script_warn("Utils.SortStrings: internal error: provided array is not a pointer array?");
+        debug_script_error("Utils.SortStrings: internal error: provided array is not a pointer array?");
         return;
     }
 

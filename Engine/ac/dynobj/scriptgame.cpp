@@ -146,7 +146,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 58:  // play.inv_numdisp
     case 59:  // play.inv_numorder
     case 60:  // play.inv_numinline
-        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
+        debug_script_error("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 61:  
         if (usetup.Access.TextReadSpeed <= 0)
@@ -180,7 +180,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 84: // play.fast_forward;
     case 85: // play.room_width;
     case 86: // play.room_height;
-        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
+        debug_script_error("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 87:  play.game_speed_modifier = val; break;
     case 88:  play.score_sound = val; break;
@@ -215,7 +215,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 117: // play.fade_to_red;
     case 118: // play.fade_to_green;
     case 119: // play.fade_to_blue;
-        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
+        debug_script_error("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 120:
         play.show_single_dialog_option = val;

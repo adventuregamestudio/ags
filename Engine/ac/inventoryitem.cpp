@@ -25,6 +25,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "debug/debug_log.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
@@ -102,6 +103,14 @@ void set_inv_item_cursorhotspot(int inv_item, int hx, int hy)
         update_inv_cursor(inv_item);
         set_cursor_look(cur_cursor);
     }
+}
+
+bool AssertInvItem(const char *apiname, int item_index)
+{
+    if ((item_index >= 0) && (item_index < game.numinvitems))
+        return true;
+    debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_index, game.numinvitems - 1);
+    return false;
 }
 
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 

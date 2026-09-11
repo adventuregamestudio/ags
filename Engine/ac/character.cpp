@@ -31,6 +31,7 @@
 #include "ac/global_room.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
+#include "ac/inventoryitem.h"
 #include "ac/lipsync.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
@@ -859,15 +860,12 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 }
 
 // [DEPRECATED] still used by Character_SetAsPlayer
-void SetActiveInventory(int iit) {
+void SetActiveInventory(int iit)
+{
+    if (!AssertInvItem("SetActiveInventory", iit))
+        return;
 
-    ScriptInvItem *tosend = nullptr;
-    if ((iit >= 0) && (iit < game.numinvitems))
-        tosend = &scrInv[iit];
-    else if (iit != -1)
-        quitprintf("!SetActiveInventory: invalid inventory number %d", iit);
-
-    Character_SetActiveInventory(playerchar, tosend);
+    Character_SetActiveInventory(playerchar, &scrInv[iit]);
 }
 
 // CLNUP check the use of SetActiveInventory
@@ -1553,9 +1551,10 @@ int Character_GetIdleView(CharacterInfo *chaa)
     return chaa->idleview + 1;
 }
 
-int Character_GetIInventoryQuantity(CharacterInfo *chaa, int index) {
-    if ((index < 0) || (index >= game.numinvitems))
-        quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
+int Character_GetIInventoryQuantity(CharacterInfo *chaa, int index)
+{
+    if (!AssertInvItem("Character.InventoryQuantity", index))
+        return 0;
 
     return chaa->get_item_quantity(index);
 }
@@ -1570,8 +1569,8 @@ int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
 
 void Character_SetIInventoryQuantity(CharacterInfo *chi, int index, int quant)
 {
-    if ((index < 0) || (index >= game.numinvitems))
-        quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
+    if (!AssertInvItem("Character.InventoryQuantity", index))
+        return;
 
     if ((quant < 0) || (quant > INT16_MAX))
     {

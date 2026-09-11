@@ -64,7 +64,7 @@ bool AssertObject(const char *apiname, int obj_id)
 {
     if ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj))
         return true;
-    debug_script_warn("%s: invalid object id %d (range is 0..%d)", apiname, obj_id, croom->numobj - 1);
+    debug_script_warn("%s: invalid object id %d (range is 0..%d)", apiname, obj_id, croom->numobj > 0 ? croom->numobj - 1 : 0);
     return false;
 }
 

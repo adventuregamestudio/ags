@@ -472,19 +472,10 @@ void update_inv_cursor(int invnum)
         // all cursor images must be pre-cached
         spriteset.PrecacheSprite(cursorSprite);
 
-        const int hotx = game.invinfo[invnum].hotx;
-        const int hoty = game.invinfo[invnum].hoty;
-        // Pre-3.6.3 games used hotspot 0,0 as "centered"
-        if ((loaded_game_file_version >= kGameVersion_363_10) || (hotx > 0) || (hoty > 0))
-        {
-            game.mcurs[MODE_USE].hotx = hotx;
-            game.mcurs[MODE_USE].hoty = hoty;
-        }
-        else
-        {
-            game.mcurs[MODE_USE].hotx = game.SpriteInfos[cursorSprite].Width / 2;
-            game.mcurs[MODE_USE].hoty = game.SpriteInfos[cursorSprite].Height / 2;
-        }
+        Rect spr_rc = RectWH(Size(game.SpriteInfos[cursorSprite].Width, game.SpriteInfos[cursorSprite].Height));
+        Point pt = AlignInRect(spr_rc, Point(game.invinfo[invnum].hotx, game.invinfo[invnum].hoty), game.invinfo[invnum].hotAlign);
+        game.mcurs[MODE_USE].hotx = pt.X;
+        game.mcurs[MODE_USE].hoty = pt.Y;
     }
 }
 

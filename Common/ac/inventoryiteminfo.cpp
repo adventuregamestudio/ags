@@ -60,6 +60,23 @@ void InventoryItemInfo::ReadFromSavegame(Stream *in, InvitemSvgVersion svg_ver)
         hotx = in->ReadInt16();
         hoty = in->ReadInt16();
     }
+
+    if (svg_ver < kInvitemSvgVersion_36304)
+    {
+        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
+    else
+    {
+        hotAlign = kAlignTopLeft;
+    }
+
+    if (svg_ver >= kInvitemSvgVersion_36314)
+    {
+        hotAlign = static_cast<FrameAlignment>(in->ReadInt32());
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void InventoryItemInfo::WriteToSavegame(Stream *out) const
@@ -70,4 +87,9 @@ void InventoryItemInfo::WriteToSavegame(Stream *out) const
     // kInvitemSvgVersion_36304
     out->WriteInt16(hotx);
     out->WriteInt16(hoty);
+    // kInvitemSvgVersion_36314
+    out->WriteInt32(hotAlign);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }

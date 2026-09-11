@@ -280,6 +280,7 @@ int ManagedObjectPool::Add(int handle, void *address, IScriptObject *callback,
 int ManagedObjectPool::AddObject(void *address, IScriptObject *callback,
     ScriptValueType obj_type, bool persistent)
 {
+    if (!address) { cc_error("Attempt to assign null pointer as a managed object"); return 0; }
     int32_t handle = objects.Add();
     return Add(handle, address, callback, obj_type, persistent);
 }
@@ -287,6 +288,7 @@ int ManagedObjectPool::AddObject(void *address, IScriptObject *callback,
 int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callback,
     int handle, ScriptValueType obj_type, bool persistent) 
 {
+    if (!address) { cc_error("Attempt to assign null pointer as a managed object"); return 0; }
     if (handle < 1) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     objects.Set(handle);
     return Add(handle, address, callback, obj_type, persistent);
@@ -370,8 +372,16 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reade
         in->Read(serializeBuffer.data(), numBytes);
         // Delegate work to ICCObjectReader
         reader->Unserialize(handle, typeNameBuffer, serializeBuffer.data(), numBytes);
-        objects[handle].refCount = in->ReadInt32();
-        ManagedObjectLog("Read handle = %d", objects[i].handle);
+        int ref_count = in->ReadInt32();
+        if (objects.IndexExists(handle))
+        {
+            objects[handle].refCount = ref_count;
+            ManagedObjectLog("Read object handle = %d, ref count %d", handle, objects[handle].refCount);
+        }
+        else
+        {
+            ManagedObjectLog("Failed to unserialize object at handle %d", handle);
+        }
     }
 
     return 0;

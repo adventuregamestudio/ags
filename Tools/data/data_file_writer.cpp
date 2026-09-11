@@ -213,7 +213,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     if (!ref.UseRoomAreaScaling) chinfo.flags |= CHF_MANUALSCALING;
     if ((ref.ID >= 0 ? ref.ID : index) == game.PlayerCharacter)
         for (const auto &item : game.Inventory)
-            if (item.PlayerStartsWith && item.ID >= 0 && item.ID < MAX_INV) chinfo.inv[item.ID] = 1;
+            if (item.PlayerStartsWith && item.ID >= 0) chinfo.invq[item.ID] = 1;
     chinfo.blocking_x = ref.BlockingX;
     chinfo.blocking_y = ref.BlockingY;
 

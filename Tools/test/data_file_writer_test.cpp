@@ -222,7 +222,9 @@ TEST(DataFileWriter, RoundTripCharacter)
     EXPECT_EQ(4, loaded.walkspeed);
     EXPECT_NE(0, loaded.flags & CHF_SCALEMOVESPEED);
     EXPECT_NE(0, loaded.flags & CHF_TURNWHENFACE);
-    EXPECT_EQ(1, loaded.inv[2]);
+    // TODO: expand this test to be able to check character inventory;
+    // in 4.x it's now written in "v400_charinv" extension
+    //EXPECT_EQ(1, loaded.invq[2]);
     EXPECT_STREQ("Hero", loaded.name.GetCStr());
     EXPECT_STREQ("cHero", loaded.scrname.GetCStr());
     EXPECT_EQ(-4, loaded.blocking_x);

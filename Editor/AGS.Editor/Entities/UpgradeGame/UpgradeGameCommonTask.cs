@@ -487,6 +487,18 @@ namespace AGS.Editor
                 // GUIs already had ScriptModule in their class, so no update is necessary
             }
 
+            if (xmlVersionIndex < 4000033)
+            {
+                // We need to convert a 1-based inventory list to 0-based list.
+                // But if we shift all IDs down, that might break scripts.
+                // The only idea i have is to insert a dummy item with ID 0,
+                // and let user decide what to do with it.
+                InventoryItem dummy = new InventoryItem();
+                dummy.ID = 0;
+                dummy.ScriptName = AGSEditor.Instance.GetFirstAvailableScriptName(game, "iDummy");
+                game.InventoryItems.Insert(0, dummy);
+            }
+
             if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))
             {
                 var compiler = Factory.NativeProxy.GetEmbeddedScriptCompilers().FirstOrDefault();

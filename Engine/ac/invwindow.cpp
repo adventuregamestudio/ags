@@ -41,7 +41,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern ScriptInvItem scrInv[MAX_INV];
+extern std::vector<ScriptInvItem> scrInv;
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;

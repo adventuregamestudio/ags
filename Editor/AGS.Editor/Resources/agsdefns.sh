@@ -1552,6 +1552,8 @@ builtin managed struct InventoryItem {
   import attribute int CursorHotspotX;
   /// Gets/sets the hotspot y position used for the cursor when this item is active
   import attribute int CursorHotspotY;
+  /// Gets/sets the automatic alignment of a cursor's hotspot (relative to the cursor's image)
+  import attribute Alignment CursorHotspotAlignment;
 #endif
 #ifndef STRICT_STRINGS
   import void GetName(string buffer);

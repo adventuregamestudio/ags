@@ -132,8 +132,8 @@ void NewRoomEx(int nrnum,int newx,int newy) {
 }
 
 void NewRoomNPC(int charid, int nrnum, int newx, int newy) {
-    if (!is_valid_character(charid))
-        quit("!NewRoomNPC: invalid character");
+    if (!AssertCharacter("NewRoomNPC", charid))
+        return;
     if (charid == game.playercharacter)
         quit("!NewRoomNPC: use NewRoomEx with the player character");
 

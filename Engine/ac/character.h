@@ -25,9 +25,10 @@
 
 // **** CHARACTER: FUNCTIONS ****
 
-bool    is_valid_character(int char_id);
+// Tells if the character ID is valid
+bool    IsValidCharacter(int char_id);
 // Asserts the character ID is valid,
-// if not then prints a warning to the log; returns assertion result
+// if not then quits with error; returns assertion result
 bool    AssertCharacter(const char *apiname, int char_id);
 
 void    Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex);

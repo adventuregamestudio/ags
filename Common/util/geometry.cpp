@@ -91,6 +91,13 @@ Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align)
     return dst_item;
 }
 
+Point AlignInRect(const Rect &frame, const Point &pt, FrameAlignment align)
+{
+    int x = AlignInHRange(frame.Left, frame.Right, pt.X, 0, align);
+    int y = AlignInVRange(frame.Top, frame.Bottom, pt.Y, 0, align);
+    return Point(x, y);
+}
+
 Rect OffsetRect(const Rect &r, const Point off)
 {
     return Rect(r.Left + off.X, r.Top + off.Y, r.Right + off.X, r.Bottom + off.Y);

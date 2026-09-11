@@ -46,8 +46,15 @@ void set_inv_item_cursorpic(int invItemId, int piccy)
 
 void set_inv_item_cursorhotspot(int inv_item, int hx, int hy)
 {
-    game.invinfo[inv_item].hotx = hx;
-    game.invinfo[inv_item].hoty = hy;
+    auto &item = game.invinfo[inv_item];
+    item.hotx = hx;
+    item.hoty = hy;
+
+    // Pre-3.6.3 games used hotspot 0,0 as "centered"
+    if (loaded_game_file_version < kGameVersion_363_10)
+    {
+        item.hotAlign = ((hx == 0) && (hy == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
 
     // The cursor image may include hotspot marker, therefore update cursor image
     if ((cur_cursor == MODE_USE) && (playerchar->activeinv == inv_item))

@@ -26,6 +26,8 @@ enum InvitemSvgVersion
 {
     kInvitemSvgVersion_Initial = 0,
     kInvitemSvgVersion_36304 = 3060304, // hotspot
+    kInvitemSvgVersion_36314 = 3060314, // hotspot align
+    kInvitemSvgVersion_Current = kInvitemSvgVersion_36314
 };
 
 struct InventoryItemInfo

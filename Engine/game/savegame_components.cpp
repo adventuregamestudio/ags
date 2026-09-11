@@ -1843,7 +1843,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Inventory Items",
-        kInvitemSvgVersion_36304,
+        kInvitemSvgVersion_Current,
         kInvitemSvgVersion_Initial,
         kSaveCmp_InvItems,
         WriteInventory,

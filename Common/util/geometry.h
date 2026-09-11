@@ -481,6 +481,8 @@ int AlignInHRange(int frame_x1, int frame_x2, int item_offx, int item_width, Fra
 int AlignInVRange(int frame_y1, int frame_y2, int item_offy, int item_height, FrameAlignment align);
 // Align an item in the given frame, returns item's position as rectangle
 Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align);
+// Align a point in the given frame, returns resulting position
+Point AlignInRect(const Rect &frame, const Point &pt, FrameAlignment align);
 
 Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h);
 Size ProportionalStretch(const Size &dest, const Size &item);

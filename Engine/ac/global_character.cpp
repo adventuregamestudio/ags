@@ -329,8 +329,6 @@ void SetCharacterIgnoreWalkbehinds (int cha, int clik) {
 
 void MoveCharacterToObject(int chaa,int obbj)
 {
-    // invalid object, do nothing
-    // this allows MoveCharacterToObject(EGO, GetObjectAt(...));
     if (!AssertObject("MoveCharacterToObject", obbj))
         return;
 

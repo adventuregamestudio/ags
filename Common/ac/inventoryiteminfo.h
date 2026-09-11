@@ -14,6 +14,8 @@
 #ifndef __AC_INVENTORYITEMINFO_H
 #define __AC_INVENTORYITEMINFO_H
 
+#include "ac/game_version.h"
+#include "util/geometry.h"
 #include "util/stream.h"
 #include "util/string.h"
 
@@ -26,15 +28,16 @@ enum InvitemSvgVersion
     kInvitemSvgVersion_36304 = 3060304, // hotspot
 };
 
-struct InventoryItemInfo {
+struct InventoryItemInfo
+{
     AGS::Common::String name;
-    int  pic;
-    int  cursorPic, hotx, hoty;
-    int  reserved[5];
-    uint8_t flags; // IFLG_STARTWITH
+    int  pic = 0;
+    int  cursorPic = 0, hotx = 0, hoty = 0;
+    FrameAlignment hotAlign = kAlignNone;
+    uint8_t flags = 0; // IFLG_*
 
-    void ReadFromFile(AGS::Common::Stream *in);
-    void WriteToFile(AGS::Common::Stream *out);
+    void ReadFromFile(AGS::Common::Stream *in, GameDataVersion game_ver);
+    void WriteToFile(AGS::Common::Stream *out) const;
     void ReadFromSavegame(AGS::Common::Stream *in, InvitemSvgVersion svg_ver);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 };

@@ -1121,7 +1121,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;
-    game.ReadInvInfo(in);
+    game.ReadInvInfo(in, data_ver);
     err = game.read_cursors(in);
     if (!err)
         return err;

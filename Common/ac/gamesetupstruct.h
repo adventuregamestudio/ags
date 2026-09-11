@@ -132,7 +132,7 @@ struct GameSetupStruct : public GameSetupStructBase
     HError read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);
 
-    void ReadInvInfo(Common::Stream *in);
+    void ReadInvInfo(Common::Stream *in, GameDataVersion data_ver);
     void WriteInvInfo(Common::Stream *out);
     void ReadMouseCursors(Common::Stream *in);
     void WriteMouseCursors(Common::Stream *out);

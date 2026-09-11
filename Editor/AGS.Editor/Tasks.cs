@@ -641,20 +641,9 @@ namespace AGS.Editor
 
                 foreach (InventoryItem item in game.InventoryItems)
                 {
-                    // Convert inventory cursor hotspot from 0,0 to centered in graphic
-                    if (item.HotspotX == 0 && item.HotspotY == 0)
-                    {
-                        int spriteNum = item.CursorImage > 0 ? item.CursorImage : item.Image;
-                        if (spriteNum >= 0)
-                        {
-                            Sprite spr = game.RootSpriteFolder.FindSpriteByID(spriteNum, true);
-                            if (spr != null)
-                            {
-                                item.HotspotX = spr.Width / 2;
-                                item.HotspotY = spr.Height / 2;
-                            }
-                        }
-                    }
+                    // Assign hotspot alignment depending on the old HotspotX/Y
+                    item.HotspotAlignment = (item.HotspotX == 0 && item.HotspotY == 0) ?
+                        FrameAlignment.MiddleCenter : FrameAlignment.TopLeft;
                 }
             }
 

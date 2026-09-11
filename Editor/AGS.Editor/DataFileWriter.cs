@@ -1638,7 +1638,8 @@ namespace AGS.Editor
                 writer.Write(game.InventoryItems[i].CursorImage);
                 writer.Write(game.InventoryItems[i].HotspotX);
                 writer.Write(game.InventoryItems[i].HotspotY);
-                for (int j = 0; j < 5; ++j) // write "reserved", currently unused
+                writer.Write((int)game.InventoryItems[i].HotspotAlignment);
+                for (int j = 0; j < 4; ++j) // write "reserved", currently unused
                 {
                     writer.Write(0);
                 }

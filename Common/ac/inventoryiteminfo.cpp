@@ -17,7 +17,7 @@
 
 using namespace AGS::Common;
 
-void InventoryItemInfo::ReadFromFile(Stream *in)
+void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
 {
     name.ReadCount(in, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     in->Seek(3); // alignment padding to int32
@@ -25,12 +25,18 @@ void InventoryItemInfo::ReadFromFile(Stream *in)
     cursorPic = in->ReadInt32();
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, 5);
+    hotAlign = static_cast<FrameAlignment>(in->ReadInt32()); // since kGameVersion_363_14
+    in->Seek(sizeof(int32_t) * 4); // reserved
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
+
+    if (game_ver < kGameVersion_363_10)
+    {
+        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
 }
 
-void InventoryItemInfo::WriteToFile(Stream *out)
+void InventoryItemInfo::WriteToFile(Stream *out) const
 {
     name.WriteCount(out, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     out->WriteByteCount(0, 3); // alignment padding to int32
@@ -38,7 +44,8 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteInt32(cursorPic);
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
-    out->WriteArrayOfInt32(reserved, 5);
+    out->WriteInt32(hotAlign); // since kGameVersion_363_14
+    out->WriteByteCount(0, sizeof(int32_t) * 4); // reserved
     out->WriteInt8(flags);
     out->WriteByteCount(0, 3); // alignment padding to int32
 }

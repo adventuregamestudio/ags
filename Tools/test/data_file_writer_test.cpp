@@ -294,7 +294,7 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     auto in = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer));
     InventoryItemInfo loaded{};
-    loaded.ReadFromFile(in.get());
+    loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
     EXPECT_STREQ("Key", loaded.name.GetCStr());
     EXPECT_EQ(10, loaded.pic);
@@ -325,7 +325,7 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
 
     InventoryItemInfo loaded[3]{};
     for (auto &item : loaded)
-        item.ReadFromFile(in.get());
+        item.ReadFromFile(in.get(), kGameVersion_Current);
     EXPECT_TRUE(loaded[0].name.IsEmpty());
     EXPECT_EQ(0, loaded[0].pic);
     EXPECT_STREQ("Key", loaded[1].name.GetCStr());

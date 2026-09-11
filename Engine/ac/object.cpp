@@ -123,31 +123,43 @@ int Object_GetTransparency(ScriptObject *objj) {
 
 int Object_GetAudioPanning(ScriptObject *objj)
 {
+    if (!AssertObject("Object.AudioPanning", objj->id))
+        return 0;
     return objs[objj->id].audio_panning;
 }
 
 void Object_SetAudioPanning(ScriptObject *objj, int newval)
 {
+    if (!AssertObject("Object.AudioPanning", objj->id))
+        return;
     objs[objj->id].audio_panning = Math::Clamp(newval, -100, 100);
 }
 
 int Object_GetAudioSpeed(ScriptObject *objj)
 {
+    if (!AssertObject("Object.AudioSpeed", objj->id))
+        return 0;
     return objs[objj->id].audio_speed;
 }
 
 void Object_SetAudioSpeed(ScriptObject *objj, int newval)
 {
+    if (!AssertObject("Object.AudioSpeed", objj->id))
+        return;
     objs[objj->id].audio_speed = newval;
 }
 
 int Object_GetAudioVolume(ScriptObject *objj)
 {
+    if (!AssertObject("Object.AudioVolume", objj->id))
+        return 0;
     return objs[objj->id].audio_volume;
 }
 
 void Object_SetAudioVolume(ScriptObject *objj, int newval)
 {
+    if (!AssertObject("Object.AudioVolume", objj->id))
+        return;
     objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
@@ -198,18 +210,24 @@ void Object_SetVisible(ScriptObject *objj, int onoroff) {
 }
 
 int Object_GetView(ScriptObject *objj) {
+    if (!AssertObject("Object.View", objj->id))
+        return 0;
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
     return objs[objj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *objj) {
+    if (!AssertObject("Object.Loop", objj->id))
+        return 0;
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
     return objs[objj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *objj) {
+    if (!AssertObject("Object.Frame", objj->id))
+        return 0;
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
     return objs[objj->id].frame;
@@ -251,16 +269,22 @@ int Object_GetMoving(ScriptObject *objj) {
 
 bool Object_HasExplicitLight(ScriptObject *obj)
 {
+    if (!AssertObject("Object.HasExplicitLight", obj->id))
+        return false;
     return objs[obj->id].has_explicit_light();
 }
 
 bool Object_HasExplicitTint(ScriptObject *obj)
 {
+    if (!AssertObject("Object.HasExplicitTint", obj->id))
+        return false;
     return objs[obj->id].has_explicit_tint();
 }
 
 int Object_GetLightLevel(ScriptObject *obj)
 {
+    if (!AssertObject("Object.LightLevel", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_light() ? objs[obj->id].tint_light : 0;
 }
 
@@ -277,26 +301,36 @@ void Object_SetLightLevel(ScriptObject *objj, int light_level)
 
 int Object_GetTintRed(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintRed", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_r : 0;
 }
 
 int Object_GetTintGreen(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintGreen", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_g : 0;
 }
 
 int Object_GetTintBlue(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintBlue", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_b : 0;
 }
 
 int Object_GetTintSaturation(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintSaturation", obj->id))
+        return 0;
      return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_level : 0;
 }
 
 int Object_GetTintLuminance(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintLuminance", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? ((objs[obj->id].tint_light * 10) / 25) : 0;
 }
 
@@ -334,13 +368,15 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
 
     play.check_interaction_only = 1;
     RunObjectInteraction(oobj->id, mood);
-    int ciwas = play.check_interaction_only;
+    int ciwas = play.check_interaction_only; // FIXME: reimplement returning check result without this hack!
     play.check_interaction_only = 0;
     return (ciwas == 2);
 }
 
 void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal)
 {
+    if (!AssertObject("Object.Move", objj->id))
+        return;
     ValidateMoveParams("Object.Move", blocking, ignwal);
 
     move_object(objj->id, x, y, speed, ignwal);
@@ -390,6 +426,8 @@ int Object_GetDestinationY(ScriptObject *objj)
 
 void Object_SetManualScaling(ScriptObject *objj, bool on)
 {
+    if (!AssertObject("Object.ManualScaling", objj->id))
+        return;
     if (on) objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
     else objs[objj->id].flags |= OBJF_USEROOMSCALING;
     // clear the cache
@@ -414,10 +452,14 @@ int Object_GetIgnoreScaling(ScriptObject *objj) {
 }
 
 int Object_GetScaling(ScriptObject *objj) {
+    if (!AssertObject("Object.Scaling", objj->id))
+        return 0;
     return objs[objj->id].zoom;
 }
 
 void Object_SetScaling(ScriptObject *objj, int zoomlevel) {
+    if (!AssertObject("Object.Scaling", objj->id))
+        return;
     if ((objs[objj->id].flags & OBJF_USEROOMSCALING) != 0)
     {
         debug_script_warn("Object.Scaling: cannot set property unless ManualScaling is enabled");
@@ -431,46 +473,66 @@ void Object_SetScaling(ScriptObject *objj, int zoomlevel) {
 }
 
 void Object_SetSolid(ScriptObject *objj, int solid) {
+    if (!AssertObject("Object.Solid", objj->id))
+        return;
     objs[objj->id].flags &= ~OBJF_SOLID;
     if (solid)
       objs[objj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {
+    if (!AssertObject("Object.Solid", objj->id))
+        return 0;
     if (objs[objj->id].flags & OBJF_SOLID)
         return 1;
     return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
+    if (!AssertObject("Object.BlockingWidth", objj->id))
+        return;
     objs[objj->id].blocking_width = static_cast<int16_t>(bwid);
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingWidth", objj->id))
+        return 0;
     return objs[objj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
+    if (!AssertObject("Object.BlockingHeight", objj->id))
+        return;
     objs[objj->id].blocking_height = static_cast<int16_t>(bhit);
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingHeight", objj->id))
+        return 0;
     return objs[objj->id].blocking_height;
 }
 
 int Object_GetBlockingRectX(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingRectX", objj->id))
+        return 0;
     return objs[objj->id].blocking_x;
 }
 
 void Object_SetBlockingRectX(ScriptObject *objj, int x) {
+    if (!AssertObject("Object.BlockingRectX", objj->id))
+        return;
     objs[objj->id].blocking_x = static_cast<int16_t>(x);
 }
 
 int Object_GetBlockingRectY(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingRectY", objj->id))
+        return 0;
     return objs[objj->id].blocking_y;
 }
 
 void Object_SetBlockingRectY(ScriptObject *objj, int y) {
+    if (!AssertObject("Object.BlockingRectY", objj->id))
+        return;
     objs[objj->id].blocking_y = static_cast<int16_t>(y);
 }
 

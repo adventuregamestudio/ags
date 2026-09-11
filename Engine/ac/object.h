@@ -27,12 +27,12 @@
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
-bool    is_valid_object(int obj_id);
+// Tells if the object ID is valid (in the current room)
+bool    IsValidObject(int obj_id);
 // Asserts the object ID is valid in the current room,
 // if not then prints a warning to the log; returns assertion result
 bool    AssertObject(const char *apiname, int obj_id);
 int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
-ScriptObject *GetObjectAtScreen(int xx, int yy);
 void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
 void    Object_RemoveTint(ScriptObject *objj);
 void    Object_SetView(ScriptObject *objj, int view, int loop, int frame);

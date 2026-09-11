@@ -99,11 +99,11 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-void GameSetupStruct::ReadInvInfo(Stream *in)
+void GameSetupStruct::ReadInvInfo(Stream *in, GameDataVersion data_ver)
 {
     for (int i = 0; i < numinvitems; ++i)
     {
-        invinfo[i].ReadFromFile(in);
+        invinfo[i].ReadFromFile(in, data_ver);
     }
 }
 

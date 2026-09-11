@@ -124,8 +124,9 @@ namespace AGS.Editor
          * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption;
          *                  InventoryItem.Hotspot now treats value 0,0 exactly, and not "centered in graphic"
          * 3.6.3.12       - Settings.TurnOrderPriority, TextBoxKeyClaimStyle.
+         * 3.6.3.14       - InventoryItem.HotspotAlignment.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060312;
+        public const int    LATEST_XML_VERSION_INDEX = 3060314;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

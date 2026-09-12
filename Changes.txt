@@ -41,6 +41,8 @@ Editor:
    number (palette index) in 8-bit games. They will always accept user input in any format (either
    color number of RGB).
  - Added Length and Format readonly properties for AudioClips, for information purposes.
+ - Added HotspotAlignment property to InventoryItems. The HotspotX,Y properties now define the
+   offset relative to the aligned position.
  - Added Baseline, BaselineOverridden, BlockingRectangle and Transparency properties to Characters.
  - Added new properties to GUI Controls: BackgroundColor, BorderColor, BorderWidth, ShowBorder,
    SolidBackground, PaddingX and PaddingY properties.
@@ -95,6 +97,7 @@ Editor:
  - "Go to Definition" command in script editor now works for Room elements too.
    Also, "missing event function" warnings support double click to go to event pane for Rooms and
    Room elements as well.
+ - Added "Compile all" command to the Translations node context menu.
  - Translation compiler now supports "UniqueID" and "GameName" settings right in TRS file, used
    to match compiled translation with the game at runtime. Editor fills these settings when
    creating a new translation source.
@@ -226,7 +229,7 @@ Script API:
  - Added GUIControl.BackgroundColor, BorderColor, BorderWidth, SolidBackground, ShowBorder,
    PaddingX and PaddingY properties.
  - Added GUIControl.Translated property.
- - Added InventoryItem.CursorHotspotX, CursorHotspotY properties.
+ - Added InventoryItem.CursorHotspotX, CursorHotspotY and CursorHotspotAlignment properties.
  - Added Label.TextOutlineColor property.
  - Added ListBox.TextOutlineColor property.
  - Added ListBox.SortItems() function.
@@ -332,6 +335,8 @@ Engine:
    or unlocking a temporary view. Previously, it seems, it used full range of loops in the current
    normal view, now it should use only first 4 or 8 standard standing loops (depending on "use
    diagonal loops" setting).
+ - Fixed Debug(0) script command that gives all inventory items reducing inventory quantity to 1.
+   Now it should keep whatever amount player character have had, if it's higher than 1.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.

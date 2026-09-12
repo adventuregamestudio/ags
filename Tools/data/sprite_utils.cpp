@@ -437,7 +437,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
 
     if ((game_color_depth == 8) && (src_depth > 8))
     {
-        new Error(String::FromFormat("Cannot import a hi-colour or true-colour image into a 256-colour game."));
+        return new Error(String::FromFormat("Cannot import a hi-colour or true-colour image into a 256-colour game."));
     }
 
     // Convert pixels to the format, supported by the bitmap library.
@@ -448,7 +448,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
     {
         if (!PixelOp::CopyConvert(src, compat_buf, ColorDepthToPixelFormat(dst_depth)))
         {
-            new Error(String::FromFormat("Failed to convert an input image into the compatible game format."));
+            return new Error(String::FromFormat("Failed to convert an input image into the compatible game format."));
         }
     }
 

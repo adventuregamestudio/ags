@@ -46,7 +46,7 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 int32_t FileOpen(const char *fnmm, FileOpenMode open_mode, StreamMode work_mode)
 {
   
-  debug_script_print(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s",
+  debug_script_message(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s",
                      fnmm, File::GetCMode(open_mode, work_mode).GetCStr());
   std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(fnmm, open_mode, work_mode));
   if (!s)
@@ -54,7 +54,7 @@ int32_t FileOpen(const char *fnmm, FileOpenMode open_mode, StreamMode work_mode)
 
   String res_path = s->GetPath();
   int32_t handle = add_file_stream(std::move(s), "FileOpen");
-  debug_script_print(kDbgMsg_Info, "FileOpen: success, handle %d, path: %s", handle, res_path.GetCStr());
+  debug_script_message(kDbgMsg_Info, "FileOpen: success, handle %d, path: %s", handle, res_path.GetCStr());
   return handle;
 }
 

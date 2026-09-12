@@ -154,6 +154,9 @@
     <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp">
       <Filter>data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\game\room_file_blocks.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\spritefile.h">
@@ -247,6 +250,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\room_file_blocks.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

@@ -98,6 +98,9 @@ public:
     ErrorHandle() = default;
     ErrorHandle(T *err) : _error(err) {}
     ErrorHandle(std::shared_ptr<T> err) : _error(err) {}
+    // Lets return a handle of a derived error type where a base one is expected;
+    // an unrelated type fails to compile on the shared_ptr conversion below.
+    template <class U> ErrorHandle(const ErrorHandle<U> &other) : _error(other._error) {}
 
     bool HasError() const { return _error.get() != NULL; }
     explicit operator bool() const { return _error.get() == nullptr; }
@@ -106,6 +109,7 @@ public:
     T &operator *() const { return _error.operator*(); }
 
 private:
+    template <class U> friend class ErrorHandle;
     std::shared_ptr<T> _error;
 };
 

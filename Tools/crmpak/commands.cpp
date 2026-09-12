@@ -12,9 +12,12 @@
 //
 //=============================================================================
 #include "commands.h"
+#include <cinttypes>
+#include "data/data_ext.h"
 #include "data/room_utils.h"
 #include "game/roomdata.h"
 #include "game/room_file.h"
+#include "game/room_file_blocks.h"
 #include "gfx/image_file.h"
 #include "script/cc_script.h"
 #include "util/file.h"
@@ -65,6 +68,31 @@ HRoomFileError ReadOnlyScriptText(RoomDataExt &room, std::unique_ptr<Stream> &&i
     return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
 }
 
+bool LoadBlockList(std::vector<DataExtBlockInfo> &blk_infos, const String &filename)
+{
+    auto in = File::OpenFileRead(filename);
+    if (!in)
+    {
+        printf("Error: failed to open room file for reading.\n");
+        return false;
+    }
+
+    RoomDataSource src(filename, std::move(in));
+    HError err = OpenRoomFile(src);
+    if (err)
+    {
+        RoomBlockParser parser(std::move(src.InputStream), src.DataVersion);
+        err = ReadExtBlockList(blk_infos, parser);
+    }
+    if (!err)
+    {
+        printf("Error: failed to read list of room blocks.\n");
+        printf("%s\n", err->FullMessage().GetCStr());
+        return false;
+    }
+    return true;
+}
+
 bool LoadRoomFile(RoomDataExt &room, const String &filename, bool cmd_readonly, const std::vector<Content> &content)
 {
     auto in = File::OpenFileRead(filename);
@@ -104,6 +132,7 @@ bool LoadRoomFile(RoomDataExt &room, const String &filename, bool cmd_readonly, 
         printf("%s\n", err->FullMessage().GetCStr());
         return false;
     }
+
     return true;
 }
 
@@ -145,7 +174,7 @@ void PrintContentOptions(const std::vector<Content> &content, const char *operat
     }
 }
 
-bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename)
+bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename, int import_bpp = 0)
 {
     auto in = File::OpenFileRead(filename);
     if (!in)
@@ -156,10 +185,22 @@ bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename)
     auto px_buf = ImageFile::LoadImage(in.get(), Path::GetFileExtension(filename), nullptr, pal);
     if (!px_buf)
     {
-        printf("Error: failed to write image to file: %s\n", filename.GetCStr());
+        printf("Error: failed to read image from file: %s\n", filename.GetCStr());
         return false;
     }
-    out_px_buf = px_buf;
+    if (import_bpp == 0)
+    {
+        out_px_buf = px_buf;
+    }
+    else
+    {
+        if (!PixelOp::CopyConvert(px_buf, out_px_buf, ColorDepthToPixelFormat(import_bpp)))
+        {
+            printf("Error: failed to convert input image (%d bpp) to destination format (%d bpp)\n", px_buf.GetColorDepth(), import_bpp);
+            return false;
+        }
+    }
+    
     return true;
 }
 
@@ -319,7 +360,7 @@ void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
     }
 }
 
-void ImportContent(RoomDataExt &room, const std::vector<Content> &content)
+void ImportContent(RoomDataExt &room, const std::vector<Content> &content, int import_bpp)
 {
     for (const auto &c : content)
     {
@@ -336,22 +377,22 @@ void ImportContent(RoomDataExt &room, const std::vector<Content> &content)
                         room.BgFrameCount = c.Index + 1u;
                         room.BgFrames.resize(room.BgFrameCount);
                     }
-                    result = LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
+                    result = LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName, import_bpp);
                 }
                 if (result && c.Index == 0)
                     room.BackgroundBPP = room.BgFrames[c.Index].GraphicBuf.GetBytesPerPixel();
                 break;
             case kContent_Hotspot:
-                result = LoadImageFile(room.HotspotMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.HotspotMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_Region:
-                result = LoadImageFile(room.RegionMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.RegionMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_WalkArea:
-                result = LoadImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_WalkBehind:
-                result = LoadImageFile(room.WalkBehindMaskBuf, room.Palette, c.FileName);
+                result = LoadImageFile(room.WalkBehindMaskBuf, room.Palette, c.FileName, 8);
                 break;
             case kContent_ScriptCompiled3:
                 result = LoadScriptFile(room.CompiledScript, c.FileName);
@@ -400,13 +441,13 @@ void CutContent(RoomDataExt &room, const std::vector<Content> &content)
     }
 }
 
-int Command_Create(const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Create(const String &dst_room, const std::vector<Content> &content, int import_bpp, bool verbose)
 {
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Import");
 
     RoomDataExt empty;
-    ImportContent(empty, content);
+    ImportContent(empty, content, import_bpp);
     if (!SaveRoomFile(empty, dst_room))
         return -1;
 
@@ -449,7 +490,7 @@ int Command_Export(const String &src_room, const std::vector<Content> &content, 
     return 0;
 }
 
-int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, bool verbose)
+int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, int import_bpp, bool verbose)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
     printf("Output room file: %s\n", dst_room.GetCStr());
@@ -459,7 +500,7 @@ int Command_Import(const String &src_room, const String &dst_room, const std::ve
     if (!LoadRoomFile(room, src_room, false, {}))
         return -1;
 
-    ImportContent(room, content);
+    ImportContent(room, content, import_bpp);
 
     if (!SaveRoomFile(room, dst_room))
         return -1;
@@ -472,8 +513,21 @@ int Command_List(const String &src_room)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
 
+    std::vector<DataExtBlockInfo> blk_infos;
+    if (!LoadBlockList(blk_infos, src_room))
+        return -1;
+
+    printf("Data blocks count: %zu\n", blk_infos.size());
+    printf("------ Block ID ------|------- Offset -------|--- Size --\n");
+    for (const auto &blk_info : blk_infos)
+    {
+        printf(" %-16s (%d) | %-20" PRId64 " | %-10zu\n",
+            blk_info.ID.Name.GetCStr(), blk_info.ID.ID, blk_info.Offset, static_cast<size_t>(blk_info.Length));
+    }
+    printf("---------------------------------------------------------\n\n");
+
     RoomDataExt room;
-    if (!LoadRoomFile(room, src_room, false, {}))
+    if (!LoadRoomFile(room, src_room, true, {}))
         return -1;
 
     printf("* Room backgrounds: %d\n", room.BgFrameCount);
@@ -512,6 +566,11 @@ int Command_List(const String &src_room)
     {
         printf("* Compiled script:\n\tbytecode %zu bytes\n\tvariables %zu bytes\n\tstrings %zu bytes\n",
             room.CompiledScript->code.size(), room.CompiledScript->globaldata.size(), room.CompiledScript->strings.size());
+    }
+
+    if (!room.ScriptText.IsEmpty())
+    {
+        printf("* Script text: %zu bytes\n", room.ScriptText.GetLength() + 1);
     }
 
     printf("Done.\n");

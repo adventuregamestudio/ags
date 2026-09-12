@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.3 - Beta
+VERSION 3.6.3 - RC, September 2026
 
 Common:
  - Removed limit of Dialog's options (was 30).

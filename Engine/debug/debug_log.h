@@ -14,6 +14,7 @@
 #ifndef __AC_DEBUG_LOG_H
 #define __AC_DEBUG_LOG_H
 
+#include <cstdarg>
 #include "ac/runtime_defines.h"
 #include "debug/out.h"
 #include "util/ini_util.h"
@@ -25,15 +26,32 @@ void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg, bool finalize);
 void shutdown_debug();
 
+void debug_script_event(AGS::Common::MessageType mt, const AGS::Common::String &msg);
+template<typename... Args>
+void debug_script_event(AGS::Common::MessageType mt, const char *msg, Args ...args)
+{
+    debug_script_event(mt, AGS::Common::String::FromFormat(msg, std::forward<Args>(args)...));
+}
 // prints debug messages of given type tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-void debug_script_print(AGS::Common::MessageType mt, const char *msg, ...);
+template<typename... Args>
+void debug_script_message(AGS::Common::MessageType mt, const char *msg, Args ...args)
+    { debug_script_event(mt, msg, std::forward<Args>(args)...); }
 // prints formatted debug warnings tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-void debug_script_warn(const char *msg, ...);
+template<typename... Args>
+void debug_script_warn(const char *msg, Args ...args)
+    { debug_script_event(AGS::Common::kDbgMsg_Warn, msg, std::forward<Args>(args)...); }
+// prints formatted debug errors tagged with kDbgGroup_Game,
+// prepending it with current room number and script position info
+template<typename... Args>
+void debug_script_error(const char *msg, Args ...args)
+    { debug_script_event(AGS::Common::kDbgMsg_Error, msg, std::forward<Args>(args)...); }
 // prints formatted debug message tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-void debug_script_log(const char *msg, ...);
+template<typename... Args>
+void debug_script_log(const char *msg, Args ...args)
+    { debug_script_event(AGS::Common::kDbgMsg_Debug, msg, std::forward<Args>(args)...); }
 
 // Same as quit(), but with message formatting
 void quitprintf(const char *texx, ...);

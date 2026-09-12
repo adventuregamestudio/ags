@@ -107,11 +107,6 @@ int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
 
 // **** CHARACTER: FUNCTIONS ****
 
-bool is_valid_character(int char_id)
-{
-    return ((char_id >= 0) && (char_id < game.numcharacters));
-}
-
 // Checks if character is currently playing idle anim, and reset it
 void stop_character_idling(CharacterInfo *chi)
 {
@@ -129,11 +124,16 @@ void reset_character_idling_time(CharacterInfo *chi)
     charextra[chi->index_id].process_idle_this_time = 1;
 }
 
+bool IsValidCharacter(int char_id)
+{
+    return ((char_id >= 0) && (char_id < game.numcharacters));
+}
+
 bool AssertCharacter(const char *apiname, int char_id)
 {
     if ((char_id >= 0) && (char_id < game.numcharacters))
         return true;
-    debug_script_warn("%s: invalid character id %d (range is 0..%d)", apiname, char_id, game.numcharacters - 1);
+    debug_script_error("%s: invalid character id %d (range is 0..%d)", apiname, char_id, game.numcharacters > 0 ? game.numcharacters - 1 : 0);
     return false;
 }
 
@@ -2728,8 +2728,8 @@ void DisplayThoughtCore(int chid, const char *displbuf) {
 
 void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool auto_position, bool is_thought)
 {
-    if (!is_valid_character(aschar))
-        quit("!DisplaySpeech: invalid character");
+    if (!AssertCharacter("DisplaySpeech", aschar))
+        return;
 
     CharacterInfo *speakingChar = &game.chars[aschar];
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))

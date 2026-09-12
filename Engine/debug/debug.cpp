@@ -371,9 +371,9 @@ void shutdown_debug()
     DbgMgr.UnregisterAll();
 }
 
-// Prepends message text with current room number and running script info, then logs result
-static void debug_script_print_impl(const String &msg, MessageType mt)
+void debug_script_event(MessageType mt, const String &msg)
 {
+    // Generate the full log message, prepending current script location
     String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != nullptr)
@@ -383,33 +383,17 @@ static void debug_script_print_impl(const String &msg, MessageType mt)
     }
 
     Debug::Printf(kDbgGroup_Game, mt, "(room:%d) %s%s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
-}
 
-void debug_script_print(MessageType mt, const char *msg, ...)
-{
-    va_list ap;
-    va_start(ap, msg);
-    String full_msg = String::FromFormatV(msg, ap);
-    va_end(ap);
-    debug_script_print_impl(full_msg, mt);
-}
-
-void debug_script_warn(const char *msg, ...)
-{
-    va_list ap;
-    va_start(ap, msg);
-    String full_msg = String::FromFormatV(msg, ap);
-    va_end(ap);
-    debug_script_print_impl(full_msg, kDbgMsg_Warn);
-}
-
-void debug_script_log(const char *msg, ...)
-{
-    va_list ap;
-    va_start(ap, msg);
-    String full_msg = String::FromFormatV(msg, ap);
-    va_end(ap);
-    debug_script_print_impl(full_msg, kDbgMsg_Debug);
+    // A (possibly) temporary solution to making script errors stand out more to the game developer or testers:
+    // if the game is compiled in debug mode, then quit on script error events.
+    if (game.options[OPT_DEBUGMODE])
+    {
+        if (mt == kDbgMsg_Error || mt == kDbgMsg_Fatal)
+        {
+            // Report as a game error (using '!')
+            quitprintf("!%s", msg.GetCStr());
+        }
+    }
 }
 
 

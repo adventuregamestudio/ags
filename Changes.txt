@@ -321,6 +321,11 @@ Engine:
    translate the GUI text property values).
  - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
    a warning.
+ - Engine now defines certain mistakes in script function use as "serious mistake" (such as trying
+   to call a function for a non-existing object). When such mistake is met, engine will only print
+   a message to the log if the game was compiled in Release mode, or quit the game with a error
+   popup if the game was compiled in Debug mode. The former is done to let player continue playing
+   the game despite the error, while the latter brings immediate attention of the game developer.
  - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
  - Fixed InventoryWindow not getting redrawn immediately if one of the item's has a dynamic sprite
    assigned as a graphic and that dynamic sprite gets edited (like, drawn upon).
@@ -337,6 +342,9 @@ Engine:
    diagonal loops" setting).
  - Fixed Debug(0) script command that gives all inventory items reducing inventory quantity to 1.
    Now it should keep whatever amount player character have had, if it's higher than 1.
+ - Fixed potential crash which could occur if script is trying to access certain Room Object's
+   properties via 'object[]' array in a Room that has no objects or does not have this specific
+   object.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.
@@ -4127,7 +4135,7 @@ VERSION 3.2, June 2010
  - The Restart Point save file (AGSSAVE.999) is no longer deleted when you quit the game, 
    to fix a problem where RestartGame didn't work if you started the game by double-clicking
    an Enhanced Save Game file in explorer
- - Disallowed accented characters like й in script names in the editor, because they
+ - Disallowed accented characters like 'Г ' in script names in the editor, because they
    wouldn't compile
  - Dynamic sprite deletion warning is now only displayed on exit if Debug Mode is turned on
  - Fixed sprite entry getting duplicated if you dragged a sprite to the end of the list
@@ -4372,7 +4380,7 @@ VERSION 3.1, October 2008
    help newbies who are using it by accident instead of the Change button.
  - Added option for AGS Editor to pop up a message every X days reminding you to back
    up your game
- - GUI Text Box now allows the user to type in extended chars like йнс when the
+ - GUI Text Box now allows the user to type in extended chars like 'Г ' when the
    textbox is using a TTF font
  - D3D driver now automatically tries 640x400 if your monitor doesn't support 320x200,
    like the DX5 driver already did

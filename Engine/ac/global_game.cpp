@@ -553,7 +553,7 @@ int SetGameOption (int opt, int newval)
 {
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
-        debug_script_warn("SetGameOption: invalid option specified: %d", opt);
+        debug_script_error("SetGameOption: invalid option specified: %d", opt);
         return 0;
     }
 
@@ -643,8 +643,8 @@ int GetGameOption (int opt) {
 }
 
 void SkipUntilCharacterStops(int cc) {
-    if (!is_valid_character(cc))
-        quit("!SkipUntilCharacterStops: invalid character specified");
+    if (!AssertCharacter("SkipUntilCharacterStops", cc))
+        return;
     if (game.chars[cc].room!=displayed_room)
         quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
             game.chars[cc].scrname, displayed_room, game.chars[cc].room);

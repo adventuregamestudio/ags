@@ -862,7 +862,7 @@ jobs:
 
       - name: Install bsdtar
         run: sudo apt-get update -y && sudo apt-get install -y libarchive-tools
-        
+
       - name: Log in to GHCR
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4
         with:
@@ -874,13 +874,13 @@ jobs:
         run: |
           TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
           IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"
-  
+
           docker run --rm \
             -v "$PWD:/workspace" \
             -w /workspace \
             "$IMAGE" \
             bash -c 'find Tools -name Makefile -execdir make -j4 PREFIX=/workspace/dist-tools/usr/local install \; && make -j4 --directory=Compiler PREFIX=/workspace/dist-tools/usr/local install'
-    
+
       - name: Create Linux Tools archive ${{ matrix.platform.archname }}
         run: |
           bsdtar -f "linux-tools-${{ matrix.platform.archname }}.tar.gz" -cvzC dist-tools/usr/local/bin .
@@ -963,7 +963,7 @@ jobs:
         with:
           name: tools-linux-archive
           include-hidden-files: true
-          path: AGS-Tools-*-Linux.tar.gz  
+          path: AGS-Tools-*-Linux.tar.gz
 
   windows-packaging:
     name: Windows Packaging
@@ -1120,6 +1120,7 @@ jobs:
       - build-android-bundle
       - build-linux-bundle
       - windows-packaging
+      - package-tools-archives
       - package-pdbs
     steps:
       - uses: actions/checkout@v6
@@ -1206,6 +1207,18 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: ags-bundle-android
+          path: /tmp/github_release
+
+      - name: Download Windows Tools archive
+        uses: actions/download-artifact@v8
+        with:
+          name: tools-windows-archive
+          path: /tmp/github_release
+
+      - name: Download Linux Tools archive
+        uses: actions/download-artifact@v8
+        with:
+          name: tools-linux-archive
           path: /tmp/github_release
 
       - name: Generate SHA-256 checksums

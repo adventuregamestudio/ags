@@ -462,14 +462,14 @@ static HError video_single_run(std::unique_ptr<VideoPlayer> video, const String 
     auto video_stream = AssetMgr->OpenAsset(asset_name);
     if (!video_stream)
     {
-        return new Error(String::FromFormat("Failed to open file: %s", asset_name.GetCStr()));
+        return new Error("Failed to open file: %s", asset_name.GetCStr());
     }
 
     const int dst_depth = game.GetColorDepth();
     HError err = video->Open(std::move(video_stream), asset_name, video_flags, Size(), dst_depth);
     if (!err)
     {
-        return new Error(String::FromFormat("Failed to run video %s", asset_name.GetCStr()), err);
+        return new Error(err, "Failed to run video %s", asset_name.GetCStr());
     }
 
     gl_Video.reset(new BlockingVideoPlayer(std::move(video), video_flags, state_flags, skip));
@@ -489,7 +489,7 @@ HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType 
     {
         flicname.Format("flic%d.fli", numb);
         if (!AssetMgr->DoesAssetExist(flicname))
-            return new Error(String::FromFormat("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb));
+            return new Error("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb);
     }
 
     return video_single_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);

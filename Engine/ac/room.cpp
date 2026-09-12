@@ -502,9 +502,8 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
     {
         PScript script(ccScript::CreateFromStream(in.get()));
         if (!script)
-            return new Error(String::FromFormat(
-                "Failed to load a script module: %s", filename.GetCStr()),
-                cc_get_error().ErrorString);
+            return new Error("Failed to load a script module: %s\n%s", filename.GetCStr(),
+                cc_get_error().ErrorString.GetCStr());
         room->CompiledScript = script;
     }
     return HError::None();
@@ -555,11 +554,11 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, boo
 {
     auto in = mgr->OpenAsset(filename);
     if (in == nullptr)
-        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, "Filename: %s.", filename.GetCStr());
     RoomData room_data;
     HRoomFileError err = LoadRoom(&room_data, std::move(in), game_is_hires, &sprinfos);
     if (!err)
-        return new Error(*err);
+        return err;
     *room = RoomStruct(room_data);
     return HError::None();
 }

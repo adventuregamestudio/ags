@@ -214,8 +214,8 @@ HError SpriteFile::OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
     if (_version < kSprfVersion_Uncompressed || _version > kSprfVersion_Current)
     {
         _stream.reset();
-        return new Error(String::FromFormat("Unsupported spriteset format (requested %d, supported %d - %d).", _version,
-            kSprfVersion_Uncompressed, kSprfVersion_Current));
+        return new Error("Unsupported spriteset format (requested %d, supported %d - %d).", _version,
+            kSprfVersion_Uncompressed, kSprfVersion_Current);
     }
 
     // unknown version
@@ -424,8 +424,8 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
         if (hdr.BPP == 0) continue; // empty slot, this is normal
         if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
         {
-            return new Error(String::FromFormat("RebuildSpriteIndex: invalid sprite metrics %d (%dx%d %d-bit), cannot deduce pixel data size.",
-                i, hdr.Width, hdr.Height, hdr.BPP * 8));
+            return new Error("RebuildSpriteIndex: invalid sprite metrics %d (%dx%d %d-bit), cannot deduce pixel data size.",
+                i, hdr.Width, hdr.Height, hdr.BPP * 8);
         }
         int pal_bpp = GetPaletteBPP(hdr.SFormat);
         if (pal_bpp > 0) in->Seek(hdr.PalCount * pal_bpp); // skip palette
@@ -457,8 +457,8 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
 {
     sprite = {};
     if (index < 0 || (size_t)index >= _spriteData.size())
-        return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
-            index, 0, _spriteData.size() - 1));
+        return new Error("LoadSprite: slot index %d out of bounds (%d - %d).",
+            index, 0, _spriteData.size() - 1);
 
     if (_spriteData[index].Offset == 0)
         return HError::None(); // sprite is not in file
@@ -471,15 +471,15 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
     if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
     {
-        return new Error(String::FromFormat("LoadSprite: invalid sprite metrics %d (%dx%d %d-bit).",
-            index, hdr.Width, hdr.Height, hdr.BPP * 8));
+        return new Error("LoadSprite: invalid sprite metrics %d (%dx%d %d-bit).",
+            index, hdr.Width, hdr.Height, hdr.BPP * 8);
     }
     const int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
     PixelBuffer image(w, h, ColorDepthToPixelFormat(bpp * 8));
     if (!image)
     {
-        return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d %d-bit).",
-            index, w, h, bpp * 8));
+        return new Error("LoadSprite: failed to allocate bitmap %d (%dx%d %d-bit).",
+            index, w, h, bpp * 8);
     }
     ImBufferPtr im_data(image.GetData(), w * h * bpp, bpp);
     // (Optional) Handle storage options, reverse
@@ -511,7 +511,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
         // and use either function ptr or a decompressing stream class object
         if (in_data_size == 0)
         {
-            return new Error(String::FromFormat("LoadSprite: bad compressed data for sprite %d.", index));
+            return new Error("LoadSprite: bad compressed data for sprite %d.", index);
         }
         bool result;
         switch (hdr.Compress)
@@ -527,7 +527,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
         // TODO: test that not more than data_size was read!
         if (!result)
         {
-            return new Error(String::FromFormat("LoadSprite: failed to decompress pixel array for sprite %d.", index));
+            return new Error("LoadSprite: failed to decompress pixel array for sprite %d.", index);
         }
     }
     // Otherwise (no compression) read directly
@@ -570,8 +570,8 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     hdr = SpriteDatHeader();
     data.resize(0);
     if (index < 0 || (size_t)index >= _spriteData.size())
-        return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
-            index, 0, _spriteData.size() - 1));
+        return new Error("LoadSprite: slot index %d out of bounds (%d - %d).",
+            index, 0, _spriteData.size() - 1);
 
     if (_spriteData[index].Offset == 0)
         return HError::None(); // sprite is not in file

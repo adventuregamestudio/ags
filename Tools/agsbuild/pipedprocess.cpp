@@ -85,7 +85,7 @@ HError PipedProcess::CreateProcess()
     StrUtil::ConvertUtf8ToWstr(_command.GetCStr(), cmd.data(), cmd.size());
     if (CreateProcessW(NULL, cmd.data(), NULL, NULL, TRUE /* bInheritHandles */, CREATE_NO_WINDOW, NULL, NULL, &si, &_pi) != TRUE)
     {
-        return new Error(String::FromFormat("Process failed with err code: %u\n", GetLastError()));
+        return new Error("Process failed with err code: %u\n", GetLastError());
     }
 #else
     const bool stdout_pipe = pipe(_stdOutPipe) >= 0;
@@ -94,7 +94,7 @@ HError PipedProcess::CreateProcess()
     _cpid = fork();
     if (_cpid < 0)
     {
-        return new Error(String::FromFormat("Process fork failed with err code: %d\n", errno));
+        return new Error("Process fork failed with err code: %d\n", errno);
     }
 
     if (_cpid == 0)

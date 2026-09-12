@@ -718,7 +718,7 @@ HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_p
     room->DataVersion = data_ver;
     RoomBlockReader reader(room, room_aux, data_ver, std::move(in), {}, nullptr);
     HError err = reader.Read();
-    return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
+    return err ? HRoomFileError::None() : new RoomFileError(err, kRoomFileErr_BlockListFailed);
 }
 
 HRoomFileError ReadRoomData(RoomData *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
@@ -914,7 +914,7 @@ HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_p
             return HError::None();
         });
     HError err = reader.Read();
-    return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
+    return err ? HRoomFileError::None() : new RoomFileError(err, kRoomFileErr_BlockListFailed);
 }
 
 HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)

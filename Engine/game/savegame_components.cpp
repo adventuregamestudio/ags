@@ -122,8 +122,7 @@ bool AssertFormatTagStrict(Stream *in, HSaveError &err, const String &tag, bool 
     String read_tag;
     if (!ReadFormatTag(in, read_tag, open) || read_tag.Compare(tag) != 0)
     {
-        err = new SavegameError(kSvgErr_InconsistentFormat,
-            String::FromFormat("Mismatching tag: %s.", tag.GetCStr()));
+        err = new SavegameError(kSvgErr_InconsistentFormat, "Mismatching tag: %s.", tag.GetCStr());
         return false;
     }
     return true;
@@ -135,8 +134,8 @@ inline bool AssertCompatLimit(HSaveError &err, int count, int max_count, const c
     if (count > max_count)
     {
         err = new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Incompatible number of %s (count: %d, max: %d).",
-            content_name, count, max_count));
+            "Incompatible number of %s (count: %d, max: %d).",
+            content_name, count, max_count);
         return false;
     }
     return true;
@@ -148,8 +147,8 @@ inline bool AssertCompatRange(HSaveError &err, int value, int min_value, int max
     if (value < min_value || value > max_value)
     {
         err = new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Restore game error: incompatible %s (id: %d, range: %d - %d).",
-            content_name, value, min_value, max_value));
+            "Restore game error: incompatible %s (id: %d, range: %d - %d).",
+            content_name, value, min_value, max_value);
         return false;
     }
     return true;
@@ -1753,8 +1752,8 @@ HSaveError ReadManagedPool(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, con
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Managed pool deserialization failed: %s",
-                cc_get_error().ErrorString.GetCStr()));
+            "Managed pool deserialization failed: %s",
+            cc_get_error().ErrorString.GetCStr());
     }
     return HSaveError::None();
 }
@@ -2067,7 +2066,7 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     if (handler && pfn_read)
     {
         if (info.Version > handler->Version || info.Version < handler->LowestVersion)
-            return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version));
+            return new SavegameError(kSvgErr_UnsupportedComponentVersion, "Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version);
 
         if ((info.Flags & kSvgCmp_Deflate) != 0)
         {
@@ -2085,7 +2084,7 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
             deflate_s.reset(dynamic_cast<DeflateStream*>(deflate_in->ReleaseStreamBase().release()));
             uint32_t uncomp_data_sz = deflate_s->GetProcessedInput();
             if (uncomp_data_sz != info.UncompressedDataSize)
-                return new SavegameError(kSvgErr_ComponentUncompressedSizeMismatch, String::FromFormat("Expected: %zu, actual: %zu", info.UncompressedDataSize, uncomp_data_sz));
+                return new SavegameError(kSvgErr_ComponentUncompressedSizeMismatch, "Expected: %zu, actual: %zu", info.UncompressedDataSize, uncomp_data_sz);
             // TODO: test checksum too?
 
             in->AttachStreamBase(deflate_s->ReleaseStreamBase());
@@ -2108,8 +2107,8 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 
     // Test that we have reached an expected position in stream
     if (in->GetPosition() - info.DataOffset != info.DataSize)
-        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %jd, actual: %jd",
-            static_cast<intmax_t>(info.DataSize), static_cast<intmax_t>(in->GetPosition() - info.DataOffset)));
+        return new SavegameError(kSvgErr_ComponentSizeMismatch, "Expected: %jd, actual: %jd",
+            static_cast<intmax_t>(info.DataSize), static_cast<intmax_t>(in->GetPosition() - info.DataOffset));
     if (!AssertFormatTag(in, info.Name, false))
         return new SavegameError(kSvgErr_ComponentClosingTagFormat);
     return HSaveError::None();
@@ -2139,10 +2138,9 @@ HSaveError ReadAllImpl(Stream *in, SavegameVersion svg_version, SaveCmpSelection
         HSaveError err = ReadComponent(in, hlp, info);
         if (!err)
         {
-            return new SavegameError(kSvgErr_ComponentUnserialization,
-                String::FromFormat("(#%d) %s, version %i, at offset %u.",
-                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.TagOffset),
-                err);
+            return new SavegameError(err, kSvgErr_ComponentUnserialization,
+                "(#%d) %s, version %i, at offset %u.",
+                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.TagOffset);
         }
         idx++;
     }
@@ -2226,9 +2224,8 @@ HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp, bool compres
         HSaveError err = WriteComponent(out, ComponentHandlers[type], compress);
         if (!err)
         {
-            return new SavegameError(kSvgErr_ComponentSerialization,
-                String::FromFormat("Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr()),
-                err);
+            return new SavegameError(err, kSvgErr_ComponentSerialization,
+                "Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr());
         }
     }
     WriteFormatTag(out, ComponentListTag, false);

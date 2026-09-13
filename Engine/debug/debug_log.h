@@ -27,6 +27,11 @@ void apply_debug_config(const AGS::Common::ConfigTree &cfg, bool finalize);
 void shutdown_debug();
 
 void debug_script_event(AGS::Common::MessageType mt, const AGS::Common::String &msg);
+// overload for calls that have no args
+inline void debug_script_event(AGS::Common::MessageType mt, const char *msg)
+{
+    debug_script_event(mt, AGS::Common::String::Wrapper(msg));
+}
 template<typename... Args>
 void debug_script_event(AGS::Common::MessageType mt, const char *msg, Args ...args)
 {

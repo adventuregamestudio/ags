@@ -62,6 +62,8 @@ const char *HELP_STRING =
     "  script-text            script text (commonly present in v2.x rooms)\n"
     "\n"
     "Command options:\n"
+    "  --ibpp N               when importing backgrounds: convert to this color\n"
+    "                         depth (bits per pixel)\n"
     "  -w <out-room.crm>      for import and cut commands: write the resulting room\n"
     "                         into a new file; otherwise will modify the input file\n"
     "\n"
@@ -123,6 +125,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     // Fixed pos options
     const String src_room_file = cmdargs.PosArgs.size() > 0 ? cmdargs.PosArgs[0] : String();
     String dst_room_file = src_room_file;
+    int import_bpp = 0;
 
     // Content list
     std::vector<CRMPak::Content> content;
@@ -159,7 +162,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     // Options with values
     for (const auto &opt : cmdargs.OptWithValue)
     {
-        if (opt.first == "-w")
+        if (opt.first == "--ibpp")
+        {
+            import_bpp = StrUtil::StringToInt(opt.second);
+        }
+        else if (opt.first == "-w")
         {
             dst_room_file = opt.second;
         }
@@ -178,7 +185,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     {
         if (cmdargs.PosArgs.size() < 1)
             break; // not enough args
-        return CRMPak::Command_Create(dst_room_file, content, verbose);
+        return CRMPak::Command_Create(dst_room_file, content, import_bpp, verbose);
     }
     case 'e': // export
     {
@@ -190,7 +197,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     {
         if (cmdargs.PosArgs.size() < 2)
             break; // not enough args
-        return CRMPak::Command_Import(src_room_file, dst_room_file, content, verbose);
+        return CRMPak::Command_Import(src_room_file, dst_room_file, content, import_bpp, verbose);
     }
     case 'l': // list
     {
@@ -219,7 +226,7 @@ int main(int argc, char *argv[])
 {
     printf("%s\n", BIN_STRING);
 
-    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-w"});
+    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"--ibpp", "-w"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

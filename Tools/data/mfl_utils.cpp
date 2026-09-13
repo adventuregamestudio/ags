@@ -13,6 +13,7 @@
 //=============================================================================
 #include "data/mfl_utils.h"
 #include <memory>
+#include <inttypes.h>
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -168,7 +169,7 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
         if (assets.size() > 0)
         {
             return new Error(String::FromFormat(
-                "Failed trying to split assets in parts of %zu MB. Max number of package partitions exceeded.\n", part_size));
+                "Failed trying to split assets in parts of %" PRId64 " MB. Max number of package partitions exceeded.\n", part_size));
         }
     }
     else
@@ -287,7 +288,7 @@ HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib)
     if (compare_lib)
     {
         if (lib.BaseFileOffset != compare_lib->BaseFileOffset)
-            return new Error(String::FromFormat("Base library offset does not match: %lld vs %lld", lib.BaseFileOffset, compare_lib->BaseFileOffset));
+            return new Error(String::FromFormat("Base library offset does not match: %" PRId64 " vs %" PRId64, lib.BaseFileOffset, compare_lib->BaseFileOffset));
         if (lib.AssetInfos.size() != compare_lib->AssetInfos.size())
             return new Error(String::FromFormat("Number of assets does not match: %zu vs %zu", lib.AssetInfos.size(), compare_lib->AssetInfos.size()));
         for (size_t i = 0; i < lib.AssetInfos.size(); ++i)
@@ -297,9 +298,9 @@ HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib)
             if (asset1.FileName.CompareNoCase(asset2.FileName) != 0)
                 return new Error(String::FromFormat("Asset %zu does not match filename: %s vs %s", i, asset1.FileName.GetCStr(), asset2.FileName.GetCStr()));
             if (asset1.Size != asset2.Size)
-                return new Error(String::FromFormat("Asset %zu does not match size: %lld vs %lld", i, asset1.Size, asset2.Size));
+                return new Error(String::FromFormat("Asset %zu does not match size: %" PRId64 " vs %" PRId64, i, asset1.Size, asset2.Size));
             if (asset1.Offset - lib.BaseFileOffset != asset2.Offset)
-                return new Error(String::FromFormat("Asset %zu does not match offset: %lld vs %lld", i, asset1.Offset - lib.BaseFileOffset, asset2.Offset));
+                return new Error(String::FromFormat("Asset %zu does not match offset: %" PRId64 " vs %" PRId64, i, asset1.Offset - lib.BaseFileOffset, asset2.Offset));
         }
     }
 

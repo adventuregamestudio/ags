@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/game.h"
 #include <stdio.h>
+#include <inttypes.h>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
@@ -1216,7 +1217,7 @@ void Game_PrecacheSprite(int sprnum)
     const auto dur1 = ToMilliseconds(tp_filedone - tp_start);
     const auto dur2 = ToMilliseconds(tp_texturedone - tp_filedone);
     const auto dur_t = ToMilliseconds(tp_texturedone - tp_start);
-    Debug::Printf("Precache sprite %d; file->mem = %lld ms, bm->tx = %lld ms, total = %lld ms", sprnum, dur1, dur2, dur_t);
+    Debug::Printf("Precache sprite %d; file->mem = %" PRId64 " ms, bm->tx = %" PRId64 " ms, total = %" PRId64 " ms", sprnum, dur1, dur2, dur_t);
 }
 
 void Game_PrecacheView(int view, int first_loop, int last_loop)
@@ -1916,8 +1917,8 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     // Print gathered time and size info
     size_t spcache_after = spriteset.GetCacheSize();
     size_t txcache_after = texturecache_get_size();
-    Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %lld ms, average file->mem = %lld ms, bm->tx = %lld ms,"
-                  "\n\t\tloaded %d sounds = %lld ms",
+    Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %" PRId64 " ms, average file->mem = %" PRId64 " ms, bm->tx = %" PRId64 " ms,"
+                  "\n\t\tloaded %d sounds = %" PRId64 " ms",
         view, first_loop, last_loop, total_frames, dur_sp_load + dur_tx_make + dur_sound_load,
         dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
     Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",

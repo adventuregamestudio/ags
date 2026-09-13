@@ -457,7 +457,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
 {
     sprite = {};
     if (index < 0 || (size_t)index >= _spriteData.size())
-        return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
+        return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %zu).",
             index, 0, _spriteData.size() - 1));
 
     if (_spriteData[index].Offset == 0)
@@ -570,7 +570,7 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     hdr = SpriteDatHeader();
     data.resize(0);
     if (index < 0 || (size_t)index >= _spriteData.size())
-        return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
+        return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %zu).",
             index, 0, _spriteData.size() - 1));
 
     if (_spriteData[index].Offset == 0)

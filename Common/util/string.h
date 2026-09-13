@@ -235,8 +235,8 @@ public:
 
     // TODO: investigate C++11 solution for variadic templates (would that be more convenient here?)
 
-    static String FromFormat(const char *fcstr, ...);
-    static String FromFormatV(const char *fcstr, va_list argptr);
+    static String FromFormat(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING(1);
+    static String FromFormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_V(1);
 
     // TODO: reorganize stream reading/writing methods, decide if they should
     // be a part of the String class, or separate e.g. StrUtil function group.
@@ -296,8 +296,8 @@ public:
     // Appends a single character
     void    AppendChar(char c);
     // Appends a formatted string
-    void    AppendFmt(const char *fcstr, ...);
-    void    AppendFmtv(const char *fcstr, va_list argptr);
+    void    AppendFmt(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING_OBJECT(1);
+    void    AppendFmtv(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_OBJECT_V(1);
     // Clip* methods decrease the string, removing defined part
     // Cuts off leftmost N characters
     void    ClipLeft(size_t count);
@@ -319,8 +319,8 @@ public:
     // Makes a new string by filling N chars with certain value
     void    FillString(char c, size_t count);
     // Makes a new string by putting in parameters according to format string
-    void    Format(const char *fcstr, ...);
-    void    FormatV(const char *fcstr, va_list argptr);
+    void    Format(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING_OBJECT(1);
+    void    FormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_OBJECT_V(1);
     // Decrement ref counter and deallocate data if must.
     // Free() should be called only when buffer is not needed anymore;
     // if string must be truncated to zero length, but retain the allocated

@@ -162,5 +162,8 @@
     <ClInclude Include="..\..\Common\data\data_helpers.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\ac\def_version.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

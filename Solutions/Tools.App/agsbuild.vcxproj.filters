@@ -113,5 +113,8 @@
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
       <Filter>tinyxml2</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\ac\def_version.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

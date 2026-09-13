@@ -35,6 +35,7 @@
 #include <cstring>
 
 #include "ac/characterinfo.h"
+#include "ac/def_version.h"
 #include "ac/dialogtopic.h"
 #include "ac/view.h"
 #include "ac/dynobj/scriptaudioclip.h"
@@ -1260,10 +1261,12 @@ void WriteHeaderBlock(const DataUtil::GameData &game, Stream *out)
     StrUtil::WriteFixedString("Adventure Creator Game File v2", 30, out);
     out->WriteInt32(kGameVersion_Current);
 
-    // Preserve the editor version recorded in Game.agf.
-    const String compiled_with = game.EditorVersion.IsEmpty() ? String("3.6.3.12") : game.EditorVersion;
-    out->WriteInt32(static_cast<int32_t>(compiled_with.GetLength()));
-    StrUtil::WriteFixedString(compiled_with, compiled_with.GetLength(), out);
+    // Write the compilation tool version.
+    // NOTE: the version found in the Game.agf is the version of app which saved the project last;
+    // it cannot be applied here, as it may be significantly older, and mismatch the data format
+    // that we use when compiling the game.
+    const String compiled_with = ACI_VERSION_STR " " SPECIAL_VERSION;
+    StrUtil::WriteString(compiled_with, out);
 
     out->WriteInt32(0); // no extended capabilities
 }

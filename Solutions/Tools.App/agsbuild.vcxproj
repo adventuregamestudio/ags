@@ -50,6 +50,7 @@
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\ac\def_version.h" />
     <ClInclude Include="..\..\Common\util\memorystream.h" />
     <ClInclude Include="..\..\Common\util\string_utils.h" />
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h" />

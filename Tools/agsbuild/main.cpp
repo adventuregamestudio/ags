@@ -22,6 +22,7 @@
 #if (AGS_PLATFORM_OS_WINDOWS)
 #include "platform/windows/windows.h"
 #endif
+#include "ac/def_version.h"
 #include "data/agfreader.h"
 #include "util/cmdlineopts.h"
 #include "util/directory.h"
@@ -109,7 +110,7 @@ struct GameOptions
 
 struct ScriptCompilerOptions
 {
-    String EditorVersion;
+    String GameCompilerVersion;
     String ApiVersion = "Highest";
     String CompatVersion = "Highest";
     bool EnforcePost262Scripting = true; // aka Object-oriented scripting
@@ -126,7 +127,7 @@ const uint32_t BuildOptions::DefThreads;
 String MakeAGSCCFlags(const ScriptCompilerOptions &opts)
 {
     return String::FromFormat("--override-version %s -A %s -C %s -fforceobjectbasedscript=%s -fforcenewstrings=%s -fforcenewaudio=%s -foldcustomdialogopt=%s %s",
-        opts.EditorVersion.GetCStr(),
+        opts.GameCompilerVersion.GetCStr(),
         opts.ApiVersion.GetCStr(),
         opts.CompatVersion.GetCStr(),
         opts.EnforcePost262Scripting ? "1" : "0",
@@ -192,7 +193,10 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         game_opts.Name = opts.GameName;
         game_opts.UniqueID = opts.UniqueID;
 
-        agscc_opts.EditorVersion = reader.GetEditorVersion();
+        // NOTE: the version found in the Game.agf is the version of app which saved the project last;
+        // it cannot be applied here, as it may be significantly older, and mismatch the data format
+        // that we use when compiling the game.
+        agscc_opts.GameCompilerVersion = ACI_VERSION_STR " " SPECIAL_VERSION;
         agscc_opts.ApiVersion = opts.ScriptAPIVersion;
         agscc_opts.CompatVersion = opts.ScriptCompatLevel;
         agscc_opts.EnforcePost262Scripting = opts.EnforceObjectBasedScript;

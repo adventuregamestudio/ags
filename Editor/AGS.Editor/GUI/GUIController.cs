@@ -1442,7 +1442,8 @@ namespace AGS.Editor
                         ShowMessage($"{compiledWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
                 }
             }
-            else if (_agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.Always)
+            else if ((_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
+                || StdConsoleWriter.IsEnabled)
             {
                 ShowMessage($"{compiledWhat} successfully.", MessageBoxIcon.Information);
             }

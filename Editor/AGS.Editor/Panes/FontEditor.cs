@@ -58,7 +58,7 @@ namespace AGS.Editor
 
         public void OnTextFormatUpdated()
         {
-            SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
+            SetFontPreviewMode();
         }
 
         public void UpdatePreviewScaling()
@@ -140,36 +140,12 @@ namespace AGS.Editor
             textPreviewPanel.Invalidate();
         }
 
-        private void SetFontPreviewMode(bool unicodeMode)
+        private void SetFontPreviewMode()
         {
-            if (unicodeMode)
-            {
-                fontViewPanel.ANSIMode = false;
-                lblCharCode.Text = "Code: U+";
-                udCharCode.Hexadecimal = true;
-            }
-            else
-            {
-                fontViewPanel.ANSIMode = true;
-                lblCharCode.Text = "Code:";
-                udCharCode.Hexadecimal = false;
-            }
+            lblCharCode.Text = "Code: U+";
+            udCharCode.Hexadecimal = true;
         }
 
-        private void rbPreviewAuto_CheckedChanged(object sender, EventArgs e)
-        {
-            SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
-        }
-
-        private void rbUnicode_CheckedChanged(object sender, EventArgs e)
-        {
-            SetFontPreviewMode(true);
-        }
-
-        private void rbANSI_CheckedChanged(object sender, EventArgs e)
-        {
-            SetFontPreviewMode(false);
-        }
         private void fontViewPanel_CharacterSelected(object sender, FontPreviewGrid.CharacterSelectedEventArgs args)
         {
             udCharCode.Value = args.CharacterCode;
@@ -183,15 +159,7 @@ namespace AGS.Editor
                 int code = 0;
                 if (tbCharInput.Text.Length > 0)
                 {
-                    if (fontViewPanel.ANSIMode)
-                    {
-                        var ansiBytes = Encoding.Default.GetBytes(tbCharInput.Text);
-                        code = ansiBytes[0];
-                    }
-                    else
-                    {
-                        code = tbCharInput.Text[0];
-                    }
+                    code = tbCharInput.Text[0];
                 }
                 udCharCode.Value = (code >= udCharCode.Minimum && code <= udCharCode.Maximum) ? code : 0;
 
@@ -287,7 +255,7 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
-                SetFontPreviewMode(Factory.AGSEditor.CurrentGame.UnicodeMode);
+                SetFontPreviewMode();
             }
         }
     }

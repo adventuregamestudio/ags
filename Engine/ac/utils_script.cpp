@@ -54,7 +54,7 @@ void Utils_SortStrings(void* arrobj, int compare_style, int sort_dir)
     }
 
     compare_style = ValidateStringComparison("Utils.SortStrings", compare_style);
-    DynStrCmpAuto dynstr_less(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, (compare_style & kScCaseSensitiveFlag) == 0,
+    DynStrCmpAuto dynstr_less(StrUtil::GetStrCmpImplFor(true, (compare_style & kScCaseSensitiveFlag) == 0,
         (compare_style & kScLocaleAwareFlag) != 0 ? play.GetTextLocaleName().GetCStr() : nullptr));
     if (scsort_dir == kScSortAscending)
         std::sort(string_objs.begin(), string_objs.end(), dynstr_less);

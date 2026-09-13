@@ -1111,7 +1111,6 @@ ScriptCamera* Game_GetAnyCamera(int index)
 
 void Game_SimulateKeyPress(int key, int mod)
 {
-    const bool old_key_mode = game.options[OPT_KEYHANDLEAPI] == 0;
     eAGSKeyCode modkey = eAGSKeyCodeNone;
     eAGSKeyMod mod_ex = eAGSModNone;
     // Support combo-keys, split them into key + mod and pass as separate events.
@@ -1132,12 +1131,12 @@ void Game_SimulateKeyPress(int key, int mod)
     if (modkey > 0)
     {
         ags_simulate_keydown(modkey);
-        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod | mod_ex), old_key_mode);
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod | mod_ex));
         ags_simulate_keyup(modkey);
     }
     else
     {
-        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod), old_key_mode);
+        ags_simulate_keypress(static_cast<eAGSKeyCode>(key), static_cast<eAGSKeyMod>(mod));
     }
 }
 

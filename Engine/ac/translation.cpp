@@ -89,13 +89,8 @@ void close_translation()
     trans_name = "";
     trans_filename = "";
 
-    // Return back to default game's encoding
-    if (game.options[OPT_GAMETEXTENCODING] == 65001) // utf-8 codepage number
-        set_uformat(U_UTF8);
-    else
-        set_uformat(U_ASCII);
     play.SetGameTextLanguage(game.GameTextLanguage);
-    SetTranslationTextParser(CreateTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName()));
+    SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
 }
 
 bool init_translation(const String &lang, const String &fallback_lang)
@@ -164,44 +159,11 @@ bool init_translation(const String &lang, const String &fallback_lang)
 
     // Setup a text encoding mode depending on the translation data hint
     String encoding = trans.StrOptions["encoding"];
-    if (encoding.CompareNoCase("utf-8") == 0)
-        set_uformat(U_UTF8);
-    else
-        set_uformat(U_ASCII);
     String language = trans.StrOptions["language"];
-
     String encoding_msg = !encoding.IsEmpty() ? encoding : "presume ASCII";
     Debug::Printf("Translation's encoding: %s, language: %s", encoding_msg.GetCStr(), language.GetCStr());
-
-    // Mixed encoding support: 
-    // original text unfortunately may contain extended ASCII chars (> 127);
-    // if translation is UTF-8 but game is extended ASCII, then the translation
-    // dictionary keys won't match. With that assumption we must convert
-    // dictionary keys into ASCII using provided locale hint.
-    int game_codepage = game.options[OPT_GAMETEXTENCODING];
-    if ((get_uformat() == U_UTF8) && (game_codepage != 65001))
-    {
-        String key_enc = (game_codepage > 0) ?
-            String::FromFormat(".%d", game_codepage) :
-            trans.StrOptions["gameencoding"];
-        Debug::Printf("Game's source encoding hint: own: %d, from TRA: %s", game_codepage, trans.StrOptions["gameencoding"].GetCStr());
-        if (!key_enc.IsEmpty())
-        {
-            StringMap conv_map;
-            std::vector<char> ascii; // ascii buffer
-            Debug::Printf("Converting UTF-8 TRA keys to the game's encoding (%s)", key_enc.GetCStr());
-            for (const auto &item : trans.Dict)
-            {
-                StrUtil::ConvertUtf8ToAscii(item.first.GetCStr(), key_enc.GetCStr(), ascii);
-                conv_map.insert(std::make_pair(ascii.data(), item.second));
-            }
-            trans.Dict = conv_map;
-        }
-        else
-        {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: UTF-8 translation in the ASCII/ANSI game, but no encoding hint for TRA keys conversion");
-        }
-    }
+    if (encoding.CompareNoCase("utf-8") != 0)
+        Debug::Printf(kDbgMsg_Warn, "WARNING: translation's text encoding is not UTF-8, and may be displayed incorrectly");
 
     play.SetGameTextLanguage(language);
     if (trans.ParserDict.GetWords().size() > 0)
@@ -210,11 +172,11 @@ bool init_translation(const String &lang, const String &fallback_lang)
         // found in the translated dict, then add base ones directly there.
         if (game.dict.get())
             MergeParserDictionary(&trans.ParserDict, game.dict.get());
-        SetTranslationTextParser(CreateTextParser(&trans.ParserDict, get_uformat() == U_UTF8, play.GetTextLocaleName()));
+        SetTranslationTextParser(CreateTextParser(&trans.ParserDict, true, play.GetTextLocaleName()));
     }
     else
     {
-        SetTranslationTextParser(CreateTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName()));
+        SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
     }
 
     Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(), encoding_msg.GetCStr());

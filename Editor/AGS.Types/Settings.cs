@@ -77,8 +77,6 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
-        private bool _oldKeyHandling = false;
-        private bool _oldVoiceClipNaming = false;
         private bool _scaleCharacterSpriteOffsets = true;
         private float _faceDirectionRatio = 1.0f;
         private int _dialogOptionsGUI = 0;
@@ -733,25 +731,13 @@ namespace AGS.Types
         [Browsable(false)]
         public bool UseOldCustomDialogOptionsAPI { get { return false; } }
 
-        [DisplayName("Use old-style keyboard handling")]
-        [Description("Use pre-unicode mode key codes in 'on_key_press' function, where regular keys were merged with Ctrl and Alt modifiers.")]
-        [Category("Backwards Compatibility")]
-        [DefaultValue(false)]
-        public bool UseOldKeyboardHandling
-        {
-            get { return _oldKeyHandling; }
-            set { _oldKeyHandling = value; }
-        }
-        
-        [DisplayName("Use old-style voice clip naming rule")]
-        [Description("Define voice clip name using only the first 4 letters from a Character's script name.")]
-        [Category("Backwards Compatibility")]
-        [DefaultValue(false)]
-        public bool UseOldVoiceClipNaming
-        {
-            get { return _oldVoiceClipNaming; }
-            set { _oldVoiceClipNaming = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool UseOldKeyboardHandling { get; set; }
+
+        [Obsolete]
+        [Browsable(false)]
+        public bool UseOldVoiceClipNaming { get; set; }
 
         [Obsolete]
         [Browsable(false)]

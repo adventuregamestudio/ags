@@ -1569,6 +1569,9 @@ namespace AGS.Editor
             return true;
         }
 
+        // TODO: implement passing IWorkProgress into SaveGameFiles, and counting progress there.
+        // This will also require passing it along with PreSaveGameEventArgs, and using everywhere
+        // where PreSaveGame event is handled.
         public bool SaveGameFiles()
         {
             if (!TestIfCanSaveNow())

@@ -15,11 +15,6 @@ namespace AGS.Editor
             richDescription.Text = task.Description;
         }
 
-        public override string TitleText
-        {
-            get { return Task.Title; }
-        }
-
         private void InitializeComponent()
         {
             this.richDescription = new AGS.Controls.ReadOnlyRichTextBox();
@@ -44,7 +39,7 @@ namespace AGS.Editor
             this.MinimumSize = new System.Drawing.Size(640, 320);
             this.Name = "UpdateGameGenericInfoPage";
             this.Padding = new System.Windows.Forms.Padding(13);
-            this.Size = new System.Drawing.Size(1358, 677);
+            this.Size = new System.Drawing.Size(1523, 582);
             this.ResumeLayout(false);
 
         }

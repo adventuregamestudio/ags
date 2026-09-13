@@ -1,51 +1,36 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
-using AGS.Types;
 
 namespace AGS.Editor
 {
     /// <summary>
-    /// Defines which stage a task has to be run on.
+    /// An abstract implementation of IUpgradeGameTask.
+    /// Lets its descendants assign interface's properties in constructor instead of implementing them.
+    /// Descendant class is only oblidged to implement Execute() method, everything else is optional.
     /// </summary>
-    public enum UpgradeGameTaskStage
+    public abstract class UpgradeGameTaskBase : IUpgradeGameTask
     {
-        None,
-        PreStage,
-        PostStage
-    }
+        private string _id;
 
-    /// <summary>
-    /// IUpgradeGameTask represents a single step operation in the game upgrade
-    /// process. The operation itself may include multiple adjustments to the
-    /// game's data. A distinct upgrade task is required when particular changes
-    /// are optional, or may require additional setup by user. It also makes
-    /// sense to have a task if you like to simply warn user about some changes,
-    /// in which case you may want to provide a Upgrade Wizard page with a
-    /// text, describing which changes will be done to a project.
-    ///
-    /// Upgrade Task is defined by a title, may have a description, and one or
-    /// a number of WizardPage(s) which let(s) user to read about and configure
-    /// this task.
-    /// Upgrade Task may be marked as "Implicit", in which case it's never
-    /// shown to user and is performed unconditionally.
-    /// Upgrade Task may be marked as "Optional", in which case user is
-    /// let to disable its execution.
-    /// </summary>
-    public interface IUpgradeGameTask
-    {
+        public UpgradeGameTaskBase(string id)
+        {
+            _id = id;
+        }
+
         /// <summary>
         /// A unique string identifier of this upgrade task.
         /// </summary>
-        string ID { get; }
+        public string ID { get { return _id; } }
         /// <summary>
         /// An arbitrary title, used to identify this task when
         /// presenting to a user.
         /// </summary>
-        string Title { get; }
+        public string Title { get; protected set; }
         /// <summary>
         /// An arbitrary description, may contain any amount of text.
         /// </summary>
-        string Description { get; }
+        public string Description { get; protected set; }
         /// <summary>
         /// A game project version that introduced this upgrade task.
         /// If a loaded game has a less project version, then this task
@@ -53,61 +38,69 @@ namespace AGS.Editor
         /// Returns null if should be applied regardless of the game version
         /// (but the execution process may still have version checks inside).
         /// </summary>
-        System.Version GameVersion { get; }
+        public System.Version GameVersion { get; protected set; }
         /// <summary>
         /// A game project version in form of a numeric index, for the projects
         /// which used these.
         /// </summary>
-        int? GameVersionIndex { get; }
+        public int? GameVersionIndex { get; protected set; }
         /// <summary>
         /// Tells whether this upgrade task is to be executed unconditionally,
         /// without warning user about it.
         /// </summary>
-        bool Implicit { get; }
+        public bool Implicit { get; protected set; }
         /// <summary>
         /// Tells whether this upgrade task may be disabled by user's choice.
         /// </summary>
-        bool Optional { get; }
+        public bool Optional { get; protected set; }
         /// <summary>
         /// Tells whether the upgrade process is allowed to continue if this
         /// task had errors.
         /// </summary>
-        bool AllowToSkipIfHadErrors { get; }
+        public bool AllowToSkipIfHadErrors { get; protected set; }
         /// <summary>
         /// Tells whether user should be asked for a confirmation in order to
         /// continue the upgrade process in case this task had errors.
         /// </summary>
-        bool RequestConfirmationOnErrors { get; }
+        public bool RequestConfirmationOnErrors { get; protected set; }
         /// <summary>
         /// Tells which stage should this task be run on.
         /// </summary>
-        UpgradeGameTaskStage Stage { get; }
+        public UpgradeGameTaskStage Stage { get; protected set; }
 
         /// <summary>
         /// Whether this task is enabled, otherwise should be skipped.
         /// </summary>
-        bool Enabled { get; set; }
+        public bool Enabled { get; set; }
 
         /// <summary>
         /// Tells whether this task should be applied to this game.
         /// This method can have additional conditions, besides the default version check.
         /// </summary>
-        bool ShouldApplyToGame(Game game);
-
+        public virtual bool ShouldApplyToGame(Game game)
+        {
+            return true;
+        }
         /// <summary>
         /// Provides WizardPage control(s) used to represent this upgrade task.
         /// The page implementation may have this IUpgradeGameTask passed into
         /// constructor in order to assign settings right into it.
         /// </summary>
-        UpgradeGameWizardPage[] CreateWizardPages(Game game);
+        public virtual UpgradeGameWizardPage[] CreateWizardPages(Game game)
+        {
+            return null;
+        }
         /// <summary>
         /// Apply task options reading them from the dictionary of key-values.
         /// </summary>
-        void ApplyOptions(Dictionary<string, string> options);
+        public virtual void ApplyOptions(Dictionary<string, string> options)
+        {
+            // does not have any options
+        }
         /// <summary>
         /// Execute the upgrade task over the given Game project.
         /// Fills any errors or warnings into the provided "errors" collection.
         /// </summary>
-        void Execute(Game game, IWorkProgress progress, CompileMessages errors);
+        public abstract void Execute(Game game, IWorkProgress progress, CompileMessages errors);
     }
 }

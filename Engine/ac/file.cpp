@@ -157,8 +157,8 @@ void FillDirList(std::vector<String> &files, const String &pattern, ScriptFileSo
         return;
 
     std::vector<FileEntry> fileents;
-    const FileEntryCmpByNameAuto fileent_name_less(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, true, play.GetTextLocaleName().GetCStr()));
-    const FileEntryEqByNameAuto fileent_name_eq(StrUtil::GetStrCmpImplFor(get_uformat() == U_UTF8, true, play.GetTextLocaleName().GetCStr()));
+    const FileEntryCmpByNameAuto fileent_name_less(StrUtil::GetStrCmpImplFor(true, true, play.GetTextLocaleName().GetCStr()));
+    const FileEntryEqByNameAuto fileent_name_eq(StrUtil::GetStrCmpImplFor(true, true, play.GetTextLocaleName().GetCStr()));
 
     if (rp.AssetMgr)
     {

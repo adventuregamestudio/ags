@@ -106,6 +106,7 @@ namespace AGS.Editor.Components
 			_agsEditor.PreDeleteSprite += AGSEditor_PreDeleteSprite;
             Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
             Factory.Events.GamePostLoad += Events_GamePostLoad;
+            Factory.Events.GameTextEncodingChanged += Events_GameTextEncodingChanged;
             _modifiedChangedHandler = _loadedRoom_RoomModifiedChanged;
             RePopulateTreeView();
         }
@@ -1943,6 +1944,28 @@ namespace AGS.Editor.Components
             if (IsRoomUpgradeNecessary(game))
             {
                 game.WorkspaceState.RequiresRebuild = true;
+            }
+        }
+
+        private void Events_GameTextEncodingChanged(GameTextEncodingChangedArgs evArgs)
+        {
+            // Load and re-save (using new encoding) every room room script
+            // NOTE: there's no need to resave room documents as we always have them saved with UTF-8
+            IWorkProgress progress = evArgs.Progress;
+            int total = Factory.AGSEditor.CurrentGame.Rooms.Count;
+            int current = 0;
+            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
+            {
+                Script.TextEncoding = evArgs.OldEncoding;
+                room.LoadScript();
+                Script.TextEncoding = evArgs.Game.TextEncoding;
+                room.Script.Modified = true;
+                room.Script.SaveToDisk();
+                room.UnloadScript();
+
+                if (progress != null)
+                    progress.SetProgress(total, current, $"Room scripts: {current} / {total}", false);
+                current++;
             }
         }
 

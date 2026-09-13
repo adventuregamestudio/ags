@@ -1145,33 +1145,17 @@ namespace AGS.Editor
         /// </summary>
         /// <param name="oldEnc"></param>
         /// <param name="newEnc"></param>
-        public void ConvertAllGameTexts(Encoding oldEnc, Encoding newEnc)
+        /// <param name="progress"></param>
+        public void ConvertAllGameTexts(Encoding oldEnc, Encoding newEnc, IWorkProgress progress)
         {
-            // Convert all scripts
-            foreach (var script in Factory.AGSEditor.CurrentGame.ScriptsAndHeaders)
-            {
-                // TODO: this is ugly, make TextEncoding non-static per script property?
-                // or pass into Load/Save method (but some more changes are necessary)
-                Script.TextEncoding = oldEnc;
-                script.Header.LoadFromDisk();
-                script.Script.LoadFromDisk();
-                Script.TextEncoding = newEnc;
-                script.Header.Modified = true;
-                script.Header.SaveToDisk();
-                script.Script.Modified = true;
-                script.Script.SaveToDisk();
-            }
-            // Convert all room scripts
-            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
-            {
-                Script.TextEncoding = oldEnc;
-                room.LoadScript();
-                Script.TextEncoding = newEnc;
-                room.Script.Modified = true;
-                room.Script.SaveToDisk();
-                room.UnloadScript();
-            }
+            // TODO: have these messages passed into the function, and used in outer code
+            CompileMessages messages = new CompileMessages();
+            GameTextEncodingChangedArgs evArgs = new GameTextEncodingChangedArgs(Factory.AGSEditor.CurrentGame, oldEnc, progress, messages);
+            Factory.Events.OnGameTextEncodingChanged(evArgs);
+
             // Save game with a new encoding
+            // TODO: implement passing IWorkProgress and CompileMessages into SaveGameFiles, and counting progress there
+            progress.SetProgress(0, 0, "Saving game files...", false);
             if (Factory.GUIController.InvokeRequired)
             {
                 Factory.GUIController.Invoke(new Func<bool>(Factory.AGSEditor.SaveGameFiles));
@@ -1180,6 +1164,22 @@ namespace AGS.Editor
             {
                 Factory.AGSEditor.SaveGameFiles();
             }
+        }
+
+        /// <summary>
+        /// Converts all separate game files which may contain text from one encoding
+        /// to another. This is done by loading and resaving them, and may take time
+        /// depending on the size of the project.
+        /// This variant of the operation does not save game itself, only separate
+        /// components such as scripts.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="oldEnc"></param>
+        /// <param name="progress"></param>
+        public void ConvertAllGameTextsNoSaveGame(Game game, Encoding oldEnc, IWorkProgress progress, CompileMessages messages)
+        {
+            GameTextEncodingChangedArgs evArgs = new GameTextEncodingChangedArgs(game, oldEnc, progress, messages);
+            Factory.Events.OnGameTextEncodingChanged(evArgs);
         }
 
         /// <summary>

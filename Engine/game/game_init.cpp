@@ -79,7 +79,7 @@ extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
-extern ScriptInvItem scrInv[MAX_INV];
+extern std::vector<ScriptInvItem> scrInv;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 // Lipsync
@@ -246,9 +246,11 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
 // Initializes inventory items and registers them in the script system
 void InitAndRegisterInvItems(const GameSetupStruct &game)
 {
-    StaticInventoryArray.resize(MAX_INV);
+    scrInv.resize(game.numinvitems);
+    // ensure at least 1 element, we must register buffer
+    StaticInventoryArray.resize(std::max<uint16_t>(1, game.numinvitems));
 
-    for (int i = 0; i < MAX_INV; ++i)
+    for (int i = 0; i < game.numinvitems; ++i)
     {
         scrInv[i].id = i;
         // register and save handle
@@ -438,6 +440,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.guicontrolProps[kGUISlider].resize(guislider.size());
     play.guicontrolProps[kGUITextBox].resize(guitext.size());
     play.guicontrolProps[kGUIListBox].resize(guilist.size());
+    play.invProps.resize(game.numinvitems);
     dialog = std::move(ents.Dialogs);
     // Set number of game channels corresponding to the loaded game version
     game.numGameChannels = MAX_GAME_CHANNELS;

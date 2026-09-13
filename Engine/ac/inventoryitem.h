@@ -20,6 +20,8 @@
 
 #include "ac/dynobj/scriptobjects.h"
 
+bool AssertInvItem(const char *apiname, int item_index);
+
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite);
 int  InventoryItem_GetCursorGraphic(ScriptInvItem *iitem);
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy);

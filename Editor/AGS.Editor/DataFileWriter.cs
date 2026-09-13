@@ -570,7 +570,7 @@ namespace AGS.Editor
             writer.Write(game.Characters.Count);
             writer.Write(game.PlayerCharacter.ID);
             writer.Write(0); // [DEPRECATED]
-            writer.Write((short)(game.InventoryItems.Count + 1)); // +1 for a dummy item at id 0
+            writer.Write((ushort)(game.InventoryItems.Count));
             writer.Write(new byte[2]); // alignment padding
             writer.Write(0); // was game.Dialogs.Count, write 0 for old format entries
             writer.Write(0); // numdlgmessage
@@ -1673,12 +1673,6 @@ namespace AGS.Editor
             {
                 writer.Write(spriteFlags[i]);
             }
-            if (game.InventoryItems.Count > NativeConstants.MAX_INV)
-            {
-                errors.Add(new CompileError("Too many inventory items"));
-                return false;
-            }
-            writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 // legacy name field of fixed length
@@ -1722,7 +1716,8 @@ namespace AGS.Editor
             {
                 writer.Write((int)0);
             }
-            for (int i = 1; i <= game.InventoryItems.Count; ++i) // NOTE: we write inv interactions from 1th here
+            // NOTE: we write inv interactions from 1th here (legacy format)
+            for (int i = 1; i < game.InventoryItems.Count; ++i)
             {
                 writer.Write((int)0);
             }
@@ -1812,16 +1807,7 @@ namespace AGS.Editor
                     (short)character.MovementSpeed :
                     (short)character.MovementSpeedX);
                 writer.Write((short)character.AnimationDelay);         // animspeed
-                bool isPlayer = (character == game.PlayerCharacter);
-                foreach (InventoryItem invItem in game.InventoryItems) // inv[MAX_INV]
-                {
-                    if ((isPlayer) && (invItem.PlayerStartsWithItem)) writer.Write((short)1);
-                    else writer.Write((short)0);
-                }
-                if (game.InventoryItems.Count < NativeConstants.MAX_INV)
-                {
-                    writer.Write(new byte[(NativeConstants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
-                }
+                // Here was MAX_INV int16s, removed in kGameVersion_400_33
                 writer.Write((short)0);                                // [UNUSED] (actx)
                 writer.Write((short)0);                                // [UNUSED] (acty)
                 // legacy name and scriptname fields of fixed length
@@ -1859,9 +1845,6 @@ namespace AGS.Editor
             {
                 CustomPropertiesWriter.Write(writer, game.Characters[i].Properties);
             }
-            // inventory slot 0 is unused, write the dummy custom properties
-            CustomProperties dummyProperties = new CustomProperties(CustomPropertyAppliesTo.None);
-            CustomPropertiesWriter.Write(writer, dummyProperties);
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 CustomPropertiesWriter.Write(writer, game.InventoryItems[i].Properties);
@@ -1874,7 +1857,6 @@ namespace AGS.Editor
                 else
                     writer.Write((byte)0); // view is null, so its name is just a single NUL byte
             }
-            writer.Write((byte)0); // inventory slot 0 is unused, so its name is just a single NUL byte
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 FilePutNullTerminatedString(game.InventoryItems[i].ScriptName, writer);
@@ -1958,6 +1940,7 @@ namespace AGS.Editor
             WriteGameExtension("v400_eventtables", WriteExt_400NewEventTables, writer, gameEnts, errors);
             WriteGameExtension("v400_viewevents", WriteExt_400ViewFrameEvents, writer, gameEnts, errors);
             WriteGameExtension("v400_charopts2", WriteExt_400CharacterOptions2, writer, gameEnts, errors);
+            WriteGameExtension("v400_charinv", WriteExt_400CharacterInventory, writer, gameEnts, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -2044,8 +2027,7 @@ namespace AGS.Editor
                 FilePutString(TextProperty(game.Characters[i].DisplayName), writer);
             }
             // Inventory items
-            writer.Write((int)game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
-            writer.Write((int)0); // inventory slot 0 is unused, so its name is just a single 0-length
+            writer.Write((int)game.InventoryItems.Count);
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 FilePutString(TextProperty(game.InventoryItems[i].DisplayName), writer);
@@ -2086,9 +2068,7 @@ namespace AGS.Editor
             {
                 SerializeInteractionScripts(game.Characters[i].Interactions, writer);
             }
-            writer.Write((int)game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
-            // inventory slot 0 is unused, so write a dummy interactions struct
-            SerializeEmptyInteractionScripts(writer);
+            writer.Write((int)game.InventoryItems.Count);
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 SerializeInteractionScripts(game.InventoryItems[i].Interactions, writer);
@@ -2417,7 +2397,7 @@ namespace AGS.Editor
         /// Then writes event handler lists for each object - matching order
         /// of the event names in the prepended "schema".
         /// </summary>
-        private static void SerializeEventsTables<T>(IList<T> objs, BinaryWriter writer, bool extraItemAt0 = false)
+        private static void SerializeEventsTables<T>(IList<T> objs, BinaryWriter writer)
         {
             var events = (typeof(T)).GetProperties().Where(
                 prop => Attribute.IsDefined(prop, typeof(AGSEventPropertyAttribute))).ToList();
@@ -2431,19 +2411,8 @@ namespace AGS.Editor
                 FilePutString(evt.Name, writer);
             }
 
-            // Some object lists require a dummy first item
-            if (extraItemAt0)
-            {
-                // object slot 0 is unused, so write a dummy events table
-                writer.Write(objs.Count + 1);
-                SerializeEmptyEventsTable(writer);
-            }
-            else
-            {
-                writer.Write(objs.Count);
-            }
-
             // Write a list of handlers per each object
+            writer.Write(objs.Count);
             foreach (var obj in objs)
             {
                 if (obj == null)
@@ -2469,7 +2438,7 @@ namespace AGS.Editor
 
             // Characters and InventoryItems
             SerializeEventsTables(ents.Game.Characters, writer);
-            SerializeEventsTables(ents.Game.InventoryItems, writer, extraItemAt0: true);
+            SerializeEventsTables(ents.Game.InventoryItems, writer);
 
             // GUIs collection stores 2 types of guis, one of which does not have any events,
             // so for simplicity sake we construct a list where these are replaced with nulls
@@ -2509,6 +2478,32 @@ namespace AGS.Editor
                 writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);
+            }
+        }
+
+        private static void WriteExt_400CharacterInventory(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            writer.Write(ents.Game.Characters.Count);
+            foreach (var ch in ents.Game.Characters)
+            {
+                // Currently only write starting inventory contents for the player character
+                if (ch == ents.Game.PlayerCharacter)
+                {
+                    int inv_count = ents.Game.InventoryItems.Count((invItem) => { return invItem.PlayerStartsWithItem; });
+                    writer.Write(inv_count);
+                    foreach (InventoryItem invItem in ents.Game.InventoryItems)
+                    {
+                        if (invItem.PlayerStartsWithItem)
+                        {
+                            writer.Write(invItem.ID);
+                            writer.Write(1); // quantity
+                        }
+                    }
+                }
+                else
+                {
+                    writer.Write(0); // no items
+                }
             }
         }
 

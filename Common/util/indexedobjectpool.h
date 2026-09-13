@@ -77,6 +77,8 @@ public:
 
     // Returns the count of the used (aka valid) elements
     size_t GetCount() const { return _count; }
+    // Tells if particular index is registered
+    bool IndexExists(TIndex index) const { return index >= 0 && static_cast<size_t>(index) < _isFree.size(); }
     // Tells if particular index is free
     bool IsFree(TIndex index) const { return _isFree[index]; }
     // Tells if particular index is being used
@@ -295,6 +297,8 @@ public:
 
     // Returns the count of the used (aka valid) elements
     size_t GetCount() const { return BaseType::_count; }
+    // Tells if particular index is registered
+    bool IndexExists(TIndex index) const { return index >= 0 && static_cast<size_t>(index) < BaseType::_isFree.size(); }
     // Tells if particular index is free
     bool IsFree(TIndex index) const { return BaseType::_isFree[index]; }
     // Tells if particular index is being used

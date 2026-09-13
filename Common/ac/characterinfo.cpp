@@ -19,6 +19,19 @@
 
 using namespace AGS::Common;
 
+void CharacterInfo::set_item_quantity(int item_id, int quant)
+{
+    if (quant <= 0)
+    {
+        if (invq.count(item_id) > 0)
+            invq.erase(item_id);
+    }
+    else
+    {
+        invq[item_id] = quant;
+    }
+}
+
 /* static */ ScriptEventSchema CharacterInfo::_eventSchema = {{
         { "OnAnyClick", kCharacterEvent_AnyClick },
         { "OnFrameEvent", kCharacterEvent_OnFrameEvent },
@@ -93,7 +106,14 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     in->ReadInt16(); // [UNUSED] (animating)
     walkspeed = in->ReadInt16();
     animspeed = in->ReadInt16();
-    in->ReadArrayOfInt16(inv, MAX_INV);
+    if (data_ver < kGameVersion_400_33)
+    {
+        int16_t legacy_invq[LEGACY_MAX_INV];
+        in->ReadArrayOfInt16(legacy_invq, LEGACY_MAX_INV);
+        for (int i = 0; i < LEGACY_MAX_INV; ++i)
+            if (legacy_invq[i] > 0)
+                invq[i] = legacy_invq[i];
+    }
     in->ReadInt16(); // [UNUSED] (actx)
     in->ReadInt16(); // [UNUSED] (acty)
 
@@ -155,7 +175,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt16(0); // [UNUSED] animating
     out->WriteInt16(walkspeed);
     out->WriteInt16(animspeed);
-    out->WriteArrayOfInt16(inv, MAX_INV);
+    // skip LEGACY_MAX_INV int16s since kGameVersion_400_33
     out->WriteInt16(0); // [UNUSED] actx
     out->WriteInt16(0); // [UNUSED] acty
 
@@ -207,7 +227,24 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
     in->ReadInt16(); // legacy animating
     walkspeed = in->ReadInt16();
     animspeed = in->ReadInt16();
-    in->ReadArrayOfInt16(inv, MAX_INV);
+    if (save_ver < kCharSvgVersion_400_33)
+    {
+        int16_t legacy_invq[LEGACY_MAX_INV];
+        in->ReadArrayOfInt16(legacy_invq, LEGACY_MAX_INV);
+        for (int i = 0; i < LEGACY_MAX_INV; ++i)
+            if (legacy_invq[i] > 0)
+                invq[i] = legacy_invq[i];
+    }
+    else
+    {
+        int invitems = in->ReadInt32();
+        for (int i = 0; i < invitems; ++i)
+        {
+            int itemid = in->ReadInt32();
+            int itemq = in->ReadInt32();
+            invq[itemid] = itemq;
+        }
+    }
     in->ReadInt16(); // actx__
     in->ReadInt16(); // acty__
 
@@ -295,7 +332,13 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt16(0); // legacy animating
     out->WriteInt16(walkspeed);
     out->WriteInt16(animspeed);
-    out->WriteArrayOfInt16(inv, MAX_INV);
+    // new inv item quantity format since kCharSvgVersion_400_33
+    out->WriteInt32(invq.size());
+    for (const auto &iq : invq)
+    {
+        out->WriteInt32(iq.first);
+        out->WriteInt32(iq.second);
+    }
     out->WriteInt16(0); // actx__
     out->WriteInt16(0); // acty__
 

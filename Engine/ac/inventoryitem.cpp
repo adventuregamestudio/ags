@@ -25,6 +25,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "debug/debug_log.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
@@ -34,7 +35,7 @@ using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;
-extern ScriptInvItem scrInv[MAX_INV];
+extern std::vector<ScriptInvItem> scrInv;
 extern int cur_cursor;
 extern CharacterInfo*playerchar;
 extern CCInventory ccDynamicInv;
@@ -55,7 +56,7 @@ public:
 
 void InvItems_RegisterDynamicSpriteCallbacks()
 {
-    for (int i = 0; i < MAX_INV; ++i)
+    for (int i = 0; i < game.numinvitems; ++i)
     {
         if (game.invinfo[i].pic > 0)
             add_sprite_changed_callback(i, &gl_InvItemSpriteListener);
@@ -65,7 +66,7 @@ void InvItems_RegisterDynamicSpriteCallbacks()
 
 void set_inv_item_pic(int invi, int piccy)
 {
-    if ((invi < 1) || (invi > game.numinvitems))
+    if ((invi < 0) || (invi >= game.numinvitems))
         quit("!SetInvItemPic: invalid inventory item specified");
 
     if (game.invinfo[invi].pic == piccy)
@@ -104,6 +105,14 @@ void set_inv_item_cursorhotspot(int inv_item, int hx, int hy)
     }
 }
 
+bool AssertInvItem(const char *apiname, int item_index)
+{
+    if ((item_index >= 0) && (item_index < game.numinvitems))
+        return true;
+    debug_script_warn("%s: invalid inventory id %d (range is 0..%d)", apiname, item_index, game.numinvitems - 1);
+    return false;
+}
+
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 
 {
     set_inv_item_cursorpic(iitem->id, newSprite);
@@ -139,7 +148,7 @@ void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
 }
 
 void SetInvItemName(int invi, const char *newName) {
-    if ((invi < 1) || (invi > game.numinvitems))
+    if ((invi < 0) || (invi >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
     game.invinfo[invi].name = newName;
@@ -225,7 +234,7 @@ void RunInventoryInteraction(int iit, int mood) {
 }
 
 int IsInventoryInteractionAvailable(int item, int mood) {
-    if ((item < 0) || (item >= MAX_INV))
+    if ((item < 0) || (item >= game.numinvitems))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
     play.check_interaction_only = 1;

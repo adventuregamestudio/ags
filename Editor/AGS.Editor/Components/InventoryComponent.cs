@@ -43,7 +43,7 @@ namespace AGS.Editor.Components
 
         private InventoryItem AddNewItem(InventoryItem newItem, string baseScriptName)
         {
-            newItem.ID = _agsEditor.CurrentGame.RootInventoryItemFolder.GetAllItemsCount() + 1;
+            newItem.ID = _agsEditor.CurrentGame.RootInventoryItemFolder.GetAllItemsCount();
             newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
             string newNodeID;
             if (_itemRightClicked != null)
@@ -58,11 +58,6 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
-                if (_agsEditor.CurrentGame.InventoryItems.Count == Game.MAX_INV_ITEMS)
-                {
-                    Factory.GUIController.ShowMessage("You already have the maximum number of inventory items in your game, and cannot add any more.", MessageBoxIcon.Warning);
-                    return;
-                }
                 InventoryItem newItem = new InventoryItem();
                 AddNewItem(newItem, "iInvItem");
                 newItem.DisplayName = "New inventory item";

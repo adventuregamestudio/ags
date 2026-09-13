@@ -15,6 +15,7 @@
 #define __AC_CCINVENTORY_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/scriptobjects.h"
 
 struct CCInventory final : AGSCCDynamicObject
 {
@@ -23,11 +24,13 @@ public:
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-protected:
+private:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
+
+    static ScriptInvItem _dummy; // for registering invalid restored objects
 };
 
 #endif // __AC_CCINVENTORY_H

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <cstdio>
+#include <inttypes.h>
 #include <memory>
 #include "util/file.h"
 #include "util/ini_util.h"
@@ -151,12 +152,12 @@ String CfgFindKey(const ConfigTree &cfg, const String &sectn, const String &item
 
 void CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int64_t value)
 {
-    cfg[sectn][item].Format("%lld", value);
+    cfg[sectn][item].Format("%" PRId64, value);
 }
 
 void CfgWriteUInt(ConfigTree &cfg, const String &sectn, const String &item, uint64_t value)
 {
-    cfg[sectn][item].Format("%llu", value);
+    cfg[sectn][item].Format("%" PRIu64, value);
 }
 
 void CfgWriteFloat(ConfigTree &cfg, const String &sectn, const String &item, float value)

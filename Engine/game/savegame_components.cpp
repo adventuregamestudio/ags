@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <inttypes.h>
 #include <map>
 #include "game/savegame_components.h"
 #include "ac/audiocliptype.h"
@@ -2020,7 +2021,7 @@ HSaveError ReadAllImpl(Stream *in, SavegameVersion svg_version, SaveCmpSelection
         if (!err)
         {
             return new SavegameError(kSvgErr_ComponentUnserialization,
-                String::FromFormat("(#%d) %s, version %i, at offset %lld.",
+                String::FromFormat("(#%zu) %s, version %i, at offset %" PRId64 ".",
                 idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset),
                 err);
         }

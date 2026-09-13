@@ -38,7 +38,7 @@ static String DeclareEntities(const std::vector<EntityRef> &ents,
 
     String header;
     if (array_name)
-        header.Append(String::FromFormat("import %s %s[%d];\n",
+        header.Append(String::FromFormat("import %s %s[%zu];\n",
             type_name, array_name, ents.size() + array_base));
 
     String buf;
@@ -143,7 +143,7 @@ static String DeclareGUI(const std::vector<GUIRef> &guis)
         return "";
 
     String header;
-    header.Append(String::FromFormat("import GUI gui[%d];\n", guis.size()));
+    header.Append(String::FromFormat("import GUI gui[%zu];\n", guis.size()));
 
     String buf;
     String macro_name;

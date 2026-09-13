@@ -44,6 +44,47 @@
     #endif
 #endif
 
+// Format compile time guard for printf style variadic functions in AGS
+//
+// Usage:
+// function: fmt is the Nth parameter, counting from 1, and "..." must immediately follow it.
+//   void quitprintf(const char *fmt, ...) AGS_FORMAT_STRING(1);
+//
+// Non-static member function: GCC/Clang count the implicit "this" as 1, so the format string's needs a plus 1.
+//   void Format(const char *fcstr, ...) AGS_FORMAT_STRING(2);
+//
+// va_list overload: nothing to check past the format string itself, use the _V variant.
+//   void FormatV(const char *fcstr, va_list argptr) AGS_FORMAT_STRING_V(2);
+//
+// MSVC is different and SAL's _Printf_format_string_ is on the parameter itself.
+// NOTE: requires /analyze rather than by default compilation.
+//   void Format(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING(2);
+//
+#if defined(__GNUC__) || defined(__clang__)
+    // see https://stackoverflow.com/questions/79973899/mingw-w64-produces-warning-for-own-function-using-attribute-format-when
+    #if defined(__MINGW32__) || defined(__MINGW64__)
+        #include <stdio.h>
+        #define AGS_PRINTF_ARCHETYPE __MINGW_PRINTF_FORMAT
+    #else
+        #define AGS_PRINTF_ARCHETYPE printf
+    #endif
+
+    // fmt_idx: 1-based index of the format parameter, "this" is index 1 for non-static member functions.
+    #define AGS_FORMAT_STRING(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx, fmt_idx + 1)))
+    // Same, but for va_list overloads: no variadic args to count.
+    #define AGS_FORMAT_STRING_V(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx, 0)))
+    #define AGS_FORMAT_STRING_ARG
+#elif defined(_MSC_VER) && (_MSC_VER >= 1600) // VS 2010+
+    #include <sal.h>
+    #define AGS_FORMAT_STRING(fmt_idx)
+    #define AGS_FORMAT_STRING_V(fmt_idx)
+    #define AGS_FORMAT_STRING_ARG _Printf_format_string_
+#else
+    #define AGS_FORMAT_STRING(fmt_idx)
+    #define AGS_FORMAT_STRING_V(fmt_idx)
+    #define AGS_FORMAT_STRING_ARG
+#endif
+
 // Stream offset type
 typedef int64_t soff_t;
 

@@ -39,9 +39,9 @@ public:
     // Write string and add line break at the end
     virtual void    WriteLine(const String &str)            = 0;
     // Write formatted string (see *printf)
-    virtual void    WriteFormat(const char *fmt, ...)       = 0;
+    virtual void    WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2) = 0;
     // Write formatted string and line break at the end
-    virtual void    WriteLineFormat(const char *fmt, ...)   = 0;
+    virtual void    WriteLineFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2) = 0;
     // Write line break
     virtual void    WriteLineBreak()                        = 0;
 

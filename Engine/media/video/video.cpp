@@ -14,6 +14,7 @@
 #include "media/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
+#include <inttypes.h>
 #include <chrono>
 #include <mutex>
 #include <thread>
@@ -376,14 +377,14 @@ void BlockingVideoPlayer::PrintStats()
         return;
 
     Debug::Printf("BlockingVideoPlayer stats: \"%s\""
-                  "\n\ttotal frames on input: %llu"
+                  "\n\ttotal frames on input: %" PRIu64
                   "\n\tmax time per preparing a video frame: %.2f ms"
                   "\n\tavg time per preparing a video frame: %.2f ms"
-                  "\n\ttotal time on preparing video frames: %llu ms"
-                  "\n\ttotal render passes (depends on game fps): %llu"
+                  "\n\ttotal time on preparing video frames: %" PRIu64 " ms"
+                  "\n\ttotal render passes (depends on game fps): %" PRIu64
                   "\n\tmax time per render: %.2f ms"
                   "\n\tavg time per render: %.2f ms"
-                  "\n\ttotal time on render: %llu ms",
+                  "\n\ttotal time on render: %" PRIu64 " ms",
                   _assetName.GetCStr(),
                   _stats.PrepareFrame.Count,
                   _stats.PrepareFrame.MaxTime,

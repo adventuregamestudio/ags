@@ -491,7 +491,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         thisnum = _ctrlRefs[i].second;
 
         if (thisnum < 0)
-            return new Error(String::FromFormat("GUIMain (%d): invalid control _id %d in ref #%d", _id, thisnum, i));
+            return new Error(String::FromFormat("GUIMain (%d): invalid control _id %d in ref #%zu", _id, thisnum, i));
 
         if (thistype == kGUIButton)
             _controls[i] = &guiobjs.Buttons[thisnum];
@@ -506,7 +506,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         else if (thistype == kGUIListBox)
             _controls[i] = &guiobjs.ListBoxes[thisnum];
         else
-            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", _id, thistype, i));
+            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%zu", _id, thistype, i));
 
         _controls[i]->SetParentID(_id);
         _controls[i]->SetID(i);
@@ -1191,7 +1191,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
         if (gui.GetHeight() < 2)
             gui.SetHeight(2);
         if (GameGuiVersion < kGuiVersion_unkn_103)
-            gui.SetName(String::FromFormat("GUI%d", i));
+            gui.SetName(String::FromFormat("GUI%zu", i));
         if (GameGuiVersion < kGuiVersion_260)
             gui.SetZOrder(i);
         if (GameGuiVersion < kGuiVersion_270)

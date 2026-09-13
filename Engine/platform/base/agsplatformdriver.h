@@ -94,10 +94,10 @@ public:
         const Common::ConfigTree &def_cfg_in, Common::ConfigTree &cfg_out);
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string
-    virtual void WriteStdOut(const char *fmt, ...);
+    virtual void WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2);
     // Formats message and writes to platform's error output;
     // Always adds trailing '\n' after formatted string
-    virtual void WriteStdErr(const char *fmt, ...);
+    virtual void WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2);
     // Display a text in a message box with a "warning" icon.
     // Platforms which do not support this should do nothing.
     virtual void DisplayMessageBox(const char *text);

@@ -1927,7 +1927,7 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
     if (total_frames == 0)
     {
-        Debug::Printf("Precache view %d (loops %d-%d): %d frames found in the view, skip");
+        Debug::Printf("Precache view %d (loops %d-%d): %d frames found in the view, skip", view, first_loop, last_loop, total_frames);
         return;
     }
 

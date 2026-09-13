@@ -103,7 +103,7 @@ static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
     if (ents.size() == 0)
     {
         // no elements, make sure the enum has something in it
-        return String::FromFormat("enum %s {\n  eDummy%s__ = 99  // $AUTOCOMPLETEIGNORE$ \n};\n", enum_name);
+        return String::FromFormat("enum %s {\n  eDummy%s__ = 99  // $AUTOCOMPLETEIGNORE$ \n};\n", enum_name, enum_name);
     }
 
     String header;

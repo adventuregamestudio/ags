@@ -1185,8 +1185,8 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
         data["filepath"]["datadir"] = Path::MakePathNoSlash(ResPaths.DataDir);
         for (size_t i = 0; i < ResPaths.OptDataDirs.size(); ++i)
         {
-            data["filepath"][String::FromFormat("datadir%d", i)] = ResPaths.OptDataDirs[i].first;
-            data["filepath"][String::FromFormat("datadir%d_filter", i)] = ResPaths.OptDataDirs[i].second;
+            data["filepath"][String::FromFormat("datadir%zu", i)] = ResPaths.OptDataDirs[i].first;
+            data["filepath"][String::FromFormat("datadir%zu_filter", i)] = ResPaths.OptDataDirs[i].second;
         }
         data["filepath"]["savegamedir"] = Path::MakePathNoSlash(GetGameUserDataDir().FullDir);
         data["filepath"]["appdatadir"] = Path::MakePathNoSlash(GetGameAppDataDir().FullDir);

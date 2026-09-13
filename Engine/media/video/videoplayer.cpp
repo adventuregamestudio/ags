@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #ifndef AGS_NO_VIDEO_PLAYER
+#include <inttypes.h>
 #include "media/video/videoplayer.h"
 #include "debug/out.h"
 #include "util/memory_compat.h"
@@ -731,8 +732,8 @@ void VideoPlayer::PrintStats(bool close)
     Debug::Printf("VideoPlayer stats: \"%s\""
         "\n\tresolution: %dx%d, fps: %.2f, frametime: %.2f ms"
         "\n\taudio: %d Hz, chans: %d"
-        "\n\ttotal time working: %lld ms"
-        "\n\ttotal time playing: %lld ms"
+        "\n\ttotal time working: %" PRId64 " ms"
+        "\n\ttotal time playing: %" PRId64 " ms"
         "\n\tplayback position: %.2f ms",
         _name.GetCStr(),
         _frameSize.Width, _frameSize.Height, _frameRate, _frameTime,
@@ -745,18 +746,18 @@ void VideoPlayer::PrintStats(bool close)
     {
         Debug::Printf(""
               "\tvideo input frames: %u"
-            "\n\t            total size: %llu bytes"
+            "\n\t            total size: %" PRIu64 " bytes"
             "\n\t            total duration: %.2f ms"
             "\n\t            frames dropped: %u"
             "\n\tvideo frame size (raw, decoded): %u bytes"
             "\n\tvideo frame size (raw, final): %u bytes"
             "\n\tmax time per input video frame: %.2f ms"
             "\n\tavg time per input video frame: %.2f ms"
-            "\n\ttotal time on input video frames: %llu ms"
+            "\n\ttotal time on input video frames: %" PRIu64 " ms"
             "\n\tmax buffered video frames: %u / %u"
             "\n\tavg buffered video frames: %u"
             "\n\tvideo output frames: %u"
-            "\n\t            total size: %llu bytes"
+            "\n\t            total size: %" PRIu64 " bytes"
             "\n\t            total duration: %.2f ms"
             "\n\t            frames dropped: %u"
             "\n\tmost video timing diff: %+.2f, %+.2f ms"
@@ -786,17 +787,17 @@ void VideoPlayer::PrintStats(bool close)
     {
         Debug::Printf(""
               "\taudio input frames: %u"
-            "\n\t            total size: %llu bytes"
+            "\n\t            total size: %" PRIu64 " bytes"
             "\n\t            total duration: %.2f ms"
             "\n\t            frames dropped: %u"
             "\n\taverage audio frame: %u bytes, %.2f ms"
             "\n\tmax time per input audio frame: %.2f ms"
             "\n\tavg time per input audio frame: %.2f ms"
-            "\n\ttotal time on input audio frames: %llu ms"
+            "\n\ttotal time on input audio frames: %" PRIu64 " ms"
             "\n\tmax buffered audio duration: %.2f / %.2f ms"
             "\n\tavg buffered audio duration: %.2f ms"
             "\n\taudio output frames: %u"
-            "\n\t            total size: %llu bytes"
+            "\n\t            total size: %" PRIu64 " bytes"
             "\n\t            total duration: %.2f ms"
             "\n\t            frames dropped: %u"
             "\n\tmost audio timing diff: %+.2f, %+.2f"

@@ -834,12 +834,12 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             const auto &globaldata = roominst->GetGlobalData();
             if (croom->tsdatasize > globaldata.size())
             {
-                quitprintf("Restored Room %d script data size exceeds current script data (%zu vs %zu bytes).",
+                quitprintf("Restored Room %d script data size exceeds current script data (%u vs %zu bytes).",
                     newnum, croom->tsdatasize, globaldata.size());
             }
             else if (croom->tsdatasize < globaldata.size())
             {
-                Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%zu vs %zu bytes)",
+                Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%u vs %zu bytes)",
                     newnum, croom->tsdatasize, globaldata.size());
             }
             roominst->CopyGlobalData(croom->tsdata);

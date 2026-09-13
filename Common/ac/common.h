@@ -19,7 +19,7 @@
 // These are the project-dependent functions, they are defined both in Engine.App and AGS.Native.
 void quit(const AGS::Common::String &str);
 void quit(const char *);
-void quitprintf(const char *fmt, ...);
+void quitprintf(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(1);
 void set_our_eip(int eip);
 int  get_our_eip();
 

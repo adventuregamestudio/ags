@@ -142,12 +142,12 @@ namespace Debug
     // Output a plain message of given group and type
     void Printf(MessageGroupHandle group_id, MessageType mt, const String &text);
     // Output formatted message of default group and default type
-    void Printf(const char *fmt, ...);
+    void Printf(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(1);
     // Output formatted message of default group and given type
-    void Printf(MessageType mt, const char *fmt, ...);
+    void Printf(MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2);
     // Output formatted message of given group and type
-    void Printf(MessageGroupHandle group_id, MessageType mt, const char *fmt, ...);
-    void Printf(MessageGroupHandle group_id, MessageType mt, const char *fmt, va_list argptr);
+    void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(3);
+    void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, va_list argptr) AGS_FORMAT_STRING_V(3);
 
 }   // namespace Debug
 

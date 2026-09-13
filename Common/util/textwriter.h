@@ -39,7 +39,7 @@ public:
     // Write string and add line break at the end
     virtual void    WriteLine(const String &str)            = 0;
     // Write formatted string (see *printf)
-    virtual void    WriteFormat(const char *fmt, ...)       = 0;
+    virtual void    WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1) = 0;
     virtual void    WriteLineBreak()                        = 0;
 
     // Flushes the underlying device (does nothing in def impl)

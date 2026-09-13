@@ -573,7 +573,7 @@ RuntimeScriptValue Sc_System_SetDisplayFPS(const RuntimeScriptValue* params, int
 void ScPl_System_Log(int message_type, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF_PURE(texx);
-    Debug::Printf(kDbgGroup_Script, (MessageType)message_type, scsf_buffer);
+    Debug::Printf(kDbgGroup_Script, (MessageType)message_type, "%s", scsf_buffer);
 }
 
 

@@ -2085,7 +2085,7 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
             deflate_s.reset(dynamic_cast<DeflateStream*>(deflate_in->ReleaseStreamBase().release()));
             uint32_t uncomp_data_sz = deflate_s->GetProcessedInput();
             if (uncomp_data_sz != info.UncompressedDataSize)
-                return new SavegameError(kSvgErr_ComponentUncompressedSizeMismatch, String::FromFormat("Expected: %zu, actual: %zu", info.UncompressedDataSize, uncomp_data_sz));
+                return new SavegameError(kSvgErr_ComponentUncompressedSizeMismatch, String::FromFormat("Expected: %u, actual: %u", info.UncompressedDataSize, uncomp_data_sz));
             // TODO: test checksum too?
 
             in->AttachStreamBase(deflate_s->ReleaseStreamBase());
@@ -2140,7 +2140,7 @@ HSaveError ReadAllImpl(Stream *in, SavegameVersion svg_version, SaveCmpSelection
         if (!err)
         {
             return new SavegameError(kSvgErr_ComponentUnserialization,
-                String::FromFormat("(#%d) %s, version %i, at offset %u.",
+                String::FromFormat("(#%zu) %s, version %i, at offset %u.",
                 idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.TagOffset),
                 err);
         }

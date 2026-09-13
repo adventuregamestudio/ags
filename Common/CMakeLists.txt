@@ -245,6 +245,7 @@ if(AGS_TESTS)
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
         test/datahelpers_test.cpp
+        test/error_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
         test/indexedobjectpool_test.cpp

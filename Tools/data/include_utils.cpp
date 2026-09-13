@@ -168,9 +168,9 @@ HError description_to_patterns(const std::vector<String> &description, std::vect
         }
         catch (const std::exception& ex)
         {
-            return new Error(String::FromFormat(
-            "include_utils: failed at translating pattern at line '%s', error: '%s'.", line.GetCStr(), ex.what()
-            ));
+            return new Error(
+                "include_utils: failed at translating pattern at line '%s', error: '%s'.", line.GetCStr(), ex.what()
+            );
         }
 
         patterns.emplace_back(p);

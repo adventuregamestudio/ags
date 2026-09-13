@@ -38,7 +38,7 @@ static HError OpenSpriteFile(SpriteFile &reader, const String &sprite_file, cons
 {
     std::unique_ptr<Stream> file_in = File::OpenFileRead(sprite_file);
     if (!file_in)
-        return new Error(String::FromFormat("Failed to open spritefile for reading: %s", sprite_file.GetCStr()));
+        return new Error("Failed to open spritefile for reading: %s", sprite_file.GetCStr());
     std::unique_ptr<Stream> index_in;
     if (!index_file.IsEmpty())
     {
@@ -56,7 +56,7 @@ static HError OpenSpriteFile(SpriteFile &reader, const String &sprite_file, cons
     else
         err = reader.OpenFile(std::move(file_in), std::move(index_in));
     if (!err)
-        return new Error("Failed to initialize sprite file", err);
+        return new Error(err, "Failed to initialize sprite file");
     return 0;
 }
 

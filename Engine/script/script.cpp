@@ -236,21 +236,21 @@ HError create_game_scripts()
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         if (!scriptModules[i])
-            return new Error(String::FromFormat("Script module (%d) '%s' was not loaded", i, scriptModuleNames[i].GetCStr()));
+            return new Error("Script module (%d) '%s' was not loaded", i, scriptModuleNames[i].GetCStr());
         moduleInst[i] = ccInstance::CreateFromScript(scriptModules[i]);
         if (!moduleInst[i])
-            return new Error(String::FromFormat("Failed to create the script module (%d) '%s':\n%s",
-                i, scriptModules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
+            return new Error("Failed to create the script module (%d) '%s':\n%s",
+                i, scriptModules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr());
         Debug::Printf("Created script module (%d) '%s'", i, scriptModules[i]->GetScriptName().c_str());
         all_insts.push_back(moduleInst[i].get()); // this is only for temp reference
     }
 
     if (!gamescript)
-        return new Error(String::FromFormat("Global script was not loaded"));
+        return new Error("Global script was not loaded");
     gameinst = ccInstance::CreateFromScript(gamescript);
     if (!gameinst)
-        return new Error(String::FromFormat("Failed to create the global script:\n%s",
-            cc_get_error().ErrorString.GetCStr()));
+        return new Error("Failed to create the global script:\n%s",
+            cc_get_error().ErrorString.GetCStr());
     Debug::Printf("Created global script");
     all_insts.push_back(gameinst.get()); // this is only for temp reference
 
@@ -258,8 +258,8 @@ HError create_game_scripts()
     {
         dialogScriptsInst = ccInstance::CreateFromScript(dialogScriptsScript);
         if (!dialogScriptsInst)
-            return new Error(String::FromFormat("Failed to create the dialog script:\n%s",
-                cc_get_error().ErrorString.GetCStr()));
+            return new Error("Failed to create the dialog script:\n%s",
+                cc_get_error().ErrorString.GetCStr());
         Debug::Printf("Created dialog script");
         all_insts.push_back(dialogScriptsInst.get()); // this is only for temp reference
     }
@@ -268,11 +268,11 @@ HError create_game_scripts()
     for (auto &inst : all_insts)
     {
         if (!inst->ResolveScriptImports())
-            return new Error(String::FromFormat("Failed to resolve script imports:\n%s",
-                cc_get_error().ErrorString.GetCStr()));
+            return new Error("Failed to resolve script imports:\n%s",
+                cc_get_error().ErrorString.GetCStr());
         if (!inst->ResolveImportFixups())
-            return new Error(String::FromFormat("Failed to resolve script fixups:\n%s",
-                cc_get_error().ErrorString.GetCStr()));
+            return new Error("Failed to resolve script fixups:\n%s",
+                cc_get_error().ErrorString.GetCStr());
     }
 
     // Create the forks for 'repeatedly_execute_always' after resolving
@@ -281,8 +281,8 @@ HError create_game_scripts()
     {
         auto fork = moduleInst[i]->Fork();
         if (!fork)
-            return new Error(String::FromFormat("Failed to create non-blocking fork for the script module (%d) '%s':\n%s",
-                i, scriptModules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
+            return new Error("Failed to create non-blocking fork for the script module (%d) '%s':\n%s",
+                i, scriptModules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr());
 
         moduleInstFork[i] = std::move(fork);
         moduleRepExecAddr[i] = moduleInst[i]->GetSymbolAddress(REP_EXEC_NAME);
@@ -290,8 +290,8 @@ HError create_game_scripts()
 
     gameinstFork = gameinst->Fork();
     if (gameinstFork == nullptr)
-        return new Error(String::FromFormat("Failed to create non-blocking fork for the global script:\n%s",
-            cc_get_error().ErrorString.GetCStr()));
+        return new Error("Failed to create non-blocking fork for the global script:\n%s",
+            cc_get_error().ErrorString.GetCStr());
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
     return HError::None();

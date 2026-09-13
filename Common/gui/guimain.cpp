@@ -491,7 +491,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         thisnum = _ctrlRefs[i].second;
 
         if (thisnum < 0)
-            return new Error(String::FromFormat("GUIMain (%d): invalid control _id %d in ref #%d", _id, thisnum, i));
+            return new Error("GUIMain (%d): invalid control _id %d in ref #%d", _id, thisnum, i);
 
         if (thistype == kGUIButton)
             _controls[i] = &guiobjs.Buttons[thisnum];
@@ -506,7 +506,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         else if (thistype == kGUIListBox)
             _controls[i] = &guiobjs.ListBoxes[thisnum];
         else
-            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", _id, thistype, i));
+            return new Error("GUIMain (%d): unknown control type %d in ref #%d", _id, thistype, i);
 
         _controls[i]->SetParentID(_id);
         _controls[i]->SetID(i);
@@ -1174,8 +1174,8 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
         GameGuiVersion = kGuiVersion_Initial;
     }
     else if (GameGuiVersion > kGuiVersion_Current)
-        return new Error(String::FromFormat("ReadGUI: format version not supported (required %d, supported %d - %d)",
-            GameGuiVersion, kGuiVersion_Initial, kGuiVersion_Current));
+        return new Error("ReadGUI: format version not supported (required %d, supported %d - %d)",
+            GameGuiVersion, kGuiVersion_Initial, kGuiVersion_Current);
     else
         gui_count = in->ReadInt32();
     guis.resize(gui_count);

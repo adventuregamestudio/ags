@@ -153,7 +153,7 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
         break;
     default:
         return new TraFileError(kTraFileErr_UnknownBlockType,
-            String::FromFormat("Type: %d, known range: %d - %d.", block, kTraFblk_Dict, kTraFblk_TextOpts));
+            "Type: %d, known range: %d - %d.", block, kTraFblk_Dict, kTraFblk_TextOpts);
     }
 
     if (ext_id.CompareNoCase("ext_sopts") == 0)
@@ -175,7 +175,7 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     }
     
     return new TraFileError(kTraFileErr_UnknownBlockType,
-        String::FromFormat("Type: %s", ext_id.GetCStr()));
+        "Type: %s", ext_id.GetCStr());
 }
 
 
@@ -231,7 +231,7 @@ HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stre
     if ((tra.GameUid != 0 && (game_uid != tra.GameUid)) ||
         (!tra.GameName.IsEmpty() && (game_name != tra.GameName)))
         return new TraFileError(kTraFileErr_GameIDMismatch,
-            String::FromFormat("The translation is designed for '%s'", tra.GameName.GetCStr()));
+            "The translation is designed for '%s'", tra.GameName.GetCStr());
     return HError::None();
 }
 

@@ -19,6 +19,7 @@
 #ifndef __AGS_CN_UTIL__ERROR_H
 #define __AGS_CN_UTIL__ERROR_H
 
+#include <cstdarg>
 #include <memory>
 #include "util/string.h"
 
@@ -34,50 +35,85 @@ typedef std::shared_ptr<Error> PError;
 // A simple struct, that provides several fields to describe an error in the program.
 // If wanted, may be reworked into subclass of std::exception.
 //
+// The error text may be passed either as a String, or as a printf-style format
+// followed by its arguments.
+//
 class Error
 {
 public:
-    Error(int code, String general, PError inner_error = PError()) : _code(code), _general(general), _innerError(inner_error) {}
-    Error(int code, String general, String comment, PError inner_error = PError()) : _code(code), _general(general), _comment(comment), _innerError(inner_error) {}
-    Error(String general, PError inner_error = PError()) : _code(0), _general(general), _innerError(inner_error) {}
-    Error(String general, String comment, PError inner_error = PError()) : _code(0), _general(general), _comment(comment), _innerError(inner_error) {}
-    
+    Error() = default;
+    Error(const String &msg) : _message(msg) {}
+    Error(const char *fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+    Error(PError prev_error, const String &msg = "")
+        : _message(msg), _previousError(std::move(prev_error)) {}
+    Error(PError prev_error, const char *fmt, ...) : _previousError(std::move(prev_error))
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+    Error(int code, const String &msg = "") : _code(code), _message(msg) {}
+    Error(int code, const char *fmt, ...) : _code(code)
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+    Error(PError prev_error, int code, const String &msg = "")
+        : _code(code), _message(msg), _previousError(std::move(prev_error)) {}
+    Error(PError prev_error, int code, const char *fmt, ...)
+        : _code(code), _previousError(std::move(prev_error))
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+    virtual ~Error() = default;
 
     // Error code is a number, defining error subtype. It is not much use to the end-user,
     // but may be checked in the program to know more precise cause of the error.
     int    Code() const { return _code; }
-    // General description of this error type and subtype.
-    String General() const { return _general; }
-    // Any complementary information.
-    String Comment() const { return _comment; }
-    PError InnerError() const { return _innerError; }
-    // Full error message combines general description and comment.
+    // Error description text.
+    String Message() const { return _message; }
+    // Previous error that caused this one, if any.
+    PError PreviousError() const { return _previousError; }
+    // Full error message combines all errors in the chain.
     // NOTE: if made a child of std::exception, FullMessage may be substituted
     // or complemented with virtual const char* what().
     String FullMessage() const
     {
         String msg;
-        const Error *err = this;
-        do
-        {
-            msg.Append(err->General());
-            if (!err->Comment().IsEmpty())
-            {
-                msg.AppendChar('\n');
-                msg.Append(err->Comment());
-            }
-            err = err->InnerError().get();
-            if (err)
-                msg.AppendChar('\n');
-        } while (err);
+        for (const Error *err = this; err; err = err->_previousError.get())
+            AppendLine(msg, err->_message);
         return msg;
     }
 
+protected:
+    void SetMessage(const String &message) { _message = message; }
+    // Appends a line of text, separating it from the preceding one with a line break;
+    // empty lines are skipped.
+    static void AppendLine(String &text, const String &line)
+    {
+        if (line.IsEmpty())
+            return;
+        if (!text.IsEmpty())
+            text.AppendChar('\n');
+        text.Append(line);
+    }
+
 private:
-    int    _code; // numeric code, for specific uses
-    String _general; // general description of this error class
-    String _comment; // additional information about particular case
-    PError _innerError; // previous error that caused this one
+    int    _code = 0; // numeric code, for specific uses
+    String _message; // description of this error
+    PError _previousError; // previous error that caused this one
 };
 
 
@@ -97,15 +133,19 @@ public:
 
     ErrorHandle() = default;
     ErrorHandle(T *err) : _error(err) {}
-    ErrorHandle(std::shared_ptr<T> err) : _error(err) {}
+    ErrorHandle(std::shared_ptr<T> err) : _error(std::move(err)) {}
+    // Lets return a handle of a derived error type where a base one is expected;
+    // an unrelated type fails to compile on the shared_ptr conversion below.
+    template <class U> ErrorHandle(const ErrorHandle<U> &other) : _error(other._error) {}
 
-    bool HasError() const { return _error.get() != NULL; }
-    explicit operator bool() const { return _error.get() == nullptr; }
+    bool HasError() const { return _error != nullptr; }
+    explicit operator bool() const { return !HasError(); }
     operator PError() const { return _error; }
-    T *operator ->() const { return _error.operator->(); }
-    T &operator *() const { return _error.operator*(); }
+    T *operator ->() const { return _error.get(); }
+    T &operator *() const { return *_error; }
 
 private:
+    template <class U> friend class ErrorHandle;
     std::shared_ptr<T> _error;
 };
 
@@ -117,17 +157,48 @@ typedef ErrorHandle<Error> HError;
 // TypedCodeError is the Error's subclass, which only purpose is to override
 // error code type in constructor and Code() getter, that may be useful if
 // you'd like to restrict code values to particular enumerator.
+// The error text is the code's own description, optionally followed by a
+// complementary text on a separate line.
 // TODO: a type identifier as a part of template (string, or perhaps a int16
 // to be placed at high-bytes in Code) to be able to distinguish error group.
 template <typename CodeType, String (*GetErrorText)(CodeType)>
 class TypedCodeError : public Error
 {
 public:
-    TypedCodeError(CodeType code, PError inner_error = PError()) : Error(code, GetErrorText(code), inner_error) {}
-    TypedCodeError(CodeType code, String comment, PError inner_error = PError()) :
-        Error(code, GetErrorText(code), comment, inner_error) {}
+    TypedCodeError(CodeType code, const String &msg = "") :
+        Error(static_cast<int>(code), CombineText(code, msg)) {}
+    TypedCodeError(CodeType code, const char *fmt, ...) :
+        Error(static_cast<int>(code))
+    {
+        String formatted;
+        va_list args;
+        va_start(args, fmt);
+        formatted.FormatV(fmt, args);
+        va_end(args);
+        SetMessage(CombineText(code, formatted));
+    }
+    TypedCodeError(const PError &prev_error, CodeType code, const String &msg = "") :
+        Error(prev_error, static_cast<int>(code), CombineText(code, msg)) {}
+    TypedCodeError(const PError &prev_error, CodeType code, const char *fmt, ...) :
+        Error(prev_error, static_cast<int>(code))
+    {
+        String formatted;
+        va_list args;
+        va_start(args, fmt);
+        formatted.FormatV(fmt, args);
+        va_end(args);
+        SetMessage(CombineText(code, formatted));
+    }
 
-    CodeType Code() const { return (CodeType)Error::Code(); }
+    CodeType Code() const { return static_cast<CodeType>(Error::Code()); }
+
+private:
+    static String CombineText(CodeType code, const String &more_text)
+    {
+        String text = GetErrorText(code);
+        AppendLine(text, more_text);
+        return text;
+    }
 };
 
 } // namespace Common

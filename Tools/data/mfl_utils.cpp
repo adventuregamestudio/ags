@@ -63,8 +63,8 @@ HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const S
         std::unique_ptr<Stream> lib_in(File::OpenFileRead(path));
         if (!lib_in)
         {
-            return new Error(String::FromFormat("Failed to open a library file for reading: %s",
-                lib_f.GetCStr()));
+            return new Error("Failed to open a library file for reading: %s",
+                lib_f.GetCStr());
         }
         printf("Extracting %s:\n", lib_f.GetCStr());
         for (const auto &asset : lib.AssetInfos)
@@ -128,7 +128,7 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
     {
         soff_t filesz = File::GetFileSize(asset_entry.second);
         if (filesz < 0)
-            return new Error(String::FromFormat("Failed to retrieve asset file's size: %s", asset_entry.second.GetCStr()));
+            return new Error("Failed to retrieve asset file's size: %s", asset_entry.second.GetCStr());
         AssetInfo asset;
         asset.FileName = asset_entry.first;
         asset.Size = filesz;
@@ -167,8 +167,8 @@ HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
         // Did we succeed arranging everything?
         if (assets.size() > 0)
         {
-            return new Error(String::FromFormat(
-                "Failed trying to split assets in parts of %zu MB. Max number of package partitions exceeded.\n", part_size));
+            return new Error(
+                "Failed trying to split assets in parts of %zu MB. Max number of package partitions exceeded.\n", (size_t)part_size);
         }
     }
     else
@@ -210,13 +210,13 @@ HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map,
             asset.Offset = out->GetPosition() - s_offset;
             auto it_file = asset_map.find(asset.FileName);
             if (it_file == asset_map.end())
-                return new Error(String::FromFormat("Internal error: no file path for asset: %s", asset.FileName.GetCStr()));
+                return new Error("Internal error: no file path for asset: %s", asset.FileName.GetCStr());
             const String path = it_file->second;
             std::unique_ptr<Stream> in(File::OpenFileRead(path));
             if (!in)
-                return new Error(String::FromFormat("Failed to open the asset file for reading: %s", path.GetCStr()));
+                return new Error("Failed to open the asset file for reading: %s", path.GetCStr());
             if (CopyStream(in.get(), out.get(), asset.Size) < asset.Size)
-                return new Error(String::FromFormat("Failed to write the asset '%s'.", asset.FileName.GetCStr()));
+                return new Error("Failed to write the asset '%s'.", asset.FileName.GetCStr());
             if (verbose)
                 printf("Info: wrote asset '%s'\n", asset.FileName.GetCStr());
         }
@@ -267,7 +267,7 @@ HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map,
         {
             if (verbose)
                 printf("Error: post-check failed for file '%s'.\n", dst_file.GetCStr());
-            return new Error("Pack post-check failed", err);
+            return new Error(err, "Pack post-check failed");
         }
     }
     return HError::None();
@@ -282,24 +282,24 @@ HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib)
     AssetLibInfo lib;
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
     if (mfl_err != MFLUtil::kMFLNoError)
-        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+        return new Error("Failed to parse pack file: %s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
 
     if (compare_lib)
     {
         if (lib.BaseFileOffset != compare_lib->BaseFileOffset)
-            return new Error(String::FromFormat("Base library offset does not match: %lld vs %lld", lib.BaseFileOffset, compare_lib->BaseFileOffset));
+            return new Error("Base library offset does not match: %lld vs %lld", (long long)lib.BaseFileOffset, (long long)compare_lib->BaseFileOffset);
         if (lib.AssetInfos.size() != compare_lib->AssetInfos.size())
-            return new Error(String::FromFormat("Number of assets does not match: %zu vs %zu", lib.AssetInfos.size(), compare_lib->AssetInfos.size()));
+            return new Error("Number of assets does not match: %zu vs %zu", lib.AssetInfos.size(), compare_lib->AssetInfos.size());
         for (size_t i = 0; i < lib.AssetInfos.size(); ++i)
         {
             const auto &asset1 = lib.AssetInfos[i];
             const auto &asset2 = compare_lib->AssetInfos[i];
             if (asset1.FileName.CompareNoCase(asset2.FileName) != 0)
-                return new Error(String::FromFormat("Asset %zu does not match filename: %s vs %s", i, asset1.FileName.GetCStr(), asset2.FileName.GetCStr()));
+                return new Error("Asset %zu does not match filename: %s vs %s", i, asset1.FileName.GetCStr(), asset2.FileName.GetCStr());
             if (asset1.Size != asset2.Size)
-                return new Error(String::FromFormat("Asset %zu does not match size: %lld vs %lld", i, asset1.Size, asset2.Size));
+                return new Error("Asset %zu does not match size: %lld vs %lld", i, (long long)asset1.Size, (long long)asset2.Size);
             if (asset1.Offset - lib.BaseFileOffset != asset2.Offset)
-                return new Error(String::FromFormat("Asset %zu does not match offset: %lld vs %lld", i, asset1.Offset - lib.BaseFileOffset, asset2.Offset));
+                return new Error("Asset %zu does not match offset: %lld vs %lld", i, (long long)(asset1.Offset - lib.BaseFileOffset), (long long)asset2.Offset);
         }
     }
 

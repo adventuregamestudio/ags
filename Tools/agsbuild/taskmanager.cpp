@@ -64,7 +64,7 @@ HError ReadStringListFromTextFile(const String &filename, std::vector<String> &l
 {
     auto in = File::OpenFileRead(filename);
     if (!in)
-        return new Error(String::FromFormat("Failed to open file for reading: %s", filename.GetCStr()));
+        return new Error("Failed to open file for reading: %s", filename.GetCStr());
     auto text_reader = TextStreamReader(std::move(in));
     for (String line = text_reader.ReadLine(); !line.IsEmpty(); line = text_reader.ReadLine())
         list.push_back(line);
@@ -75,7 +75,7 @@ HError WriteStringListToTextFile(const String &filename, const std::vector<Strin
 {
     auto out = File::CreateFile(filename);
     if (!out)
-        return new Error(String::FromFormat("Failed to open file for writing: %s", filename.GetCStr()));
+        return new Error("Failed to open file for writing: %s", filename.GetCStr());
     auto text_writer = TextStreamWriter(std::move(out));
     for (const auto &line : list)
         text_writer.WriteLine(line);
@@ -205,7 +205,7 @@ HError TaskMoveFiles::RunImpl()
             }
             else
             {
-                return new Error(String::FromFormat("Failed to %s file %s to %s", op_names2[(int)do_op], src_filepath.GetCStr(), dst_filepath.GetCStr()));
+                return new Error("Failed to %s file %s to %s", op_names2[(int)do_op], src_filepath.GetCStr(), dst_filepath.GetCStr());
             }
         }
         else if (_skipIfNoSrc)
@@ -214,7 +214,7 @@ HError TaskMoveFiles::RunImpl()
         }
         else
         {
-            return new Error(String::FromFormat("Source file %s does not exist", src_filepath.GetCStr()));
+            return new Error("Source file %s does not exist", src_filepath.GetCStr());
         }
     }
 
@@ -303,7 +303,7 @@ HError TaskPipedProcess::RunImpl()
     }
 
     if (err && pp.GetExitCode() != 0)
-        err = new Error(String::FromFormat("Process exited with error code %d", pp.GetExitCode()));
+        err = new Error("Process exited with error code %d", pp.GetExitCode());
     return err;
 }
 
@@ -387,7 +387,7 @@ HError TaskManager::RunAll()
     }
 
     return (failed_tasks == 0u && cancelled_tasks == 0u) ? HError::None()
-        : new Error(String::FromFormat("%d task(s) failed to complete", failed_tasks + cancelled_tasks));
+        : new Error("%d task(s) failed to complete", failed_tasks + cancelled_tasks);
 }
 
 static void RunTaskOnThread(Task *task)

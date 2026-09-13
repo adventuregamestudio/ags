@@ -23,6 +23,7 @@
 #include <allegro.h> // RGB and PALETTE types, MASK_COLOR constants
 #include "debug/assert.h"
 #include "platform/types.h"
+#include "util/stream.h"
 #include "util/string.h"
 
 namespace AGS
@@ -381,6 +382,13 @@ namespace PixelOp
     void MakeOpaqueSkipMask(BitmapData &bm_data);
     // Replaces pixels with alpha <= threshold with standard mask color.
     void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold = 0);
+
+    void ReadPixelData(Stream *in, uint8_t *dst_buf, const int width, const int height, const int bpp, const int pitch);
+    inline void ReadPixelData(BitmapData &bm_data, Stream *in)
+        { ReadPixelData(in, bm_data.GetData(), bm_data.GetWidth(), bm_data.GetHeight(), bm_data.GetBytesPerPixel(), bm_data.GetStride()); }
+    void WritePixelData(Stream *out, const uint8_t *dst_buf, const int width, const int height, const int bpp, const int pitch);
+    inline void WritePixelData(const BitmapData &bm_data, Stream *out)
+        { WritePixelData(out, bm_data.GetData(), bm_data.GetWidth(), bm_data.GetHeight(), bm_data.GetBytesPerPixel(), bm_data.GetStride()); }
 }
 
 // Various operations with palette

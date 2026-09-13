@@ -29,16 +29,16 @@ namespace SpriteDataUtils
 {
 
 // Image buffer pointer, a helper struct that eases switching
-// between intermediate buffers when loading, saving or converting an image.
-// TODO: This is an older struct, may this be replaced by using more generic BitmapData here?
+// between intermediate buffers when loading, saving or converting / compressing an image.
 template <typename T> struct ImBufferPtrT
 {
     T        Buf = nullptr;
     size_t   Size = 0;
     int      BPP = 0; // byte per pixel
+    int      Stride = 0; // bytes per line
 
     ImBufferPtrT() = default;
-    ImBufferPtrT(T buf, size_t sz, int bpp) : Buf(buf), Size(sz), BPP(bpp) {}
+    ImBufferPtrT(T buf, size_t sz, int bpp, int stride) : Buf(buf), Size(sz), BPP(bpp), Stride(stride) {}
 };
 typedef ImBufferPtrT<uint8_t*> ImBufferPtr;
 typedef ImBufferPtrT<const uint8_t*> ImBufferCPtr;
@@ -211,7 +211,7 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         return {};
     }
 
-    ImBufferPtr im_data(image.GetData(), w * h * bpp, bpp);
+    ImBufferPtr im_data(image.GetData(), image.GetDataSize(), bpp, image.GetStride());
     // (Optional) Handle storage options, reverse
     std::vector<uint8_t> indexed_buf;
     std::array<uint32_t, 256> palette {};
@@ -229,7 +229,7 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         default: assert(0); break;
         }
         indexed_buf.resize(w * h);
-        im_data = ImBufferPtr(indexed_buf.data(), indexed_buf.size(), 1);
+        im_data = ImBufferPtr(indexed_buf.data(), indexed_buf.size(), 1, w);
     }
     // (Optional) Decompress the image data into the temp buffer
     size_t in_data_size =
@@ -261,28 +261,10 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         }
     }
     // Otherwise (no compression) read directly
-    // CHECKME: using ReadArrayOfN below does not seem right. These methods do endinaness swap.
-    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
-    // and they are to be read using bit masks and shifts.
-    // If ever, then the conversion has to be done when decomposing pixels onto individual RGB parts,
-    // converting to another format, etc.
     else
     {
         assert((im_data.Size % im_data.BPP) == 0);
-        switch (im_data.BPP)
-        {
-        case 1: in->Read(im_data.Buf, im_data.Size);
-            break;
-        case 2: in->ReadArrayOfInt16(
-            reinterpret_cast<int16_t*>(im_data.Buf), im_data.Size / sizeof(int16_t));
-            break;
-        case 3: in->ReadArrayOfUInt24(im_data.Buf, im_data.Size / 3);
-            break;
-        case 4: in->ReadArrayOfInt32(
-            reinterpret_cast<int32_t*>(im_data.Buf), im_data.Size / sizeof(int32_t));
-            break;
-        default: assert(0); break;
-        }
+        PixelOp::ReadPixelData(in, im_data.Buf, hdr.Width, hdr.Height, im_data.BPP, im_data.Stride);
     }
     // Finally revert storage options
     if (pal_bpp > 0 && image.GetBytesPerPixel() > 1)
@@ -387,8 +369,7 @@ void SkipSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompressio
 
 // Writes prepared image data in a proper file format, following explicit data_bpp rule
 static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out,
-    const uint8_t *im_data, size_t im_data_sz, int im_bpp,
-    const uint32_t palette[256])
+    const ImBufferCPtr &im_data, const uint32_t palette[256])
 {
     WriteSprHeader(hdr, out);
     // write palette, if available
@@ -408,25 +389,15 @@ static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out,
         }
     }
     // write the image pixel data
-    out->WriteInt32(im_data_sz);
-    // CHECKME: using WriteArrayOfN below does not seem right. These methods do endinaness swap.
-    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
-    // and they are to be read using bit masks and shifts.
-    // If ever, then the conversion has to be done when decomposing pixels onto individual RGB parts,
-    // converting to another format, etc.
-    switch (im_bpp)
+    out->WriteInt32(im_data.Size);
+    if (im_data.BPP > 0)
     {
-    case 1: out->Write(im_data, im_data_sz);
-        break;
-    case 2: out->WriteArrayOfInt16(reinterpret_cast<const int16_t*>(im_data),
-        im_data_sz / sizeof(int16_t));
-        break;
-    case 3: out->WriteArrayOfUInt24(im_data, im_data_sz / 3);
-        break;
-    case 4: out->WriteArrayOfInt32(reinterpret_cast<const int32_t*>(im_data),
-        im_data_sz / sizeof(int32_t));
-        break;
-    default: assert(0); break;
+        PixelOp::WritePixelData(out, im_data.Buf, hdr.Width, hdr.Height, im_data.BPP, im_data.Stride);
+    }
+    else
+    {
+        // Special case when we write a compressed data as a plain byte array
+        out->Write(im_data.Buf, im_data.Size);
     }
 }
 
@@ -436,7 +407,7 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
     const int bpp = image.GetBytesPerPixel();
     const int w = image.GetWidth();
     const int h = image.GetHeight();
-    ImBufferCPtr im_data(image.GetData(), w * h * bpp, bpp);
+    ImBufferCPtr im_data(image.GetData(), image.GetDataSize(), bpp, image.GetStride());
 
     // (Optional) Handle storage options
     std::vector<uint8_t> indexed_buf;
@@ -450,7 +421,7 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
         { // Test the resulting size, and switch if the paletted image is less
             if (im_data.Size > (indexed_buf.size() + gen_pal_count * bpp))
             {
-                im_data = ImBufferCPtr(indexed_buf.data(), indexed_buf.size(), 1);
+                im_data = ImBufferCPtr(indexed_buf.data(), indexed_buf.size(), 1, w);
                 sformat = PaletteFormatForBPP(bpp);
                 pal_count = gen_pal_count;
             }
@@ -475,7 +446,7 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
         default: assert(!"Unsupported compression type!"); result = false; break;
         }
         // mark to write as a plain byte array
-        im_data = result ? ImBufferCPtr(mem_buf->data(), mem_buf->size(), 1) : ImBufferCPtr();
+        im_data = result ? ImBufferCPtr(mem_buf->data(), mem_buf->size(), 0, 0) : ImBufferCPtr();
     }
 
     // Write the final data; if original image is 8-bit then use its own palette (if provided),
@@ -490,7 +461,7 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
         }
     }
     SpriteDatHeader hdr(bpp, sformat, pal_count, compress, w, h);
-    WriteSpriteDataImpl(hdr, out, im_data.Buf, im_data.Size, im_data.BPP, conv_palette);
+    WriteSpriteDataImpl(hdr, out, im_data, conv_palette);
 }
 
 void WriteSprite_360(const BitmapData &image, Stream *out, int store_flags, SpriteCompression compress,

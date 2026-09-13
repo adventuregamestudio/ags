@@ -421,6 +421,46 @@ void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold)
     }
 }
 
+void ReadPixelData(Stream *in, uint8_t *dst_buf, const int width, const int height, const int bpp, const int pitch)
+{
+    // CHECKME: using ReadArrayOfN below does not seem right. These methods do endinaness swap.
+    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
+    // and they are to be read using bit masks and shifts.
+
+    // Read in lines, because in general case bitmap's pitch != w * bpp
+    for (int y = 0, xoff = 0; y < height; ++y, xoff += pitch)
+    {
+        switch (bpp)
+        {
+        case 1: in->Read(dst_buf + xoff, width); break;
+        case 2: in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(dst_buf + xoff), width); break;
+        case 3: in->ReadArrayOfUInt24(reinterpret_cast<uint8_t*>(dst_buf + xoff), width); break;
+        case 4: in->ReadArrayOfInt32(reinterpret_cast<int32_t*>(dst_buf + xoff), width); break;
+        default: assert(0); break;
+        }
+    }
+}
+
+void WritePixelData(Stream *out, const uint8_t *src_buf, const int width, const int height, const int bpp, const int pitch)
+{
+    // CHECKME: using WriteArrayOfN below does not seem right. These methods do endinaness swap.
+    // But these are byte buffers with pixel data, which interpretation depends on pixel format,
+    // and they are to be read using bit masks and shifts.
+
+    // Write in lines, because in general case bitmap's pitch != w * bpp
+    for (int y = 0, xoff = 0; y < height; ++y, xoff += pitch)
+    {
+        switch (bpp)
+        {
+        case 1: out->Write(src_buf + xoff, width); break;
+        case 2: out->WriteArrayOfInt16(reinterpret_cast<const int16_t*>(src_buf + xoff), width); break;
+        case 3: out->WriteArrayOfUInt24(reinterpret_cast<const uint8_t*>(src_buf + xoff), width); break;
+        case 4: out->WriteArrayOfInt32(reinterpret_cast<const int32_t*>(src_buf + xoff), width); break;
+        default: assert(0); break;
+        }
+    }
+}
+
 } // namespace PixelOperations
 
 namespace PaletteOp

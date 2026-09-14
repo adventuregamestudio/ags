@@ -23,6 +23,45 @@ To start, make a personal fork of our repository, and create your own feature/fi
 
 After you have finished creating your commits, send a pull request. We'll review your pull request and may ask you to make some changes to the code before we merge it.
 
+## Use of AI Tooling
+
+By "AI tooling" we mean large language models, diffusion models, and the agentic coding tools built on top of them - the kind of program that writes code, prose, or images on your behalf. This section is not about linters, static analysis, code completion drawing on your own project, or spell checkers.
+
+These divide into two cases, and we treat them differently.
+
+**Program code** written with the help of such tools is accepted, within the limits set out below. We neither encourage nor discourage this: a patch is judged on what it does and how well it is made, not on how it was typed. What we do care about is that a person stands behind it.
+
+**Generated content is not accepted at all.** Artwork, audio and user-facing text that comes out of a diffusion model, an image or sound generator, or a language model asked to write prose has no place in AGS. This is not a matter of degree or of disclosure - please don't submit it.
+
+### You are the author
+
+Whatever you submit, you are its author and you are answerable for it. That means you understand the change, you can explain any part of it in your own words, and you have satisfied yourself that it is correct. If a reviewer asks why a particular line is there, the answer needs to come from you. Please don't pass our questions back to a model and relay its reply - a discussion in which nobody on either side knows what the code does is of no use to anyone.
+
+This matters more here than it might elsewhere. As noted under [Further Information](CONTRIBUTING.md#further-information), large parts of AGS are old, and the ties between different parts of the program are not always obvious. Generated code tends to look confident and idiomatic while quietly missing that context, and that is usually where it goes wrong.
+
+### Rules
+
+Everything above is advice. The following are rules:
+
+* **Contributions must be made by a person.** We do not accept pull requests opened by bots or agents, automated merges, or any arrangement that puts code into this repository without a human deciding to put it there.
+* **Creative content must be human-authored.** Diffusion models and other generators of images, audio or prose are not to be used for anything that ships as part of AGS. That means artwork, sprites, icons, fonts, sound and music; it also means user interface design, the text of Editor labels, dialogs and messages, and documentation. If a person will see it or hear it, a person should have made it. We apply the same expectation to the material we distribute alongside AGS, such as the game templates and the demo game.
+* **Scope and design are agreed in advance**, as described under [Issues](CONTRIBUTING.md#issues). A tool being able to produce a large change quickly is not a reason to submit one - if anything it makes prior discussion more important. Sweeping refactors, changes to the architecture of a program, or edits reaching across many files need an issue first.
+
+### Experiments
+
+Using these tools to explore an idea in your own fork is fine, and can be a good way to find out whether something is worth doing at all - a new backend or a rendering path, for instance.
+
+Prototype code does not come upstream as it stands. Treat such an experiment as something you learned from rather than something you submit: rewrite it, test it, and put it forward on the same terms as any other contribution.
+
+### Disclosure
+
+If you used AI tooling to produce code in a pull request, please say so in the pull request description; the [pull request template](.github/pull_request_template.md) has a section for it.
+
+We ask for this so that reviewers know where to look more carefully. It is not held against a contribution, and it does not lower the bar that contribution has to clear. Please keep the disclosure in the pull request description rather than in commit messages, and don't add tool attribution trailers to your commits - the history records who wrote the change, and that is you.
+
+There is also an [AGENTS.md](AGENTS.md) in the repository root, which states these restrictions in a form that coding tools themselves can read.
+
+
 ## Branch Organization and Releases
 
 The [`master`][master-br] branch is where the next planned version is being developed. It may temporarily contain unstable or untested code.
@@ -73,6 +112,24 @@ Examples of commit titles:
   * "Script API: add Character.Jump()"
 
 If your commit fixes or reverts changes made by a particular older commit, and you know which one, please mention that in description by pasting the older commit's hash (this helps to know which versions of the program have been affected by a bug).
+
+## Testing
+
+AGS has automated tests for the shared code, the engine, the script compiler and the command line tools, which are run through CTest, and a separate NUnit suite for the Editor. The platform build instructions linked from the [readme](README.md#building-and-running) cover how to build and run them.
+
+Please check that the existing tests still pass before opening a pull request, and add tests for the behaviour you changed where the surrounding code makes that practical. This carries particular weight on `master`, which has to keep working with games made in every version of AGS since 2.50 - a test is often the only thing standing between a small fix and a regression in a fifteen year old game.
+
+Not all of AGS is testable in its present state, and we don't expect anyone to restructure half the engine in order to add one test. Where a change cannot reasonably be covered, please say so in the pull request and describe how you verified it by hand instead.
+
+
+## Licensing
+
+AGS is released under the Artistic License 2.0; see [License.txt](License.txt). By submitting a contribution you confirm that you have the right to license it to us under those terms.
+
+Please only submit code whose origin you can account for. Code taken from another project carries that project's license with it, and licenses imposing conditions we cannot meet - the GPL and LGPL among them - cannot be absorbed into AGS. Linking against such a library as a separate component is a different matter. Techniques, algorithms and general programming patterns are not the concern here; copying source is.
+
+This applies to every contribution, however it was written. If you used a tool that may reproduce code from the material it was trained on, the responsibility for checking still rests with you.
+
 
 ## Further Information
 

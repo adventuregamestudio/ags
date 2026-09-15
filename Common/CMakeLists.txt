@@ -102,6 +102,8 @@ target_sources(common
     gfx/image_file.h
     gfx/image_pcx.cpp
     gfx/image_png.cpp
+    gfx/sprite_data_fmt.cpp
+    gfx/sprite_data_fmt.h
     gui/guibutton.cpp
     gui/guibutton.h
     gui/guidefines.h

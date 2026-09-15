@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 #include "gfx/bitmapdata.h"
+#include "gfx/sprite_data_fmt.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/stream.h"
@@ -57,36 +58,6 @@ enum SpriteIndexFileVersion
     kSpridxfVersion_Current = kSpridxfVersion_HighSpriteLimit
 };
 
-// Instructions to how the sprites are allowed to be stored
-enum SpriteStorage
-{
-    kSprStore_None            = 0x00,
-    // When possible convert the sprite into another format for less disk space
-    // e.g. save 16/32-bit images as 8-bit colormaps with palette
-    kSprStore_OptimizeForSize = 0x01
-};
-
-// Format in which the sprite's pixel data is stored
-enum SpriteFormat
-{
-    kSprFmt_Undefined       = 0, // undefined, or keep as-is
-    // Encoded as a 8-bit colormap with palette of 24-bit RGB values
-    kSprFmt_PaletteRgb888   = 32,
-    // Encoded as a 8-bit colormap with palette of 32-bit ARGB values
-    kSprFmt_PaletteArgb8888 = 33,
-    // Encoded as a 8-bit colormap with palette of 16-bit RGB565 values
-    kSprFmt_PaletteRgb565   = 34
-};
-
-enum SpriteCompression
-{
-    kSprCompress_None = 0,
-    kSprCompress_RLE,
-    kSprCompress_LZW,
-    kSprCompress_Deflate,
-    kNumSprCompressTypes
-};
-
 typedef int32_t sprkey_t;
 
 // SpriteFileIndex contains sprite file's table of contents
@@ -102,23 +73,6 @@ struct SpriteFileIndex
     // Tells the number of index entries; this does NOT always correspond to a number of valid sprites
     inline size_t GetCount() const { return Offsets.size(); }
     inline sprkey_t GetLastSlot() const { return (sprkey_t)GetCount() - 1; }
-};
-
-// Invidual sprite data header (as read from the file)
-struct SpriteDatHeader
-{
-    int BPP = 0; // color depth (bytes per pixel); or input format
-    SpriteFormat SFormat = kSprFmt_Undefined; // storage format
-    uint32_t PalCount = 0; // palette length, if applicable to storage format
-    SpriteCompression Compress = kSprCompress_None; // compression type
-    int Width = 0; // sprite's width
-    int Height = 0; // sprite's height
-
-    SpriteDatHeader() = default;
-    SpriteDatHeader(int bpp, SpriteFormat sformat = kSprFmt_Undefined,
-        uint32_t pal_count = 0, SpriteCompression compress = kSprCompress_None,
-        int w = 0, int h = 0) : BPP(bpp), SFormat(sformat), PalCount(pal_count),
-          Compress(compress), Width(w), Height(h) {}
 };
 
 
@@ -227,11 +181,6 @@ public:
     void Finalize();
 
 private:
-    // Writes prepared image data in a proper file format, following explicit data_bpp rule
-    void WriteSpriteData(const SpriteDatHeader &hdr,
-        const uint8_t *im_data, size_t im_data_sz, int im_bpp,
-        const uint32_t palette[256]);
-
     std::unique_ptr<Stream> _out;
     int _storeFlags = 0;
     SpriteCompression _compress = kSprCompress_None;

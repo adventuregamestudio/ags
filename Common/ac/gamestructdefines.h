@@ -354,8 +354,11 @@ struct FontInfo
         Flags = flags;
         if ((flags & FFLG_SIZEMULTIPLIER) != 0)
         {
-            SizeMultiplier = Size;
-            Size = 0;
+            if (Size > 0)
+            {
+                SizeMultiplier = std::max(1, SizeMultiplier) * Size;
+                Size = 0;
+            }
         }
     }
 

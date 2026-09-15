@@ -20,6 +20,7 @@
 #include "game/customproperties.h"
 #include "game/room_file_blocks.h"
 #include "gfx/bitmap.h"
+#include "gfx/sprite_data_fmt.h"
 #include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
@@ -402,11 +403,17 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
     room->BgFrames.resize(room->BgFrameCount);
     if (!read_opts.SkipImageData)
     {
-        // Primary background (LZW or RLE compressed depending on format)
-        if (data_ver >= kRoomVersion_pre114_5)
+        HError err;
+        // Primary background (Deflate, LZW or RLE compressed depending on data version)
+        if (data_ver >= kRoomVersion_363_15)
+            room->BgFrames[0].GraphicBuf = SpriteDataUtils::ReadSprite_360(in, err, &room->Palette);
+        else if (data_ver >= kRoomVersion_pre114_5)
             room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
         else
             room->BgFrames[0].GraphicBuf = load_rle_bitmap8(in);
+
+        if (!err)
+            return err;
 
         // Area masks
         if (data_ver >= kRoomVersion_255b)
@@ -487,9 +494,23 @@ HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
             room->BgFrames[i].IsPaletteShared = in->ReadInt8() != 0;
     }
 
-    for (size_t i = 1; i < room->BgFrameCount; ++i)
+    HError err;
+    // Secondary backgrounds (Deflate or LZW compressed depending on data version)
+    if (data_ver >= kRoomVersion_363_15)
     {
-        room->BgFrames[i].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
+        for (size_t i = 1; i < room->BgFrameCount; ++i)
+        {
+            room->BgFrames[i].GraphicBuf = SpriteDataUtils::ReadSprite_360(in, err, &room->BgFrames[i].Palette);
+            if (!err)
+                return err;
+        }
+    }
+    else
+    {
+        for (size_t i = 1; i < room->BgFrameCount; ++i)
+        {
+            room->BgFrames[i].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
+        }
     }
     return HError::None();
 }
@@ -947,9 +968,10 @@ void WriteMainBlock(const RoomData *room, Stream *out)
     for (uint32_t i = 0; i < (uint32_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt32(room->Regions[i].Tint);
 
-    // NOTE: it looks like our lzw impl cannot expand properly if the image is less than 4x4 :(
+    // NOTE: some compression algorithms cannot work properly if the image is less than 4x4
     PixelBuffer dummy_buf(4, 4, kPxFmt_Indexed8);
-    save_lzw(out, room->BgFrames[0].GraphicBuf ? room->BgFrames[0].GraphicBuf : dummy_buf, &room->Palette);
+    SpriteDataUtils::WriteSprite_360(room->BgFrames[0].GraphicBuf ? room->BgFrames[0].GraphicBuf : dummy_buf, out,
+        kSprStore_OptimizeForSize, kSprCompress_Deflate, &room->Palette);
     save_rle_bitmap8(out, room->RegionMaskBuf ? room->RegionMaskBuf : dummy_buf);
     save_rle_bitmap8(out, room->WalkAreaMaskBuf ? room->WalkAreaMaskBuf : dummy_buf);
     save_rle_bitmap8(out, room->WalkBehindMaskBuf ? room->WalkBehindMaskBuf : dummy_buf);
@@ -983,7 +1005,8 @@ void WriteAnimBgBlock(const RoomData *room, Stream *out)
     for (size_t i = 0; i < room->BgFrameCount; ++i)
         out->WriteInt8(room->BgFrames[i].IsPaletteShared ? 1 : 0);
     for (size_t i = 1; i < room->BgFrameCount; ++i)
-        save_lzw(out, room->BgFrames[i].GraphicBuf, &room->BgFrames[i].Palette);
+        SpriteDataUtils::WriteSprite_360(room->BgFrames[i].GraphicBuf, out,
+            kSprStore_OptimizeForSize, kSprCompress_Deflate, &room->BgFrames[i].Palette);
 }
 
 void WritePropertiesBlock(const RoomData *room, Stream *out)

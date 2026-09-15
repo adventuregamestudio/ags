@@ -1090,11 +1090,7 @@ namespace AGS.Editor
                     _agsEditor.SaveUserDataFile();
 
                 _batchProcessShutdown = true;
-                if (!messages.HasErrors)
-                {
-                    BuildCommandsComponent.ShowCompileSuccessMessage();
-                }
-                else
+                if (messages.HasErrors)
                 {
                     error = true;
                 }
@@ -1412,13 +1408,13 @@ namespace AGS.Editor
             }
         }
 
-        public void PostOutputAndReportErrors(CompileMessages messages, string compiledWhat, bool showFirstError = false)
+        public void PostOutputAndReportErrors(CompileMessages messages, string compiledWhat, bool alwaysShowOnSuccess = false, bool showFirstError = false)
         {
             ShowOutputPanel(messages);
-            ReportErrorsIfAppropriate(messages, compiledWhat, showFirstError);
+            ReportErrorsIfAppropriate(messages, compiledWhat, alwaysShowOnSuccess, showFirstError);
         }
 
-        private void ReportErrorsIfAppropriate(CompileMessages errors, string compiledWhat, bool showFirstError)
+        private void ReportErrorsIfAppropriate(CompileMessages errors, string compiledWhat, bool alwaysShowOnSuccess, bool showFirstError)
         {
             if (errors.HasErrors)
             {
@@ -1442,10 +1438,15 @@ namespace AGS.Editor
                         ShowMessage($"{compiledWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
                 }
             }
-            else if ((_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
-                || StdConsoleWriter.IsEnabled)
+            else
             {
-                ShowMessage($"{compiledWhat} successfully.", MessageBoxIcon.Information);
+                string message = $"{compiledWhat} successfully.";
+                Factory.GUIController.ShowOutputPanel(message);
+                if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always
+                    || alwaysShowOnSuccess)
+                {
+                    ShowMessage(message, MessageBoxIcon.Information);
+                }
             }
         }
 

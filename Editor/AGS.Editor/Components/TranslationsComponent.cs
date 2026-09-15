@@ -595,7 +595,10 @@ namespace AGS.Editor.Components
                 }
             }
 
-            _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled", true);
+            // TODO: made it always show popup, because it's a special manual operation;
+            // can be disabled later if found unnecessary
+            _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled",
+                true /* always on success */, true /* show first error in popup */);
         }
 
         public override void CommandClick(string controlID)

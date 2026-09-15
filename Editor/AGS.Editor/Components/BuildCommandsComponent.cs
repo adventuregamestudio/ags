@@ -245,18 +245,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        public static void ShowCompileSuccessMessage()
-        {
-            string message = "Compilation successful!";
-
-            Factory.GUIController.ShowOutputPanel(message);
-
-            if (Factory.AGSEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
-            {
-                Factory.GUIController.ShowMessage(message, MessageBoxIcon.Information);
-            }
-        }
-
 		private void CompileGame(bool forceRebuild)
 		{
             _agsEditor.CurrentGame.WorkspaceState.RequiredRebuildTime = DateTime.Now;
@@ -266,10 +254,6 @@ namespace AGS.Editor.Components
                 // The user data may have been amended by the building process
                 if (!messages.HasErrors)
                     _agsEditor.SaveUserDataFile();
-                if (messages.Count == 0)
-				{
-                    ShowCompileSuccessMessage();
-                }
 			}
 		}
 

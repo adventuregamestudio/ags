@@ -21,6 +21,7 @@
 //=============================================================================
 #ifndef __AGS_CN_GFX__SPRITE_DATA_FMT_H
 #define __AGS_CN_GFX__SPRITE_DATA_FMT_H
+#include <allegro.h> // PALETTE
 #include "platform/types.h"
 #include "gfx/bitmapdata.h"
 #include "util/error.h"
@@ -84,22 +85,24 @@ struct SpriteDatHeader
 namespace SpriteDataUtils
 {
     // Read sprite from the stream; optionally fills sprite's palette (if available)
-    PixelBuffer ReadSprite_360(Stream *in, HError &err);
+    PixelBuffer ReadSprite_360(Stream *in, HError &err, PALETTE *out_palette = nullptr);
     // Reads sprite in pre-3.6.0 format, corresponding to engine versions 2.x - 3.6.0;
     // optionally fills sprite's palette (if available)
     // In this old format the sprite data does not have info about compression used,
     // so it must be provided.
-    PixelBuffer ReadSprite_321(Stream *in, SpriteCompression compress, HError &err);
+    PixelBuffer ReadSprite_321(Stream *in, SpriteCompression compress, HError &err, PALETTE *out_palette = nullptr);
 
     // Reads a sprite header, introduced in 3.6.0
     void ReadSpriteHeader_360(SpriteDatHeader &hdr, Stream *in);
     // Reads a sprite header in pre-3.6.0 format, corresponding to engine versions 2.x - 3.6.0.
     void ReadSpriteHeader_321(SpriteDatHeader &hdr, Stream *in, SpriteCompression compress);
 
-    // Read sprite data, using previously read header as a hint
-    PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &err);
-    // Read sprite data in pre-3.6.0 format, corresponding to engine versions 2.x - 3.6.0
-    PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err);
+    // Read sprite data, using previously read header as a hint;
+    // optionally fills sprite's palette (if available)
+    PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &err, PALETTE *out_palette = nullptr);
+    // Read sprite data in pre-3.6.0 format, corresponding to engine versions 2.x - 3.6.0;
+    // optionally fills sprite's palette (if available)
+    PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err, PALETTE *out_palette = nullptr);
 
     // Calculates the size of the sprite data ahead, using previously read header as a hint
     size_t GetSpriteDataSize_360(const SpriteDatHeader &hdr, Stream *in);
@@ -111,10 +114,10 @@ namespace SpriteDataUtils
     // Skip sprite data in pre-3.6.0 format, using previously read header as a hint
     void SkipSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress);
 
-    // Write sprite data, using provided format options;
+    // Write sprite data, using provided format options; optionally provides palette for a 8-bit image;
     // optionally lets provide a memory buffer for compression (if not provided then will allocate one each call)
     void WriteSprite_360(const BitmapData &image, Stream *out, int store_flags, SpriteCompression compress,
-        std::vector<uint8_t> *mem_buf);
+        const PALETTE *palette = nullptr, std::vector<uint8_t> *mem_buf = nullptr);
     // Write a prepared sprite data without any additional processing
     void WriteRawSpriteData_360(const SpriteDatHeader &hdr, Stream *out, const uint8_t *data, size_t data_sz);
 }

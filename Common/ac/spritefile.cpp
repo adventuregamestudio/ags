@@ -542,7 +542,7 @@ void SpriteFileWriter::WriteBitmap(const BitmapData &image)
     _index.Widths.push_back(image.GetWidth());
     _index.Heights.push_back(image.GetHeight());
 
-    SpriteDataUtils::WriteSprite_360(image, _out.get(), _storeFlags, _compress, &_membuf);
+    SpriteDataUtils::WriteSprite_360(image, _out.get(), _storeFlags, _compress, nullptr, &_membuf);
 }
 
 void SpriteFileWriter::WriteEmptySlot()

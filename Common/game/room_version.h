@@ -90,7 +90,8 @@ enum RoomFileVersion
     // But in principle one could backport a new header from 4.*
     // and use that for future 3.* as well (see ReadRoomHeader() in 4.* code).
     kRoomVersion_363_06     = 36306,
-    kRoomVersion_Current    = kRoomVersion_363_06
+    kRoomVersion_363_15     = 36315,
+    kRoomVersion_Current    = kRoomVersion_363_15
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

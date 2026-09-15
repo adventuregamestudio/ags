@@ -76,7 +76,7 @@ static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &d
             col = *((const uint16_t*)src);
             break;
         case 3:
-            col = src[0] | (src[1] << 8) | (src[2] << 16);
+            col = src[0] | (src[1] << 8) | (src[2] << 16); // FIXME: can do just *((const uint32_t*)src & 0xFFFFFF); ??
             break;
         case 4:
             col = *((const uint32_t*)src);
@@ -124,7 +124,7 @@ static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t 
             uint8_t index = data[p];
             assert(index < pal_count);
             uint32_t color = palette[index];
-            dst[0] = color & 0xFF;
+            dst[0] = color & 0xFF;          // FIXME: can use Memory::WriteInt24?
             dst[1] = (color >> 8) & 0xFF;
             dst[2] = (color >> 16) & 0xFF;
         }
@@ -200,7 +200,8 @@ static inline void WriteSprHeader(const SpriteDatHeader &hdr, Stream *out)
     out->WriteInt16(hdr.Height);
 }
 
-static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bool version360, SpriteCompression compress, HError &err)
+static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bool version360, SpriteCompression compress, HError &err,
+    PALETTE *out_palette)
 {
     const int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
     PixelBuffer image(w, h, ColorDepthToPixelFormat(bpp * 8));
@@ -284,14 +285,27 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         }
     }
     // Finally revert storage options
-    if (pal_bpp > 0)
+    if (pal_bpp > 0 && image.GetBytesPerPixel() > 1)
     {
         UnpackIndexedBitmap(image, im_data.Buf, im_data.Size, palette, hdr.PalCount);
+    }
+
+    // Remap palette from sprite data form to RGB struct (for 8-bit sprites only)
+    if (out_palette && bpp == 1)
+    {
+        for (int i = 0; i < 256; ++i)
+        {
+            (*out_palette)[i].r = (palette[i] >> _rgb_r_shift_32) & 0xFF;
+            (*out_palette)[i].g = (palette[i] >> _rgb_g_shift_32) & 0xFF;
+            (*out_palette)[i].b = (palette[i] >> _rgb_b_shift_32) & 0xFF;
+            (*out_palette)[i].a = 0;
+        }
     }
     return image;
 }
 
-static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression compress, HError &err)
+static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression compress, HError &err,
+    PALETTE *out_palette)
 {
     SpriteDatHeader hdr;
     version360 ? ReadSpriteHeader_360(hdr, in) : ReadSpriteHeader_321(hdr, in, compress);
@@ -307,27 +321,27 @@ static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression
         return {};
     }
 
-    return ReadSpriteDataImpl(hdr, in, version360, compress, err);
+    return ReadSpriteDataImpl(hdr, in, version360, compress, err, out_palette);
 }
 
-PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &err)
+PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &err, PALETTE *out_palette)
 {
-    return ReadSpriteDataImpl(hdr, in, true, kSprCompress_None /* read from format */, err);
+    return ReadSpriteDataImpl(hdr, in, true, kSprCompress_None /* read from format */, err, out_palette);
 }
 
-PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err)
+PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err, PALETTE *out_palette)
 {
-    return ReadSpriteDataImpl(hdr, in, false, compress, err);
+    return ReadSpriteDataImpl(hdr, in, false, compress, err, out_palette);
 }
 
-PixelBuffer ReadSprite_360(Stream *in, HError &err)
+PixelBuffer ReadSprite_360(Stream *in, HError &err, PALETTE *out_palette)
 {
-    return ReadSpriteImpl(in, true, kSprCompress_None /* read from format */, err);
+    return ReadSpriteImpl(in, true, kSprCompress_None /* read from format */, err, out_palette);
 }
 
-PixelBuffer ReadSprite_321(Stream *in, SpriteCompression compress, HError &err)
+PixelBuffer ReadSprite_321(Stream *in, SpriteCompression compress, HError &err, PALETTE *out_palette)
 {
-    return ReadSpriteImpl(in, false, compress, err);
+    return ReadSpriteImpl(in, false, compress, err, out_palette);
 }
 
 size_t GetSpriteDataSize_360(const SpriteDatHeader &hdr, Stream *in)
@@ -417,7 +431,7 @@ static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out,
 }
 
 static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flags, SpriteCompression compress,
-    std::vector<uint8_t> *mem_buf)
+    const PALETTE *palette, std::vector<uint8_t> *mem_buf)
 {
     const int bpp = image.GetBytesPerPixel();
     const int w = image.GetWidth();
@@ -426,13 +440,13 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
 
     // (Optional) Handle storage options
     std::vector<uint8_t> indexed_buf;
-    uint32_t palette[256];
+    uint32_t conv_palette[256];
     uint32_t pal_count = 0;
     SpriteFormat sformat = kSprFmt_Undefined;
     if ((store_flags & kSprStore_OptimizeForSize) != 0 && (bpp > 1))
     { // Try to store this sprite as an indexed bitmap
         uint32_t gen_pal_count;
-        if (CreateIndexedBitmap(image, indexed_buf, palette, gen_pal_count) && gen_pal_count > 0)
+        if (CreateIndexedBitmap(image, indexed_buf, conv_palette, gen_pal_count) && gen_pal_count > 0)
         { // Test the resulting size, and switch if the paletted image is less
             if (im_data.Size > (indexed_buf.size() + gen_pal_count * bpp))
             {
@@ -464,15 +478,25 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
         im_data = result ? ImBufferCPtr(mem_buf->data(), mem_buf->size(), 1) : ImBufferCPtr();
     }
 
-    // Write the final data
+    // Write the final data; if original image is 8-bit then use its own palette (if provided),
+    // otherwise use our convertion palette (if generated).
+    if (palette && bpp == 1)
+    {
+        const auto *pal = *palette;
+        for (int i = 0; i < 256; ++i)
+        {
+            conv_palette[i] = (pal[i].r << _rgb_r_shift_32) |
+                (pal[i].g << _rgb_g_shift_32) | (pal[i].b << _rgb_b_shift_32);
+        }
+    }
     SpriteDatHeader hdr(bpp, sformat, pal_count, compress, w, h);
-    WriteSpriteDataImpl(hdr, out, im_data.Buf, im_data.Size, im_data.BPP, palette);
+    WriteSpriteDataImpl(hdr, out, im_data.Buf, im_data.Size, im_data.BPP, conv_palette);
 }
 
 void WriteSprite_360(const BitmapData &image, Stream *out, int store_flags, SpriteCompression compress,
-    std::vector<uint8_t> *mem_buf)
+    const PALETTE *palette, std::vector<uint8_t> *mem_buf)
 {
-    WriteSpriteImpl(image, out, store_flags, compress, mem_buf);
+    WriteSpriteImpl(image, out, store_flags, compress, palette, mem_buf);
 }
 
 void WriteRawSpriteData_360(const SpriteDatHeader &hdr, Stream *out, const uint8_t *data, size_t data_sz)

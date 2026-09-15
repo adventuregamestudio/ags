@@ -47,6 +47,8 @@ set(TOOLS_COMMON_SOURCES
         ../Common/gfx/image_file.h
         ../Common/gfx/image_pcx.cpp
         ../Common/gfx/image_png.cpp
+        ../Common/gfx/sprite_data_fmt.cpp
+        ../Common/gfx/sprite_data_fmt.h
         ../Common/script/cc_common.cpp
         ../Common/script/cc_common.h
         ../Common/script/cc_script.cpp

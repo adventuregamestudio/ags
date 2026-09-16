@@ -291,6 +291,7 @@ void GUIMain::ResetOverControl()
     _mouseWasAt.X = -1;
     _mouseWasAt.Y = -1;
     _mouseOverCtrl = -1;
+    _wasFocused = false; // reset the focus state too, for now
 }
 
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
@@ -438,30 +439,55 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
     ds->FillRect(Rect(x, y, x + get_fixed_pixel_size(1), y + get_fixed_pixel_size(1)), draw_color);
 }
 
-void GUIMain::Poll(int mx, int my)
+void GUIMain::Poll(int mx, int my, bool has_focus)
 {
     _polling = true;
     mx -= _x, my -= _y; // translate to GUI's local coordinates
-    if (mx != _mouseWasAt.X || my != _mouseWasAt.Y)
+
+    // If GUI just went out of focus then reset focus on any control that had it
+    if (!has_focus && _wasFocused)
+    {
+        // If some control still has mouse press lock to it, then revert it
+        if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+            _mouseOverCtrl = _mouseDownCtrl;
+
+        if (_mouseOverCtrl >= 0)
+        {
+            // Leave previous control (if any was focused)
+            _controls[_mouseOverCtrl]->OnMouseLeave();
+            // If this was a control which had mouse button pressed on, then unpress it,
+            // but do this *after* Leave event, so that it won't activate.
+            if (_mouseDownCtrl == _mouseOverCtrl)
+                _controls[_mouseOverCtrl]->OnMouseUp();
+        }
+
+        _mouseOverCtrl = -1;
+        _mouseDownCtrl = -1;
+    }
+
+    // If GUI has focus, and mouse moved from the last saved pos, then update controls
+    // Also update if GUI did not have a focus, but now has
+    if (has_focus && ((mx != _mouseWasAt.X || my != _mouseWasAt.Y) || (_wasFocused != has_focus)))
     {
         int ctrl_index = FindControlAtLocal(mx, my, 0, true);
 
         if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+        {
+            // Mouse button is still held, report mouse motion;
+            // NOTE: do this even if no focus (held mouse button and moved cursor outside of GUI?)
             _controls[_mouseDownCtrl]->OnMouseMove(mx, my);
+        }
         else if (ctrl_index != _mouseOverCtrl)
         {
+            // A different control is focused, or none at all
+            // Leave previous control (if any was focused)
             if (_mouseOverCtrl >= 0)
                 _controls[_mouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && !GUI::IsGUIEnabled(_controls[ctrl_index]))
-                // the control is disabled - ignore it
-                _mouseOverCtrl = -1;
-            else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
-                // the control is not clickable - ignore it
-                _mouseOverCtrl = -1;
-            else
+            if ((ctrl_index >= 0)
+                && GUI::IsGUIEnabled(_controls[ctrl_index]) && _controls[ctrl_index]->IsClickable())
             {
-                // over a different control
+                // Focus and Enter another, enabled and clickable control
                 _mouseOverCtrl = ctrl_index;
                 if (_mouseOverCtrl >= 0)
                 {
@@ -469,13 +495,21 @@ void GUIMain::Poll(int mx, int my)
                     _controls[_mouseOverCtrl]->OnMouseMove(mx, my);
                 }
             }
-        } 
+            else
+            {
+                // No active control beyond the cursor - reset focus
+                _mouseOverCtrl = -1;
+            }
+        }
         else if (_mouseOverCtrl >= 0)
+        {
+            // Same active control is focused, report mouse motion
             _controls[_mouseOverCtrl]->OnMouseMove(mx, my);
+        }
     }
 
-    _mouseWasAt.X = mx;
-    _mouseWasAt.Y = my;
+    _wasFocused = has_focus;
+    _mouseWasAt = Point(mx, my);
     _polling = false;
 }
 

@@ -68,7 +68,7 @@ void InterfaceOn(int ifn) {
   debug_script_log("GUI %d turned on", ifn);
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
-  guis[ifn].Poll(mousex, mousey);
+  guis[ifn].Poll(mousex, mousey, GetGUIAtDirect(mousex, mousey) == ifn);
 }
 
 void InterfaceOff(int ifn) {
@@ -249,14 +249,21 @@ int GetGUIObjectAt (int xx, int yy) {
     return toret->Id;
 }
 
-int GetGUIAt (int xx,int yy) {
-    data_to_game_coords(&xx, &yy);
+int GetGUIAtDirect(int x, int y)
+{
     // Test in the opposite order (from closer to further)
-    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g) {
-        if (guis[*g].IsInteractableAt(xx, yy))
+    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g)
+    {
+        if (guis[*g].IsInteractableAt(x, y))
             return *g;
     }
     return -1;
+}
+
+int GetGUIAt(int x,int y)
+{
+    data_to_game_coords(&x, &y);
+    return GetGUIAtDirect(x, y);
 }
 
 void SetTextWindowGUI (int guinum) {

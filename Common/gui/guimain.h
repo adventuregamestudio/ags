@@ -165,8 +165,9 @@ public:
     void    DrawSelf(Bitmap *ds);
     void    DrawWithControls(Bitmap *ds);
     void    DrawControls(Bitmap *ds);
-    // Polls GUI state, providing current cursor (mouse) coordinates
-    void    Poll(int mx, int my);
+    // Polls GUI state, providing current cursor (mouse) coordinates.
+    // If GUI has focus, then it will trigger OnEnter events for controls.
+    void    Poll(int mx, int my, bool has_focus);
     // Reconnects this GUIMain with the child controls from the global guiobject collection
     HError  RebuildArray(GUIRefCollection &guiobjs);
     void    ResortZOrder();
@@ -227,6 +228,7 @@ public:
     int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
     int32_t ZOrder;
 
+    bool    WasFocused;     // whether GUI was focused during last Poll
     int32_t FocusCtrl;      // which control has the focus
     int32_t HighlightCtrl;  // which control has the bounding selection rect
     int32_t MouseOverCtrl;  // which control has the mouse cursor over it

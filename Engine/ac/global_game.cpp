@@ -1022,7 +1022,8 @@ int IsInteractionAvailable (int xx, int yy, int mood)
 
 void GetMessageText (int msg, char *buffer) {
     VALIDATE_STRING(buffer);
-    get_message_text (msg, buffer, 0);
+    String full_msg = get_message_text(msg);
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", full_msg.GetCStr());
 }
 
 void SetSpeechFont (int fontnum) {

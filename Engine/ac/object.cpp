@@ -564,6 +564,11 @@ void move_object(int objj, int tox, int toy, int speed, int ignwal) {
         return;
 
     auto &obj = objs[objj];
+    if (obj.on != OBJ_STATE_ENABLED)
+    {
+        debug_script_warn("%s: object %d is disabled, cannot move", "MoveObject", objj);
+        return;
+    }
     // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition
     if ((loaded_game_file_version <= kGameVersion_261) && (speed == -1))
     {

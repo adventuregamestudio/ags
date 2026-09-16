@@ -232,6 +232,12 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
     int blocking, int direction, int sframe, int volume)
 {
+    if (chaa->on != 1)
+    {
+        debug_script_warn("%s: character %s is turned off and cannot be animated", "Character.Animate", chaa->scrname);
+        return;
+    }
+
     // If idle view in progress for the character, stop the idle anim;
     // do this prior to the loop check, as the view may switch back to defview here
     stop_character_idling(chaa);

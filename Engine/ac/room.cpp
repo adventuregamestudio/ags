@@ -195,13 +195,13 @@ bool Room_SetTextProperty(const char *property, const char *value)
     return set_text_property(croom->roomProps, property, value);
 }
 
-const char* Room_GetMessages(int index) {
-    if ((index < 0) || ((uint32_t)index >= thisroom.MessageCount)) {
+const char* Room_GetMessages(int index)
+{
+    if ((index < 0) || ((uint32_t)index >= thisroom.MessageCount))
         return nullptr;
-    }
-    char buffer[STD_BUFFER_SIZE];
-    replace_tokens(get_translation(thisroom.Messages[index].GetCStr()), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    
+    String full_msg = replace_tokens(get_translation(thisroom.Messages[index].GetCStr()));
+    return CreateNewScriptString(full_msg);
 }
 
 bool Room_Exists(int room)

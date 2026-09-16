@@ -195,22 +195,8 @@ Bitmap *ReadBitmap(Stream *in, bool compressed)
     }
     else
     {
-        // TODO: move this code to BitmapHelper?
-        for (int h = 0; h < pichit; ++h)
-        {
-            switch (piccoldep)
-            {
-            case 8:
-                in->ReadArray(thispic->GetScanLineForWriting(h), picwid, 1);
-                break;
-            case 16:
-                in->ReadArrayOfInt16((int16_t *)thispic->GetScanLineForWriting(h), picwid);
-                break;
-            case 32:
-                in->ReadArrayOfInt32((int32_t *)thispic->GetScanLineForWriting(h), picwid);
-                break;
-            }
-        }
+        PixelOp::ReadPixelData(in, thispic->GetDataForWriting(), thispic->GetWidth(), thispic->GetHeight(),
+            thispic->GetBPP(), thispic->GetPitch());
     }
 
     return thispic;
@@ -259,22 +245,7 @@ void WriteBitmap(const Common::Bitmap *thispic, Stream *out, bool compressed)
     }
     else
     {
-        // TODO: move this code to BitmapHelper?
-        for (int h = 0; h < thispic->GetHeight(); ++h)
-        {
-            switch (thispic->GetColorDepth())
-            {
-            case 8:
-                out->WriteArray(&thispic->GetScanLine(h)[0], thispic->GetWidth(), 1);
-                break;
-            case 16:
-                out->WriteArrayOfInt16((const int16_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
-                break;
-            case 32:
-                out->WriteArrayOfInt32((const int32_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
-                break;
-            }
-        }
+        PixelOp::WritePixelData(thispic->GetBitmapData(), out);
     }
 }
 

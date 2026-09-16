@@ -218,9 +218,12 @@ void display_switch_out_suspend();
 // Called when the game gets input focus and should resume
 void display_switch_in_resume();
 
-void replace_tokens(const char*srcmes,char*destm, size_t maxlen);
-const char *get_global_message (int msnum);
-void get_message_text (int msnum, char *buffer, char giveErr = 1);
+// Get global message (translated); note that this string may contain tokens (placeholders).
+const char *get_global_message(int msnum);
+// Replace tokens with respective values in a message (global or room's)
+AGS::Common::String replace_tokens(const char *srcmes);
+// Get final message text, either global or room's
+AGS::Common::String get_message_text(int msnum, bool give_err = true);
 
 // Notifies the game objects that certain sprite was updated.
 // This make them update their render states, caches, and so on.

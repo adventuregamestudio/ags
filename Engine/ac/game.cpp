@@ -1011,12 +1011,11 @@ const char* Game_GetGlobalMessages(int index) {
     if ((index < 500) || (index >= MAXGLOBALMES + 500)) {
         return nullptr;
     }
-    char buffer[STD_BUFFER_SIZE];
     // Must translate here, as it's potentially a formatted string with macros.
     // FIXME: get_global_message() already does get_translation(), but IMO that's wrong,
     // and should be refactored. Instead call get_translation() after getting a message text.
-    replace_tokens(get_global_message(index), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    String message = replace_tokens(get_global_message(index));
+    return CreateNewScriptString(message);
 }
 
 int Game_GetSpeechFont() {
@@ -1805,82 +1804,79 @@ void display_switch_in_resume()
     game_update_suspend = false;
 }
 
-void replace_tokens(const char*srcmes,char*destm, size_t maxlen) {
-    size_t indxdest=0,indxsrc=0;
-    const char*srcp;
-    char *destp;
-    while (srcmes[indxsrc]!=0) {
-        srcp=&srcmes[indxsrc];
-        destp=&destm[indxdest];
-        if ((strncmp(srcp,"@IN",3)==0) || (strncmp(srcp,"@GI",3)==0)) {
+String replace_tokens(const char *srcmes)
+{
+    String result;
+    const char *srcp;
+    size_t indxsrc = 0;
+    while (srcmes[indxsrc] != 0)
+    {
+        srcp = &srcmes[indxsrc];
+        if ((strncmp(srcp,"@IN",3)==0) || (strncmp(srcp,"@GI",3)==0))
+        {
             int tokentype=0;
             if (srcp[1]=='I') tokentype=1;
             else tokentype=2;
             int inx=atoi(&srcp[3]);
             srcp++;
             indxsrc+=2;
-            while (srcp[0]!='@') {
+            while (srcp[0]!='@')
+            {
                 if (srcp[0]==0) quit("!Display: special token not terminated");
                 srcp++;
                 indxsrc++;
             }
             char tval[10];
-            if (tokentype==1) {
-                if ((inx<1) | (inx>=game.numinvitems))
+            if (tokentype==1)
+            {
+                if ((inx<1) || (inx>=game.numinvitems))
                     quit("!Display: invalid inv item specified in @IN@");
                 snprintf(tval,sizeof(tval),"%d",playerchar->inv[inx]);
             }
-            else {
-                if ((inx<0) | (inx>=MAXGSVALUES))
+            else
+            {
+                if ((inx<0) || (inx>=MAXGSVALUES))
                     quit("!Display: invalid global int index speicifed in @GI@");
                 snprintf(tval,sizeof(tval),"%d",GetGlobalInt(inx));
             }
-            snprintf(destp, maxlen, "%s", tval);
-            indxdest+=strlen(tval);
+            result.AppendFmt("%s", tval);
         }
-        else {
-            destp[0]=srcp[0];
-            indxdest++;
+        else
+        {
+            result.AppendChar(*srcp);
             indxsrc++;
         }
-        if (indxdest >= maxlen - 3)
-            break;
     }
-    destm[indxdest]=0;
+    return result;
 }
 
-const char *get_global_message (int msnum) {
+const char *get_global_message (int msnum)
+{
     if (game.messages[msnum - 500].IsEmpty())
         return "";
     return get_translation(game.messages[msnum - 500].GetCStr());
 }
 
-void get_message_text (int msnum, char *buffer, char giveErr) {
-    int maxlen = 9999;
-    if (!giveErr)
-        maxlen = MAX_MAXSTRLEN;
-
-    if (msnum>=500) {
-
-        if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500].IsEmpty())) {
-            if (giveErr)
-                quit("!DisplayGlobalMessage: message does not exist");
-            buffer[0] = 0;
-            return;
+String get_message_text(int msnum, bool give_err)
+{
+    if (msnum>=500)
+    {
+        if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500].IsEmpty()))
+        {
+            if (give_err)
+                quitprintf("!DisplayGlobalMessage: message %d does not exist", msnum-500);
+            return {};
         }
-        buffer[0] = 0;
-        replace_tokens(get_translation(game.messages[msnum-500].GetCStr()), buffer, maxlen);
-        return;
+        return replace_tokens(get_translation(game.messages[msnum-500].GetCStr()));
     }
-    else if (msnum < 0 || (uint32_t)msnum >= thisroom.MessageCount) {
-        if (giveErr)
-            quit("!DisplayMessage: Invalid message number to display");
-        buffer[0] = 0;
-        return;
+    else if (msnum < 0 || (uint32_t)msnum >= thisroom.MessageCount)
+    {
+        if (give_err)
+            quitprintf("!DisplayMessage: Invalid message number to display (%d)", msnum);
+        return {};
     }
 
-    buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
+    return replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()));
 }
 
 void game_sprite_updated(int sprnum, bool deleted)

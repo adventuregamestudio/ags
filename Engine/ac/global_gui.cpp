@@ -69,7 +69,7 @@ void InterfaceOn(int ifn) {
   // modal interface
   if (guis[ifn].GetPopupStyle()==kGUIPopupModal) PauseGame();
   if (play.mouse_input_enabled)
-    guis[ifn].Poll(mousex, mousey);
+    guis[ifn].Poll(mousex, mousey, GetGUIAtDirect(mousex, mousey, kHit_Interactable) == ifn);
 }
 
 void InterfaceOff(int ifn) {
@@ -252,10 +252,9 @@ int GetGUIObjectAt(int xx, int yy)
     return toret->GetID();
 }
 
-int GetGUIAt(int x,int y, int hit_options)
+int GetGUIAtDirect(int x, int y, int hit_options)
 {
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
-    data_to_game_coords(&x, &y);
     // Test in the opposite order (from closer to further)
     for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g)
     {
@@ -269,6 +268,12 @@ int GetGUIAt(int x,int y, int hit_options)
         }
     }
     return -1;
+}
+
+int GetGUIAt(int x,int y, int hit_options)
+{
+    data_to_game_coords(&x, &y);
+    return GetGUIAtDirect(x, y, hit_options);
 }
 
 int GetGUIAt2(int x, int y)

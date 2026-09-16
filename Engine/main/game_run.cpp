@@ -915,11 +915,12 @@ static void update_cursor_over_gui()
     if (!IsInterfaceEnabled() || !play.mouse_input_enabled)
         return; // interface is disabled (by script or blocking action)
     // Poll guis
+    int focused_gui = GetGUIAtDirect(mousex, mousey, kHit_Interactable);
     for (auto &gui : guis)
     {
         if (!gui.IsDisplayed()) continue; // not on screen
         if (!gui.IsClickable()) continue; // don't update non-clickable
-        gui.Poll(mousex, mousey);
+        gui.Poll(mousex, mousey, focused_gui == gui.GetID());
     }
 }
 

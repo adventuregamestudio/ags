@@ -238,6 +238,11 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     const RoomObjectInfo &obji = thisroom.Objects[obn];
     RoomObject &obj = objs[obn];
 
+    if (obj.on != OBJ_STATE_ENABLED)
+    {
+        debug_script_warn("%s: object %d is disabled, cannot animate", "AnimateObject", obn);
+        return;
+    }
     if (obj.view == RoomObject::NoView)
         quit("!AnimateObject: object has not been assigned a view");
 

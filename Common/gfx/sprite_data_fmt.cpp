@@ -228,8 +228,11 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
               break;
         default: assert(0); break;
         }
-        indexed_buf.resize(w * h);
-        im_data = ImBufferPtr(indexed_buf.data(), indexed_buf.size(), 1, w);
+        if (bpp > 1)
+        { // If destination image is not 8-bit, then we need a intermediate buffer for unpacking
+            indexed_buf.resize(w * h);
+            im_data = ImBufferPtr(indexed_buf.data(), indexed_buf.size(), 1, w);
+        }
     }
     // (Optional) Decompress the image data into the temp buffer
     size_t in_data_size =
@@ -267,7 +270,9 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         PixelOp::ReadPixelData(in, im_data.Buf, hdr.Width, hdr.Height, im_data.BPP, im_data.Stride);
     }
     // Finally revert storage options
-    if (pal_bpp > 0 && image.GetBytesPerPixel() > 1)
+    // If we have a palette, and destination image depth is more than 8-bit,
+    // then convert it back from the indexed bitmap
+    if (pal_bpp > 0 && bpp > 1)
     {
         UnpackIndexedBitmap(image, im_data.Buf, im_data.Size, palette, hdr.PalCount);
     }
@@ -414,8 +419,10 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
     uint32_t conv_palette[256];
     uint32_t pal_count = 0;
     SpriteFormat sformat = kSprFmt_Undefined;
+    // If storage flags request space optimization, and this is NOT a indexed image (8-bit),
+    // then try converting image to the indexed image + palette, and see if it gains anything.
     if ((store_flags & kSprStore_OptimizeForSize) != 0 && (bpp > 1))
-    { // Try to store this sprite as an indexed bitmap
+    {
         uint32_t gen_pal_count;
         if (CreateIndexedBitmap(image, indexed_buf, conv_palette, gen_pal_count) && gen_pal_count > 0)
         { // Test the resulting size, and switch if the paletted image is less
@@ -427,6 +434,13 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
             }
         }
     }
+    // Otherwise, if it's a 8-bit image, and palette is provided, then assign R8G8B8 palette format
+    else if (bpp == 1 && palette)
+    {
+        sformat = kSprFmt_PaletteRgb888;
+        pal_count = 256; // we don't know exact number of colors in this case
+    }
+
     // (Optional) Compress the image data into the temp buffer
     std::vector<uint8_t> local_membuf;
     if (compress != kSprCompress_None)

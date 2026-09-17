@@ -221,7 +221,7 @@ void display_switch_in_resume();
 // Get global message (translated); note that this string may contain tokens (placeholders).
 const char *get_global_message(int msnum);
 // Replace tokens with respective values in a message (global or room's)
-AGS::Common::String replace_tokens(const char *srcmes);
+AGS::Common::String replace_message_tokens(const AGS::Common::String &text);
 // Get final message text, either global or room's
 AGS::Common::String get_message_text(int msnum, bool give_err = true);
 

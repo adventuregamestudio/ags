@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_GAME__DATAHELPERS_H
 #define __AGS_CN_GAME__DATAHELPERS_H
 
+#include <functional>
 #include <vector>
 #include "util/string.h"
 #include "util/stream.h"
@@ -32,6 +33,17 @@ namespace Common
     // for in such case "\[" will be treated as a unknown escape sequence,
     // while "\\[" will be converted to "\[" by merging "\\" pair.
     String PreprocessLineForOldStyleLinebreaks(const String &line);
+
+    // Searches the input string for the macro placeholder surrounded by '@',
+    // for each found placeholder calls the provided callback function.
+    // Optionally allow the last macro to be unclosed (backwards compatibility).
+    void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse,
+        bool allow_unclosed_macros = false);
+    // Searches the input string for the macro placeholder surrounded by '@',
+    // for each found placeholder calls the provided callback function.
+    // Optionally allow the last macro to be unclosed (backwards compatibility).
+    String ResolveMacroTokens(const String &text, std::function<bool(const String &macro, String &result)> &fn_parse,
+        bool allow_unclosed_macros = false);
 
     // Password used for encryption; exposed for tests and editor (temporarily)
     extern const char *EncryptPassword;

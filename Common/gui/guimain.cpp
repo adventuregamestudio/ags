@@ -16,6 +16,7 @@
 #include <algorithm>
 #include "ac/game_version.h"
 #include "ac/spritecache.h"
+#include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "gui/guibutton.h"
@@ -1076,95 +1077,49 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
-    {
-        const size_t macro_at = scan_at + 1;
-        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
-        if (macro_end == String::NoIndex)
-        {
-            // Malformed macro string, stop
-            // NOTE: allow macros without closing '@' in older games
-            if (GUI::DataVersion > kGameVersion_350)
-                break;
-
-            macro_end = text.GetLength();
-        }
-        if (macro_end == macro_at)
-        {
-            // Zero-length substring, ignore and continue from the last '@'
-            continue;
-        }
-
-        // Test which macro is it
-        const size_t macro_len = macro_end - macro_at;
-        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
-            macro_flags |= kLabelMacro_Gamename;
-        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
-            macro_flags |= kLabelMacro_Overhotspot;
-        else if (text.SubstrEqualsNoCase("score", macro_at, macro_len))
-            macro_flags |= kLabelMacro_Score;
-        else if (text.SubstrEqualsNoCase("scoretext", macro_at, macro_len))
-            macro_flags |= kLabelMacro_ScoreText;
-        else if (text.SubstrEqualsNoCase("totalscore", macro_at, macro_len))
-            macro_flags |= kLabelMacro_TotalScore;
-        else
-            continue; // no matching macro, ignore and continue from the last '@'
-
-        // If macro was resolved, then search for the next @...@ pair
-        scan_at = text.FindChar('@', macro_end + 1);
-    }
+    std::function<bool(const String&)> fn_scan = [&macro_flags](const String &macro)->bool
+        { 
+            if (macro.CompareNoCase("gamename") == 0)
+                macro_flags |= kLabelMacro_Gamename;
+            else if (macro.CompareNoCase("overhotspot") == 0)
+                macro_flags |= kLabelMacro_Overhotspot;
+            else if (macro.CompareNoCase("score") == 0)
+                macro_flags |= kLabelMacro_Score;
+            else if (macro.CompareNoCase("scoretext") == 0)
+                macro_flags |= kLabelMacro_ScoreText;
+            else if (macro.CompareNoCase("totalscore") == 0)
+                macro_flags |= kLabelMacro_TotalScore;
+            else
+                return false;
+            return true;
+        };
+    ScanMacroTokens(text, fn_scan,
+        // Allow macros without closing '@' in older games
+        (GUI::DataVersion <= kGameVersion_350));
     return (GUILabelMacro)macro_flags;
 }
 
 String ResolveMacroTokens(const String &text)
 {
-    String resolved_text;
-    size_t text_at = 0u;
-    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
-    {
-        const size_t macro_at = scan_at + 1;
-        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
-        if (macro_end == String::NoIndex)
-        {
-            // NOTE: allow macros without closing '@' in older games
-            if (GUI::DataVersion > kGameVersion_350)
-                break;
-
-            macro_end = text.GetLength();
-        }
-        if (macro_end == macro_at)
-        {
-            // Zero-length substring, ignore and continue from the last '@'
-            continue;
-        }
-
-        // Copy literal text (if there's any between macros)
-        resolved_text.Append(text.Mid(text_at, macro_at - 1 - text_at));
-        text_at = macro_at - 1;
-
-        // Test which macro is it
-        const size_t macro_len = macro_end - macro_at;
-        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
-            resolved_text.Append(GUI::Context.GameTitle);
-        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
-            resolved_text.Append(GUI::Context.Overhotspot);
-        else if (text.SubstrEqualsNoCase("score", macro_at, macro_len))
-            resolved_text.AppendFmt("%d", GUI::Context.Score);
-        else if (text.SubstrEqualsNoCase("scoretext", macro_at, macro_len))
-            resolved_text.AppendFmt("%d of %d", GUI::Context.Score, GUI::Context.TotalScore);
-        else if (text.SubstrEqualsNoCase("totalscore", macro_at, macro_len))
-            resolved_text.AppendFmt("%d", GUI::Context.TotalScore);
-        else
-            continue; // no matching macro, continue from the last '@'
-
-        // If macro was resolved, then search for the next @...@ pair
-        text_at = macro_end + 1;
-        scan_at = text.FindChar('@', macro_end + 1);
-    }
-
-    // Copy trailing literal text (if there's any)
-    resolved_text.Append(text.Mid(text_at));
-    return resolved_text;
+    std::function<bool(const String&, String&)> fn_resolve = [](const String &macro, String &result)->bool
+        { 
+            if (macro.CompareNoCase("gamename") == 0)
+                result = GUI::Context.GameTitle;
+            else if (macro.CompareNoCase("overhotspot") == 0)
+                result = GUI::Context.Overhotspot;
+            else if (macro.CompareNoCase("score") == 0)
+                result = String::FromFormat("%d", GUI::Context.Score);
+            else if (macro.CompareNoCase("scoretext") == 0)
+                result= String::FromFormat("%d of %d", GUI::Context.Score, GUI::Context.TotalScore);
+            else if (macro.CompareNoCase("totalscore") == 0)
+                result= String::FromFormat("%d", GUI::Context.TotalScore);
+            else
+                return false;
+            return true;
+        };
+    return AGS::Common::ResolveMacroTokens(text, fn_resolve,
+        // Allow macros without closing '@' in older games
+        (GUI::DataVersion <= kGameVersion_350));
 }
 
 HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)

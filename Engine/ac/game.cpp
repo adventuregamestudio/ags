@@ -51,6 +51,7 @@
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptgame.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "data/data_helpers.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -1014,7 +1015,7 @@ const char* Game_GetGlobalMessages(int index) {
     // Must translate here, as it's potentially a formatted string with macros.
     // FIXME: get_global_message() already does get_translation(), but IMO that's wrong,
     // and should be refactored. Instead call get_translation() after getting a message text.
-    String message = replace_tokens(get_global_message(index));
+    String message = replace_message_tokens(String::Wrapper(get_global_message(index)));
     return CreateNewScriptString(message);
 }
 
@@ -1804,50 +1805,31 @@ void display_switch_in_resume()
     game_update_suspend = false;
 }
 
-String replace_tokens(const char *srcmes)
+String replace_message_tokens(const String &text)
 {
-    String result;
-    const char *srcp;
-    size_t indxsrc = 0;
-    while (srcmes[indxsrc] != 0)
-    {
-        srcp = &srcmes[indxsrc];
-        if ((strncmp(srcp,"@IN",3)==0) || (strncmp(srcp,"@GI",3)==0))
-        {
-            int tokentype=0;
-            if (srcp[1]=='I') tokentype=1;
-            else tokentype=2;
-            int inx=atoi(&srcp[3]);
-            srcp++;
-            indxsrc+=2;
-            while (srcp[0]!='@')
+    std::function<bool(const String&, String&)> fn_resolve = [](const String &macro, String &result)->bool
+        { 
+            // Inventory quantity
+            if (macro.StartsWith("IN"))
             {
-                if (srcp[0]==0) quit("!Display: special token not terminated");
-                srcp++;
-                indxsrc++;
-            }
-            char tval[10];
-            if (tokentype==1)
-            {
-                if ((inx<1) || (inx>=game.numinvitems))
+                int index = atoi(macro.GetCStr());
+                if ((index < 1) || (index >= game.numinvitems))
                     quit("!Display: invalid inv item specified in @IN@");
-                snprintf(tval,sizeof(tval),"%d",playerchar->inv[inx]);
+                result = StrUtil::IntToString(playerchar->inv[index]);
+                return true;
             }
-            else
+            // Global integer value
+            else if (macro.StartsWith("GI"))
             {
-                if ((inx<0) || (inx>=MAXGSVALUES))
+                int index = atoi(macro.GetCStr());
+                if ((index < 0) || (index >= MAXGSVALUES))
                     quit("!Display: invalid global int index speicifed in @GI@");
-                snprintf(tval,sizeof(tval),"%d",GetGlobalInt(inx));
+                result = StrUtil::IntToString(GetGlobalInt(index));
+                return true;
             }
-            result.AppendFmt("%s", tval);
-        }
-        else
-        {
-            result.AppendChar(*srcp);
-            indxsrc++;
-        }
-    }
-    return result;
+            return false;
+        };
+    return ResolveMacroTokens(text, fn_resolve);
 }
 
 const char *get_global_message (int msnum)
@@ -1867,7 +1849,7 @@ String get_message_text(int msnum, bool give_err)
                 quitprintf("!DisplayGlobalMessage: message %d does not exist", msnum-500);
             return {};
         }
-        return replace_tokens(get_translation(game.messages[msnum-500].GetCStr()));
+        return replace_message_tokens(get_translation(game.messages[msnum-500].GetCStr()));
     }
     else if (msnum < 0 || (uint32_t)msnum >= thisroom.MessageCount)
     {
@@ -1876,7 +1858,7 @@ String get_message_text(int msnum, bool give_err)
         return {};
     }
 
-    return replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()));
+    return replace_message_tokens(get_translation(thisroom.Messages[msnum].GetCStr()));
 }
 
 void game_sprite_updated(int sprnum, bool deleted)

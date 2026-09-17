@@ -221,7 +221,7 @@ const char* Room_GetMessages(int index)
         return nullptr;
     
     // Must translate here, as it's potentially a formatted string with macros.
-    String full_msg = replace_tokens(get_translation(thisroom.Messages[index].GetCStr()));
+    String full_msg = replace_message_tokens(get_translation(thisroom.Messages[index].GetCStr()));
     return CreateNewScriptString(full_msg);
 }
 

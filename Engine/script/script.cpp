@@ -236,12 +236,12 @@ HError create_game_scripts()
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         if (!scriptModules[i])
-            return new Error(String::FromFormat("Script module (%d) '%s' was not loaded", i, scriptModuleNames[i].GetCStr()));
+            return new Error(String::FromFormat("Script module (%zu) '%s' was not loaded", i, scriptModuleNames[i].GetCStr()));
         moduleInst[i] = ccInstance::CreateFromScript(scriptModules[i]);
         if (!moduleInst[i])
-            return new Error(String::FromFormat("Failed to create the script module (%d) '%s':\n%s",
+            return new Error(String::FromFormat("Failed to create the script module (%zu) '%s':\n%s",
                 i, scriptModules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
-        Debug::Printf("Created script module (%d) '%s'", i, scriptModules[i]->GetScriptName().c_str());
+        Debug::Printf("Created script module (%zu) '%s'", i, scriptModules[i]->GetScriptName().c_str());
         all_insts.push_back(moduleInst[i].get()); // this is only for temp reference
     }
 
@@ -281,7 +281,7 @@ HError create_game_scripts()
     {
         auto fork = moduleInst[i]->Fork();
         if (!fork)
-            return new Error(String::FromFormat("Failed to create non-blocking fork for the script module (%d) '%s':\n%s",
+            return new Error(String::FromFormat("Failed to create non-blocking fork for the script module (%zu) '%s':\n%s",
                 i, scriptModules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
 
         moduleInstFork[i] = std::move(fork);

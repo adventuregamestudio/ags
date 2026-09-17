@@ -517,7 +517,7 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ve
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
     if (obj_count != room->Objects.size())
         return new RoomFileError(kRoomFileErr_InconsistentData,
-            String::FromFormat("Mismatching number of room objects: expected %zu, got %zu", room->Objects.size(), obj_count));
+            String::FromFormat("Mismatching number of room objects: expected %zu, got %u", room->Objects.size(), obj_count));
 
     for (auto &obj : room->Objects)
     {

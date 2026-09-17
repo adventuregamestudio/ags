@@ -18,6 +18,7 @@
 #include "ac/spritecache.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "gui/gui_helpers.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
@@ -973,38 +974,25 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    const char *macro_at = nullptr;
-    for (const char *ptr = text.GetCStr(); *ptr; ++ptr)
-    {
-        // Haven't began parsing macro
-        if (!macro_at)
-        {
-            if (*ptr == '@')
-                macro_at = ptr;
-        }
-        // Began parsing macro
-        else
-        {
-            // Found macro's end
-            if (*ptr == '@')
-            {
-                // Test which macro it is (if any)
-                macro_at++;
-                const size_t macro_len = ptr - macro_at;
-                if (ags_strnicmp(macro_at, "gamename", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Gamename;
-                else if (ags_strnicmp(macro_at, "overhotspot", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Overhotspot;
-                else if (ags_strnicmp(macro_at, "score", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Score;
-                else if (ags_strnicmp(macro_at, "scoretext", macro_len) == 0)
-                    macro_flags |= kLabelMacro_ScoreText;
-                else if (ags_strnicmp(macro_at, "totalscore", macro_len) == 0)
-                    macro_flags |= kLabelMacro_TotalScore;
-                macro_at = nullptr;
-            }
-        }
-    }
+    std::function<bool(const String&)> fn_scan = [&macro_flags](const String &macro)->bool
+        { 
+            if (macro.CompareNoCase("gamename") == 0)
+                macro_flags |= kLabelMacro_Gamename;
+            else if (macro.CompareNoCase("overhotspot") == 0)
+                macro_flags |= kLabelMacro_Overhotspot;
+            else if (macro.CompareNoCase("score") == 0)
+                macro_flags |= kLabelMacro_Score;
+            else if (macro.CompareNoCase("scoretext") == 0)
+                macro_flags |= kLabelMacro_ScoreText;
+            else if (macro.CompareNoCase("totalscore") == 0)
+                macro_flags |= kLabelMacro_TotalScore;
+            else
+                return false;
+            return true;
+        };
+    ScanMacroTokens(text, fn_scan,
+        // Allow macros without closing '@' in older games
+        (loaded_game_file_version <= kGameVersion_350));
     return (GUILabelMacro)macro_flags;
 }
 

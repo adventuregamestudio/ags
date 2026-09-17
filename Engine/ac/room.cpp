@@ -200,7 +200,7 @@ const char* Room_GetMessages(int index)
     if ((index < 0) || ((uint32_t)index >= thisroom.MessageCount))
         return nullptr;
     
-    String full_msg = replace_tokens(get_translation(thisroom.Messages[index].GetCStr()));
+    String full_msg = replace_message_tokens(get_translation(thisroom.Messages[index].GetCStr()));
     return CreateNewScriptString(full_msg);
 }
 

@@ -563,6 +563,7 @@
     <ClCompile Include="..\..\Common\gui\guiobject.cpp" />
     <ClCompile Include="..\..\Common\gui\guislider.cpp" />
     <ClCompile Include="..\..\Common\gui\guitextbox.cpp" />
+    <ClCompile Include="..\..\Common\gui\gui_helpers.cpp" />
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aarot.c" />
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aastr.c" />
     <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aautil.c" />
@@ -745,6 +746,7 @@
     <ClInclude Include="..\..\Common\gui\guiobject.h" />
     <ClInclude Include="..\..\Common\gui\guislider.h" />
     <ClInclude Include="..\..\Common\gui\guitextbox.h" />
+    <ClInclude Include="..\..\Common\gui\gui_helpers.h" />
     <ClInclude Include="..\..\Common\platform\windows\windows.h" />
     <ClInclude Include="..\..\Common\script\cc_common.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />

@@ -515,6 +515,9 @@
     <ClCompile Include="..\..\Common\gfx\image_file.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gui\gui_helpers.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -831,6 +834,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\image_file.h">
       <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\gui_helpers.h">
+      <Filter>Header Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

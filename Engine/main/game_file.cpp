@@ -103,7 +103,7 @@ HGameFileError game_file_first_open(MainGameSource &src)
     if (!test_game_caps(src.Caps, failed_caps))
     {
         String caps_list = get_caps_list(failed_caps);
-        return new MainGameFileError(kMGFErr_CapsNotSupported, String::FromFormat("Missing engine caps: %s", caps_list.GetCStr()));
+        return new MainGameFileError(kMGFErr_CapsNotSupported, "Missing engine caps: %s", caps_list.GetCStr());
     }
     return HGameFileError::None();
 }

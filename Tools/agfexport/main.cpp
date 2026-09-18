@@ -178,7 +178,7 @@ HError write_to_file(const String &content, const String &file)
     std::unique_ptr<Stream> out(File::CreateFile(file));
     if (!out)
     {
-        return new Error(String::FromFormat("Failed to open output file '%s' for writing.", file.GetCStr()));
+        return new Error("Failed to open output file '%s' for writing.", file.GetCStr());
     }
     out->Write(content.GetCStr(), content.GetLength());
     return HError::None();

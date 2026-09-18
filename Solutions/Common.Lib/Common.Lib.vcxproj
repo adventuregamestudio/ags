@@ -645,6 +645,7 @@
     <ClCompile Include="..\..\Common\gfx\image_file.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_pcx.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_png.cpp" />
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp" />
     <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
     <ClCompile Include="..\..\Common\gui\guiinv.cpp" />
     <ClCompile Include="..\..\Common\gui\guilabel.cpp" />
@@ -833,6 +834,7 @@
     <ClInclude Include="..\..\common\gfx\gfx_def.h" />
     <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
     <ClInclude Include="..\..\Common\gfx\image_file.h" />
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h" />
     <ClInclude Include="..\..\Common\gui\guibutton.h" />
     <ClInclude Include="..\..\Common\gui\guidefines.h" />
     <ClInclude Include="..\..\Common\gui\guiinv.h" />

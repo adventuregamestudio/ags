@@ -539,6 +539,9 @@
     <ClCompile Include="..\..\Common\game\roomstruct.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -939,6 +942,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\game\roomstruct.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
+      <Filter>Header Files\gfx</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

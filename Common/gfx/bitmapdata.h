@@ -21,6 +21,7 @@
 #include <memory>
 #include "debug/assert.h"
 #include "platform/types.h"
+#include "util/stream.h"
 
 namespace AGS
 {
@@ -313,6 +314,13 @@ namespace PixelOp
     void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
         uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
         const int width, const int height, const PixelFormat px_fmt);
+
+    void ReadPixelData(Stream *in, uint8_t *dst_buf, const int width, const int height, const int bpp, const int pitch);
+    inline void ReadPixelData(BitmapData &bm_data, Stream *in)
+        { ReadPixelData(in, bm_data.GetData(), bm_data.GetWidth(), bm_data.GetHeight(), bm_data.GetBytesPerPixel(), bm_data.GetStride()); }
+    void WritePixelData(Stream *out, const uint8_t *dst_buf, const int width, const int height, const int bpp, const int pitch);
+    inline void WritePixelData(const BitmapData &bm_data, Stream *out)
+        { WritePixelData(out, bm_data.GetData(), bm_data.GetWidth(), bm_data.GetHeight(), bm_data.GetBytesPerPixel(), bm_data.GetStride()); }
 }
 
 } // namespace Common

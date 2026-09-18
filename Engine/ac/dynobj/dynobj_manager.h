@@ -34,6 +34,8 @@ using namespace AGS; // FIXME later
 int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // register a de-serialized object
 int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
+// register the object, unless it's already registered; returns its handle
+int32_t ccRegisterManagedObjectIfMissing(void *object, IScriptObject *);
 // unregister a particular object
 int   ccUnRegisterManagedObject(void *object);
 // remove all registered objects

@@ -32,8 +32,14 @@
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/system.h"
+#include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_dialog.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptgui.h"
 #include "debug/out.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
@@ -63,6 +69,12 @@ extern std::vector<ViewStruct> views;
 extern std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
+extern std::vector<ScriptGUI> scrGui;
+extern CCAudioClip ccDynamicAudioClip;
+extern CCCharacter ccDynamicCharacter;
+extern CCDialog ccDynamicDialog;
+extern CCGUI ccDynamicGUI;
+extern CCGUIObject ccDynamicGUIObject;
 
 
 namespace AGS
@@ -1755,6 +1767,21 @@ HSaveError ReadManagedPool(Stream *in, int32_t /*cmp_ver*/, soff_t cmp_size, con
         return new SavegameError(kSvgErr_GameObjectInitFailed,
             "Managed pool deserialization failed: %s",
                 cc_get_error().ErrorString.GetCStr());
+    }
+    // A save made by an older build of the game won't have any audio clips,
+    // characters, dialogs, GUIs or GUI controls added to the game since then.
+    // Register these, otherwise any script pointer assignment to them fails.
+    for (auto &clip : game.audioClips)
+        ccRegisterManagedObjectIfMissing(&clip, &ccDynamicAudioClip);
+    for (int i = 0; i < game.numcharacters; ++i)
+        ccRegisterManagedObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
+    for (int i = 0; i < game.numdialog; ++i)
+        ccRegisterManagedObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        ccRegisterManagedObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+        for (int c = 0; c < guis[i].GetControlCount(); ++c)
+            ccRegisterManagedObjectIfMissing(guis[i].GetControl(c), &ccDynamicGUIObject);
     }
     return HSaveError::None();
 }

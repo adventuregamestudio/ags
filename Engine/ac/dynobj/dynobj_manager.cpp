@@ -37,6 +37,14 @@ int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *cal
     return pool.AddUnserializedObject(object, callback, obj_type, index);
 }
 
+// register the object, unless it's already registered; returns its handle
+int32_t ccRegisterManagedObjectIfMissing(void *object, IScriptObject *callback) {
+    int32_t handl = pool.AddressToHandle(object);
+    if (handl != 0)
+        return handl;
+    return ccRegisterManagedObject(object, callback);
+}
+
 // unregister a particular object
 int ccUnRegisterManagedObject(void *object) {
     return pool.RemoveObject(object);

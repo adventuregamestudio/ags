@@ -20,6 +20,7 @@
 #include <thread>
 #include <SDL.h>
 #include "ac/common.h"
+#include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/timer.h"
 #include "gfx/bitmap.h"
@@ -123,7 +124,13 @@ void AGSPlatformDriver::WriteStdErr(const char *fmt, ...)
 void AGSPlatformDriver::DisplayMessageBox(const char *text)
 {
     if (_guiMode)
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Adventure Game Studio", text, sys_get_window());
+    {
+        String msgbox_title = "Adventure Game Studio";
+        if (!play.game_name.IsEmpty())
+            msgbox_title = play.game_name;
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, msgbox_title.GetCStr(), text, sys_get_window());
+    }
+
 }
 
 void AGSPlatformDriver::YieldCPU() {

@@ -1406,7 +1406,7 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
         return err;
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
     else if (desc.ColorDepth != game.GetColorDepth())
-        return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
+        return new SavegameError(kSvgErr_DifferentColorDepth, "Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth);
 
     // Match game GUIDs and test whether save was made for the different game
     if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)

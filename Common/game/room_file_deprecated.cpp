@@ -100,7 +100,7 @@ HRoomFileError ReadAncientScriptConfig(Stream *in)
 {
     int fmt = in->ReadInt32();
     if (fmt != SCRIPT_CONFIG_VERSION)
-        return new RoomFileError(kRoomFileErr_FormatNotSupported, String::FromFormat("Invalid script configuration format (in room: %d, expected: %d).", fmt, SCRIPT_CONFIG_VERSION));
+        return new RoomFileError(kRoomFileErr_FormatNotSupported, "Invalid script configuration format (in room: %d, expected: %d).", fmt, SCRIPT_CONFIG_VERSION);
 
     size_t var_count = in->ReadInt32();
     for (size_t i = 0; i < var_count; ++i)

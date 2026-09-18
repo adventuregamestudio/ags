@@ -409,7 +409,7 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
     std::unique_ptr<AssetManager> templateMgr(new AssetManager());
     auto err = templateMgr->AddLibrary(templateFileName, &lib);
     if (err != Common::kAssetNoError) 
-        return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
+        return new AGSError("Failed to read the template file: %s", Common::GetAssetErrorText(err).GetCStr());
 
     // If check_list is provided, then the package must include at least one of the files
     if (!check_list.empty())
@@ -437,7 +437,7 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
 
         std::unique_ptr<Stream> readin(templateMgr->OpenAsset(thisFile));
         if (!readin)
-            return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+            return new AGSError("Failed to open template asset '%s' for reading.", thisFile.GetCStr());
 
         AGSString outputName = thisFile;
         // If format pattern is provided, then rename the output file
@@ -451,12 +451,12 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
         AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(outputName));
         std::unique_ptr<Stream> wrout(AGSFile::CreateFile(outputName));
         if (!wrout)
-            return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
+            return new AGSError("Failed to open file '%s' for writing.", outputName);
 
         const soff_t src_len = readin->GetLength();
         soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
         if (result < src_len)
-            return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+            return new AGSError("Failed to extract file '%s'.", thisFile.GetCStr());
     }
 
     return HAGSError::None();
@@ -1560,8 +1560,8 @@ HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexf
 {
     auto sprite_file = AssetMgr->OpenAsset(spritefile);
     if (!sprite_file)
-        return new AGSError(AGSString::FromFormat("Failed to open spriteset file '%s'.",
-            spritefile.GetCStr()));
+        return new AGSError("Failed to open spriteset file '%s'.",
+            spritefile.GetCStr());
     auto index_file = AssetMgr->OpenAsset(indexfile);
 	HAGSError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err)

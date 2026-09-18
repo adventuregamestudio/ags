@@ -34,7 +34,7 @@ static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
     if (mfl_err != MFLUtil::kMFLNoError)
-        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+        return new Error("Failed to parse pack file: %s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
     return HError::None();
 }
 
@@ -199,8 +199,8 @@ static HError PrepareAssetLibrary(AssetLibInfo &lib,
                     remove_keys.push_back(asset_entry.first);
                     break;
                 default:
-                    return new Error(String::FromFormat("Duplicate asset '%s': first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
-                        it_exist->second.GetCStr(), asset_entry.second.GetCStr()));
+                    return new Error("Duplicate asset '%s': first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
+                        it_exist->second.GetCStr(), asset_entry.second.GetCStr());
                 }
             }
         }

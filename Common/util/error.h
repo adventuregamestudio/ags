@@ -37,47 +37,82 @@ typedef std::shared_ptr<Error> PError;
 class Error
 {
 public:
-    Error(int code, String general, PError inner_error = PError()) : _code(code), _general(general), _innerError(inner_error) {}
-    Error(int code, String general, String comment, PError inner_error = PError()) : _code(code), _general(general), _comment(comment), _innerError(inner_error) {}
-    Error(String general, PError inner_error = PError()) : _code(0), _general(general), _innerError(inner_error) {}
-    Error(String general, String comment, PError inner_error = PError()) : _code(0), _general(general), _comment(comment), _innerError(inner_error) {}
-    
+    Error() = default;
+    Error(PError inner_error, int code, String msg) : _code(code), _message(msg), _previousError(inner_error) {}
+    Error(PError inner_error, int code) : _code(code), _previousError(inner_error) {}
+    Error(PError inner_error, String msg) : _message(msg), _previousError(inner_error) {}
+    Error(int code, String msg) : _code(code), _message(msg) {}
+    Error(int code) : _code(code) {}
+    Error(String msg) : _message(msg) {}
+
+    Error(PError inner_error, int code, AGS_FORMAT_STRING_ARG const char* fmt, ...) AGS_FORMAT_STRING_OBJECT(3) : _code(code), _previousError(inner_error)
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+
+    Error(PError inner_error, AGS_FORMAT_STRING_ARG const char* fmt, ...) AGS_FORMAT_STRING_OBJECT(2) : _previousError(inner_error)
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+
+    Error(int code, AGS_FORMAT_STRING_ARG const char* fmt, ...) AGS_FORMAT_STRING_OBJECT(2) : _code(code)
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }
+
+    explicit Error(AGS_FORMAT_STRING_ARG const char* fmt, ...) AGS_FORMAT_STRING_OBJECT(1)
+    {
+        va_list args;
+        va_start(args, fmt);
+        _message.FormatV(fmt, args);
+        va_end(args);
+    }        
 
     // Error code is a number, defining error subtype. It is not much use to the end-user,
     // but may be checked in the program to know more precise cause of the error.
     int    Code() const { return _code; }
-    // General description of this error type and subtype.
-    String General() const { return _general; }
-    // Any complementary information.
-    String Comment() const { return _comment; }
-    PError InnerError() const { return _innerError; }
-    // Full error message combines general description and comment.
+    // Message description of this error type and subtype.
+    String Message() const { return _message; }
+    // A previous error that leads to this one. Usually empty.
+    PError PreviousError() const { return _previousError; }
+    // Full error message combines current error message with previous error accumulated. messages
     // NOTE: if made a child of std::exception, FullMessage may be substituted
     // or complemented with virtual const char* what().
     String FullMessage() const
     {
         String msg;
-        const Error *err = this;
-        do
-        {
-            msg.Append(err->General());
-            if (!err->Comment().IsEmpty())
-            {
-                msg.AppendChar('\n');
-                msg.Append(err->Comment());
-            }
-            err = err->InnerError().get();
-            if (err)
-                msg.AppendChar('\n');
-        } while (err);
+        for (const Error* err = this; err; err = err->_previousError.get())
+            AppendLine(msg, err->_message);
         return msg;
     }
 
+protected:
+    void SetMessage(const String& msg) { _message = msg; }
+    // Appends a line of text, separating it from the preceding one with a line break;
+    // empty lines are skipped.
+    static void AppendLine(String& text, const String& line)
+    {
+        if (line.IsEmpty())
+            return;
+        if (!text.IsEmpty())
+            text.AppendChar('\n');
+        text.Append(line);
+    }
+
 private:
-    int    _code; // numeric code, for specific uses
-    String _general; // general description of this error class
-    String _comment; // additional information about particular case
-    PError _innerError; // previous error that caused this one
+    int    _code = 0; // numeric code, for specific uses
+    String _message = ""; // message or description of this error
+    String _comment = ""; // additional information about particular case
+    PError _previousError = PError(); // previous error that caused this one
 };
 
 
@@ -102,7 +137,7 @@ public:
     // an unrelated type fails to compile on the shared_ptr conversion below.
     template <class U> ErrorHandle(const ErrorHandle<U> &other) : _error(other._error) {}
 
-    bool HasError() const { return _error.get() != NULL; }
+    bool HasError() const { return _error.get() != nullptr; }
     explicit operator bool() const { return _error.get() == nullptr; }
     operator PError() const { return _error; }
     T *operator ->() const { return _error.operator->(); }
@@ -127,11 +162,41 @@ template <typename CodeType, String (*GetErrorText)(CodeType)>
 class TypedCodeError : public Error
 {
 public:
-    TypedCodeError(CodeType code, PError inner_error = PError()) : Error(code, GetErrorText(code), inner_error) {}
-    TypedCodeError(CodeType code, String comment, PError inner_error = PError()) :
-        Error(code, GetErrorText(code), comment, inner_error) {}
+    TypedCodeError(CodeType code) : Error(PError(), code, GetErrorText(code)) {}
+    TypedCodeError(CodeType code, String msg) :
+        Error(code, CombineCodeText(code, msg)) {}
+    TypedCodeError(PError inner_error, CodeType code) : Error(inner_error, code, GetErrorText(code)) {}
+    TypedCodeError(PError inner_error, CodeType code, String msg) :
+        Error(inner_error, code, CombineCodeText(code, msg)) {}
+
+    TypedCodeError(CodeType code, AGS_FORMAT_STRING_ARG const char* fmt, ...) AGS_FORMAT_STRING_OBJECT(2) : Error(code)
+    {
+        String formatted;
+        va_list args;
+        va_start(args, fmt);
+        formatted.FormatV(fmt, args);
+        va_end(args);
+        SetMessage(CombineCodeText(code, formatted));
+    }
+
+    TypedCodeError(PError inner_error, CodeType code, AGS_FORMAT_STRING_ARG const char* fmt, ...) AGS_FORMAT_STRING_OBJECT(3) : Error(inner_error, code)
+    {
+        String formatted;
+        va_list args;
+        va_start(args, fmt);
+        formatted.FormatV(fmt, args);
+        va_end(args);
+        SetMessage(CombineCodeText(code, formatted));
+    }
 
     CodeType Code() const { return (CodeType)Error::Code(); }
+private:
+    static String CombineCodeText(CodeType code, const String& more_text)
+    {
+        String text = GetErrorText(code);
+        AppendLine(text, more_text);
+        return text;
+    }
 };
 
 } // namespace Common

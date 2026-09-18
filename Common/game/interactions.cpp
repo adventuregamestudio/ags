@@ -62,7 +62,7 @@ HError InteractionEvents::Read_v362(Stream *in)
     Events.clear();
     InteractionEventsVersion ver = (InteractionEventsVersion)in->ReadInt32();
     if (ver != kInterEvents_v362)
-        return new Error(String::FromFormat("InteractionEvents version not supported: %d", ver));
+        return new Error("InteractionEvents version not supported: %d", ver);
 
     ScriptModule = StrUtil::ReadString(in);
     const size_t evt_count = in->ReadInt32();
@@ -339,15 +339,15 @@ std::unique_ptr<Interaction> Interaction::CreateFromStream(Stream *in, HError &e
     const int version = in->ReadInt32();
     if (version != kInteractionVersion_Initial)
     {
-        error = new Error(String::FromFormat("Interaction version not supported: %d", version));
+        error = new Error("Interaction version not supported: %d", version);
         return nullptr;
     }
 
     const size_t evt_count = in->ReadInt32();
     if (evt_count > MAX_NEWINTERACTION_EVENTS)
     {
-        error = new Error(String::FromFormat("Too many interaction events (in data: %zu, max: %d)",
-            evt_count, MAX_NEWINTERACTION_EVENTS));
+        error = new Error("Too many interaction events (in data: %zu, max: %d)",
+            evt_count, MAX_NEWINTERACTION_EVENTS);
         return nullptr;
     }
 

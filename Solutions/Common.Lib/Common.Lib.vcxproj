@@ -655,6 +655,7 @@
     <ClCompile Include="..\..\Common\game\roomdata.cpp" />
     <ClCompile Include="..\..\Common\game\roomstruct.cpp" />
     <ClCompile Include="..\..\Common\game\room_file.cpp" />
+    <ClCompile Include="..\..\Common\game\room_file_blocks.cpp" />
     <ClCompile Include="..\..\Common\game\room_file_deprecated.cpp" />
     <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
     <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
@@ -844,6 +845,7 @@
     <ClInclude Include="..\..\Common\game\plugininfo.h" />
     <ClInclude Include="..\..\Common\game\roomdata.h" />
     <ClInclude Include="..\..\Common\game\roomstruct.h" />
+    <ClInclude Include="..\..\Common\game\room_file_blocks.h" />
     <ClInclude Include="..\..\Common\game\room_version.h" />
     <ClInclude Include="..\..\Common\game\room_file.h" />
     <ClInclude Include="..\..\Common\gfx\allegrobitmap.h" />

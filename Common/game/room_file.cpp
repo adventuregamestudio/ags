@@ -11,13 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "game/room_file.h"
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
 #include "data/data_ext.h"
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "game/customproperties.h"
-#include "game/room_file.h"
+#include "game/room_file_blocks.h"
 #include "gfx/bitmap.h"
 #include "script/cc_common.h"
 #include "script/cc_script.h"
@@ -590,87 +591,6 @@ HError ReadRoomBlock(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFile
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
         String::FromFormat("Type: %s", ext_id.GetCStr()));
-}
-
-
-// Type of function that reads (or skips) a single room block
-typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &room_read_opts)> PfnReadRoomBlock;
-
-// RoomBlockReader reads whole room data, block by block
-class RoomBlockReader : public DataExtReader
-{
-public:
-    RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
-            const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr)
-        : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts))
-        , _room(room)
-        , _roomAux(nullptr)
-        , _dataVer(data_ver)
-        , _roomReadOpts(read_opts)
-        , _readFn(pfn_read ? pfn_read : ReadRoomBlock)
-    {}
-
-    RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
-            const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr)
-        : DataExtReader(std::move(in), GetDataExtFlags(data_ver, read_opts))
-        , _room(room)
-        , _roomAux(room_aux)
-        , _dataVer(data_ver)
-        , _roomReadOpts(read_opts)
-        , _readFn(pfn_read ? pfn_read : ReadRoomBlock)
-    {}
-
-private:
-    static int GetDataExtFlags(RoomFileVersion data_ver, const RoomReadOptions &read_opts)
-    {
-        return kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64)
-            | (kDataExt_IgnoreUnread * (read_opts.PartialRead | read_opts.SkipImageData));
-    }
-
-    String GetOldBlockName(int block_id) const override
-    { return GetRoomBlockName((RoomFileBlock)block_id); }
-    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) override
-    {
-        read_next = true;
-        return _readFn(_room, _roomAux, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer, _roomReadOpts);
-    }
-
-    RoomData *_room {};
-    RoomDataAux *_roomAux {};
-    RoomFileVersion _dataVer {};
-    RoomReadOptions _roomReadOpts;
-    PfnReadRoomBlock _readFn;
-};
-
-//
-// TODO: RoomBlockWriter to pair the RoomBlockReader
-// 
-// Type of function that writes single room block.
-typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
-// Helper for new-style blocks with string id
-void WriteRoomBlock(const RoomData *room, const String &ext_id, PfnWriteRoomBlock writer, Stream *out)
-{
-    WriteExtBlock(ext_id, [room, writer](Stream *out) { writer(room, out); },
-        kDataExt_NumID8 | kDataExt_File64, out);
-}
-
-void WriteRoomBlock(const String &ext_id, const std::vector<uint8_t> &data, Stream *out)
-{
-    WriteExtBlock(ext_id, data, kDataExt_NumID8 | kDataExt_File64, out);
-}
-
-// Helper for old-style blocks with only numeric id
-void WriteRoomBlock(const RoomData *room, RoomFileBlock block, PfnWriteRoomBlock writer, Stream *out)
-{
-    WriteExtBlock(block, [room, writer](Stream *out) { writer(room, out); },
-        kDataExt_NumID8 | kDataExt_File64, out);
-}
-
-void WriteRoomBlock(RoomFileBlock block, const std::vector<uint8_t> &data, Stream *out)
-{
-    WriteExtBlock(block, data, kDataExt_NumID8 | kDataExt_File64, out);
 }
 
 // Read room data header and check that we support this format

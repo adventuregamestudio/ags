@@ -1127,7 +1127,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         return err;
     HError inter_err = game.read_interaction_scripts(in, data_ver);
     if (!inter_err)
-        return new MainGameFileError(kMGFErr_GameEntityFailed, inter_err);
+        return new MainGameFileError(inter_err, kMGFErr_GameEntityFailed);
     if (sinfo.HasWordsDict)
         game.read_words_dictionary(in);
 
@@ -1163,7 +1163,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     GUIRefCollection guictrl_refs(ents.GuiControls);
     HError err2 = GUI::ReadGUI(ents.Guis, data_ver, ents.LoadedGuiVersion, guictrl_refs, in);
     if (!err2)
-        return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
+        return new MainGameFileError(err2, kMGFErr_GameEntityFailed);
     game.numgui = ents.Guis.size();
 
     if (data_ver >= kGameVersion_255)
@@ -1189,7 +1189,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     //-------------------------------------------------------------------------
     GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();
-    return ext_err ? HGameFileError::None() : new MainGameFileError(kMGFErr_ExtListFailed, ext_err);
+    return ext_err ? HGameFileError::None() : new MainGameFileError(ext_err, kMGFErr_ExtListFailed);
 }
 
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)

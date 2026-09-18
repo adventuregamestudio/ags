@@ -409,7 +409,7 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
     std::unique_ptr<AssetManager> templateMgr(new AssetManager());
     auto err = templateMgr->AddLibrary(templateFileName, &lib);
     if (err != Common::kAssetNoError) 
-        return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
+        return new AGSError(Common::String::FromFormat("Failed to read the template file: %s", Common::GetAssetErrorText(err).GetCStr()));
 
     // If check_list is provided, then the package must include at least one of the files
     if (!check_list.empty())

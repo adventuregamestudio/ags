@@ -56,7 +56,7 @@ static HError OpenSpriteFile(SpriteFile &reader, const String &sprite_file, cons
     else
         err = reader.OpenFile(std::move(file_in), std::move(index_in));
     if (!err)
-        return new Error("Failed to initialize sprite file", err);
+        return new Error(err, "Failed to initialize sprite file");
     return 0;
 }
 

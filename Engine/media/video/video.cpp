@@ -470,7 +470,7 @@ static HError video_single_run(std::unique_ptr<VideoPlayer> video, const String 
     HError err = video->Open(std::move(video_stream), asset_name, video_flags, Size(), dst_depth);
     if (!err)
     {
-        return new Error(String::FromFormat("Failed to run video %s", asset_name.GetCStr()), err);
+        return new Error(err, String::FromFormat("Failed to run video %s", asset_name.GetCStr()));
     }
 
     gl_Video.reset(new BlockingVideoPlayer(std::move(video), video_flags, state_flags, skip));

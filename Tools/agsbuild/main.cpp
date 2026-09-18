@@ -185,7 +185,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         AGF::AGFReader reader;
         HError err = reader.Open(src_agf.GetCStr());
         if (!err)
-            return new Error(String::FromFormat("Failed to open and/or read %s", src_agf.GetCStr()), err);
+            return new Error(err, String::FromFormat("Failed to open and/or read %s", src_agf.GetCStr()));
 
         DataUtil::GameSettings opts;
         AGF::ReadGameSettings(opts, reader.GetGameRoot());

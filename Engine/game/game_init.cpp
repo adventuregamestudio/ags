@@ -494,7 +494,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     }
     HError err = InitAndRegisterGameEntities(game);
     if (!err)
-        return new GameInitError(kGameInitErr_EntityInitFail, err);
+        return new GameInitError(err, kGameInitErr_EntityInitFail);
     LoadFonts(game, data_ver);
     LoadLipsyncData();
 
@@ -558,7 +558,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     AllocScriptModules();
     err = create_game_scripts();
     if (!err)
-        return new GameInitError(kGameInitErr_ScriptLinkFailed, err);
+        return new GameInitError(err, kGameInitErr_ScriptLinkFailed);
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.

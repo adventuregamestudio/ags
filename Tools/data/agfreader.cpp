@@ -189,7 +189,7 @@ HError AGFReader::Open(const char *filename)
 
     _doc.reset(new Document());
     if (_doc->LoadFile(filename) != XML_SUCCESS)
-        return new Error("Failed to open XML", _doc->ErrorIDToName(_doc->ErrorID()));
+        return new Error(String::FromFormat("Failed to open XML: %s", _doc->ErrorIDToName(_doc->ErrorID())));
     if (!_doc->RootElement() || strcmp(_doc->RootElement()->Name(), XML_ROOT_NODE_NAME))
         return new Error("Not a valid AGS game project");
 

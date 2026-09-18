@@ -125,7 +125,7 @@ HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &
     AGF::AGFReader reader;
     HError err = reader.Open(src_agf.GetCStr());
     if (!err)
-        return new Error(String::FromFormat("Failed to open source AGF '%s':\n", src_agf.GetCStr()), err);
+        return new Error(err, String::FromFormat("Failed to open source AGF '%s':\n", src_agf.GetCStr()));
     GameSettings opt;
     AGF::ReadGameSettings(opt, reader.GetGameRoot());
     game_color_opts.ColorDepth = opt.ColorDepth;

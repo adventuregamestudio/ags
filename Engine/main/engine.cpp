@@ -962,8 +962,10 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     data_path = search_for_game_data_file(startup_dir);
     if (data_path.IsEmpty())
     {
-        return new Error("Engine was not able to find any compatible game data.",
-            startup_dir.IsEmpty() ? String() : String::FromFormat("Searched in: %s", startup_dir.GetCStr()));
+        if (startup_dir.IsEmpty())
+            return new Error("Engine was not able to find any compatible game data.");
+        else
+            return new Error(String::FromFormat("Engine was not able to find any compatible game data.\nSearched in: %s", startup_dir.GetCStr()));
     }
     data_path = Path::MakeAbsolutePath(data_path);
     Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());

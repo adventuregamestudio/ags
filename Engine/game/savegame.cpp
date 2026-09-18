@@ -795,7 +795,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     HError err = create_game_scripts();
     if (!err)
     {
-        return new SavegameError(kSvgErr_GameObjectInitFailed, "Unable to recreate game scripts", err);
+        return new SavegameError(err, kSvgErr_GameObjectInitFailed, "Unable to recreate game scripts");
     }
 
     // read the global data into the newly created script

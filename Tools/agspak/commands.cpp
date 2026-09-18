@@ -34,7 +34,7 @@ static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
     if (mfl_err != MFLUtil::kMFLNoError)
-        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+        return new Error(String::FromFormat("Failed to parse pack file: %s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr()));
     return HError::None();
 }
 

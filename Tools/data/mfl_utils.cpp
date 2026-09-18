@@ -268,7 +268,7 @@ HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map,
         {
             if (verbose)
                 printf("Error: post-check failed for file '%s'.\n", dst_file.GetCStr());
-            return new Error("Pack post-check failed", err);
+            return new Error(err, "Pack post-check failed");
         }
     }
     return HError::None();
@@ -283,7 +283,7 @@ HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib)
     AssetLibInfo lib;
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
     if (mfl_err != MFLUtil::kMFLNoError)
-        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+        return new Error(String::FromFormat("Failed to parse pack file: %s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr()));
 
     if (compare_lib)
     {

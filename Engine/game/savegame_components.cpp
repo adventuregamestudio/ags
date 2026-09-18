@@ -2139,10 +2139,10 @@ HSaveError ReadAllImpl(Stream *in, SavegameVersion svg_version, SaveCmpSelection
         HSaveError err = ReadComponent(in, hlp, info);
         if (!err)
         {
-            return new SavegameError(kSvgErr_ComponentUnserialization,
+            return new SavegameError(err, kSvgErr_ComponentUnserialization,
                 String::FromFormat("(#%zu) %s, version %i, at offset %u.",
-                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.TagOffset),
-                err);
+                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.TagOffset)
+                );
         }
         idx++;
     }
@@ -2226,9 +2226,8 @@ HSaveError WriteAllCommon(Stream *out, SaveCmpSelection select_cmp, bool compres
         HSaveError err = WriteComponent(out, ComponentHandlers[type], compress);
         if (!err)
         {
-            return new SavegameError(kSvgErr_ComponentSerialization,
-                String::FromFormat("Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr()),
-                err);
+            return new SavegameError(err, kSvgErr_ComponentSerialization,
+                String::FromFormat("Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr()));
         }
     }
     WriteFormatTag(out, ComponentListTag, false);

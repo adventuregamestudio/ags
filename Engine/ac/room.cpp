@@ -502,9 +502,8 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
     {
         PScript script(ccScript::CreateFromStream(in.get()));
         if (!script)
-            return new Error(String::FromFormat(
-                "Failed to load a script module: %s", filename.GetCStr()),
-                cc_get_error().ErrorString);
+            return new Error(String::FromFormat("Failed to load a script module: %s\n%s", filename.GetCStr(), 
+                cc_get_error().ErrorString.GetCStr()));
         room->CompiledScript = script;
     }
     return HError::None();

@@ -89,6 +89,8 @@ struct SceneLocationRef
 class GameState
 {
 public:
+    using String = AGS::Common::String;
+
     virtual ~GameState() = default;
 
     // Begin the state, initialize and prepare any resources
@@ -250,10 +252,10 @@ struct GamePlayState
     int   in_conversation = 0;
     int   screen_tint = 0;
     std::vector<uint16_t> parsed_words;
-    Common::String bad_parsed_word;
+    String bad_parsed_word;
     // Old-style raw drawing tools
     int   raw_color = 0;
-    Common::PBitmap raw_drawing_surface;
+    PBitmap raw_drawing_surface;
     // Tells which room background frames were modified by script drawing operations
     std::vector<bool> room_bg_modified;
     bool  room_mask_modified[kNumRoomAreaTypes]{};
@@ -295,17 +297,17 @@ struct GamePlayState
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
     char  takeover_from[50]{};
     // Currently played external file; this is only for reference
-    Common::String playmp3file_name;
+    String playmp3file_name;
     char  globalstrings[MAXGLOBALSTRINGS][MAX_MAXSTRLEN]{};
     char  lastParserEntry[MAX_MAXSTRLEN]{};
-    Common::String game_name;
+    String game_name;
     int   ground_level_areas_disabled = 0;
     int   next_screen_transition = 0;
     int   gamma_adjustment = 0;
     short temporarily_turned_off_character = 0;  // Hide Player Charactr ticked
     short inv_backwards_compatibility = 0; // tells to use legacy inv_* variables
     std::vector<int> gui_draw_order; // used only for hit detection now
-    std::unordered_set<Common::String> do_once_tokens;
+    std::unordered_set<String> do_once_tokens;
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
     std::vector<int> default_audio_type_volumes;
@@ -358,11 +360,14 @@ struct GamePlayState
 
     // Current set game text language; this may be set either by the base game,
     // or by the loaded translation.
-    const Common::String &GetTextLanguage() const { return _gameTextLanguage; }
+    const String &GetTextLanguage() const { return _gameTextLanguage; }
     // Current game texts locale; used for lexographical string comparison.
-    const Common::String &GetTextLocaleName() const { return _localeNameUTF8; }
+    const String &GetTextLocaleName() const { return _localeNameUTF8; }
+    // Custom error text, to use when displaying a quit message (may be translated)
+    const String &GetGameErrorText() const { return _gameErrorText; }
 
-    void SetGameTextLanguage(const Common::String &language);
+    void SetGameTextLanguage(const String &language);
+    void SetGameErrorText(const String &text) { _gameErrorText = text; }
 
     // Runtime behavior switches: allow to configure engine behavior
     // for modern and backwards-compatibility mode on a per-operation basis.
@@ -521,9 +526,10 @@ private:
     VpPoint ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport, bool convert_cam_to_data);
     void UpdateRoomCamera(int index);
 
-    Common::String _gameTextLanguage;
+    String _gameTextLanguage;
     // Name of the current used locale for UTF8 text mode
-    Common::String _localeNameUTF8;
+    String _localeNameUTF8;
+    String _gameErrorText;
 
     std::array<bool, kNum_RBS> _rbSwitches = {{ 0 }};
 

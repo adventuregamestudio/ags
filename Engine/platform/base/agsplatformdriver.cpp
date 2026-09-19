@@ -120,10 +120,19 @@ void AGSPlatformDriver::WriteStdErr(const char *fmt, ...)
     fflush(stderr);
 }
 
+void AGSPlatformDriver::SetWindowTitle(const String &title)
+{
+    _windowTitle = title;
+    sys_window_set_title(_windowTitle.GetCStr());
+}
+
 void AGSPlatformDriver::DisplayMessageBox(const char *text)
 {
     if (_guiMode)
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Adventure Game Studio", text, sys_get_window());
+    {
+        String msgbox_title = !_windowTitle.IsEmpty() ? _windowTitle : "Adventure Game Studio";
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, msgbox_title.GetCStr(), text, sys_get_window());
+    }
 }
 
 void AGSPlatformDriver::YieldCPU() {

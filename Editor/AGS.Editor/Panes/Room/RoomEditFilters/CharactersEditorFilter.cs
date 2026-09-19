@@ -73,7 +73,7 @@ namespace AGS.Editor
                 if (view == null)
                     view = _game.FindViewByID(character.NormalView);
 
-                if (view == null || view.Loops.Count == 0)
+                if (view == null || view.Loops.Count == 0 || view.Loops[0].Frames.Count == 0)
                 {
                     bbox = new Rectangle(character.StartX - 5, character.StartY - 5, 10, 10);
                 }

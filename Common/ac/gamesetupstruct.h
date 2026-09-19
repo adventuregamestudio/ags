@@ -84,6 +84,16 @@ struct GameSetupStruct : public GameSetupStructBase
     int               numCompatGameChannels = 0;
 
     // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
+    // Following keys are currently supported:
+    // - title - game title;
+    // - description - game description;
+    // - dev_error_text - custom text to use when the game bails out with error;
+    // - dev_name - game developer's name (person or company);
+    // - dev_url - game developer's url;
+    // - genre - game's genre;
+    // - release_date - "dd.MM.yyyy" string;
+    // - version - game's version (assumes X.X.X.X string, but may be anything);
+    // - text_lang - 'en_US' format string which defines game language;
     Common::StringMap GameInfo;
     // Game text language definition, in the form of locale name ('en', 'en_US' etc)
     Common::String GameTextLanguage;

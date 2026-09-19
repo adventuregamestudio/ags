@@ -517,6 +517,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
     play.enable_antialiasing = usetup.AntialiasSprites;
     play.SetGameTextLanguage(game.GameTextLanguage);
+    if (game.GameInfo.count("dev_error_text") > 0)
+        play.SetGameErrorText(game.GameInfo["dev_error_text"]);
     SetBaseTextParser(CreateTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName()));
     SetTranslationTextParser(CreateTextParser(game.dict.get(), get_uformat() == U_UTF8, play.GetTextLocaleName()));
 

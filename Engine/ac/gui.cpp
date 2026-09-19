@@ -683,7 +683,6 @@ void export_gui_controls(int ee)
         GUIObject *guio = guis[ee].GetControl(ff);
         if (!guio->GetName().IsEmpty())
             ccAddExternalScriptObject(guio->GetName(), guio, &ccDynamicGUIObject);
-        ccRegisterManagedObject(guio, &ccDynamicGUIObject);
     }
 }
 
@@ -694,8 +693,6 @@ void unexport_gui_controls(int ee)
         GUIObject *guio = guis[ee].GetControl(ff);
         if (!guio->GetName().IsEmpty())
             ccRemoveExternalSymbol(guio->GetName());
-        if (!ccUnRegisterManagedObject(guio))
-            quit("unable to unregister guicontrol object");
     }
 }
 

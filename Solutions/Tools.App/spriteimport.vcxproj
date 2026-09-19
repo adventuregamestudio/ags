@@ -33,6 +33,7 @@
     <ClCompile Include="..\..\Common\gfx\image_file.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_pcx.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_png.cpp" />
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp" />
     <ClCompile Include="..\..\Common\script\cc_common.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="..\..\Common\game\room_file_blocks.h" />
     <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
     <ClInclude Include="..\..\Common\gfx\image_file.h" />
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h" />
     <ClInclude Include="..\..\Common\script\cc_common.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />

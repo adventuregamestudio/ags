@@ -391,6 +391,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     RemoveAllButtonAnimations();
     // unregister gui controls from API exports
     // CHECKME: find out why are we doing this here? why only to gui controls?
+    // this may be a remainer of an old code or engine logic which is no longer necessary
     for (int i = 0; i < game.numgui; ++i)
     {
         unexport_gui_controls(i);
@@ -683,6 +684,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     RegisterMissingManagedObjects();
 
     // CHECKME: find out why are we doing this here? why only to gui controls?
+    // this may be a remainer of an old code or engine logic which is no longer necessary
     for (int i = 0; i < game.numgui; ++i)
         export_gui_controls(i);
 

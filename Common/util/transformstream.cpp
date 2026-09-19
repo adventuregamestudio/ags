@@ -161,7 +161,7 @@ void TransformStream::WriteBuffer(bool finalize)
         return;
 
     if (_lastResult != TransformResult::OK && _lastResult != TransformResult::Buffer)
-        return; // writing either complete or there was a error
+        return; // writing either complete or there was an error
 
     do
     {

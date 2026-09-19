@@ -195,7 +195,9 @@ HError InitAndRegisterGUI(GameSetupStruct &game)
         HError err = guis[i].RebuildArray(guictrl_refs);
         if (!err)
             return err;
-        // export all the GUI's controls
+        // register and export all the GUI's controls
+        for (int c = 0; c < guis[i].GetControlCount(); ++c)
+            ccRegisterManagedObject(guis[i].GetControl(c), &ccDynamicGUIObject);
         export_gui_controls(i);
         scrGui[i].id = i;
         ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);

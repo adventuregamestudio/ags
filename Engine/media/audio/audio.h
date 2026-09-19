@@ -83,7 +83,6 @@ ScriptAudioChannel *play_audio_clip(const AudioPlayback &aplay, int channel, int
 void        stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);
 void        stop_and_destroy_channel (int chid);
 // Exports missing AudioChannel objects to script (for importing older saves)
-void        export_missing_audiochans();
 
 // ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
 int         get_old_style_number_for_sound(int sound_number);

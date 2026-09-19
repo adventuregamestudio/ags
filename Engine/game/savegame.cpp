@@ -36,11 +36,14 @@
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guiobject.h"
+#include "ac/dynobj/scriptaudiochannel.h"
 #include "ac/dynobj/scriptgui.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptrestoredsaveinfo.h"
@@ -82,10 +85,13 @@ extern RoomStatus troom;
 extern RoomStatus *croom;
 extern std::vector<ViewStruct> views;
 extern std::vector<ScriptGUI> scrGui;
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
+extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
 extern CCCharacter ccDynamicCharacter;
 extern CCDialog ccDynamicDialog;
 extern CCGUI ccDynamicGUI;
+extern CCGUIObject ccDynamicGUIObject;
 
 
 namespace AGS
@@ -726,6 +732,26 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
     return HSaveError::None();
 }
 
+// Registers any static script objects that are missing from the managed pool,
+// e.g. if restoring a save made before they were added to the game
+static void RegisterMissingManagedObjects()
+{
+    for (int i = 0; i < game.numCompatGameChannels; ++i)
+        ccRegisterManagedObjectIfMissing(&scrAudioChannel[i], &ccDynamicAudio);
+    for (auto &clip : game.audioClips)
+        ccRegisterManagedObjectIfMissing(&clip, &ccDynamicAudioClip);
+    for (int i = 0; i < game.numcharacters; ++i)
+        ccRegisterManagedObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
+    for (int i = 0; i < game.numdialog; ++i)
+        ccRegisterManagedObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        ccRegisterManagedObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+        for (int c = 0; c < guis[i].GetControlCount(); ++c)
+            ccRegisterManagedObjectIfMissing(guis[i].GetControl(c), &ccDynamicGUIObject);
+    }
+}
+
 // Final processing after successfully restoring from save
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
@@ -766,19 +792,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, guictrl_refs);
 
-    // Re-export any missing audio channel script objects, e.g. if restoring old save
-    export_missing_audiochans();
-    // Register any audio clips, characters, dialogs and GUIs that are missing
-    // from the restored managed pool, e.g. if restoring a save made before
-    // they were added to the game
-    for (auto &clip : game.audioClips)
-        ccRegisterManagedObjectIfMissing(&clip, &ccDynamicAudioClip);
-    for (int i = 0; i < game.numcharacters; ++i)
-        ccRegisterManagedObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
-    for (int i = 0; i < game.numdialog; ++i)
-        ccRegisterManagedObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
-    for (int i = 0; i < game.numgui; ++i)
-        ccRegisterManagedObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+    // Register any static script objects missing from the restored managed pool
+    RegisterMissingManagedObjects();
 
     // CHECKME: find out why are we doing this here? why only to gui controls?
     for (int i = 0; i < game.numgui; ++i)

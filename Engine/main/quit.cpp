@@ -146,7 +146,7 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
             qreason = kQuit_GameError;
             error_is = !error_text.IsEmpty() ? error_text :
                 "A game error has occurred. Please contact the game author for support, as this is "
-                "likely to be a mistake in game logic or script and not a error in AGS engine.";
+                "likely to be a mistake in game logic or script and not an error in AGS engine.";
             error_kind = "Game script or data error.";
         }
 
@@ -171,7 +171,7 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
         qreason = kQuit_FatalError;
     }
 
-    // Display a error, unless it's a normal game exit request
+    // Display an error, unless it's a normal game exit request
     if (qreason != kQuit_GameRequest)
     {
         fullmsg = error_is;

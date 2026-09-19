@@ -143,7 +143,7 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     set_our_eip(-198);
-    sys_window_set_title(game.gamename.GetCStr());
+    platform->SetWindowTitle(game.gamename);
     sys_window_set_icon();
 
     SystemConfig sys_cfg;

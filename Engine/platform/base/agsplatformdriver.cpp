@@ -48,6 +48,7 @@ AGSPlatformDriver *platform = nullptr;
 
 AGSPlatformDriver::AGSPlatformDriver()
 {
+    _windowTitle = "Adventure Game Studio";
     _writeStdOut = &AGSPlatformDriver::WriteStdOut;
 }
 
@@ -120,10 +121,16 @@ void AGSPlatformDriver::WriteStdErr(const char *fmt, ...)
     fflush(stderr);
 }
 
+void AGSPlatformDriver::SetWindowTitle(const String &title)
+{
+    _windowTitle = !title.IsEmpty() ? title : "Adventure Game Studio";
+    sys_window_set_title(_windowTitle.GetCStr());
+}
+
 void AGSPlatformDriver::DisplayMessageBox(const char *text)
 {
     if (_guiMode)
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Adventure Game Studio", text, sys_get_window());
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, _windowTitle.GetCStr(), text, sys_get_window());
 }
 
 void AGSPlatformDriver::YieldCPU() {

@@ -22,6 +22,9 @@
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\util\file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -100,6 +103,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\data\tra_file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\textstreamwriter.h">

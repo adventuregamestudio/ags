@@ -2054,6 +2054,7 @@ namespace AGS.Editor
             var gameinfo = new Dictionary<string, string>();
             gameinfo.Add("title", ents.Game.Settings.GameName);
             gameinfo.Add("description", ents.Game.Settings.Description);
+            gameinfo.Add("dev_error_text", ents.Game.Settings.DeveloperErrorText);
             gameinfo.Add("dev_name", ents.Game.Settings.DeveloperName);
             gameinfo.Add("dev_url", ents.Game.Settings.DeveloperURL);
             gameinfo.Add("genre", ents.Game.Settings.Genre);

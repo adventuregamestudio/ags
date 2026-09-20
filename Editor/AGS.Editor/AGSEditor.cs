@@ -125,8 +125,9 @@ namespace AGS.Editor
          *                  InventoryItem.Hotspot now treats value 0,0 exactly, and not "centered in graphic"
          * 3.6.3.12       - Settings.TurnOrderPriority, TextBoxKeyClaimStyle.
          * 3.6.3.14       - InventoryItem.HotspotAlignment.
+         * 3.6.3.15       - Settings.DeveloperErrorText.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060314;
+        public const int    LATEST_XML_VERSION_INDEX = 3060315;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

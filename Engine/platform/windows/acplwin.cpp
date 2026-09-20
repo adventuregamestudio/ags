@@ -401,7 +401,12 @@ void AGSWin32::WriteStdOutImpl(FILE *file, const char *prefix, const char *fmt, 
 void AGSWin32::DisplayMessageBox(const char *text)
 {
     if (_guiMode)
-        MessageBox((HWND)sys_win_get_window(), text, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+    {
+        std::vector<wchar_t> wtext, wtitle;
+        StrUtil::ConvertUtf8ToWstr(text, wtext);
+        StrUtil::ConvertUtf8ToWstr(_windowTitle.GetCStr(), wtitle);
+        MessageBoxW((HWND)sys_win_get_window(), wtext.data(), wtitle.data(), MB_OK | MB_ICONEXCLAMATION);
+    }
 }
 
 void AGSWin32::ShutdownCDPlayer() {

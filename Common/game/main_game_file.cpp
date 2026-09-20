@@ -224,7 +224,7 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
 }
 
 // Helper function that reads a number of object or data, compares with the expected number,
-// and generates a error message if these numbers do not match.
+// and generates an error message if these numbers do not match.
 inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expected, HError &err)
 {
     uint32_t count = in->ReadInt32();

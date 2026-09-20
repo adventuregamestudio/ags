@@ -298,7 +298,7 @@ static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression
     version360 ? ReadSpriteHeader_360(hdr, in) : ReadSpriteHeader_321(hdr, in, compress);
     if (hdr.BPP == 0)
     {
-        err = HError::None(); // no sprite mark, this is not a error
+        err = HError::None(); // no sprite mark, this is not an error
         return {};
     }
     if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)

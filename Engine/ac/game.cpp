@@ -23,6 +23,7 @@
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -955,7 +956,7 @@ const char *Game_GetName() {
 
 void Game_SetName(const char *newName) {
     play.game_name = newName;
-    sys_window_set_title(play.game_name.GetCStr());
+    platform->SetWindowTitle(play.game_name);
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }
 
@@ -1057,6 +1058,8 @@ int Game_ChangeTranslation(const char *newFilename)
     if (!init_translation(newFilename, oldTransFileName))
         return 0; // failed, kept previous translation
 
+    if (game.GameInfo.count("dev_error_text") > 0)
+        play.SetGameErrorText(get_translation(game.GameInfo["dev_error_text"].GetCStr()));
     usetup.Translation = newFilename;
     GUIE::MarkForTranslationUpdate();
     return 1;

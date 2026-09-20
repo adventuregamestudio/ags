@@ -1777,6 +1777,8 @@ private:
     int _dlgNum = -1;
     int _dlgWas = -1;
     int _startOpt = -1;
+    // Tells if the dialog process is running the very first entry overall
+    // (not just the starting entry of any topic)
     // CHECKME: this may be unnecessary, investigate later
     bool _isFirstEntry = true;
     // Dialog topics history, used by "goto-previous" command
@@ -1816,8 +1818,9 @@ int DialogExec::HandleDialogResult(int res)
     // Continue to the next dialog
     if (res >= 0)
     {
-        // save the old topic number in the history, and switch to the new one
-        _topicHist.push(_dlgNum);
+        // Save the old topic number in the history, and switch to the new one (unless restarting same dialog)
+        if (_topicHist.size() == 0 || _topicHist.top() != _dlgNum)
+            _topicHist.push(_dlgNum);
         _dlgNum = res;
         return _dlgNum;
     }
@@ -1827,6 +1830,11 @@ int DialogExec::HandleDialogResult(int res)
 void DialogExec::Run()
 {
     _doStop = false;
+
+    // Run option index counts index 0 as a starting entry, actual options begin with index 1
+    int run_option = _startOpt;
+    _startOpt = -1; // reset starting option
+    bool show_options = false; // begin with running starting entry
 
     while (_dlgNum >= 0)
     {
@@ -1841,38 +1849,22 @@ void DialogExec::Run()
         // to the result of processing a next dialog entry or chosen option.
         _doRunDialog = RUN_DIALOG_STAY;
 
-        // If a new dialog topic: run dialog entry point
-        if (_dlgNum != _dlgWas)
+        // Show current dialog's options if necessary
+        if (show_options)
         {
-            const int start_opt = _startOpt;
-            _startOpt = 0; // reset starting option
-            _executedOption = 0;
-            if (start_opt == 0)
-                res = run_dialog_entry(_dlgNum);
-            else
-                res = run_dialog_option(_dlgNum, start_opt - 1, SAYCHOSEN_USEFLAG, true /* run script */);
-            _dlgWas = _dlgNum;
-            _executedOption = -1;
+            show_options = false;
+            _areOptionsDisplayed = true;
+            run_option = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+            run_option++; // turn into 1-based index, 0 means starting entry
+            _areOptionsDisplayed = false;
 
-            // Handle the dialog entry's result
-            res = HandleDialogResult(res);
-            if (res == RUN_DIALOG_STOP_DIALOG)
-                return; // stop the dialog
-            _isFirstEntry = false;
-            if (res != RUN_DIALOG_STAY)
-                continue; // skip to the next dialog
+            // Stop the dialog if was requested from custom options script
+            if (_doStop)
+                return;
         }
 
-        // Show current dialog's options
-        _areOptionsDisplayed = true;
-        int chose = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
-        _areOptionsDisplayed = false;
-
-        // Stop the dialog if requested from script
-        if (_doStop)
-            return;
-
-        if (chose == CHOSE_TEXTPARSER)
+        // Run requested option, or a dialog request in case of a text parser commit
+        if (run_option == CHOSE_TEXTPARSER)
         {
             said_speech_line = 0;
             res = run_dialog_request(_dlgNum);
@@ -1887,23 +1879,33 @@ void DialogExec::Run()
                 set_mouse_cursor(CURS_ARROW);
             }
         }
-        else if (chose >= 0)
+        else if (run_option >= 0)
         {
-            _executedOption = chose + 1; // option id is 1-based in script, and 0 is entry point
             // chose some option - handle it and run its script
-            res = run_dialog_option(_dlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
+            _executedOption = run_option;
+            if (run_option == 0)
+                res = run_dialog_entry(_dlgNum);
+            else
+                res = run_dialog_option(_dlgNum, run_option - 1, SAYCHOSEN_USEFLAG, true /* run script */);
+            _dlgWas = _dlgNum; // remember last dialog topic
             _executedOption = -1;
         }
         else
         {
-            return; // no option chosen? - stop the dialog
+            // no option chosen? - stop the dialog
+            return;
         }
 
         // Handle the dialog option's result
         res = HandleDialogResult(res);
         if (res == RUN_DIALOG_STOP_DIALOG)
             return; // stop the dialog
+        _isFirstEntry = false;
         // continue to the next dialog or show same dialog's options again
+        if (res == RUN_DIALOG_STAY)
+            show_options = true;
+        else
+            run_option = _startOpt; // next or previous dialog begin with a starting entry
     }
 }
 

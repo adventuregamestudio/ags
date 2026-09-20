@@ -1843,11 +1843,11 @@ namespace AGS.Editor.Components
 
             string rebuildReason = rebuildAll ? "because the full rebuild was ordered" : "because a script has changed";
 
-            UnloadCurrentRoomAndGreyOutTree();
-
             foreach (UnloadedRoom unloadedRoom in roomsToRebuild)
 			{
-				Room room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
+				Room room = (_loadedRoom != null && unloadedRoom.Number == _loadedRoom.Number) ?
+                    _loadedRoom
+                  : LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
                 // Ensure that the script is saved, in case it was modified on a room upgrade, for instance
                 room.Script.SaveToDisk();
 
@@ -1867,6 +1867,9 @@ namespace AGS.Editor.Components
                     errors.Add(new CompileWarning($"Room {room.FileName} was saved, but there were warnings; details below"));
                     errors.AddRange(roomErrors);
                 }
+
+                if (room != _loadedRoom)
+                    UnloadRoom(room);
 
                 if (!success)
                     break;
@@ -1969,12 +1972,11 @@ namespace AGS.Editor.Components
 				}
 			}
 
-            if (_loadedRoom != null)
-                _guiController.Invoke(new Action(() => { UnloadCurrentRoomAndGreyOutTree(); }));
-
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
-                Room room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
+                Room room = (_loadedRoom != null && unloadedRoom.Number == _loadedRoom.Number) ?
+                    _loadedRoom
+                  : LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
 
                 string roomContext = string.IsNullOrEmpty(room.Description) ? $"Room {room.Number}" : $"Room {room.Number}; {room.Description}";
 
@@ -2009,6 +2011,9 @@ namespace AGS.Editor.Components
                         errors.Add(roomErrors[0]);
                     }
                 }
+
+                if (room != _loadedRoom)
+                    UnloadRoom(room);
             }
         }
 

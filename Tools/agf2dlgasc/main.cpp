@@ -12,7 +12,7 @@ using namespace AGS::DataUtil;
 namespace AGF = AGS::AGF;
 
 
-const char *HELP_STRING = "Usage: agf2dlgasc <in-game.agf> <out-dialog.asc>\n";
+static const char *HELP_STRING = "Usage: agf2dlgasc <in-game.agf> <out-dialog.asc>\n";
 
 int main(int argc, char *argv[])
 {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
         String script = conv.Convert();
 
         body.Append(String::FromFormat("%sDialog %d\"\n", NEW_SCRIPT_MARKER, dialog_obj.ID));
-        if (conv.GetErrors().size() > 0)
+        if (conv.GetErrors().empty())
         {
             printf("%s compilation output:\n", dialog_obj.ScriptName.GetCStr());
             printf("----------------------------------------\n");

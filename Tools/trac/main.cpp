@@ -11,11 +11,11 @@ using namespace AGS::DataUtil;
 
 
 //------------------------------------------------------------------------------|
-const char *HELP_STRING = "Usage:\n"
+static const char *HELP_STRING = "Usage:\n"
 "  trac <input.trs> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
 "  trac -u <input.tra> [<output.trs>]\n";
 
-int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
+static int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
 {
     printf("Input translation source: %s\n", src.GetCStr());
     printf("Output compiled translation: %s\n", dst.GetCStr());
@@ -68,7 +68,7 @@ int Command_Compile(const String &src, const String &dst, const String *game_nam
     return 0;
 }
 
-int Command_Decompile(const String &src, const String &dst)
+static int Command_Decompile(const String &src, const String &dst)
 {
     printf("Input compiled translation: %s\n", src.GetCStr());
     printf("Output translation source: %s\n", dst.GetCStr());

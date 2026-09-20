@@ -37,6 +37,7 @@ COMMON_OBJS = \
 	../../Common/game/customproperties.cpp \
 	../../Common/game/interactions.cpp \
 	../../Common/game/room_file.cpp \
+	../../Common/game/room_file_blocks.cpp \
 	../../Common/game/roomdata.cpp \
 	../../Common/gfx/bitmapdata.cpp \
 	../../Common/gfx/image_bmp.cpp \

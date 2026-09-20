@@ -32,6 +32,7 @@ LDFLAGS  += $(addprefix -L,$(LIBDIR))
 COMMON_OBJS = \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/util/bufferedstream.cpp \
+	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/directory.cpp \
 	../../Common/util/filestream.cpp \

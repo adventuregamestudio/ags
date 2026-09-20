@@ -2,11 +2,12 @@
 #include <vector>
 #include "data/agfreader.h"
 #include "data/dialogscriptconv.h"
+#include "util/cmdlineopts.h"
 #include "util/file.h"
 #include "util/stream.h"
-#include "util/string_compat.h"
 
 using namespace AGS::Common;
+using namespace AGS::Common::CmdLineOpts;
 using namespace AGS::DataUtil;
 namespace AGF = AGS::AGF;
 
@@ -17,32 +18,30 @@ int main(int argc, char *argv[])
 {
     printf("agf2dlgasc v0.1.0 - AGS game's dialog script generator\n"\
         "Copyright (c) 2021 AGS Team and contributors\n");
-    for (int i = 1; i < argc; ++i)
+
+    ParseResult cmdargs = Parse(argc, argv, {});
+    if (cmdargs.HelpRequested)
     {
-        const char *arg = argv[i];
-        if (ags_stricmp(arg, "--help") == 0 || ags_stricmp(arg, "/?") == 0 || ags_stricmp(arg, "-?") == 0)
-        {
-            printf("%s\n", HELP_STRING);
-            return 0; // display help and bail out
-        }
+        printf("%s\n", HELP_STRING);
+        return 0; // display help and bail out
     }
-    if (argc < 3)
+    if (cmdargs.PosArgs.size() < 2)
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
-    const char *src = argv[1];
-    const char *dst = argv[2];
-    printf("Input game AGF: %s\n", src);
-    printf("Output script body: %s\n", dst);
+    const String &src = cmdargs.PosArgs[0];
+    const String &dst = cmdargs.PosArgs[1];
+    printf("Input game AGF: %s\n", src.GetCStr());
+    printf("Output script body: %s\n", dst.GetCStr());
 
     //-----------------------------------------------------------------------//
     // Read Game.agf
     //-----------------------------------------------------------------------//
     AGF::AGFReader reader;
-    HError err = reader.Open(src);
+    HError err = reader.Open(src.GetCStr());
     if (!err)
     {
         printf("Error: failed to open source AGF:\n");

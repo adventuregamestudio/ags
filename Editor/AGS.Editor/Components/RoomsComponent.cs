@@ -2521,23 +2521,8 @@ namespace AGS.Editor.Components
 
         private XmlNode LoadData(UnloadedRoom room)
         {
-            XmlDocument xml = new XmlDocument();
-
-            // TODO: I think that the following procedure was introduced in order
-            // to avoid exceptions in case of a simultaneous file access from both
-            // Editor and a user (or another program).
-            // See commit: f5cee96dd576949e173663b43c2d8d88fb84b56b
-            // Should we have this XML loading as a utility function and use everywhere?
-            using (FileStream filestream = File.Open(room.DataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (BinaryReader reader = new BinaryReader(filestream))
-            {
-                byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
-                using (MemoryStream ms = new MemoryStream(bytes))
-                {
-                    xml.Load(ms);
-                    return xml.SelectSingleNode("Room");
-                }
-            }
+            return Utilities.LoadXml(room.DataFileName)
+                ?.SelectSingleNode("Room");
         }
 
         private void RefreshData()

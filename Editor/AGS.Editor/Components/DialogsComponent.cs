@@ -1,17 +1,18 @@
+using AGS.Editor.TextProcessing;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Types;
-using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor.Components
 {
     class DialogsComponent : BaseComponentWithFolders<Dialog, DialogFolder>
     {
+        public const string DIALOG_FILES_DIRECTORY = "Dialogs";
+
         private const string DIALOGS_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
@@ -24,6 +25,12 @@ namespace AGS.Editor.Components
         
         private Dictionary<Dialog, ContentDocument> _documents;
         private Dialog _itemRightClicked = null;
+        // Session-long dialog GUIDs, used to uniquely identify dialog's instance.
+        // It may make sense to create a Guid field in the Dialog itself (and other game types),
+        // but i am keeping this here until that is decided.
+        private Dictionary<Dialog, Guid> _dialogGuids = new Dictionary<Dialog, Guid>();
+        // Map of the files assigned to the dialogs, used to track changes when removing or renaming dialogs.
+        private Dictionary<Guid, string> _dialogXmlFiles = new Dictionary<Guid, string>();
 
         public DialogsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, DIALOGS_COMMAND_ID)
@@ -34,7 +41,9 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
 			_guiController.OnZoomToFile += GUIController_OnZoomToFile;
             _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
-			RePopulateTreeView();
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
+            Factory.Events.GamePostSave += Events_GamePostSave;
+            RePopulateTreeView();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -53,10 +62,85 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Dialogs; }
         }
 
+        private void Events_GamePostLoad(Game game)
+        {
+            _dialogGuids.Clear();
+            _dialogXmlFiles.Clear();
+            // After the game document is loaded, we load all dialog documents,
+            // filling in full dialog data.
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                LoadDialogFromXml(dialog);
+
+                _dialogGuids[dialog] = Guid.NewGuid();
+                _dialogXmlFiles[_dialogGuids[dialog]] = dialog.DataFileName;
+            }
+        }
+
+        private void Events_GamePostSave(Game game)
+        {
+            if (!Directory.Exists(DIALOG_FILES_DIRECTORY))
+            {
+                Directory.CreateDirectory(DIALOG_FILES_DIRECTORY);
+            }
+
+            // Try to make things a bit safer (in case Editor crashing in the process, for example);
+            // keep obsolete dialog files on disk until all dialogs are saved,
+            // and then delete only those that were not resaved by a new dialog of the same name.
+            HashSet<string> oldXmlFiles = new HashSet<string>();
+            foreach (var file in _dialogXmlFiles)
+                oldXmlFiles.Add(file.Value);
+            _dialogXmlFiles.Clear();
+            // Write dialogs into their respective documents
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                SaveDialogToXml(dialog);
+
+                _dialogXmlFiles[_dialogGuids[dialog]] = dialog.DataFileName;
+            }
+
+            // Filter out and remove dialog xmls that are no longer attached to existing dialogs
+            foreach (var newXml in _dialogXmlFiles)
+            {
+                oldXmlFiles.Remove(newXml.Value);
+            }
+            foreach (var file in oldXmlFiles)
+            {
+                Utilities.TryDeleteFile(Path.Combine(DIALOG_FILES_DIRECTORY, file));
+            }
+        }
+
+        /// <summary>
+        /// Loads dialog data from its xml document.
+        /// </summary>
+        private void LoadDialogFromXml(Dialog dialog)
+        {
+            string filepath = Path.Combine(DIALOG_FILES_DIRECTORY, dialog.DataFileName);
+            XmlDocument xml = Utilities.LoadXml(filepath);
+            if (xml != null)
+            {
+                dialog.LoadFromXml(xml.SelectSingleNode("Dialog"));
+            }
+        }
+
+        /// <summary>
+        /// Saves dialog data to its xml document.
+        /// </summary>
+        private void SaveDialogToXml(Dialog dialog)
+        {
+            string filepath = Path.Combine(DIALOG_FILES_DIRECTORY, dialog.DataFileName);
+            using (var writer = new XmlTextWriter(filepath, Types.Utilities.UTF8))
+            {
+                writer.Formatting = Formatting.Indented;
+                dialog.ToXmlDocument().Save(writer);
+            }
+        }
+
         private Dialog AddNewDialog(Dialog newItem, string baseScriptName)
         {
             newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
             newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            _dialogGuids[newItem] = Guid.NewGuid();
             string newNodeID;
             if (_itemRightClicked != null)
                 newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
@@ -170,6 +254,10 @@ namespace AGS.Editor.Components
 
         protected override void DeleteResourcesUsedByItem(Dialog item)
         {
+            // Remove dialog from the guids, this marks associated xml document as obsolete
+            _dialogGuids.Remove(item);
+
+            // Delete item itself
             DeleteDialog(item);
         }
 

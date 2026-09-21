@@ -22,6 +22,8 @@ namespace AGS.Editor
         public delegate void SavingGameHandler(XmlTextWriter writer);
         public event SavingGameHandler SavingGame;
         public delegate void SavingUserDataHandler(XmlTextWriter writer);
+        public delegate void GamePostSaveHandler(Game game);
+        public event GamePostSaveHandler GamePostSave;
         public event SavingUserDataHandler SavingUserData;
         public delegate void LoadedUserDataHandler(XmlNode rootNode);
         public event LoadedUserDataHandler LoadedUserData;
@@ -80,6 +82,11 @@ namespace AGS.Editor
             {
                 SavingGame(writer);
             }
+        }
+
+        public void OnGamePostSave(Game game)
+        {
+            GamePostSave?.Invoke(game);
         }
 
         public void OnSavingUserData(XmlTextWriter writer)

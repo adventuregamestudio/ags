@@ -1815,6 +1815,8 @@ namespace AGS.Editor
                 return false;
             }
 
+            Factory.Events.OnGamePostSave(_game);
+
             _game.FilesAddedOrRemoved = false;
 
             return true;

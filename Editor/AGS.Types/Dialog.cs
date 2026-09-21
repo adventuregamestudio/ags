@@ -11,6 +11,18 @@ namespace AGS.Types
     [DefaultProperty("ScriptName")]
     public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
     {
+        /*
+         * Dialog version history:
+         * 
+         * 4.00.00.33   - New XML dialog format introduced
+        */
+        public const string LATEST_XML_VERSION = "4.0.0.33";
+        private const string FIRST_XML_VERSION = "4.0.0.33";
+
+        private const string DIALOG_DATA_FILE_EXT = "xml";
+
+        // The version this dialog was loaded from
+        private System.Version _savedXmlVersion = null;
         private int _id;
         private string _scriptName;
         private bool _showTextParser;
@@ -58,6 +70,22 @@ namespace AGS.Types
             set { ScriptName = value; }
         }
 
+        /// <summary>
+        /// Tells the name of the xml file that has this dialog's data.
+        /// </summary>
+        [Browsable(false)]
+        public string DataFileName
+        {
+            get
+            {
+                return string.IsNullOrEmpty(ScriptName) ?
+                    $"@dialog{ID}.{DIALOG_DATA_FILE_EXT}" :
+                    $"{ScriptName}.{DIALOG_DATA_FILE_EXT}";
+            }
+        }
+
+        // This is IScript.Filename impl, need to be removed
+        // after Dialog is no longer implementing IScript
         [Browsable(false)]
         public string FileName { get { return "Dialog " + ID; } }
 
@@ -139,23 +167,74 @@ namespace AGS.Types
         public Dialog(XmlNode node)
         {
             _scriptChangedSinceLastCompile = true;
-            _id = Convert.ToInt32(SerializeUtils.GetElementString(node, "ID"));
-            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "Name", _scriptName); // old-style script name
-            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "ScriptName", _scriptName);
-            _showTextParser = Boolean.Parse(SerializeUtils.GetElementString(node, "ShowTextParser"));
-            XmlNode scriptNode = node.SelectSingleNode("Script");
-            // Luckily the CDATA section is easy to read back
-            _script = scriptNode.InnerText;
+            LoadFromXml(node);
+        }
 
+        /// <summary>
+        /// Load Dialog from the main game document, using old-style format.
+        /// The version must correspond to the game project's version.
+        /// </summary>
+        public Dialog(XmlNode node, System.Version gameVersion)
+        {
+            _scriptChangedSinceLastCompile = true;
+            LoadDialogContents(node, gameVersion);
+        }
+
+        public void LoadFromXml(XmlNode node)
+        {
+            // First of all, test which format version are we loading
+            System.Version fileVersion;
+            try
+            {
+                fileVersion = SerializeUtils.ReadVersionAttribute(node);
+            }
+            catch (Exception)
+            {
+                throw new AGSEditorException("Dialog data file has an invalid version identifier.");
+            }
+
+            _scriptChangedSinceLastCompile = true;
+            LoadDialogContents(node, fileVersion);
+        }
+
+        /// <summary>
+        /// Loads Dialog contents from XML.
+        /// </summary>
+        private void LoadDialogContents(XmlNode node, System.Version xmlVersion)
+        {
+            // Since the new Dialog serialization format we should expect that
+            // the xml contains only dialog identification (id, scriptname).
+            // Only these two fields are obligatory (actually, scriptname is
+            // still optional due to current AGS rules). For the rest we must
+            // expect that they do not exist in the current document.
+            _id = Convert.ToInt32(SerializeUtils.GetElementString(node, "ID"));
+            // old-style script name (will get overridden by new one
+            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "Name", _scriptName);
+            _scriptName = SerializeUtils.GetElementStringOrDefault(node, "ScriptName", _scriptName);
+            _showTextParser = Boolean.Parse(SerializeUtils.GetElementStringOrDefault(node, "ShowTextParser", bool.FalseString));
+
+            // Script node may or may not exist (it may be also external file)
+            _script = null;
+            XmlNode scriptNode = node.SelectSingleNode("Script");
+            if (scriptNode != null)
+            {
+                // Luckily the CDATA section is easy to read back
+                _script = scriptNode.InnerText;
+            }
+
+            _options.Clear();
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "DialogOptions"))
             {
                 _options.Add(new DialogOption(child));
             }
+
+            _savedXmlVersion = xmlVersion;
         }
 
         public void ToXml(XmlTextWriter writer)
         {
-            writer.WriteStartElement("Dialog");
+            writer.WriteStartElement(GetType().Name);
+            writer.WriteAttributeString("Version", LATEST_XML_VERSION);
             writer.WriteElementString("ID", ID.ToString());
             writer.WriteElementString("ScriptName", _scriptName);
             writer.WriteElementString("ShowTextParser", _showTextParser.ToString());

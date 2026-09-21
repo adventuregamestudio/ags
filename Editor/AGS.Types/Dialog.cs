@@ -17,7 +17,8 @@ namespace AGS.Types
          * 4.00.00.33   - New XML dialog format introduced
         */
         public const string LATEST_XML_VERSION = "4.0.0.33";
-        private const string FIRST_XML_VERSION = "4.0.0.33";
+        public const string FIRST_XML_VERSION = "4.0.0.33";
+        public static System.Version FirstNewXmlVersion = new System.Version(FIRST_XML_VERSION);
 
         private const string DIALOG_DATA_FILE_EXT = "xml";
 

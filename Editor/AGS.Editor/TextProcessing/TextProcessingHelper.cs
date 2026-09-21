@@ -17,7 +17,7 @@ namespace AGS.Editor
             game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, "Game info", GameTextType.ItemDescription);
             game.Settings.Genre = processor.ProcessText(game.Settings.Genre, "Game info", GameTextType.ItemDescription);
 
-            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dialog in game.Dialogs)
             {
                 string sourceRef = string.IsNullOrEmpty(dialog.ScriptName) ? $"Dialog {dialog.ID}" : $"Dialog {dialog.ID}; {dialog.ScriptName}";
                 foreach (DialogOption option in dialog.Options)

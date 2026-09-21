@@ -66,7 +66,7 @@ namespace AGS.Editor
             if (xmlVersionIndex < 3)
             {
                 // Upgrade old games to flatten the dialog scripts
-                foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
+                foreach (Dialog dialog in game.Dialogs)
                 {
                     dialog.Script = RemoveAllLeadingSpacesFromLines(dialog.Script);
                 }

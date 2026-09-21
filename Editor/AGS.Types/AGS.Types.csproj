@@ -110,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AGSSerializeWithTypeConverterAttribute.cs" />
+    <Compile Include="DialogRef.cs" />
     <Compile Include="Enums\CursorRole.cs" />
     <Compile Include="GraphicAnchor.cs" />
     <Compile Include="InteractionSchema.cs" />

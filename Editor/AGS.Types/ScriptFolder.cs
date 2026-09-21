@@ -122,7 +122,7 @@ namespace AGS.Types
             return scripts.Header;
         }
 
-        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
+        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             Init(MAIN_SCRIPT_FOLDER_NAME);
             Script header = null;
@@ -148,7 +148,7 @@ namespace AGS.Types
             return new ScriptFolder(node);
         }
 
-        protected override ScriptAndHeader CreateItem(XmlNode node)
+        protected override ScriptAndHeader CreateItem(XmlNode node, System.Version xmlVersion)
         {
             return new ScriptAndHeader(node);
         }

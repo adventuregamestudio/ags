@@ -51,7 +51,7 @@ namespace AGS.Types
             return new ViewFolder(node);
         }
 
-        protected override View CreateItem(XmlNode node)
+        protected override View CreateItem(XmlNode node, System.Version xmlVersion)
         {
             return new View(node);
         }

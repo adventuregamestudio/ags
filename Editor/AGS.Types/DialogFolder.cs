@@ -5,17 +5,17 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class DialogFolders : FolderListHybrid<Dialog, DialogFolder>
+    public class DialogFolders : FolderListHybrid<DialogRef, DialogFolder>
     {
         public DialogFolders() : base(new DialogFolder()) { }
 
         public DialogFolders(string name) : base(new DialogFolder(name)) { }
 
-        public DialogFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
-            base(new DialogFolder(node, parentNodeForBackwardsCompatability)) { }
+        public DialogFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion) :
+            base(new DialogFolder(node, parentNodeForBackwardsCompatability, xmlVersion)) { }
     }
 
-    public class DialogFolder : BaseFolderCollection<Dialog, DialogFolder>
+    public class DialogFolder : BaseFolderCollection<DialogRef, DialogFolder>
     {
         public const string MAIN_DIALOG_FOLDER_NAME = "Main";        
 
@@ -23,27 +23,32 @@ namespace AGS.Types
 
         public DialogFolder() : this("Default") { }
 
-        public DialogFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) : 
-            base(node, parentNodeForBackwardsCompatability) { }
+        public DialogFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion) : 
+            base(node, parentNodeForBackwardsCompatability, xmlVersion) { }
 
         private DialogFolder(XmlNode node) : base(node) { }
+
+        protected override string OverrideXmlItemListNodeName()
+        {
+            return "Dialogs";
+        }
 
         public override DialogFolder CreateChildFolder(string name)
         {
             return new DialogFolder(name);
         }
 
-        public Dialog FindDialogByID(int dialogID, bool recursive)
+        public DialogRef FindDialogByID(int dialogID, bool recursive)
         {
             return FindItem(IsItem, dialogID, recursive);
         }
 
-        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
+        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             Init(MAIN_DIALOG_FOLDER_NAME);
             foreach (XmlNode dialogNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Dialogs"))
             {
-                _items.Add(new Dialog(dialogNode));
+                _items.Add(new DialogRef(dialogNode, xmlVersion));
             }
         }
 
@@ -52,12 +57,12 @@ namespace AGS.Types
             return new DialogFolder(node);
         }
 
-        protected override Dialog CreateItem(XmlNode node)
+        protected override DialogRef CreateItem(XmlNode node, System.Version xmlVersion)
         {
-            return new Dialog(node);
+            return new DialogRef(node, xmlVersion);
         }
 
-        private bool IsItem(Dialog dialog, int dialogID)
+        private bool IsItem(DialogRef dialog, int dialogID)
         {
             return dialog.ID == dialogID;
         }

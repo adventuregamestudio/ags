@@ -582,7 +582,7 @@ namespace AGS.Editor
             }
             if (includeDialogs)
             {
-                foreach (Dialog dialog in _game.RootDialogFolder.AllItemsFlat)
+                foreach (Dialog dialog in _game.Dialogs)
                 {
                     scripts.Add(dialog);
                 }

@@ -30,7 +30,7 @@ namespace AGS.Editor
             int stringBuilderCapacity = 1000 * game.RootDialogFolder.GetAllItemsCount() + _DefaultDialogScriptsScript.Length;
             StringBuilder sb = new StringBuilder(_DefaultDialogScriptsScript, stringBuilderCapacity);
 
-            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dialog in game.Dialogs)
             {
                 sb.AppendLine(AGS.CScript.Compiler.ScriptAnnotations.MakeNewScriptMarker($"Dialog {dialog.ID}"));
 
@@ -243,7 +243,7 @@ namespace AGS.Editor
                 return string.Format("return {0};", dialogID) + "}";
             }
 
-            foreach (Dialog otherDialog in _game.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog otherDialog in _game.Dialogs)
             {
                 if (string.Compare(otherDialog.ScriptName, newDialogName, true) == 0)
                 {

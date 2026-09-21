@@ -38,12 +38,12 @@ namespace AGS.Types
             return FindItem(IsItem, charID, recursive);
         }
 
-        protected override void FromXmlBackwardsCompatability(XmlNode parentNodeForBackwardsCompatability)
+        protected override void FromXmlBackwardsCompatability(XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             Init(MAIN_CHARACTER_FOLDER_NAME);
             foreach (XmlNode invNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Characters"))
             {
-                _items.Add(CreateItem(invNode));
+                _items.Add(CreateItem(invNode, xmlVersion));
             }           
         }
 
@@ -52,7 +52,7 @@ namespace AGS.Types
             return new CharacterFolder(node);
         }
 
-        protected override Character CreateItem(XmlNode node)
+        protected override Character CreateItem(XmlNode node, System.Version xmlVersion)
         {
             return new Character(node);
         }

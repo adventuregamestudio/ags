@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace AGS.Editor.Components
 {
-    class DialogsComponent : BaseComponentWithFolders<Dialog, DialogFolder>
+    class DialogsComponent : BaseComponentWithFolders<DialogRef, DialogFolder>
     {
         public const string DIALOG_FILES_DIRECTORY = "Dialogs";
 
@@ -24,7 +24,7 @@ namespace AGS.Editor.Components
         private const string ICON_KEY = "DialogsIcon";
         
         private Dictionary<Dialog, ContentDocument> _documents;
-        private Dialog _itemRightClicked = null;
+        private DialogRef _itemRightClicked = null;
         // Session-long dialog GUIDs, used to uniquely identify dialog's instance.
         // It may make sense to create a Guid field in the Dialog itself (and other game types),
         // but i am keeping this here until that is decided.
@@ -136,19 +136,21 @@ namespace AGS.Editor.Components
             }
         }
 
-        private Dialog AddNewDialog(Dialog newItem, string baseScriptName)
+        private Dialog AddNewDialog(Dialog newDialog, string baseScriptName)
         {
-            newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-            newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
-            _dialogGuids[newItem] = Guid.NewGuid();
+            newDialog.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
+            newDialog.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            // NOTE: this assumes that Dialogs list always stays sorted and without gaps
+            _agsEditor.CurrentGame.Dialogs.Add(newDialog);
+            _dialogGuids[newDialog] = Guid.NewGuid();
             string newNodeID;
             if (_itemRightClicked != null)
-                newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
+                newNodeID = AddSingleItem(new DialogRef(newDialog), GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
             else
-                newNodeID = AddSingleItem(newItem, _rightClickedID);
+                newNodeID = AddSingleItem(new DialogRef(newDialog), _rightClickedID);
             _guiController.ProjectTree.SelectNode(this, newNodeID);
-            ShowPaneForDialog(newItem);
-            return newItem;
+            ShowPaneForDialog(newDialog);
+            return newDialog;
         }
 
         protected override void ItemCommandClick(string controlID)
@@ -167,7 +169,7 @@ namespace AGS.Editor.Components
             }
             else if (controlID == COMMAND_COPY_ITEM)
             {
-                ClipboardUtils.CopyToClipboard(_itemRightClicked);
+                ClipboardUtils.CopyToClipboard(_itemRightClicked.Dialog);
             }
             else if (controlID == COMMAND_PASTE_ITEM)
             {
@@ -191,8 +193,10 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                // NOTE: remember we must swap items in both Dialogs and DialogRefs list!
+                _agsEditor.CurrentGame.Dialogs.Swap(oldNumber, newNumber);
                 GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(_itemRightClicked, false);
+                OnItemIDOrNameChanged(_itemRightClicked.Dialog, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
@@ -212,7 +216,7 @@ namespace AGS.Editor.Components
 
         private void ShowGoToDialogDialog()
         {
-            IList<Types.Dialog> dialogs = Factory.AGSEditor.CurrentGame.DialogFlatList;
+            IList<Types.Dialog> dialogs = Factory.AGSEditor.CurrentGame.Dialogs;
             if (dialogs.Count == 0) return;
 
             GoToNumberDialog goToDialogDialog = new GoToNumberDialog()
@@ -233,15 +237,17 @@ namespace AGS.Editor.Components
 
         private void DeleteDialog(Dialog dialog)
         {
-            int removingID = dialog.ID;
-            foreach (Dialog item in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
+            _agsEditor.CurrentGame.Dialogs.Remove(dialog);
+            // Must shift all greater IDs down to fill the gap;
+            // do this both for DialogRef and Dialog
+            foreach (DialogRef item in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
             {
-                if (item.ID > removingID)
+                if (item.ID > dialog.ID)
                 {
-                    item.ID--;
+                    item.ID--; // this also adjusts linked Dialog's ID
+                    // Force a refresh since ID's have changed
+                    item.Dialog.CachedConvertedScript = null;
                 }
-                // Force a refresh since ID's have changed
-                item.CachedConvertedScript = null;
             }
 
             ContentDocument document;
@@ -252,17 +258,21 @@ namespace AGS.Editor.Components
             }
         }
 
-        protected override void DeleteResourcesUsedByItem(Dialog item)
+        protected override void DeleteResourcesUsedByItem(DialogRef item)
         {
             // Remove dialog from the guids, this marks associated xml document as obsolete
-            _dialogGuids.Remove(item);
+            _dialogGuids.Remove(item.Dialog);
 
             // Delete item itself
-            DeleteDialog(item);
+            DeleteDialog(item.Dialog);
         }
 
         private void OnItemIDOrNameChanged(Dialog item, bool name_only)
         {
+            // If it was ID, then DialogRef was updated first, so sync only name here
+            var dialogRef = _items.First((KeyValuePair<string, DialogRef> itemRef) => { return itemRef.Value.Dialog == item; });
+            dialogRef.Value.ScriptName = item.ScriptName;
+
             // Refresh tree, property grid and open windows
             if (name_only)
                 ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
@@ -277,7 +287,7 @@ namespace AGS.Editor.Components
             }
 
             // Force re-build of dialog scripts since names/ids have changed
-            foreach (Dialog dlg in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dlg in _agsEditor.CurrentGame.Dialogs)
             {
                 dlg.CachedConvertedScript = null;
             }
@@ -314,7 +324,7 @@ namespace AGS.Editor.Components
             {
                 menu.Add(MenuCommand.Separator);
                 MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_DIALOG_NUMBER, "Go to Dialog...", Keys.Control | Keys.G);
-                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.DialogFlatList.Count > 0;
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.Dialogs.Count > 0;
                 menu.Add(goToCommand);
             }
         }
@@ -389,7 +399,7 @@ namespace AGS.Editor.Components
 
         public override bool ShowItemPaneByName(string name)
         {
-            IList<Dialog> dialogs = GetFlatList();
+            IList<Dialog> dialogs = _agsEditor.CurrentGame.Dialogs;
             foreach (Dialog d in dialogs)
             {
                 if (d.ScriptName == name)
@@ -404,8 +414,8 @@ namespace AGS.Editor.Components
 
         private DialogEditor ShowPaneForDialog(int dialogNumber)
 		{
-            Dialog chosenItem = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
-            return ShowPaneForDialog(chosenItem);
+            DialogRef chosenItem = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
+            return ShowPaneForDialog(chosenItem.Dialog);
 		}
 
         private DialogEditor ShowPaneForDialog(Dialog chosenItem)
@@ -430,9 +440,8 @@ namespace AGS.Editor.Components
         {
             int dialogNumber = GetDialogNumber(name);
             if (dialogNumber < 0) return null;
-            Dialog dialog = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
-
-            return dialog;	
+            DialogRef dialogRef = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
+            return dialogRef?.Dialog;
         }
 
         private void RemoveExecutionPointFromAllScripts()
@@ -497,10 +506,10 @@ namespace AGS.Editor.Components
             return item.ID.ToString() + ": " + item.ScriptName;
         }
 
-        protected override ProjectTreeItem CreateTreeItemForItem(Dialog item)
+        protected override ProjectTreeItem CreateTreeItemForItem(DialogRef item)
         {
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
-                (this, GetNodeID(item), GetNodeLabel(item), "DialogIcon");
+                (this, GetNodeID(item.Dialog), GetNodeLabel(item.Dialog), "DialogIcon");
             return treeItem;
         }
         
@@ -526,7 +535,7 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.RootDialogFolder;
         }
 
-        protected override IList<Dialog> GetFlatList()
+        protected override IList<DialogRef> GetFlatList()
         {
             return _agsEditor.CurrentGame.DialogFlatList;
         }

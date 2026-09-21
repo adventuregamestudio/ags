@@ -49,7 +49,7 @@ namespace AGS.Editor
             SpeechLineProcessor processor = new SpeechLineProcessor(game, _includeNarrator,
                 _combineIdenticalLines, _removeNumbering, _characterID, _speechableFunctionCalls, _errors, _referenceFile);
 
-            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dialog in game.Dialogs)
             {
                 foreach (DialogOption option in dialog.Options)
                 {

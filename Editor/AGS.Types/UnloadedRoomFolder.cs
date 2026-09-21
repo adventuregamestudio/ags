@@ -43,7 +43,7 @@ namespace AGS.Types
             return FindItem(IsItem, unloadedRoomNumber, recursive);
         }
 
-        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
+        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             Init(MAIN_UNLOADED_ROOM_FOLDER_NAME);
             foreach (XmlNode unloadedRoomNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "Rooms"))
@@ -57,7 +57,7 @@ namespace AGS.Types
             return new UnloadedRoomFolder(node);
         }
 
-        protected override IRoom CreateItem(XmlNode node)
+        protected override IRoom CreateItem(XmlNode node, System.Version xmlVersion)
         {
             return new UnloadedRoom(node);            
         }

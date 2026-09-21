@@ -1901,11 +1901,12 @@ void DialogExec::Run()
         if (res == RUN_DIALOG_STOP_DIALOG)
             return; // stop the dialog
         _isFirstEntry = false;
-        // continue to the next dialog or show same dialog's options again
+        // Show same dialog's options again
         if (res == RUN_DIALOG_STAY)
             show_options = true;
+        // Next or previous dialog: setup starting entry index
         else
-            run_option = _startOpt; // next or previous dialog begin with a starting entry
+            run_option = _startOpt >= 0 ? _startOpt : 0;
     }
 }
 

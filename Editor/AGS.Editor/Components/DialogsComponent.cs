@@ -11,8 +11,6 @@ namespace AGS.Editor.Components
 {
     class DialogsComponent : BaseComponentWithFolders<DialogRef, DialogFolder>
     {
-        public const string DIALOG_FILES_DIRECTORY = "Dialogs";
-
         private const string DIALOGS_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
@@ -30,7 +28,17 @@ namespace AGS.Editor.Components
         // but i am keeping this here until that is decided.
         private Dictionary<Dialog, Guid> _dialogGuids = new Dictionary<Dialog, Guid>();
         // Map of the files assigned to the dialogs, used to track changes when removing or renaming dialogs.
-        private Dictionary<Guid, string> _dialogXmlFiles = new Dictionary<Guid, string>();
+        private struct DialogFiles
+        {
+            public string xmlFile;
+            public string scriptFile;
+            public DialogFiles(string xmlfile, string scriptfile)
+            {
+                xmlFile = xmlfile;
+                scriptFile = scriptfile;
+            }
+        }
+        private Dictionary<Guid, DialogFiles> _dialogFiles = new Dictionary<Guid, DialogFiles>();
 
         public DialogsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, DIALOGS_COMMAND_ID)
@@ -65,48 +73,60 @@ namespace AGS.Editor.Components
         private void Events_GamePostLoad(Game game)
         {
             _dialogGuids.Clear();
-            _dialogXmlFiles.Clear();
+            _dialogFiles.Clear();
             // After the game document is loaded, we load all dialog documents,
-            // filling in full dialog data.
+            // filling in actual dialog data. The scripts are not loaded here though,
+            // they are loaded only when the dialog editor is about to open.
             foreach (Dialog dialog in game.Dialogs)
             {
                 LoadDialogFromXml(dialog);
 
                 _dialogGuids[dialog] = Guid.NewGuid();
-                _dialogXmlFiles[_dialogGuids[dialog]] = dialog.DataFileName;
+                _dialogFiles[_dialogGuids[dialog]] = new DialogFiles(dialog.DataFileName, dialog.ScriptFileName);
             }
         }
 
         private void Events_GamePostSave(Game game)
         {
-            if (!Directory.Exists(DIALOG_FILES_DIRECTORY))
+            if (!Directory.Exists(Dialog.DIALOG_FILES_DIRECTORY))
             {
-                Directory.CreateDirectory(DIALOG_FILES_DIRECTORY);
+                Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
             }
 
             // Try to make things a bit safer (in case Editor crashing in the process, for example);
             // keep obsolete dialog files on disk until all dialogs are saved,
             // and then delete only those that were not resaved by a new dialog of the same name.
-            HashSet<string> oldXmlFiles = new HashSet<string>();
-            foreach (var file in _dialogXmlFiles)
-                oldXmlFiles.Add(file.Value);
-            _dialogXmlFiles.Clear();
+            Dictionary<Guid, DialogFiles> oldDialogFiles = _dialogFiles;
+            HashSet<string> oldFilenames = new HashSet<string>();
+            foreach (var files in _dialogFiles)
+            {
+                oldFilenames.Add(files.Value.xmlFile);
+                oldFilenames.Add(files.Value.scriptFile);
+            }
+
+            _dialogFiles = new Dictionary<Guid, DialogFiles>();
             // Write dialogs into their respective documents
             foreach (Dialog dialog in game.Dialogs)
             {
+                // TODO: consider adding "modified" flag to the Dialog itself, and check here.
                 SaveDialogToXml(dialog);
+                // Force script to save if the filename was changed
+                bool mustSave =
+                    !oldDialogFiles.ContainsKey(_dialogGuids[dialog]) || (oldDialogFiles[_dialogGuids[dialog]].scriptFile != dialog.Script.FileName);
+                dialog.Script.SaveToDisk(mustSave);
 
-                _dialogXmlFiles[_dialogGuids[dialog]] = dialog.DataFileName;
+                _dialogFiles[_dialogGuids[dialog]] = new DialogFiles(dialog.DataFileName, dialog.ScriptFileName);
             }
 
             // Filter out and remove dialog xmls that are no longer attached to existing dialogs
-            foreach (var newXml in _dialogXmlFiles)
+            foreach (var files in _dialogFiles)
             {
-                oldXmlFiles.Remove(newXml.Value);
+                oldFilenames.Remove(files.Value.xmlFile);
+                oldFilenames.Remove(files.Value.scriptFile);
             }
-            foreach (var file in oldXmlFiles)
+            foreach (var file in oldFilenames)
             {
-                Utilities.TryDeleteFile(Path.Combine(DIALOG_FILES_DIRECTORY, file));
+                Utilities.TryDeleteFile(file);
             }
         }
 
@@ -115,8 +135,7 @@ namespace AGS.Editor.Components
         /// </summary>
         private void LoadDialogFromXml(Dialog dialog)
         {
-            string filepath = Path.Combine(DIALOG_FILES_DIRECTORY, dialog.DataFileName);
-            XmlDocument xml = Utilities.LoadXml(filepath);
+            XmlDocument xml = Utilities.LoadXml(dialog.DataFileName);
             if (xml != null)
             {
                 dialog.LoadFromXml(xml.SelectSingleNode("Dialog"));
@@ -128,8 +147,7 @@ namespace AGS.Editor.Components
         /// </summary>
         private void SaveDialogToXml(Dialog dialog)
         {
-            string filepath = Path.Combine(DIALOG_FILES_DIRECTORY, dialog.DataFileName);
-            using (var writer = new XmlTextWriter(filepath, Types.Utilities.UTF8))
+            using (var writer = new XmlTextWriter(dialog.DataFileName, Types.Utilities.UTF8))
             {
                 writer.Formatting = Formatting.Indented;
                 dialog.ToXmlDocument().Save(writer);
@@ -420,6 +438,11 @@ namespace AGS.Editor.Components
 
         private DialogEditor ShowPaneForDialog(Dialog chosenItem)
         {
+            if (!chosenItem.Script.Modified && File.Exists(chosenItem.Script.FileName))
+            {
+                chosenItem.Script.LoadFromDisk();
+            }
+
             AddDocumentIfNeeded(true, chosenItem);
             return (DialogEditor)_documents[chosenItem].Control;
         }

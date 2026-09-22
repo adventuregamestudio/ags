@@ -12,6 +12,7 @@ namespace AGS.Editor
         private const string dialogKeyWords = "return stop";
 
         private Dialog _dialog;
+        private DialogScript _script;
         private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
 
         public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
@@ -25,8 +26,9 @@ namespace AGS.Editor
         private void Init(Dialog dialog)
         {
             _dialog = dialog;
+            _script = dialog.Script;
             // Also give script reference to the base class
-            base.Script = dialog;
+            base.Script = dialog.Script;
 
             InitScintilla();
 
@@ -116,8 +118,8 @@ namespace AGS.Editor
             //scintillaEditor.SetKeyWords(dialogKeyWords);
             scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             scintillaEditor.SetKeyWords(BuildCharacterKeywords(), ScintillaWrapper.WordListType.GlobalClasses, true);
-            scintillaEditor.SetAutoCompleteSource(_dialog);
-            scintillaEditor.SetText(_dialog.Script);
+            scintillaEditor.SetAutoCompleteSource(_script);
+            scintillaEditor.SetText(_script.Text);
             scintillaEditor.EnableLineNumbers();
 
             // Assign Scintilla reference to the base class
@@ -175,7 +177,7 @@ namespace AGS.Editor
 
         public void SaveData()
         {
-            _dialog.Script = scintillaEditor.GetText();
+            _script.Text = scintillaEditor.GetText();
         }
 
         public void GoToScriptLine(ZoomToFileEventArgs evArgs)
@@ -320,14 +322,14 @@ namespace AGS.Editor
             SaveData();
 
             // Ensure there is an entry point in the script for this
-            if (!_dialog.Script.Contains(Environment.NewLine + "@" + newOption.ID))
+            if (!_script.Text.Contains(Environment.NewLine + "@" + newOption.ID))
             {
-                if (!_dialog.Script.EndsWith(Environment.NewLine))
+                if (!_script.Text.EndsWith(Environment.NewLine))
                 {
-                    _dialog.Script += Environment.NewLine;
+                    _script.Text += Environment.NewLine;
                 }
-                _dialog.Script += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
-                scintillaEditor.SetText(_dialog.Script);
+                _script.Text += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
+                scintillaEditor.SetText(_script.Text);
             }
         }
 

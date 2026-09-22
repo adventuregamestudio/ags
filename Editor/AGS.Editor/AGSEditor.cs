@@ -584,7 +584,7 @@ namespace AGS.Editor
             {
                 foreach (Dialog dialog in _game.Dialogs)
                 {
-                    scripts.Add(dialog);
+                    scripts.Add(dialog.Script);
                 }
             }
             return scripts;

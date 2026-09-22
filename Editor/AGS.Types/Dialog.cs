@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
+using System.IO;
 using System.Xml;
-using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("ScriptName")]
-    public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
+    public class Dialog : IToXml, IComparable<Dialog>, ICloneable
     {
         /*
          * Dialog version history:
@@ -20,16 +19,21 @@ namespace AGS.Types
         public const string FIRST_XML_VERSION = "4.0.0.33";
         public static System.Version FirstNewXmlVersion = new System.Version(FIRST_XML_VERSION);
 
+        public const string DIALOG_FILES_DIRECTORY = "Dialogs";
         private const string DIALOG_DATA_FILE_EXT = "xml";
+
+        private static readonly string DEFAULT_NEW_DIALOG_SCRIPT =
+            $@"// Dialog script file{Environment.NewLine}" +
+            $"@S  // Dialog startup entry point{Environment.NewLine}" +
+            $"return{Environment.NewLine}";
 
         // The version this dialog was loaded from
         private System.Version _savedXmlVersion = null;
         private int _id;
         private string _scriptName;
         private bool _showTextParser;
-        private string _script;
-        [NonSerialized]
-        private bool _scriptChangedSinceLastCompile;
+        private DialogScript _script;
+        // TODO: move cached converted script to DialogScript?
         [NonSerialized]
         private string _cachedConvertedScript;
         private List<DialogOption> _options = new List<DialogOption>();
@@ -37,11 +41,9 @@ namespace AGS.Types
 
         public Dialog()
         {
-            _script = "// Dialog script file" + Environment.NewLine + 
-                "@S  // Dialog startup entry point" + Environment.NewLine +
-                "return" + Environment.NewLine;
+            _script = new DialogScript();
+            _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
             _cachedConvertedScript = null;
-            _scriptChangedSinceLastCompile = true;
         }
 
         [Description("The ID number of the dialog")]
@@ -60,7 +62,15 @@ namespace AGS.Types
         public string ScriptName
         {
             get { return _scriptName; }
-            set { _scriptName = Utilities.ValidateScriptName(value); }
+            set
+            {
+                string newName = Utilities.ValidateScriptName(value);
+                if (newName != _scriptName)
+                {
+                    _scriptName = newName;
+                    _script.FileName = ScriptFileName;
+                }
+            }
         }
 
         [Obsolete]
@@ -71,27 +81,33 @@ namespace AGS.Types
             set { ScriptName = value; }
         }
 
+        private string DialogFileNameBase
+        {
+            get
+            {
+                // If script name is assigned, then use the script name;
+                // otherwise use numeric ID, but prefix with a '@' symbol that cannot be used in script name
+                return string.IsNullOrEmpty(ScriptName) ? $"@dialog{ID}" : ScriptName;
+            }
+        }
+
         /// <summary>
         /// Tells the name of the xml file that has this dialog's data.
         /// </summary>
         [Browsable(false)]
         public string DataFileName
         {
-            get
-            {
-                return string.IsNullOrEmpty(ScriptName) ?
-                    $"@dialog{ID}.{DIALOG_DATA_FILE_EXT}" :
-                    $"{ScriptName}.{DIALOG_DATA_FILE_EXT}";
-            }
+            get { return Path.Combine(DIALOG_FILES_DIRECTORY, $"{DialogFileNameBase}.{DIALOG_DATA_FILE_EXT}"); }
         }
 
-        // This is IScript.Filename impl, need to be removed
-        // after Dialog is no longer implementing IScript
+        /// <summary>
+        /// Tells the name of the file that has dialog's script.
+        /// </summary>
         [Browsable(false)]
-        public string FileName { get { return "Dialog " + ID; } }
-
-        [Browsable(false)]
-        public string Text { get { return _script; } }
+        public string ScriptFileName
+        {
+            get { return Path.Combine(DIALOG_FILES_DIRECTORY, $"{DialogFileNameBase}.{DialogScript.DIALOG_SCRIPT_FILE_EXT}"); }
+        }
 
         [Browsable(false)]
         public ScriptAutoCompleteData AutoCompleteData { get { return null; } }
@@ -105,27 +121,13 @@ namespace AGS.Types
         }
 
         [Browsable(false)]
-        public string Script
+        public DialogScript Script
         {
             get { return _script; }
-            set 
-            {
-                if (_script != value)
-                {
-                    _scriptChangedSinceLastCompile = true;
-                }
-                _script = value; 
-            }
+            set { _script = value; }
         }
 
-        [Browsable(false)]
-        [AGSNoSerialize]
-        public bool ScriptChangedSinceLastConverted
-        {
-            get { return _scriptChangedSinceLastCompile; }
-            set { _scriptChangedSinceLastCompile = value; }
-        }
-
+        // TODO: perhaps move to DialogScript?
         [Browsable(false)]
         public string CachedConvertedScript
         {
@@ -167,7 +169,6 @@ namespace AGS.Types
 
         public Dialog(XmlNode node)
         {
-            _scriptChangedSinceLastCompile = true;
             LoadFromXml(node);
         }
 
@@ -177,7 +178,6 @@ namespace AGS.Types
         /// </summary>
         public Dialog(XmlNode node, System.Version gameVersion)
         {
-            _scriptChangedSinceLastCompile = true;
             LoadDialogContents(node, gameVersion);
         }
 
@@ -194,7 +194,6 @@ namespace AGS.Types
                 throw new AGSEditorException("Dialog data file has an invalid version identifier.");
             }
 
-            _scriptChangedSinceLastCompile = true;
             LoadDialogContents(node, fileVersion);
         }
 
@@ -215,13 +214,20 @@ namespace AGS.Types
             _showTextParser = Boolean.Parse(SerializeUtils.GetElementStringOrDefault(node, "ShowTextParser", bool.FalseString));
 
             // Script node may or may not exist (it may be also external file)
-            _script = null;
             XmlNode scriptNode = node.SelectSingleNode("Script");
             if (scriptNode != null)
             {
-                // Luckily the CDATA section is easy to read back
-                _script = scriptNode.InnerText;
+                // Read the CDATA section
+                _script = new DialogScript(ScriptFileName, scriptNode.InnerText);
             }
+            else
+            {
+                // Create a default script placeholder (??)
+                _script = new DialogScript();
+                _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
+            }
+            _script.FileName = ScriptFileName;
+            _script.Modified = false;
 
             _options.Clear();
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "DialogOptions"))
@@ -239,9 +245,6 @@ namespace AGS.Types
             writer.WriteElementString("ID", ID.ToString());
             writer.WriteElementString("ScriptName", _scriptName);
             writer.WriteElementString("ShowTextParser", _showTextParser.ToString());
-            writer.WriteStartElement("Script");
-            writer.WriteCData(_script);
-            writer.WriteEndElement();
 
             writer.WriteStartElement("DialogOptions");
             foreach (DialogOption option in _options)

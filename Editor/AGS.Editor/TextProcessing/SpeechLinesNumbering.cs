@@ -59,7 +59,7 @@ namespace AGS.Editor
                     }
                 }
 
-                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.ScriptName), GameTextType.DialogScript);
+                dialog.Script.Text = processor.ProcessText(GameTextLine.MakeScript(dialog.Script.Text, dialog.ScriptFileName, dialog.ScriptName), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)

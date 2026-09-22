@@ -954,8 +954,6 @@ namespace AGS.Editor.Components
                 {
                     script.Text = 
                         ScriptGeneration.InsertFunction(script.Text, "game_start", "", "  SetRestartPoint();", amendExisting: true);
-                    // CHECKME: do not save the script here, in case user made a mistake opening this in a newer editor
-                    // and closes project without saving after upgrade? Upgrade process is not well defined...
                 }
             }
         }

@@ -26,8 +26,8 @@ namespace AGS.Editor
                     option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, dialog.ScriptName), GameTextType.DialogOption);
                 }
 
-                dialog.Script = processor.ProcessText(dialog.Script, sourceRef, GameTextType.DialogScript);
-                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.ScriptName), GameTextType.DialogScript);
+                dialog.Script.Text = processor.ProcessText(dialog.Script.Text, sourceRef, GameTextType.DialogScript);
+                dialog.Script.Text = processor.ProcessText(GameTextLine.MakeScript(dialog.Script.Text, dialog.ScriptFileName, dialog.ScriptName), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)

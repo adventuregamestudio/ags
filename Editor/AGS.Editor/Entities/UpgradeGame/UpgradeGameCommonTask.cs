@@ -68,7 +68,7 @@ namespace AGS.Editor
                 // Upgrade old games to flatten the dialog scripts
                 foreach (Dialog dialog in game.Dialogs)
                 {
-                    dialog.Script = RemoveAllLeadingSpacesFromLines(dialog.Script);
+                    dialog.Script.Text = RemoveAllLeadingSpacesFromLines(dialog.Script.Text);
                 }
             }
 

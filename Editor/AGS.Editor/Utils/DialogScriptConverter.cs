@@ -35,7 +35,7 @@ namespace AGS.Editor
                 sb.AppendLine(AGS.CScript.Compiler.ScriptAnnotations.MakeNewScriptMarker($"Dialog {dialog.ID}"));
 
                 if ((dialog.CachedConvertedScript == null) ||
-                    (dialog.ScriptChangedSinceLastConverted) ||
+                    (dialog.Script.Modified) ||
                     (rebuildAll))
                 {
                     int errorCountBefore = errors.Count;
@@ -43,11 +43,11 @@ namespace AGS.Editor
 
                     if (errors.Count > errorCountBefore)
                     {
-                        dialog.ScriptChangedSinceLastConverted = true;
+                        dialog.Script.Modified = true;
                     }
                     else
                     {
-                        dialog.ScriptChangedSinceLastConverted = false;
+                        dialog.Script.Modified = false;
                     }
                 }
 
@@ -73,7 +73,12 @@ namespace AGS.Editor
             _existingEntryPoints.Clear();
             _currentLineNumber = 0;
 
-            StringReader sr = new StringReader(dialog.Script);
+            if (!dialog.Script.Modified && File.Exists(dialog.Script.FileName))
+            {
+                dialog.Script.LoadFromDisk();
+            }
+
+            StringReader sr = new StringReader(dialog.Script.Text);
             StringWriter sw = new StringWriter();
             sw.Write(string.Format("function _run_dialog{0}(int entryPoint) {1} ", dialog.ID, "{"));
             while ((thisLine = sr.ReadLine()) != null)

@@ -20,7 +20,7 @@ namespace AGS.Types
         public static System.Version FirstNewXmlVersion = new System.Version(FIRST_XML_VERSION);
 
         public const string DIALOG_FILES_DIRECTORY = "Dialogs";
-        private const string DIALOG_DATA_FILE_EXT = "xml";
+        public const string DIALOG_DATA_FILE_EXT = "xml";
 
         private static readonly string DEFAULT_NEW_DIALOG_SCRIPT =
             $@"// Dialog script file{Environment.NewLine}" +

@@ -22,6 +22,8 @@ namespace AGS.Editor
             Description = "In AGS 4.0 the Rooms will now be stored in a \"open\" format, where each Room has a subfolder inside the \"Rooms\" folder, and each room component is saved as a separate file: properties are saved as XML, backgrounds and masks as PNG files, and so forth." +
                     Environment.NewLine + Environment.NewLine +
                     "During this upgrade step every one of your \"room*.crm\" files will be converted into this open format representation." +
+                    Environment.NewLine +
+                    "If a \"Rooms\" folder already exists, then it will be renamed into a backup folder. You can decide what to do with it on your own later." +
                     Environment.NewLine + Environment.NewLine +
                     "After this upgrade the \"room*.crm\" files will become purely output files, created as a result of the game compilation. They no longer need to be kept in the project folder. You may even delete them when e.g. sending your game sources to a co-developer in order to save disk space, and ignore them when adding your project under a source control.";
             GameVersion = new System.Version(AGSEditor.FIRST_XML_VERSION_USING_INDEX);

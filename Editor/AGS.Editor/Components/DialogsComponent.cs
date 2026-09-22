@@ -49,6 +49,7 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
 			_guiController.OnZoomToFile += GUIController_OnZoomToFile;
             _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
+            Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
             Factory.Events.GamePostLoad += Events_GamePostLoad;
             Factory.Events.GamePostSave += Events_GamePostSave;
             RePopulateTreeView();
@@ -68,6 +69,11 @@ namespace AGS.Editor.Components
         public override string ComponentID
         {
             get { return ComponentIDs.Dialogs; }
+        }
+
+        private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
+        {
+            args.Tasks.Add(new UpgradeGameDialogsOpenFormat(ConvertDialogsToIndividualFiles));
         }
 
         private void Events_GamePostLoad(Game game)
@@ -561,6 +567,31 @@ namespace AGS.Editor.Components
         protected override IList<DialogRef> GetFlatList()
         {
             return _agsEditor.CurrentGame.DialogFlatList;
+        }
+
+        protected void ConvertDialogsToIndividualFiles(Game game, IWorkProgress progress, CompileMessages errors)
+        {
+            if (_agsEditor.CurrentGame.SavedXmlVersion >= new System.Version(AGSEditor.AGS_4_0_0_XML_VERSION_OPEN_DIALOGS))
+                return; // already converted
+
+            // If the dialogs directory we want to write to already exists then backup
+            if (Directory.Exists(Dialog.DIALOG_FILES_DIRECTORY))
+            {
+                string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, Dialog.DIALOG_FILES_DIRECTORY, "Backup-");
+                Utilities.SafeMoveDirectoryFiles(Dialog.DIALOG_FILES_DIRECTORY, backupRootDir);
+            }
+
+            Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
+
+            // As the dialogs and their scripts are loaded into memory, we only need to resave them,
+            // and they will create respective files in the Dialogs folder.
+            foreach (var dialog in game.Dialogs)
+            {
+                SaveDialogToXml(dialog);
+                dialog.Script.SaveToDisk(true);
+            }
+
+            errors.Add(new CompileInformation($"Saved {game.Dialogs.Count} dialogs as {Dialog.DIALOG_DATA_FILE_EXT}/{DialogScript.DIALOG_SCRIPT_FILE_EXT} file pairs in the \"Dialogs\" folder"));
         }
     }
 }

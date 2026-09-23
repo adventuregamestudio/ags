@@ -94,7 +94,10 @@ namespace AGS.Types
         /// <summary>
         /// Tells the name of the xml file that has this dialog's data.
         /// </summary>
-        [Browsable(false)]
+        [AGSNoSerialize]
+        [ReadOnly(true)]
+        [Description("The dialog's data filename")]
+        [Category("Design")]
         public string DataFileName
         {
             get { return Path.Combine(DIALOG_FILES_DIRECTORY, $"{DialogFileNameBase}.{DIALOG_DATA_FILE_EXT}"); }
@@ -103,7 +106,10 @@ namespace AGS.Types
         /// <summary>
         /// Tells the name of the file that has dialog's script.
         /// </summary>
-        [Browsable(false)]
+        [AGSNoSerialize]
+        [ReadOnly(true)]
+        [Description("The dialog's script filename")]
+        [Category("Design")]
         public string ScriptFileName
         {
             get { return Path.Combine(DIALOG_FILES_DIRECTORY, $"{DialogFileNameBase}.{DialogScript.DIALOG_SCRIPT_FILE_EXT}"); }

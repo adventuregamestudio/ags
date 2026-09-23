@@ -33,7 +33,7 @@ Editor:
    selection of the script texts which are added to translation file.
  - In General Settings added "Translate Text Parser" setting, which makes Editor export
    Text Parser's words dictionary to the translation file.
- - In General Settings added "DeveloperErrorText" setting that lets assign a custom message text
+ - In General Settings added "Custom error text" setting that lets assign a custom message text
    which is displayed when the running game quits with error (this works with normal errors only,
    not "unhandled exception" crashes).
  - In Default Setup added "Compress saves" option, enabled by default.
@@ -315,7 +315,7 @@ Engine:
    depending on the translation's text direction setting (LTR or RTL).
  - Improved video playback's synchronization between video and audio streams.
  - Support for "Font overrides" instructed by the loaded Translation.
- - If game has "DeveloperErrorText" set, the engine will now display this text when quitting with
+ - If game has "Custom error text" set, the engine will now display this text when quitting with
    error popup, instead of using standard message. (The error specifics will still be displayed
    as usual, including script location and other details.)
  - Added "enabled" config option to "mouse" section. It's on by default, but when off, this option

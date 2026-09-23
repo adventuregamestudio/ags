@@ -1203,8 +1203,8 @@ namespace AGS.Types
         }
 
         [DisplayName("Developer name")]
-		[Description("The name of the game developer (you!). On Windows assigned to the game exe properties.")]
-        [Category("(Basic properties)")]
+        [Description("The name of the game developer (you!). When building Windows version of the game this will be assigned to the game exe properties.")]
+        [Category("(Information)")]
         [DefaultValue("")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string DeveloperName

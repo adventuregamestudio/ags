@@ -7,6 +7,7 @@ Common:
  - Increased number of Audio Channels to 32 (was 16).
  - Increased number of Room Backgrounds to 256 per room (was 5).
  - Inventory Item's hotspot now treats 0,0 value exactly, and not as "centered in graphic".
+ - Rooms now save their background images using max Deflate compression.
 
 Editor:
  - All input fields that allow decimal values with a fractional part now use a dot ('.') separator
@@ -32,6 +33,9 @@ Editor:
    selection of the script texts which are added to translation file.
  - In General Settings added "Translate Text Parser" setting, which makes Editor export
    Text Parser's words dictionary to the translation file.
+ - In General Settings added "DeveloperErrorText" setting that lets assign a custom message text
+   which is displayed when the running game quits with error (this works with normal errors only,
+   not "unhandled exception" crashes).
  - In Default Setup added "Compress saves" option, enabled by default.
  - On Color Finder panel added Web Color and comma-separated RGB color representation.
  - Throughout the Editor context menus now can be opened with "Menu" key on your keyboard, as well
@@ -141,6 +145,7 @@ Editor:
 
 Compiler:
  - Removed hard limit of script function parameters.
+ - Fixed forward struct declarations. They could cause obscure mistakes sometimes.
 
 Script API:
  - Added new game-wide option OPT_TURNORDERPRIORITY that defines which direction should characters
@@ -274,6 +279,9 @@ Engine:
  - ListBoxes do not unconditionally select the first item as soon as one is added (or when the list
    is filled with files or saves). The selection has to be explicitly set using SelectedItem.
  - Only the first found active TextBox control will receive input events.
+ - Dialog.Start() and StartOption() commands now allow to restart same dialog, when called from its
+   own script. In this case Dialog.Start() results in replaying the dialog's starting section.
+   goto-dialog has the same effect (if same dialog's number is used).
  - Standard Dialog options are now properly positioned depending on Right-to-left text mode,
    and support text alignment set in script. Parser input textbox in dialog options also supports
    Right-to-left text direction.
@@ -307,6 +315,9 @@ Engine:
    depending on the translation's text direction setting (LTR or RTL).
  - Improved video playback's synchronization between video and audio streams.
  - Support for "Font overrides" instructed by the loaded Translation.
+ - If game has "DeveloperErrorText" set, the engine will now display this text when quitting with
+   error popup, instead of using standard message. (The error specifics will still be displayed
+   as usual, including script location and other details.)
  - Added "enabled" config option to "mouse" section. It's on by default, but when off, this option
    tells engine to ignore the real mouse device completely, after which the in-game cursor may only
    be moved by the respective script commands.
@@ -326,6 +337,10 @@ Engine:
    a message to the log if the game was compiled in Release mode, or quit the game with a error
    popup if the game was compiled in Debug mode. The former is done to let player continue playing
    the game despite the error, while the latter brings immediate attention of the game developer.
+ - Fixed Buttons switching to their "MouseOver" graphic when mouse cursor hovers them,
+   even though their parent GUI is overlayed by another, clickable GUI.
+ - Fixed Character and Object Animate() command were starting animation even if object is disabled.
+   This could lead to infinite game freeze if the Animate() was called with eBlock parameter.
  - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
  - Fixed InventoryWindow not getting redrawn immediately if one of the item's has a dynamic sprite
    assigned as a graphic and that dynamic sprite gets edited (like, drawn upon).
@@ -345,6 +360,8 @@ Engine:
  - Fixed potential crash which could occur if script is trying to access certain Room Object's
    properties via 'object[]' array in a Room that has no objects or does not have this specific
    object.
+ - Fixed that after restoring a save with less number of objects (of any type), accessing these
+   objects in script would lead to a script error.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.

@@ -3606,18 +3606,6 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             sym.entries[stname].flags |= SFLG_STRUCTTYPE;
             sym.entries[stname].ssize = 0;
 
-            if (sym.get_type(targ.peeknext()) == SYM_SEMICOLON) {
-                // forward-declaration of struct type
-                targ.getnext();
-                sym.entries[stname].stype = SYM_UNDEFINEDSTRUCT;
-                sym.entries[stname].ssize = 4;
-                if (next_is_managed) {
-                    sym.entries[stname].flags |= SFLG_MANAGED;
-                    next_is_managed = 0;
-                }
-                continue;
-            }
-
             if (next_is_managed) {
                 sym.entries[stname].flags |= SFLG_MANAGED;
                 next_is_managed = 0;
@@ -3664,6 +3652,15 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 size_so_far = sym.entries[extendsWhat].ssize;
                 sym.entries[stname].extends = extendsWhat;
             }
+
+            // Test if this is a forward declaration of a struct (ends with semicolon, as opposed to a open brace)
+            if (sym.get_type(targ.peeknext()) == SYM_SEMICOLON) {
+                targ.getnext();
+                sym.entries[stname].stype = SYM_UNDEFINEDSTRUCT;
+                sym.entries[stname].ssize = 4; // FIXME: this assumes pointer for convenience, but what if it's not managed type?
+                continue;
+            }
+
             if (sym.get_type(targ.getnext()) != SYM_OPENBRACE) {
                 cc_error("expected '{'");
                 return -1;
@@ -4124,7 +4121,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         }
         else if (symType == SYM_STRINGSTRUCT) {
             next_is_stringstruct = 1;
-            if (sym.stringStructSym > 0) {
+            // If SYM_STRINGSTRUCT is defined and if it was not a forward declaration of the same struct
+            // FIXME: looks like not possible to compare struct names here, because these assertions are done as soon
+            // as the type modifiers are read, not after the whole declaration is read.
+            if (sym.stringStructSym > 0 &&
+                    !(sym.get_type(sym.stringStructSym) == SYM_UNDEFINEDSTRUCT)) {
                 cc_error("stringstruct already defined");
                 return -1;
             }

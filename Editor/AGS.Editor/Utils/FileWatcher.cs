@@ -86,6 +86,7 @@ namespace AGS.Editor
         private readonly FileSystemWatcher _fileWatcher;
         private readonly ISaveable _saveable;
         private readonly Action _loadFile;
+        private readonly string _filterPath;
         private readonly GUIController _guiController;
         private readonly IAppSettings _settings;
 
@@ -100,7 +101,15 @@ namespace AGS.Editor
             // It doesn' seem to work for unknown reason when I use the filename with fullt path
             // as a filter in the FileSystemWatcher constructor, if we could make that work we
             // can guarantee the watcher only reacts to the correct file.
-            string filter = Path.GetFileName(fileName);
+            string filter;
+            // Hack around in case fileName contains subdirectories.
+            if (Path.IsPathRooted(fileName))
+                filter = Utilities.GetRelativeToBasePath(fileName, path);
+            else
+                filter = fileName;
+            string filterPath = Path.GetDirectoryName(filter);
+            path = Path.Combine(path, filterPath);
+            filter = Path.GetFileName(filter);
             _fileWatcher = new FileSystemWatcher(path, filter);
             _fileWatcher.Changed += OnFileChanged;
             _fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -108,6 +117,7 @@ namespace AGS.Editor
             _fileWatcher.IncludeSubdirectories = true;
 
             FileName = fileName;
+            _filterPath = filterPath;
             _saveable = saveable;
             _loadFile = loadFile;
 
@@ -159,7 +169,7 @@ namespace AGS.Editor
         /// </remarks>
         private void OnFileChanged(object sender, FileSystemEventArgs e)
         {
-            if (Enabled && !_saveable.IsBeingSaved && FileName.Equals(e.Name, StringComparison.OrdinalIgnoreCase))
+            if (Enabled && !_saveable.IsBeingSaved && FileName.Equals(Path.Combine(_filterPath, e.Name), StringComparison.OrdinalIgnoreCase))
             {
                 if (!Utilities.IsMonoRunning() && Utilities.IsThisApplicationCurrentlyActive())
                 {

@@ -20,7 +20,6 @@ namespace AGS.Editor
         private const string TOGGLE_WORD_WRAP = "ToggleWordWrap";
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
-        private readonly FileWatcher _fileWatcher;
         private Script _script;
         private Room _room;
         private int _roomNumber;
@@ -44,7 +43,6 @@ namespace AGS.Editor
             : base(agsEditor)
         {
             InitializeComponent();
-            _fileWatcher = new FileWatcher(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
 
             _agsEditor = agsEditor;
             _showMatchingScript = showMatchingScript;
@@ -54,6 +52,7 @@ namespace AGS.Editor
 
             this.Load += ScriptEditor_Load;
             this.Resize += ScriptEditor_Resize;
+            this.ScriptChangedExternally += OnFileChangedExternally;
         }
 
         public override string GetScriptTabName()
@@ -159,13 +158,6 @@ namespace AGS.Editor
             ToggleBreakpoint(e.LineNumber);
         }
 
-
-        protected override void OnDispose()
-        {
-            _fileWatcher.Dispose();
-            base.OnDispose();
-        }
-
         private void ScriptEditor_Resize(object sender, EventArgs e)
         {
             if (this.ClientSize.Width > 50)
@@ -174,7 +166,7 @@ namespace AGS.Editor
             }
         }
 
-        private void OnFileChangedExternally()
+        private void OnFileChangedExternally(object sender, EventArgs args)
         {
             _script.LoadFromDisk();
             scintilla.SetText(_script.Text);
@@ -367,10 +359,6 @@ namespace AGS.Editor
             }
         }
 
-        public void ScriptModifiedExternally()
-        {
-            scintilla.ModifyText(_script.Text);
-        }
         public Room Room
         {
             get { return _room; }
@@ -408,9 +396,9 @@ namespace AGS.Editor
 
             if (!scintilla.IsDisposed && scintilla.IsModified)
             {
-                _fileWatcher.Enabled = false;
+                BeforeSave();
                 _script.SaveToDisk();
-                _fileWatcher.Enabled = true;
+                AfterSave();
 
                 scintilla.SetSavePoint();
                 UpdateAutocompleteAndControls(true);

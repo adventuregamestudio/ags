@@ -22,6 +22,7 @@ namespace AGS.Editor
             InitializeComponent();
             Init(dialogToEdit);
             this.Load += DialogEditor_Load;
+            this.ScriptChangedExternally += OnFileChangedExternally;
         }
 
         private void Init(Dialog dialog)
@@ -219,7 +220,9 @@ namespace AGS.Editor
             if (!scintillaEditor.IsDisposed && scintillaEditor.IsModified)
             {
                 _script.Text = scintillaEditor.GetText();
+                BeforeSave();
                 _script.SaveToDisk();
+                AfterSave();
                 scintillaEditor.SetSavePoint();
             }
         }
@@ -381,6 +384,12 @@ namespace AGS.Editor
         {
             // --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
             //_dialog.ScriptChangedSinceLastConverted = true;
+        }
+
+        private void OnFileChangedExternally(object sender, EventArgs e)
+        {
+            _script.LoadFromDisk();
+            scintillaEditor.SetText(_script.Text);
         }
 
         private void LoadColorTheme(ColorTheme t)

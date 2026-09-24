@@ -44,6 +44,7 @@ namespace AGS.Editor
         // TODO: refactor to have it exclusively member of the base class,
         // possibly created and configured in the child class
         private ScintillaWrapper _scintilla;
+        private FileWatcher _fileWatcher;
 
         // Menus
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
@@ -80,6 +81,13 @@ namespace AGS.Editor
             InitEditorBase();
         }
 
+        protected override void OnDispose()
+        {
+            if (_fileWatcher != null)
+                _fileWatcher.Dispose();
+            base.OnDispose();
+        }
+
         public MenuCommands ExtraMenu
         {
             get { return _extraMenu; }
@@ -103,6 +111,7 @@ namespace AGS.Editor
                 _iScript = value;
                 if (_scintilla != null && _iScript != null)
                     _scintilla.SetText(_iScript.Text);
+                EnableFileWatcher();
             }
         }
 
@@ -124,6 +133,8 @@ namespace AGS.Editor
         {
             get { return _scintilla != null ? _scintilla.IsModified : false; }
         }
+
+        public event EventHandler ScriptChangedExternally;
 
         private void InitEditorBase()
         {
@@ -159,6 +170,41 @@ namespace AGS.Editor
             _scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
             _scintilla.UpdateUI -= scintilla_UpdateUI;
             _scintilla = null;
+        }
+
+        public void ScriptModifiedExternally()
+        {
+            if (_scintilla != null && _iScript != null)
+                _scintilla.ModifyText(_iScript.Text);
+        }
+
+        protected void BeforeSave()
+        {
+            if (_fileWatcher != null)
+                _fileWatcher.Enabled = false;
+        }
+
+        protected void AfterSave()
+        {
+            EnableFileWatcher();
+        }
+
+        private void EnableFileWatcher()
+        {
+            if (_iScript != null && _iScript is ISaveable
+                && (_fileWatcher == null || _fileWatcher.FileName != _iScript.FileName))
+            {
+                if (_fileWatcher != null)
+                    _fileWatcher.Dispose();
+                _fileWatcher = new FileWatcher(_iScript.FileName, _iScript as ISaveable, OnFileChangedExternally);
+            }
+            if (_fileWatcher != null)
+                _fileWatcher.Enabled = true;
+        }
+
+        private void OnFileChangedExternally()
+        {
+            ScriptChangedExternally?.Invoke(this, new EventArgs());
         }
 
         #region Modified Script handling

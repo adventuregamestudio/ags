@@ -56,25 +56,5 @@ namespace AGS.Editor.Components
 
             evArgs.Result = result ? ZoomToFileResult.Success : ZoomToFileResult.LocationNotFound;
         }
-
-        protected abstract ContentDocument GetDocument(ScriptEditor editor);
-
-        protected void ScriptEditor_IsModifiedChanged(object sender, EventArgs e)
-        {
-            ScriptEditor sendingPane = (ScriptEditor)sender;
-            UpdateScriptWindowTitle(sendingPane);
-        }
-
-        protected void UpdateScriptWindowTitle(ScriptEditor editor)
-        {
-            string newTitle = editor.GetScriptTabName();
-            ContentDocument document = GetDocument(editor);            
-            if (document != null && document.Name != newTitle)
-            {
-                document.Name = newTitle;
-                document.Control.DockingContainer.Text = newTitle;
-                _guiController.DocumentTitlesChanged();
-            }            
-        }                
     }
 }

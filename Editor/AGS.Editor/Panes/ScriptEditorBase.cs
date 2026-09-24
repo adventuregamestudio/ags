@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
-using AGS.Editor.Components;
+using System.IO;
 using AGS.Editor.TextProcessing;
 
 
@@ -15,7 +15,7 @@ namespace AGS.Editor
     /// Contains shared Edit menu and context menu commands, common operations;
     /// lets to override some of these operations in the derived classes.
     /// </summary>
-    public class ScriptEditorBase : EditorContentPanel
+    public abstract class ScriptEditorBase : EditorContentPanel
     {
         // Common Edit menu commands
         protected const string CUT_COMMAND = "ScriptCut";
@@ -66,11 +66,16 @@ namespace AGS.Editor
         // Other operations data
         private int? _goToSprite = null;
         private string _goToDefinition = null;
+        public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
+        public static event AttemptToEditScriptHandler AttemptToEditScript;
 
+        public event EventHandler IsModifiedChanged;
 
         public ScriptEditorBase(AGSEditor agsEditor)
         {
             _agsEditor = agsEditor;
+
+            IsModifiedChanged += ScriptEditorBase_IsModifiedChanged;
 
             InitEditorBase();
         }
@@ -93,7 +98,12 @@ namespace AGS.Editor
         protected IScript Script
         {
             get { return _iScript; }
-            set { _iScript = value; }
+            set
+            {
+                _iScript = value;
+                if (_scintilla != null && _iScript != null)
+                    _scintilla.SetText(_iScript.Text);
+            }
         }
 
         /// <summary>
@@ -110,26 +120,99 @@ namespace AGS.Editor
             }
         }
 
+        public bool IsModified
+        {
+            get { return _scintilla != null ? _scintilla.IsModified : false; }
+        }
+
         private void InitEditorBase()
         {
             InitEditorMenus();
         }
 
+        protected virtual void RegisterEvents()
+        {
+        }
+
+        protected virtual void UnregisterEvents()
+        {
+        }
+
         private void InitScintilla(ScintillaWrapper scintilla)
         {
             _scintilla = scintilla;
+            _scintilla.IsModifiedChanged += scintilla_IsModifiedChanged;
+            _scintilla.AttemptModify += scintilla_AttemptModify;
             _scintilla.ConstructContextMenu += scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu += scintilla_ActivateContextMenu;
             _scintilla.UpdateUI += scintilla_UpdateUI;
+
+            if (Script != null)
+                _scintilla.SetText(Script.Text);
         }
 
         private void DisconnectScintilla()
         {
+            _scintilla.IsModifiedChanged -= scintilla_IsModifiedChanged;
+            _scintilla.AttemptModify -= scintilla_AttemptModify;
             _scintilla.ConstructContextMenu -= scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
             _scintilla.UpdateUI -= scintilla_UpdateUI;
             _scintilla = null;
         }
+
+        #region Modified Script handling
+
+        public virtual string GetScriptTabName()
+        {
+            return Path.GetFileName(_iScript.FileName) + (IsModified ? " *" : "");
+        }
+
+        protected void ScriptEditorBase_IsModifiedChanged(object sender, EventArgs e)
+        {
+            UpdateWindowTitle();
+        }
+
+        public void UpdateWindowTitle()
+        {
+            string newTitle = GetScriptTabName();
+            ContentDocument document = ContentDocument;
+            if (document != null && document.Name != newTitle)
+            {
+                document.Name = newTitle;
+                document.Control.DockingContainer.Text = newTitle;
+                Factory.GUIController.DocumentTitlesChanged();
+            }
+        }
+
+        public abstract void SaveChanges();
+
+        #endregion // Modified Script handling
+
+        #region Scintilla Events
+
+        private void scintilla_IsModifiedChanged(object sender, EventArgs e)
+        {
+            IsModifiedChanged?.Invoke(this, e);
+        }
+
+        private void scintilla_AttemptModify(ref bool allowModify)
+        {
+            if (AttemptToEditScript != null)
+            {
+                AttemptToEditScript(ref allowModify);
+                if (!allowModify)
+                {
+                    return;
+                }
+            }
+            if (!_agsEditor.AttemptToGetWriteAccess(_iScript.FileName))
+            {
+                allowModify = false;
+            }
+        }
+
+        #endregion // Scintilla Events
 
         #region Menus and Toolbar
 

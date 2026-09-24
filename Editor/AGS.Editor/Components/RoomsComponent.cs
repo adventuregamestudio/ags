@@ -1004,7 +1004,6 @@ namespace AGS.Editor.Components
         {
             ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor, null);
             scriptEditor.RoomNumber = selectedRoom.Number;
-            scriptEditor.IsModifiedChanged += ScriptEditor_IsModifiedChanged;
             if (scriptEditor.DockingContainer == null)
             {
                 scriptEditor.DockingContainer = new DockingContainer(scriptEditor);
@@ -1073,18 +1072,6 @@ namespace AGS.Editor.Components
         private void LoadRoomAndShowEditor(string controlID)
         {
             LoadRoomAndShowEditor(Convert.ToInt32(controlID.Substring(3)));
-        }
-
-        protected override ContentDocument GetDocument(ScriptEditor editor)
-        {
-            foreach (ContentDocument doc in _roomScriptEditors.Values)
-            {
-                if (doc.Control == editor)
-                {
-                    return doc;
-                }
-            }
-            return null;
         }
 
         private delegate void DisposePaneDelegate(ContentDocument doc);
@@ -1476,7 +1463,7 @@ namespace AGS.Editor.Components
                 if (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out doc) && doc != null)
                 {
                     ScriptEditor scriptEditor = ((ScriptEditor)doc.Control);
-                    UpdateScriptWindowTitle(scriptEditor);
+                    scriptEditor.UpdateWindowTitle(); // TODO: achieve this using events instead of direct call
                 }
             }
 

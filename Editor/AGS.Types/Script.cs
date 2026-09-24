@@ -84,9 +84,6 @@ namespace AGS.Types
             set { _fileName = value; }
         }
 
-        [Browsable(false)]
-        public string FileNameWithoutPath => Path.GetFileName(FileName);
-
         [Category("Module information")]
         [Description("Friendly name of this script")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]

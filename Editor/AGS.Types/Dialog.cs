@@ -115,9 +115,6 @@ namespace AGS.Types
             get { return Path.Combine(DIALOG_FILES_DIRECTORY, $"{DialogFileNameBase}.{DialogScript.DIALOG_SCRIPT_FILE_EXT}"); }
         }
 
-        [Browsable(false)]
-        public ScriptAutoCompleteData AutoCompleteData { get { return null; } }
-
         [Description("Whether to show a text box along with the options so that the user can type in custom text")]
         [Category("Appearance")]
         public bool ShowTextParser

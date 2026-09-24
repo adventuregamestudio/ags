@@ -2,6 +2,7 @@ using AGS.Editor.TextProcessing;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -90,11 +91,11 @@ namespace AGS.Editor
             }
         }
 
-        private void RegisterEvents()
+        protected override void RegisterEvents()
         {
         }
 
-        private void UnregisterEvents()
+        protected override void UnregisterEvents()
         {
             foreach(Control c in flowLayoutPanel1.Controls)
             {
@@ -136,6 +137,11 @@ namespace AGS.Editor
             get { return _dialog; }
         }
 
+        public override string GetScriptTabName()
+        {
+            return _dialog.WindowTitle + (IsModified ? " *" : "");
+        }
+
         protected override void OnKeyPressed(Keys keyData)
         {
             if (keyData.Equals(Keys.Escape))
@@ -159,9 +165,35 @@ namespace AGS.Editor
             }
         }
 
+        // TODO: find a way to merge this with ScriptEditor.OnPanelClosing and move to ScriptEditorBase
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
         {
-            UnregisterEvents();
+            if ((canCancel) && (scintillaEditor.IsModified))
+            {
+                DialogResult answer = MessageBox.Show("Do you want to save your changes in script before closing?", "Save changes?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (answer == DialogResult.Cancel)
+                {
+                    cancelClose = true;
+                }
+                else if (answer == DialogResult.Yes)
+                {
+                    UnregisterEvents();
+                    SaveChanges();
+                    return;
+                }
+                else if (File.Exists(_script.FileName))
+                {
+                    // Revert back to saved version
+                    _script.LoadFromDisk();
+                    scintillaEditor.SetText(_script.Text);
+                }
+            }
+
+            // Do anything necessary before the panel is closed
+            if (!cancelClose)
+            {
+                UnregisterEvents();
+            }
         }
 
         private String BuildCharacterKeywords()
@@ -178,6 +210,18 @@ namespace AGS.Editor
         public void SaveData()
         {
             _script.Text = scintillaEditor.GetText();
+            scintillaEditor.SetSavePoint();
+        }
+
+        // TODO: find a way to merge this with ScriptEditor.SaveChanges and move to ScriptEditorBase
+        public override void SaveChanges()
+        {
+            if (!scintillaEditor.IsDisposed && scintillaEditor.IsModified)
+            {
+                _script.Text = scintillaEditor.GetText();
+                _script.SaveToDisk();
+                scintillaEditor.SetSavePoint();
+            }
         }
 
         public void GoToScriptLine(ZoomToFileEventArgs evArgs)

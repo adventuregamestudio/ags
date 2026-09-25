@@ -30,12 +30,12 @@ namespace AGS.Editor.Components
         // Map of the files assigned to the dialogs, used to track changes when removing or renaming dialogs.
         private struct DialogFiles
         {
-            public string xmlFile;
-            public string scriptFile;
-            public DialogFiles(string xmlfile, string scriptfile)
+            public string DataFile;
+            public string ScriptFile;
+            public DialogFiles(string dataFile, string scriptFile)
             {
-                xmlFile = xmlfile;
-                scriptFile = scriptfile;
+                DataFile = dataFile;
+                ScriptFile = scriptFile;
             }
         }
         private Dictionary<Guid, DialogFiles> _dialogFiles = new Dictionary<Guid, DialogFiles>();
@@ -49,9 +49,9 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
 			_guiController.OnZoomToFile += GUIController_OnZoomToFile;
             _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
+            _agsEditor.PreCompileGame += _agsEditor_PreCompileGame;
             Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
             Factory.Events.GamePostLoad += Events_GamePostLoad;
-            Factory.Events.GamePostSave += Events_GamePostSave;
             RePopulateTreeView();
         }
 
@@ -92,6 +92,7 @@ namespace AGS.Editor.Components
             }
         }
 
+        /*
         private void Events_GamePostSave(Game game)
         {
             if (!Directory.Exists(Dialog.DIALOG_FILES_DIRECTORY))
@@ -106,8 +107,8 @@ namespace AGS.Editor.Components
             HashSet<string> oldFilenames = new HashSet<string>();
             foreach (var files in _dialogFiles)
             {
-                oldFilenames.Add(files.Value.xmlFile);
-                oldFilenames.Add(files.Value.scriptFile);
+                oldFilenames.Add(files.Value.DataFile);
+                oldFilenames.Add(files.Value.ScriptFile);
             }
 
             _dialogFiles = new Dictionary<Guid, DialogFiles>();
@@ -118,7 +119,7 @@ namespace AGS.Editor.Components
                 SaveDialogToXml(dialog);
                 // Force script to save if the filename was changed
                 bool mustSave =
-                    !oldDialogFiles.ContainsKey(_dialogGuids[dialog]) || (oldDialogFiles[_dialogGuids[dialog]].scriptFile != dialog.Script.FileName);
+                    !oldDialogFiles.ContainsKey(_dialogGuids[dialog]) || (oldDialogFiles[_dialogGuids[dialog]].ScriptFile != dialog.Script.FileName);
                 dialog.Script.SaveToDisk(mustSave);
 
                 _dialogFiles[_dialogGuids[dialog]] = new DialogFiles(dialog.DataFileName, dialog.ScriptFileName);
@@ -127,14 +128,15 @@ namespace AGS.Editor.Components
             // Filter out and remove dialog xmls that are no longer attached to existing dialogs
             foreach (var files in _dialogFiles)
             {
-                oldFilenames.Remove(files.Value.xmlFile);
-                oldFilenames.Remove(files.Value.scriptFile);
+                oldFilenames.Remove(files.Value.DataFile);
+                oldFilenames.Remove(files.Value.ScriptFile);
             }
             foreach (var file in oldFilenames)
             {
                 Utilities.TryDeleteFile(file);
             }
         }
+        */
 
         /// <summary>
         /// Loads dialog data from its xml document.
@@ -315,6 +317,38 @@ namespace AGS.Editor.Components
             {
                 dlg.CachedConvertedScript = null;
             }
+
+            // If any Dialog had its script name changed, then only its files need to be renamed,
+            // but if it had ID swapped, then there's at least another Dialog that had it changed too.
+            // Here we run through all Dialogs and check for those which cached filenames
+            // do not match the current Dialog names.
+            // IMPORTANT: in case of ID swap, we cannot simply rename a file, as that may overwrite
+            // existing file of another dialog. Instead we must first back all affected files
+            // to temporary files, delete old ones, and rename backups to proper names.
+            List<Tuple<Dialog, DialogFiles>> renamedDialogs = new List<Tuple<Dialog, DialogFiles>>();
+            foreach (Dialog dlg in _agsEditor.CurrentGame.Dialogs)
+            {
+                var files = _dialogFiles[_dialogGuids[dlg]];
+                if (files.DataFile != dlg.DataFileName || files.ScriptFile != dlg.ScriptFileName)
+                {
+                    string bkpDataFile = Utilities.BackupFile(files.DataFile);
+                    string bkpScriptFile = Utilities.BackupFile(files.ScriptFile);
+                    renamedDialogs.Add(new Tuple<Dialog, DialogFiles>(dlg, new DialogFiles(bkpDataFile, bkpScriptFile)));
+                }
+            }
+            foreach (var rename in renamedDialogs)
+            {
+                Dialog dlg = rename.Item1;
+                var oldFiles = _dialogFiles[_dialogGuids[dlg]];
+                var bkpFiles = rename.Item2;
+                // Delete old files
+                Utilities.TryDeleteFile(oldFiles.DataFile);
+                Utilities.TryDeleteFile(oldFiles.ScriptFile);
+                // Rename backups to proper names
+                File.Move(bkpFiles.DataFile, dlg.DataFileName);
+                File.Move(bkpFiles.ScriptFile, dlg.ScriptFileName);
+                _dialogFiles[_dialogGuids[dlg]] = new DialogFiles(dlg.DataFileName, dlg.ScriptFileName);
+            }
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)
@@ -375,11 +409,19 @@ namespace AGS.Editor.Components
             return menu;
         }
 
+        private void _agsEditor_PreCompileGame(PreCompileGameEventArgs evArgs)
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                ((DialogEditor)doc.Control).SaveChanges();
+            }
+        }
+
         public override void BeforeSaveGame()
         {
             foreach (ContentDocument doc in _documents.Values)
             {
-                ((DialogEditor)doc.Control).SaveData();
+                ((DialogEditor)doc.Control).SaveChanges();
             }
         }
 
@@ -401,7 +443,7 @@ namespace AGS.Editor.Components
             if (!_documents.TryGetValue(chosenItem, out document)
                 || document.Control.IsDisposed)
             {
-                DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor);
+                DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor, LoadDialogFromXml, SaveDialogToXml);
                 dialogEditor.DockingContainer = new DockingContainer(dialogEditor);
                 document = new ContentDocument(dialogEditor, chosenItem.WindowTitle,
                     this, ICON_KEY, ConstructPropertyObjectList(chosenItem));
@@ -580,8 +622,10 @@ namespace AGS.Editor.Components
                 string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, Dialog.DIALOG_FILES_DIRECTORY, "Backup-");
                 Utilities.SafeMoveDirectoryFiles(Dialog.DIALOG_FILES_DIRECTORY, backupRootDir);
             }
-
-            Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
+            else
+            {
+                Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
+            }
 
             // As the dialogs and their scripts are loaded into memory, we only need to resave them,
             // and they will create respective files in the Dialogs folder.

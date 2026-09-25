@@ -12,17 +12,24 @@ namespace AGS.Editor
     {
         private const string dialogKeyWords = "return stop";
 
+        public delegate void LoadDialogFromXml(Dialog dialog);
+        public delegate void SaveDialogToXml(Dialog dialog);
+
         private Dialog _dialog;
         private DialogScript _script;
         private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
+        private readonly LoadDialogFromXml _loadFromXml;
+        private readonly SaveDialogToXml _saveToXml;
 
-        public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
+        public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor, LoadDialogFromXml loadDialogFromXml, SaveDialogToXml saveDialogToXml)
             : base(agsEditor)
         {
             InitializeComponent();
             Init(dialogToEdit);
             this.Load += DialogEditor_Load;
             this.ScriptChangedExternally += OnFileChangedExternally;
+            _loadFromXml = loadDialogFromXml;
+            _saveToXml = saveDialogToXml;
         }
 
         private void Init(Dialog dialog)
@@ -221,9 +228,10 @@ namespace AGS.Editor
             {
                 _script.Text = scintillaEditor.GetText();
                 BeforeSave();
+                _script.Text = scintillaEditor.GetText();
                 _script.SaveToDisk();
-                AfterSave();
                 scintillaEditor.SetSavePoint();
+                AfterSave();
             }
         }
 

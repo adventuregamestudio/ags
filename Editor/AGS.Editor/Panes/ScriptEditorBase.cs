@@ -85,6 +85,7 @@ namespace AGS.Editor
         {
             if (_fileWatcher != null)
                 _fileWatcher.Dispose();
+            _fileWatcher = null;
             base.OnDispose();
         }
 

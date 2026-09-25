@@ -548,6 +548,13 @@ namespace AGS.Editor
             return true;
         }
 
+        public static string BackupFile(string fileName)
+        {
+            string bkpFileName = fileName + ".bkp";
+            File.Copy(fileName, bkpFileName);
+            return bkpFileName;
+        }
+
         /// <summary>
         /// Safely copies all files from srcDirectory to dstDirectory and deletes them
         /// in the srcDirectory, ensuring that i/o exceptions are handled in the process.

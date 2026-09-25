@@ -1,6 +1,6 @@
-using AGS.Types;
 using AGS.Editor.Components;
 using AGS.Editor.Utils;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,9 +9,10 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Reflection;
+using System.Xml;
 
 namespace AGS.Editor
 {
@@ -547,6 +548,13 @@ namespace AGS.Editor
             return true;
         }
 
+        public static string BackupFile(string fileName)
+        {
+            string bkpFileName = fileName + ".bkp";
+            File.Copy(fileName, bkpFileName);
+            return bkpFileName;
+        }
+
         /// <summary>
         /// Safely copies all files from srcDirectory to dstDirectory and deletes them
         /// in the srcDirectory, ensuring that i/o exceptions are handled in the process.
@@ -579,6 +587,30 @@ namespace AGS.Editor
                 wroteTotal += wasRead;
             }
             return wroteTotal;
+        }
+
+        /// <summary>
+        /// Loads XML document from file.
+        /// </summary>
+        public static XmlDocument LoadXml(string filepath)
+        {
+            if (!File.Exists(filepath))
+                return null;
+            // TODO: I think that the following procedure was introduced in order
+            // to avoid exceptions in case of a simultaneous file access from both
+            // Editor and a user (or another program).
+            // See commit: f5cee96dd576949e173663b43c2d8d88fb84b56b
+            XmlDocument xml = new XmlDocument();
+            using (FileStream filestream = File.Open(filepath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (BinaryReader reader = new BinaryReader(filestream))
+            {
+                byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
+                using (MemoryStream ms = new MemoryStream(bytes))
+                {
+                    xml.Load(ms);
+                    return xml;
+                }
+            }
         }
 
         /// <summary>

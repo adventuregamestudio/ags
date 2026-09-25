@@ -1004,7 +1004,6 @@ namespace AGS.Editor.Components
         {
             ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor, null);
             scriptEditor.RoomNumber = selectedRoom.Number;
-            scriptEditor.IsModifiedChanged += ScriptEditor_IsModifiedChanged;
             if (scriptEditor.DockingContainer == null)
             {
                 scriptEditor.DockingContainer = new DockingContainer(scriptEditor);
@@ -1073,18 +1072,6 @@ namespace AGS.Editor.Components
         private void LoadRoomAndShowEditor(string controlID)
         {
             LoadRoomAndShowEditor(Convert.ToInt32(controlID.Substring(3)));
-        }
-
-        protected override ContentDocument GetDocument(ScriptEditor editor)
-        {
-            foreach (ContentDocument doc in _roomScriptEditors.Values)
-            {
-                if (doc.Control == editor)
-                {
-                    return doc;
-                }
-            }
-            return null;
         }
 
         private delegate void DisposePaneDelegate(ContentDocument doc);
@@ -1476,7 +1463,7 @@ namespace AGS.Editor.Components
                 if (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out doc) && doc != null)
                 {
                     ScriptEditor scriptEditor = ((ScriptEditor)doc.Control);
-                    UpdateScriptWindowTitle(scriptEditor);
+                    scriptEditor.UpdateWindowTitle(); // TODO: achieve this using events instead of direct call
                 }
             }
 
@@ -2521,23 +2508,8 @@ namespace AGS.Editor.Components
 
         private XmlNode LoadData(UnloadedRoom room)
         {
-            XmlDocument xml = new XmlDocument();
-
-            // TODO: I think that the following procedure was introduced in order
-            // to avoid exceptions in case of a simultaneous file access from both
-            // Editor and a user (or another program).
-            // See commit: f5cee96dd576949e173663b43c2d8d88fb84b56b
-            // Should we have this XML loading as a utility function and use everywhere?
-            using (FileStream filestream = File.Open(room.DataFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (BinaryReader reader = new BinaryReader(filestream))
-            {
-                byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
-                using (MemoryStream ms = new MemoryStream(bytes))
-                {
-                    xml.Load(ms);
-                    return xml.SelectSingleNode("Room");
-                }
-            }
+            return Utilities.LoadXml(room.DataFileName)
+                ?.SelectSingleNode("Room");
         }
 
         private void RefreshData()

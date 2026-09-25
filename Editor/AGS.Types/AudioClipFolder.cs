@@ -111,7 +111,7 @@ namespace AGS.Types
             return new AudioClipFolder(node);
         }
 
-        protected override AudioClip CreateItem(XmlNode node)
+        protected override AudioClip CreateItem(XmlNode node, System.Version xmlVersion)
         {
             return new AudioClip(node);
         }

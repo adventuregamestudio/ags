@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
-using AGS.Editor.Components;
+using System.IO;
 using AGS.Editor.TextProcessing;
 
 
@@ -15,7 +15,7 @@ namespace AGS.Editor
     /// Contains shared Edit menu and context menu commands, common operations;
     /// lets to override some of these operations in the derived classes.
     /// </summary>
-    public class ScriptEditorBase : EditorContentPanel
+    public abstract class ScriptEditorBase : EditorContentPanel
     {
         // Common Edit menu commands
         protected const string CUT_COMMAND = "ScriptCut";
@@ -44,6 +44,7 @@ namespace AGS.Editor
         // TODO: refactor to have it exclusively member of the base class,
         // possibly created and configured in the child class
         private ScintillaWrapper _scintilla;
+        private FileWatcher _fileWatcher;
 
         // Menus
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
@@ -66,13 +67,26 @@ namespace AGS.Editor
         // Other operations data
         private int? _goToSprite = null;
         private string _goToDefinition = null;
+        public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
+        public static event AttemptToEditScriptHandler AttemptToEditScript;
 
+        public event EventHandler IsModifiedChanged;
 
         public ScriptEditorBase(AGSEditor agsEditor)
         {
             _agsEditor = agsEditor;
 
+            IsModifiedChanged += ScriptEditorBase_IsModifiedChanged;
+
             InitEditorBase();
+        }
+
+        protected override void OnDispose()
+        {
+            if (_fileWatcher != null)
+                _fileWatcher.Dispose();
+            _fileWatcher = null;
+            base.OnDispose();
         }
 
         public MenuCommands ExtraMenu
@@ -93,7 +107,13 @@ namespace AGS.Editor
         protected IScript Script
         {
             get { return _iScript; }
-            set { _iScript = value; }
+            set
+            {
+                _iScript = value;
+                if (_scintilla != null && _iScript != null)
+                    _scintilla.SetText(_iScript.Text);
+                EnableFileWatcher();
+            }
         }
 
         /// <summary>
@@ -110,26 +130,136 @@ namespace AGS.Editor
             }
         }
 
+        public bool IsModified
+        {
+            get { return _scintilla != null ? _scintilla.IsModified : false; }
+        }
+
+        public event EventHandler ScriptChangedExternally;
+
         private void InitEditorBase()
         {
             InitEditorMenus();
         }
 
+        protected virtual void RegisterEvents()
+        {
+        }
+
+        protected virtual void UnregisterEvents()
+        {
+        }
+
         private void InitScintilla(ScintillaWrapper scintilla)
         {
             _scintilla = scintilla;
+            _scintilla.IsModifiedChanged += scintilla_IsModifiedChanged;
+            _scintilla.AttemptModify += scintilla_AttemptModify;
             _scintilla.ConstructContextMenu += scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu += scintilla_ActivateContextMenu;
             _scintilla.UpdateUI += scintilla_UpdateUI;
+
+            if (Script != null)
+                _scintilla.SetText(Script.Text);
         }
 
         private void DisconnectScintilla()
         {
+            _scintilla.IsModifiedChanged -= scintilla_IsModifiedChanged;
+            _scintilla.AttemptModify -= scintilla_AttemptModify;
             _scintilla.ConstructContextMenu -= scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
             _scintilla.UpdateUI -= scintilla_UpdateUI;
             _scintilla = null;
         }
+
+        public void ScriptModifiedExternally()
+        {
+            if (_scintilla != null && _iScript != null)
+                _scintilla.ModifyText(_iScript.Text);
+        }
+
+        protected void BeforeSave()
+        {
+            if (_fileWatcher != null)
+                _fileWatcher.Enabled = false;
+        }
+
+        protected void AfterSave()
+        {
+            EnableFileWatcher();
+        }
+
+        private void EnableFileWatcher()
+        {
+            if (_iScript != null && _iScript is ISaveable
+                && (_fileWatcher == null || _fileWatcher.FileName != _iScript.FileName))
+            {
+                if (_fileWatcher != null)
+                    _fileWatcher.Dispose();
+                _fileWatcher = new FileWatcher(_iScript.FileName, _iScript as ISaveable, OnFileChangedExternally);
+            }
+            if (_fileWatcher != null)
+                _fileWatcher.Enabled = true;
+        }
+
+        private void OnFileChangedExternally()
+        {
+            ScriptChangedExternally?.Invoke(this, new EventArgs());
+        }
+
+        #region Modified Script handling
+
+        public virtual string GetScriptTabName()
+        {
+            return Path.GetFileName(_iScript.FileName) + (IsModified ? " *" : "");
+        }
+
+        protected void ScriptEditorBase_IsModifiedChanged(object sender, EventArgs e)
+        {
+            UpdateWindowTitle();
+        }
+
+        public void UpdateWindowTitle()
+        {
+            string newTitle = GetScriptTabName();
+            ContentDocument document = ContentDocument;
+            if (document != null && document.Name != newTitle)
+            {
+                document.Name = newTitle;
+                document.Control.DockingContainer.Text = newTitle;
+                Factory.GUIController.DocumentTitlesChanged();
+            }
+        }
+
+        public abstract void SaveChanges();
+
+        #endregion // Modified Script handling
+
+        #region Scintilla Events
+
+        private void scintilla_IsModifiedChanged(object sender, EventArgs e)
+        {
+            IsModifiedChanged?.Invoke(this, e);
+        }
+
+        private void scintilla_AttemptModify(ref bool allowModify)
+        {
+            if (AttemptToEditScript != null)
+            {
+                AttemptToEditScript(ref allowModify);
+                if (!allowModify)
+                {
+                    return;
+                }
+            }
+            if (!_agsEditor.AttemptToGetWriteAccess(_iScript.FileName))
+            {
+                allowModify = false;
+            }
+        }
+
+        #endregion // Scintilla Events
 
         #region Menus and Toolbar
 

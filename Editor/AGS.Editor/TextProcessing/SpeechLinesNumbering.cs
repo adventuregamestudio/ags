@@ -49,7 +49,7 @@ namespace AGS.Editor
             SpeechLineProcessor processor = new SpeechLineProcessor(game, _includeNarrator,
                 _combineIdenticalLines, _removeNumbering, _characterID, _speechableFunctionCalls, _errors, _referenceFile);
 
-            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dialog in game.Dialogs)
             {
                 foreach (DialogOption option in dialog.Options)
                 {
@@ -59,7 +59,7 @@ namespace AGS.Editor
                     }
                 }
 
-                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.ScriptName), GameTextType.DialogScript);
+                dialog.Script.Text = processor.ProcessText(GameTextLine.MakeScript(dialog.Script.Text, dialog.ScriptFileName, dialog.ScriptName), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)

@@ -32,7 +32,7 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             GUIController.AttemptToEditScript += AnyEditor_AttemptToEditScript;
-            ScriptEditor.AttemptToEditScript += AnyEditor_AttemptToEditScript;
+            ScriptEditorBase.AttemptToEditScript += AnyEditor_AttemptToEditScript;
             _guiController.QueryEditorShutdown += guiController_QueryEditorShutdown;
             _guiController.InteractiveTasks.TestGameStarting += AGSEditor_TestGameStarting;
             _guiController.InteractiveTasks.TestGameFinished += AGSEditor_TestGameFinished;

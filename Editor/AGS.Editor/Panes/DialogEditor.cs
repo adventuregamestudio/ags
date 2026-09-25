@@ -2,6 +2,7 @@ using AGS.Editor.TextProcessing;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -11,22 +12,32 @@ namespace AGS.Editor
     {
         private const string dialogKeyWords = "return stop";
 
-        private Dialog _dialog;
-        private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
+        public delegate void LoadDialogFromXml(Dialog dialog);
+        public delegate void SaveDialogToXml(Dialog dialog);
 
-        public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
+        private Dialog _dialog;
+        private DialogScript _script;
+        private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
+        private readonly LoadDialogFromXml _loadFromXml;
+        private readonly SaveDialogToXml _saveToXml;
+
+        public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor, LoadDialogFromXml loadDialogFromXml, SaveDialogToXml saveDialogToXml)
             : base(agsEditor)
         {
             InitializeComponent();
             Init(dialogToEdit);
             this.Load += DialogEditor_Load;
+            this.ScriptChangedExternally += OnFileChangedExternally;
+            _loadFromXml = loadDialogFromXml;
+            _saveToXml = saveDialogToXml;
         }
 
         private void Init(Dialog dialog)
         {
             _dialog = dialog;
+            _script = dialog.Script;
             // Also give script reference to the base class
-            base.Script = dialog;
+            base.Script = dialog.Script;
 
             InitScintilla();
 
@@ -88,11 +99,11 @@ namespace AGS.Editor
             }
         }
 
-        private void RegisterEvents()
+        protected override void RegisterEvents()
         {
         }
 
-        private void UnregisterEvents()
+        protected override void UnregisterEvents()
         {
             foreach(Control c in flowLayoutPanel1.Controls)
             {
@@ -116,8 +127,8 @@ namespace AGS.Editor
             //scintillaEditor.SetKeyWords(dialogKeyWords);
             scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             scintillaEditor.SetKeyWords(BuildCharacterKeywords(), ScintillaWrapper.WordListType.GlobalClasses, true);
-            scintillaEditor.SetAutoCompleteSource(_dialog);
-            scintillaEditor.SetText(_dialog.Script);
+            scintillaEditor.SetAutoCompleteSource(_script);
+            scintillaEditor.SetText(_script.Text);
             scintillaEditor.EnableLineNumbers();
 
             // Assign Scintilla reference to the base class
@@ -132,6 +143,11 @@ namespace AGS.Editor
         public Dialog ItemToEdit
         {
             get { return _dialog; }
+        }
+
+        public override string GetScriptTabName()
+        {
+            return _dialog.WindowTitle + (IsModified ? " *" : "");
         }
 
         protected override void OnKeyPressed(Keys keyData)
@@ -157,9 +173,35 @@ namespace AGS.Editor
             }
         }
 
+        // TODO: find a way to merge this with ScriptEditor.OnPanelClosing and move to ScriptEditorBase
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
         {
-            UnregisterEvents();
+            if ((canCancel) && (scintillaEditor.IsModified))
+            {
+                DialogResult answer = MessageBox.Show("Do you want to save your changes in script before closing?", "Save changes?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (answer == DialogResult.Cancel)
+                {
+                    cancelClose = true;
+                }
+                else if (answer == DialogResult.Yes)
+                {
+                    UnregisterEvents();
+                    SaveChanges();
+                    return;
+                }
+                else if (File.Exists(_script.FileName))
+                {
+                    // Revert back to saved version
+                    _script.LoadFromDisk();
+                    scintillaEditor.SetText(_script.Text);
+                }
+            }
+
+            // Do anything necessary before the panel is closed
+            if (!cancelClose)
+            {
+                UnregisterEvents();
+            }
         }
 
         private String BuildCharacterKeywords()
@@ -175,7 +217,22 @@ namespace AGS.Editor
 
         public void SaveData()
         {
-            _dialog.Script = scintillaEditor.GetText();
+            _script.Text = scintillaEditor.GetText();
+            scintillaEditor.SetSavePoint();
+        }
+
+        // TODO: find a way to merge this with ScriptEditor.SaveChanges and move to ScriptEditorBase
+        public override void SaveChanges()
+        {
+            if (!scintillaEditor.IsDisposed && scintillaEditor.IsModified)
+            {
+                _script.Text = scintillaEditor.GetText();
+                BeforeSave();
+                _script.Text = scintillaEditor.GetText();
+                _script.SaveToDisk();
+                scintillaEditor.SetSavePoint();
+                AfterSave();
+            }
         }
 
         public void GoToScriptLine(ZoomToFileEventArgs evArgs)
@@ -320,14 +377,14 @@ namespace AGS.Editor
             SaveData();
 
             // Ensure there is an entry point in the script for this
-            if (!_dialog.Script.Contains(Environment.NewLine + "@" + newOption.ID))
+            if (!_script.Text.Contains(Environment.NewLine + "@" + newOption.ID))
             {
-                if (!_dialog.Script.EndsWith(Environment.NewLine))
+                if (!_script.Text.EndsWith(Environment.NewLine))
                 {
-                    _dialog.Script += Environment.NewLine;
+                    _script.Text += Environment.NewLine;
                 }
-                _dialog.Script += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
-                scintillaEditor.SetText(_dialog.Script);
+                _script.Text += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
+                scintillaEditor.SetText(_script.Text);
             }
         }
 
@@ -335,6 +392,12 @@ namespace AGS.Editor
         {
             // --- disabled until Dialog.DisplayOptions(eSayAlways/eSayNever) question is resolved ---
             //_dialog.ScriptChangedSinceLastConverted = true;
+        }
+
+        private void OnFileChangedExternally(object sender, EventArgs e)
+        {
+            _script.LoadFromDisk();
+            scintillaEditor.SetText(_script.Text);
         }
 
         private void LoadColorTheme(ColorTheme t)

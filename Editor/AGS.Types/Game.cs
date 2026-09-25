@@ -43,7 +43,8 @@ namespace AGS.Types
         private List<MouseCursor> _cursors;
         private List<Font> _fonts;
         private List<FontFile> _fontFiles;
-        private DialogFolders _dialogs;
+        private DialogFolders _dialogRefs;
+        private List<Dialog> _dialogs;
         private List<Plugin> _plugins;
         private List<Translation> _translations;
         private UnloadedRoomFolders _rooms;
@@ -78,7 +79,8 @@ namespace AGS.Types
             _guis = new GUIFolders(GUIFolder.MAIN_GUI_FOLDER_NAME);
             _inventoryItems = new InventoryItemFolders(InventoryItemFolder.MAIN_INVENTORY_ITEM_FOLDER_NAME);
             _cursors = new List<MouseCursor>();
-            _dialogs = new DialogFolders(DialogFolder.MAIN_DIALOG_FOLDER_NAME);
+            _dialogRefs = new DialogFolders(DialogFolder.MAIN_DIALOG_FOLDER_NAME);
+            _dialogs = new List<Dialog>();
             _fonts = new List<Font>();
             _fontFiles = new List<FontFile>();
             _characters = new CharacterFolders(CharacterFolder.MAIN_CHARACTER_FOLDER_NAME);
@@ -229,12 +231,12 @@ namespace AGS.Types
 
         public DialogFolder RootDialogFolder
         {
-            get { return _dialogs.RootFolder; }
+            get { return _dialogRefs.RootFolder; }
         }
 
-        public IList<Dialog> DialogFlatList
+        public IList<DialogRef> DialogFlatList
         {
-            get { return _dialogs.FlatList; }
+            get { return _dialogRefs.FlatList; }
         }
 
         public ViewFolder RootViewFolder
@@ -682,7 +684,8 @@ namespace AGS.Types
             writer.WriteElementString("PlayerCharacter", (_playerCharacter == null) ? string.Empty : _playerCharacter.ID.ToString());
 
             writer.WriteStartElement("Dialogs");
-            _dialogs.ToXml(writer);            
+            writer.WriteAttributeString("Version", Dialog.LATEST_XML_VERSION);
+            _dialogRefs.ToXml(writer);
             writer.WriteEndElement();
 
             writer.WriteStartElement("Cursors");
@@ -824,7 +827,21 @@ namespace AGS.Types
                 }
             }
 
-            _dialogs = new DialogFolders(SerializeUtils.GetFirstChildOrNull(node, "Dialogs"), node);                                    
+            var dialogsNode = node.SelectSingleNode("Dialogs");
+            if (dialogsNode != null)
+            {
+                _dialogRefs = new DialogFolders(dialogsNode.FirstChild, node, SerializeUtils.ReadVersionAttribute(dialogsNode));
+            }
+            else
+            {
+                _dialogRefs = new DialogFolders();
+            }
+            _dialogs = new List<Dialog>();
+            foreach (var dialogRef in _dialogRefs)
+            {
+                _dialogs.Add(dialogRef.Dialog);
+            }
+            _dialogs.Sort(); // sort by ID
 
             _cursors.Clear();
             foreach (XmlNode cursNode in SerializeUtils.GetChildNodesOrEmpty(node, "Cursors"))
@@ -967,7 +984,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (Dialog dialog in this.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dialog in _dialogs)
             {
                 if ((dialog.ScriptName == tryName) && (dialog != ignoreObject))
                 {

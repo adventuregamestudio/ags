@@ -604,23 +604,14 @@ namespace AGS.Types
         /// </summary>
         private void LoadFromXml(XmlNode node)
         {
-            var versionAttr = node.Attributes.GetNamedItem("Version");
-            System.Version fileVersion = null;
-            if (versionAttr != null)
+            System.Version fileVersion;
+            try
             {
-                // Try parsing as a decimal first, that was used in the very first version
-                int versionIndex = 0;
-                if (int.TryParse(versionAttr.InnerText, out versionIndex))
-                {
-                    fileVersion = new System.Version(FIRST_XML_VERSION);
-                }
-                else
-                {
-                    if (!System.Version.TryParse(versionAttr.InnerText, out fileVersion))
-                    {
-                        throw new AGSEditorException($"Room data file has an invalid version identifier.");
-                    }
-                }
+                fileVersion = SerializeUtils.ReadVersionAttribute(node, FIRST_XML_VERSION, FIRST_XML_VERSION);
+            }
+            catch (Exception)
+            {
+                throw new AGSEditorException("Room data file has an invalid version identifier.");
             }
 
             LoadAndConvertInteractionEvents(node);

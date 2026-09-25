@@ -1,16 +1,15 @@
+using AGS.Editor.TextProcessing;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Types;
-using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor.Components
 {
-    class DialogsComponent : BaseComponentWithFolders<Dialog, DialogFolder>
+    class DialogsComponent : BaseComponentWithFolders<DialogRef, DialogFolder>
     {
         private const string DIALOGS_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
@@ -23,7 +22,23 @@ namespace AGS.Editor.Components
         private const string ICON_KEY = "DialogsIcon";
         
         private Dictionary<Dialog, ContentDocument> _documents;
-        private Dialog _itemRightClicked = null;
+        private DialogRef _itemRightClicked = null;
+        // Session-long dialog GUIDs, used to uniquely identify dialog's instance.
+        // It may make sense to create a Guid field in the Dialog itself (and other game types),
+        // but i am keeping this here until that is decided.
+        private Dictionary<Dialog, Guid> _dialogGuids = new Dictionary<Dialog, Guid>();
+        // Map of the files assigned to the dialogs, used to track changes when removing or renaming dialogs.
+        private struct DialogFiles
+        {
+            public string DataFile;
+            public string ScriptFile;
+            public DialogFiles(string dataFile, string scriptFile)
+            {
+                DataFile = dataFile;
+                ScriptFile = scriptFile;
+            }
+        }
+        private Dictionary<Guid, DialogFiles> _dialogFiles = new Dictionary<Guid, DialogFiles>();
 
         public DialogsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, DIALOGS_COMMAND_ID)
@@ -34,7 +49,10 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
 			_guiController.OnZoomToFile += GUIController_OnZoomToFile;
             _guiController.OnGetScriptEditorControl += _guiController_OnGetScriptEditorControl;
-			RePopulateTreeView();
+            _agsEditor.PreCompileGame += _agsEditor_PreCompileGame;
+            Factory.Events.GamePrepareUpgrade += Events_GamePrepareUpgrade;
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
+            RePopulateTreeView();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -53,18 +71,112 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Dialogs; }
         }
 
-        private Dialog AddNewDialog(Dialog newItem, string baseScriptName)
+        private void Events_GamePrepareUpgrade(UpgradeGameEventArgs args)
         {
-            newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-            newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            args.Tasks.Add(new UpgradeGameDialogsOpenFormat(ConvertDialogsToIndividualFiles));
+        }
+
+        private void Events_GamePostLoad(Game game)
+        {
+            _dialogGuids.Clear();
+            _dialogFiles.Clear();
+            // After the game document is loaded, we load all dialog documents,
+            // filling in actual dialog data. The scripts are not loaded here though,
+            // they are loaded only when the dialog editor is about to open.
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                LoadDialogFromXml(dialog);
+
+                _dialogGuids[dialog] = Guid.NewGuid();
+                _dialogFiles[_dialogGuids[dialog]] = new DialogFiles(dialog.DataFileName, dialog.ScriptFileName);
+            }
+        }
+
+        /*
+        private void Events_GamePostSave(Game game)
+        {
+            if (!Directory.Exists(Dialog.DIALOG_FILES_DIRECTORY))
+            {
+                Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
+            }
+
+            // Try to make things a bit safer (in case Editor crashing in the process, for example);
+            // keep obsolete dialog files on disk until all dialogs are saved,
+            // and then delete only those that were not resaved by a new dialog of the same name.
+            Dictionary<Guid, DialogFiles> oldDialogFiles = _dialogFiles;
+            HashSet<string> oldFilenames = new HashSet<string>();
+            foreach (var files in _dialogFiles)
+            {
+                oldFilenames.Add(files.Value.DataFile);
+                oldFilenames.Add(files.Value.ScriptFile);
+            }
+
+            _dialogFiles = new Dictionary<Guid, DialogFiles>();
+            // Write dialogs into their respective documents
+            foreach (Dialog dialog in game.Dialogs)
+            {
+                // TODO: consider adding "modified" flag to the Dialog itself, and check here.
+                SaveDialogToXml(dialog);
+                // Force script to save if the filename was changed
+                bool mustSave =
+                    !oldDialogFiles.ContainsKey(_dialogGuids[dialog]) || (oldDialogFiles[_dialogGuids[dialog]].ScriptFile != dialog.Script.FileName);
+                dialog.Script.SaveToDisk(mustSave);
+
+                _dialogFiles[_dialogGuids[dialog]] = new DialogFiles(dialog.DataFileName, dialog.ScriptFileName);
+            }
+
+            // Filter out and remove dialog xmls that are no longer attached to existing dialogs
+            foreach (var files in _dialogFiles)
+            {
+                oldFilenames.Remove(files.Value.DataFile);
+                oldFilenames.Remove(files.Value.ScriptFile);
+            }
+            foreach (var file in oldFilenames)
+            {
+                Utilities.TryDeleteFile(file);
+            }
+        }
+        */
+
+        /// <summary>
+        /// Loads dialog data from its xml document.
+        /// </summary>
+        private void LoadDialogFromXml(Dialog dialog)
+        {
+            XmlDocument xml = Utilities.LoadXml(dialog.DataFileName);
+            if (xml != null)
+            {
+                dialog.LoadFromXml(xml.SelectSingleNode("Dialog"));
+            }
+        }
+
+        /// <summary>
+        /// Saves dialog data to its xml document.
+        /// </summary>
+        private void SaveDialogToXml(Dialog dialog)
+        {
+            using (var writer = new XmlTextWriter(dialog.DataFileName, Types.Utilities.UTF8))
+            {
+                writer.Formatting = Formatting.Indented;
+                dialog.ToXmlDocument().Save(writer);
+            }
+        }
+
+        private Dialog AddNewDialog(Dialog newDialog, string baseScriptName)
+        {
+            newDialog.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
+            newDialog.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            // NOTE: this assumes that Dialogs list always stays sorted and without gaps
+            _agsEditor.CurrentGame.Dialogs.Add(newDialog);
+            _dialogGuids[newDialog] = Guid.NewGuid();
             string newNodeID;
             if (_itemRightClicked != null)
-                newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
+                newNodeID = AddSingleItem(new DialogRef(newDialog), GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
             else
-                newNodeID = AddSingleItem(newItem, _rightClickedID);
+                newNodeID = AddSingleItem(new DialogRef(newDialog), _rightClickedID);
             _guiController.ProjectTree.SelectNode(this, newNodeID);
-            ShowPaneForDialog(newItem);
-            return newItem;
+            ShowPaneForDialog(newDialog);
+            return newDialog;
         }
 
         protected override void ItemCommandClick(string controlID)
@@ -83,7 +195,7 @@ namespace AGS.Editor.Components
             }
             else if (controlID == COMMAND_COPY_ITEM)
             {
-                ClipboardUtils.CopyToClipboard(_itemRightClicked);
+                ClipboardUtils.CopyToClipboard(_itemRightClicked.Dialog);
             }
             else if (controlID == COMMAND_PASTE_ITEM)
             {
@@ -107,8 +219,10 @@ namespace AGS.Editor.Components
                     }
                 }
                 _itemRightClicked.ID = newNumber;
+                // NOTE: remember we must swap items in both Dialogs and DialogRefs list!
+                _agsEditor.CurrentGame.Dialogs.Swap(oldNumber, newNumber);
                 GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(_itemRightClicked, false);
+                OnItemIDOrNameChanged(_itemRightClicked.Dialog, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
@@ -128,7 +242,7 @@ namespace AGS.Editor.Components
 
         private void ShowGoToDialogDialog()
         {
-            IList<Types.Dialog> dialogs = Factory.AGSEditor.CurrentGame.DialogFlatList;
+            IList<Types.Dialog> dialogs = Factory.AGSEditor.CurrentGame.Dialogs;
             if (dialogs.Count == 0) return;
 
             GoToNumberDialog goToDialogDialog = new GoToNumberDialog()
@@ -149,15 +263,17 @@ namespace AGS.Editor.Components
 
         private void DeleteDialog(Dialog dialog)
         {
-            int removingID = dialog.ID;
-            foreach (Dialog item in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
+            _agsEditor.CurrentGame.Dialogs.Remove(dialog);
+            // Must shift all greater IDs down to fill the gap;
+            // do this both for DialogRef and Dialog
+            foreach (DialogRef item in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
             {
-                if (item.ID > removingID)
+                if (item.ID > dialog.ID)
                 {
-                    item.ID--;
+                    item.ID--; // this also adjusts linked Dialog's ID
+                    // Force a refresh since ID's have changed
+                    item.Dialog.CachedConvertedScript = null;
                 }
-                // Force a refresh since ID's have changed
-                item.CachedConvertedScript = null;
             }
 
             ContentDocument document;
@@ -168,13 +284,21 @@ namespace AGS.Editor.Components
             }
         }
 
-        protected override void DeleteResourcesUsedByItem(Dialog item)
+        protected override void DeleteResourcesUsedByItem(DialogRef item)
         {
-            DeleteDialog(item);
+            // Remove dialog from the guids, this marks associated xml document as obsolete
+            _dialogGuids.Remove(item.Dialog);
+
+            // Delete item itself
+            DeleteDialog(item.Dialog);
         }
 
         private void OnItemIDOrNameChanged(Dialog item, bool name_only)
         {
+            // If it was ID, then DialogRef was updated first, so sync only name here
+            var dialogRef = _items.First((KeyValuePair<string, DialogRef> itemRef) => { return itemRef.Value.Dialog == item; });
+            dialogRef.Value.ScriptName = item.ScriptName;
+
             // Refresh tree, property grid and open windows
             if (name_only)
                 ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
@@ -189,9 +313,41 @@ namespace AGS.Editor.Components
             }
 
             // Force re-build of dialog scripts since names/ids have changed
-            foreach (Dialog dlg in _agsEditor.CurrentGame.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dlg in _agsEditor.CurrentGame.Dialogs)
             {
                 dlg.CachedConvertedScript = null;
+            }
+
+            // If any Dialog had its script name changed, then only its files need to be renamed,
+            // but if it had ID swapped, then there's at least another Dialog that had it changed too.
+            // Here we run through all Dialogs and check for those which cached filenames
+            // do not match the current Dialog names.
+            // IMPORTANT: in case of ID swap, we cannot simply rename a file, as that may overwrite
+            // existing file of another dialog. Instead we must first back all affected files
+            // to temporary files, delete old ones, and rename backups to proper names.
+            List<Tuple<Dialog, DialogFiles>> renamedDialogs = new List<Tuple<Dialog, DialogFiles>>();
+            foreach (Dialog dlg in _agsEditor.CurrentGame.Dialogs)
+            {
+                var files = _dialogFiles[_dialogGuids[dlg]];
+                if (files.DataFile != dlg.DataFileName || files.ScriptFile != dlg.ScriptFileName)
+                {
+                    string bkpDataFile = Utilities.BackupFile(files.DataFile);
+                    string bkpScriptFile = Utilities.BackupFile(files.ScriptFile);
+                    renamedDialogs.Add(new Tuple<Dialog, DialogFiles>(dlg, new DialogFiles(bkpDataFile, bkpScriptFile)));
+                }
+            }
+            foreach (var rename in renamedDialogs)
+            {
+                Dialog dlg = rename.Item1;
+                var oldFiles = _dialogFiles[_dialogGuids[dlg]];
+                var bkpFiles = rename.Item2;
+                // Delete old files
+                Utilities.TryDeleteFile(oldFiles.DataFile);
+                Utilities.TryDeleteFile(oldFiles.ScriptFile);
+                // Rename backups to proper names
+                File.Move(bkpFiles.DataFile, dlg.DataFileName);
+                File.Move(bkpFiles.ScriptFile, dlg.ScriptFileName);
+                _dialogFiles[_dialogGuids[dlg]] = new DialogFiles(dlg.DataFileName, dlg.ScriptFileName);
             }
         }
 
@@ -226,7 +382,7 @@ namespace AGS.Editor.Components
             {
                 menu.Add(MenuCommand.Separator);
                 MenuCommand goToCommand = new MenuCommand(COMMAND_GO_TO_DIALOG_NUMBER, "Go to Dialog...", Keys.Control | Keys.G);
-                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.DialogFlatList.Count > 0;
+                goToCommand.Enabled = Factory.AGSEditor.CurrentGame.Dialogs.Count > 0;
                 menu.Add(goToCommand);
             }
         }
@@ -253,11 +409,19 @@ namespace AGS.Editor.Components
             return menu;
         }
 
+        private void _agsEditor_PreCompileGame(PreCompileGameEventArgs evArgs)
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                ((DialogEditor)doc.Control).SaveChanges();
+            }
+        }
+
         public override void BeforeSaveGame()
         {
             foreach (ContentDocument doc in _documents.Values)
             {
-                ((DialogEditor)doc.Control).SaveData();
+                ((DialogEditor)doc.Control).SaveChanges();
             }
         }
 
@@ -279,7 +443,7 @@ namespace AGS.Editor.Components
             if (!_documents.TryGetValue(chosenItem, out document)
                 || document.Control.IsDisposed)
             {
-                DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor);
+                DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor, LoadDialogFromXml, SaveDialogToXml);
                 dialogEditor.DockingContainer = new DockingContainer(dialogEditor);
                 document = new ContentDocument(dialogEditor, chosenItem.WindowTitle,
                     this, ICON_KEY, ConstructPropertyObjectList(chosenItem));
@@ -301,7 +465,7 @@ namespace AGS.Editor.Components
 
         public override bool ShowItemPaneByName(string name)
         {
-            IList<Dialog> dialogs = GetFlatList();
+            IList<Dialog> dialogs = _agsEditor.CurrentGame.Dialogs;
             foreach (Dialog d in dialogs)
             {
                 if (d.ScriptName == name)
@@ -316,12 +480,17 @@ namespace AGS.Editor.Components
 
         private DialogEditor ShowPaneForDialog(int dialogNumber)
 		{
-            Dialog chosenItem = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
-            return ShowPaneForDialog(chosenItem);
+            DialogRef chosenItem = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
+            return ShowPaneForDialog(chosenItem.Dialog);
 		}
 
         private DialogEditor ShowPaneForDialog(Dialog chosenItem)
         {
+            if (!chosenItem.Script.Modified && File.Exists(chosenItem.Script.FileName))
+            {
+                chosenItem.Script.LoadFromDisk();
+            }
+
             AddDocumentIfNeeded(true, chosenItem);
             return (DialogEditor)_documents[chosenItem].Control;
         }
@@ -342,9 +511,8 @@ namespace AGS.Editor.Components
         {
             int dialogNumber = GetDialogNumber(name);
             if (dialogNumber < 0) return null;
-            Dialog dialog = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
-
-            return dialog;	
+            DialogRef dialogRef = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
+            return dialogRef?.Dialog;
         }
 
         private void RemoveExecutionPointFromAllScripts()
@@ -409,10 +577,10 @@ namespace AGS.Editor.Components
             return item.ID.ToString() + ": " + item.ScriptName;
         }
 
-        protected override ProjectTreeItem CreateTreeItemForItem(Dialog item)
+        protected override ProjectTreeItem CreateTreeItemForItem(DialogRef item)
         {
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
-                (this, GetNodeID(item), GetNodeLabel(item), "DialogIcon");
+                (this, GetNodeID(item.Dialog), GetNodeLabel(item.Dialog), "DialogIcon");
             return treeItem;
         }
         
@@ -438,9 +606,36 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.RootDialogFolder;
         }
 
-        protected override IList<Dialog> GetFlatList()
+        protected override IList<DialogRef> GetFlatList()
         {
             return _agsEditor.CurrentGame.DialogFlatList;
+        }
+
+        protected void ConvertDialogsToIndividualFiles(Game game, IWorkProgress progress, CompileMessages errors)
+        {
+            if (_agsEditor.CurrentGame.SavedXmlVersion >= new System.Version(AGSEditor.AGS_4_0_0_XML_VERSION_OPEN_DIALOGS))
+                return; // already converted
+
+            // If the dialogs directory we want to write to already exists then backup
+            if (Directory.Exists(Dialog.DIALOG_FILES_DIRECTORY))
+            {
+                string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, Dialog.DIALOG_FILES_DIRECTORY, "Backup-");
+                Utilities.SafeMoveDirectoryFiles(Dialog.DIALOG_FILES_DIRECTORY, backupRootDir);
+            }
+            else
+            {
+                Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
+            }
+
+            // As the dialogs and their scripts are loaded into memory, we only need to resave them,
+            // and they will create respective files in the Dialogs folder.
+            foreach (var dialog in game.Dialogs)
+            {
+                SaveDialogToXml(dialog);
+                dialog.Script.SaveToDisk(true);
+            }
+
+            errors.Add(new CompileInformation($"Saved {game.Dialogs.Count} dialogs as {Dialog.DIALOG_DATA_FILE_EXT}/{DialogScript.DIALOG_SCRIPT_FILE_EXT} file pairs in the \"Dialogs\" folder"));
         }
     }
 }

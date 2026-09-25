@@ -8,7 +8,7 @@ using AGS.Types.Interfaces;
 namespace AGS.Types
 {
     [Serializable]
-    [DefaultProperty("Name")]
+    [DefaultProperty("ScriptName")]
     public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
     {
         private int _id;

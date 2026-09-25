@@ -210,7 +210,7 @@ namespace AGS.Editor.Components
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
-            if (propertyName == "Name")
+            if (propertyName == "ScriptName")
             {
                 InventoryItem itemToChange = ((InventoryEditor)_guiController.ActivePane.Control).ItemToEdit;
 

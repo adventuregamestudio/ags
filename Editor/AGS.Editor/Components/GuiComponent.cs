@@ -324,7 +324,7 @@ namespace AGS.Editor.Components
             _guiEditor_OnControlsChanged(editor.GuiToEdit);
 
  			// FIXME: this does not distinguish GUI and GUIControl properties!
- 			if (propertyName == "Name")
+ 			if (propertyName == "ScriptName")
 			{
                 OnItemIDOrNameChanged(itemBeingEdited, itemBeingEdited.ID, true);
 			}

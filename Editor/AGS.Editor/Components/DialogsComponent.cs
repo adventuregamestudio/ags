@@ -199,7 +199,7 @@ namespace AGS.Editor.Components
         {
             Dialog itemBeingEdited = ((DialogEditor)_guiController.ActivePane.Control).ItemToEdit;
 
-            if (propertyName == "Name")
+            if (propertyName == "ScriptName")
             {
                 if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName, itemBeingEdited))
                 {

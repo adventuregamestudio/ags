@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [Serializable]
-    [DefaultProperty("Name")]
+    [DefaultProperty("ScriptName")]
     public class View : IToXml, IComparable<View>, ICloneable
     {
         public delegate void ViewUpdatedHandler(View view);

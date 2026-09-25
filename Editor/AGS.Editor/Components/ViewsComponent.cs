@@ -250,7 +250,7 @@ namespace AGS.Editor.Components
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
-            if (propertyName == "Name")
+            if (propertyName == "ScriptName")
             {
                 View itemBeingEdited = ((ViewEditor)_guiController.ActivePane.Control).ViewToEdit;
                 if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName.ToUpperInvariant(), itemBeingEdited))
@@ -381,7 +381,7 @@ namespace AGS.Editor.Components
         {
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), GetNodeLabel(item), "ViewIcon");
             treeItem.AllowLabelEdit = true;
-            treeItem.LabelTextProperty = item.GetType().GetProperty("Name");
+            treeItem.LabelTextProperty = item.GetType().GetProperty("ScriptName");
             treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("NameAndID");
             treeItem.LabelTextDataSource = item;
             return treeItem;

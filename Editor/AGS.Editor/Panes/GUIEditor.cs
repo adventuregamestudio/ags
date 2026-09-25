@@ -144,7 +144,7 @@ namespace AGS.Editor
         {
             // FIXME: this does not distinguish GUI and GUIControl properties!
             // so we have to always check whether it is _gui or _selectedControl.
-            if (propertyName == "Name")
+            if (propertyName == "ScriptName")
             {
                 object objectBeingChanged = _gui;
                 string newName = _gui.Name;

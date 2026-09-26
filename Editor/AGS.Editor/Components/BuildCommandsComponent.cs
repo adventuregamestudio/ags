@@ -1,3 +1,4 @@
+using AGS.Editor.Preferences;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,6 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using AGS.Editor.Preferences;
 
 namespace AGS.Editor.Components
 {
@@ -170,7 +170,7 @@ namespace AGS.Editor.Components
         {
             if (_agsEditor.SaveGameFiles())
             {
-                var messages = _agsEditor.CompileGame(false, true);
+                var messages = _agsEditor.CompileGame(new AGSEditor.CompileGameArgs(false, true));
                 if (!messages.HasErrors)
                 {
                     // The user data may have been amended by the building process
@@ -250,7 +250,7 @@ namespace AGS.Editor.Components
             _agsEditor.CurrentGame.WorkspaceState.RequiredRebuildTime = DateTime.Now;
             if (_agsEditor.SaveGameFiles())
 			{
-                var messages = _agsEditor.CompileGame(forceRebuild, false);
+                var messages = _agsEditor.CompileGame(new AGSEditor.CompileGameArgs(forceRebuild, false));
                 // The user data may have been amended by the building process
                 if (!messages.HasErrors)
                     _agsEditor.SaveUserDataFile();

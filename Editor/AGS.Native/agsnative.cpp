@@ -4046,6 +4046,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 
     String ^roomScriptName = String::Format("room{0}.asc", room->Number);
 
+    room->SavedVersionIndex = rs.DataVersion;
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
     room->LeftEdgeX = rs.Edges.Left;

@@ -28,6 +28,7 @@ namespace AGS.Types
         public delegate void RoomModifiedChangedHandler(bool isModified);
         public event RoomModifiedChangedHandler RoomModifiedChanged;
 
+        private int _savedVersionIndex = 0;
         private int _leftEdgeX;
         private int _rightEdgeX;
         private int _topEdgeY;
@@ -108,6 +109,16 @@ namespace AGS.Types
                 area.ID = i;
                 _regions.Add(area);
             }
+        }
+
+        /// <summary>
+        /// Tells the version index of the file this room was loaded from.
+        /// </summary>
+        [Browsable(false)]
+        public int SavedVersionIndex
+        {
+            get { return _savedVersionIndex; }
+            set { _savedVersionIndex = value; }
         }
 
         [Browsable(false)]

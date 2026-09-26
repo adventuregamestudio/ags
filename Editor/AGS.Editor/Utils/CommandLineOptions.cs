@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace AGS.Editor
 {
@@ -15,6 +10,7 @@ namespace AGS.Editor
 	public class CommandLineOptions
 	{
 		private bool _compileAndExit = false;
+		private bool _upgradeAndSave = false;
 		private bool _templateSaveAndExit = false;
 		private string _projectPath = string.Empty;
         private List<string> _unknownArgs = new List<string>();
@@ -30,11 +26,15 @@ namespace AGS.Editor
 				{
 					_compileAndExit = true;
 				}
-				else if (arg.ToLower() == "/maketemplate")
+                else if (arg.ToLower() == "/upgrade")
+                {
+                    _upgradeAndSave = true;
+                }
+                else if (arg.ToLower() == "/maketemplate")
 				{
 					_templateSaveAndExit = true;
 				}
-				else if (arg.StartsWith("/") || arg.StartsWith("-"))
+				else if (arg.StartsWith("/") || arg.StartsWith("-") || arg.StartsWith("--"))
 				{
                     _unknownArgs.Add(arg);
 				}
@@ -65,7 +65,12 @@ namespace AGS.Editor
 			get { return _compileAndExit; }
 		}
 
-		public bool TemplateSaveAndExit
+        public bool UpgradeAndSave
+        {
+            get { return _upgradeAndSave; }
+        }
+
+        public bool TemplateSaveAndExit
 		{
 			get { return _templateSaveAndExit;  }
 		}
@@ -81,7 +86,7 @@ namespace AGS.Editor
         /// </summary>
         public bool AutoOperationRequested
         {
-            get { return CompileAndExit || TemplateSaveAndExit; }
+            get { return CompileAndExit || UpgradeAndSave || TemplateSaveAndExit; }
         }
 
         public List<string> UnknownArgs

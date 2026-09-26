@@ -1248,24 +1248,41 @@ namespace AGS.Editor
 			return result;
 		}
 
-		public CompileMessages CompileGame(bool forceRebuild, bool createMiniExeForDebug)
+        public class CompileGameArgs
+        {
+            public bool ForceRebuild;
+            public bool CreateMiniExeForDebug;
+            public bool CancelIfUpgradeNeeded;
+            public bool UpgradeRequired;
+
+            public CompileGameArgs(bool forceRebuild, bool createMiniExeForDebug, bool cancelIfUpgradeNeeded = false)
+            {
+                ForceRebuild = forceRebuild;
+                CreateMiniExeForDebug = createMiniExeForDebug;
+                CancelIfUpgradeNeeded = cancelIfUpgradeNeeded;
+                UpgradeRequired = false;
+            }
+        }
+
+		public CompileMessages CompileGame(CompileGameArgs args)
         {
             Factory.GUIController.ClearOutputPanel();
             CompileMessages errors = new CompileMessages();
 
             Utilities.EnsureStandardSubFoldersExist();
 
-            forceRebuild |= NeedsRebuildForDebugMode();
-            forceRebuild |= _game.WorkspaceState.RequiresRebuild;
-            DateTime? requiredRebuildTime = forceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
+            args.ForceRebuild |= NeedsRebuildForDebugMode();
+            args.ForceRebuild |= _game.WorkspaceState.RequiresRebuild;
+            DateTime? requiredRebuildTime = args.ForceRebuild ? (DateTime?)_game.WorkspaceState.RequiredRebuildTime : null;
 
             if (PreCompileGame != null)
             {
-				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(forceRebuild, requiredRebuildTime);
+				PreCompileGameEventArgs evArgs = new PreCompileGameEventArgs(args.ForceRebuild, requiredRebuildTime, args.CancelIfUpgradeNeeded);
 				evArgs.Errors = errors;
 
                 PreCompileGame(evArgs);
 
+                args.UpgradeRequired = evArgs.UpgradeRequired;
                 if (!evArgs.AllowCompilation)
                 {
                     if (!errors.HasErrors)
@@ -1279,20 +1296,20 @@ namespace AGS.Editor
 
 			if (!errors.HasErrors)
 			{
-				CompileMessage result = (CompileMessage)BusyDialog.Show("Please wait while your scripts are compiled...", new BusyDialog.ProcessingHandler(CompileScripts), new CompileScriptsParameters(errors, forceRebuild));
+				CompileMessage result = (CompileMessage)BusyDialog.Show("Please wait while your scripts are compiled...", new BusyDialog.ProcessingHandler(CompileScripts), new CompileScriptsParameters(errors, args.ForceRebuild));
 				if (result != null)
 				{
 					errors.Add(result);
 				}
 				else if (!errors.HasErrors)
 				{
-					if (createMiniExeForDebug)
+					if (args.CreateMiniExeForDebug)
 					{
 						CreateMiniEXEForDebugging(errors);
 					}
 					else
 					{
-						CreateCompiledFiles(errors, forceRebuild);
+						CreateCompiledFiles(errors, args.ForceRebuild);
 					}
                     _game.WorkspaceState.RequiresRebuild = false;
                 }

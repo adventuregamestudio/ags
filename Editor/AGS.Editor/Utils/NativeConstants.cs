@@ -9,6 +9,7 @@ namespace AGS.Editor
         // NOTE: GetNativeConstant returns only int or string, so some additional casting may be required
         public static readonly string GAME_FILE_SIG = (string)Factory.NativeProxy.GetNativeConstant("GAME_FILE_SIG");
         public static readonly int GAME_DATA_VERSION_CURRENT = (int)Factory.NativeProxy.GetNativeConstant("GAME_DATA_VERSION_CURRENT");
+        public static readonly int ROOM_DATA_VERSION_CURRENT = (int)Factory.NativeProxy.GetNativeConstant("ROOM_DATA_VERSION_CURRENT");
         public static readonly int MAX_GUID_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUID_LENGTH");
         public static readonly int MAX_SG_EXT_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_EXT_LENGTH");
         public static readonly int MAX_SG_FOLDER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_FOLDER_LEN");

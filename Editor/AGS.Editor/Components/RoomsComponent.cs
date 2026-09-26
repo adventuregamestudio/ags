@@ -1612,11 +1612,30 @@ namespace AGS.Editor.Components
 			return false;
 		}
 
-        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileMessages errors, bool rebuildAll, DateTime? mustRebuildSince)
+        private class CompileArgs
+        {
+            public CompileMessages Errors;
+            public bool RebuildAll;
+            public DateTime? MustRebuildSince;
+            public bool CancelIfUpgradeNeeded;
+            public bool UpgradeRequired;
+
+            public CompileArgs(CompileMessages errors, bool rebuildAll, DateTime? mustRebuildSince, bool cancelIfUpgradeNeeded = false)
+            {
+                Errors = errors;
+                RebuildAll = rebuildAll;
+                MustRebuildSince = mustRebuildSince;
+                CancelIfUpgradeNeeded = cancelIfUpgradeNeeded;
+                UpgradeRequired = false;
+            }
+        }
+
+        private bool RecompileAnyRoomsWhereTheScriptHasChanged(CompileArgs args)
         {
 			List<UnloadedRoom> roomsToRebuild = new List<UnloadedRoom>();
 			List<string> roomFileNamesToRebuild = new List<string>();
             bool success = true;
+            var errors = args.Errors;
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
                 if (!File.Exists(unloadedRoom.ScriptFileName))
@@ -1633,8 +1652,8 @@ namespace AGS.Editor.Components
                 // If we're told to rebuild all, and provided with a time anchor, then test if the room's compiled file
                 // does not exist, or is too old.
                 // If we're not told to rebuild all, then test if any relevant scripts have changed since the last build.
-                else if ((rebuildAll && mustRebuildSince == null) ||
-                    (rebuildAll && mustRebuildSince != null && Utilities.DoesFileNeedRecompile(mustRebuildSince.Value, unloadedRoom.FileName)) ||
+                else if ((args.RebuildAll && args.MustRebuildSince == null) ||
+                    (args.RebuildAll && args.MustRebuildSince != null && Utilities.DoesFileNeedRecompile(args.MustRebuildSince.Value, unloadedRoom.FileName)) ||
                     (Utilities.DoesFileNeedRecompile(unloadedRoom.ScriptFileName, unloadedRoom.FileName)) ||
 					(HaveScriptHeadersBeenUpdatedSinceRoomWasCompiled(unloadedRoom.FileName)))
                 {
@@ -1649,7 +1668,7 @@ namespace AGS.Editor.Components
 				return false;
 			}
 
-            string rebuildReason = rebuildAll ? "because the full rebuild was ordered" : "because a script has changed";
+            string rebuildReason = args.RebuildAll ? "because the full rebuild was ordered" : "because a script has changed";
 
             foreach (UnloadedRoom unloadedRoom in roomsToRebuild)
 			{
@@ -1661,11 +1680,21 @@ namespace AGS.Editor.Components
                 else
                 {
                     room = LoadRoomAsTemporary(unloadedRoom, errors, doLoadScript: true);
-                    // Ensure that the script is saved, in case it was modified on a room upgrade, for instance
-                    room.Script.SaveToDisk();
                 }
 
-				CompileMessages roomErrors = new CompileMessages();
+                args.UpgradeRequired = room.SavedVersionIndex < NativeConstants.ROOM_DATA_VERSION_CURRENT;
+                if (args.UpgradeRequired && args.CancelIfUpgradeNeeded)
+                {
+                    errors.Add(new CompileError($"Room {room.Number} required an upgrade from version {room.SavedVersionIndex} to {NativeConstants.ROOM_DATA_VERSION_CURRENT}."));
+                    if (_loadedRoom != room)
+                        UnloadRoom(room);
+                    return false;
+                }
+
+                // Ensure that the script is saved, in case it was modified on a room upgrade, for instance
+                room.Script.SaveToDisk();
+
+                CompileMessages roomErrors = new CompileMessages();
 				SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");
 
                 if (roomErrors.HasErrors)
@@ -1717,7 +1746,9 @@ namespace AGS.Editor.Components
 
             if (evArgs.AllowCompilation)
             {
-				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(evArgs.Errors, evArgs.ForceRebuild, evArgs.ForceRebuildTime);
+                var args = new CompileArgs(evArgs.Errors, evArgs.ForceRebuild, evArgs.ForceRebuildTime, evArgs.CancelIfUpgradeNeeded);
+				evArgs.AllowCompilation = RecompileAnyRoomsWhereTheScriptHasChanged(args);
+                evArgs.UpgradeRequired = args.UpgradeRequired;
             }
         }
 

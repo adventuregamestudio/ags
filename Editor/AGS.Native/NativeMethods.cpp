@@ -34,6 +34,7 @@
 #include "game/customproperties.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
+#include "game/room_version.h"
 #include "util/error.h"
 #include "util/ini_util.h"
 #include "util/string_utils.h"
@@ -845,6 +846,7 @@ namespace AGS
             if (name == nullptr) return nullptr;
             if (name->Equals("GAME_FILE_SIG")) return gcnew String(AGS::Common::MainGameSource::Signature.GetCStr());
             if (name->Equals("GAME_DATA_VERSION_CURRENT")) return (int)kGameVersion_Current;
+            if (name->Equals("ROOM_DATA_VERSION_CURRENT")) return (int)kRoomVersion_Current;
             if (name->Equals("MAX_GUID_LENGTH")) return MAX_GUID_LENGTH;
             if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;
             if (name->Equals("MAX_SG_FOLDER_LEN")) return LEGACY_MAX_SG_FOLDER_LEN;

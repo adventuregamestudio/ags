@@ -1073,44 +1073,98 @@ namespace AGS.Editor
             WindowConfig.SaveToFile(Path.Combine(Factory.AGSEditor.LocalAppData, WINDOW_CONFIG_FILENAME));
         }
 
-        public void CompileAndExit(string projectPath)
+        public bool LoadGameForAutoOperation(string projectPath, out bool mustUpgradeAndSave)
         {
-            bool error = true;
+            mustUpgradeAndSave = false;
             if (_interactiveTasks.LoadGameFromDisk(projectPath))
             {
-                error = false;
-                var messages = _agsEditor.CompileGame(false, false);
-                // The user data may have been amended by the building process
-                if (!messages.HasErrors)
-                    _agsEditor.SaveUserDataFile();
+                Game game = _agsEditor.CurrentGame;
+                mustUpgradeAndSave =
+                    ((new System.Version(game.SavedXmlVersion) < new System.Version(AGSEditor.LATEST_XML_VERSION) ||
+                    game.SavedXmlVersionIndex < AGSEditor.LATEST_XML_VERSION_INDEX));
+                if (mustUpgradeAndSave)
+                {
+                    string message = $"The project has an older format version {game.SavedXmlVersion} / {game.SavedXmlVersionIndex}, it was saved by AGS Editor {game.SavedXmlEditorVersion}."
+                            + $" This Editor is {AGS.Types.Version.AGS_EDITOR_VERSION} and current project format is {AGSEditor.LATEST_XML_VERSION} / {AGSEditor.LATEST_XML_VERSION_INDEX}.";
+                    if (_commandOptions.UpgradeAndSave)
+                    {
+                        ShowMessage($"{message}{Environment.NewLine}The project will be upgraded and saved in the new format.", MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        ShowMessage($"{message}{Environment.NewLine}The project cannot be compiled without upgrading it to the new format first. Pass \"/upgrade\" command-line argument along with the main command if you want the project to be upgraded, or use the respective version of the Editor to keep it in the old format.", MessageBoxIcon.Warning);
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
 
-                _batchProcessShutdown = true;
+        public bool LoadGameAndCompile(string projectPath)
+        {
+            bool mustUpgradeAndSave = false;
+            if (LoadGameForAutoOperation(projectPath, out mustUpgradeAndSave))
+            {
+                var compileArgs = new AGSEditor.CompileGameArgs(false, false, !_commandOptions.UpgradeAndSave);
+                var messages = _agsEditor.CompileGame(compileArgs);
                 if (messages.HasErrors)
                 {
-                    error = true;
+                    if (!_commandOptions.UpgradeAndSave && compileArgs.UpgradeRequired)
+                    {
+                        ShowMessage($"Some of the project files are of older format version, compared to the current Editor.{Environment.NewLine}The project cannot be compiled without upgrading it to the new format first. Pass \"/upgrade\" command-line argument if you want it to be upgraded, or use the respective version of the Editor to keep it in the old format.", MessageBoxIcon.Warning);
+                        return false;
+                    }
                 }
+                else
+                {
+                    // We must always save game files in case of project upgrade, because otherwise
+                    // the project may appear to be in a inconsistent state.
+                    if (mustUpgradeAndSave)
+                        _agsEditor.SaveGameFiles();
+                    // The user data may have been amended by the building process
+                    _agsEditor.SaveUserDataFile();
+                }
+
+                return messages.HasErrors;
             }
-            if (error)
+            return false;
+        }
+
+        public void CompileAndExit(string projectPath)
+        {
+            bool result = LoadGameAndCompile(projectPath);
+            _batchProcessShutdown = true;
+            if (!result)
                 Program.SetExitCode(1);
             this.ExitApplication();
         }
 
         public void SaveAsTemplateAndExit(string projectPath)
         {
-            bool error = true;
-            if (_interactiveTasks.LoadGameFromDisk(projectPath))
+            bool result = LoadGameAndCompile(projectPath);
+            if (result)
             {
-                error = false;
-                var messages = _agsEditor.CompileGame(false, false);
-                // The user data may have been amended by the building process
-                if (!messages.HasErrors)
-                    _agsEditor.SaveUserDataFile();
-
-                _batchProcessShutdown = true;
-
-                error = !SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
+                result = SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
             }
-            if (error) Program.SetExitCode(1);
+            _batchProcessShutdown = true;
+            if (!result)
+                Program.SetExitCode(1);
+            this.ExitApplication();
+        }
+
+        public void UpgradeAndSave(string projectPath)
+        {
+            bool result = false;
+            bool mustUpgradeAndSave = false;
+            if (LoadGameForAutoOperation(projectPath, out mustUpgradeAndSave))
+            {
+                result = _agsEditor.SaveGameFiles();
+                _agsEditor.SaveUserDataFile();
+            }
+            _batchProcessShutdown = true;
+            if (!result)
+                Program.SetExitCode(1);
             this.ExitApplication();
         }
 
@@ -1147,6 +1201,10 @@ namespace AGS.Editor
                 else if (_commandOptions.TemplateSaveAndExit)
                 {
                     SaveAsTemplateAndExit(_commandOptions.ProjectPath);
+                }
+                else if (_commandOptions.UpgradeAndSave)
+                {
+                    UpgradeAndSave(_commandOptions.ProjectPath);
                 }
                 else if (!string.IsNullOrEmpty(_commandOptions.ProjectPath))
                 {
@@ -1307,7 +1365,7 @@ namespace AGS.Editor
                         MessageBoxOnCompile oldMessageBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
                         Factory.AGSEditor.Settings.MessageBoxOnCompile = MessageBoxOnCompile.Never;
 
-                        var messages = _agsEditor.CompileGame(true, false);
+                        var messages = _agsEditor.CompileGame(new AGSEditor.CompileGameArgs(true, false));
                         // The user data may have been amended by the building process
                         if (!messages.HasErrors)
                             _agsEditor.SaveUserDataFile();

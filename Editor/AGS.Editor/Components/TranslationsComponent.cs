@@ -701,7 +701,8 @@ namespace AGS.Editor.Components
                 if (_agsEditor.CurrentGame.Translations.Count < 1)
                 {
                     // can't update if none there!
-                    menu[0].Enabled = false;
+                    menu[0].Enabled = false; // COMMAND_UPDATE_ALL
+                    menu[1].Enabled = false; // COMMAND_COMPILE_ALL
                 }
             }
             else

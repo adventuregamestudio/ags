@@ -430,42 +430,27 @@ namespace AGS.Editor
             }
         }
 
-        public void ShowOutputPanel(CompileMessages errors)
+        public void ShowOutputPanel(CompileMessage message)
         {
-            _mainForm.pnlOutput.ErrorsToList = errors;
-            if (errors.Count > 0)
+            ShowOutputPanel(new CompileMessages(message));
+        }
+
+        public void ShowOutputPanel(CompileMessages messages)
+        {
+            _mainForm.pnlOutput.ErrorsToList = messages;
+            if (messages.Count > 0)
             {
                 // Because in console mode the output panel may not be accessible after execution,
                 // print all the accumulated messages to the console
                 if (StdConsoleWriter.IsEnabled)
                 {
-                    foreach (var message in errors)
+                    foreach (var message in messages)
                     {
                         StdConsoleWriter.WriteLine(message.AsString);
                     }
                 }
                 _mainForm.pnlOutput.Show();
             }
-        }
-
-        public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
-        {
-            if (StdConsoleWriter.IsEnabled)
-            {
-                foreach(string msg in messages)
-                {
-                    StdConsoleWriter.WriteLine(msg);
-                }
-            }
-            _mainForm.pnlOutput.SetMessages(messages, imageKey);
-            _mainForm.pnlOutput.Show();
-        }
-
-        public void ShowOutputPanel(string message, string imageKey = "BuildIcon")
-        {
-            StdConsoleWriter.WriteLine(message);
-            _mainForm.pnlOutput.SetMessage(message, imageKey);
-            _mainForm.pnlOutput.Show();
         }
 
         public void ClearOutputPanel()
@@ -1013,6 +998,7 @@ namespace AGS.Editor
                 RegisterIcon("GameIcon", Resources.ResourceManager.GetIcon("game.ico"));
 				RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));
 				RegisterIcon("CompileWarningIcon", Resources.ResourceManager.GetIcon("eventlogWarn.ico"));
+                RegisterIcon("CompileInfoIcon", Resources.ResourceManager.GetIcon("eventlogInfo.ico"));
                 RegisterIcon("OpenContainingFolderIcon", Resources.ResourceManager.GetIcon("menu_file_openfolder.ico"));
                 _mainForm.SetTreeImageList(_imageList);
                 _mainForm.mainMenu.ImageList = _imageList;
@@ -1440,12 +1426,12 @@ namespace AGS.Editor
             }
             else
             {
-                string message = $"{compiledWhat} successfully.";
+                CompileMessage message = new CompileInformation($"{compiledWhat} successfully.", new CompileMessageIcon("BuildIcon"));
                 Factory.GUIController.ShowOutputPanel(message);
                 if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always
                     || alwaysShowOnSuccess)
                 {
-                    ShowMessage(message, MessageBoxIcon.Information);
+                    ShowMessage(message.AsString, MessageBoxIcon.Information);
                 }
             }
         }

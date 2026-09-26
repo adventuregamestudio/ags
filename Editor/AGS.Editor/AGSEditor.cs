@@ -1270,7 +1270,7 @@ namespace AGS.Editor
                 {
                     if (!errors.HasErrors)
                         errors.Add(new CompileInformation("The game compiled successfully", new CompileMessageIcon("BuildIcon")));
-                    Factory.GUIController.PostOutputAndReportErrors(errors, "The game compiled");
+                    Factory.GUIController.PostOutputAndReportErrors(errors, "The game compiled", allowMessageOnSuccess: true);
                     return errors;
                 }
             }
@@ -1300,7 +1300,7 @@ namespace AGS.Editor
 
             if (!errors.HasErrors)
                 errors.Add(new CompileInformation("The game compiled successfully", new CompileMessageIcon("BuildIcon")));
-            Factory.GUIController.PostOutputAndReportErrors(errors, "The game compiled");
+            Factory.GUIController.PostOutputAndReportErrors(errors, "The game compiled", allowMessageOnSuccess: true);
             return errors;
         }
 

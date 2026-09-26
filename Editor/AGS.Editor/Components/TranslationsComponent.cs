@@ -596,11 +596,9 @@ namespace AGS.Editor.Components
             }
 
             if (!errors.HasErrors)
-                errors.Add(new CompileInformation("Translation(s) compiled successfully"));
-            // TODO: made it always show popup, because it's a special manual operation;
-            // can be disabled later if found unnecessary
+                errors.Add(new CompileInformation("Translation(s) compiled successfully", new CompileMessageIcon("BuildIcon")));
             _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled",
-                true /* always on success */, true /* show first error in popup */);
+                allowMessageOnSuccess: true, showFirstError: true);
         }
 
         public override void CommandClick(string controlID)

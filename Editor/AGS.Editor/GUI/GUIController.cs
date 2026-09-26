@@ -1403,13 +1403,15 @@ namespace AGS.Editor
             }
         }
 
-        public void PostOutputAndReportErrors(CompileMessages messages, string operationWhat, bool alwaysShowOnSuccess = false, bool showFirstError = false)
+        public void PostOutputAndReportErrors(CompileMessages messages, string operationWhat,
+            bool allowMessageOnSuccess = false, bool showFirstError = false)
         {
             ShowOutputPanel(messages);
-            ReportErrorsIfAppropriate(messages, operationWhat, alwaysShowOnSuccess, showFirstError);
+            ReportErrorsIfAppropriate(messages, operationWhat, allowMessageOnSuccess, showFirstError);
         }
 
-        private void ReportErrorsIfAppropriate(CompileMessages errors, string operationWhat, bool alwaysShowOnSuccess, bool showFirstError)
+        private void ReportErrorsIfAppropriate(CompileMessages errors, string operationWhat,
+            bool allowMessageOnSuccess, bool showFirstError)
         {
             if (errors.HasErrors)
             {
@@ -1435,8 +1437,7 @@ namespace AGS.Editor
             }
             else
             {
-                if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always
-                    || alwaysShowOnSuccess)
+                if (allowMessageOnSuccess && (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always))
                 {
                     ShowMessage($"{operationWhat} successfully.", MessageBoxIcon.Information);
                 }

@@ -423,6 +423,25 @@ namespace AGS.Editor.Preferences
         }
 
         [Browsable(true)]
+        [DisplayName("Show Output panel on Compile")]
+        [Description("In which cases the editor should show Output panel when compiling.")]
+        [Category("Editor Appearance")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("WarningsAndErrors")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public MessageBoxOnCompile OutputPanelOnCompile
+        {
+            get
+            {
+                return (MessageBoxOnCompile)(this["OutputPanelOnCompile"]);
+            }
+            set
+            {
+                this["OutputPanelOnCompile"] = value;
+            }
+        }
+
+        [Browsable(true)]
         [DisplayName("Script file modified externally, should it reload?")]
         [Description("If a script is open for editing and is modified by another program, should it reload?")]
         [Category("Script Editor")]

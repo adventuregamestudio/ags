@@ -10,6 +10,11 @@ namespace AGS.Types
         {
         }
 
+        public CompileMessages(CompileMessage message)
+        {
+            Add(message);
+        }
+
         public bool HasErrors
         {
             get

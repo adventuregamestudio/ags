@@ -653,6 +653,8 @@ namespace AGS.Editor.Components
                 SaveRoomButDoNotShowAnyErrors(room, errors, "Please wait while the room is saved...");
             }
 
+            if (!errors.HasErrors)
+                errors.Add(new CompileInformation("The room saved successfully"));
             Factory.GUIController.PostOutputAndReportErrors(errors, "The room saved");
             return !errors.HasErrors;
         }

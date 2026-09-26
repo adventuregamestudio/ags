@@ -1394,13 +1394,13 @@ namespace AGS.Editor
             }
         }
 
-        public void PostOutputAndReportErrors(CompileMessages messages, string compiledWhat, bool alwaysShowOnSuccess = false, bool showFirstError = false)
+        public void PostOutputAndReportErrors(CompileMessages messages, string operationWhat, bool alwaysShowOnSuccess = false, bool showFirstError = false)
         {
             ShowOutputPanel(messages);
-            ReportErrorsIfAppropriate(messages, compiledWhat, alwaysShowOnSuccess, showFirstError);
+            ReportErrorsIfAppropriate(messages, operationWhat, alwaysShowOnSuccess, showFirstError);
         }
 
-        private void ReportErrorsIfAppropriate(CompileMessages errors, string compiledWhat, bool alwaysShowOnSuccess, bool showFirstError)
+        private void ReportErrorsIfAppropriate(CompileMessages errors, string operationWhat, bool alwaysShowOnSuccess, bool showFirstError)
         {
             if (errors.HasErrors)
             {
@@ -1408,9 +1408,9 @@ namespace AGS.Editor
                     || StdConsoleWriter.IsEnabled)
                 {
                     if (showFirstError)
-                        ShowMessage($"{compiledWhat} with errors.{Environment.NewLine}{Environment.NewLine}{errors.FirstError.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with errors.{Environment.NewLine}{Environment.NewLine}{errors.FirstError.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
                     else
-                        ShowMessage($"{compiledWhat} with errors. See the output window for details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with errors. See the output window for details.", MessageBoxIcon.Warning);
                 }
             }
             else if (errors.HasErrorsOrWarnings)
@@ -1419,19 +1419,17 @@ namespace AGS.Editor
                     || StdConsoleWriter.IsEnabled)
                 {
                     if (showFirstError)
-                        ShowMessage($"{compiledWhat} with warnings.{Environment.NewLine}{Environment.NewLine}{errors.FirstWarning.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with warnings.{Environment.NewLine}{Environment.NewLine}{errors.FirstWarning.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
                     else
-                        ShowMessage($"{compiledWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
                 }
             }
             else
             {
-                CompileMessage message = new CompileInformation($"{compiledWhat} successfully.", new CompileMessageIcon("BuildIcon"));
-                Factory.GUIController.ShowOutputPanel(message);
                 if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always
                     || alwaysShowOnSuccess)
                 {
-                    ShowMessage(message.AsString, MessageBoxIcon.Information);
+                    ShowMessage($"{operationWhat} successfully.", MessageBoxIcon.Information);
                 }
             }
         }

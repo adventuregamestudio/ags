@@ -449,7 +449,16 @@ namespace AGS.Editor
                         StdConsoleWriter.WriteLine(message.AsString);
                     }
                 }
-                _mainForm.pnlOutput.Show();
+                // Popup the output panel according to the editor's preferences.
+                // This will make the panel visible if it's not currently hidden.
+                // Message will be printed in the panel in any case, and may be always seen by manually
+                // opening the panel.
+                if (_agsEditor.Settings.OutputPanelOnCompile == MessageBoxOnCompile.Always ||
+                    _agsEditor.Settings.OutputPanelOnCompile == MessageBoxOnCompile.OnlyErrors && messages.HasErrors ||
+                    _agsEditor.Settings.OutputPanelOnCompile == MessageBoxOnCompile.WarningsAndErrors && messages.HasErrorsOrWarnings)
+                {
+                    _mainForm.pnlOutput.Show();
+                }
             }
         }
 

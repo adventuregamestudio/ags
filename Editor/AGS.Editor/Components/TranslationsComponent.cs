@@ -595,6 +595,8 @@ namespace AGS.Editor.Components
                 }
             }
 
+            if (!errors.HasErrors)
+                errors.Add(new CompileInformation("Translation(s) compiled successfully"));
             // TODO: made it always show popup, because it's a special manual operation;
             // can be disabled later if found unnecessary
             _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled",

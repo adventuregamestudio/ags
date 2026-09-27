@@ -292,11 +292,15 @@ target_sources(engine
     gfx/gfxdriverfactorybase.h
     gfx/gfxfilter.h
     gfx/gfxfilter_aad3d.cpp
+    gfx/gfxfilter_aad3d11.cpp
     gfx/gfxfilter_aad3d.h
+    gfx/gfxfilter_aad3d11.h
     gfx/gfxfilter_aaogl.cpp
     gfx/gfxfilter_aaogl.h
     gfx/gfxfilter_d3d.cpp
+    gfx/gfxfilter_d3d11.cpp
     gfx/gfxfilter_d3d.h
+    gfx/gfxfilter_d3d11.h
     gfx/gfxfilter_ogl.cpp
     gfx/gfxfilter_ogl.h
     gfx/gfxfilter_scaling.cpp
@@ -417,6 +421,7 @@ target_sources(engine
     platform/windows/acplwin.cpp
     platform/windows/debug/namedpipesagsdebugger.cpp
     platform/windows/gfx/ali3dd3d.cpp
+    platform/windows/gfx/ali3dd3d11.cpp
     platform/windows/setup/winsetup.cpp
     platform/windows/setup/winsetup.h
     platform/windows/setup/winapihelpers.cpp

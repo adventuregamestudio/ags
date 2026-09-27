@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("LightLevel")]
-    public class RoomRegion : ICustomTypeDescriptor
+    public class RoomRegion : IHasID, ICustomTypeDescriptor
     {
         private static InteractionSchema _interactionSchema;
 

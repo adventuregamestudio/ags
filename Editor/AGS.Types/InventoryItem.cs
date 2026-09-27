@@ -7,8 +7,11 @@ namespace AGS.Types
     [Serializable]
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
-    public class InventoryItem : IToXml, IComparable<InventoryItem>, ICloneable
+    public class InventoryItem : IHasID, IToXml, IComparable<InventoryItem>, ICloneable
     {
+        // Inventory item 0 is skipped and cannot be created in the editor
+        public const int FIRST_VALID_ID = 1;
+
         private static InteractionSchema _interactionSchema;
 
         private string _name = string.Empty;
@@ -36,6 +39,12 @@ namespace AGS.Types
 
         public InventoryItem()
         {
+        }
+
+        public InventoryItem(int id, string scriptName)
+        {
+            _id = id;
+            _name = scriptName;
         }
 
         [Description("The ID number of the item")]

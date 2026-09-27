@@ -54,6 +54,7 @@ namespace AGS.Editor.Components
             _fileTypeMappings.Add(".s3m", AudioClipFileType.MOD);
             _fileTypeMappings.Add(".it", AudioClipFileType.MOD);
 
+            _iconMappings.Add(AudioClipFileType.Unknown, string.Empty);
             _iconMappings.Add(AudioClipFileType.MP3, "AGSAudioClipIconMp3");
             _iconMappings.Add(AudioClipFileType.OGG, "AGSAudioClipIconOgg");
             _iconMappings.Add(AudioClipFileType.VOC, "AGSAudioClipIconVoc");
@@ -457,8 +458,10 @@ namespace AGS.Editor.Components
         {
             string newScriptName = EnsureScriptNameIsUnique(
                 Path.GetFileNameWithoutExtension(sourceFileName));
-            AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
-            newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
+            AudioClip newClip = new AudioClip(
+                _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount(),
+                newScriptName,
+                _agsEditor.CurrentGame.GetNextAudioIndex());
 
             try
             {

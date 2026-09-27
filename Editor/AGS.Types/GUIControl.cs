@@ -8,8 +8,14 @@ using System.Drawing;
 namespace AGS.Types
 {
     [Serializable]
-    public abstract class GUIControl : ICloneable
+    public abstract class GUIControl : IHasID, ICloneable
     {
+        protected GUIControl(int id, string scriptName)
+        {
+            _id = id;
+            _name = scriptName;
+        }
+
         protected GUIControl(int x, int y, int width, int height)
         {
             _name = string.Empty;

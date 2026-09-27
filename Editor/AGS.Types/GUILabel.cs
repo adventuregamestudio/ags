@@ -15,6 +15,10 @@ namespace AGS.Types
         public const string SCRIPT_CLASS_TYPE = "Label";
         public const int MAX_TEXT_LENGTH = 2047;
 
+        public GUILabel(int id, string scriptName) : base (id, scriptName)
+        {
+        }
+
         public GUILabel(int x, int y, int width, int height)
             : base(x, y, width, height)
         {

@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("Image")]
-    public class ViewFrame
+    public class ViewFrame : IHasID
     {
         private int _id;
         private int _image = 0;

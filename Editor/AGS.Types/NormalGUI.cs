@@ -21,13 +21,17 @@ namespace AGS.Types
             _bordercol = 2;
         }
 
+        public NormalGUI(int id, string scriptName) : base(id, scriptName)
+        {
+        }
+
         private int _width;
         private int _height;
         private int _x;
         private int _y;
         private bool _clickable = true;
         private bool _visible = true;
-        private GUIPopupStyle _popupStyle;
+        private GUIPopupStyle _popupStyle = GUIPopupStyle.Normal;
         private int _popupYPos;
         private int _zorder;
 		private int _bordercol;

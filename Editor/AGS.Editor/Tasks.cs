@@ -1,4 +1,3 @@
-using AGS.CScript.Compiler;
 using AGS.Editor.Components;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
@@ -8,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Text;
 using System.Windows.Forms;
 
@@ -165,6 +163,9 @@ namespace AGS.Editor
             game.DirectoryPath = gameDirectory;
             SetDefaultGameContentIfMissing(game);
             SetDefaultValuesForNewFeatures(game);
+            // Object IDs must be tested after updating the project (SetDefaultValuesForNewFeatures),
+            // because when filler objects are creaed, they are already complying to the current data version.
+            HandleObjectIDErrors(game);
             Utilities.EnsureStandardSubFoldersExist();
 
             InitSpritesAfterGameLoad(game, errors);
@@ -296,6 +297,144 @@ namespace AGS.Editor
         public static void ExportSprites(SpriteTools.ExportSpritesOptions options)
         {
             ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
+        }
+
+        private delegate TItem CreateFillerItem<TItem>(int id, List<int> skipIDs);
+
+        private class ProcIDErrorsState
+        {
+            // SkipFillerIndex saves filler indexes used during current processing.
+            // This is necessary when generating script name, because Game is not updated
+            // while we are creating fillers, and we need to know which script names we've already
+            // taken during generation.
+            public List<int> SkipFillerIndex = new List<int>();
+            // FillerRecord list gathers counts of object fillers created, per type.
+            public SortedList<string, int> FillerRecord = new SortedList<string, int>();
+
+            // Contains temporary references to fillers created during *the last* object type processing.
+            public List<IHasID> Fillers = new List<IHasID>();
+        }
+
+        private void HandleObjectIDErrorsImpl<TItem>(IEnumerable<TItem> items,
+            string friendlyTypeName, int startID, ProcIDErrorsState state, CreateFillerItem<TItem> createFiller)
+            where TItem : IHasID
+        {
+            state.Fillers.Clear();
+            int expectID = startID;
+            // The items are assumed to be already sorted in the order of item ID
+            foreach (var item in items)
+            {
+                for (; expectID < item.ID; ++expectID)
+                {
+                    state.Fillers.Add(createFiller(expectID, state.SkipFillerIndex));
+                }
+                expectID++;
+            }
+
+            if (state.Fillers.Count > 0)
+            {
+                state.FillerRecord[friendlyTypeName] = state.FillerRecord.GetOrDefault(friendlyTypeName, 0) + state.Fillers.Count;
+            }
+        }
+
+        /// <summary>
+        /// Fills ID gaps in a BaseFolderCollection (any item list which is represented by folder tree).
+        /// </summary>
+        private void HandleObjectIDErrors<TItem, TFolder>(BaseFolderCollection<TItem, TFolder> folder,
+            string friendlyTypeName, int startID, ProcIDErrorsState state, CreateFillerItem<TItem> createFiller)
+            where TItem : class, IHasID, IToXml
+            where TFolder : BaseFolderCollection<TItem, TFolder>
+        {
+            HandleObjectIDErrorsImpl(folder.AllItemsFlat, friendlyTypeName, startID, state, createFiller);
+            // Add fillers to the root folder, and request a full resort
+            if (state.Fillers.Count > 0)
+            {
+                foreach (var filler in state.Fillers)
+                    folder.Items.Add(filler as TItem);
+                folder.Sort(true);
+            }
+        }
+
+        /// <summary>
+        /// Fills ID gaps in a plain List (any item list which does not have folders).
+        /// </summary>
+        private void HandleObjectIDErrors<TItem>(IList<TItem> list, string friendlyTypeName,
+            int startID, ProcIDErrorsState state, CreateFillerItem<TItem> createFiller)
+            where TItem : class, IHasID
+        {
+            HandleObjectIDErrorsImpl(list, friendlyTypeName, startID, state, createFiller);
+            // Insert fillers into their respective index slots in the list.
+            // This should work, assuming the fillers are arranged in the order of IDs,
+            // and the list will expand after each insertion, providing a place for the next one.
+            if (state.Fillers.Count > 0)
+            {
+                foreach (var filler in state.Fillers)
+                    list.Insert(filler.ID, filler as TItem);
+            }
+        }
+
+        /// <summary>
+        /// Most of the object lists in AGS game are required to have no gaps in IDs,
+        /// with small number of exceptions (Views and Sprites). If we've just loaded
+        /// a Game, we should have the object lists sorted by ID. See if any IDs are
+        /// missing, and fill these gaps with dummy filler objects, and report to user.
+        /// </summary>
+        private void HandleObjectIDErrors(Game game)
+        {
+            ProcIDErrorsState state = new ProcIDErrorsState();
+            HandleObjectIDErrors(game.RootAudioClipFolder, "Audio Clip", 0, state,
+                (int id, List<int> skipIDs) => {
+                    return new AudioClip(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs), game.GetNextAudioIndex()); });
+            HandleObjectIDErrors(game.AudioClipTypes, "Audio Clip Type", AudioClipType.FIRST_VALID_ID, state,
+                (int id, List<int> skipIDs) => {
+                    return new AudioClipType(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs)); });
+            HandleObjectIDErrors(game.RootCharacterFolder, "Character", 0, state,
+                (int id, List<int> skipIDs) => {
+                    return new Character(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs)); });
+            HandleObjectIDErrors(game.Cursors, "Cursor", 0, state,
+                (int id, List<int> skipIDs) => {
+                    return new MouseCursor(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs)); });
+            HandleObjectIDErrors(game.RootDialogFolder, "Dialog", 0, state,
+                (int id, List<int> skipIDs) => {
+                    return new Dialog(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs)); });
+            HandleObjectIDErrors(game.Fonts, "Font", 0, state,
+                (int id, List<int> skipIDs) => {
+                    return new Font(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs)); });
+            HandleObjectIDErrors(game.RootGUIFolder, "GUI", 0, state,
+                (int id, List<int> skipIDs) => {
+                    var gui = new NormalGUI(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs));
+                    gui.Visible = false; // filler guis must be hidden by default
+                    return gui; });
+            foreach (GUI gui in game.GUIs)
+            {
+                HandleObjectIDErrors(gui.Controls, "GUI Controls", 0, state,
+                (int id, List<int> skipIDs) => {
+                    var label = new GUILabel(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs));
+                    label.Visible = false; // filler guis must be hidden by default
+                    return label;
+                });
+            }
+            HandleObjectIDErrors(game.RootInventoryItemFolder, "Inventory Item", InventoryItem.FIRST_VALID_ID, state,
+                (int id, List<int> skipIDs) => {
+                    return new InventoryItem(id, Factory.AGSEditor.GetFirstAvailableScriptName(game, "filler", skipIDs)); });
+
+            // NOTE: Views are allowed to have gaps in IDs, so dont process them here
+
+            if (state.FillerRecord.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("There are gaps found in some of the game object lists: their numeric IDs are not sequential. This could have happened in case of an earlier program error, or if the game files have been edited by hand.");
+                sb.AppendLine();
+                sb.AppendLine("The editor will fill these gaps with the dummy \"filler\" objects now. This is required in order to keep the object lists sequential, and existing object IDs unchanged.");
+                sb.AppendLine("You may decide what to do with these filler objects on your own afterwards.");
+                sb.AppendLine();
+                sb.AppendLine("Following number of fillers have been added:");
+                foreach (var record in state.FillerRecord)
+                {
+                    sb.AppendLine($"- {record.Key}(s): {record.Value}");
+                }
+                Factory.GUIController.ShowMessage(sb.ToString(), MessageBoxIcon.Warning);
+            }
         }
 
         /// <summary>

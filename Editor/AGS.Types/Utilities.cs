@@ -29,6 +29,18 @@ namespace AGS.Types
             list[index2] = temp;
         }
 
+        /// <summary>
+        /// Safely checks if SortedList contains a key, and returns either
+        /// a stored value, or a default value if such key was not found.
+        /// </summary>
+        public static TValue GetOrDefault<TKey, TValue>(this SortedList<TKey, TValue> list, TKey key, TValue defValue)
+        {
+            TValue value;
+            if (list.TryGetValue(key, out value))
+                return value;
+            return defValue;
+        }
+
         public static T GetDefaultValue<T>(Type type, string propertyName, T defaultValue)
         {
             PropertyInfo property = type.GetProperty(propertyName);

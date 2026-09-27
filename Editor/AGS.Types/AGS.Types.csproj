@@ -200,6 +200,7 @@
     <Compile Include="HelperTypes\FontMetrics.cs" />
     <Compile Include="HelperTypes\MediaInfo.cs" />
     <Compile Include="HelperTypes\SpriteInfo.cs" />
+    <Compile Include="Interfaces\IHasID.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
     <Compile Include="InteractionSchema.cs" />

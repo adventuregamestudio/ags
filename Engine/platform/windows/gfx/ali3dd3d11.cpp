@@ -13,12 +13,6 @@
 //=============================================================================
 #include "platform/platform.h"
 
-// Allows to build the D3D11 renderer along with the D3D9 one;
-// define AGS_HAS_DIRECT3D11 = 0 to turn it off.
-#ifndef AGS_HAS_DIRECT3D11
-#define AGS_HAS_DIRECT3D11 AGS_HAS_DIRECT3D
-#endif
-
 #if AGS_HAS_DIRECT3D11
 #define NOMINMAX
 #include "platform/windows/gfx/ali3dd3d11.h"

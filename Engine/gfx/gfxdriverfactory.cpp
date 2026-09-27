@@ -40,6 +40,8 @@ void GetGfxDriverFactoryNames(StringV &ids)
 {
 #if AGS_HAS_DIRECT3D
     ids.push_back("D3D9");
+#endif
+#if AGS_HAS_DIRECT3D11
     ids.push_back("D3D11");
 #endif
 #if AGS_HAS_OPENGL
@@ -53,6 +55,8 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
 #if AGS_HAS_DIRECT3D
     if (id.CompareNoCase("D3D9") == 0)
         return D3D::D3DGraphicsFactory::GetFactory();
+#endif
+#if AGS_HAS_DIRECT3D11
     if (id.CompareNoCase("D3D11") == 0)
         return D3D11::D3D11GraphicsFactory::GetFactory();
 #endif

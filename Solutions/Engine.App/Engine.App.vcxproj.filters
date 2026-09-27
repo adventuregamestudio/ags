@@ -783,6 +783,15 @@
     <ClCompile Include="..\..\Engine\ac\utils_script.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d11.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d11.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1574,6 +1583,15 @@
     <ClInclude Include="..\..\Engine\main\def_version.h">
       <Filter>Header Files\main</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d11.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d11.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">
@@ -1587,6 +1605,7 @@
     <None Include="..\..\Engine\ac\route_finder_jps.inl">
       <Filter>Header Files\ac</Filter>
     </None>
+    <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />
   </ItemGroup>
   <ItemGroup>

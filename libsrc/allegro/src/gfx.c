@@ -652,6 +652,102 @@ void _normal_line(BITMAP *bmp, int x1, int y1, int x2, int y2, int color)
 }
 
 
+
+/* do_circle:
+ *  Helper function for the circle drawing routines. Calculates the points
+ *  in a circle of radius r around point x, y, and calls the specified 
+ *  routine for each one. The output proc will be passed first a copy of
+ *  the bmp parameter, then the x, y point, then a copy of the d parameter
+ *  (so putpixel() can be used as the callback).
+ */
+void do_circle(BITMAP *bmp, int x, int y, int radius, int d, void (*proc)(BITMAP *, int, int, int))
+{
+   int cx = 0;
+   int cy = radius;
+   int df = 1 - radius; 
+   int d_e = 3;
+   int d_se = -2 * radius + 5;
+
+   do {
+      proc(bmp, x+cx, y+cy, d); 
+
+      if (cx) 
+	 proc(bmp, x-cx, y+cy, d); 
+
+      if (cy) 
+	 proc(bmp, x+cx, y-cy, d);
+
+      if ((cx) && (cy)) 
+	 proc(bmp, x-cx, y-cy, d); 
+
+      if (cx != cy) {
+	 proc(bmp, x+cy, y+cx, d); 
+
+	 if (cx) 
+	    proc(bmp, x+cy, y-cx, d);
+
+	 if (cy) 
+	    proc(bmp, x-cy, y+cx, d); 
+
+	 if (cx && cy) 
+	    proc(bmp, x-cy, y-cx, d); 
+      }
+
+      if (df < 0)  {
+	 df += d_e;
+	 d_e += 2;
+	 d_se += 2;
+      }
+      else { 
+	 df += d_se;
+	 d_e += 2;
+	 d_se += 4;
+	 cy--;
+      } 
+
+      cx++; 
+
+   } while (cx <= cy);
+}
+
+
+
+/* circle:
+ *  Draws a circle.
+ */
+void _soft_circle(BITMAP *bmp, int x, int y, int radius, int color)
+{
+   int clip, sx, sy, dx, dy;
+   ASSERT(bmp);
+
+   if (bmp->clip) {
+      sx = x-radius-1;
+      sy = y-radius-1;
+      dx = x+radius+1;
+      dy = y+radius+1;
+
+      if ((sx >= bmp->cr) || (sy >= bmp->cb) || (dx < bmp->cl) || (dy < bmp->ct))
+	 return;
+
+      if ((sx >= bmp->cl) && (sy >= bmp->ct) && (dx < bmp->cr) && (dy < bmp->cb))
+	 bmp->clip = FALSE;
+
+      clip = TRUE;
+   }
+   else
+      clip = FALSE;
+
+   acquire_bitmap(bmp);
+
+   do_circle(bmp, x, y, radius, color, bmp->vtable->putpixel);
+
+   release_bitmap(bmp);
+
+   bmp->clip = clip;
+}
+
+
+
 /* circlefill:
  *  Draws a filled circle.
  */
@@ -717,3 +813,497 @@ void _soft_circlefill(BITMAP *bmp, int x, int y, int radius, int color)
 
    bmp->clip = clip;
 }
+
+
+
+/* do_ellipse:
+ *  Helper function for the ellipse drawing routines. Calculates the points
+ *  in an ellipse of radius rx and ry around point x, y, and calls the 
+ *  specified routine for each one. The output proc will be passed first a 
+ *  copy of the bmp parameter, then the x, y point, then a copy of the d 
+ *  parameter (so putpixel() can be used as the callback).
+ */
+void do_ellipse(BITMAP *bmp, int ix, int iy, int rx0, int ry0, int d,
+   void (*proc)(BITMAP *, int, int, int))
+{
+   int rx, ry;
+   int x, y;
+   float x_change;
+   float y_change;
+   float ellipse_error;
+   float two_a_sq;
+   float two_b_sq;
+   float stopping_x;
+   float stopping_y;
+   int midway_x = 0;
+
+   rx = MAX(rx0, 0);
+   ry = MAX(ry0, 0);
+
+   two_a_sq = 2 * rx * rx;
+   two_b_sq = 2 * ry * ry;
+
+   x = rx;
+   y = 0;
+
+   x_change = ry * ry * (1 - 2 * rx);
+   y_change = rx * rx;
+   ellipse_error = 0.0;
+
+   /* The following two variables decide when to stop.  It's easier than
+    * solving for this explicitly.
+    */
+   stopping_x = two_b_sq * rx;
+   stopping_y = 0.0;
+
+   /* First set of points. */
+   while (y <= ry) {
+      proc(bmp, ix + x, iy + y, d);
+      if (x != 0) {
+         proc(bmp, ix - x, iy + y, d);
+      }
+      if (y != 0) {
+         proc(bmp, ix + x, iy - y, d);
+         if (x != 0) {
+            proc(bmp, ix - x, iy - y, d);
+         }
+      }
+
+      y++;
+      stopping_y += two_a_sq;
+      ellipse_error += y_change;
+      y_change += two_a_sq;
+      midway_x = x;
+
+      if (stopping_x < stopping_y && x > 1) {
+         break;
+      }
+
+      if ((2.0f * ellipse_error + x_change) > 0.0) {
+         if (x) {
+            x--;
+            stopping_x -= two_b_sq;
+            ellipse_error += x_change;
+            x_change += two_b_sq;
+         }
+      }
+   }
+
+   /* To do the other half of the ellipse we reset to the top of it, and
+    * iterate in the opposite direction.
+    */
+   x = 0;
+   y = ry;
+
+   x_change = ry * ry;
+   y_change = rx * rx * (1 - 2 * ry);
+   ellipse_error = 0.0;
+
+   while (x < midway_x) {
+      proc(bmp, ix + x, iy + y, d);
+      if (x != 0) {
+         proc(bmp, ix - x, iy + y, d);
+      }
+      if (y != 0) {
+         proc(bmp, ix + x, iy - y, d);
+         if (x != 0) {
+            proc(bmp, ix - x, iy - y, d);
+         }
+      }
+
+      x++;
+      ellipse_error += x_change;
+      x_change += two_b_sq;
+
+      if ((2.0f * ellipse_error + y_change) > 0.0) {
+         if (y) {
+            y--;
+            ellipse_error += y_change;
+            y_change += two_a_sq;
+         }
+      }
+   }
+}
+
+
+
+/* _soft_ellipse:
+ *  Draws an ellipse.
+ */
+void _soft_ellipse(BITMAP *bmp, int x, int y, int rx, int ry, int color)
+{
+   int clip, sx, sy, dx, dy;
+   ASSERT(bmp);
+
+   if (bmp->clip) {
+      sx = x-rx-1;
+      sy = y-ry-1;
+      dx = x+rx+1;
+      dy = y+ry+1;
+
+      if ((sx >= bmp->cr) || (sy >= bmp->cb) || (dx < bmp->cl) || (dy < bmp->ct))
+	 return;
+
+      if ((sx >= bmp->cl) && (sy >= bmp->ct) && (dx < bmp->cr) && (dy < bmp->cb))
+	 bmp->clip = FALSE;
+
+      clip = TRUE;
+   }
+   else
+      clip = FALSE;
+
+   acquire_bitmap(bmp);
+
+   do_ellipse(bmp, x, y, rx, ry, color, bmp->vtable->putpixel);
+
+   release_bitmap(bmp);
+
+   bmp->clip = clip;
+}
+
+
+
+/* _soft_ellipsefill:
+ *  Draws a filled ellipse.
+ */
+void _soft_ellipsefill(BITMAP *bmp, int ix, int iy, int rx0, int ry0, int color)
+{
+   int rx, ry;
+   int x, y;
+   float x_change;
+   float y_change;
+   float ellipse_error;
+   float two_a_sq;
+   float two_b_sq;
+   float stopping_x;
+   float stopping_y;
+   int clip, sx, sy, dx, dy;
+   int last_drawn_y;
+   int old_y;
+   int midway_x = 0;
+   ASSERT(bmp);
+
+   rx = MAX(rx0, 0);
+   ry = MAX(ry0, 0);
+
+   if (bmp->clip) {
+      sx = ix - rx - 1;
+      sy = iy - ry - 1;
+      dx = ix + rx + 1;
+      dy = iy + ry + 1;
+
+      if ((sx >= bmp->cr) || (sy >= bmp->cb) || (dx < bmp->cl) || (dy < bmp->ct))
+         return;
+
+      if ((sx >= bmp->cl) && (sy >= bmp->ct) && (dx < bmp->cr) && (dy < bmp->cb))
+         bmp->clip = FALSE;
+
+      clip = TRUE;
+   }
+   else
+      clip = FALSE;
+
+   acquire_bitmap(bmp);
+
+   two_a_sq = 2 * rx * rx;
+   two_b_sq = 2 * ry * ry;
+
+   x = rx;
+   y = 0;
+
+   x_change = ry * ry * (1 - 2 * rx);
+   y_change = rx * rx;
+   ellipse_error = 0.0;
+
+   /* The following two variables decide when to stop.  It's easier than
+    * solving for this explicitly.
+    */
+   stopping_x = two_b_sq * rx;
+   stopping_y = 0.0;
+
+   /* First set of points */
+   while (y <= ry) {
+      bmp->vtable->hfill(bmp, ix - x, iy + y, ix + x, color);
+      if (y) {
+         bmp->vtable->hfill(bmp, ix - x, iy - y, ix + x, color);
+      }
+
+      y++;
+      stopping_y += two_a_sq;
+      ellipse_error += y_change;
+      y_change += two_a_sq;
+      midway_x = x;
+
+      if (stopping_x < stopping_y && x > 1) {
+         break;
+      }
+
+      if ((2.0f * ellipse_error + x_change) > 0.0) {
+         if (x) {
+            x--;
+            stopping_x -= two_b_sq;
+            ellipse_error += x_change;
+            x_change += two_b_sq;
+         }
+      }
+   }
+
+   last_drawn_y = y - 1;
+
+   /* To do the other half of the ellipse we reset to the top of it, and
+    * iterate in the opposite direction until we reach the place we stopped at
+    * last time.
+    */
+   x = 0;
+   y = ry;
+
+   x_change = ry * ry;
+   y_change = rx * rx * (1 - 2 * ry);
+   ellipse_error = 0.0;
+
+   old_y = y;
+
+   while (x < midway_x) {
+      if (old_y != y) {
+         bmp->vtable->hfill(bmp, ix - x + 1, iy + old_y, ix + x - 1, color);
+         if (old_y) {
+            bmp->vtable->hfill(bmp, ix - x + 1, iy - old_y, ix + x - 1, color);
+         }
+      }
+
+      x++;
+      ellipse_error += x_change;
+      x_change += two_b_sq;
+      old_y = y;
+
+      if ((2.0f * ellipse_error + y_change) > 0.0) {
+         if (y) {
+            y--;
+            ellipse_error += y_change;
+            y_change += two_a_sq;
+         }
+      }
+   }
+
+   /* On occasion, a gap appears between the middle and upper halves.
+    * This 'afterthought' fills it in.
+    */
+   if (old_y != last_drawn_y) {
+      bmp->vtable->hfill(bmp, ix - x + 1, iy + old_y, ix + x - 1, color);
+      if (old_y) {
+         bmp->vtable->hfill(bmp, ix - x + 1, iy - old_y, ix + x - 1, color);
+      }
+   }
+
+   release_bitmap(bmp);
+
+   bmp->clip = clip;
+}
+
+
+
+/* get_point_on_arc:
+ *  Helper function for the do_arc() function, converting from (radius, angle)
+ *  to (x, y).
+ */
+static INLINE void get_point_on_arc(int r, fixed a, int *out_x, int *out_y, int *out_q)
+{
+   double s, c;
+   double double_a = (a&0xffffff) * (AL_PI * 2 / (1 << 24));
+   s = sin(double_a);
+   c = cos(double_a);
+   s = -s * r;
+   c = c * r;
+   *out_x = (int)((c < 0) ? (c - 0.5) : (c + 0.5));
+   *out_y = (int)((s < 0) ? (s - 0.5) : (s + 0.5));
+
+   if (c >= 0) {
+      if (s <= 0)
+         *out_q = 0;  /* quadrant 0 */
+      else
+         *out_q = 3;  /* quadrant 3 */
+   }
+   else {
+      if (s <= 0)
+         *out_q = 1;  /* quadrant 1 */
+      else
+         *out_q = 2;  /* quadrant 2 */
+   }
+}
+
+
+
+/* do_arc:
+ *  Helper function for the arc function. Calculates the points in an arc
+ *  of radius r around point x, y, going anticlockwise from fixed point
+ *  binary angle ang1 to ang2, and calls the specified routine for each one. 
+ *  The output proc will be passed first a copy of the bmp parameter, then 
+ *  the x, y point, then a copy of the d parameter (so putpixel() can be 
+ *  used as the callback).
+ */
+void do_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d, void (*proc)(BITMAP *, int, int, int))
+{
+   /* start position */
+   int sx, sy;
+   /* current position */
+   int px, py;
+   /* end position */
+   int ex, ey;
+   /* square of radius of circle */
+   long rr;
+   /* difference between main radius squared and radius squared of three
+      potential next points */
+   long rr1, rr2, rr3;
+   /* square of x and of y */
+   unsigned long xx, yy, xx_new, yy_new;
+   /* start quadrant, current quadrant and end quadrant */
+   int sq, q, qe;
+   /* direction of movement */
+   int dx, dy;
+   /* temporary variable for determining if we have reached end point */
+   int det;
+
+   /* Calculate the start point and the end point. */
+   /* We have to flip y because bitmaps count y coordinates downwards. */
+   get_point_on_arc(r, ang1, &sx, &sy, &q);
+   px = sx;
+   py = sy;
+   get_point_on_arc(r, ang2, &ex, &ey, &qe);
+
+   rr = r*r;
+   xx = px*px;
+   yy = py*py - rr;
+
+   sq = q;
+
+   if (q > qe) {
+      /* qe must come after q. */
+      qe += 4;
+   }
+   else if (q == qe) {
+      /* If q==qe but the beginning comes after the end, make qe be
+       * strictly after q.
+       */
+      if (((ang2&0xffffff) < (ang1&0xffffff)) ||
+	  (((ang1&0xffffff) < 0x400000) && ((ang2&0xffffff) >= 0xc00000)))
+         qe += 4;
+   }
+
+   /* initial direction of movement */
+   if (((q+1)&2) == 0)
+      dy = -1;
+   else
+      dy = 1;
+   if ((q&2) == 0)
+      dx = -1;
+   else
+      dx = 1;
+
+   while (TRUE) {
+      /* Change quadrant when needed.
+       * dx and dy determine the possible directions to go in this
+       * quadrant, so they must be updated when we change quadrant.
+       */
+      if ((q&1) == 0) {
+         if (px == 0) {
+            if (qe == q)
+	       break;
+	    q++;
+	    dy = -dy;
+	 }
+      }
+      else {
+         if (py == 0) {
+	    if (qe == q)
+	       break;
+	    q++;
+	    dx = -dx;
+	 }
+      }
+
+      /* Are we in the final quadrant? */
+      if (qe == q) {
+	 /* Have we reached (or passed) the end point both in x and y? */
+	 det = 0;
+
+	 if (dy > 0) {
+	    if (py >= ey)
+	       det++;
+	 }
+	 else {
+	    if (py <= ey)
+	       det++;
+	 }
+	 if (dx > 0) {
+	    if (px >= ex)
+	       det++;
+	 }
+	 else {
+	    if (px <= ex)
+	       det++;
+	 }
+	 
+	 if (det == 2)
+	    break;
+      }
+
+      proc(bmp, x+px, y+py, d);
+
+      /* From here, we have only 3 possible directions of movement, eg.
+       * for the first quadrant:
+       *
+       *    .........
+       *    .........
+       *    ......21.
+       *    ......3*.
+       *
+       * These are reached by adding dx to px and/or adding dy to py.
+       * We need to find which of these points gives the best
+       * approximation of the (square of the) radius.
+       */
+
+      xx_new = (px+dx) * (px+dx);
+      yy_new = (py+dy) * (py+dy) - rr;
+      rr1 = xx_new + yy;
+      rr2 = xx_new + yy_new;
+      rr3 = xx     + yy_new;
+
+      /* Set rr1, rr2, rr3 to be the difference from the main radius of the
+       * three points.
+       */
+      if (rr1 < 0)
+	 rr1 = -rr1;
+      if (rr2 < 0)
+	 rr2 = -rr2;
+      if (rr3 < 0)
+	 rr3 = -rr3;
+
+      if (rr3 >= MIN(rr1, rr2)) {
+         px += dx;
+	 xx = xx_new;
+      }
+      if (rr1 > MIN(rr2, rr3)) {
+         py += dy;
+	 yy = yy_new;
+      }
+   }
+   /* Only draw last point if it doesn't overlap with first one. */
+   if ((px != sx) || (py != sy) || (sq == qe))
+      proc(bmp, x+px, y+py, d);
+}
+
+
+
+/* arc:
+ *  Draws an arc.
+ */
+void _soft_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color)
+{
+   ASSERT(bmp);
+   acquire_bitmap(bmp);
+
+   do_arc(bmp, x, y, ang1, ang2, r, color, bmp->vtable->putpixel);
+
+   release_bitmap(bmp);
+}
+

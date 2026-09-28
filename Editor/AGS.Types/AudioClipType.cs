@@ -12,7 +12,7 @@ namespace AGS.Types
 
         [AGSNoSerialize]
         [Browsable(false)]
-        public int ID { get { return TypeID; } }
+        public int ID { get { return TypeID; } set { TypeID = value; } }
 
         [ReadOnly(true)]
         [Description("The internal ID number of this audio type")]

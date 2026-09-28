@@ -310,9 +310,13 @@ namespace AGS.Editor
             public List<int> SkipFillerIndex = new List<int>();
             // FillerRecord list gathers counts of object fillers created, per type.
             public SortedList<string, int> FillerRecord = new SortedList<string, int>();
+            // DuplicatesRecord list gathers counts of object with duplicate IDs resolved, per type.
+            public SortedList<string, int> DuplicatesRecord = new SortedList<string, int>();
 
             // Contains temporary references to fillers created during *the last* object type processing.
             public List<IHasID> Fillers = new List<IHasID>();
+            // Contains temporary references to duplicates found during *the last* object type processing.
+            public List<IHasID> Duplicates = new List<IHasID>();
         }
 
         private void HandleObjectIDErrorsImpl<TItem>(IEnumerable<TItem> items,
@@ -320,10 +324,22 @@ namespace AGS.Editor
             where TItem : IHasID
         {
             state.Fillers.Clear();
+            state.Duplicates.Clear();
+            int presentItems = 0; // only currently present, not counting generated fillers
             int expectID = startID;
-            // The items are assumed to be already sorted in the order of item ID
+            // The items are assumed to be already sorted in the order of item ID;
+            // this means that we cannot introduce duplicates by inserting fillers.
             foreach (var item in items)
             {
+                presentItems++;
+                // Since list is sorted, the duplicates are found when the next item has
+                // the previous ID.
+                if (item.ID < expectID)
+                {
+                    state.Duplicates.Add(item);
+                    continue;
+                }
+
                 for (; expectID < item.ID; ++expectID)
                 {
                     state.Fillers.Add(createFiller(expectID, state.SkipFillerIndex));
@@ -331,9 +347,19 @@ namespace AGS.Editor
                 expectID++;
             }
 
+            // Keep records of created fillers and found duplicates
             if (state.Fillers.Count > 0)
             {
                 state.FillerRecord[friendlyTypeName] = state.FillerRecord.GetOrDefault(friendlyTypeName, 0) + state.Fillers.Count;
+            }
+            // Resolve ID duplicates by moving them to the back of the list;
+            // we do this simply be assigning new IDs, their positions will be fixed when the list is sorted next time.
+            if (state.Duplicates.Count > 0)
+            {
+                int newID = presentItems - state.Duplicates.Count + state.Fillers.Count;
+                foreach (var dup in state.Duplicates)
+                    dup.ID = newID++;
+                state.DuplicatesRecord[friendlyTypeName] = state.DuplicatesRecord.GetOrDefault(friendlyTypeName, 0) + state.Duplicates.Count;
             }
         }
 
@@ -351,8 +377,10 @@ namespace AGS.Editor
             {
                 foreach (var filler in state.Fillers)
                     folder.Items.Add(filler as TItem);
-                folder.Sort(true);
             }
+            // Resolved duplicates (which already have new IDs) will be moved to their places during Sort().
+            if (state.Fillers.Count > 0 || state.Duplicates.Count > 0)
+                folder.Sort(true);
         }
 
         /// <summary>
@@ -370,6 +398,16 @@ namespace AGS.Editor
             {
                 foreach (var filler in state.Fillers)
                     list.Insert(filler.ID, filler as TItem);
+            }
+            // Resolve ID duplicates (which already have new IDs) by moving them to the back of the list;
+            // this is done after already (possibly) adding gap fillers.
+            if (state.Duplicates.Count > 0)
+            {
+                foreach (var dup in state.Duplicates)
+                {
+                    list.Remove(dup as TItem);
+                    list.Add(dup as TItem);
+                }
             }
         }
 

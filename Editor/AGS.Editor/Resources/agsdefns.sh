@@ -889,7 +889,7 @@ builtin managed struct DrawingSurface {
   import void Clear(int colour=COLOR_TRANSPARENT);
   /// Creates a copy of the surface.
   import DrawingSurface* CreateCopy();
-  /// Draws a circle onto the surface with its centre at (x,y).
+  /// Draws a filled circle onto the surface with its center at (x,y).
   import void DrawCircle(int x, int y, int radius);
 #ifdef SCRIPT_API_v360
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
@@ -928,9 +928,21 @@ builtin managed struct DrawingSurface {
   import int  GetPixel(int x, int y);
   /// Tells AGS that you have finished drawing onto the surface.
   import void Release();
-#ifdef SCRIPT_API_v363
-  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
-  import readonly attribute bool Valid;
+#ifdef SCRIPT_API_v400_33
+  /// Draws a arc (a segment of a circle's boundary) with a center at (x,y).
+  import void DrawArc(int x, int y, int radius, int angle1, int angle2);
+  /// Draws a circle's outline onto the surface with its center at (x,y).
+  import void DrawCircleOutline(int x, int y, int radius);
+  /// Draws a filled ellipse onto the surface with its center at (x,y).
+  import void DrawEllipse(int x, int y, int rx, int ry);
+  /// Draws a ellipse's outline onto the surface with its center at (x,y).
+  import void DrawEllipseOutline(int x, int y, int rx, int ry);
+  /// Draws a rectangle's outline to the surface.
+  import void DrawRectangleOutline(int x1, int y1, int x2, int y2);
+  /// Draws a triangle's outline onto the surface.
+  import void DrawTriangleOutline(int x1, int y1, int x2, int y2, int x3, int y3);
+  /// Flood-fills the continuous area of the same color, starting at the given coordinates.
+  import void FloodFill(int x, int y);
   /// Returns a dynamic array of bytes, containing a copy of this surface's pixels from the specified region, in respective format.
   import char[] GetPixelsCopy(int x = 0, int y = 0, int width = -1, int height = -1);
   /// Returns a dynamic array of ints, containing a copy of this surface's pixels from the specified region, in 32-bit ARGB format.
@@ -939,7 +951,7 @@ builtin managed struct DrawingSurface {
   import void SetPixels(char pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
   /// Pastes an array of pixels onto the surface at the specified position. The image must have a 32-bit color depth (ARGB format).
   import void SetPixels32(int pixels[], int x = 0, int y = 0, int width = -1, int height = -1);
-#endif // SCRIPT_API_v363
+#endif // SCRIPT_API_v400_33
   /// Gets/sets the current AGS Colour Number that will be used for drawing onto this surface.
   import attribute int DrawingColor;
   /// Gets the height of this surface.
@@ -949,6 +961,8 @@ builtin managed struct DrawingSurface {
 #ifdef SCRIPT_API_v363
   /// Gets the colour depth of this surface, in bits per pixel (8, 16, 32).
   readonly import attribute int ColorDepth;
+  /// Checks whether this drawing surface is currently valid and is linked to an actual image source.
+  import readonly attribute bool Valid;
 #endif // SCRIPT_API_v363
 #ifdef SCRIPT_API_v400
   /// Gets/sets the current BlendMode that will be used for drawing onto this surface.

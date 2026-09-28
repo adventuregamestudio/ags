@@ -180,6 +180,7 @@ namespace AGS.Editor
         public const int    AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS = 3999907;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_COLORS_32BIT = 4000009;
         public const int    AGS_4_0_0_XML_VERSION_INDEX_FONT_SOURCES = 4000010;
+        public const string AGS_4_0_0_XML_VERSION_OPEN_DIALOGS = "4.0.0.33";
 
         /*
          * LATEST_XML_VERSION is the X.Y.Z.W string which defines project's user data format.
@@ -582,9 +583,9 @@ namespace AGS.Editor
             }
             if (includeDialogs)
             {
-                foreach (Dialog dialog in _game.RootDialogFolder.AllItemsFlat)
+                foreach (Dialog dialog in _game.Dialogs)
                 {
-                    scripts.Add(dialog);
+                    scripts.Add(dialog.Script);
                 }
             }
             return scripts;
@@ -1814,6 +1815,8 @@ namespace AGS.Editor
             {
                 return false;
             }
+
+            Factory.Events.OnGamePostSave(_game);
 
             _game.FilesAddedOrRemoved = false;
 

@@ -43,7 +43,7 @@ namespace AGS.Types
             return FindItem(IsItemByName, inventoryItemName, recursive);
         }
 
-        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
+        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             Init(MAIN_INVENTORY_ITEM_FOLDER_NAME);
             foreach (XmlNode inventoryItemNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "InventoryItems"))
@@ -57,7 +57,7 @@ namespace AGS.Types
             return new InventoryItemFolder(node);
         }
 
-        protected override InventoryItem CreateItem(XmlNode node)
+        protected override InventoryItem CreateItem(XmlNode node, System.Version xmlVersion)
         {
             return new InventoryItem(node);
         }

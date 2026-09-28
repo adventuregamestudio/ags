@@ -22,6 +22,8 @@ namespace AGS.Types
 		public const int HIGHEST_ROOM_NUMBER_ALLOWED = 999;
 		public const string PROPERTY_NAME_DESCRIPTION = "Description";
 		public const string PROPERTY_NAME_NUMBER = "Number";
+        // FIXME: I don't think that rooms themselves should define their directory,
+        // as AGS.Types can be used by the third-party tools for other purposes.
         public const string ROOM_DIRECTORY = "Rooms";
 
         protected int _number;

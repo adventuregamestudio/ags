@@ -38,7 +38,7 @@ namespace AGS.Types
             return FindItem(IsItem, GUIID, recursive);
         }
 
-        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
+        protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             Init(MAIN_GUI_FOLDER_NAME);
             foreach (XmlNode guiNode in SerializeUtils.GetChildNodesOrEmpty(parentNodeForBackwardsCompatability, "GUIs"))
@@ -59,7 +59,7 @@ namespace AGS.Types
             return new GUIFolder(node);
         }
 
-        protected override GUI CreateItem(XmlNode node)
+        protected override GUI CreateItem(XmlNode node, System.Version xmlVersion)
         {            
             if (node.FirstChild.Name == NormalGUI.XML_ELEMENT_NAME)
                 return new NormalGUI(node);

@@ -205,3 +205,35 @@ Editor/References/**/*.dll
 /Plugins/AGSSpriteFont/msvc/.temp/
 /Plugins/agstouch/msvc/.build/
 /Plugins/agstouch/msvc/.temp/
+
+# AI coding assistant per-tool instructions and local configuration.
+#
+# The project's policy on AI tooling lives in CONTRIBUTING.md ("Use of AI
+# Tooling"); AGENTS.md states it in a form the tools themselves read.
+# AGENTS.md is committed and is deliberately NOT ignored here.
+#
+# Everything below is per-developer setup for whichever tool you happen to
+# use. It is yours, it stays out of the repository, and nothing in it
+# overrides the guidelines above.
+# Claude Code
+CLAUDE.md
+CLAUDE.local.md
+**/.claude/
+# Cursor
+.cursorrules
+.cursorignore
+.cursorindexingignore
+**/.cursor/
+# Codex
+**/.codex/
+# Gemini CLI
+GEMINI.md
+**/.gemini/
+# GitHub Copilot
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+# OpenCode
+opencode.json
+opencode.jsonc
+**/.opencode/

@@ -4,6 +4,6 @@ namespace AGS.Types
 {
     public interface IHasID
     {
-        int ID { get; }
+        int ID { get; set; }
     }
 }

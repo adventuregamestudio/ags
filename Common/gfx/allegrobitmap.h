@@ -285,11 +285,16 @@ public:
     //=========================================================================
     // Vector drawing operations
     //=========================================================================
+    void    DrawArc(int x, int y, int radius, int angle1, int angle2, color_t color);
+    void    DrawCircle(const Circle &circle, color_t color);
+    void    DrawEllipse(int x, int y, int radiusx, int radiusy, color_t color);
     void    DrawLine(const Line &ln, color_t color);
-    void    DrawTriangle(const Triangle &tr, color_t color);
     void    DrawRect(const Rect &rc, color_t color);
-    void    FillRect(const Rect &rc, color_t color);
+    void    DrawTriangle(const Triangle &tr, color_t color);
     void    FillCircle(const Circle &circle, color_t color);
+    void    FillEllipse(int x, int y, int radiusx, int radiusy, color_t color);
+    void    FillRect(const Rect &rc, color_t color);
+    void    FillTriangle(const Triangle &tr, color_t color);
     // Fills the whole bitmap with given color
     void    Fill(color_t color);
     void    FillTransparent();

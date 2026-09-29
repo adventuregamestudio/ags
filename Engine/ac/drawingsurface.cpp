@@ -394,6 +394,32 @@ void DrawingSurface_DrawEllipseOutline(ScriptDrawingSurface *sds, int x, int y, 
     }
 }
 
+void DrawingSurface_DrawPie(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    sds->PointToGameResolution(&x, &y);
+    sds->SizeToGameResolution(&radius);
+
+    Bitmap *ds = TryStartDrawing(sds, "DrawingSurface.DrawPie");
+    if (ds)
+    {
+        ds->FillPie(x, y, radius, angle1, angle2, sds->currentColour);
+        sds->FinishedDrawing();
+    }
+}
+
+void DrawingSurface_DrawPieOutline(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    sds->PointToGameResolution(&x, &y);
+    sds->SizeToGameResolution(&radius);
+
+    Bitmap *ds = TryStartDrawing(sds, "DrawingSurface.DrawPieOutline");
+    if (ds)
+    {
+        ds->DrawPie(x, y, radius, angle1, angle2, sds->currentColour);
+        sds->FinishedDrawing();
+    }
+}
+
 void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 {
     sds->PointToGameResolution(&x1, &y1);
@@ -752,6 +778,16 @@ RuntimeScriptValue Sc_DrawingSurface_DrawMessageWrapped(void *self, const Runtim
     API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawMessageWrapped);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_DrawPie(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawPie);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawPieOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawPieOutline);
+}
+
 // void (ScriptDrawingSurface *sds, int x, int y)
 RuntimeScriptValue Sc_DrawingSurface_DrawPixel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -940,6 +976,8 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*com
         { "DrawingSurface::DrawImage^10",         API_FN_PAIR(DrawingSurface_DrawImage) },
         { "DrawingSurface::DrawLine^5",           API_FN_PAIR(DrawingSurface_DrawLine) },
         { "DrawingSurface::DrawMessageWrapped^5", API_FN_PAIR(DrawingSurface_DrawMessageWrapped) },
+        { "DrawingSurface::DrawPie^5",            API_FN_PAIR(DrawingSurface_DrawPie) },
+        { "DrawingSurface::DrawPieOutline^5",     API_FN_PAIR(DrawingSurface_DrawPieOutline) },
         { "DrawingSurface::DrawPixel^2",          API_FN_PAIR(DrawingSurface_DrawPixel) },
         { "DrawingSurface::DrawRectangle^4",      API_FN_PAIR(DrawingSurface_DrawRectangle) },
         { "DrawingSurface::DrawRectangleOutline^4", API_FN_PAIR(DrawingSurface_DrawRectangleOutline) },

@@ -820,6 +820,10 @@ builtin managed struct DrawingSurface {
   import void DrawEllipse(int x, int y, int rx, int ry);
   /// Draws a ellipse's outline onto the surface with its center at (x,y).
   import void DrawEllipseOutline(int x, int y, int rx, int ry);
+  /// Draws a filled pie: a shape defined by an arc and two radiuses, with a center at (x,y).
+  import void DrawPie(int x, int y, int radius, int angle1, int angle2);
+  /// Draws a pie's outline: a shape defined by an arc and two radiuses, with a center at (x,y).
+  import void DrawPieOutline(int x, int y, int radius, int angle1, int angle2);
   /// Draws a rectangle's outline to the surface.
   import void DrawRectangleOutline(int x1, int y1, int x2, int y2);
   /// Draws a triangle's outline onto the surface.

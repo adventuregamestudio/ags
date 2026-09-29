@@ -1133,6 +1133,134 @@ static INLINE void get_point_on_arc(int r, fixed a, int *out_x, int *out_y, int 
 
 
 
+/* arc_state: describes current do_arc state */
+typedef struct {
+   /* start position */
+   int sx, sy;
+   /* current position */
+   int px, py;
+   /* end position */
+   int ex, ey;
+   /* radius */
+   int r;
+   /* square of radius of circle */
+   long rr;
+   /* square of x and of y */
+   unsigned long xx, yy;
+   /* start quadrant, current quadrant and end quadrant */
+   int sq, q, qe;
+   /* direction of movement */
+   int dx, dy;
+} arc_state;
+
+/* do_arc_begin:
+ *  Initializes arc_state struct for do_arc function.
+ */
+void do_arc_begin(arc_state *init_arc, int x, int y, fixed ang1, fixed ang2, int r)
+{
+   arc_state arc;
+   /* Calculate the start point and the end point. */
+   /* We have to flip y because bitmaps count y coordinates downwards. */
+   get_point_on_arc(r, ang1, &arc.sx, &arc.sy, &arc.q);
+   get_point_on_arc(r, ang2, &arc.ex, &arc.ey, &arc.qe);
+   arc.px = arc.sx;
+   arc.py = arc.sy;
+
+   arc.r = r;
+   arc.rr = r*r;
+   arc.xx = arc.px*arc.px;
+   arc.yy = arc.py*arc.py - arc.rr;
+
+   arc.sq = arc.q;
+
+   if (arc.q > arc.qe) {
+      /* qe must come after q. */
+      arc.qe += 4;
+   }
+   else if (arc.q == arc.qe) {
+      /* If q==qe but the beginning comes after the end, make qe be
+       * strictly after q.
+       */
+      if (((ang2&0xffffff) < (ang1&0xffffff)) ||
+         (((ang1&0xffffff) < 0x400000) && ((ang2&0xffffff) >= 0xc00000)))
+         arc.qe += 4;
+   }
+
+   /* initial direction of movement */
+   if (((arc.q+1)&2) == 0)
+      arc.dy = -1;
+   else
+      arc.dy = 1;
+   if ((arc.q&2) == 0)
+      arc.dx = -1;
+   else
+      arc.dx = 1;
+
+   memcpy(init_arc, &arc, sizeof(arc_state));
+}
+
+
+
+/* change_quadrant_if_needed:
+ *  Tests if do_arc state have reached the end of the current quadrant,
+ *  and either switches to next quadrant, or tells that the arc is finished.
+ *  Returns: 0 if arc is done, -1 if same quadrant, +1 if changed quadrant.
+ */
+static INLINE int change_quadrant_if_needed(arc_state *arc)
+{
+   /* Change quadrant when needed.
+    * dx and dy determine the possible directions to go in this
+    * quadrant, so they must be updated when we change quadrant.
+    */
+   int old_q = arc->q;
+   if ((arc->q&1) == 0) {
+      if (arc->px == 0) {
+         if (arc->qe == arc->q)
+            return 0; /* finish arc */
+         arc->q++;
+         arc->dy = -arc->dy;
+      }
+   }
+   else {
+      if (arc->py == 0) {
+         if (arc->qe == arc->q)
+            return 0; /* finish arc */
+         arc->q++;
+         arc->dx = -arc->dx;
+      }
+   }
+
+   /* Are we in the final quadrant? */
+   if (arc->qe == arc->q) {
+      /* Have we reached (or passed) the end point both in x and y? */
+      int det = 0;
+
+      if (arc->dy > 0) {
+         if (arc->py >= arc->ey)
+            det++;
+         }
+      else {
+         if (arc->py <= arc->ey)
+            det++;
+      }
+      if (arc->dx > 0) {
+         if (arc->px >= arc->ex)
+            det++;
+      }
+      else {
+         if (arc->px <= arc->ex)
+            det++;
+      }
+
+      if (det == 2)
+         return 0; /* finish arc */
+   }
+
+   return (old_q != arc->q) ? 1 : -1;
+}
+
+
+
 /* do_arc:
  *  Helper function for the arc function. Calculates the points in an arc
  *  of radius r around point x, y, going anticlockwise from fixed point
@@ -1143,111 +1271,15 @@ static INLINE void get_point_on_arc(int r, fixed a, int *out_x, int *out_y, int 
  */
 void do_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d, void (*proc)(BITMAP *, int, int, int))
 {
-   /* start position */
-   int sx, sy;
-   /* current position */
-   int px, py;
-   /* end position */
-   int ex, ey;
-   /* square of radius of circle */
-   long rr;
-   /* difference between main radius squared and radius squared of three
-      potential next points */
-   long rr1, rr2, rr3;
-   /* square of x and of y */
-   unsigned long xx, yy, xx_new, yy_new;
-   /* start quadrant, current quadrant and end quadrant */
-   int sq, q, qe;
-   /* direction of movement */
-   int dx, dy;
-   /* temporary variable for determining if we have reached end point */
-   int det;
+   arc_state arc;
 
-   /* Calculate the start point and the end point. */
-   /* We have to flip y because bitmaps count y coordinates downwards. */
-   get_point_on_arc(r, ang1, &sx, &sy, &q);
-   px = sx;
-   py = sy;
-   get_point_on_arc(r, ang2, &ex, &ey, &qe);
-
-   rr = r*r;
-   xx = px*px;
-   yy = py*py - rr;
-
-   sq = q;
-
-   if (q > qe) {
-      /* qe must come after q. */
-      qe += 4;
-   }
-   else if (q == qe) {
-      /* If q==qe but the beginning comes after the end, make qe be
-       * strictly after q.
-       */
-      if (((ang2&0xffffff) < (ang1&0xffffff)) ||
-	  (((ang1&0xffffff) < 0x400000) && ((ang2&0xffffff) >= 0xc00000)))
-         qe += 4;
-   }
-
-   /* initial direction of movement */
-   if (((q+1)&2) == 0)
-      dy = -1;
-   else
-      dy = 1;
-   if ((q&2) == 0)
-      dx = -1;
-   else
-      dx = 1;
+   do_arc_begin(&arc, x, y, ang1, ang2, r);
 
    while (TRUE) {
-      /* Change quadrant when needed.
-       * dx and dy determine the possible directions to go in this
-       * quadrant, so they must be updated when we change quadrant.
-       */
-      if ((q&1) == 0) {
-         if (px == 0) {
-            if (qe == q)
-	       break;
-	    q++;
-	    dy = -dy;
-	 }
-      }
-      else {
-         if (py == 0) {
-	    if (qe == q)
-	       break;
-	    q++;
-	    dx = -dx;
-	 }
-      }
+      if (!change_quadrant_if_needed(&arc))
+         break;
 
-      /* Are we in the final quadrant? */
-      if (qe == q) {
-	 /* Have we reached (or passed) the end point both in x and y? */
-	 det = 0;
-
-	 if (dy > 0) {
-	    if (py >= ey)
-	       det++;
-	 }
-	 else {
-	    if (py <= ey)
-	       det++;
-	 }
-	 if (dx > 0) {
-	    if (px >= ex)
-	       det++;
-	 }
-	 else {
-	    if (px <= ex)
-	       det++;
-	 }
-	 
-	 if (det == 2)
-	    break;
-      }
-
-      proc(bmp, x+px, y+py, d);
+      proc(bmp, x+arc.px, y+arc.py, d);
 
       /* From here, we have only 3 possible directions of movement, eg.
        * for the first quadrant:
@@ -1262,34 +1294,37 @@ void do_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d, voi
        * approximation of the (square of the) radius.
        */
 
-      xx_new = (px+dx) * (px+dx);
-      yy_new = (py+dy) * (py+dy) - rr;
-      rr1 = xx_new + yy;
-      rr2 = xx_new + yy_new;
-      rr3 = xx     + yy_new;
+      /* square of x and of y */
+      unsigned long xx_new = (arc.px+arc.dx) * (arc.px+arc.dx);
+      unsigned long yy_new = (arc.py+arc.dy) * (arc.py+arc.dy) - arc.rr;
+      /* difference between main radius squared and radius squared of three
+         potential next points */
+      long rr1 = xx_new + arc.yy;
+      long rr2 = xx_new + yy_new;
+      long rr3 = arc.xx + yy_new;
 
       /* Set rr1, rr2, rr3 to be the difference from the main radius of the
        * three points.
        */
       if (rr1 < 0)
-	 rr1 = -rr1;
+         rr1 = -rr1;
       if (rr2 < 0)
-	 rr2 = -rr2;
+         rr2 = -rr2;
       if (rr3 < 0)
-	 rr3 = -rr3;
+         rr3 = -rr3;
 
       if (rr3 >= MIN(rr1, rr2)) {
-         px += dx;
-	 xx = xx_new;
+         arc.px += arc.dx;
+         arc.xx = xx_new;
       }
       if (rr1 > MIN(rr2, rr3)) {
-         py += dy;
-	 yy = yy_new;
+         arc.py += arc.dy;
+         arc.yy = yy_new;
       }
    }
    /* Only draw last point if it doesn't overlap with first one. */
-   if ((px != sx) || (py != sy) || (sq == qe))
-      proc(bmp, x+px, y+py, d);
+   if ((arc.px != arc.sx) || (arc.py != arc.sy) || (arc.sq == arc.qe))
+      proc(bmp, x+arc.px, y+arc.py, d);
 }
 
 

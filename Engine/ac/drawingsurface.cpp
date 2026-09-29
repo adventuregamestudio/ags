@@ -330,6 +330,26 @@ void DrawingSurface_DrawEllipseOutline(ScriptDrawingSurface *sds, int x, int y, 
     }
 }
 
+void DrawingSurface_DrawPie(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawPie");
+    if (ds)
+    {
+        ds->FillPie(x, y, radius, angle1, angle2, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawPieOutline(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawPieOutline");
+    if (ds)
+    {
+        ds->DrawPie(x, y, radius, angle1, angle2, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
 void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 {
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawRectangle");
@@ -618,6 +638,16 @@ RuntimeScriptValue Sc_DrawingSurface_DrawLine(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawLine);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_DrawPie(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawPie);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawPieOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawPieOutline);
+}
+
 // void (ScriptDrawingSurface *sds, int x, int y)
 RuntimeScriptValue Sc_DrawingSurface_DrawPixel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -794,13 +824,15 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
         { "DrawingSurface::DrawEllipseOutline^4", API_FN_PAIR(DrawingSurface_DrawEllipseOutline) },
         { "DrawingSurface::DrawImage^10",         API_FN_PAIR(DrawingSurface_DrawImage) },
         { "DrawingSurface::DrawLine^5",           API_FN_PAIR(DrawingSurface_DrawLine) },
-        // old non-variadic and new variadic variants
-        { "DrawingSurface::DrawStringWrapped^6",  API_FN_PAIR(DrawingSurface_DrawStringWrapped) },
-        { "DrawingSurface::DrawStringWrapped^106", Sc_DrawingSurface_DrawStringWrapped, ScPl_DrawingSurface_DrawStringWrapped },
+        { "DrawingSurface::DrawPie^5",            API_FN_PAIR(DrawingSurface_DrawPie) },
+        { "DrawingSurface::DrawPieOutline^5",     API_FN_PAIR(DrawingSurface_DrawPieOutline) },
         { "DrawingSurface::DrawPixel^2",          API_FN_PAIR(DrawingSurface_DrawPixel) },
         { "DrawingSurface::DrawRectangle^4",      API_FN_PAIR(DrawingSurface_DrawRectangle) },
         { "DrawingSurface::DrawRectangleOutline^4", API_FN_PAIR(DrawingSurface_DrawRectangleOutline) },
         { "DrawingSurface::DrawString^104",       Sc_DrawingSurface_DrawString, ScPl_DrawingSurface_DrawString },
+        // old non-variadic and new variadic variants
+        { "DrawingSurface::DrawStringWrapped^6",  API_FN_PAIR(DrawingSurface_DrawStringWrapped) },
+        { "DrawingSurface::DrawStringWrapped^106", Sc_DrawingSurface_DrawStringWrapped, ScPl_DrawingSurface_DrawStringWrapped },
         { "DrawingSurface::DrawSurface^10",       API_FN_PAIR(DrawingSurface_DrawSurface) },
         { "DrawingSurface::DrawTriangle^6",       API_FN_PAIR(DrawingSurface_DrawTriangle) },
         { "DrawingSurface::DrawTriangleOutline^6", API_FN_PAIR(DrawingSurface_DrawTriangleOutline) },

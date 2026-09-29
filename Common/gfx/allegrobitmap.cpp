@@ -555,8 +555,17 @@ int Bitmap::GetPixel(int x, int y) const
 // Vector drawing operations
 //=============================================================================
 
+inline void NormalizeAngles(int &angle1, int &angle2)
+{
+	angle1 %= 360;
+	angle2 %= 360;
+	if (angle2 < angle1)
+		angle2 += 360;
+}
+
 void Bitmap::DrawArc(int x, int y, int radius, int angle1, int angle2, color_t color)
 {
+	NormalizeAngles(angle1, angle2);
 	arc(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
@@ -573,6 +582,12 @@ void Bitmap::DrawEllipse(int x, int y, int radiusx, int radiusy, color_t color)
 void Bitmap::DrawLine(const Line &ln, color_t color)
 {
 	line(_alBitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, color);
+}
+
+void Bitmap::DrawPie(int x, int y, int radius, int angle1, int angle2, color_t color)
+{
+	NormalizeAngles(angle1, angle2);
+	_soft_pie(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
 void Bitmap::DrawRect(const Rect &rc, color_t color)
@@ -596,6 +611,12 @@ void Bitmap::FillCircle(const Circle &circle, color_t color)
 void Bitmap::FillEllipse(int x, int y, int radiusx, int radiusy, color_t color)
 {
 	ellipsefill(_alBitmap, x, y, radiusx, radiusy, color);
+}
+
+void Bitmap::FillPie(int x, int y, int radius, int angle1, int angle2, color_t color)
+{
+	NormalizeAngles(angle1, angle2);
+	_soft_piefill(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
 void Bitmap::FillRect(const Rect &rc, color_t color)

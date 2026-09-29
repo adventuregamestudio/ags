@@ -48,7 +48,10 @@ AL_FUNC(void, do_ellipse, (struct BITMAP *bmp, int x, int y, int rx, int ry, int
 AL_FUNC(void, _soft_ellipse, (struct BITMAP *bmp, int x, int y, int rx, int ry, int color));
 AL_FUNC(void, _soft_ellipsefill, (struct BITMAP *bmp, int x, int y, int rx, int ry, int color));
 AL_FUNC(void, do_arc, (struct BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d, AL_METHOD(void, proc, (struct BITMAP *, int, int, int))));
+AL_FUNC(void, do_fill_arc, (struct BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d));
 AL_FUNC(void, _soft_arc, (struct BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color));
+AL_FUNC(void, _soft_pie, (struct BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color));
+AL_FUNC(void, _soft_piefill, (struct BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color));
 AL_FUNC(void, calc_spline, (AL_CONST int points[8], int npts, int *x, int *y));
 AL_FUNC(void, _soft_spline, (struct BITMAP *bmp, AL_CONST int points[8], int color));
 AL_FUNC(void, _soft_floodfill, (struct BITMAP *bmp, int x, int y, int color));

@@ -1149,9 +1149,36 @@ typedef struct {
    unsigned long xx, yy;
    /* start quadrant, current quadrant and end quadrant */
    int sq, q, qe;
+   /* starting and ending positions in the current quadrant */
+   int qsx, qsy, qex, qey;
    /* direction of movement */
    int dx, dy;
 } arc_state;
+
+void set_arc_quadrant_points(arc_state *arc)
+{
+   if (arc->q == arc->sq) {
+      arc->qsx = arc->sx;
+      arc->qsy = arc->sy;
+   }
+   else {
+      int q = (arc->q % 4);
+      arc->qsx = (q == 1 || q == 3) ? 0 : (q == 0 ? arc->r : -arc->r);
+      arc->qsy = (q == 0 || q == 2) ? 0 : (q == 1 ? -arc->r : arc->r);
+   }
+
+   if (arc->q == arc->qe) {
+      arc->qex = arc->ex;
+      arc->qey = arc->ey;
+   }
+   else {
+      int q = (arc->q % 4);
+      arc->qex = (q == 0 || q == 2) ? 0 : (q == 1 ? -arc->r : arc->r);
+      arc->qey = (q == 1 || q == 3) ? 0 : (q == 0 ? -arc->r : arc->r);
+   }
+}
+
+
 
 /* do_arc_begin:
  *  Initializes arc_state struct for do_arc function.
@@ -1196,6 +1223,7 @@ void do_arc_begin(arc_state *init_arc, int x, int y, fixed ang1, fixed ang2, int
    else
       arc.dx = 1;
 
+   set_arc_quadrant_points(&arc);
    memcpy(init_arc, &arc, sizeof(arc_state));
 }
 
@@ -1256,6 +1284,7 @@ static INLINE int change_quadrant_if_needed(arc_state *arc)
          return 0; /* finish arc */
    }
 
+   set_arc_quadrant_points(arc);
    return (old_q != arc->q) ? 1 : -1;
 }
 
@@ -1276,6 +1305,10 @@ void do_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d, voi
    do_arc_begin(&arc, x, y, ang1, ang2, r);
 
    while (TRUE) {
+      /* TODO: instead of testing when quadrant is changing on every pixel,
+       * we could precalculate starting and ending arc points for each
+       * quadrant that this arc occupies. Then process arc in segments.
+       */
       if (!change_quadrant_if_needed(&arc))
          break;
 
@@ -1329,6 +1362,219 @@ void do_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d, voi
 
 
 
+/* line_desc: contains line points and its formula coefficients. */
+typedef struct {
+    int x1, y1, x2, y2;
+    /* y = kx + b */
+    int k, b;
+} line_desc;
+
+/*
+ * calculate_line:
+ *  Calculates line's formula coefficients (y = kx + b).
+ */
+static void calculate_line(int x1, int y1, int x2, int y2, line_desc *line_desc)
+{
+    ASSERT(line_desc);
+    line_desc->x1 = x1;
+    line_desc->y1 = y1;
+    line_desc->x2 = x2;
+    line_desc->y2 = y2;
+    /* vertical line, x is constant, y does not depend on x */
+    if (x1 == x2) {
+        line_desc->k = 0;
+        line_desc->b = 0;
+        return;
+    }
+    /* horizontal line, y is constant, x does not depend on y */
+    if (y1 == y2) {
+        line_desc->k = 0;
+        line_desc->b = y1;
+        return;
+    }
+
+    int fx1 = itofix(x1), fx2 = itofix(x2);
+    int fy1 = itofix(y1), fy2 = itofix(y2);
+    int k = fixdiv(fy2 - fy1, fx2 - fx1);
+    int b = fy1 - fixmul(fx1, k);
+    line_desc->k = k;
+    line_desc->b = b;
+}
+
+
+
+/*
+* get_x_on_line:
+*  Gets line's x coordinate at the given y coordinates.
+*  Cannot be used for horizontal lines (always returns x1).
+*/
+static INLINE int get_x_on_line(AL_CONST line_desc *line_desc, int y)
+{
+    /* y = kx + b */
+    /* x = (y - b) / k */
+    ASSERT(line_desc);
+    ASSERT(line_desc->x1 != line_desc->x2); /* do not support horizontal lines */
+    /* vertical line, or horizontal line (even though the result is undefined in a latter case) */
+    if (line_desc->k == 0) {
+        return line_desc->x1;
+    }
+    return fixtoi(fixdiv(itofix(y) - line_desc->b, line_desc->k));
+}
+
+
+
+/* tri_desc: describes a triangle. */
+typedef struct {
+   int valid;
+   int x1, y1, x2, y2, x3, y3;
+} tri_desc;
+
+/* get_pie_slice_operation: 
+ *  Determines data necessary for the pie slice's filling operation:
+ *  - a pie's side line located "across" the pie opposite to the pie's arc;
+ *  - a triangle remainder, which has to be filled separately.
+ */
+static void get_pie_slice_operation(AL_CONST arc_state *arc, line_desc *side_line, tri_desc *tri_rem)
+{
+   ASSERT(arc && side_line && tri_rem);
+   int q = (arc->q % 4); /* normalize to 0..3 */
+   /* Select a pie's side for filling area with horizontal lines between arc and this line */
+   switch (q) { 
+      case 0: case 2: calculate_line(0, 0, arc->qex, arc->qey, side_line); break;
+      case 1: case 3: calculate_line(0, 0, arc->qsx, arc->qsy, side_line); break;
+   }
+
+   /* Select a triangle remainder */
+   /* there will be a remainder in this pie quadrant if either starting or ending 
+    * arc point does not lie on a horizontal axis (depending on a quadrant). */
+   if (((q == 0 || q == 2) && arc->qsy != 0) || ((q == 1 || q == 3) && arc->qey != 0)) {
+      /* triangle always begins in the center */
+      tri_rem->x1 = 0;
+      tri_rem->y1 = 0;
+      /* second point is either start or end arc point in the current quadrant */
+      switch (q) {
+         case 0: case 2: tri_rem->x2 = arc->qsx; tri_rem->y2 = arc->qsy; break;
+         case 1: case 3: tri_rem->x2 = arc->qex; tri_rem->y2 = arc->qey; break;
+      }
+      /* third point lies on a chosen pie side, across from the second point */
+      tri_rem->x3 = get_x_on_line(side_line, tri_rem->y2);
+      tri_rem->y3 = tri_rem->y2;
+      tri_rem->valid = 1;
+   }
+   /* otherwise - there's no remainder */
+   else {
+      memset(tri_rem, 0, sizeof(tri_desc));
+   }
+}
+
+
+
+/* do_arc:
+*  Helper function for the arc filling. Calculates the points in an arc
+*  of radius r around point x, y, going anticlockwise from fixed point
+*  binary angle ang1 to ang2. Then splits the arc into quadrants, and
+*  fills each "pie slice" in a sequence.
+*/
+void do_fill_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int d)
+{
+   /* How do we fill an arc (pie)?
+    * - split the arc into pieces by the quadrants (so 1-5 pieces);
+    * - for each piece in its respective quadrant:
+    *    - select a side of a pie (a line), which is horizontally opposite to arc.
+    *    - traverse along the arc segment, and for each point of arc find a point
+    *      on that horizontally opposing side-line;
+    *      then draw a horizontal line between arc pt and side-line pt.
+    *    - possibly there's a unfilled triangle remaining,
+    *      then fill it using a triangle-fill function.
+    * - continue with the next quadrant, or done.
+    */
+
+   arc_state arc;
+   line_desc side_line;
+   tri_desc tri_rem;
+
+   do_arc_begin(&arc, x, y, ang1, ang2, r);
+   get_pie_slice_operation(&arc, &side_line, &tri_rem);
+
+   while (TRUE) {
+      /* TODO: instead of testing when quadrant is changing on every pixel,
+       * we could precalculate starting and ending arc points for each
+       * quadrant that this arc occupies. Then process arc in segments.
+       */
+      int old_q = arc.q;
+      int q_change = change_quadrant_if_needed(&arc);
+      if (q_change == 0) {
+         break;
+      }
+      /* if quadrant have changed, then:
+       * - fill a remaining triangle from the previous quadrant (if there's one);
+       * - find next opposing radius line.
+       */
+      else if (q_change > 0) {
+         if (tri_rem.valid) {
+            triangle(bmp, x+tri_rem.x1, y+tri_rem.y1, x+tri_rem.x2, y+tri_rem.y2, x+tri_rem.x3, y+tri_rem.y3, d);
+         }
+         get_pie_slice_operation(&arc, &side_line, &tri_rem);
+      }
+
+      /* For each arc's pixel: find a corresponding line's pixel, then do hfill between them */
+      int side_x = get_x_on_line(&side_line, arc.py);
+      hline(bmp, x+arc.px, y+arc.py, x+side_x, d);
+
+      /* From here, we have only 3 possible directions of movement, eg.
+       * for the first quadrant:
+       *
+       *    .........
+       *    .........
+       *    ......21.
+       *    ......3*.
+       *
+       * These are reached by adding dx to px and/or adding dy to py.
+       * We need to find which of these points gives the best
+       * approximation of the (square of the) radius.
+       */
+
+      /* square of x and of y */
+      unsigned long xx_new = (arc.px+arc.dx) * (arc.px+arc.dx);
+      unsigned long yy_new = (arc.py+arc.dy) * (arc.py+arc.dy) - arc.rr;
+      /* difference between main radius squared and radius squared of three
+         potential next points */
+      long rr1 = xx_new + arc.yy;
+      long rr2 = xx_new + yy_new;
+      long rr3 = arc.xx + yy_new;
+
+      /* Set rr1, rr2, rr3 to be the difference from the main radius of the
+       * three points.
+       */
+      if (rr1 < 0)
+         rr1 = -rr1;
+      if (rr2 < 0)
+         rr2 = -rr2;
+      if (rr3 < 0)
+         rr3 = -rr3;
+
+      if (rr3 >= MIN(rr1, rr2)) {
+         arc.px += arc.dx;
+         arc.xx = xx_new;
+      }
+      if (rr1 > MIN(rr2, rr3)) {
+         arc.py += arc.dy;
+         arc.yy = yy_new;
+      }
+   }
+   /* Only draw last point if it doesn't overlap with first one. */
+   if ((arc.px != arc.sx) || (arc.py != arc.sy) || (arc.sq == arc.qe)) {
+      int side_x = get_x_on_line(&side_line, arc.py);
+      hline(bmp, x+arc.px, y+arc.py, x+side_x, d);
+   }
+   /* Finish the triangle remainder from the last quadrant */
+   if (tri_rem.valid) {
+       triangle(bmp, x+tri_rem.x1, y+tri_rem.y1, x+tri_rem.x2, y+tri_rem.y2, x+tri_rem.x3, y+tri_rem.y3, d);
+   }
+}
+
+
+
 /* arc:
  *  Draws an arc.
  */
@@ -1342,3 +1588,38 @@ void _soft_arc(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int col
    release_bitmap(bmp);
 }
 
+
+
+/* pie:
+*  Draws a pie: a shape outlined by the arc and two radiuses.
+*/
+void _soft_pie(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color)
+{
+    ASSERT(bmp);
+    acquire_bitmap(bmp);
+
+    do_arc(bmp, x, y, ang1, ang2, r, color, bmp->vtable->putpixel);
+
+    int sx, sy, ex, ey, q, qe;
+    get_point_on_arc(r, ang1, &sx, &sy, &q);
+    get_point_on_arc(r, ang2, &ex, &ey, &qe);
+    line(bmp, x, y, x + sx, y + sy, color);
+    line(bmp, x, y, x + ex, y + ey, color);
+
+    release_bitmap(bmp);
+}
+
+
+
+/* piefill:
+*  Draws a filled pie: a shape outlined by the arc and two radiuses.
+*/
+void _soft_piefill(BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color)
+{
+    ASSERT(bmp);
+    acquire_bitmap(bmp);
+
+    do_fill_arc(bmp, x, y, ang1, ang2, r, color);
+
+    release_bitmap(bmp);
+}

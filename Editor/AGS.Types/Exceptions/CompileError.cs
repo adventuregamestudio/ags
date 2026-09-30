@@ -16,6 +16,11 @@ namespace AGS.Types
         {
         }
 
+        public CompileError(string message, CompileMessageIcon icon)
+            : base(message, icon)
+        {
+        }
+
         public CompileError(string message, Exception innerException)
             : base(message, innerException)
         {

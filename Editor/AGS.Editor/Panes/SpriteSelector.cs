@@ -877,20 +877,21 @@ namespace AGS.Editor
 
         private void ReplaceSpritesFromSource()
         {
-            List<string> errors = new List<string>();
+            CompileMessages errors = new CompileMessages();
             List<Sprite> sprites = new List<Sprite>();
+            CompileMessageIcon errorIcon = new CompileMessageIcon("SpriteIcon");
 
             foreach (ListViewItem listItem in spriteList.SelectedItems) //Check sources still exist
             {
                 Sprite spr = GetSprite(listItem);
                 if (String.IsNullOrEmpty(spr.SourceFile))
                 {
-                    errors.Add($"Sprite {spr.Number} does not have a source file.");
+                    errors.Add(new CompileError($"Sprite {spr.Number} does not have a source file.", errorIcon));
                     continue;
                 }
                 else if (!File.Exists(spr.SourceFile))
                 {
-                    errors.Add($"Sprite {spr.Number}: source file {spr.SourceFile} does not exist.");
+                    errors.Add(new CompileError($"Sprite {spr.Number}: source file {spr.SourceFile} does not exist.", errorIcon));
                     continue;
                 }
                 sprites.Add(spr);
@@ -925,7 +926,7 @@ namespace AGS.Editor
                 {
                     if (ex is InvalidOperationException || ex is Types.InvalidDataException)
                     {
-                        errors.Add($"Sprite {spr.Number}: {ex.Message}");
+                        errors.Add(new CompileError($"Sprite {spr.Number}: {ex.Message}", errorIcon));
                     }
                     else
                     {
@@ -942,11 +943,11 @@ namespace AGS.Editor
 
             if (errors.Count == 1)
             {
-                Factory.GUIController.ShowMessage(errors[0], MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage(errors[0].AsString, MessageBoxIcon.Warning);
             }
             else if (errors.Count > 1)
             {
-                Factory.GUIController.ShowOutputPanel(errors.ToArray(), "SpriteIcon");
+                Factory.GUIController.ShowOutputPanel(errors);
                 Factory.GUIController.ShowMessage("Sprite replacement complete, with some errors.", MessageBoxIcon.Warning);
             }
         }

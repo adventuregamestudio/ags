@@ -2027,8 +2027,6 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    if (_loadedRoom != null)
-                        _guiController.Invoke(new Action(() => { UnloadCurrentRoomAndGreyOutTree(); }));
                     room = LoadRoomAsTemporary(unloadedRoom, modifyRoom.Errors, modifyRoom.ModifyScript);
                 }
 

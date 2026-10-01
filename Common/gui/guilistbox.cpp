@@ -232,13 +232,13 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         const int xstrt = x + _scrollbarRect.Left + 1;
         // Up arrow
         int ystrt = y + _scrollbarRect.Top + 3;
-        ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5),
+        ds->FillTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5),
                 xstrt + get_fixed_pixel_size(4),
                 ystrt + get_fixed_pixel_size(5),
                 xstrt + get_fixed_pixel_size(2), ystrt), draw_color);
         // Down arrow
         ystrt = (y + _scrollbarRect.Bottom - 3) - get_fixed_pixel_size(5);
-        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
+        ds->FillTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
                  xstrt + get_fixed_pixel_size(2),
                  ystrt + get_fixed_pixel_size(5)), draw_color);
     }

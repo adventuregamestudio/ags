@@ -108,12 +108,48 @@ AL_INLINE(void, rect, (BITMAP *bmp, int x1, int y_1, int x2, int y2, int color),
 })
 
 
+AL_INLINE(void, circle, (BITMAP *bmp, int x, int y, int radius, int color),
+{
+   ASSERT(bmp);
+
+   bmp->vtable->circle(bmp, x, y, radius, color);
+})
+
+
 AL_INLINE(void, circlefill, (BITMAP *bmp, int x, int y, int radius, int color),
 {
    ASSERT(bmp);
 
    bmp->vtable->circlefill(bmp, x, y, radius, color);
 })
+
+
+
+AL_INLINE(void, ellipse, (BITMAP *bmp, int x, int y, int rx, int ry, int color),
+{
+   ASSERT(bmp);
+
+   bmp->vtable->ellipse(bmp, x, y, rx, ry, color);
+})
+
+
+
+AL_INLINE(void, ellipsefill, (BITMAP *bmp, int x, int y, int rx, int ry, int color),
+{
+   ASSERT(bmp);
+
+   bmp->vtable->ellipsefill(bmp, x, y, rx, ry, color);
+})
+
+
+
+AL_INLINE(void, arc, (BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color),
+{
+   ASSERT(bmp);
+
+   bmp->vtable->arc(bmp, x, y, ang1, ang2, r, color);
+})
+
 
 
 AL_INLINE(void, floodfill, (BITMAP *bmp, int x, int y, int color),

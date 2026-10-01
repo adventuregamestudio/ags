@@ -296,7 +296,7 @@ void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     data_to_game_coords(&x3, &y3);
 
     PBitmap bg = thisroom.BgImages[play.bg_frame];
-    bg->DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
+    bg->FillTriangle(Triangle(x1,y1,x2,y2,x3,y3), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }

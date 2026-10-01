@@ -9,6 +9,7 @@ namespace AGS.Types
     /// </summary>
     public enum AudioClipFileType
     {
+        Unknown = 0,
         OGG = 1,
         MP3 = 2,
         WAV = 3,

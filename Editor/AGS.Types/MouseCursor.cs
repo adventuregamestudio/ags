@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("Image")]
-    public class MouseCursor : ICloneable
+    public class MouseCursor : IHasID, ICloneable, IComparable<MouseCursor>
     {
         private string _name = string.Empty;
         private bool _standardMode = false;
@@ -23,6 +23,12 @@ namespace AGS.Types
 
         public MouseCursor()
         {
+        }
+
+        public MouseCursor(int id, string name)
+        {
+            _id = id;
+            _name = name;
         }
 
         [Description("The ID number of the cursor")]
@@ -188,5 +194,13 @@ namespace AGS.Types
 
         #endregion
 
+        #region IComparable<MouseCursor> Members
+
+        public int CompareTo(MouseCursor other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
     }
 }

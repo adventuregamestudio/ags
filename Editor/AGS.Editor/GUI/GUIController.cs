@@ -76,6 +76,7 @@ namespace AGS.Editor
         {
             InstalledFonts = new InstalledFontCollection().Families.ToDictionary(t => t.Name, t => t.Name);
             _menuItems = new Dictionary<string, IEditorComponent>();
+            _imageList.ColorDepth = ColorDepth.Depth32Bit; // support 32-bit icons
             Factory.Events.GamePostLoad += Events_GamePostLoad;
         }
 

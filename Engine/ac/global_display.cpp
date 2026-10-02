@@ -92,19 +92,18 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
 
 // Display a room/global message in the bar
 void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, int msgnum) {
-    char msgbufr[3001];
-    get_message_text(msgnum, msgbufr);
-    DisplayTopBar(ypos, ttexcol, backcol, title, msgbufr);
+    String message = get_message_text(msgnum);
+    DisplayTopBar(ypos, ttexcol, backcol, title, message.GetCStr());
 }
 
 void DisplayMessageImpl(int msnum, int aschar, int ypos) {
-    char msgbufr[3001];
+    String message;
     if (msnum>=500) {
-        get_message_text (msnum, msgbufr);
+        message = get_message_text(msnum);
         if (aschar > 0)
-            DisplaySpeech(msgbufr, aschar);
+            DisplaySpeech(message.GetCStr(), aschar);
         else
-            DisplayAtY(ypos, msgbufr);
+            DisplayAtY(ypos, message.GetCStr());
         return;
     }
 
@@ -116,10 +115,10 @@ void DisplayMessageImpl(int msnum, int aschar, int ypos) {
 
     int repeatloop=1;
     while (repeatloop) {
-        get_message_text (msnum, msgbufr);
+        message = get_message_text(msnum);
 
         if (thisroom.MessageInfos[msnum].DisplayAs > 0) {
-            DisplaySpeech(msgbufr, thisroom.MessageInfos[msnum].DisplayAs - 1);
+            DisplaySpeech(message.GetCStr(), thisroom.MessageInfos[msnum].DisplayAs - 1);
         }
         else {
             // time out automatically if they have set that
@@ -127,7 +126,7 @@ void DisplayMessageImpl(int msnum, int aschar, int ypos) {
             if (thisroom.MessageInfos[msnum].Flags & MSG_TIMELIMIT)
                 play.skip_display = play.skip_timed_display;
 
-            DisplayAtY(ypos, msgbufr);
+            DisplayAtY(ypos, message.GetCStr());
 
             play.skip_display = old_skip_display;
         }

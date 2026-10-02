@@ -22,6 +22,7 @@ namespace AGS.Types
             _value = 0;
             ShowBorder = true;
             SolidBackground = true;
+            BorderWidth = 1;
             BackgroundColor = 16;
             BorderColor = 15;
             HandleColor = 7;

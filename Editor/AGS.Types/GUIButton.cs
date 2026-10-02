@@ -23,6 +23,7 @@ namespace AGS.Types
             SolidBackground = true;
             PaddingX = 1;
             PaddingY = 1;
+            BorderWidth = 1;
             BackgroundColor = 7;
             BorderColor = 15;
             BorderShadeColor = 8;

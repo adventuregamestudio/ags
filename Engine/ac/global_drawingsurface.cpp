@@ -142,17 +142,12 @@ void RawPrint (int xx, int yy, const char *text) {
     RAW_END();
 }
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
-    char displbuf[3000];
     const int linespacing = get_font_linespacing(font);
     data_to_game_coords(&xx, &yy);
     wid = data_to_game_coord(wid);
 
-    // FIXME: wth, this is unsafe!!
-    get_message_text (msgm, displbuf);
-    // it's probably too late but check anyway
-    if (strlen(displbuf) > 2899)
-        quit("!RawPrintMessageWrapped: message too long");
-    const char *draw_text = skip_voiceover_token(displbuf);
+    String message = get_message_text (msgm);
+    const char *draw_text = skip_voiceover_token(message.GetCStr());
     if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 

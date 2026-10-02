@@ -408,13 +408,8 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
 void DrawingSurface_DrawMessageWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int msgm)
 {
-    char displbuf[3000];
-    get_message_text(msgm, displbuf);
-    // it's probably too late but check anyway
-    if (strlen(displbuf) > 2899)
-        quit("!RawPrintMessageWrapped: message too long");
-
-    DrawingSurface_DrawStringWrapped_Old(sds, xx, yy, wid, font, kLegacyScAlignLeft, displbuf);
+    String message = get_message_text(msgm);
+    DrawingSurface_DrawStringWrapped_Old(sds, xx, yy, wid, font, kLegacyScAlignLeft, message.GetCStr());
 }
 
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness) {

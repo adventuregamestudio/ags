@@ -196,12 +196,12 @@ void GUIControl::DrawControlFrame(Bitmap *ds, int x, int y)
 
 void GUIControl::UpdateControlRect()
 {
-    if (IsShowBorder())
-        _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY,
-                            _width - _borderWidth * 2 - _paddingX * 2, _height - _borderWidth * 2 - _paddingY * 2);
-    else
-        _innerRect = RectWH(_paddingX, _paddingY,
-                            _width - _paddingX * 2, _height - _paddingY * 2);
+    // Always count border width, even if the border is not shown.
+    // This is both compatible with the pre-3.6.3 engine behavior, and helps to keep
+    // control contents on the same place if border is being toggled between visible
+    // and not visible at runtime for a "focused control" visual effect.
+    _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY,
+        _width - _borderWidth * 2 - _paddingX * 2, _height - _borderWidth * 2 - _paddingY * 2);
 
     OnContentRectChanged();
 }

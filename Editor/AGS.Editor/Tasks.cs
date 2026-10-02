@@ -647,6 +647,22 @@ namespace AGS.Editor
                 }
             }
 
+            // Fix default border width for Labels and InventoryWindows with hidden border
+            // in early 3.6.3 Beta with revamped GUI controls
+            if (xmlVersionIndex >= 3060304 && xmlVersionIndex < 3060316)
+            {
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl gc in gui.Controls)
+                    {
+                        if (!gc.ShowBorder && (gc is GUILabel || gc is GUIInventory))
+                        {
+                            gc.BorderWidth = 0;
+                        }
+                    }
+                }
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
@@ -694,6 +710,7 @@ namespace AGS.Editor
                 GUIButton but = control as GUIButton;
                 but.SolidBackground = true;
                 but.ShowBorder = true;
+                but.BorderWidth = 1;
                 but.BackgroundColor = 7;
                 but.BorderColor = 15;
                 but.BorderShadeColor = 8;
@@ -726,6 +743,7 @@ namespace AGS.Editor
                 GUISlider slider = control as GUISlider;
                 slider.ShowBorder = true;
                 slider.SolidBackground = true;
+                slider.BorderWidth = 1;
                 slider.BackgroundColor = 16;
                 slider.BorderColor = 15;
                 slider.HandleColor = 7;

@@ -126,8 +126,9 @@ namespace AGS.Editor
          * 3.6.3.12       - Settings.TurnOrderPriority, TextBoxKeyClaimStyle.
          * 3.6.3.14       - InventoryItem.HotspotAlignment.
          * 3.6.3.15       - Settings.DeveloperErrorText.
+         * 3.6.3.16       - Default border width fix for Labels and InventoryWindows.
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060315;
+        public const int    LATEST_XML_VERSION_INDEX = 3060316;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

@@ -19,6 +19,7 @@ namespace AGS.Types
             : base(x, y, width, height)
         {
             ShowBorder = true; // border is visible by default
+            BorderWidth = 1;
             _showScrollArrows = true;
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;

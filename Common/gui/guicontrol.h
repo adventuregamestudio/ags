@@ -139,7 +139,7 @@ protected:
     uint32_t _flags = kGUICtrl_DefFlags; // generic style and behavior flags
     int      _backgroundColor = 0;
     int      _borderColor = 0;
-    int      _borderWidth = 1;
+    int      _borderWidth = 0;
     int      _paddingX = 0;
     int      _paddingY = 0;
     Rect     _innerRect; // control's contents rect (excludes border + padding)

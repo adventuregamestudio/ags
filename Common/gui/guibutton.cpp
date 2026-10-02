@@ -608,6 +608,7 @@ void GUIButton::SetDefaultLooksFor363()
     _borderColor = 15;
     _borderShadeColor = 8;
     _textOutlineColor = 16;
+    _borderWidth = 1;
     _paddingX = 1;
     _paddingY = 1;
     UpdateControlRect();

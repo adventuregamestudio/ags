@@ -133,7 +133,7 @@ void main_print_help() {
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --gfxdriver <id>             Request graphics driver. Available options:\n"
 #if AGS_PLATFORM_OS_WINDOWS
-           "                                 d3d9, ogl, software\n"
+           "                                 d3d9, d3d11, ogl, software\n"
 #else
            "                                 ogl, software\n"
 #endif

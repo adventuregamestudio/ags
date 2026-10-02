@@ -697,9 +697,11 @@
     <ClCompile Include="..\..\Engine\gfx\gfxdriverbase.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxdriverfactory.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d11.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aaogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aa_sdl_renderer.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d11.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_ogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_scaling.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_sdl_renderer.cpp" />
@@ -753,6 +755,7 @@
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\sys_main.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\advancedpagedialog.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\basicpagedialog.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\setup\winapihelpers.cpp" />
@@ -953,9 +956,11 @@
     <ClInclude Include="..\..\Engine\gfx\gfxdriverfactorybase.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d11.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aaogl.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aa_sdl_renderer.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d11.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_ogl.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_scaling.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_sdl_renderer.h" />
@@ -1011,6 +1016,7 @@
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\advancedpagedialog.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\basicpagedialog.h" />
     <ClInclude Include="..\..\Engine\platform\windows\setup\winapihelpers.h" />

@@ -120,7 +120,8 @@ namespace AGS.Editor
          * 3.6.3.8        - Font Overrides in Translation, TextOutlineColor in GUI controls.
          * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption
          * 3.6.3.12       - Settings.TurnOrderPriority, TextBoxKeyClaimStyle.
-         * 
+         * 3.6.3.16       - Default border width fix for Labels and InventoryWindows.
+         *
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms. Deprecate '[' as a linebreak.
          * 3.99.99.07     - PO translations
@@ -147,6 +148,7 @@ namespace AGS.Editor
          *                  and other properties (BlockingRectangle etc)
          * 4.00.00.27     - Character.GraphicAnchor/Offset.
          * 4.00.00.29     - Sync with 3.6.3.10.
+         * 4.00.00.31     - Default border width fix for Labels and InventoryWindows.
          * 4.00.00.33     - Script names for Regions, Walkable areas and Walk-behinds.
          *                  unlimited InventoryItems, and using item ID 0.
         */

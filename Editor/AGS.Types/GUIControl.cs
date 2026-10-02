@@ -44,7 +44,7 @@ namespace AGS.Types
         private int _borderColor = 0;
         private bool _showBorder = false;
         private bool _solidBackground = false;
-        private int _borderWidth = 1;
+        private int _borderWidth = 0;
         private int _paddingX = 0;
         private int _paddingY = 0;
         private int _transparency = 0;

@@ -1074,45 +1074,78 @@ namespace AGS.Editor
             WindowConfig.SaveToFile(Path.Combine(Factory.AGSEditor.LocalAppData, WINDOW_CONFIG_FILENAME));
         }
 
-        public void CompileAndExit(string projectPath)
-        {
-            bool error = true;
-            if (_interactiveTasks.LoadGameFromDisk(projectPath))
-            {
-                error = false;
-                var messages = _agsEditor.CompileGame(false, false);
-                // The user data may have been amended by the building process
-                if (!messages.HasErrors)
-                    _agsEditor.SaveUserDataFile();
+        //
+        // TODO: these batch process methods should not be in GUIController class,
+        // either Tasks or InteractiveTasks class may be a better place.
 
-                _batchProcessShutdown = true;
-                if (messages.HasErrors)
-                {
-                    error = true;
-                }
-            }
-            if (error)
+        delegate bool BatchTaskFunction(string projectPath);
+
+        /// <summary>
+        /// Runs the given task delegate and exits application;
+        /// exit code is set according to the task delegate's result.
+        /// </summary>
+        private void PerformBatchTaskAndExit(BatchTaskFunction taskProc, string projectPath)
+        {
+            bool result = taskProc(projectPath);
+            _batchProcessShutdown = true;
+            if (!result)
                 Program.SetExitCode(1);
             this.ExitApplication();
         }
 
-        public void SaveAsTemplateAndExit(string projectPath)
+        /// <summary>
+        /// Loads the game project, does full recompilation, and saves game files on success.
+        /// </summary>
+        private bool LoadGameAndCompile(string projectPath)
         {
-            bool error = true;
             if (_interactiveTasks.LoadGameFromDisk(projectPath))
             {
-                error = false;
+                // Here's an important issue: in AGS 3.x projects the room files (*.crm)
+                // are at the same time project source and compilation output, therefore
+                // they *will* be resaved and possibly modified during game compilation.
+                // If the game is being upgraded from an older version, these rooms will get
+                // upgraded. For that reason we must save the game files, so that all
+                // project files are in sync (version-wise).
+                // We save the files prior to compiling, as that's safer in case of
+                // partial compilation: it's okay to have an upgraded project but partially
+                // un-upgraded rooms (they may be upgraded later), but not vice-versa!
+                // This probably does not have to be done in AGS 4.x, where room sources
+                // are separate from compilation output.
+                _agsEditor.SaveGameFiles();
+
                 var messages = _agsEditor.CompileGame(false, false);
-                // The user data may have been amended by the building process
                 if (!messages.HasErrors)
+                {
+                    // The user data may have been amended by the building process
                     _agsEditor.SaveUserDataFile();
+                }
 
-                _batchProcessShutdown = true;
-
-                error = !SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
+                return !messages.HasErrors;
             }
-            if (error) Program.SetExitCode(1);
-            this.ExitApplication();
+            return false;
+        }
+
+        /// <summary>
+        /// Compile the game project according to the current game settings.
+        /// </summary>
+        public void CompileAndExit(string projectPath)
+        {
+            PerformBatchTaskAndExit(LoadGameAndCompile, projectPath);
+        }
+
+        /// <summary>
+        /// Compile the game project and package a template file (*.agt) out of it.
+        /// </summary>
+        public void SaveAsTemplateAndExit(string projectPath)
+        {
+            PerformBatchTaskAndExit((string projPath) =>
+            {
+                if (LoadGameAndCompile(projPath))
+                {
+                    return SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
+                }
+                return false;
+            } , projectPath);
         }
 
         // TODO: ShowWelcomeScreen has a return value but it's never checked;

@@ -462,6 +462,7 @@ void GUISlider::WriteToSavegame(Stream *out) const
 void GUISlider::SetDefaultLooksFor363()
 {
     _flags |= kGUICtrl_SolidBack | kGUICtrl_ShowBorder;
+    _borderWidth = 1;
     _backgroundColor = 16;
     _borderColor = 15;
     _handleColor = 7;

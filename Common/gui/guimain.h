@@ -452,7 +452,7 @@ namespace GUI
     String ApplyTextDirection(const String &text);
     // Calculates the text's draw position, given the alignment
     // optionally returns the real graphical rect that the text would occupy
-    Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect = nullptr);
+    Rect CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect = nullptr);
     // Calculates the text's draw position and horizontal extent,
     // using strictly horizontal alignment
     Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align);

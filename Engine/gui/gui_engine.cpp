@@ -189,11 +189,10 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     const int offset_right = draw_cursor && !reverse ? (cursor_width + 3) : 0;
 
     color_t text_color = ds->GetCompatibleColor(_textColor);
-    Rect text_rc;
-    Point text_at = GUI::CalcTextPosition(_textToDraw, _font,
+    Rect text_rc = GUI::CalcTextPosition(_textToDraw, _font,
         RectWH(_innerRect.Left + x + offset_left, _innerRect.Top + y, _innerRect.GetWidth() - offset_left - offset_right, _innerRect.GetHeight()),
-        text_align, &text_rc);
-    wouttext_outline(ds, text_at.X, text_at.Y, _font, text_color, _textToDraw.GetCStr());
+        text_align);
+    wouttext_outline(ds, text_rc.Left, text_rc.Top, _font, text_color, _textToDraw.GetCStr());
 
     // Draw cursor
     if (draw_cursor)

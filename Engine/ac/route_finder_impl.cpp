@@ -39,10 +39,6 @@ JPSRouteFinder::~JPSRouteFinder()
     delete &nav;
 }
 
-void JPSRouteFinder::Configure(GameDataVersion /*game_ver*/)
-{
-}
-
 void JPSRouteFinder::OnSetWalkableArea()
 {
 }

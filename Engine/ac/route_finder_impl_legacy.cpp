@@ -50,10 +50,14 @@ static int suggestx;
 static int suggesty;
 static short **beenhere = nullptr;
 
-LegacyRouteFinder::LegacyRouteFinder()
+LegacyRouteFinder::LegacyRouteFinder(GameDataVersion game_ver)
 {
     pathbackx = (int *)malloc(sizeof(int) * MAXPATHBACK);
     pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
+
+    // Setup pathfinder configuration, depending on the loaded game version;
+    // sweep granularity has changed between 3.0.0 and 3.0.1; see issue #663
+    _pfc.ShortSweepGranularity = (game_ver > kGameVersion_300) ? 3 : 1;
 }
 
 LegacyRouteFinder::~LegacyRouteFinder()
@@ -74,13 +78,6 @@ LegacyRouteFinder::~LegacyRouteFinder()
         }
         free(beenhere);
     }
-}
-
-void LegacyRouteFinder::Configure(GameDataVersion game_ver)
-{
-    // Setup pathfinder configuration, depending on the loaded game version;
-    // sweep granularity has changed between 3.0.0 and 3.0.1; see issue #663
-    _pfc.ShortSweepGranularity = (game_ver > kGameVersion_300) ? 3 : 1;
 }
 
 void LegacyRouteFinder::OnSetWalkableArea()

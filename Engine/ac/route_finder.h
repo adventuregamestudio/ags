@@ -36,8 +36,6 @@ class IRouteFinder
 public:
     virtual ~IRouteFinder() = default;
 
-    // Configure pathfinder for the particular game data version
-    virtual void Configure(GameDataVersion game_ver) = 0;
     // Traces a straight line between two points, returns if it's fully passable;
     // optionally assigns last found passable position.
     virtual bool CanSeeFrom(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) = 0;

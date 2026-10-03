@@ -101,7 +101,7 @@ std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder(GameDataVersion gam
     else 
     {
         Debug::Printf(MessageType::kDbgMsg_Info, "Initialize legacy path finder library");
-        return std::make_unique<LegacyRouteFinder>();
+        return std::make_unique<LegacyRouteFinder>(game_ver);
     }
 }
 

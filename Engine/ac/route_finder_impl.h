@@ -32,8 +32,6 @@ public:
     JPSRouteFinder();
     ~JPSRouteFinder();
 
-    void Configure(GameDataVersion game_ver) override;
-
 private:
     // Update the implementation after a new walkable area is set
     void OnSetWalkableArea() override;

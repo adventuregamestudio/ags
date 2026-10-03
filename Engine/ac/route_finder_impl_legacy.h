@@ -28,10 +28,8 @@ namespace Engine
 class LegacyRouteFinder : public MaskRouteFinder
 {
 public:
-    LegacyRouteFinder();
+    LegacyRouteFinder(GameDataVersion game_ver);
     ~LegacyRouteFinder();
-
-    void Configure(GameDataVersion game_ver) override;
 
     // Configuration for the pathfinder
     struct PathfinderConfig

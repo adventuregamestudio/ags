@@ -392,7 +392,7 @@ bool InventoryScreen::Run()
         mx = ::mousex - windowxp;
         my = ::mousey - windowyp;
 
-        int isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
+        isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
         if (my<=bartop) isonitem=-1;
         else if (isonitem >= 0) isonitem += top_item;
         if ((isonitem<0) || (isonitem>=numitems) || (isonitem >= top_item + num_visible_items))

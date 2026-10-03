@@ -1166,7 +1166,7 @@ void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser
     }
 
     // NOTE: add_sprite_changed_callback will not add the same callback twice, so it's safe to call always
-    if (spriteset.DoesSpriteExist(new_sprnum) && game.SpriteInfos[new_sprnum].IsDynamicSprite())
+    if ((new_sprnum > 0) && spriteset.DoesSpriteExist(new_sprnum) && game.SpriteInfos[new_sprnum].IsDynamicSprite())
     {
         add_sprite_changed_callback(new_sprnum, user);
     }

@@ -107,14 +107,16 @@ struct GameSetupStruct : public GameSetupStructBase
     // added in sequence, so there won't be any issue with these.
     // There could be other collection types, more optimal for this case. For example,
     // we could use a kind of hash map containing fixed-sized arrays, where size of
-    // array is calculated based on key spread factor.
+    // array is calculated based on key spread factor (sparse list?).
     std::vector<SpriteInfo> SpriteInfos;
 
     // Get game's native color depth (bits per pixel)
     inline int GetColorDepth() const { return color_depth * 8; }
     // Tells whether game respects alpha channel when doing primitive drawing operations
     inline bool HasAlphaInDrawingOps() const { return gamedataver > kGameVersion_272; }
-
+    // Tells if the given game sprite is valid
+    inline bool IsSpriteValid(int sprnum) const
+        { return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid(); }
 
     GameSetupStruct();
     GameSetupStruct(GameSetupStruct &&gss) = default;

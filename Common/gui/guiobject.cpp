@@ -261,11 +261,6 @@ void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
 {
     const int bg_color = ds->GetCompatibleColor(_backgroundColor);
     const int border_color = ds->GetCompatibleColor(_borderColor);
-    const int border_width = _borderWidth *
-        // Pre-3.6.3 the controls would implicitly double the border thickness
-        // for "hi-res" games
-        // FIXME: adjust and save border width when it's assigned instead
-        (((GUI::GameGuiVersion < kGuiVersion_363_03) && (get_fixed_pixel_size(1) > 1)) ? 2 : 1);
 
     if (IsSolidBackground())
     {
@@ -274,7 +269,7 @@ void GUIObject::DrawControlFrame(Bitmap *ds, int x, int y)
 
     if (IsShowBorder())
     {
-        for (int i = 0; i < border_width; ++i)
+        for (int i = 0; i < _borderWidth; ++i)
         {
             ds->DrawRect(RectWH(x + i, y + i, _width - i * 2, _height - i * 2), border_color);
         }

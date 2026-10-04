@@ -46,13 +46,12 @@ extern IGraphicsDriver *gfxDriver;
 
 IndexedObjectPool<ScreenOverlay, int32_t> screenover(OVER_FIRSTFREE);
 
-// Gets an actual ScreenOverlay object from its ScriptOverlay reference,
-// validate object, throw an error on failure
-static ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
+
+ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id)
 {
-    auto *over = get_overlay(scover->overlayId);
+    auto *over = get_overlay(over_id);
     if (!over)
-        quitprintf("!%s: invalid overlay specified", apiname);
+        debug_script_error("%s: invalid overlay specified (%d)", apiname, over_id);
     return over;
 }
 
@@ -64,8 +63,8 @@ void Overlay_Remove(ScriptOverlay *sco)
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text)
 {
     auto *over = GetOverlayValidate("Overlay.SetText", scover);
-
-    Overlay_SetText(*over, over->GetX(), over->GetY(), width, fontid, text_color, text);
+    if (over)
+        Overlay_SetText(*over, over->GetX(), over->GetY(), width, fontid, text_color, text);
 }
 
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text)
@@ -112,33 +111,43 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 int Overlay_GetX(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.X", scover);
-    Point pos = get_overlay_position(*over);
-    return game_to_data_coord(pos.X);
+    if (over)
+    { 
+        Point pos = get_overlay_position(*over);
+        return game_to_data_coord(pos.X);
+    }
+    return 0;
 }
 
 void Overlay_SetX(ScriptOverlay *scover, int newx)
 {
     auto *over = GetOverlayValidate("Overlay.X", scover);
-    over->SetPosition(data_to_game_coord(newx), over->GetY());
+    if (over)
+        over->SetPosition(data_to_game_coord(newx), over->GetY());
 }
 
 int Overlay_GetY(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Y", scover);
-    Point pos = get_overlay_position(*over);
-    return game_to_data_coord(pos.Y);
+    if (over)
+    {
+        Point pos = get_overlay_position(*over);
+        return game_to_data_coord(pos.Y);
+    }
+    return 0;
 }
 
 void Overlay_SetY(ScriptOverlay *scover, int newy)
 {
     auto *over = GetOverlayValidate("Overlay.Y", scover);
-    over->SetPosition(over->GetX(), data_to_game_coord(newy));
+    if (over)
+        over->SetPosition(over->GetX(), data_to_game_coord(newy));
 }
 
 int Overlay_GetGraphic(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Graphic", scover);
-    return over->GetSpriteNum();
+    return over ? over->GetSpriteNum() : 0;
 }
 
 void Overlay_SetGraphic(ScriptOverlay *scover, int slot)
@@ -149,55 +158,62 @@ void Overlay_SetGraphic(ScriptOverlay *scover, int slot)
         debug_script_warn("Overlay.SetGraphic: sprite %d is invalid", slot);
         slot = 0;
     }
-    over->SetSpriteNum(slot);
+    if (over)
+        over->SetSpriteNum(slot);
 }
 
 bool Overlay_InRoom(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.InRoom", scover);
-    return over->IsRoomLayer();
+    return over ? over->IsRoomLayer() : false;
 }
 
 int Overlay_GetWidth(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Width", scover);
-    return game_to_data_coord(over->GetScaledWidth());
+    return over ? game_to_data_coord(over->GetScaledWidth()) : 0;
 }
 
 int Overlay_GetHeight(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
-    return game_to_data_coord(over->GetScaledHeight());
+    return over ? game_to_data_coord(over->GetScaledHeight()) : 0;
 }
 
 int Overlay_GetGraphicWidth(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.GraphicWidth", scover);
-    return game_to_data_coord(over->GetGraphicSize().Width);
+    return over ? game_to_data_coord(over->GetGraphicSize().Width) : 0;
 }
 
 int Overlay_GetGraphicHeight(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.GraphicHeight", scover);
-    return game_to_data_coord(over->GetGraphicSize().Height);
+    return over ? game_to_data_coord(over->GetGraphicSize().Height) : 0;
 }
 
 void Overlay_SetWidth(ScriptOverlay *scover, int width)
 {
     auto *over = GetOverlayValidate("Overlay.Width", scover);
-    if (width > 0)
-        over->SetScaledSize(data_to_game_coord(width), over->GetScaledHeight());
-    else
-        debug_script_warn("Overlay.SetWidth: invalid width %d", width);
+    if (over)
+    {
+        if (width > 0)
+            over->SetScaledSize(data_to_game_coord(width), over->GetScaledHeight());
+        else
+            debug_script_warn("Overlay.SetWidth: invalid width %d", width);
+    }
 }
 
 void Overlay_SetHeight(ScriptOverlay *scover, int height)
 {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
-    if (height > 0)
-        over->SetScaledSize(over->GetScaledWidth(), data_to_game_coord(height));
-    else
-        debug_script_warn("Overlay.SetWidth: invalid height %d", height);
+    if (over)
+    {
+        if (height > 0)
+            over->SetScaledSize(over->GetScaledWidth(), data_to_game_coord(height));
+        else
+            debug_script_warn("Overlay.SetWidth: invalid height %d", height);
+    }
 }
 
 int Overlay_GetValid(ScriptOverlay *scover)
@@ -294,13 +310,14 @@ ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int 
 const char *Overlay_GetTextProperty(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Text", scover);
-    return CreateNewScriptString(over->GetText());
+    return over ? CreateNewScriptString(over->GetText()) : nullptr;
 }
 
 void Overlay_SetTextProperty(ScriptOverlay *scover, const char *text)
 {
     auto *over = GetOverlayValidate("Overlay.Text", scover);
-    over->SetText(text);
+    if (over)
+        over->SetText(text);
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)
@@ -315,53 +332,62 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
     if ((trans < 0) | (trans > 100))
         quit("!SetTransparency: transparency value must be between 0 and 100");
 
-    over->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+    if (over)
+        over->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
 }
 
 bool Overlay_GetVisible(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Visible", scover);
-    return over->IsVisible();
+    return over ? over->IsVisible() : false;
 }
 
 void Overlay_SetVisible(ScriptOverlay *scover, bool visible)
 {
     auto *over = GetOverlayValidate("Overlay.Visible", scover);
-    over->SetVisible(visible);
+    if (over)
+        over->SetVisible(visible);
 }
 
 void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int height)
 {
     auto *over = GetOverlayValidate("Overlay.SetPosition", scover);
-    over->SetPosition(data_to_game_coord(x), data_to_game_coord(y));
-    // width and height are optional here
-    if (width > 0 || height > 0)
+    if (over)
     {
-        width = width > 0 ? data_to_game_coord(width) : over->GetScaledWidth();
-        height = height > 0 ? data_to_game_coord(height) : over->GetScaledHeight();
-        over->SetScaledSize(width, height);
+        over->SetPosition(data_to_game_coord(x), data_to_game_coord(y));
+        // width and height are optional here
+        if (width > 0 || height > 0)
+        {
+            width = width > 0 ? data_to_game_coord(width) : over->GetScaledWidth();
+            height = height > 0 ? data_to_game_coord(height) : over->GetScaledHeight();
+            over->SetScaledSize(width, height);
+        }
     }
 }
 
 void Overlay_SetSize(ScriptOverlay *scover, int width, int height)
 {
     auto *over = GetOverlayValidate("Overlay.SetSize", scover);
-    if (width > 0 && height > 0)
-        over->SetScaledSize(data_to_game_coord(width), data_to_game_coord(height));
-    else
-        debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
+    if (over)
+    {
+        if (width > 0 && height > 0)
+            over->SetScaledSize(data_to_game_coord(width), data_to_game_coord(height));
+        else
+            debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
+    }
 }
 
 int Overlay_GetZOrder(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.ZOrder", scover);
-    return over->GetZOrder();
+    return over ? over->GetZOrder() : 0;
 }
 
 void Overlay_SetZOrder(ScriptOverlay *scover, int zorder)
 {
     auto *over = GetOverlayValidate("Overlay.ZOrder", scover);
-    over->SetZOrder(zorder);
+    if (over)
+        over->SetZOrder(zorder);
 }
 
 //=============================================================================

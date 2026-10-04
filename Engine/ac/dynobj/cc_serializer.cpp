@@ -22,6 +22,7 @@
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
 #include "ac/dynobj/scriptviewport.h"
+#include "ac/common.h" // quitprintf
 #include "ac/game.h"
 #include "debug/debug_log.h"
 #include "plugin/plugin_engine.h"

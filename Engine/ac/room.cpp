@@ -278,6 +278,8 @@ void convert_room_background_to_game_res()
     const int bkg_width = data_to_game_coord(thisroom.Width);
     const int bkg_height = data_to_game_coord(thisroom.Height);
 
+    // Must adjust mask resolution factor here as the bg sizes changes
+    thisroom.MaskResolution = (thisroom.MaskResolution * bkg_width) / thisroom.BgImages[0]->GetWidth();
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
         thisroom.BgImages[i] = FixBitmap(thisroom.BgImages[i], bkg_width, bkg_height);
 

@@ -26,8 +26,6 @@ using namespace AGS::Common;
 const char scfilesig[5] = "SCOM";
 
 const std::string ccScript::noname = "";
-// FIXME: this constant should not be in ccScript, but in whoever uses its section names?
-const std::string ccScript::unknownSectionName = "(unknown section)";
 
 ccScript *ccScript::CreateFromStream(Stream *in)
 {
@@ -221,7 +219,7 @@ const std::string &ccScript::GetSectionName(int32_t offs) const
 
     // if no sections in script, return unknown
     if (sect_idx == 0)
-        return unknownSectionName;
+        return noname;
 
     return sectionNames[sect_idx - 1];
 }

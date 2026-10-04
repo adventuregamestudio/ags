@@ -269,18 +269,18 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             {
             case kFormatParseArgInteger:
                 if (warn_bad_type && !AssertFormat(kFormatParseArgInteger, sc_args[arg_idx].Type))
-                    debug_script_warn("WARNING: String format: place %d expects an integer, but a non-integer value is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                    debug_script_warn("String format: place %d expects an integer, but a non-integer value is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgInt(sc_args, varg_ptr, arg_idx));
                 break;
             case kFormatParseArgFloat:
                 if (warn_bad_type && !AssertFormat(kFormatParseArgFloat, sc_args[arg_idx].Type))
-                    debug_script_warn("WARNING: String format: place %d expects a float, but a non-float value is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                    debug_script_warn("String format: place %d expects a float, but a non-float value is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgFloat(sc_args, varg_ptr, arg_idx));
                 break;
             case kFormatParseArgCharacter:
             {
                 if (warn_bad_type && !AssertFormat(kFormatParseArgCharacter, sc_args[arg_idx].Type))
-                    debug_script_warn("WARNING: String format: place %d expects a character or an integer, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                    debug_script_warn("String format: place %d expects a character or an integer, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 int chr = GetArgInt(sc_args, varg_ptr, arg_idx);
                 char cbuf[5]{};
                 usetc(cbuf, chr);
@@ -293,7 +293,7 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                 if (!p)
                 {
                     if (print_warnings)
-                        debug_script_warn("WARNING: String format: place %d expects a string, but a null pointer is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                        debug_script_warn("String format: place %d expects a string, but a null pointer is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                     p = "(null)"; // explicitly put "(null)" into the placeholder
                 }
                 else if (p == buffer)
@@ -307,7 +307,7 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                     if (!AssertFormat(kFormatParseArgString, sc_args[arg_idx].Type))
                     {
                         if (warn_bad_type)
-                            debug_script_warn("WARNING: String format: place %d expects a string, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                            debug_script_warn("String format: place %d expects a string, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                         p = "(undefined)";
                     }
                 }
@@ -316,7 +316,7 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             }
             case kFormatParseArgPointer:
                 if (warn_bad_type && !AssertFormat(kFormatParseArgPointer, sc_args[arg_idx].Type))
-                    debug_script_warn("WARNING: String format: place %d expects a pointer, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                    debug_script_warn("String format: place %d expects a pointer, but a different value type is passed.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
                 snprintf_res = snprintf(out_ptr, avail_outbuf, placebuf, GetArgPtr(sc_args, varg_ptr, arg_idx));
                 break;
             default:
@@ -336,11 +336,11 @@ size_t ScriptSprintf(char *buffer, size_t buf_length, const char *format,
         {
             if (sc_args && (arg_idx >= sc_argc))
             {
-                debug_script_warn("WARNING: String format: missing argument %d.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                debug_script_warn("String format: missing argument %d.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
             }
             else
             {
-                debug_script_warn("WARNING: String format: invalid specifier at %d.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
+                debug_script_warn("String format: invalid specifier at %d.\n\tFormat string:\n\t\"%s\"", arg_idx + 1, format);
             }
 
             // If not a supported format, or there are no available parameters,

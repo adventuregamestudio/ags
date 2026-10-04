@@ -1122,7 +1122,7 @@ std::unique_ptr<SoundClip> load_music_from_disk(int mnum, bool doRepeat)
 
     if ((loaded == nullptr) && (mnum > 0)) 
     {
-        debug_script_warn("Warning: failed to load music %d", mnum);
+        debug_script_warn("Failed to load music %d", mnum);
     }
 
     return loaded;

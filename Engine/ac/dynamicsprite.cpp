@@ -442,7 +442,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
     if (width <= 0 || height <= 0)
     {
-        debug_script_warn("WARNING: DynamicSprite.CreateFromBackground: invalid size %d x %d, will adjust", width, height);
+        debug_script_warn("DynamicSprite.CreateFromBackground: invalid size %d x %d, will adjust", width, height);
         width = std::max(1, width);
         height = std::max(1, height);
     }

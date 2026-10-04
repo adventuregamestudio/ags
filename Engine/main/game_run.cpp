@@ -755,6 +755,12 @@ static void check_keyboard_controls()
     } else if ((usetup.Override.KeyRestoreGame > 0) && (agscombokey == usetup.Override.KeyRestoreGame)) {
         do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font);
         return;
+    } else if ((usetup.Override.KeyDebugWalkable > 0) && (agscombokey == usetup.Override.KeyDebugWalkable)) {
+        script_debug(2, kRoomAreaWalkable);
+        return;
+    } else if ((usetup.Override.KeyDebugPathfind > 0) && (agscombokey == usetup.Override.KeyDebugPathfind)) {
+        script_debug(5, playerchar->index_id);
+        return;
     }
 
     // Pass the key event to the script.

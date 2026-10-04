@@ -498,6 +498,8 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
     setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
     setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);
+    setup.Override.KeyDebugWalkable = CfgReadInt(cfg, "override", "debug_walkable_key", 0);
+    setup.Override.KeyDebugPathfind = CfgReadInt(cfg, "override", "debug_pathfind_key", 0);
 
     // Behavior overrides switches
     if (cfg.count("override_behavior") > 0)

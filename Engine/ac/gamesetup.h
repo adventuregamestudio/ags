@@ -78,6 +78,9 @@ struct OverrideGameConfig
     int   KeyRestoreGame    = eAGSKeyCodeNone;
     // Optional override for the max save slot
     int   MaxSaveSlot       = 0;
+    // Optional keys for toggling debug overlays
+    int   KeyDebugWalkable  = eAGSKeyCodeNone;
+    int   KeyDebugPathfind  = eAGSKeyCodeNone;
 };
 
 

@@ -12,16 +12,14 @@
 //
 //=============================================================================
 #include "ac/global_overlay.h"
-#include "ac/common.h" // quit
 #include "ac/draw.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"
 
 
 void RemoveOverlay(int ovrid) {
-    if (!get_overlay(ovrid))
-        quit("!RemoveOverlay: invalid overlay id passed");
-    remove_screen_overlay(ovrid);
+    if (GetOverlayValidate("RemoveOverlay", ovrid))
+        remove_screen_overlay(ovrid);
 }
 
 int CreateGraphicOverlay(int x, int y, int slott, int trans) {
@@ -53,20 +51,18 @@ int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const
 }
 
 void SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int text_color, const char *text) {
-    auto *over = get_overlay(ovrid);
-    if (!over)
-        quit("!SetTextOverlay: invalid overlay ID specified");
-
-    Overlay_SetText(*over, xx, yy, wii, fontid, text_color, text);
+    
+    auto *over = GetOverlayValidate("SetTextOverlay", ovrid);
+    if (over)
+        Overlay_SetText(*over, xx, yy, wii, fontid, text_color, text);
 }
 
 void MoveOverlay(int ovrid, int newx,int newy) {
     data_to_game_coords(&newx, &newy);
 
-    auto *over = get_overlay(ovrid);
-    if (!over)
-        quit("!MoveOverlay: invalid overlay ID specified");
-    over->SetPosition(newx, newy);
+    auto *over = GetOverlayValidate("MoveOverlay", ovrid);
+    if (over)
+        over->SetPosition(newx, newy);
 }
 
 int IsOverlayValid(int ovrid) {

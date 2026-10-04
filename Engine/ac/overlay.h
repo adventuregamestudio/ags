@@ -27,6 +27,14 @@
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
+// Gets an actual ScreenOverlay object given its index;
+// validate object, send an error to the logging system on failure
+ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id);
+// Gets an actual ScreenOverlay object from its ScriptOverlay reference;
+// validate object, send an error to the logging system on failure
+inline ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
+    { return GetOverlayValidate(apiname, scover->overlayId); }
+
 void Overlay_Remove(ScriptOverlay *sco);
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text);
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text);

@@ -125,7 +125,7 @@ namespace AGS.Editor
             o.Solid = true;
             o.StartX = 10;
             o.StartY = 20;
-            o.Transparency = 50;
+            o.Opacity = 127;
             o.UseRoomAreaLighting = true;
             o.UseRoomAreaScaling = false;
             o.Visible = true;
@@ -152,7 +152,7 @@ namespace AGS.Editor
             o.Solid = false;
             o.StartX = 100;
             o.StartY = -20;
-            o.Transparency = 10;
+            o.Opacity = 25;
             o.UseRoomAreaLighting = false;
             o.UseRoomAreaScaling = true;
             o.Visible = false;
@@ -308,7 +308,7 @@ namespace AGS.Editor
             Assert.That(o.Solid, Is.EqualTo(true));
             Assert.That(o.StartX, Is.EqualTo(10));
             Assert.That(o.StartY, Is.EqualTo(20));
-            Assert.That(o.Transparency, Is.EqualTo(50));
+            Assert.That(o.Opacity, Is.EqualTo(127));
             Assert.That(o.UseRoomAreaLighting, Is.EqualTo(true));
             Assert.That(o.UseRoomAreaScaling, Is.EqualTo(false));
             Assert.That(o.Visible, Is.EqualTo(true));
@@ -339,7 +339,7 @@ namespace AGS.Editor
             Assert.That(o.Solid, Is.EqualTo(false));
             Assert.That(o.StartX, Is.EqualTo(100));
             Assert.That(o.StartY, Is.EqualTo(-20));
-            Assert.That(o.Transparency, Is.EqualTo(10));
+            Assert.That(o.Opacity, Is.EqualTo(25));
             Assert.That(o.UseRoomAreaLighting, Is.EqualTo(false));
             Assert.That(o.UseRoomAreaScaling, Is.EqualTo(true));
             Assert.That(o.Visible, Is.EqualTo(false));

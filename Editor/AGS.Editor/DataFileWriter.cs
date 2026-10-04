@@ -273,37 +273,6 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Special formulae to reduce precision loss and support flawless forth &
-        /// reverse conversion for multiplies of 10%
-        /// /// </summary>
-        private static int Trans100ToAlpha250(int transparency)
-        {
-            return ((100 - transparency) * 25) / 10;
-        }
-
-        /// <summary>
-        /// Convert correct 100-ranged transparency into legacy 255-ranged
-        /// transparency; legacy inconsistent transparency value range:
-        ///    0   = opaque,
-        ///    255 = invisible,
-        ///    1 -to- 254 = barely visible -to- mostly visible (as proper alpha)
-        /// </summary>
-        private static int Trans100ToLegacyTrans255(int transparency)
-        {
-            transparency = MathExtra.Clamp(transparency, 0, 100);
-            switch (transparency)
-            {
-                case 0:
-                    return 0; // this means opaque
-                case 100:
-                    return 255; // this means invisible
-                default:
-                    // the rest of the range works as alpha
-                    return Trans100ToAlpha250(transparency);
-            }
-        }
-
-        /// <summary>
         /// Write asset library header with the table of contents.
         /// Currently corresponds to writing main lib file in chain in format version 30.
         /// </summary>
@@ -1471,7 +1440,7 @@ namespace AGS.Editor
                 writer.Write(gui.BorderColor); // fgcol
                 // GUI Flags
                 writer.Write(MakeGUIFlags(gui));
-                writer.Write(Trans100ToLegacyTrans255(gui.Transparency)); // transparency
+                writer.Write(gui.Opacity); // alpha opacity
                 writer.Write(gui.ZOrder); // zorder
                 writer.Write(0); // guiId
                 writer.Write(NativeConstants.TEXTWINDOW_PADDING_DEFAULT); // padding
@@ -1500,7 +1469,7 @@ namespace AGS.Editor
                 writer.Write(gui.BackgroundImage); // bgpic
                 writer.Write(gui.TextColor); // fgcol
                 writer.Write(NativeConstants.GUIMAIN_TEXTWINDOW); // flags
-                writer.Write(0); // transparency
+                writer.Write(255); // alpha opacity
                 writer.Write(-1); // zorder
                 writer.Write(0); // guiId
                 writer.Write(gui.Padding); // padding
@@ -1778,7 +1747,7 @@ namespace AGS.Editor
                 writer.Write(character.IdleView - 1);                  // idleview
                 writer.Write((short)character.IdleDelay);              // idletime
                 writer.Write((short)0);                                // [UNUSED] (idleleft)
-                writer.Write((short)Trans100ToLegacyTrans255(character.Transparency)); // transparency
+                writer.Write((short)character.Opacity);                // alpha opacity
                 writer.Write((short)character.Baseline);               // baseline
                 writer.Write(0);                                       // [UNUSED] (activeinv)
                 writer.Write(character.SpeechColor);                   // talkcolor
@@ -2345,7 +2314,7 @@ namespace AGS.Editor
 
         private static void Write_GUIControlGfxExt_400(GUIControl control, BinaryWriter writer)
         {
-            writer.Write(control.Transparency);
+            writer.Write(control.Opacity);
             writer.Write((int)control.BlendMode);
             writer.Write(ReservedColorOptions);
             writer.Write(ReservedTransformOptions);

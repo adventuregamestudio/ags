@@ -591,7 +591,7 @@ void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
     gui_data.Left = ReadInt(self, "Left");
     gui_data.Top = ReadInt(self, "Top");
     gui_data.Width = ReadInt(self, "Width");
-    gui_data.Transparency = ReadInt(self, "Transparency");
+    gui_data.Opacity = ReadInt(self, "Opacity", 255);
     gui_data.Visible = ReadBool(self, "Visible");
     gui_data.BackgroundColor = ReadInt(self, "BackgroundColor");
     gui_data.BackgroundImage = ReadInt(self, "BackgroundImage");
@@ -1276,7 +1276,7 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     data.StartY = ValueParser::ReadInt(elem, "StartY");
     data.StartingRoom = ValueParser::ReadInt(elem, "StartingRoom", -1);
     data.ThinkingView = ValueParser::ReadInt(elem, "ThinkingView");
-    data.Transparency = ValueParser::ReadInt(elem, "Transparency");
+    data.Opacity = ValueParser::ReadInt(elem, "Opacity", 255);
     data.TurnBeforeWalking = ValueParser::ReadBool(elem, "TurnBeforeWalking", true);
     data.TurnWhenFacing = ValueParser::ReadBool(elem, "TurnWhenFacing", true);
     data.UniformMovementSpeed = ValueParser::ReadBool(elem, "UniformMovementSpeed", true);

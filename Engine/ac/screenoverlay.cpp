@@ -139,9 +139,9 @@ void ScreenOverlay::SetPivotOffset(const Point &pivot_offset)
     MarkChanged();
 }
 
-void ScreenOverlay::SetTransparency(int trans)
+void ScreenOverlay::SetOpacity(int alpha)
 {
-    _transparency = trans;
+    _opacity = alpha;
 }
 
 void ScreenOverlay::SetBlendMode(Common::BlendMode blend_mode)
@@ -390,7 +390,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     if (cmp_ver >= kOverSvgVersion_36008)
     {
         _zorder = in->ReadInt32();
-        _transparency = in->ReadInt32();
+        _opacity = in->ReadInt32();
         _destSize.Width = in->ReadInt32();
         _destSize.Height = in->ReadInt32();
     }
@@ -508,7 +508,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_sprOffset.Y);
     // since cmp_ver = 2
     out->WriteInt32(_zorder);
-    out->WriteInt32(_transparency);
+    out->WriteInt32(_opacity);
     out->WriteInt32(_destSize.Width);
     out->WriteInt32(_destSize.Height);
     // kOverSvgVersion_36304

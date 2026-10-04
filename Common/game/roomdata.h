@@ -365,6 +365,10 @@ public:
 
     // Room region masks resolution. Defines the relation between room and mask units.
     // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
+    // In the old games this value also signals when the room is prepared as a
+    // "low-res" or "high-res" room (see RoomResolutionType); if this value does not
+    // match the current game's resolution type, then the room backgrounds must be either
+    // downscaled or upscaled, depending on their relation.
     int32_t                 MaskResolution;
     // Size of the room, in logical coordinates (= pixels)
     int32_t                 Width;

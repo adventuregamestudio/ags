@@ -80,6 +80,9 @@ public:
     PBitmap WalkBehindMask;
 };
 
+// TODO: functions UpscaleRoomBackground() and FixRoomMasks() are only used in the Editor
+// under certain circumstances. Engine does this differently. Need to re-investigate this,
+// and either share this operation with the engine, or move it to Editor code.
 // Checks if it's necessary and upscales low-res room backgrounds and masks for the high resolution game
 // NOTE: it does not upscale object coordinates, because that is usually done when the room is loaded
 void UpscaleRoomBackground(RoomStruct *room, bool game_is_hires);

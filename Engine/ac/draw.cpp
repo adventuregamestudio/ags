@@ -3327,9 +3327,11 @@ void update_room_debug()
     if (debugMoveListChar >= 0)
     {
         const int mult = drawstate.SoftwareRender ? 1 : thisroom.MaskResolution;
+        const int fin_width = thisroom.Width;
+        const int fin_height = thisroom.Height;
         if (drawstate.SoftwareRender)
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
-                thisroom.Width, thisroom.Height, true);
+                fin_width, fin_height, true);
         else
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
                 thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
@@ -3349,7 +3351,7 @@ void update_room_debug()
         }
         sync_object_texture(debugMoveListObj);
         debugMoveListObj.Ddb->SetAlpha(150);
-        debugMoveListObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
+        debugMoveListObj.Ddb->SetStretch(fin_width, fin_height);
     }
 }
 

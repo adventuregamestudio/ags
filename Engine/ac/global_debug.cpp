@@ -149,7 +149,7 @@ void script_debug(int cmdd,int dataa) {
     {
         // show the given character's pathfinding; act like a on/off toggle
         debugLastMoveChar = dataa == debugLastMoveChar ? -1 : dataa;
-        debug_draw_movelist(dataa);
+        debug_draw_movelist(debugLastMoveChar);
     }
     else
     {

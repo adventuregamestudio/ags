@@ -1643,15 +1643,21 @@ ccInstError ccInstance::Run(int32_t curpc)
     return kInstErr_None;
 }
 
+inline const char *GetScriptLocation(const ccScript *script, int offset)
+{
+    const auto &s = script->GetSectionOrScriptName(offset);
+    return s.empty() ? "(unknown)" : s.c_str();
+}
+
 String ccInstance::GetCallStack(const int maxLines) const
 {
-    String buffer = String::FromFormat("in \"%s\", line %d\n", _runningInst->_instanceof->GetSectionName(_pc).c_str(), _lineNumber);
+    String buffer = String::FromFormat("in \"%s\", line %d\n", GetScriptLocation(_runningInst->_instanceof.get(), _pc), _lineNumber);
 
     int linesDone = 0;
     for (uint32_t j = _callStackSize; (j-- > 0) && (linesDone < maxLines); linesDone++)
     {
         String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
-            _callStackCodeInst[j]->_instanceof->GetSectionName(_callStackAddr[j]).c_str(), _callStackLineNumber[j]);
+            GetScriptLocation(_callStackCodeInst[j]->_instanceof.get(), _callStackAddr[j]), _callStackLineNumber[j]);
         buffer.Append(lineBuffer);
         if (linesDone == maxLines - 1)
             buffer.Append("(and more...)\n");

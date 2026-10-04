@@ -638,6 +638,10 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
     }
 
+    // If the room script data did not have any name, then assign room filename, primarily for test/debug purposes
+    if (thisroom.CompiledScript && thisroom.CompiledScript->GetScriptName().empty())
+        thisroom.CompiledScript->SetScriptName(room_filename.GetCStr());
+
     set_our_eip(202);
     // Update game viewports
     if (game.IsLegacyLetterbox())

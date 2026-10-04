@@ -73,6 +73,12 @@ ccScript &ccScript::operator =(const ccScript &src)
     sectionNames = src.sectionNames;
     sectionOffsets = src.sectionOffsets;
     instances = 0; // don't copy reference count, since it's a new object
+
+    // In a regular script sections contain an optional list of headers in an order
+    // they were included, and the script body's own name as the last element.
+    if (scriptname.empty() && sectionNames.size() > 0)
+        scriptname = sectionNames.back();
+
     return *this;
 }
 
@@ -188,6 +194,11 @@ bool ccScript::Read(Stream *in)
         }
     }
 
+    // In a regular script sections contain an optional list of headers in an order
+    // they were included, and the script body's own name as the last element.
+    if (scriptname.empty() && sectionNames.size() > 0)
+        scriptname = sectionNames.back();
+
     if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG)
     {
         cc_error("!internal error reading script: end file signature not found");
@@ -198,13 +209,7 @@ bool ccScript::Read(Stream *in)
 
 const std::string &ccScript::GetScriptName() const
 {
-    if (!scriptname.empty())
-        return scriptname;
-    // In a regular script sections contain an optional list of headers in an order
-    // they were included, and the script body's own name as the last element.
-    if (sectionNames.size() > 0)
-        return sectionNames.back();
-    return noname;
+    return scriptname;
 }
 
 const std::string &ccScript::GetSectionName(int32_t offs) const
@@ -222,6 +227,12 @@ const std::string &ccScript::GetSectionName(int32_t offs) const
         return noname;
 
     return sectionNames[sect_idx - 1];
+}
+
+const std::string &ccScript::GetSectionOrScriptName(int32_t offset) const
+{
+    const auto &s = GetSectionName(offset);
+    return s.empty() ? GetScriptName() : s;
 }
 
 void ccScript::SetScriptName(const std::string &name)

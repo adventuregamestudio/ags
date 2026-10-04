@@ -348,7 +348,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
 
     // if animating, but not idle view, give warning message
     if ((chap->flags & CHF_FIXVIEW) && (chap->idleleft >= 0))
-        debug_script_warn("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
+        debug_script_warn("ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
 
     debug_script_log("%s: Change view to %d", chap->scrname, vii+1);
     chap->defview = vii;
@@ -559,7 +559,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
     chex->SetFollowing(chaa, tofollow ? tofollow->index_id : -1, distaway, eagerness, (eagerness == 1));
 
     if (chaa->animating & CHANIM_REPEAT)
-        debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
+        debug_script_warn("FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
 }
 
 CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
@@ -2592,7 +2592,7 @@ void update_character_scale(int charid)
     if (chin.loop >= views[chin.view].numLoops)
     {
         // a stale loop can survive a view change, re-select a valid loop
-        debug_script_warn("WARNING: The character '%s' was to be displayed with loop %d of view %d, which does not exist; resetting to a valid loop.",
+        debug_script_warn("The character '%s' was to be displayed with loop %d of view %d, which does not exist; resetting to a valid loop.",
             chin.scrname, chin.loop, chin.view + 1);
         FindReasonableLoopForCharacter(&chin);
     }
@@ -2742,7 +2742,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         quit("!DisplaySpeech: character has invalid view");
 
     if (play.screen_is_faded_out > 0)
-        debug_script_warn("Warning: blocking Say call during fade-out.");
+        debug_script_warn("Blocking Say call during fade-out.");
     if (play.text_overlay_on > 0)
     {
         debug_script_warn("DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
@@ -2876,7 +2876,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         // If current view is missing a loop - use loop 0
         if (speakingChar->loop >= views[speakingChar->view].numLoops)
         {
-            debug_script_warn("WARNING: Character %s current view %d does not have necessary loop %d; switching to loop 0.",
+            debug_script_warn("Character %s current view %d does not have necessary loop %d; switching to loop 0.",
                 speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
             speakingChar->loop = 0;
         }
@@ -3142,7 +3142,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             // If speech view is missing a loop - use loop 0
             if (speakingChar->loop >= views[speakingChar->view].numLoops)
             {
-                debug_script_warn("WARNING: Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
+                debug_script_warn("Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
                     speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
                 speakingChar->loop = 0;
             }

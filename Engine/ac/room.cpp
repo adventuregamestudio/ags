@@ -546,7 +546,7 @@ static void init_object_states(size_t start, size_t end)
         if (trobj.Baseline >= 0)
             crobj.baseline = trobj.Baseline;
         if (trobj.Sprite > UINT16_MAX)
-            debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
+            debug_script_warn("Object's (id %d) sprite %d outside of internal range (%d), reset to 0",
                               i, trobj.Sprite, UINT16_MAX);
     }
 }

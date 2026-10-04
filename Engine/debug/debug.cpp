@@ -373,16 +373,23 @@ void shutdown_debug()
 
 void debug_script_event(MessageType mt, const String &msg)
 {
+    String locinfo;
+    if (displayed_room >= 0)
+        locinfo.AppendFmt("(room:%d)", displayed_room);
     // Generate the full log message, prepending current script location
-    String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != nullptr)
     {
         String scriptname = curinst->GetScript()->GetSectionName(curinst->GetPC());
-        script_ref.Format("[%s:%d] ", scriptname.GetCStr(), currentline);
+        if (scriptname.IsEmpty())
+            scriptname = curinst->GetScript()->GetScriptName();
+        scriptname.IsEmpty() ?
+            locinfo.AppendFmt("[?:%d]", currentline) :
+            locinfo.AppendFmt("[%s:%d]", scriptname.GetCStr(), currentline);
     }
 
-    Debug::Printf(kDbgGroup_Game, mt, "(room:%d) %s%s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
+    static const char *msgtype[kNumDbgMsg] = { "", "[ALERT]", "[FATAL]", "[ERROR]", "[WARN]", "", "" };
+    Debug::Printf(kDbgGroup_Game, mt, "%s%s %s", locinfo.GetCStr(), msgtype[mt], msg.GetCStr());
 
     // A (possibly) temporary solution to making script errors stand out more to the game developer or testers:
     // if the game is compiled in debug mode, then quit on script error events.

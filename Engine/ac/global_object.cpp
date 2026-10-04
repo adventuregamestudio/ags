@@ -186,7 +186,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     // Current engine's object data limitation by uint16_t
     if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
     {
-        debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
+        debug_script_warn("Object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
             obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
         SetObjectGraphic(obn, 0);
         return false;
@@ -199,7 +199,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     int pic = views[viw].loops[lop].frames[fra].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
     return true;
 }
 
@@ -265,7 +265,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {
-        debug_script_warn("Warning: object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
+        debug_script_warn("Object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
             obn, loopn, sframe, UINT16_MAX, UINT16_MAX);
         return;
     }
@@ -280,7 +280,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     int pic = views[obj.view].loops[loopn].frames[obj.frame].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 
     obj.cur_audio_volume = Math::Clamp(volume, 0, 100);
 
@@ -380,7 +380,7 @@ void SetObjectGraphic(int obn,int slott) {
     if (objs[obn].num != slott) {
         objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
         if (slott > UINT16_MAX)
-            debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
+            debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
         debug_script_log("Object %d graphic changed to slot %d", obn, slott);
     }
     objs[obn].cycling=0;

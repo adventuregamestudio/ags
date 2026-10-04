@@ -93,7 +93,7 @@ void RoomObject::UpdateCyclingView(int ref_id)
 
     ViewFrame*vfptr=&views[view].loops[loop].frames[frame];
     if (vfptr->pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0",
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0",
             ref_id, vfptr->pic, UINT16_MAX);
     num = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
 

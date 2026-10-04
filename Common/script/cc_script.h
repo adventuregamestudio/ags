@@ -31,7 +31,6 @@ struct ccScript
 {
 public:
     static const std::string noname;
-    static const std::string unknownSectionName;
 
     std::string scriptname;
     std::vector<char> globaldata;

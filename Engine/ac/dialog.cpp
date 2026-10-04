@@ -1317,7 +1317,7 @@ bool DialogOptions::Run()
     // then bail out as emergency, because otherwise player will be stuck forever.
     if ((numdisp == 0) && !usingCustomRendering)
     {
-        debug_script_warn("WARNING: No dialog options to display, abort dialog");
+        debug_script_warn("No dialog options to display, abort dialog");
         return false;
     }
 

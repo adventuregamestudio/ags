@@ -3094,9 +3094,11 @@ void update_room_debug()
     if (debugMoveListChar >= 0)
     {
         const int mult = drawstate.SoftwareRender ? 1 : thisroom.MaskResolution;
+        const int fin_width = data_to_game_coord(thisroom.Width);
+        const int fin_height = data_to_game_coord(thisroom.Height);
         if (drawstate.SoftwareRender)
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
-                thisroom.Width, thisroom.Height, true);
+                fin_width, fin_height, true);
         else
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
                 thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
@@ -3106,17 +3108,17 @@ void update_room_debug()
             int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
             const MoveList &cmls = mls[mlsnum];
             for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++) {
-                short srcx = cmls.pos[i].X;
-                short srcy = cmls.pos[i].Y;
-                short targetx = cmls.pos[i + 1].X;
-                short targety = cmls.pos[i + 1].Y;
+                int srcx = data_to_game_coord(cmls.pos[i].X);
+                int srcy = data_to_game_coord(cmls.pos[i].Y);
+                int targetx = data_to_game_coord(cmls.pos[i + 1].X);
+                int targety = data_to_game_coord(cmls.pos[i + 1].Y);
                 debugMoveListObj.Bmp->DrawLine(Line(srcx / mult, srcy / mult, targetx / mult, targety / mult),
                     MakeColor(i + 1));
             }
         }
         sync_object_texture(debugMoveListObj);
         debugMoveListObj.Ddb->SetAlpha(150);
-        debugMoveListObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
+        debugMoveListObj.Ddb->SetStretch(fin_width, fin_height);
     }
 }
 

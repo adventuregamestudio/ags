@@ -58,9 +58,6 @@ template<typename... Args>
 void debug_script_log(const char *msg, Args ...args)
     { debug_script_event(AGS::Common::kDbgMsg_Debug, msg, std::forward<Args>(args)...); }
 
-// Same as quit(), but with message formatting
-void quitprintf(const char *texx, ...);
-
 // Connect engine to external debugger, if one is available
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);
 // allow LShift to single-step,  RShift to pause flow

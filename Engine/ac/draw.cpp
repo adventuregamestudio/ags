@@ -2184,7 +2184,7 @@ void prepare_and_add_object_gfx(
     ObjTexture &actsp, bool actsp_modified,
     const Size &scale_size,
     int atx, int aty, int &usebasel, bool use_walkbehinds,
-    Pointf origin, int transparency, BlendMode blend_mode, int shader_id, bool hw_accel)
+    Pointf origin, int alpha, BlendMode blend_mode, int shader_id, bool hw_accel)
 {
     // Handle the walk-behinds, according to the WalkBehindMethod.
     // This potentially may edit actsp's raw bitmap if actsp_modified is set.
@@ -2228,7 +2228,7 @@ void prepare_and_add_object_gfx(
         apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb, objsav.tintlight);
     }
 
-    actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
+    actsp.Ddb->SetAlpha(alpha);
     actsp.Ddb->SetBlendMode(blend_mode);
     actsp.Ddb->SetShader(shaderInstances[shader_id]);
 }
@@ -2288,7 +2288,7 @@ void prepare_objects_for_drawing()
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
             Size(obj.width, obj.height), imgx, imgy, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
-            obj.spr_anchor, obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
+            obj.spr_anchor, obj.opacity, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
@@ -2406,7 +2406,7 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.eff_anchor, chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
+            chex.eff_anchor, chin.opacity, chex.blend_mode, chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname.GetCStr()));
 #endif
@@ -2450,7 +2450,7 @@ static void add_roomovers_for_drawing()
         if (over.GetID() < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (!over.IsVisible()) continue; // not visible
-        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        if (over.GetOpacity() == 0) continue; // skip fully transparent
         const Point draw_pos = over.GetDrawPos();
         add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y,
             over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
@@ -2705,7 +2705,7 @@ static void draw_gui_controls_batch(int gui_id)
         auto *obj_ddb = obj_tx.Ddb;
         assert(obj_ddb); // Test for missing texture, might happen if not marked for update
         if (!obj_ddb) continue;
-        obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
+        obj_ddb->SetAlpha(obj->GetOpacity());
         obj_ddb->SetBlendMode(obj->GetBlendMode());
         obj_ddb->SetOrigin(0.f, 0.f);
         obj_ddb->SetStretch(obj_ddb->GetWidth() * obj->GetScale().X, obj_ddb->GetHeight() * obj->GetScale().Y);
@@ -2738,7 +2738,7 @@ void draw_gui_and_overlays()
         if (over.GetID() < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (!over.IsVisible()) continue; // not visible
-        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        if (over.GetOpacity() == 0) continue; // skip fully transparent
         const Point draw_pos = over.GetDrawPos();
         add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y,
             over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
@@ -2757,7 +2757,7 @@ void draw_gui_and_overlays()
                 auto &gui = guis[index];
                 if (!gui.IsDisplayed()) continue; // not on screen
                 if (!gui.HasChanged() && !gui.HasControlsChanged()) continue; // no changes: no need to update image
-                if (gui.GetTransparency() == 255) continue; // 100% transparent
+                if (gui.GetOpacity() == 0) continue; // 100% transparent
 
                 eip_guinum = index;
                 set_our_eip(372);
@@ -2830,7 +2830,7 @@ void draw_gui_and_overlays()
             // Don't draw GUI if it's not on, or it's a "GUIs Turn Off When Disabled" state
             if (!GUI::IsGUIVisible(&gui))
                 continue;
-            if (gui.GetTransparency() == 255)
+            if (gui.GetOpacity() == 0)
                 continue; // 100% transparent
 
             auto *gui_ddb = guibg[index].Ddb;
@@ -2846,7 +2846,7 @@ void draw_gui_and_overlays()
                 // and push it to the sprite list instead
                 gui_ddb = gui_render_tex[index];
             }
-            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.GetTransparency()));
+            gui_ddb->SetAlpha(gui.GetOpacity());
             gui_ddb->SetBlendMode(gui.GetBlendMode());
             gui_ddb->SetShader(shaderInstances[gui.GetShaderID()]);
             gui_ddb->SetOrigin(0.f, 0.f);
@@ -3076,7 +3076,7 @@ static void construct_overlays()
         if (overs.IsFree(i)) continue; // empty slot
         auto &over = overs[i];
         if (!over.IsVisible()) continue; // not visible
-        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        if (over.GetOpacity() == 0) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
         bool has_changed = over.HasChanged();
@@ -3137,7 +3137,7 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.GetRotation());
         const auto pivot = over.GetEffectivePivot();
         overtx.Ddb->SetPivot(pivot.X, pivot.Y);
-        overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.GetTransparency()));
+        overtx.Ddb->SetAlpha(over.GetOpacity());
         overtx.Ddb->SetBlendMode(over.GetBlendMode());
         overtx.Ddb->SetShader(shaderInstances[over.GetShaderID()]);
         apply_tint_or_light_ddb(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(), over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight());

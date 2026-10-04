@@ -2413,7 +2413,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     gui->SetPopupStyle((Common::GUIPopupStyle)normalGui->PopupStyle);
     gui->SetZOrder(normalGui->ZOrder);
     gui->SetFgColor(normalGui->BorderColor);
-    gui->SetTransparencyAsPercentage(normalGui->Transparency);
+    gui->SetOpacity(normalGui->Opacity);
   }
   else
   {
@@ -3166,7 +3166,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         const auto &robj = rs.Objects[i];
         obj->ID = i;
         obj->Image = robj.Sprite;
-        obj->Transparency = AGS::Common::GfxDef::LegacyTrans255ToTrans100(robj.Transparency);
+        obj->Opacity = robj.Opacity;
         obj->BlendMode = (BlendMode)robj.BlendMode;
         obj->StartX = robj.X;
         obj->StartY = robj.Y;
@@ -3293,7 +3293,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
         robj.ID = i;
         robj.ScriptName = TextHelper::ConvertASCII(obj->Name);
         robj.Sprite = obj->Image;
-        robj.Transparency = AGS::Common::GfxDef::Trans100ToLegacyTrans255(obj->Transparency);
+        robj.Opacity = obj->Opacity;
         robj.BlendMode = (AGS::Common::BlendMode)obj->BlendMode;
         robj.X = obj->StartX;
         robj.Y = obj->StartY;

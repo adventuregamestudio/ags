@@ -113,7 +113,7 @@ public:
     bool IsAutoSize() const  { return (_flags & kOver_AutoSize) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
-    int  GetTransparency() const { return _transparency; }
+    int  GetOpacity() const { return _opacity; }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     Common::GraphicFlip GetFlip() const { return Common::GfxDef::GetFlipFromFlags(_spritetf); }
     bool HasTint() const { return (_flags & kOver_HasTint) != 0; }
@@ -170,8 +170,8 @@ public:
     void SetText(const Common::String &text);
     // Assigns flip setting
     void SetFlip(Common::GraphicFlip flip);
-    // Assigns overlay transparency (0 - 255)
-    void SetTransparency(int trans);
+    // Assigns overlay opacity (0 - 255)
+    void SetOpacity(int alpha);
     // Assigns blend mode
     void SetBlendMode(Common::BlendMode blend_mode);
     // Assigns tint settings
@@ -259,7 +259,7 @@ private:
     Size _scaledSize;
     float _rotation = 0.f;
     int _zorder = INT_MIN;
-    int _transparency = 0;
+    int _opacity = 255;
     uint8_t _tintR = 0u;
     uint8_t _tintG = 0u;
     uint8_t _tintB = 0u;

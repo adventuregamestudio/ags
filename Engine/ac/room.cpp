@@ -542,7 +542,7 @@ static void init_object_states(size_t start, size_t end)
         crobj.loop = 0u;
         crobj.frame = 0u;
         crobj.wait = 0;
-        crobj.transparent = trobj.Transparency;
+        crobj.opacity = trobj.Opacity;
         crobj.moving = -1;
         crobj.flags = trobj.Flags;
         crobj.baseline = trobj.Baseline;

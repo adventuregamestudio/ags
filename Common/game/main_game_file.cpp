@@ -677,7 +677,7 @@ HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type,
 
 void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIControl &obj)
 {
-    obj.SetTransparencyAsPercentage(in->ReadInt32());
+    obj.SetOpacity(in->ReadInt32());
     obj.SetBlendMode(static_cast<BlendMode>(in->ReadInt32()));
     // Reserved for colour options
     _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level

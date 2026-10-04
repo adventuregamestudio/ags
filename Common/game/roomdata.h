@@ -259,7 +259,7 @@ struct RoomObjectInfo : public RoomObjectBase
     Common::BlendMode BlendMode = kBlend_Normal;
     // Object's z-order in the room, or -1 (use Y)
     int32_t         Baseline = 0;
-    int32_t         Transparency = 0;
+    int32_t         Opacity = 0;
     int32_t         Flags = 0;
     // Human-readable name (description)
     String          Name;

@@ -156,7 +156,7 @@ struct CharacterInfo
     // delay in seconds to wait before switching to idle animation (0 = continuous idling)
     int16_t idledelay    = 0;
     int16_t idleleft    = 0; // time in seconds left before switching to idle animation
-    int16_t transparency = 0; // "incorrect" alpha (in legacy 255-range units)
+    int16_t opacity     = 0;
     int16_t baseline    = -1;
     int     activeinv   = -1; // selected inventory item
     int     talkcolor   = 0;

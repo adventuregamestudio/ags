@@ -18,7 +18,7 @@ namespace AGS.Types
         private int _image;
         private int _x;
         private int _y;
-        private int _transparency = 0;
+        private int _opacity = 255;
         private GraphicAnchor _graphicAnchor = new GraphicAnchor(FrameAlignment.BottomLeft);
         private Point _graphicOffset = new Point();
         private bool _clickable = true;
@@ -80,14 +80,18 @@ namespace AGS.Types
             get;
             set;
         }
-        
-        [Description("This object's transparency (0-100)")]
+
+        [Obsolete]
+        [Browsable(false)]
+        public int Transparency { get; set; }
+
+        [Description("This object's opacity (0-255)")]
         [Category("Appearance")]
         [DefaultValue(0)]
-        public int Transparency
+        public int Opacity
         {
-            get { return _transparency; }
-            set { _transparency = Math.Max(0, Math.Min(100, value)); }
+            get { return _opacity; }
+            set { _opacity = Math.Max(0, Math.Min(255, value)); }
         }
 
         [Description("This object's graphic anchor")]
@@ -431,6 +435,7 @@ namespace AGS.Types
             _interactions.FromXml(node);
             ConvertOldInteractionEvents();
             _interactions.Schema = InteractionSchema.Instance;
+            ConvertOldTransparency();
         }
 
         private void ConvertOldInteractionEvents()
@@ -444,6 +449,14 @@ namespace AGS.Types
                 -1 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
                 5 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 6 /* Mode8 */, 7 /* Mode9 */
             });
+        }
+
+        private void ConvertOldTransparency()
+        {
+            if (_room.SavedXmlVersion >= new System.Version("4.00.00.34") )
+                return; // already on new format, do nothing
+
+            Opacity = 255 - (Transparency * 255) / 100;
         }
 
         public void ToXml(XmlTextWriter writer)

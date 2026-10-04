@@ -453,6 +453,29 @@ namespace AGS.Editor
                 game.InventoryItems.Insert(0, dummy);
             }
 
+
+            if (xmlVersionIndex < 4000034)
+            {
+                // We need to convert Transparency (0-100) to Opacity (0-255)
+                foreach (Character c in game.Characters)
+                {
+                    c.Opacity = 255 - (c.Transparency * 255) / 100;
+                }
+                foreach (GUI gui in game.GUIs)
+                {
+                    var ng = gui as NormalGUI;
+                    if (ng != null)
+                    {
+                        ng.Opacity = 255 - (ng.Transparency * 255) / 100;
+                    }
+                    foreach (GUIControl gc in gui.Controls)
+                    {
+                        gc.Opacity = 255 - (gc.Transparency * 255) / 100;
+                    }
+                }
+                // RoomObjects updated in RoomObjects.cs
+            }
+
             if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))
             {
                 var compiler = Factory.NativeProxy.GetEmbeddedScriptCompilers().FirstOrDefault();

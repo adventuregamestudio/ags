@@ -80,7 +80,7 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     idleview = in->ReadInt32();
     idledelay = in->ReadInt16();
     in->ReadInt16(); // [UNUSED] (idleleft)
-    transparency = in->ReadInt16();
+    opacity = in->ReadInt16();
     baseline = in->ReadInt16();
     in->ReadInt32(); // [UNUSED] (activeinv)
     talkcolor = in->ReadInt32();
@@ -149,7 +149,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt32(idleview);
     out->WriteInt16(idledelay);
     out->WriteInt16(0); // [UNUSED] (idleleft)
-    out->WriteInt16(transparency);
+    out->WriteInt16(opacity);
     out->WriteInt16(baseline);
     out->WriteInt32(0); // [UNUSED] (activeinv)
     out->WriteInt32(talkcolor);
@@ -201,7 +201,7 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
     idleview = in->ReadInt32();
     idledelay = in->ReadInt16();
     idleleft = in->ReadInt16();
-    transparency = in->ReadInt16();
+    opacity = in->ReadInt16();
     baseline = in->ReadInt16();
     activeinv = in->ReadInt32();
     talkcolor = in->ReadInt32();
@@ -306,7 +306,7 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt32(idleview);
     out->WriteInt16(idledelay);
     out->WriteInt16(idleleft);
-    out->WriteInt16(transparency);
+    out->WriteInt16(opacity);
     out->WriteInt16(baseline);
     out->WriteInt32(activeinv);
     out->WriteInt32(talkcolor);

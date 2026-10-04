@@ -33,8 +33,9 @@ namespace AGS.Types
          * 4.00.00.24   - New event tables.
          * 4.00.00.26   - RoomObject.BlockingRect, etc.
          * 4.00.00.27   - RoomObject.GraphicAnchor/Offset.
+         * 4.00.00.34   - RoomObject.Opacity
         */
-        public const string LATEST_XML_VERSION = "4.0.0.27";
+        public const string LATEST_XML_VERSION = "4.0.0.34";
 
         private const string FIRST_XML_VERSION = "3.99.99.01";
 

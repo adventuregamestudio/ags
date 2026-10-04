@@ -413,19 +413,19 @@ void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
                     ccReplaceObjectHandle(over->GetShaderHandle(), shader_inst));
 }
 
-int Overlay_GetTransparency(ScriptOverlay *scover)
+int Overlay_GetOpacity(ScriptOverlay *scover)
 {
-    auto *over = GetOverlayValidate("Overlay.Transparency", scover);
-    return GfxDef::LegacyTrans255ToTrans100(over->GetTransparency());
+    auto *over = GetOverlayValidate("Overlay.Opacity", scover);
+    return over->GetOpacity();
 }
 
-void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
+void Overlay_SetOpacity(ScriptOverlay *scover, int alpha)
 {
-    auto *over = GetOverlayValidate("Overlay.Transparency", scover);
-    if ((trans < 0) | (trans > 100))
-        quit("!SetTransparency: transparency value must be between 0 and 100");
+    auto *over = GetOverlayValidate("Overlay.Opacity", scover);
+    if ((alpha < 0) | (alpha > 255))
+        quit("Overlay.Opacity: alpha value must be between 0 and 255");
 
-    over->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+    over->SetOpacity(alpha);
 }
 
 bool Overlay_GetVisible(ScriptOverlay *scover)
@@ -1359,14 +1359,14 @@ RuntimeScriptValue Sc_Overlay_SetScaleY(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_VOID_PFLOAT(ScriptOverlay, Overlay_SetScaleY);
 }
 
-RuntimeScriptValue Sc_Overlay_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Overlay_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptOverlay, Overlay_GetTransparency);
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetOpacity);
 }
 
-RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Overlay_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetOpacity);
 }
 
 RuntimeScriptValue Sc_Overlay_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1564,8 +1564,8 @@ void RegisterOverlayAPI()
         { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
         { "Overlay::get_Text",            API_FN_PAIR(Overlay_GetTextProperty) },
         { "Overlay::set_Text",            API_FN_PAIR(Overlay_SetTextProperty) },
-        { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
-        { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
+        { "Overlay::get_Opacity",         API_FN_PAIR(Overlay_GetOpacity) },
+        { "Overlay::set_Opacity",         API_FN_PAIR(Overlay_SetOpacity) },
         { "Overlay::get_Visible",         API_FN_PAIR(Overlay_GetVisible) },
         { "Overlay::set_Visible",         API_FN_PAIR(Overlay_SetVisible) },
         { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },

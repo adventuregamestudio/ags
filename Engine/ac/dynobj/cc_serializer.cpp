@@ -24,6 +24,7 @@
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptviewport.h"
+#include "ac/common.h" // quitprintf
 #include "ac/game.h"
 #include "ac/gui.h"
 #include "debug/debug_log.h"

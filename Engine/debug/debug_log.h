@@ -33,9 +33,6 @@ void debug_script_warn(const char *msg, ...);
 // prepending it with current room number and script position info
 void debug_script_log(const char *msg, ...);
 
-// Same as quit(), but with message formatting
-void quitprintf(const char *texx, ...);
-
 namespace AGS { namespace Engine { class ScriptExecutor; } }
 
 // Connect engine to external debugger, if one is available

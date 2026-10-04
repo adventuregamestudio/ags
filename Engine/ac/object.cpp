@@ -346,24 +346,24 @@ void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
     SetObjectFrameSimple(objj->id, view, loop, frame);
 }
 
-// pass trans=0 for fully solid, trans=100 for fully transparent
-void SetObjectTransparency(int obn, int trans) {
-    if (!AssertObject("SetObjectTransparent", obn))
+// pass alpha=255 for fully solid, alpha=0 for fully transparent
+void SetObjectAlpha(int obn, int alpha) {
+    if (!AssertObject("Object.Opacity", obn))
         return;
-    if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
+    if ((alpha < 0) || (alpha > 255)) quit("!Object.Opacity: alpha value must be between 0 and 255");
 
-    objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
+    objs[obn].opacity = alpha;
 }
 
-void Object_SetTransparency(ScriptObject *objj, int trans) {
-    SetObjectTransparency(objj->id, trans);
+void Object_SetOpacity(ScriptObject *objj, int alpha) {
+    SetObjectAlpha(objj->id, alpha);
 }
 
-int Object_GetTransparency(ScriptObject *objj) {
-    if (!AssertObject("Object.Transparent", objj->id))
+int Object_GetOpacity(ScriptObject *objj) {
+    if (!AssertObject("Object.Opacity", objj->id))
         return 0;
 
-    return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
+    return objs[objj->id].opacity;
 }
 
 int Object_GetAudioPanning(ScriptObject *objj)
@@ -2025,15 +2025,15 @@ RuntimeScriptValue Sc_Object_SetSolid(void *self, const RuntimeScriptValue *para
 }
 
 // int (ScriptObject *objj)
-RuntimeScriptValue Sc_Object_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetTransparency);
+    API_OBJCALL_INT(ScriptObject, Object_GetOpacity);
 }
 
-// void (ScriptObject *objj, int trans)
-RuntimeScriptValue Sc_Object_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// void (ScriptObject *objj, int alpha)
+RuntimeScriptValue Sc_Object_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency);
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetOpacity);
 }
 
 // int (ScriptObject *objj)
@@ -2286,8 +2286,8 @@ void RegisterObjectAPI()
         { "Object::get_ScriptName",           API_FN_PAIR(Object_GetScriptName) },
         { "Object::get_Solid",                API_FN_PAIR(Object_GetSolid) },
         { "Object::set_Solid",                API_FN_PAIR(Object_SetSolid) },
-        { "Object::get_Transparency",         API_FN_PAIR(Object_GetTransparency) },
-        { "Object::set_Transparency",         API_FN_PAIR(Object_SetTransparency) },
+        { "Object::get_Opacity",              API_FN_PAIR(Object_GetOpacity) },
+        { "Object::set_Opacity",              API_FN_PAIR(Object_SetOpacity) },
         { "Object::get_View",                 API_FN_PAIR(Object_GetView) },
         { "Object::get_Visible",              API_FN_PAIR(Object_GetVisible) },
         { "Object::set_Visible",              API_FN_PAIR(Object_SetVisible) },

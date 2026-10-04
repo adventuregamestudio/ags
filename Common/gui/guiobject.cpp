@@ -99,18 +99,13 @@ void GUIObject::SetZOrder(int zorder)
     _zOrder = zorder;
 }
 
-void GUIObject::SetTransparency(int trans)
+void GUIObject::SetOpacity(int opacity)
 {
-    if (_transparency != trans)
+    if (_opacity != opacity)
     {
-        _transparency = trans;
+        _opacity = opacity;
         MarkVisualStateChanged(); // for software mode
     }
-}
-
-void GUIObject::SetTransparencyAsPercentage(int percent)
-{
-    SetTransparency(GfxDef::Trans100ToLegacyTrans255(percent));
 }
 
 void GUIObject::SetBlendMode(BlendMode blend_mode)

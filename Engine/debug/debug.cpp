@@ -380,12 +380,10 @@ void debug_script_event(MessageType mt, const String &msg)
     ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != nullptr)
     {
-        String scriptname = curinst->GetScript()->GetSectionName(curinst->GetPC());
-        if (scriptname.IsEmpty())
-            scriptname = curinst->GetScript()->GetScriptName();
-        scriptname.IsEmpty() ?
+        const auto &scriptname = curinst->GetScript()->GetSectionOrScriptName(curinst->GetPC());
+        scriptname.empty() ?
             locinfo.AppendFmt("[?:%d]", currentline) :
-            locinfo.AppendFmt("[%s:%d]", scriptname.GetCStr(), currentline);
+            locinfo.AppendFmt("[%s:%d]", scriptname.c_str(), currentline);
     }
 
     static const char *msgtype[kNumDbgMsg] = { "", "[ALERT]", "[FATAL]", "[ERROR]", "[WARN]", "", "" };

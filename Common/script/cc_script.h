@@ -61,6 +61,7 @@ public:
 
     const std::string &GetScriptName() const;
     const std::string &GetSectionName(int32_t offset) const;
+    const std::string &GetSectionOrScriptName(int32_t offset) const;
 
     void        SetScriptName(const std::string &name);
 

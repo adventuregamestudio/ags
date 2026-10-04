@@ -233,37 +233,26 @@ inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expecte
     return !err.HasError();
 }
 
-HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVersion data_ver)
+PScript TryReadScript(Stream *in, const String &subst_name, MainGameFileErrorType use_err_type, HGameFileError &err)
 {
-    if (data_ver > kGameVersion_310) // 3.1.1+ dialog script
-    {
-        dialog_script.reset(ccScript::CreateFromStream(in));
-        if (dialog_script == nullptr)
-            return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, cc_get_error().ErrorString);
-    }
-    else // 2.x and < 3.1.1 dialog
-    {
-        dialog_script.reset();
-    }
-    return HGameFileError::None();
+    PScript script(ccScript::CreateFromStream(in));
+    if (script && script->GetScriptName().empty())
+        script->SetScriptName(subst_name.GetCStr());
+    else if (!script)
+        err = new MainGameFileError(use_err_type, cc_get_error().ErrorString);
+    return script;
 }
 
 HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, GameDataVersion data_ver)
 {
-    if (data_ver >= kGameVersion_270) // 2.7.0+ script modules
+    HGameFileError err;
+    int count = in->ReadInt32();
+    sc_mods.resize(count);
+    for (int i = 0; i < count; ++i)
     {
-        int count = in->ReadInt32();
-        sc_mods.resize(count);
-        for (int i = 0; i < count; ++i)
-        {
-            sc_mods[i].reset(ccScript::CreateFromStream(in));
-            if (sc_mods[i] == nullptr)
-                return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, cc_get_error().ErrorString);
-        }
-    }
-    else
-    {
-        sc_mods.resize(0);
+        sc_mods[i] = TryReadScript(in, String::FromFormat("ScriptModule%d", i), kMGFErr_CreateScriptModuleFailed, err);
+        if (!err)
+            return err;
     }
     return HGameFileError::None();
 }
@@ -1133,15 +1122,23 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
 
     if (sinfo.HasCCScript)
     {
-        ents.GlobalScript.reset(ccScript::CreateFromStream(in));
-        if (!ents.GlobalScript)
-            return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, cc_get_error().ErrorString);
-        err = ReadDialogScript(ents.DialogScript, in, data_ver);
+        ents.GlobalScript = TryReadScript(in, "GlobalScript", kMGFErr_CreateGlobalScriptFailed, err);
         if (!err)
             return err;
-        err = ReadScriptModules(ents.ScriptModules, in, data_ver);
-        if (!err)
-            return err;
+        // 3.1.1+ dialog script
+        if (data_ver > kGameVersion_310)
+        {
+            ents.DialogScript = TryReadScript(in, "DialogScript", kMGFErr_CreateDialogScriptFailed, err);
+            if (!err)
+                return err;
+        }
+        // 2.7.0+ script modules
+        if (data_ver >= kGameVersion_270)
+        {
+            err = ReadScriptModules(ents.ScriptModules, in, data_ver);
+            if (!err)
+                return err;
+        }
         ents.ScriptModuleNames.resize(ents.ScriptModules.size());
     }
 

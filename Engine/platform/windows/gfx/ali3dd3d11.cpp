@@ -767,8 +767,8 @@ bool D3D11GraphicsDriver::CreateDeviceAndSwapChain(void* hwnd, int display_index
     else if (_featureLevel >= D3D_FEATURE_LEVEL_10_1) fl_name = "10.1";
     Debug::Printf("Direct3D 11 device created, feature level %s", fl_name);
 
-    // The immediate context is used by the AVI player thread as well as the main
-    // thread, so turn on the protection (equivalent of D3DCREATE_MULTITHREADED)
+    // The immediate context is used by the the main thread, so turn on the protection
+    // (equivalent of D3DCREATE_MULTITHREADED)
     {
         ComPtr<ID3D11Multithread> mt;
         if (SUCCEEDED(_context->QueryInterface(__uuidof(ID3D11Multithread), reinterpret_cast<void**>(mt.Acquire()))))

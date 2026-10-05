@@ -25,6 +25,14 @@
 
 using namespace AGS::Common;
 
+extern "C"
+{
+    // Default Allegro palette, to be used when exporting masks from non-8-bit rooms.
+    // This is necessary, because 16/32-bit rooms do not always contain valid palette,
+    // so mask colors will be not "visible".
+    extern PALETTE default_palette;
+};
+
 namespace CRMPak
 {
 
@@ -316,6 +324,7 @@ bool Export_Ash(const RoomDataExt &room, const String &filename)
 
 void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
 {
+    const auto &pal_to_use = default_palette;
     for (const auto &c : content)
     {
         if (DoesContentExist(room, c, false, true) || IsContentGenerated(c))
@@ -331,16 +340,16 @@ void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
                     result = SaveImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
                 break;
             case kContent_Hotspot:
-                result = SaveImageFile(room.HotspotMaskBuf, room.Palette, c.FileName);
+                result = SaveImageFile(room.HotspotMaskBuf, pal_to_use, c.FileName);
                 break;
             case kContent_Region:
-                result = SaveImageFile(room.RegionMaskBuf, room.Palette, c.FileName);
+                result = SaveImageFile(room.RegionMaskBuf, pal_to_use, c.FileName);
                 break;
             case kContent_WalkArea:
-                result = SaveImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName);
+                result = SaveImageFile(room.WalkAreaMaskBuf, pal_to_use, c.FileName);
                 break;
             case kContent_WalkBehind:
-                result = SaveImageFile(room.WalkBehindMaskBuf, room.Palette, c.FileName);
+                result = SaveImageFile(room.WalkBehindMaskBuf, pal_to_use, c.FileName);
                 break;
             case kContent_ScriptCompiled3:
                 result = SaveScriptFile(*room.CompiledScript, c.FileName);

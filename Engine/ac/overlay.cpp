@@ -78,6 +78,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     }
     else
     {
+        data_to_game_coords(&x, &y);
         // NOTE: this was not documented, but apparently passing x < 0 or y < 0
         // to SetTextOverlay actually made it centered on screen
         text_pos = get_textpos_from_scriptcoords(x, y, false);

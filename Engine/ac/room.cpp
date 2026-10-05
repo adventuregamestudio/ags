@@ -277,9 +277,8 @@ void convert_room_background_to_game_res()
 
     const int bkg_width = data_to_game_coord(thisroom.Width);
     const int bkg_height = data_to_game_coord(thisroom.Height);
+    const int original_bkg_width = thisroom.BgImages[0]->GetWidth();
 
-    // Must adjust mask resolution factor here as the bg sizes changes
-    thisroom.MaskResolution = (thisroom.MaskResolution * bkg_width) / thisroom.BgImages[0]->GetWidth();
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
         thisroom.BgImages[i] = FixBitmap(thisroom.BgImages[i], bkg_width, bkg_height);
 
@@ -287,8 +286,8 @@ void convert_room_background_to_game_res()
     // Walk-behind is always 1:1 with room background size
     thisroom.WalkBehindMask = FixBitmap(thisroom.WalkBehindMask, bkg_width, bkg_height);
     // For the rest we keep the masks at original res, but update the MaskResolution,
-    // as it must correspond to the runtime data->game coordinate conversion
-    thisroom.MaskResolution = data_to_game_coord(thisroom.MaskResolution);
+    // as it must correspond to the actual background / mask relation
+    thisroom.MaskResolution = (thisroom.MaskResolution * bkg_width) / original_bkg_width;
 }
 
 void save_room_data_segment()

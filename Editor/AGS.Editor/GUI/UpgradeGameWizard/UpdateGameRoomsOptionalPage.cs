@@ -18,7 +18,7 @@ namespace AGS.Editor
             : base(game, task)
         {
             InitializeComponent();
-            // NOTE: we may use game.SavedXmlVersion to decide which pages
+            // NOTE: we may use game.SavedXmlVersion or SavedRoomXmlVersion to decide which pages
             // and/or options to display!
             _roomsOptionalTask = task as UpgradeGameRoomsOptionalTask;
         }

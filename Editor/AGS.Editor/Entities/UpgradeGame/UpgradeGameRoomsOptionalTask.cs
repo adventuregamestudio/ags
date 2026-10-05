@@ -42,7 +42,7 @@ namespace AGS.Editor
         /// </summary>
         public override UpgradeGameWizardPage[] CreateWizardPages(Game game)
         {
-            // NOTE: we may use game.SavedXmlVersion to decide which pages
+            // NOTE: we may use game.SavedXmlVersion or SavedRoomXmlVersion to decide which pages
             // and/or options to display! Return null if none are necessary.
             List<UpgradeGameWizardPage> pages = new List<UpgradeGameWizardPage>();
             if (game.SavedXmlVersion < (new System.Version(AGSEditor.FIRST_USER_DATA_VERSION_WITHOUT_INDEX)))

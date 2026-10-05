@@ -623,6 +623,7 @@ namespace AGS.Types
                 }
             }
 
+            // Check for old-style interactions, and convert them to new-style events (if necessary)
             LoadAndConvertInteractionEvents(node);
 
             _objects.AddRange(GetXmlChildren(node, "/Room/Objects", MAX_OBJECTS).Select((xml, i) => new RoomObject(this, xml) { ID = i }));
@@ -634,6 +635,10 @@ namespace AGS.Types
             _savedXmlVersion = fileVersion;
         }
 
+        /// <summary>
+        /// Looks up for the old-style Interactions node, if one is present in xml doc,
+        /// then loads it and converts to the new-style events.
+        /// </summary>
         private void LoadAndConvertInteractionEvents(XmlNode node)
         {
             if (node.SelectSingleNode("Interactions") == null)

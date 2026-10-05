@@ -1677,11 +1677,15 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
 
     data_to_game_coords(&x, &y);
 
-    int wbat = thisroom.WalkBehindMask->GetPixel(x, y);
-    if (wbat <= 0)
-        wbat = 0;
-    else
-        wbat = croom->walkbehind_base[wbat];
+    // In 2.62+ walk-behinds prevent from interacting with characters and objects;
+    // Prior to 2.62 they actually let click through onto them.
+    int wbat = 0;
+    if (loaded_game_file_version >= kGameVersion_262)
+    {
+        int wb = thisroom.WalkBehindMask->GetPixel(x, y);
+        if (wb > 0 && wb < MAX_WALK_BEHINDS) // wb == 0 is a no-area
+            wbat = croom->walkbehind_base[wb];
+    }
 
     int winner = LOCTYPE_NOTHING;
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind

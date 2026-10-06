@@ -52,7 +52,7 @@ namespace AGS.Types
             }
         }
 
-        protected override UnloadedRoomFolder CreateFolder(XmlNode node)
+        protected override UnloadedRoomFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
             return new UnloadedRoomFolder(node);
         }

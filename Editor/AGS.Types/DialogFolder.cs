@@ -26,7 +26,7 @@ namespace AGS.Types
         public DialogFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion) : 
             base(node, parentNodeForBackwardsCompatability, xmlVersion) { }
 
-        private DialogFolder(XmlNode node) : base(node) { }
+        private DialogFolder(XmlNode node, System.Version xmlVersion) : base(node, xmlVersion) { }
 
         protected override string OverrideXmlItemListNodeName()
         {
@@ -52,9 +52,9 @@ namespace AGS.Types
             }
         }
 
-        protected override DialogFolder CreateFolder(XmlNode node)
+        protected override DialogFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
-            return new DialogFolder(node);
+            return new DialogFolder(node, xmlVersion);
         }
 
         protected override DialogRef CreateItem(XmlNode node, System.Version xmlVersion)

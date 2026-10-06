@@ -54,7 +54,7 @@ namespace AGS.Types
             }
         }
 
-        protected override GUIFolder CreateFolder(XmlNode node)
+        protected override GUIFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
             return new GUIFolder(node);
         }

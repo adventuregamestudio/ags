@@ -143,7 +143,7 @@ namespace AGS.Types
             }
         }
 
-        protected override ScriptFolder CreateFolder(XmlNode node)
+        protected override ScriptFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
             return new ScriptFolder(node);
         }

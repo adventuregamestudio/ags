@@ -52,7 +52,7 @@ namespace AGS.Types
             }
         }
 
-        protected override InventoryItemFolder CreateFolder(XmlNode node)
+        protected override InventoryItemFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
             return new InventoryItemFolder(node);
         }

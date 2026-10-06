@@ -19,7 +19,7 @@ namespace AGS.Types
     {
         public event FolderChangeEventHandler<TFolderItem> OnFolderChange;
         public abstract TFolder CreateChildFolder(string name);
-        protected abstract TFolder CreateFolder(XmlNode node);
+        protected abstract TFolder CreateFolder(XmlNode node, System.Version xmlVersion);
         protected abstract TFolderItem CreateItem(XmlNode node, System.Version xmlVersion);
         protected virtual void ToXmlExtend(XmlTextWriter writer) { }
 
@@ -126,6 +126,15 @@ namespace AGS.Types
             FromXml(node, null);
         }
 
+        public BaseFolderCollection(XmlNode node, System.Version xmlVersion)
+        {
+            if (node.Name != this.XmlFolderNodeName)
+            {
+                throw new InvalidDataException("Incorrect node passed to " + this.XmlFolderNodeName);
+            }
+            FromXml(node, xmlVersion);
+        }
+
         public BaseFolderCollection(XmlNode node, XmlNode parentNodeForBackwardsCompatability)
         {
             if (node == null || node.Name != this.XmlFolderNodeName)
@@ -229,7 +238,7 @@ namespace AGS.Types
 
             foreach (XmlNode childNode in SerializeUtils.GetChildNodes(node, "SubFolders"))
             {
-                _subFolders.Add(CreateFolder(childNode));
+                _subFolders.Add(CreateFolder(childNode, xmlVersion));
             }
 
             foreach (XmlNode childNode in SerializeUtils.GetChildNodes(node, this.XmlItemListNodeName))

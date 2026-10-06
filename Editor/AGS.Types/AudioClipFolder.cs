@@ -106,7 +106,7 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
-        protected override AudioClipFolder CreateFolder(XmlNode node)
+        protected override AudioClipFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
             return new AudioClipFolder(node);
         }

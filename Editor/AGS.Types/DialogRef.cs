@@ -60,7 +60,7 @@ namespace AGS.Types
             // Test which version we are loading. If this is an old project format,
             // then we will have to also load the full Dialog data.
             // Otherwise we just read Dialog's meta-data (identifiers).
-            if (xmlVersion < Dialog.FirstNewXmlVersion)
+            if (xmlVersion == null || xmlVersion < Dialog.FirstNewXmlVersion)
             {
                 _dialog = new Dialog(node);
                 _id = _dialog.ID;

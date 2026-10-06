@@ -47,7 +47,7 @@ namespace AGS.Types
             }           
         }
 
-        protected override CharacterFolder CreateFolder(XmlNode node)
+        protected override CharacterFolder CreateFolder(XmlNode node, System.Version xmlVersion)
         {
             return new CharacterFolder(node);
         }

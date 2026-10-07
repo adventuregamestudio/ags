@@ -69,8 +69,12 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancod
     }
 
     // NumPad with NumLock on
-    if (!old_keyhandle && (sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
+    if ((sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
     {
+        // Old mode receives numpad's digit codes via SDL_TEXTINPUT event
+        if (old_keyhandle)
+            return eAGSKeyCodeNone;
+
         switch (sym)
         {
         case SDLK_KP_1: case SDLK_KP_2: case SDLK_KP_3: case SDLK_KP_4:

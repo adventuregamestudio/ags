@@ -137,6 +137,9 @@ Updated inventory behavior; don't secretly disable all Labels on startup.
 3.6.3.14:
 Do not auto-translate text properties which are set or get in script
 (by principle, only translate texts that are about to be displayed on screen).
+3.6.3.15:
+Various GUI control fixes (which may change the visuals, so worth mentioning).
+Region.Tint no longer remaps amount 0 as 100.
 */
 
 enum GameDataVersion
@@ -202,7 +205,8 @@ enum GameDataVersion
     kGameVersion_363_08         = 3060308,
     kGameVersion_363_10         = 3060310,
     kGameVersion_363_14         = 3060314,
-    kGameVersion_Current        = kGameVersion_363_14
+    kGameVersion_363_15         = 3060315,
+    kGameVersion_Current        = kGameVersion_363_15
 };
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

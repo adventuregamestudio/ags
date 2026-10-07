@@ -297,20 +297,25 @@ void set_cursor_mode(int newmode) {
     if ((newmode < 0) || (newmode >= game.numcursors))
         quit("!SetCursorMode: invalid cursor mode specified");
 
-    if (game.mcurs[newmode].flags & MCF_DISABLED) {
+    if (game.mcurs[newmode].flags & MCF_DISABLED)
+    {
         find_next_enabled_cursor(newmode);
-        return; }
-    if (newmode == MODE_USE) {
-        if (playerchar->activeinv == -1) {
+        return;
+    }
+    if (newmode == MODE_USE)
+    {
+        if (playerchar->activeinv == -1)
+        {
             find_next_enabled_cursor(0);
             return;
         }
         update_inv_cursor(playerchar->activeinv);
     }
-    cur_mode=newmode;
-    set_default_cursor();
 
-    debug_script_log("Cursor mode set to %d", newmode);
+    if (cur_mode != newmode) // TODO: actually prevent from running any action here if cursor + activeinv did not change?
+        debug_script_log("Cursor mode set to %d", newmode);
+    cur_mode = newmode;
+    set_default_cursor();
 }
 
 void enable_cursor_mode(int modd) {

@@ -404,20 +404,18 @@ void GUIListBox::OnTextFontChanged()
 
 void GUIListBox::UpdateMetrics()
 {
-    if (GUI::GameGuiVersion < kGuiVersion_363_03)
-    {
-        // NOTE: we do this here, because calling get_fixed_pixel_size()
-        // may not be safe in constructor
-        _borderWidth = get_fixed_pixel_size(1);
-    }
-
     int font_height = (GUI::DataVersion < kGameVersion_360_21) ?
         get_font_height(_font) : get_font_height_outlined(_font);
     _rowHeight = font_height + get_fixed_pixel_size(2); // +1 top/bottom margin
     _itemTextPaddingX = get_fixed_pixel_size(1);
     _itemTextPaddingY = get_fixed_pixel_size(1);
-    const int items_height = _innerRect.GetHeight();
-    _visibleItemCount = items_height / _rowHeight;
+    // There was a mistake in version range of 3.5.0 to 3.6.2 (inclusive), where
+    // listbox would not account for its border width when calculating visible items
+    if ((GUI::GameGuiVersion >= kGuiVersion_350) && (GUI::GameGuiVersion < kGuiVersion_363_03))
+        _visibleItemCount = (_innerRect.GetHeight() + _borderWidth * 2) / _rowHeight;
+    else
+        _visibleItemCount = _innerRect.GetHeight() / _rowHeight;
+
     if (_items.size() <= _visibleItemCount)
         _topItem = 0; // reset scroll if all items are visible
 

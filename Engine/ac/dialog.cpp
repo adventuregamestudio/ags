@@ -694,7 +694,7 @@ static int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int at_x, int at_
             }
             else
             {
-                String number = String::FromFormat(". %d", ww + 1);
+                String number = String::FromFormat(" .%d", ww + 1);
                 wouttext_outline(ds, first_line_at + first_line_wid, curyp, usingfont, text_color, number.GetCStr());
             }
         }

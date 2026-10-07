@@ -47,7 +47,7 @@ int     Object_GetOpacity(ScriptObject *objj);
 void    Object_SetBaseline(ScriptObject *objj, int basel);
 int     Object_GetBaseline(ScriptObject *objj);
 void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
-                       int blocking, int direction, int sframe = 0, int volume = 100);
+                       int blocking, int direction, int sframe = 0, int volume = 255);
 void    Object_StopAnimating(ScriptObject *objj);
 void    Object_StopMoving(ScriptObject *objj);
 void    Object_SetVisible(ScriptObject *objj, bool onoroff);

@@ -338,7 +338,7 @@ namespace AGS.Editor
             // Fix default border width for Labels and InventoryWindows with hidden border
             // in early 3.6.3 Beta with revamped GUI controls
             if ((xmlVersionIndex >= 3060304 && xmlVersionIndex < 3060316) ||
-                    (xmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS && xmlVersionIndex < 4000031))
+                    (xmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS && xmlVersionIndex < 4000034))
             {
                 foreach (GUI gui in game.GUIs)
                 {
@@ -473,7 +473,12 @@ namespace AGS.Editor
                         gc.Opacity = 255 - (gc.Transparency * 255) / 100;
                     }
                 }
-                // RoomObjects updated in RoomObjects.cs
+                // DefaultVolume is now 0-255, -1 for inherit
+                foreach (AudioClip ac in game.AudioClipFlatList)
+                {
+                    ac.DefaultVolume = ac.DefaultVolume != -1 ? (ac.DefaultVolume * 255 / 100) : -1;
+                }
+                // RoomObjects and RoomRegions updated by upgrader
             }
 
             if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))

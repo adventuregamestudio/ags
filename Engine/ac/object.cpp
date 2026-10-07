@@ -241,10 +241,10 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
 
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
                           red, green, blue, opacity, luminance);
         return;
     }
@@ -255,7 +255,7 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
     objs[obj].tint_g = green;
     objs[obj].tint_b = blue;
     objs[obj].tint_level = opacity;
-    objs[obj].tint_light = GfxDef::Value100ToValue250(luminance);
+    objs[obj].tint_light = luminance;
     objs[obj].flags &= ~OBJF_HASLIGHT;
     objs[obj].flags |= OBJF_HASTINT;
 }
@@ -388,7 +388,7 @@ int Object_GetAudioVolume(ScriptObject *objj)
 void Object_SetAudioVolume(ScriptObject *objj, int newval)
 {
 
-    objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
+    objs[objj->id].audio_volume = Math::Clamp(newval, 0, 255);
 }
 
 void SetObjectBaseline(int obn, int basel) {
@@ -442,7 +442,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d",
                      obn, obj.view + 1, loopn, spdd, rept, sframe);
 
-    obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd, Math::Clamp(volume, 0, 100));
+    obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd, Math::Clamp(volume, 0, 255));
     obj.loop = (uint16_t)loopn;
     obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, static_cast<AnimFlowDirection>(direction));
     obj.wait = spdd + views[obj.view].loops[loopn].frames[obj.frame].speed;
@@ -463,11 +463,11 @@ void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
 }
 
 void Object_Animate5(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
-    Object_Animate(objj, loop, delay, repeat, blocking, direction, 0 /* frame */, 100 /* full volume */);
+    Object_Animate(objj, loop, delay, repeat, blocking, direction, 0 /* frame */, 255 /* full volume */);
 }
 
 void Object_Animate6(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
-    Object_Animate(objj, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Object_Animate(objj, loop, delay, repeat, blocking, direction, sframe, 255 /* full volume */);
 }
 
 void Object_StopAnimating(ScriptObject *objj) {

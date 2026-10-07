@@ -62,7 +62,7 @@ public:
     ViewAnimateParams anim;
     int   flags; // OBJF_* flags
     int16_t blocking_width = 0, blocking_height = 0, blocking_x = 0, blocking_y = 0;
-    int   audio_volume = 100; // default animation sounds volume (relative factor)
+    int   audio_volume = 255; // default animation sounds volume (relative factor)
     int   audio_panning = 0; // animation sounds panning (-100 to +100)
     int   audio_speed = 0; // animation sounds speed, ms per second
     Common::String name;
@@ -94,7 +94,7 @@ public:
     inline int  get_anim_delay()     const { return anim.Delay; }
     inline void set_enabled(bool on) { flags = (flags & ~OBJF_ENABLED) | (OBJF_ENABLED * on); }
     inline void set_visible(bool on) { flags = (flags & ~OBJF_VISIBLE) | (OBJF_VISIBLE * on); }
-    inline void set_animating(AnimFlowStyle repeat, AnimFlowDirection dir, int delay, int anim_volume = 100)
+    inline void set_animating(AnimFlowStyle repeat, AnimFlowDirection dir, int delay, int anim_volume = 255)
     {
         anim = ViewAnimateParams(repeat, dir, delay, anim_volume);
     }

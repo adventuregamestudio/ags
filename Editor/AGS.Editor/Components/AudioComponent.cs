@@ -788,7 +788,7 @@ namespace AGS.Editor.Components
         {
             List<AudioClip> filesToCopy = new List<AudioClip>();
             List<string> fileNamesToUpdate = new List<string>();
-            PerformPreCompilationStepForFolder(_agsEditor.CurrentGame.RootAudioClipFolder, evArgs, filesToCopy, fileNamesToUpdate, 100, false, AudioClipPriority.Normal);
+            PerformPreCompilationStepForFolder(_agsEditor.CurrentGame.RootAudioClipFolder, evArgs, filesToCopy, fileNamesToUpdate, 255 /* inheritedVolume */, false, AudioClipPriority.Normal);
 
             if (_agsEditor.AttemptToGetWriteAccess(fileNamesToUpdate))
             {

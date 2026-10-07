@@ -177,7 +177,7 @@ private:
     float     _frameRate = 0.f;
     float     _durMs = 0.f;
     uint32_t  _frameCount = 0;
-    int       _volume = 100;
+    int       _volume = 255;
     float     _speed = 1.f;
     bool      _looping = false;
     PlaybackState _state = PlayStateInitial;

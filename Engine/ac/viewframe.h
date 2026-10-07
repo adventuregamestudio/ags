@@ -39,12 +39,11 @@ int  ViewFrame_GetLoop(ScriptViewFrame *svf);
 int  ViewFrame_GetFrame(ScriptViewFrame *svf);
 
 // Calculate the frame sound volume from different factors;
-// pass scale as 100 if volume scaling is disabled
-// NOTE: historically scales only in 0-100 range :/
-int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale = 100);
+// pass scale as 255 if volume scaling is disabled
+int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale = 255);
 // Handle the new animation frame (play linked sounds, etc);
-// sound_volume is an optional *relative* factor, 100 is default (unchanged)
-void CheckViewFrame(int view, int loop, int frame, int sound_volume = 100, int sound_pan = 0, int sound_speed = 1000);
+// sound_volume is an optional *relative* factor, 255 is default (unchanged)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume = 255, int sound_pan = 0, int sound_speed = 1000);
 void CheckViewFrame(int view, int loop, int frame, int sound_volume, int sound_pan, int sound_speed,
                     const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt);
 // Plays a linked sound of the given frame; returns if the sound is linked and played successfully

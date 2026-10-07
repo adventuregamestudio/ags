@@ -148,15 +148,15 @@ namespace AGS.Types
             set { _format = value; }
         }
 
-        [Description("The volume (0..100) that this clip will play at, if the script does not specify it. -1 inherits from parent folder.")]
+        [Description("The volume (0..255) that this clip will play at, if the script does not specify it. -1 inherits from parent folder.")]
         public int DefaultVolume
         {
             get { return _volume; }
             set
             {
-                if ((value < -1) || (value > 100))
+                if ((value < -1) || (value > 255))
                 {
-                    throw new ArgumentOutOfRangeException("Volume must be 0-100, or -1 to inherit");
+                    throw new ArgumentOutOfRangeException("Volume must be 0-255, or -1 to inherit");
                 }
                 _volume = value;
             }

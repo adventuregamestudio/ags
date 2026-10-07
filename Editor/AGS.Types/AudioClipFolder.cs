@@ -19,7 +19,7 @@ namespace AGS.Types
     [DefaultProperty("DefaultBundlingType")]
     public class AudioClipFolder : BaseFolderCollection<AudioClip, AudioClipFolder>
     {
-        private int _volume = 100;
+        private int _volume = 255;
         private AudioClipPriority _priority = AudioClipPriority.Inherit;
         private InheritableBool _repeat = InheritableBool.Inherit;
         private int _defaultTypeID = 1;

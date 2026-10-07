@@ -1451,11 +1451,11 @@ builtin managed struct Overlay {
   import Point*[] GetGraphicBoundBox();
   /// Removes an existing colour tint or light level from this overlay.
   import void RemoveTint();
-  /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the light level for this overlay, from -255 to 255(negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Sets this overlay's horizontal and vertical scaling
   import void SetScale(float x, float y);
-  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
 
   /// Gets/sets whether overlay should resize itself whenever its graphic changes.
@@ -1513,7 +1513,7 @@ builtin managed struct AnimatedOverlay extends Overlay
   /// Creates a AnimatedOverlay object on the room layer, optionally using a initial sprite
   import static AnimatedOverlay* CreateRoomAnimated(int x, int y, int slot = 0, bool pauseWithGame = true); // $AUTOCOMPLETESTATICONLY$
   /// Animates the overlay using the specified view loop.
-  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
+  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=255);
   /// Gets whether the overlay is currently animating.
   import readonly attribute bool Animating;
   /// Gets the current frame number during an animation.
@@ -1573,7 +1573,7 @@ builtin managed struct DynamicSprite {
   import void Rotate(int angle, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
   /// Saves the sprite to a image file of any supported format.
   import int  SaveToFile(const string filename);
-  /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets the colour depth of this sprite, in bits per pixel (8, 16, 32).
   readonly import attribute int ColorDepth;
@@ -1598,7 +1598,7 @@ import void SetPalRGB(int slot, int r, int g, int b);
 import void UpdatePalette();
 /// Tints the whole screen to the specified colour. RGB values must be in 0-255 range.
 import void TintScreen (int red, int green, int blue);
-/// Sets an ambient tint that affects all objects and characters in the room. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+/// Sets an ambient tint that affects all objects and characters in the room. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
 import void SetAmbientTint(int red, int green, int blue, int saturation, int luminance);
 /// Returns a random number between 0 and MAX, inclusive.
 import int  Random(int max);
@@ -1863,7 +1863,7 @@ builtin managed struct Label extends GUIControl {
 builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
-  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
+  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=255);
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v400_24
   // Triggers custom frame event, if this frame has one, and runs registered event handler. Returns if this frame has an event.
@@ -2270,13 +2270,13 @@ builtin managed struct Region {
 #endif // SCRIPT_API_v400
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
-  /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
-  import void Tint(int red, int green, int blue, int amount, int luminance = 100);
+  /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
+  import void Tint(int red, int green, int blue, int amount, int luminance = 255);
   /// Gets/sets whether this region is enabled.
   import attribute bool Enabled;
   /// Gets the ID number for this region.
   readonly import attribute int ID;
-  /// Gets/sets the light level for this region. Valid values are from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Gets/sets the light level for this region. Valid values are from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import attribute int  LightLevel;
   /// Gets whether a colour tint is set for this region.
   readonly import attribute bool TintEnabled;
@@ -2611,7 +2611,7 @@ builtin managed struct AudioChannel {
   readonly import attribute int Position;
   /// The current offset into the sound, in milliseconds.
   readonly import attribute int PositionMs;
-  /// The volume of this sound channel, from 0 to 100.
+  /// The volume of this sound channel, from 0 to 255.
   import attribute int Volume;
   /// The speed of playing, in clip milliseconds per second (1000 is default).
   import attribute int Speed;
@@ -2745,7 +2745,7 @@ builtin struct System {
   readonly import static attribute bool SupportsGammaControl;
   /// Gets the AGS engine version number.
   readonly import static attribute String Version;
-  /// Gets/sets the audio output volume, from 0-100.
+  /// Gets/sets the audio output volume, from 0-255.
   import static attribute int  Volume;
   /// Gets/sets whether waiting for the vertical sync is enabled.
   import static attribute bool VSync;
@@ -2790,7 +2790,7 @@ builtin managed struct Object {
     , int frame=0
 #endif  
 #ifdef SCRIPT_API_v360
-    , int volume=100
+    , int volume=255
 #endif
   );
   /// Gets the object that is on the screen at the specified co-ordinates.
@@ -2827,7 +2827,7 @@ builtin managed struct Object {
   import void StopAnimating();
   /// Stops any currently running move on the object.
   import void StopMoving();
-  /// Tints the object to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the object to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets whether the object is currently animating.
   readonly import attribute bool Animating;
@@ -2871,7 +2871,7 @@ builtin managed struct Object {
   import attribute int  Y;
   /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
   import bool IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this object, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the individual light level for this object, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Sets an integer custom property for this object.
   import bool SetProperty(const string property, int value);
@@ -2905,7 +2905,7 @@ builtin managed struct Object {
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
 #ifdef SCRIPT_COMPAT_v363
-  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
+  /// Gets/sets the volume modifier (0-255) of frame-linked sounds for this object.
   import attribute int  AnimationVolume;
 #endif // SCRIPT_COMPAT_v363
   /// Gets the script name of this object.
@@ -2930,7 +2930,7 @@ builtin managed struct Object {
   import attribute int  AudioPanning;
   /// Gets/sets the speed of frame-linked sounds for this object.
   import attribute int  AudioSpeed;
-  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
+  /// Gets/sets the volume modifier (0-255) of frame-linked sounds for this object.
   import attribute int  AudioVolume;
   /// Gets/sets the relative x offset of a blocking area of the object.
   import attribute int  BlockingRectX;
@@ -2993,7 +2993,7 @@ builtin managed struct Character {
     , int frame=0
 #endif
 #ifdef SCRIPT_API_v360
-    , int volume=100
+    , int volume=255
 #endif
   );
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
@@ -3073,7 +3073,7 @@ builtin managed struct Character {
   import void StopMoving();
   /// The specified text is displayed in a thought-bubble GUI.
   import void Think(__format const string message, ...);
-  /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Unlocks the view after an animation has finished.
   import void UnlockView(StopMovementStyle=eStopMoving);
@@ -3181,7 +3181,7 @@ builtin managed struct Character {
   import bool SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
   import bool IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this character, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the individual light level for this character, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Gets the X coordinate of the character's final moving destination; or current position if character is not moving.
   readonly import attribute int DestinationX;
@@ -3207,7 +3207,7 @@ builtin managed struct Character {
 #endif // SCRIPT_API_v3507
 #ifdef SCRIPT_API_v360
 #ifdef SCRIPT_COMPAT_v363
-  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this character.
+  /// Gets/sets the volume modifier (0-255) of frame-linked sounds for this character.
   import attribute int  AnimationVolume;
 #endif // SCRIPT_COMPAT_v363
   /// Gets/sets the character's idle animation delay.
@@ -3230,7 +3230,7 @@ builtin managed struct Character {
   import attribute int  AudioPanning;
   /// Gets/sets the speed of frame-linked sounds for this character.
   import attribute int  AudioSpeed;
-  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this character.
+  /// Gets/sets the volume modifier (0-255) of frame-linked sounds for this character.
   import attribute int  AudioVolume;
   /// Gets/sets the relative x offset of a blocking area of the character.
   import attribute int  BlockingRectX;
@@ -3446,7 +3446,7 @@ builtin struct Game {
   import static readonly attribute bool InBlockingWait;
 #endif // SCRIPT_API_v362
 #ifdef SCRIPT_API_v363
-  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 100). Value 0 disables crossfade.
+  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 255). Value 0 disables crossfade.
   import static int GetAudioTypeCrossfadeSpeed(AudioType);
   /// Returns the volume drop applied to the specified audio type when speech is played
   import static int GetAudioTypeSpeechVolumeDrop(AudioType);
@@ -3458,7 +3458,7 @@ builtin struct Game {
   import static void Pause();
   /// Resumes the game after it was paused earlier. Each call to Game.Resume() decrements a "pause" counter.
   import static void Resume();
-  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 100). Value 0 disables crossfade.
+  /// Returns the default crossfade speed of the specified audio type, in volume units per step (1 - 255). Value 0 disables crossfade.
   import static void SetAudioTypeCrossfadeSpeed(AudioType, int speed);
   /// Returns whether the game is currently paused.
   import static readonly attribute bool IsPaused;
@@ -3915,7 +3915,7 @@ builtin managed struct VideoPlayer {
   import attribute float Speed;
   /// Gets the current playback state (playing, paused, etc).
   import readonly attribute PlaybackState State;
-  /// The volume of this video's sound, from 0 to 100.
+  /// The volume of this video's sound, from 0 to 255.
   import attribute int Volume;
 };
 

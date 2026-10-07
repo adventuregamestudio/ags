@@ -291,10 +291,10 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 {
     if (!AssertAudioType("Game.SetAudioTypeVolume", audioType))
         return;
-    if ((volume < 0) || (volume > 100))
+    if ((volume < 0) || (volume > 255))
     {
-        debug_script_warn("Game.SetAudioTypeVolume: invalid volume %d, valid range is 0..100", volume);
-        volume = Math::Clamp(volume, 0, 100);
+        debug_script_warn("Game.SetAudioTypeVolume: invalid volume %d, valid range is 0..255", volume);
+        volume = Math::Clamp(volume, 0, 255);
     }
 
     const char *change_str[3]{"existing", "future", "all"};
@@ -310,7 +310,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             {
                 auto* ch = AudioChans::GetChannel(i);
                 if (ch)
-                    ch->set_volume100(volume);
+                    ch->set_volume255(volume);
             }
         }
     }

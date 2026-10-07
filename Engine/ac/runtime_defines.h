@@ -243,7 +243,7 @@ struct ViewAnimateParams : public AnimFlowParams
     // General frame delay for this animation
     int Delay = 0;
     // Volume of the frame-linked sounds (relative factor)
-    int AudioVolume = 100;
+    int AudioVolume = 255;
 
     ViewAnimateParams() = default;
     ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int avolume)

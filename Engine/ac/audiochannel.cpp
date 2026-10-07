@@ -127,21 +127,21 @@ int AudioChannel_GetVolume(ScriptAudioChannel *channel)
 
     if (ch)
     {
-        return ch->get_volume100();
+        return ch->get_volume255();
     }
     return 0;
 }
 
 int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
 {
-    if ((newVolume < 0) || (newVolume > 100))
-        quitprintf("!AudioChannel.Volume: new value out of range (supplied: %d, range: 0..100)", newVolume);
+    if ((newVolume < 0) || (newVolume > 255))
+        quitprintf("!AudioChannel.Volume: new value out of range (supplied: %d, range: 0..255)", newVolume);
 
     auto* ch = AudioChans::GetChannelIfPlaying(channel->id);
 
     if (ch)
     {
-        ch->set_volume100(newVolume);
+        ch->set_volume255(newVolume);
     }
     return 0;
 }

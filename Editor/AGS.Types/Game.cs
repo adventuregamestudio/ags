@@ -875,7 +875,7 @@ namespace AGS.Types
                 _audioClips = new AudioClipFolders("Main");
                 _audioClips.RootFolder.DefaultPriority = AudioClipPriority.Normal;
                 _audioClips.RootFolder.DefaultRepeat = InheritableBool.False;
-                _audioClips.RootFolder.DefaultVolume = 100;
+                _audioClips.RootFolder.DefaultVolume = 255;
             }
 
             _audioClipTypes.Clear();

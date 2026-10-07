@@ -59,7 +59,7 @@ public:
     AudioFileType fileType = eAudioFileUndefined;
     char defaultRepeat = 0;
     short defaultPriority = 50;
-    short defaultVolume = 100;
+    short defaultVolume = 255;
 
     static AudioFileType GetAudioFileTypeFromExt(const char *ext);
     static const char *GetExtFromAudioFileType(AudioFileType filetype);

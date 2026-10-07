@@ -198,7 +198,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         name = StrUtil::ReadString(in);
     }
 
-    int cur_audio_volume = 100;
+    int cur_audio_volume = 255;
     if (cmp_ver >= kRoomStatSvgVersion_36025)
     {
         // anim vols order inverted compared to character, by mistake :(
@@ -209,8 +209,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
     else
     {
-        cur_audio_volume = 100;
-        audio_volume = 100;
+        cur_audio_volume = 255;
+        audio_volume = 255;
         audio_panning = 0;
     }
 

@@ -497,7 +497,7 @@ HSaveError WriteAudio(Stream *out)
             out->WriteInt32(ch->repeat ? 1 : 0);
             out->WriteInt32(ch->get_volume255());
             out->WriteInt32(0); // was redundant data
-            out->WriteInt32(ch->get_volume100());
+            out->WriteInt32(0); // was volume100
             out->WriteInt32(ch->get_panning());
             out->WriteInt32(ch->get_speed());
             // since version kAudioSvgVersion_35026

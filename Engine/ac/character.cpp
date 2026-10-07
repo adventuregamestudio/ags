@@ -245,11 +245,11 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
 }
 
 void Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
-    Character_Animate(chaa, loop, delay, repeat, blocking, direction, 0 /* first frame */, 100 /* full volume */);
+    Character_Animate(chaa, loop, delay, repeat, blocking, direction, 0 /* first frame */, 255 /* full volume */);
 }
 
 void Character_Animate6(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
-    Character_Animate(chaa, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Character_Animate(chaa, loop, delay, repeat, blocking, direction, sframe, 255 /* full volume */);
 }
 
 void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos) 
@@ -948,7 +948,7 @@ int Character_GetLightLevel(CharacterInfo *ch)
 
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
-    light_level = Math::Clamp(light_level, -100, 100);
+    light_level = Math::Clamp(light_level, -255, 255);
 
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;
@@ -977,7 +977,7 @@ int Character_GetTintSaturation(CharacterInfo *ch)
 
 int Character_GetTintLuminance(CharacterInfo *ch)
 {
-    return ch->has_explicit_tint() ? GfxDef::Value250ToValue100(charextra[ch->index_id].tint_light) : 0;
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_light : 0;
 }
 
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
@@ -1087,10 +1087,10 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
             red, green, blue, opacity, luminance);
         return;
     }
@@ -1101,7 +1101,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     charextra[chaa->index_id].tint_g = green;
     charextra[chaa->index_id].tint_b = blue;
     charextra[chaa->index_id].tint_level = opacity;
-    charextra[chaa->index_id].tint_light = GfxDef::Value100ToValue250(luminance);
+    charextra[chaa->index_id].tint_light = luminance;
     chaa->flags &= ~CHF_HASLIGHT;
     chaa->flags |= CHF_HASTINT;
 }
@@ -1380,7 +1380,7 @@ int Character_GetAudioVolume(CharacterInfo *chaa)
 
 void Character_SetAudioVolume(CharacterInfo *chaa, int newval) {
 
-    charextra[chaa->index_id].audio_volume = Math::Clamp(newval, 0, 100);
+    charextra[chaa->index_id].audio_volume = Math::Clamp(newval, 0, 255);
 }
 
 int Character_GetBaseline(CharacterInfo *chaa) {
@@ -2779,7 +2779,7 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     Character_StopMoving(chap);
 
     CharacterExtras *chex = &charextra[chap->index_id];
-    chex->SetAnimating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), sppd, Math::Clamp(volume, 0, 100));
+    chex->SetAnimating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), sppd, Math::Clamp(volume, 0, 255));
     chap->loop = loopn;
     chap->frame = SetFirstAnimFrame(chap->view, loopn, sframe, static_cast<AnimFlowDirection>(direction));
     chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;

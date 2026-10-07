@@ -103,6 +103,16 @@ const char* String_ReplaceCharAt(const char *thisString, int index, int newChar)
     return CreateNewScriptString(std::move(buf));
 }
 
+const char* String_Reverse(const char *thisString)
+{
+    // TODO: i was in a rush when writing this, optimize to do with less copying?
+    // we might have string algorithms separated from String class and shared used
+    // by both String and these script api handlers.
+    String str = thisString;
+    (get_uformat() == U_UTF8) ? str.ReverseUTF8() : str.Reverse();
+    return CreateNewScriptString(str);
+}
+
 const char* String_Truncate(const char *thisString, int length) {
     if (length < 0)
         quit("!String.Truncate: invalid length");
@@ -472,6 +482,11 @@ RuntimeScriptValue Sc_String_ReplaceCharAt(void *self, const RuntimeScriptValue 
     API_OBJCALL_OBJ_PINT2(const char, const char, myScriptStringImpl, String_ReplaceCharAt);
 }
 
+RuntimeScriptValue Sc_String_Reverse(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_Reverse);
+}
+
 // int (const char *thisString, const char *checkForString, bool caseSensitive)
 RuntimeScriptValue Sc_String_StartsWith(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -550,6 +565,7 @@ void RegisterStringAPI()
         { "String::LowerCase^0",      API_FN_PAIR(String_LowerCase) },
         { "String::Replace^3",        API_FN_PAIR(String_Replace) },
         { "String::ReplaceCharAt^2",  API_FN_PAIR(String_ReplaceCharAt) },
+        { "String::Reverse^0",        API_FN_PAIR(String_Reverse) },
         { "String::StartsWith^2",     API_FN_PAIR(String_StartsWith) },
         { "String::Substring^2",      API_FN_PAIR(String_Substring) },
         { "String::Truncate^1",       API_FN_PAIR(String_Truncate) },

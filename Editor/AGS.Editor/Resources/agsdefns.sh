@@ -683,6 +683,10 @@ internalstring autoptr builtin managed struct String {
   /// Checks whether this string starts with the specified text.
   import bool    StartsWith(const string startsWithText, bool caseSensitive = false);
 #endif // !SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Returns a reversed copy of this string.
+  import String  Reverse();
+#endif // SCRIPT_API_v363
   /// Converts the string to a float.
   readonly import attribute float AsFloat;
   /// Converts the string to an integer.

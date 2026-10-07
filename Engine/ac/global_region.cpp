@@ -87,18 +87,20 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
             quit("!SetRegionTint: RGB values must be 0-255");
     }
 
-    // originally the value was passed as 0
-    // TODO: find out which versions had this; fixup only for past versions in the future!
-    if (amount == 0)
-        amount = 100;
+    if (loaded_game_file_version < kGameVersion_363_15)
+    {
+        // Tint amount 0 was remapped to 100 historically, for some reason
+        if (amount == 0)
+            amount = 100;
+    }
 
-    if ((amount < 1) || (amount > 100))
+    if ((amount < 0) || (amount > 100))
         quit("!SetRegionTint: amount must be 1-100");
     if ((luminance < 0) || (luminance > 100))
         quit("!SetRegionTint: luminance must be 0-100");
 
-    const int tint = (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24);
-    const int light = (luminance * 25) / 10;
+    const int tint = (amount > 0) ? (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24) : 0;
+    const int light = (amount > 0) ? (luminance * 25) / 10 : 0;
 
     if ((thisroom.Regions[area].Tint != tint) || (thisroom.Regions[area].Light != light))
     {

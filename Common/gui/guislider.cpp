@@ -13,6 +13,7 @@
 //=============================================================================
 #include "gui/guislider.h"
 #include <algorithm>
+#include "ac/game_version.h"
 #include "ac/spritecache.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
@@ -100,6 +101,8 @@ void GUISlider::UpdateMetrics()
     assert(GUI::Context.Spriteset);
     SpriteCache &spriteset = *GUI::Context.Spriteset;
 
+    // New, simpler handle position math, since 3.6.0 Beta
+    const bool handle_pos_360 = (loaded_game_file_version >= kGameVersion_360_21);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
     const int handle_im = ((HandleImage > 0) && spriteset.DoesSpriteExist(HandleImage)) ? HandleImage : 0;
 
@@ -135,8 +138,11 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(1, _height / 2 - thick_f, _width - 1, bar_thick);
         handle_range = _width - 4;
         int value_pos = (int)(((float)(Value - MinValue) * (float)handle_range) / (float)(MaxValue - MinValue));
-        handle = RectWH((bar.Left + get_fixed_pixel_size(2)) - (handle_sz.Width / 2) + 1 + value_pos - 2,
-            bar.Top + (bar.GetHeight() - 1) / 2 - handle_sz.Height / 2 + get_fixed_pixel_size(1),
+        handle = RectWH(
+            (bar.Left + get_fixed_pixel_size(2)) - (handle_sz.Width / 2) + 1 + value_pos - 2, // x pos, by value
+            handle_pos_360 ? // y pos, centering handle around bar
+                bar.Top + (bar.GetHeight() - handle_sz.Height) / 2 :
+                bar.Top + (bar.GetHeight() - 1) / 2 - handle_sz.Height / 2 + get_fixed_pixel_size(1),
             handle_sz.Width, handle_sz.Height);
         // add custom handle offset
         handle = Rect::MoveBy(handle, 0, data_to_game_coord(HandleOffset));
@@ -147,8 +153,11 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
         handle_range = _height - 4;
         int value_pos = (int)(((float)(MaxValue - Value) * (float)handle_range) / (float)(MaxValue - MinValue));
-        handle = RectWH(bar.Left + (bar.GetWidth() - 1) / 2 - handle_sz.Width / 2 + get_fixed_pixel_size(1),
-            (bar.Top + get_fixed_pixel_size(2)) - (handle_sz.Height / 2) + 1 + value_pos - 2,
+        handle = RectWH(
+            handle_pos_360 ? // x pos, centering handle around bar
+                bar.Left + (bar.GetWidth() - handle_sz.Width) / 2 :
+                bar.Left + (bar.GetWidth() - 1) / 2 - handle_sz.Width / 2 + get_fixed_pixel_size(1),
+            (bar.Top + get_fixed_pixel_size(2)) - (handle_sz.Height / 2) + 1 + value_pos - 2, // y pos, by value
             handle_sz.Width, handle_sz.Height);
         // add custom handle offset
         handle = Rect::MoveBy(handle, data_to_game_coord(HandleOffset), 0);

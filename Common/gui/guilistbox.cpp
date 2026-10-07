@@ -411,7 +411,7 @@ void GUIListBox::UpdateMetrics()
     _itemTextPaddingY = get_fixed_pixel_size(1);
     // There was a mistake in version range of 3.5.0 to 3.6.2 (inclusive), where
     // listbox would not account for its border width when calculating visible items
-    if ((GUI::GameGuiVersion >= kGuiVersion_350) && (GUI::GameGuiVersion < kGuiVersion_363_03))
+    if ((GUI::GameGuiVersion >= kGuiVersion_350) && (GUI::GameGuiVersion < kGuiVersion_363_04))
         _visibleItemCount = (_innerRect.GetHeight() + _borderWidth * 2) / _rowHeight;
     else
         _visibleItemCount = _innerRect.GetHeight() / _rowHeight;

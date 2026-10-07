@@ -763,13 +763,13 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // TODO: use color constants instead of literal numbers.
     // TODO: move the bw-compat default color selection to Upgrade GUI process.
     const color_t back_color =
-        (GUI::GameGuiVersion < kGuiVersion_363_03)
+        (GUI::GameGuiVersion < kGuiVersion_363_04)
         ? ds->GetCompatibleColor(7) : ds->GetCompatibleColor(_currentBgColor);
     const color_t light_color =
-        (GUI::GameGuiVersion < kGuiVersion_363_03)
+        (GUI::GameGuiVersion < kGuiVersion_363_04)
         ? ds->GetCompatibleColor(15) : ds->GetCompatibleColor(_currentBorderColor);
     const color_t dark_color =
-        (GUI::GameGuiVersion < kGuiVersion_363_03)
+        (GUI::GameGuiVersion < kGuiVersion_363_04)
         ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_borderShadeColor);
 
     // Background rect

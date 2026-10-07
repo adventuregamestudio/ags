@@ -81,6 +81,9 @@ public:
     void OnSpriteUpdate(int sprite_num) override;
 
 private:
+    // Internal control's region (content region) was resized
+    void OnContentRectChanged() override;
+
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
 

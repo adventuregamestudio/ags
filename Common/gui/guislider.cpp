@@ -169,13 +169,16 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
 
 void GUISlider::UpdateMetrics()
 {
-    assert(GUI::Context.Spriteset);
-    SpriteCache &spriteset = *GUI::Context.Spriteset;
+    // NOTE: be aware that this function may be called while the spriteset is not ready,
+    // therefore the following code should account for this possibility.
+    // TODO: Perhaps we might use a sprite-metrics-getter interface here instead of a
+    // SpriteCache pointer, as we don't need the bitmap itself, only sprite sizes.
+    SpriteCache *spriteset = GUI::Context.Spriteset;
 
     // New, simpler handle position math, since 3.6.0 Beta
     const bool handle_pos_360 = (GUI::DataVersion >= kGameVersion_360_21);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
-    const int handle_im = ((_handleImage > 0) && spriteset.DoesSpriteExist(_handleImage)) ? _handleImage : 0;
+    const int handle_im = ((_handleImage > 0) && spriteset && spriteset->DoesSpriteExist(_handleImage)) ? _handleImage : 0;
 
     // Depending on slider's orientation, thickness is either Height or Width
     const int thickness = IsHorizontal() ? _height : _width;
@@ -315,6 +318,12 @@ void GUISlider::UpdateVisualState()
 {
     UpdateMetrics();
     MarkPositionChanged(true);
+}
+
+void GUISlider::OnContentRectChanged()
+{
+    UpdateMetrics();
+    MarkChanged();
 }
 
 bool GUISlider::OnMouseDown()

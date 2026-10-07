@@ -1719,8 +1719,7 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
         }
 
         int tint_sat = (tint_level >> 24) & 0xFF;
-        if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
-            (tint_sat == 0))
+        if ((game.color_depth == 1) || (tint_sat == 0))
             tint_level = 0;
 
         if (tint_level) {

@@ -90,6 +90,9 @@ private:
     // Overridable routine to determine whether the coordinates is over the control;
     // coordinates are guaranteed to be transformed to the control's local cs
     bool IsOverControlImpl(int x, int y, int leeway) const override;
+    // Internal control's region (content region) was resized
+    void OnContentRectChanged() override;
+
     // Updates dynamic metrics and positions of elements
     void UpdateMetrics();
 

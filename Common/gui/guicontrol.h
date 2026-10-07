@@ -75,7 +75,7 @@ public:
     virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
     // Gets whether the *local GUI coordinates* are over this control
     bool            IsOverControl(int x, int y, int leeway) const;
-    // Update visual state forces control to recalculate its elements.
+    // Update visual state; forces control to recalculate its elements.
     virtual void    UpdateVisualState();
 
     // Events

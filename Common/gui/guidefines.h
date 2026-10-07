@@ -47,7 +47,7 @@
 //       as game extensions. There have been at least two amendments:
 //       - script module ref written for GUIs (3.6.2),
 //       - button's text padding properties   (3.6.2)
-// 3.6.3.3 / 8    : Controls have common frame settings
+// 3.6.3.4 / 8    : Controls have common frame settings
 //                   (back/border color, padding, etc)
 //
 // 4.0.0.26        : Updated to sync with 3.6.3, but contains numerous
@@ -59,7 +59,7 @@ enum GuiVersion
 {
     kGuiVersion_Undefined   = 0,
     kGuiVersion_350         = 119,
-    kGuiVersion_363_03      = 3060304,
+    kGuiVersion_363_04      = 3060304,
     kGuiVersion_363_08      = 3060308,
     kGuiVersion_40026       = 4000026,
     kGuiVersion_40027       = 4000027,

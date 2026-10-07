@@ -330,6 +330,11 @@ int ListBox_GetRowCount(GUIListBox *listbox) {
   return listbox->GetVisibleItemCount();
 }
 
+int ListBox_GetRowHeight(GUIListBox *listbox)
+{
+    return listbox->GetRowHeight();
+}
+
 void ListBox_ScrollDown(GUIListBox *listbox) {
   if (listbox->GetTopItem() + listbox->GetVisibleItemCount() < listbox->GetItemCount()) {
     listbox->SetTopItem(listbox->GetTopItem() + 1);
@@ -526,6 +531,11 @@ RuntimeScriptValue Sc_ListBox_GetRowCount(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(GUIListBox, ListBox_GetRowCount);
 }
 
+RuntimeScriptValue Sc_ListBox_GetRowHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIListBox, ListBox_GetRowHeight);
+}
+
 // int (GUIListBox *listbox, int index)
 RuntimeScriptValue Sc_ListBox_GetSaveGameSlots(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -646,6 +656,7 @@ void RegisterListBoxAPI()
         { "ListBox::geti_Items",          API_FN_PAIR(ListBox_GetItems) },
         { "ListBox::seti_Items",          API_FN_PAIR(ListBox_SetItemText) },
         { "ListBox::get_RowCount",        API_FN_PAIR(ListBox_GetRowCount) },
+        { "ListBox::get_RowHeight",       API_FN_PAIR(ListBox_GetRowHeight) },
         { "ListBox::geti_SaveGameSlots",  API_FN_PAIR(ListBox_GetSaveGameSlots) },
         { "ListBox::get_SelectedBackColor", API_FN_PAIR(ListBox_GetSelectedBackColor) },
         { "ListBox::set_SelectedBackColor", API_FN_PAIR(ListBox_SetSelectedBackColor) },

@@ -319,6 +319,7 @@ void GUIListBox::SortItems(bool nocase, bool locale_aware, bool ascending)
 
 void GUIListBox::UpdateVisualState()
 {
+    UpdateControlRect();
     MarkPositionChanged(true);
 }
 

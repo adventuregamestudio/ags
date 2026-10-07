@@ -306,20 +306,25 @@ void set_cursor_mode(int newmode)
     if ((newmode < 0) || (newmode >= game.numcursors))
         return;
 
-    if (game.mcurs[newmode].flags & MCF_DISABLED) {
+    if (game.mcurs[newmode].flags & MCF_DISABLED)
+    {
         find_next_enabled_cursor(newmode);
-        return; }
-    if (game.HasCursorRole(newmode, kCursorRole_UseInv)) {
-        if (playerchar->activeinv == -1) {
+        return;
+    }
+    if (game.HasCursorRole(newmode, kCursorRole_UseInv))
+    {
+        if (playerchar->activeinv == -1)
+        {
             find_next_enabled_cursor(0);
             return;
         }
         update_inv_cursor(playerchar->activeinv);
     }
-    cur_mode=newmode;
-    set_default_cursor_look();
 
-    debug_script_log("Cursor mode set to %d", newmode);
+    if (cur_mode != newmode) // TODO: actually prevent from running any action here if cursor + activeinv did not change?
+        debug_script_log("Cursor mode set to %d", newmode);
+    cur_mode = newmode;
+    set_default_cursor_look();
 }
 
 void set_cursor_mode_with_role(CursorRole role, int fallback_mode)

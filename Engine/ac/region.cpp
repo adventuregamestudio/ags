@@ -85,14 +85,17 @@ ScriptRegion *Region_GetAtScreenXY2(int x, int y)
 }
 
 void SetAreaLightLevel(int area, int brightness) {
-    if ((area < 0) || (area > MAX_ROOM_REGIONS))
+    if ((area < 0) || (area >= MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -100) brightness = -100;
     if (brightness > 100) brightness = 100;
-    thisroom.Regions[area].Light = brightness;
-    // disable RGB tint for this area
-    thisroom.Regions[area].Tint = 0;
-    debug_script_log("Region %d light level set to %d", area, brightness);
+    // Set light level and disable RGB tint for this area
+    if (thisroom.Regions[area].Light != brightness || thisroom.Regions[area].Tint != 0)
+    {
+        thisroom.Regions[area].Light = brightness;
+        thisroom.Regions[area].Tint  = 0;
+        debug_script_log("Region %d light level set to %d", area, brightness);
+    }
 }
 
 void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
@@ -136,7 +139,7 @@ int Region_GetTintLuminance(ScriptRegion *srr)
 
 void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 100)
 {
-    if ((area < 0) || (area > MAX_ROOM_REGIONS))
+    if ((area < 0) || (area >= MAX_ROOM_REGIONS))
         quit("!SetRegionTint: invalid region");
 
     if ((red < 0) || (red > 255) || (green < 0) || (green > 255) ||
@@ -154,17 +157,15 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
     if ((luminance < 0) || (luminance > 100))
         quit("!SetRegionTint: luminance must be 0-100");
 
-    debug_script_log("Region %d tint set to %d,%d,%d", area, red, green, blue);
+    const int tint = (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24);
+    const int light = GfxDef::Value100ToValue250(luminance);
 
-    /*red -= 100;
-    green -= 100;
-    blue -= 100;*/
-
-    thisroom.Regions[area].Tint = (red & 0xFF) |
-        ((green & 0xFF) << 8) |
-        ((blue & 0XFF) << 16) |
-        ((amount & 0xFF) << 24);
-    thisroom.Regions[area].Light = GfxDef::Value100ToValue250(luminance);
+    if ((thisroom.Regions[area].Tint != tint) || (thisroom.Regions[area].Light != light))
+    {
+        thisroom.Regions[area].Tint = tint;
+        thisroom.Regions[area].Light = light;
+        debug_script_log("Region %d tint set to RGB %d,%d,%d, A %d, L %d", area, red, green, blue, amount, luminance);
+    }
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)

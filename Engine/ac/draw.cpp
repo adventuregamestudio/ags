@@ -1816,20 +1816,20 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level,
                          int tint_amount, int tint_red, int tint_green,
                          int tint_blue, int tint_light)
 {
-    objtx.Ddb->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
+    objtx.Ddb->SetTint(tint_red, tint_green, tint_blue, tint_amount);
 
     if (tint_amount > 0)
     {
         if (tint_light == 0)  // luminance of 0 -- pass 1 to enable
             objtx.Ddb->SetLightLevel(1);
-        else if (tint_light < 250)
+        else if (tint_light < 255)
             objtx.Ddb->SetLightLevel(tint_light);
         else
             objtx.Ddb->SetLightLevel(0);
     }
     else if (light_level != 0)
     {
-        objtx.Ddb->SetLightLevel(GfxDef::Value100ToValue250(light_level) + 256);
+        objtx.Ddb->SetLightLevel(light_level);
     }
     else
     {
@@ -1879,15 +1879,15 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level,
          // It's a light level, not a tint
          if (game.color_depth == 1) {
              // 256-col
-             lit_amnt = (250 - ((-light_level) * 5)/2);
+             lit_amnt = 255 + light_level;
          }
          else {
              // true-color
              if (light_level < 0)
-                 set_my_trans_blender(8,8,8,0);
+                 set_my_trans_blender(0,0,0,0);
              else
-                 set_my_trans_blender(248,248,248,0);
-             lit_amnt = abs(light_level) * 2;
+                 set_my_trans_blender(255,255,255,0);
+             lit_amnt = abs(light_level);
          }
 
          active_spr->LitBlendBlt(oldwas.get(), 0, 0, lit_amnt);
@@ -2316,21 +2316,20 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 
     // For performance reasons, we have a seperate blender for
     // when light is being adjusted and when it is not.
-    // If luminance >= 250, then normal brightness, otherwise darken
-    if (luminance >= 250)
+    // If luminance >= 255, then normal brightness, otherwise darken
+    if (luminance >= 255)
         set_blender_mode(nullptr, nullptr, _myblender_color32, red, grn, blu, 0);
     else
         set_blender_mode(nullptr, nullptr, _myblender_color32_light, red, grn, blu, 0);
 
-    if (light_level >= 100) {
+    if (light_level >= 255) {
         // fully colourised
         ds->FillTransparent();
         ds->LitBlendBlt(srcimg, 0, 0, luminance);
     }
     else {
-        // light_level is between -100 and 100 normally; 0-100 in
+        // light_level is between -255 and 255 normally; 0-255 in
         // this case when it's a RGB tint
-        light_level = GfxDef::Value100ToValue250(light_level);
 
         // Copy the image to the new bitmap
         ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());

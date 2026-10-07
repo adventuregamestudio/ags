@@ -435,7 +435,6 @@ namespace AGS.Types
             _interactions.FromXml(node);
             ConvertOldInteractionEvents();
             _interactions.Schema = InteractionSchema.Instance;
-            ConvertOldTransparency();
         }
 
         private void ConvertOldInteractionEvents()
@@ -449,14 +448,6 @@ namespace AGS.Types
                 -1 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
                 5 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 6 /* Mode8 */, 7 /* Mode9 */
             });
-        }
-
-        private void ConvertOldTransparency()
-        {
-            if (_room.SavedXmlVersion >= new System.Version("4.00.00.34") )
-                return; // already on new format, do nothing
-
-            Opacity = 255 - (Transparency * 255) / 100;
         }
 
         public void ToXml(XmlTextWriter writer)

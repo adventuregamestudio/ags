@@ -3367,14 +3367,12 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		if (area->UseColourTint) 
 		{
             rs.Regions[i].Tint  = area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
-            rs.Regions[i].Light = (area->TintLuminance * 25) / 10;
+            rs.Regions[i].Light = area->TintLuminance;
 		}
 		else 
 		{
             rs.Regions[i].Tint = 0;
-			// NOTE: Region's light level value exposed in editor is always 100 units higher,
-			// for compatibility with older versions of the editor.
-			rs.Regions[i].Light = area->LightLevel - 100;
+			rs.Regions[i].Light = area->LightLevel;
 		}
 
         CompileCustomProperties(area->Properties, &rs.Regions[i].Properties);

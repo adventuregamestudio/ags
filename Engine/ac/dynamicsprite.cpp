@@ -250,7 +250,7 @@ void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight(), source->GetColorDepth()));
 
-    tint_image(new_pic.get(), source, red, green, blue, saturation, GfxDef::Value100ToValue250(luminance));
+    tint_image(new_pic.get(), source, red, green, blue, saturation, luminance);
 
     add_dynamic_sprite(sds->slot, std::move(new_pic));
 }

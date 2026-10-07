@@ -650,22 +650,22 @@ void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opaci
 
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Overlay.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Overlay.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
             red, green, blue, opacity, luminance);
         return;
     }
 
-    over->SetTint(red, green, blue, opacity, GfxDef::Value100ToValue250(luminance));
+    over->SetTint(red, green, blue, opacity, luminance);
 }
 
 void Overlay_SetLightLevel(ScriptOverlay *scover, int light_level)
 {
     auto *over = GetOverlayValidate("Overlay.SetLightLevel", scover);
     if (over)
-        over->SetLightLevel(Math::Clamp(light_level, -100, 100));
+        over->SetLightLevel(Math::Clamp(light_level, -255, 255));
 }
 
 void Overlay_RemoveTint(ScriptOverlay *scover)
@@ -720,7 +720,7 @@ int Overlay_GetTintSaturation(ScriptOverlay *scover)
 int Overlay_GetTintLuminance(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.TintLuminance", scover);
-    return over ? (over->HasTint() ? GfxDef::Value250ToValue100(over->GetTintLight()) : 0) : 0;
+    return over ? (over->HasTint() ? over->GetTintLight() : 0) : 0;
 }
 
 //=============================================================================

@@ -2270,8 +2270,12 @@ builtin managed struct ListBox extends GUIControl {
   /// Gets/sets regular list item's text color
   import attribute int  TextColor;
   /// Gets/sets the colour of the list item text's outline (used if the item's font has outline).
-  import attribute int    TextOutlineColor;
+  import attribute int  TextOutlineColor;
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Gets a list's row height in pixels. This depends on the list's text font and extra item padding.
+  import readonly attribute int RowHeight;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct GUI {

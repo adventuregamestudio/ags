@@ -3233,10 +3233,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
         area->ScriptName = TextHelper::ConvertASCII(rs.Regions[i].ScriptName);
-		// NOTE: Region's light level value exposed in editor is always 100 units higher,
-		// for compatibility with older versions of the editor.
-		// TODO: probably we could remove this behavior? Need to consider possible compat mode
-		area->LightLevel = rs.GetRegionLightLevel(i) + 100;
+		area->LightLevel = rs.GetRegionLightLevel(i);
 		area->UseColourTint = rs.HasRegionTint(i);
 		area->BlueTint = (rs.Regions[i].Tint >> 16) & 0x00ff;
 		area->GreenTint = (rs.Regions[i].Tint >> 8) & 0x00ff;
@@ -3369,14 +3366,12 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		if (area->UseColourTint) 
 		{
             rs.Regions[i].Tint  = area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
-            rs.Regions[i].Light = (area->TintLuminance * 25) / 10;
+            rs.Regions[i].Light = area->TintLuminance;
 		}
 		else 
 		{
             rs.Regions[i].Tint = 0;
-			// NOTE: Region's light level value exposed in editor is always 100 units higher,
-			// for compatibility with older versions of the editor.
-			rs.Regions[i].Light = area->LightLevel - 100;
+			rs.Regions[i].Light = area->LightLevel;
 		}
 
         CompileCustomProperties(area->Properties, &rs.Regions[i].Properties);

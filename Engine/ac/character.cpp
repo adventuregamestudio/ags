@@ -991,7 +991,7 @@ int Character_GetLightLevel(CharacterInfo *ch)
 
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
-    light_level = Math::Clamp(light_level, -100, 100);
+    light_level = Math::Clamp(light_level, -255, 255);
 
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;
@@ -1020,7 +1020,7 @@ int Character_GetTintSaturation(CharacterInfo *ch)
 
 int Character_GetTintLuminance(CharacterInfo *ch)
 {
-    return ch->has_explicit_tint() ? GfxDef::Value250ToValue100(charextra[ch->index_id].tint_light) : 0;
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_light : 0;
 }
 
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
@@ -1130,10 +1130,10 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
             red, green, blue, opacity, luminance);
         return;
     }
@@ -1144,7 +1144,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     charextra[chaa->index_id].tint_g = green;
     charextra[chaa->index_id].tint_b = blue;
     charextra[chaa->index_id].tint_level = opacity;
-    charextra[chaa->index_id].tint_light = GfxDef::Value100ToValue250(luminance);
+    charextra[chaa->index_id].tint_light = luminance;
     chaa->flags &= ~CHF_HASLIGHT;
     chaa->flags |= CHF_HASTINT;
 }

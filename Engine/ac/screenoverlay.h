@@ -264,7 +264,7 @@ private:
     uint8_t _tintG = 0u;
     uint8_t _tintB = 0u;
     uint8_t _tintLevel = 0u;
-    int _tintLight = 0; // -100 to 100 (comply to objects and characters)
+    int _tintLight = 0; // -255 to 255 (comply to objects and characters)
     Common::BlendMode _blendMode = Common::kBlend_Normal;
     // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;

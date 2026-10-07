@@ -246,10 +246,10 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
 
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
                           red, green, blue, opacity, luminance);
         return;
     }
@@ -260,7 +260,7 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
     objs[obj].tint_g = green;
     objs[obj].tint_b = blue;
     objs[obj].tint_level = opacity;
-    objs[obj].tint_light = GfxDef::Value100ToValue250(luminance);
+    objs[obj].tint_light = luminance;
     objs[obj].flags &= ~OBJF_HASLIGHT;
     objs[obj].flags |= OBJF_HASTINT;
 }
@@ -695,7 +695,7 @@ int Object_GetTintLuminance(ScriptObject *obj)
 {
     if (!AssertObject("Object.TintLuminance", obj->id))
         return 0;
-    return objs[obj->id].has_explicit_tint() ? GfxDef::Value250ToValue100(objs[obj->id].tint_light) : 0;
+    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_light : 0;
 }
 
 void SetObjectPosition(int objj, int tox, int toy) {

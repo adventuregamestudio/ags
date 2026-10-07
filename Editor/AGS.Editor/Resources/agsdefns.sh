@@ -1468,11 +1468,11 @@ builtin managed struct Overlay {
   import Point*[] GetGraphicBoundBox();
   /// Removes an existing colour tint or light level from this overlay.
   import void RemoveTint();
-  /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the light level for this overlay, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Sets this overlay's horizontal and vertical scaling
   import void SetScale(float x, float y);
-  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
 
   /// Gets/sets whether overlay should resize itself whenever its graphic changes.
@@ -1590,7 +1590,7 @@ builtin managed struct DynamicSprite {
   import void Rotate(int angle, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
   /// Saves the sprite to a image file of any supported format.
   import int  SaveToFile(const string filename);
-  /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets the colour depth of this sprite, in bits per pixel (8, 16, 32).
   readonly import attribute int ColorDepth;
@@ -1615,7 +1615,7 @@ import void SetPalRGB(int slot, int r, int g, int b);
 import void UpdatePalette();
 /// Tints the whole screen to the specified colour. RGB values must be in 0-255 range.
 import void TintScreen (int red, int green, int blue);
-/// Sets an ambient tint that affects all objects and characters in the room. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+/// Sets an ambient tint that affects all objects and characters in the room. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
 import void SetAmbientTint(int red, int green, int blue, int saturation, int luminance);
 /// Returns a random number between 0 and MAX, inclusive.
 import int  Random(int max);
@@ -1648,7 +1648,7 @@ import void PlayVideo(const string filename, VideoSkipStyle, VideoPlayStyle styl
 /// Plays a video file of any supported format.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 #endif // !SCRIPT_API_v363
-/// Sets an ambient light level that affects all objects and characters in the room.
+/// Sets an ambient light level that affects all objects and characters in the room, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
 import void SetAmbientLightLevel(int light_level);
 #ifdef SCRIPT_API_v362
 /// Gets the baseline of the specified walk-behind area.
@@ -2291,13 +2291,13 @@ builtin managed struct Region {
 #endif // SCRIPT_API_v400
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
-  /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
-  import void Tint(int red, int green, int blue, int amount, int luminance = 100);
+  /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
+  import void Tint(int red, int green, int blue, int amount, int luminance = 255);
   /// Gets/sets whether this region is enabled.
   import attribute bool Enabled;
   /// Gets the ID number for this region.
   readonly import attribute int ID;
-  /// Gets/sets the light level for this region. Valid values are from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Gets/sets the light level for this region. Valid values are from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import attribute int  LightLevel;
   /// Gets whether a colour tint is set for this region.
   readonly import attribute bool TintEnabled;
@@ -2850,7 +2850,7 @@ builtin managed struct Object {
   import void StopAnimating();
   /// Stops any currently running move on the object.
   import void StopMoving();
-  /// Tints the object to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the object to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets whether the object is currently animating.
   readonly import attribute bool Animating;
@@ -2894,7 +2894,7 @@ builtin managed struct Object {
   import attribute int  Y;
   /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
   import bool IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this object, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the individual light level for this object, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Sets an integer custom property for this object.
   import bool SetProperty(const string property, int value);
@@ -3100,7 +3100,7 @@ builtin managed struct Character {
   import void StopMoving();
   /// The specified text is displayed in a thought-bubble GUI.
   import void Think(__format const string message, ...);
-  /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Unlocks the view after an animation has finished.
   import void UnlockView(StopMovementStyle=eStopMoving);
@@ -3208,7 +3208,7 @@ builtin managed struct Character {
   import bool SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
   import bool IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this character, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the individual light level for this character, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Gets the X coordinate of the character's final moving destination; or current position if character is not moving.
   readonly import attribute int DestinationX;

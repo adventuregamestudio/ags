@@ -74,9 +74,9 @@ namespace AGS.Types
             set { _useTint = value; }
         }
 
-        [Description("Light level for this region (100 is normal)")]
+        [Description("Light level for this region (0 is normal)")]
         [Category("Lighting")]
-        [DefaultValue(100)]
+        [DefaultValue(0)]
         public int LightLevel
         {
             get { return _lightLevel; }

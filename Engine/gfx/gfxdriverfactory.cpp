@@ -26,7 +26,9 @@
 
 #if AGS_HAS_DIRECT3D
 #include "platform/windows/gfx/ali3dd3d.h"
+#include "platform/windows/gfx/ali3dd3d11.h"
 #include "gfx/gfxfilter_d3d.h"
+#include "gfx/gfxfilter_d3d11.h"
 #endif
 
 namespace AGS
@@ -39,6 +41,9 @@ void GetGfxDriverFactoryNames(StringV &ids)
 #if AGS_HAS_DIRECT3D
     ids.push_back("D3D9");
 #endif
+#if AGS_HAS_DIRECT3D11
+    ids.push_back("D3D11");
+#endif
 #if AGS_HAS_OPENGL
     ids.push_back("OGL");
 #endif
@@ -50,6 +55,10 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
 #if AGS_HAS_DIRECT3D
     if (id.CompareNoCase("D3D9") == 0)
         return D3D::D3DGraphicsFactory::GetFactory();
+#endif
+#if AGS_HAS_DIRECT3D11
+    if (id.CompareNoCase("D3D11") == 0)
+        return D3D11::D3D11GraphicsFactory::GetFactory();
 #endif
 #if AGS_HAS_OPENGL
     if (id.CompareNoCase("OGL") == 0)

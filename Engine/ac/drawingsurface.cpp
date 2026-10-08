@@ -280,31 +280,114 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
     sds->FinishedDrawing();
 }
 
+void DrawingSurface_DrawArc(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawArc");
+    if (ds)
+    {
+        ds->DrawArc(x, y, radius, angle1, angle2, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
 void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radius)
 {
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawCircle");
-    if (!ds)
-        return;
-    ds->FillCircle(Circle(x, y, radius), sds->GetRealDrawingColor());
-    sds->FinishedDrawingWithBrush();
+    if (ds)
+    {
+        ds->FillCircle(Circle(x, y, radius), sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawCircleOutline(ScriptDrawingSurface *sds, int x, int y, int radius)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawCircleOutline");
+    if (ds)
+    {
+        ds->DrawCircle(Circle(x, y, radius), sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawEllipse(ScriptDrawingSurface *sds, int x, int y, int radiusx, int radiusy)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawEllipse");
+    if (ds)
+    {
+        ds->FillEllipse(x, y, radiusx, radiusy, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawEllipseOutline(ScriptDrawingSurface *sds, int x, int y, int radiusx, int radiusy)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawEllipseOutline");
+    if (ds)
+    {
+        ds->DrawEllipse(x, y, radiusx, radiusy, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawPie(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawPie");
+    if (ds)
+    {
+        ds->FillPie(x, y, radius, angle1, angle2, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawPieOutline(ScriptDrawingSurface *sds, int x, int y, int radius, int angle1, int angle2)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawPieOutline");
+    if (ds)
+    {
+        ds->DrawPie(x, y, radius, angle1, angle2, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
 }
 
 void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 {
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawRectangle");
-    if (!ds)
-        return;
-    ds->FillRect(Rect(x1,y1,x2,y2), sds->GetRealDrawingColor());
-    sds->FinishedDrawingWithBrush();
+    if (ds)
+    {
+        ds->FillRect(Rect(x1,y1,x2,y2), sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawRectangleOutline(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawRectangleOutline");
+    if (ds)
+    {
+        ds->DrawRect(Rect(x1,y1,x2,y2), sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
 }
 
 void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
 {
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawTriangle");
-    if (!ds)
-        return;
-    ds->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->GetRealDrawingColor());
-    sds->FinishedDrawingWithBrush();
+    if (ds)
+    {
+        ds->FillTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
+}
+
+void DrawingSurface_DrawTriangleOutline(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.DrawTriangleOutline");
+    if (ds)
+    {
+        ds->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->GetRealDrawingColor());
+        sds->FinishedDrawing();
+    }
 }
 
 void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
@@ -374,7 +457,17 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y)
     {
         ds->PutPixel(x, y, sds->GetRealDrawingColor());
     }
-    sds->FinishedDrawing();
+    sds->FinishedDrawingWithBrush();
+}
+
+void DrawingSurface_FloodFill(ScriptDrawingSurface *sds, int x, int y)
+{
+    Bitmap *ds = AssertBitmapSurface(sds->StartDrawingWithBrush(), "DrawingSurface.FloodFill");
+    if (ds)
+    {
+        ds->FloodFill(x, y, sds->GetRealDrawingColor());
+        sds->FinishedDrawingWithBrush();
+    }
 }
 
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y)
@@ -495,10 +588,29 @@ RuntimeScriptValue Sc_DrawingSurface_CreateCopy(void *self, const RuntimeScriptV
     API_OBJCALL_OBJAUTO(ScriptDrawingSurface, ScriptDrawingSurface, DrawingSurface_CreateCopy);
 }
 
-// void (ScriptDrawingSurface *sds, int x, int y, int radius)
+RuntimeScriptValue Sc_DrawingSurface_DrawArc(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawArc);
+}
+
 RuntimeScriptValue Sc_DrawingSurface_DrawCircle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_DrawCircle);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawCircleOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_DrawCircleOutline);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawEllipse(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(ScriptDrawingSurface, DrawingSurface_DrawEllipse);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawEllipseOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(ScriptDrawingSurface, DrawingSurface_DrawEllipseOutline);
 }
 
 RuntimeScriptValue Sc_DrawingSurface_DrawImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -526,16 +638,30 @@ RuntimeScriptValue Sc_DrawingSurface_DrawLine(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawLine);
 }
 
+RuntimeScriptValue Sc_DrawingSurface_DrawPie(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawPie);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawPieOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawPieOutline);
+}
+
 // void (ScriptDrawingSurface *sds, int x, int y)
 RuntimeScriptValue Sc_DrawingSurface_DrawPixel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT2(ScriptDrawingSurface, DrawingSurface_DrawPixel);
 }
 
-// void (ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 RuntimeScriptValue Sc_DrawingSurface_DrawRectangle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT4(ScriptDrawingSurface, DrawingSurface_DrawRectangle);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawRectangleOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(ScriptDrawingSurface, DrawingSurface_DrawRectangleOutline);
 }
 
 // void (ScriptDrawingSurface *sds, int xx, int yy, int font, const char* texx, ...)
@@ -572,10 +698,19 @@ RuntimeScriptValue Sc_DrawingSurface_BlendSurface(void *self, const RuntimeScrip
     return RuntimeScriptValue((int32_t)0);
 }
 
-// void (ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
 RuntimeScriptValue Sc_DrawingSurface_DrawTriangle(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT6(ScriptDrawingSurface, DrawingSurface_DrawTriangle);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_DrawTriangleOutline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT6(ScriptDrawingSurface, DrawingSurface_DrawTriangleOutline);
+}
+
+RuntimeScriptValue Sc_DrawingSurface_FloodFill(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(ScriptDrawingSurface, DrawingSurface_FloodFill);
 }
 
 // int (ScriptDrawingSurface *sds, int x, int y)
@@ -682,17 +817,26 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /
     ScFnRegister drawsurf_api[] = {
         { "DrawingSurface::Clear^1",              API_FN_PAIR(DrawingSurface_Clear) },
         { "DrawingSurface::CreateCopy^0",         API_FN_PAIR(DrawingSurface_CreateCopy) },
+        { "DrawingSurface::DrawArc^5",            API_FN_PAIR(DrawingSurface_DrawArc) },
         { "DrawingSurface::DrawCircle^3",         API_FN_PAIR(DrawingSurface_DrawCircle) },
+        { "DrawingSurface::DrawCircleOutline^3",  API_FN_PAIR(DrawingSurface_DrawCircleOutline) },
+        { "DrawingSurface::DrawEllipse^4",        API_FN_PAIR(DrawingSurface_DrawEllipse) },
+        { "DrawingSurface::DrawEllipseOutline^4", API_FN_PAIR(DrawingSurface_DrawEllipseOutline) },
         { "DrawingSurface::DrawImage^10",         API_FN_PAIR(DrawingSurface_DrawImage) },
         { "DrawingSurface::DrawLine^5",           API_FN_PAIR(DrawingSurface_DrawLine) },
+        { "DrawingSurface::DrawPie^5",            API_FN_PAIR(DrawingSurface_DrawPie) },
+        { "DrawingSurface::DrawPieOutline^5",     API_FN_PAIR(DrawingSurface_DrawPieOutline) },
+        { "DrawingSurface::DrawPixel^2",          API_FN_PAIR(DrawingSurface_DrawPixel) },
+        { "DrawingSurface::DrawRectangle^4",      API_FN_PAIR(DrawingSurface_DrawRectangle) },
+        { "DrawingSurface::DrawRectangleOutline^4", API_FN_PAIR(DrawingSurface_DrawRectangleOutline) },
+        { "DrawingSurface::DrawString^104",       Sc_DrawingSurface_DrawString, ScPl_DrawingSurface_DrawString },
         // old non-variadic and new variadic variants
         { "DrawingSurface::DrawStringWrapped^6",  API_FN_PAIR(DrawingSurface_DrawStringWrapped) },
         { "DrawingSurface::DrawStringWrapped^106", Sc_DrawingSurface_DrawStringWrapped, ScPl_DrawingSurface_DrawStringWrapped },
-        { "DrawingSurface::DrawPixel^2",          API_FN_PAIR(DrawingSurface_DrawPixel) },
-        { "DrawingSurface::DrawRectangle^4",      API_FN_PAIR(DrawingSurface_DrawRectangle) },
-        { "DrawingSurface::DrawString^104",       Sc_DrawingSurface_DrawString, ScPl_DrawingSurface_DrawString },
         { "DrawingSurface::DrawSurface^10",       API_FN_PAIR(DrawingSurface_DrawSurface) },
         { "DrawingSurface::DrawTriangle^6",       API_FN_PAIR(DrawingSurface_DrawTriangle) },
+        { "DrawingSurface::DrawTriangleOutline^6", API_FN_PAIR(DrawingSurface_DrawTriangleOutline) },
+        { "DrawingSurface::FloodFill^2",          API_FN_PAIR(DrawingSurface_FloodFill) },
         { "DrawingSurface::GetPixel^2",           API_FN_PAIR(DrawingSurface_GetPixel) },
         { "DrawingSurface::GetPixelsCopy^4",      API_FN_PAIR(DrawingSurface_GetPixelsCopy) },
         { "DrawingSurface::GetPixelsCopy32^4",    API_FN_PAIR(DrawingSurface_GetPixelsCopy32) },

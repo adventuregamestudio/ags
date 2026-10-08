@@ -247,8 +247,11 @@ enum ScriptTurnOrderPriority
 // Determines which of the key and text input events are claimed by the active TextBox control
 enum ScriptTextBoxClaimStyle
 {
-    kScTextBoxClaim_All             = 0, // historically is default
+    // Any text char, any key code from 32 to 255, Enter/Return and Backspace
+    kScTextBoxClaim_Classic         = 0,
+    // Only keys that text box handles itself
     kScTextBoxClaim_Handled         = 1,
+    // Only text chars that text box handles itself
     kScTextBoxClaim_TextOnly        = 2,
 };
 

@@ -1827,13 +1827,9 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level,
         else
             objtx.Ddb->SetLightLevel(0);
     }
-    else if (light_level != 0)
-    {
-        objtx.Ddb->SetLightLevel(light_level);
-    }
     else
     {
-        objtx.Ddb->SetLightLevel(0);
+        objtx.Ddb->SetLightLevel(light_level);
     }
 }
 

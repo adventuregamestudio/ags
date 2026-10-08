@@ -595,8 +595,11 @@ enum TurnOrderPriority
 // Determines which of the key and text input events are claimed by the active TextBox control
 enum TextBoxKeyClaimStyle
 {
-  eTextBoxKeyClaimAll          = 0,
+  /// Any text char, any key code from 32 to 255, Enter/Return and Backspace
+  eTextBoxKeyClaimClassic      = 0,
+  /// Only keys that text box handles itself
   eTextBoxKeyClaimHandled      = 1,
+  /// Only text chars that text box handles itself
   eTextBoxKeyClaimTextOnly     = 2
 };
 

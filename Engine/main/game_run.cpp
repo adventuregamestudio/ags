@@ -732,8 +732,11 @@ static void check_keyboard_controls()
             {
             case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
             case kScTextBoxClaim_TextOnly: keywasprocessed |= (ki.UChar > 0); break;
-            case kScTextBoxClaim_All:
-            default: keywasprocessed = true; break;
+            case kScTextBoxClaim_Classic:
+            default:
+                keywasprocessed = (ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
+                    (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace);
+                break;
             }
 
             if (guitex->IsActivated())

@@ -77,6 +77,11 @@ int GetObjectIDAtScreen2(int scrx, int scry)
 int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
 {
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
+    // Prior to 2.62 walk-behinds let click through onto the objects and characters behind them.
+    // Because of how cached sprites are cropped by walk-behinds in software render mode,
+    // we cannot use them in hit-tests in pre-2.62 games.
+    const bool click_through_wb = (loaded_game_file_version < kGameVersion_262);
+
     int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (uint32_t aa=0;aa<croom->numobj;aa++) {
@@ -91,7 +96,7 @@ int GetObjectIDAtRoom(int roomx, int roomy, int hit_options)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
         bool is_original;
-        Bitmap *theImage = GetObjectImage(aa, &is_original);
+        Bitmap *theImage = GetObjectImage(aa, click_through_wb, &is_original);
         if (!is_original)
             isflipped = 0; // transformed image is already flipped
 
@@ -588,14 +593,18 @@ void GetObjectPropertyText (int item, const char *property, char *bufer)
     get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
 }
 
-Bitmap *GetObjectImage(int obj, bool *is_original)
+Bitmap *GetObjectImage(int obj, bool always_original, bool *is_original)
 {
-    // NOTE: the cached image will only be present in software render mode
-    Bitmap *actsp = get_cached_object_image(obj);
-    if (is_original)
-        *is_original = !actsp; // no cached means we use original sprite
-    if (actsp)
-        return actsp;
+    Bitmap *pic = nullptr;
+    if (!always_original)
+    {
+        // NOTE: the cached image will only be present in software render mode
+        pic = get_cached_object_image(obj);
+    }
 
-    return spriteset[objs[obj].num];
+    if (is_original)
+        *is_original = pic == nullptr; // if not used cached image, then use original
+    if (!pic)
+        pic = spriteset[objs[obj].num];
+    return pic;
 }

@@ -1,22 +1,17 @@
-using AGS.Editor.Components;
 using AGS.Editor.TextProcessing;
 using AGS.Types;
 using AGS.Types.AutoComplete;
-using AGS.Types.Interfaces;
 using AGS.Controls;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using System.IO;
 
 namespace AGS.Editor
 {
     public partial class ScriptEditor : ScriptEditorBase, IScriptEditor
     {
-        public event EventHandler IsModifiedChanged;
-        public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
-        public static event AttemptToEditScriptHandler AttemptToEditScript;
-
         // Custom Edit menu commands
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
@@ -25,7 +20,6 @@ namespace AGS.Editor
         private const string TOGGLE_WORD_WRAP = "ToggleWordWrap";
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
-        private readonly FileWatcher _fileWatcher;
         private Script _script;
         private Room _room;
         private int _roomNumber;
@@ -38,6 +32,8 @@ namespace AGS.Editor
         private bool _allowZoomToFunction = true;
 
         // we need this bool because it's not necessarily the same as scintilla.Modified
+        // TODO: find out how is this used exactly and add elaborate comment!
+        // the related code seems convoluted, and may benefit from refactor/redesign
         private bool _editorTextModifiedSinceLastCopy = false;
         private int _firstVisibleLine;
 
@@ -47,7 +43,6 @@ namespace AGS.Editor
             : base(agsEditor)
         {
             InitializeComponent();
-            _fileWatcher = new FileWatcher(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
 
             _agsEditor = agsEditor;
             _showMatchingScript = showMatchingScript;
@@ -57,30 +52,30 @@ namespace AGS.Editor
 
             this.Load += ScriptEditor_Load;
             this.Resize += ScriptEditor_Resize;
+            this.ScriptChangedExternally += OnFileChangedExternally;
         }
 
-        public string GetScriptTabName()
+        public override string GetScriptTabName()
         {
             if (_roomNumber >= 0)
             {
                 UnloadedRoom room = Factory.AGSEditor.CurrentGame.FindRoomByID(_roomNumber);
                 if(room != null && room.Number == _roomNumber && !string.IsNullOrEmpty(room.Description))
                 {
-                    return Script.FileNameWithoutPath + (IsModified ? " *" : "") + ": " + room.Description;
+                    return Path.GetFileName(Script.FileName) + (IsModified ? " *" : "") + ": " + room.Description;
                 }
             }
-            return Script.FileNameWithoutPath + (IsModified ? " *" : "");
+            return Path.GetFileName(Script.FileName) + (IsModified ? " *" : "");
         }
 
         private void Init(Script scriptToEdit)
         {
+            Script = scriptToEdit;
+
+            InitScintilla();
+
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
             AutoComplete.BackgroundCacheUpdateStatusChanged += _autocompleteUpdateHandler;
-
-            Script = scriptToEdit;
-            // Also give script reference to the base class
-            base.Script = scriptToEdit;
-            InitScintilla();
         }
 
         private void ScriptEditor_Load(object sender, EventArgs e)
@@ -106,28 +101,23 @@ namespace AGS.Editor
             }
         }
 
-        public void InitScintilla()
+        private void InitScintilla()
         {
             scintilla.EnableLineNumbers();
 
             scintilla.SetWrapMode(_lastWordWrap ? ScintillaNET.WrapMode.Word : ScintillaNET.WrapMode.None);
 
-            scintilla.IsModifiedChanged += scintilla_IsModifiedChanged;
-            scintilla.AttemptModify += scintilla_AttemptModify;
             scintilla.UpdateUI += scintilla_UpdateUI;
             scintilla.OnBeforeShowingAutoComplete += scintilla_OnBeforeShowingAutoComplete;
             scintilla.TextModified += scintilla_TextModified;
             scintilla.ToggleBreakpoint += scintilla_ToggleBreakpoint;
 
-            if (!this.Script.IsHeader)
-            {
-                scintilla.SetAutoCompleteSource(Script);
-            }
-
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             // pressing ( [ or . will auto-complete
             scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
 
+            if (Script != null)
+                scintilla.SetAutoCompleteSource(Script.IsHeader ? null : Script);
             // Scripts may miss autocomplete cache when they are first opened, so update
             UpdateAutocompleteAndControls(true);
 
@@ -168,13 +158,6 @@ namespace AGS.Editor
             ToggleBreakpoint(e.LineNumber);
         }
 
-
-        protected override void OnDispose()
-        {
-            _fileWatcher.Dispose();
-            base.OnDispose();
-        }
-
         private void ScriptEditor_Resize(object sender, EventArgs e)
         {
             if (this.ClientSize.Width > 50)
@@ -183,7 +166,7 @@ namespace AGS.Editor
             }
         }
 
-        private void OnFileChangedExternally()
+        private void OnFileChangedExternally(object sender, EventArgs args)
         {
             _script.LoadFromDisk();
             scintilla.SetText(_script.Text);
@@ -367,19 +350,13 @@ namespace AGS.Editor
             set
             {
                 _script = value;
-                scintilla.SetText(_script.Text);
                 _editorTextModifiedSinceLastCopy = false;
+                // Also give script reference to the base class; FIXME: ugly
+                base.Script = value;
+                // TODO: move SetAutoCompleteSource to ScriptEditorBase?
+                if (scintilla != null)
+                    scintilla.SetAutoCompleteSource(Script.IsHeader ? null : Script);
             }
-        }
-
-        public void ScriptModifiedExternally()
-        {
-            scintilla.ModifyText(_script.Text);
-        }
-
-        public bool IsModified
-        {
-            get { return scintilla.IsModified; }
         }
 
         public Room Room
@@ -410,7 +387,7 @@ namespace AGS.Editor
             _editorTextModifiedSinceLastCopy = false;
         }
 
-        public void SaveChanges()
+        public override void SaveChanges()
         {
             if (_editorTextModifiedSinceLastCopy)
             {
@@ -419,9 +396,9 @@ namespace AGS.Editor
 
             if (!scintilla.IsDisposed && scintilla.IsModified)
             {
-                _fileWatcher.Enabled = false;
+                BeforeSave();
                 _script.SaveToDisk();
-                _fileWatcher.Enabled = true;
+                AfterSave();
 
                 scintilla.SetSavePoint();
                 UpdateAutocompleteAndControls(true);
@@ -591,11 +568,11 @@ namespace AGS.Editor
                 }
                 else if (answer == DialogResult.Yes)
                 {
-                    DisconnectEventHandlers();
+                    UnregisterEvents();
                     SaveChanges();
                     return;
                 }
-                else if (System.IO.File.Exists(_script.FileName))
+                else if (File.Exists(_script.FileName))
                 {
                     // Revert back to saved version
                     _script.LoadFromDisk();
@@ -604,37 +581,17 @@ namespace AGS.Editor
 
             if (!cancelClose)
             {
-                DisconnectEventHandlers();
+                UnregisterEvents();
             }
         }
 
-        private void DisconnectEventHandlers()
+        protected override void RegisterEvents()
+        {
+        }
+
+        protected override void UnregisterEvents()
         {
             AutoComplete.BackgroundCacheUpdateStatusChanged -= _autocompleteUpdateHandler;
-        }
-
-        private void scintilla_IsModifiedChanged(object sender, EventArgs e)
-        {
-            if (IsModifiedChanged != null)
-            {
-                IsModifiedChanged(this, e);
-            }
-        }
-
-        private void scintilla_AttemptModify(ref bool allowModify)
-        {
-            if (AttemptToEditScript != null)
-            {
-                AttemptToEditScript(ref allowModify);
-                if (!allowModify)
-                {
-                    return;
-                }
-            }
-            if (!_agsEditor.AttemptToGetWriteAccess(_script.FileName))
-            {
-                allowModify = false;
-            }
         }
 
         private void scintilla_UpdateUI(object sender, EventArgs e)

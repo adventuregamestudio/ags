@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Xml;
-using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
 
 namespace AGS.Types
@@ -85,9 +83,6 @@ namespace AGS.Types
             get { return _fileName; }
             set { _fileName = value; }
         }
-
-        [Browsable(false)]
-        public string FileNameWithoutPath => Path.GetFileName(FileName);
 
         [Category("Module information")]
         [Description("Friendly name of this script")]

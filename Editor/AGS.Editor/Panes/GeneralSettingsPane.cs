@@ -120,7 +120,7 @@ namespace AGS.Editor
             {
                 // Force rebuild all dialog scripts
                 foreach (Dialog d in Factory.AGSEditor.CurrentGame.Dialogs)
-                    d.ScriptChangedSinceLastConverted = true;
+                    d.Script.Modified = true;
             }
         }
 

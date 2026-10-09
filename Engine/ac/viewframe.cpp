@@ -135,15 +135,15 @@ int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
     // We view the audio property relation as the relation of the entities:
     // system -> audio type -> audio emitter (object, character) -> animation's audio
     // therefore the sound volume is a multiplication of factors.
-    int frame_vol = 100; // default to full volume
+    int frame_vol = 255; // default to full volume
     // Object's animation volume property
-    frame_vol = frame_vol * obj_vol / 100;
+    frame_vol = frame_vol * obj_vol / 255;
     // Active animation volume
-    frame_vol = frame_vol * anim_vol / 100;
+    frame_vol = frame_vol * anim_vol / 255;
     // Zoom volume scaling (optional)
     // NOTE: historically scales only in 0-100 range :/
-    scale = Math::Clamp(scale, 0, 100);
-    frame_vol = frame_vol * scale / 100;
+    scale = Math::Clamp(scale, 0, 255);
+    frame_vol = frame_vol * scale / 255;
     return frame_vol;
 }
 
@@ -159,7 +159,7 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
         auto *ch = AudioChans::GetChannel(channel->id);
         if (ch)
         {
-            ch->set_volume100(ch->get_volume100() * Math::Clamp(sound_volume, 0, 100) / 100);
+            ch->set_volume255(ch->get_volume255() * Math::Clamp(sound_volume, 0, 255) / 255);
             ch->set_panning(sound_pan);
             ch->set_speed(sound_speed);
         }

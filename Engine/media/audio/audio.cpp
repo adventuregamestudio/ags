@@ -130,7 +130,7 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
 
     play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
     play.crossfade_step = 0;
-    play.crossfade_initial_volume_out = cfade_clip->get_volume100();
+    play.crossfade_initial_volume_out = cfade_clip->get_volume255();
     play.crossfade_out_volume_per_step = crossfadeSpeed;
 
     play.crossfading_in_channel = fadeInChannel;
@@ -244,7 +244,7 @@ std::unique_ptr<SoundClip> load_sound_clip(const AudioPlayback &aplay, bool repe
     std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, ext, repeat);
     if (soundClip != nullptr)
     {
-        soundClip->set_volume100(get_playback_start_volume(aplay));
+        soundClip->set_volume255(get_playback_start_volume(aplay));
         soundClip->sourceClipID = audioClip->id;
         soundClip->sourceClipType = aplay.AudioType;
         soundClip->fileName = asset_name.Name;
@@ -259,7 +259,7 @@ std::unique_ptr<SoundClip> load_sound_clip(const String &filename, uint8_t bundl
     std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, nullptr, repeat);
     if (soundClip != nullptr)
     {
-        soundClip->set_volume100(100);
+        soundClip->set_volume255(255);
         soundClip->fileName = asset_name.Name;
         soundClip->bundlingType = bundleType;
     }
@@ -283,10 +283,10 @@ static void audio_update_polled_stuff()
     if (play.crossfading_out_channel > 0)
     {
         SoundClip* ch = AudioChans::GetChannel(play.crossfading_out_channel);
-        int newVolume = ch ? ch->get_volume100() - play.crossfade_out_volume_per_step : 0;
+        int newVolume = ch ? ch->get_volume255() - play.crossfade_out_volume_per_step : 0;
         if (newVolume > 0)
         {
-            ch->set_volume100(newVolume);
+            ch->set_volume255(newVolume);
         }
         else
         {
@@ -301,13 +301,13 @@ static void audio_update_polled_stuff()
     if (play.crossfading_in_channel > 0)
     {
         SoundClip* ch = AudioChans::GetChannel(play.crossfading_in_channel);
-        int newVolume = ch ? ch->get_volume100() + play.crossfade_in_volume_per_step : 0;
+        int newVolume = ch ? ch->get_volume255() + play.crossfade_in_volume_per_step : 0;
         if (newVolume > play.crossfade_final_volume_in)
         {
             newVolume = play.crossfade_final_volume_in;
         }
 
-        ch->set_volume100(newVolume);
+        ch->set_volume255(newVolume);
 
         if (newVolume >= play.crossfade_final_volume_in)
         {
@@ -405,7 +405,7 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlayback &aplay, int chann
 
     if (play.crossfading_in_channel == channel)
     {
-        soundfx->set_volume100(0);
+        soundfx->set_volume255(0);
     }
 
     // Mute the audio clip if fast-forwarding the cutscene
@@ -421,7 +421,7 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlayback &aplay, int chann
         // channel for this audio type? It does not even check if
         // anything of this type is currently playing.
         if (game.audioClipTypes[aplay.AudioType].reservedChannels != 1)
-            soundfx->set_volume100(0);
+            soundfx->set_volume255(0);
     }
 
     if (!soundfx->play_from(fromOffset))
@@ -481,7 +481,7 @@ void update_queued_clips_volume(int audioType, int new_vol)
         {
             const ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
             if (clip->type == audioType)
-                sndclip->set_volume100(new_vol);
+                sndclip->set_volume255(new_vol);
         }
     }
 }

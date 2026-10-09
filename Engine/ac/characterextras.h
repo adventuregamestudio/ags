@@ -84,8 +84,8 @@ public:
     char  slow_move_counter = 0;
     ViewAnimateParams anim;
     short animwait = 0; // current ticks counter, before advancing a animation
-    int   audio_volume = 100; // default animation volume (relative factor)
-    int   cur_audio_volume = 100; // current animation sound volume (relative factor)
+    int   audio_volume = 255; // default animation volume (relative factor)
+    int   cur_audio_volume = 255; // current animation sound volume (relative factor)
     int   audio_panning = 0;
     int   audio_speed = 1000;
     int   following = -1; // whom do we follow (character id)
@@ -123,7 +123,7 @@ public:
     // NOTE: has to return non-const for CycleViewAnim :/
     // this may be solved by having a base class that handles animation, e.g. ViewBasedObject
     ViewAnimateParams &GetAnimParams() { return anim; }
-    void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 100);
+    void SetAnimating(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int anim_volume = 255);
     void ResetAnimating();
 
     // Get current effective graphic anchor, which may be either a freely assigned anchor

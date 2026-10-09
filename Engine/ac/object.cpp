@@ -241,10 +241,10 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
 
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Object.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
                           red, green, blue, opacity, luminance);
         return;
     }
@@ -255,7 +255,7 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
     objs[obj].tint_g = green;
     objs[obj].tint_b = blue;
     objs[obj].tint_level = opacity;
-    objs[obj].tint_light = GfxDef::Value100ToValue250(luminance);
+    objs[obj].tint_light = luminance;
     objs[obj].flags &= ~OBJF_HASLIGHT;
     objs[obj].flags |= OBJF_HASTINT;
 }
@@ -341,22 +341,22 @@ void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
-void SetObjectTransparency(int obn, int trans) {
-    if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
-    if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
+void SetObjectAlpha(int obn, int alpha) {
+    if (!is_valid_object(obn)) quit("Object.Opacity: invalid object number specified");
+    if ((alpha < 0) || (alpha > 255)) quit("Object.Opacity: alpha value must be between 0 and 255");
 
-    objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
+    objs[obn].opacity = alpha;
 }
 
-void Object_SetTransparency(ScriptObject *objj, int trans) {
-    SetObjectTransparency(objj->id, trans);
+void Object_SetOpacity(ScriptObject *objj, int alpha) {
+    SetObjectAlpha(objj->id, alpha);
 }
 
-int Object_GetTransparency(ScriptObject *objj) {
+int Object_GetOpacity(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
-        quit("!Object.Transparent: invalid object number specified");
+        quit("Object.Opacity: invalid object number specified");
 
-    return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
+    return objs[objj->id].opacity;
 }
 
 int Object_GetAudioPanning(ScriptObject *objj)
@@ -388,7 +388,7 @@ int Object_GetAudioVolume(ScriptObject *objj)
 void Object_SetAudioVolume(ScriptObject *objj, int newval)
 {
 
-    objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
+    objs[objj->id].audio_volume = Math::Clamp(newval, 0, 255);
 }
 
 void SetObjectBaseline(int obn, int basel) {
@@ -442,7 +442,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d",
                      obn, obj.view + 1, loopn, spdd, rept, sframe);
 
-    obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd, Math::Clamp(volume, 0, 100));
+    obj.set_animating(static_cast<AnimFlowStyle>(rept), static_cast<AnimFlowDirection>(direction), spdd, Math::Clamp(volume, 0, 255));
     obj.loop = (uint16_t)loopn;
     obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, static_cast<AnimFlowDirection>(direction));
     obj.wait = spdd + views[obj.view].loops[loopn].frames[obj.frame].speed;
@@ -463,11 +463,11 @@ void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
 }
 
 void Object_Animate5(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
-    Object_Animate(objj, loop, delay, repeat, blocking, direction, 0 /* frame */, 100 /* full volume */);
+    Object_Animate(objj, loop, delay, repeat, blocking, direction, 0 /* frame */, 255 /* full volume */);
 }
 
 void Object_Animate6(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
-    Object_Animate(objj, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Object_Animate(objj, loop, delay, repeat, blocking, direction, sframe, 255 /* full volume */);
 }
 
 void Object_StopAnimating(ScriptObject *objj) {
@@ -637,7 +637,7 @@ int Object_GetTintSaturation(ScriptObject *obj)
 
 int Object_GetTintLuminance(ScriptObject *obj)
 {
-    return objs[obj->id].has_explicit_tint() ? GfxDef::Value250ToValue100(objs[obj->id].tint_light) : 0;
+    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_light : 0;
 }
 
 void SetObjectPosition(int objj, int tox, int toy) {
@@ -1935,15 +1935,15 @@ RuntimeScriptValue Sc_Object_SetSolid(void *self, const RuntimeScriptValue *para
 }
 
 // int (ScriptObject *objj)
-RuntimeScriptValue Sc_Object_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetTransparency);
+    API_OBJCALL_INT(ScriptObject, Object_GetOpacity);
 }
 
-// void (ScriptObject *objj, int trans)
-RuntimeScriptValue Sc_Object_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// void (ScriptObject *objj, int alpha)
+RuntimeScriptValue Sc_Object_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency);
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetOpacity);
 }
 
 // int (ScriptObject *objj)
@@ -2196,8 +2196,8 @@ void RegisterObjectAPI()
         { "Object::get_ScriptName",           API_FN_PAIR(Object_GetScriptName) },
         { "Object::get_Solid",                API_FN_PAIR(Object_GetSolid) },
         { "Object::set_Solid",                API_FN_PAIR(Object_SetSolid) },
-        { "Object::get_Transparency",         API_FN_PAIR(Object_GetTransparency) },
-        { "Object::set_Transparency",         API_FN_PAIR(Object_SetTransparency) },
+        { "Object::get_Opacity",              API_FN_PAIR(Object_GetOpacity) },
+        { "Object::set_Opacity",              API_FN_PAIR(Object_SetOpacity) },
         { "Object::get_View",                 API_FN_PAIR(Object_GetView) },
         { "Object::get_Visible",              API_FN_PAIR(Object_GetVisible) },
         { "Object::set_Visible",              API_FN_PAIR(Object_SetVisible) },

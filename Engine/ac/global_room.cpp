@@ -43,9 +43,9 @@ extern RoomStruct thisroom;
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
-        quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
+        quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-255");
 
     debug_script_log("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
@@ -54,12 +54,12 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     play.rtint_green = green;
     play.rtint_blue = blue;
     play.rtint_level = opacity;
-    play.rtint_light = GfxDef::Value100ToValue250(luminance);
+    play.rtint_light = luminance;
 }
 
 void SetAmbientLightLevel(int light_level)
 {
-    light_level = Math::Clamp(light_level, -100, 100);
+    light_level = Math::Clamp(light_level, -255, 255);
 
     play.rtint_enabled = light_level != 0;
     play.rtint_level = 0;

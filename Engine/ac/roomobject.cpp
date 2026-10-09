@@ -39,7 +39,7 @@ extern RoomStruct thisroom;
 RoomObject::RoomObject()
 {
     x = y = 0;
-    transparent = 0;
+    opacity = 255;
     tint_r = tint_g = 0;
     tint_b = tint_level = 0;
     tint_light = 0;
@@ -161,7 +161,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
 {
     x = in->ReadInt32();
     y = in->ReadInt32();
-    transparent = in->ReadInt32();
+    opacity = in->ReadInt32();
     tint_r = in->ReadInt16();
     tint_g = in->ReadInt16();
     tint_b = in->ReadInt16();
@@ -198,7 +198,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         name = StrUtil::ReadString(in);
     }
 
-    int cur_audio_volume = 100;
+    int cur_audio_volume = 255;
     if (cmp_ver >= kRoomStatSvgVersion_36025)
     {
         // anim vols order inverted compared to character, by mistake :(
@@ -209,8 +209,8 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     }
     else
     {
-        cur_audio_volume = 100;
-        audio_volume = 100;
+        cur_audio_volume = 255;
+        audio_volume = 255;
         audio_panning = 0;
     }
 
@@ -341,7 +341,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(x);
     out->WriteInt32(y);
-    out->WriteInt32(transparent);
+    out->WriteInt32(opacity);
     out->WriteInt16(tint_r);
     out->WriteInt16(tint_g);
     out->WriteInt16(tint_b);

@@ -348,15 +348,15 @@ void GUIControl_SetTranslated(GUIControl *guio, bool is_translated)
     guio->SetTranslated(is_translated);
 }
 
-int GUIControl_GetTransparency(GUIControl *guio)
+int GUIControl_GetOpacity(GUIControl *guio)
 {
-    return GfxDef::LegacyTrans255ToTrans100(guio->GetTransparency());
+    return guio->GetOpacity();
 }
 
-void GUIControl_SetTransparency(GUIControl *guio, int trans) {
-    if ((trans < 0) | (trans > 100))
-        quit("!SetGUITransparency: transparency value must be between 0 and 100");
-    guio->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+void GUIControl_SetOpacity(GUIControl *guio, int alpha) {
+    if ((alpha < 0) | (alpha > 255))
+        quit("GUIControl.SetOpacity: alpha value must be between 0 and 255");
+    guio->SetOpacity(alpha);
 }
 
 int GUIControl_GetBlendMode(GUIControl *guio) {
@@ -670,14 +670,14 @@ RuntimeScriptValue Sc_GUIControl_SetTranslated(void *self, const RuntimeScriptVa
     API_OBJCALL_VOID_PBOOL(GUIControl, GUIControl_SetTranslated);
 }
 
-RuntimeScriptValue Sc_GUIControl_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUIControl_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIControl, GUIControl_GetTransparency);
+    API_OBJCALL_INT(GUIControl, GUIControl_GetOpacity);
 }
 
-RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUIControl_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetTransparency);
+    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetOpacity);
 }
 
 RuntimeScriptValue Sc_GUIControl_GetBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -845,8 +845,8 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
         { "GUIControl::get_Translated",   API_FN_PAIR(GUIControl_GetTranslated) },
         { "GUIControl::set_Translated",   API_FN_PAIR(GUIControl_SetTranslated) },
-        { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
-        { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
+        { "GUIControl::get_Opacity",      API_FN_PAIR(GUIControl_GetOpacity) },
+        { "GUIControl::set_Opacity",      API_FN_PAIR(GUIControl_SetOpacity) },
 
         { "GUIControl::get_BackgroundColor", API_FN_PAIR(GUIControl_GetBackgroundColor) },
         { "GUIControl::set_BackgroundColor", API_FN_PAIR(GUIControl_SetBackgroundColor) },

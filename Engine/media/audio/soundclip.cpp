@@ -27,7 +27,6 @@ SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop)
     bundlingType = kAudioBundle_Undefined;
     priority = 50;
     vol255 = 0;
-    vol100 = 0;
     volModifier = 0;
     xSource = -1;
     ySource = -1;

@@ -31,7 +31,7 @@ uint32_t _myblender_color32_light(uint32_t x, uint32_t y, uint32_t n)
     rgb_to_hsv(getr32(y), getg32(y), getb32(y), &yh, &ys, &yv);
 
     // adjust luminance
-    yv -= (1.0 - ((float)n / 250.0));
+    yv -= (1.0 - ((float)n / 255.0));
     if (yv < 0.0) yv = 0.0;
 
     hsv_to_rgb(xh, xs, yv, &r, &g, &b);

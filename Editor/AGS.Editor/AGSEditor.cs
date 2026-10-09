@@ -151,8 +151,9 @@ namespace AGS.Editor
          * 4.00.00.31     - Default border width fix for Labels and InventoryWindows.
          * 4.00.00.33     - Script names for Regions, Walkable areas and Walk-behinds.
          *                  unlimited InventoryItems, and using item ID 0.
+         * 4.00.00.34     - Opacity (0-255) instead of Transparency (0-100)
         */
-        public const string LATEST_XML_VERSION = "4.0.0.33";
+        public const string LATEST_XML_VERSION = "4.0.0.34";
 
         /*
          * FIRST_XML_VERSION is the very first version of the Editor using XML project file.

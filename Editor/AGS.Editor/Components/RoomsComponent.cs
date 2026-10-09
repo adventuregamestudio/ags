@@ -1294,6 +1294,29 @@ namespace AGS.Editor.Components
             return modified;
         }
 
+        /// <summary>
+        /// Converts old 0-100 values and transparency to opacity
+        /// </summary>
+        private bool UpgradeRoomValueRanges(Room room, CompileMessages errors)
+        {
+            if (room.SavedXmlVersion >= new System.Version(Room.XML_VERSION_VALUE_RANGES))
+                return false;
+
+#pragma warning disable 0612
+            foreach (RoomObject obj in room.Objects)
+            {
+                obj.Opacity = 255 - obj.Transparency * 255 / 100;
+            }
+            foreach (RoomRegion r in room.Regions)
+            {
+                r.LightLevel = (r.LightLevel-100) * 255 / 100; // 0-200 to -255-255
+                r.TintSaturation = r.TintSaturation * 255 / 100;
+                r.TintLuminance = r.TintLuminance * 255 / 100;
+            }
+#pragma warning restore 0612
+            return true;
+        }
+
         private bool SyncCustomProperties(Room room)
         {
             bool wasModified = room.Properties.SyncWithSchema();
@@ -1923,6 +1946,7 @@ namespace AGS.Editor.Components
         {
             args.Tasks.Add(new UpgradeGameRoomsOpenFormatTask(ConvertAllRoomsFromCrmToOpenFormat));
             args.Tasks.Add(new UpgradeGameRoomsOptionalTask(UpgradeAllRoomsOptional));
+            args.Tasks.Add(new UpgradeGameRoomsValueRangesTask(UpgradeAllRoomsValueRanges));
         }
 
         /// <summary>
@@ -2870,6 +2894,18 @@ namespace AGS.Editor.Components
         {
             await ProcessAllRooms(game,
                 (Room r, CompileMessages e) => { UpgradeRoomOptional(r, options, e); },
+                "Updating rooms.", progress, errors);
+        }
+
+        private async void UpgradeAllRoomsValueRanges(Game game,
+            IWorkProgress progress, CompileMessages errors)
+        {
+            var cursors = game.Cursors;
+            var schema = InteractionSchema.Instance;
+            Tasks.SyncCursorsWithInteractionSchema(cursors, schema);
+
+            await ProcessAllRooms(game,
+                (Room r, CompileMessages e) => { UpgradeRoomValueRanges(r, e); },
                 "Updating rooms.", progress, errors);
         }
 

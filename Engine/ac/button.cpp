@@ -74,7 +74,7 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     ValidateViewAnimVLF("Button.Animate", butt->GetName().GetCStr(), view, loop, sframe);
     ValidateViewAnimParams("Button.Animate", butt->GetName().GetCStr(), blocking, repeat, direction);
 
-    volume = Math::Clamp(volume, 0, 100);
+    volume = Math::Clamp(volume, 0, 255);
 
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(guin, objn);
@@ -105,12 +105,12 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
 }
 
 void Button_Animate4(GUIButton *butt, int view, int loop, int speed, int repeat) {
-    Button_Animate(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 100 /* full volume */);
+    Button_Animate(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 255 /* full volume */);
 }
 
 void Button_Animate7(GUIButton *butt, int view, int loop, int speed, int repeat,
     int blocking, int direction, int sframe) {
-    Button_Animate(butt, view, loop, speed, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Button_Animate(butt, view, loop, speed, repeat, blocking, direction, sframe, 255 /* full volume */);
 }
 
 const char* Button_GetText_New(GUIButton *butt) {

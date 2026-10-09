@@ -364,7 +364,7 @@ int RoomData::GetRegionLightLevel(int id) const
 int RoomData::GetRegionTintLuminance(int id) const
 {
     if (id >= 0 && id < MAX_ROOM_REGIONS)
-        return HasRegionTint(id) ? GfxDef::Value250ToValue100(Regions[id].Light) : 0;
+        return HasRegionTint(id) ? Regions[id].Light : 0;
     return 0;
 }
 

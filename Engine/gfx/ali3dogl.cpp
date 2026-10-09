@@ -751,7 +751,7 @@ void main()
    if (iLight >= 0.0)
        gl_FragColor = vec4(src_col.xyz + vec3(iLight, iLight, iLight), src_col.w * iAlpha);
    else
-       gl_FragColor = vec4(src_col.xyz * abs(iLight), src_col.w * iAlpha);
+       gl_FragColor = vec4(src_col.xyz * (1.0 + iLight), src_col.w * iAlpha);
 }
 )EOS";
 
@@ -1327,7 +1327,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
-  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
+  const bool do_light = tint_sat == 0 && light_lev != 0 && _lightShader->GetData().Program > 0;
   if (bmpToDraw->GetShader())
   {
     // Use custom shader
@@ -1392,19 +1392,18 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     float n_light_lev = 1.0f;
 
     // Light level parameter in DDB is weird, it is measured in units of
-    // 1/255 (although effectively 1/250, see draw.cpp), but contains two
-    // ranges: 1-255 is darker range and 256-511 is brighter range.
+    // 1/255 , but contains two ranges: -255-0 is darker range and
+    // 0-255 is brighter range.
     // (light level of 0 means "default color")
-    if ((light_lev > 0) && (light_lev < 256))
+    if ((light_lev >= -255) && (light_lev < 0))
     {
-      // darkening the sprite... this stupid calculation is for
-      // consistency with the allegro software-mode code that does
-      // a trans blend with a (8,8,8) sprite
-      n_light_lev = -((light_lev * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
+      // darkening the sprite
+      n_light_lev =  light_lev / 255.f; // darker, uses MODULATE op
     }
-    else if (light_lev > 256)
+    else if (light_lev > 0)
     {
-      n_light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
+      // 1 to 255
+      n_light_lev = light_lev / 255.f; // brighter, uses ADD op
     }
 
     glUseProgram(program->Program);

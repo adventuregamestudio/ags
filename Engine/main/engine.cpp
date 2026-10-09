@@ -764,7 +764,7 @@ void engine_init_game_settings()
     play.wait_counter=0;
     play.SetWaitSkipResult(SKIP_NONE);
     play.key_skip_wait = SKIP_NONE;
-    play.audio_master_volume = 100;
+    play.audio_master_volume = 255;
     play.screen_flipped=0;
     play.speech_mode = kSpeech_VoiceText;
     play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);

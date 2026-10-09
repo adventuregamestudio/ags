@@ -92,9 +92,8 @@ public:
 
     // Get legacy sound format type (MUS_*)
     inline AudioFileType get_sound_type() const { return soundType; }
-    // Gets clip's volume property, as percentage (0 - 100);
+    // Gets clip's volume property (0 - 255);
     // note this may not be the real volume of playback (which could e.g. be muted)
-    inline int get_volume100() const { return vol100; }
     // Gets clip's volume measured in 255 units
     inline int get_volume255() const { return vol255; }
     // Gets clip's panning (-100 - +100)
@@ -111,20 +110,11 @@ public:
     // Gets total clip length in ms (or 0)
     int get_length_ms() { return lengthMs; }
 
-    // Sets the current volume property, as percentage (0 - 100).
-    inline void set_volume100(int volume)
-    {
-        volume = Math::Clamp(volume, 0, 100);
-        vol100 = volume;
-        vol255 = (volume * 255) / 100;
-        paramsChanged = true;
-    }
     // Sets the current volume property in units of 255
     inline void set_volume255(int volume)
     {
         volume = Math::Clamp(volume, 0, 255);
         vol255 = volume;
-        vol100 = (vol255 * 100) / 255;
         paramsChanged = true;
     }
     // Explicitly defines both percentage and 255-based volume values,
@@ -132,7 +122,6 @@ public:
     inline void set_volume_direct(int vol_percent, int vol_absolute)
     {
         vol255 = Math::Clamp(vol_absolute, 0, 255);
-        vol100 = Math::Clamp(vol_percent, 0, 100);
         paramsChanged = true;
     }
     // Mutes sound clip, while preserving current volume property
@@ -194,10 +183,8 @@ private:
     int pos, posMs;
     // whether playback parameters changed and have to be reapplied
     bool paramsChanged;
-    // current volume, in legacy units of 255
+    // current volume
     int vol255;
-    // current volume, in percents
-    int vol100;
     // volModifier is used when there's a need to temporarily change and
     // the restore the clip's absolute volume (vol)
     int volModifier;

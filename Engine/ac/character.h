@@ -33,7 +33,7 @@ bool    AssertCharacter(const char *apiname, int char_id);
 void    Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex);
 void    Character_AddWaypoint(CharacterInfo *chaa, int x, int y);
 void    Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
-                          int blocking, int direction, int sframe = 0, int volume = 100);
+                          int blocking, int direction, int sframe = 0, int volume = 255);
 void    Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction);
 void    Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos);
 void    Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);
@@ -140,8 +140,8 @@ int     Character_GetSpeechView(CharacterInfo *chaa);
 void    Character_SetSpeechView(CharacterInfo *chaa, int vii);
 int     Character_GetThinkView(CharacterInfo *chaa);
 void    Character_SetThinkView(CharacterInfo *chaa, int vii);
-int     Character_GetTransparency(CharacterInfo *chaa);
-void    Character_SetTransparency(CharacterInfo *chaa, int trans);
+int     Character_GetOpacity(CharacterInfo *chaa);
+void    Character_SetOpacity(CharacterInfo *chaa, int alpha);
 int     Character_GetTurnBeforeWalking(CharacterInfo *chaa);
 void    Character_SetTurnBeforeWalking(CharacterInfo *chaa, int yesorno);
 int     Character_GetView(CharacterInfo *chaa);
@@ -165,7 +165,7 @@ using namespace AGS; // FIXME later
 
 // Configures and starts character animation.
 void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
-    int direction = 0, int sframe = 0, int volume = 100);
+    int direction = 0, int sframe = 0, int volume = 255);
 // Clears up animation parameters
 void stop_character_anim(CharacterInfo *chap);
 int  find_looporder_index (int curloop);

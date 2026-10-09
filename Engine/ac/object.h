@@ -42,12 +42,12 @@ int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
 void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
 void    Object_RemoveTint(ScriptObject *objj);
 void    Object_SetView(ScriptObject *objj, int view, int loop, int frame);
-void    Object_SetTransparency(ScriptObject *objj, int trans);
-int     Object_GetTransparency(ScriptObject *objj);
+void    Object_SetOpacity(ScriptObject *objj, int alpha);
+int     Object_GetOpacity(ScriptObject *objj);
 void    Object_SetBaseline(ScriptObject *objj, int basel);
 int     Object_GetBaseline(ScriptObject *objj);
 void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
-                       int blocking, int direction, int sframe = 0, int volume = 100);
+                       int blocking, int direction, int sframe = 0, int volume = 255);
 void    Object_StopAnimating(ScriptObject *objj);
 void    Object_StopMoving(ScriptObject *objj);
 void    Object_SetVisible(ScriptObject *objj, bool onoroff);

@@ -20,7 +20,7 @@ using AGS::Common::GUIButton;
 struct AnimatingGUIButton;
 
 void        Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
-                           int blocking, int direction, int sframe = 0, int volume = 100);
+                           int blocking, int direction, int sframe = 0, int volume = 255);
 void        Button_Animate4(GUIButton *butt, int view, int loop, int speed, int repeat);
 const char* Button_GetText_New(GUIButton *butt);
 void		Button_GetText(GUIButton *butt, char *buffer);

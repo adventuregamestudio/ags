@@ -591,7 +591,7 @@ void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
     gui_data.Left = ReadInt(self, "Left");
     gui_data.Top = ReadInt(self, "Top");
     gui_data.Width = ReadInt(self, "Width");
-    gui_data.Transparency = ReadInt(self, "Transparency");
+    gui_data.Opacity = ReadInt(self, "Opacity");
     gui_data.Visible = ReadBool(self, "Visible");
     gui_data.BackgroundColor = ReadInt(self, "BackgroundColor");
     gui_data.BackgroundImage = ReadInt(self, "BackgroundImage");
@@ -1232,7 +1232,7 @@ void AudioClip::ReadAllData(DocElem elem, DataUtil::AudioClipData &data)
     }
     data.Repeat = repeat > 0;
     data.Priority = priority < 0 ? 50 : priority;
-    data.Volume = volume < 0 ? 100 : volume;
+    data.Volume = volume < 0 ? 255 : volume;
 }
 
 String AudioType::ReadScriptName(DocElem elem)
@@ -1276,7 +1276,7 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     data.StartY = ValueParser::ReadInt(elem, "StartY");
     data.StartingRoom = ValueParser::ReadInt(elem, "StartingRoom", -1);
     data.ThinkingView = ValueParser::ReadInt(elem, "ThinkingView");
-    data.Transparency = ValueParser::ReadInt(elem, "Transparency");
+    data.Opacity = ValueParser::ReadInt(elem, "Transparency");
     data.TurnBeforeWalking = ValueParser::ReadBool(elem, "TurnBeforeWalking", true);
     data.TurnWhenFacing = ValueParser::ReadBool(elem, "TurnWhenFacing", true);
     data.UniformMovementSpeed = ValueParser::ReadBool(elem, "UniformMovementSpeed", true);

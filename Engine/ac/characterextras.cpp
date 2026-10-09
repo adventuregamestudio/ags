@@ -83,7 +83,7 @@ int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *chi) const
 {
     return ::CalcFrameSoundVolume(
         audio_volume, anim.AudioVolume,
-        (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
+        (chi->flags & CHF_SCALEVOLUME) ? (zoom * 255 / 100) : 255);
 }
 
 void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor, const Point &off)
@@ -178,7 +178,7 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
-    int cur_anim_volume = 100;
+    int cur_anim_volume = 255;
     if (save_ver >= kCharSvgVersion_36025)
     {
         audio_volume = static_cast<uint8_t>(in->ReadInt8());
@@ -188,8 +188,8 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
     }
     else
     {
-        audio_volume = 100;
-        cur_audio_volume = 100;
+        audio_volume = 255;
+        cur_audio_volume = 255;
         audio_panning = 0;
     }
 

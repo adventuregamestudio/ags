@@ -2534,18 +2534,24 @@ void stop_character_anim(CharacterInfo *chap)
     charextra[chap->index_id].cur_audio_volume = 100;
 }
 
-Bitmap *GetCharacterImage(int charid, bool *is_original)
+Bitmap *GetCharacterImage(int charid, bool always_original, bool *is_original)
 {
-    // NOTE: the cached image will only be present in software render mode
-    Bitmap *actsp = get_cached_character_image(charid);
-    if (is_original)
-        *is_original = !actsp; // no cached means we use original sprite
-    if (actsp)
-        return actsp;
+    Bitmap *pic = nullptr;
+    if (!always_original)
+    {
+        // NOTE: the cached image will only be present in software render mode
+        pic = get_cached_character_image(charid);
+    }
 
-    CharacterInfo*chin=&game.chars[charid];
-    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-    return spriteset[sppic];
+    if (is_original)
+        *is_original = pic == nullptr; // if not used cached image, then use original
+    if (!pic)
+    {
+        const CharacterInfo &chin = game.chars[charid];
+        int sppic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
+        pic = spriteset[sppic];
+    }
+    return pic;
 }
 
 CharacterInfo *Character_GetAtScreenXY(int x, int y, int hit_options)
@@ -2628,6 +2634,11 @@ void update_character_scale(int charid)
 int GetCharIDAtRoom(int x, int y, int hit_options)
 {
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
+    // Prior to 2.62 walk-behinds let click through onto the objects and characters behind them.
+    // Because of how cached sprites are cropped by walk-behinds in software render mode,
+    // we cannot use them in hit-tests in pre-2.62 games.
+    const bool click_through_wb = (loaded_game_file_version < kGameVersion_262);
+
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
@@ -2653,7 +2664,7 @@ int GetCharIDAtRoom(int x, int y, int hit_options)
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
 
         bool is_original;
-        Bitmap *theImage = GetCharacterImage(cc, &is_original);
+        Bitmap *theImage = GetCharacterImage(cc, click_through_wb, &is_original);
         if (!is_original)
             mirrored = 0; // transformed image is already flipped
 

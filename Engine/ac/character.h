@@ -198,7 +198,7 @@ void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
 void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
-Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
+Common::Bitmap *GetCharacterImage(int charid, bool always_original = false, bool *is_original = nullptr);
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size.
 void update_character_scale(int charid);

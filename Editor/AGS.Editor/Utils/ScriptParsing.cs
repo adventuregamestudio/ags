@@ -238,7 +238,7 @@ namespace AGS.Editor
                 lastValidIndex = index;
                 for (; index >= 0 && char.IsWhiteSpace(script[index]); --index) ;
             }
-            while (script[index--] == SYM_MEMBER_ACCESS);
+            while (index >= 0 && script[index--] == SYM_MEMBER_ACCESS);
             return lastValidIndex + 1;
         }
 

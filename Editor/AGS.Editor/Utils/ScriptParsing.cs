@@ -12,7 +12,7 @@ namespace AGS.Editor
     {
         public const char NEWLINE_CHAR1 = '\n';
         public const char NEWLINE_CHAR2 = '\r';
-        public const char SYMBOL_MEMBER_ACCESS = '.';
+        public const char SYM_MEMBER_ACCESS = '.';
 
         /// <summary>
         /// Tells if the character is a valid symbol for a script keyword or a variable name.
@@ -139,7 +139,7 @@ namespace AGS.Editor
                 lastValidIndex = index;
                 for (; index >= 0 && char.IsWhiteSpace(script[index]); --index) ;
             }
-            while (script[index--] == SYMBOL_MEMBER_ACCESS);
+            while (index >= 0 && script[index--] == SYM_MEMBER_ACCESS);
             return lastValidIndex + 1;
         }
 

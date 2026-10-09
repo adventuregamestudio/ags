@@ -1402,7 +1402,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Exclude script function calls")]
-        [Description("Comma-separated list of script functions, which string arguments should be excluded from Translation file.")]
+        [Description("Comma-separated list of names of script functions, which string arguments should be excluded from Translation file.")]
         [Category("Translation")]
         [DefaultValue("")]
         public string TranslationExcludeFunctionCall

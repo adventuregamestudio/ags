@@ -256,7 +256,7 @@ struct CharacterData : EntityRef
     int StartY{};
     int StartingRoom{};
     int ThinkingView{};
-    int Transparency{};
+    int Opacity{};
     bool TurnBeforeWalking{};
     bool TurnWhenFacing{};
     bool UniformMovementSpeed{};
@@ -365,7 +365,7 @@ struct AudioClipData : EntityRef
     AudioClipFileType FileType = kAudioFile_Undefined;
     bool Repeat{};
     int Priority = 50;
-    int Volume = 100;
+    int Volume = 255;
 };
 
 struct PluginData
@@ -507,7 +507,7 @@ struct GUIData : EntityRef
     GUIPopupStyle PopupStyle = kGUIPopupStyle_Normal;
     int PopupYPos{};
     int Top{};
-    int Transparency{};
+    int Opacity{};
     int Visible{};
     int Width{};
     int ZOrder{};

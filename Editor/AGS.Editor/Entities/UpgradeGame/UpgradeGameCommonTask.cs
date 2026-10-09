@@ -451,11 +451,7 @@ namespace AGS.Editor
                 dummy.ID = 0;
                 dummy.ScriptName = AGSEditor.Instance.GetFirstAvailableScriptName(game, "iDummy");
                 game.InventoryItems.Insert(0, dummy);
-            }
 
-
-            if (xmlVersionIndex < 4000034)
-            {
                 // We need to convert Transparency (0-100) to Opacity (0-255)
                 foreach (Character c in game.Characters)
                 {
@@ -473,7 +469,7 @@ namespace AGS.Editor
                         gc.Opacity = 255 - (gc.Transparency * 255) / 100;
                     }
                 }
-                // RoomObjects updated in RoomObjects.cs
+                // RoomObjects and RoomRegions updated by upgrader
             }
 
             if (string.IsNullOrEmpty(game.Settings.ScriptCompiler))

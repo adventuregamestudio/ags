@@ -17,8 +17,10 @@ namespace AGS.Editor
         internal UpgradeGameRoomsValueRangesTask(ProcessRooms processRooms) : base("UpgradeGameRoomsValueRanges")
         {
             Title = "Update Rooms";
-            Description = "Transparency properties (0-100) will be replaced by Opacity (0-255)" + Environment.NewLine + "LightLevel properties (0-200) will be converted to -255-255" + Environment.NewLine + "Tint Luminance and Saturation (0-100) will be converted to 0-255";
-            GameVersion = new System.Version("4.0.0.34"); // version where we changed transparency to opacity, and other values to 0-255
+            Description = "Transparency properties (0-100) will be replaced by Opacity (0-255)" + Environment.NewLine
+                + "LightLevel properties (0-200) will be converted to -255-255" + Environment.NewLine
+                + "Tint Luminance and Saturation (0-100) will be converted to 0-255";
+            GameVersion = new System.Version("4.0.0.33"); // version where we changed transparency to opacity, and other values to 0-255
             Implicit = false;
             Optional = false;
             AllowToSkipIfHadErrors = true;

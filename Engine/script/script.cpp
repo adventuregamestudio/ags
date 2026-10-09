@@ -92,7 +92,9 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
 
 void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 
-    update_script_mouse_coords();
+    // Pre-2.70 games did not update script mouse object while inside a script
+    if (loaded_game_file_version >= kGameVersion_270)
+        update_script_mouse_coords();
 
     int room_changes_was = play.room_changes;
     funcToRun->AtLeastOneImplementationExists = false;

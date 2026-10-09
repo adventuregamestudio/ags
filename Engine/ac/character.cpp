@@ -2850,7 +2850,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     }
 
     int tdxp = xx, tdyp = yy;
-    int oldview=-1, oldloop = -1;
+    int oldview = -1, oldloop = -1;
     int ovr_type = 0;
     text_lips_offset = 0;
     text_lips_text = texx;
@@ -3203,11 +3203,22 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     face_talking = -1;
     facetalkchar = nullptr;
     set_our_eip(157);
-    if (oldview>=0) {
+    // Following will restore character's main view after Lucasarts-style speech
+    if (oldview >= 0)
+    {
         speakingChar->flags &= ~CHF_FIXVIEW;
-        if (viewWasLocked)
-            speakingChar->flags |= CHF_FIXVIEW;
-        speakingChar->view=oldview;
+        // Modern behavior is to restore the character's locked view (if one was locked)
+        if (loaded_game_file_version >= kGameVersion_261)
+        {
+            if (viewWasLocked)
+                speakingChar->flags |= CHF_FIXVIEW;
+            speakingChar->view = oldview;
+        }
+        // Pre-2.6.1 behavior is to reset to the normal view
+        else
+        {
+            speakingChar->view = speakingChar->defview;
+        }
 
         // Don't reset the loop in 2.x games
         if (loaded_game_file_version > kGameVersion_272)
@@ -3215,7 +3226,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
         stop_character_anim(speakingChar);
         speakingChar->frame = charFrameWas;
-        speakingChar->wait=0;
+        speakingChar->wait = 0;
         // Restart idle timer
         reset_character_idling_time(speakingChar);
     }

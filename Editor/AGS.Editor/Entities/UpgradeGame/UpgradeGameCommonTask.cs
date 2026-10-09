@@ -478,6 +478,9 @@ namespace AGS.Editor
                 {
                     ac.DefaultVolume = ac.DefaultVolume != -1 ? (ac.DefaultVolume * 255 / 100) : -1;
                 }
+                game.RootAudioClipFolder.RunActionOnAllFolders(new Action<AudioClipFolder>((folder) => {
+                    folder.DefaultVolume = folder.DefaultVolume != -1 ? (folder.DefaultVolume * 255 / 100) : -1;
+                }));
                 // RoomObjects and RoomRegions updated by upgrader
             }
 

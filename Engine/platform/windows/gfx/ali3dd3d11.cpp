@@ -1706,9 +1706,6 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
 
         if ((light_lev >= -255) && (light_lev < 0))
         {
-            // darkening the sprite... this stupid calculation is for
-            // consistency with the allegro software-mode code that does
-            // a trans blend with a (8,8,8) sprite
             useTintRed = 255 + light_lev;
             useTintGreen = useTintRed;
             useTintBlue = useTintRed;

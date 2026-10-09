@@ -384,5 +384,15 @@ namespace AGS.Types
                 action(item);
             }            
         }
+
+        public void RunActionOnAllFolders(Action<TFolder> action)
+        {
+            action((TFolder)this);
+
+            foreach (TFolder subfolder in SubFolders)
+            {
+                subfolder.RunActionOnAllFolders(action);
+            }
+        }
     }
 }

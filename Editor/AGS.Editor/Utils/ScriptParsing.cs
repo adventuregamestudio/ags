@@ -167,6 +167,9 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Reads and returns the single script name from the given position.
+        /// </summary>
         public static string ReadScriptName(string script, int at)
         {
             if (at < 0 || at >= script.Length || !IsScriptWordChar(script[at]))
@@ -175,6 +178,31 @@ namespace AGS.Editor
             int start = at;
             while (at < script.Length && IsScriptWordChar(script[at++]));
             return script.Substring(start, at - start - 1);
+        }
+
+        /// <summary>
+        /// Reads and returns the potentially composite access expression
+        /// from the given position, trimmed and having any whitespace cut out.
+        /// E.g. "function", "object.function", "object.variable.function" and so forth.
+        /// </summary>
+        public static string ReadCompositeSymbolAccess(string script, int at)
+        {
+            int start = at;
+            int end = at;
+            do
+            {
+                for (; at >= 0 && char.IsWhiteSpace(script[at]); ++at) ;
+                for (; at >= 0 && script[at].IsScriptWordChar(); ++at) ;
+                end = at;
+                for (; at >= 0 && char.IsWhiteSpace(script[at]); ++at) ;
+            }
+            while (at >= 0 && script[at++] == SYM_MEMBER_ACCESS);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = start; i < end; ++i)
+                if (!char.IsWhiteSpace(script[i]))
+                    sb.Append(script[i]);
+            return sb.ToString();
         }
 
         /// <summary>
@@ -243,7 +271,7 @@ namespace AGS.Editor
         /// <summary>
         /// Backtraces a potentially composite symbol name, where a variable or
         /// function name may be preceded by object's name and a member access operation.
-        /// E.g. "object.function", "object.variable.function" and so forth.
+        /// E.g. "function", "object.function", "object.variable.function" and so forth.
         /// Returns the starting index.
         /// </summary>
         public static int BacktraceScriptSymbolComposite(string script, int backFromIndex)
@@ -299,12 +327,12 @@ namespace AGS.Editor
         ///  - From position of "3", if lookupForOuterCall == false, returns "InnerCall"
         ///  - From position of "3", if lookupForOuterCall == true, returns "Outer_Call"
         /// </summary>
-        public static string GetCurrentFunctionName(ParserState state, int backFromIndex, bool lookupForOuterCall = false)
+        public static string GetCurrentFunctionName(ParserState state, int backFromIndex, bool lookupForOuterCall = false, bool lookupForCompositeFunction = true)
         {
-            int exprStartAt = BacktraceCurrentFunctionCall(state, backFromIndex, lookupForOuterCall, false);
+            int exprStartAt = BacktraceCurrentFunctionCall(state, backFromIndex, lookupForOuterCall, lookupForCompositeFunction);
             if (exprStartAt >= 0)
             {
-                return ReadScriptName(state.Script, exprStartAt);
+                return ReadCompositeSymbolAccess(state.Script, exprStartAt);
             }
             else
             {

@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("OutlineStyle")]
-    public class Font : ICustomTypeDescriptor
+    public class Font : IHasID, ICustomTypeDescriptor, IComparable<Font>
     {
         private int _id;
         private string _name;
@@ -15,7 +15,7 @@ namespace AGS.Types
         private int _fontSize;
         private int _fontHeight;
         private int _outlineFont;
-        private FontOutlineStyle _outlineStyle;
+        private FontOutlineStyle _outlineStyle = FontOutlineStyle.None;
 		private string _sourceFilename = string.Empty;
         private string _projectFilename = string.Empty;
         private int _sizeMultiplier = 1;
@@ -32,12 +32,12 @@ namespace AGS.Types
         {
             _id = -1;
             _name = string.Empty;
-            _fontSize = 0;
-            _outlineFont = 0;
-            _outlineStyle = FontOutlineStyle.None;
-            _fontHeight = 0;
-            _lineSpacing = 0;
-            _characterSpacing = 0;
+        }
+
+        public Font(int id, string name)
+        {
+            _id = id;
+            _name = name;
         }
 
         [Description("The ID number of the font")]
@@ -370,6 +370,15 @@ namespace AGS.Types
         {
             return this;
         }
+        #endregion
+
+        #region IComparable<Font> Members
+
+        public int CompareTo(Font other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
         #endregion
     }
 }

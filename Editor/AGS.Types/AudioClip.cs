@@ -6,17 +6,17 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("BundlingType")]
-    public class AudioClip : IToXml, IComparable<AudioClip>
+    public class AudioClip : IHasID, IToXml, IComparable<AudioClip>
     {
         private int _id;
         private string _sourceFileName;
         private string _cacheFileName;
         private string _scriptName;
         // FixedID is a clip's UID which never change, even if the list got reordered
-        private int _fixedID;
-        private int _typeID;
+        private int _fixedID = -1;
+        private int _typeID = -1;
         private AudioFileBundlingType _bundlingType = AudioFileBundlingType.InGameEXE;
-        private AudioClipFileType _fileType;
+        private AudioClipFileType _fileType = AudioClipFileType.Unknown;
         private DateTime _fileLastModifiedDate = DateTime.MinValue;
         private TimeSpan _fileLength = TimeSpan.MinValue;
         private MediaInfo _format;
@@ -34,8 +34,9 @@ namespace AGS.Types
         // The value of a "no sound" for AudioClip.ID
         public const int IDNoValue = -1;
 
-        public AudioClip(string scriptName, int fixed_index)
+        public AudioClip(int id, string scriptName, int fixed_index)
         {
+            _id = id;
             _scriptName = scriptName;
             _fixedID = fixed_index;
         }

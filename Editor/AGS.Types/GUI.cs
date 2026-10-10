@@ -10,12 +10,18 @@ namespace AGS.Types
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("BackgroundImage")]
-    public abstract class GUI : IToXml, IComparable<GUI>, ICloneable
+    public abstract class GUI : IHasID, IToXml, IComparable<GUI>, ICloneable
     {
         public GUI()
         {
             _name = string.Empty;
             _bgcol = 8;
+        }
+
+        public GUI(int id, string scriptName)
+        {
+            _id = id;
+            _name = scriptName;
         }
 
         protected string _name;

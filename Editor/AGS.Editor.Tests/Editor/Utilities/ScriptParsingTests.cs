@@ -163,5 +163,24 @@ function f()
         (Constant,
         "), ScriptParsing.GetCurrentFunctionCall(state, 546));
         }
+
+        [Test]
+        public void GetCurrentFunctionName_Test()
+        {
+            string script = UniformTestString(TestScript);
+
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
+            ScriptParsing.FillCommentSections(state);
+
+            Assert.AreEqual(string.Empty, ScriptParsing.GetCurrentFunctionName(state, 105));
+            Assert.AreEqual(string.Empty, ScriptParsing.GetCurrentFunctionName(state, 194));
+            Assert.AreEqual("FuncWithStringArg", ScriptParsing.GetCurrentFunctionName(state, 229));
+            Assert.AreEqual("FuncWithStringArg", ScriptParsing.GetCurrentFunctionName(state, 232));
+            Assert.AreEqual(UniformTestString(@"FuncWithStringArg"), ScriptParsing.GetCurrentFunctionName(state, 358));
+            Assert.AreEqual("InnerCall", ScriptParsing.GetCurrentFunctionName(state, 426));
+            Assert.AreEqual("Outer_Call", ScriptParsing.GetCurrentFunctionName(state, 426, true));
+            Assert.AreEqual("Call", ScriptParsing.GetCurrentFunctionName(state, 470));
+            Assert.AreEqual(UniformTestString(@"Call"), ScriptParsing.GetCurrentFunctionName(state, 546));
+        }
     }
 }

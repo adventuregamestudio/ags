@@ -40,10 +40,23 @@ namespace AGS.Editor
             if (string.IsNullOrEmpty(scriptCodeExtract))
                 return true; // not a function call, use always
 
-            foreach (string fn in _excludeFunctionCalls)
+            // Code extract contains "...functionName(" text.
+            // Get function name alone and compare to all the excluded function names.
+            // TODO: this really should be done by something that returns code extract?
+            int nameEndsAt = scriptCodeExtract.Length - 1;
+            for (; nameEndsAt >= 0 && (scriptCodeExtract[nameEndsAt] == '(' || char.IsWhiteSpace(scriptCodeExtract[nameEndsAt])); --nameEndsAt);
+            int nameStartsAt = nameEndsAt;
+            for (; nameStartsAt > 0 && scriptCodeExtract[nameStartsAt - 1].IsScriptWordChar(); --nameStartsAt);
+            string functionName = (nameStartsAt >= 0 && nameEndsAt >= 0) ?
+                scriptCodeExtract.Substring(nameStartsAt, nameEndsAt - nameStartsAt + 1) : string.Empty;
+            
+            if (!string.IsNullOrEmpty(functionName))
             {
-                if (scriptCodeExtract.Contains(fn))
-                    return false;
+                foreach (string fn in _excludeFunctionCalls)
+                {
+                    if (functionName == fn)
+                        return false;
+                }
             }
             return true;
         }

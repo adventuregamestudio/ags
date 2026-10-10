@@ -43,14 +43,22 @@ namespace AGS.Editor
             // Code extract contains "...functionName(..,..," text.
             // Get function name alone and compare to all the excluded function names.
             ScriptParsing.ParserState state = new ScriptParsing.ParserState(scriptCodeExtract);
-            string functionName = ScriptParsing.GetCurrentFunctionName(state, scriptCodeExtract.Length);
+            string fullFunctionName = ScriptParsing.GetCurrentFunctionName(state, scriptCodeExtract.Length);
             
-            if (!string.IsNullOrEmpty(functionName))
+            // The function name may be a composite name (Type.Function, or longer if there's a long access expression);
+            // test it by adding section by section, starting from the end.
+            if (!string.IsNullOrEmpty(fullFunctionName))
             {
-                foreach (string fn in _excludeFunctionCalls)
+                var parts = fullFunctionName.Split(ScriptParsing.SYM_MEMBER_ACCESS);
+                string matchFn = string.Empty;
+                for (int i = parts.Length - 1; i >= 0; --i)
                 {
-                    if (functionName == fn)
-                        return false;
+                    matchFn = string.IsNullOrEmpty(matchFn) ? parts[i] : $"{parts[i]}{ScriptParsing.SYM_MEMBER_ACCESS}{matchFn}";
+                    foreach (string fn in _excludeFunctionCalls)
+                    {
+                        if (matchFn == fn)
+                            return false;
+                    }
                 }
             }
             return true;

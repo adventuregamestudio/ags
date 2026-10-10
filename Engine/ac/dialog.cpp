@@ -1855,7 +1855,10 @@ void DialogExec::Run()
             show_options = false;
             _areOptionsDisplayed = true;
             run_option = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
-            run_option++; // turn into 1-based index, 0 means starting entry
+            // turn into 1-based index; should never become 0 here as starting entry cannot be selected;
+            // if show_dialog_options() returned -1, that means end of dialog
+            if (run_option >= 0)
+                run_option++;
             _areOptionsDisplayed = false;
 
             // Stop the dialog if was requested from custom options script

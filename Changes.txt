@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.3 - RC, September 2026
+VERSION 3.6.3 - RC, October 2026
 
 Common:
  - Removed limit of Dialog's options (was 30).
@@ -16,6 +16,8 @@ Editor:
  - Added main menu commands for opening game's save folder and shared data folder.
  - In New Game Wizard dialog added a checkbox "Remember this location" which lets save the last
    selected game location as a new default in editor's preferences.
+ - In Editor Preferences added "Show Output panel on Compile" which configures on which events
+   would Output panel be shown automatically.
  - In General Settings added "Text language" option, that lets specify a base game language.
    This option is used whenever engine needs to identify the game text as being of a particular
    language or using particular alphabet (e.g. alphabetic string sorting).
@@ -123,6 +125,9 @@ Editor:
  - Improved error reporting for game text gathering actions such as "Create voice-acting script"
    and "Update translation". Now these errors correctly tell the script location which lets you
    go there.
+ - When Editor is run with /compile or /maketemplate parameter from command line, it will save
+   the project file before running game compilation. This is done to avoid potential project data
+   desync if any of the project files require upgrade to the new version.
  - Fixed Editor crashing on launch when there's a game with a very long name present in
    "Recent Games" list.
  - Fixed Room's navigation bar to not close the dropdown list whenever the mouse cursor hovers
@@ -142,6 +147,7 @@ Editor:
  - Fixed that Editor would recompile all rooms over again whenever a project was just upgraded from
    the new version, and any errors were found in script(s) during game recompilation. Now it will
    only recompile those rooms which were either modified or not compiled yet.
+ - Fixed OutputPanel which was using 8-bit message icons instead of 32-bit ones.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -236,6 +242,7 @@ Script API:
  - Added GUIControl.Translated property.
  - Added InventoryItem.CursorHotspotX, CursorHotspotY and CursorHotspotAlignment properties.
  - Added Label.TextOutlineColor property.
+ - Added ListBox.RowHeight readonly property.
  - Added ListBox.TextOutlineColor property.
  - Added ListBox.SortItems() function.
  - Added Mouse.Enabled property that lets completely disable mouse input in the game.
@@ -291,6 +298,7 @@ Engine:
  - Room Region events will now be run consistently with the other game events, scheduled and
    executed at the end of the game update cycle (was run at the beginning of the game update).
    The purpose of this change is to make it easier to handle the order of events in game.
+ - Region.Tint no longer remaps amount value 0 to 100, amount 0 will reset the tint instead.
  - Character and object scaling properties, and auto-tracking Camera positions will now be
    updated extra time prior to "Room Before Fade-in" and "late_repeatedly_execute_always" events.
    This is done to ensure that user scripts can read proper up-to-date values during these events.
@@ -324,19 +332,24 @@ Engine:
  - Added "alwayswaittext" and "speechmode" config options to "access" (accessibility) section.
  - Added "new_key_mode" config option to "override" section, that lets force the new key handling
    mode while running old games.
+ - Added "debug_pathfind_key" and "debug_walkable_key" config options to "override" section, that
+   let define keys for toggling debug overlays for pathfinder and walkable areas respectively.
  - Added "override_behavior" config section, its options are purposed to override game's backwards-
    compatible behavior and enforce new behavior when running old games. Currently supported options
    include: "smooth_walk" (allows smooth walk transitions), "gui_text_direction" (apply text
    direction to non-label gui controls), "dialog_opt_text_alignment" (auto-set text alignment of
    built-in dialog options when the translation is loaded), "no_textprop_autotranslate" (do not
    translate the GUI text property values).
- - Engine does not quit with error when DrawImage is called with a non-existant sprite, only logs
-   a warning.
  - Engine now defines certain mistakes in script function use as "serious mistake" (such as trying
    to call a function for a non-existing object). When such mistake is met, engine will only print
    a message to the log if the game was compiled in Release mode, or quit the game with a error
    popup if the game was compiled in Debug mode. The former is done to let player continue playing
    the game despite the error, while the latter brings immediate attention of the game developer.
+ - Don't quit with error when DrawImage() is called with a non-existant sprite, only log a warning.
+ - Don't quit with error when any Overlay's function is called for a non-existing overlay,
+   log a warning instead.
+ - Add [WARN] and [ERROR] labels to the game warning and errors messages printed into the log.
+ - Reduced logging of certain things set in game, when this doesn't result in actual change.
  - Fixed Buttons switching to their "MouseOver" graphic when mouse cursor hovers them,
    even though their parent GUI is overlayed by another, clickable GUI.
  - Fixed Character and Object Animate() command were starting animation even if object is disabled.
@@ -355,11 +368,16 @@ Engine:
    or unlocking a temporary view. Previously, it seems, it used full range of loops in the current
    normal view, now it should use only first 4 or 8 standard standing loops (depending on "use
    diagonal loops" setting).
+ - Fixed black (RGB 0,0,0) region tint value turning into the maximal light level instead.
  - Fixed Debug(0) script command that gives all inventory items reducing inventory quantity to 1.
    Now it should keep whatever amount player character have had, if it's higher than 1.
+ - Fixed pathfinder's debug overlay toggling off logic.
+ - Fixed pathfinder's debug overlay scaling in "upscaled" old games.
  - Fixed potential crash which could occur if script is trying to access certain Room Object's
    properties via 'object[]' array in a Room that has no objects or does not have this specific
    object.
+ - Fixed NumPad keys in "old keyhandle mode" triggering both digit and arrow key events
+   when NumLock is on.
  - Fixed that after restoring a save with less number of objects (of any type), accessing these
    objects in script would lead to a script error.
 
@@ -387,13 +405,24 @@ Compatibility:
    in engine's behavior.
  - Implemented an accidental return value for FaceCharacter() and FaceLocation() functions that
    they had in 2.* engines; some very old games have used that return value in script.
+ - In pre-2.62 games let clicks interact with characters and objects under walk-behinds.
+ - In 3.5.0 - 3.6.2 games have ListBox item rows ignore border width (may result in +1 row).
+ - In pre-2.61 games always reset character to normal view after speech.
+ - Don't update mouse properties in script during blocking actions in pre-2.7 games.
  - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game
    has a "Fonts anti-aliasing" enabled.
  - Fixed unwanted overhotspot text flicker which may potentially happen in pre-3.6.0 games.
  - Fixed room object sorting order for the games made between 3.3.0 and 3.4.0 editors. They have
    had a mistake which unfortunately affected how objects with the identical baseline will be
    sorted among themselves.
+ - Fixed slider handle visual position in pre-3.6.0 games.
  - Fixed textual overlay heights in 3.6.0-3.6.1 games which fonts have incorrectly reported sizes.
+ - Fixed SetTextOverlay()'s coordinates in old high-res games.
+ - Fixed pathfinding not working running an old game in low-res mode but it's room is high-res.
+ - Fixed "upscale" mode not automatically applied whenever old game's native resolution is set
+   as "default".
+ - Fixed that script's name may not be mentioned when reporting an error or a warning when
+   running pre-2.72 games.
 
 WinSetup:
  - Added "Speech mode" and "Always wait for text" options to "Accessibility" tab.

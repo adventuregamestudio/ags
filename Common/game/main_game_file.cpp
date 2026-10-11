@@ -187,6 +187,8 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     Version compiled_version(src.CompiledWith);
     if (compiled_version.AsNumber() == 30501)
         src.DataVersion = kGameVersion_351;
+    else if ((compiled_version.AsLongNumber() >= 306020007) && (src.DataVersion < kGameVersion_362_12))
+        src.DataVersion = kGameVersion_362_07;
     return HGameFileError::None();
 }
 

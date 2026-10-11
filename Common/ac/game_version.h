@@ -122,6 +122,8 @@ OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
 Few minor behavior changes.
 3.6.2.3:
 Script module names are written in the game data.
+3.6.2.7:
+Optimization to "search nearest area", may affect search results.
 3.6.2.12:
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
@@ -184,11 +186,8 @@ enum GameDataVersion
     kGameVersion_341            = 48,
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
-    // Following version numbers were not saved in data, but are generated
-    // by reading "Compiled With" field from the game file's header.
-    kGameVersion_351            = 3050100,
     //-------------------------------------------------------------------------
-    // Following version numbers are actual versions found in game data.
+    // Since 3.6.0 the format values are synced with engine version
     kGameVersion_360            = 3060000,
     kGameVersion_360_11         = 3060011,
     kGameVersion_360_16         = 3060016,
@@ -206,7 +205,13 @@ enum GameDataVersion
     kGameVersion_363_10         = 3060310,
     kGameVersion_363_14         = 3060314,
     kGameVersion_363_15         = 3060315,
-    kGameVersion_Current        = kGameVersion_363_15
+    kGameVersion_Current        = kGameVersion_363_15,
+
+    //-------------------------------------------------------------------------
+    // Following version numbers were not saved in data, but are generated
+    // by reading "Compiled With" field from the game file's header.
+    kGameVersion_351            = 3050100,
+    kGameVersion_362_07         = 3060207
 };
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

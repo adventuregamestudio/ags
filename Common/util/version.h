@@ -55,6 +55,7 @@ struct Version
         return Major * 10000 + Minor * 100 + Release;
     }
 
+    // This provides 4 digits to "revision" for pre-3.3 versions (they had SVN revision in their last number)
     inline int64_t AsLongNumber() const
     {
         return (int64_t)Major * 100000000L + (int64_t)Minor * 1000000L + (int64_t)Release * 10000L + Revision;

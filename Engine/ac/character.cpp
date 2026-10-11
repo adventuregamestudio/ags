@@ -2329,13 +2329,27 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst, bool forc
 
     // Ancient hack, where the scan area is restricted by 14 topmost pixels;
     // this is *likely* the historical size of a Sierra-style Statusbar GUI.
-    if (loaded_game_file_version < kGameVersion_362)
+    if (loaded_game_file_version < kGameVersion_362_07)
     {
         limits.Top = std::max(limits.Top, 14);
     }
 
-    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
-        return false;
+    if (loaded_game_file_version >= kGameVersion_362_07)
+    {
+        if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
+            return false;
+    }
+    else
+    {
+        // First, check every 2 pixels within immediate area
+        if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 20, 2, false /* old method */))
+        {
+            // If not, check whole screen at 5 pixel intervals
+            if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 5, false /* old method */))
+                return false;
+        }
+    }
+
     dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));
     return true;
 }

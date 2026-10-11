@@ -183,6 +183,9 @@ void FadeOut(int sppd) {
         return;
     }
 
+    if (sppd <= 0)
+        sppd = 16;
+
     // FIXME: we have to sync audio here explicitly, because FadeOut
     // does not call any game update function while it works
     sync_audio_playback();
@@ -235,6 +238,9 @@ void FadeIn(int sppd) {
         play.screen_is_faded_out = 0;
         return;
     }
+
+    if (sppd <= 0)
+        sppd = 16;
 
     // Update drawables, prepare them for the transition-in
     // in case this is called after the game state change but before any update was run

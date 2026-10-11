@@ -68,7 +68,8 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
 
     const bool want_alpha = (sprite_flags & SPF_ALPHACHANNEL) != 0;
     const bool may_have_alpha = use_bmp->GetColorDepth() == 32;
-    use_bmp = PrepareSpriteForUse(use_bmp, want_alpha && may_have_alpha);
+    use_bmp = PrepareSpriteForUse(use_bmp, want_alpha && may_have_alpha, true /* keep mask */,
+        loaded_game_file_version < kGameVersion_362 /* no alpha fix in older games */);
     // For non-32 bit games strip SPF_ALPHACHANNEL flag, but add SPF_HADALPHACHANNEL
     // in order to record the fact that the asset on disk has alpha channel.
     // Also do this if the image appeared to be non-32-bit, which may

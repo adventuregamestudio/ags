@@ -636,7 +636,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     {
         thisroom.BgImages[i] = PrepareSpriteForUse(
-            thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
+            thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */,
+            false /* dont care about alpha */, thisroom.BgFrames[i].Palette);
     }
 
     // If the room script data did not have any name, then assign room filename, primarily for test/debug purposes

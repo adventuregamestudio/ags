@@ -45,5 +45,7 @@ int LoadImageFile(const char *filename)
 
     const bool has_alpha = PixelFormatHasAlpha(src_fmt);
     return add_dynamic_sprite(std::unique_ptr<Bitmap>(
-        PrepareSpriteForUse(image.release(), has_alpha)), has_alpha);
+        PrepareSpriteForUse(image.release(), has_alpha, true /* keep mask */,
+            loaded_game_file_version < kGameVersion_362 /* no alpha fix in older games */)),
+        has_alpha);
 }

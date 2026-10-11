@@ -147,6 +147,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
         if (_speed <= 0)
             _speed = 16;
 
@@ -221,6 +222,10 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
+        if (_speed <= 0)
+            _speed = 16;
+
         // TODO: scan these functions and double check the palette manipulations
         if (game.color_depth > 1)
         {
@@ -360,6 +365,10 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
+        if (_speed <= 0)
+            _speed = 16;
+
         // Create a "screenshot" on a texture
         play.screen_is_faded_out = 0; // force all game elements to draw
 
@@ -447,6 +456,10 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
+        if (_speed <= 0)
+            _speed = 16;
+
         // First of all we render the game once again and get the drawn frame as a bitmap.
         // Then we keep drawing saved image of the game, simulating "box-out".
         // TODO: maybe use screenshot_to_ddb instead?
@@ -568,6 +581,7 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
+        // TODO: implement speed parameter, currently unused
         if (_alpha <= 0)
             return false;
         _alpha = std::max(_alpha - 16, 0);
@@ -637,6 +651,7 @@ public:
         }
         gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
 
+        // TODO: implement speed parameter, currently unused
         _step = std::min(_step + 1, 16);
         return true;
     }

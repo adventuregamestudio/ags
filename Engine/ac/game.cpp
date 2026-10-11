@@ -1370,7 +1370,8 @@ std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &filename)
     }
     if (desc.UserImage)
     {
-        desc.UserImage.reset(PrepareSpriteForUse(desc.UserImage.release(), false /* no alpha */, false /* no keep mask */));
+        desc.UserImage.reset(PrepareSpriteForUse(desc.UserImage.release(), false /* no alpha */,
+            false /* no keep mask */, false /* dont care about alpha */));
         return std::move(desc.UserImage);
     }
     return {};

@@ -125,18 +125,12 @@ namespace AGS.Editor.Components
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Character", oldNumber, 0, _items.Count - 1);
                 if (newNumber < 0)
                     return;
-                foreach (var obj in _items)
+
+                if (SafeSwapItemIDs(GetFlatList(), oldNumber, newNumber))
                 {
-                    if (obj.Value.ID == newNumber)
-                    {
-                        obj.Value.ID = oldNumber;
-                        break;
-                    }
+                    OnItemIDOrNameChanged(_itemRightClicked, false);
+                    OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
                 }
-                _itemRightClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(_itemRightClicked, false);
-                OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
             }
             else if (controlID == COMMAND_GO_TO_CHARACTER_NUMBER)
             {

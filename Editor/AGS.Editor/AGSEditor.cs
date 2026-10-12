@@ -1274,6 +1274,10 @@ namespace AGS.Editor
             CompileMessages errors = new CompileMessages();
 
             Utilities.EnsureStandardSubFoldersExist();
+            // Test Object IDs being a valid sequence just in case prior to compiling the game,
+            // in case something went wrong during editing session (keep in mind that plugins
+            // can also edit the game data).
+            _tasks.HandleObjectIDErrors(_game);
 
             forceRebuild |= NeedsRebuildForDebugMode();
             forceRebuild |= _game.WorkspaceState.RequiresRebuild;

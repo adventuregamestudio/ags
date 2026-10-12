@@ -417,7 +417,7 @@ namespace AGS.Editor
         /// a Game, we should have the object lists sorted by ID. See if any IDs are
         /// missing, and fill these gaps with dummy filler objects, and report to user.
         /// </summary>
-        private void HandleObjectIDErrors(Game game)
+        public void HandleObjectIDErrors(Game game)
         {
             ProcIDErrorsState state = new ProcIDErrorsState();
             HandleObjectIDErrors(game.RootAudioClipFolder, "Audio Clip", 0, state,

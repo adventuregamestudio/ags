@@ -29,6 +29,13 @@ namespace AGS.Types
             list[index2] = temp;
         }
 
+        public static TValue GetByIndexOrDefault<TValue>(this IList<TValue> list, int index, TValue defValue)
+        {
+            if (index >= 0 && index < list.Count)
+                return list[index];
+            return defValue;
+        }
+
         /// <summary>
         /// Safely checks if SortedList contains a key, and returns either
         /// a stored value, or a default value if such key was not found.

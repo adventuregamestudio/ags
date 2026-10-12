@@ -111,12 +111,11 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // Recreate overlay image
     int adj_x = x, adj_y = y;
     bool has_alpha = false;
+    DisplayTextLooks look(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink);
+    look.PreserveTextColor = loaded_game_file_version >= kGameVersion_363_15;
+
     std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
-        DisplayTextLooks(
-            kDisplayTextStyle_TextWindow,
-            (DisplayTextPosition)text_pos,
-            allow_shrink),
-        text_color, x, y, adj_x, adj_y,
+        look, text_color, x, y, adj_x, adj_y,
         width, fontid, has_alpha, nullptr);
 
     // Update overlay properties
@@ -282,9 +281,11 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     if (text_color == 0) text_color = 16;
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
+    DisplayTextLooks look(style, (DisplayTextPosition)text_pos, allow_shrink);
+    look.PreserveTextColor = loaded_game_file_version >= kGameVersion_363_15;
+
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
-        DisplayTextLooks(style, (DisplayTextPosition)text_pos, allow_shrink),
-        font, text_color, false /* no fixed pos */, room_layer);
+        look, font, text_color, false /* no fixed pos */, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)

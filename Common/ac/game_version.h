@@ -142,6 +142,7 @@ Do not auto-translate text properties which are set or get in script
 3.6.3.15:
 Various GUI control fixes (which may change the visuals, so worth mentioning).
 Region.Tint no longer remaps amount 0 as 100.
+Textual overlay supports -1 width for auto-size, keeps text color even if a textwindow is used.
 */
 
 enum GameDataVersion

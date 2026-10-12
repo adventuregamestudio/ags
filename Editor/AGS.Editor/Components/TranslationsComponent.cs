@@ -708,7 +708,7 @@ namespace AGS.Editor.Components
             else
             {
                 int translationIndex = Convert.ToInt32(controlID.Substring(3));
-                _itemRightClicked = _agsEditor.CurrentGame.Translations[translationIndex];
+                _itemRightClicked = _agsEditor.CurrentGame.Translations.GetByIndexOrDefault(translationIndex, null);
                 _commandIDRightClicked = controlID;
                 if (_itemRightClicked != null)
                 {

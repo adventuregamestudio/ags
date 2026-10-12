@@ -2774,6 +2774,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         return;
     }
 
+    debug_script_log("%s: \"%s\"", speakingChar->scrname, texx);
+
     EndSkippingUntilCharStops();
 
     said_speech_line = 1;
@@ -2869,11 +2871,9 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     text_lips_offset = 0;
     text_lips_text = texx;
     std::unique_ptr<Bitmap> closeupface;
-    bool overlayPositionFixed = false;
-    int charFrameWas = 0;
-    int viewWasLocked = 0;
-    if (speakingChar->flags & CHF_FIXVIEW)
-        viewWasLocked = 1;
+    bool over_pos_fixed = false;
+    int char_frame_was = 0;
+    const bool view_was_locked = (speakingChar->flags & CHF_FIXVIEW);
     char_speaking = speakingChar->index_id;
 
     // Start voice-over, if requested by the tokens in speech text
@@ -2892,8 +2892,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         // if they were moving, this will be 0 (because we just called
         // StopMoving); otherwise, it might be a specific animation 
         // frame which we should return to
-        if (viewWasLocked)
-            charFrameWas = speakingChar->frame;
+        if (view_was_locked)
+            char_frame_was = speakingChar->frame;
 
         if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
             quitprintf("!Character %s current view %d is invalid, or has no loops.",
@@ -3141,7 +3141,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             if (facetalkchar->blinktimer < 0)
                 facetalkchar->blinktimer = facetalkchar->blinkinterval;
             disp_style = kDisplayTextStyle_TextWindow;
-            overlayPositionFixed = true;
+            over_pos_fixed = true;
             // Process the first portrait view frame
             const int frame_vol = charextra[facetalkchar->index_id].GetFrameSoundVolume(facetalkchar);
             CheckViewFrame(facetalkview, facetalkloop, facetalkframe, frame_vol);
@@ -3210,7 +3210,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
 
     set_our_eip(155);
     display_main(tdxp, tdyp, bwidth, texx, nullptr, kDisplayText_Speech, 0 /* no overid */,
-        DisplayTextLooks(disp_style, disp_pos, allow_shrink, is_thought), FONT_SPEECH, text_color, overlayPositionFixed);
+        DisplayTextLooks(disp_style, disp_pos, allow_shrink, is_thought), FONT_SPEECH, text_color, over_pos_fixed);
     set_our_eip(156);
     if (face_talking >= 0)
         remove_screen_overlay(face_talking);
@@ -3225,7 +3225,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         // older games did this only for non-player characters for some reason
         if ((loaded_game_file_version >= kGameVersion_261) || (speakingChar != playerchar))
         {
-            if (viewWasLocked)
+            if (view_was_locked)
                 speakingChar->flags |= CHF_FIXVIEW;
             speakingChar->view = oldview;
         }
@@ -3240,7 +3240,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             speakingChar->loop = oldloop;
 
         stop_character_anim(speakingChar);
-        speakingChar->frame = charFrameWas;
+        speakingChar->frame = char_frame_was;
         speakingChar->wait = 0;
         // Restart idle timer
         reset_character_idling_time(speakingChar);

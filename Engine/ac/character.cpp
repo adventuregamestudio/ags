@@ -3221,14 +3221,15 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     if (oldview >= 0)
     {
         speakingChar->flags &= ~CHF_FIXVIEW;
-        // Modern behavior is to restore the character's locked view (if one was locked)
-        if (loaded_game_file_version >= kGameVersion_261)
+        // Modern behavior is to restore all the character's locked view (if one was locked);
+        // older games did this only for non-player characters for some reason
+        if ((loaded_game_file_version >= kGameVersion_261) || (speakingChar != playerchar))
         {
             if (viewWasLocked)
                 speakingChar->flags |= CHF_FIXVIEW;
             speakingChar->view = oldview;
         }
-        // Pre-2.6.1 behavior is to reset to the normal view
+        // Pre-2.6.1 behavior is to reset the *player character* to the normal view
         else
         {
             speakingChar->view = speakingChar->defview;

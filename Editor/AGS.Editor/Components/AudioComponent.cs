@@ -151,17 +151,9 @@ namespace AGS.Editor.Components
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("AudioClip", oldNumber, 0, _items.Count - 1);
                 if (newNumber < 0)
                     return;
-                foreach (var obj in _items)
-                {
-                    if (obj.Value.ID == newNumber)
-                    {
-                        obj.Value.ID = oldNumber;
-                        break;
-                    }
-                }
-                clipClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(clipClicked, false);
+
+                if (SafeSwapItemIDs(GetFlatList(), oldNumber, newNumber))
+                    OnItemIDOrNameChanged(clipClicked, false);
             }
             else if (controlID == SPEECH_NODE_ID)
             {

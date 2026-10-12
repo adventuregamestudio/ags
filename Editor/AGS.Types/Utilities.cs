@@ -17,16 +17,17 @@ namespace AGS.Types
         /// </summary>
         public static Encoding UTF8 = new UTF8Encoding(false);
 
-        public static void Swap<T>(this IList<T> list, int index1, int index2)
+        public static bool Swap<T>(this IList<T> list, int index1, int index2)
         {
             if (index1 == index2)
-                return;
+                return true;
             if (index1 < 0 || index1 >= list.Count || index2 < 0 || index2 >= list.Count)
-                return;
+                return false;
 
             var temp = list[index1];
             list[index1] = list[index2];
             list[index2] = temp;
+            return true;
         }
 
         public static TValue GetByIndexOrDefault<TValue>(this IList<TValue> list, int index, TValue defValue)

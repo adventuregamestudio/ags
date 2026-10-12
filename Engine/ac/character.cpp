@@ -2995,6 +2995,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         return;
     }
 
+    debug_script_log("%s: \"%s\"", speakingChar->scrname, texx);
+
     EndSkippingUntilCharStops();
 
     said_speech_line = 1;
@@ -3093,10 +3095,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     text_lips_offset = 0;
     text_lips_text = texx;
     std::unique_ptr<Bitmap> closeupface;
-    int charFrameWas = 0;
-    int viewWasLocked = 0;
-    if (speakingChar->flags & CHF_FIXVIEW)
-        viewWasLocked = 1;
+    int char_frame_was = 0;
+    const bool view_was_locked = (speakingChar->flags & CHF_FIXVIEW);
     char_speaking = speakingChar->index_id;
 
     // Start voice-over, if requested by the tokens in speech text
@@ -3115,8 +3115,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         // if they were moving, this will be 0 (because we just called
         // StopMoving); otherwise, it might be a specific animation 
         // frame which we should return to
-        if (viewWasLocked)
-            charFrameWas = speakingChar->frame;
+        if (view_was_locked)
+            char_frame_was = speakingChar->frame;
 
         if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
             quitprintf("!Character %s current view %d is invalid, or has no loops.",
@@ -3449,11 +3449,11 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     set_our_eip(157);
     if (oldview>=0) {
         speakingChar->flags &= ~CHF_FIXVIEW;
-        if (viewWasLocked)
+        if (view_was_locked)
             speakingChar->flags |= CHF_FIXVIEW;
         speakingChar->view=oldview;
         stop_character_anim(speakingChar);
-        speakingChar->frame = charFrameWas;
+        speakingChar->frame = char_frame_was;
         speakingChar->wait=0;
         // Restart idle timer
         reset_character_idling_time(speakingChar);

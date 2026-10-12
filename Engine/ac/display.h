@@ -84,6 +84,8 @@ struct DisplayTextLooks
     DisplayTextShrink AllowShrink = kDisplayTextShrink_None;
     // Is this a character's thought; FIXME: merge with Style?
     bool AsThought = false;
+    // Preserve explicitly specified text color for custom textual overlays.
+    bool PreserveTextColor = false;
 
     DisplayTextLooks() = default;
     DisplayTextLooks(DisplayTextStyle style)

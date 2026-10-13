@@ -989,13 +989,12 @@ void on_roomviewport_changed(Viewport *view)
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
-    const bool off = !IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
-    const bool off_changed = off != CameraDrawData[view->GetID()].IsOffscreen;
-    CameraDrawData[view->GetID()].IsOffscreen = off;
-    if (view->HasChangedSize())
-        sync_roomview(view);
-    else if (off_changed)
-        prepare_roomview_frame(view);
+    CameraDrawData[view->GetID()].IsOffscreen =
+        !IsRectInsideRect(RectWH(gfxDriver->GetMemoryBackBuffer()->GetSize()), view->GetRect());
+    // Always resync, because dirty rects store viewport's screen position too:
+    // if left stale, they will blit the room onto the old position when drawing
+    // directly to the screen, and may write past the backbuffer's bounds.
+    sync_roomview(view);
     // TODO: don't have to do this all the time, perhaps do "dirty rect" method
     // and only clear previous viewport location?
     invalidate_screen();

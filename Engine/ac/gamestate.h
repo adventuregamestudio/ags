@@ -179,7 +179,7 @@ struct GamePlayState
     int  dialog_options_highlight_color = 0; // The colour used for highlighted (hovered over) text in dialog options
     long  randseed = 0;             // random seed
     int   player_on_region = 0;     // player's current region
-    int   screen_is_faded_out = 0;  // the screen is currently black
+    bool  screen_is_faded_out = false; // the screen is currently black
     int   check_interaction_only = 0;
     int   bg_frame = 0; // for animating backgrounds
     int   bg_anim_delay = 0;

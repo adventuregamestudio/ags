@@ -796,7 +796,7 @@ void engine_init_game_settings()
     play.dialog_options_font = FONT_UNDEFINED;
     play.min_dialogoption_width = 0;
     play.disable_dialog_parser = 0;
-    play.screen_is_faded_out = 0;
+    play.screen_is_faded_out = false;
     play.player_on_region = 0;
     play.top_bar_backcolor = GUI::GetStandardColor(8);
     play.top_bar_textcolor = GUI::GetStandardColor(16);

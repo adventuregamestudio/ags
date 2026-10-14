@@ -246,7 +246,7 @@ static void GameUpdateCheckProblems()
     // FIXME: find a better place for this fixup, probably should be done
     // after restoring a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed?
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
 }
 
 // Runs rep-exec-always immediately,

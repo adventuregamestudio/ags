@@ -169,7 +169,7 @@ void FadeOut(int sppd) {
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out = 1;
+        play.screen_is_faded_out = true;
         return;
     }
 
@@ -188,7 +188,7 @@ void FadeOut(int sppd) {
     if ((loaded_game_file_version < kGameVersion_361)
         && game.color_depth == 1)
     {
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
     }
 }
 
@@ -225,7 +225,7 @@ void FadeIn(int sppd) {
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
         return;
     }
 

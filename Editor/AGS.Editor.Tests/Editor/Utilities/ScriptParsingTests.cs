@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 
 namespace AGS.Editor
@@ -39,6 +38,9 @@ function f()
         Call
         (Constant,
         ""text arg""));
+
+    Outer_Call(1, 2, UnrelatedCall(3, 4, ""text arg""), InnerCall(5, 6, ""text arg""));
+    Object.Call(1, 2, Object.UnrelatedCall(3, 4, ""text arg""), Object.InnerCall(5, 6, ""text arg""));
 }
 ";
 
@@ -58,7 +60,7 @@ function f()
             ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
             ScriptParsing.FillLines(state);
 
-            Assert.AreEqual(33, state.Lines.Count);
+            Assert.AreEqual(36, state.Lines.Count);
             Assert.AreEqual(0, state.Lines[0]);
             Assert.AreEqual(1, state.Lines[1]);
             Assert.AreEqual(21, state.Lines[2]);
@@ -92,6 +94,9 @@ function f()
             Assert.AreEqual(519, state.Lines[30]);
             Assert.AreEqual(538, state.Lines[31]);
             Assert.AreEqual(560, state.Lines[32]);
+            Assert.AreEqual(561, state.Lines[33]);
+            Assert.AreEqual(645, state.Lines[34]);
+            Assert.AreEqual(744, state.Lines[35]);
         }
 
         [Test]
@@ -162,6 +167,8 @@ function f()
         Call
         (Constant,
         "), ScriptParsing.GetCurrentFunctionCall(state, 546));
+            Assert.AreEqual("Outer_Call(1, 2, UnrelatedCall(3, 4, \"text arg\"), InnerCall(5, 6, ", ScriptParsing.GetCurrentFunctionCall(state, 631, true));
+            Assert.AreEqual("Object.Call(1, 2, Object.UnrelatedCall(3, 4, \"text arg\"), Object.InnerCall(5, 6, ", ScriptParsing.GetCurrentFunctionCall(state, 730, true));
         }
 
         [Test]
@@ -176,11 +183,55 @@ function f()
             Assert.AreEqual(string.Empty, ScriptParsing.GetCurrentFunctionName(state, 194));
             Assert.AreEqual("FuncWithStringArg", ScriptParsing.GetCurrentFunctionName(state, 229));
             Assert.AreEqual("FuncWithStringArg", ScriptParsing.GetCurrentFunctionName(state, 232));
-            Assert.AreEqual(UniformTestString("FuncWithStringArg"), ScriptParsing.GetCurrentFunctionName(state, 358));
+            Assert.AreEqual("FuncWithStringArg", ScriptParsing.GetCurrentFunctionName(state, 358));
             Assert.AreEqual("InnerCall", ScriptParsing.GetCurrentFunctionName(state, 426));
             Assert.AreEqual("Outer_Call", ScriptParsing.GetCurrentFunctionName(state, 426, true));
             Assert.AreEqual("Object_.Call", ScriptParsing.GetCurrentFunctionName(state, 470));
-            Assert.AreEqual(UniformTestString("Object_.Call"), ScriptParsing.GetCurrentFunctionName(state, 546));
+            Assert.AreEqual("Object_.Call", ScriptParsing.GetCurrentFunctionName(state, 546));
+            Assert.AreEqual("InnerCall", ScriptParsing.GetCurrentFunctionName(state, 631));
+            Assert.AreEqual("Object.InnerCall", ScriptParsing.GetCurrentFunctionName(state, 730));
+        }
+
+        [Test]
+        public void GetAllCurrentFunctionNames_Test()
+        {
+            string script = UniformTestString(TestScript);
+
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
+            ScriptParsing.FillCommentSections(state);
+
+            System.Collections.Generic.List<string> functionNames = new System.Collections.Generic.List<string>();
+            ScriptParsing.GetAllCurrentFunctionNames(state, 105, functionNames);
+            Assert.AreEqual(0, functionNames.Count);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 194, functionNames);
+            Assert.AreEqual(0, functionNames.Count);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 229, functionNames);
+            Assert.AreEqual(1, functionNames.Count);
+            Assert.AreEqual("FuncWithStringArg", functionNames[0]);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 232, functionNames);
+            Assert.AreEqual(1, functionNames.Count);
+            Assert.AreEqual("FuncWithStringArg", functionNames[0]);
+            Assert.AreEqual(1, functionNames.Count);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 358, functionNames);
+            Assert.AreEqual("FuncWithStringArg", functionNames[0]);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 426, functionNames);
+            Assert.AreEqual(2, functionNames.Count);
+            Assert.AreEqual("InnerCall", functionNames[0]);
+            Assert.AreEqual("Outer_Call", functionNames[1]);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 470, functionNames);
+            Assert.AreEqual(1, functionNames.Count);
+            Assert.AreEqual("Object_.Call", functionNames[0]);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 546, functionNames);
+            Assert.AreEqual(1, functionNames.Count);
+            Assert.AreEqual("Object_.Call", functionNames[0]);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 631, functionNames);
+            Assert.AreEqual(2, functionNames.Count);
+            Assert.AreEqual("InnerCall", functionNames[0]);
+            Assert.AreEqual("Outer_Call", functionNames[1]);
+            ScriptParsing.GetAllCurrentFunctionNames(state, 730, functionNames);
+            Assert.AreEqual(2, functionNames.Count);
+            Assert.AreEqual("Object.InnerCall", functionNames[0]);
+            Assert.AreEqual("Object.Call", functionNames[1]);
         }
     }
 }

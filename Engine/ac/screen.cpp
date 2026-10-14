@@ -666,12 +666,29 @@ private:
     RGB _interpal[256]{};
 };
 
+// Tells if we should use instant transition effect, based certain conditions
+inline bool should_instant_transition(ScreenTransitionStyle style)
+{
+    return (style == kScrTran_Instant) ||
+        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+}
+
+// Tells if the screen blackouts on the given transition (may skip scene render)
+inline bool should_blackout_on_transition(ScreenTransitionStyle style)
+{
+    // Do not blackout if it's an instant transition,
+    // but also if it's crossfade or dissolve, since these don't have
+    // any "blackout" frame and previous room instantly changes into new one
+    return !(should_instant_transition(style) ||
+        (style == kScrTran_Crossfade) || (style == kScrTran_Dissolve));
+}
+
 void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
 {
-    if (play.screen_is_faded_out == !fade_in)
+    if (should_blackout_on_transition(style) && (play.screen_is_faded_out == !fade_in))
         return; // already in the wanted state
 
-    bool software_mode = gfxDriver->UsesMemoryBackBuffer();
+    const bool software_mode = gfxDriver->UsesMemoryBackBuffer();
     std::unique_ptr<ScreenTransition> scrtr;
     switch (style)
     {
@@ -709,7 +726,8 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     while (scrtr->Run());
     scrtr->End();
 
-    play.screen_is_faded_out = !fade_in;
+    if (should_blackout_on_transition(style))
+        play.screen_is_faded_out = !fade_in;
 }
 
 void run_fade_in_effect(ScreenTransitionStyle style, int speed)
@@ -727,17 +745,9 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
     play.screen_is_faded_out = false; // mark screen as clear
 }
 
-// Tells if we should use instant transition effect, based certain conditions
-inline bool should_instant_transition(ScreenTransitionStyle style)
-{
-    return (style == kScrTran_Instant) ||
-        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
-}
-
 void run_fade_out_effect(ScreenTransitionStyle style, int speed)
 {
-    const bool instant_transition = should_instant_transition(style);
-    if (instant_transition)
+    if (should_instant_transition(style))
     {
         if (!play.keep_screen_during_instant_transition)
             set_palette_range(black_palette, 0, 255, 0);
@@ -752,7 +762,7 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
     }
 
     // NOTE: the screen could have been faded out prior to transition out
-    play.screen_is_faded_out |= (!instant_transition); // mark screen as faded
+    play.screen_is_faded_out |= should_blackout_on_transition(style); // mark screen as faded
 }
 
 void current_fade_in_effect()
@@ -822,7 +832,7 @@ void current_fade_out_effect()
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out |= !(should_instant_transition(trans_style)); // mark screen as faded
+        play.screen_is_faded_out |= should_blackout_on_transition(trans_style); // mark screen as faded
         return;
     }
 

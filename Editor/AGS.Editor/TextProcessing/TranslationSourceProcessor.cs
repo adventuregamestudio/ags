@@ -40,24 +40,28 @@ namespace AGS.Editor
             if (string.IsNullOrEmpty(scriptCodeExtract))
                 return true; // not a function call, use always
 
-            // Code extract contains "...functionName(..,..," text.
-            // Get function name alone and compare to all the excluded function names.
+            // Code extract contains "...functionName(..,..," text, possibly with nested calls inside arg list.
+            // Get function names out and compare to all the excluded function names.
             ScriptParsing.ParserState state = new ScriptParsing.ParserState(scriptCodeExtract);
-            string fullFunctionName = ScriptParsing.GetCurrentFunctionName(state, scriptCodeExtract.Length);
-            
-            // The function name may be a composite name (Type.Function, or longer if there's a long access expression);
-            // test it by adding section by section, starting from the end.
-            if (!string.IsNullOrEmpty(fullFunctionName))
+            List<string> functionNames = new List<string>();
+            if (ScriptParsing.GetAllCurrentFunctionNames(state, scriptCodeExtract.Length, functionNames))
             {
-                var parts = fullFunctionName.Split(ScriptParsing.SYM_MEMBER_ACCESS);
-                string matchFn = string.Empty;
-                for (int i = parts.Length - 1; i >= 0; --i)
+                // Test all function names, starting with the innermost, to see if any of them match
+                // the functions that must get excluded.
+                foreach (string functionName in functionNames)
                 {
-                    matchFn = string.IsNullOrEmpty(matchFn) ? parts[i] : $"{parts[i]}{ScriptParsing.SYM_MEMBER_ACCESS}{matchFn}";
-                    foreach (string fn in _excludeFunctionCalls)
+                    // The function name may be a composite name (Type.Function, or longer if there's a long access expression);
+                    // test it by adding section by section, starting from the end.
+                    var parts = functionName.Split(ScriptParsing.SYM_MEMBER_ACCESS);
+                    string matchFn = string.Empty;
+                    for (int i = parts.Length - 1; i >= 0; --i)
                     {
-                        if (matchFn == fn)
-                            return false;
+                        matchFn = string.IsNullOrEmpty(matchFn) ? parts[i] : $"{parts[i]}{ScriptParsing.SYM_MEMBER_ACCESS}{matchFn}";
+                        foreach (string fn in _excludeFunctionCalls)
+                        {
+                            if (matchFn == fn)
+                                return false;
+                        }
                     }
                 }
             }

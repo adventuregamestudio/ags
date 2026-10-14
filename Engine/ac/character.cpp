@@ -2766,7 +2766,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
-    if (play.screen_is_faded_out > 0)
+    if (play.screen_is_faded_out)
         debug_script_warn("Blocking Say call during fade-out.");
     if (play.text_overlay_on > 0)
     {

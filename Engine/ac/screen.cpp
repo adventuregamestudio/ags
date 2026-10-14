@@ -152,7 +152,7 @@ public:
         // harmonise speeds with software driver which is faster (???)
         _speed *= 2;
         // Create a "screenshot" on a texture
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
 
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(true);
@@ -230,7 +230,7 @@ public:
             set_palette(*_fadeInPal);
         }
 
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         _alpha = 0;
 
         if (game.color_depth > 1)
@@ -368,7 +368,7 @@ public:
             _speed = get_fixed_pixel_size(16);
 
         // Create a "screenshot" on a texture
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
 
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(true);
@@ -461,7 +461,7 @@ public:
         // First of all we render the game once again and get the drawn frame as a bitmap.
         // Then we keep drawing saved image of the game, simulating "box-out".
         // TODO: maybe use screenshot_to_ddb instead?
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
@@ -542,7 +542,7 @@ public:
         if (game.color_depth == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
@@ -602,7 +602,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
@@ -722,7 +722,7 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
         run_screen_transition(style, true, speed);
     }
 
-    play.screen_is_faded_out = 0; // mark screen as clear
+    play.screen_is_faded_out = false; // mark screen as clear
 }
 
 // Tells if we should use instant transition effect, based certain conditions
@@ -768,13 +768,13 @@ void current_fade_in_effect()
 
     if (pl_run_plugin_hooks(kPluginEvt_TransitionIn, 0))
     {
-        play.screen_is_faded_out = 0; // mark screen as clear
+        play.screen_is_faded_out = false; // mark screen as clear
         return;
     }
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out = 0; // mark screen as clear
+        play.screen_is_faded_out = false; // mark screen as clear
         return;
     }
 

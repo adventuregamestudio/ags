@@ -33,7 +33,7 @@ void PlayFlic(int numb, int scr_flags)
 
     // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
     if (loaded_game_file_version <= kGameVersion_272)
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
 
     // Convert PlayFlic flags to common video flags
     /* NOTE: historically using decimal "flags"

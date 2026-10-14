@@ -461,7 +461,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     }
 
     engine_init_game_settings();
-    play.screen_is_faded_out = 1;
+    play.screen_is_faded_out = true;
 
     if (load_new_game_restore >= 0) {
         try_restore_save(load_new_game_restore, true);

@@ -409,7 +409,11 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
     }
     // Drawing directly on a viewport without transformation (other than offset):
     // then make a subbitmap of the parent surface (virtualScreen or else).
-    else if (transform.ScaleX == 1.f && transform.ScaleY == 1.f)
+    // Subbitmaps are clamped to the parent's bounds, so this is only valid if the
+    // viewport is fully inside; otherwise the batch's surface would be smaller than
+    // expected, and nested batches would get squeezed into it.
+    else if (transform.ScaleX == 1.f && transform.ScaleY == 1.f && transform.Rotate == 0.f &&
+             IsRectInsideRect(RectWH(parent_surf->GetSize()), viewport))
     {
         // We need this subbitmap for plugins, which use _stageVirtualScreen and are unaware of possible multiple viewports;
         // TODO: there could be ways to optimize this further, but best is to update plugin rendering hooks (and upgrade plugins)

@@ -209,13 +209,6 @@ namespace AGS.Editor.Components
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
         }
 
-        protected override ContentDocument GetDocument(ScriptEditor editor)
-        {
-            ContentDocument document;
-            if (!_editors.TryGetValue(editor.Script, out document)) return null;
-            return document;
-        }
-
         private string FindFirstAvailableFileName(string prefix)
         {
             int attempt = 0;
@@ -560,7 +553,6 @@ namespace AGS.Editor.Components
             chosenItem.LoadFromDisk();
             ScriptEditor newEditor = new ScriptEditor(chosenItem, _agsEditor, ShowMatchingScriptOrHeader);
             newEditor.DockingContainer = new DockingContainer(newEditor);
-            newEditor.IsModifiedChanged += ScriptEditor_IsModifiedChanged;
             _editors[chosenItem] = new ContentDocument(newEditor, chosenItem.FileName, this, ICON_KEY, null);
             _editors[chosenItem].PanelClosed += _panelClosedHandler;
             _editors[chosenItem].ToolbarCommands = newEditor.ToolbarIcons;
@@ -868,11 +860,11 @@ namespace AGS.Editor.Components
             ContentDocument document;
             if (_editors.TryGetValue(renamedScript, out document))
             {
-                UpdateScriptWindowTitle((ScriptEditor)document.Control);
+                ((ScriptEditor)document.Control).UpdateWindowTitle(); // TODO: achieve this using events instead of direct call
             }
             if (_editors.TryGetValue(associatedScript, out document))
             {
-                UpdateScriptWindowTitle((ScriptEditor)document.Control);
+                ((ScriptEditor)document.Control).UpdateWindowTitle(); // TODO: achieve this using events instead of direct call
             }
 
             RePopulateTreeView(GetNodeID(renamedScript));
@@ -954,8 +946,6 @@ namespace AGS.Editor.Components
                 {
                     script.Text = 
                         ScriptGeneration.InsertFunction(script.Text, "game_start", "", "  SetRestartPoint();", amendExisting: true);
-                    // CHECKME: do not save the script here, in case user made a mistake opening this in a newer editor
-                    // and closes project without saving after upgrade? Upgrade process is not well defined...
                 }
             }
         }

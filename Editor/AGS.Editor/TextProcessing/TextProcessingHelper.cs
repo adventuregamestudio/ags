@@ -17,7 +17,7 @@ namespace AGS.Editor
             game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, "Game info", GameTextType.ItemDescription);
             game.Settings.Genre = processor.ProcessText(game.Settings.Genre, "Game info", GameTextType.ItemDescription);
 
-            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
+            foreach (Dialog dialog in game.Dialogs)
             {
                 string sourceRef = string.IsNullOrEmpty(dialog.ScriptName) ? $"Dialog {dialog.ID}" : $"Dialog {dialog.ID}; {dialog.ScriptName}";
                 foreach (DialogOption option in dialog.Options)
@@ -26,8 +26,8 @@ namespace AGS.Editor
                     option.Text = processor.ProcessText(GameTextLine.MakeSpeechLine(game.PlayerCharacter.ID, option.Text, dialog.ScriptName), GameTextType.DialogOption);
                 }
 
-                dialog.Script = processor.ProcessText(dialog.Script, sourceRef, GameTextType.DialogScript);
-                dialog.Script = processor.ProcessText(GameTextLine.MakeScript(dialog.Script, dialog.FileName, dialog.ScriptName), GameTextType.DialogScript);
+                dialog.Script.Text = processor.ProcessText(dialog.Script.Text, sourceRef, GameTextType.DialogScript);
+                dialog.Script.Text = processor.ProcessText(GameTextLine.MakeScript(dialog.Script.Text, dialog.ScriptFileName, dialog.ScriptName), GameTextType.DialogScript);
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)

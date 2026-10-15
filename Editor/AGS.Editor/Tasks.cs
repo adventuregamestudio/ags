@@ -323,13 +323,17 @@ namespace AGS.Editor
             string friendlyTypeName, int startID, ProcIDErrorsState state, CreateFillerItem<TItem> createFiller)
             where TItem : IHasID
         {
+            // We don't know if the input list is sorted, so copy item refs to temp list and sort
+            List<TItem> sortedList = items.ToList();
+            sortedList.Sort();
+
             state.Fillers.Clear();
             state.Duplicates.Clear();
             int presentItems = 0; // only currently present, not counting generated fillers
             int expectID = startID;
-            // The items are assumed to be already sorted in the order of item ID;
-            // this means that we cannot introduce duplicates by inserting fillers.
-            foreach (var item in items)
+            // Since the items are already sorted in the order of item ID,
+            // then we cannot introduce duplicates by inserting fillers.
+            foreach (var item in sortedList)
             {
                 presentItems++;
                 // Since list is sorted, the duplicates are found when the next item has

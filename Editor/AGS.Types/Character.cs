@@ -10,7 +10,7 @@ namespace AGS.Types
     [Serializable]
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("StartingRoom")]
-    public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>, ICloneable
+    public class Character : IHasID, ICustomTypeDescriptor, IToXml, IComparable<Character>, ICloneable
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
         public const string PROPERTY_NAME_DESCRIPTION = "RealName";
@@ -30,7 +30,7 @@ namespace AGS.Types
         private int _thinkingView;
         private int _blinkingView;
         private int _transparency = 0;
-        private int _startingRoom = 0;
+        private int _startingRoom = -1;
         private int _startX = 160, _startY = 120;
         private int _baseline = 0;
         private bool _uniformMovementSpeed = true;
@@ -66,6 +66,12 @@ namespace AGS.Types
 
         public Character()
         {
+        }
+
+        public Character(int id, string scriptName)
+        {
+            _id = id;
+            _scriptName = scriptName;
         }
 
         [Description("The ID number of the character")]

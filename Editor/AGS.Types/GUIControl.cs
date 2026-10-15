@@ -8,8 +8,14 @@ using System.Drawing;
 namespace AGS.Types
 {
     [Serializable]
-    public abstract class GUIControl : ICloneable
+    public abstract class GUIControl : IHasID, ICloneable, IComparable<GUIControl>
     {
+        protected GUIControl(int id, string scriptName)
+        {
+            _id = id;
+            _name = scriptName;
+        }
+
         protected GUIControl(int x, int y, int width, int height)
         {
             _name = string.Empty;
@@ -290,10 +296,23 @@ namespace AGS.Types
             return new Rectangle(Left, Top, Width, Height);
         }
 
+        #region IClonable Members
+
         public object Clone()
         {
             return this.MemberwiseClone();
         }
+
+        #endregion
+
+        #region IComparable<GUIControl> Members
+
+        public int CompareTo(GUIControl other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
 
         public static int CompareByTop(GUIControl x, GUIControl y)
         {

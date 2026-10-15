@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
-	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
+	public class RoomObject : IHasID, IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";

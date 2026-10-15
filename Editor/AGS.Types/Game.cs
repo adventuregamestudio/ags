@@ -879,12 +879,14 @@ namespace AGS.Types
             {
                 _cursors.Add(new MouseCursor(cursNode));
             }
+            _cursors.Sort(); // make sure they are in ID order
 
             _fonts.Clear();
             foreach (XmlNode fontNode in SerializeUtils.GetChildNodesOrEmpty(node, "Fonts"))
             {
                 _fonts.Add(new Font(fontNode));
             }
+            _fonts.Sort(); // make sure they are in ID order
 
             _palette = ReadPaletteFromXML(node);
 
@@ -925,6 +927,7 @@ namespace AGS.Types
             {
                 _audioClipTypes.Add(new AudioClipType(clipTypeNode));
             }
+            _audioClipTypes.Sort(); // make sure they are in ID order
 
             _translations.Clear();
             foreach (XmlNode transNode in SerializeUtils.GetChildNodesOrEmpty(node, "Translations"))

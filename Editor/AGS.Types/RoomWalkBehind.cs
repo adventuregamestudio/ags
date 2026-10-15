@@ -7,7 +7,7 @@ using System.Text;
 namespace AGS.Types
 {
     [DefaultProperty("Baseline")]
-    public class RoomWalkBehind
+    public class RoomWalkBehind : IHasID
     {
         private int _id;
         private int _baseline;

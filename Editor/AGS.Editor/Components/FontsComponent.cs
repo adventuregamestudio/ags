@@ -182,7 +182,7 @@ namespace AGS.Editor.Components
             else
             {
                 int fontID = Convert.ToInt32(controlID.Substring(3));
-                _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
+                _itemRightClicked = _agsEditor.CurrentGame.Fonts.GetByIndexOrDefault(fontID, null);
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this font", null));

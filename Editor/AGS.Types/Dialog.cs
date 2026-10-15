@@ -9,8 +9,13 @@ namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("Name")]
-    public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
+    public class Dialog : IHasID, IScript, IToXml, IComparable<Dialog>, ICloneable
     {
+        private static readonly string DEFAULT_NEW_DIALOG_SCRIPT =
+            $@"// Dialog script file{Environment.NewLine}" +
+            $"@S  // Dialog startup entry point{Environment.NewLine}" +
+            $"return{Environment.NewLine}";
+
         private int _id;
         private string _name;
         private bool _showTextParser;
@@ -18,15 +23,20 @@ namespace AGS.Types
         [NonSerialized]
         private bool _scriptChangedSinceLastCompile;
         [NonSerialized]
-        private string _cachedConvertedScript;
+        private string _cachedConvertedScript = null;
         private List<DialogOption> _options = new List<DialogOption>();
 
         public Dialog()
         {
-            _script = "// Dialog script file" + Environment.NewLine + 
-                "@S  // Dialog startup entry point" + Environment.NewLine +
-                "return" + Environment.NewLine;
-            _cachedConvertedScript = null;
+            _script = DEFAULT_NEW_DIALOG_SCRIPT;
+            _scriptChangedSinceLastCompile = true;
+        }
+
+        public Dialog(int id, string scriptName)
+        {
+            _id = id;
+            _name = scriptName;
+            _script = DEFAULT_NEW_DIALOG_SCRIPT;
             _scriptChangedSinceLastCompile = true;
         }
 

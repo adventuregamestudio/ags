@@ -54,6 +54,7 @@ namespace AGS.Editor.Components
             _fileTypeMappings.Add(".s3m", AudioClipFileType.MOD);
             _fileTypeMappings.Add(".it", AudioClipFileType.MOD);
 
+            _iconMappings.Add(AudioClipFileType.Unknown, string.Empty);
             _iconMappings.Add(AudioClipFileType.MP3, "AGSAudioClipIconMp3");
             _iconMappings.Add(AudioClipFileType.OGG, "AGSAudioClipIconOgg");
             _iconMappings.Add(AudioClipFileType.VOC, "AGSAudioClipIconVoc");
@@ -150,17 +151,9 @@ namespace AGS.Editor.Components
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("AudioClip", oldNumber, 0, _items.Count - 1);
                 if (newNumber < 0)
                     return;
-                foreach (var obj in _items)
-                {
-                    if (obj.Value.ID == newNumber)
-                    {
-                        obj.Value.ID = oldNumber;
-                        break;
-                    }
-                }
-                clipClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(clipClicked, false);
+
+                if (SafeSwapItemIDs(GetFlatList(), oldNumber, newNumber))
+                    OnItemIDOrNameChanged(clipClicked, false);
             }
             else if (controlID == SPEECH_NODE_ID)
             {
@@ -457,8 +450,10 @@ namespace AGS.Editor.Components
         {
             string newScriptName = EnsureScriptNameIsUnique(
                 Path.GetFileNameWithoutExtension(sourceFileName));
-            AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
-            newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
+            AudioClip newClip = new AudioClip(
+                _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount(),
+                newScriptName,
+                _agsEditor.CurrentGame.GetNextAudioIndex());
 
             try
             {

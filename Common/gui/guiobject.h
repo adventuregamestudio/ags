@@ -84,11 +84,8 @@ public:
     void            SetScale(float sx, float sy);
     float           GetRotation() const { return _rotation; }
     void            SetRotation(float degrees);
-    int             GetTransparency() const { return _transparency; }
-    void            SetTransparency(int trans);
-    // Sets transparency as a legacy 255-unit value
-    // Sets transparency as a percentage (0 - 100) where 100 = invisible
-    void            SetTransparencyAsPercentage(int percent);
+    int             GetOpacity() const { return _opacity; }
+    void            SetOpacity(int alpha);
     BlendMode       GetBlendMode() const { return _blendMode; }
     void            SetBlendMode(BlendMode blend_mode);
     int             GetShaderID() const { return _shaderID; }
@@ -169,7 +166,7 @@ protected:
     float   _rotation = 0.f;    // rotation, in degrees
     int     _zOrder = 0;
 
-    int     _transparency = 0; // "incorrect" alpha (in legacy 255-range units)
+    int     _opacity = 0;
     BlendMode _blendMode = kBlend_Normal;
     int     _shaderID = 0;
     int     _shaderHandle = 0; // runtime script shader handle

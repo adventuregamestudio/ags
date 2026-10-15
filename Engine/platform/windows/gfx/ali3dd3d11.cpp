@@ -1689,9 +1689,9 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         // Use Tinting pixel shader
         rgb_to_hsv(tint_r, tint_g, tint_b, &ps_consts[0], &ps_consts[1], &ps_consts[2]);
         ps_consts[0] /= 360.0f; // In HSV, Hue is 0-360
-        ps_consts[3] = (float)tint_sat / 256.0f;
-        ps_consts[4] = (float)alpha / 256.0f;
-        ps_consts[5] = (light_lev > 0) ? (float)light_lev / 256.0f : 1.0f;
+        ps_consts[3] = (float)tint_sat / 255;
+        ps_consts[4] = (float)alpha / 255.0f;
+        ps_consts[5] = (light_lev != 0) ? (float)light_lev / 255.0f : 1.0f;
         ps_consts[6] = alpha_test ? 1.f : 0.f;
 
         const D3D11Shader::ProgramData* program = &_tintShader->GetData();
@@ -1704,21 +1704,18 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         float useTintRed = 255.f, useTintGreen = 255.f, useTintBlue = 255.f;
         float color_op = 0.f; // modulate
 
-        if ((light_lev > 0) && (light_lev < 256))
+        if ((light_lev >= -255) && (light_lev < 0))
         {
-            // darkening the sprite... this stupid calculation is for
-            // consistency with the allegro software-mode code that does
-            // a trans blend with a (8,8,8) sprite
-            useTintRed = (float)((light_lev * 192) / 256 + 64);
+            useTintRed = 255 + light_lev;
             useTintGreen = useTintRed;
             useTintBlue = useTintRed;
         }
-        else if (light_lev > 256)
+        else if (light_lev > 0)
         {
             // ideally we would use a multi-stage operation here
             // because we need to do TEXTURE + (TEXTURE x LIGHT)
             color_op = 1.f; // add
-            useTintRed = (float)((light_lev - 256) / 2);
+            useTintRed = light_lev;
             useTintGreen = useTintRed;
             useTintBlue = useTintRed;
         }

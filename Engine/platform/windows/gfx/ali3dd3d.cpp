@@ -1360,7 +1360,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
   light_lev = bmpToDraw->GetLightLevel();
   const bool do_tint = tint_sat > 0 && _tintShader->GetData().ShaderPtr;
-
+  
   if (bmpToDraw->GetShader())
   {
     // Use custom shader
@@ -1394,11 +1394,11 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     rgb_to_hsv(tint_r, tint_g, tint_b, &vector[0], &vector[1], &vector[2]);
     vector[0] /= 360.0; // In HSV, Hue is 0-360
 
-    vector[3] = (float)tint_sat / 256.0;
-    vector[4] = (float)alpha / 256.0;
+    vector[3] = (float)tint_sat / 255.0;
+    vector[4] = (float)alpha / 255.0;
 
-    if (light_lev > 0)
-      vector[5] = (float)light_lev / 256.0;
+    if (light_lev != 0)
+      vector[5] = (float)light_lev / 255.0;
     else
       vector[5] = 1.0f;
 
@@ -1416,22 +1416,19 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     int useTintBlue = 255;
     int textureColorOp = D3DTOP_MODULATE;
 
-    if ((light_lev > 0) && (light_lev < 256))
+    if ((light_lev >= -255) && (light_lev < 0))
     {
-      // darkening the sprite... this stupid calculation is for
-      // consistency with the allegro software-mode code that does
-      // a trans blend with a (8,8,8) sprite
-      useTintRed = (light_lev * 192) / 256 + 64;
+      useTintRed = 255+light_lev;
       useTintGreen = useTintRed;
       useTintBlue = useTintRed;
     }
-    else if (light_lev > 256)
+    else if (light_lev > 0)
     {
       // ideally we would use a multi-stage operation here
       // because we need to do TEXTURE + (TEXTURE x LIGHT)
       // but is it worth having to set the device to 2-stage?
       textureColorOp = D3DTOP_ADD;
-      useTintRed = (light_lev - 256) / 2;
+      useTintRed = light_lev;
       useTintGreen = useTintRed;
       useTintBlue = useTintRed;
     }

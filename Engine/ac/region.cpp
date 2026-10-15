@@ -94,8 +94,8 @@ ScriptRegion *Region_GetByName(const char *name)
 void SetAreaLightLevel(int area, int brightness) {
     if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
-    if (brightness < -100) brightness = -100;
-    if (brightness > 100) brightness = 100;
+    if (brightness < -255) brightness = -255;
+    if (brightness > 255) brightness = 255;
     thisroom.Regions[area].Light = brightness;
     // disable RGB tint for this area
     thisroom.Regions[area].Tint = 0;
@@ -146,7 +146,7 @@ int Region_GetTintLuminance(ScriptRegion *srr)
     return thisroom.GetRegionTintLuminance(srr->id);
 }
 
-void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 100)
+void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 255)
 {
     if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetRegionTint: invalid region");
@@ -159,12 +159,12 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
     // originally the value was passed as 0
     // TODO: find out which versions had this; fixup only for past versions in the future!
     if (amount == 0)
-        amount = 100;
+        amount = 255;
 
-    if ((amount < 1) || (amount > 100))
-        quit("!SetRegionTint: amount must be 1-100");
-    if ((luminance < 0) || (luminance > 100))
-        quit("!SetRegionTint: luminance must be 0-100");
+    if ((amount < 1) || (amount > 255))
+        quit("!SetRegionTint: amount must be 1-255");
+    if ((luminance < 0) || (luminance > 255))
+        quit("!SetRegionTint: luminance must be 0-255");
 
     debug_script_log("Region %d tint set to %d,%d,%d", area, red, green, blue);
 
@@ -176,7 +176,7 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
         ((green & 0xFF) << 8) |
         ((blue & 0XFF) << 16) |
         ((amount & 0xFF) << 24);
-    thisroom.Regions[area].Light = GfxDef::Value100ToValue250(luminance);
+    thisroom.Regions[area].Light = luminance;
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)

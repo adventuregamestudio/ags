@@ -259,7 +259,7 @@ struct RoomObjectInfo : public RoomObjectBase
     Common::BlendMode BlendMode = kBlend_Normal;
     // Object's z-order in the room, or -1 (use Y)
     int32_t         Baseline = 0;
-    int32_t         Transparency = 0;
+    int32_t         Opacity = 0;
     int32_t         Flags = 0;
     // Human-readable name (description)
     String          Name;
@@ -294,7 +294,7 @@ private:
 // Room region description
 struct RoomRegion : public RoomObjectBase
 {
-    // Light level (-100 -> +100) or Tint luminance (0 - 255)
+    // Light level (-255 -> +255) or Tint luminance (0 - 255)
     int32_t         Light = 0;
     // Tint setting (R-B-G-S)
     int32_t         Tint = 0;
@@ -393,9 +393,9 @@ public:
     bool HasRegionLightLevel(int id) const;
     // Gets if the given region has a tint set
     bool HasRegionTint(int id) const;
-    // Gets region's light level in -100 to 100 range value; returns 0 (default level) if region's tint is set
+    // Gets region's light level in -255 to 255 range value; returns 0 (default level) if region's tint is set
     int  GetRegionLightLevel(int id) const;
-    // Gets region's tint luminance in 0 to 100 range value; returns 0 if region's light level is set
+    // Gets region's tint luminance in 0 to 255 range value; returns 0 if region's light level is set
     int  GetRegionTintLuminance(int id) const;
 
     // TODO: all members are currently public because they are used everywhere; hide them later

@@ -15,13 +15,13 @@ namespace AGS.Types
 
         private int _id;
         private string _scriptName = string.Empty;
-        private int _lightLevel = 100;
+        private int _lightLevel = 255;
         private bool _useTint = false;
         private int _redTint = 0;
         private int _greenTint = 0;
         private int _blueTint = 0;
-        private int _tintAmount = 50;
-        private int _tintLuminance = 100;
+        private int _tintAmount = 127;
+        private int _tintLuminance = 255;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Regions);
         // Game Events
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
@@ -74,9 +74,9 @@ namespace AGS.Types
             set { _useTint = value; }
         }
 
-        [Description("Light level for this region (100 is normal)")]
+        [Description("Light level for this region (0 is normal)")]
         [Category("Lighting")]
-        [DefaultValue(100)]
+        [DefaultValue(0)]
         public int LightLevel
         {
             get { return _lightLevel; }
@@ -107,9 +107,9 @@ namespace AGS.Types
             set { _blueTint = value; }
         }
 
-        [Description("The saturation of the region tint (1=minimal tint, 100=fully colourize)")]
+        [Description("The saturation of the region tint (1=minimal tint, 255=fully colourize)")]
         [Category("Lighting")]
-        [DefaultValue(50)]
+        [DefaultValue(127)]
         public int TintSaturation
         {
             get { return _tintAmount; }
@@ -121,9 +121,9 @@ namespace AGS.Types
             }
         }
 
-        [Description("The luminance of the region tint (0=pitch black, 100=original lighting)")]
+        [Description("The luminance of the region tint (0=pitch black, 255=original lighting)")]
         [Category("Lighting")]
-        [DefaultValue(100)]
+        [DefaultValue(255)]
         public int TintLuminance
         {
             get { return _tintLuminance; }

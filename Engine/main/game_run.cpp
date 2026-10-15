@@ -578,7 +578,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Height : 0),
                 objs[ff].is_enabled(),
                 objs[ff].is_moving() ? "yes" : "no", objs[ff].is_animating() ? "yes" : "no",
-                objs[ff].num, objs[ff].transparent,
+                objs[ff].num, objs[ff].opacity,
                 ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
         DisplayMB(buffer.GetCStr());

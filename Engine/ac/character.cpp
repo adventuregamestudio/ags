@@ -1911,17 +1911,17 @@ void Character_SetThinkView(CharacterInfo *chaa, int vii) {
     chaa->thinkview = vii - 1;
 }
 
-int Character_GetTransparency(CharacterInfo *chaa) {
+int Character_GetOpacity(CharacterInfo* chaa) {
 
-    return GfxDef::LegacyTrans255ToTrans100(chaa->transparency);
+    return chaa->opacity;
 }
 
-void Character_SetTransparency(CharacterInfo *chaa, int trans) {
+void Character_SetOpacity(CharacterInfo* chaa, int opacity) {
 
-    if ((trans < 0) || (trans > 100))
-        quit("!SetCharTransparent: transparency value must be between 0 and 100");
+    if ((opacity < 0) || (opacity > opacity))
+        quit("Character.SetOpacity: alpha value must be between 0 and 255");
 
-    chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
+    chaa->opacity = opacity;
 }
 
 bool Character_GetVisible(CharacterInfo *chaa) {
@@ -4500,15 +4500,15 @@ RuntimeScriptValue Sc_Character_SetThinkView(void *self, const RuntimeScriptValu
 }
 
 // int (CharacterInfo *chaa)
-RuntimeScriptValue Sc_Character_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetOpacity(void* self, const RuntimeScriptValue* params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTransparency);
+    API_OBJCALL_INT(CharacterInfo, Character_GetOpacity);
 }
 
-// void (CharacterInfo *chaa, int trans)
-RuntimeScriptValue Sc_Character_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// void (CharacterInfo *chaa, int alpha)
+RuntimeScriptValue Sc_Character_SetOpacity(void* self, const RuntimeScriptValue* params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTransparency);
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetOpacity);
 }
 
 // int (CharacterInfo *chaa)
@@ -4947,8 +4947,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_ThinkingFrame",         API_FN_PAIR(Character_GetThinkingFrame) },
         { "Character::get_ThinkView",             API_FN_PAIR(Character_GetThinkView) },
         { "Character::set_ThinkView",             API_FN_PAIR(Character_SetThinkView) },
-        { "Character::get_Transparency",          API_FN_PAIR(Character_GetTransparency) },
-        { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
+        { "Character::get_Opacity",               API_FN_PAIR(Character_GetOpacity) },
+        { "Character::set_Opacity",               API_FN_PAIR(Character_SetOpacity) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
         { "Character::get_Turning",               API_FN_PAIR(Character_GetTurning) },

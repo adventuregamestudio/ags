@@ -378,7 +378,7 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ve
 
     for (auto &obj : room->Objects)
     {
-        obj.Transparency = in->ReadInt16();
+        obj.Opacity = in->ReadInt16();
         obj.Baseline = in->ReadInt16();
         int x = in->ReadInt16();
         int y = in->ReadInt16();
@@ -1054,7 +1054,7 @@ void WriteExt_363_Objects(const RoomData *room, Stream *out)
     out->WriteInt32(room->Objects.size());
     for (const auto &obj : room->Objects)
     {
-        out->WriteInt16(obj.Transparency);
+        out->WriteInt16(obj.Opacity);
         out->WriteInt16(obj.Baseline);
         out->WriteInt16(obj.BlockingRect.Left);
         out->WriteInt16(obj.BlockingRect.Top);

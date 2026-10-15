@@ -387,15 +387,15 @@ void GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos)
         guis[tehgui->id].SetPopupAtY(newpos);
 }
 
-void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
-  if ((trans < 0) | (trans > 100))
-    quit("!SetGUITransparency: transparency value must be between 0 and 100");
+void GUI_SetOpacity(ScriptGUI *tehgui, int alpha) {
+  if ((alpha < 0) | (alpha > 255))
+    quit("GUI.SetOpacity: alpha value must be between 0 and 255");
 
-  guis[tehgui->id].SetTransparencyAsPercentage(trans);
+  guis[tehgui->id].SetOpacity(alpha);
 }
 
-int GUI_GetTransparency(ScriptGUI *tehgui) {
-  return GfxDef::LegacyTrans255ToTrans100(guis[tehgui->id].GetTransparency());
+int GUI_GetOpacity(ScriptGUI *tehgui) {
+  return guis[tehgui->id].GetOpacity();
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
@@ -905,7 +905,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
         // completely offscreen
         !IsRectInsideRect(play.GetUIViewport(), gui.GetRect()) ||
         // fully transparent (? FIXME: this only checks background, but not controls)
-        ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetTransparency() == 255);
+        ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetOpacity() == 0);
 }
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking)
@@ -1337,15 +1337,15 @@ RuntimeScriptValue Sc_GUI_SetTextPadding(void *self, const RuntimeScriptValue *p
 }
 
 // int (ScriptGUI *tehgui)
-RuntimeScriptValue Sc_GUI_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GUI_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptGUI, GUI_GetTransparency);
+    API_OBJCALL_INT(ScriptGUI, GUI_GetOpacity);
 }
 
-// void (ScriptGUI *tehgui, int trans)
-RuntimeScriptValue Sc_GUI_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// void (ScriptGUI *tehgui, int alpha)
+RuntimeScriptValue Sc_GUI_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetTransparency);
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetOpacity);
 }
 
 // int (ScriptGUI *tehgui)
@@ -1618,8 +1618,8 @@ void RegisterGUIAPI()
         { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
         { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
         { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },
-        { "GUI::get_Transparency",        API_FN_PAIR(GUI_GetTransparency) },
-        { "GUI::set_Transparency",        API_FN_PAIR(GUI_SetTransparency) },
+        { "GUI::get_Opacity",             API_FN_PAIR(GUI_GetOpacity) },
+        { "GUI::set_Opacity",             API_FN_PAIR(GUI_SetOpacity) },
         { "GUI::get_Visible",             API_FN_PAIR(GUI_GetVisible) },
         { "GUI::set_Visible",             API_FN_PAIR(GUI_SetVisible) },
         { "GUI::get_Width",               API_FN_PAIR(GUI_GetWidth) },

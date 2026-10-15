@@ -188,7 +188,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     chinfo.y = ref.StartY;
     chinfo.idleview = ref.IdleView - 1;
     chinfo.idledelay = static_cast<int16_t>(ref.IdleDelay);
-    chinfo.transparency = static_cast<int16_t>(GfxDef::Trans100ToLegacyTrans255(ref.Transparency));
+    chinfo.opacity = static_cast<int16_t>(ref.Opacity);
     chinfo.baseline = static_cast<int16_t>(ref.Baseline);
     chinfo.talkcolor = ref.SpeechColor;
     chinfo.thinkview = ref.ThinkingView - 1;
@@ -292,7 +292,7 @@ void WriteGui(Stream *out, const DataUtil::GUIData &ref,
     if (!ref.IsTextWindow && !ref.Clickable) flags &= ~kGUIMain_Clickable;
     if (!ref.IsTextWindow && !ref.Visible) flags &= ~kGUIMain_Visible;
     out->WriteInt32(flags);
-    out->WriteInt32(ref.IsTextWindow ? 0 : GfxDef::Trans100ToLegacyTrans255(ref.Transparency));
+    out->WriteInt32(ref.IsTextWindow ? 255 : ref.Opacity);
     out->WriteInt32(ref.IsTextWindow ? -1 : ref.ZOrder);
     out->WriteInt32(0); // legacy guiId field is unused
     out->WriteInt32(ref.IsTextWindow ? ref.Padding : TEXTWINDOW_PADDING_DEFAULT);

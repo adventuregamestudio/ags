@@ -893,18 +893,18 @@ builtin managed struct DrawingSurface {
   import void DrawCircle(int x, int y, int radius);
 #ifdef SCRIPT_API_v360
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
-  import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void DrawImage(int x, int y, int spriteSlot, int alpha=255, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
   /// Draws the specified surface onto this surface.
-  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void DrawSurface(DrawingSurface *surfaceToDraw, int alpha=255, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v399
   /// Blends a sprite onto the surface with its top-left corner at (x,y).
-  import void BlendImage(int x, int y, int spriteSlot, BlendMode mode, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void BlendImage(int x, int y, int spriteSlot, BlendMode mode, int alpha=255, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
   /// Blends the specified surface onto this surface.
-  import void BlendSurface(DrawingSurface *surfaceToDraw, BlendMode mode, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void BlendSurface(DrawingSurface *surfaceToDraw, BlendMode mode, int alpha=255, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
 #endif // SCRIPT_API_v399
   /// Draws a straight line between the two points on the surface.
@@ -1421,8 +1421,8 @@ builtin managed struct Overlay {
   import readonly attribute int GraphicWidth;
   /// Gets the original height of this overlay's graphic.
   import readonly attribute int GraphicHeight;
-  /// Gets/sets the transparency of this overlay.
-  import attribute int Transparency;
+  /// Gets/sets the opacity of this overlay.
+  import attribute int Opacity;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
   import attribute int ZOrder;
 #endif // SCRIPT_API_v360
@@ -1787,8 +1787,8 @@ builtin managed struct GUIControl {
   /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
   import attribute int  ZOrder;
 #ifdef SCRIPT_API_v360
-  /// Gets/sets the control's transparency.
-  import attribute int  Transparency;
+  /// Gets/sets the control's opacity.
+  import attribute int Opacity;
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this control.
@@ -2103,8 +2103,8 @@ builtin managed struct GUI {
   import attribute int  Height;
   /// Gets the ID number of the GUI.
   readonly import attribute int  ID;
-  /// Gets/sets the transparency of the GUI.
-  import attribute int  Transparency;
+  /// Gets/sets the opacity of the GUI.
+  import attribute int Opacity;
   /// Gets/sets whether the GUI is visible.
   import attribute bool Visible;
   /// Gets/sets the width of the GUI.
@@ -2859,8 +2859,8 @@ builtin managed struct Object {
 #endif // SCRIPT_API_v400_33
   /// Gets/sets whether other objects and characters can move through this object.
   import attribute bool Solid;
-  /// Gets/sets the object's transparency.
-  import attribute int  Transparency;
+  /// Gets/sets the object's opacity.
+  import attribute int Opacity;
   /// Gets the current view number during an animation.
   readonly import attribute int View;
   /// Gets/sets whether the object is currently visible.
@@ -3159,8 +3159,8 @@ builtin managed struct Character {
   import attribute int  SpeechView;
   /// Gets/sets the character's thinking view.
   import attribute int  ThinkView;
-  /// Gets/sets the character's current transparency level.
-  import attribute int  Transparency;
+  /// Gets/sets the character's current opacity level.
+  import attribute int Opacity;
   /// Gets/sets whether the character turns on the spot to face the correct direction before walking.
   import attribute bool TurnBeforeWalking;
   /// Gets the character's current view number.

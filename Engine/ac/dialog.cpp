@@ -1026,6 +1026,7 @@ void DialogOptions::Begin()
     mouseison = -1;
     usingCustomRendering = false;
 
+    // Create script object of DialogOptionsRendering
     ccDialogOptionsRendering = new ScriptDialogOptionsRendering();
     ccAddObjectReference(ccRegisterManagedObject(ccDialogOptionsRendering, ccDialogOptionsRendering));
 
@@ -1040,6 +1041,16 @@ void DialogOptions::Begin()
             data_to_game_coord(ccDialogOptionsRendering->width),
             data_to_game_coord(ccDialogOptionsRendering->height));
         options_have_alpha = ccDialogOptionsRendering->hasAlphaChannel;
+
+        // Create script object of the related DrawingSurface.
+        // NOTE: although DrawingSurface is only allowed to be used within "draw" callback,
+        // we create it here, and keep until the dialog options close. This is done because,
+        // despite a clear warning in the manual, users kept accessing it other callbacks
+        // too in old games, and it worked because engine's implementation did not match
+        // its own specification (so by accident).
+        ScriptDrawingSurface *dopts_surface = new ScriptDrawingSurface();
+        ccAddObjectReference(ccRegisterManagedObject(dopts_surface, dopts_surface));
+        ccDialogOptionsRendering->surfaceToRenderTo = dopts_surface;
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
@@ -1157,13 +1168,12 @@ void DialogOptions::Draw()
         options_bmp->ClearTransparent();
 
         // Custom dialog options rendering
-        ScriptDrawingSurface *dopts_surface = new ScriptDrawingSurface();
+        ScriptDrawingSurface *dopts_surface = ccDialogOptionsRendering->surfaceToRenderTo;
         dopts_surface->isLinkedBitmapOnly = true;
-        ccAddObjectReference(ccRegisterManagedObject(dopts_surface, dopts_surface));
-        ccDialogOptionsRendering->surfaceToRenderTo = dopts_surface;
-        ccDialogOptionsRendering->surfaceAccessed = false;
         dopts_surface->linkedBitmapOnly = options_bmp;
         dopts_surface->hasAlphaChannel = ccDialogOptionsRendering->hasAlphaChannel;
+        ccDialogOptionsRendering->surfaceAccessed = false;
+        ccDialogOptionsRendering->isInDraw = true;
 
         renderDialogOptionsFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
@@ -1180,11 +1190,7 @@ void DialogOptions::Draw()
                 areawid = options_bmp->GetWidth();
         }
         ccDialogOptionsRendering->needRepaint = false;
-        ccDialogOptionsRendering->surfaceToRenderTo = nullptr;
-
-        // Invalidate DrawingSurface object in case they saved its reference in script
-        dopts_surface->Invalidate();
-        ccReleaseObjectReference(ccGetObjectHandleFromAddress(dopts_surface));
+        ccDialogOptionsRendering->isInDraw = false;
     }
     else if (is_textwindow)
     {
@@ -1620,6 +1626,13 @@ void DialogOptions::End()
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
 
+    // Invalidate DialogOptionsRendering and DrawingSurface objects in case they saved its reference in script
+    if (ccDialogOptionsRendering->surfaceToRenderTo)
+    {
+        ccDialogOptionsRendering->surfaceToRenderTo->Invalidate();
+        ccReleaseObjectReference(ccGetObjectHandleFromAddress(ccDialogOptionsRendering->surfaceToRenderTo));
+    }
+    ccDialogOptionsRendering->Reset();
     ccReleaseObjectReference(ccGetObjectHandleFromAddress(ccDialogOptionsRendering));
     ccDialogOptionsRendering = nullptr; // disposed by the managed pool
 

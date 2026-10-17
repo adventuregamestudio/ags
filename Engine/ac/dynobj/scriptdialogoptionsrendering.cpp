@@ -50,4 +50,5 @@ void ScriptDialogOptionsRendering::Reset()
     activeOptionID = -1;
     chosenOptionID = -1;
     needRepaint = false;
+    isInDraw = false;
 }

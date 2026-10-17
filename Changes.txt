@@ -128,6 +128,11 @@ Editor:
  - When Editor is run with /compile or /maketemplate parameter from command line, it will save
    the project file before running game compilation. This is done to avoid potential project data
    desync if any of the project files require upgrade to the new version.
+ - Handle loading a project where object lists have gaps in numeric IDs, or duplicate IDs.
+   For each missing ID a "filler" object of respective type will be added to the game. The objects
+   with duplicate IDs will be assigned the first free ID. This lets to keep editor and game logic
+   execute properly. The users will have a opportunity to decide what to do with affected objects
+   after the project is loaded.
  - Fixed Editor crashing on launch when there's a game with a very long name present in
    "Recent Games" list.
  - Fixed Room's navigation bar to not close the dropdown list whenever the mouse cursor hovers
@@ -368,7 +373,12 @@ Engine:
    or unlocking a temporary view. Previously, it seems, it used full range of loops in the current
    normal view, now it should use only first 4 or 8 standard standing loops (depending on "use
    diagonal loops" setting).
+ - Fixed Software renderer not clearing surface after the room viewport is moved around screen.
+ - Fixed Software renderer displaying room viewport incorrectly if it's moved partially offscreen.
  - Fixed black (RGB 0,0,0) region tint value turning into the maximal light level instead.
+ - Fixed FadeOut(0) causing transition to halt indefinitely when running with Software renderer.
+ - Fixed that the new room is not drawn immediately with Crossfade and Dissolve transition,
+   but only after "Before fade in" event callback completes.
  - Fixed Debug(0) script command that gives all inventory items reducing inventory quantity to 1.
    Now it should keep whatever amount player character have had, if it's higher than 1.
  - Fixed pathfinder's debug overlay toggling off logic.
@@ -407,7 +417,7 @@ Compatibility:
    they had in 2.* engines; some very old games have used that return value in script.
  - In pre-2.62 games let clicks interact with characters and objects under walk-behinds.
  - In 3.5.0 - 3.6.2 games have ListBox item rows ignore border width (may result in +1 row).
- - In pre-2.61 games always reset character to normal view after speech.
+ - In pre-2.61 games always reset player character to normal view after speech.
  - Don't update mouse properties in script during blocking actions in pre-2.7 games.
  - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game
    has a "Fonts anti-aliasing" enabled.
@@ -423,6 +433,10 @@ Compatibility:
    as "default".
  - Fixed that script's name may not be mentioned when reporting an error or a warning when
    running pre-2.72 games.
+ - Fixed that certain 16-bit sprites, which were never intended to show up, appear as text window
+   borders in 32-bit games. This happens when these sprites are assigned as borders by mistake.
+ - Fixed potentially incorrect starting position of characters in rooms in pre-3.6.2 games,
+   related to the use of "Character.PlaceOnWalkableArea".
 
 WinSetup:
  - Added "Speech mode" and "Always wait for text" options to "Accessibility" tab.

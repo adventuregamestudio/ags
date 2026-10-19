@@ -978,9 +978,8 @@ int Game_GetColorFromRGB(int red, int grn, int blu)
 }
 
 const char* Game_InputBox(const char *msg) {
-    char buffer[STD_BUFFER_SIZE];
-    ShowInputBoxImpl(msg, buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    String input = ShowInputBoxImpl(msg);
+    return CreateNewScriptString(input);
 }
 
 const char* Game_GetLocationName(int x, int y) {

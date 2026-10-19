@@ -114,7 +114,7 @@ void SkipCutscene();
 
 // ShowInputBox assumes a string buffer of MAX_MAXSTRLEN
 void ShowInputBox(const char *msg, char *bufr);
-void ShowInputBoxImpl(const char *msg, char *bufr, size_t buf_len);
+AGS::Common::String ShowInputBoxImpl(const char *msg);
 
 int GetLocationType(int xxx,int yyy);
 // Returns the name (description) of a location under given coordinates;

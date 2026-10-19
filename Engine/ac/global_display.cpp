@@ -41,17 +41,16 @@ extern GameSetupStruct game;
 void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech);
 
 void Display(const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    vsnprintf(displbuf, sizeof(displbuf), get_translation(texx), ap);
+    String text = String::FromFormatV(get_translation(texx), ap);
     va_end(ap);
-    DisplayAtY (-1, displbuf);
+    DisplayAtY(-1, text.GetCStr());
 }
 
 void DisplaySimple(const char *text)
 {
-    DisplayAtY (-1, text);
+    DisplayAtY(-1, text);
 }
 
 void DisplayMB(const char *text)

@@ -379,6 +379,12 @@ void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int 
         return;
     ValidateMoveParams("Object.Move", blocking, ignwal);
 
+    if (objs[objj->id].on != OBJ_STATE_ENABLED && blocking != 0)
+    {
+        debug_script_warn("%s: object %d is disabled, cannot make blocking move", "MoveObject", objj->id);
+        return;
+    }
+
     move_object(objj->id, x, y, speed, ignwal);
 
     if (blocking)
@@ -564,11 +570,6 @@ void move_object(int objj, int tox, int toy, int speed, int ignwal) {
         return;
 
     auto &obj = objs[objj];
-    if (obj.on != OBJ_STATE_ENABLED)
-    {
-        debug_script_warn("%s: object %d is disabled, cannot move", "MoveObject", objj);
-        return;
-    }
     // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition
     if ((loaded_game_file_version <= kGameVersion_261) && (speed == -1))
     {

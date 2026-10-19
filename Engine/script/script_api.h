@@ -54,7 +54,7 @@ inline size_t ScriptVSprintf(char *buffer, size_t buf_length, const char *format
 {
     return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
 }
-// // Variadic sprintf that prints into the resizable vector
+// Variadic sprintf that prints into the resizable vector
 inline const char *ScriptVSprintf(std::vector<char> &buf, const char *format, va_list &arg_ptr)
 {
     size_t need_len = ScriptSprintf(nullptr, 0u, format, nullptr, 0, &arg_ptr);

@@ -40,7 +40,7 @@ extern GameSetupStruct game;
 
 void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech);
 
-void Display(const char*texx, ...) {
+void Display(AGS_FORMAT_STRING_ARG const char *texx, ...) {
     va_list ap;
     va_start(ap,texx);
     String text = String::FromFormatV(get_translation(texx), ap);

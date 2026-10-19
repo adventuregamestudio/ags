@@ -78,7 +78,7 @@ const char *AGSPlatformDriver::GetDiskWriteAccessTroubleshootingText()
     return "Make sure you have write permissions, and also check the disk's free space.";
 }
 
-void AGSPlatformDriver::DisplayAlert(const char *text, ...)
+void AGSPlatformDriver::DisplayAlert(AGS_FORMAT_STRING_ARG const char *text, ...)
 {
     char displbuf[2048];
     va_list ap;

@@ -380,7 +380,7 @@ void Printf(MessageGroupHandle group, MessageType mt, AGS_FORMAT_STRING_ARG cons
     va_end(argptr);
 }
 
-void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, va_list argptr)
+void Printf(MessageGroupHandle group, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, va_list argptr)
 {
     DbgMgr.Print(group, mt, String::FromFormatV(fmt, argptr));
 }

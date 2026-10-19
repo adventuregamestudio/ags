@@ -67,7 +67,7 @@ String cc_get_err_callstack(int max_lines)
     return cc_has_error() ? ccError.CallStack : cc_get_callstack(max_lines);
 }
 
-void cc_error(const char *descr, ...)
+void cc_error(AGS_FORMAT_STRING_ARG const char *descr, ...)
 {
     ccError.IsUserError = false;
     if (descr[0] == '!')

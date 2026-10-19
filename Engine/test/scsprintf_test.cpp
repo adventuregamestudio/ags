@@ -37,6 +37,8 @@ size_t ScriptVSprintf__(char *buffer, size_t buf_length, const char *format, ...
     return res;
 }
 
+const size_t STD_BUFFER_SIZE = 1024;
+
 TEST(ScSprintf, ScSprintf) {
     const int argi = 123;
     const float argf = 0.456F;

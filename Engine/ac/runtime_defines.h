@@ -150,8 +150,6 @@ const int LegacyRoomVolumeFactor            = 30;
 // if passed ID is eq or gt than this, then a Character is animated instead
 #define LEGACY_ANIMATE_CHARIDBASE 100
 
-#define STD_BUFFER_SIZE 2048
-
 #define LOCTYPE_NOTHING 0
 #define LOCTYPE_HOTSPOT 1
 #define LOCTYPE_CHAR    2

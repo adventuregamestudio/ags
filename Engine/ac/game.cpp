@@ -995,9 +995,8 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
 }
 
 const char* Game_InputBox(const char *msg) {
-    char buffer[STD_BUFFER_SIZE];
-    ShowInputBoxImpl(msg, buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    String input = ShowInputBoxImpl(msg);
+    return CreateNewScriptString(input);
 }
 
 const char* Game_GetLocationName(int x, int y, int hit_options)
@@ -1039,9 +1038,7 @@ void Game_SetSpeed(int speed)
 }
 
 const char* Game_GetTranslationFilename() {
-    char buffer[STD_BUFFER_SIZE];
-    GetTranslationName(buffer); // fills up to MAX_MAXSTRLEN
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptString(get_translation_name());
 }
 
 int Game_ChangeTranslation(const char *newFilename)

@@ -45,7 +45,7 @@ Bitmap *windowBuffer;
 IDriverDependantBitmap *dialogDDB;
 
 char *lpTemp, *lpTemp2;
-char bufTemp[260], buffer2[260];
+char bufTemp[260], buffer2[260]; // FIXME: refactor, dont use global buffer variables!
 int numsaves = 0, toomanygames;
 std::vector<int> filenumbers;
 std::vector<time_t> filedates;
@@ -323,7 +323,7 @@ void preparesavegamelist(int ctrllist, int min_slot, int max_slot)
   CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
 }
 
-void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz)
+String enterstringwindow(const char *prompttext)
 {
   const int wnd_width = 200;
   const int wnd_height = 40;
@@ -360,16 +360,15 @@ void enterstringwindow(const char *prompttext, char *dst_buf, size_t dst_sz)
   if (wantCancel)
     CSCIDeleteControl(ctrlcancel);
   CSCIEraseWindow(handl);
-  snprintf(dst_buf, dst_sz, "%s", buffer2);
+  return buffer2;
 }
 
 int enternumberwindow(const char *prompttext)
 {
-  char ourbuf[200];
-  enterstringwindow(prompttext, ourbuf, sizeof(ourbuf));
-  if (ourbuf[0] == 0)
+  String input = enterstringwindow(prompttext);
+  if (input.IsEmpty())
     return -9999;
-  return atoi(ourbuf);
+  return input.ToInt();
 }
 
 int roomSelectorWindow(int currentRoom, int numRooms,

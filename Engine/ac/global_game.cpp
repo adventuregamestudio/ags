@@ -705,13 +705,15 @@ int EndCutscene () {
 
 void ShowInputBox(const char*msg, char*bufr) {
     VALIDATE_STRING(bufr);
-    ShowInputBoxImpl(msg, bufr, MAX_MAXSTRLEN);
+    String input = ShowInputBoxImpl(msg);
+    snprintf(bufr, MAX_MAXSTRLEN, "%s", input.GetCStr());
 }
 
-void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
+String ShowInputBoxImpl(const char*msg) {
     setup_for_dialog();
-    enterstringwindow(get_translation(msg), bufr, buf_len);
+    String input = enterstringwindow(get_translation(msg));
     restore_after_dialog();
+    return input;
 }
 
 // GetLocationType exported function - just call through
@@ -1007,9 +1009,7 @@ void SetNormalFont (int fontnum) {
 }
 
 void _sc_AbortGame(const char* text) {
-    char displbuf[STD_BUFFER_SIZE] = "!?";
-    snprintf(&displbuf[2], STD_BUFFER_SIZE - 3, "%s", text);
-    quit(displbuf);
+    quit(String::FromFormat("!?%s", text));
 }
 
 int GetGraphicalVariable (const char *varName) {

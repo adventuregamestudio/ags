@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
+#include "ac/common.h" // quitprintf
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
 #include "ac/dialogoptionsrendering.h"

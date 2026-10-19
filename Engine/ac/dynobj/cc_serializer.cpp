@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <string.h>
+#include "ac/common.h" // quitprintf
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"

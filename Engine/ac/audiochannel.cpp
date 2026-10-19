@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
+#include "ac/common.h" // quitprintf
 #include "ac/audiochannel.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

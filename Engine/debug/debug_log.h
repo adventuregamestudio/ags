@@ -27,16 +27,13 @@ void shutdown_debug();
 
 // prints debug messages of given type tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-void debug_script_print(AGS::Common::MessageType mt, const char *msg, ...);
+void debug_script_print(AGS::Common::MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(2);
 // prints formatted debug warnings tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-void debug_script_warn(const char *msg, ...);
+void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
 // prints formatted debug message tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-void debug_script_log(const char *msg, ...);
-
-// Same as quit(), but with message formatting
-void quitprintf(const char *texx, ...);
+void debug_script_log(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
 
 // Connect engine to external debugger, if one is available
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);

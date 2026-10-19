@@ -238,16 +238,16 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     const RoomObjectInfo &obji = thisroom.Objects[obn];
     RoomObject &obj = objs[obn];
 
-    if (obj.on != OBJ_STATE_ENABLED)
+    ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), obj.view, loopn, sframe);
+    ValidateViewAnimParams("Object.Animate", obji.ScriptName.GetCStr(), rept, blocking, direction);
+
+    if (obj.on != OBJ_STATE_ENABLED && blocking != 0)
     {
-        debug_script_warn("%s: object %d is disabled, cannot animate", "AnimateObject", obn);
+        debug_script_warn("%s: object %d is disabled, cannot run blocking animation", "AnimateObject", obn);
         return;
     }
     if (obj.view == RoomObject::NoView)
         quit("!AnimateObject: object has not been assigned a view");
-
-    ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), obj.view, loopn, sframe);
-    ValidateViewAnimParams("Object.Animate", obji.ScriptName.GetCStr(), rept, blocking, direction);
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {

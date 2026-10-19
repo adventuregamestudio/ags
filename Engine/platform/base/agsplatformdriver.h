@@ -62,7 +62,7 @@ public:
     virtual void PostBackendExit() { };
 
     virtual void Delay(int millis);
-    virtual void DisplayAlert(const char *text, ...);
+    virtual void DisplayAlert(AGS_FORMAT_STRING_ARG const char *text, ...) AGS_FORMAT_STRING_OBJECT(1);
     virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
     // platform specific data file

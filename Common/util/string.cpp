@@ -724,7 +724,7 @@ void String::FillString(char c, size_t count)
     }
 }
 
-void String::Format(const char *fcstr, ...)
+void String::Format(AGS_FORMAT_STRING_ARG const char *fcstr, ...)
 {
     va_list argptr;
     va_start(argptr, fcstr);
@@ -732,7 +732,7 @@ void String::Format(const char *fcstr, ...)
     va_end(argptr);
 }
 
-void String::FormatV(const char *fcstr, va_list argptr)
+void String::FormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr)
 {
     fcstr = fcstr ? fcstr : "";
     va_list argptr_cpy;

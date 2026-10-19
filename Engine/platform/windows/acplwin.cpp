@@ -73,8 +73,8 @@ struct AGSWin32 : AGSPlatformDriver {
   void PostBackendExit() override;
   SetupReturnValue RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out) override;
   void ShutdownCDPlayer() override;
-  void WriteStdOut(const char *fmt, ...) override;
-  void WriteStdErr(const char *fmt, ...) override;
+  void WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
+  void WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
   void DisplayMessageBox(const char *text) override;
   void PauseApplication() override;
   void ResumeApplication() override;
@@ -85,7 +85,7 @@ struct AGSWin32 : AGSPlatformDriver {
   String GetCommandArg(size_t arg_index) override;
 
 private:
-  void WriteStdOutImpl(FILE *file, const char *prefix, const char *fmt, va_list args);
+  void WriteStdOutImpl(FILE *file, const char *prefix, AGS_FORMAT_STRING_ARG const char *fmt, va_list args) AGS_FORMAT_STRING_OBJECT_V(3);
 
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
   bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
@@ -360,7 +360,7 @@ SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, const ConfigTree &
   return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.MainDataDir, version_str);
 }
 
-void AGSWin32::WriteStdOut(const char *fmt, ...)
+void AGSWin32::WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -368,7 +368,7 @@ void AGSWin32::WriteStdOut(const char *fmt, ...)
     va_end(args);
 }
 
-void AGSWin32::WriteStdErr(const char *fmt, ...)
+void AGSWin32::WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -376,7 +376,7 @@ void AGSWin32::WriteStdErr(const char *fmt, ...)
     va_end(args);
 }
 
-void AGSWin32::WriteStdOutImpl(FILE *file, const char *prefix, const char *fmt, va_list args)
+void AGSWin32::WriteStdOutImpl(FILE *file, const char *prefix, AGS_FORMAT_STRING_ARG const char *fmt, va_list args)
 {
     va_list args_cpy;
     va_copy(args_cpy, args);

@@ -265,7 +265,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
             param1 = game.playercharacter;
 
           if (param1 == DCHAR_NARRATOR)
-            Display(get_translation(old_speech_lines[param2].GetCStr()));
+            Display("%s", get_translation(old_speech_lines[param2].GetCStr()));
           else
             DisplaySpeech(get_translation(old_speech_lines[param2].GetCStr()), param1);
 

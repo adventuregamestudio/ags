@@ -53,7 +53,7 @@ uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
         + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ + 40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
         return ci->on;
-    cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
+    cc_error("ScriptCharacter: unsupported 'char' variable offset %" PRIdPTR, offset);
     return 0;
 }
 
@@ -65,7 +65,7 @@ void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
     if (offset == on_offset)
         ci->on = val;
     else
-        cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
+        cc_error("ScriptCharacter: unsupported 'char' variable offset %" PRIdPTR, offset);
 }
 
 int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
@@ -114,7 +114,7 @@ int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
     case 714: return ci->actx;
     case 716: return ci->acty;
     default:
-        cc_error("ScriptCharacter: unsupported 'short' variable offset %d", offset);
+        cc_error("ScriptCharacter: unsupported 'short' variable offset %" PRIdPTR, offset);
         return 0;
     }
 }
@@ -136,13 +136,13 @@ void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
 
     // TODO: for safety, find out which of the following fields
     // must be readonly, and add assertions for them, i.e.:
-    // cc_error("ScriptCharacter: attempt to write readonly 'short' variable at offset %d", offset);
+    // cc_error("ScriptCharacter: attempt to write readonly 'short' variable at offset %" PRIdPTR, offset);
     switch (offset)
     {
     // +9 int32 = 36
     case 36: // following
     case 38: // followinfo
-        cc_error("ScriptCharacter: attempt to write readonly 'short' variable at offset %d", offset);
+        cc_error("ScriptCharacter: attempt to write readonly 'short' variable at offset %" PRIdPTR, offset);
         break;
     // 40 +1 int32 = 44
     case 44: ci->idletime = val; break;
@@ -174,7 +174,7 @@ void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
     case 714: ci->actx = val; break;
     case 716: ci->acty = val; break;
     default:
-        cc_error("ScriptCharacter: unsupported 'short' variable offset %d", offset);
+        cc_error("ScriptCharacter: unsupported 'short' variable offset %" PRIdPTR, offset);
         break;
     }
 }
@@ -206,7 +206,7 @@ int32_t CCCharacter::ReadInt32(const void *address, intptr_t offset)
     // 84 +4 int16 = 100
     case 92: return ci->index_id;
     default:
-        cc_error("ScriptCharacter: unsupported 'int' variable offset %d", offset);
+        cc_error("ScriptCharacter: unsupported 'int' variable offset %" PRIdPTR, offset);
         return 0;
     }
 }
@@ -217,7 +217,7 @@ void CCCharacter::WriteInt32(void *address, intptr_t offset, int32_t val)
 
     // TODO: for safety, find out which of the following fields
     // must be readonly, and add assertions for them, i.e.:
-    // cc_error("ScriptCharacter: attempt to write readonly 'int' variable at offset %d", offset);
+    // cc_error("ScriptCharacter: attempt to write readonly 'int' variable at offset %" PRIdPTR, offset);
     switch (offset)
     {
     case 0: ci->defview = val; break;
@@ -241,7 +241,7 @@ void CCCharacter::WriteInt32(void *address, intptr_t offset, int32_t val)
     // 84 +4 int16 = 100
     case 92: ci->index_id = val; break;
     default:
-        cc_error("ScriptCharacter: unsupported 'int' variable offset %d", offset);
+        cc_error("ScriptCharacter: unsupported 'int' variable offset %" PRIdPTR, offset);
         break;
     }
 }

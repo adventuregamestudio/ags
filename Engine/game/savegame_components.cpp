@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <inttypes.h>
 #include <map>
 #include "game/savegame_components.h"
 #include "ac/audiocliptype.h"

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include <limits>
-#include <inttypes.h>
 #include <memory>
 #include <stdio.h>
 #include "core/platform.h"
@@ -90,7 +89,7 @@ void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
 {
     String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="Windows-1252"?><Debugger Command="%s">)", command.GetCStr());
 #if AGS_PLATFORM_OS_WINDOWS
-    messageToSend.Append(String::FromFormat("  <EngineWindow>%" PRIdPTR "</EngineWindow> ", sys_win_get_window()));
+    messageToSend.Append(String::FromFormat("  <EngineWindow>%" PRIdPTR "</EngineWindow> ", reinterpret_cast<intptr_t>(sys_win_get_window())));
 #endif
 
     for(const auto& tag_value : tag_values)
@@ -385,7 +384,7 @@ static void debug_script_print_impl(const String &msg, MessageType mt)
     Debug::Printf(kDbgGroup_Game, mt, "(room:%d) %s%s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
 }
 
-void debug_script_print(MessageType mt, const char *msg, ...)
+void debug_script_print(MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
@@ -394,7 +393,7 @@ void debug_script_print(MessageType mt, const char *msg, ...)
     debug_script_print_impl(full_msg, mt);
 }
 
-void debug_script_warn(const char *msg, ...)
+void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);
@@ -403,7 +402,7 @@ void debug_script_warn(const char *msg, ...)
     debug_script_print_impl(full_msg, kDbgMsg_Warn);
 }
 
-void debug_script_log(const char *msg, ...)
+void debug_script_log(AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
     va_list ap;
     va_start(ap, msg);

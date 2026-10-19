@@ -15,7 +15,6 @@
 
 #ifndef AGS_NO_VIDEO_PLAYER
 
-#include <inttypes.h>
 #include "ac/asset_helper.h"
 #include "debug/out.h"
 

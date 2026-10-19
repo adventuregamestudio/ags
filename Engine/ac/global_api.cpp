@@ -1104,10 +1104,9 @@ RuntimeScriptValue Sc_MergeObject(const RuntimeScriptValue *params, int32_t para
     API_SCALL_VOID_PINT(MergeObject);
 }
 
-// void (int cc,int xx,int yy)
 RuntimeScriptValue Sc_MoveCharacter(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(MoveCharacter);
+    API_SCALL_INT_PINT3(MoveCharacter);
 }
 
 // void (int chaa,int xx,int yy,int direct)

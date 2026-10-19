@@ -37,7 +37,7 @@ void SetPlayerCharacter(int newchar);
 void FollowCharacterEx(int who, int tofollow, int distaway, int eagerness);
 void FollowCharacter(int who, int tofollow);
 void SetCharacterIgnoreLight (int who, int yesorno);
-void MoveCharacter(int cc,int xx,int yy);
+int  MoveCharacter(int cc,int xx,int yy);
 void MoveCharacterDirect(int cc,int xx, int yy);
 void MoveCharacterStraight(int cc,int xx, int yy);
 // Append to character path

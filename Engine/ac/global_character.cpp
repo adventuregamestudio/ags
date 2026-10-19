@@ -217,13 +217,14 @@ void SetCharacterIgnoreLight (int who, int yesorno) {
     Character_SetIgnoreLighting(&game.chars[who], yesorno);
 }
 
-void MoveCharacter(int cc,int x, int y)
+int MoveCharacter(int cc, int x, int y)
 {
     if (!AssertCharacter("MoveCharacter", cc))
-        return;
+        return 0;
 
     Character_DoMove(&game.chars[cc], "MoveCharacter", x, y,
                      false /* not straight */, IN_BACKGROUND, WALKABLE_AREAS, true /* animate */);
+    return 1; // bw-compat accidental return value
 }
 
 void MoveCharacterDirect(int cc, int x, int y)

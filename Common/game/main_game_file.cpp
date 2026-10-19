@@ -819,21 +819,21 @@ static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
 {
     // Updated InteractionEvents format, which specifies script module
     // for object interaction events
-    size_t num_chars = in->ReadInt32();
+    uint32_t num_chars = in->ReadInt32();
     if (num_chars != ents.Game.chars.size())
-        return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, ents.Game.chars.size()));
+        return new Error(String::FromFormat("Mismatching number of characters: read %u expected %zu", num_chars, ents.Game.chars.size()));
     for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
         ents.Game.charScripts[i] = InteractionEvents::CreateFromStream_v362(in);
     uint32_t num_invitems = in->ReadInt32();
     if (num_invitems != ents.Game.numinvitems)
-        return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)ents.Game.numinvitems));
+        return new Error(String::FromFormat("Mismatching number of inventory items: read %u expected %u", num_invitems, static_cast<uint32_t>(ents.Game.numinvitems)));
     for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
         ents.Game.invScripts[i] = InteractionEvents::CreateFromStream_v362(in);
 
     // Script module specification for GUI events
     uint32_t num_gui = in->ReadInt32();
     if (num_gui != ents.Game.numgui)
-        return new Error(String::FromFormat("Mismatching number of GUI: read %zu expected %zu", num_gui, (size_t)ents.Game.numgui));
+        return new Error(String::FromFormat("Mismatching number of GUI: read %u expected %u", num_gui, static_cast<uint32_t>(ents.Game.numgui)));
     for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
         ents.Guis[i].ScriptModule = StrUtil::ReadString(in);
     return HError::None();

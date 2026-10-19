@@ -2451,7 +2451,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
                 value_buf.Format("%f", arg.FValue);
                 break;
             case kScValStringLiteral:
-                value_buf.Format("\"%s\"", arg.Ptr);
+                value_buf.Format("\"%s\"", static_cast<const char*>(arg.Ptr));
                 break;
             case kScValStackPtr:
             case kScValGlobalVar:

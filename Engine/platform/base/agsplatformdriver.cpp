@@ -100,7 +100,7 @@ void AGSPlatformDriver::DisplayAlert(const char *text, ...)
         DisplayMessageBox(displbuf);
 }
 
-void AGSPlatformDriver::WriteStdOut(const char *fmt, ...)
+void AGSPlatformDriver::WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -110,7 +110,7 @@ void AGSPlatformDriver::WriteStdOut(const char *fmt, ...)
     fflush(stdout);
 }
 
-void AGSPlatformDriver::WriteStdErr(const char *fmt, ...)
+void AGSPlatformDriver::WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

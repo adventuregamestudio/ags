@@ -145,7 +145,7 @@ void SetObjectView(int obn, int vii) {
 
 bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     if (!is_valid_object(obn))
-        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
+        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %u)", obn, croom->numobj);
     viw--;
     AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obn].ScriptName.GetCStr(), viw);
 

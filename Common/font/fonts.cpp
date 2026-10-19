@@ -716,7 +716,7 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, c
     fonts[font_number].Renderer->RenderText(texx, font_number, (BITMAP *)ds->GetAllegroBitmap(), x, y, text_color);
 }
 
-void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *fmt, ...)
+void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     if (!assert_font_renderer(font_number))
         return;

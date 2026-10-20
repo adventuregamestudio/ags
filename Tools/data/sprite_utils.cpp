@@ -359,7 +359,9 @@ static void FixMaskColorImpl(const uint8_t *src_buf, const uint8_t *src_end,
         {
             const SrcPxType src_color = *src_ptr;
             const DstPxType dst_color = *dst_ptr;
-            if (src_color == src_maskcolor)
+            // The 32-bit mask color is a value without alpha, while 32-bit pixels have one
+            const uint32_t src_rgb = (sizeof(SrcPxType) == 4) ? (static_cast<uint32_t>(src_color) & 0x00FFFFFFu) : src_color;
+            if (src_rgb == src_maskcolor)
                 *dst_ptr = dst_maskcolor;
             else if (dst_color == dst_maskcolor) // replace mask color with close match
                 *dst_ptr = safe_color;

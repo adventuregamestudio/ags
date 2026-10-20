@@ -667,3 +667,33 @@ TEST(Compile, AccessNonStaticMemberOfAStaticMember) {
     //printf("Error: %s\n", last_seen_cc_error());
     ASSERT_EQ(0, compileResult);
 }
+
+TEST(Compile, LineNumbersLF) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\n"
+        "void Func() {\n"
+        "    int a = ;\n" // random syntax error
+        "}\n";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    //printf("Error: %s\n", last_seen_cc_error());
+    ASSERT_EQ(3, currentline);
+    ASSERT_EQ(-1, compileResult);
+}
+
+TEST(Compile, LineNumbersCRLF) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\r\n"
+        "void Func() {\r\n"
+        "    int a = ;\r\n" // random syntax error
+        "}\r\n";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    //printf("Error: %s\n", last_seen_cc_error());
+    ASSERT_EQ(3, currentline);
+    ASSERT_EQ(-1, compileResult);
+}

@@ -32,31 +32,42 @@ inline void debug_script_event(AGS::Common::MessageType mt, const char *msg)
 {
     debug_script_event(mt, AGS::Common::String::Wrapper(msg));
 }
-template<typename... Args>
-void debug_script_event(AGS::Common::MessageType mt, const char *msg, Args ...args)
-{
-    debug_script_event(mt, AGS::Common::String::FromFormat(msg, std::forward<Args>(args)...));
-}
 // prints debug messages of given type tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-template<typename... Args>
-void debug_script_message(AGS::Common::MessageType mt, const char *msg, Args ...args)
-    { debug_script_event(mt, msg, std::forward<Args>(args)...); }
+inline void debug_script_message(AGS::Common::MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(2);
+inline void debug_script_message(AGS::Common::MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...)
+{
+    va_list argptr; va_start(argptr, msg);
+    debug_script_event(mt, AGS::Common::String::FromFormatV(msg, argptr));
+    va_end(argptr);
+}
 // prints formatted debug warnings tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-template<typename... Args>
-void debug_script_warn(const char *msg, Args ...args)
-    { debug_script_event(AGS::Common::kDbgMsg_Warn, msg, std::forward<Args>(args)...); }
+inline void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
+inline void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...)
+{
+    va_list argptr; va_start(argptr, msg);
+    debug_script_event(AGS::Common::kDbgMsg_Warn, AGS::Common::String::FromFormatV(msg, argptr));
+    va_end(argptr);
+}
 // prints formatted debug errors tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-template<typename... Args>
-void debug_script_error(const char *msg, Args ...args)
-    { debug_script_event(AGS::Common::kDbgMsg_Error, msg, std::forward<Args>(args)...); }
+inline void debug_script_error(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
+inline void debug_script_error(AGS_FORMAT_STRING_ARG const char *msg, ...)
+{
+    va_list argptr; va_start(argptr, msg);
+    debug_script_event(AGS::Common::kDbgMsg_Error, AGS::Common::String::FromFormatV(msg, argptr));
+    va_end(argptr);
+}
 // prints formatted debug message tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-template<typename... Args>
-void debug_script_log(const char *msg, Args ...args)
-    { debug_script_event(AGS::Common::kDbgMsg_Debug, msg, std::forward<Args>(args)...); }
+inline void debug_script_log(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
+inline void debug_script_log(AGS_FORMAT_STRING_ARG const char *msg, ...)
+{
+    va_list argptr; va_start(argptr, msg);
+    debug_script_event(AGS::Common::kDbgMsg_Debug, AGS::Common::String::FromFormatV(msg, argptr));
+    va_end(argptr);
+}
 
 // Connect engine to external debugger, if one is available
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);

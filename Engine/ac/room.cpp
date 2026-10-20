@@ -141,7 +141,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
 
     if (mask <= kRoomAreaNone || mask >= kNumRoomAreaTypes)
     {
-        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", kRoomAreaHotspot, kRoomAreaRegion);
+        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", mask, kRoomAreaHotspot, kRoomAreaRegion);
         return nullptr;
     }
 

@@ -13,7 +13,6 @@
 //=============================================================================
 #include "ac/game.h"
 #include <stdio.h>
-#include <inttypes.h>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"

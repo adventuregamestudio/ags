@@ -564,7 +564,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
             }
             else
             {
-                cc_error("cannot resolve import, key = %ld", code);
+                cc_error("cannot resolve import, key = %" PRIdPTR, code);
                 return false;
             }
         }
@@ -1881,7 +1881,7 @@ bool ccInstance::ResolveScriptImports()
     }
 
     if (errors > 0)
-        cc_error("in '%s': %d unresolved imports (last: '%s')",
+        cc_error("in '%s': %zu unresolved imports (last: '%s')",
             scri->GetScriptName().c_str(),
             errors,
             scri->imports[last_err_idx].c_str());
@@ -2000,7 +2000,8 @@ static int DetermineScriptLine(const int32_t *code, const size_t codesz, const s
     return line;
 }
 
-static void cc_error_fixups(const ccScript *scri, const size_t pc, const char *fmt, ...)
+static void cc_error_fixups(const ccScript *scri, const size_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(3);
+static void cc_error_fixups(const ccScript *scri, const size_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -2032,8 +2033,8 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         const int32_t fixup = scri->fixups[i];
         if (fixup < 0 || static_cast<size_t>(fixup) >= scri->code.size())
         {
-            cc_error_fixups(scri, SIZE_MAX, "bad fixup at %d (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
-                i,  scri->fixuptypes[i], fixup, scri->code.size());
+            cc_error_fixups(scri, SIZE_MAX, "bad fixup at %zu (fixup type %d, bytecode pos %d, bytecode range is 0..%zu)",
+                i, scri->fixuptypes[i], fixup, scri->code.size());
             return false;
         }
 
@@ -2058,7 +2059,7 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         case FIXUP_IMPORT:
             break; // do nothing yet
         default:
-            cc_error_fixups(scri, SIZE_MAX, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
+            cc_error_fixups(scri, SIZE_MAX, "unknown fixup type: %d (fixup num %zu)", scri->fixuptypes[i], i);
             return false;
         }
     }
@@ -2451,7 +2452,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
                 value_buf.Format("%f", arg.FValue);
                 break;
             case kScValStringLiteral:
-                value_buf.Format("\"%s\"", arg.Ptr);
+                value_buf.Format("\"%s\"", static_cast<const char*>(arg.Ptr));
                 break;
             case kScValStackPtr:
             case kScValGlobalVar:

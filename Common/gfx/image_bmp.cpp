@@ -154,6 +154,13 @@ static void bmp_read_8bit_line(int length, Stream *in, unsigned char* current_li
     for (int i=0; i<length; i++) {
         current_line[i] = in->ReadInt8();
     }
+
+    /* padding: each row is aligned to 4 bytes */
+    int i = length % 4;
+    if (i != 0) {
+        while (i++ < 4)
+            in->ReadInt8();
+    }
 }
 
 /* bmp_read_16bit_line:

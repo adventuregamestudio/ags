@@ -74,9 +74,13 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 
 #else   // AGS_PLATFORM_OS_WINDOWS
 
-IAGSEditorDebugger *GetEditorDebugger(const char* /*instanceToken*/)
+#include "debug/filebasedagsdebugger.h"
+
+// Other platforms exchange messages with the editor through files in a folder,
+// which the editor passes as the instance token.
+IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
-    return nullptr;
+    return new FileBasedAGSDebugger(instanceToken);
 }
 
 #endif
@@ -436,12 +440,7 @@ bool send_state_to_debugger(const char *msg)
 
 bool init_editor_debugging(const ConfigTree &cfg) 
 {
-#if AGS_PLATFORM_OS_WINDOWS
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
-#else
-    // Editor isn't ported yet
-    editor_debugger = nullptr;
-#endif
 
     if (editor_debugger == nullptr)
         quit("editor_debugger is NULL but debugger enabled");
@@ -573,11 +572,12 @@ DebuggerResponse check_for_messages_from_debugger()
 
 bool send_exception_to_debugger(const char *qmsg)
 {
-#if AGS_PLATFORM_OS_WINDOWS
     want_exit = false;
+#if AGS_PLATFORM_OS_WINDOWS
     // allow the editor to break with the error message
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
+#endif
 
     if (!send_state_to_debugger("ERROR", qmsg))
         return false;
@@ -588,22 +588,19 @@ bool send_exception_to_debugger(const char *qmsg)
     {
         platform->Delay(10);
     }
-#else
-    (void)qmsg;
-#endif
     return true;
 }
 
 
 void break_into_debugger() 
 {
-#if AGS_PLATFORM_OS_WINDOWS
-
     if (!send_state_to_debugger("BREAK"))
         return;
 
+#if AGS_PLATFORM_OS_WINDOWS
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
+#endif
 
     game_paused_in_debugger = 1;
 
@@ -612,8 +609,6 @@ void break_into_debugger()
         update_polled_stuff();
         platform->YieldCPU();
     }
-
-#endif
 }
 
 int scrDebugWait = 0;

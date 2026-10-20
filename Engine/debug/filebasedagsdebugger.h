@@ -16,10 +16,14 @@
 #define __AC_FILEBASEDAGSDEBUGGER_H
 
 #include "debug/agseditordebugger.h"
+#include "util/string.h"
 
 struct FileBasedAGSDebugger : IAGSEditorDebugger
 {
 public:
+    FileBasedAGSDebugger() = default;
+    // Exchange files in the given folder (current directory if empty or not a folder)
+    explicit FileBasedAGSDebugger(const char *directory);
 
     bool Initialize() override;
     void Shutdown() override;
@@ -27,6 +31,9 @@ public:
     bool IsMessageAvailable() override;
     char* GetNextMessage() override;
 
+private:
+    AGS::Common::String FilePath(const char *name) const;
+    AGS::Common::String _directory;
 };
 
 extern const char* SENT_MESSAGE_FILE_NAME;

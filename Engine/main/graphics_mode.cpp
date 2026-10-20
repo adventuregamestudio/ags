@@ -17,7 +17,6 @@
 //
 
 #include <algorithm>
-#include <inttypes.h>
 #include <SDL.h>
 #include "platform/platform.h"
 #include "ac/draw.h"

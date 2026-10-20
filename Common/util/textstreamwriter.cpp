@@ -55,7 +55,7 @@ void TextStreamWriter::WriteLine(const String &str)
     _stream->Write(Endl, sizeof(Endl));
 }
 
-void TextStreamWriter::WriteFormat(const char *fmt, ...)
+void TextStreamWriter::WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);

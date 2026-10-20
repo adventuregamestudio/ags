@@ -356,7 +356,7 @@ void Printf(MessageGroupHandle group, MessageType mt, const String &text)
     DbgMgr.Print(group, mt, text);
 }
 
-void Printf(const char *fmt, ...)
+void Printf(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
@@ -364,7 +364,7 @@ void Printf(const char *fmt, ...)
     va_end(argptr);
 }
 
-void Printf(MessageType mt, const char *fmt, ...)
+void Printf(MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
@@ -372,7 +372,7 @@ void Printf(MessageType mt, const char *fmt, ...)
     va_end(argptr);
 }
 
-void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, ...)
+void Printf(MessageGroupHandle group, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
@@ -380,7 +380,7 @@ void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, ...)
     va_end(argptr);
 }
 
-void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, va_list argptr)
+void Printf(MessageGroupHandle group, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, va_list argptr)
 {
     DbgMgr.Print(group, mt, String::FromFormatV(fmt, argptr));
 }

@@ -634,7 +634,7 @@ int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative
     }
   }
   else {
-    cc_error((char*)errorMsg);
+    cc_error("%s", errorMsg);
     return -1;
   }
   return 0;

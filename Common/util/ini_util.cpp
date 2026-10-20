@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include <cstdio>
-#include <inttypes.h>
 #include <memory>
 #include "util/file.h"
 #include "util/ini_util.h"

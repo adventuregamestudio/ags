@@ -20,7 +20,7 @@
 
 #include "ac/speech.h"
 
-void Display(const char*texx, ...); // applies translation
+void Display(AGS_FORMAT_STRING_ARG const char *texx, ...) AGS_FORMAT_STRING(1); // applies translation
 void DisplaySimple(const char* text); // does not apply translation
 void DisplayMB(const char* text); // forces standard Display message box
 void DisplayAt(int xxp,int yyp,int widd, const char*text);

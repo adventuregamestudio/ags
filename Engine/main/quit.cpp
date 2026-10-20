@@ -89,7 +89,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
     {
         // Check that the dynamic sprites have been deleted;
         // ignore those that are owned by the game objects.
-        for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); i++)
+        for (sprkey_t i = 1; static_cast<size_t>(i) < game.SpriteInfos.size(); i++)
         {
             if ((game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC) &&
                 ((game.SpriteInfos[i].Flags & SPF_OBJECTOWNED) == 0))

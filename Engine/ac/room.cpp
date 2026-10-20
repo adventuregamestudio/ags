@@ -120,7 +120,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 
     if ((backgroundNumber < 0) || (static_cast<uint32_t>(backgroundNumber) >= thisroom.BgFrameCount))
     {
-        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
+        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", backgroundNumber, thisroom.BgFrameCount - 1);
         return nullptr;
     }
 

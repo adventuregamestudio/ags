@@ -19,8 +19,8 @@ namespace AGS.Types
     {
         public event FolderChangeEventHandler<TFolderItem> OnFolderChange;
         public abstract TFolder CreateChildFolder(string name);
-        protected abstract TFolder CreateFolder(XmlNode node);
-        protected abstract TFolderItem CreateItem(XmlNode node);
+        protected abstract TFolder CreateFolder(XmlNode node, System.Version xmlVersion);
+        protected abstract TFolderItem CreateItem(XmlNode node, System.Version xmlVersion);
         protected virtual void ToXmlExtend(XmlTextWriter writer) { }
 
         protected delegate bool EqualsDelegate<TId>(TFolderItem folderItem, TId id);        
@@ -123,19 +123,37 @@ namespace AGS.Types
             {
                 throw new InvalidDataException("Incorrect node passed to " + this.XmlFolderNodeName);
             }
-            FromXml(node);
+            FromXml(node, null);
+        }
+
+        public BaseFolderCollection(XmlNode node, System.Version xmlVersion)
+        {
+            if (node.Name != this.XmlFolderNodeName)
+            {
+                throw new InvalidDataException("Incorrect node passed to " + this.XmlFolderNodeName);
+            }
+            FromXml(node, xmlVersion);
         }
 
         public BaseFolderCollection(XmlNode node, XmlNode parentNodeForBackwardsCompatability)
         {
             if (node == null || node.Name != this.XmlFolderNodeName)
             {
-                FromXmlBackwardsCompatability(parentNodeForBackwardsCompatability);                
+                FromXmlBackwardsCompatability(parentNodeForBackwardsCompatability, null);
             }
-            else FromXml(node);
+            else FromXml(node, null);
         }
 
-        protected virtual void FromXmlBackwardsCompatability(XmlNode parentNodeForBackwardsCompatability)
+        public BaseFolderCollection(XmlNode node, XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
+        {
+            if (node == null || node.Name != this.XmlFolderNodeName)
+            {
+                FromXmlBackwardsCompatability(parentNodeForBackwardsCompatability, xmlVersion);
+            }
+            else FromXml(node, xmlVersion);
+        }
+
+        protected virtual void FromXmlBackwardsCompatability(XmlNode parentNodeForBackwardsCompatability, System.Version xmlVersion)
         {
             //Either override this method in your Folder class to support backwards compatability,
             //or use the constructor with the backwards support.
@@ -214,18 +232,18 @@ namespace AGS.Types
             FireFolderChange(this, e);            
         }
 
-        private void FromXml(XmlNode node)
+        private void FromXml(XmlNode node, System.Version xmlVersion)
         {
             Init(node.Attributes["Name"].InnerText);            
 
             foreach (XmlNode childNode in SerializeUtils.GetChildNodes(node, "SubFolders"))
             {
-                _subFolders.Add(CreateFolder(childNode));
+                _subFolders.Add(CreateFolder(childNode, xmlVersion));
             }
 
             foreach (XmlNode childNode in SerializeUtils.GetChildNodes(node, this.XmlItemListNodeName))
             {
-                _items.Add(CreateItem(childNode));
+                _items.Add(CreateItem(childNode, xmlVersion));
             }
         }
 

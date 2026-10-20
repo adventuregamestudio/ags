@@ -273,6 +273,44 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Looks up for the "Version" node's attribute and read it.
+        /// If it's not present, or cannot be parsed as a Version object,
+        /// then returns null.
+        /// Optionally can check for the presence of a numeric version index,
+        /// in which case will return a Version made from useStringIfVersionIndex.
+        /// Throws AGSEditorException exception if version attribute exists
+        /// but not valid.
+        /// </summary>
+        public static System.Version ReadVersionAttribute(XmlNode node,
+            string useStringIfNoVersion = null, string useStringIfVersionIndex = null)
+        {
+            var versionAttr = node.Attributes.GetNamedItem("Version");
+            System.Version fileVersion = new System.Version();
+            if (versionAttr != null)
+            {
+                // Try parsing as a decimal first, that was used in the very first version
+                int versionIndex = 0;
+                if (!string.IsNullOrEmpty(useStringIfVersionIndex)
+                    && int.TryParse(versionAttr.InnerText, out versionIndex))
+                {
+                    fileVersion = new System.Version(useStringIfVersionIndex);
+                }
+                else
+                {
+                    if (!System.Version.TryParse(versionAttr.InnerText, out fileVersion))
+                    {
+                        throw new AGSEditorException($"Version attribute's value is not valid: {versionAttr.InnerText}.");
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(useStringIfNoVersion))
+            {
+                fileVersion = new System.Version(useStringIfNoVersion);
+            }
+            return fileVersion;
+        }
+
+        /// <summary>
         /// Deserializes whole object from the node.
         /// </summary>
         /// <param name="obj"></param>

@@ -276,7 +276,7 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     if (final_bmp->GetBytesPerPixel() == 1)
     {
         png = tdefl_write_image_to_png_file_in_memory_ex2(final_bmp->GetData(), final_bmp->GetWidth(), final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(),
-            final_bmp->GetStride(), &size, Z_DEFAULT_COMPRESSION, MZ_FALSE, plte, PAL_SIZE, trns, PAL_SIZE);
+            final_bmp->GetStride(), &size, Z_DEFAULT_COMPRESSION, MZ_FALSE, plte, PAL_SIZE * 3, trns, PAL_SIZE);
     }
     else
     {

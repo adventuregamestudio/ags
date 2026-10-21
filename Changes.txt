@@ -16,6 +16,7 @@ Editor:
    
 Compiler:
  - Fixed forward struct declarations. They could cause obscure mistakes sometimes.
+ - Fixed line numbering in script files with UNIX line endings (LF).
 
 Engine:
  - Do not start blocking animation or movement for a disabled Character or Object.
@@ -38,6 +39,7 @@ Engine:
    objects in script would lead to a script error.
  - Fixed that the new room is not drawn immediately with Crossfade and Dissolve transition,
    but only after "Before fade in" event callback completes.
+ - Fixed loading of 1-, 4- and 8-bit BMP files which width is not multiple of 4.
  - Fixed Software renderer not clearing surface after the room viewport is moved around screen.
  - Fixed Software renderer displaying room viewport incorrectly if it's moved partially offscreen.
  - Fixed Debug(0) ("give all inventory") cheat reducing larger inventory item quantity to 1.

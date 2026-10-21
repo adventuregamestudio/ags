@@ -17,6 +17,10 @@ Engine:
  - Fixed "give all inventory" debug cheat reducing larger inventory item quantity to 1.
  - Fixed Software renderer not clearing surface after the room viewport is moved around screen.
  - Fixed Software renderer displaying room viewport incorrectly if it's moved partially offscreen.
+ - Fixed 48khz OGG clips may have extra silence added to them in the end, causing "hickups" when
+   the sound playback is looped.
+ - Fixed particular rare OGG Vorbis clips not playing.
+ - Fixed another rare case when a WAV file can get stuck in the end of the playback forever.
 
 Compatibility:
  - Fixed slider handle visual position in pre-3.6.0 games.

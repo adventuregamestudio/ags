@@ -9,8 +9,6 @@ Editor:
  - Fixed Editor crashing on launch when there's a game with a very long name present in
    "Recent Games" list.
  - Fixed autocomplete crashing if there's an unclosed string literal in script.
- - Fixed autocomplete registering non-existing variables if a string literal contained a variable
-   declaration syntax as a part of a string.
  - Fixed script editor hanging forever when there's a "]" character typed right at the beginning
    of a new line.
    

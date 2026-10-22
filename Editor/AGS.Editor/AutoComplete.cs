@@ -132,6 +132,24 @@ namespace AGS.Editor
             return index == script.Length;
         }
 
+        private static void SkipLiteral(ref FastString script)
+        {
+            char quote = script[0];
+            int index = 1;
+            while (index < script.Length)
+            {
+                if (script[index] == '\\')
+                {
+                    index += (index + 1 < script.Length) ? 2 : 1;
+                }
+                else if (script[index++] == quote)
+                {
+                    break;
+                }
+            }
+            script = script.Substring(index);
+        }
+
         private static void SkipUntilMatchingClosingBrace(ref FastString script, char openBrace, char closeBrace)
         {
             int braceIndent = 1, index = 0;
@@ -325,6 +343,23 @@ namespace AGS.Editor
 						{
 							while ((thisWord != ";") && (thisWord != ",") && (script.Length > 0))
 							{
+                                SkipWhitespace(ref script);
+                                if (script.Length == 0)
+                                {
+                                    break;
+                                }
+                                if (script.StartsWith("//") || script.StartsWith("/*"))
+                                {
+                                    int commentEnd = 0;
+                                    SkipAnyComments(script, ref commentEnd);
+                                    script = script.Substring(commentEnd);
+                                    continue;
+                                }
+                                if ((script[0] == '"') || (script[0] == '\''))
+                                {
+                                    SkipLiteral(ref script);
+                                    continue;
+                                }
 								thisWord = GetNextWord(ref script);
 							}
 						}

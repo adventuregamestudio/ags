@@ -233,6 +233,9 @@ void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool
 
 // Loads and initializes font at certain index using given properties
 bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ver);
+// Do additional fixups to the game fonts. This requires *all fonts* to be loaded,
+// as some fixups depend on relation between the main font and its outline font.
+void fixup_game_fonts();
 
 // Global AssetManager instance.
 extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;

@@ -1953,24 +1953,29 @@ bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ve
             set_font_outline(at_index, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(at_index));
         }
     }
+    return true;
+}
 
-    // Additional fixups
-    if (!is_bitmap_font(at_index))
+void fixup_game_fonts()
+{
+    for (int i = 0; i < game.numfonts; ++i)
     {
-        // Check for the LucasFan font since it comes with an outline font that
-        // is drawn incorrectly with Freetype versions > 2.1.3.
-        // A simple workaround is to disable outline fonts for it and use
-        // automatic outline drawing.
-        const int outline_font = get_font_outline(at_index);
-        if (outline_font >= 0)
+        if (!is_bitmap_font(i))
         {
-            const char *name = get_font_name(at_index);
-            const char *outline_name = get_font_name(outline_font);
-            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
-                set_font_outline(at_index, FONT_OUTLINE_AUTO);
+            // Check for the LucasFan font since it comes with an outline font that
+            // is drawn incorrectly with Freetype versions > 2.1.3.
+            // A simple workaround is to disable outline fonts for it and use
+            // automatic outline drawing.
+            const int outline_font = get_font_outline(i);
+            if (outline_font >= 0)
+            {
+                const char *name = get_font_name(i);
+                const char *outline_name = get_font_name(outline_font);
+                if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
+                    set_font_outline(i, FONT_OUTLINE_AUTO);
+            }
         }
     }
-    return true;
 }
 
 //=============================================================================

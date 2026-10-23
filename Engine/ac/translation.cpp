@@ -111,6 +111,9 @@ void init_font_overrides(const Translation &trans)
             Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: neither replacement font ID nor filename provided", font_id);
         }
     }
+
+    // Additional fixups - after all the fonts are registered
+    fixup_game_fonts();
 }
 
 void restore_game_fonts(const Translation &old_trans)
@@ -121,6 +124,9 @@ void restore_game_fonts(const Translation &old_trans)
         if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.fonts.size())
             load_game_font(font_id, game.fonts[font_id], loaded_game_file_version);
     }
+
+    // Additional fixups - after all the fonts are registered
+    fixup_game_fonts();
 }
 
 void close_translation()

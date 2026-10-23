@@ -307,6 +307,9 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
                 game.fonts[i].FileName = get_font_file(i);
         }
     }
+
+    // Additional fixups - after all the fonts are registered
+    fixup_game_fonts();
 }
 
 // TODO: move lipsync dat reading (and writing?) out to a dedicated module.

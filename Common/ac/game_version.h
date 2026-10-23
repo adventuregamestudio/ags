@@ -142,6 +142,7 @@ Do not auto-translate text properties which are set or get in script
 3.6.3.15:
 Various GUI control fixes (which may change the visuals, so worth mentioning).
 Region.Tint no longer remaps amount 0 as 100.
+3.6.3.16:
 Textual overlay supports -1 width for auto-size, keeps text color even if a textwindow is used.
 */
 
@@ -206,7 +207,8 @@ enum GameDataVersion
     kGameVersion_363_10         = 3060310,
     kGameVersion_363_14         = 3060314,
     kGameVersion_363_15         = 3060315,
-    kGameVersion_Current        = kGameVersion_363_15,
+    kGameVersion_363_16         = 3060316,
+    kGameVersion_Current        = kGameVersion_363_16,
 
     //-------------------------------------------------------------------------
     // Following version numbers were not saved in data, but are generated

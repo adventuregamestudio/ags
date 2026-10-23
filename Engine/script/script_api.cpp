@@ -100,6 +100,7 @@ static bool AssertFormat(FormatParseResult fmt_type, ScriptValueType value_type)
         case kScValPluginArgPtr: // for const char* returned from plugin
         case kScValData:         // could be a old-style string
         case kScValStringLiteral:// for const char* from script
+        case kScValStaticArray:  // old case: address of Character's display name or script name (character[*].*)
         case kScValScriptObject: // for String type; TODO: can we narrow this down without damaging performance?
         case kScValPluginObject: // for String type; TODO: can we narrow this down without damaging performance?
             return true; // acceptable

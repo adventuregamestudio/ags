@@ -186,6 +186,9 @@ Script API:
  - Added Character.IdleDelay and Character.IdleTime.
  - Added Character.Inventory[] and InventoryCount readonly properties that let iterate all items
    that character currently holds, including item duplicates (if they are allowed).
+ - Added Character.LoseInventoryAt() function that removes an item at the given index in the
+   character's inventory. This also lets remove particular instance in case character owns
+   duplicates of the same inventory item.
  - Added Character.Turning readonly property that tells whether character is currently turning.
  - Added DateTime.Millisecond which tells number of milliseconds passed since last second.
  - Added Dialog.SetOptionText().
@@ -252,6 +255,7 @@ Script API:
    "read time" has passed in text+voice mode.
  - Added Speech.OverlayZOrder property that sets default z-order value for all the future blocking
    speech overlays (text & portrait).
+ - Added String.Reverse().
  - Added System.FPS that lets read current real fps.
  - Added System.LocaleName readonly property that tells which of the UTF8 locales is used for
    the game strings.

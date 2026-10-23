@@ -3127,6 +3127,10 @@ builtin managed struct Character {
 #endif // !SCRIPT_API_v341
   /// Removes the item from this character's inventory.
   import void LoseInventory(InventoryItem *item);
+#ifdef SCRIPT_API_v363
+  /// Removes an item at the given index of this character's inventory. This also lets remove particular instance in case character owns duplicates of the same inventory item.
+  import void LoseInventoryAt(int inventoryIndex);
+#endif // SCRIPT_API_v363
   /// Moves the character to the destination, without playing his walking animation.
   import void Move(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Moves the character to the nearest walkable area.

@@ -206,13 +206,13 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         const int xstrt = x + _scrollbarRect.Left + 1;
         // Up arrow
         int ystrt = y + _scrollbarRect.Top + 3;
-        ds->DrawTriangle(Triangle(xstrt, ystrt + 5,
+        ds->FillTriangle(Triangle(xstrt, ystrt + 5,
                 xstrt + 4,
                 ystrt + 5,
                 xstrt + 2, ystrt), draw_color);
         // Down arrow
         ystrt = (y + _scrollbarRect.Bottom - 3) - 5;
-        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt,
+        ds->FillTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt,
                  xstrt + 2,
                  ystrt + 5), draw_color);
     }

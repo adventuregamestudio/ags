@@ -737,6 +737,41 @@ void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yof
     chap->pic_yoffs = yoffs;
 }
 
+void Character_LoseInventoryImpl(CharacterInfo *chi, int item_id, int item_inv_index)
+{
+    chi->inv[item_id]--;
+    // If this was a selected item, and its quantity drops to zero,
+    // then reset the active inventory and "use inv" cursor
+    if ((chi->activeinv == item_id) && (chi->inv[item_id] == 0))
+    {
+        chi->activeinv = -1;
+        if ((chi == playerchar) && (GetCursorMode() == MODE_USE))
+            set_cursor_mode(0);
+    }
+
+    const int charid = chi->index_id;
+    if (item_inv_index >= 0)
+    {
+        // Remove from particular inventory slot
+        charextra[charid].inventory.erase(charextra[charid].inventory.begin() + item_inv_index);
+    }
+    else
+    {
+        // Remove first found item of this kind (it will be the only item if no duplicates allowed)
+        if ((chi->inv[item_id] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
+        {
+            auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), item_id);
+            if (it_found != charextra[charid].inventory.end())
+                charextra[charid].inventory.erase(it_found);
+        }
+    }
+    // Redraw active inventory window(s) for this character
+    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
+
+    if (chi == playerchar)
+        run_on_event(kScriptEvent_InventoryLose, item_id);
+}
+
 void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
 
     if (invi == nullptr)
@@ -749,29 +784,25 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
             chap->scrname, game.invScriptNames[inum].GetCStr());
         return;
     }
-    
-    chap->inv[inum]--;
-    // If this was a selected item, and its quantity drops to zero,
-    // then reset the active inventory and "use inv" cursor
-    if ((chap->activeinv == inum) && (chap->inv[inum] == 0))
+
+    Character_LoseInventoryImpl(chap, inum, -1);
+}
+
+void Character_LoseInventoryAt(CharacterInfo *chi, int inv_index)
+{
+    CharacterExtras &chex = charextra[chi->index_id];
+    if (chex.inventory.empty())
     {
-        chap->activeinv = -1;
-        if ((chap == playerchar) && (GetCursorMode() == MODE_USE))
-            set_cursor_mode(0);
+        debug_script_error("Character.RemoveInventoryAt: char %s has no items", chi->scrname);
+        return;
+    }
+    if (inv_index < 0 || static_cast<size_t>(inv_index) >= chex.inventory.size())
+    {
+        debug_script_error("Character.RemoveInventoryAt: char %s has no item at index %d, inventory range is 0..%zu", chi->scrname, inv_index, chex.inventory.size() - 1);
+        return;
     }
 
-    int charid = chap->index_id;
-    // Remove one item of this kind (it will be the only item if no duplicates allowed)
-    if ((chap->inv[inum] == 0) || (game.options[OPT_DUPLICATEINV] > 0))
-    {
-        auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
-        if (it_found != charextra[charid].inventory.end())
-            charextra[charid].inventory.erase(it_found);
-    }
-    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
-
-    if (chap == playerchar)
-        run_on_event(kScriptEvent_InventoryLose, inum);
+    Character_LoseInventoryImpl(chi, chex.inventory[inv_index], inv_index);
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 
@@ -3613,6 +3644,11 @@ RuntimeScriptValue Sc_Character_PlaceOnWalkableArea(void *self, const RuntimeScr
     API_OBJCALL_VOID(CharacterInfo, Character_PlaceOnWalkableArea);
 }
 
+RuntimeScriptValue Sc_Character_LoseInventoryAt(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_LoseInventoryAt);
+}
+
 // void (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_RemoveTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4420,6 +4456,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::LockViewOffset^3",          API_FN_PAIR(Character_LockViewOffset) },
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
+        { "Character::LoseInventoryAt^1",         API_FN_PAIR(Character_LoseInventoryAt) },
         { "Character::Move^4",                    API_FN_PAIR(Character_Move) },
         { "Character::MoveStraight^3",            API_FN_PAIR(Character_MoveStraight) },
         { "Character::PlaceOnWalkableArea^0",     API_FN_PAIR(Character_PlaceOnWalkableArea) },

@@ -66,6 +66,9 @@ void init_font_overrides(const Translation &trans)
             load_game_font(font_override.first, font_override.second, loaded_game_file_version);
         }
     }
+
+    // Additional fixups - after all the fonts are registered
+    fixup_game_fonts();
 }
 
 void restore_game_fonts(const Translation &old_trans)
@@ -76,6 +79,9 @@ void restore_game_fonts(const Translation &old_trans)
         if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.fonts.size())
             load_game_font(font_id, game.fonts[font_id], loaded_game_file_version);
     }
+
+    // Additional fixups - after all the fonts are registered
+    fixup_game_fonts();
 }
 
 void close_translation()

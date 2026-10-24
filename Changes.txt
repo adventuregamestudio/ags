@@ -248,6 +248,12 @@ Script API:
  - Added Overlay.Text that lets assign an arbitrary overlay tag (description), but also returns
    a text used to create a textual overlay.
  - Added Overlay.Visible property.
+ - Overlay.CreateTextual() and SetText() functions now will treat negative "width" parameter value
+   as "auto-size", and will find the best match for the overlay's width between 3/4 of the screen
+   and the longest text's line (after wrapping).
+ - Overlay.CreateTextual() and SetText() functions now will treat negative "width" parameter value
+   as "auto-size", and will try to make overlay's width match the longest text's line (after
+   wrapping), limited by 3/4 of the screen's width.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.
@@ -290,6 +296,9 @@ Engine:
  - Standard Dialog options are now properly positioned depending on Right-to-left text mode,
    and support text alignment set in script. Parser input textbox in dialog options also supports
    Right-to-left text direction.
+ - DialogOptionsRenderingInfo.Surface will now return null at all times except when inside the
+   dialog_options_render callback, thus behave as expected and according to the AGS documentation.
+   (When running pre-3.6.3 games it will return valid surface for backwards compatibility.)
  - DynamicSprite.CreateFromFile() and SaveToFile() functions now support loading and saving PNG
    files, also 32-bit BMP files with alpha channel.
  - Removed hard limit of Timers (was 20).
@@ -391,6 +400,8 @@ Compatibility:
  - In 3.5.0 - 3.6.2 games have ListBox item rows ignore border width (may result in +1 row).
  - In pre-2.61 games always reset player character to normal view after speech.
  - Don't update mouse properties in script during blocking actions in pre-2.7 games.
+ - Implemented accidental return value for MoveCharacter(), because some old games actually
+   test it (even though the function is declared as "void").
  - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game
    has a "Fonts anti-aliasing" enabled.
  - Fixed unwanted overhotspot text flicker which may potentially happen in pre-3.6.0 games.

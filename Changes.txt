@@ -249,12 +249,12 @@ Script API:
  - Added Overlay.Text that lets assign an arbitrary overlay tag (description), but also returns
    a text used to create a textual overlay.
  - Added Overlay.Visible property.
+ - Overlay.CreateTextual() and SetText() functions now enforce "text color" parameter in all cases,
+   including when overlay is using textwindow gui for background. (Previously the textwindow gui
+   would override text color.)
  - Overlay.CreateTextual() and SetText() functions now will treat negative "width" parameter value
    as "auto-size", and will find the best match for the overlay's width between 3/4 of the screen
    and the longest text's line (after wrapping).
- - Overlay.CreateTextual() and SetText() functions now will treat negative "width" parameter value
-   as "auto-size", and will try to make overlay's width match the longest text's line (after
-   wrapping), limited by 3/4 of the screen's width.
  - Added RestoredSaveInfo.GameVersion property that lets read the value of "Game Version" that
    was set at the time this save was made (applies only for saves made in 3.6.3 and higher).
  - Added Slider.BorderShadeColor and HandleColor properties.

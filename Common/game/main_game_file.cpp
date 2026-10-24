@@ -1173,8 +1173,13 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     game.read_room_names(in, data_ver);
 
     ents.CharEx.resize(game.numcharacters);
+
+    // Main data complete, try read extensions if there's anything left in stream
+    if (s_in->EOS())
+        return HGameFileError::None();
+
     //-------------------------------------------------------------------------
-    // All the extended data, for AGS > 3.5.0.
+    // All the extended data, for AGS 3.6.0+.
     //-------------------------------------------------------------------------
     GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();

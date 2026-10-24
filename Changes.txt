@@ -208,6 +208,7 @@ Script API:
  - Added DialogOptions.Overlay that lets access a overlay object which represents dialog options
    on screen (only returns overlay when the options are displayed).
  - In DynamicSprite.ChangeCanvasSize() function made "x" and "y" parameters optional.
+ - In DynamicSprite.Crop() function clamp coordinates which lie outside of the image's surface.
  - Added DrawingSurface.ColorDepth readonly property.
  - Added DrawingSurface.GetPixelsCopy() and SetPixels() functions that allow to retrieve all or
    a portion of the drawing surface's pixels as a dynamic array, or assign its pixels from array.
@@ -389,19 +390,19 @@ Compatibility:
    the GUI's own background and border color too in that case.
  - Allow a non-closed label macro (such as "@overhotspot") in pre-3.5.1 games.
  - More thorough simulation of pre-3.6.0 Wait behavior, with edge cases and accidental effects.
+ - Allow old games to "abuse" DynamicSprite.Crop() passing invalid crop coordinates.
  - In pre-2.62 games Wait(0) should be treated as Wait(1).
  - Don't do infinite loop check in scripts in pre-2.56 games.
  - In pre-3.6.1 games with custom dialog options rendering force options redraw each time a 
    mouse was moved (regardless of user script update instruction) to complement for a change
    in engine's behavior.
- - Implemented an accidental return value for FaceCharacter() and FaceLocation() functions that
-   they had in 2.* engines; some very old games have used that return value in script.
+ - Implemented an accidental return value for FaceCharacter(), FaceLocation() and MoveCharacter
+   functions that they had in 2.* engines; some very old games have tested these return values
+   in script (even though that was not supposed to work like that).
  - In pre-2.62 games let clicks interact with characters and objects under walk-behinds.
  - In 3.5.0 - 3.6.2 games have ListBox item rows ignore border width (may result in +1 row).
  - In pre-2.61 games always reset player character to normal view after speech.
  - Don't update mouse properties in script during blocking actions in pre-2.7 games.
- - Implemented accidental return value for MoveCharacter(), because some old games actually
-   test it (even though the function is declared as "void").
  - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game
    has a "Fonts anti-aliasing" enabled.
  - Fixed unwanted overhotspot text flicker which may potentially happen in pre-3.6.0 games.

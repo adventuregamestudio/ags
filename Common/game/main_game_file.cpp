@@ -1180,11 +1180,11 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         return err;
     game.read_room_names(in, data_ver);
 
-    if (data_ver <= kGameVersion_350)
+    if (data_ver < kGameVersion_360 || s_in->EOS())
         return HGameFileError::None();
 
     //-------------------------------------------------------------------------
-    // All the extended data, for AGS > 3.5.0.
+    // All the extended data, for AGS 3.6.0+.
     //-------------------------------------------------------------------------
     GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();

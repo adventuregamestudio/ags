@@ -30,10 +30,12 @@
 #undef BITMAP
 #undef CreateFile
 #undef CreateDirectory
+#undef CopyFile
 #undef DeleteFile
 #undef GetCurrentDirectory
 #undef SetCurrentDirectory
 #undef GetObject
+#undef CreateProcess
 
 #endif // _WINDOWS_
 #endif // AGS_PLATFORM_OS_WINDOWS

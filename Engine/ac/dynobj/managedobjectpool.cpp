@@ -405,16 +405,16 @@ void ManagedObjectPool::PrintStats()
 {
     Debug::Printf(kDbgGroup_ManObj, kDbgMsg_Info,
         "Managed Pool stats:\n"
-        "\tObjects present:             %+10" PRIu64 "\n"
-        "\tPersistent objects:          %+10" PRIu64 "\n"
-        "\tMax objects present at once: %+10" PRIu64 "\n"
-        "\tTotal objects added:         %+10" PRIu64 "\n"
-        "\tPersistent objects added:    %+10" PRIu64 "\n"
-        "\tTotal objects removed:       %+10" PRIu64 "\n"
-        "\tPersistent objects removed:  %+10" PRIu64 "\n"
-        "\tObjects removed by GC:       %+10" PRIu64 "\n"
-        "\tDetached removed by GC:      %+10" PRIu64 "\n"
-        "\tTimes GC ran:                %+10" PRIu64 "",
+        "\tObjects present:             %10" PRIu64 "\n"
+        "\tPersistent objects:          %10" PRIu64 "\n"
+        "\tMax objects present at once: %10" PRIu64 "\n"
+        "\tTotal objects added:         %10" PRIu64 "\n"
+        "\tPersistent objects added:    %10" PRIu64 "\n"
+        "\tTotal objects removed:       %10" PRIu64 "\n"
+        "\tPersistent objects removed:  %10" PRIu64 "\n"
+        "\tObjects removed by GC:       %10" PRIu64 "\n"
+        "\tDetached removed by GC:      %10" PRIu64 "\n"
+        "\tTimes GC ran:                %10" PRIu64 "",
         stats.Added - stats.Removed, stats.AddedPersistent - stats.RemovedPersistent,
         stats.MaxObjectsPresent,
         stats.Added, stats.AddedPersistent, stats.Removed, stats.RemovedPersistent,

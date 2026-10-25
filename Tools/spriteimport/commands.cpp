@@ -94,7 +94,7 @@ public:
             }
             else
             {
-                return new Error(String::FromFormat("Failed to save sprite %d as the image file '%s'", slot, filename.GetCStr()));
+                return new Error("Failed to save sprite %d as the image file '%s'", slot, filename.GetCStr());
             }
         }
         return HError::None();
@@ -125,7 +125,7 @@ HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &
     AGF::AGFReader reader;
     HError err = reader.Open(src_agf.GetCStr());
     if (!err)
-        return new Error(String::FromFormat("Failed to open source AGF '%s':\n", src_agf.GetCStr()), err);
+        return new Error(err, "Failed to open source AGF '%s':\n", src_agf.GetCStr());
     GameSettings opt;
     AGF::ReadGameSettings(opt, reader.GetGameRoot());
     game_color_opts.ColorDepth = opt.ColorDepth;
@@ -209,7 +209,7 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
         {
             writer.WriteSprite({}, sprite.Slot);
         }
-        return new Error(String::FromFormat("Failed to load image file %s", src_file.GetCStr()));
+        return new Error("Failed to load image file %s", src_file.GetCStr());
     }
 
     printf("> %s\n", src_file.GetCStr());
@@ -307,7 +307,7 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
 
     std::unique_ptr<Stream> out = File::CreateFile(dst_path);
     if (!out)
-        return new Error(String::FromFormat("Failed to open destination spritefile for writing: %s", dst_path.GetCStr()));
+        return new Error("Failed to open destination spritefile for writing: %s", dst_path.GetCStr());
 
     SpriteFile spr_reader;
     temp_s->Seek(0, kSeekBegin);
@@ -355,11 +355,11 @@ HError ImportToDirectory(const std::multimap<String, SpriteData> &source_to_spri
     const RoomPaletteCache &room_cache, const String &dst_path, const CommandOptions &opts, bool verbose)
 {
     if (!File::IsDirectory(dst_path))
-        return new Error(String::FromFormat("Not a valid directory: %s", dst_path.GetCStr()));
+        return new Error("Not a valid directory: %s", dst_path.GetCStr());
 
     String image_pattern;
     if (!ResolveImageFilePattern(opts.ImageFilePattern, image_pattern))
-        return new Error(String::FromFormat("Image file pattern \"%s\" is not a valid pattern.\n", opts.ImageFilePattern.GetCStr()));
+        return new Error("Image file pattern \"%s\" is not a valid pattern.\n", opts.ImageFilePattern.GetCStr());
     SpriteWriter writer(dst_path, image_pattern);
     return ImportSpritesImpl(source_to_sprite, game_color_opts, room_cache, writer, nullptr, verbose);
 }

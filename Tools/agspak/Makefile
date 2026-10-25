@@ -103,7 +103,7 @@ clean:
 
 install: agspak
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agspak
+	cp agspak $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agspak

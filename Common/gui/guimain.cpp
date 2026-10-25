@@ -16,6 +16,7 @@
 #include <algorithm>
 #include "ac/game_version.h"
 #include "ac/spritecache.h"
+#include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "gui/guibutton.h"
@@ -220,6 +221,7 @@ void GUIMain::ResetOverControl()
     _mouseWasAt.X = -1;
     _mouseWasAt.Y = -1;
     _mouseOverCtrl = -1;
+    _wasFocused = false; // reset the focus state too, for now
 }
 
 void GUIMain::AddControl(GUIControlType type, int id, GUIControl *control)
@@ -382,33 +384,57 @@ void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
     ds->FillRect(Rect(x, y, x + 1, y + 1), draw_color);
 }
 
-void GUIMain::Poll(int mx, int my)
+void GUIMain::Poll(int mx, int my, bool has_focus)
 {
     _polling = true;
     // transform to GUI's local coordinates
     Point pt = _gs.WorldToLocal(mx, my);
     mx = pt.X; my = pt.Y;
 
-    if (mx != _mouseWasAt.X || my != _mouseWasAt.Y)
+    // If GUI just went out of focus then reset focus on any control that had it
+    if (!has_focus && _wasFocused)
+    {
+        // If some control still has mouse press lock to it, then revert it
+        if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+            _mouseOverCtrl = _mouseDownCtrl;
+
+        if (_mouseOverCtrl >= 0)
+        {
+            // Leave previous control (if any was focused)
+            _controls[_mouseOverCtrl]->OnMouseLeave();
+            // If this was a control which had mouse button pressed on, then unpress it,
+            // but do this *after* Leave event, so that it won't activate.
+            if (_mouseDownCtrl == _mouseOverCtrl)
+                _controls[_mouseOverCtrl]->OnMouseUp();
+        }
+
+        _mouseOverCtrl = -1;
+        _mouseDownCtrl = -1;
+    }
+
+    // If GUI has focus, and mouse moved from the last saved pos, then update controls
+    // Also update if GUI did not have a focus, but now has
+    if (has_focus && ((mx != _mouseWasAt.X || my != _mouseWasAt.Y) || (_wasFocused != has_focus)))
     {
         int ctrl_index = FindControlAtLocal(mx, my, 0, true);
 
         if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+        {
+            // Mouse button is still held, report mouse motion;
+            // NOTE: do this even if no focus (held mouse button and moved cursor outside of GUI?)
             _controls[_mouseDownCtrl]->OnMouseMove(mx, my);
+        }
         else if (ctrl_index != _mouseOverCtrl)
         {
+            // A different control is focused, or none at all
+            // Leave previous control (if any was focused)
             if (_mouseOverCtrl >= 0)
                 _controls[_mouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && !GUI::IsGUIEnabled(_controls[ctrl_index]))
-                // the control is disabled - ignore it
-                _mouseOverCtrl = -1;
-            else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
-                // the control is not clickable - ignore it
-                _mouseOverCtrl = -1;
-            else
+            if ((ctrl_index >= 0)
+                && GUI::IsGUIEnabled(_controls[ctrl_index]) && _controls[ctrl_index]->IsClickable())
             {
-                // over a different control
+                // Focus and Enter another, enabled and clickable control
                 _mouseOverCtrl = ctrl_index;
                 if (_mouseOverCtrl >= 0)
                 {
@@ -416,13 +442,21 @@ void GUIMain::Poll(int mx, int my)
                     _controls[_mouseOverCtrl]->OnMouseMove(mx, my);
                 }
             }
-        } 
+            else
+            {
+                // No active control beyond the cursor - reset focus
+                _mouseOverCtrl = -1;
+            }
+        }
         else if (_mouseOverCtrl >= 0)
+        {
+            // Same active control is focused, report mouse motion
             _controls[_mouseOverCtrl]->OnMouseMove(mx, my);
+        }
     }
 
-    _mouseWasAt.X = mx;
-    _mouseWasAt.Y = my;
+    _wasFocused = has_focus;
+    _mouseWasAt = Point(mx, my);
     _polling = false;
 }
 
@@ -438,7 +472,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         thisnum = _ctrlRefs[i].second;
 
         if (thisnum < 0)
-            return new Error(String::FromFormat("GUIMain (%d): invalid control _id %d in ref #%d", _id, thisnum, i));
+            return new Error("GUIMain (%d): invalid control _id %d in ref #%zu", _id, thisnum, i);
 
         if (thistype == kGUIButton)
             _controls[i] = &guiobjs.Buttons[thisnum];
@@ -453,7 +487,7 @@ HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
         else if (thistype == kGUIListBox)
             _controls[i] = &guiobjs.ListBoxes[thisnum];
         else
-            return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", _id, thistype, i));
+            return new Error("GUIMain (%d): unknown control type %d in ref #%zu", _id, thistype, i);
 
         _controls[i]->SetParentID(_id);
         _controls[i]->SetID(i);
@@ -1038,76 +1072,33 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
-    {
-        const size_t macro_at = scan_at + 1;
-        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
-        if (macro_end == String::NoIndex)
-        {
-            // Malformed macro string, stop
-            break;
-        }
-        if (macro_end == macro_at)
-        {
-            // Zero-length substring, ignore and continue from the last '@'
-            continue;
-        }
-
-        // Test which macro is it
-        const size_t macro_len = macro_end - macro_at;
-        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
-            macro_flags |= kLabelMacro_Gamename;
-        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
-            macro_flags |= kLabelMacro_Overhotspot;
-        else
-            continue; // no matching macro, ignore and continue from the last '@'
-
-        // If macro was resolved, then search for the next @...@ pair
-        scan_at = text.FindChar('@', macro_end + 1);
-    }
+    std::function<bool(const String&)> fn_scan = [&macro_flags](const String &macro)->bool
+        { 
+            if (macro.CompareNoCase("gamename") == 0)
+                macro_flags |= kLabelMacro_Gamename;
+            else if (macro.CompareNoCase("overhotspot") == 0)
+                macro_flags |= kLabelMacro_Overhotspot;
+            else
+                return false;
+            return true;
+        };
+    ScanMacroTokens(text, fn_scan);
     return (GUILabelMacro)macro_flags;
 }
 
 String ResolveMacroTokens(const String &text)
 {
-    String resolved_text;
-    size_t text_at = 0u;
-    for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
-    {
-        const size_t macro_at = scan_at + 1;
-        size_t macro_end = scan_at = text.FindChar('@', scan_at + 1);
-        if (macro_end == String::NoIndex)
-        {
-            // Malformed macro string, stop
-            break;
-        }
-        if (macro_end == macro_at)
-        {
-            // Zero-length substring, ignore and continue from the last '@'
-            continue;
-        }
-
-        // Copy literal text (if there's any between macros)
-        resolved_text.Append(text.Mid(text_at, macro_at - 1 - text_at));
-        text_at = macro_at - 1;
-
-        // Test which macro is it
-        const size_t macro_len = macro_end - macro_at;
-        if (text.SubstrEqualsNoCase("gamename", macro_at, macro_len))
-            resolved_text.Append(GUI::Context.GameTitle);
-        else if (text.SubstrEqualsNoCase("overhotspot", macro_at, macro_len))
-            resolved_text.Append(GUI::Context.Overhotspot);
-        else
-            continue; // no matching macro, continue from the last '@'
-
-        // If macro was resolved, then search for the next @...@ pair
-        text_at = macro_end + 1;
-        scan_at = text.FindChar('@', macro_end + 1);
-    }
-
-    // Copy trailing literal text (if there's any)
-    resolved_text.Append(text.Mid(text_at));
-    return resolved_text;
+    std::function<bool(const String&, String&)> fn_resolve = [](const String &macro, String &result)->bool
+        { 
+            if (macro.CompareNoCase("gamename") == 0)
+                result = GUI::Context.GameTitle;
+            else if (macro.CompareNoCase("overhotspot") == 0)
+                result = GUI::Context.Overhotspot;
+            else
+                return false;
+            return true;
+        };
+    return AGS::Common::ResolveMacroTokens(text, fn_resolve);
 }
 
 HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
@@ -1143,9 +1134,9 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     DataVersion = data_ver;
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
-    if (GameGuiVersion < GameGuiVersion, GameGuiVersion > kGuiVersion_Current)
-        return new Error(String::FromFormat("ReadGUI: format version not supported (required %d, supported %d - %d)",
-            GameGuiVersion, kGuiVersion_LowSupported, kGuiVersion_Current));
+    if (GameGuiVersion < GameGuiVersion || GameGuiVersion > kGuiVersion_Current)
+        return new Error("ReadGUI: format version not supported (required %d, supported %d - %d)",
+            GameGuiVersion, kGuiVersion_LowSupported, kGuiVersion_Current);
 
     size_t gui_count = in->ReadInt32();
     guis.resize(gui_count);

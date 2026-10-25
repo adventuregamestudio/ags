@@ -100,7 +100,7 @@ void script_debug(int cmdd,int dataa) {
     if (cmdd==0)
     {
         for (int i = 0; i < game.numinvitems; ++i)
-            playerchar->set_item_quantity(i, 1);
+            playerchar->set_item_quantity(i, std::max<int16_t>(1, playerchar->get_item_quantity(i)));
         UpdateInventory();
     }
     else if (cmdd==1)

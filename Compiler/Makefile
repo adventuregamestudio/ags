@@ -116,7 +116,7 @@ clean:
 
 install: agscc
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agscc
+	cp agscc $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agscc

@@ -118,8 +118,10 @@ namespace AGS.Editor
          * 3.6.3.6        - Character.BlockingRectangle, RoomObject.BlockingRectangle.
          *                  expose Character.Transparency, Baseline, RoomObject.Transparency.
          * 3.6.3.8        - Font Overrides in Translation, TextOutlineColor in GUI controls.
-         * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption
+         * 3.6.3.10       - Settings.GameTextLanguage, TranslateTextParser, DisplaySingleDialogOption;
+         *                  InventoryItem.Hotspot now treats value 0,0 exactly, and not "centered in graphic"
          * 3.6.3.12       - Settings.TurnOrderPriority, TextBoxKeyClaimStyle.
+         * 3.6.3.14       - InventoryItem.HotspotAlignment.
          * 3.6.3.16       - Default border width fix for Labels and InventoryWindows.
          *
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
@@ -1449,7 +1451,7 @@ namespace AGS.Editor
 
                 if (!evArgs.AllowCompilation)
                 {
-                    Factory.GUIController.PostOutputAndReportErrors(messages, "when compiling the game");
+                    Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled");
                     return messages;
                 }
             }
@@ -1474,7 +1476,7 @@ namespace AGS.Editor
 				}
                 _game.WorkspaceState.RequiresRebuild = false;
             }
-            Factory.GUIController.PostOutputAndReportErrors(messages, "when compiling the game");
+            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled");
             return messages;
         }
 

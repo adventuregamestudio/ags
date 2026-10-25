@@ -216,7 +216,7 @@ namespace Preprocessor {
 
         if (i < text.GetLength() && (static_cast<unsigned char>(text[i]) > 127))
         {
-            LogError(ErrorCode::InvalidCharacter, String::FromFormat("Invalid character detected in script at position %d in '%s'", i, text.GetCStr()));
+            LogError(ErrorCode::InvalidCharacter, String::FromFormat("Invalid character detected in script at position %zu in '%s'", i, text.GetCStr()));
             String res = text;
             text.SetString(""); // need to end line
             return res;

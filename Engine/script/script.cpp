@@ -238,11 +238,11 @@ HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript
     assert(scmodule_names.size() == scmodules.size());
 
     if (!glscript)
-        return new Error(String::FromFormat("Global script was not loaded"));
+        return new Error("Global script was not loaded");
     gamescript = std::move(RuntimeScript::Create(glscript));
     if (!gamescript)
-        return new Error(String::FromFormat("Failed to create the global script:\n%s",
-            cc_get_error().ErrorString.GetCStr()));
+        return new Error("Failed to create the global script:\n%s",
+            cc_get_error().ErrorString.GetCStr());
     Debug::Printf("Created global script");
 
     numScriptModules = scmodules.size();
@@ -262,8 +262,8 @@ HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript
     {
         dialogScriptsScript = std::move(RuntimeScript::Create(dlgscript));
         if (!dialogScriptsScript)
-            return new Error(String::FromFormat("Failed to create the dialog script:\n%s",
-                cc_get_error().ErrorString.GetCStr()));
+            return new Error("Failed to create the dialog script:\n%s",
+                cc_get_error().ErrorString.GetCStr());
         Debug::Printf("Created dialog script");
     }
 

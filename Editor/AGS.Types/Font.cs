@@ -31,6 +31,7 @@ namespace AGS.Types
 
         public Font()
         {
+            _id = -1;
             _fontSize = 0;
             _outlineFont = 0;
             _outlineStyle = FontOutlineStyle.None;

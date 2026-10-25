@@ -447,7 +447,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     game.numCompatGameChannels = MAX_GAME_CHANNELS;
     HError err = InitAndRegisterGameEntities(ents);
     if (!err)
-        return new GameInitError(kGameInitErr_EntityInitFail, err);
+        return new GameInitError(err, kGameInitErr_EntityInitFail);
     LoadFonts(game, data_ver);
     LoadLipsyncData();
 
@@ -505,10 +505,10 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         sc_modules.push_back(us.get());
     err = CreateRuntimeScripts(ents.GlobalScript.get(), sc_modules, ents.ScriptModuleNames, ents.DialogScript.get());
     if (!err)
-        return new GameInitError(kGameInitErr_ScriptInitFailed, err);
+        return new GameInitError(err, kGameInitErr_ScriptInitFailed);
     err = LinkGlobalScripts();
     if (!err)
-        return new GameInitError(kGameInitErr_ScriptInitFailed, err);
+        return new GameInitError(err, kGameInitErr_ScriptInitFailed);
 
     // Apply accessibility options, must be done last, because some
     // may override startup game settings.

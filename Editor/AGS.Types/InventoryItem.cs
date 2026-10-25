@@ -9,13 +9,14 @@ namespace AGS.Types
     [DefaultProperty("Image")]
     public class InventoryItem : IToXml, IComparable<InventoryItem>, ICloneable
     {
-        private string _scriptName;
-        private string _displayName;
-        private int _image;
-        private int _cursorImage;
-        private bool _startWithItem;
-        private int _id;
-        private int _hotspotX, _hotspotY;
+        private string _scriptName = string.Empty;
+        private string _displayName = string.Empty;
+        private int _image = 0;
+        private int _cursorImage = 0;
+        private bool _startWithItem = false;
+        private int _id = 0;
+        private int _hotspotX = 0, _hotspotY = 0;
+        private FrameAlignment _hotspotAlignment = FrameAlignment.MiddleCenter;
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.InventoryItems);
         // Game Events
         private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
@@ -27,13 +28,6 @@ namespace AGS.Types
 
         public InventoryItem()
         {
-            _startWithItem = false;
-            _scriptName = string.Empty;
-            _displayName = string.Empty;
-            _image = 0;
-            _cursorImage = 0;
-            _hotspotX = 0;
-            _hotspotY = 0;
         }
 
         [Description("The ID number of the item")]
@@ -46,7 +40,7 @@ namespace AGS.Types
             set { _id = value; }
         }
 
-        [Description("The X location of the cursor hotspot")]
+        [Description("The X location of the cursor hotspot, relative to alignment")]
         [Category("Design")]
         public int HotspotX
         {
@@ -54,12 +48,20 @@ namespace AGS.Types
             set { _hotspotX = value; }
         }
 
-        [Description("The Y location of the cursor hotspot")]
+        [Description("The Y location of the cursor hotspot, relative to alignment")]
         [Category("Design")]
         public int HotspotY
         {
             get { return _hotspotY; }
             set { _hotspotY = value; }
+        }
+
+        [Description("The automatic alignment of the cursor hotspot, keeps the relative position if the cursor graphic changes")]
+        [Category("Design")]
+        public FrameAlignment HotspotAlignment
+        {
+            get { return _hotspotAlignment; }
+            set { _hotspotAlignment = value; }
         }
 
         [Description("If true, the player character starts with this in their inventory")]
@@ -76,18 +78,7 @@ namespace AGS.Types
         public int CursorImage
         {
             get { return _cursorImage; }
-            set
-            {
-                if (value != _cursorImage)
-                {
-                    if ((_cursorImage != 0) && (!_currentlyDeserializing))
-                    {
-                        _hotspotX = 0;
-                        _hotspotY = 0;
-                    }
-                    _cursorImage = Math.Max(0, value);
-                }
-            }
+            set { _cursorImage = Math.Max(0, value); }
         }
 
         [Description("Sprite used to display the inventory item")]

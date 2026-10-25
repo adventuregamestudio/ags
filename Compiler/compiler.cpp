@@ -109,6 +109,8 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
     printf("\n");
     if (DebugMode) printf("DebugMode\n");
+    if (UnicodeMode) printf("Unicode mode\n");
+    else printf("ASCII mode\n");
 }
 
 
@@ -128,6 +130,7 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     // Configure macros
     //-----------------------------------------------------------------------//
+    pp.SetAppVersion(comp_opts.Version);
     pp.DefineMacro("AGS_NEW_STRINGS", "1");
     pp.DefineMacro("AGS_SUPPORTS_IFVER", "1");
 
@@ -191,6 +194,8 @@ int Compile(const CompilerOptions& comp_opts)
     ccSetOption(SCOPT_NOIMPORTOVERRIDE, comp_opts.Flags.NoImportOverride);
 
     ccSetOption(SCOPT_OLDSTRINGS, !comp_opts.Flags.EnforceNewStrings);
+
+    ccSetOption(SCOPT_UTF8, comp_opts.UnicodeMode);
 
     ccRemoveDefaultHeaders();
 #else

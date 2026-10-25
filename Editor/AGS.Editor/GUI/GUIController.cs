@@ -1124,11 +1124,7 @@ namespace AGS.Editor
                     _agsEditor.SaveUserDataFile();
 
                 _batchProcessShutdown = true;
-                if (!messages.HasErrors)
-                {
-                    BuildCommandsComponent.ShowCompileSuccessMessage();
-                }
-                else
+                if (messages.HasErrors)
                 {
                     error = true;
                 }
@@ -1434,20 +1430,23 @@ namespace AGS.Editor
             }
         }
 
-        public void PostOutputAndReportErrors(CompileMessages messages, string whenPerformingWhat)
+        public void PostOutputAndReportErrors(CompileMessages messages, string compiledWhat, bool alwaysShowOnSuccess = false, bool showFirstError = false)
         {
             ShowOutputPanel(messages);
-            ReportErrorsIfAppropriate(messages, whenPerformingWhat);
+            ReportErrorsIfAppropriate(messages, compiledWhat, alwaysShowOnSuccess, showFirstError);
         }
 
-        private void ReportErrorsIfAppropriate(CompileMessages errors, string whenPerformingWhat)
+        private void ReportErrorsIfAppropriate(CompileMessages errors, string compiledWhat, bool alwaysShowOnSuccess, bool showFirstError)
         {
             if (errors.HasErrors)
             {
                 if ((_agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.Never)
                     || StdConsoleWriter.IsEnabled)
                 {
-                    ShowMessage($"There were errors {whenPerformingWhat}. See the output window for details.", MessageBoxIcon.Warning);
+                    if (showFirstError)
+                        ShowMessage($"{compiledWhat} with errors.{Environment.NewLine}{Environment.NewLine}{errors.FirstError.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
+                    else
+                        ShowMessage($"{compiledWhat} with errors. See the output window for details.", MessageBoxIcon.Warning);
                 }
             }
             else if (errors.HasErrorsOrWarnings)
@@ -1455,7 +1454,20 @@ namespace AGS.Editor
                 if ((_agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _agsEditor.Settings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
                     || StdConsoleWriter.IsEnabled)
                 {
-                    ShowMessage($"There were warnings {whenPerformingWhat}. See the output window for details.", MessageBoxIcon.Warning);
+                    if (showFirstError)
+                        ShowMessage($"{compiledWhat} with warnings.{Environment.NewLine}{Environment.NewLine}{errors.FirstWarning.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
+                    else
+                        ShowMessage($"{compiledWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
+                }
+            }
+            else
+            {
+                string message = $"{compiledWhat} successfully.";
+                Factory.GUIController.ShowOutputPanel(message);
+                if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always
+                    || alwaysShowOnSuccess)
+                {
+                    ShowMessage(message, MessageBoxIcon.Information);
                 }
             }
         }

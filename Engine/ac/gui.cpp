@@ -244,7 +244,7 @@ void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
 
         if (g.IsDisplayed() && play.mouse_input_enabled)
         {
-            g.Poll(mousex, mousey);
+            g.Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == g.GetID());
         }
     }
 }
@@ -563,7 +563,7 @@ void GUI_ProcessClick(int x, int y, int mbut)
     int guiid = gui_get_interactable(x, y);
     if (guiid >= 0)
     { // simulate mouse click at the given coordinates
-        guis[guiid].Poll(x, y);
+        guis[guiid].Poll(x, y, true);
         gui_on_mouse_down(guiid, mbut, x, y);
         gui_on_mouse_up(guiid, mbut, x, y);
     }

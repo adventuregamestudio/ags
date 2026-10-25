@@ -81,6 +81,17 @@ bool CreateAllDirectories(const String &parent, const String &sub_dirs)
     return true;
 }
 
+bool DeleteDirectory(const String &path)
+{
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wstr[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wstr, MAX_PATH_SZ);
+    return (RemoveDirectoryW(wstr) != FALSE) || (GetLastError() == ERROR_FILE_NOT_FOUND);
+#else
+    return rmdir(path.GetCStr()) == 0;
+#endif
+}
+
 String SetCurrentDirectory(const String &path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -144,6 +155,11 @@ void GetFiles(const String &dir_path, std::vector<FileEntry> &files, const Strin
 bool HasAnyFiles(const String &dir_path)
 {
     return !FindFile::OpenFiles(dir_path).AtEnd();
+}
+
+bool HasAnyFiles(const String &dir_path, const String &wildcard)
+{
+    return !FindFile::OpenFiles(dir_path, wildcard).AtEnd();
 }
 
 } // namespace Directory

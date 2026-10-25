@@ -14,7 +14,9 @@
 #ifndef __AC_INVENTORYITEMINFO_H
 #define __AC_INVENTORYITEMINFO_H
 
+#include "ac/game_version.h"
 #include "game/scripteventtable.h"
+#include "util/geometry.h"
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/string_types.h"
@@ -33,14 +35,16 @@ enum InvitemSvgVersion
 {
     kInvitemSvgVersion_Initial = 0,
     kInvitemSvgVersion_36304 = 3060304, // hotspot
+    kInvitemSvgVersion_36314 = 3060314, // hotspot align
+    kInvitemSvgVersion_Current = kInvitemSvgVersion_36314
 };
-
 
 struct InventoryItemInfo
 {
     AGS::Common::String name = {};
     int  pic = 0;
     int  cursorPic = 0, hotx = 0, hoty = 0;
+    FrameAlignment hotAlign = kAlignNone;
     uint8_t flags = 0u; // IFLG_STARTWITH
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
@@ -54,8 +58,8 @@ struct InventoryItemInfo
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
 
-    void ReadFromFile(AGS::Common::Stream *in);
-    void WriteToFile(AGS::Common::Stream *out);
+    void ReadFromFile(AGS::Common::Stream *in, GameDataVersion game_ver);
+    void WriteToFile(AGS::Common::Stream *out) const;
     void ReadFromSavegame(AGS::Common::Stream *in, InvitemSvgVersion svg_ver);
     void WriteToSavegame(AGS::Common::Stream *out) const;
 

@@ -401,6 +401,11 @@ void *DrawingSurface_GetPixelsCopyImpl(ScriptDrawingSurface *sds, int x, int y, 
     if (!ds)
         return nullptr;
 
+    if (dest_elem_size != sizeof(uint8_t) && dest_elem_size != ds->GetBPP())
+    {
+        debug_script_error("DrawingSurface.GetPixelsCopy: invalid destination array type for %d-bit image", ds->GetColorDepth());
+        return nullptr;
+    }
     if (x < 0 || y < 0 || x >= ds->GetWidth() || y >= ds->GetHeight())
     {
         debug_script_warn("DrawingSurface.GetPixelsCopy: invalid region %d,%d %dx%d", x, y, width, height);
@@ -434,14 +439,19 @@ void *DrawingSurface_GetPixelsCopy32(ScriptDrawingSurface *sds, int x, int y, in
     return DrawingSurface_GetPixelsCopyImpl(sds, x, y, width, height, sizeof(uint32_t));
 }
 
-void DrawingSurface_SetPixelsImpl(ScriptDrawingSurface *sds, void *arrobj, int x, int y, int width, int height)
+void DrawingSurface_SetPixelsImpl(ScriptDrawingSurface *sds, void *arrobj, int x, int y, int width, int height, uint8_t dest_elem_size)
 {
     Bitmap *ds = AssertBitmapSurface(sds->StartDrawing(), "DrawingSurface.GetPixels");
     if (!ds)
         return;
-
     if (arrobj == nullptr)
         return;
+
+    if (dest_elem_size != sizeof(uint8_t) && dest_elem_size != ds->GetBPP())
+    {
+        debug_script_error("DrawingSurface.SetPixels: invalid source array type for %d-bit image", ds->GetColorDepth());
+        return;
+    }
     if (x < 0 || y < 0 || x >= ds->GetWidth() || y >= ds->GetHeight())
     {
         debug_script_warn("DrawingSurface.SetPixels: invalid region %d,%d", x, y);
@@ -465,12 +475,12 @@ void DrawingSurface_SetPixelsImpl(ScriptDrawingSurface *sds, void *arrobj, int x
 
 void DrawingSurface_SetPixels(ScriptDrawingSurface *sds, void *arrobj, int x, int y, int width, int height)
 {
-    DrawingSurface_SetPixelsImpl(sds, arrobj, x, y, width, height);
+    DrawingSurface_SetPixelsImpl(sds, arrobj, x, y, width, height, sizeof(uint8_t));
 }
 
 void DrawingSurface_SetPixels32(ScriptDrawingSurface *sds, void *arrobj, int x, int y, int width, int height)
 {
-    DrawingSurface_SetPixelsImpl(sds, arrobj, x, y, width, height);
+    DrawingSurface_SetPixelsImpl(sds, arrobj, x, y, width, height, sizeof(uint32_t));
 }
 
 //=============================================================================

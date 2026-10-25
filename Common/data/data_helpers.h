@@ -15,6 +15,7 @@
 // Helper functions related to reading or writing game data.
 //
 //=============================================================================
+#include <functional>
 #include <vector>
 #include "game/scripteventtable.h"
 #include "util/error.h"
@@ -87,32 +88,45 @@ namespace Common
         return ReadScriptEventsTablesForObjects<TObj, TObj*>(objs, objs + obj_count, objname, in);
     }
 
-    // Text encryption/decryption functions which apply a password string
-    // using ADD operation (SUB when decrypting).
-    // Decrypts text found in the given buffer, writes back to the same buffer
-    void DecryptText(char *buf, size_t buf_sz);
-    // Reads an encrypted string from the stream and decrypts into the provided buffer
-    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz);
-    // Reads an encrypted string from the stream and returns as a string
-    String ReadStringDecrypt(Stream *in);
-    // Reads an encrypted string from the stream and returns as a string;
-    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
-    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf);
-    // Skip an encrypted string in stream
-    void SkipStringDecrypt(Stream *in);
+    // Searches the input string for the macro placeholder surrounded by '@',
+    // for each found placeholder calls the provided callback function.
+    // Optionally allow the last macro to be unclosed (backwards compatibility).
+    void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse,
+        bool allow_unclosed_macros = false);
+    // Searches the input string for the macro placeholder surrounded by '@',
+    // for each found placeholder calls the provided callback function.
+    // Optionally allow the last macro to be unclosed (backwards compatibility).
+    String ResolveMacroTokens(const String &text, std::function<bool(const String &macro, String &result)> &fn_parse,
+        bool allow_unclosed_macros = false);
 
     // Password used for encryption; exposed for tests and editor (temporarily)
     extern const char *EncryptPassword;
 
+    // Text encryption/decryption functions which apply a password string
+    // using ADD operation when encrypting and SUB when decrypting by default.
+    // Optionally may switch the enc/dec operation (required for certain cases).
+    // 
+    // Decrypts text found in the given buffer, writes back to the same buffer
+    void DecryptText(char *buf, size_t buf_sz, bool inverse = false);
+    // Reads an encrypted string from the stream and decrypts into the provided buffer
+    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse = false);
+    // Reads an encrypted string from the stream and returns as a string
+    String ReadStringDecrypt(Stream *in, bool inverse = false);
+    // Reads an encrypted string from the stream and returns as a string;
+    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
+    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf, bool inverse = false);
+    // Skip an encrypted string in stream
+    void SkipStringDecrypt(Stream *in);
+
     // Encrypts string in-place
-    void EncryptText(char *buf, size_t buf_sz);
+    void EncryptText(char *buf, size_t buf_sz, bool inverse = false);
     // Encrypts input string and stores result in the vector of chars;
     // returns a pointer to the buffer.
-    const char *EncryptText(std::vector<char> &en_buf, const String &s);
+    const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse = false);
     // Encrypts empty string. A helper function in case you don't have any source text
-    const char *EncryptEmptyString(std::vector<char> &en_buf);
+    const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse = false);
     // Encrypts string and writes into the output stream
-    void WriteStringEncrypt(Stream *out, const char *s);
+    void WriteStringEncrypt(Stream *out, const char *s, bool inverse = false);
 
 } // namespace Common
 } // namespace AGS

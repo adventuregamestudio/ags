@@ -90,12 +90,12 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     APEG_STREAM* apeg_stream = apeg_open_stream_ex(data_stream);
     if (!apeg_stream)
     {
-        return new Error(String::FromFormat("Failed to open theora video '%s'; could be an invalid or unsupported format", name.GetCStr()));
+        return new Error("Failed to open theora video '%s'; could be an invalid or unsupported format", name.GetCStr());
     }
     int video_w = apeg_stream->w, video_h = apeg_stream->h;
     if (video_w <= 0 || video_h <= 0)
     {
-        return new Error(String::FromFormat("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h));
+        return new Error("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h);
     }
 
     _apegStream = apeg_stream;

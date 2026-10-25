@@ -133,7 +133,7 @@ clean:
 
 install: spriteimport
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin spriteimport
+	cp spriteimport $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/spriteimport

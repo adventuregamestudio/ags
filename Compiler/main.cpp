@@ -26,6 +26,7 @@ using namespace AGS::Common::CmdLineOpts;
 
 const char *HELP_STRING = R"EOS(Usage: agscc [options] <INPUT.asc>
 -A <version>                 Script API Version               (default:Highest)
+--ascii                      ASCII mode
 -C <version>                 Script API Compatibility version (default:Highest)
 -H, --Headers <H1>[:<H2>...] Header Files in order  (; as separator in cmd.exe)
 -D <macro>[=<val>]           Define <macro> to <val> (or 1 if <val> omitted)
@@ -41,9 +42,9 @@ const char *HELP_STRING = R"EOS(Usage: agscc [options] <INPUT.asc>
 -fforcenewaudio[=0]          Enforce new audio system               (default:1)
 -foldcustomdialogopt[=0]     Use old custom dialog API
 -g                           Generate debug information
---tell-api-versions          Returns supported Script API Versions
 -o <OUT.o>, --output <OUT.o> Place output in specified file.  (default:INPUT.o)
 --override-version <VERSION> Overrides editor version
+--tell-api-versions          Returns supported Script API Versions
 -h, --help                   Print this usage message
 )EOS";
 
@@ -99,6 +100,7 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
 
     compilerOptions.PreprocessOnly = parseResult.Opt.count("-E");
     compilerOptions.DebugMode = parseResult.Opt.count("-g");
+    compilerOptions.UnicodeMode = !parseResult.Opt.count("--ascii");
 
     for(const auto& opt_with_value : parseResult.OptWithValue)
     {
@@ -260,12 +262,12 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
 int main(int argc, char* argv[])
 {
     CompilerOptions compilerOptions;
-    printf(R"EOS(agscc v0.1.0 - A Compiler for AGS Script
-Copyright (c) 2021 AGS Team and contributors
+    printf(R"EOS(agscc v0.2.0 - A Compiler for AGS Script
+Copyright (c) 2026 AGS Team and contributors
 )EOS"
     );
 
-    ParseResult parseResult = Parse(argc,argv,{"-D", "-H", "--Headers", "-A", "-C", "-f", "-o", "--output"});
+    ParseResult parseResult = Parse(argc,argv,{"-D", "-H", "--Headers", "-A", "-C", "-f", "-o", "--output", "--override-version"});
     ParsedOptions parsedOptions = parser_to_compiler_opts(parseResult);
 
     if(parsedOptions.Exit) return parsedOptions.ErrorCode;

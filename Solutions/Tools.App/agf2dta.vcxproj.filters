@@ -168,5 +168,8 @@
     <ClInclude Include="..\..\Common\game\scripteventtable.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\ac\def_version.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

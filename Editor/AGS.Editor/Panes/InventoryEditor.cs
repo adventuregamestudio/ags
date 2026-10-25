@@ -19,6 +19,8 @@ namespace AGS.Editor
         {
             if (_item != null)
             {
+                // TODO: consider making the area larger, in case they want to position
+                // hotspot outside of the sprite's bounds by clicking onto the editor
                 Size itemSpriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.Image);
                 Size itemCursorSpriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.CursorImage);
                 itemSpriteSize.Width = Scale(itemSpriteSize.Width);
@@ -55,6 +57,7 @@ namespace AGS.Editor
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
+            UpdatePanelSizes();
             pnlCursorImage.Invalidate(true);
             pnlInvWindowImage.Invalidate(true);
         }
@@ -103,29 +106,34 @@ namespace AGS.Editor
         {
             if (_item != null)
             {
-                
+                // TODO: consider making the area larger, in case they want to position
+                // hotspot outside of the sprite's bounds by clicking onto the editor
                 IntPtr hdc = e.Graphics.GetHdc();
                 if (_previousItemCursorImage != _item.CursorImage) UpdatePanelSizes();
                 Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(_item.CursorImage);
-                Factory.NativeProxy.DrawSprite(hdc, 0, 0,
-                    Scale(spriteSize.Width), Scale(spriteSize.Height),
+                Factory.NativeProxy.DrawSprite(hdc, 0, 0, Scale(spriteSize.Width), Scale(spriteSize.Height),
                     _item.CursorImage);
                 e.Graphics.ReleaseHdc();
-                if ((_item.HotspotX > -1) && (_item.HotspotY > -1))
+                // Draw hotspot
                 {
                     Pen penGreen = new Pen(Color.LightGreen, 1);
                     Pen penBlue = new Pen(Color.Blue, 1);
 
+                    int hotx = _item.HotspotX;
+                    int hoty = _item.HotspotY;
+
+                    Point hotpt = MathExtra.AlignInRect(new Rectangle(0, 0, spriteSize.Width, spriteSize.Height), new Point(hotx, hoty), _item.HotspotAlignment);
+
                     // Create rectangle.
                     Rectangle rectH = new Rectangle(
-                        x: Scale(_item.HotspotX - 1),
-                        y: Scale(_item.HotspotY ),
+                        x: Scale(hotpt.X - 1),
+                        y: Scale(hotpt.Y),
                         width: Scale(3),
                         height: Scale(1));
 
                     Rectangle rectV = new Rectangle(
-                         x: Scale(_item.HotspotX ),
-                         y: Scale(_item.HotspotY - 1),
+                         x: Scale(hotpt.X),
+                         y: Scale(hotpt.Y - 1),
                          width: Scale(1),
                          height: Scale(3));
 
@@ -147,6 +155,10 @@ namespace AGS.Editor
                 if ((newHotspotX > -1) && (newHotspotY > -1) &&
                     (newHotspotX < spriteWidth) && (newHotspotY < spriteHeight))
                 {
+                    Point off = MathExtra.AlignInRect(new Rectangle(0, 0, spriteWidth, spriteHeight), Point.Empty, _item.HotspotAlignment);
+                    newHotspotX -= off.X;
+                    newHotspotY -= off.Y;
+
                     _item.HotspotX = newHotspotX;
                     _item.HotspotY = newHotspotY;
                     pnlCursorImage.Invalidate();

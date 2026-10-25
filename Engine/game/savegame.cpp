@@ -297,7 +297,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     svg_ver = (SavegameVersion)in->ReadInt32();
     if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
+            "Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current);
 
     const bool has_fileformat = (svg_ver >= kSvgVersion_363 && svg_ver < kSvgVersion_399)
         || (svg_ver >= kSvgVersion_400_18);
@@ -388,7 +388,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
-        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+        return new SavegameError(kSvgErr_FileOpenFailed, "Requested filename: %s.", filename.GetCStr());
 
     // Check saved game signature
     SavegameVersion sig_ver = CheckSaveSignature(in.get());
@@ -403,7 +403,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 
     if (sig_ver < kSvgVersion_Components)
     {
-        return new SavegameError(kSvgErr_FormatVersionNotSupported, String::FromFormat("Engine no longer supports pre-3.5.0 saves."));
+        return new SavegameError(kSvgErr_FormatVersionNotSupported, "Engine no longer supports pre-3.5.0 saves.");
     }
 
     SavegameVersion svg_ver;
@@ -567,7 +567,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
             if ((size_t)chan_info.ClipID >= game.audioClips.size())
             {
                 return new SavegameError(kSvgErr_GameObjectInitFailed,
-                                         String::FromFormat("Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size()));
+                                         "Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size());
             }
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
@@ -1206,7 +1206,7 @@ HSaveError SaveGame(const String &filename, const String &user_text, const Bitma
     format.Flags = kSvgFmt_DeflateComponents * compress_data;
     std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, format));
     if (!out)
-        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+        return new SavegameError(kSvgErr_FileOpenFailed, "Requested filename: %s.", filename.GetCStr());
 
     format.GameDataOffset = out->GetPosition();
     SaveGameState(out.get(), select_cmp, compress_data);
@@ -1309,7 +1309,7 @@ int SaveInfo_GetGUIControlCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().GUIControls.size())
     {
-        debug_script_warn("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().GUIs);
+        debug_script_error("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().GUIs);
         return 0;
     }
     return info->GetCounts().GUIControls[index];
@@ -1334,7 +1334,7 @@ int SaveInfo_GetViewLoopCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewLoops.size())
     {
-        debug_script_warn("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        debug_script_error("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
         return 0;
     }
     return info->GetCounts().ViewLoops[index];
@@ -1344,7 +1344,7 @@ int SaveInfo_GetViewFrameCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewFrames.size())
     {
-        debug_script_warn("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        debug_script_error("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
         return 0;
     }
     return info->GetCounts().ViewFrames[index];
@@ -1364,7 +1364,7 @@ const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int inde
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
-        debug_script_warn("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        debug_script_error("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
         return 0;
     }
     return CreateNewScriptString(info->GetCounts().ScriptModuleNames[index]);
@@ -1374,7 +1374,7 @@ int SaveInfo_GetScriptModuleDataSizes(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
-        debug_script_warn("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        debug_script_error("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
         return 0;
     }
     return info->GetCounts().ScriptModuleDataSz[index];

@@ -33,7 +33,7 @@ void ScriptMouse::WriteInt32(void *address, intptr_t offset, int32_t val)
     {
     case 0:
     case 4:
-        debug_script_warn("ScriptMouse: attempt to write in readonly variable at offset %d, value", offset, val);
+        debug_script_error("ScriptMouse: attempt to write in readonly variable at offset %d, value", offset, val);
         break;
     default:
         cc_error("ScriptMouse: unsupported variable offset %d", offset);

@@ -377,7 +377,7 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
     std::unique_ptr<AssetManager> templateMgr(new AssetManager());
     auto err = templateMgr->AddLibrary(templateFileName, &lib);
     if (err != Common::kAssetNoError) 
-        return new AGSError("Failed to read the template file.", Common::GetAssetErrorText(err));
+        return new AGSError("Failed to read the template file: %s", Common::GetAssetErrorText(err).GetCStr());
 
     // If check_list is provided, then the package must include at least one of the files
     if (!check_list.empty())
@@ -405,7 +405,7 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
 
         std::unique_ptr<Stream> readin(templateMgr->OpenAsset(thisFile));
         if (!readin)
-            return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
+            return new AGSError("Failed to open template asset '%s' for reading.", thisFile.GetCStr());
 
         AGSString outputName = thisFile;
         // If format pattern is provided, then rename the output file
@@ -419,12 +419,12 @@ HAGSError extract_template_files_impl(const AGSString &templateFileName, const s
         AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(outputName));
         std::unique_ptr<Stream> wrout(AGSFile::CreateFile(outputName));
         if (!wrout)
-            return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
+            return new AGSError("Failed to open file '%s' for writing.", outputName);
 
         const soff_t src_len = readin->GetLength();
         soff_t result = AGS::Common::CopyStream(readin.get(), wrout.get(), src_len);
         if (result < src_len)
-            return new AGSError(AGSString::FromFormat("Failed to extract file '%s'.", thisFile.GetCStr()));
+            return new AGSError("Failed to extract file '%s'.", thisFile.GetCStr());
         if (out_files)
             out_files->push_back(outputName);
     }
@@ -587,6 +587,7 @@ void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::
 {
     draw_gui_sprite_impl(ds, pic, get_sprite(pic), x, y);
 }
+
 void draw_gui_sprite_flipped(Common::Bitmap *ds, int x, int y,
     Common::Bitmap *image, Common::BlendMode blend_mode, int alpha, Common::GraphicFlip flip)
 {
@@ -1228,8 +1229,8 @@ HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexf
 {
     auto sprite_file = AssetMgr->OpenAsset(spritefile);
     if (!sprite_file)
-        return new AGSError(AGSString::FromFormat("Failed to open spriteset file '%s'.",
-            spritefile.GetCStr()));
+        return new AGSError("Failed to open spriteset file '%s'.",
+            spritefile.GetCStr());
     auto index_file = AssetMgr->OpenAsset(indexfile);
 	HAGSError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err)
@@ -3153,7 +3154,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
     room->Height = rs.Height;
-    room->ColorDepth = rs.BackgroundBPP * 8; // bytes => bits per pixel
+    AGSBitmap *bg = rs.GetBackgroundImage(0);
+    room->ColorDepth = bg ? bg->GetColorDepth() : 0;
     room->BackgroundAnimationDelay = rs.BgAnimSpeed;
     room->BackgroundAnimationEnabled = (rs.Options.Flags & kRoomFlag_BkgFrameLocked) == 0;
     room->BackgroundCount = rs.BgFrameCount;
@@ -3276,8 +3278,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     rs.BackgroundBPP = (room->ColorDepth + 7) / 8;
 	rs.Width = room->Width;
 	rs.Height = room->Height;
+    // NOTE: should not set BgFrameCount here, it's added by adding background images
 	rs.BgAnimSpeed = room->BackgroundAnimationDelay;
-	rs.BgFrameCount = room->BackgroundCount;
     rs.Options.Flags = 0;
     rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
     rs.Options.PlayerView = room->PlayerCharacterView;
@@ -3587,7 +3589,6 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
 {
     rs.DataVersion = kRoomVersion_Current;
     calculate_walkable_areas(rs);
-
     std::unique_ptr<Stream> out(AGSFile::CreateFile(path));
     if (out == NULL)
         quit("save_room: unable to open room file for writing.");

@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <algorithm>
+#include <inttypes.h>
 #include "font/wfnfont.h"
 #include "debug/out.h"
 #include "util/memory.h"
@@ -109,7 +110,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         }
         else if (off < raw_data_offset || off + MinCharDataSize > table_addr)
         {
-            Debug::Printf("\tWFN: character %d -- bad item offset: %d (%d - %d, +%d)",
+            Debug::Printf("\tWFN: character %zu -- bad item offset: %d (%" PRId64 " - %" PRId64 ", +%zu)",
                 i, off, raw_data_offset, table_addr, MinCharDataSize);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             continue; // bad character offset
@@ -152,7 +153,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         size_t src_size = pixel_data_size;
         if (i + 1 != _items.size() && raw_off + src_size > offs[i + 1] - raw_data_offset)
         {   // character pixel data overlaps next character
-            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%d)",
+            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%zu)",
                         offs[i], offs[i + 1], MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = offs[i + 1] - offs[i] - MinCharDataSize;
@@ -160,7 +161,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         
         if (raw_off + src_size > total_char_data)
         {   // character pixel data overflow buffer
-            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %d, +%d)",
+            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %" PRId64 ", +%zu)",
                         offs[i], table_addr, MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = total_char_data - raw_off;

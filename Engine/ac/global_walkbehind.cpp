@@ -26,7 +26,7 @@ void SetWalkBehindBase(int wa,int bl)
 {
     if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
     {
-        debug_script_warn("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa, MAX_WALK_BEHINDS - 1);
+        debug_script_error("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa, MAX_WALK_BEHINDS - 1);
         return;
     }
 
@@ -42,7 +42,7 @@ int GetWalkBehindBase(int wa)
 {
     if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))
     {
-        debug_script_warn("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa, MAX_WALK_BEHINDS - 1);
+        debug_script_error("SetWalkBehindBase: invalid walk-behind area specified: %d, range is 1..%d", wa, MAX_WALK_BEHINDS - 1);
         return 0;
     }
 

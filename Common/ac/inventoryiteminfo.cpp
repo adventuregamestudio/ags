@@ -43,7 +43,7 @@ void InventoryItemInfo::RemapOldInteractions()
     interactions.SetHandlers(std::move(new_interactions));
 }
 
-void InventoryItemInfo::ReadFromFile(Stream *in)
+void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
 {
     name.ReadCount(in, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     in->Seek(3); // alignment padding to int32
@@ -51,12 +51,18 @@ void InventoryItemInfo::ReadFromFile(Stream *in)
     cursorPic = in->ReadInt32();
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
-    in->Seek(sizeof(int32_t) * 5); // 5 reserved ints
+    hotAlign = static_cast<FrameAlignment>(in->ReadInt32()); // since kGameVersion_363_14
+    in->Seek(sizeof(int32_t) * 4); // reserved
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
+
+    if (game_ver < kGameVersion_363_10)
+    {
+        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
 }
 
-void InventoryItemInfo::WriteToFile(Stream *out)
+void InventoryItemInfo::WriteToFile(Stream *out) const
 {
     name.WriteCount(out, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     out->WriteByteCount(0, 3); // alignment padding to int32
@@ -64,7 +70,8 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteInt32(cursorPic);
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
-    out->WriteByteCount(0, sizeof(int32_t) * 5);
+    out->WriteInt32(hotAlign); // since kGameVersion_363_14
+    out->WriteByteCount(0, sizeof(int32_t) * 4); // reserved
     out->WriteInt8(flags);
     out->WriteByteCount(0, 3); // alignment padding to int32
 }
@@ -79,6 +86,23 @@ void InventoryItemInfo::ReadFromSavegame(Stream *in, InvitemSvgVersion svg_ver)
         hotx = in->ReadInt16();
         hoty = in->ReadInt16();
     }
+
+    if (svg_ver < kInvitemSvgVersion_36304)
+    {
+        hotAlign = ((hotx == 0) && (hoty == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
+    else
+    {
+        hotAlign = kAlignTopLeft;
+    }
+
+    if (svg_ver >= kInvitemSvgVersion_36314)
+    {
+        hotAlign = static_cast<FrameAlignment>(in->ReadInt32());
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void InventoryItemInfo::WriteToSavegame(Stream *out) const
@@ -89,4 +113,9 @@ void InventoryItemInfo::WriteToSavegame(Stream *out) const
     // kInvitemSvgVersion_36304
     out->WriteInt16(hotx);
     out->WriteInt16(hoty);
+    // kInvitemSvgVersion_36314
+    out->WriteInt32(hotAlign);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }

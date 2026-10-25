@@ -107,7 +107,7 @@ clean:
 
 install: agf2dlgasc
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agf2dlgasc
+	cp agf2dlgasc $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agf2dlgasc

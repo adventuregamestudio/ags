@@ -313,11 +313,23 @@ namespace AGS.Editor
                     foreach (GUIControl gc in gui.Controls)
                     {
                         SetDefaultColorsForGUIControls(game, gc, xmlVersionIndex, remapNow);
+
+                        // Special case: buttons that had NO graphic and NO text were not drawn previously.
+                        // Now they are. In order to emulate same behavior, we disable their background and border
+                        if (gc is GUIButton)
+                        {
+                            GUIButton button = gc as GUIButton;
+                            if (button.Image == 0 && string.IsNullOrEmpty(button.Text))
+                            {
+                                button.SolidBackground = false;
+                                button.ShowBorder = false;
+                            }
+                        }
                     }
                 }
             }
 
-            if ((xmlVersionIndex < 3060310) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS))
+            if ((xmlVersionIndex < 3060310) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000029))
             {
                 game.Settings.GameTextLanguage = string.Empty;
 
@@ -333,7 +345,14 @@ namespace AGS.Editor
                         }
                     }
                 }
-            }
+
+                foreach (InventoryItem item in game.InventoryItems)
+                {
+                    // Assign hotspot alignment depending on the old HotspotX/Y
+                    item.HotspotAlignment = (item.HotspotX == 0 && item.HotspotY == 0) ?
+                        FrameAlignment.MiddleCenter : FrameAlignment.TopLeft;
+                }
+            }       
 
             // Fix default border width for Labels and InventoryWindows with hidden border
             // in early 3.6.3 Beta with revamped GUI controls

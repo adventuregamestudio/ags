@@ -74,119 +74,129 @@ static int ParseFontN(const String &line)
     return -1;
 }
 
-static bool ParseFontOverride(const String &line, FontInfo &finfo)
+static bool ParseFontOverride(const String &line, FontOverride &fover)
 {
-    // Format 1:
-    //    FontN
-    // Format 2:
-    //    Property1=Value1;Property2=Value2;Property3=Value3;...
+    // Format:
+    //    [FontN;]Property1=Value1;Property2=Value2;Property3=Value3;...
     const auto sections = line.Split(';');
-    int re_font_number = sections.size() > 0 ? ParseFontN(sections[0]) : -1;
-    if (re_font_number >= 0)
+    // This is a new font generation
+    std::vector<std::pair<String, String>> options;
+    for (const auto &sec : sections)
     {
-        // This is a replacement with existing font
-        finfo.FontID = re_font_number;
-        return true;
+        options.push_back(StrUtil::GetKeyValue(sec, OPTION_SEPARATOR));
     }
-    else
+    FontInfo finfo;
+    int fields = kFontField_None;
+    for (const auto &opt : options)
     {
-        // This is a new font generation
-        finfo.FontID = -1; // mark it as not one of the game's font
-        std::vector<std::pair<String, String>> options;
-        for (const auto &sec : sections)
+        const String &key = opt.first;
+        const String &value = opt.second;
+
+        if (key == "Font")
         {
-            options.push_back(StrUtil::GetKeyValue(sec, OPTION_SEPARATOR));
+            finfo.FontID = StrUtil::StringToInt(value);
         }
-        for (const auto &opt : options)
+        else if (key.StartsWith("Font"))
         {
-            const String &key = opt.first;
-            const String &value = opt.second;
-
-            if (key == "File")
-            {
-                finfo.FileName = value;
-            }
-            else if (key == "Size")
-            {
-                finfo.Size = StrUtil::StringToInt(value);
-            }
-            else if (key == "SizeMultiplier")
-            {
-                finfo.SizeMultiplier = StrUtil::StringToInt(value);
-            }
-            else if (key == "Outline")
-            {
-                if (value == "NONE")
-                {
-                    finfo.Outline = FONT_OUTLINE_NONE;
-                }
-                else if (value == "AUTO")
-                {
-                    finfo.Outline = FONT_OUTLINE_AUTO;
-                }
-                else
-                {
-                    int out_font_id = ParseFontN(value);
-                    if (out_font_id >= 0)
-                    {
-                        finfo.Outline = out_font_id;
-                    }
-                }
-            }
-            else if (key == "AutoOutline")
-            {
-                if (value == "SQUARED")
-                {
-                    finfo.AutoOutlineStyle = FontInfo::kSquared;
-                }
-                else if (value == "ROUND")
-                {
-                    finfo.AutoOutlineStyle = FontInfo::kRounded;
-                }
-            }
-            else if (key == "AutoOutlineThickness")
-            {
-                finfo.AutoOutlineThickness = StrUtil::StringToInt(value);
-            }
-            else if (key == "HeightDefinition")
-            {
-                if (value == "NOMINAL")
-                {
-                    finfo.SetHeightFlags(FFLG_LOGICALNOMINALHEIGHT);
-                }
-                else if (value == "REAL")
-                {
-                    finfo.SetHeightFlags(0 /* use real height */);
-                }
-                else if (value == "CUSTOM")
-                {
-                    finfo.SetHeightFlags(FFLG_LOGICALCUSTOMHEIGHT);
-                }
-            }
-            else if (key == "CustomHeight")
-            {
-                finfo.CustomHeight = StrUtil::StringToInt(value);
-            }
-            else if (key == "VerticalOffset")
-            {
-                finfo.YOffset = StrUtil::StringToInt(value);
-            }
-            else if (key == "LineSpacing")
-            {
-                finfo.LineSpacing = StrUtil::StringToInt(value);
-            }
-            else if (key == "CharacterSpacing")
-            {
-                finfo.CharacterSpacing = StrUtil::StringToInt(value);
-            }
+            int re_font_number = ParseFontN(key);
+            if (re_font_number >= 0)
+                finfo.FontID = re_font_number;
         }
-
-        // Adjust font flags based on the read parameters
-        if (finfo.Size == 0)
-            finfo.Flags |= FFLG_SIZEMULTIPLIER;
-
-        return true;
+        else if (key == "File")
+        {
+            finfo.FileName = value;
+        }
+        else if (key == "Size")
+        {
+            finfo.Size = StrUtil::StringToInt(value);
+            fields |= kFontField_Size;
+        }
+        else if (key == "SizeMultiplier")
+        {
+            finfo.SizeMultiplier = StrUtil::StringToInt(value);
+            fields |= kFontField_Size;
+        }
+        else if (key == "Outline")
+        {
+            if (value == "NONE")
+            {
+                finfo.Outline = FONT_OUTLINE_NONE;
+            }
+            else if (value == "AUTO")
+            {
+                finfo.Outline = FONT_OUTLINE_AUTO;
+            }
+            else
+            {
+                int out_font_id = ParseFontN(value);
+                if (out_font_id >= 0)
+                {
+                    finfo.Outline = out_font_id;
+                }
+            }
+            fields |= kFontField_OutlineStyle;
+        }
+        else if (key == "AutoOutline")
+        {
+            if (value == "SQUARED")
+            {
+                finfo.AutoOutlineStyle = FontInfo::kSquared;
+            }
+            else if (value == "ROUND")
+            {
+                finfo.AutoOutlineStyle = FontInfo::kRounded;
+            }
+            fields |= kFontField_AutoOutlineStyle;
+        }
+        else if (key == "AutoOutlineThickness")
+        {
+            finfo.AutoOutlineThickness = StrUtil::StringToInt(value);
+            fields |= kFontField_AutoOutlineThickness;
+        }
+        else if (key == "HeightDefinition")
+        {
+            if (value == "NOMINAL")
+            {
+                finfo.SetHeightFlags(FFLG_LOGICALNOMINALHEIGHT);
+            }
+            else if (value == "REAL")
+            {
+                finfo.SetHeightFlags(0 /* use real height */);
+            }
+            else if (value == "CUSTOM")
+            {
+                finfo.SetHeightFlags(FFLG_LOGICALCUSTOMHEIGHT);
+            }
+            fields |= kFontField_HeightDefinition;
+        }
+        else if (key == "CustomHeight")
+        {
+            finfo.CustomHeight = StrUtil::StringToInt(value);
+            fields |= kFontField_HeightDefinition;
+        }
+        else if (key == "VerticalOffset")
+        {
+            finfo.YOffset = StrUtil::StringToInt(value);
+            fields |= kFontField_VerticalOffset;
+        }
+        else if (key == "LineSpacing")
+        {
+            finfo.LineSpacing = StrUtil::StringToInt(value);
+            fields |= kFontField_LineSpacing;
+        }
+        else if (key == "CharacterSpacing")
+        {
+            finfo.CharacterSpacing = StrUtil::StringToInt(value);
+            fields |= kFontField_CharacterSpacing;
+        }
     }
+
+    // Adjust font flags based on the read parameters
+    if (finfo.Size == 0)
+        finfo.Flags |= FFLG_SIZEMULTIPLIER;
+
+    fover = FontOverride(finfo, static_cast<FontFieldFlags>(fields));
+    return true;
 }
 
 static void ReadSpecialTags(Translation &tra, const String &line)
@@ -250,10 +260,10 @@ static void ReadSpecialTags(Translation &tra, const String &line)
         int font_id = ParseFontN(key);
         if ((font_id >= 0) && (tra.FontOverrides.count(font_id) == 0))
         {
-            FontInfo finfo;
-            if (ParseFontOverride(value, finfo))
+            FontOverride fover;
+            if (ParseFontOverride(value, fover))
             {
-                tra.FontOverrides[font_id] = finfo;
+                tra.FontOverrides[font_id] = fover;
             }
         }
     }
@@ -265,52 +275,68 @@ static void WriteFontOverrides(const Translation &tra, TextStreamWriter &sw)
     {
         String font_line;
         int fontIndex = font_over.first;
-        const FontInfo &finfo = font_over.second;
+        const FontOverride &fover = font_over.second;
+        const FontInfo &finfo = fover.Finfo;
+        const int fields = fover.Fields;
         font_line.AppendFmt("//#Font%d=", fontIndex);
+        // The font override's source is defined either as another font's index, or font file
         if (finfo.FontID >= 0)
-        {
             font_line.AppendFmt("Font%d;", finfo.FontID);
-        }
-        else
-        {
-            // Only write non-default values. Unfortunately there's no way to know
-            // which values user set in the original source file.
+        else if (!finfo.FileName.IsEmpty())
             font_line.AppendFmt("File=%s;", finfo.FileName.GetCStr());
-            if (finfo.Size > 0)
-                font_line.AppendFmt("Size=%d;", finfo.Size);
-            if (finfo.SizeMultiplier > 1)
-                font_line.AppendFmt("SizeMultiplier=%d;", finfo.SizeMultiplier);
 
-            if (finfo.Outline == FONT_OUTLINE_AUTO)
+        //
+        // Use fields value to know which properties have been specified
+        //
+
+        if ((fields & kFontField_Size) && finfo.Size > 0)
+            font_line.AppendFmt("Size=%d;", finfo.Size);
+        if ((fields & kFontField_Size) && finfo.SizeMultiplier > 1)
+            font_line.AppendFmt("SizeMultiplier=%d;", finfo.SizeMultiplier);
+
+        if (fields & kFontField_OutlineStyle)
+        {
+            if (finfo.Outline == FONT_OUTLINE_NONE)
+                font_line.Append("Outline=NONE;");
+            else if (finfo.Outline == FONT_OUTLINE_AUTO)
                 font_line.Append("Outline=AUTO;");
-            else if(finfo.Outline >= 0)
+            else if (finfo.Outline >= 0)
                 font_line.AppendFmt("Outline=Font%d;", finfo.Outline);
+        }
+        
+        if (fields & kFontField_AutoOutlineStyle)
+        {
+            if (finfo.AutoOutlineStyle == FontInfo::kSquared)
+                font_line.Append("AutoOutline=SQUARED;");
+            else if (finfo.AutoOutlineStyle == FontInfo::kRounded)
+                font_line.Append("AutoOutline=ROUND;");
+        }
 
-            if (finfo.Outline == FONT_OUTLINE_AUTO)
-            {
-                if (finfo.AutoOutlineStyle == FontInfo::kRounded)
-                    font_line.Append("AutoOutline=ROUND;");
+        if (fields & kFontField_AutoOutlineThickness)
+            font_line.AppendFmt("AutoOutlineThickness=%d;", finfo.AutoOutlineThickness);
 
-                font_line.AppendFmt("AutoOutlineThickness=%d;", finfo.AutoOutlineThickness);
-            }
-
-            if ((finfo.Flags & FFLG_LOGICALNOMINALHEIGHT) == 0)
-                font_line.Append("HeightDefinition=REAL;");
-            else if ((finfo.Flags & FFLG_LOGICALCUSTOMHEIGHT) != 0)
+        if (fields & kFontField_HeightDefinition)
+        {
+            if ((finfo.Flags & FFLG_LOGICALCUSTOMHEIGHT) != 0)
                 font_line.Append("HeightDefinition=CUSTOM;");
+            else if ((finfo.Flags & FFLG_LOGICALNOMINALHEIGHT) != 0)
+                font_line.Append("HeightDefinition=NOMINAL;");
+            else if ((finfo.Flags & FFLG_LOGICALNOMINALHEIGHT) == 0)
+                font_line.Append("HeightDefinition=REAL;");
 
             if ((finfo.Flags & FFLG_LOGICALCUSTOMHEIGHT) != 0)
             {
                 font_line.AppendFmt("CustomHeight=%d;", finfo.CustomHeight);
             }
-
-            if (finfo.YOffset != 0)
-                font_line.AppendFmt("VerticalOffset=%d;", finfo.YOffset);
-            if (finfo.LineSpacing != 0)
-                font_line.AppendFmt("LineSpacing=%d;", finfo.LineSpacing);
-            if (finfo.CharacterSpacing != 0)
-                font_line.AppendFmt("CharacterSpacing=%d;", finfo.CharacterSpacing);
         }
+
+        if ((fields & kFontField_VerticalOffset) && finfo.YOffset != 0)
+            font_line.AppendFmt("VerticalOffset=%d;", finfo.YOffset);
+        if ((fields & kFontField_LineSpacing) && finfo.LineSpacing != 0)
+            font_line.AppendFmt("LineSpacing=%d;", finfo.LineSpacing);
+        if ((fields & kFontField_CharacterSpacing) && finfo.CharacterSpacing != 0)
+            font_line.AppendFmt("CharacterSpacing=%d;", finfo.CharacterSpacing);
+
         sw.WriteLine(font_line);
     }
 }

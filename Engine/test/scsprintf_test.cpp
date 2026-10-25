@@ -23,7 +23,7 @@ void cc_error(const char *, ...)
     // do nothing
 }
 
-void debug_script_warn(const char *msg, ...)
+void debug_script_event(MessageType mt, const String &msg)
 {
     // do nothing
 }

@@ -191,8 +191,9 @@ public:
     void    DrawSelf(Bitmap *ds);
     void    DrawWithControls(Bitmap *ds);
     void    DrawControls(Bitmap *ds);
-    // Polls GUI state, providing current cursor (mouse) coordinates
-    void    Poll(int mx, int my);
+    // Polls GUI state, providing current cursor (mouse) coordinates.
+    // If GUI has focus, then it will trigger OnEnter events for controls.
+    void    Poll(int mx, int my, bool has_focus);
     // Reconnects this GUIMain with the child controls from the global guiobject collection
     HError  RebuildArray(GUIRefCollection &guiobjs);
     void    ResortZOrder();
@@ -235,6 +236,7 @@ private:
     GUIPopupStyle _popupStyle = kGUIPopupNormal; // GUI popup behavior
     int     _popupAtMouseY = -1; // popup when mousey < this
 
+    bool    _wasFocused    = false; // whether GUI was focused during last Poll
     int     _focusCtrl     = -1; // which control has the focus
     int     _highlightCtrl = -1; // which control has the bounding selection rect
     int     _mouseOverCtrl = -1; // which control has the mouse cursor over it

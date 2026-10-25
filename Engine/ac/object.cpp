@@ -67,22 +67,22 @@ extern SpriteCache spriteset;
 // FIXME: should not be a global variable!!!
 int obj_lowest_yp;
 
-bool is_valid_object(int obj_id)
+bool IsValidObject(int obj_id)
 {
-    return (obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj);
+    return ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj));
 }
 
 bool AssertObject(const char *apiname, int obj_id)
 {
     if ((obj_id >= 0) && (static_cast<uint32_t>(obj_id) < croom->numobj))
         return true;
-    debug_script_warn("%s: invalid object id %d (range is 0..%d)", apiname, obj_id, croom->numobj - 1);
+    debug_script_error("%s: invalid object id %d (range is 0..%d)", apiname, obj_id, croom->numobj > 0 ? croom->numobj - 1 : 0);
     return false;
 }
 
 static int GetThingRect(int thing, Rect *rect)
 {
-    if (is_valid_character(thing))
+    if (IsValidCharacter(thing))
     {
         // FIXME: do we check visible or enabled here?
         if (game.chars[thing].room != displayed_room)
@@ -95,7 +95,7 @@ static int GetThingRect(int thing, Rect *rect)
             charextra[thing].GetEffectiveY(&game.chars[thing]) - charh + 1,
             charw, charh);
     }
-    else if (is_valid_object(thing - OVERLAPPING_OBJECT))
+    else if (IsValidObject(thing - OVERLAPPING_OBJECT))
     {
         int objid = thing - OVERLAPPING_OBJECT;
         // FIXME: do we check visible or enabled here?
@@ -145,13 +145,14 @@ int AreThingsOverlapping(int thing1, int thing2)
 }
 
 int AreObjectsColliding(int obj1, int obj2) {
-    if (!is_valid_object(obj1) || !is_valid_object(obj2))
-        quit("!AreObjectsColliding: invalid object specified");
+    if (!AssertObject("AreObjectsColliding", obj1) || !AssertObject("AreObjectsColliding", obj2))
+        return 0;
 
     return (AreThingsOverlapping(obj1 + OVERLAPPING_OBJECT, obj2 + OVERLAPPING_OBJECT)) ? 1 : 0;
 }
 
-int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
+int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2)
+{
     return AreObjectsColliding(objj->id, obj2->id);
 }
 
@@ -236,8 +237,8 @@ ScriptObject *Object_GetAtRoomXY2(int x, int y)
 }
 
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {
-    if (!is_valid_object(obj))
-        quit("!SetObjectTint: invalid object number specified");
+    if (!AssertObject("SetObjectTint", obj))
+        return;
 
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
@@ -261,8 +262,8 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
 }
 
 void RemoveObjectTint(int obj) {
-    if (!is_valid_object(obj))
-        quit("!RemoveObjectTint: invalid object");
+    if (!AssertObject("RemoveObjectTint", obj))
+        return;
 
     if (objs[obj].flags & (OBJF_HASTINT | OBJF_HASLIGHT)) {
         debug_script_log("Un-tint object %d", obj);
@@ -282,7 +283,8 @@ void Object_RemoveTint(ScriptObject *objj) {
 }
 
 void SetObjectGraphic(int obn, int slott) {
-    if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
+    if (!AssertObject("Object.Graphic", obn))
+        return;
 
     if (objs[obn].num != slott) {
         objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
@@ -297,8 +299,8 @@ void SetObjectGraphic(int obn, int slott) {
 }
 
 bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
-    if (!is_valid_object(obn))
-        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
+    if (!AssertObject("SetObjectFrame", obn))
+        return false;
     viw--;
     AssertViewHasLoops("SetObjectFrame", thisroom.Objects[obn].ScriptName.GetCStr(), viw);
 
@@ -342,7 +344,8 @@ void Object_SetView(ScriptObject *objj, int view, int loop, int frame) {
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
 void SetObjectTransparency(int obn, int trans) {
-    if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
+    if (!AssertObject("SetObjectTransparent", obn))
+        return;
     if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
 
     objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
@@ -353,46 +356,57 @@ void Object_SetTransparency(ScriptObject *objj, int trans) {
 }
 
 int Object_GetTransparency(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Transparent: invalid object number specified");
+    if (!AssertObject("Object.Transparent", objj->id))
+        return 0;
 
     return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
 }
 
 int Object_GetAudioPanning(ScriptObject *objj)
 {
+    if (!AssertObject("Object.AudioPanning", objj->id))
+        return 0;
     return objs[objj->id].audio_panning;
 }
 
 void Object_SetAudioPanning(ScriptObject *objj, int newval)
 {
+    if (!AssertObject("Object.AudioPanning", objj->id))
+        return;
     objs[objj->id].audio_panning = Math::Clamp(newval, -100, 100);
 }
 
 int Object_GetAudioSpeed(ScriptObject *objj)
 {
+    if (!AssertObject("Object.AudioSpeed", objj->id))
+        return 0;
     return objs[objj->id].audio_speed;
 }
 
 void Object_SetAudioSpeed(ScriptObject *objj, int newval)
 {
-
+    if (!AssertObject("Object.AudioSpeed", objj->id))
+        return;
     objs[objj->id].audio_speed = newval;
 }
 
 int Object_GetAudioVolume(ScriptObject *objj)
 {
+    if (!AssertObject("Object.AudioVolume", objj->id))
+        return 0;
     return objs[objj->id].audio_volume;
 }
 
 void Object_SetAudioVolume(ScriptObject *objj, int newval)
 {
-
+    if (!AssertObject("Object.AudioVolume", objj->id))
+        return;
     objs[objj->id].audio_volume = Math::Clamp(newval, 0, 100);
 }
 
 void SetObjectBaseline(int obn, int basel) {
-    if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
+    if (!AssertObject("SetObjectBaseline", obn))
+        return;
     // baseline has changed, invalidate the cache
     if (objs[obn].baseline != basel) {
         objs[obn].baseline = basel;
@@ -401,7 +415,8 @@ void SetObjectBaseline(int obn, int basel) {
 }
 
 int GetObjectBaseline(int obn) {
-    if (!is_valid_object(obn)) quit("!GetObjectBaseline: invalid object number specified");
+    if (!AssertObject("GetObjectBaseline", obn))
+        return 0;
 
     if (objs[obn].baseline < 1)
         return 0;
@@ -420,14 +435,22 @@ int Object_GetBaseline(ScriptObject *objj) {
 void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking,
                        int sframe, int volume)
 {
-    if (!is_valid_object(obn))
-        quit("!AnimateObject: invalid object number specified");
+    if (!AssertObject("AnimateObject", obn))
+        return;
 
     RoomObject &obj = objs[obn];
     const RoomObjectInfo &obji = thisroom.Objects[obn];
 
+    if (!obj.is_enabled())
+    {
+        debug_script_warn("%s: object %d is disabled, cannot animate", "AnimateObject", obn);
+        return;
+    }
     if (obj.view == RoomObject::NoView)
-        quit("!AnimateObject: object has not been assigned a view");
+    {
+        debug_script_warn("%s: object %d has not been assigned a view", "AnimateObject", obn);
+        return;
+    }
 
     ValidateViewAnimVLF("Object.Animate", obji.ScriptName.GetCStr(), obj.view, loopn, sframe);
     ValidateViewAnimParams("Object.Animate", obji.ScriptName.GetCStr(), blocking, rept, direction);
@@ -471,8 +494,8 @@ void Object_Animate6(ScriptObject *objj, int loop, int delay, int repeat, int bl
 }
 
 void Object_StopAnimating(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.StopAnimating: invalid object number");
+    if (!AssertObject("Object.StopAnimating", objj->id))
+        return;
 
     if (objs[objj->id].is_animating())
     {
@@ -482,8 +505,8 @@ void Object_StopAnimating(ScriptObject *objj) {
 }
 
 void StopObjectMoving(int objj) {
-    if (!is_valid_object(objj))
-        quit("!StopObjectMoving: invalid object number");
+    if (!AssertObject("StopObjectMoving", objj))
+        return;
 
     objs[objj].OnStopMoving();
 
@@ -495,30 +518,38 @@ void Object_StopMoving(ScriptObject *objj) {
 }
 
 int Object_GetView(ScriptObject *objj) {
+    if (!AssertObject("Object.View", objj->id))
+        return 0;
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
     return objs[objj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *objj) {
+    if (!AssertObject("Object.Loop", objj->id))
+        return 0;
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
     return objs[objj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *objj) {
+    if (!AssertObject("Object.Frame", objj->id))
+        return 0;
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
     return objs[objj->id].frame;
 }
 
 bool Object_GetEnabled(ScriptObject *objj) {
-    if (!is_valid_object(objj->id)) quit("!Object.GetEnabled: invalid object specified");
+    if (!AssertObject("Object.Enabled", objj->id))
+        return false;
     return objs[objj->id].is_enabled();
 }
 
 void Object_SetEnabled(ScriptObject *objj, bool on) {
-    if (!is_valid_object(objj->id)) quit("!Object.SetEnabled: invalid object specified");
+    if (!AssertObject("Object.Enabled", objj->id))
+        return;
     if (objs[objj->id].is_enabled() != on)
     {
         objs[objj->id].set_enabled(on);
@@ -527,12 +558,14 @@ void Object_SetEnabled(ScriptObject *objj, bool on) {
 }
 
 bool Object_GetVisible(ScriptObject *objj) {
-    if (!is_valid_object(objj->id)) quit("!Object.GetVisible: invalid object specified");
+    if (!AssertObject("Object.Visible", objj->id))
+        return false;
     return objs[objj->id].is_visible();
 }
 
 void Object_SetVisible(ScriptObject *objj, bool on) {
-    if (!is_valid_object(objj->id)) quit("!Object.SetVisible: invalid object specified");
+    if (!AssertObject("Object.Visible", objj->id))
+        return;
     if (objs[objj->id].is_visible() != on)
     {
         objs[objj->id].set_visible(on);
@@ -545,7 +578,8 @@ void Object_SetGraphic(ScriptObject *objj, int slott) {
 }
 
 int GetObjectGraphic(int obn) {
-    if (!is_valid_object(obn)) quit("!GetObjectGraphic: invalid object specified");
+    if (!AssertObject("GetObjectGraphic", obn))
+        return 0;
     return objs[obn].num;
 }
 
@@ -554,7 +588,8 @@ int Object_GetGraphic(ScriptObject *objj) {
 }
 
 int GetObjectX (int objj) {
-    if (!is_valid_object(objj)) quit("!GetObjectX: invalid object number");
+    if (!AssertObject("GetObjectX", objj))
+        return 0;
     return objs[objj].x;
 }
 
@@ -563,7 +598,8 @@ int Object_GetX(ScriptObject *objj) {
 }
 
 int GetObjectY(int objj) {
-    if (!is_valid_object(objj)) quit("!GetObjectY: invalid object number");
+    if (!AssertObject("GetObjectY", objj))
+        return 0;
     return objs[objj].y;
 }
 
@@ -572,7 +608,8 @@ int Object_GetY(ScriptObject *objj) {
 }
 
 int IsObjectAnimating(int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectAnimating: invalid object number");
+    if (!AssertObject("IsObjectAnimating", objj))
+        return 0;
     return objs[objj].is_animating() ? 1 : 0;
 }
 
@@ -581,7 +618,8 @@ int Object_GetAnimating(ScriptObject *objj) {
 }
 
 int IsObjectMoving(int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectMoving: invalid object number");
+    if (!AssertObject("IsObjectMoving", objj))
+        return 0;
     return (objs[objj].moving > 0) ? 1 : 0;
 }
 
@@ -591,25 +629,31 @@ int Object_GetMoving(ScriptObject *objj) {
 
 bool Object_HasExplicitLight(ScriptObject *obj)
 {
+    if (!AssertObject("Object.HasExplicitLight", obj->id))
+        return false;
     return objs[obj->id].has_explicit_light();
 }
 
 bool Object_HasExplicitTint(ScriptObject *obj)
 {
+    if (!AssertObject("Object.HasExplicitTint", obj->id))
+        return false;
     return objs[obj->id].has_explicit_tint();
 }
 
 int Object_GetLightLevel(ScriptObject *obj)
 {
+    if (!AssertObject("Object.LightLevel", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_light() ? objs[obj->id].tint_light : 0;
 }
 
 void Object_SetLightLevel(ScriptObject *objj, int light_level)
 {
-    int obj = objj->id;
-    if (!is_valid_object(obj))
-        quit("!SetObjectTint: invalid object number specified");
+    if (!AssertObject("Object.LightLevel", objj->id))
+        return;
 
+    int obj = objj->id;
     objs[obj].tint_light = light_level;
     objs[obj].flags &= ~OBJF_HASTINT;
     objs[obj].flags |= OBJF_HASLIGHT;
@@ -617,32 +661,42 @@ void Object_SetLightLevel(ScriptObject *objj, int light_level)
 
 int Object_GetTintRed(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintRed", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_r : 0;
 }
 
 int Object_GetTintGreen(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintGreen", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_g : 0;
 }
 
 int Object_GetTintBlue(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintBlue", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_b : 0;
 }
 
 int Object_GetTintSaturation(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintSaturation", obj->id))
+        return 0;
      return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_level : 0;
 }
 
 int Object_GetTintLuminance(ScriptObject *obj)
 {
+    if (!AssertObject("Object.TintLuminance", obj->id))
+        return 0;
     return objs[obj->id].has_explicit_tint() ? GfxDef::Value250ToValue100(objs[obj->id].tint_light) : 0;
 }
 
 void SetObjectPosition(int objj, int tox, int toy) {
-    if (!is_valid_object(objj))
-        quit("!SetObjectPosition: invalid object number");
+    if (!AssertObject("SetObjectPosition", objj))
+        return;
 
     if (objs[objj].moving > 0)
     {
@@ -668,22 +722,22 @@ void Object_SetY(ScriptObject *objj, int yy) {
 }
 
 const char* Object_GetName_New(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Name: invalid object number");
+    if (!AssertObject("Object.Name", objj->id))
+        return nullptr;
 
     return CreateNewScriptString(croom->obj[objj->id].name);
 }
 
 void Object_SetName(ScriptObject *objj, const char *newName) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Name: invalid object number");
+    if (!AssertObject("Object.Name", objj->id))
+        return;
     croom->obj[objj->id].name = newName;
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 void RunObjectInteraction(int aa, int mood) {
-    if (!is_valid_object(aa))
-        quit("!RunObjectInteraction: invalid object number for current room");
+    if (!AssertObject("RunObjectInteraction", aa))
+        return;
 
     if (!AssertCursorValidForEvent("Object.RunInteraction", mood))
         return;
@@ -712,7 +766,7 @@ bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
 
     play.check_interaction_only = 1;
     RunObjectInteraction(oobj->id, mood);
-    int ciwas = play.check_interaction_only;
+    int ciwas = play.check_interaction_only; // FIXME: reimplement returning check result without this hack!
     play.check_interaction_only = 0;
     return (ciwas == 2);
 }
@@ -723,6 +777,8 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
     int speed, int blocking, int ignwal,
     int repeat = kAnimFlow_Once, int direction = FORWARDS)
 {
+    if (!AssertObject("Object.Move", objj->id))
+        return;
     const RoomObjectInfo &obji = thisroom.Objects[objj->id];
     ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
     ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
@@ -757,8 +813,8 @@ void Object_MovePath(ScriptObject *objj, void *path_arr, int speed, int blocking
 }
 
 void SetObjectClickable(int cha, int clik) {
-    if (!is_valid_object(cha))
-        quit("!SetObjectClickable: Invalid object specified");
+    if (!AssertObject("SetObjectClickable", cha))
+        return;
     objs[cha].flags &= ~OBJF_NOINTERACT;
     if (clik == 0)
         objs[cha].flags |= OBJF_NOINTERACT;
@@ -769,8 +825,8 @@ void Object_SetClickable(ScriptObject *objj, int clik) {
 }
 
 int Object_GetClickable(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.Clickable: Invalid object specified");
+    if (!AssertObject("Object.Clickable", objj->id))
+        return 0;
 
     if (objs[objj->id].flags & OBJF_NOINTERACT)
         return 0;
@@ -779,8 +835,8 @@ int Object_GetClickable(ScriptObject *objj) {
 
 int Object_GetDestinationX(ScriptObject *objj)
 {
-    if (!is_valid_object(objj->id))
-        quit("!Object.DestionationX: Invalid object specified");
+    if (!AssertObject("Object.DestinationX", objj->id))
+        return 0;
 
     if (objs[objj->id].moving)
     {
@@ -792,8 +848,8 @@ int Object_GetDestinationX(ScriptObject *objj)
 
 int Object_GetDestinationY(ScriptObject *objj)
 {
-    if (!is_valid_object(objj->id))
-        quit("!Object.DestionationX: Invalid object specified");
+    if (!AssertObject("Object.DestinationY", objj->id))
+        return 0;
 
     if (objs[objj->id].moving)
     {
@@ -805,14 +861,16 @@ int Object_GetDestinationY(ScriptObject *objj)
 
 bool Object_GetManualScaling(ScriptObject *objj)
 {
-    if (!is_valid_object(objj->id))
-        quit("!Object.ManualScaling: Invalid object specified");
+    if (!AssertObject("Object.ManualScaling", objj->id))
+        return false;
 
     return !(objs[objj->id].flags & OBJF_USEROOMSCALING);
 }
 
 void Object_SetManualScaling(ScriptObject *objj, bool on)
 {
+    if (!AssertObject("Object.ManualScaling", objj->id))
+        return;
     if (on) objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
     else objs[objj->id].flags |= OBJF_USEROOMSCALING;
     // clear the cache
@@ -820,10 +878,14 @@ void Object_SetManualScaling(ScriptObject *objj, bool on)
 }
 
 int Object_GetScaling(ScriptObject *objj) {
+    if (!AssertObject("Object.Scaling", objj->id))
+        return 0;
     return objs[objj->id].zoom;
 }
 
 void Object_SetScaling(ScriptObject *objj, int zoomlevel) {
+    if (!AssertObject("Object.Scaling", objj->id))
+        return;
     if ((objs[objj->id].flags & OBJF_USEROOMSCALING) != 0)
     {
         debug_script_warn("Object.Scaling: cannot set property unless ManualScaling is enabled");
@@ -837,46 +899,66 @@ void Object_SetScaling(ScriptObject *objj, int zoomlevel) {
 }
 
 void Object_SetSolid(ScriptObject *objj, int solid) {
+    if (!AssertObject("Object.Solid", objj->id))
+        return;
     objs[objj->id].flags &= ~OBJF_SOLID;
     if (solid)
       objs[objj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {
+    if (!AssertObject("Object.Solid", objj->id))
+        return 0;
     if (objs[objj->id].flags & OBJF_SOLID)
         return 1;
     return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
+    if (!AssertObject("Object.BlockingWidth", objj->id))
+        return;
     objs[objj->id].blocking_width = static_cast<int16_t>(bwid);
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingWidth", objj->id))
+        return 0;
     return objs[objj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
+    if (!AssertObject("Object.BlockingHeight", objj->id))
+        return;
     objs[objj->id].blocking_height = static_cast<int16_t>(bhit);
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingHeight", objj->id))
+        return 0;
     return objs[objj->id].blocking_height;
 }
 
 int Object_GetBlockingRectX(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingRectX", objj->id))
+        return 0;
     return objs[objj->id].blocking_x;
 }
 
 void Object_SetBlockingRectX(ScriptObject *objj, int x) {
+    if (!AssertObject("Object.BlockingRectX", objj->id))
+        return;
     objs[objj->id].blocking_x = static_cast<int16_t>(x);
 }
 
 int Object_GetBlockingRectY(ScriptObject *objj) {
+    if (!AssertObject("Object.BlockingRectY", objj->id))
+        return 0;
     return objs[objj->id].blocking_y;
 }
 
 void Object_SetBlockingRectY(ScriptObject *objj, int y) {
+    if (!AssertObject("Object.BlockingRectY", objj->id))
+        return;
     objs[objj->id].blocking_y = static_cast<int16_t>(y);
 }
 
@@ -1001,8 +1083,6 @@ void Object_SetGraphicPivotOffsetY(ScriptObject *objj, int py)
 void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int speed, bool ignwal,
     const RunPathParams &run_params)
 {
-    if (!is_valid_object(objj))
-        quit("!MoveObject: invalid object number");
 
     RoomObject &obj = objs[objj];
     if (path)
@@ -1084,8 +1164,8 @@ void *Object_GetGraphicBoundBox(ScriptObject *objj)
 
 int GetObjectProperty(int hss, const char *property)
 {
-    if (!is_valid_object(hss))
-        quit("!GetObjectProperty: invalid object");
+    if (!AssertObject("GetObjectProperty", hss))
+        return 0;
     return get_int_property(thisroom.Objects[hss].Properties, croom->objProps[hss], property);
 }
 

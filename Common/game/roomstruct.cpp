@@ -98,6 +98,15 @@ void RoomStruct::Free()
     WalkBehindMask.reset();
 }
 
+Bitmap *RoomStruct::GetBackgroundImage(int index) const
+{
+    assert(index >= 0 && static_cast<uint8_t>(index) < BgImages.size());
+    if (index < 0 || static_cast<uint8_t>(index) >= BgImages.size())
+        return nullptr;
+
+    return BgImages[index].get();
+}
+
 void RoomStruct::SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PALETTE *bgpal)
 {
     assert(index >= 0 && index < MAX_ROOM_BGFRAMES);
@@ -115,6 +124,18 @@ void RoomStruct::SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PA
         BgFrames[index].IsPaletteShared = false;
         memcpy(BgFrames[index].Palette, *bgpal, sizeof(*bgpal));
     }
+}
+
+void RoomStruct::DeleteBackground(int index)
+{
+    assert(index >= 0 && static_cast<uint8_t>(index) < BgImages.size());
+    if (index < 0 || static_cast<uint8_t>(index) >= BgImages.size())
+        return;
+
+    BgFrameCount--;
+    BgImages.erase(BgImages.begin() + index);
+    if (static_cast<uint8_t>(index) < BgFrames.size())
+        BgFrames.erase(BgFrames.begin() + index);
 }
 
 Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const

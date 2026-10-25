@@ -95,7 +95,8 @@
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59 // display dialog options even if only one is enabled
 #define OPT_TURNORDERPRIORITY 60 // which turn order to choose if cw and ccw turns are equally short
 #define OPT_TEXTBOXCLAIMSKEYS 61 // when does textbox control claim key events
-#define OPT_HIGHESTOPTION   OPT_TEXTBOXCLAIMSKEYS
+#define OPT_DIALOGOPTIONSDRAWMODE 62 // explicitly select dialog options draw mode (default, custom rendering, ...)
+#define OPT_HIGHESTOPTION   OPT_DIALOGOPTIONSDRAWMODE
 #define OPT_LIPSYNCTEXT        99
 
 // Compatibility engine modes (hacks)
@@ -223,6 +224,15 @@ enum RenderAtScreenRes
     kRenderAtScreenRes_Disabled     = 2,
 };
 
+enum DialogOptionsDrawMode
+{
+    // Automatic mode: if engine finds custom rendering callbacks in script,
+    // then it will use them, otherwise uses standard options mode.
+    kDialogOptDraw_Auto     = 0,
+    kDialogOptDraw_Standard = 1,
+    kDialogOptDraw_Custom   = 2
+};
+
 
 // Sprite flags
 // SERIALIZATION NOTE: serialized as 8-bit in game data and legacy saves
@@ -305,8 +315,11 @@ struct FontInfo
         Flags = flags;
         if ((flags & FFLG_SIZEMULTIPLIER) != 0)
         {
-            SizeMultiplier = Size;
-            Size = 0;
+            if (Size > 0)
+            {
+                SizeMultiplier = std::max(1, SizeMultiplier) * Size;
+                Size = 0;
+            }
         }
     }
 

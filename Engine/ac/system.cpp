@@ -202,7 +202,7 @@ int System_GetEngineInteger(int value_id, int index)
 {
     int value = 0;
     if (!GetEngineInteger(value, static_cast<EngineValueID>(value_id), index))
-        debug_script_warn("System.GetEngineInteger: undefined engine value %d (#%d), or not an integer value", value_id, index);
+        debug_script_error("System.GetEngineInteger: undefined engine value %d (#%d), or not an integer value", value_id, index);
     return value;
 }
 
@@ -210,7 +210,7 @@ const char* System_GetEngineString(int value_id, int index)
 {
     String value;
     if (!GetEngineString(value, static_cast<EngineValueID>(value_id), index))
-        debug_script_warn("System.GetEngineString: undefined engine value %d (#%d)", value_id, index);
+        debug_script_error("System.GetEngineString: undefined engine value %d (#%d)", value_id, index);
     return CreateNewScriptString(value.GetCStr());
 }
 
@@ -513,7 +513,7 @@ RuntimeScriptValue Sc_System_SetDisplayFPS(const RuntimeScriptValue* params, int
 void ScPl_System_Log(int message_type, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF_PURE(texx);
-    Debug::Printf(kDbgGroup_Script, (MessageType)message_type, scsf_buffer);
+    Debug::Printf(kDbgGroup_Script, (MessageType)message_type, "%s", scsf_buffer);
 }
 
 

@@ -189,7 +189,7 @@ HError AGFReader::Open(const char *filename)
 
     _doc.reset(new Document());
     if (_doc->LoadFile(filename) != XML_SUCCESS)
-        return new Error("Failed to open XML", _doc->ErrorIDToName(_doc->ErrorID()));
+        return new Error("Failed to open XML: %s", _doc->ErrorIDToName(_doc->ErrorID()));
     if (!_doc->RootElement() || strcmp(_doc->RootElement()->Name(), XML_ROOT_NODE_NAME))
         return new Error("Not a valid AGS game project");
 
@@ -197,7 +197,7 @@ HError AGFReader::Open(const char *filename)
     if (!attr_filever)
         return new Error("Game.agf format version is missing");
     if (strcmp(attr_filever, LATEST_XML_VERSION))
-        return new Error(String::FromFormat("Unsupported Game.agf format: %s", attr_filever));
+        return new Error("Unsupported Game.agf format: %s", attr_filever);
 
     const int attr_format = _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX);
     const char *attr_editorver = _doc->RootElement()->Attribute(XML_ATTRIBUTE_EDITOR_VERSION);
@@ -206,7 +206,7 @@ HError AGFReader::Open(const char *filename)
         filename, attr_filever, attr_format, attr_editorver ? attr_editorver : "unknown");
 
     if (attr_format < LOWEST_SUPPORTED_FORMAT)
-        return new Error(String::FromFormat("Unsupported Game.agf format index: %d", attr_format));
+        return new Error("Unsupported Game.agf format index: %d", attr_format);
 
     DocElem game = _doc->RootElement()->FirstChildElement("Game");
     if (!game)

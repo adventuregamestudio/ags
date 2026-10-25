@@ -192,7 +192,7 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Try to open given file
     auto in = File::OpenFileRead(filename);
     if (!in)
-        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Tried filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, "Tried filename: %s.", filename.GetCStr());
     src.Filename = filename;
     src.InputStream = std::move(in);
     return OpenMainGameFileBase(src);
@@ -211,8 +211,8 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
         in = mgr->OpenAsset(filename);
     }
     if (!in)
-        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Tried filenames: %s, %s.",
-            MainGameSource::DefaultFilename_v3.GetCStr(), MainGameSource::DefaultFilename_v2.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, "Tried filenames: %s, %s.",
+            MainGameSource::DefaultFilename_v3.GetCStr(), MainGameSource::DefaultFilename_v2.GetCStr());
     src.Filename = filename;
     src.InputStream = std::move(in);
     return OpenMainGameFileBase(src);
@@ -261,7 +261,7 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
 {
     int fmt_ver = in->ReadInt32();
     if (fmt_ver != 1)
-        return new MainGameFileError(kMGFErr_PluginDataFmtNotSupported, String::FromFormat("Version: %d, supported: %d", fmt_ver, 1));
+        return new MainGameFileError(kMGFErr_PluginDataFmtNotSupported, "Version: %d, supported: %d", fmt_ver, 1);
 
     int pl_count = in->ReadInt32();
     for (int i = 0; i < pl_count; ++i)
@@ -270,7 +270,7 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
         size_t datasize = in->ReadInt32();
         // just check for silly datasizes
         if (datasize > PLUGIN_SAVEBUFFERSIZE)
-            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, String::FromFormat("Required: %zu, max: %zu", datasize, (size_t)PLUGIN_SAVEBUFFERSIZE));
+            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, "Required: %zu, max: %zu", datasize, (size_t)PLUGIN_SAVEBUFFERSIZE);
 
         PluginInfo info;
         info.Name = name;
@@ -596,7 +596,7 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
 {
     size_t sprcount = in->ReadInt32();
     if (sprcount > (size_t)SpriteCache::MAX_SPRITE_INDEX + 1)
-        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1));
+        return new MainGameFileError(kMGFErr_TooManySprites, "Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1);
 
     ents.SpriteCount = sprcount;
     ents.SpriteFlags.resize(sprcount);
@@ -1093,7 +1093,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else
     {
-        return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
+        return new MainGameFileError(kMGFErr_ExtUnknown, "Type: %s", ext_id.GetCStr());
     }
     return HError::None();
 }
@@ -1152,13 +1152,13 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;
-    game.ReadInvInfo(in);
+    game.ReadInvInfo(in, data_ver);
     err = game.read_cursors(in);
     if (!err)
         return err;
     HError inter_err = game.read_interaction_scripts(in, data_ver);
     if (!inter_err)
-        return new MainGameFileError(kMGFErr_GameEntityFailed, inter_err);
+        return new MainGameFileError(inter_err, kMGFErr_GameEntityFailed);
     if (sinfo.HasWordsDict)
         game.read_words_dictionary(in);
 
@@ -1189,7 +1189,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     GUIRefCollection guictrl_refs(ents.GuiControls);
     HError err2 = GUI::ReadGUI(ents.Guis, data_ver, ents.LoadedGuiVersion, guictrl_refs, in);
     if (!err2)
-        return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
+        return new MainGameFileError(err2, kMGFErr_GameEntityFailed);
     game.numgui = ents.Guis.size();
 
     err = ReadPlugins(ents.PluginInfos, in);
@@ -1210,7 +1210,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     //-------------------------------------------------------------------------
     GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();
-    return ext_err ? HGameFileError::None() : new MainGameFileError(kMGFErr_ExtListFailed, ext_err);
+    return ext_err ? HGameFileError::None() : new MainGameFileError(ext_err, kMGFErr_ExtListFailed);
 }
 
 HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)

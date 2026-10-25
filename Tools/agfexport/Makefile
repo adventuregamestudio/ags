@@ -110,7 +110,7 @@ clean:
 
 install: agfexport
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agfexport
+	cp agfexport $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agfexport

@@ -63,7 +63,7 @@ void InterfaceOn(int ifn) {
   // modal interface
   if (guis[ifn].GetPopupStyle()==kGUIPopupModal) PauseGame();
   if (play.mouse_input_enabled)
-    guis[ifn].Poll(mousex, mousey);
+    guis[ifn].Poll(mousex, mousey, GetGUIAt(mousex, mousey, kHit_Interactable) == ifn);
 }
 
 void InterfaceOff(int ifn) {

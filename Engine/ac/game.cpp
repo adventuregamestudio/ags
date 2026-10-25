@@ -14,6 +14,7 @@
 #include "ac/game.h"
 #include <queue>
 #include <stdio.h>
+#include <inttypes.h>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
@@ -53,6 +54,7 @@
 #include "ac/dynobj/scriptgame.h"
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "data/data_helpers.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -191,7 +193,7 @@ bool AssertAudioType(const char *api_name, int audio_type)
 {
     if ((audio_type < 0) || ((size_t)audio_type >= game.audioClipTypes.size()))
     {
-        debug_script_warn("%s: invalid audio type: %d, valid range is 0..%d", api_name, audio_type, static_cast<int>(game.audioClipTypes.size()) - 1);
+        debug_script_error("%s: invalid audio type: %d, valid range is 0..%d", api_name, audio_type, static_cast<int>(game.audioClipTypes.size()) - 1);
         return false;
     }
     return true;
@@ -1218,7 +1220,7 @@ void Game_PrecacheSprite(int sprnum)
     const auto dur1 = ToMilliseconds(tp_filedone - tp_start);
     const auto dur2 = ToMilliseconds(tp_texturedone - tp_filedone);
     const auto dur_t = ToMilliseconds(tp_texturedone - tp_start);
-    Debug::Printf("Precache sprite %d; file->mem = %lld ms, bm->tx = %lld ms, total = %lld ms", sprnum, dur1, dur2, dur_t);
+    Debug::Printf("Precache sprite %d; file->mem = %" PRId64 " ms, bm->tx = %" PRId64 " ms, total = %" PRId64 " ms", sprnum, dur1, dur2, dur_t);
 }
 
 void Game_PrecacheView(int view, int first_loop, int last_loop)
@@ -1450,7 +1452,7 @@ HSaveError load_game(const String &path, int slotNumber, bool startup, bool &dat
         return err;
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
     else if (desc.ColorDepth != game.GetColorDepth())
-        return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth));
+        return new SavegameError(kSvgErr_DifferentColorDepth, "Running: %d-bit, saved in: %d-bit.", game.GetColorDepth(), desc.ColorDepth);
 
     // Match game GUIDs and test whether save was made for the different game
     if (!desc.GameGuid.IsEmpty() || desc.LegacyID != 0)
@@ -1915,15 +1917,15 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
     if (total_frames == 0)
     {
-        Debug::Printf("Precache view %d (loops %d-%d): %d frames found in the view, skip");
+        Debug::Printf("Precache view %d (loops %d-%d): %d frames found in the view, skip", view, first_loop, last_loop, total_frames);
         return;
     }
 
     // Print gathered time and size info
     size_t spcache_after = spriteset.GetCacheSize();
     size_t txcache_after = texturecache_get_size();
-    Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %lld ms, average file->mem = %lld ms, bm->tx = %lld ms,"
-                  "\n\t\tloaded %d sounds = %lld ms",
+    Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %" PRId64 " ms, average file->mem = %" PRId64 " ms, bm->tx = %" PRId64 " ms,"
+                  "\n\t\tloaded %d sounds = %" PRId64 " ms",
         view, first_loop, last_loop, total_frames, dur_sp_load + dur_tx_make + dur_sound_load,
         dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
     Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",

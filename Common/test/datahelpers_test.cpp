@@ -31,3 +31,45 @@ TEST(DataHelpers, Encrypt) {
     for (size_t i = 0; i < buf.size(); ++i)
         ASSERT_EQ(buf[i], result[i]);
 }
+
+TEST(DataHelpers, Encrypt_InverseAlgo) {
+    String s = "abcdefghijklmnopqrstuvwxyz";
+    std::vector<char> buf(s.GetLength() + 1);
+    std::copy(s.GetCStr(), s.GetCStr() + s.GetLength() + 1, buf.data());
+    EncryptText(buf.data(), buf.size(), true /* inverse */);
+    const char result[] =
+    { (char)('a' - 'A'), (char)('b' - 'v'), (char)('c' - 'i'), (char)('d' - 's'), (char)('e' - ' '),
+      (char)('f' - 'D'), (char)('g' - 'u'), (char)('h' - 'r'), (char)('i' - 'g'), (char)('j' - 'a'), (char)('k' - 'n'),
+      (char)('l' - 'A'), (char)('m' - 'v'), (char)('n' - 'i'), (char)('o' - 's'), (char)('p' - ' '),
+      (char)('q' - 'D'), (char)('r' - 'u'), (char)('s' - 'r'), (char)('t' - 'g'), (char)('u' - 'a'), (char)('v' - 'n'),
+      (char)('w' - 'A'), (char)('x' - 'v'), (char)('y' - 'i'), (char)('z' - 's'),  (char)(0  - ' ')};
+
+    for (size_t i = 0; i < buf.size(); ++i)
+        ASSERT_EQ(buf[i], result[i]);
+}
+
+TEST(DataHelpers, EncryptDecrypt) {
+    String s = "abcdefghijklmnopqrstuvwxyz";
+    std::vector<char> buf(s.GetLength() + 1);
+    std::copy(s.GetCStr(), s.GetCStr() + s.GetLength() + 1, buf.data());
+    EncryptText(buf.data(), buf.size());
+    std::vector<char> buf2(s.GetLength() + 1);
+    std::copy(buf.begin(), buf.end(), buf2.data());
+    DecryptText(buf2.data(), buf2.size());
+
+    for (size_t i = 0; i < buf2.size() - 1; ++i)
+        ASSERT_EQ(buf2[i], s[i]);
+}
+
+TEST(DataHelpers, EncryptDecrypt_InverseAlgo) {
+    String s = "abcdefghijklmnopqrstuvwxyz";
+    std::vector<char> buf(s.GetLength() + 1);
+    std::copy(s.GetCStr(), s.GetCStr() + s.GetLength() + 1, buf.data());
+    EncryptText(buf.data(), buf.size(), true /* inverse */);
+    std::vector<char> buf2(s.GetLength() + 1);
+    std::copy(buf.begin(), buf.end(), buf2.data());
+    DecryptText(buf2.data(), buf2.size(), true /* inverse */);
+
+    for (size_t i = 0; i < buf2.size() - 1; ++i)
+        ASSERT_EQ(buf2[i], s[i]);
+}

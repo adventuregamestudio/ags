@@ -110,6 +110,7 @@
 #define OPT_DISPLAYSINGLEDIALOGOPTION 59
 #define OPT_TURNORDERPRIORITY 60
 #define OPT_TEXTBOXCLAIMSKEYS 61
+#define OPT_DIALOGOPTIONSMODE 62
 #define OPT_LIPSYNCTEXT       99
 
 #define COLOR_TRANSPARENT     0
@@ -615,6 +616,13 @@ enum TextBoxKeyClaimStyle
   eTextBoxKeyClaimAll          = 0,
   eTextBoxKeyClaimHandled      = 1,
   eTextBoxKeyClaimTextOnly     = 2
+};
+
+enum DialogOptionsDrawMode
+{
+  eDialogOptDraw_Auto          = 0,
+  eDialogOptDraw_Standard      = 1,
+  eDialogOptDraw_Custom        = 2,
 };
 #endif // SCRIPT_API_v363
 
@@ -1379,6 +1387,8 @@ builtin managed struct InventoryItem {
   import attribute int CursorHotspotX;
   /// Gets/sets the hotspot y position used for the cursor when this item is active
   import attribute int CursorHotspotY;
+  /// Gets/sets the automatic alignment of a cursor's hotspot (relative to the cursor's image)
+  import attribute Alignment CursorHotspotAlignment;
 #endif
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
@@ -2440,6 +2450,8 @@ struct DialogOptions
   import static readonly attribute bool AreDisplayed; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the sprite to use as a bullet point before each dialog option (0 for none)
   import static attribute int BulletGraphic; // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets which looks mode should the dialog options use when displayed.
+  import static attribute DialogOptionsDrawMode DrawMode; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the font to use when displaying dialog options
   import static attribute FontType Font; // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets on-screen X position of dialog options GUI; set to -1 if it should use default placement

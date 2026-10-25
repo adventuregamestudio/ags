@@ -92,10 +92,18 @@ void set_inv_item_cursorpic(int invItemId, int piccy)
     }
 }
 
-void set_inv_item_cursorhotspot(int inv_item, int hx, int hy)
+void set_inv_item_cursorhotspot(int inv_item, int hx, int hy, FrameAlignment align)
 {
-    game.invinfo[inv_item].hotx = hx;
-    game.invinfo[inv_item].hoty = hy;
+    auto &item = game.invinfo[inv_item];
+    item.hotx = hx;
+    item.hoty = hy;
+    item.hotAlign = align;
+
+    // Pre-3.6.3 games used hotspot 0,0 as "centered"
+    if (loaded_game_file_version < kGameVersion_363_10)
+    {
+        item.hotAlign = ((hx == 0) && (hy == 0)) ? kAlignMiddleCenter : kAlignTopLeft;
+    }
 
     // The cursor image may include hotspot marker, therefore update cursor image
     if (is_current_cursor_look(kCursorRole_UseInv) && (playerchar->activeinv == inv_item))
@@ -123,6 +131,16 @@ int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem)
     return game.invinfo[iitem->id].cursorPic;
 }
 
+int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *iitem)
+{
+    return game.invinfo[iitem->id].hotx;
+}
+
+void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *iitem, int align)
+{
+    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, game.invinfo[iitem->id].hoty, static_cast<FrameAlignment>(align));
+}
+
 int InventoryItem_GetCursorHotspotX(ScriptInvItem *iitem)
 {
     return game.invinfo[iitem->id].hotx;
@@ -130,7 +148,7 @@ int InventoryItem_GetCursorHotspotX(ScriptInvItem *iitem)
 
 void InventoryItem_SetCursorHotspotX(ScriptInvItem *iitem, int hotspotx)
 {
-    set_inv_item_cursorhotspot(iitem->id, hotspotx, game.invinfo[iitem->id].hoty);
+    set_inv_item_cursorhotspot(iitem->id, hotspotx, game.invinfo[iitem->id].hoty, game.invinfo[iitem->id].hotAlign);
 }
 
 int InventoryItem_GetCursorHotspotY(ScriptInvItem *iitem)
@@ -140,7 +158,7 @@ int InventoryItem_GetCursorHotspotY(ScriptInvItem *iitem)
 
 void InventoryItem_SetCursorHotspotY(ScriptInvItem *iitem, int hotspoty)
 {
-    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, hotspoty);
+    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, hotspoty, game.invinfo[iitem->id].hotAlign);
 }
 
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
@@ -370,6 +388,16 @@ RuntimeScriptValue Sc_InventoryItem_SetCursorGraphic(void *self, const RuntimeSc
     API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorGraphic);
 }
 
+RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotAlignment);
+}
+
+RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorHotspotAlignment);
+}
+
 RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotX);
@@ -440,6 +468,8 @@ void RegisterInventoryItemAPI()
         { "InventoryItem::SetName^1",                 API_FN_PAIR(InventoryItem_SetName) },
         { "InventoryItem::get_CursorGraphic",         API_FN_PAIR(InventoryItem_GetCursorGraphic) },
         { "InventoryItem::set_CursorGraphic",         API_FN_PAIR(InventoryItem_SetCursorGraphic) },
+        { "InventoryItem::get_CursorHotspotAlignment", API_FN_PAIR(InventoryItem_GetCursorHotspotAlignment) },
+        { "InventoryItem::set_CursorHotspotAlignment", API_FN_PAIR(InventoryItem_SetCursorHotspotAlignment) },
         { "InventoryItem::get_CursorHotspotX",        API_FN_PAIR(InventoryItem_GetCursorHotspotX) },
         { "InventoryItem::set_CursorHotspotX",        API_FN_PAIR(InventoryItem_SetCursorHotspotX) },
         { "InventoryItem::get_CursorHotspotY",        API_FN_PAIR(InventoryItem_GetCursorHotspotY) },

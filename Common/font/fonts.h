@@ -138,7 +138,7 @@ void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t 
 void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number,
                 color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
 // FIXME: review this function, used only in AGS.Native (editor)
-void woutprintf(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *fmt, ...);
+void woutprintf(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(6);
 
 // Tells if the text should be antialiased when possible
 bool ShouldAntiAliasText();

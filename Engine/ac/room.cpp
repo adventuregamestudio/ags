@@ -512,9 +512,8 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
     {
         auto script = UScript(ccScript::CreateFromStream(in.get()));
         if (!script)
-            return new Error(String::FromFormat(
-                "Failed to load a script module: %s", filename.GetCStr()),
-                cc_get_error().ErrorString);
+            return new Error("Failed to load a script module: %s\n%s", filename.GetCStr(), 
+                cc_get_error().ErrorString.GetCStr());
         room->CompiledScript = std::move(script);
     }
     return HError::None();
@@ -568,7 +567,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr, con
 {
     auto in = mgr->OpenAsset(filename);
     if (in == nullptr)
-        return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new RoomFileError(kRoomFileErr_FileOpenFailed, "Filename: %s.", filename.GetCStr());
     RoomData room_data;
     HRoomFileError err = LoadRoom(&room_data, std::move(in), &sprinfos);
     if (!err)
@@ -809,12 +808,12 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             const auto &globaldata = roomscript->GetGlobalData();
             if (croom->tsdatasize > globaldata.size())
             {
-                quitprintf("Restored Room %d script data size exceeds current script data (%zu vs %zu bytes).",
+                quitprintf("Restored Room %d script data size exceeds current script data (%u vs %zu bytes).",
                     newnum, croom->tsdatasize, globaldata.size());
             }
             else if (croom->tsdatasize < globaldata.size())
             {
-                Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%zu vs %zu bytes)",
+                Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%u vs %zu bytes)",
                     newnum, croom->tsdatasize, globaldata.size());
             }
             roomscript->CopyGlobalData(croom->tsdata);
@@ -941,9 +940,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             play.temporarily_turned_off_character = game.playercharacter;
         }
         if (forchar->flags & CHF_FIXVIEW) ;
-        else if (thisroom.Options.PlayerView==0) forchar->view=forchar->defview;
-        else forchar->view=thisroom.Options.PlayerView-1;
-        forchar->frame=0;   // make him standing
+        else if (thisroom.Options.PlayerView==0) Character_SetViewDirect(forchar, forchar->defview, true);
+        else Character_SetViewDirect(forchar, thisroom.Options.PlayerView-1, true);
     }
     color_map = nullptr;
 

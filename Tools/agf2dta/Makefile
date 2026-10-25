@@ -111,7 +111,7 @@ clean:
 
 install: agf2dta
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agf2dta
+	cp agf2dta $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agf2dta

@@ -282,6 +282,16 @@ void DialogOptions_SetBulletGraphic(int sprite)
     game.dialog_bullet = sprite;
 }
 
+int DialogOptions_GetDrawMode()
+{
+    return game.options[OPT_DIALOGOPTIONSDRAWMODE];
+}
+
+void DialogOptions_SetDrawMode(int drawmode)
+{
+    game.options[OPT_DIALOGOPTIONSDRAWMODE] = drawmode;
+}
+
 int DialogOptions_GetFont()
 {
     return play.dialog_options_font;
@@ -966,7 +976,8 @@ void DialogOptions::Begin()
     ccDialogOptionsRendering = new ScriptDialogOptionsRendering();
     ccAddObjectReference(ccRegisterManagedObject(ccDialogOptionsRendering, ccDialogOptionsRendering));
 
-    if (get_custom_dialog_options_dimensions(ccDialogOptionsRendering, dlgnum))
+    if (((game.options[OPT_DIALOGOPTIONSDRAWMODE] == kDialogOptDraw_Auto) || (game.options[OPT_DIALOGOPTIONSDRAWMODE] == kDialogOptDraw_Custom))
+        && get_custom_dialog_options_dimensions(ccDialogOptionsRendering, dlgnum))
     {
         // Custom dialog options rendering
         usingCustomRendering = true;
@@ -2326,6 +2337,16 @@ RuntimeScriptValue Sc_DialogOptions_SetMinGUIWidth(const RuntimeScriptValue *par
     API_SCALL_VOID_PINT(DialogOptions_SetMinGUIWidth);
 }
 
+RuntimeScriptValue Sc_DialogOptions_GetDrawMode(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(DialogOptions_GetDrawMode);
+}
+
+RuntimeScriptValue Sc_DialogOptions_SetDrawMode(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(DialogOptions_SetDrawMode);
+}
+
 RuntimeScriptValue Sc_DialogOptions_GetHasCustomRender(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_BOOL(DialogOptions_GetHasCustomRender);
@@ -2414,6 +2435,8 @@ void RegisterDialogAPI()
         { "DialogOptions::get_AreDisplayed", API_FN_PAIR(DialogOptions_GetAreDisplayed) },
         { "DialogOptions::get_BulletGraphic", API_FN_PAIR(DialogOptions_GetBulletGraphic) },
         { "DialogOptions::set_BulletGraphic", API_FN_PAIR(DialogOptions_SetBulletGraphic) },
+        { "DialogOptions::get_DrawMode",  API_FN_PAIR(DialogOptions_GetDrawMode) },
+        { "DialogOptions::set_DrawMode",  API_FN_PAIR(DialogOptions_SetDrawMode) },
         { "DialogOptions::get_Font",      API_FN_PAIR(DialogOptions_GetFont) },
         { "DialogOptions::set_Font",      API_FN_PAIR(DialogOptions_SetFont) },
         { "DialogOptions::get_ItemGap",   API_FN_PAIR(DialogOptions_GetItemGap) },

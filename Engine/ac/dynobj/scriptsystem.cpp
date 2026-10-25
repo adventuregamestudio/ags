@@ -46,7 +46,7 @@ void ScriptSystem::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 4:
     case 6:
     case 7:
-        debug_script_warn("ScriptSystem: attempt to write in readonly variable at offset %d, value %d", offset, val);
+        debug_script_error("ScriptSystem: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 5: vsync = val; break;
     default:

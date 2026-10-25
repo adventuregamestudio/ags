@@ -229,6 +229,8 @@ public:
     //-------------------------------------------------------------------------
     // Factory methods
     //-------------------------------------------------------------------------
+    // Allocates a copy of this string
+    String  Clone() const;
 
     // Wraps the given string buffer without owning it, won't count references,
     // won't delete it at destruction. Can be used with string literals.
@@ -236,8 +238,8 @@ public:
 
     // TODO: investigate C++11 solution for variadic templates (would that be more convenient here?)
 
-    static String FromFormat(const char *fcstr, ...);
-    static String FromFormatV(const char *fcstr, va_list argptr);
+    static String FromFormat(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING(1);
+    static String FromFormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_V(1);
 
     // TODO: reorganize stream reading/writing methods, decide if they should
     // be a part of the String class, or separate e.g. StrUtil function group.
@@ -245,6 +247,11 @@ public:
     static String FromStream(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // Reads up to N chars from stream
     static String FromStreamCount(Stream *in, size_t count);
+
+    // Joins a vector of strings together, optionally inserting separator between elements
+    static String Join(const std::vector<String> &list, char separator);
+    static String Join(const std::vector<String> &list, const char *separator);
+    static String Join(const std::vector<String> &list, const String &separator) { return Join(list, separator.GetCStr()); }
 
     // Creates a lowercased copy of the string
     String  Lower() const;
@@ -276,6 +283,8 @@ public:
     // including empty segments e.g. if separators follow each other;
     // returns at least one segment (equal to full string if no separator was found)
     std::vector<String> Split(char separator) const;
+    std::vector<String> Split(const char *separator) const;
+    std::vector<String> Split(const String &separator) const { return Split(separator.GetCStr()); }
 
     //-------------------------------------------------------------------------
     // String modification methods
@@ -297,8 +306,8 @@ public:
     // Appends a single character
     void    AppendChar(char c);
     // Appends a formatted string
-    void    AppendFmt(const char *fcstr, ...);
-    void    AppendFmtv(const char *fcstr, va_list argptr);
+    void    AppendFmt(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING_OBJECT(1);
+    void    AppendFmtv(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_OBJECT_V(1);
     // Clip* methods decrease the string, removing defined part
     // Cuts off leftmost N characters
     void    ClipLeft(size_t count);
@@ -320,8 +329,8 @@ public:
     // Makes a new string by filling N chars with certain value
     void    FillString(char c, size_t count);
     // Makes a new string by putting in parameters according to format string
-    void    Format(const char *fcstr, ...);
-    void    FormatV(const char *fcstr, va_list argptr);
+    void    Format(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING_OBJECT(1);
+    void    FormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_OBJECT_V(1);
     // Decrement ref counter and deallocate data if must.
     // Free() should be called only when buffer is not needed anymore;
     // if string must be truncated to zero length, but retain the allocated

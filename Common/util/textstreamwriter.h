@@ -30,8 +30,10 @@ namespace Common
 class TextStreamWriter : public TextWriter
 {
 public:
+    // TODO: replace Stream with StreamBase here, we don't need full Stream features
     TextStreamWriter(std::unique_ptr<Stream> &&stream)
         : _stream(std::move(stream)) {}
+    TextStreamWriter(TextStreamWriter &&writer) = default;
     ~TextStreamWriter() override = default;
 
     std::unique_ptr<Stream> ReleaseStream() { return std::move(_stream); }
@@ -46,9 +48,9 @@ public:
     // Write string and add line break at the end
     void    WriteLine(const String &str) override;
     // Write formatted string (see *printf)
-    void    WriteFormat(const char *fmt, ...) override;
+    void    WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
     // Write formatted string and line break at the end
-    void    WriteLineFormat(const char *fmt, ...) override;
+    void    WriteLineFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
     // Write line break
     void    WriteLineBreak() override;
 

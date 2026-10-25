@@ -55,6 +55,9 @@ namespace AGS.Types
         [ReadOnly(true)]
         public string FamilyName
         {
+            // FIXME: FamilyName should be readonly here, and retrieved from _fontFile.FamilyName;
+            // but currently FontFiles are not getting updated by the Editor, they need to
+            // preload the font data from the file, and save this value.
             get { return _familyName; }
             set { _familyName = value; }
         }

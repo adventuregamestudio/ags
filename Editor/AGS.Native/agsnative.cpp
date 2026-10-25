@@ -737,9 +737,9 @@ void DrawFontAt(HDC hdc, int fontnum, bool only_valid_chars,
 
     const int grid_width = col_count * (cell_w + cell_space_x) + cell_space_x;
     const int grid_height = row_count * (cell_h + cell_space_y) + cell_space_y;
-    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
-    tempblock->Fill(0);
-    const color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
+    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 32));
+	tempblock->Fill(0);
+	const color_t text_color = makeacol32(255, 255, 255, 255);
     const int old_uformat = get_uformat();
     const int want_uformat = U_UTF8;
     if (old_uformat != want_uformat)
@@ -799,10 +799,10 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
     }
 
     const int linespacing = get_font_linespacing(fontnum);
-    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(ds_width, ds_height, 8));
-    tempblock->Fill(0);
-    color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
-    color_t outline_color = tempblock->GetCompatibleColor(8); // fixed dark grey color
+    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(ds_width, ds_height, 32));
+	tempblock->Fill(0);
+	color_t text_color = makeacol32(255, 255, 255, 255);
+	color_t outline_color = makeacol32(128, 128, 128, 255);
     AGS::Common::GUI::DrawTextLinesAligned(tempblock.get(), lines.GetVector(), lines.Count(), fontnum, linespacing, text_color, outline_color,
         RectWH(text_atx, text_aty, max_width, dc_height - (dc_aty + text_aty)), right_to_left ? kAlignTopRight : kAlignTopLeft, false);
 

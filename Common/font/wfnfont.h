@@ -61,6 +61,7 @@ struct WFNChar
     uint16_t       Width;
     uint16_t       Height;
     const uint8_t *Data;
+    uint8_t        BitsPerPixel;
 
     WFNChar();
 
@@ -71,7 +72,9 @@ struct WFNChar
 
     inline size_t GetRowByteCount() const
     {
-        return (Width + 7) / 8;
+        return BitsPerPixel == 4
+            ? (Width + 1) / 2
+            : (Width + 7) / 8;
     }
 
     inline size_t GetRequiredPixelSize() const
@@ -87,9 +90,9 @@ struct WFNChar
 class WFNFont
 {
 public:
-    inline uint16_t GetCharCount() const
+    inline size_t GetCharCount() const
     {
-        return static_cast<uint16_t>(_refs.size());
+        return _refs.size();
     }
 
     // Get WFN character for the given code; if the character is missing, returns empty character
@@ -109,6 +112,7 @@ public:
     WFNError ReadFromFile(AGS::Common::Stream *in, const soff_t data_size = 0);
 
 private:
+    WFNError Read4BitFromFile(AGS::Common::Stream* in, const soff_t used_data_size);
     std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items
     std::vector<WFNChar>        _items;     // actual character items
     std::vector<uint8_t>        _pixelData; // pixel data array

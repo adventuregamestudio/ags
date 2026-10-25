@@ -67,15 +67,41 @@ int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
     return max_height * params.SizeMultiplier;
 }
 
-static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend);
+static int RenderChar(Bitmap* ds, const int at_x, const int at_y, Rect clip,
+    const WFNChar& wfn_char, const int scale, const color_t text_color,
+    bool alpha_blend, const color_t* shade_colors);
 
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
     const WFNFont* font = _fontData[fontNumber].Font;
     const FontRenderParams &params = _fontData[fontNumber].Params;
-  const int char_spacing = _fontData[fontNumber].CharacterSpacing * params.SizeMultiplier;
+    const int char_spacing = _fontData[fontNumber].CharacterSpacing * params.SizeMultiplier;
     Bitmap ds(destination, true);
+
+    color_t shade_colors[16] = {};
+    const color_t* shade_lookup = nullptr;
+
+    if (ds.GetColorDepth() == 8)
+    {
+        PALETTE current_palette;
+        get_palette(current_palette);
+
+        const RGB& base = current_palette[colour & 0xFF];
+
+        shade_colors[0] = 0;
+        shade_colors[15] = colour;
+
+        for (int shade = 1; shade < 15; ++shade)
+        {
+            const int red = base.r * shade / 15;
+            const int green = base.g * shade / 15;
+            const int blue = base.b * shade / 15;
+
+            shade_colors[shade] = bestfit_color(current_palette, red, green, blue);
+        }
+
+        shade_lookup = shade_colors;
+    }
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
     const bool alpha_blend = (ds.GetColorDepth() == 32) &&
@@ -91,7 +117,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     Rect clip = ds.GetClip();
     for (int code = ugetxc(&text); code; code = ugetxc(&text))
     {
-        x += char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend);
+        x += char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend, shade_lookup);
     }
 
     if (alpha_blend)
@@ -100,41 +126,77 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     }
 }
 
-static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend)
+static int RenderChar(Bitmap* ds, const int at_x, const int at_y, Rect clip,
+    const WFNChar& wfn_char, const int scale, const color_t text_color,
+    bool alpha_blend, const color_t* shade_colors)
 {
-  const int width = wfn_char.Width;
-  const int height = wfn_char.Height;
-  const unsigned char *actdata = wfn_char.Data;
-  const size_t bytewid = wfn_char.GetRowByteCount();
+    const int width = wfn_char.Width;
+    const int height = wfn_char.Height;
+    const unsigned char* actdata = wfn_char.Data;
+    const size_t bytewid = wfn_char.GetRowByteCount();
 
-  int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
-  int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
-  int sw = std::max(0, clip.Left - at_x);
-  int sh = std::max(0, clip.Top - at_y);
-  for (int h = sh, y = sy; h < height && y < ey; ++h, y += scale)
-  {
-    for (int w = sw, x = sx; w < width && x < ex; ++w, x += scale)
+    int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
+    int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
+    int sw = std::max(0, clip.Left - at_x);
+    int sh = std::max(0, clip.Top - at_y);
+    for (int h = sh, y = sy; h < height && y < ey; ++h, y += scale)
     {
-      if (((actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0))
-      {
-        if (scale > 1)
+        for (int w = sw, x = sx; w < width && x < ex; ++w, x += scale)
         {
-          ds->FillRect(RectWH(x, y, scale, scale), text_color);
-        } 
-        else if (alpha_blend)
-        {
-          ds->BlendPixel(x, y, text_color);
-        }
-        else
-        {
-          ds->PutPixel(x, y, text_color);
-        }
-      }
-    }
-  }
+            color_t pixel_color = text_color;
+            bool draw_pixel = false;
 
-  return width * scale;
+            if (wfn_char.BitsPerPixel == 4)
+            {
+                const uint8_t packed = actdata[h * bytewid + (w / 2)];
+                const uint8_t shade = (w & 1) ? (packed & 0x0F) : (packed >> 4);
+
+                if (shade != 0)
+                {
+                    draw_pixel = true;
+
+                    const int depth = ds->GetColorDepth();
+                    if (depth > 8 && shade < 15)
+                    {
+                        const int red = getr_depth(depth, text_color) * shade / 15;
+                        const int green = getg_depth(depth, text_color) * shade / 15;
+                        const int blue = getb_depth(depth, text_color) * shade / 15;
+
+                        pixel_color = (depth == 32)
+                            ? makeacol32(red, green, blue, geta32(text_color))
+                            : makecol_depth(depth, red, green, blue);
+                    }
+                    else if (shade_colors != nullptr && shade < 15)
+                    {
+                        pixel_color = shade_colors[shade];
+                    }
+                }
+            }
+            else
+            {
+                draw_pixel =
+                    (actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0;
+            }
+
+            if (draw_pixel)
+            {
+                if (scale > 1)
+                {
+                    ds->FillRect(RectWH(x, y, scale, scale), pixel_color);
+                }
+                else if (alpha_blend)
+                {
+                    ds->BlendPixel(x, y, pixel_color);
+                }
+                else
+                {
+                    ds->PutPixel(x, y, pixel_color);
+                }
+            }
+        }
+    }
+
+    return width * scale;
 }
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)

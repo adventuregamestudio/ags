@@ -123,6 +123,7 @@ static int DetermineScriptLine(const std::vector<intptr_t> &code, const int32_t 
     return line;
 }
 
+static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(3);
 static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list ap;
@@ -394,7 +395,7 @@ bool RuntimeScript::ResolveImports(const SystemImports &simp)
 
     if (errors > 0)
     {
-        cc_error("in %s: %d unresolved imports (last: %s)",
+        cc_error("in %s: %zu unresolved imports (last: %s)",
             GetScriptName().GetCStr(),
             errors,
             _imports[last_err_idx].GetCStr());
@@ -539,8 +540,8 @@ bool RuntimeScript::CreateRuntimeCodeFixups()
         const int32_t fixup = _fixups[i];
         if (fixup < 0 || static_cast<size_t>(fixup) >= _code.size())
         {
-            cc_error_fixups(this, INT32_MAX, "bad fixup at %d (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
-                i,  _fixupTypes[i], fixup, static_cast<int32_t>(_code.size()));
+            cc_error_fixups(this, INT32_MAX, "bad fixup at %zu (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
+                i, _fixupTypes[i], fixup, static_cast<int32_t>(_code.size()));
             return false;
         }
 
@@ -568,7 +569,7 @@ bool RuntimeScript::CreateRuntimeCodeFixups()
         case FIXUP_IMPORT:
             break; // do nothing yet
         default:
-            cc_error_fixups(this, INT32_MAX, "unknown fixup type: %d (fixup num %d)", fixup_type, i);
+            cc_error_fixups(this, INT32_MAX, "unknown fixup type: %d (fixup num %zu)", fixup_type, i);
             return false;
         }
     }

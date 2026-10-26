@@ -835,12 +835,12 @@ void Character_LoseInventoryAt(CharacterInfo *chi, int inv_index)
     CharacterExtras &chex = charextra[chi->index_id];
     if (chex.inventory.empty())
     {
-        debug_script_error("Character.RemoveInventoryAt: char %s has no items", chi->scrname);
+        debug_script_error("Character.RemoveInventoryAt: char %s has no items", chi->scrname.GetCStr());
         return;
     }
     if (inv_index < 0 || static_cast<size_t>(inv_index) >= chex.inventory.size())
     {
-        debug_script_error("Character.RemoveInventoryAt: char %s has no item at index %d, inventory range is 0..%zu", chi->scrname, inv_index, chex.inventory.size() - 1);
+        debug_script_error("Character.RemoveInventoryAt: char %s has no item at index %d, inventory range is 0..%zu", chi->scrname.GetCStr(), inv_index, chex.inventory.size() - 1);
         return;
     }
 
@@ -3071,7 +3071,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         return;
     }
 
-    debug_script_log("%s: \"%s\"", speakingChar->scrname, texx);
+    debug_script_log("%s: \"%s\"", speakingChar->scrname.GetCStr(), texx);
 
     EndSkippingUntilCharStops();
 

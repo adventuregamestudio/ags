@@ -145,11 +145,16 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
 
 void GUISlider::UpdateMetrics()
 {
-    assert(GUI::Context.Spriteset);
-    SpriteCache &spriteset = *GUI::Context.Spriteset;
+    // NOTE: be aware that this function may be called while the spriteset is not ready,
+    // therefore the following code should account for this possibility.
+    // TODO: Perhaps we might use a sprite-metrics-getter interface here instead of a
+    // SpriteCache pointer, as we don't need the bitmap itself, only sprite sizes.
+    SpriteCache *spriteset = GUI::Context.Spriteset;
 
+    // New, simpler handle position math, since 3.6.0 Beta
+    const bool handle_pos_360 = (GUI::DataVersion >= kGameVersion_360_21);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
-    const int handle_im = ((_handleImage > 0) && spriteset.DoesSpriteExist(_handleImage)) ? _handleImage : 0;
+    const int handle_im = ((_handleImage > 0) && spriteset && spriteset->DoesSpriteExist(_handleImage)) ? _handleImage : 0;
 
     // Depending on slider's orientation, thickness is either Height or Width
     const int thickness = IsHorizontal() ? _height : _width;
@@ -185,12 +190,14 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(1, _height / 2 - thick_f, _width - 1, bar_thick);
         handle_range = _width - 4;
         int value_pos = (int)(((float)(_value - _minValue) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + value_pos - 1,
-            bar.Top + (bar.GetHeight() - 1 - handle_sz.Height) / 2,
+        handle = RectWH(
+            (bar.Left + 2) - (handle_sz.Width / 2) + 1 + value_pos - 2, // x pos, by value
+            handle_pos_360 ? // y pos, centering handle around bar
+                bar.Top + (bar.GetHeight() - handle_sz.Height) / 2 :
+                bar.Top + (bar.GetHeight() - 1) / 2 - handle_sz.Height / 2 + 1,
             handle_sz.Width, handle_sz.Height);
-        handle = Rect::MoveBy(handle, 0, _handleOffset
-            // Backwards-compatibility: handle graphic had extra 1 pixel offset (2 in hires games)
-            + ((handle_im > 0) ? 1 : 0));
+        // add custom handle offset
+        handle = Rect::MoveBy(handle, 0, _handleOffset);
         handle_gfrange = Rect(
             (bar.Left + 2) - (handle_sz.Width / 2) + 0 - 1,
             handle.Top,
@@ -203,13 +210,14 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
         handle_range = _height - 4;
         int value_pos = (int)(((float)(_maxValue - _value) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH(bar.Left + (bar.GetWidth() - 1 - handle_sz.Width) / 2,
-            (bar.Top + 2) - (handle_sz.Height / 2) + value_pos - 1,
+        handle = RectWH(
+            handle_pos_360 ? // x pos, centering handle around bar
+                bar.Left + (bar.GetWidth() - handle_sz.Width) / 2 :
+                bar.Left + (bar.GetWidth() - 1) / 2 - handle_sz.Width / 2 + 1,
+            (bar.Top + 2) - (handle_sz.Height / 2) + 1 + value_pos - 2, // y pos, by value
             handle_sz.Width, handle_sz.Height);
-        handle = Rect::MoveBy(handle, _handleOffset
-            // Backwards-compatibility: handle graphic had extra 1 pixel offset
-            + ((handle_im > 0) ? 1 : 0)
-            , 0);
+        // add custom handle offset
+        handle = Rect::MoveBy(handle, _handleOffset, 0);
         handle_gfrange = Rect(
             handle.Left,
             (bar.Top + 2) - (handle_sz.Height / 2) + 0 - 1,
@@ -299,6 +307,12 @@ void GUISlider::UpdateVisualState()
 {
     UpdateMetrics();
     MarkPositionChanged(true, true);
+}
+
+void GUISlider::OnContentRectChanged()
+{
+    UpdateMetrics();
+    MarkChanged();
 }
 
 bool GUISlider::OnMouseDown()

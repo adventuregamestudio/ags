@@ -62,7 +62,7 @@ public:
     virtual void PostBackendExit() { };
 
     virtual void Delay(int millis);
-    virtual void DisplayAlert(const char *text, ...);
+    virtual void DisplayAlert(AGS_FORMAT_STRING_ARG const char *text, ...) AGS_FORMAT_STRING_OBJECT(1);
     virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
     // platform specific data file
@@ -98,6 +98,8 @@ public:
     // Formats message and writes to platform's error output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1);
+    // Assigns a text for the window title; same text will be used when displaying message boxes.
+    virtual void SetWindowTitle(const String &title);
     // Display a text in a message box with a "warning" icon.
     // Platforms which do not support this should do nothing.
     virtual void DisplayMessageBox(const char *text);
@@ -142,6 +144,7 @@ protected:
     // A function pointer for stdout write;
     // this is used when printing log, and may be set to null disabling an output
     void (AGSPlatformDriver::*_writeStdOut)(const char *fmt, ...) = nullptr;
+    String _windowTitle;
     // Defines whether engine is allowed to display important warnings
     // and errors by showing a message box kind of GUI.
     bool _guiMode = false;

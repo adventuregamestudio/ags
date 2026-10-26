@@ -36,12 +36,14 @@ COMMON_OBJS = \
 	../../Common/game/customproperties.cpp \
 	../../Common/game/interactions.cpp \
 	../../Common/game/room_file.cpp \
+	../../Common/game/room_file_blocks.cpp \
 	../../Common/game/roomdata.cpp \
 	../../Common/gfx/bitmapdata.cpp \
 	../../Common/gfx/image_bmp.cpp \
 	../../Common/gfx/image_file.cpp \
 	../../Common/gfx/image_pcx.cpp \
 	../../Common/gfx/image_png.cpp \
+	../../Common/gfx/sprite_data_fmt.cpp \
 	../../Common/script/cc_common.cpp \
 	../../Common/script/cc_script.cpp \
 	../../Common/util/bufferedstream.cpp \

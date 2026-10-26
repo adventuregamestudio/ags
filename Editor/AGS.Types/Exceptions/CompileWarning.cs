@@ -21,7 +21,12 @@ namespace AGS.Types
 		{
 		}
 
-		public CompileWarning(string message, Exception innerException)
+        public CompileWarning(string message, CompileMessageIcon icon)
+            : base(message, icon)
+        {
+        }
+
+        public CompileWarning(string message, Exception innerException)
 			: base(message, innerException)
 		{
 		}

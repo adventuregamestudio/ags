@@ -38,6 +38,8 @@ int32_t ccRegisterPersistentObject(void *object, IScriptObject *callback, Script
 int32_t ccRegisterUnserializedObject(int handle, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // register a de-serialized object and mark it persistent (always referenced by the engine)
 int32_t ccRegisterUnserializedPersistentObject(int handle, void *object, IScriptObject *callback, ScriptValueType obj_type = kScValScriptObject);
+// register the object, unless it's already registered; returns its handle
+int32_t ccRegisterPersistentObjectIfMissing(void *object, IScriptObject *);
 // unregister a particular object
 int   ccUnRegisterManagedObject(void *object);
 // remove all registered objects

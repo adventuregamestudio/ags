@@ -156,16 +156,20 @@ int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2)
     return AreObjectsColliding(objj->id, obj2->id);
 }
 
-Bitmap *GetObjectImage(int obj, bool *is_original)
+Bitmap *GetObjectImage(int obj, bool always_original, bool *is_original)
 {
-    // NOTE: the cached image will only be present in software render mode
-    Bitmap *actsp = get_cached_object_image(obj);
-    if (is_original)
-        *is_original = !actsp; // no cached means we use original sprite
-    if (actsp)
-        return actsp;
+    Bitmap *pic = nullptr;
+    if (!always_original)
+    {
+        // NOTE: the cached image will only be present in software render mode
+        pic = get_cached_object_image(obj);
+    }
 
-    return spriteset[objs[obj].num];
+    if (is_original)
+        *is_original = pic == nullptr; // if not used cached image, then use original
+    if (!pic)
+        pic = spriteset[objs[obj].num];
+    return pic;
 }
 
 Bitmap *GetObjectSourceImage(int obj)
@@ -289,7 +293,7 @@ void SetObjectGraphic(int obn, int slott) {
     if (objs[obn].num != slott) {
         objs[obn].num = Math::InRangeOrDef<uint16_t>(slott, 0);
         if (slott > UINT16_MAX)
-            debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
+            debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, slott, UINT16_MAX);
         debug_script_log("Object %d graphic changed to slot %d", obn, slott);
     }
     objs[obn].frame = 0;
@@ -321,7 +325,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     // Current engine's object data limitation by uint16_t
     if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
     {
-        debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
+        debug_script_warn("Object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
                           obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
         SetObjectGraphic(obn, 0);
         return false;
@@ -334,7 +338,7 @@ bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
     int pic = views[viw].loops[lop].frames[fra].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
     return true;
 }
 
@@ -443,7 +447,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     if (!obj.is_enabled())
     {
-        debug_script_warn("%s: object %d is disabled, cannot animate", "AnimateObject", obn);
+        debug_script_warn("%s: object %d is disabled, cannot animate", "Object.Animate", obn);
         return;
     }
     if (obj.view == RoomObject::NoView)
@@ -457,7 +461,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {
-        debug_script_warn("Warning: object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
+        debug_script_warn("Object's (id %d) loop/frame (%d/%d) is outside of internal range (%d/%d), cancel animation",
                           obn, loopn, sframe, UINT16_MAX, UINT16_MAX);
         return;
     }
@@ -472,7 +476,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     int pic = views[obj.view].loops[loopn].frames[obj.frame].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 
     objs[obn].CheckViewFrame();
 
@@ -782,6 +786,12 @@ void Object_DoMove(ScriptObject *objj, const char *api_name, void *path_arr, int
     const RoomObjectInfo &obji = thisroom.Objects[objj->id];
     ValidateMoveParams(api_name, obji.ScriptName.GetCStr(), blocking, ignwal);
     ValidateAnimParams(api_name, obji.ScriptName.GetCStr(), repeat, direction);
+
+    if (!objs[objj->id].is_enabled())
+    {
+        debug_script_warn("%s: object %d is disabled, cannot start move", "Object.Move", objj->id);
+        return;
+    }
 
     if (use_path)
     {

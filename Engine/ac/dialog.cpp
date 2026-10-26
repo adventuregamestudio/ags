@@ -650,7 +650,7 @@ static int write_dialog_options(Bitmap *ds, int at_x, int at_y, int areawid,
             }
             else
             {
-                String number = String::FromFormat(". %d", ww + 1);
+                String number = String::FromFormat(" .%d", ww + 1);
                 wouttext_outline(ds, first_line_at + first_line_wid, curyp, usingfont, text_color, number.GetCStr());
             }
         }
@@ -973,6 +973,7 @@ void DialogOptions::Begin()
     mouseison = -1;
     usingCustomRendering = false;
 
+    // Create script object of DialogOptionsRendering
     ccDialogOptionsRendering = new ScriptDialogOptionsRendering();
     ccAddObjectReference(ccRegisterManagedObject(ccDialogOptionsRendering, ccDialogOptionsRendering));
 
@@ -986,6 +987,16 @@ void DialogOptions::Begin()
             ccDialogOptionsRendering->y,
             ccDialogOptionsRendering->width,
             ccDialogOptionsRendering->height);
+
+        // Create script object of the related DrawingSurface.
+        // NOTE: although DrawingSurface is only allowed to be used within "draw" callback,
+        // we create it here, and keep until the dialog options close. This is done because,
+        // despite a clear warning in the manual, users kept accessing it other callbacks
+        // too in old games, and it worked because engine's implementation did not match
+        // its own specification (so by accident).
+        ScriptDrawingSurface *dopts_surface = new ScriptDrawingSurface();
+        ccAddObjectReference(ccRegisterManagedObject(dopts_surface, dopts_surface));
+        ccDialogOptionsRendering->surfaceToRenderTo = dopts_surface;
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
@@ -1099,12 +1110,11 @@ void DialogOptions::Draw()
         options_bmp->ClearTransparent();
 
         // Custom dialog options rendering
-        ScriptDrawingSurface *dopts_surface = new ScriptDrawingSurface();
+        ScriptDrawingSurface *dopts_surface = ccDialogOptionsRendering->surfaceToRenderTo;
         dopts_surface->isLinkedBitmapOnly = true;
-        ccAddObjectReference(ccRegisterManagedObject(dopts_surface, dopts_surface));
-        ccDialogOptionsRendering->surfaceToRenderTo = dopts_surface;
-        ccDialogOptionsRendering->surfaceAccessed = false;
         dopts_surface->linkedBitmapOnly = options_bmp;
+        ccDialogOptionsRendering->surfaceAccessed = false;
+        ccDialogOptionsRendering->isInDraw = true;
 
         renderDialogOptionsFunc.Params[0].SetScriptObject(ccDialogOptionsRendering, ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
@@ -1121,11 +1131,7 @@ void DialogOptions::Draw()
                 areawid = options_bmp->GetWidth();
         }
         ccDialogOptionsRendering->needRepaint = false;
-        ccDialogOptionsRendering->surfaceToRenderTo = nullptr;
-
-        // Invalidate DrawingSurface object in case they saved its reference in script
-        dopts_surface->Invalidate();
-        ccReleaseObjectReference(ccGetObjectHandleFromAddress(dopts_surface));
+        ccDialogOptionsRendering->isInDraw = false;
     }
     else if (is_textwindow)
     {
@@ -1257,7 +1263,7 @@ bool DialogOptions::Run()
     // then bail out as emergency, because otherwise player will be stuck forever.
     if ((numdisp == 0) && !usingCustomRendering)
     {
-        debug_script_warn("WARNING: No dialog options to display, abort dialog");
+        debug_script_warn("No dialog options to display, abort dialog");
         return false;
     }
 
@@ -1562,6 +1568,13 @@ void DialogOptions::End()
         run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
     }
 
+    // Invalidate DialogOptionsRendering and DrawingSurface objects in case they saved its reference in script
+    if (ccDialogOptionsRendering->surfaceToRenderTo)
+    {
+        ccDialogOptionsRendering->surfaceToRenderTo->Invalidate();
+        ccReleaseObjectReference(ccGetObjectHandleFromAddress(ccDialogOptionsRendering->surfaceToRenderTo));
+    }
+    ccDialogOptionsRendering->Reset();
     ccReleaseObjectReference(ccGetObjectHandleFromAddress(ccDialogOptionsRendering));
     ccDialogOptionsRendering = nullptr; // disposed by the managed pool
 
@@ -1719,6 +1732,8 @@ private:
     int _dlgNum = -1;
     int _dlgWas = -1;
     int _startOpt = -1;
+    // Tells if the dialog process is running the very first entry overall
+    // (not just the starting entry of any topic)
     // CHECKME: this may be unnecessary, investigate later
     bool _isFirstEntry = true;
     // Dialog topics history, used by "goto-previous" command
@@ -1758,8 +1773,9 @@ int DialogExec::HandleDialogResult(int res)
     // Continue to the next dialog
     if (res >= 0)
     {
-        // save the old topic number in the history, and switch to the new one
-        _topicHist.push(_dlgNum);
+        // Save the old topic number in the history, and switch to the new one (unless restarting same dialog)
+        if (_topicHist.size() == 0 || _topicHist.top() != _dlgNum)
+            _topicHist.push(_dlgNum);
         _dlgNum = res;
         return _dlgNum;
     }
@@ -1769,6 +1785,11 @@ int DialogExec::HandleDialogResult(int res)
 void DialogExec::Run()
 {
     _doStop = false;
+
+    // Run option index counts index 0 as a starting entry, actual options begin with index 1
+    int run_option = _startOpt;
+    _startOpt = -1; // reset starting option
+    bool show_options = false; // begin with running starting entry
 
     while (_dlgNum >= 0)
     {
@@ -1783,39 +1804,26 @@ void DialogExec::Run()
         // to the result of processing a next dialog entry or chosen option.
         _doRunDialog = RUN_DIALOG_STAY;
 
-        // If a new dialog topic: run dialog entry point
-        if (_dlgNum != _dlgWas)
+        // Show current dialog's options if necessary
+        if (show_options)
         {
-            const int start_opt = _startOpt;
+            show_options = false;
             _doRunDialog = RUN_DIALOG_STAY;
-            _startOpt = 0; // reset starting option
-            _executedOption = 0;
-            if (start_opt == 0)
-                res = run_dialog_entry(_dlgNum);
-            else
-                res = run_dialog_option(_dlgNum, start_opt - 1, SAYCHOSEN_USEFLAG, true /* run script */);
-            _dlgWas = _dlgNum;
-            _executedOption = -1;
+            _areOptionsDisplayed = true;
+            run_option = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+            // turn into 1-based index; should never become 0 here as starting entry cannot be selected;
+            // if show_dialog_options() returned -1, that means end of dialog
+            if (run_option >= 0)
+                run_option++;
+            _areOptionsDisplayed = false;
 
-            // Handle the dialog entry's result
-            res = HandleDialogResult(res);
-            if (res == RUN_DIALOG_STOP_DIALOG)
-                return; // stop the dialog
-            _isFirstEntry = false;
-            if (res != RUN_DIALOG_STAY)
-                continue; // skip to the next dialog
+            // Stop the dialog if was requested from custom options script
+            if (_doStop)
+                return;
         }
 
-        // Show current dialog's options
-        _areOptionsDisplayed = true;
-        int chose = show_dialog_options(_dlgNum, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
-        _areOptionsDisplayed = false;
-
-        // Stop the dialog if requested from script
-        if (_doStop)
-            return;
-
-        if (chose == CHOSE_TEXTPARSER)
+        // Run requested option, or a dialog request in case of a text parser commit
+        if (run_option == CHOSE_TEXTPARSER)
         {
             said_speech_line = 0;
             res = run_dialog_request(_dlgNum);
@@ -1830,23 +1838,34 @@ void DialogExec::Run()
                 set_cursor_look(game.GetModePointer());
             }
         }
-        else if (chose >= 0)
+        else if (run_option >= 0)
         {
-            _executedOption = chose + 1; // option id is 1-based in script, and 0 is entry point
             // chose some option - handle it and run its script
-            res = run_dialog_option(_dlgNum, chose, SAYCHOSEN_USEFLAG, true /* run script */);
+            _executedOption = run_option;
+            if (run_option == 0)
+                res = run_dialog_entry(_dlgNum);
+            else
+                res = run_dialog_option(_dlgNum, run_option - 1, SAYCHOSEN_USEFLAG, true /* run script */);
+            _dlgWas = _dlgNum; // remember last dialog topic
             _executedOption = -1;
         }
         else
         {
-            return; // no option chosen? - stop the dialog
+            // no option chosen? - stop the dialog
+            return;
         }
 
         // Handle the dialog option's result
         res = HandleDialogResult(res);
         if (res == RUN_DIALOG_STOP_DIALOG)
             return; // stop the dialog
-        // continue to the next dialog or show same dialog's options again
+        _isFirstEntry = false;
+        // Show same dialog's options again
+        if (res == RUN_DIALOG_STAY)
+            show_options = true;
+        // Next or previous dialog: setup starting entry index
+        else
+            run_option = _startOpt >= 0 ? _startOpt : 0;
     }
 }
 

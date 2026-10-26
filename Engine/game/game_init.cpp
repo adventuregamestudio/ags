@@ -72,6 +72,12 @@ extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
+extern CCGUIButton ccDynamicGUIButton;
+extern CCGUIInvWindow ccDynamicGUIInvWindow;
+extern CCGUILabel ccDynamicGUILabel;
+extern CCGUIListBox ccDynamicGUIListBox;
+extern CCGUISlider ccDynamicGUISlider;
+extern CCGUITextBox ccDynamicGUITextBox;
 
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern std::vector<ScriptGUI> scrGui;
@@ -99,6 +105,7 @@ std::vector<int> StaticWalkbehindArray;
 std::vector<int> StaticInventoryArray;
 std::vector<int> StaticDialogArray;
 std::vector<int> StaticAudioClipArray;
+std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 
 namespace AGS
@@ -208,6 +215,46 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
     }
 }
 
+void RegisterAllGUIControls(const GameSetupStruct &game)
+{
+    StaticGUIControlsHandles.resize(game.numgui);
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        auto const &gui = guis[i];
+        StaticGUIControlsHandles[i] = std::vector<int>();
+        StaticGUIControlsHandles[i].resize(gui.GetControlCount());
+    }
+
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        auto const &gui = guis[i];
+        for (int j = 0; j < gui.GetControlCount(); j++)
+        {
+            GUIControl *guio = gui.GetControl(j);
+            IScriptObject *mgr;
+            switch (gui.GetControlType(j))
+            {
+            case kGUIButton: mgr = &ccDynamicGUIButton; break;
+            case kGUILabel: mgr = &ccDynamicGUILabel; break;
+            case kGUIInvWindow: mgr = &ccDynamicGUIInvWindow; break;
+            case kGUISlider: mgr = &ccDynamicGUISlider; break;
+            case kGUITextBox: mgr = &ccDynamicGUITextBox; break;
+            case kGUIListBox: mgr = &ccDynamicGUIListBox; break;
+            default: mgr = nullptr; break;
+            }
+
+            if (!mgr)
+                continue;
+            int handle = ccRegisterPersistentObject(guio, mgr); // add ref for engine
+            StaticGUIControlsHandles[i][j] = handle;
+            if (!guio->GetName().IsEmpty())
+            {
+                ccAddExternalScriptObjectHandle(guio->GetName(), &StaticGUIControlsHandles[i][j]);
+            }
+        }
+    }
+}
+
 // Initializes gui and registers them in the script system
 HError InitAndRegisterGUI(const GameSetupStruct &game)
 {
@@ -237,8 +284,8 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         if (!guis[i].GetName().IsEmpty())
             ccAddExternalScriptObjectHandle(guis[i].GetName(), &StaticGUIArray[i]);
     }
-    // export all the GUI's controls
-    export_all_gui_controls();
+    // register and export all the GUI's controls at once
+    RegisterAllGUIControls(game);
 
     return HError::None();
 }
@@ -332,6 +379,9 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
     {
         load_game_font(i, game.fonts[i], data_ver);
     }
+
+    // Additional fixups - after all the fonts are registered
+    fixup_game_fonts();
 }
 
 // TODO: move lipsync dat reading (and writing?) out to a dedicated module.
@@ -467,6 +517,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.std_gui_textheight = get_font_height_outlined(0) + 1;
     play.enable_antialiasing = usetup.AntialiasSprites;
     play.SetGameTextLanguage(game.GameTextLanguage);
+    if (game.GameInfo.count("dev_error_text") > 0)
+        play.SetGameErrorText(game.GameInfo["dev_error_text"]);
     SetBaseTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
     SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
 

@@ -55,7 +55,7 @@ uint8_t CCCharacter::ReadInt8(const void *address, intptr_t offset)
         + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ + 40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
         return (ci->flags & CHF_ENABLED) != 0;
-    cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
+    cc_error("ScriptCharacter: unsupported 'char' variable offset %" PRIdPTR, offset);
     return 0;
 }
 
@@ -68,27 +68,27 @@ void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
     if (offset == on_offset)
         ci->flags = (ci->flags & ~CHF_ENABLED) | ((CHF_ENABLED | CHF_VISIBLE) * val);
     else
-        cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
+        cc_error("ScriptCharacter: unsupported 'char' variable offset %" PRIdPTR, offset);
 }
 
 int16_t CCCharacter::ReadInt16(const void *address, intptr_t offset)
 {
-    cc_error("ScriptCharacter: unsupported 'short' variable offset %d", offset);
+    cc_error("ScriptCharacter: unsupported 'short' variable offset %" PRIdPTR, offset);
     return 0;
 }
 
 void CCCharacter::WriteInt16(void *address, intptr_t offset, int16_t val)
 {
-    cc_error("ScriptCharacter: unsupported 'short' variable offset %d", offset);
+    cc_error("ScriptCharacter: unsupported 'short' variable offset %" PRIdPTR, offset);
 }
 
 int32_t CCCharacter::ReadInt32(const void *address, intptr_t offset)
 {
-    cc_error("ScriptCharacter: unsupported 'int' variable offset %d", offset);
+    cc_error("ScriptCharacter: unsupported 'int' variable offset %" PRIdPTR, offset);
     return 0;
 }
 
 void CCCharacter::WriteInt32(void *address, intptr_t offset, int32_t val)
 {
-    cc_error("ScriptCharacter: unsupported 'int' variable offset %d", offset);
+    cc_error("ScriptCharacter: unsupported 'int' variable offset %" PRIdPTR, offset);
 }

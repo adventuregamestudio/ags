@@ -217,7 +217,7 @@ namespace AGS.Editor.Components
             else if (controlID.StartsWith(FONT_ITEM_PREFIX))
             {
                 int fontID = Convert.ToInt32(controlID.Substring(FONT_ITEM_PREFIX.Length));
-                _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
+                _itemRightClicked = _agsEditor.CurrentGame.Fonts.GetByIndexOrDefault(fontID, null);
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));
@@ -226,7 +226,7 @@ namespace AGS.Editor.Components
             else if (controlID.StartsWith(FONT_ITEM_REF_PREFIX))
             {
                 int fontID = Convert.ToInt32(controlID.Substring(FONT_ITEM_REF_PREFIX.Length));
-                _itemRightClicked = _agsEditor.CurrentGame.Fonts[fontID];
+                _itemRightClicked = _agsEditor.CurrentGame.Fonts.GetByIndexOrDefault(fontID, null);
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_DELETE_FONT, "Delete this font", null));

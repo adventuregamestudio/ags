@@ -228,8 +228,9 @@ int Compile(const CompilerOptions& comp_opts)
             return -1;
         }
 
+        // Section names keep the extension ("Doors.ash"), as the AGS editor names them; they end up in
+        // the compiled script and are used for error messages and by the debugger.
         String headername = Path::GetFilename(header.c_str());
-        headername = Path::RemoveExtension(headername);
 
         TextStreamReader sr(std::move(in));
         heads.emplace_back(sr.ReadAll(), headername);
@@ -273,7 +274,7 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     String script_pp = nullptr;
     String filename = Path::GetFilename(comp_opts.InputScriptFile.c_str());
-    String script_name = Path::RemoveExtension(filename);
+    String script_name = filename; // with extension, like the AGS editor (see headername above)
 
     script_pp = pp.Preprocess(script_input,script_name);
     if ((script_pp == nullptr) || (cc_has_error()))

@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [Serializable]
-    public class ViewLoop
+    public class ViewLoop : IHasID
     {
         [NonSerialized]
         public static readonly string[] DirectionNames = new string[]{"down", "left", "right", "up", "down-right", "up-right", "down-left", "up-left"};

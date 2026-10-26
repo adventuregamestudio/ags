@@ -118,6 +118,13 @@ static void bmp_read_1bit_line(int length, Stream *in, unsigned char* current_li
         }
         current_line[i] = b[j];
     }
+
+    /* padding: each row is aligned to 4 bytes */
+    i = length % 4;
+    if (i != 0) {
+        while (i++ < 4)
+            in->ReadInt8();
+    }
 }
 
 /* bmp_read_4bit_line:
@@ -144,6 +151,13 @@ static void bmp_read_4bit_line(int length, Stream *in, unsigned char* current_li
         }
         current_line[i] = b[j];
     }
+
+    /* padding: each row is aligned to 4 bytes */
+    i = length % 4;
+    if (i != 0) {
+        while (i++ < 4)
+            in->ReadInt8();
+    }
 }
 
 /* bmp_read_8bit_line:
@@ -153,6 +167,13 @@ static void bmp_read_8bit_line(int length, Stream *in, unsigned char* current_li
 {
     for (int i=0; i<length; i++) {
         current_line[i] = in->ReadInt8();
+    }
+
+    /* padding: each row is aligned to 4 bytes */
+    int i = length % 4;
+    if (i != 0) {
+        while (i++ < 4)
+            in->ReadInt8();
     }
 }
 
@@ -181,7 +202,7 @@ static void bmp_read_16bit_line(int length, Stream *in, unsigned char* current_l
                               _rgb_scale_5[c.b]));
     }
 
-    /* padding */
+    /* padding: each row is aligned to 4 bytes */
     i = (i * 2) % 4;
     if (i != 0) {
         while (i++ < 4)
@@ -205,7 +226,7 @@ static void bmp_read_24bit_line(int length, Stream *in, unsigned char* current_l
         Memory::WriteInt24(current_line+i*3, makecol24(c.r, c.g, c.b));
     }
 
-    /* padding */
+    /* padding: each row is aligned to 4 bytes */
     i = (i * 3) % 4;
     if (i != 0) {
         while (i++ < 4)

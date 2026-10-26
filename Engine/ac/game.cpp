@@ -14,7 +14,6 @@
 #include "ac/game.h"
 #include <queue>
 #include <stdio.h>
-#include <inttypes.h>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
@@ -24,6 +23,7 @@
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -952,7 +952,7 @@ const char *Game_GetName() {
 
 void Game_SetName(const char *newName) {
     play.game_name = newName;
-    sys_window_set_title(play.game_name.GetCStr());
+    platform->SetWindowTitle(play.game_name);
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }
 
@@ -1000,9 +1000,8 @@ int Game_GetColorFromRGB(int red, int grn, int blu)
 }
 
 const char* Game_InputBox(const char *msg) {
-    char buffer[STD_BUFFER_SIZE];
-    ShowInputBoxImpl(msg, buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    String input = ShowInputBoxImpl(msg);
+    return CreateNewScriptString(input);
 }
 
 const char* Game_GetLocationName(int x, int y, int hit_options)
@@ -1061,6 +1060,8 @@ int Game_ChangeTranslation(const char *newFilename)
     if (!init_translation(newFilename, oldTransFileName))
         return 0; // failed, kept previous translation
 
+    if (game.GameInfo.count("dev_error_text") > 0)
+        play.SetGameErrorText(get_translation(game.GameInfo["dev_error_text"].GetCStr()));
     usetup.Translation = newFilename;
     GUIE::MarkForTranslationUpdate();
     return 1;
@@ -1737,11 +1738,10 @@ int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool c
     int hsat = GetHotspotIDAtRoom(x, y, hit_options);
     int objat = GetObjectIDAtRoom(x, y, hit_options);
 
-    int wbat = thisroom.WalkBehindMask->GetPixel(x, y);
-    if (wbat <= 0)
-        wbat = 0;
-    else
-        wbat = croom->walkbehind_base[wbat];
+    int wbat = 0;
+    int wb = thisroom.WalkBehindMask->GetPixel(x, y);
+    if (wb > 0 && wb < MAX_WALK_BEHINDS) // wb == 0 is a no-area
+        wbat = croom->walkbehind_base[wb];
 
     int winner = LOCTYPE_NOTHING;
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
@@ -1952,24 +1952,29 @@ bool load_game_font(int at_index, const FontInfo &finfo, GameDataVersion data_ve
             return false;
     }
 
-    // Additional fixups
+    return true;
+}
+void fixup_game_fonts()
+{
     // CLNUP: perhaps following is not necessary in AGS 4
-    if (!is_bitmap_font(at_index))
+    for (int i = 0; i < game.numfonts; ++i)
     {
-        // Check for the LucasFan font since it comes with an outline font that
-        // is drawn incorrectly with Freetype versions > 2.1.3.
-        // A simple workaround is to disable outline fonts for it and use
-        // automatic outline drawing.
-        const int outline_font = get_font_outline(at_index);
-        if (outline_font >= 0)
+        if (!is_bitmap_font(i))
         {
-            const char *name = get_font_name(at_index);
-            const char *outline_name = get_font_name(outline_font);
-            if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
-                set_font_outline(at_index, FONT_OUTLINE_AUTO);
+            // Check for the LucasFan font since it comes with an outline font that
+            // is drawn incorrectly with Freetype versions > 2.1.3.
+            // A simple workaround is to disable outline fonts for it and use
+            // automatic outline drawing.
+            const int outline_font = get_font_outline(i);
+            if (outline_font >= 0)
+            {
+                const char *name = get_font_name(i);
+                const char *outline_name = get_font_name(outline_font);
+                if ((ags_stricmp(name, "LucasFan-Font") == 0) && (ags_stricmp(outline_name, "Arcade") == 0))
+                    set_font_outline(i, FONT_OUTLINE_AUTO);
+            }
         }
     }
-    return true;
 }
 
 uint32_t add_movelist(MoveList &&mlist)

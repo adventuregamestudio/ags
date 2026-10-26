@@ -13,6 +13,7 @@ namespace AGS.Editor
             // Game info
             game.Settings.GameName = processor.ProcessText(game.Settings.GameName, "Game info", GameTextType.ItemDescription);
             game.Settings.Description = processor.ProcessText(game.Settings.Description, "Game info", GameTextType.ItemDescription);
+            game.Settings.DeveloperErrorText = processor.ProcessText(game.Settings.DeveloperErrorText, "Game info", GameTextType.ItemDescription);
             game.Settings.DeveloperName = processor.ProcessText(game.Settings.DeveloperName, "Game info", GameTextType.ItemDescription);
             game.Settings.DeveloperURL = processor.ProcessText(game.Settings.DeveloperURL, "Game info", GameTextType.ItemDescription);
             game.Settings.Genre = processor.ProcessText(game.Settings.Genre, "Game info", GameTextType.ItemDescription);

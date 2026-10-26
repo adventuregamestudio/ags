@@ -4,7 +4,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class DialogRef : IToXml
+    public class DialogRef : IHasID, IToXml
     {
         private int _id;
         private string _scriptName;

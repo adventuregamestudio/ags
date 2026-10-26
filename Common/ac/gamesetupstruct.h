@@ -81,6 +81,16 @@ struct GameSetupStruct : public GameSetupStructBase
     float             faceDirectionRatio = 1.f;
 
     // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
+    // Following keys are currently supported:
+    // - title - game title;
+    // - description - game description;
+    // - dev_error_text - custom text to use when the game bails out with error;
+    // - dev_name - game developer's name (person or company);
+    // - dev_url - game developer's url;
+    // - genre - game's genre;
+    // - release_date - "dd.MM.yyyy" string;
+    // - version - game's version (assumes X.X.X.X string, but may be anything);
+    // - text_lang - 'en_US' format string which defines game language;
     Common::StringMap GameInfo;
     // Game text language definition, in the form of locale name ('en', 'en_US' etc)
     Common::String GameTextLanguage;
@@ -94,8 +104,12 @@ struct GameSetupStruct : public GameSetupStructBase
     // added in sequence, so there won't be any issue with these.
     // There could be other collection types, more optimal for this case. For example,
     // we could use a kind of hash map containing fixed-sized arrays, where size of
-    // array is calculated based on key spread factor.
+    // array is calculated based on key spread factor (sparse list?).
     std::vector<SpriteInfo> SpriteInfos;
+
+    // Tells if the given game sprite is valid
+    inline bool IsSpriteValid(int sprnum) const
+        { return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid(); }
 
     // Returns a cursor index with standard Walk mode, or -1 if there's none
     int GetModeWalk() const { return _roleCursors[kCursorRole_Walk]; }

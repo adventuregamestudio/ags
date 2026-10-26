@@ -77,6 +77,7 @@ namespace AGS.Editor
         {
             InstalledFonts = new InstalledFontCollection().Families.ToDictionary(t => t.Name, t => t.Name);
             _menuItems = new Dictionary<string, IEditorComponent>();
+            _imageList.ColorDepth = ColorDepth.Depth32Bit; // support 32-bit icons
             Factory.Events.GamePostLoad += Events_GamePostLoad;
         }
 
@@ -431,42 +432,36 @@ namespace AGS.Editor
             }
         }
 
-        public void ShowOutputPanel(CompileMessages errors)
+        public void ShowOutputPanel(CompileMessage message)
         {
-            _mainForm.pnlOutput.ErrorsToList = errors;
-            if (errors.Count > 0)
+            ShowOutputPanel(new CompileMessages(message));
+        }
+
+        public void ShowOutputPanel(CompileMessages messages)
+        {
+            _mainForm.pnlOutput.ErrorsToList = messages;
+            if (messages.Count > 0)
             {
                 // Because in console mode the output panel may not be accessible after execution,
                 // print all the accumulated messages to the console
                 if (StdConsoleWriter.IsEnabled)
                 {
-                    foreach (var message in errors)
+                    foreach (var message in messages)
                     {
                         StdConsoleWriter.WriteLine(message.AsString);
                     }
                 }
-                _mainForm.pnlOutput.Show();
-            }
-        }
-
-        public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
-        {
-            if (StdConsoleWriter.IsEnabled)
-            {
-                foreach(string msg in messages)
+                // Popup the output panel according to the editor's preferences.
+                // This will make the panel visible if it's not currently hidden.
+                // Message will be printed in the panel in any case, and may be always seen by manually
+                // opening the panel.
+                if (_agsEditor.Settings.OutputPanelOnCompile == MessageBoxOnCompile.Always ||
+                    _agsEditor.Settings.OutputPanelOnCompile == MessageBoxOnCompile.OnlyErrors && messages.HasErrors ||
+                    _agsEditor.Settings.OutputPanelOnCompile == MessageBoxOnCompile.WarningsAndErrors && messages.HasErrorsOrWarnings)
                 {
-                    StdConsoleWriter.WriteLine(msg);
+                    _mainForm.pnlOutput.Show();
                 }
             }
-            _mainForm.pnlOutput.SetMessages(messages, imageKey);
-            _mainForm.pnlOutput.Show();
-        }
-
-        public void ShowOutputPanel(string message, string imageKey = "BuildIcon")
-        {
-            StdConsoleWriter.WriteLine(message);
-            _mainForm.pnlOutput.SetMessage(message, imageKey);
-            _mainForm.pnlOutput.Show();
         }
 
         public void ClearOutputPanel()
@@ -1112,45 +1107,78 @@ namespace AGS.Editor
             WindowConfig.SaveToFile(Path.Combine(Factory.AGSEditor.LocalAppData, WINDOW_CONFIG_FILENAME));
         }
 
-        public void CompileAndExit(string projectPath)
-        {
-            bool error = true;
-            if (_interactiveTasks.LoadGameFromDisk(projectPath))
-            {
-                error = false;
-                var messages = _agsEditor.CompileGame(false, false);
-                // The user data may have been amended by the building process
-                if (!messages.HasErrors)
-                    _agsEditor.SaveUserDataFile();
+        //
+        // TODO: these batch process methods should not be in GUIController class,
+        // either Tasks or InteractiveTasks class may be a better place.
 
-                _batchProcessShutdown = true;
-                if (messages.HasErrors)
-                {
-                    error = true;
-                }
-            }
-            if (error)
+        delegate bool BatchTaskFunction(string projectPath);
+
+        /// <summary>
+        /// Runs the given task delegate and exits application;
+        /// exit code is set according to the task delegate's result.
+        /// </summary>
+        private void PerformBatchTaskAndExit(BatchTaskFunction taskProc, string projectPath)
+        {
+            bool result = taskProc(projectPath);
+            _batchProcessShutdown = true;
+            if (!result)
                 Program.SetExitCode(1);
             this.ExitApplication();
         }
 
-        public void SaveAsTemplateAndExit(string projectPath)
+        /// <summary>
+        /// Loads the game project, does full recompilation, and saves game files on success.
+        /// </summary>
+        private bool LoadGameAndCompile(string projectPath)
         {
-            bool error = true;
             if (_interactiveTasks.LoadGameFromDisk(projectPath))
             {
-                error = false;
+                // Here's an important issue: in AGS 3.x projects the room files (*.crm)
+                // are at the same time project source and compilation output, therefore
+                // they *will* be resaved and possibly modified during game compilation.
+                // If the game is being upgraded from an older version, these rooms will get
+                // upgraded. For that reason we must save the game files, so that all
+                // project files are in sync (version-wise).
+                // We save the files prior to compiling, as that's safer in case of
+                // partial compilation: it's okay to have an upgraded project but partially
+                // un-upgraded rooms (they may be upgraded later), but not vice-versa!
+                // This probably does not have to be done in AGS 4.x, where room sources
+                // are separate from compilation output.
+                _agsEditor.SaveGameFiles();
+
                 var messages = _agsEditor.CompileGame(false, false);
-                // The user data may have been amended by the building process
                 if (!messages.HasErrors)
+                {
+                    // The user data may have been amended by the building process
                     _agsEditor.SaveUserDataFile();
+                }
 
-                _batchProcessShutdown = true;
-
-                error = !SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
+                return !messages.HasErrors;
             }
-            if (error) Program.SetExitCode(1);
-            this.ExitApplication();
+            return false;
+        }
+
+        /// <summary>
+        /// Compile the game project according to the current game settings.
+        /// </summary>
+        public void CompileAndExit(string projectPath)
+        {
+            PerformBatchTaskAndExit(LoadGameAndCompile, projectPath);
+        }
+
+        /// <summary>
+        /// Compile the game project and package a template file (*.agt) out of it.
+        /// </summary>
+        public void SaveAsTemplateAndExit(string projectPath)
+        {
+            PerformBatchTaskAndExit((string projPath) =>
+            {
+                if (LoadGameAndCompile(projPath))
+                {
+                    return SaveGameAsTemplate(_agsEditor.CurrentGame.Settings.GameFileName + ".agt");
+                }
+                return false;
+            } , projectPath);
         }
 
         // TODO: ShowWelcomeScreen has a return value but it's never checked;
@@ -1430,13 +1458,15 @@ namespace AGS.Editor
             }
         }
 
-        public void PostOutputAndReportErrors(CompileMessages messages, string compiledWhat, bool alwaysShowOnSuccess = false, bool showFirstError = false)
+        public void PostOutputAndReportErrors(CompileMessages messages, string operationWhat,
+            bool allowMessageOnSuccess = false, bool showFirstError = false)
         {
             ShowOutputPanel(messages);
-            ReportErrorsIfAppropriate(messages, compiledWhat, alwaysShowOnSuccess, showFirstError);
+            ReportErrorsIfAppropriate(messages, operationWhat, allowMessageOnSuccess, showFirstError);
         }
 
-        private void ReportErrorsIfAppropriate(CompileMessages errors, string compiledWhat, bool alwaysShowOnSuccess, bool showFirstError)
+        private void ReportErrorsIfAppropriate(CompileMessages errors, string operationWhat,
+            bool allowMessageOnSuccess, bool showFirstError)
         {
             if (errors.HasErrors)
             {
@@ -1444,9 +1474,9 @@ namespace AGS.Editor
                     || StdConsoleWriter.IsEnabled)
                 {
                     if (showFirstError)
-                        ShowMessage($"{compiledWhat} with errors.{Environment.NewLine}{Environment.NewLine}{errors.FirstError.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with errors.{Environment.NewLine}{Environment.NewLine}{errors.FirstError.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
                     else
-                        ShowMessage($"{compiledWhat} with errors. See the output window for details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with errors. See the output window for details.", MessageBoxIcon.Warning);
                 }
             }
             else if (errors.HasErrorsOrWarnings)
@@ -1455,19 +1485,16 @@ namespace AGS.Editor
                     || StdConsoleWriter.IsEnabled)
                 {
                     if (showFirstError)
-                        ShowMessage($"{compiledWhat} with warnings.{Environment.NewLine}{Environment.NewLine}{errors.FirstWarning.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with warnings.{Environment.NewLine}{Environment.NewLine}{errors.FirstWarning.Message}{Environment.NewLine}{Environment.NewLine}See the output window for more details.", MessageBoxIcon.Warning);
                     else
-                        ShowMessage($"{compiledWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
+                        ShowMessage($"{operationWhat} with warnings. See the output window for more details.", MessageBoxIcon.Warning);
                 }
             }
             else
             {
-                string message = $"{compiledWhat} successfully.";
-                Factory.GUIController.ShowOutputPanel(message);
-                if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always
-                    || alwaysShowOnSuccess)
+                if (allowMessageOnSuccess && (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always))
                 {
-                    ShowMessage(message, MessageBoxIcon.Information);
+                    ShowMessage($"{operationWhat} successfully.", MessageBoxIcon.Information);
                 }
             }
         }

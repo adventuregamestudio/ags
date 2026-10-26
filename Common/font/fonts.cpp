@@ -745,7 +745,7 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, c
     wouttextxy(ds, x, y, font_number, text_color, kBlend_Normal, text);
 }
 
-void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *fmt, ...)
+void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     if (!assert_font_renderer(font_number))
         return;

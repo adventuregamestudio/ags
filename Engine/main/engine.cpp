@@ -144,7 +144,7 @@ void engine_setup_window()
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
     set_our_eip(-198);
-    sys_window_set_title(game.gamename.GetCStr());
+    platform->SetWindowTitle(game.gamename);
     sys_window_set_icon();
 
     SystemConfig sys_cfg;
@@ -801,7 +801,7 @@ void engine_init_game_settings()
     play.dialog_options_font = FONT_UNDEFINED;
     play.min_dialogoption_width = 0;
     play.disable_dialog_parser = 0;
-    play.screen_is_faded_out = 0;
+    play.screen_is_faded_out = false;
     play.player_on_region = 0;
     play.top_bar_backcolor = GUI::GetStandardColor(8);
     play.top_bar_textcolor = GUI::GetStandardColor(16);

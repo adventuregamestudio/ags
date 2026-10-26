@@ -50,6 +50,14 @@ int32_t ccRegisterUnserializedPersistentObject(int handle, void *object, IScript
     // don't add ref, as it should come with the save data
 }
 
+// register the object, unless it's already registered; returns its handle
+int32_t ccRegisterPersistentObjectIfMissing(void *object, IScriptObject *callback) {
+    int32_t handl = pool.AddressToHandle(object);
+    if (handl != 0)
+        return handl;
+    return ccRegisterPersistentObject(object, callback);
+}
+
 // unregister a particular object
 int ccUnRegisterManagedObject(void *object) {
     return pool.RemoveObject(object);

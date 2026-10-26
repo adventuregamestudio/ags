@@ -306,8 +306,8 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
         // Assign final text color, either use passed parameter, or TextWindow property
         if (fix_look.Style == kDisplayTextStyle_TextWindow)
         {
-            if ((usingGui >= 0) &&
-               ((game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
+            if (!fix_look.PreserveTextColor && (usingGui >= 0) &&
+                ((game.options[OPT_SPEECHTYPE] >= kSpeechStyle_SierraBackground) || (fix_look.AsThought)))
                 text_color = text_window_ds->GetCompatibleColor(guis[usingGui].GetFgColor());
             else
                 text_color = text_window_ds->GetCompatibleColor(text_color);
@@ -336,8 +336,12 @@ std::unique_ptr<Bitmap> create_textual_image(const char *text, const DisplayText
     {
         // Textual overlay purposed for the standard message box
         int xoffs, yoffs, oriwid = wii - padding * 2;
-        text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here (may be adjusted inside draw_text_window)
-        text_window_ds = draw_text_window_and_bar(topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
+        color_t window_text_color = GUI::GetStandardColorForBitmap(15); // standard message box color (may be adjusted inside draw_text_window)
+        text_window_ds = draw_text_window_and_bar(topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &window_text_color);
+
+        if (!look.PreserveTextColor)
+            text_color = window_text_color;
+
         text_color = text_window_ds->GetCompatibleColor(text_color);
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);

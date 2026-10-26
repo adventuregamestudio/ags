@@ -7,10 +7,11 @@ namespace AGS.Types
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Image")]
-    public class InventoryItem : IToXml, IComparable<InventoryItem>, ICloneable
+    public class InventoryItem : IHasID, IToXml, IComparable<InventoryItem>, ICloneable
     {
         private string _scriptName = string.Empty;
         private string _displayName = string.Empty;
+
         private int _image = 0;
         private int _cursorImage = 0;
         private bool _startWithItem = false;
@@ -28,6 +29,12 @@ namespace AGS.Types
 
         public InventoryItem()
         {
+        }
+
+        public InventoryItem(int id, string scriptName)
+        {
+            _id = id;
+            _scriptName = scriptName;
         }
 
         [Description("The ID number of the item")]

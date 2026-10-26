@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
+#include "ac/common.h" // quitprintf
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
 #include "ac/dialogoptionsrendering.h"
@@ -112,9 +112,15 @@ ScriptDialog* DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRender
 
 ScriptDrawingSurface* DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    if (dlgOptRender->surfaceToRenderTo)
-        dlgOptRender->surfaceAccessed = true;
-    return dlgOptRender->surfaceToRenderTo;
+    // Enforce that we only return a drawing surface inside "draw" callback;
+    // but still let it in older games (even though it's pointless)
+    if (dlgOptRender->isInDraw || (loaded_game_file_version < kGameVersion_363_04))
+    {
+        if (dlgOptRender->surfaceToRenderTo)
+            dlgOptRender->surfaceAccessed = true;
+        return dlgOptRender->surfaceToRenderTo;
+    }
+    return nullptr;
 }
 
 int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender)

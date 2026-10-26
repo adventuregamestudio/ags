@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("ScriptName")]
-    public class Dialog : IToXml, IComparable<Dialog>, ICloneable
+    public class Dialog : IHasID, IToXml, IComparable<Dialog>, ICloneable
     {
         /*
          * Dialog version history:
@@ -35,7 +35,7 @@ namespace AGS.Types
         private DialogScript _script;
         // TODO: move cached converted script to DialogScript?
         [NonSerialized]
-        private string _cachedConvertedScript;
+        private string _cachedConvertedScript = null;
         private List<DialogOption> _options = new List<DialogOption>();
         private CustomProperties _properties = new CustomProperties(CustomPropertyAppliesTo.Dialogs);
 
@@ -43,7 +43,13 @@ namespace AGS.Types
         {
             _script = new DialogScript();
             _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
-            _cachedConvertedScript = null;
+        }
+
+        public Dialog(int id, string scriptName)
+        {
+            _id = id;
+            _scriptName = scriptName;
+            _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
         }
 
         [Description("The ID number of the dialog")]

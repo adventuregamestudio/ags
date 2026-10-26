@@ -317,7 +317,7 @@ PixelBuffer load_rle_bitmap8(Stream *in, RGB (*pal)[256])
         return {}; // failed to allocate buffer
     // Unpack the pixels
     cunpackbitl(pxbuf.GetData(), w * h, in);
-    // Load or skip the palette
+    // Load or skip the palette; it's saved as 3 bytes per entry in this format
     if (!pal)
     {
         in->Seek(3 * 256);
@@ -383,22 +383,14 @@ void save_lzw(Stream *out, const BitmapData &bmdata, const RGB (*pal)[256])
     std::vector<uint8_t> membuf;
     {
         Stream memws(std::make_unique<VectorStream>(membuf, kStream_Write));
-        const int w = bmdata.GetWidth(), h = bmdata.GetHeight(), bpp = bmdata.GetBytesPerPixel();
-        memws.WriteInt32(bmdata.GetStride()); // stride
-        memws.WriteInt32(h);
-        switch (bpp)
-        {
-        case 1: memws.Write(bmdata.GetData(), w * h * bpp); break;
-        case 2: memws.WriteArrayOfInt16(reinterpret_cast<const int16_t*>(bmdata.GetData()), w * h); break;
-        case 3: memws.WriteArrayOfUInt24(reinterpret_cast<const uint8_t*>(bmdata.GetData()), w * h); break;
-        case 4: memws.WriteArrayOfInt32(reinterpret_cast<const int32_t*>(bmdata.GetData()), w * h); break;
-        default: assert(0); break;
-        }
+        memws.WriteInt32(bmdata.GetWidth() * bmdata.GetBytesPerPixel()); // length of line of pixels
+        memws.WriteInt32(bmdata.GetHeight());
+        PixelOp::WritePixelData(bmdata, &memws);
     }
 
     // Open same buffer for reading, and begin writing compressed data into the output
     Stream mem_in(std::make_unique<VectorStream>(membuf));
-    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+    // NOTE: this format saves full RGB struct here (4 bytes, including the filler)
     if (pal)
         out->WriteArray(*pal, sizeof(RGB), 256);
     else
@@ -422,7 +414,7 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
     if (dst_bpp <= 0)
         return {};
 
-    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+    // NOTE: this format saves full RGB struct here (4 bytes, including the filler)
     if (pal)
         in->Read(*pal, sizeof(RGB) * 256);
     else
@@ -439,24 +431,15 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
 
     // Open same buffer for reading and get params and pixels
     Stream mem_in(std::make_unique<VectorStream>(membuf));
-    const int stride = mem_in.ReadInt32(); // width * bpp
+    const int src_stride = mem_in.ReadInt32();
     const int height = mem_in.ReadInt32();
-    if (stride <= 0 || height <= 0)
+    if (src_stride <= 0 || height <= 0)
         return {};
 
-    PixelBuffer pxbuf((stride / dst_bpp), height, ColorDepthToPixelFormat(dst_bpp * 8));
+    PixelBuffer pxbuf(src_stride / dst_bpp, height, ColorDepthToPixelFormat(dst_bpp * 8));
     if (!pxbuf)
         return {}; // failed to allocate buffer
-    size_t num_pixels = stride * height / dst_bpp;
-    uint8_t *bmp_data = pxbuf.GetData();
-    switch (dst_bpp)
-    {
-    case 1: mem_in.Read(bmp_data, num_pixels); break;
-    case 2: mem_in.ReadArrayOfInt16(reinterpret_cast<int16_t*>(bmp_data), num_pixels); break;
-    case 3: mem_in.ReadArrayOfUInt24(reinterpret_cast<uint8_t*>(bmp_data), num_pixels); break;
-    case 4: mem_in.ReadArrayOfInt32(reinterpret_cast<int32_t*>(bmp_data), num_pixels); break;
-    default: assert(0); break;
-    }
+    PixelOp::ReadPixelData(pxbuf, &mem_in);
 
     if (in->GetPosition() != end_pos)
         in->Seek(end_pos, kSeekBegin);
@@ -466,7 +449,7 @@ PixelBuffer load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
 
 void skip_lzw(Stream *in)
 {
-    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
+    // NOTE: this format saves full RGB struct here (4 bytes, including the filler)
     in->Seek(sizeof(RGB) * 256);
     const size_t uncomp_sz = in->ReadInt32();
     const size_t comp_sz = in->ReadInt32();

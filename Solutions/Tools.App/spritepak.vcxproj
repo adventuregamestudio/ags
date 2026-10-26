@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\Common\gfx\image_file.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_pcx.cpp" />
     <ClCompile Include="..\..\Common\gfx\image_png.cpp" />
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
     <ClCompile Include="..\..\Common\util\compress.cpp" />
@@ -59,6 +60,7 @@
     <ClInclude Include="..\..\Common\ac\spritefile.h" />
     <ClInclude Include="..\..\Common\gfx\bitmapdata.h" />
     <ClInclude Include="..\..\Common\gfx\image_file.h" />
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
     <ClInclude Include="..\..\Common\util\compress.h" />

@@ -9,7 +9,7 @@ namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("LightLevel")]
-    public class RoomRegion : IChangeNotification, ICustomTypeDescriptor, IToXml
+    public class RoomRegion : IHasID, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
         public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
 

@@ -47,7 +47,11 @@ namespace AGS.Editor
             _message = message;
             Text = message.Message;
 
-            if (message is CompileError)
+            if (!string.IsNullOrEmpty(message.Icon.IconName))
+            {
+                ImageKey = message.Icon.IconName;
+            }
+            else if (message is CompileError)
             {
                 ImageKey = IMAGE_KEY_ERROR;
             }

@@ -29,6 +29,8 @@ public:
     ScriptDrawingSurface *surfaceToRenderTo;
     bool surfaceAccessed;
     bool needRepaint;
+    // If currently running draw callback
+    bool isInDraw;
 
     ScriptDialogOptionsRendering();
 

@@ -147,13 +147,14 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
         if (_speed <= 0)
             _speed = 16;
 
         // harmonise speeds with software driver which is faster (???)
         _speed *= 2;
         // Create a "screenshot" on a texture
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
 
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(true);
@@ -221,13 +222,17 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
+        if (_speed <= 0)
+            _speed = 16;
+
         // TODO: scan these functions and double check the palette manipulations
         if (game.color_depth > 1)
         {
             set_palette(*_fadeInPal);
         }
 
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         _alpha = 0;
 
         if (game.color_depth > 1)
@@ -360,8 +365,12 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
+        if (_speed <= 0)
+            _speed = 16;
+
         // Create a "screenshot" on a texture
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
 
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(true);
@@ -447,10 +456,14 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        // Safety fix: set up some default speed
+        if (_speed <= 0)
+            _speed = 16;
+
         // First of all we render the game once again and get the drawn frame as a bitmap.
         // Then we keep drawing saved image of the game, simulating "box-out".
         // TODO: maybe use screenshot_to_ddb instead?
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
@@ -531,7 +544,7 @@ public:
         if (game.color_depth == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
@@ -568,6 +581,7 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
+        // TODO: implement speed parameter, currently unused
         if (_alpha <= 0)
             return false;
         _alpha = std::max(_alpha - 16, 0);
@@ -590,7 +604,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
-        play.screen_is_faded_out = 0; // force all game elements to draw
+        play.screen_is_faded_out = false; // force all game elements to draw
         _view = play.GetMainViewport();
         _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
@@ -637,6 +651,7 @@ public:
         }
         gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
 
+        // TODO: implement speed parameter, currently unused
         _step = std::min(_step + 1, 16);
         return true;
     }
@@ -651,12 +666,29 @@ private:
     RGB _interpal[256]{};
 };
 
+// Tells if we should use instant transition effect, based certain conditions
+inline bool should_instant_transition(ScreenTransitionStyle style)
+{
+    return (style == kScrTran_Instant) ||
+        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+}
+
+// Tells if the screen blackouts on the given transition (may skip scene render)
+inline bool should_blackout_on_transition(ScreenTransitionStyle style)
+{
+    // Do not blackout if it's an instant transition,
+    // but also if it's crossfade or dissolve, since these don't have
+    // any "blackout" frame and previous room instantly changes into new one
+    return !(should_instant_transition(style) ||
+        (style == kScrTran_Crossfade) || (style == kScrTran_Dissolve));
+}
+
 void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
 {
-    if (play.screen_is_faded_out == !fade_in)
+    if (should_blackout_on_transition(style) && (play.screen_is_faded_out == !fade_in))
         return; // already in the wanted state
 
-    bool software_mode = gfxDriver->UsesMemoryBackBuffer();
+    const bool software_mode = gfxDriver->UsesMemoryBackBuffer();
     std::unique_ptr<ScreenTransition> scrtr;
     switch (style)
     {
@@ -694,7 +726,8 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     while (scrtr->Run());
     scrtr->End();
 
-    play.screen_is_faded_out = !fade_in;
+    if (should_blackout_on_transition(style))
+        play.screen_is_faded_out = !fade_in;
 }
 
 void run_fade_in_effect(ScreenTransitionStyle style, int speed)
@@ -709,20 +742,12 @@ void run_fade_in_effect(ScreenTransitionStyle style, int speed)
         run_screen_transition(style, true, speed);
     }
 
-    play.screen_is_faded_out = 0; // mark screen as clear
-}
-
-// Tells if we should use instant transition effect, based certain conditions
-inline bool should_instant_transition(ScreenTransitionStyle style)
-{
-    return (style == kScrTran_Instant) ||
-        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+    play.screen_is_faded_out = false; // mark screen as clear
 }
 
 void run_fade_out_effect(ScreenTransitionStyle style, int speed)
 {
-    const bool instant_transition = should_instant_transition(style);
-    if (instant_transition)
+    if (should_instant_transition(style))
     {
         if (!play.keep_screen_during_instant_transition)
             set_palette_range(black_palette, 0, 255, 0);
@@ -737,7 +762,7 @@ void run_fade_out_effect(ScreenTransitionStyle style, int speed)
     }
 
     // NOTE: the screen could have been faded out prior to transition out
-    play.screen_is_faded_out |= (!instant_transition); // mark screen as faded
+    play.screen_is_faded_out |= should_blackout_on_transition(style); // mark screen as faded
 }
 
 void current_fade_in_effect()
@@ -755,13 +780,13 @@ void current_fade_in_effect()
 
     if (pl_run_plugin_hooks(kPluginEvt_TransitionIn, 0))
     {
-        play.screen_is_faded_out = 0; // mark screen as clear
+        play.screen_is_faded_out = false; // mark screen as clear
         return;
     }
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out = 0; // mark screen as clear
+        play.screen_is_faded_out = false; // mark screen as clear
         return;
     }
 
@@ -807,7 +832,7 @@ void current_fade_out_effect()
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out |= !(should_instant_transition(trans_style)); // mark screen as faded
+        play.screen_is_faded_out |= should_blackout_on_transition(trans_style); // mark screen as faded
         return;
     }
 

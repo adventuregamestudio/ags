@@ -123,7 +123,7 @@ static int DetermineScriptLine(const std::vector<intptr_t> &code, const int32_t 
     return line;
 }
 
-static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, const char *fmt, ...)
+static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -141,8 +141,7 @@ static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, const c
 }
 
 
-const String RuntimeScript::_noname = "(unknown)";
-const String RuntimeScript::_unknownSectionName = "(unknown section)";
+const String RuntimeScript::_noname = "";
 RuntimeScript *RuntimeScript::_linkedScripts[RuntimeScript::MaxLinkedScripts] = { nullptr };
 
 std::unique_ptr<JointRTTI> RuntimeScript::_jointRtti;
@@ -235,9 +234,15 @@ const String &RuntimeScript::GetSectionName(int32_t offset) const
 
     // if no sections in script, return unknown
     if (sect_idx == 0)
-        return _unknownSectionName;
+        return _noname;
 
     return _sectionNames[sect_idx - 1];
+}
+
+const String &RuntimeScript::GetSectionOrScriptName(int32_t offset) const
+{
+    const auto &s = GetSectionName(offset);
+    return s.IsEmpty() ? GetScriptName() : s;
 }
 
 RuntimeScriptValue RuntimeScript::GetSymbolAddress(const String &symname) const

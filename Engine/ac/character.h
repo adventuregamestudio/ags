@@ -201,7 +201,8 @@ void setup_player_character(int charid);
 int GetCharacterWidth(int charid);
 int GetCharacterHeight(int charid);
 
-Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
+// Get current character's image; this may return either source image, or cached transformed image
+Common::Bitmap *GetCharacterImage(int charid, bool always_original = false, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
 Common::Bitmap *GetCharacterSourceImage(int charid);
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;

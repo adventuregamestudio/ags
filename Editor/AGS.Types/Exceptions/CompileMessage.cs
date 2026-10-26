@@ -4,11 +4,26 @@ using System.Text;
 
 namespace AGS.Types
 {
+    /// <summary>
+    /// A helper class that defines the icon used along with the CompileMessage.
+    /// Contains icon identification (currently - string).
+    /// </summary>
+    public struct CompileMessageIcon
+    {
+        public string IconName { get; private set; }
+
+        public CompileMessageIcon(string iconName)
+        {
+            IconName = iconName;
+        }
+    }
+
     public abstract class CompileMessage : ApplicationException
     {
         private int _id = 0;
         private string _scriptName = string.Empty;
         private int _lineNumber = 0;
+        private CompileMessageIcon _icon = new CompileMessageIcon(string.Empty);
 
         public CompileMessage(int id, string message, string scriptName, int lineNumber)
             : base(message)
@@ -28,6 +43,12 @@ namespace AGS.Types
         public CompileMessage(string message)
             : base(message)
         {
+        }
+
+        public CompileMessage(string message, CompileMessageIcon icon)
+            : base(message)
+        {
+            _icon = icon;
         }
 
         public CompileMessage(string message, Exception innerException)
@@ -54,6 +75,11 @@ namespace AGS.Types
         public int LineNumber
         {
             get { return _lineNumber; }
+        }
+
+        public CompileMessageIcon Icon
+        {
+            get { return _icon; }
         }
 
         public string AsString

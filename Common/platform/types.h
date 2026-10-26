@@ -20,6 +20,7 @@
 
 #include <stddef.h> // for size_t
 #include <stdint.h>
+#include <inttypes.h> // for PRI constants
 #include <limits.h> // for _WORDSIZE
 
 #ifndef NULL

@@ -114,7 +114,7 @@ void SkipCutscene();
 
 // ShowInputBox assumes a string buffer of MAX_MAXSTRLEN
 void ShowInputBox(const char *msg, char *bufr);
-void ShowInputBoxImpl(const char *msg, char *bufr, size_t buf_len);
+AGS::Common::String ShowInputBoxImpl(const char *msg);
 
 int GetLocationType(int x, int y, int hit_options);
 int GetLocationType2(int x, int y);

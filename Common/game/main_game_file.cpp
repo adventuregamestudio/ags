@@ -180,8 +180,8 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     // Generate data version for certain game versions that did not have dedicated index;
     // rely on CompiledWith field. This lets distinguish some behavior differences.
     Version compiled_version(src.CompiledWith);
-    if (compiled_version.AsNumber() == 30501)
-        src.DataVersion = kGameVersion_351;
+    if ((compiled_version.AsLongNumber() >= 306020007) && (src.DataVersion < kGameVersion_362_12))
+        src.DataVersion = kGameVersion_362_07;
     return HGameFileError::None();
 }
 
@@ -218,23 +218,26 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
     return OpenMainGameFileBase(src);
 }
 
-HGameFileError ReadDialogScript(UScript &dialog_script, Stream *in, GameDataVersion data_ver)
+UScript TryReadScript(Stream *in, const String &subst_name, MainGameFileErrorType use_err_type, HGameFileError &err)
 {
-    dialog_script.reset(ccScript::CreateFromStream(in));
-    if (dialog_script == nullptr)
-        return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, cc_get_error().ErrorString);
-    return HGameFileError::None();
+    UScript script(ccScript::CreateFromStream(in));
+    if (script && script->GetScriptName().empty())
+        script->SetScriptName(subst_name.GetCStr());
+    else if (!script)
+        err = new MainGameFileError(use_err_type, cc_get_error().ErrorString);
+    return script;
 }
 
 HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, GameDataVersion data_ver)
 {
+    HGameFileError err;
     int count = in->ReadInt32();
     sc_mods.resize(count);
     for (int i = 0; i < count; ++i)
     {
-        sc_mods[i].reset(ccScript::CreateFromStream(in));
-        if (sc_mods[i] == nullptr)
-            return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, cc_get_error().ErrorString);
+        sc_mods[i] = TryReadScript(in, String::FromFormat("ScriptModule%d", i), kMGFErr_CreateScriptModuleFailed, err);
+        if (!err)
+            return err;
     }
     return HGameFileError::None();
 }
@@ -1164,10 +1167,10 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
 
     if (sinfo.HasCCScript)
     {
-        ents.GlobalScript.reset(ccScript::CreateFromStream(in));
-        if (!ents.GlobalScript)
-            return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, cc_get_error().ErrorString);
-        err = ReadDialogScript(ents.DialogScript, in, data_ver);
+        ents.GlobalScript = TryReadScript(in, "GlobalScript", kMGFErr_CreateGlobalScriptFailed, err);
+        if (!err)
+            return err;
+        ents.DialogScript = TryReadScript(in, "DialogScript", kMGFErr_CreateDialogScriptFailed, err);
         if (!err)
             return err;
         err = ReadScriptModules(ents.ScriptModules, in, data_ver);
@@ -1205,8 +1208,13 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     game.read_room_names(in, data_ver);
 
     ents.CharEx.resize(game.numcharacters);
+
+    // Main data complete, try read extensions if there's anything left in stream
+    if (s_in->EOS())
+        return HGameFileError::None();
+
     //-------------------------------------------------------------------------
-    // All the extended data, for AGS > 3.5.0.
+    // All the extended data, for AGS 3.6.0+.
     //-------------------------------------------------------------------------
     GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();

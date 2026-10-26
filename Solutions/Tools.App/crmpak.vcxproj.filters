@@ -150,6 +150,9 @@
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_reflect.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -234,6 +237,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\game\scripteventtable.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_reflect.h">

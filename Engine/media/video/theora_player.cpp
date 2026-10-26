@@ -15,7 +15,6 @@
 
 #ifndef AGS_NO_VIDEO_PLAYER
 
-#include <inttypes.h>
 #include "debug/out.h"
 
 namespace AGS

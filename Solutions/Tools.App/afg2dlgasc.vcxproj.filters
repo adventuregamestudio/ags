@@ -25,6 +25,9 @@
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\util\file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -91,6 +94,9 @@
       <Filter>tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\bufferedstream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\file.h">

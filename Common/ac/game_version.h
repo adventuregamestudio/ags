@@ -122,6 +122,8 @@ OPT_SAVESCREENSHOTLAYER, CHF_TURNWHENFACE. Button's WrapText and padding.
 Few minor behavior changes.
 3.6.2.3:
 Script module names are written in the game data.
+3.6.2.7:
+Optimization to "search nearest area", may affect search results.
 3.6.2.12:
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
@@ -137,6 +139,11 @@ Updated inventory behavior; don't secretly disable all Labels on startup.
 3.6.3.14:
 Do not auto-translate text properties which are set or get in script
 (by principle, only translate texts that are about to be displayed on screen).
+3.6.3.15:
+Various GUI control fixes (which may change the visuals, so worth mentioning).
+Region.Tint no longer remaps amount 0 as 100.
+3.6.3.16:
+Textual overlay supports -1 width for auto-size, keeps text color even if a textwindow is used.
 
 3.9.9 :
 BlendModes
@@ -173,11 +180,8 @@ sync with 3.6.3.14
 enum GameDataVersion
 {
     kGameVersion_Undefined      = 0,
-    // Following version numbers were not saved in data, but are generated
-    // by reading "Compiled With" field from the game file's header.
-    kGameVersion_351            = 3050100,
     //-------------------------------------------------------------------------
-    // Following version numbers are actual versions found in game data.
+    // Since 3.6.0 the format values are synced with engine version
     kGameVersion_360_21         = 3060021,
     kGameVersion_361            = 3060100,
     kGameVersion_361_10         = 3060110,
@@ -191,6 +195,8 @@ enum GameDataVersion
     kGameVersion_363_08         = 3060308,
     kGameVersion_363_10         = 3060310,
     kGameVersion_363_14         = 3060314,
+    kGameVersion_363_15         = 3060315,
+    kGameVersion_363_16         = 3060316,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,
@@ -207,7 +213,12 @@ enum GameDataVersion
     kGameVersion_400_29         = 4000029,
     kGameVersion_400_33         = 4000033,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_33
+    kGameVersion_Current        = kGameVersion_400_33,
+
+    //-------------------------------------------------------------------------
+    // Following version numbers were not saved in data, but are generated
+    // by reading "Compiled With" field from the game file's header.
+    kGameVersion_362_07         = 3060207
 };
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

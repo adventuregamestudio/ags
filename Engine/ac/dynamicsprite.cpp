@@ -193,11 +193,16 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x, int y, int width, int h
         quit("!DynamicSprite.Crop: width and height must be greater than zero");
 
     // Clamp the cropped size to the valid area of the original image
-    if ((x < 0) || (y < 0) || (width > game.SpriteInfos[sds->slot].Width - x) || (height > game.SpriteInfos[sds->slot].Height - y))
-        debug_script_warn("DynamicSprite.Crop: requested to crop to an area outside of the source image: image is %dx%d, crop area %d,%d %dx%d",
-            game.SpriteInfos[sds->slot].Width, game.SpriteInfos[sds->slot].Height, x, y, width, height);
-    Math::ClampLength(x, width, 0, game.SpriteInfos[sds->slot].Width);
-    Math::ClampLength(y, height, 0, game.SpriteInfos[sds->slot].Height);
+    // NOTE: old engines allowed to "crop" to rectangle outside of the image bounds,
+    // which behavior was abused by some games in order to achieve sprite offset, it seems.
+    if (loaded_game_file_version >= kGameVersion_363_08)
+    {
+        if ((x < 0) || (y < 0) || (width > game.SpriteInfos[sds->slot].Width - x) || (height > game.SpriteInfos[sds->slot].Height - y))
+            debug_script_warn("DynamicSprite.Crop: requested to crop to an area outside of the source image: image is %dx%d, crop area %d,%d %dx%d",
+                game.SpriteInfos[sds->slot].Width, game.SpriteInfos[sds->slot].Height, x, y, width, height);
+        Math::ClampLength(x, width, 0, game.SpriteInfos[sds->slot].Width);
+        Math::ClampLength(y, height, 0, game.SpriteInfos[sds->slot].Height);
+    }
 
     if (width <= 0 || height <= 0)
         return; // cannot crop to zero size
@@ -451,7 +456,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
     if (width <= 0 || height <= 0)
     {
-        debug_script_warn("WARNING: DynamicSprite.CreateFromBackground: invalid size %d x %d, will adjust", width, height);
+        debug_script_warn("DynamicSprite.CreateFromBackground: invalid size %d x %d, will adjust", width, height);
         width = std::max(1, width);
         height = std::max(1, height);
     }

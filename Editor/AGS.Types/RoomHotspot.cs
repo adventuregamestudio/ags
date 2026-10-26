@@ -9,8 +9,8 @@ namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     [DefaultProperty("Description")]
-    public class RoomHotspot : IChangeNotification, IToXml
-	{
+    public class RoomHotspot : IHasID, IChangeNotification, IToXml
+    {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
         public const string PROPERTY_NAME_DESCRIPTION = "Description";
 

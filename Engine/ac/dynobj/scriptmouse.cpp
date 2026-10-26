@@ -22,7 +22,7 @@ int32_t ScriptMouse::ReadInt32(const void *address, intptr_t offset)
     case 0: return x;
     case 4: return y;
     default:
-        cc_error("ScriptMouse: unsupported variable offset %d", offset);
+        cc_error("ScriptMouse: unsupported variable offset %" PRIdPTR, offset);
         return 0;
     }
 }
@@ -33,10 +33,10 @@ void ScriptMouse::WriteInt32(void *address, intptr_t offset, int32_t val)
     {
     case 0:
     case 4:
-        debug_script_error("ScriptMouse: attempt to write in readonly variable at offset %d, value", offset, val);
+        debug_script_warn("ScriptMouse: attempt to write in readonly variable at offset %" PRIdPTR ", value %d", offset, val);
         break;
     default:
-        cc_error("ScriptMouse: unsupported variable offset %d", offset);
+        cc_error("ScriptMouse: unsupported variable offset %" PRIdPTR, offset);
         break;
     }
 }

@@ -115,7 +115,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 127: return play.speech_display_post_time_ms;
     case 128: return play.dialog_options_highlight_color;
     default:
-        cc_error("ScriptGame: unsupported variable offset %d", offset);
+        cc_error("ScriptGame: unsupported variable offset %" PRIdPTR, offset);
         return 0;
     }
 }
@@ -172,7 +172,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 84: // play.fast_forward;
     case 85: // play.room_width;
     case 86: // play.room_height;
-        debug_script_error("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
+        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %" PRIdPTR ", value %d", offset, val);
         break;
     case 87:  play.game_speed_modifier = val; break;
     case 88:  break; // [DEPRECATED]
@@ -207,7 +207,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 117: // play.fade_to_red;
     case 118: // play.fade_to_green;
     case 119: // play.fade_to_blue;
-        debug_script_error("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
+        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %" PRIdPTR ", value %d", offset, val);
         break;
     case 120:
         play.show_single_dialog_option = val;
@@ -222,7 +222,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 127:  play.speech_display_post_time_ms = val; break;
     case 128:  play.dialog_options_highlight_color = val; break;
     default:
-        cc_error("ScriptGame: unsupported variable offset %d", offset);
+        cc_error("ScriptGame: unsupported variable offset %" PRIdPTR, offset);
         break;
     }
 }

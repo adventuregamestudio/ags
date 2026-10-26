@@ -14,6 +14,7 @@
 #include "ac/button.h"
 #include "ac/character.h"
 #include "ac/common.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
@@ -36,8 +37,13 @@
 #include "ac/timer.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_audiochannel.h"
+#include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/scriptrestoredsaveinfo.h"
 #include "ac/dynobj/scriptshader.h"
 #include "ac/dynobj/scriptuserobject.h"
@@ -78,6 +84,13 @@ extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern RoomStatus troom;
 extern RoomStatus *croom;
 extern std::vector<ViewStruct> views;
+extern std::vector<ScriptGUI> scrGui;
+extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
+extern CCAudioChannel ccDynamicAudio;
+extern CCAudioClip ccDynamicAudioClip;
+extern CCCharacter ccDynamicCharacter;
+extern CCDialog ccDynamicDialog;
+extern CCGUI ccDynamicGUI;
 
 
 namespace AGS
@@ -194,22 +207,8 @@ Bitmap *ReadBitmap(Stream *in, bool compressed)
     }
     else
     {
-        // TODO: move this code to BitmapHelper?
-        for (int h = 0; h < pichit; ++h)
-        {
-            switch (piccoldep)
-            {
-            case 8:
-                in->ReadArray(thispic->GetScanLineForWriting(h), picwid, 1);
-                break;
-            case 16:
-                in->ReadArrayOfInt16((int16_t *)thispic->GetScanLineForWriting(h), picwid);
-                break;
-            case 32:
-                in->ReadArrayOfInt32((int32_t *)thispic->GetScanLineForWriting(h), picwid);
-                break;
-            }
-        }
+        PixelOp::ReadPixelData(in, thispic->GetDataForWriting(), thispic->GetWidth(), thispic->GetHeight(),
+            thispic->GetBPP(), thispic->GetPitch());
     }
 
     return thispic;
@@ -258,22 +257,7 @@ void WriteBitmap(const Common::Bitmap *thispic, Stream *out, bool compressed)
     }
     else
     {
-        // TODO: move this code to BitmapHelper?
-        for (int h = 0; h < thispic->GetHeight(); ++h)
-        {
-            switch (thispic->GetColorDepth())
-            {
-            case 8:
-                out->WriteArray(&thispic->GetScanLine(h)[0], thispic->GetWidth(), 1);
-                break;
-            case 16:
-                out->WriteArrayOfInt16((const int16_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
-                break;
-            case 32:
-                out->WriteArrayOfInt32((const int32_t *)&thispic->GetScanLine(h)[0], thispic->GetWidth());
-                break;
-            }
-        }
+        PixelOp::WritePixelData(thispic->GetBitmapData(), out);
     }
 }
 
@@ -506,6 +490,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
     free_do_once_tokens();
 
     RemoveAllButtonAnimations();
+    // this may be a remainer of an old code or engine logic which is no longer necessary
     // Clear the managed object pool
     ccUnregisterAllObjects();
 
@@ -708,6 +693,27 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
     return HSaveError::None();
 }
 
+// Registers any static script objects that are missing from the managed pool,
+// e.g. if restoring a save made before they were added to the game
+static void RegisterMissingManagedObjects()
+{
+    for (int i = 0; i < game.numCompatGameChannels; ++i)
+        ccRegisterPersistentObjectIfMissing(&scrAudioChannel[i], &ccDynamicAudio);
+    for (auto &clip : game.audioClips)
+        ccRegisterPersistentObjectIfMissing(&clip, &ccDynamicAudioClip);
+    for (int i = 0; i < game.numcharacters; ++i)
+        ccRegisterPersistentObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
+    for (int i = 0; i < game.numdialog; ++i)
+        ccRegisterPersistentObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        ccRegisterPersistentObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+        // FIXME: implement in ags4 way!! -- see RegisterAllGUIControls()
+        //for (int c = 0; c < guis[i].GetControlCount(); ++c)
+        //    ccRegisterPersistentObjectIfMissing(guis[i].GetControl(c), &ccDynamicGUIObject);
+    }
+}
+
 // Final processing after successfully restoring from save
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
@@ -741,10 +747,11 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, guictrl_refs);
 
-    // Re-export any missing audio channel script objects, e.g. if restoring old save
-    export_missing_audiochans();
+    // Register any static script objects missing from the restored managed pool
+    RegisterMissingManagedObjects();
 
     HError err = LinkGlobalScripts();
+    // this may be a remainer of an old code or engine logic which is no longer necessary
     if (!err)
     {
         return new SavegameError(err, kSvgErr_GameObjectInitFailed, "Failed to link script modules");
@@ -807,7 +814,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     // precache current cursor
     spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
-    sys_window_set_title(play.game_name.GetCStr());
+    platform->SetWindowTitle(play.game_name);
 
     if (displayed_room >= 0)
     {

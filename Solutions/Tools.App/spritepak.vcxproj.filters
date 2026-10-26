@@ -115,6 +115,9 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\spritepak\commands.h">
@@ -179,6 +182,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Tools\data\sprite_utils.h">
       <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

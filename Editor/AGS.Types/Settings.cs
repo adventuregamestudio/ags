@@ -109,6 +109,7 @@ namespace AGS.Types
 		private string _version = DEFAULT_VERSION;
 		private string _developerName = string.Empty;
 		private string _developerURL = string.Empty;
+        private string _developerErrorText = string.Empty;
 		private string _saveGameExtension = string.Empty;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = AudioClip.FixedIndexBase;
@@ -1042,9 +1043,20 @@ namespace AGS.Types
         [Browsable(false)]
         public int WindowsExperienceIndex { get; }
 
-		[DisplayName("Developer name")]
-		[Description("The name of the game developer (you!). On Windows assigned to the game exe properties.")]
-        [Category("(Basic properties)")]
+        [DisplayName("Custom error text")]
+        [Description("A fully custom text to display when the game quits with error message. If none set, then the default engine's error text will be used.")]
+        [Category("(Information)")]
+        [DefaultValue("")]
+        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string DeveloperErrorText
+        {
+            get { return _developerErrorText; }
+            set { _developerErrorText = value; }
+        }
+
+        [DisplayName("Developer name")]
+        [Description("The name of the game developer (you!). When building Windows version of the game this will be assigned to the game exe properties.")]
+        [Category("(Information)")]
         [DefaultValue("")]
         [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string DeveloperName
@@ -1262,7 +1274,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Exclude script function calls")]
-        [Description("Comma-separated list of script functions, which string arguments should be excluded from Translation file.")]
+        [Description("Comma-separated list of names of script functions, which string arguments should be excluded from Translation file.")]
         [Category("Translation")]
         [DefaultValue("")]
         public string TranslationExcludeFunctionCall
@@ -1292,6 +1304,7 @@ namespace AGS.Types
             _releaseDate = DateTime.Now;
             _genre = DEFAULT_GENRE;
             _version = DEFAULT_VERSION;
+            _developerErrorText = string.Empty;
             _developerName = string.Empty;
             _developerURL = string.Empty;
             _saveGameExtension = string.Empty;

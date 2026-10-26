@@ -169,9 +169,12 @@ void FadeOut(int sppd) {
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out = 1;
+        play.screen_is_faded_out = true;
         return;
     }
+
+    if (sppd <= 0)
+        sppd = 16;
 
     // FIXME: we have to sync audio here explicitly, because FadeOut
     // does not call any game update function while it works
@@ -185,7 +188,7 @@ void FadeOut(int sppd) {
     if ((loaded_game_file_version < kGameVersion_361)
         && game.color_depth == 1)
     {
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
     }
 }
 
@@ -222,9 +225,12 @@ void FadeIn(int sppd) {
 
     if (play.fast_forward)
     {
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
         return;
     }
+
+    if (sppd <= 0)
+        sppd = 16;
 
     // Update drawables, prepare them for the transition-in
     // in case this is called after the game state change but before any update was run

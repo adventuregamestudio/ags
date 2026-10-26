@@ -22,7 +22,7 @@ void quit(const String &str)
     quit(str.GetCStr());
 }
 
-void quitprintf(const char *fmt, ...)
+void quitprintf(AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

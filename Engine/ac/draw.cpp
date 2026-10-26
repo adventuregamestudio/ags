@@ -1094,7 +1094,7 @@ void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser
     }
 
     // NOTE: add_sprite_changed_callback will not add the same callback twice, so it's safe to call always
-    if (spriteset.DoesSpriteExist(new_sprnum) && game.SpriteInfos[new_sprnum].IsDynamicSprite())
+    if ((new_sprnum > 0) && spriteset.DoesSpriteExist(new_sprnum) && game.SpriteInfos[new_sprnum].IsDynamicSprite())
     {
         add_sprite_changed_callback(new_sprnum, user);
     }
@@ -1765,8 +1765,7 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
         }
 
         int tint_sat = (tint_level >> 24) & 0xFF;
-        if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
-            (tint_sat == 0))
+        if ((game.color_depth == 1) || (tint_sat == 0))
             tint_level = 0;
 
         if (tint_level) {
@@ -3167,7 +3166,7 @@ void construct_game_scene(bool full_redraw)
         (GraphicFlip)play.screen_flipped);
 
     // Stage: room viewports
-    if (play.screen_is_faded_out == 0 && play.complete_overlay_on == 0)
+    if (!play.screen_is_faded_out && play.complete_overlay_on == 0)
     {
         if (displayed_room >= 0)
         {
@@ -3184,7 +3183,7 @@ void construct_game_scene(bool full_redraw)
     set_our_eip(4);
 
     // Stage: UI overlay
-    if (play.screen_is_faded_out == 0)
+    if (!play.screen_is_faded_out)
     {
         construct_ui_view();
     }
@@ -3206,7 +3205,7 @@ void construct_game_screen_overlay(bool draw_cursor)
     }
 
     // Mouse cursor
-    if ((play.screen_is_faded_out == 0) && draw_cursor && play.ShouldDrawMouseCursor())
+    if ((!play.screen_is_faded_out) && draw_cursor && play.ShouldDrawMouseCursor())
     {
         if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
@@ -3234,7 +3233,7 @@ void construct_game_screen_overlay(bool draw_cursor)
     }
 
     // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
-    if ((play.screen_tint >= 1) && (play.screen_is_faded_out == 0))
+    if ((play.screen_tint >= 1) && (!play.screen_is_faded_out))
         gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
     gfxDriver->EndSpriteBatch();
 
@@ -3243,10 +3242,10 @@ void construct_game_screen_overlay(bool draw_cursor)
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         // Stage: legacy letterbox mode borders
-        if (play.screen_is_faded_out == 0)
+        if (!play.screen_is_faded_out)
             render_black_borders();
         // Stage: full screen fade fx
-        if (play.screen_is_faded_out != 0)
+        if (play.screen_is_faded_out)
             gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
         gfxDriver->EndSpriteBatch();
     }
@@ -3327,9 +3326,11 @@ void update_room_debug()
     if (debugMoveListChar >= 0)
     {
         const int mult = drawstate.SoftwareRender ? 1 : thisroom.MaskResolution;
+        const int fin_width = thisroom.Width;
+        const int fin_height = thisroom.Height;
         if (drawstate.SoftwareRender)
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
-                thisroom.Width, thisroom.Height, true);
+                fin_width, fin_height, true);
         else
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
                 thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
@@ -3349,7 +3350,7 @@ void update_room_debug()
         }
         sync_object_texture(debugMoveListObj);
         debugMoveListObj.Ddb->SetAlpha(150);
-        debugMoveListObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
+        debugMoveListObj.Ddb->SetStretch(fin_width, fin_height);
     }
 }
 
@@ -3360,8 +3361,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     if (play.fast_forward)
         return;
     // Don't render if we've just entered new room and are before fade-in
-    // TODO: find out why this is not skipped for 8-bit games
-    if ((in_new_room != kEnterRoom_None) & (game.color_depth > 1))
+    if (in_new_room != kEnterRoom_None)
         return;
 
     // TODO: find out if it's okay to move shake to update function

@@ -27,8 +27,6 @@ using namespace AGS::Common;
 const char scfilesig[5] = "SCOM";
 
 const std::string ccScript::noname = "";
-// FIXME: this constant should not be in ccScript, but in whoever uses its section names?
-const std::string ccScript::unknownSectionName = "(unknown section)";
 
 // ScriptExtReader reads script data's extension blocks
 class ScriptExtReader : public DataExtReader
@@ -109,6 +107,12 @@ ccScript &ccScript::operator =(const ccScript &src)
     sectionOffsets = src.sectionOffsets;
     if (src.rtti)
         rtti.reset(new RTTI(*src.rtti));
+
+    // In a regular script sections contain an optional list of headers in an order
+    // they were included, and the script body's own name as the last element.
+    if (scriptname.empty() && sectionNames.size() > 0)
+        scriptname = sectionNames.back();
+
     return *this;
 }
 
@@ -255,6 +259,11 @@ bool ccScript::Read(Stream *in)
         }
     }
 
+    // In a regular script sections contain an optional list of headers in an order
+    // they were included, and the script body's own name as the last element.
+    if (scriptname.empty() && sectionNames.size() > 0)
+        scriptname = sectionNames.back();
+
     if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG)
     {
         cc_error("!internal error reading script: end file signature not found");
@@ -265,13 +274,7 @@ bool ccScript::Read(Stream *in)
 
 const std::string &ccScript::GetScriptName() const
 {
-    if (!scriptname.empty())
-        return scriptname;
-    // In a regular script sections contain an optional list of headers in an order
-    // they were included, and the script body's own name as the last element.
-    if (sectionNames.size() > 0)
-        return sectionNames.back();
-    return noname;
+    return scriptname;
 }
 
 const std::string &ccScript::GetSectionName(int32_t offs) const
@@ -286,9 +289,15 @@ const std::string &ccScript::GetSectionName(int32_t offs) const
 
     // if no sections in script, return unknown
     if (sect_idx == 0)
-        return unknownSectionName;
+        return noname;
 
     return sectionNames[sect_idx - 1];
+}
+
+const std::string &ccScript::GetSectionOrScriptName(int32_t offset) const
+{
+    const auto &s = GetSectionName(offset);
+    return s.empty() ? GetScriptName() : s;
 }
 
 void ccScript::SetScriptName(const std::string &name)

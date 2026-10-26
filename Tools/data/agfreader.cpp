@@ -1418,7 +1418,7 @@ static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem ro
             data.ImportFrame = ValueParser::ReadInt(source, "Frame");
             data.RemapToGamePalette = ValueParser::ReadBool(source, "RemapToGamePalette");
             data.RemapToRoomPalette = ValueParser::ReadBool(source, "RemapToRoomPalette");
-            data.TransparentColour = ReadSpriteImportTransparency(ValueParser::ReadString(sprite, "ImportMethod", "LeaveAsIs"));
+            data.TransparentColour = ReadSpriteImportTransparency(ValueParser::ReadString(source, "ImportMethod", "LeaveAsIs"));
             data.ImportAlphaChannel = ValueParser::ReadBool(source, "ImportAlphaChannel");
             data.ImportWidth = ValueParser::ReadInt(source, "ImportWidth");
             data.ImportHeight = ValueParser::ReadInt(source, "ImportHeight");

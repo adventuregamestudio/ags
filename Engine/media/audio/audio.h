@@ -80,8 +80,6 @@ ScriptAudioChannel* play_audio_clip(const ScriptAudioClip *clip, int priority, i
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
 ScriptAudioChannel *play_audio_clip(const AudioPlayback &aplay, int channel, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
 void        stop_and_destroy_channel (int chid);
-// Exports missing AudioChannel objects to script (for importing older saves)
-void        export_missing_audiochans();
 
 //=============================================================================
 

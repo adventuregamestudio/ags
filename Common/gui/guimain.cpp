@@ -935,7 +935,7 @@ Line CalcFontGraphicalVExtent(int font)
     return Line(0, top, 0, bottom);
 }
 
-Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
+Rect CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect)
 {
     const int use_height = get_font_height_outlined(font);
     Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text.GetCStr(), font), use_height), align);
@@ -945,7 +945,7 @@ Point CalcTextPosition(const String &text, int font, const Rect &frame, FrameAli
         Line vextent = CalcFontGraphicalVExtent(font);
         *gr_rect = RectWH(rc.Left + h_ext, rc.Top + vextent.Y1, rc.GetWidth() + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
     }
-    return rc.GetLT();
+    return rc;
 }
 
 Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align)
@@ -1018,15 +1018,15 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
     const Rect &frame, FrameAlignment align)
 {
-    Point pos = CalcTextPosition(text, font, frame, align);
-    wouttext_outline(ds, pos.X, pos.Y, font, text_color, outline_color, kBlend_Normal, text.GetCStr());
+    Rect pos = CalcTextPosition(text, font, frame, align);
+    wouttext_outline(ds, pos.Left, pos.Top, font, text_color, outline_color, kBlend_Normal, text.GetCStr());
 }
 
 void DrawTextAligned(Bitmap* ds, const String& text, int font, color_t text_color, color_t outline_color,
     BlendMode blend_mode, const Rect& frame, FrameAlignment align)
 {
-    Point pos = CalcTextPosition(text, font, frame, align);
-    wouttext_outline(ds, pos.X, pos.Y, font, text_color, outline_color, blend_mode, text.GetCStr());
+    Rect pos = CalcTextPosition(text, font, frame, align);
+    wouttext_outline(ds, pos.Left, pos.Top, font, text_color, outline_color, blend_mode, text.GetCStr());
 }
 
 void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,

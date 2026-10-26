@@ -36,6 +36,7 @@ COMMON_OBJS = \
 	../../Common/gfx/image_file.cpp \
 	../../Common/gfx/image_pcx.cpp \
 	../../Common/gfx/image_png.cpp \
+	../../Common/gfx/sprite_data_fmt.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/compress.cpp \

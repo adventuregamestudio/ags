@@ -473,6 +473,9 @@
     <ClCompile Include="..\..\Common\game\room_file_blocks.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libsrc\freetype\src\base\ftbase.c">
       <Filter>Library Sources\freetype</Filter>
     </ClCompile>
@@ -1011,6 +1014,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\game\room_file_blocks.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
+      <Filter>Header Files\gfx</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\graphicspace.h">
       <Filter>Header Files\gfx</Filter>

@@ -543,10 +543,10 @@ namespace AGS.Editor.Components
                 }
             }
 
-            // TODO: made it always show popup, because it's a special manual operation;
-            // can be disabled later if found unnecessary
+            if (!errors.HasErrors)
+                errors.Add(new CompileInformation("Translation(s) compiled successfully", new CompileMessageIcon("BuildIcon")));
             _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled",
-                true /* always on success */, true /* show first error in popup */);
+                allowMessageOnSuccess: true, showFirstError: true);
         }
 
         public override void CommandClick(string controlID)
@@ -668,13 +668,14 @@ namespace AGS.Editor.Components
                 if (_agsEditor.CurrentGame.Translations.Count < 1)
                 {
                     // can't update if none there!
-                    menu[0].Enabled = false;
+                    menu[0].Enabled = false; // COMMAND_UPDATE_ALL
+                    menu[1].Enabled = false; // COMMAND_COMPILE_ALL
                 }
             }
             else
             {
                 int translationIndex = Convert.ToInt32(controlID.Substring(3));
-                _itemRightClicked = _agsEditor.CurrentGame.Translations[translationIndex];
+                _itemRightClicked = _agsEditor.CurrentGame.Translations.GetByIndexOrDefault(translationIndex, null);
                 _commandIDRightClicked = controlID;
                 if (_itemRightClicked != null)
                 {

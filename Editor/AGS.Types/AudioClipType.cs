@@ -5,8 +5,15 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("VolumeReductionWhileSpeechPlaying")]
-    public class AudioClipType
+    public class AudioClipType : IHasID, IComparable<AudioClipType>
     {
+        // Audio Type ID 0 is reserved for speech
+        public const int FIRST_VALID_ID = 1;
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public int ID { get { return TypeID; } set { TypeID = value; } }
+
         [ReadOnly(true)]
         [Description("The internal ID number of this audio type")]
         [Category("Design")]
@@ -59,6 +66,12 @@ namespace AGS.Types
             }
         }
 
+        public AudioClipType(int typeID, string name)
+        {
+            TypeID = typeID;
+            Name = name;
+        }
+
         public AudioClipType(int typeID, string name, int maxChannels, int volumeReductionWhileSpeechPlaying, bool backwardsCompatType, CrossfadeSpeed crossfading)
         {
             this.TypeID = typeID;
@@ -78,5 +91,14 @@ namespace AGS.Types
         {
             SerializeUtils.SerializeToXML(this, writer);
         }
+
+        #region IComparable<AudioClipType> Members
+
+        public int CompareTo(AudioClipType other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 
 namespace AGS.Types
 {
@@ -16,6 +16,11 @@ namespace AGS.Types
 
         public CompileInformation(string message)
             : base(message)
+        {
+        }
+
+        public CompileInformation(string message, CompileMessageIcon icon)
+            : base(message, icon)
         {
         }
 

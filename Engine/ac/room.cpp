@@ -128,7 +128,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 
     if ((backgroundNumber < 0) || (static_cast<uint32_t>(backgroundNumber) >= thisroom.BgFrameCount))
     {
-        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", thisroom.BgFrameCount - 1);
+        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", backgroundNumber, thisroom.BgFrameCount - 1);
         return nullptr;
     }
 
@@ -149,7 +149,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
 
     if (mask <= kRoomAreaNone || mask >= kNumRoomAreaTypes)
     {
-        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", kRoomAreaHotspot, kRoomAreaRegion);
+        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", mask, kRoomAreaHotspot, kRoomAreaRegion);
         return nullptr;
     }
 
@@ -558,7 +558,7 @@ static void init_object_states(size_t start, size_t end)
         crobj.spr_offset = trobj.GraphicOffset;
         crobj.UpdateGraphicSpace();
         if (trobj.Sprite > UINT16_MAX)
-            debug_script_warn("Warning: object's (id %d) sprite %d outside of internal range (%d), reset to 0",
+            debug_script_warn("Object's (id %d) sprite %d outside of internal range (%d), reset to 0",
                               i, trobj.Sprite, UINT16_MAX);
     }
 }
@@ -647,8 +647,13 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     {
         thisroom.BgImages[i] = PrepareSpriteForUse(
-            thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */, thisroom.BgFrames[i].Palette);
+            thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */,
+            false /* dont care about alpha */, thisroom.BgFrames[i].Palette);
     }
+
+    // If the room script data did not have any name, then assign room filename, primarily for test/debug purposes
+    if (thisroom.CompiledScript && thisroom.CompiledScript->GetScriptName().empty())
+        thisroom.CompiledScript->SetScriptName(room_filename.GetCStr());
 
     set_our_eip(202);
     Mouse_SetBounds(0, 0, 0, 0);
@@ -1054,7 +1059,7 @@ void first_room_initialization() {
 void check_new_room()
 {
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
-    if ((in_new_room != kEnterRoom_None) & (in_new_room != kEnterRoom_RestoredSave))
+    if ((in_new_room != kEnterRoom_None) && (in_new_room != kEnterRoom_RestoredSave))
     {
         AGSEvent evh(AGSEvent_Object(kObjEventType_Room, 0, kRoomEvent_BeforeFadein, game.playercharacter));
         // make sure that any script calls don't re-call enters screen

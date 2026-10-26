@@ -231,18 +231,18 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
     int blocking, int direction, int sframe, int volume)
 {
-    if (!chaa->is_enabled())
-    {
-        debug_script_warn("%s: character %s is turned off and cannot be animated", "Character.Animate", chaa->scrname.GetCStr());
-        return;
-    }
-
     // If idle view in progress for the character, stop the idle anim;
     // do this prior to the loop check, as the view may switch back to defview here
     stop_character_idling(chaa);
 
     ValidateViewAnimVLF("Character.Animate", chaa->scrname.GetCStr(), chaa->view, loop, sframe);
     ValidateViewAnimParams("Character.Animate", chaa->scrname.GetCStr(), blocking, repeat, direction);
+
+    if (!chaa->is_enabled())
+    {
+        debug_script_warn("%s: character %s is turned off, cannot run animation", "Character.Animate", chaa->scrname.GetCStr());
+        return;
+    }
 
     animate_character(chaa, loop, delay, repeat, direction, sframe, volume);
 
@@ -347,7 +347,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
 
     // if animating, but not idle view, give warning message
     if ((chap->flags & CHF_FIXVIEW) && (chap->idleleft >= 0))
-        debug_script_warn("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
+        debug_script_warn("ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
 
     debug_script_log("%s: Change view to %d", chap->scrname.GetCStr(), vii+1);
     chap->defview = vii;
@@ -575,7 +575,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
     chex->SetFollowing(chaa, tofollow ? tofollow->index_id : -1, distaway, eagerness, (eagerness == 1));
 
     if (chex->IsAnimatingRepeatedly())
-        debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
+        debug_script_warn("FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
 }
 
 CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
@@ -776,44 +776,75 @@ void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yof
         stopMoving != 0);
 }
 
-void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
+void Character_LoseInventoryImpl(CharacterInfo *chi, int item_id, int item_inv_index)
+{
+    const int quant = chi->get_item_quantity(item_id);
+    chi->set_item_quantity(item_id, quant - 1);
+    const bool no_item_left = (quant - 1) == 0;
 
+    // If this was a selected item, and its quantity drops to zero,
+    // then reset the active inventory and "use inv" cursor
+    if ((chi->activeinv == item_id) && no_item_left)
+    {
+        chi->activeinv = -1;
+        if ((chi == playerchar) && (is_current_cursor_mode(kCursorRole_UseInv)))
+            set_cursor_mode(0); // change to the first enabled mode
+    }
+
+    const int charid = chi->index_id;
+    if (item_inv_index >= 0)
+    {
+        // Remove from particular inventory slot
+        charextra[charid].inventory.erase(charextra[charid].inventory.begin() + item_inv_index);
+    }
+    else
+    {
+        // Remove one item of this kind (it will be the only item if no duplicates allowed)
+        if (no_item_left || (game.options[OPT_DUPLICATEINV] > 0))
+        {
+            auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), item_id);
+            if (it_found != charextra[charid].inventory.end())
+                charextra[charid].inventory.erase(it_found);
+        }
+    }
+    // Redraw active inventory window(s) for this character
+    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
+
+    if (chi == playerchar)
+        run_on_event(kScriptEvent_InventoryLose, item_id);
+}
+
+void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi)
+{
     if (invi == nullptr)
         quit("!LoseInventoryFromCharacter: invalid inventory number");
 
     const int inum = invi->id;
-    const int quant = chap->get_item_quantity(inum);
-    if (quant == 0)
+    if (!chap->has_any_of_item(inum))
     {
         debug_script_warn("Character.LoseInventory: char %s, item %s: no such item in inventory",
             chap->scrname.GetCStr(), game.invScriptNames[inum].GetCStr());
         return;
     }
-    
-    chap->set_item_quantity(inum, quant - 1);
-    const bool no_item_left = (quant - 1) == 0;
 
-    // If this was a selected item, and its quantity drops to zero,
-    // then reset the active inventory and "use inv" cursor
-    if ((chap->activeinv == inum) && no_item_left)
+    Character_LoseInventoryImpl(chap, inum, -1);
+}
+
+void Character_LoseInventoryAt(CharacterInfo *chi, int inv_index)
+{
+    CharacterExtras &chex = charextra[chi->index_id];
+    if (chex.inventory.empty())
     {
-        chap->activeinv = -1;
-        if ((chap == playerchar) && (is_current_cursor_mode(kCursorRole_UseInv)))
-            set_cursor_mode(0); // change to the first enabled mode
+        debug_script_error("Character.RemoveInventoryAt: char %s has no items", chi->scrname);
+        return;
+    }
+    if (inv_index < 0 || static_cast<size_t>(inv_index) >= chex.inventory.size())
+    {
+        debug_script_error("Character.RemoveInventoryAt: char %s has no item at index %d, inventory range is 0..%zu", chi->scrname, inv_index, chex.inventory.size() - 1);
+        return;
     }
 
-    int charid = chap->index_id;
-    // Remove one item of this kind (it will be the only item if no duplicates allowed)
-    if (no_item_left || (game.options[OPT_DUPLICATEINV] > 0))
-    {
-        auto it_found = std::find(charextra[charid].inventory.begin(), charextra[charid].inventory.end(), inum);
-        if (it_found != charextra[charid].inventory.end())
-            charextra[charid].inventory.erase(it_found);
-    }
-    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
-
-    if (chap == playerchar)
-        run_on_event(kScriptEvent_InventoryLose, inum);
+    Character_LoseInventoryImpl(chi, chex.inventory[inv_index], inv_index);
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 
@@ -2599,13 +2630,27 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
 
     // Ancient hack, where the scan area is restricted by 14 topmost pixels;
     // this is *likely* the historical size of a Sierra-style Statusbar GUI.
-    if (loaded_game_file_version < kGameVersion_362)
+    if (loaded_game_file_version < kGameVersion_362_07)
     {
         limits.Top = std::max(limits.Top, 14);
     }
 
-    if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
-        return false;
+    if (loaded_game_file_version >= kGameVersion_362_07)
+    {
+        if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 1))
+            return false;
+    }
+    else
+    {
+        // First, check every 2 pixels within immediate area
+        if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 20, 2, false /* old method */))
+        {
+            // If not, check whole screen at 5 pixel intervals
+            if (!Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(), at_pt, dst, limits, 0, 5, false /* old method */))
+                return false;
+        }
+    }
+
     dst = Point(mask_to_room_coord(dst.X), mask_to_room_coord(dst.Y));
     return true;
 }
@@ -2807,24 +2852,26 @@ void stop_character_anim(CharacterInfo *chap)
     charextra[chap->index_id].ResetAnimating();
 }
 
-Bitmap *GetCharacterImage(int charid, bool *is_original)
+Bitmap *GetCharacterImage(int charid, bool always_original, bool *is_original)
 {
-    // NOTE: the cached image will only be present in software render mode
-    Bitmap *actsp = get_cached_character_image(charid);
-    if (is_original)
-        *is_original = !actsp; // no cached means we use original sprite
-    if (actsp)
-        return actsp;
+    Bitmap *pic = nullptr;
+    if (!always_original)
+    {
+        // NOTE: the cached image will only be present in software render mode
+        pic = get_cached_character_image(charid);
+    }
 
-    CharacterInfo*chin=&game.chars[charid];
-    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-    return spriteset[sppic];
+    if (is_original)
+        *is_original = pic == nullptr; // if not used cached image, then use original
+    if (!pic)
+        pic = GetCharacterSourceImage(charid);
+    return pic;
 }
 
 Bitmap *GetCharacterSourceImage(int charid)
 {
-    CharacterInfo*chin = &game.chars[charid];
-    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
+    const CharacterInfo &chin = game.chars[charid];
+    int sppic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
     return spriteset[sppic];
 }
 
@@ -2875,7 +2922,7 @@ void update_character_scale(int charid)
     if (chin.loop >= views[chin.view].numLoops)
     {
         // a stale loop can survive a view change, re-select a valid loop
-        debug_script_warn("WARNING: The character '%s' was to be displayed with loop %d of view %d, which does not exist; resetting to a valid loop.",
+        debug_script_warn("The character '%s' was to be displayed with loop %d of view %d, which does not exist; resetting to a valid loop.",
             chin.scrname.GetCStr(), chin.loop, chin.view + 1);
         FindReasonableLoopForCharacter(&chin, chin.view == chin.defview);
     }
@@ -2909,6 +2956,7 @@ void update_character_scale(int charid)
 int GetCharIDAtRoom(int x, int y, int hit_options)
 {
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
+
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
@@ -3015,13 +3063,15 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
-    if (play.screen_is_faded_out > 0)
-        debug_script_warn("Warning: blocking Say call during fade-out.");
+    if (play.screen_is_faded_out)
+        debug_script_warn("Blocking Say call during fade-out.");
     if (play.text_overlay_on > 0)
     {
         debug_script_warn("DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
         return;
     }
+
+    debug_script_log("%s: \"%s\"", speakingChar->scrname, texx);
 
     EndSkippingUntilCharStops();
 
@@ -3116,15 +3166,13 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     // in the future; but that would require a large refactor of all the coordinate
     // calculations below, and inside display_main.
     int tdxp = xx, tdyp = yy;
-    int oldview=-1, oldloop = -1;
+    int oldview = -1, oldloop = -1;
     int ovr_type = 0;
     text_lips_offset = 0;
     text_lips_text = texx;
     std::unique_ptr<Bitmap> closeupface;
-    int charFrameWas = 0;
-    int viewWasLocked = 0;
-    if (speakingChar->flags & CHF_FIXVIEW)
-        viewWasLocked = 1;
+    int char_frame_was = 0;
+    const bool view_was_locked = (speakingChar->flags & CHF_FIXVIEW);
     char_speaking = speakingChar->index_id;
 
     // Start voice-over, if requested by the tokens in speech text
@@ -3143,8 +3191,8 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         // if they were moving, this will be 0 (because we just called
         // StopMoving); otherwise, it might be a specific animation 
         // frame which we should return to
-        if (viewWasLocked)
-            charFrameWas = speakingChar->frame;
+        if (view_was_locked)
+            char_frame_was = speakingChar->frame;
 
         if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
             quitprintf("!Character %s current view %d is invalid, or has no loops.",
@@ -3152,7 +3200,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         // If current view is missing a loop - use loop 0
         if (speakingChar->loop >= views[speakingChar->view].numLoops)
         {
-            debug_script_warn("WARNING: Character %s current view %d does not have necessary loop %d; switching to loop 0.",
+            debug_script_warn("Character %s current view %d does not have necessary loop %d; switching to loop 0.",
                 speakingChar->scrname.GetCStr(), speakingChar->view + 1, speakingChar->loop);
             speakingChar->loop = 0;
         }
@@ -3425,7 +3473,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
             // If speech view is missing a loop - use loop 0
             if (speakingChar->loop >= views[speakingChar->view].numLoops)
             {
-                debug_script_warn("WARNING: Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
+                debug_script_warn("Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
                     speakingChar->scrname.GetCStr(), speakingChar->view + 1, speakingChar->loop);
                 speakingChar->loop = 0;
             }
@@ -3475,14 +3523,17 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
     face_talking = -1;
     facetalkchar = nullptr;
     set_our_eip(157);
-    if (oldview>=0) {
+    // Following will restore character's main view after Lucasarts-style speech
+    if (oldview >= 0)
+    {
+        // Restore the character's locked view (if one was locked prior to the speech)
         speakingChar->flags &= ~CHF_FIXVIEW;
-        if (viewWasLocked)
+        if (view_was_locked)
             speakingChar->flags |= CHF_FIXVIEW;
-        speakingChar->view=oldview;
+        speakingChar->view = oldview;
         stop_character_anim(speakingChar);
-        speakingChar->frame = charFrameWas;
-        speakingChar->wait=0;
+        speakingChar->frame = char_frame_was;
+        speakingChar->wait = 0;
         // Restart idle timer
         reset_character_idling_time(speakingChar);
     }
@@ -3869,6 +3920,11 @@ RuntimeScriptValue Sc_Character_MovePath(void *self, const RuntimeScriptValue *p
 RuntimeScriptValue Sc_Character_PlaceOnWalkableArea(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID(CharacterInfo, Character_PlaceOnWalkableArea);
+}
+
+RuntimeScriptValue Sc_Character_LoseInventoryAt(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_LoseInventoryAt);
 }
 
 // void (CharacterInfo *chaa)
@@ -4849,6 +4905,7 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::LockViewFrame^4",           API_FN_PAIR(Character_LockViewFrameEx) },
         { "Character::LockViewOffset^4",          API_FN_PAIR(Character_LockViewOffsetEx) },
         { "Character::LoseInventory^1",           API_FN_PAIR(Character_LoseInventory) },
+        { "Character::LoseInventoryAt^1",         API_FN_PAIR(Character_LoseInventoryAt) },
         { "Character::Move^4",                    API_FN_PAIR(Character_Move) },
         { "Character::MovePath^4",                API_FN_PAIR(Character_MovePath) },
         { "Character::MoveStraight^3",            API_FN_PAIR(Character_MoveStraight) },

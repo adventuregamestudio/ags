@@ -63,6 +63,7 @@ enum RoomFileVersion
     kRoomVersion_3508       = 33,
     kRoomVersion_399        = 40, // was reserved for early 4.0 alpha
     kRoomVersion_363_06     = 36306,
+    kRoomVersion_363_15     = 36315,
     kRoomVersion_400        = 4000000,
     kRoomVersion_400_17     = 4000017,
     kRoomVersion_400_24     = 4000024,

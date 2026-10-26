@@ -613,8 +613,11 @@ enum TurnOrderPriority
 // Determines which of the key and text input events are claimed by the active TextBox control
 enum TextBoxKeyClaimStyle
 {
-  eTextBoxKeyClaimAll          = 0,
+  /// Any text char, any key code from 32 to 255, Enter/Return and Backspace
+  eTextBoxKeyClaimClassic      = 0,
+  /// Only keys that text box handles itself
   eTextBoxKeyClaimHandled      = 1,
+  /// Only text chars that text box handles itself
   eTextBoxKeyClaimTextOnly     = 2
 };
 
@@ -801,6 +804,10 @@ internalstring autoptr builtin managed struct String {
   /// Checks whether this string starts with the specified text.
   import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Returns a reversed copy of this string.
+  import String  Reverse();
+#endif // SCRIPT_API_v363
   /// Converts the string to a float.
   readonly import attribute float AsFloat;
   /// Converts the string to an integer.
@@ -2074,8 +2081,12 @@ builtin managed struct ListBox extends GUIControl {
   /// Gets/sets regular list item's text color
   import attribute int  TextColor;
   /// Gets/sets the colour of the list item text's outline (used if the item's font has outline).
-  import attribute int    TextOutlineColor;
+  import attribute int  TextOutlineColor;
 #endif // SCRIPT_API_v350
+#ifdef SCRIPT_API_v363
+  /// Gets a list's row height in pixels. This depends on the list's text font and extra item padding.
+  import readonly attribute int RowHeight;
+#endif // SCRIPT_API_v363
 };
 
 builtin managed struct GUI {
@@ -3054,6 +3065,10 @@ builtin managed struct Character {
   import void LockViewOffset(int view, int xOffset, int yOffset, StopMovementStyle=eStopMoving);
   /// Removes the item from this character's inventory.
   import void LoseInventory(InventoryItem *item);
+#ifdef SCRIPT_API_v363
+  /// Removes an item at the given index of this character's inventory. This also lets remove particular instance in case character owns duplicates of the same inventory item.
+  import void LoseInventoryAt(int inventoryIndex);
+#endif // SCRIPT_API_v363
   /// Moves the character to the destination, without playing his walking animation.
   import void Move(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Moves the character to the nearest walkable area.

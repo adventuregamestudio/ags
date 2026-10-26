@@ -380,7 +380,7 @@ String String::Wrapper(const char *cstr)
     return str;
 }
 
-/* static */ String String::FromFormat(const char *fcstr, ...)
+/* static */ String String::FromFormat(AGS_FORMAT_STRING_ARG const char *fcstr, ...)
 {
     fcstr = fcstr ? fcstr : "";
     String str;
@@ -391,7 +391,7 @@ String String::Wrapper(const char *cstr)
     return str;
 }
 
-/* static */ String String::FromFormatV(const char *fcstr, va_list argptr)
+/* static */ String String::FromFormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr)
 {
     String str;
     str.FormatV(fcstr, argptr);
@@ -619,7 +619,7 @@ void String::AppendChar(char c)
     }
 }
 
-void String::AppendFmt(const char *fcstr, ...)
+void String::AppendFmt(AGS_FORMAT_STRING_ARG const char *fcstr, ...)
 {
     va_list argptr;
     va_start(argptr, fcstr);
@@ -627,14 +627,14 @@ void String::AppendFmt(const char *fcstr, ...)
     va_end(argptr);
 }
 
-void String::AppendFmtv(const char *fcstr, va_list argptr)
+void String::AppendFmtv(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr)
 {
     fcstr = fcstr ? fcstr : "";
     va_list argptr_cpy;
     va_copy(argptr_cpy, argptr);
     size_t length = vsnprintf(nullptr, 0u, fcstr, argptr);
     ReserveAndShift(false, length);
-    vsprintf(_cstr + _len, fcstr, argptr_cpy);
+    vsnprintf(_cstr + _len, length + 1, fcstr, argptr_cpy);
     va_end(argptr_cpy);
     _len += length;
     _cstr[_len] = 0;
@@ -763,7 +763,7 @@ void String::FillString(char c, size_t count)
     }
 }
 
-void String::Format(const char *fcstr, ...)
+void String::Format(AGS_FORMAT_STRING_ARG const char *fcstr, ...)
 {
     va_list argptr;
     va_start(argptr, fcstr);
@@ -771,14 +771,14 @@ void String::Format(const char *fcstr, ...)
     va_end(argptr);
 }
 
-void String::FormatV(const char *fcstr, va_list argptr)
+void String::FormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr)
 {
     fcstr = fcstr ? fcstr : "";
     va_list argptr_cpy;
     va_copy(argptr_cpy, argptr);
     size_t length = vsnprintf(nullptr, 0u, fcstr, argptr);
     ReserveAndShift(false, Math::Surplus(length, _len));
-    vsprintf(_cstr, fcstr, argptr_cpy);
+    vsnprintf(_cstr, length + 1, fcstr, argptr_cpy);
     va_end(argptr_cpy);
     _len = length;
     _cstr[_len] = 0;

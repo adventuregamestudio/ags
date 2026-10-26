@@ -174,17 +174,9 @@ namespace AGS.Editor.Components
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("GUI", oldNumber, 0, _items.Count - 1);
                 if (newNumber < 0)
                     return;
-                foreach (var obj in _items)
-                {
-                    if (obj.Value.ID == newNumber)
-                    {
-                        obj.Value.ID = oldNumber;
-                        break;
-                    }
-                }
-                _guiRightClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(_guiRightClicked, oldNumber, false);
+
+                if (SafeSwapItemIDs(GetFlatList(), oldNumber, newNumber))
+                    OnItemIDOrNameChanged(_guiRightClicked, oldNumber, false);
             }
             else if (controlID == COMMAND_GO_TO_GUI_NUMBER)
             {

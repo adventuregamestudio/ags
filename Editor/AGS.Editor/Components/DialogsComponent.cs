@@ -164,19 +164,13 @@ namespace AGS.Editor.Components
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Dialog", oldNumber, 0, _items.Count - 1);
                 if (newNumber < 0)
                     return;
-                foreach (var obj in _items)
-                {
-                    if (obj.Value.ID == newNumber)
-                    {
-                        obj.Value.ID = oldNumber;
-                        break;
-                    }
-                }
-                _itemRightClicked.ID = newNumber;
+
                 // NOTE: remember we must swap items in both Dialogs and DialogRefs list!
-                _agsEditor.CurrentGame.Dialogs.Swap(oldNumber, newNumber);
-                GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDOrNameChanged(_itemRightClicked.Dialog, false);
+                if (SafeSwapItemIDs(GetFlatList(), oldNumber, newNumber) &&
+                    SafeSwapItemIDs(_agsEditor.CurrentGame.Dialogs, oldNumber, newNumber))
+                {
+                    OnItemIDOrNameChanged(_itemRightClicked.Dialog, false);
+                }
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {

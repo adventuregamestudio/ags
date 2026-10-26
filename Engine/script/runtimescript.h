@@ -92,7 +92,6 @@ class RuntimeScript
 {
     using String = AGS::Common::String;
     static const String _noname;
-    static const String _unknownSectionName;
 public:
     RuntimeScript() = default;
     ~RuntimeScript();
@@ -142,6 +141,9 @@ public:
     const std::vector<ResolvedExport> &GetResolvedExports() const { return _resolvedExports; }
     // Get script section's name at a given bytecode offset
     const String &GetSectionName(int32_t offset) const;
+    // Get either script section's name at a given bytecode offset,
+    // or script name, if the former is not specified
+    const String &GetSectionOrScriptName(int32_t offset) const;
     // Get an optional table of contents for this script
     const ScriptTOC *GetTOC() const { return _toc.get(); }
     const RTTI *GetRTTI() const { return _rtti.get(); }

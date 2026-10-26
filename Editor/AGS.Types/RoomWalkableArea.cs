@@ -8,7 +8,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("ScalingLevel")]
-    public class RoomWalkableArea : IChangeNotification, ICustomTypeDescriptor, IToXml
+    public class RoomWalkableArea : IHasID, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
         public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
 

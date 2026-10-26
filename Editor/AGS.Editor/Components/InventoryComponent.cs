@@ -88,17 +88,10 @@ namespace AGS.Editor.Components
                 int newNumber = Factory.GUIController.ShowChangeObjectIDDialog("Inventory", oldNumber, 1, _items.Count);
                 if (newNumber < 0)
                     return;
-                foreach (var obj in _items)
-                {
-                    if (obj.Value.ID == newNumber)
-                    {
-                        obj.Value.ID = oldNumber;
-                        break;
-                    }
-                }
-                _itemRightClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber - 1, newNumber - 1); // inventory IDs are logically 1-based
-                OnItemIDOrNameChanged(_itemRightClicked, false);
+
+                // NOTE: inventory IDs are 1-based
+                if (SafeSwapItemIDs(GetFlatList(), oldNumber - 1, newNumber - 1))
+                    OnItemIDOrNameChanged(_itemRightClicked, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {

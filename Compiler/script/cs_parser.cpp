@@ -230,7 +230,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             // write the line number (for debugging)
             linenum++;
             targ->write_meta(SMETA_LINENUM,linenum);
-            if (fmem_peekc(iii) =='\n') fmem_getc(iii);
+            // a CR LF pair is one line break; only skip the LF after a CR (\n\n is two lines)
+            if ((thischar == '\r') && (fmem_peekc(iii) == '\n')) fmem_getc(iii);
             currentline=linenum;
             // go back and get the whitespace after the CRLF
             continue;
@@ -662,7 +663,7 @@ int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative
     }
   }
   else {
-    cc_error((char*)errorMsg);
+    cc_error("%s", errorMsg);
     return -1;
   }
   return 0;

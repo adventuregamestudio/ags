@@ -56,13 +56,12 @@ std::vector<AnimatedOverlay> animovers;
 std::vector<size_t> over_to_anim; // overlay to animated overlay lookup
 std::queue<size_t> animover_free_ids;
 
-// Gets an actual ScreenOverlay object from its ScriptOverlay reference,
-// validate object, throw an error on failure
-static ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
+
+ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id)
 {
-    auto *over = get_overlay(scover->GetOverlayID());
+    auto *over = get_overlay(over_id);
     if (!over)
-        quitprintf("!%s: invalid overlay specified", apiname);
+        debug_script_error("%s: invalid overlay specified (%d)", apiname, over_id);
     return over;
 }
 
@@ -74,8 +73,8 @@ void Overlay_Remove(ScriptOverlay *sco)
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text)
 {
     auto *over = GetOverlayValidate("Overlay.SetText", scover);
-
-    Overlay_SetText(*over, over->GetX(), over->GetY(), width, fontid, text_color, text);
+    if (over)
+        Overlay_SetText(*over, over->GetX(), over->GetY(), width, fontid, text_color, text);
 }
 
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text)
@@ -83,12 +82,27 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // TODO: find a nice way to refactor and share these code pieces
     // with Overlay_CreateTextCore
     DisplayTextPosition text_pos = over.IsAutoPosition() ? kDisplayTextPos_Overchar : kDisplayTextPos_Normal;
-    // allow DisplaySpeechBackground to be shrunk
-    DisplayTextShrink allow_shrink = over.IsAutoPosition() ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
+    const bool auto_width = (width < 0);
 
-    // from Overlay_CreateTextCore
-    if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
-    if (text_color == 0) text_color = GUI::GetStandardColor(16);
+    // Allow automatic-width text to shrink to fit.
+    DisplayTextShrink allow_shrink =
+        (auto_width || over.IsAutoPosition())
+        ? kDisplayTextShrink_Left
+        : kDisplayTextShrink_None;
+
+    // Calculate automatic width using the same limit as Display().
+    if (auto_width)
+    {
+        width = play.GetUIViewport().GetWidth() * 3 / 4;
+    }
+    else
+    {
+        if (width < 8)
+            width = play.GetUIViewport().GetWidth() / 2;
+    }
+
+    if (text_color == 0)
+        text_color =  GUI::GetStandardColor(16);
 
     const char *draw_text = get_translation(text);
     // Skip a voice-over token, if present
@@ -96,9 +110,12 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 
     // Recreate overlay image
     int adj_x = x, adj_y = y;
+    DisplayTextLooks look(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink);
+    look.PreserveTextColor = loaded_game_file_version >= kGameVersion_363_16;
+
     std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
-        DisplayTextLooks(kDisplayTextStyle_TextWindow, text_pos, allow_shrink),
-        text_color, x, y, adj_x, adj_y, width, fontid, nullptr);
+        look, text_color, x, y, adj_x, adj_y,
+        width, fontid, nullptr);
 
     // Update overlay properties
     over.SetFixedPosition(x, y);
@@ -109,29 +126,40 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 int Overlay_GetX(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.X", scover);
-    if (over->IsAutoPosition())
-        autoposition_overlay(*over); // in case they moved character in script, etc
-    return over->GetX();
+    
+    if (over)
+    {
+        if (over->IsAutoPosition())
+            autoposition_overlay(*over); // in case they moved character in script, etc
+        return over->GetX();
+    }
+    return 0;
 }
 
 void Overlay_SetX(ScriptOverlay *scover, int newx)
 {
     auto *over = GetOverlayValidate("Overlay.X", scover);
-    over->SetFixedPosition(newx, over->GetY());
+    if (over)
+        over->SetFixedPosition(newx, over->GetY());
 }
 
 int Overlay_GetY(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Y", scover);
-    if (over->IsAutoPosition())
-        autoposition_overlay(*over); // in case they moved character in script, etc
-    return over->GetY();
+    if (over)
+    {
+        if (over->IsAutoPosition())
+            autoposition_overlay(*over); // in case they moved character in script, etc
+        return over->GetY();
+    }
+    return 0;
 }
 
 void Overlay_SetY(ScriptOverlay *scover, int newy)
 {
     auto *over = GetOverlayValidate("Overlay.Y", scover);
-    over->SetFixedPosition(over->GetX(), newy);
+    if (over)
+        over->SetFixedPosition(over->GetX(), newy);
 }
 
 bool Overlay_GetAutoSize(ScriptOverlay *scover)
@@ -149,7 +177,7 @@ void Overlay_SetAutoSize(ScriptOverlay *scover, bool auto_size)
 int Overlay_GetGraphic(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Graphic", scover);
-    return over->GetSpriteNum();
+    return over ? over->GetSpriteNum() : 0;
 }
 
 void Overlay_SetGraphic(ScriptOverlay *scover, int slot)
@@ -160,55 +188,66 @@ void Overlay_SetGraphic(ScriptOverlay *scover, int slot)
         debug_script_warn("Overlay.SetGraphic: sprite %d is invalid", slot);
         slot = 0;
     }
-    over->SetSpriteNum(slot);
+    if (over)
+        over->SetSpriteNum(slot);
 }
 
 bool Overlay_InRoom(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.InRoom", scover);
-    return over->IsRoomLayer();
+    return over ? over->IsRoomLayer() : false;
 }
 
 int Overlay_GetWidth(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Width", scover);
     return over->GetDestinationWidth();
+    return over ? over->GetScaledWidth() : 0;
 }
 
 int Overlay_GetHeight(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
     return over->GetDestinationHeight();
+    return over ? over->GetScaledHeight() : 0;
 }
 
 int Overlay_GetGraphicWidth(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.GraphicWidth", scover);
     return over->GetGraphicSize().Width;
+    return over ? over->GetGraphicSize().Width : 0;
 }
 
 int Overlay_GetGraphicHeight(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.GraphicHeight", scover);
     return over->GetGraphicSize().Height;
+    return over ? over->GetGraphicSize().Height : 0;
 }
 
 void Overlay_SetWidth(ScriptOverlay *scover, int width)
 {
     auto *over = GetOverlayValidate("Overlay.Width", scover);
-    if (width > 0)
-        over->SetDestinationSize(width, over->GetDestinationHeight());
-    else
-        debug_script_warn("Overlay.SetWidth: invalid width %d", width);
+    if (over)
+    {
+        if (width > 0)
+            over->SetDestinationSize(width, over->GetDestinationHeight());
+        else
+            debug_script_warn("Overlay.SetWidth: invalid width %d", width);
+    }
 }
 
 void Overlay_SetHeight(ScriptOverlay *scover, int height)
 {
     auto *over = GetOverlayValidate("Overlay.Height", scover);
-    if (height > 0)
-        over->SetDestinationSize(over->GetDestinationWidth(), height);
-    else
-        debug_script_warn("Overlay.SetWidth: invalid height %d", height);
+    if (over)
+    {
+        if (height > 0)
+            over->SetDestinationSize(over->GetDestinationWidth(), height);
+        else
+            debug_script_warn("Overlay.SetWidth: invalid height %d", height);
+    }
 }
 
 int Overlay_GetFlip(ScriptOverlay *scover)
@@ -327,9 +366,11 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     if (text_color == 0) text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
+    DisplayTextLooks look(style, text_pos, allow_shrink);
+    look.PreserveTextColor = loaded_game_file_version >= kGameVersion_363_16;
+
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
-        DisplayTextLooks(style, text_pos, allow_shrink),
-        font, text_color, speech_for_char, room_layer);
+        look, font, text_color, speech_for_char, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool clone)
@@ -340,7 +381,17 @@ ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int sl
 
 ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int width, int font, int colour, const char* text)
 {
-    auto *over = Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, OVER_CUSTOM, kDisplayTextStyle_TextWindow, kDisplayTextShrink_None);
+    const bool auto_width = (width < 0);
+    if (auto_width)
+    {
+        // Use the same initial width as Display().
+        width = play.GetUIViewport().GetWidth() * 3 / 4;
+    }
+
+    auto *over = Overlay_CreateTextCore(
+        room_layer, x, y, width, font, colour, text,
+        OVER_CUSTOM, kDisplayTextStyle_TextWindow,
+        auto_width ? kDisplayTextShrink_Left : kDisplayTextShrink_None);
     return over ? over->CreateScriptObject() : nullptr;
 }
 
@@ -379,13 +430,14 @@ ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int 
 const char *Overlay_GetTextProperty(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Text", scover);
-    return CreateNewScriptString(over->GetText());
+    return over ? CreateNewScriptString(over->GetText()) : nullptr;
 }
 
 void Overlay_SetTextProperty(ScriptOverlay *scover, const char *text)
 {
     auto *over = GetOverlayValidate("Overlay.Text", scover);
-    over->SetText(text);
+    if (over)
+        over->SetText(text);
 }
 
 int Overlay_GetBlendMode(ScriptOverlay *scover)
@@ -425,19 +477,21 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans)
     if ((trans < 0) | (trans > 100))
         quit("!SetTransparency: transparency value must be between 0 and 100");
 
-    over->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+    if (over)
+        over->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
 }
 
 bool Overlay_GetVisible(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Visible", scover);
-    return over->IsVisible();
+    return over ? over->IsVisible() : false;
 }
 
 void Overlay_SetVisible(ScriptOverlay *scover, bool visible)
 {
     auto *over = GetOverlayValidate("Overlay.Visible", scover);
-    over->SetVisible(visible);
+    if (over)
+        over->SetVisible(visible);
 }
 
 float Overlay_GetRotation(ScriptOverlay *scover) {
@@ -513,23 +567,29 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder)
 void Overlay_SetPosition(ScriptOverlay *scover, int x, int y, int width, int height)
 {
     auto *over = GetOverlayValidate("Overlay.SetPosition", scover);
-    over->SetFixedPosition(x, y);
-    // width and height are optional here
-    if (width > 0 || height > 0)
+    if (over)
     {
-        width = width > 0 ? width : over->GetDestinationWidth();
-        height = height > 0 ? height : over->GetDestinationHeight();
-        over->SetDestinationSize(width, height);
+        over->SetFixedPosition(x, y);
+        // width and height are optional here
+        if (width > 0 || height > 0)
+        {
+            width = width > 0 ? width : over->GetDestinationWidth();
+            height = height > 0 ? height : over->GetDestinationHeight();
+            over->SetDestinationSize(width, height);
+        }
     }
 }
 
 void Overlay_SetSize(ScriptOverlay *scover, int width, int height)
 {
     auto *over = GetOverlayValidate("Overlay.SetSize", scover);
-    if (width > 0 && height > 0)
-        over->SetDestinationSize(width, height);
-    else
-        debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
+    if (over)
+    {
+        if (width > 0 && height > 0)
+            over->SetDestinationSize(width, height);
+        else
+            debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
+    }
 }
 
 void Overlay_SetScale(ScriptOverlay *scover, float scalex, float scaley)

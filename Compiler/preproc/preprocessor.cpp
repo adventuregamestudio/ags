@@ -155,7 +155,7 @@ namespace Preprocessor {
         // 'currentline' and 'ccCurScriptName' are current
         currentline = _lineNumber;
         ccCurScriptName = _scriptName.GetCStr();
-        cc_error(msg.GetCStr());
+        cc_error("%s", msg.GetCStr());
     }
 
     void Preprocessor::ProcessConditionalDirective(const String &directive, String &line)

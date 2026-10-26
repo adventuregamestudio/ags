@@ -293,6 +293,7 @@ void GUIListBox::SortItems(bool nocase, bool locale_aware, bool ascending)
 
 void GUIListBox::UpdateVisualState()
 {
+    UpdateControlRect();
     MarkPositionChanged(true, true);
 }
 
@@ -383,8 +384,13 @@ void GUIListBox::UpdateMetrics()
     _rowHeight = font_height + 2; // +1 top/bottom margin
     _itemTextPaddingX = 1;
     _itemTextPaddingY = 1;
-    const int items_height = _innerRect.GetHeight();
-    _visibleItemCount = items_height / _rowHeight;
+    // There was a mistake in version range of 3.5.0 to 3.6.2 (inclusive), where
+    // listbox would not account for its border width when calculating visible items
+    if ((GUI::GameGuiVersion >= kGuiVersion_350) && (GUI::GameGuiVersion < kGuiVersion_363_04))
+        _visibleItemCount = (_innerRect.GetHeight() + _borderWidth * 2) / _rowHeight;
+    else
+        _visibleItemCount = _innerRect.GetHeight() / _rowHeight;
+
     if (_items.size() <= _visibleItemCount)
         _topItem = 0; // reset scroll if all items are visible
 

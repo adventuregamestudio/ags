@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("ScriptName")]
-    public class View : IToXml, IComparable<View>, ICloneable
+    public class View : IHasID, IToXml, IComparable<View>, ICloneable
     {
         public delegate void ViewUpdatedHandler(View view);
         public event ViewUpdatedHandler ViewUpdated;

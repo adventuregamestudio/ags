@@ -8,7 +8,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("Baseline")]
-    public class RoomWalkBehind : IToXml
+    public class RoomWalkBehind : IHasID, IToXml
     {
         public const string PROPERTY_NAME_SCRIPT_NAME = "ScriptName";
 

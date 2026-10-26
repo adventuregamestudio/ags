@@ -64,18 +64,11 @@ using namespace AGS::Engine;
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
-std::vector<std::vector<int>> StaticGUIControlsHandles;
 extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
 
 extern CCGUI ccDynamicGUI;
 extern CCGUIControl ccDynamicGUIControl;
-extern CCGUIButton ccDynamicGUIButton;
-extern CCGUIInvWindow ccDynamicGUIInvWindow;
-extern CCGUILabel ccDynamicGUILabel;
-extern CCGUIListBox ccDynamicGUIListBox;
-extern CCGUISlider ccDynamicGUISlider;
-extern CCGUITextBox ccDynamicGUITextBox;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
@@ -411,11 +404,6 @@ void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)
     guis[tehgui->id].SetBgImage(slotn);
     // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
     replace_sprite_changed_callback(old_slotn, slotn, &guis[tehgui->id]);
-
-    // Old games hack: always force redraw if this is a dynamic sprite with drawing surface
-    // (in case they assign same sprite id, but forgot to release a drawing surface)
-    if ((loaded_game_file_version < kGameVersion_351) && game.SpriteInfos[slotn].IsSurfaceAcquired())
-        guis[tehgui->id].MarkChanged();
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui)
@@ -809,72 +797,6 @@ void prepare_gui_runtime(bool startup)
 
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
     GUIE::MarkAllGUIForUpdate(true, true);
-}
-
-void set_array_all_gui_controls_size()
-{
-    StaticGUIControlsHandles.resize(game.numgui);
-    for (int i = 0; i < game.numgui; ++i) {
-        auto const &gui = guis[i];
-        StaticGUIControlsHandles[i] = std::vector<int>();
-        StaticGUIControlsHandles[i].resize(gui.GetControlCount());
-    }
-}
-
-void export_all_gui_controls()
-{
-    set_array_all_gui_controls_size();
-
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        auto const &gui = guis[i];
-        for (int j = 0; j < gui.GetControlCount(); j++)
-        {
-            GUIControl *guio = gui.GetControl(j);
-            IScriptObject *mgr;
-            switch (gui.GetControlType(j))
-            {
-            case kGUIButton: mgr = &ccDynamicGUIButton; break;
-            case kGUILabel: mgr = &ccDynamicGUILabel; break;
-            case kGUIInvWindow: mgr = &ccDynamicGUIInvWindow; break;
-            case kGUISlider: mgr = &ccDynamicGUISlider; break;
-            case kGUITextBox: mgr = &ccDynamicGUITextBox; break;
-            case kGUIListBox: mgr = &ccDynamicGUIListBox; break;
-            default: mgr = nullptr; break;
-            }
-
-            if (!mgr)
-                continue;
-
-            int handle = ccRegisterPersistentObject(guio, mgr); // add ref for engine
-            StaticGUIControlsHandles[i][j] = handle;
-            if (!guio->GetName().IsEmpty())
-            {
-                ccAddExternalScriptObjectHandle(guio->GetName(), &StaticGUIControlsHandles[i][j]);
-            }
-        }
-    }
-}
-
-void unexport_gui_controls(int ee)
-{
-    for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
-    {
-        GUIControl *guio = guis[ee].GetControl(ff);
-        if (!guio->GetName().IsEmpty())
-            ccRemoveExternalSymbol(guio->GetName());
-        if (!ccUnRegisterManagedObject(guio))
-            quit("unable to unregister guicontrol object");
-    }
-}
-
-void unexport_all_gui_controls()
-{
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        unexport_gui_controls(i);
-    }
-    StaticGUIControlsHandles.clear();
 }
 
 void update_gui_disabled_status()

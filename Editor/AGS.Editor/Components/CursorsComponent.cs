@@ -169,7 +169,7 @@ namespace AGS.Editor.Components
             else
             {
                 int cursorID = Convert.ToInt32(controlID.Substring(3));
-                _itemRightClicked = _agsEditor.CurrentGame.Cursors[cursorID];
+                _itemRightClicked = _agsEditor.CurrentGame.Cursors.GetByIndexOrDefault(cursorID, null);
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_COPY_ITEM, "Copy cursor", null));

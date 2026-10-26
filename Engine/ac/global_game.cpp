@@ -343,7 +343,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
         quitprintf("!RunAGSGame: error loading new sprites:\n%s", err->FullMessage().GetCStr());
 
     engine_init_game_settings();
-    play.screen_is_faded_out = 1;
+    play.screen_is_faded_out = true;
 
     if (load_new_game_restore >= 0) {
         try_restore_save(load_new_game_restore, true);
@@ -542,13 +542,15 @@ int EndCutscene () {
 
 void ShowInputBox(const char*msg, char*bufr) {
     VALIDATE_STRING(bufr);
-    ShowInputBoxImpl(msg, bufr, MAX_MAXSTRLEN);
+    String input = ShowInputBoxImpl(msg);
+    snprintf(bufr, MAX_MAXSTRLEN, "%s", input.GetCStr());
 }
 
-void ShowInputBoxImpl(const char*msg, char *bufr, size_t buf_len) {
+String ShowInputBoxImpl(const char*msg) {
     setup_for_dialog(play.normal_font);
-    enterstringwindow(get_translation(msg), bufr, buf_len);
+    String input = enterstringwindow(get_translation(msg));
     restore_after_dialog();
+    return input;
 }
 
 int GetLocationType(int x, int y, int hit_options)
@@ -803,9 +805,7 @@ int IsInteractionAvailable (int xx, int yy, int mood)
 }
 
 void _sc_AbortGame(const char* text) {
-    char displbuf[STD_BUFFER_SIZE] = "!?";
-    snprintf(&displbuf[2], STD_BUFFER_SIZE - 3, "%s", text);
-    quit(displbuf);
+    quit(String::FromFormat("!?%s", text));
 }
 
 // Wait* implementation specific to pre-3.6.0 games, which had number of accidental effects.

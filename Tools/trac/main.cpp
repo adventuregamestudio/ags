@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include "data/tra_utils.h"
+#include "util/cmdlineopts.h"
 #include "util/file.h"
 #include "util/path.h"
-#include "util/string_compat.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Common::CmdLineOpts;
 using namespace AGS::DataUtil;
 
 
 //------------------------------------------------------------------------------|
-const char *HELP_STRING = "Usage:\n"
+static const char *HELP_STRING = "Usage:\n"
 "  trac <input.trs> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
 "  trac -u <input.tra> [<output.trs>]\n";
 
-int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
+static int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
 {
     printf("Input translation source: %s\n", src.GetCStr());
     printf("Output compiled translation: %s\n", dst.GetCStr());
@@ -67,7 +68,7 @@ int Command_Compile(const String &src, const String &dst, const String *game_nam
     return 0;
 }
 
-int Command_Decompile(const String &src, const String &dst)
+static int Command_Decompile(const String &src, const String &dst)
 {
     printf("Input compiled translation: %s\n", src.GetCStr());
     printf("Output translation source: %s\n", dst.GetCStr());
@@ -116,76 +117,56 @@ int main(int argc, char *argv[])
 {
     printf("trac v0.9.6 - AGS translation compiler and decompiler (TRS <-> TRA)\n"\
         "Copyright (c) 2021-2026 AGS Team and contributors\n");
-    for (int i = 1; i < argc; ++i)
+
+    ParseResult cmdargs = Parse(argc, argv, {"--gamename", "--uniqueid"});
+    if (cmdargs.HelpRequested)
     {
-        const char *arg = argv[i];
-        if (ags_stricmp(arg, "--help") == 0 || ags_stricmp(arg, "/?") == 0 || ags_stricmp(arg, "-?") == 0)
-        {
-            printf("%s\n", HELP_STRING);
-            return 0; // display help and bail out
-        }
+        printf("%s\n", HELP_STRING);
+        return 0; // display help and bail out
     }
 
-    if (argc < 2)
+    if (cmdargs.PosArgs.empty())
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
-    // TODO: redo this using command args utility
-    if (argv[1][0] != '-')
+    String &src = cmdargs.PosArgs[0];
+
+    // dst can be empty, if it is we will use a default value later
+    String dst = "";
+    if (cmdargs.PosArgs.size() > 1 && !cmdargs.PosArgs[1].IsEmpty())
+        dst = cmdargs.PosArgs[1];
+
+    if (cmdargs.Opt.count("-u") > 0)
     {
-        String src = argv[1];
-        String dst;
-        String game_name;
-        int game_uid = 0;
-        bool use_game_uid = false;
-        bool use_game_name = false;
-        for (int i = 2; i < argc; ++i)
-        {
-            const char *arg = argv[i];
-            if (arg[0] != '-' && dst.IsEmpty())
-            {
-                dst = arg;
-            }
-            else if (ags_stricmp(arg, "--gamename") == 0 && (i < argc - 1))
-            {
-                game_name = argv[++i];
-                use_game_name = true;
-            }
-            else if (ags_stricmp(arg, "--uniqueid") == 0 && (i < argc - 1))
-            {
-                game_uid = StrUtil::StringToInt(argv[++i]);
-                use_game_uid = true;
-            }
-        }
-
-        if (dst.IsEmpty())
-            dst = Path::ReplaceExtension(src, "tra");
-
-        return Command_Compile(src, dst, use_game_name ? &game_name : nullptr, use_game_uid ? &game_uid : nullptr);
-    }
-    else if (ags_stricmp(argv[1], "-u") == 0)
-    {
-        if (argc < 3)
-        {
-            printf("Error: not enough arguments\n");
-            printf("%s\n", HELP_STRING);
-            return -1;
-        }
-
-        String src = argv[2];
-        String dst = argv[3];
         if (dst.IsEmpty())
             dst = Path::ReplaceExtension(src, "trs");
-
         return Command_Decompile(src, dst);
     }
-    else
+    
+    String game_name;
+    int game_uid = 0;
+    bool use_game_uid = false;
+    bool use_game_name = false;
+
+    for (const auto &opt : cmdargs.OptWithValue)
     {
-        printf("Error: incorrect command syntax\n");
-        printf("%s\n", HELP_STRING);
-        return -1;
+        if (opt.first == "--gamename")
+        {
+            game_name = opt.second;
+            use_game_name = true;
+        }
+        else if (opt.first == "--uniqueid")
+        {
+            game_uid = StrUtil::StringToInt(opt.second);
+            use_game_uid = true;
+        }
     }
+
+    if (dst.IsEmpty())
+        dst = Path::ReplaceExtension(src, "tra");
+
+    return Command_Compile(src, dst, use_game_name ? &game_name : nullptr, use_game_uid ? &game_uid : nullptr);
 }

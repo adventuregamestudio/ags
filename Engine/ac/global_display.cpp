@@ -40,18 +40,17 @@ extern GameSetupStruct game;
 
 void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech);
 
-void Display(const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
+void Display(AGS_FORMAT_STRING_ARG const char *texx, ...) {
     va_list ap;
     va_start(ap,texx);
-    vsnprintf(displbuf, sizeof(displbuf), get_translation(texx), ap);
+    String text = String::FromFormatV(get_translation(texx), ap);
     va_end(ap);
-    DisplayAtY (-1, displbuf);
+    DisplayAtY(-1, text.GetCStr());
 }
 
 void DisplaySimple(const char *text)
 {
-    DisplayAtY (-1, text);
+    DisplayAtY(-1, text);
 }
 
 void DisplayMB(const char *text)
@@ -91,8 +90,8 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
 }
 
 void DisplayAt(int xxp,int yyp,int widd, const char* text) {
-    if (play.screen_is_faded_out > 0)
-        debug_script_warn("Warning: blocking Display call during fade-out.");
+    if (play.screen_is_faded_out)
+        debug_script_warn("Blocking Display call during fade-out.");
 
     if (widd<1) widd=play.GetUIViewport().GetWidth()/2;
     if (xxp<0) xxp=play.GetUIViewport().GetWidth()/2-widd/2;
@@ -103,8 +102,8 @@ void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bo
     const Rect &ui_view = play.GetUIViewport();
     if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
-    if (play.screen_is_faded_out > 0)
-        debug_script_warn("Warning: blocking Display call during fade-out.");
+    if (play.screen_is_faded_out)
+        debug_script_warn("Blocking Display call during fade-out.");
 
     // Display("") ... a bit of a stupid thing to do, so ignore it
     if (texx[0] == 0)

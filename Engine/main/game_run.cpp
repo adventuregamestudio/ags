@@ -245,7 +245,7 @@ static void GameUpdateCheckProblems()
     // FIXME: find a better place for this fixup, probably should be done
     // after restoring a save, and after 'no_hicolor_fadein' or OPT_FADETYPE is changed?
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
-        play.screen_is_faded_out = 0;
+        play.screen_is_faded_out = false;
 }
 
 // Runs rep-exec-always immediately,
@@ -693,8 +693,11 @@ static void check_keyboard_controls()
             {
             case kScTextBoxClaim_Handled: keywasprocessed |= handled; break;
             case kScTextBoxClaim_TextOnly: keywasprocessed |= (ki.UChar > 0); break;
-            case kScTextBoxClaim_All:
-            default: keywasprocessed = true; break;
+            case kScTextBoxClaim_Classic:
+            default:
+                keywasprocessed = (ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
+                    (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace);
+                break;
             }
 
             if (guitex->IsActivated())
@@ -715,6 +718,12 @@ static void check_keyboard_controls()
         return;
     } else if ((usetup.Override.KeyRestoreGame > 0) && (agscombokey == usetup.Override.KeyRestoreGame)) {
         do_restore_game_dialog(0, TOP_SAVESLOT - 1, play.normal_font); // ignore special slot 999
+        return;
+    } else if ((usetup.Override.KeyDebugWalkable > 0) && (agscombokey == usetup.Override.KeyDebugWalkable)) {
+        script_debug(2, kRoomAreaWalkable);
+        return;
+    } else if ((usetup.Override.KeyDebugPathfind > 0) && (agscombokey == usetup.Override.KeyDebugPathfind)) {
+        script_debug(5, playerchar->index_id);
         return;
     }
 

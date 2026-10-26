@@ -80,6 +80,9 @@ public:
     PBitmap WalkBehindMask;
 };
 
+// TODO: functions UpscaleRoomBackground() and FixRoomMasks() are only used in the Editor
+// under certain circumstances. Engine does this differently. Need to re-investigate this,
+// and either share this operation with the engine, or move it to Editor code.
 // Ensures that all existing room masks match room background size and
 // MaskResolution property, resizes mask bitmaps if necessary.
 void FixRoomMasks(RoomStruct *room);

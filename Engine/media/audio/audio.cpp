@@ -548,15 +548,7 @@ void stop_and_destroy_channel(int chid)
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 }
 
-void export_missing_audiochans()
-{
-    for (int i = 0; i < game.numCompatGameChannels; ++i)
-    {
-        int h = ccGetObjectHandleFromAddress(&scrAudioChannel[i]);
-        if (h <= 0)
-            ccRegisterPersistentObject(&scrAudioChannel[i], &ccDynamicAudio); // add internal ref
-    }
-}
+
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {

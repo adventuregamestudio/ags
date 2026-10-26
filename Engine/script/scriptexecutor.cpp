@@ -494,7 +494,7 @@ void ScriptExecutor::NotifyAlive()
     if ((_registers[SREG_SP].RValue > STACK_VAL.RValue) || \
         (_stackdataPtr > DATA_PTR)) \
     { \
-        cc_error("stack is not unwinded after function call, %d bytes remain", (_stackdataPtr - DATA_PTR)); \
+        cc_error("stack is not unwinded after function call, %zu bytes remain", (size_t)(_stackdataPtr - DATA_PTR)); \
         return kScExecErr_Generic; \
     }
 

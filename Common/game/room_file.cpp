@@ -274,7 +274,7 @@ HError ReadMainBlock(RoomData *room, Stream *in, RoomFileVersion data_ver, const
     {
         HError err;
         // Primary background (Deflate, LZW or RLE compressed depending on data version)
-        if (data_ver >= kRoomVersion_363_15)
+        if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_399) || (data_ver >= kRoomVersion_400_33))
             room->BgFrames[0].GraphicBuf = SpriteDataUtils::ReadSprite_360(in, err, &room->Palette);
         else
             room->BgFrames[0].GraphicBuf = load_lzw(in, room->BackgroundBPP, &room->Palette);
@@ -350,7 +350,7 @@ HError ReadAnimBgBlock(RoomData *room, Stream *in, RoomFileVersion data_ver)
 
     HError err;
     // Secondary backgrounds (Deflate or LZW compressed depending on data version)
-    if (data_ver >= kRoomVersion_363_15)
+    if ((data_ver >= kRoomVersion_363_15 && data_ver < kRoomVersion_399) || (data_ver >= kRoomVersion_400_33))
     {
         for (size_t i = 1; i < room->BgFrameCount; ++i)
         {

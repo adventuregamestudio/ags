@@ -111,7 +111,8 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // Recreate overlay image
     int adj_x = x, adj_y = y;
     DisplayTextLooks look(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink);
-    look.PreserveTextColor = loaded_game_file_version >= kGameVersion_363_16;
+    look.PreserveTextColor = (loaded_game_file_version >= kGameVersion_363_16 && loaded_game_file_version < kGameVersion_399)
+        || (loaded_game_file_version >= kGameVersion_400_33);
 
     std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
         look, text_color, x, y, adj_x, adj_y,
@@ -367,7 +368,8 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     DisplayTextLooks look(style, text_pos, allow_shrink);
-    look.PreserveTextColor = loaded_game_file_version >= kGameVersion_363_16;
+    look.PreserveTextColor = (loaded_game_file_version >= kGameVersion_363_16 && loaded_game_file_version < kGameVersion_399)
+        || (loaded_game_file_version >= kGameVersion_400_33);
 
     return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
         look, font, text_color, speech_for_char, room_layer);

@@ -246,13 +246,13 @@ HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript
     Debug::Printf("Created global script");
 
     numScriptModules = scmodules.size();
-    for (size_t i = 0; i < scmodules.size(); ++i)
+    for (uint32_t i = 0; i < scmodules.size(); ++i)
     {
         if (!scmodules[i])
-            return new Error(String::FromFormat("Script module (%d) '%s' was not loaded", i, scmodule_names[i].GetCStr()));
+            return new Error(String::FromFormat("Script module (%u) '%s' was not loaded", i, scmodule_names[i].GetCStr()));
         std::shared_ptr<RuntimeScript> runtime_scm(RuntimeScript::Create(scmodules[i]));
         if (!runtime_scm)
-            return new Error(String::FromFormat("Failed to create the script module (%d) '%s':\n%s",
+            return new Error(String::FromFormat("Failed to create the script module (%u) '%s':\n%s",
                 i, scmodules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
         scriptModules.push_back(runtime_scm);
     }

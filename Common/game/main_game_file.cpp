@@ -391,14 +391,14 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_10)
     {
-        for (size_t i = 0; i < game.fonts.size(); ++i)
+        for (uint32_t i = 0; i < game.fonts.size(); ++i)
         {
             // TODO: find a better way than relying on valid size?
             auto &fi = game.fonts[i];
             if (fi.Size > 0)
-                fi.Filename.Format("agsfnt%d.ttf", i);
+                fi.Filename.Format("agsfnt%u.ttf", i);
             else
-                fi.Filename.Format("agsfnt%d.wfn", i);
+                fi.Filename.Format("agsfnt%u.wfn", i);
         }
     }
 }

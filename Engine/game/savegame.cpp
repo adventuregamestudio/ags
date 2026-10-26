@@ -747,7 +747,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     HError err = LinkGlobalScripts();
     if (!err)
     {
-        return new SavegameError(kSvgErr_GameObjectInitFailed, "Failed to link script modules", err);
+        return new SavegameError(err, kSvgErr_GameObjectInitFailed, "Failed to link script modules");
     }
 
     // read the global data into the newly created script

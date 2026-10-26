@@ -165,7 +165,7 @@ void MakeOpaqueSkipMask(Bitmap *bmp)
 void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold)
 {
     auto bm_data = bmp->GetBitmapData();
-    PixelOp::ReplaceAlphaWithRGBMask(bm_data);
+    PixelOp::ReplaceAlphaWithRGBMask(bm_data, alpha_threshold);
 }
 
 // Functor that copies the "mask color" pixels from source to dest

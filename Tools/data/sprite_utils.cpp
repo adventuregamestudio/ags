@@ -359,9 +359,13 @@ static void FixMaskColorImpl(const uint8_t *src_buf, const uint8_t *src_end,
         {
             const SrcPxType src_color = *src_ptr;
             const DstPxType dst_color = *dst_ptr;
-            // The 32-bit mask color is a value without alpha, while 32-bit pixels have one
-            const uint32_t src_rgb = (sizeof(SrcPxType) == 4) ? (static_cast<uint32_t>(src_color) & 0x00FFFFFFu) : src_color;
-            if (src_rgb == src_maskcolor)
+            // A 32-bit source pixel is transparent if it has zero alpha,
+            // or if it is an opaque mask color (src_maskcolor is passed opaque in this case);
+            // semi-transparent mask colors are kept as normal colors.
+            const bool is_mask = (sizeof(SrcPxType) == 4) ?
+                ((geta32(src_color) == 0) || (src_color == src_maskcolor)) :
+                (src_color == src_maskcolor);
+            if (is_mask)
                 *dst_ptr = dst_maskcolor;
             else if (dst_color == dst_maskcolor) // replace mask color with close match
                 *dst_ptr = safe_color;
@@ -396,7 +400,7 @@ static void ConvertAndFixMaskColor(const BitmapData &src, PixelBuffer &dst, cons
         {
             FixMaskColorImpl<uint32_t, uint16_t>(src.GetData(), src.GetData() + src.GetHeight() * src.GetStride(), dst.GetData(),
                 src.GetWidth(), src.GetStride(), dst.GetStride(),
-                GetDefaultMaskColor(src.GetFormat()), GetDefaultMaskColor(dst.GetFormat()), replacement_mask_color(dst.GetColorDepth(), GetDefaultMaskColor(dst.GetFormat())));
+                GetDefaultMaskColor(src.GetFormat()) | (0xFFu << _rgb_a_shift_32), GetDefaultMaskColor(dst.GetFormat()), replacement_mask_color(dst.GetColorDepth(), GetDefaultMaskColor(dst.GetFormat())));
         }
         else
         {

@@ -151,9 +151,9 @@ class TaskDeleteFiles : public Task
 {
 public:
     TaskDeleteFiles(const String &name, ITaskManager *mgr, const std::vector<String> &files)
-        : Task(name, mgr), _files(files) {}
+        : Task(name, mgr), _files(Clone(files)) {}
     TaskDeleteFiles(const String &name, ITaskManager *mgr, const std::vector<String> &files, const std::vector<TaskInput> &input_tasks)
-        : Task(name, mgr, input_tasks), _files(files) {}
+        : Task(name, mgr, input_tasks), _files(Clone(files)) {}
 private:
     HError RunImpl() override;
 

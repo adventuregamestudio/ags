@@ -57,6 +57,7 @@ String cmdGameDataPath; // game path received from cmdline
 
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
+extern char editor_debugger_comm[16];
 
 
 // Startup flags, set from parameters to engine
@@ -258,6 +259,11 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             snprintf(editor_debugger_instance_token, sizeof(editor_debugger_instance_token), "%s", argv[ee + 1]);
             editor_debugging_enabled = 1;
             cfg["graphics"]["windowed"] = "1";
+            ee++;
+        }
+        else if ((ags_stricmp(arg,"--debugger-comm") == 0) && (argc > ee + 1))
+        {
+            snprintf(editor_debugger_comm, sizeof(editor_debugger_comm), "%s", argv[ee + 1]);
             ee++;
         }
         else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))

@@ -41,6 +41,7 @@
 #include "script/cc_common.h"
 #include "util/memory_compat.h"
 #include "util/path.h"
+#include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
 
@@ -61,29 +62,30 @@ IAGSEditorDebugger *editor_debugger = nullptr;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
 
+// How the engine talks to the editor (--debugger-comm): "pipe" (named pipes, Windows only)
+// or "file" (files in a folder, which the editor passes as the instance token).
+// Empty means the platform default: pipes on Windows, files elsewhere.
+char editor_debugger_comm[16];
+
 #if AGS_PLATFORM_OS_WINDOWS
-
 #include "platform/windows/debug/namedpipesagsdebugger.h"
-
 HWND editor_window_handle = 0;
-
-IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
-{
-    return new NamedPipesAGSDebugger(instanceToken);
-}
-
-#else   // AGS_PLATFORM_OS_WINDOWS
-
+#endif
 #include "debug/filebasedagsdebugger.h"
 
-// Other platforms exchange messages with the editor through files in a folder,
-// which the editor passes as the instance token.
-IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
+IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken, const char *comm)
 {
-    return new FileBasedAGSDebugger(instanceToken);
-}
-
+    if (ags_stricmp(comm, "file") == 0)
+        return new FileBasedAGSDebugger(instanceToken);
+#if AGS_PLATFORM_OS_WINDOWS
+    if (comm[0] == 0 || ags_stricmp(comm, "pipe") == 0)
+        return new NamedPipesAGSDebugger(instanceToken);
+#else
+    if (comm[0] == 0)
+        return new FileBasedAGSDebugger(instanceToken);
 #endif
+    return nullptr; // not supported on this platform
+}
 
 int debug_flags=0;
 
@@ -440,10 +442,10 @@ bool send_state_to_debugger(const char *msg)
 
 bool init_editor_debugging(const ConfigTree &cfg) 
 {
-    editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
+    editor_debugger = GetEditorDebugger(editor_debugger_instance_token, editor_debugger_comm);
 
     if (editor_debugger == nullptr)
-        quit("editor_debugger is NULL but debugger enabled");
+        quitprintf("!Editor debugger communication '%s' is not supported on this platform", editor_debugger_comm);
 
     if (editor_debugger->Initialize())
     {

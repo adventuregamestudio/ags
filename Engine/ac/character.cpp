@@ -233,7 +233,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
 {
     if (!chaa->is_enabled())
     {
-        debug_script_warn("%s: character %s is turned off and cannot be animated", "Character.Animate", chaa->scrname);
+        debug_script_warn("%s: character %s is turned off and cannot be animated", "Character.Animate", chaa->scrname.GetCStr());
         return;
     }
 

@@ -1081,7 +1081,7 @@ String PrintRTTI(const RTTI &rtti)
             uint32_t index = 0u;
             for (const auto *fi = ti.first_field; fi; fi = fi->next_field, ++index)
             {
-                fullstr.AppendFmt("%+4u |%+4u: %-24s: (%-3u) %s\n", index, fi->offset,
+                fullstr.AppendFmt("%4u |%4u: %-24s: (%-3u) %s\n", index, fi->offset,
                     fi->name, fi->type->this_id, fi->type->name);
             }
         }

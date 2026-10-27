@@ -33,9 +33,9 @@ namespace AGS.Editor
             // For 8-bit games treat the color number as a palette index
             if (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
             {
-                if (agsColorNumber >= _editor.CurrentGame.Palette.Length)
+                if (agsColorNumber < 0 || agsColorNumber >= _editor.CurrentGame.Palette.Length)
                 {
-                    // don't attempt to map invalid 8-bit colour numbers >255
+                    // don't attempt to map invalid 8-bit colour numbers
                     return Color.FromArgb(0);
                 }
                 return _editor.CurrentGame.Palette[agsColorNumber].Colour;
@@ -115,7 +115,10 @@ namespace AGS.Editor
             Color rgbColor;
             if (oldColorDepth == GameColorDepth.Palette)
             {
-                rgbColor = palette[colourNumber].Colour;
+                if (colourNumber >= 0 && colourNumber < palette.Length)
+                    rgbColor = palette[colourNumber].Colour;
+                else
+                    rgbColor = Color.FromArgb(0);
             }
             else
             {

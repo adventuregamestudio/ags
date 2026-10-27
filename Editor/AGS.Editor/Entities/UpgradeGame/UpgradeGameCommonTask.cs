@@ -392,7 +392,7 @@ namespace AGS.Editor
                 }
             }
 
-            if ((xmlVersionIndex < 3060310) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS))
+            if ((xmlVersionIndex < 3060310) || (xmlVersionIndex >= 3999900 && xmlVersionIndex < 4000029))
             {
                 game.Settings.GameTextLanguage = string.Empty;
 
@@ -431,7 +431,7 @@ namespace AGS.Editor
             // Fix default border width for Labels and InventoryWindows with hidden border
             // in early 3.6.3 Beta with revamped GUI controls
             if ((xmlVersionIndex >= 3060304 && xmlVersionIndex < 3060316) ||
-                    (xmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS && xmlVersionIndex < 4000031))
+                    (xmlVersionIndex >= 4000026 && xmlVersionIndex < 4000031))
             {
                 foreach (GUI gui in game.GUIs)
                 {

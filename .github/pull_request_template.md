@@ -3,13 +3,12 @@ Thanks for contributing to AGS!
 
 A few things worth checking before you post:
 
-  - Is your branch based on the right branch of our repository? See
-    "Branch Organization and Releases" in CONTRIBUTING.md.
+  - Is your branch based on the right branch of our repository? Does each
+    commit build, and is each one about a single thing?
+    See "Branch Organization and Releases" and "Commits" in CONTRIBUTING.md.
   - Bug fixes and small improvements can be sent straight away. For new
     features or larger changes, please open an issue first so that we can
     discuss the approach.
-  - Does each commit build, and is each one about a single thing?
-    See "Commits".
 
 None of the sections below are compulsory. Fill in what is useful for the
 change you are making, and delete the rest.

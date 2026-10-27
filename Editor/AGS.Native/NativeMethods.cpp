@@ -54,6 +54,7 @@ extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
 extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
+extern void unload_font(int curFont);
 extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
 // Get the loaded font's metrics (note: expand if necessary)
 extern void GetFontMetrics(int fontnum, int &last_charcode, Rect &char_bbox);
@@ -434,6 +435,11 @@ namespace AGS
       {
         throw gcnew AGSEditorException(String::Format("Unable to load font {0}. No supported font renderer was able to load the font.", fontSlot));
       }
+    }
+
+    void NativeMethods::UnloadFont(int fontSlot)
+    {
+        unload_font(fontSlot);
     }
 
     int NativeMethods::FindTTFSizeForHeight(String ^fileName, int pixelHeight)

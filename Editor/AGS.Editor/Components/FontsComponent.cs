@@ -1,12 +1,10 @@
+using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Web.UI.WebControls;
 using System.Windows.Forms;
-using System.Xml;
-using AGS.Types;
 
 namespace AGS.Editor.Components
 {
@@ -22,6 +20,7 @@ namespace AGS.Editor.Components
         private const string FONT_ITEM_REF_PREFIX = "Fntref:";
 
         private const string COMMAND_NEW_FONTFILE = "NewFontFile";
+        private const string COMMAND_REPLACE_FONTFILE = "ReplaceFontFile";
         private const string COMMAND_DELETE_FONTFILE = "DeleteFontFile";
         private const string COMMAND_NEW_FONT = "NewFont";
         private const string COMMAND_NEW_FONT_FOR_FILE = "NewFontForFile";
@@ -60,13 +59,9 @@ namespace AGS.Editor.Components
             {
                 AddNewFontFile(_agsEditor.CurrentGame);
             }
-            else if (controlID == COMMAND_NEW_FONT)
+            else if (controlID == COMMAND_REPLACE_FONTFILE)
             {
-                AddNewFont(_agsEditor.CurrentGame);
-            }
-            else if (controlID == COMMAND_NEW_FONT_FOR_FILE)
-            {
-                AddNewFont(_agsEditor.CurrentGame, _itemRightClicked as AGS.Types.FontFile, true);
+                ReplaceFontFile(_agsEditor.CurrentGame, _itemRightClicked as AGS.Types.FontFile);
             }
             else if (controlID == COMMAND_DELETE_FONTFILE)
             {
@@ -74,6 +69,14 @@ namespace AGS.Editor.Components
                 {
                     DeleteFontFile(_agsEditor.CurrentGame, _itemRightClicked as AGS.Types.FontFile);
                 }
+            }
+            else if (controlID == COMMAND_NEW_FONT)
+            {
+                AddNewFont(_agsEditor.CurrentGame);
+            }
+            else if (controlID == COMMAND_NEW_FONT_FOR_FILE)
+            {
+                AddNewFont(_agsEditor.CurrentGame, _itemRightClicked as AGS.Types.FontFile, true);
             }
             else if (controlID == COMMAND_DELETE_FONT)
             {
@@ -177,14 +180,13 @@ namespace AGS.Editor.Components
                 UpdateFont(itemBeingEdited); // update font which has a new source file
             }
             
-             bool fontStyleChanged =
+            bool fontStyleChanged =
                 (propertyName == "Source FontFile" || propertyName == "Font Size"
                 || propertyName == "SizeMultiplier" || propertyName == "TTF font adjustment");
             bool fontGlyphPositionChanged = true; // any other property changes this
             Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, (propertyName == "SourceFilename"));
             if (fontStyleChanged || fontGlyphPositionChanged)
                 editor.OnFontUpdated(fontStyleChanged, fontGlyphPositionChanged);
-            Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID, false);
         }
 
         public override IList<MenuCommand> GetContextMenu(string controlID)
@@ -211,6 +213,7 @@ namespace AGS.Editor.Components
                 if (_itemRightClicked != null)
                 {
                     menu.Add(new MenuCommand(COMMAND_NEW_FONT_FOR_FILE, "New Font", null));
+                    menu.Add(new MenuCommand(COMMAND_REPLACE_FONTFILE, "Replace this font file", null));
                     menu.Add(new MenuCommand(COMMAND_DELETE_FONTFILE, "Delete this font file", null));
                 }
             }
@@ -342,10 +345,7 @@ namespace AGS.Editor.Components
             FontFile newItem = new FontFile();
             newItem.FileName = Path.GetFileName(filename);
             newItem.SourceFilename = sourceFilename;
-            if (newItem.FileName.EndsWith(".wfn", StringComparison.OrdinalIgnoreCase))
-                newItem.FileFormat = FontFileFormat.WFN;
-            else if (newItem.FileName.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
-                newItem.FileFormat = FontFileFormat.TTF;
+            UpdateFontFile(newItem);
             return newItem;
         }
 
@@ -355,40 +355,9 @@ namespace AGS.Editor.Components
             if (string.IsNullOrEmpty(selectedFile))
                 return;
 
-            string fontsDirectory = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY);
-            string fontFileName = Path.GetFileName(selectedFile);
-            string destFilePath = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, fontFileName);
-
-            if (!Directory.Exists(FONT_FILES_DIRECTORY))
-            {
-                Directory.CreateDirectory(FONT_FILES_DIRECTORY);
-            }
-
-            // Test if they selected a file which is already registered
-            if (Utilities.PathIsParentOf(fontsDirectory, selectedFile))
-            {
-                if (FindFontFileByName(fontFileName) != null)
-                {
-                    _guiController.ShowMessage("Selected font file is already added to the project.", MessageBoxIconType.Warning);
-                    return;
-                }
-            }
-            // Test if a file of such name already exists
-            else if (File.Exists(destFilePath))
-            {
-                if (_guiController.ShowQuestion("The font file of the same name already exists in the project folder. Would you like to still add this file (the name will be changed)?", MessageBoxIcon.Warning)
-                    == System.Windows.Forms.DialogResult.No)
-                {
-                    return;
-                }
-                fontFileName = Utilities.MakeUniqueFileName(fontsDirectory, fontFileName, "-", 2);
-                destFilePath = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, fontFileName);
-            }
-
-            if (!Utilities.PathsAreEqual(selectedFile, destFilePath))
-            {
-                File.Copy(selectedFile, destFilePath);
-            }
+            string fontFileName;
+            if (!AddFontFileToProjectDirectory(game, selectedFile, out fontFileName))
+                return;
 
             IList<FontFile> items = game.FontFiles;
             FontFile newItem = NewFontFile(fontFileName, Utilities.GetRelativeToProjectPath(selectedFile));
@@ -400,6 +369,141 @@ namespace AGS.Editor.Components
             FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
+        /// <summary>
+        /// Runs few checks prior to actually adding a new font file,
+        /// then if no problems were met, or user confirms the operation,
+        /// copies source file into the project's Fonts directory.
+        /// </summary>
+        private bool AddFontFileToProjectDirectory(Game game, string sourceFile, out string registerFileName, string replaceFileName = null)
+        {
+            string fontsDirectory = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY);
+            string fontFileName = Path.GetFileName(sourceFile);
+            string destFilePath = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, fontFileName);
+            string oldFilePath = !string.IsNullOrEmpty(replaceFileName) ?
+                Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, replaceFileName) : null;
+
+            if (!Directory.Exists(FONT_FILES_DIRECTORY))
+            {
+                Directory.CreateDirectory(FONT_FILES_DIRECTORY);
+            }
+
+            // Test if they selected a file which is already registered
+            if (Utilities.PathIsParentOf(fontsDirectory, sourceFile))
+            {
+                if (FindFontFileByName(fontFileName) != null)
+                {
+                    _guiController.ShowMessage("Selected font file is already added to the project.", MessageBoxIconType.Warning);
+                    registerFileName = null;
+                    return false;
+                }
+            }
+            // Test if a file of such name already exists
+            else if (File.Exists(destFilePath))
+            {
+                if (!string.IsNullOrEmpty(oldFilePath))
+                {
+                    if (_guiController.ShowQuestion("The font file is already registered under this name in the project folder. Would you like to replace it?", MessageBoxIcon.Warning)
+                        == System.Windows.Forms.DialogResult.No)
+                    {
+                        registerFileName = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (_guiController.ShowQuestion("The font file of the same name already exists in the project folder. Would you like to still add this file under the different name?", MessageBoxIcon.Warning)
+                        == System.Windows.Forms.DialogResult.No)
+                    {
+                        registerFileName = null;
+                        return false;
+                    }
+                    fontFileName = Utilities.MakeUniqueFileName(fontsDirectory, fontFileName, "-", 2);
+                    destFilePath = Path.Combine(game.DirectoryPath, FONT_FILES_DIRECTORY, fontFileName);
+                }
+            }
+
+            if (!Utilities.PathsAreEqual(sourceFile, destFilePath))
+            {
+                if (!Utilities.SafeCopyFileOverwrite(sourceFile, destFilePath))
+                {
+                    _guiController.ShowMessage("Failed to overwrite the font, operation cancelled.", MessageBoxIcon.Error);
+                    registerFileName = null;
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(oldFilePath) && !Utilities.PathsAreEqual(oldFilePath, destFilePath))
+            {
+                // FIXME: TryDeleteFile should not throw?, see comment to the function
+                try
+                {
+                    Utilities.TryDeleteFile(oldFilePath);
+                }
+                catch (Exception e)
+                {
+                    _guiController.ShowMessage($"Replacement succeeded, but failed to delete the old font file from the project folder. The error was:{Environment.NewLine}{Environment.NewLine}{e.Message}", MessageBoxIcon.Warning);
+                }
+            }
+
+            registerFileName = fontFileName;
+            return true;
+        }
+
+        private void ReplaceFontFile(Game game, FontFile fontFile)
+        {
+            string selectedFile = _guiController.ShowOpenFileDialog("Select font file to replace selected file with", FONT_FILES_FILTER);
+            if (string.IsNullOrEmpty(selectedFile))
+                return;
+
+            // Must unload fonts data, because apparently it locks the font file
+            foreach (var font in game.Fonts)
+            {
+                if (font.FontFile == fontFile)
+                {
+                    Factory.NativeProxy.UnloadFont(font.ID);
+                }
+            }
+
+            string fontFileName;
+            if (AddFontFileToProjectDirectory(game, selectedFile, out fontFileName, fontFile.FileName))
+            {
+                fontFile.SourceFilename = selectedFile;
+                fontFile.FileName = fontFileName;
+                UpdateFontFile(fontFile);
+
+                // Update all font instances that reference this font file object
+                // TODO: this should be done automatically, if the FontFile object changes?
+                foreach (var font in game.Fonts)
+                {
+                    if (font.FontFile == fontFile)
+                    {
+                        font.FontFileName = fontFile.FileName;
+                        font.SourceFilename = fontFile.SourceFilename;
+                    }
+                }
+
+                game.FilesAddedOrRemoved = true;
+                RePopulateTreeView(GetNodeID(fontFile));
+                FontFileTypeConverter.SetFontFileList(game.FontFiles);
+            }
+
+            // If there are any open preview panes, these must be updated.
+            // Do this even if failed to replace, because we have unloaded font data earlier.
+            foreach (var font in game.Fonts)
+            {
+                if (font.FontFile == fontFile)
+                {
+                    Factory.NativeProxy.OnFontUpdated(game, font.ID, true);
+                    ContentDocument document;
+                    if (_documents.TryGetValue(font, out document))
+                    {
+                        var editor = document.Control as FontEditor;
+                        editor.OnFontUpdated(true, true);
+                    }
+                }
+            }
+        }
+
         private void UpdateFontFile(FontFile fontFile)
         {
             // NOTE: if we decide to get format by loading and testing actual file contents,
@@ -408,6 +512,24 @@ namespace AGS.Editor.Components
                 fontFile.FileFormat = FontFileFormat.WFN;
             else if (fontFile.FileName.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
                 fontFile.FileFormat = FontFileFormat.TTF;
+        }
+
+        private void DeleteFontFile(Game game, FontFile removedFile)
+        {
+            foreach (AGS.Types.Font font in game.Fonts)
+            {
+                if (font.FontFileName == removedFile.FileName)
+                {
+                    AssignFontFileToFont(font, null);
+                    Factory.NativeProxy.OnFontUpdated(game, font.ID, true);
+                }
+            }
+
+            _agsEditor.DeleteFileOnDisk(Path.Combine(FONT_FILES_DIRECTORY, removedFile.FileName));
+            game.FontFiles.Remove(removedFile);
+            game.FilesAddedOrRemoved = true;
+            RePopulateTreeView(FONT_FILES_FOLDER_NODE_ID);
+            FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
         private AGS.Types.Font NewFont(Game game, int id, string fontName, FontFile sourceFontFile)
@@ -461,24 +583,6 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem, selectRefNode));
             ShowOrAddPane(newItem);
             FontTypeConverter.SetFontList(game.Fonts);
-        }
-
-        private void DeleteFontFile(Game game, FontFile removedFile)
-        {
-            foreach (AGS.Types.Font font in game.Fonts)
-            {
-                if (font.FontFileName == removedFile.FileName)
-                {
-                    AssignFontFileToFont(font, null);
-                    Factory.NativeProxy.OnFontUpdated(game, font.ID, true);
-                }
-            }
-
-            _agsEditor.DeleteFileOnDisk(Path.Combine(FONT_FILES_DIRECTORY, removedFile.FileName));
-            game.FontFiles.Remove(removedFile);
-            game.FilesAddedOrRemoved = true;
-            RePopulateTreeView(FONT_FILES_FOLDER_NODE_ID);
-            FontFileTypeConverter.SetFontFileList(game.FontFiles);
         }
 
         private void DeleteFont(Game game, AGS.Types.Font removedFont)

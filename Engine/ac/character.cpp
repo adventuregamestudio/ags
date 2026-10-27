@@ -2995,7 +2995,7 @@ void display_speech(const char *texx, int aschar, int xx, int yy, int widd, bool
         return;
     }
 
-    debug_script_log("%s: \"%s\"", speakingChar->scrname, texx);
+    debug_script_log("%s: \"%s\"", speakingChar->scrname.GetCStr(), texx);
 
     EndSkippingUntilCharStops();
 

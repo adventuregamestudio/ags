@@ -521,17 +521,19 @@ namespace AGS.Editor
         public static bool SafeCopyFileOverwrite(string sourceFileName, string destFileName, bool makeDestinationWritable = false)
         {
             string bkpDestFileName = destFileName + ".bkp";
-            if (File.Exists(destFileName))
-            {
-                File.Move(destFileName, bkpDestFileName);
-            }
             try
             {
+                if (File.Exists(destFileName))
+                {
+                    File.Move(destFileName, bkpDestFileName);
+                }
+
                 File.Copy(sourceFileName, destFileName, true);
                 if (makeDestinationWritable) File.SetAttributes(destFileName, FileAttributes.Archive);
             }
             catch
             {
+                // FIXME: how this is supposed to work, if these functions also can throw?
                 if (File.Exists(bkpDestFileName))
                 {
                     File.Move(bkpDestFileName, destFileName);
@@ -540,6 +542,7 @@ namespace AGS.Editor
             }
             finally
             {
+                // FIXME: how this is supposed to work, if these functions also can throw?
                 if (File.Exists(bkpDestFileName))
                 {
                     File.Delete(bkpDestFileName);

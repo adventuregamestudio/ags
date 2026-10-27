@@ -178,6 +178,7 @@ namespace AGS.Types
         [Category("Design")]
         public string SourceFilename
         {
+            // FIXME: SourceFilename should be readonly here, and retrieved from _fontFile.SourceFilename
             get { return _sourceFilename; }
             set { _sourceFilename = value; }
         }

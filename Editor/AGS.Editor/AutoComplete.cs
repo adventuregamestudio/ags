@@ -113,18 +113,18 @@ namespace AGS.Editor
 
         private static bool SkipAnyLiterals(FastString script, ref int index)
         {
-            while ((index < script.Length - 1) &&
+            while ((index < script.Length) &&
                 ((script[index] == '"') || (script[index] == '\'')))
             {
-                char firstChar = script[index];
-                while (++index < script.Length - 1)
+                char quote = script[index++];
+                while (index < script.Length)
                 {
-                    if ((script[index] == firstChar) &&
-                        // FIXME: this is of course naive, we must backtrace and find ALL the escape characters
-                        // and see if their count is odd or even
-                        ((script[index - 1] != '\\') || (script[index - 2] == '\\')))
+                    if (script[index] == '\\')
                     {
-                        index++;
+                        index += (index + 1 < script.Length) ? 2 : 1;
+                    }
+                    else if (script[index++] == quote)
+                    {
                         break;
                     }
                 }
@@ -132,21 +132,10 @@ namespace AGS.Editor
             return index == script.Length;
         }
 
-        private static void SkipLiteral(ref FastString script)
+        private static void SkipAnyLiterals(ref FastString script)
         {
-            char quote = script[0];
-            int index = 1;
-            while (index < script.Length)
-            {
-                if (script[index] == '\\')
-                {
-                    index += (index + 1 < script.Length) ? 2 : 1;
-                }
-                else if (script[index++] == quote)
-                {
-                    break;
-                }
-            }
+            int index = 0;
+            SkipAnyLiterals(script, ref index);
             script = script.Substring(index);
         }
 
@@ -232,6 +221,12 @@ namespace AGS.Editor
                         break;
                     }
                     script = script.Substring(endOfComment + 2);
+                    continue;
+                }
+                if ((script[0] == '"') || (script[0] == '\''))
+                {
+                    SkipAnyLiterals(ref script);
+                    state.ClearPreviousWords();
                     continue;
                 }
                 if (script.StartsWith("#"))

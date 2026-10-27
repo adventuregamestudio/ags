@@ -32,7 +32,7 @@ Two build systems, and they are not equivalent. CMake builds the Engine, Compile
 - Write the minimum that does the job. No speculative edge-case handling, no defensive layers for conditions that cannot occur, no abstraction introduced for a single caller.
 - Serialization is version-gated. To change a stored format, bump the constant in `Common/ac/game_version.h` or `Common/game/room_version.h` and read conditionally. Never alter an existing layout - old games and old saves must keep loading.
 - Changes crossing the Editor's native boundary usually travel in threes: `Common/`, `Editor/AGS.Native` marshalling, and `Editor/AGS.Types`.
-- A new script API function means registering the import in `Engine/script/`, implementing it in the matching `Engine/ac/`, and declaring it in `Editor/AGS.Editor/Resources/agsdefns.sh`.
+- A new script API function means registering and implemeting it in `Engine/ac/`, and declaring it in `Editor/AGS.Editor/Resources/agsdefns.sh`.
 - AGS is under the Artistic License 2.0. Do not reproduce source from other projects; GPL and LGPL code cannot be absorbed into this codebase.
 
 ## Commits

@@ -503,6 +503,10 @@ namespace AGS.Editor
 
         private static void RemapColourProperties(GUIControl guiControl, RemapColourProperty remapColor)
         {
+            // TODO: instead of hard-coding every single Color property, which is very bug prone,
+            // assign a custom attribute to them, and use reflection: gather all properties with this
+            // attribute and remap them!
+
             // 3.6.3 colors
             guiControl.BackgroundColor = remapColor(guiControl.BackgroundColor);
             guiControl.BorderColor = remapColor(guiControl.BorderColor);
@@ -511,6 +515,7 @@ namespace AGS.Editor
             {
                 GUIButton but = guiControl as GUIButton;
                 but.TextColor = remapColor(but.TextColor);
+                but.TextOutlineColor = remapColor(but.TextOutlineColor);
                 // 3.6.3 colors
                 but.BorderShadeColor = remapColor(but.BorderShadeColor);
                 but.MouseOverBackgroundColor = remapColor(but.MouseOverBackgroundColor);
@@ -524,11 +529,13 @@ namespace AGS.Editor
             {
                 GUILabel lab = guiControl as GUILabel;
                 lab.TextColor = remapColor(lab.TextColor);
+                lab.TextOutlineColor = remapColor(lab.TextOutlineColor);
             }
             else if (guiControl is GUIListBox)
             {
                 GUIListBox list = guiControl as GUIListBox;
                 list.TextColor = remapColor(list.TextColor);
+                list.TextOutlineColor = remapColor(list.TextOutlineColor);
                 list.SelectedTextColor = remapColor(list.SelectedTextColor);
                 list.SelectedBackgroundColor = remapColor(list.SelectedBackgroundColor, isBackgroundColor: true);
             }
@@ -536,6 +543,7 @@ namespace AGS.Editor
             {
                 GUITextBox textbox = guiControl as GUITextBox;
                 textbox.TextColor = remapColor(textbox.TextColor);
+                textbox.TextOutlineColor = remapColor(textbox.TextOutlineColor);
             }
             else if (guiControl is GUISlider)
             {

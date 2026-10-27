@@ -97,6 +97,18 @@ namespace AGS.Editor
         }
 
         [Test]
+        public void CheckHandlingStringLiteralsAsFunctionArguments()
+        {
+            string scriptCode = "Display(\"int a = 5; int b = 10;\");\nint c = 15;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("c"), Is.Not.Null);
+        }
+
+        [Test]
         public void CheckHandlingStringLiteralsWithEscapedQuotes()
         {
             string scriptCode = "String assign_literal = \"int a = 5;\\\"int b = 10;\\\\\";\nint c = 15;";

@@ -126,7 +126,7 @@ void DisplayAtY(int ypos, const char *texx) {
 }
 
 void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch) {
-    display_speech(get_translation(spch), aschar, xx, yy, wii, false /*not auto-pos*/, false /* not thought */);
+    display_speech(get_translation(spch), aschar, xx, yy, wii, true /*not auto-pos*/, false /* not thought */);
 }
 
 // [DEPRECATED] left only for use in Display, replace/merge with modern function

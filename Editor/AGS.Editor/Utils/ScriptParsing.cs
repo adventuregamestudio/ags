@@ -69,6 +69,44 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Reads and returns the single script name from the given position.
+        /// </summary>
+        public static string ReadScriptName(string script, int at)
+        {
+            if (at < 0 || at >= script.Length || !IsScriptWordChar(script[at]))
+                return string.Empty;
+
+            int start = at;
+            while (at < script.Length && IsScriptWordChar(script[at++]));
+            return script.Substring(start, at - start - 1);
+        }
+
+        /// <summary>
+        /// Reads and returns the potentially composite access expression
+        /// from the given position, trimmed and having any whitespace cut out.
+        /// E.g. "function", "object.function", "object.variable.function" and so forth.
+        /// </summary>
+        public static string ReadCompositeSymbolAccess(string script, int at)
+        {
+            int start = at;
+            int end = at;
+            do
+            {
+                for (; at < script.Length && char.IsWhiteSpace(script[at]); ++at) ;
+                for (; at < script.Length && script[at].IsScriptWordChar(); ++at) ;
+                end = at;
+                for (; at < script.Length && char.IsWhiteSpace(script[at]); ++at) ;
+            }
+            while (at < script.Length && script[at++] == SYM_MEMBER_ACCESS);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = start; i < end; ++i)
+                if (!char.IsWhiteSpace(script[i]))
+                    sb.Append(script[i]);
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Assumes that we are inside an expression, which *may* or *may not* be
         /// inside a function argument list. Backtraces the script until it finds
         /// either a matching opening bracket, or a beginning of expression
@@ -120,6 +158,9 @@ namespace AGS.Editor
             return -1;
         }
 
+        /// <summary>
+        /// Backtraces a single script symbol, returns its starting index.
+        /// </summary>
         public static int BacktraceScriptSymbol(string script, int backFromIndex)
         {
             int index = backFromIndex - 1;
@@ -128,6 +169,12 @@ namespace AGS.Editor
             return index + 1;
         }
 
+        /// <summary>
+        /// Backtraces a potentially composite symbol name, where a variable or
+        /// function name may be preceded by object's name and a member access operation.
+        /// E.g. "function", "object.function", "object.variable.function" and so forth.
+        /// Returns the starting index.
+        /// </summary>
         public static int BacktraceScriptSymbolComposite(string script, int backFromIndex)
         {
             int index = backFromIndex - 1;
@@ -143,9 +190,85 @@ namespace AGS.Editor
             return lastValidIndex + 1;
         }
 
-        public static string GetCurrentFunctionCall(ParserState state, int backFromIndex, bool lookupForOuterCall = false)
+        /// <summary>
+        /// Starting from the given position, assumes that we are inside a function parameter list,
+        /// and backtraces to find either the nearest, or the outermost function's name (depending
+        /// on lookupForOuterCall parameter).
+        /// Returns a string section from that function's name to the position from which we began
+        /// backtracing.
+        /// 
+        /// For example:
+        ///  - Input script:
+        ///      Outer_Call (1, 2, InnerCall (3, 4, ""text arg""));
+        ///  - From position of "1" returns "Outer_Call (1"
+        ///  - From position of "3", if lookupForOuterCall == false, returns "InnerCall (3"
+        ///  - From position of "3", if lookupForOuterCall == true, returns "Outer_Call (1, 2, InnerCall (3"
+        /// </summary>
+        public static string GetCurrentFunctionCall(ParserState state, int backFromIndex, bool lookupForOuterCall = false,
+            List<string> nestedFunctionCalls = null)
         {
-            int argListStart = -1, lastFoundOpenBracket, searchFrom = backFromIndex;
+            int exprStartAt = BacktraceCurrentFunctionCall(state, backFromIndex, lookupForOuterCall, nestedFunctionCalls);
+            if (exprStartAt >= 0)
+            {
+                return state.Script.Substring(exprStartAt, (backFromIndex - exprStartAt));
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Starting from the given position, assumes that we are inside a function parameter list,
+        /// and backtraces to find either the nearest, or the outermost function's name (depending
+        /// on lookupForOuterCall parameter).
+        /// Returns a corresponding function's name.
+        /// 
+        /// For example:
+        ///  - Input script:
+        ///      Outer_Call (1, 2, InnerCall (3, 4, ""text arg""));
+        ///  - From position of "1" returns "Outer_Call"
+        ///  - From position of "3", if lookupForOuterCall == false, returns "InnerCall"
+        ///  - From position of "3", if lookupForOuterCall == true, returns "Outer_Call"
+        /// </summary>
+        public static string GetCurrentFunctionName(ParserState state, int backFromIndex, bool lookupForOuterCall = false)
+        {
+            int exprStartAt = BacktraceCurrentFunctionCall(state, backFromIndex, lookupForOuterCall, null);
+            if (exprStartAt >= 0)
+            {
+                return ReadCompositeSymbolAccess(state.Script, exprStartAt);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Starting from the given position, assumes that we are inside a function parameter list,
+        /// and backtraces to find either the outermost function's name. Fills in the list of all
+        /// the nested function names that have been found inside parameter list.
+        /// The functions are listed in the backwards order, starting with the innermost one.
+        /// E.g. if we are inside a call like "OnlyFunction(...,...", then returns "OnlyFunction".
+        /// If we are inside a call like "OuterCall(...,..., InnerCall(...", then returns both
+        /// "InnerCall" and "OuterCall".
+        /// </summary>
+        public static bool GetAllCurrentFunctionNames(ParserState state, int backFromIndex, List<string> nestedFunctionCalls)
+        {
+            nestedFunctionCalls.Clear();
+            return BacktraceCurrentFunctionCall(state, backFromIndex, true, nestedFunctionCalls) >= 0;
+        }
+
+        /// <summary>
+        /// Starting from the given position, assumes that we are inside a function parameter list,
+        /// and backtraces to find either the nearest, or the outermost function's name (depending
+        /// on lookupForOuterCall parameter).
+        /// Fills functionNameEnd - an index right after the respective function name.
+        /// Returns an index of the corresponding's function name, or -1 on failure.
+        /// </summary>
+        private static int BacktraceCurrentFunctionCall(ParserState state, int backFromIndex,
+            bool lookupForOuterCall, List<string> functionNames)
+        {
+            int lastFoundOpenBracket, searchFrom = backFromIndex;
+            int argListStart = -1, symbolStart = -1;
             do
             {
                 lastFoundOpenBracket = BacktraceToOpenBracket(state, searchFrom);
@@ -153,20 +276,29 @@ namespace AGS.Editor
                 {
                     argListStart = lastFoundOpenBracket;
                     searchFrom = lastFoundOpenBracket;
+
+                    if (functionNames != null)
+                    {
+                        symbolStart = BacktraceScriptSymbolComposite(state.Script, argListStart);
+                        if (symbolStart < argListStart)
+                            functionNames.Add(ReadCompositeSymbolAccess(state.Script, symbolStart));
+                    }
                 }
             }
             while (lookupForOuterCall && lastFoundOpenBracket >= 0);
 
-            if (argListStart >= 0)
+            if (symbolStart >= 0)
             {
-                int exprStartAt = BacktraceScriptSymbolComposite(state.Script, argListStart);
-                if (exprStartAt >= 0)
-                {
-                    return state.Script.Substring(exprStartAt, (backFromIndex - exprStartAt));
-                }
+                return symbolStart;
             }
-
-            return string.Empty;
+            else if (argListStart >= 0)
+            {
+                return BacktraceScriptSymbolComposite(state.Script, argListStart);
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         /// <summary>

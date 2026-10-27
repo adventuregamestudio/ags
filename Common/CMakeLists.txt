@@ -246,6 +246,7 @@ add_library(AGS::Common ALIAS common)
 
 if(AGS_TESTS)
     add_executable(common_test
+        test/bitmapdata_test.cpp
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
         test/datahelpers_test.cpp

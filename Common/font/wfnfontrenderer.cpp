@@ -47,7 +47,7 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
     }
     text_width *= params.SizeMultiplier;
     // Add extra character spacing between characters (except the last character)
-    // NOTE: we do NOT scale global scale character spacing with SizeMultiplier
+    // NOTE: we do NOT scale global character spacing with SizeMultiplier
     text_width += char_spacing * (char_count - 1);
     return text_width;
 }
@@ -76,7 +76,8 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
   const WFNFont* font = _fontData[fontNumber].Font;
   const FontRenderParams &params = _fontData[fontNumber].Params;
-  const int char_spacing = _fontData[fontNumber].CharacterSpacing * params.SizeMultiplier;
+  // NOTE: we do NOT scale global character spacing with SizeMultiplier
+  const int char_spacing = _fontData[fontNumber].CharacterSpacing;
   Bitmap ds(destination, true);
 
   // NOTE: allegro's putpixel ignores clipping (optimization),

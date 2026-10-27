@@ -58,6 +58,7 @@ struct TaskInput
     TaskInput(const String &out_task, uint32_t out_index = UINT32_MAX, uint32_t in_index = UINT32_MAX)
         : OutputTask(out_task), OutputIndex(out_index), InputIndex(in_index) {}
 
+    // Does deep-copy of TaskInput, used because String's reference count is not thread-safe
     TaskInput Clone() const
     {
         return TaskInput(OutputTask.Clone(), OutputIndex, InputIndex);
@@ -191,6 +192,12 @@ struct PipedProcessParams
     PipedProcessParams() = default;
     PipedProcessParams(const String &exe_path, const String &params, bool out_to_std = false)
         : ExePath(exe_path), Params(params), OutputToStdOut(out_to_std) {}
+
+    // Does deep-copy of PipedProcessParams, used because String's reference count is not thread-safe
+    PipedProcessParams Clone() const
+    {
+        return PipedProcessParams(ExePath.Clone(), Params.Clone(), OutputToStdOut);
+    }
 };
 
 class TaskPipedProcess : public Task

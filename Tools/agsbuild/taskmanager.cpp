@@ -257,23 +257,16 @@ HError TaskWriteStringList::RunImpl()
 // TaskPipedProcess
 //-----------------------------------------------------------------------------
 
-// The params are deep-copied: String's reference count is not thread-safe, and the tool paths
-// are shared by many tasks which copy them on their own threads.
-static PipedProcessParams Clone(const PipedProcessParams &params)
-{
-    return PipedProcessParams(params.ExePath.Clone(), params.Params.Clone(), params.OutputToStdOut);
-}
-
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params)
     : Task(name, mgr)
-    , _params(Clone(params))
+    , _params(params.Clone())
 {
 }
 
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params,
     const std::vector<TaskInput> &input_tasks)
     : Task(name, mgr, input_tasks)
-    , _params(Clone(params))
+    , _params(params.Clone())
 {
 }
 

@@ -445,7 +445,7 @@ bool init_editor_debugging(const ConfigTree &cfg)
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token, editor_debugger_comm);
 
     if (editor_debugger == nullptr)
-        quitprintf("!Editor debugger communication '%s' is not supported on this platform", editor_debugger_comm);
+        quitprintf("Editor debugger communication '%s' is not supported on this platform", editor_debugger_comm);
 
     if (editor_debugger->Initialize())
     {

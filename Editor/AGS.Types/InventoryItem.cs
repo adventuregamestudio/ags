@@ -22,8 +22,6 @@ namespace AGS.Types
         private string _scriptModule = Script.GLOBAL_SCRIPT_FILE_NAME;
         private Interactions _interactions = new Interactions(InteractionSchema.Instance);
         private string _onAnyClick = string.Empty;
-        //
-        private bool _currentlyDeserializing = false;
 
         public InventoryItem()
         {
@@ -175,8 +173,6 @@ namespace AGS.Types
 
         public InventoryItem(XmlNode node)
         {
-            _currentlyDeserializing = true;
-
             _cursorImage = -1;
 
             SerializeUtils.DeserializeFromXML(this, node);
@@ -191,8 +187,6 @@ namespace AGS.Types
             _interactions.FromXml(node);
             ConvertOldInteractionEvents();
             _interactions.Schema = InteractionSchema.Instance;
-
-            _currentlyDeserializing = false;
         }
 
         private void ConvertOldInteractionEvents()

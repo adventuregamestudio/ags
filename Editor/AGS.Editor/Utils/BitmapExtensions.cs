@@ -263,9 +263,9 @@ namespace AGS.Editor.Utils
             int dibDataSize = destStride * sourceData.Height;
             byte[] pixelBuffer = new byte[dibDataSize];
             // Copy line by line in reverse order, because DIB has image inverted vertically
-            for (int y = 0, pxIndex = destStride * height - destStride; y < height; ++y, pxIndex -= destStride)
+            for (int y = 0, byteOffset = destStride * height - destStride; y < height; ++y, byteOffset -= destStride)
             {
-                Marshal.Copy(sourcePos, pixelBuffer, pxIndex, widthBytes);
+                Marshal.Copy(sourcePos, pixelBuffer, byteOffset, widthBytes);
                 sourcePos = new IntPtr(sourcePos.ToInt64() + sourceData.Stride);
             }
 
@@ -340,6 +340,9 @@ namespace AGS.Editor.Utils
             Color[] palette = null;
             byte[] pixelBuffer = null;
 
+            int srcStride = 0;
+            int widthBytes = 0;
+
             // Read the DIB data into header, palette and pixelBuffer
             using (BinaryReader reader = new BinaryReader(dibStream))
             {
@@ -387,8 +390,14 @@ namespace AGS.Editor.Utils
                         palette[i] = Color.FromArgb(a, r, g, b);
                     }
                 }
-                pixelBuffer = new byte[header.DibSize];
-                reader.Read(pixelBuffer, 0, header.DibSize);
+
+                // Classic stride: fit within blocks of 4 bytes.
+                srcStride = (((((header.ColorDepth * header.Width) + 7) / 8) + 3) / 4) * 4;
+                widthBytes = ((header.ColorDepth * header.Width) + 7) / 8;
+
+                int dataSize = header.DibSize > 0 ? header.DibSize : (srcStride * header.Height);
+                pixelBuffer = new byte[dataSize];
+                reader.Read(pixelBuffer, 0, dataSize);
             }
 
             // Construct a new Bitmap out of the read data
@@ -405,16 +414,13 @@ namespace AGS.Editor.Utils
 
             Bitmap image = new Bitmap(header.Width, header.Height, pxFormat);
             Rectangle destRect = new Rectangle(0, 0, header.Width, header.Height);
-            BitmapData destData = image.LockBits(destRect, ImageLockMode.ReadOnly, image.PixelFormat);
+            BitmapData destData = image.LockBits(destRect, ImageLockMode.WriteOnly, image.PixelFormat);
             IntPtr destPos = destData.Scan0;
-            // Classic stride: fit within blocks of 4 bytes.
-            int srcStride = (((((header.ColorDepth * header.Width) + 7) / 8) + 3) / 4) * 4;
-            int widthBytes = ((header.ColorDepth * header.Width) + 7) / 8;
 
             // Copy line by line in reverse order, because DIB has image inverted vertically
-            for (int y = 0, pxIndex = srcStride * header.Height - srcStride; y < header.Height; ++y, pxIndex -= srcStride)
+            for (int y = 0, byteOffset = srcStride * header.Height - srcStride; y < header.Height; ++y, byteOffset -= srcStride)
             {
-                Marshal.Copy(pixelBuffer, pxIndex, destPos, widthBytes);
+                Marshal.Copy(pixelBuffer, byteOffset, destPos, widthBytes);
                 destPos = new IntPtr(destPos.ToInt64() + destData.Stride);
             }
             image.UnlockBits(destData);

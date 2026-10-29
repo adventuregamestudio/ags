@@ -401,6 +401,46 @@ TEST(SpriteImport, Transparency32LeaveAsIs)
     TestPixelData4x4<uint32_t>(image2, dest);
 }
 
+TEST(SpriteImport, Transparency32To16LeaveAsIs)
+{
+    // When a 32-bit image is converted to 16-bit, pixels with zero alpha
+    // and opaque magenta become the 16-bit mask color, while a semi-transparent
+    // magenta is kept as a visible near-magenta color.
+    PixelBuffer image(4, 4, kPxFmt_A8R8G8B8);
+    uint32_t *src_px = reinterpret_cast<uint32_t*>(image.GetData());
+    for (size_t i = 0; i < 16; ++i)
+        src_px[i] = 0xFF000000;
+    src_px[0] = 0xFFFFFFFF;
+    src_px[1] = 0x00555555; // zero alpha
+    src_px[2] = MASK_COLOR_32; // zero alpha magenta
+    src_px[3] = 0xFFFF00FF; // opaque magenta
+    src_px[4] = 0x80FF00FF; // semi-transparent magenta
+    src_px[5] = 0xFF4080C0;
+
+    PixelBuffer dest;
+    auto set = GetDefColorSet32();
+    set.ColorDepth = kGameColorDepth_HighColor;
+    SpriteData sprite = GetDefImport(4, 4, 32);
+    sprite.TransparentColour = kSpriteImport_LeaveAsIs;
+    HError err = ConvertSpriteForGame(image, nullptr, dest, set, nullptr, sprite);
+    ASSERT_TRUE(err);
+    ASSERT_EQ(kPxFmt_R5G6B5, dest.GetFormat());
+
+    PixelBuffer image2(4, 4, kPxFmt_R5G6B5);
+    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    for (size_t i = 0; i < 16; ++i)
+        pixels[i] = 0;
+    pixels[0] = makecol16(255, 255, 255);
+    pixels[1] = MASK_COLOR_16;
+    pixels[2] = MASK_COLOR_16;
+    pixels[3] = MASK_COLOR_16;
+    pixels[4] = 0xF83F; // (255, 0, 255) => (255, 4, 255) prevent becoming MASK_COLOR_16
+    pixels[5] = makecol16(0x40, 0x80, 0xC0);
+    /* PrintPixelData16(dest, image2); */
+
+    TestPixelData4x4<uint16_t>(image2, dest);
+}
+
 TEST(SpriteImport, Transparency8NoTransparency)
 {
     auto dest = ImportDefault8Sprite(kGameColorDepth_Palette, kSpriteImport_NoTransparency);

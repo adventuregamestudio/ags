@@ -2472,6 +2472,7 @@ static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array
 
 void Convert8BitToHiColor(const AGSBitmap *src, const RGB *imgpal, AGSBitmap *dst, bool keep_transparency);
 void Convert8BitARGBTo32(const AGSBitmap *src, const RGB *imgpal, AGSBitmap *dst);
+static void ReplaceTransparentWithMask32(AGSBitmap *bmp);
 
 AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
     bool fixColourDepth, bool importAlpha, bool keepTransparency, bool fixPalette, int *originalColDepth)
@@ -2575,6 +2576,10 @@ AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int 
         }
         else // let allegro do its own conversions
         {
+          // Allegro's blit keeps only the exact 32-bit mask color (with zero alpha) transparent;
+          // when downgrading a 32-bit image, also treat zero alpha and opaque magenta as transparent.
+          if (keepTransparency && (dst_depth == 32) && (final_depth < 32))
+              ReplaceTransparentWithMask32(tempsprite.get());
           spriteAtRightDepth->Blit(tempsprite.get(), 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
         }
         set_color_conversion(oldColorConv);
@@ -2612,6 +2617,23 @@ static void Convert8BitToHiColor(const AGSBitmap *src, const RGB *imgpal, AGSBit
                 dst->PutPixel(x, y, safe_magenta);
             else
                 dst->PutPixel(x, y, color);
+        }
+    }
+}
+
+// Replaces pixels with zero alpha and opaque mask color pixels with the standard 32-bit mask color;
+// semi-transparent mask color pixels are kept as normal colors.
+static void ReplaceTransparentWithMask32(AGSBitmap *bmp)
+{
+    const int maskcolor = bmp->GetMaskColor();
+    const int opaque_maskcolor = static_cast<int>(static_cast<uint32_t>(maskcolor) | (0xFFu << _rgb_a_shift_32));
+    for (int x = 0; x < bmp->GetWidth(); ++x)
+    {
+        for (int y = 0; y < bmp->GetHeight(); ++y)
+        {
+            const int px = bmp->GetPixel(x, y);
+            if ((geta32(px) == 0) || (px == opaque_maskcolor))
+                bmp->PutPixel(x, y, maskcolor);
         }
     }
 }

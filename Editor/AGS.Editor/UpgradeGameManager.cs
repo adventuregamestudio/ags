@@ -79,7 +79,7 @@ namespace AGS.Editor
             return tasks.ToArray();
         }
 
-        private struct ExecuteTasksData
+        private class ExecuteTasksData
         {
             public Game Game;
             public IUpgradeGameTask[] UpgradeTasks;

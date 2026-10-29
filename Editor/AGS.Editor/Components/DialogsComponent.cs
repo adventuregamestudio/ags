@@ -570,10 +570,8 @@ namespace AGS.Editor.Components
                 string backupRootDir = Utilities.MakeUniqueDirectory(_agsEditor.CurrentGame.DirectoryPath, Dialog.DIALOG_FILES_DIRECTORY, "Backup-");
                 Utilities.SafeMoveDirectoryFiles(Dialog.DIALOG_FILES_DIRECTORY, backupRootDir);
             }
-            else
-            {
-                Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
-            }
+
+            Directory.CreateDirectory(Dialog.DIALOG_FILES_DIRECTORY);
 
             // As the dialogs and their scripts are loaded into memory, we only need to resave them,
             // and they will create respective files in the Dialogs folder.

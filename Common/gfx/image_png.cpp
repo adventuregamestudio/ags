@@ -27,7 +27,7 @@
 #define STBI_ONLY_PNG
 #define STBI_NO_FAILURE_STRINGS
 #include <stb_image.h>
-#include <miniz.h>
+#include <miniz_ex.h>
 #include "gfx/bitmapdata.h"
 #include "util/stream.h"
 

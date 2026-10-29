@@ -23,6 +23,9 @@
     <Filter Include="data">
       <UniqueIdentifier>{9f7942ab-5b85-4cc8-ac20-5325364c9474}</UniqueIdentifier>
     </Filter>
+    <Filter Include="miniz_ex">
+      <UniqueIdentifier>{5b30a2e1-5910-443a-adaa-5dca01a27abb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Tools\spritepak\main.cpp">
@@ -118,6 +121,9 @@
     <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\miniz_ex\miniz_ex.c">
+      <Filter>miniz_ex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\spritepak\commands.h">
@@ -185,6 +191,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz_ex\miniz_ex.h">
+      <Filter>miniz_ex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -180,7 +180,11 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        public int Transparency { get; set; }
+        public int Transparency
+        {
+            get { return TypesHelper.Alpha255ToTrans100(Opacity); }
+            set { Opacity = TypesHelper.Trans100ToAlpha255(value); }
+        }
 
         [Description("This character's opacity (0-255)")]
         [Category("Appearance")]

@@ -352,7 +352,7 @@ namespace AGS.Editor
                                 }
                                 if ((script[0] == '"') || (script[0] == '\''))
                                 {
-                                    SkipLiteral(ref script);
+                                    SkipAnyLiterals(ref script);
                                     continue;
                                 }
 								thisWord = GetNextWord(ref script);

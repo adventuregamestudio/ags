@@ -102,6 +102,9 @@
     <Filter Include="Library Sources\stb">
       <UniqueIdentifier>{12edb783-3fec-4e1d-b2d5-428cc6712fe3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library Sources\miniz_ex">
+      <UniqueIdentifier>{8776768e-019b-418f-9d14-3d5f10f2fd77}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ac\audiocliptype.cpp">
@@ -542,6 +545,9 @@
     <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\miniz_ex\miniz_ex.c">
+      <Filter>Library Sources\miniz_ex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -945,6 +951,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
       <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz_ex\miniz_ex.h">
+      <Filter>Library Sources\miniz_ex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

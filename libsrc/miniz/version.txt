@@ -1,2 +1,6 @@
 https://github.com/richgel999/miniz
 Release 3.0.2
+
+additional modifications applied from the version found in SDL3 library:
+	- indexed PNG image saving
+source: https://github.com/libsdl-org/SDL/blob/release-3.4.x/src/video/miniz.h 

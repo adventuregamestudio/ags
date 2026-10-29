@@ -252,10 +252,6 @@ void GUIMain::DrawSelf(Bitmap *ds)
     SpriteCache &spriteset = *GUI::Context.Spriteset;
 
     set_our_eip(376);
-    // stop border being transparent, if the whole GUI isn't
-    // FIXME: don't do this in DrawSelf, fix properties when they are set!
-    if ((_fgColor == 0) && (_bgColor != 0))
-        _fgColor = GUI::GetStandardColor(16);
 
     if (_bgColor != 0)
         ds->Fill(ds->GetCompatibleColor(_bgColor));

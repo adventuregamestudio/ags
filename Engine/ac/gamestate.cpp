@@ -26,6 +26,7 @@
 #include "game/customproperties.h"
 #include "game/roomstruct.h"
 #include "game/savegame_internal.h"
+#include "gfx/gfx_def.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
 #include "util/string_utils.h"
@@ -728,6 +729,27 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
     rtint_enabled = in->ReadBool();
+    if (svg_ver < kGSSvgVersion_400_34)
+    {
+        // Ambient tint saturation was 0-100 and luminance 0-250,
+        // ambient light level was -100 to 100
+        if (rtint_level > 0)
+        {
+            rtint_level = GfxDef::Value100ToValue255(rtint_level);
+            rtint_light = GfxDef::Value250ToValue255(rtint_light);
+        }
+        else
+        {
+            rtint_light = GfxDef::Value100ToValue255(rtint_light);
+        }
+        // Screen tint rgb was 0-250
+        if (screen_tint > 0)
+        {
+            screen_tint = GfxDef::Value250ToValue255(screen_tint & 0xFF)
+                | (GfxDef::Value250ToValue255((screen_tint >> 8) & 0xFF) << 8)
+                | (GfxDef::Value250ToValue255((screen_tint >> 16) & 0xFF) << 16);
+        }
+    }
     in->ReadInt32();// [DEPRECATED]
     skip_until_char_stops = in->ReadInt32();
     in->ReadInt32(); // was get_loc_name_last_time, should not serialize

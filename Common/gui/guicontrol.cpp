@@ -14,6 +14,7 @@
 #include "ac/common.h" // quit // FIXME: don't use quit here!!
 #include "gui/guimain.h"
 #include "gui/guicontrol.h"
+#include "gfx/gfx_def.h"
 #include "util/stream.h"
 
 namespace AGS
@@ -271,6 +272,8 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_36023)
     {
         _opacity = in->ReadInt32();
+        if (svg_ver < kGuiSvgVersion_40034)
+            _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
         // valid since kGuiSvgVersion_36304
         _backgroundColor = in->ReadInt32();
         _borderColor = in->ReadInt32();

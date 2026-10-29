@@ -478,6 +478,22 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _pivotOff = Point();
     }
 
+    // Upgrade legacy transparency, tint and light ranges
+    if (cmp_ver < kOverSvgVersion_40034)
+    {
+        if (cmp_ver >= kOverSvgVersion_36008)
+            _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
+        if (HasTint())
+        {
+            _tintLevel = static_cast<uint8_t>(GfxDef::Value100ToValue255(_tintLevel));
+            _tintLight = GfxDef::Value250ToValue255(_tintLight);
+        }
+        else if (HasLightLevel())
+        {
+            _tintLight = GfxDef::Value100ToValue255(_tintLight);
+        }
+    }
+
     // Convert magic x,y values from the older saves
     if (cmp_ver < kOverSvgVersion_40005)
     {

@@ -123,6 +123,18 @@ namespace GfxDef
         return (value100 * 10) / 25;
     }
 
+    // Converts value from range of 100 to range of 255
+    inline int Value100ToValue255(const int value100)
+    {
+        return (value100 * 255) / 100;
+    }
+
+    // Converts value from range of 250 to range of 255
+    inline int Value250ToValue255(const int value250)
+    {
+        return (value250 * 255) / 250;
+    }
+
     // Converts percentage of transparency into alpha
     inline int Trans100ToAlpha255(const int transparency)
     {

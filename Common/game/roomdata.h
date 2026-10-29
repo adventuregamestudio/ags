@@ -317,6 +317,10 @@ struct RoomRegion : public RoomObjectBase
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
     void RemapOldInteractions();
+    // Converts light level, or tint saturation and luminance, from the legacy
+    // value ranges (light level -100 to 100, saturation 0-100, luminance 0-250)
+    // into the current ones (light level -255 to 255, saturation and luminance 0-255)
+    static void UpgradeLegacyLight(int &light, int &tint);
 
 private:
     // Script events schema

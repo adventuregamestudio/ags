@@ -203,7 +203,8 @@ enum GuiSvgVersion
     kGuiSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
     kGuiSvgVersion_40026    = 4000026, // sync with kGuiSvgVersion_36304
     kGuiSvgVersion_40027    = 4000027, // sync with kGuiSvgVersion_36308
-    kGuiSvgVersion_Current  = kGuiSvgVersion_40027
+    kGuiSvgVersion_40034    = 4000034, // opacity instead of transparency
+    kGuiSvgVersion_Current  = kGuiSvgVersion_40034
 };
 
 // Style of GUI drawing in disabled state

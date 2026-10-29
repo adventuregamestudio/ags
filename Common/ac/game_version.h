@@ -175,6 +175,9 @@ sync with 3.6.3.8
 sync with 3.6.3.10
 4.0.0.33:
 sync with 3.6.3.14
+4.0.0.34:
+Opacity (0-255 alpha) instead of transparency; full 0-255 range for tint
+saturation and luminance, -255 to 255 for light level.
 */
 
 enum GameDataVersion
@@ -212,8 +215,9 @@ enum GameDataVersion
     kGameVersion_400_27         = 4000027,
     kGameVersion_400_29         = 4000029,
     kGameVersion_400_33         = 4000033,
+    kGameVersion_400_34         = 4000034,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_33,
+    kGameVersion_Current        = kGameVersion_400_34,
 
     //-------------------------------------------------------------------------
     // Following version numbers were not saved in data, but are generated

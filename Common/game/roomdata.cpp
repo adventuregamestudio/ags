@@ -14,6 +14,7 @@
 #include "game/roomdata.h"
 #include "ac/common_defines.h"
 #include "game/room_version.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS
 {
@@ -366,6 +367,21 @@ int RoomData::GetRegionTintLuminance(int id) const
     if (id >= 0 && id < MAX_ROOM_REGIONS)
         return HasRegionTint(id) ? Regions[id].Light : 0;
     return 0;
+}
+
+void RoomRegion::UpgradeLegacyLight(int &light, int &tint)
+{
+    if (tint != 0)
+    {
+        // Tint saturation is stored in the highest byte
+        const int saturation = GfxDef::Value100ToValue255((tint >> 24) & 0xFF);
+        tint = (tint & 0x00FFFFFF) | (saturation << 24);
+        light = GfxDef::Value250ToValue255(light);
+    }
+    else
+    {
+        light = GfxDef::Value100ToValue255(light);
+    }
 }
 
 } // namespace Common

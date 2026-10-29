@@ -19,6 +19,7 @@
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
@@ -695,6 +696,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
     _height = in->ReadInt32();
     _bgImage = in->ReadInt32();
     _opacity = in->ReadInt32();
+    if (svg_ver < kGuiSvgVersion_40034)
+        _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
     _zOrder = in->ReadInt32();
 
     if (svg_ver >= kGuiSvgVersion_350)

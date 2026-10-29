@@ -23,6 +23,7 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
+#include "gfx/gfx_def.h"
 #include "main/update.h"
 #include "script/script.h"
 #include "util/stream.h"
@@ -329,6 +330,21 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         }
         anim_dir_initial = legacy_animating < 10 ? kAnimDirForward : kAnimDirBackward;
         anim_dir_current = anim_dir_initial;
+    }
+
+    // Upgrade legacy transparency, tint and light ranges
+    if (cmp_ver < kRoomStatSvgVersion_40034)
+    {
+        opacity = GfxDef::LegacyTrans255ToAlpha255(opacity);
+        if (has_explicit_tint())
+        {
+            tint_level = static_cast<int16_t>(GfxDef::Value100ToValue255(tint_level));
+            tint_light = static_cast<int16_t>(GfxDef::Value250ToValue255(tint_light));
+        }
+        else if (has_explicit_light())
+        {
+            tint_light = static_cast<int16_t>(GfxDef::Value100ToValue255(tint_light));
+        }
     }
 
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_audio_volume);

@@ -127,7 +127,8 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
     kCharSvgVersion_400_29  = 4000029, // rotation pivot
     kCharSvgVersion_400_33  = 4000033, // removed MAX_INV
-    kCharSvgVersion_Current = kCharSvgVersion_400_33
+    kCharSvgVersion_400_34  = 4000034, // opacity instead of transparency, full tint and light ranges
+    kCharSvgVersion_Current = kCharSvgVersion_400_34
 };
 
 // Character event indexes

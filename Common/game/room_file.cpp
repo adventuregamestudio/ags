@@ -20,6 +20,7 @@
 #include "game/customproperties.h"
 #include "game/room_file_blocks.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 #include "gfx/sprite_data_fmt.h"
 #include "script/cc_common.h"
 #include "script/cc_script.h"
@@ -388,7 +389,7 @@ HError ReadPropertiesBlock(RoomData *room, Stream *in, RoomFileVersion /*data_ve
     return HError::None();
 }
 
-HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ver*/)
+HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion data_ver)
 {
     uint32_t obj_count = static_cast<uint32_t>(in->ReadInt32());
     if (obj_count != room->Objects.size())
@@ -398,6 +399,9 @@ HError ReadExt_363_Objects(RoomData *room, Stream *in, RoomFileVersion /*data_ve
     for (auto &obj : room->Objects)
     {
         obj.Opacity = in->ReadInt16();
+        // Before 4.0.0.34 this was a legacy 255-ranged transparency
+        if (data_ver < kRoomVersion_400_34)
+            obj.Opacity = GfxDef::LegacyTrans255ToAlpha255(obj.Opacity);
         obj.Baseline = in->ReadInt16();
         int x = in->ReadInt16();
         int y = in->ReadInt16();
@@ -787,6 +791,12 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const st
             obj.RemapOldInteractions();
         for (auto &reg : room->Regions)
             reg.RemapOldInteractions();
+    }
+
+    if (data_ver < kRoomVersion_400_34)
+    {
+        for (auto &reg : room->Regions)
+            RoomRegion::UpgradeLegacyLight(reg.Light, reg.Tint);
     }
 
     return HRoomFileError::None();

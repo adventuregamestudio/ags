@@ -26,6 +26,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
+#include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
@@ -453,6 +454,15 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
             chars[i].RemapOldInteractions();
         }
     }
+
+    // Legacy 255-ranged transparency to alpha opacity
+    if (data_ver < kGameVersion_400_34)
+    {
+        for (int i = 0; i < char_count; i++)
+        {
+            chars[i].opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(chars[i].opacity));
+        }
+    }
 }
 
 void UpgradeInventoryItems(GameSetupStruct &game, GameDataVersion data_ver)
@@ -550,6 +560,14 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
             obj.RemapOldEvents();
         for (auto &obj : ents.GuiControls.TextBoxes)
             obj.RemapOldEvents();
+    }
+
+    // Legacy 255-ranged transparency to alpha opacity;
+    // NOTE: controls are upgraded when reading their extension block
+    if (data_ver < kGameVersion_400_34)
+    {
+        for (auto &gui : ents.Guis)
+            gui.SetOpacity(GfxDef::LegacyTrans255ToAlpha255(gui.GetOpacity()));
     }
 }
 
@@ -680,7 +698,11 @@ HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type,
 
 void GameDataExtReader::ReadGUIControlExtGraphics(Stream *in, GUIControl &obj)
 {
-    obj.SetOpacity(in->ReadInt32());
+    int opacity = in->ReadInt32();
+    // Before 4.0.0.34 this was a transparency percentage
+    if (_dataVer < kGameVersion_400_34)
+        opacity = GfxDef::Trans100ToAlpha255(opacity);
+    obj.SetOpacity(opacity);
     obj.SetBlendMode(static_cast<BlendMode>(in->ReadInt32()));
     // Reserved for colour options
     _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level

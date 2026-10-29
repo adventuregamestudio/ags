@@ -205,7 +205,8 @@ target_link_libraries(common PUBLIC
         AAStr::AAStr
         glm::glm
         stb::stb
-        MiniZ::MiniZ)
+        MiniZ::MiniZ
+        MiniZ_Ex::MiniZ_Ex)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

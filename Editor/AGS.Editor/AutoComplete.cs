@@ -113,23 +113,30 @@ namespace AGS.Editor
 
         private static bool SkipAnyLiterals(FastString script, ref int index)
         {
-            while ((index < script.Length - 1) &&
+            while ((index < script.Length) &&
                 ((script[index] == '"') || (script[index] == '\'')))
             {
-                char firstChar = script[index];
-                while (++index < script.Length - 1)
+                char quote = script[index++];
+                while (index < script.Length)
                 {
-                    if ((script[index] == firstChar) &&
-                        // FIXME: this is of course naive, we must backtrace and find ALL the escape characters
-                        // and see if their count is odd or even
-                        ((script[index - 1] != '\\') || (script[index - 2] == '\\')))
+                    if (script[index] == '\\')
                     {
-                        index++;
+                        index += (index + 1 < script.Length) ? 2 : 1;
+                    }
+                    else if (script[index++] == quote)
+                    {
                         break;
                     }
                 }
             }
             return index == script.Length;
+        }
+
+        private static void SkipAnyLiterals(ref FastString script)
+        {
+            int index = 0;
+            SkipAnyLiterals(script, ref index);
+            script = script.Substring(index);
         }
 
         private static void SkipUntilMatchingClosingBrace(ref FastString script, char openBrace, char closeBrace)
@@ -214,6 +221,12 @@ namespace AGS.Editor
                         break;
                     }
                     script = script.Substring(endOfComment + 2);
+                    continue;
+                }
+                if ((script[0] == '"') || (script[0] == '\''))
+                {
+                    SkipAnyLiterals(ref script);
+                    state.ClearPreviousWords();
                     continue;
                 }
                 if (script.StartsWith("#"))
@@ -325,6 +338,23 @@ namespace AGS.Editor
 						{
 							while ((thisWord != ";") && (thisWord != ",") && (script.Length > 0))
 							{
+                                SkipWhitespace(ref script);
+                                if (script.Length == 0)
+                                {
+                                    break;
+                                }
+                                if (script.StartsWith("//") || script.StartsWith("/*"))
+                                {
+                                    int commentEnd = 0;
+                                    SkipAnyComments(script, ref commentEnd);
+                                    script = script.Substring(commentEnd);
+                                    continue;
+                                }
+                                if ((script[0] == '"') || (script[0] == '\''))
+                                {
+                                    SkipAnyLiterals(ref script);
+                                    continue;
+                                }
 								thisWord = GetNextWord(ref script);
 							}
 						}

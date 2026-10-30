@@ -51,6 +51,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/path.h"
 #include "util/utf8.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 #include "data/assetmanager.h"
 #include "NativeUtils.h"
 
@@ -1006,6 +1007,19 @@ void drawSpriteStretch(HDC hdc, int x, int y, int width, int height, int spriteN
   delete tempBlock;
 }
 
+// Blends GUI controls layer over the GUI background, applying both pixel alpha
+// and the global alpha (passed as "n"). Pixels with zero alpha are treated as opaque,
+// because in the Editor the controls graphics are not guaranteed to have a valid
+// alpha channel (e.g. sprites are drawn as plain images), so only the pixels with
+// partial alpha (such as anti-aliased text) are actually blended.
+// The result is always opaque, as it's going to be drawn onto a Windows DC.
+static uint32_t gui_controls_blender(uint32_t src_col, uint32_t dst_col, uint32_t n)
+{
+    if (geta32(src_col) == 0)
+        src_col |= 0xFF000000;
+    return _argb2rgb_blender(src_col, dst_col, n) | 0xFF000000;
+}
+
 void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
 {
     if ((tempgui.GetWidth() < 1) || (tempgui.GetHeight() < 1))
@@ -1048,13 +1062,11 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         final_ctrl->Blit(NDrawState->guiCtrlBmp.get());
         set_color_conversion(old_conv);
     }
-    if (ctrl_trans == 0)
+    if (ctrl_trans < 100)
     {
-        final_gui->MaskedBlit(final_ctrl);
-    }
-    else if (ctrl_trans < 100)
-    {
-        set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
+        // NOTE: blender skips MASK_COLOR_32 pixels, same as MaskedBlit
+        set_blender_mode(nullptr, nullptr, gui_controls_blender, 0, 0, 0,
+            AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
         final_gui->TransBlendBlt(final_ctrl);
     }
 

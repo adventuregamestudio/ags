@@ -697,3 +697,43 @@ TEST(Compile, LineNumbersCRLF) {
     ASSERT_EQ(3, currentline);
     ASSERT_EQ(-1, compileResult);
 }
+
+TEST(Compile, ReturnVoidExpressionFromVoidFunc) {
+    // A 'void' function may return the result of a call to another 'void' function
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        void Func1()            \n\
+        {                       \n\
+        }                       \n\
+        void Func2()            \n\
+        {                       \n\
+            return Func1();     \n\
+        }                       \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, ReturnValueFromVoidFunc) {
+    // A 'void' function may not return a non-void value
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        int Func1()             \n\
+        {                       \n\
+            return 1;           \n\
+        }                       \n\
+        void Func2()            \n\
+        {                       \n\
+            return Func1();     \n\
+        }                       \n\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Cannot return value from void function", last_seen_cc_error());
+}

@@ -111,13 +111,15 @@ public:
     void SetStageProgress(float progress);
     // Increment current stage's progress, update object position;
     // if the stage is complete, then progress to the next stage;
+    // do_step tells whether to do a +1 step, or only update position using current progress.
     // returns if there's a new stage available
-    bool Forward();
+    bool Forward(bool do_step = true);
     // Decrement current stage's progress, update object position;
-    // does not let revert the stage, clamps progress by 0.0;
+    // reverts to the previous stage if reached beyond progress 0.0;
     // returns if there's a new stage available
-    // TODO: support going stage back?
-    bool Backward();
+    // do_step tells whether to do a -1 step, or only update position using current progress.
+    // TODO: support smooth walk transition?
+    bool Backward(bool do_step = true);
 
     AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

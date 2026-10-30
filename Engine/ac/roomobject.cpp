@@ -87,13 +87,11 @@ void RoomObject::UpdateCyclingView(int ref_id)
     if (moving > 0)
     {
         MoveList &mlist = *get_movelist(moving);
-        MoveResult last_move_result;
         // If we support smooth walk, then keep moving even across multiple stages,
         // until all the "current move" is not depleted OR until we have to turn.
-        // NOTE: due to how this function acts, the movelist progress will only increment
-        // by +1.0 once here, either if we did not reach next stage yet, or if we did and
-        // then depleted all the move remainer.
-        while ((last_move_result = do_movelist_move(moving, x, y)) == kMoveResult_NextStage) { }
+        for (MoveResult mresult = kMoveResult_Continue;
+            ((mresult = do_movelist_move(moving, x, y, mresult == kMoveResult_Continue)) == kMoveResult_NextStage)
+            && !Math::IsFloatZero(mlist.onpart);) { }
 
         if (moving == 0)
             OnStopMoving();

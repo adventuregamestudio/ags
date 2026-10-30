@@ -38,6 +38,11 @@ namespace Common
 
 namespace Math
 {
+    inline bool IsFloatZero(float value)
+    {
+        return (value >= -std::numeric_limits<float>::epsilon()) && (value <= std::numeric_limits<float>::epsilon());
+    }
+
     template <class T>
     inline const T &Clamp(const T &val, const T &floor, const T &ceil)
     {

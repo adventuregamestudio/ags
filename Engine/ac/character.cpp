@@ -2538,17 +2538,16 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex)
     MoveList &mlist = *get_movelist(chi->get_movelist_id());
     // For the purpose smooth walk transition keep moving even across multiple stages,
     // until all the "current move" is not depleted OR until we have to turn.
-    // NOTE: due to how this function acts, the movelist progress will only increment
-    // by +1.0 once here, either if we did not reach next stage yet, or if we did and
-    // then depleted all the move remainer.
-    while (do_movelist_move(chi->walking, chi->x, chi->y) == kMoveResult_NextStage)
+    for (MoveResult mresult = kMoveResult_Continue;
+        (mresult = do_movelist_move(chi->walking, chi->x, chi->y, mresult == kMoveResult_Continue)) == kMoveResult_NextStage;)
     {
         // Character just switched to the next path segment, test if we need to turn.
         if (chi->is_moving_walkanim())
             fix_player_sprite(chi, mlist);
-        // If character started to turn, then force reset stage progress to zero,
-        // so to eliminate any unused remainder.
-        if (charextra[chi->index_id].IsTurning())
+        // If there's no move remainder, or if character started to turn,
+        // then force reset stage progress to zero (eliminate any unused remainder)
+        // and break out.
+        if (Math::IsFloatZero(mlist.onpart) || charextra[chi->index_id].IsTurning())
         {
             // cancel any walk progress transition since the previous stage
             mlist.onpart = 0.f;

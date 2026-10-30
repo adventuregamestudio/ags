@@ -94,31 +94,47 @@ void MoveList::SetStageProgress(float progress)
     curpos = CalcCurrentPos();
 }
 
-bool MoveList::Forward()
+bool MoveList::Forward(bool do_step)
 {
     // Safety fix, in case onpart became invalid
     if (std::isnan(onpart) || onpart < 0.f)
        onpart = 0.f;
 
-    onpart += 1.f;
-    return OnProgressChanged(1.f);
+    if (do_step)
+    {
+        onpart += 1.f;
+        return OnProgressChanged(1.f);
+    }
+    else
+    {
+        // Reapply whole progress at once as a single step from 0
+        return OnProgressChanged(onpart);
+    }
 }
 
-bool MoveList::Backward()
+bool MoveList::Backward(bool do_step)
 {
     // Safety fix, in case onpart became invalid
     if (std::isnan(onpart) || onpart < 0.f)
         onpart = 0.f;
 
-    onpart -= 1.f;
-    if (onpart < 0.f)
+    if (do_step)
     {
-        // TODO: perform smooth transition also in the case of RevertStage
-        return RevertStage();
+        onpart -= 1.f;
+        if (onpart < 0.f)
+        {
+            // TODO: perform smooth transition also in the case of RevertStage
+            return RevertStage();
+        }
+        else
+        {
+            return OnProgressChanged(-1.f);
+        }
     }
     else
     {
-        return OnProgressChanged(-1.f);
+        // Reapply whole progress at once as a single step from 0
+        return OnProgressChanged(onpart);
     }
 }
 
@@ -207,7 +223,7 @@ bool MoveList::OnProgressChanged(float step)
     // Calculate next positions
     const float max_xps = from.X + (xpermove * onpart);
     const float max_yps = from.Y + (ypermove * onpart);
-    const float old_xps = (xpermove * (onpart - step)), old_yps = (ypermove * (onpart - step));
+    const float old_xps = from.X + (xpermove * (onpart - step)), old_yps = from.Y + (ypermove * (onpart - step));
 
     // FIXME: use round to nearest here?
     int xps = static_cast<int>(max_xps), yps = static_cast<int>(max_yps);

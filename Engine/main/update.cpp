@@ -64,7 +64,7 @@ extern IGraphicsDriver *gfxDriver;
 
 // Receives and modifies movelist_id and entity coordinates
 // Returns whether to there's a need to update the sprite due to a change in direction
-MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool do_step)
 {
     assert(mslot > 0);
     if (mslot < 1)
@@ -73,7 +73,7 @@ MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     MoveList &cmls = *get_movelist(mslot);
     const int old_stage = cmls.GetStage();
     MoveResult move_result = kMoveResult_Continue;
-    if (cmls.Forward())
+    if (cmls.Forward(do_step))
     {
         pos_x = cmls.GetCurrentPos().X;
         pos_y = cmls.GetCurrentPos().Y;

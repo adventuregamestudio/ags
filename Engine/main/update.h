@@ -37,8 +37,10 @@ enum MoveResult
 // If reached end of path, then *resets* mslot
 // NOTE: in smooth move mode, when the next path's segment is reached,
 // will carry over remaining progress onto the next segment. Otherwise won't.
+// do_step tells whether advance along the path, otherwise only updates the
+// position to sync with the current progress.
 // TODO: do not reset mslot in this function, reset externally instead.
-MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y);
+MoveResult do_movelist_move(short &mslot, int &pos_x, int &pos_y, bool do_step);
 // Update various things on the game frame:
 // moves and animates objects, updates timers, etc.
 void update_game_objects();

@@ -168,11 +168,8 @@ sync with 3.6.3.10
 enum GameDataVersion
 {
     kGameVersion_Undefined      = 0,
-    // Following version numbers were not saved in data, but are generated
-    // by reading "Compiled With" field from the game file's header.
-    kGameVersion_351            = 3050100,
     //-------------------------------------------------------------------------
-    // Following version numbers are actual versions found in game data.
+    // 3.x version numbers found in the game data
     kGameVersion_360_21         = 3060021,
     kGameVersion_361            = 3060100,
     kGameVersion_361_10         = 3060110,
@@ -185,6 +182,12 @@ enum GameDataVersion
     kGameVersion_363_06         = 3060306,
     kGameVersion_363_08         = 3060308,
     kGameVersion_363_10         = 3060310,
+    //-------------------------------------------------------------------------
+    // Following 3.x version numbers were not saved in data, but are generated
+    // by reading "Compiled With" field from the game file's header.
+    kGameVersion_351            = 3050100,
+    //-------------------------------------------------------------------------
+    // 4.x version numbers found in the game data
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,

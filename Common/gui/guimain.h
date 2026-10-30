@@ -255,6 +255,8 @@ private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
     // Same as FindControlAt but expects local space coordinates
     int     FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
+    // Resets control under mouse and/or pressed by mouse
+    void    ResetActiveControl();
 
     static const int DefaultBgColor = 8;
     static const int DefaultFgColor = 1;

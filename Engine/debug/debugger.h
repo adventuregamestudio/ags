@@ -23,7 +23,8 @@ struct ScriptPosition;
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
-extern char editor_debugger_comm[16];
+extern AGS::Common::String editor_debugger_comm_type;
+extern AGS::Common::String editor_debugger_comm_config;
 extern IAGSEditorDebugger *editor_debugger;
 extern int break_on_next_script_step;
 

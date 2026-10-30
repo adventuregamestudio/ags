@@ -21,9 +21,10 @@
 struct FileBasedAGSDebugger : IAGSEditorDebugger
 {
 public:
-    FileBasedAGSDebugger() = default;
-    // Exchange files in the given folder (current directory if empty or not a folder)
-    explicit FileBasedAGSDebugger(const char *directory);
+    // Exchanges messages through files named after the instance token;
+    // config is a comma-separated list of key:value pairs:
+    //   dir - folder for the files (current directory by default)
+    FileBasedAGSDebugger(const AGS::Common::String &instance_token, const AGS::Common::String &config);
 
     bool Initialize() override;
     void Shutdown() override;
@@ -32,10 +33,15 @@ public:
     char* GetNextMessage() override;
 
 private:
-    AGS::Common::String FilePath(const char *name) const;
-    AGS::Common::String _directory;
-};
+    // engine -> editor; written to a temporary file first and then renamed
+    static const char *SentMessageFileName;
+    static const char *SentMessagePartFileName;
+    // editor -> engine
+    static const char *ReceivedMessageFileName;
 
-extern const char* SENT_MESSAGE_FILE_NAME;
+    AGS::Common::String _sentMessageFile;
+    AGS::Common::String _sentMessagePartFile;
+    AGS::Common::String _receivedMessageFile;
+};
 
 #endif // __AC_FILEBASEDAGSDEBUGGER_H

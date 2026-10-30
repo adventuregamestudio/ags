@@ -41,7 +41,6 @@
 #include "script/cc_common.h"
 #include "util/memory_compat.h"
 #include "util/path.h"
-#include "util/string_compat.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
 
@@ -62,10 +61,11 @@ IAGSEditorDebugger *editor_debugger = nullptr;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
 
-// How the engine talks to the editor (--debugger-comm): "pipe" (named pipes, Windows only)
-// or "file" (files in a folder, which the editor passes as the instance token).
-// Empty means the platform default: pipes on Windows, files elsewhere.
-char editor_debugger_comm[16];
+// How the engine talks to the editor (--enabledebugger <token> [<comm-type>[=<config>]]):
+// "pipe" (named pipes, Windows only) or "file"; empty means the platform default,
+// pipes on Windows and files elsewhere. The config is handled by the communication class.
+String editor_debugger_comm_type;
+String editor_debugger_comm_config;
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/debug/namedpipesagsdebugger.h"
@@ -73,16 +73,16 @@ HWND editor_window_handle = 0;
 #endif
 #include "debug/filebasedagsdebugger.h"
 
-IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken, const char *comm)
+IAGSEditorDebugger *GetEditorDebugger(const String &instance_token, const String &comm_type, const String &comm_config)
 {
-    if (ags_stricmp(comm, "file") == 0)
-        return new FileBasedAGSDebugger(instanceToken);
+    if (comm_type.CompareNoCase("file") == 0)
+        return new FileBasedAGSDebugger(instance_token, comm_config);
 #if AGS_PLATFORM_OS_WINDOWS
-    if (comm[0] == 0 || ags_stricmp(comm, "pipe") == 0)
-        return new NamedPipesAGSDebugger(instanceToken);
+    if (comm_type.IsEmpty() || comm_type.CompareNoCase("pipe") == 0)
+        return new NamedPipesAGSDebugger(instance_token.GetCStr());
 #else
-    if (comm[0] == 0)
-        return new FileBasedAGSDebugger(instanceToken);
+    if (comm_type.IsEmpty())
+        return new FileBasedAGSDebugger(instance_token, comm_config);
 #endif
     return nullptr; // not supported on this platform
 }
@@ -442,10 +442,10 @@ bool send_state_to_debugger(const char *msg)
 
 bool init_editor_debugging(const ConfigTree &cfg) 
 {
-    editor_debugger = GetEditorDebugger(editor_debugger_instance_token, editor_debugger_comm);
+    editor_debugger = GetEditorDebugger(editor_debugger_instance_token, editor_debugger_comm_type, editor_debugger_comm_config);
 
     if (editor_debugger == nullptr)
-        quitprintf("Editor debugger communication '%s' is not supported on this platform", editor_debugger_comm);
+        quitprintf("Editor debugger communication '%s' is not supported on this platform", editor_debugger_comm_type.GetCStr());
 
     if (editor_debugger->Initialize())
     {

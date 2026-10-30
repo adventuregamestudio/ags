@@ -1320,6 +1320,14 @@ int initialize_engine(const ConfigTree &startup_opts)
     if (res != 0)
         return res;
 
+    // Supply eligible palette entries for 8-bit WFN grayscale shading.
+    uint8_t wfn_palette_eligible[256];
+
+    for (int i = 0; i < 256; ++i)
+        wfn_palette_eligible[i] = (game.paluses[i] == PAL_GAMEWIDE) ? 1 : 0;
+
+    set_wfn_palette_eligibility(wfn_palette_eligible);
+
     set_our_eip(-189);
 
     res = engine_check_disk_space();

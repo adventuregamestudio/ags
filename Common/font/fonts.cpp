@@ -16,7 +16,6 @@
 #include <vector>
 #include <alfont.h>
 #include "ac/common.h" // set_our_eip
-#include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
@@ -80,6 +79,12 @@ void init_font_renderer(AssetManager *amgr)
 {
     ttfRenderer.reset(new TTFFontRenderer(amgr));
     wfnRenderer.reset(new WFNFontRenderer(amgr));
+}
+
+void set_wfn_palette_eligibility(const uint8_t* palette_eligible)
+{
+    if (wfnRenderer)
+        wfnRenderer->SetPaletteEligibility(palette_eligible);
 }
 
 void set_gamedata_version(GameDataVersion data_ver)
@@ -253,6 +258,28 @@ bool is_bitmap_font(int font_number)
     if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
         return false;
     return fonts[font_number].RendererInt->IsBitmapFont();
+}
+
+int get_wfn_font_bits_per_pixel(int font_number)
+{
+    if (!assert_font_renderer(font_number) ||
+        fonts[font_number].Renderer != wfnRenderer.get())
+        return 0;
+
+    return wfnRenderer->GetFontBitsPerPixel(font_number);
+}
+
+bool wouttextxy_wfn_silhouette(Bitmap* ds, int x, int y,
+    int font_number, color_t color, const char* text)
+{
+    if (!assert_font_renderer(font_number) ||
+        fonts[font_number].Renderer != wfnRenderer.get())
+        return false;
+
+    wfnRenderer->RenderTextSilhouette(text, font_number,
+        ds->GetAllegroBitmap(), x, y, color);
+
+    return true;
 }
 
 bool font_supports_extended_characters(int font_number)

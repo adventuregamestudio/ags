@@ -61,6 +61,7 @@ struct WFNChar
     uint16_t       Width;
     uint16_t       Height;
     const uint8_t *Data;
+    uint8_t BitsPerPixel = 1;
 
     WFNChar();
 
@@ -71,7 +72,7 @@ struct WFNChar
 
     inline size_t GetRowByteCount() const
     {
-        return (Width + 7) / 8;
+        return BitsPerPixel == 4 ? (Width + 1) / 2 : (Width + 7) / 8;
     }
 
     inline size_t GetRequiredPixelSize() const
@@ -102,6 +103,11 @@ public:
     inline int GetHeight() const { return _height; }
     // The font's BBox defines max bounds of all the glyphs in the font
     inline const Rect &GetBBox() const { return _bbox; }
+    // Base shade index for 4-bit fonts (1-15).
+    // This shade represents the exact AGS text color.
+    inline uint8_t GetBaseShadeIndex() const { return _baseShadeIndex; }
+    // Font pixel depth: 1 for legacy WFN, 4 for extended WFN.
+    inline uint8_t GetBitsPerPixel() const { return _bitsPerPixel; }
 
     void Clear();
     // Reads WFNFont object, using data_size bytes from stream; if data_size = 0,
@@ -109,11 +115,14 @@ public:
     WFNError ReadFromFile(AGS::Common::Stream *in, const soff_t data_size = 0);
 
 private:
+    WFNError Read4BitFromFile(AGS::Common::Stream* in, const soff_t used_data_size);
     std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items
     std::vector<WFNChar>        _items;     // actual character items
     std::vector<uint8_t>        _pixelData; // pixel data array
     int  _height = 0;   // font's height (calculated from the max glyph's height)
     Rect _bbox;         // bounding box (maximal glyphs extent)
+    uint8_t _baseShadeIndex = 8; // base shade representing the exact AGS text color (4-bit fonts)
+    uint8_t _bitsPerPixel = 1; // font pixel depth (1-bit legacy or 4-bit extended WFN)
 
     static const WFNChar        _emptyChar; // a dummy character to substitute bad symbols
 };

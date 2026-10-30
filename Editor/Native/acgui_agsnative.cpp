@@ -147,7 +147,12 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int color, const cha
     // and y off, in case some font's glyphs exceed font's ascender
     // NOTE: t_xoff here will only fix the outline, but this won't resolve e.g. parts
     // of leftmost glyph positioned outside of a gui control or an overlay.
-    wouttextxy(texx_stencil, -t_xoff, -t_yoff, font, color, texx);
+    if (get_wfn_font_bits_per_pixel(static_cast<int>(font)) != 4 ||
+        !wouttextxy_wfn_silhouette(texx_stencil, -t_xoff, -t_yoff,
+            static_cast<int>(font), color, texx))
+    {
+        wouttextxy(texx_stencil, -t_xoff, -t_yoff, font, color, texx);
+    }
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
     void(Bitmap::*pfn_drawstencil)(const Bitmap * src, int dst_x, int dst_y);

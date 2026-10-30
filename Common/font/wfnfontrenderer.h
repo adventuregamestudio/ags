@@ -15,6 +15,7 @@
 #define __AC_WFNFONTRENDERER_H
 
 #include <map>
+#include <cstdint>
 #include "data/assetmanager.h"
 #include "font/agsfontrenderer.h"
 
@@ -49,12 +50,22 @@ public:
   void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
   void SetCharacterSpacing(int fontNumber, int spacing) override;
 
+  int GetFontBitsPerPixel(int fontNumber) const;
+  // Set eligible palette entries for 8-bit WFN grayscale shading.
+  void SetPaletteEligibility(const uint8_t* palette_eligible);
+  // Render a WFN font as a solid silhouette, preserving transparent pixels.
+  void RenderTextSilhouette(const char* text, int fontNumber, BITMAP* destination,
+      int x, int y, int colour);
+
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
   virtual ~WFNFontRenderer() = default;
 
 private:
   void FillMetrics(const WFNFont *font, FontMetrics *metrics);
+
+  void RenderTextInternal(const char* text, int fontNumber, BITMAP* destination,
+      int x, int y, int colour, bool silhouette);
 
   struct FontData
   {
@@ -63,7 +74,9 @@ private:
     int              CharacterSpacing;
   };
   std::map<int, FontData> _fontData;
-  AGS::Common::AssetManager *_amgr = nullptr;
+  AGS::Common::AssetManager* _amgr = nullptr;
+  uint8_t _paletteEligible[256] = {};
+  bool _hasPaletteEligibility = false;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

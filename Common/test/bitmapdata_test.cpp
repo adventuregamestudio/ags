@@ -32,17 +32,30 @@ static void Fill32(PixelBuffer &buf)
             reinterpret_cast<uint32_t*>(buf.GetData() + y * buf.GetStride())[x] = 0xFF000000u | (y << 8) | x;
 }
 
+// Compares the buffer with the expected pixels, reports the position of a mismatch
+template<typename PxType, size_t W, size_t H>
+static void ExpectPixels(const BitmapData &buf, const PxType (&expect)[H][W])
+{
+    ASSERT_EQ(buf.GetWidth(), static_cast<int>(W));
+    ASSERT_EQ(buf.GetHeight(), static_cast<int>(H));
+    for (size_t y = 0; y < H; ++y)
+    {
+        const PxType *row = reinterpret_cast<const PxType*>(buf.GetData() + y * buf.GetStride());
+        for (size_t x = 0; x < W; ++x)
+            EXPECT_EQ(row[x], expect[y][x]) << "at " << x << "," << y;
+    }
+}
+
 TEST(PixelOp, CopyPixelsRegionWithSourceOffset) {
     PixelBuffer src(5, 4, kPxFmt_Indexed8);
-    FillIndexed8(src);
+    FillIndexed8(src); // 1..5 / 6..10 / 11..15 / 16..20
 
     // region below the first row
     PixelBuffer out = PixelOp::CopyPixelsRegion(src, 1, 2, 3, 2);
-    ASSERT_EQ(out.GetWidth(), 3);
-    ASSERT_EQ(out.GetHeight(), 2);
-    for (int y = 0; y < 2; ++y)
-        for (int x = 0; x < 3; ++x)
-            EXPECT_EQ(out.GetData()[y * out.GetStride() + x], (y + 2) * 5 + (x + 1) + 1);
+    const uint8_t expect[2][3] = {
+        { 12, 13, 14 },
+        { 17, 18, 19 } };
+    ExpectPixels(out, expect);
 }
 
 TEST(PixelOp, CopyPixelsRegionWithSourceOffset32) {
@@ -50,12 +63,10 @@ TEST(PixelOp, CopyPixelsRegionWithSourceOffset32) {
     Fill32(src);
 
     PixelBuffer out = PixelOp::CopyPixelsRegion(src, 2, 1, 2, 2);
-    ASSERT_EQ(out.GetWidth(), 2);
-    ASSERT_EQ(out.GetHeight(), 2);
-    for (int y = 0; y < 2; ++y)
-        for (int x = 0; x < 2; ++x)
-            EXPECT_EQ(reinterpret_cast<const uint32_t*>(out.GetData() + y * out.GetStride())[x],
-                0xFF000000u | ((y + 1) << 8) | (x + 2));
+    const uint32_t expect[2][2] = {
+        { 0xFF000102, 0xFF000103 },
+        { 0xFF000202, 0xFF000203 } };
+    ExpectPixels(out, expect);
 }
 
 TEST(PixelOp, CopyPixelsRegionWithDestOffset) {
@@ -71,19 +82,18 @@ TEST(PixelOp, CopyPixelsRegionWithDestOffset) {
         { 0, 0, 0, 0 },
         { 0, 1, 2, 0 },
         { 0, 3, 4, 0 } };
-    for (int y = 0; y < 4; ++y)
-        for (int x = 0; x < 4; ++x)
-            EXPECT_EQ(dst.GetData()[y * dst.GetStride() + x], expect[y][x]) << "at " << x << "," << y;
+    ExpectPixels(dst, expect);
 }
 
 TEST(PixelOp, CopyPixelsRegionFullRowsWithOffset) {
     // full width: the source and dest scan lines match the copied width
     PixelBuffer src(4, 4, kPxFmt_Indexed8);
-    FillIndexed8(src);
+    FillIndexed8(src); // 1..4 / 5..8 / 9..12 / 13..16
 
     PixelBuffer out = PixelOp::CopyPixelsRegion(src, 0, 1, 4, 3);
-    ASSERT_EQ(out.GetHeight(), 3);
-    for (int y = 0; y < 3; ++y)
-        for (int x = 0; x < 4; ++x)
-            EXPECT_EQ(out.GetData()[y * out.GetStride() + x], (y + 1) * 4 + x + 1);
+    const uint8_t expect[3][4] = {
+        {  5,  6,  7,  8 },
+        {  9, 10, 11, 12 },
+        { 13, 14, 15, 16 } };
+    ExpectPixels(out, expect);
 }

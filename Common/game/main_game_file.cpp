@@ -511,6 +511,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     {
         game.options[OPT_SAVESCREENSHOTLAYER] = UINT32_MAX; // all possible layers
     }
+    // NOTE: OPT_GAMEFPS added in 3.6.2.6, but 3.6.2.12 was the first version which incremented the data format
     if (data_ver < kGameVersion_362_12)
     {
         game.options[OPT_GAMEFPS] = 40; // default to 40 fps in the older games

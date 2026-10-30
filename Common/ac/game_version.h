@@ -197,6 +197,12 @@ enum GameDataVersion
     kGameVersion_363_14         = 3060314,
     kGameVersion_363_15         = 3060315,
     kGameVersion_363_16         = 3060316,
+    //-------------------------------------------------------------------------
+    // Following 3.x version numbers were not saved in data, but are generated
+    // by reading "Compiled With" field from the game file's header.
+    kGameVersion_351            = 3050100,
+    //-------------------------------------------------------------------------
+    // 4.x version numbers found in the game data
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_400_08         = 4000008,

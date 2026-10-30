@@ -213,14 +213,30 @@ void GUIMain::ClearChanged()
     _hasControlsChanged = false;
 }
 
+void GUIMain::ResetActiveControl()
+{
+    // If some control had mouse press lock to it, then reset this and notify control
+    if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+        _mouseOverCtrl = _mouseDownCtrl;
+    // Leave previous control (if any was focused)
+    if (_mouseOverCtrl >= 0)
+        _controls[_mouseOverCtrl]->OnMouseLeave();
+    // If there was a control which had mouse button pressed on, then unpress it,
+    // but do this *after* Leave event, so that it won't activate.
+    if (_mouseDownCtrl >= 0)
+        _controls[_mouseDownCtrl]->OnMouseUp();
+
+    _mouseOverCtrl = -1;
+    _mouseDownCtrl = -1;
+}
+
 void GUIMain::ResetOverControl()
 {
-    if ((_mouseOverCtrl >= 0) && ((size_t)_mouseOverCtrl < _controls.size()))
-        _controls[_mouseOverCtrl]->OnMouseLeave();
+    ResetActiveControl();
+
     // Force it to re-check for which control is under the mouse
     _mouseWasAt.X = -1;
     _mouseWasAt.Y = -1;
-    _mouseOverCtrl = -1;
     _wasFocused = false; // reset the focus state too, for now
 }
 
@@ -388,24 +404,16 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
     mx = pt.X; my = pt.Y;
 
     // If GUI just went out of focus then reset focus on any control that had it
-    if (!has_focus && _wasFocused)
+    if (!has_focus && _wasFocused && (_mouseOverCtrl != MOVER_MOUSEDOWNLOCKED))
     {
-        // If some control still has mouse press lock to it, then revert it
-        if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            _mouseOverCtrl = _mouseDownCtrl;
+        ResetActiveControl();
+    }
 
-        if (_mouseOverCtrl >= 0)
-        {
-            // Leave previous control (if any was focused)
-            _controls[_mouseOverCtrl]->OnMouseLeave();
-            // If this was a control which had mouse button pressed on, then unpress it,
-            // but do this *after* Leave event, so that it won't activate.
-            if (_mouseDownCtrl == _mouseOverCtrl)
-                _controls[_mouseOverCtrl]->OnMouseUp();
-        }
-
-        _mouseOverCtrl = -1;
-        _mouseDownCtrl = -1;
+    // Mouse button is still held, report mouse motion;
+    // do this even if no focus (held mouse button and moved cursor outside of GUI?)
+    if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
+    {
+        _controls[_mouseDownCtrl]->OnMouseMove(mx, my);
     }
 
     // If GUI has focus, and mouse moved from the last saved pos, then update controls
@@ -416,9 +424,7 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
 
         if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
         {
-            // Mouse button is still held, report mouse motion;
-            // NOTE: do this even if no focus (held mouse button and moved cursor outside of GUI?)
-            _controls[_mouseDownCtrl]->OnMouseMove(mx, my);
+            // do nothing here
         }
         else if (ctrl_index != _mouseOverCtrl)
         {

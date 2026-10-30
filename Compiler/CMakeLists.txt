@@ -4,7 +4,7 @@ set_target_properties(compiler PROPERTIES
         CXX_STANDARD 11
         CXX_EXTENSIONS NO
         C_STANDARD 11
-        C_EXTENSIONS NO
+        C_EXTENSIONS YES
         )
 
 target_include_directories(compiler PUBLIC .)

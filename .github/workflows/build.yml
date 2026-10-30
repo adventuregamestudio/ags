@@ -9,7 +9,7 @@ permissions:
 env:
   BASE_BRANCH: ags4
   MANUAL_ASSET: ags4-help.chm
-  AUTO_TEST_ASSET_BASENAME: ags4-auto-test
+  AUTO_TEST_ASSET_BASENAME: ags4-auto-test-patch
   BUILD_TYPE: Release
 
 jobs:

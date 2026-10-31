@@ -2023,7 +2023,9 @@ AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int 
     }
 
     // Second step is to upgrade bitmap to the game's color depth, if necessary.
-    const int final_depth = destColorDepth > 0 ? destColorDepth : thisgame.GetColorDepth();
+    // If game's color depth is not set (e.g. native game data is not initialized), then keep the source depth
+    const int game_depth = thisgame.GetColorDepth();
+    const int final_depth = destColorDepth > 0 ? destColorDepth : (game_depth > 0 ? game_depth : res_depth);
     const bool needToFixColourDepth = (res_depth != final_depth) && (fixColourDepth);
 
     if (needToFixColourDepth)

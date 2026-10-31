@@ -1,6 +1,8 @@
 ﻿using AGS.Types;
 using NUnit.Framework;
 using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace AGS.Editor
 {
@@ -21,6 +23,16 @@ namespace AGS.Editor
 
             if (nativeRoom == null)
                 return null;
+
+            // Background count in the native room is defined by the number of actual
+            // background images, so add empty ones to match the source room
+            for (int i = 0; i < srcRoom.BackgroundCount; ++i)
+            {
+                using (Bitmap bg = new Bitmap(srcRoom.Width, srcRoom.Height, PixelFormat.Format32bppArgb))
+                {
+                    nativeRoom.SetBackground(i, bg);
+                }
+            }
 
             Room dstRoom = null;
             try

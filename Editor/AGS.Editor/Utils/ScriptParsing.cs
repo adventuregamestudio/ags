@@ -81,6 +81,7 @@ namespace AGS.Editor
             public void Reset()
             {
                 _index = 0;
+                _curChar = !string.IsNullOrEmpty(_script) ? _script[0] : (char)0;
             }
 
             public char PeekChar()

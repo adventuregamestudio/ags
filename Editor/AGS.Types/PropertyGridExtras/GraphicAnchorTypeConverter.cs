@@ -42,15 +42,15 @@ namespace AGS.Types
 
                 if (culture == null)
                 {
-                    culture = CultureInfo.CurrentCulture;
+                    culture = CultureInfo.InvariantCulture; // null culture is used by project serialization, which must not depend on the locale
                 }
 
                 string[] values = text.Split(culture.TextInfo.ListSeparator[0]);
                 if (values.Length == 2)
                 {
                     float x = 0F, y = 0F;
-                    float.TryParse(values[0], out x);
-                    float.TryParse(values[1], out y);
+                    float.TryParse(values[0], NumberStyles.Float, culture, out x);
+                    float.TryParse(values[1], NumberStyles.Float, culture, out y);
                     return new GraphicAnchor(x, y);
                 }
 
@@ -76,13 +76,13 @@ namespace AGS.Types
             {
                 if (culture == null)
                 {
-                    culture = CultureInfo.CurrentCulture;
+                    culture = CultureInfo.InvariantCulture; // null culture is used by project serialization, which must not depend on the locale
                 }
 
                 string separator = culture.TextInfo.ListSeparator;
 
                 GraphicAnchor a = (GraphicAnchor)value;
-                return $"{a.X}{separator} {a.Y}";
+                return string.Format(culture, "{0}{1} {2}", a.X, separator, a.Y);
             }
 
             return base.ConvertTo(context, culture, value, destinationType);

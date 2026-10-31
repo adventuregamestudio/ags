@@ -46,10 +46,11 @@ namespace AGS.Types
         }
 
         public Dialog(int id, string scriptName)
+            : this()
         {
             _id = id;
             _scriptName = scriptName;
-            _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
+            _script.FileName = ScriptFileName;
         }
 
         [Description("The ID number of the dialog")]

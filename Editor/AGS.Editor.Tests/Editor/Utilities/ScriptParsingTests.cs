@@ -100,6 +100,22 @@ function f()
         }
 
         [Test]
+        public void ResetAfterFillLines_Test()
+        {
+            // Script starts with a comment that has an apostrophe in it, and ends with a different char
+            string script = UniformTestString("// variables' pane\nint a;\n}");
+
+            ScriptParsing.ParserState state = new ScriptParsing.ParserState(script);
+            ScriptParsing.FillLines(state);
+            state.Reset();
+
+            Assert.AreEqual(0, state.CharIndex);
+            Assert.AreEqual('/', state.Char);
+            ScriptParsing.SkipComments(state);
+            Assert.AreEqual(script.IndexOf('\n'), state.CharIndex);
+        }
+
+        [Test]
         public void FillCommentSections_Test()
         {
             string script = UniformTestString(TestScript);

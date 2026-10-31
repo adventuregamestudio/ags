@@ -991,7 +991,7 @@ int Character_GetLightLevel(CharacterInfo *ch)
 
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
-    light_level = Math::Clamp(light_level, -100, 100);
+    light_level = Math::Clamp(light_level, -255, 255);
 
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;
@@ -1020,7 +1020,7 @@ int Character_GetTintSaturation(CharacterInfo *ch)
 
 int Character_GetTintLuminance(CharacterInfo *ch)
 {
-    return ch->has_explicit_tint() ? GfxDef::Value250ToValue100(charextra[ch->index_id].tint_light) : 0;
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_light : 0;
 }
 
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
@@ -1130,10 +1130,10 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
 void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+        (opacity < 0) || (opacity > 255) ||
+        (luminance < 0) || (luminance > 255))
     {
-        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn("Character.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-255 (passed: %d,%d)",
             red, green, blue, opacity, luminance);
         return;
     }
@@ -1144,7 +1144,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     charextra[chaa->index_id].tint_g = green;
     charextra[chaa->index_id].tint_b = blue;
     charextra[chaa->index_id].tint_level = opacity;
-    charextra[chaa->index_id].tint_light = GfxDef::Value100ToValue250(luminance);
+    charextra[chaa->index_id].tint_light = luminance;
     chaa->flags &= ~CHF_HASLIGHT;
     chaa->flags |= CHF_HASTINT;
 }
@@ -1954,17 +1954,17 @@ void Character_SetThinkView(CharacterInfo *chaa, int vii) {
     chaa->thinkview = vii - 1;
 }
 
-int Character_GetTransparency(CharacterInfo *chaa) {
+int Character_GetOpacity(CharacterInfo *chaa) {
 
-    return GfxDef::LegacyTrans255ToTrans100(chaa->transparency);
+    return chaa->opacity;
 }
 
-void Character_SetTransparency(CharacterInfo *chaa, int trans) {
+void Character_SetOpacity(CharacterInfo *chaa, int opacity) {
 
-    if ((trans < 0) || (trans > 100))
-        quit("!SetCharTransparent: transparency value must be between 0 and 100");
+    if ((opacity < 0) || (opacity > 255))
+        quit("!Character.Opacity: alpha value must be between 0 and 255");
 
-    chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
+    chaa->opacity = opacity;
 }
 
 bool Character_GetVisible(CharacterInfo *chaa) {
@@ -4572,15 +4572,15 @@ RuntimeScriptValue Sc_Character_SetThinkView(void *self, const RuntimeScriptValu
 }
 
 // int (CharacterInfo *chaa)
-RuntimeScriptValue Sc_Character_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTransparency);
+    API_OBJCALL_INT(CharacterInfo, Character_GetOpacity);
 }
 
-// void (CharacterInfo *chaa, int trans)
-RuntimeScriptValue Sc_Character_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+// void (CharacterInfo *chaa, int alpha)
+RuntimeScriptValue Sc_Character_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTransparency);
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetOpacity);
 }
 
 // int (CharacterInfo *chaa)
@@ -5020,8 +5020,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_ThinkingFrame",         API_FN_PAIR(Character_GetThinkingFrame) },
         { "Character::get_ThinkView",             API_FN_PAIR(Character_GetThinkView) },
         { "Character::set_ThinkView",             API_FN_PAIR(Character_SetThinkView) },
-        { "Character::get_Transparency",          API_FN_PAIR(Character_GetTransparency) },
-        { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
+        { "Character::get_Opacity",               API_FN_PAIR(Character_GetOpacity) },
+        { "Character::set_Opacity",               API_FN_PAIR(Character_SetOpacity) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
         { "Character::get_Turning",               API_FN_PAIR(Character_GetTurning) },

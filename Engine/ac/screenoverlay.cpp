@@ -139,9 +139,9 @@ void ScreenOverlay::SetPivotOffset(const Point &pivot_offset)
     MarkChanged();
 }
 
-void ScreenOverlay::SetTransparency(int trans)
+void ScreenOverlay::SetOpacity(int alpha)
 {
-    _transparency = trans;
+    _opacity = alpha;
 }
 
 void ScreenOverlay::SetBlendMode(Common::BlendMode blend_mode)
@@ -390,7 +390,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
     if (cmp_ver >= kOverSvgVersion_36008)
     {
         _zorder = in->ReadInt32();
-        _transparency = in->ReadInt32();
+        _opacity = in->ReadInt32();
         _destSize.Width = in->ReadInt32();
         _destSize.Height = in->ReadInt32();
     }
@@ -478,6 +478,22 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _pivotOff = Point();
     }
 
+    // Upgrade legacy transparency, tint and light ranges
+    if (cmp_ver < kOverSvgVersion_40034)
+    {
+        if (cmp_ver >= kOverSvgVersion_36008)
+            _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
+        if (HasTint())
+        {
+            _tintLevel = static_cast<uint8_t>(GfxDef::Value100ToValue255(_tintLevel));
+            _tintLight = GfxDef::Value250ToValue255(_tintLight);
+        }
+        else if (HasLightLevel())
+        {
+            _tintLight = GfxDef::Value100ToValue255(_tintLight);
+        }
+    }
+
     // Convert magic x,y values from the older saves
     if (cmp_ver < kOverSvgVersion_40005)
     {
@@ -508,7 +524,7 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt32(_sprOffset.Y);
     // since cmp_ver = 2
     out->WriteInt32(_zorder);
-    out->WriteInt32(_transparency);
+    out->WriteInt32(_opacity);
     out->WriteInt32(_destSize.Width);
     out->WriteInt32(_destSize.Height);
     // kOverSvgVersion_36304

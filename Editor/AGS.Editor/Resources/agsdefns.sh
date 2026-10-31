@@ -908,18 +908,18 @@ builtin managed struct DrawingSurface {
   import void DrawCircle(int x, int y, int radius);
 #ifdef SCRIPT_API_v360
   /// Draws a sprite onto the surface with its top-left corner at (x,y).
-  import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void DrawImage(int x, int y, int spriteSlot, int alpha=255, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
   /// Draws the specified surface onto this surface.
-  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void DrawSurface(DrawingSurface *surfaceToDraw, int alpha=255, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v399
   /// Blends a sprite onto the surface with its top-left corner at (x,y).
-  import void BlendImage(int x, int y, int spriteSlot, BlendMode mode, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void BlendImage(int x, int y, int spriteSlot, BlendMode mode, int alpha=255, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
   /// Blends the specified surface onto this surface.
-  import void BlendSurface(DrawingSurface *surfaceToDraw, BlendMode mode, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
+  import void BlendSurface(DrawingSurface *surfaceToDraw, BlendMode mode, int alpha=255, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int part_x=0, int part_y=0, int part_width=SCR_NO_VALUE, int part_height=SCR_NO_VALUE);
 #endif // SCRIPT_API_v399
   /// Draws a straight line between the two points on the surface.
@@ -1438,8 +1438,8 @@ builtin managed struct Overlay {
   import readonly attribute int GraphicWidth;
   /// Gets the original height of this overlay's graphic.
   import readonly attribute int GraphicHeight;
-  /// Gets/sets the transparency of this overlay.
-  import attribute int Transparency;
+  /// Gets/sets the opacity of this overlay.
+  import attribute int Opacity;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
   import attribute int ZOrder;
 #endif // SCRIPT_API_v360
@@ -1468,11 +1468,11 @@ builtin managed struct Overlay {
   import Point*[] GetGraphicBoundBox();
   /// Removes an existing colour tint or light level from this overlay.
   import void RemoveTint();
-  /// Sets the light level for this overlay, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the light level for this overlay, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Sets this overlay's horizontal and vertical scaling
   import void SetScale(float x, float y);
-  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the overlay to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
 
   /// Gets/sets whether overlay should resize itself whenever its graphic changes.
@@ -1590,7 +1590,7 @@ builtin managed struct DynamicSprite {
   import void Rotate(int angle, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
   /// Saves the sprite to a image file of any supported format.
   import int  SaveToFile(const string filename);
-  /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Permanently tints the sprite to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets the colour depth of this sprite, in bits per pixel (8, 16, 32).
   readonly import attribute int ColorDepth;
@@ -1615,7 +1615,7 @@ import void SetPalRGB(int slot, int r, int g, int b);
 import void UpdatePalette();
 /// Tints the whole screen to the specified colour. RGB values must be in 0-255 range.
 import void TintScreen (int red, int green, int blue);
-/// Sets an ambient tint that affects all objects and characters in the room. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+/// Sets an ambient tint that affects all objects and characters in the room. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
 import void SetAmbientTint(int red, int green, int blue, int saturation, int luminance);
 /// Returns a random number between 0 and MAX, inclusive.
 import int  Random(int max);
@@ -1648,7 +1648,7 @@ import void PlayVideo(const string filename, VideoSkipStyle, VideoPlayStyle styl
 /// Plays a video file of any supported format.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 #endif // !SCRIPT_API_v363
-/// Sets an ambient light level that affects all objects and characters in the room.
+/// Sets an ambient light level that affects all objects and characters in the room, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
 import void SetAmbientLightLevel(int light_level);
 #ifdef SCRIPT_API_v362
 /// Gets the baseline of the specified walk-behind area.
@@ -1804,8 +1804,8 @@ builtin managed struct GUIControl {
   /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
   import attribute int  ZOrder;
 #ifdef SCRIPT_API_v360
-  /// Gets/sets the control's transparency.
-  import attribute int  Transparency;
+  /// Gets/sets the control's opacity.
+  import attribute int Opacity;
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this control.
@@ -2124,8 +2124,8 @@ builtin managed struct GUI {
   import attribute int  Height;
   /// Gets the ID number of the GUI.
   readonly import attribute int  ID;
-  /// Gets/sets the transparency of the GUI.
-  import attribute int  Transparency;
+  /// Gets/sets the opacity of the GUI.
+  import attribute int Opacity;
   /// Gets/sets whether the GUI is visible.
   import attribute bool Visible;
   /// Gets/sets the width of the GUI.
@@ -2291,13 +2291,13 @@ builtin managed struct Region {
 #endif // SCRIPT_API_v400
   /// Runs the event handler for the specified event for this region.
   import void RunInteraction(int event);
-  /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
-  import void Tint(int red, int green, int blue, int amount, int luminance = 100);
+  /// Sets the region tint which will apply to characters that are standing on the region. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
+  import void Tint(int red, int green, int blue, int amount, int luminance = 255);
   /// Gets/sets whether this region is enabled.
   import attribute bool Enabled;
   /// Gets the ID number for this region.
   readonly import attribute int ID;
-  /// Gets/sets the light level for this region. Valid values are from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Gets/sets the light level for this region. Valid values are from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import attribute int  LightLevel;
   /// Gets whether a colour tint is set for this region.
   readonly import attribute bool TintEnabled;
@@ -2850,7 +2850,7 @@ builtin managed struct Object {
   import void StopAnimating();
   /// Stops any currently running move on the object.
   import void StopMoving();
-  /// Tints the object to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the object to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Gets whether the object is currently animating.
   readonly import attribute bool Animating;
@@ -2882,8 +2882,8 @@ builtin managed struct Object {
 #endif // SCRIPT_API_v400_33
   /// Gets/sets whether other objects and characters can move through this object.
   import attribute bool Solid;
-  /// Gets/sets the object's transparency.
-  import attribute int  Transparency;
+  /// Gets/sets the object's opacity.
+  import attribute int Opacity;
   /// Gets the current view number during an animation.
   readonly import attribute int View;
   /// Gets/sets whether the object is currently visible.
@@ -2894,7 +2894,7 @@ builtin managed struct Object {
   import attribute int  Y;
   /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
   import bool IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this object, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the individual light level for this object, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Sets an integer custom property for this object.
   import bool SetProperty(const string property, int value);
@@ -3100,7 +3100,7 @@ builtin managed struct Character {
   import void StopMoving();
   /// The specified text is displayed in a thought-bubble GUI.
   import void Think(__format const string message, ...);
-  /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-100 range.
+  /// Tints the character to the specified colour. RGB values must be in 0-255 range, saturation and luminance in 0-255 range.
   import void Tint(int red, int green, int blue, int saturation, int luminance);
   /// Unlocks the view after an animation has finished.
   import void UnlockView(StopMovementStyle=eStopMoving);
@@ -3186,8 +3186,8 @@ builtin managed struct Character {
   import attribute int  SpeechView;
   /// Gets/sets the character's thinking view.
   import attribute int  ThinkView;
-  /// Gets/sets the character's current transparency level.
-  import attribute int  Transparency;
+  /// Gets/sets the character's current opacity level.
+  import attribute int Opacity;
   /// Gets/sets whether the character turns on the spot to face the correct direction before walking.
   import attribute bool TurnBeforeWalking;
   /// Gets the character's current view number.
@@ -3208,7 +3208,7 @@ builtin managed struct Character {
   import bool SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
   import bool IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this character, from -100 to 100 (negative values darken the sprite, positive brighten the sprite).
+  /// Sets the individual light level for this character, from -255 to 255 (negative values darken the sprite, positive brighten the sprite).
   import void SetLightLevel(int light_level);
   /// Gets the X coordinate of the character's final moving destination; or current position if character is not moving.
   readonly import attribute int DestinationX;

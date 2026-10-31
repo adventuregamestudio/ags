@@ -109,8 +109,8 @@ public:
     virtual void SetPivot(float pivotx, float pivoty) = 0;
     virtual int  GetAlpha() const = 0;
     virtual void SetAlpha(int alpha) = 0; // 0-255
-    virtual int  GetLightLevel() const = 0; // 0-255
-    virtual void SetLightLevel(int light_level) = 0; // 0-255
+    virtual int  GetLightLevel() const = 0; // -255-255
+    virtual void SetLightLevel(int light_level) = 0; // -255-255
     virtual void GetTint(int &red, int &green, int &blue, int &tintSaturation) const = 0; // 0-255
     virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0; // 0-255
     virtual Common::BlendMode GetBlendMode() const = 0;

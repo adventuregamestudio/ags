@@ -56,6 +56,7 @@ v4.0.0.17: Raised for org purposes, because forgot to rise each time a new ext w
 v4.0.0.24: Remade events tables
 v4.0.0.26: sync with 3.6.3.6
 v4.0.0.33: area script names
+v4.0.0.34: object opacity instead of transparency, extended region light and tint ranges
 */
 enum RoomFileVersion
 {
@@ -69,8 +70,9 @@ enum RoomFileVersion
     kRoomVersion_400_24     = 4000024,
     kRoomVersion_400_26     = 4000026,
     kRoomVersion_400_33     = 4000033,
+    kRoomVersion_400_34     = 4000034,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_400_33
+    kRoomVersion_Current    = kRoomVersion_400_34
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

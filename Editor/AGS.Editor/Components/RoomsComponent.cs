@@ -1248,6 +1248,21 @@ namespace AGS.Editor.Components
             bool modified = false;
             // Add operations here as necessary
 
+            if (room.SavedXmlVersion != null && room.SavedXmlVersion < new System.Version(Room.XML_VERSION_VALUE_RANGES))
+            {
+                // Region light level was 0-200 (100 = normal), tint saturation
+                // and luminance were 0-100; now they all use the full 0-255 range,
+                // and the light level is -255 to 255 (0 = normal).
+                // NOTE: RoomObject.Transparency is converted on deserialization.
+                foreach (RoomRegion r in room.Regions)
+                {
+                    r.LightLevel = (r.LightLevel - 100) * 255 / 100;
+                    r.TintSaturation = r.TintSaturation * 255 / 100;
+                    r.TintLuminance = r.TintLuminance * 255 / 100;
+                }
+                modified = true;
+            }
+
             return modified;
 #pragma warning restore 0612
         }
@@ -2830,6 +2845,8 @@ namespace AGS.Editor.Components
                 yield break;
             }
 
+            // Update the room to the current version first, as it will be saved in the latest format
+            UpdateRoomToCurrentVersion(room, errors, false);
             // Process this room
             doProcess(room, errors);
 

@@ -125,7 +125,7 @@ namespace AGS.Editor
             o.Solid = true;
             o.StartX = 10;
             o.StartY = 20;
-            o.Transparency = 50;
+            o.Opacity = 127;
             o.UseRoomAreaLighting = true;
             o.UseRoomAreaScaling = false;
             o.Visible = true;
@@ -152,7 +152,7 @@ namespace AGS.Editor
             o.Solid = false;
             o.StartX = 100;
             o.StartY = -20;
-            o.Transparency = 10;
+            o.Opacity = 25;
             o.UseRoomAreaLighting = false;
             o.UseRoomAreaScaling = true;
             o.Visible = false;
@@ -182,8 +182,8 @@ namespace AGS.Editor
             r.OnWalksOnto = "Region2_WalkOn";
             r.Properties.PropertyValues.Add("RegionProperty", new CustomProperty("RegionProperty", "Region2value"));
             r.RedTint = 0; // default
-            r.TintLuminance = 100; // default
-            r.TintSaturation = 50; // default
+            r.TintLuminance = 255; // default
+            r.TintSaturation = 127; // default
             r.UseColourTint = false;
             srcRoom.Regions[1] = r;
 
@@ -308,7 +308,7 @@ namespace AGS.Editor
             Assert.That(o.Solid, Is.EqualTo(true));
             Assert.That(o.StartX, Is.EqualTo(10));
             Assert.That(o.StartY, Is.EqualTo(20));
-            Assert.That(o.Transparency, Is.EqualTo(50));
+            Assert.That(o.Opacity, Is.EqualTo(127));
             Assert.That(o.UseRoomAreaLighting, Is.EqualTo(true));
             Assert.That(o.UseRoomAreaScaling, Is.EqualTo(false));
             Assert.That(o.Visible, Is.EqualTo(true));
@@ -339,7 +339,7 @@ namespace AGS.Editor
             Assert.That(o.Solid, Is.EqualTo(false));
             Assert.That(o.StartX, Is.EqualTo(100));
             Assert.That(o.StartY, Is.EqualTo(-20));
-            Assert.That(o.Transparency, Is.EqualTo(10));
+            Assert.That(o.Opacity, Is.EqualTo(25));
             Assert.That(o.UseRoomAreaLighting, Is.EqualTo(false));
             Assert.That(o.UseRoomAreaScaling, Is.EqualTo(true));
             Assert.That(o.Visible, Is.EqualTo(false));
@@ -357,7 +357,7 @@ namespace AGS.Editor
             Assert.That(r.BlueTint, Is.EqualTo(10));
             Assert.That(r.GreenTint, Is.EqualTo(20));
             Assert.That(r.ID, Is.EqualTo(0));
-            Assert.That(r.LightLevel, Is.EqualTo(100));
+            Assert.That(r.LightLevel, Is.EqualTo(0));
             Assert.That(r.OnStanding, Is.EqualTo("Region1_StandOn"));
             Assert.That(r.OnWalksOff, Is.EqualTo("Region1_WalkOff"));
             Assert.That(r.OnWalksOnto, Is.EqualTo("Region1_WalkOn"));
@@ -377,8 +377,8 @@ namespace AGS.Editor
             Assert.That(r.OnWalksOff, Is.EqualTo("Region2_WalkOff"));
             Assert.That(r.OnWalksOnto, Is.EqualTo("Region2_WalkOn"));
             Assert.That(r.RedTint, Is.EqualTo(0));
-            Assert.That(r.TintLuminance, Is.EqualTo(100));
-            Assert.That(r.TintSaturation, Is.EqualTo(50));
+            Assert.That(r.TintLuminance, Is.EqualTo(255));
+            Assert.That(r.TintSaturation, Is.EqualTo(127));
             Assert.That(r.UseColourTint, Is.EqualTo(false));
             Assert.That(r.Properties.PropertyValues.ContainsKey("RegionProperty"));
             Assert.That(r.Properties.PropertyValues["RegionProperty"].Value, Is.EqualTo("Region2value"));

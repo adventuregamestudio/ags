@@ -62,6 +62,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("GUITextBoxIcon", Resources.ResourceManager.GetIcon("guis_textbox.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "GUIs", ICON_KEY);
             _agsEditor.CheckGameScripts += ScanAndReportMissingEventHandlers;
+            Factory.Events.FontChanged += Events_FontChanged;
 
             RePopulateTreeView();
         }
@@ -446,6 +447,15 @@ namespace AGS.Editor.Components
         protected override IList<GUI> GetFlatList()
         {
             return _agsEditor.CurrentGame.GUIFlatList;
+        }
+
+        private void Events_FontChanged(Types.Font font)
+        {
+            // Notify any open GUI editor, in case they are using this font
+            foreach (var doc in _documents)
+            {
+                doc.Value.Control.Invalidate();
+            }
         }
 
         private void ScanAndReportMissingEventHandlers(GenericMessagesArgs args)

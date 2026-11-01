@@ -246,6 +246,11 @@ namespace AGS.Editor
             editor.Dispose();
         }
 
+        public void Invoke(Delegate method)
+        {
+            _mainForm.Invoke(method);
+        }
+
         public void Invoke(Delegate method, params object[] args)
         {
             _mainForm.Invoke(method, args);

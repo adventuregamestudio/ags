@@ -33,6 +33,8 @@ namespace AGS.Editor
         public event ShowSpriteManagerHandler ShowSpriteManager;
         public delegate void SpriteImportHandler(int[] spriteNumbers);
         public event SpriteImportHandler SpritesImported;
+        public delegate void FontChangedHandler(Font font);
+        public event FontChangedHandler FontChanged;
 
         public void OnGameSettingsChanged()
         {
@@ -140,6 +142,11 @@ namespace AGS.Editor
         public void OnSpritesImported(int[] spriteNumbers)
         {
             SpritesImported?.Invoke(spriteNumbers);
+        }
+
+        public void OnFontChanged(Font font)
+        {
+            FontChanged?.Invoke(font);
         }
 
         private static EditorEvents _instance;

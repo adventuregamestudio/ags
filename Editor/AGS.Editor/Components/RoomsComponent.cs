@@ -2883,9 +2883,7 @@ namespace AGS.Editor.Components
             // Must sync the Interactions Schema with the Game Cursors, as conversion from native room format
             // requires a proper Schema to remap the interaction events.
             // This of course assumes that the Cursors have been already loaded and upgraded as necessary.
-            var cursors = game.Cursors;
-            var schema = InteractionSchema.Instance;
-            Tasks.SyncCursorsWithInteractionSchema(cursors, schema);
+            Tasks.SyncCursorsWithInteractionSchema(game.Cursors, InteractionSchema.Instance);
 
             // Now upgrade
             object progressLock = new object();

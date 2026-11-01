@@ -31,6 +31,8 @@ namespace AGS.Editor
         public event SpriteImportHandler SpritesImported;
         public delegate void FileChangedInGameFolderHandler(string fileName);
         public event FileChangedInGameFolderHandler FileChangedInGameFolder;
+        public delegate void FontChangedHandler(Font font);
+        public event FontChangedHandler FontChanged;
 
         public void OnGameSettingsChanged()
         {
@@ -131,6 +133,11 @@ namespace AGS.Editor
             {
                 FileChangedInGameFolder(fileName);
             }
+        }
+
+        public void OnFontChanged(Font font)
+        {
+            FontChanged?.Invoke(font);
         }
 
         private static EditorEvents _instance;

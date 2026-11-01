@@ -65,6 +65,10 @@ namespace AGS.Editor
             if (!_options.AdjustObjectsBy1YPixel)
                 return;
 
+            // Must sync interaction schema with cursors, because the rooms might
+            // require converting old interactions
+            Tasks.SyncCursorsWithInteractionSchema(game.Cursors, InteractionSchema.Instance);
+
             _processRooms(game, _options, progress, errors);
         }
     }

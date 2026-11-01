@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Utils;
 using AGS.Types;
 
 namespace AGS.Editor.Components
@@ -20,6 +21,7 @@ namespace AGS.Editor.Components
         private const int DEFAULT_IMPORTED_FONT_SIZE = 10;
         private Dictionary<AGS.Types.Font, ContentDocument> _documents;
         private AGS.Types.Font _itemRightClicked = null;
+        private Dictionary<AGS.Types.Font, Debouncer> _fontUpdaters = new Dictionary<Types.Font, Debouncer>();
 
         public FontsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
@@ -30,6 +32,8 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Fonts", ICON_KEY);
             FontFileUIEditor.FontFileGUI = ImportFontFile;
             FontSizeUIEditor.FontSizeGUI = ReimportFontSize;
+            Factory.Events.FileChangedInGameFolder += Events_FileChangedInGameFolder;
+            Factory.Events.FontChanged += Events_FontChanged;
             RePopulateTreeView();
         }
 
@@ -395,6 +399,62 @@ namespace AGS.Editor.Components
         public void ImportOverFont(AGS.Types.Font item)
         {
             ImportFontFile(item);
+        }
+
+        private void ReloadFontAfterFileChanged(AGS.Types.Font font)
+        {
+            try
+            {
+                NativeProxy.Instance.ReloadFont(font.ID);
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowError("There was a problem updating the font after its file was modified externally.", ex, MessageBoxIcon.Warning);
+            }
+            Factory.Events.OnFontChanged(font);
+        }
+
+        private void Events_FileChangedInGameFolder(string fileName)
+        {
+            foreach (var font in _agsEditor.CurrentGame.Fonts)
+            {
+                if (string.Compare(font.ProjectFilename, fileName, true) == 0)
+                {
+                    if (!_fontUpdaters.ContainsKey(font))
+                        _fontUpdaters[font] = new Debouncer();
+                    var updater = _fontUpdaters[font];
+                    // Invoke inside Debounce inside Invoke... sadly Debouncer implementation requires to be run from GUI thread.
+                    if (_guiController.InvokeRequired)
+                    {
+                        Action debounceTrigger = () => { updater.Debounce(() => { ReloadFontAfterFileChanged(font); }); };
+                        _guiController.Invoke(debounceTrigger);
+                    }
+                    else
+                    {
+                        updater.Debounce(() => { ReloadFontAfterFileChanged(font); });
+                    }
+                    return;
+                }
+            }
+        }
+
+        private void Events_FontChanged(Types.Font font)
+        {
+            // Notify any open preview with this font
+            ContentDocument doc;
+            if (_documents.TryGetValue(font, out doc))
+            {
+                var editor = (doc.Control as FontEditor);
+                if (editor.InvokeRequired)
+                {
+                    Action updateEditor = () => editor.OnFontUpdated();
+                    editor.Invoke(updateEditor);
+                }
+                else
+                {
+                    editor.OnFontUpdated();
+                }
+            }
         }
     }
 }

@@ -211,27 +211,34 @@ namespace AGS.Types
                 _cursorImage = _image;
             }
 
-            // Disable schema temporarily, in case we must convert from old format
-            _interactions.Schema = null;
-            _interactions.FromXml(node);
-            ConvertOldInteractionEvents();
-            _interactions.Schema = InteractionSchema.Instance;
+            LoadAndConvertInteractionEvents(node);
 
             _currentlyDeserializing = false;
         }
 
-        private void ConvertOldInteractionEvents()
+        private void LoadAndConvertInteractionEvents(XmlNode node)
         {
-            if (_interactions.IndexedFunctionNames.Count == 0)
-                return; // no old indexed events, no conversion necessary
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
 
-            // Inventory Items had "Other Click" event that fired for virtually any cursor
-            // besides Look, Interact and UseInv.
-            _interactions.RemapLegacyFunctionIndexes(new int[]
+            // Load events into the temporary interactions object with no Schema first
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            // Convert old interaction events to our new event properties
+            if (interactions.IndexedFunctionNames.Count > 0)
             {
+                // Inventory Items had "Other Click" event that fired for virtually any cursor
+                // besides Look, Interact and UseInv.
+                interactions.RemapLegacyFunctionIndexes(new int[]
+                {
                 4 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
                 4 /* PickUp */, 4 /* Pointer */, 4 /* Wait */, 4 /* Mode8 */, 4 /* Mode9 */
-            });
+                });
+            }
+
+            // Save converted interactions, and assign global schema
+            _interactions = interactions;
+            _interactions.Schema = InteractionSchema.Instance;
         }
 
         public void ToXml(XmlTextWriter writer)

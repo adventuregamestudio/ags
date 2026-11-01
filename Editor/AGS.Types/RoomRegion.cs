@@ -300,7 +300,6 @@ namespace AGS.Types
         public RoomRegion(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
-
             LoadAndConvertInteractionEvents(node);
         }
 
@@ -309,16 +308,19 @@ namespace AGS.Types
             if (node.SelectSingleNode("Interactions") == null)
                 return;
 
-            // Load old-style events into the temporary interactions object,
-            // as the one that we are keeping is for compatibility only.
+            // Load events into the temporary interactions object with no Schema first
             Interactions interactions = new Interactions(null);
             interactions.FromXml(node);
-            if (interactions.IndexedFunctionNames.Count == 0)
-                return; // no old indexed events, bail out
-            // Convert interaction events to our new event properties
-            OnStanding = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
-            OnWalksOnto = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
-            OnWalksOff = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
+            // Convert old interaction events to our new event properties;
+            // the interactions object is discarded afterwards, because RoomRegion
+            // no longer features cursor-kind interactions.
+            if (interactions.IndexedFunctionNames.Count > 0)
+            {
+                // Convert interaction events to our new event properties
+                OnStanding = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+                OnWalksOnto = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+                OnWalksOff = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
+            }
         }
 
         public void ToXml(XmlTextWriter writer)

@@ -426,24 +426,31 @@ namespace AGS.Types
         public RoomObject(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
-            // Disable schema temporarily, in case we must convert from old format
-            _interactions.Schema = null;
-            _interactions.FromXml(node);
-            ConvertOldInteractionEvents();
-            _interactions.Schema = InteractionSchema.Instance;
+            LoadAndConvertInteractionEvents(node);
         }
 
-        private void ConvertOldInteractionEvents()
+        private void LoadAndConvertInteractionEvents(XmlNode node)
         {
-            if (_interactions.IndexedFunctionNames.Count == 0)
-                return; // no old indexed events, no conversion necessary
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
 
-            OnAnyClick = _interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
-            _interactions.RemapLegacyFunctionIndexes(new int[]
+            // Load events into the temporary interactions object with no Schema first
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            // Convert old interaction events to our new event properties
+            if (interactions.IndexedFunctionNames.Count > 0)
             {
+                OnAnyClick = interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+                interactions.RemapLegacyFunctionIndexes(new int[]
+                {
                 -1 /* Walk */, 0 /* Look */, 1 /* Interact */, 2 /* Talk */, 3 /* UseInv */,
                 5 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 6 /* Mode8 */, 7 /* Mode9 */
-            });
+                });
+            }
+
+            // Save converted interactions, and assign global schema
+            _interactions = interactions;
+            _interactions.Schema = InteractionSchema.Instance;
         }
 
         public void ToXml(XmlTextWriter writer)

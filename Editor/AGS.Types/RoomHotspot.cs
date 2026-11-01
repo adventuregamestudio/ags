@@ -171,26 +171,33 @@ namespace AGS.Types
         public RoomHotspot(Room room, XmlNode node) : this(room)
         {
             SerializeUtils.DeserializeFromXML(this, node);
-            // Disable schema temporarily, in case we must convert from old format
-            _interactions.Schema = null;
-            _interactions.FromXml(node);
-            ConvertOldInteractionEvents();
-            _interactions.Schema = InteractionSchema.Instance;
+            LoadAndConvertInteractionEvents(node);
         }
 
-        private void ConvertOldInteractionEvents()
+        private void LoadAndConvertInteractionEvents(XmlNode node)
         {
-            if (_interactions.IndexedFunctionNames.Count == 0)
-                return; // no old indexed events, no conversion necessary
+            if (node.SelectSingleNode("Interactions") == null)
+                return;
 
-            OnWalkOn = _interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
-            OnAnyClick = _interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
-            OnMouseMove = _interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
-            _interactions.RemapLegacyFunctionIndexes(new int[]
+            // Load events into the temporary interactions object with no Schema first
+            Interactions interactions = new Interactions(null);
+            interactions.FromXml(node);
+            // Convert old interaction events to our new event properties
+            if (interactions.IndexedFunctionNames.Count > 0)
             {
+                OnWalkOn = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+                OnAnyClick = interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
+                OnMouseMove = interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
+                interactions.RemapLegacyFunctionIndexes(new int[]
+                {
                 -1 /* Walk */, 1 /* Look */, 2 /* Interact */, 4 /* Talk */, 3 /* UseInv */,
                 7 /* PickUp */, -1 /* Pointer */, -1 /* Wait */, 8 /* Mode8 */, 9 /* Mode9 */
-            });
+                });
+            }
+
+            // Save converted interactions, and assign global schema
+            _interactions = interactions;
+            _interactions.Schema = InteractionSchema.Instance;
         }
 
         public void ToXml(XmlTextWriter writer)

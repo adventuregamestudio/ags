@@ -635,23 +635,25 @@ namespace AGS.Types
             if (node.SelectSingleNode("Interactions") == null)
                 return;
 
-            // Load old-style events into the temporary interactions object,
-            // as the one that we are keeping is for compatibility only.
+            // Load events into the temporary interactions object with no Schema first
             Interactions interactions = new Interactions(null);
             interactions.FromXml(node);
-            if (interactions.IndexedFunctionNames.Count == 0)
-                return; // no old indexed events, bail out
-            // Convert interaction events to our new event properties
-            OnLeaveLeft = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
-            OnLeaveRight = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
-            OnLeaveBottom = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
-            OnLeaveTop = interactions.IndexedFunctionNames.TryGetValueOrDefault(3, string.Empty);
-            OnFirstTimeEnter = interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
-            OnLoad = interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
-            OnRepExec = interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
-            OnAfterFadeIn = interactions.IndexedFunctionNames.TryGetValueOrDefault(7, string.Empty);
-            OnLeave = interactions.IndexedFunctionNames.TryGetValueOrDefault(8, string.Empty);
-            OnUnload = interactions.IndexedFunctionNames.TryGetValueOrDefault(9, string.Empty);
+            // Convert old interaction events to our new event properties;
+            // the interactions object is discarded afterwards, because Room
+            // no longer features cursor-kind interactions.
+            if (interactions.IndexedFunctionNames.Count > 0)
+            {
+                OnLeaveLeft = interactions.IndexedFunctionNames.TryGetValueOrDefault(0, string.Empty);
+                OnLeaveRight = interactions.IndexedFunctionNames.TryGetValueOrDefault(1, string.Empty);
+                OnLeaveBottom = interactions.IndexedFunctionNames.TryGetValueOrDefault(2, string.Empty);
+                OnLeaveTop = interactions.IndexedFunctionNames.TryGetValueOrDefault(3, string.Empty);
+                OnFirstTimeEnter = interactions.IndexedFunctionNames.TryGetValueOrDefault(4, string.Empty);
+                OnLoad = interactions.IndexedFunctionNames.TryGetValueOrDefault(5, string.Empty);
+                OnRepExec = interactions.IndexedFunctionNames.TryGetValueOrDefault(6, string.Empty);
+                OnAfterFadeIn = interactions.IndexedFunctionNames.TryGetValueOrDefault(7, string.Empty);
+                OnLeave = interactions.IndexedFunctionNames.TryGetValueOrDefault(8, string.Empty);
+                OnUnload = interactions.IndexedFunctionNames.TryGetValueOrDefault(9, string.Empty);
+            }
         }
     }
 }

@@ -38,6 +38,7 @@ class CompilerOptions{
         bool EnforceNewStrings = true;        // do not allow old-style strings
         bool EnforceNewAudio = true;
         bool UseOldCustomDialogOptionsAPI = false;
+        bool UseOldKeyboardHandling = false;
     };
 
     struct ScriptAPI {
@@ -50,6 +51,7 @@ public:
     Flags Flags;
     bool PreprocessOnly = false;
     bool DebugMode = false; // build for debug
+    bool UnicodeMode = true;
     std::vector<std::pair<std::string, std::string>> Macros{};
     std::vector<std::string> HeaderFiles{};
     std::string InputScriptFile{};

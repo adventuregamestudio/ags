@@ -29,6 +29,7 @@
 #include "util/path.h"
 #include "util/textstreamreader.h"
 #include "util/string_compat.h"
+#include "ac/gamestructdefines.h"
 #include "preproc/preprocessor.h"
 #include "compiler.h"
 
@@ -51,21 +52,17 @@ String cc_get_callstack(int max_lines)
 
 const char* PREFIX_SCRIPT_COMPAT = "SCRIPT_COMPAT_";
 const char* PREFIX_SCRIPT_API = "SCRIPT_API_";
-std::vector<const char *> ScriptAPIs = {"v321",
-                                        "v330",
-                                        "v334",
-                                        "v335",
-                                        "v340",
-                                        "v341",
-                                        "v350",
-                                        "v3507",
-                                        "v351",
-                                        "v360",
-                                        "v36026",
-                                        "v361",
-                                        "v362",
-                                        "v363",
-                                        HIGHEST_SCRIPT_API};
+// All script API levels in ascending order (shared with the engine), then "Highest"
+static std::vector<const char *> MakeScriptAPIList()
+{
+    std::vector<const char *> apis;
+    for (const auto &api : kScriptAPINames)
+        apis.push_back(api.Name);
+    apis.push_back(HIGHEST_SCRIPT_API);
+    return apis;
+}
+
+std::vector<const char *> ScriptAPIs = MakeScriptAPIList();
 
 std::vector<const char *> GetScriptAPIs()
 {

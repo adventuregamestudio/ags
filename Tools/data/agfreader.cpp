@@ -581,23 +581,36 @@ String Cursor::ReadScriptName(DocElem elem)
     return BuildMouseCursorPrefixedScriptID(ReadString(elem, "Name"));
 }
 
+static bool ParseCursorRole(const char *text, int &value)
+{
+    static const char *const kCursorRoleNames[] = {"Walk", "Look", "Interact", "", "UseInv", "", "Pointer", "Wait"};
+    if (std::strcmp(text, "None") == 0)
+    {
+        value = -1;
+        return true;
+    }
+    return ParseXmlEnum(text, kCursorRoleNames, std::size(kCursorRoleNames), value);
+}
+
+static const XmlField<DataUtil::CursorData> kCursorFields[] = {
+    {"Animate", XML_READ(&DataUtil::CursorData::Animate)},
+    {"AnimateOnlyOnHotspots", XML_READ(&DataUtil::CursorData::AnimateOnlyOnHotspots)},
+    {"AnimateOnlyWhenMoving", XML_READ(&DataUtil::CursorData::AnimateOnlyWhenMoving)},
+    {"AnimationDelay", XML_READ(&DataUtil::CursorData::AnimationDelay)},
+    {"CreateEvent", XML_READ(&DataUtil::CursorData::CreateEvent)},
+    {"HotspotX", XML_READ(&DataUtil::CursorData::HotspotX)},
+    {"HotspotY", XML_READ(&DataUtil::CursorData::HotspotY)},
+    {"Image", XML_READ(&DataUtil::CursorData::Image)},
+    {"Name", XML_READ(&DataUtil::CursorData::Name)}, // the MouseCursor name
+    {"StandardMode", XML_READ(&DataUtil::CursorData::StandardMode)},
+    {"StandardRole", XML_READ_WITH(&DataUtil::CursorData::StandardRole, ParseCursorRole)},
+    {"View", XML_READ(&DataUtil::CursorData::View)},
+};
+
 void Cursor::ReadAllData(DocElem elem, DataUtil::CursorData &data)
 {
-    data.Name = ReadString(elem, "Name"); // This is MouseCursor Name
-    data.Image = ReadInt(elem, "Image");
-    data.HotspotX = ReadInt(elem, "HotspotX");
-    data.HotspotY = ReadInt(elem, "HotspotY");
-    data.Animate = ReadBool(elem, "Animate");
-    data.View = ReadInt(elem, "View", -1);
-    data.AnimateOnlyOnHotspots = ReadBool(elem, "AnimateOnlyOnHotspots");
-    data.AnimateOnlyWhenMoving = ReadBool(elem, "AnimateOnlyWhenMoving");
-    data.StandardMode = ReadBool(elem, "StandardMode");
-    data.CreateEvent = ReadBool(elem, "CreateEvent");
-    data.AnimationDelay = ReadInt(elem, "AnimationDelay", 5);
-    static const char *const kCursorRoleNames[] = {"Walk", "Look", "Interact", "", "UseInv", "", "Pointer", "Wait"};
-    const String role = ReadString(elem, "StandardRole", "None");
-    data.StandardRole = -1; // None
-    ParseXmlEnum(role.GetCStr(), kCursorRoleNames, std::size(kCursorRoleNames), data.StandardRole);
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kCursorFields, UnknownElements::Skip);
 }
 
 void InventoryItem::ReadAllData(DocElem elem, DataUtil::InventoryItemData &data)
@@ -1337,46 +1350,76 @@ void AudioType::ReadAllData(DocElem elem, DataUtil::AudioTypeData &data)
     data.Crossfade = ReadCrossfadeSpeed(ReadString(elem, "CrossfadeClips"));
 }
 
+// <Properties> element into a list of name/value pairs
+static HError ReadPropertyList(const tinyxml2::XMLElement *list, std::vector<DataUtil::CustomPropertyValue> &props)
+{
+    props.clear();
+    for (const tinyxml2::XMLElement *prop = list->FirstChildElement("CustomProperty"); prop;
+         prop = prop->NextSiblingElement("CustomProperty"))
+    {
+        DocElem item = const_cast<DocElem>(prop); // the readers take a non-const element
+        props.push_back({ValueParser::ReadString(item, "Name"), ValueParser::ReadString(item, "Value")});
+    }
+    return HError::None();
+}
+
+// Rectangle "x,y,width,height" into the character's blocking rectangle
+static HError ReadBlockingRect(const tinyxml2::XMLElement *elem, DataUtil::CharacterData &data)
+{
+    XmlRect r;
+    if (!ParseXmlValue(XmlDetail::ElementText(elem), r))
+        return XmlDetail::InvalidValue(elem);
+    data.BlockingX = r.X;
+    data.BlockingY = r.Y;
+    data.BlockingWidth = r.Width;
+    data.BlockingHeight = r.Height;
+    return HError::None();
+}
+
+static const XmlField<DataUtil::CharacterData> kCharacterFields[] = {
+    {"AdjustSpeedWithScaling", XML_READ(&DataUtil::CharacterData::AdjustSpeedWithScaling)},
+    {"AdjustVolumeWithScaling", XML_READ(&DataUtil::CharacterData::AdjustVolumeWithScaling)},
+    {"AnimationDelay", XML_READ(&DataUtil::CharacterData::AnimationDelay)},
+    {"Baseline", XML_READ(&DataUtil::CharacterData::Baseline)},
+    {"BlendMode", XML_READ_WITH(&DataUtil::CharacterData::BlendMode, ParseBlendMode)},
+    {"BlinkingView", XML_READ(&DataUtil::CharacterData::BlinkingView)},
+    {"BlockingRectangle", ReadBlockingRect},
+    {"Clickable", XML_READ(&DataUtil::CharacterData::Clickable)},
+    {"DiagonalLoops", XML_READ(&DataUtil::CharacterData::DiagonalLoops)},
+    {"DisplayName", XML_READ(&DataUtil::CharacterData::RealName)},
+    {"GraphicAnchor", XML_READ_WITH(&DataUtil::CharacterData::GraphicAnchor, ParseGraphicAnchor)},
+    {"GraphicOffset", XML_READ(&DataUtil::CharacterData::GraphicOffset)},
+    {"IdleAnimationDelay", XML_READ(&DataUtil::CharacterData::IdleAnimationDelay)},
+    {"IdleDelay", XML_READ(&DataUtil::CharacterData::IdleDelay)},
+    {"IdleView", XML_READ(&DataUtil::CharacterData::IdleView)},
+    {"MovementLinkedToAnimation", XML_READ(&DataUtil::CharacterData::MovementLinkedToAnimation)},
+    {"MovementSpeed", XML_READ(&DataUtil::CharacterData::MovementSpeed)},
+    {"MovementSpeedX", XML_READ(&DataUtil::CharacterData::MovementSpeedX)},
+    {"MovementSpeedY", XML_READ(&DataUtil::CharacterData::MovementSpeedY)},
+    {"NormalView", XML_READ(&DataUtil::CharacterData::NormalView)},
+    {"OnAnyClick", XML_READ(&DataUtil::CharacterData::OnAnyClick)},
+    {"OnFrameEvent", XML_READ(&DataUtil::CharacterData::OnFrameEvent)},
+    {"Transparency", XML_READ(&DataUtil::CharacterData::Transparency)},
+    {"Properties", XML_READ_ELEMENT(&DataUtil::CharacterData::Properties, ReadPropertyList)},
+    {"Solid", XML_READ(&DataUtil::CharacterData::Solid)},
+    {"SpeechAnimationDelay", XML_READ(&DataUtil::CharacterData::SpeechAnimationDelay)},
+    {"SpeechColor", XML_READ(&DataUtil::CharacterData::SpeechColor)},
+    {"SpeechView", XML_READ(&DataUtil::CharacterData::SpeechView)},
+    {"StartX", XML_READ(&DataUtil::CharacterData::StartX)},
+    {"StartY", XML_READ(&DataUtil::CharacterData::StartY)},
+    {"StartingRoom", XML_READ(&DataUtil::CharacterData::StartingRoom)},
+    {"ThinkingView", XML_READ(&DataUtil::CharacterData::ThinkingView)},
+    {"TurnBeforeWalking", XML_READ(&DataUtil::CharacterData::TurnBeforeWalking)},
+    {"TurnWhenFacing", XML_READ(&DataUtil::CharacterData::TurnWhenFacing)},
+    {"UniformMovementSpeed", XML_READ(&DataUtil::CharacterData::UniformMovementSpeed)},
+    {"UseRoomAreaLighting", XML_READ(&DataUtil::CharacterData::UseRoomAreaLighting)},
+    {"UseRoomAreaScaling", XML_READ(&DataUtil::CharacterData::UseRoomAreaScaling)},
+};
+
 void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
 {
-    data.AdjustSpeedWithScaling = ValueParser::ReadBool(elem, "AdjustSpeedWithScaling");
-    data.AdjustVolumeWithScaling = ValueParser::ReadBool(elem, "AdjustVolumeWithScaling");
-    data.AnimationDelay = ValueParser::ReadInt(elem, "AnimationDelay");
-    data.Baseline = ValueParser::ReadInt(elem, "Baseline");
-    data.BlinkingView = ValueParser::ReadInt(elem, "BlinkingView");
-    std::sscanf(ValueParser::ReadString(elem, "BlockingRectangle", "0,0,0,0"), "%d,%d,%d,%d",
-        &data.BlockingX, &data.BlockingY, &data.BlockingWidth, &data.BlockingHeight);
-    data.Clickable = ValueParser::ReadBool(elem, "Clickable", true);
-    data.DiagonalLoops = ValueParser::ReadBool(elem, "DiagonalLoops", true);
-    data.IdleAnimationDelay = ValueParser::ReadInt(elem, "IdleAnimationDelay");
-    data.IdleDelay = ValueParser::ReadInt(elem, "IdleDelay");
-    data.IdleView = ValueParser::ReadInt(elem, "IdleView");
-    data.MovementLinkedToAnimation = ValueParser::ReadBool(elem, "MovementLinkedToAnimation");
-    data.MovementSpeed = ValueParser::ReadInt(elem, "MovementSpeed");
-    data.MovementSpeedX = ValueParser::ReadInt(elem, "MovementSpeedX");
-    data.MovementSpeedY = ValueParser::ReadInt(elem, "MovementSpeedY");
-    data.NormalView = ValueParser::ReadInt(elem, "NormalView");
-    data.RealName = ValueParser::ReadString(elem, "DisplayName");
-    data.Solid = ValueParser::ReadBool(elem, "Solid", true);
-    data.SpeechAnimationDelay = ValueParser::ReadInt(elem, "SpeechAnimationDelay");
-    data.SpeechColor = ValueParser::ReadInt(elem, "SpeechColor");
-    data.SpeechView = ValueParser::ReadInt(elem, "SpeechView");
-    data.StartX = ValueParser::ReadInt(elem, "StartX");
-    data.StartY = ValueParser::ReadInt(elem, "StartY");
-    data.StartingRoom = ValueParser::ReadInt(elem, "StartingRoom", -1);
-    data.ThinkingView = ValueParser::ReadInt(elem, "ThinkingView");
-    data.Transparency = ValueParser::ReadInt(elem, "Transparency");
-    data.TurnBeforeWalking = ValueParser::ReadBool(elem, "TurnBeforeWalking", true);
-    data.TurnWhenFacing = ValueParser::ReadBool(elem, "TurnWhenFacing", true);
-    data.UniformMovementSpeed = ValueParser::ReadBool(elem, "UniformMovementSpeed", true);
-    data.UseRoomAreaLighting = ValueParser::ReadBool(elem, "UseRoomAreaLighting", true);
-    data.UseRoomAreaScaling = ValueParser::ReadBool(elem, "UseRoomAreaScaling", true);
-    data.BlendMode = ReadBlendMode(elem);
-    ParseGraphicAnchor(ValueParser::ReadString(elem, "GraphicAnchor", "0.5, 1"), data.GraphicAnchor);
-    ParseXmlValue(ValueParser::ReadString(elem, "GraphicOffset", "0,0"), data.GraphicOffset);
-    data.OnAnyClick = ValueParser::ReadString(elem, "OnAnyClick");
-    data.OnFrameEvent = ValueParser::ReadString(elem, "OnFrameEvent");
-    ReadProperties(elem, data.Properties);
+    // TODO: fail on unknown elements once the readers return errors (7.1g)
+    ReadFields(elem, data, kCharacterFields, UnknownElements::Skip);
     ReadInteractions(elem, data.ScriptModule, data.InteractionEvents);
 }
 

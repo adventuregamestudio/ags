@@ -99,6 +99,8 @@ struct BuildOptions
     // Build mode (overrides game project settings)
     bool BuildDebug = false;
     bool BuildRelease = false;
+    // Treat what the tools cannot read from the project as errors
+    bool Strict = false;
 };
 
 struct GameOptions
@@ -339,8 +341,9 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
             "agf2dta", &taskmgr,
             PipedProcessParams(tool_agf2dta,
-                               String::FromFormat("\"%s\" \"%s/game28.dta\" --script-dir \"%s\" %s", src_agf.GetCStr(),
-                                                  temp_dir.GetCStr(), temp_dir.GetCStr(), verbose)),
+                               String::FromFormat("\"%s\" \"%s/game28.dta\" --script-dir \"%s\" %s %s",
+                                                  src_agf.GetCStr(), temp_dir.GetCStr(), temp_dir.GetCStr(),
+                                                  bopts.Strict ? "--strict" : "", verbose)),
             std::vector<TaskInput>(scom_tasks)));
         pak_temp_files.push_back("game28.dta");
         pre_pack_tasks.push_back({"agf2dta"});
@@ -786,6 +789,7 @@ const char *HELP_STRING = ""
 "                         system (tools) directory.\n"
 "  --build-debug          builds the project in debug mode (override).\n"
 "  --build-release        builds the project in release mode (override).\n"
+"  --strict               fail if the project has something the tools cannot read.\n"
 "  -c, --cleanup          deletes intermediate output on successful completion.\n"
 "  --import-audio         generate a new audio cache, importing audio files from\n"
 "                         the source files, according to game.agf specs.\n"
@@ -831,6 +835,7 @@ int main(int argc, char *argv[])
     bopts.Verbose = cmdargs.Opt.count("-v") > 0 || cmdargs.Opt.count("--verbose") > 0;
     bopts.BuildDebug = cmdargs.Opt.count("--build-debug") > 0;
     bopts.BuildRelease = cmdargs.Opt.count("--build-release") > 0;
+    bopts.Strict = cmdargs.Opt.count("--strict") > 0;
     for (const auto &opt : cmdargs.OptWithValue)
     {
         if (opt.first == "--api-ash")

@@ -350,6 +350,7 @@ if(AGS_TESTS)
       gtest
    )
 
+   target_compile_definitions(tools_test PRIVATE AGF_ELEMENTS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/agf_elements.txt")
    include(GoogleTest)
    gtest_add_tests(TARGET tools_test)
 endif()

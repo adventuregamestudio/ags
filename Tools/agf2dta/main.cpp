@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "data/agfreader.h"
 #include "data/data_file_writer.h"
+#include "data/xml_fields.h"
 #include "util/cmdlineopts.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -22,6 +23,8 @@ const char *HELP_STRING =
 "  --script-dir <DIR>     embed the compiled scripts found in DIR (GlobalScript.o,\n"
 "                         __DialogScripts.o and the modules), as the editor does;\n"
 "                         otherwise the engine loads them from separate files\n"
+"  --strict               treat elements the tool does not know, and values it\n"
+"                         cannot read, as errors instead of warnings\n"
 "  -h, --help             Show this help message\n";
 
 // Loads a compiled script object, which goes into the game data as it is
@@ -110,7 +113,13 @@ ParseResult parseResult = Parse(argc, argv, {"--script-dir"});
     }
 
     DataUtil::GameData game{};
+    AGF::XmlProblems::Clear();
     AGF::ReadGameData(game, reader);
+    const bool strict = parseResult.Opt.count("--strict") > 0;
+    for (const String &problem : AGF::XmlProblems::Get())
+        printf("%s: %s\n", strict ? "Error" : "Warning", problem.GetCStr());
+    if (strict && !AGF::XmlProblems::Get().empty())
+        return -1;
     for (const auto &opt : parseResult.OptWithValue)
     {
         if (opt.first != "--script-dir")

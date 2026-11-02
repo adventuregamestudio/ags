@@ -180,6 +180,30 @@ int CompareXmlVersions(const char *a, const char *b)
     return 0;
 }
 
+static std::vector<String> &ProblemList()
+{
+    thread_local std::vector<String> problems;
+    return problems;
+}
+
+void XmlProblems::Add(const String &message)
+{
+    // the same element may be read more than once
+    auto &problems = ProblemList();
+    if (std::find(problems.begin(), problems.end(), message) == problems.end())
+        problems.push_back(message);
+}
+
+const std::vector<String> &XmlProblems::Get()
+{
+    return ProblemList();
+}
+
+void XmlProblems::Clear()
+{
+    ProblemList().clear();
+}
+
 namespace XmlDetail
 {
 

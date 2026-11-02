@@ -216,7 +216,10 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     chinfo.blocking_height = static_cast<int16_t>(ref.BlockingHeight);
     chinfo.walkspeed = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
     chinfo.animspeed = static_cast<int16_t>(ref.AnimationDelay);
-    chinfo.flags |= CHF_ENABLED | CHF_VISIBLE; // FIXME: read from ags4 properties
+    if (ref.Enabled)
+        chinfo.flags |= CHF_ENABLED;
+    if (ref.Visible)
+        chinfo.flags |= CHF_VISIBLE;
     if (ref.AdjustSpeedWithScaling) chinfo.flags |= CHF_SCALEMOVESPEED;
     if (ref.AdjustVolumeWithScaling) chinfo.flags |= CHF_SCALEVOLUME;
     if (!ref.Clickable) chinfo.flags |= CHF_NOINTERACT;
@@ -687,6 +690,8 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
     for (const auto &sprite : game.Sprites)
     {
         if (sprite.Slot < 0 || sprite.Slot > topmost) continue;
+        if (sprite.ImportColorDepth != 0)
+            flags[sprite.Slot] |= SPF_KEEPDEPTH;
     }
     if (!flags.empty())
         out->Write(flags.data(), flags.size());

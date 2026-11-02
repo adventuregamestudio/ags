@@ -64,8 +64,20 @@ struct XmlField
 // What ReadFields does with a child element that no row names
 enum class UnknownElements
 {
-    Fail, // return an error: the data has something that the tools don't know
-    Skip  // ignore it: the table reads only a part of the element on purpose
+    Fail,   // return an error: the data has something that the tools don't know
+    Report, // record it with XmlProblems and go on, ignoring the element or the bad value
+    Skip    // ignore it: the table reads only a part of the element on purpose
+};
+
+// Collects what the readers in Report mode could not understand: unknown elements and invalid
+// values. The data they read is still usable, so it is up to the caller to decide whether these
+// are warnings (normal use) or errors (tests, strict builds). Per thread.
+class XmlProblems
+{
+public:
+    static void Add(const Common::String &message);
+    static const std::vector<Common::String> &Get();
+    static void Clear();
 };
 
 // Rectangle as the editor writes it: "x,y,width,height"
@@ -153,10 +165,24 @@ Common::HError ReadElement(const tinyxml2::XMLElement *elem, typename XmlDetail:
 #define XML_READ_WITH(member, parse) AGS::AGF::ReadWith<decltype(member), member, parse>
 #define XML_READ_ELEMENT(member, read_fn) AGS::AGF::ReadElement<decltype(member), member, read_fn>
 
-// Fills the object from the child elements of elem, using the table
+// Tells whether the table has a row for the element
+template <typename T, size_t N>
+bool IsListed(const XmlField<T> (&fields)[N], const char *element)
+{
+    for (const auto &f : fields)
+    {
+        if (std::strcmp(f.Element, element) == 0)
+            return true;
+    }
+    return false;
+}
+
+// Fills the object from the child elements of elem, using the table;
+// known_elsewhere tells the elements that another table reads from the same element
 template <typename T, size_t N>
 Common::HError ReadFields(const tinyxml2::XMLElement *elem, T &obj, const XmlField<T> (&fields)[N],
-                          UnknownElements unknown = UnknownElements::Fail)
+                          UnknownElements unknown = UnknownElements::Fail,
+                          bool (*known_elsewhere)(const char *element) = nullptr)
 {
     for (const tinyxml2::XMLElement *child = elem->FirstChildElement(); child; child = child->NextSiblingElement())
     {
@@ -171,15 +197,23 @@ Common::HError ReadFields(const tinyxml2::XMLElement *elem, T &obj, const XmlFie
         }
         if (!field)
         {
+            if (known_elsewhere && known_elsewhere(child->Name()))
+                continue;
             if (unknown == UnknownElements::Fail)
                 return XmlDetail::UnknownElement(elem, child);
+            if (unknown == UnknownElements::Report)
+                XmlProblems::Add(XmlDetail::UnknownElement(elem, child)->FullMessage());
             continue;
         }
         if (!field->Read)
             continue;
         Common::HError err = field->Read(child, obj);
         if (!err)
-            return err;
+        {
+            if (unknown != UnknownElements::Report)
+                return err;
+            XmlProblems::Add(err->FullMessage());
+        }
     }
     return Common::HError::None();
 }

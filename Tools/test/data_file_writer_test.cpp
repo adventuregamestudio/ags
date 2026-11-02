@@ -811,6 +811,7 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
         { 1, 0, 0, 0, DataUtil::kSpriteImport_Real, true },
         { 3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false }
     };
+    game.Sprites[1].ImportColorDepth = 8; // Indexed8Bit
 
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteSpriteFlags);
@@ -823,6 +824,8 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
 
     EXPECT_EQ(0, flags[0]);
     EXPECT_EQ(0, flags[2]);
+    EXPECT_EQ(0, flags[1]);
+    EXPECT_EQ(SPF_KEEPDEPTH, flags[3]); // the sprite must keep its 8-bit depth
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 

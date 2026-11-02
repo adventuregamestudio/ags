@@ -100,6 +100,7 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.EnforceNewStrings) printf("EnforceNewStrings; ");
     if (Flags.EnforceNewAudio) printf("EnforceNewAudio; ");
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
+    if (Flags.UseOldKeyboardHandling) printf("UseOldKeyboardHandling; ");
     printf("\n");
     if (DebugMode) printf("DebugMode\n");
     if (UnicodeMode) printf("Unicode mode\n");
@@ -151,6 +152,21 @@ int Compile(const CompilerOptions& comp_opts)
     {
         pp.DefineMacro("NEW_DIALOGOPTS_API", "1");
     }
+    if (!comp_opts.Flags.UseOldKeyboardHandling)
+    {
+        pp.DefineMacro("NEW_KEYINPUT_API", "1");
+    }
+    if (comp_opts.UnicodeMode)
+    {
+        pp.DefineMacro("UNICODE", "1");
+    }
+
+    // Define SCRIPT_EXT_* macros for each of the script's extensions.
+    std::vector<std::string> extensions;
+    ccGetExtensions(extensions);
+    for (const auto &ext : extensions)
+        pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
+
     // Set Script API macros (starting from lowest and until the highest requested)
     for(int i=0; i<ScriptAPIs.size()-1; i++)
     {
@@ -260,7 +276,8 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     String script_pp = nullptr;
     String filename = Path::GetFilename(comp_opts.InputScriptFile.c_str());
-    String script_name = filename; // with extension, like the AGS editor (see headername above)
+    // with extension, like the AGS editor (see headername above)
+    String script_name = comp_opts.ScriptName.empty() ? filename : String(comp_opts.ScriptName.c_str());
 
     script_pp = pp.Preprocess(script_input,script_name);
     if ((script_pp == nullptr) || (cc_has_error()))

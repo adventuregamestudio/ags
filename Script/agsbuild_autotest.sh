@@ -19,7 +19,7 @@ out="$work/out"
 rm -rf "$sys" "$out"
 mkdir -p "$sys" "$out"
 
-for tool in agsbuild agscc agf2dta agf2dlgasc agfexport agspak crmpak spriteimport spritepak trac; do
+for tool in agsbuild agscc agf2dta agf2dlgasc agfexport agspak crmbuild crmpak spriteimport spritepak trac; do
     path=$(find "$build" -type f \( -name "$tool" -o -name "$tool.exe" \) -perm -u+x -not -path '*/_deps/*' | head -n 1)
     if [ -z "$path" ]; then
         echo "Tool not found in $build: $tool" >&2

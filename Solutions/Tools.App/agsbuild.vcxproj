@@ -48,6 +48,7 @@
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\taskmanager.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
+    <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\def_version.h" />

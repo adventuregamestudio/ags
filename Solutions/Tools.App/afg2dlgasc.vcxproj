@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\agf2dlgasc\main.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
+    <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
     <ClCompile Include="..\..\Tools\data\dialogscriptconv.cpp" />
     <ClCompile Include="..\..\Tools\data\script_utils.cpp" />
   </ItemGroup>

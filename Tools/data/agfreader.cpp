@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <tinyxml2.h>
+#include "data/xml_fields.h"
 #include "debug/out.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -167,21 +168,6 @@ static const CstrArr<4> kTurnOrderPriorityNames = {{
 static const CstrArr<3> kTextBoxKeyClaimStyleNames = {{
     "All", "Handled", "TextOnly"
 }};
-
-// Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
-// returns a negative, zero or positive value like strcmp
-int CompareXmlVersions(const char *a, const char *b)
-{
-    int va[4] = {}, vb[4] = {};
-    std::sscanf(a, "%d.%d.%d.%d", &va[0], &va[1], &va[2], &va[3]);
-    std::sscanf(b, "%d.%d.%d.%d", &vb[0], &vb[1], &vb[2], &vb[3]);
-    for (int i = 0; i < 4; ++i)
-    {
-        if (va[i] != vb[i])
-            return va[i] < vb[i] ? -1 : 1;
-    }
-    return 0;
-}
 
 } // namespace
 

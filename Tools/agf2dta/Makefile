@@ -53,6 +53,7 @@ COMMON_OBJS = \
 
 TOOL_OBJS = \
 	../../Tools/data/agfreader.cpp \
+	../../Tools/data/xml_fields.cpp \
 	../../Tools/data/data_file_writer.cpp
 
 MINIMAL_ALLEGRO_OBJS = \

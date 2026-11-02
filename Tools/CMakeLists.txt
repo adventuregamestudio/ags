@@ -154,6 +154,8 @@ target_sources(libtools
         data/sprite_utils.h
         data/tra_utils.cpp
         data/tra_utils.h
+        data/xml_fields.cpp
+        data/xml_fields.h
         ${TOOLS_COMMON_SOURCES}
         ${TOOLS_MINIMAL_ALLEGRO_SOURCES}
         )
@@ -315,6 +317,7 @@ if(AGS_TESTS)
       agsbuild/pipedprocess.cpp
       test/include_utils_test.cpp
       test/pipedprocess_test.cpp
+      test/xml_fields_test.cpp
       test/spriteimport_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )

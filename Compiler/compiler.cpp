@@ -305,8 +305,14 @@ int Compile(const CompilerOptions& comp_opts)
         return -1;
     }
 #else
+    // The new compiler has no default headers: like the Editor, it is given the headers and
+    // the script as one text, each part starting with its new-script marker
+    String all_the_script;
+    for (const auto &head : preprocessed_heads)
+        all_the_script.Append(head.first);
+    all_the_script.Append(script_pp);
     AGS::MessageHandler mh;
-    ccScript* script = ccCompileText2(script_pp.GetCStr(), script_name.GetCStr(), cc_options, mh);
+    ccScript *script = ccCompileText2(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh);
     auto compiler_messages = mh.GetMessages();
     bool error = false;
     for(const auto &msg : compiler_messages)

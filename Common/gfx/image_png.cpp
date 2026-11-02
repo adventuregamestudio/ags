@@ -184,7 +184,8 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
         }
         else
         {
-            std::memcpy(pxbuf.GetData(), pixels, width * height);
+            // stb_image has 3 or 4 bytes per pixel here, as px_fmt, and no row padding
+            std::memcpy(pxbuf.GetData(), pixels, pxbuf.GetDataSize());
         }
     }
     else if (stb_format == STBI_grey_alpha)

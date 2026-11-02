@@ -27,6 +27,7 @@
     <ClCompile Include="..\..\Common\test\error_test.cpp" />
     <ClCompile Include="..\..\Common\test\gfxdef_test.cpp" />
     <ClCompile Include="..\..\Common\test\gui_test.cpp" />
+    <ClCompile Include="..\..\Common\test\imagefile_test.cpp" />
     <ClCompile Include="..\..\Common\test\indexedobjectpool_test.cpp" />
     <ClCompile Include="..\..\Common\test\inifile_test.cpp" />
     <ClCompile Include="..\..\Common\test\math_test.cpp" />

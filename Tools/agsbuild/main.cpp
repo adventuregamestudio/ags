@@ -32,6 +32,7 @@
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
+#include "diagnostics.h"
 #include "pipedprocess.h"
 #include "taskmanager.h"
 
@@ -161,21 +162,9 @@ String MakeSpriteImportFlags(const GameOptions &opts)
     return String::FromFormat("-z %s -s 0x%x", compress, sflags);
 }
 
-HError BuildWithTaskManager(const BuildOptions &bopts)
+// What was read from the game project, to decide the tasks
+struct ProjectData
 {
-    const String &sys_dir = bopts.SysDir;
-    const String &src_dir = bopts.SrcDir;
-    const String &api_ash = bopts.ApiAshPath;
-    const String audiocache_dir = Path::ConcatPaths(src_dir, "AudioCache");
-    const String speech_dir = Path::ConcatPaths(src_dir, "Speech");
-    const String &src_agf = bopts.SrcAgf;
-    const String &temp_dir = bopts.TempDir;
-    const String &out_dir = bopts.OutDir;
-    const char *verbose = bopts.Verbose ? "-v" : "";
-
-    // Currently it's more convenient to read AGF lists and compilation-related options directly,
-    // rather than trying to use agfexport for this.
-    // TODO: support more compile options, such as script options, package splitting, attach to exe etc
     GameOptions game_opts;
     ScriptCompilerOptions agscc_opts;
     std::vector<DataUtil::AudioClipData> aclip_list;
@@ -188,59 +177,25 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     std::vector<String> scm_header_list;
     std::vector<String> tra_list;
     bool has_globalvar_script = false;
-    {
-        AGF::AGFReader reader;
-        HError err = reader.Open(src_agf.GetCStr());
-        if (!err)
-            return new Error(err, "Failed to open and/or read %s", src_agf.GetCStr());
+};
 
-        DataUtil::GameSettings opts;
-        AGF::ReadGameSettings(opts, reader.GetGameRoot());
-        game_opts.FileName = opts.GameFileName;
-        game_opts.Name = opts.GameName;
-        game_opts.UniqueID = opts.UniqueID;
+// The build in progress: what the stages share. Each stage adds its tasks to the task manager,
+// and records the files and tasks that the later stages (packing, deploying, cleanup) need.
+struct BuildContext
+{
+    const BuildOptions &bopts;
+    TaskManager &taskmgr;
+    const String &sys_dir;
+    const String &src_dir;
+    const String &api_ash;
+    const String &src_agf;
+    const String &temp_dir;
+    const String &out_dir;
+    const String audiocache_dir;
+    const String speech_dir;
+    const char *verbose;
+    ProjectData project;
 
-        // NOTE: the version found in the Game.agf is the version of app which saved the project last;
-        // it cannot be applied here, as it may be significantly older, and mismatch the data format
-        // that we use when compiling the game.
-        agscc_opts.GameCompilerVersion = ACI_VERSION_STR " " SPECIAL_VERSION;
-        agscc_opts.ApiVersion = opts.ScriptAPIVersion;
-        agscc_opts.CompatVersion = opts.ScriptCompatLevel;
-        // These settings are obsolete: the editor no longer saves them and always uses these values
-        agscc_opts.EnforcePost262Scripting = true;
-        agscc_opts.EnforceNewAudio = true;
-        agscc_opts.EnforceNewStrings = true;
-        agscc_opts.OldDialogOptionsAPI = false;
-        agscc_opts.UnicodeMode = opts.GameTextEncoding.CompareNoCase("ANSI") != 0; // as ParseGameTextEncodingCodePage
-        agscc_opts.DebugBuild = (opts.DebugMode || bopts.BuildDebug) && (!bopts.BuildRelease);
-
-        AGF::ReadAudioClips(aclip_list, reader.GetGameRoot());
-        AGF::ReadCustomDataDirectories(custom_dirs, reader.GetGameRoot());
-        AGF::ReadFontList(font_list, reader.GetGameRoot());
-        AGF::ReadFontFileList(font_files, reader.GetGameRoot());
-        AGF::ReadPluginList(plugin_list, reader.GetGameRoot());
-        std::vector<std::pair<int, String>> room_list_with_desc;
-        AGF::ReadRoomList(room_list_with_desc, reader.GetGameRoot());
-        for (const auto &r : room_list_with_desc)
-        {
-            room_list.push_back(r.first);
-        }
-        AGF::ReadScriptList(scm_list, reader.GetGameRoot());
-        AGF::ReadScriptHeaderList(scm_header_list, reader.GetGameRoot());
-        AGF::ReadTranslationList(tra_list, reader.GetGameRoot());
-
-        // FIXME: this is bit ugly, we only need to know if there will be a GlobalVariables script, is there a better way?
-        std::vector<DataUtil::Variable> vars;
-        AGF::ReadGlobalVariables(vars, reader.GetGameRoot());
-        has_globalvar_script = !vars.empty();
-    }
-
-    //-----------------------------------------------------
-    // Configure game building pipeline
-    //-----------------------------------------------------
-
-    // TODO: get number of threads from command line
-    TaskManager taskmgr(Math::Clamp(bopts.TaskThreads, BuildOptions::MinThreads, BuildOptions::MaxThreads), verbose);
     // Lists of packed files from various locations (filenames only)
     // TODO: figure out a more efficient way to store these
     std::vector<String> pak_src_files;
@@ -263,516 +218,695 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     // tasks to complete before deploying game files
     std::vector<TaskInput> pre_deploy_tasks;
 
-    // Export all the necessary information
-    {
-        const String tool_agfexport = Path::MakeEscapedExePath(sys_dir, ToolAgfExport);
-        const String tool_dlgasc = Path::MakeEscapedExePath(sys_dir, ToolDlgAsc);
-
-        taskmgr.AddTask(std::make_unique<TaskPipedProcess>("autoash", &taskmgr,
-            PipedProcessParams(tool_agfexport, String::FromFormat("autoash \"%s\" \"%s/_AutoGenerated.ash\" %s", src_agf.GetCStr(), temp_dir.GetCStr(), verbose))));
-        taskmgr.AddTask(std::make_unique<TaskPipedProcess>("game-cfg", &taskmgr,
-            PipedProcessParams(tool_agfexport, String::FromFormat("game-cfg \"%s\" \"%s/acsetup.cfg\" %s", src_agf.GetCStr(), temp_dir.GetCStr(), verbose))));
-        // Always run "glvar" task, even if game has no global variables (no glvar scripts will be created in such case),
-        // as there are other tasks down the line that have "glvar" in prerequisites, so it must complete with success.
-        taskmgr.AddTask(std::make_unique<TaskPipedProcess>("glvar", &taskmgr,
-            PipedProcessParams(tool_agfexport, String::FromFormat("glvar \"%s\" \"%s/_GlobalVariables.ash\" \"%s/_GlobalVariables.asc\" --no-empty %s", src_agf.GetCStr(), temp_dir.GetCStr(), temp_dir.GetCStr(), verbose))));
-        taskmgr.AddTask(std::make_unique<TaskPipedProcess>("dlgasc", &taskmgr,
-            PipedProcessParams(tool_dlgasc, String::FromFormat("\"%s\" \"%s/__DialogScripts.asc\" %s", src_agf.GetCStr(), temp_dir.GetCStr(), verbose))));
-
-        deploy_temp_files.push_back("acsetup.cfg");
-        clnup_temp_files.push_back("_AutoGenerated.ash");
-        clnup_temp_files.push_back("_GlobalVariables.ash");
-        clnup_temp_files.push_back("_GlobalVariables.asc");
-        clnup_temp_files.push_back("__DialogScripts.asc");
-        pre_deploy_tasks.push_back({"game-cfg"});
-    }
-
-    // The compiled scripts name their headers after the header files, and the editor calls the
-    // script API header "_BuiltInScriptHeader.ash"; use a copy under that name
-    const String builtin_ash = Path::ConcatPaths(temp_dir, ScriptBuiltInHeader);
-    if (!File::CopyFile(api_ash, builtin_ash))
-        return new Error("Failed to copy %s to %s", api_ash.GetCStr(), builtin_ash.GetCStr());
-    clnup_temp_files.push_back(ScriptBuiltInHeader);
-
-    // Compile game scripts. Like the editor, every script gets all the headers: the API, the
-    // auto-generated and global variable headers, then every script module's header.
+    // The script API header under the name the compiled scripts expect
+    String builtin_ash;
+    // Headers for every script: the API, the auto-generated and variable headers, then every
+    // script module's header; and the module headers alone
     String all_script_headers;
-    String module_script_headers; // script module headers, after the API, auto-generated and variable headers
+    String module_script_headers;
+    // Compiled game scripts, and the tasks which compile them
     std::vector<String> scom_obj;
     std::vector<TaskInput> scom_tasks;
-    {
-        const String tool_agscc = Path::MakeEscapedExePath(sys_dir, ScriptCompiler);
-        all_script_headers =
-            String::FromFormat("%s" AGSCC_H_SEP "%s/%s", builtin_ash.GetCStr(), temp_dir.GetCStr(), ScriptAutoHeader);
-        if (has_globalvar_script)
-            all_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", temp_dir.GetCStr(), ScriptGlvarHeader);
-        for (const auto &header : scm_header_list)
-            module_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", src_dir.GetCStr(), header.GetCStr());
-        all_script_headers.Append(module_script_headers);
-
-        auto add_compile_task = [&](const String &script_dir, const String &script, std::vector<TaskInput> &&deps)
-        {
-            const String scom = Path::ReplaceExtension(script, "o");
-            const String task_name = String::FromFormat("agscc:%s", script.GetCStr());
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-                task_name, &taskmgr,
-                PipedProcessParams(
-                    tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", script_dir.GetCStr(),
-                                                   script.GetCStr(), all_script_headers.GetCStr(), temp_dir.GetCStr(),
-                                                   scom.GetCStr(), MakeAGSCCFlags(agscc_opts).GetCStr())),
-                std::move(deps))));
-            scom_obj.push_back(scom);
-            scom_tasks.push_back({task_name});
-        };
-
-        if (has_globalvar_script)
-            add_compile_task(temp_dir, ScriptGlvarScript, {{"autoash"}, {"glvar"}});
-        for (const auto &script : scm_list)
-            add_compile_task(src_dir, script, {{"autoash"}, {"glvar"}});
-        add_compile_task(temp_dir, ScriptDialogScript, {{"autoash"}, {"glvar"}, {"dlgasc"}});
-
-        // The scripts go into game28.dta, so the objects are not packed
-        std::copy(scom_obj.begin(), scom_obj.end(), std::back_inserter(clnup_temp_files));
-    }
-
-    // Build game28.dta, with the compiled scripts inside as the editor does
-    {
-        const String tool_agf2dta = Path::MakeEscapedExePath(sys_dir, ToolAgf2Dta);
-        taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
-            "agf2dta", &taskmgr,
-            PipedProcessParams(tool_agf2dta,
-                               String::FromFormat("\"%s\" \"%s/game28.dta\" --script-dir \"%s\" %s %s",
-                                                  src_agf.GetCStr(), temp_dir.GetCStr(), temp_dir.GetCStr(),
-                                                  bopts.Strict ? "--strict" : "", verbose)),
-            std::vector<TaskInput>(scom_tasks)));
-        pak_temp_files.push_back("game28.dta");
-        pre_pack_tasks.push_back({"agf2dta"});
-    }
-
-    // AGS 4 rooms are sources in Rooms/<n>/; projects of older layouts keep compiled room<n>.crm files
+    // Rooms of the AGS 4 layout (sources in Rooms/<n>/), and of the older one (compiled room<n>.crm)
     std::vector<int> room_sources_list;
     std::vector<String> room_list_crm;
-    for (const int r : room_list)
+
+    BuildContext(const BuildOptions &opts, TaskManager &mgr)
+        : bopts(opts),
+          taskmgr(mgr),
+          sys_dir(opts.SysDir),
+          src_dir(opts.SrcDir),
+          api_ash(opts.ApiAshPath),
+          src_agf(opts.SrcAgf),
+          temp_dir(opts.TempDir),
+          out_dir(opts.OutDir),
+          audiocache_dir(Path::ConcatPaths(opts.SrcDir, "AudioCache")),
+          speech_dir(Path::ConcatPaths(opts.SrcDir, "Speech")),
+          verbose(opts.Verbose ? "-v" : "")
     {
-        if (File::IsFile(Path::ConcatPaths(src_dir, String::FromFormat("Rooms/%d/data.xml", r))))
-            room_sources_list.push_back(r);
+    }
+};
+
+// Currently it's more convenient to read AGF lists and compilation-related options directly,
+// rather than trying to use agfexport for this.
+// TODO: support more compile options, such as script options, package splitting, attach to exe etc
+static HError ReadProject(const BuildOptions &bopts, ProjectData &project)
+{
+    AGF::AGFReader reader;
+    HError err = reader.Open(bopts.SrcAgf.GetCStr());
+    if (!err)
+        return new Error(err, "Failed to open and/or read %s", bopts.SrcAgf.GetCStr());
+
+    DataUtil::GameSettings opts;
+    AGF::ReadGameSettings(opts, reader.GetGameRoot());
+    project.game_opts.FileName = opts.GameFileName;
+    project.game_opts.Name = opts.GameName;
+    project.game_opts.UniqueID = opts.UniqueID;
+
+    // NOTE: the version found in the Game.agf is the version of app which saved the project last;
+    // it cannot be applied here, as it may be significantly older, and mismatch the data format
+    // that we use when compiling the game.
+    ScriptCompilerOptions &agscc_opts = project.agscc_opts;
+    agscc_opts.GameCompilerVersion = ACI_VERSION_STR " " SPECIAL_VERSION;
+    agscc_opts.ApiVersion = opts.ScriptAPIVersion;
+    agscc_opts.CompatVersion = opts.ScriptCompatLevel;
+    // These settings are obsolete: the editor no longer saves them and always uses these values
+    agscc_opts.EnforcePost262Scripting = true;
+    agscc_opts.EnforceNewAudio = true;
+    agscc_opts.EnforceNewStrings = true;
+    agscc_opts.OldDialogOptionsAPI = false;
+    agscc_opts.UnicodeMode = opts.GameTextEncoding.CompareNoCase("ANSI") != 0; // as ParseGameTextEncodingCodePage
+    agscc_opts.DebugBuild = (opts.DebugMode || bopts.BuildDebug) && (!bopts.BuildRelease);
+
+    AGF::ReadAudioClips(project.aclip_list, reader.GetGameRoot());
+    AGF::ReadCustomDataDirectories(project.custom_dirs, reader.GetGameRoot());
+    AGF::ReadFontList(project.font_list, reader.GetGameRoot());
+    AGF::ReadFontFileList(project.font_files, reader.GetGameRoot());
+    AGF::ReadPluginList(project.plugin_list, reader.GetGameRoot());
+    std::vector<std::pair<int, String>> room_list_with_desc;
+    AGF::ReadRoomList(room_list_with_desc, reader.GetGameRoot());
+    for (const auto &r : room_list_with_desc)
+    {
+        project.room_list.push_back(r.first);
+    }
+    AGF::ReadScriptList(project.scm_list, reader.GetGameRoot());
+    AGF::ReadScriptHeaderList(project.scm_header_list, reader.GetGameRoot());
+    AGF::ReadTranslationList(project.tra_list, reader.GetGameRoot());
+
+    // FIXME: this is bit ugly, we only need to know if there will be a GlobalVariables script, is there a better way?
+    std::vector<DataUtil::Variable> vars;
+    AGF::ReadGlobalVariables(vars, reader.GetGameRoot());
+    project.has_globalvar_script = !vars.empty();
+    return HError::None();
+}
+
+// Export all the necessary information
+static void AddExportTasks(BuildContext &c)
+{
+    const String tool_agfexport = Path::MakeEscapedExePath(c.sys_dir, ToolAgfExport);
+    const String tool_dlgasc = Path::MakeEscapedExePath(c.sys_dir, ToolDlgAsc);
+
+    c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+        "autoash", &c.taskmgr,
+        PipedProcessParams(tool_agfexport, String::FromFormat("autoash \"%s\" \"%s/_AutoGenerated.ash\" %s",
+                                                              c.src_agf.GetCStr(), c.temp_dir.GetCStr(), c.verbose))));
+    c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+        "game-cfg", &c.taskmgr,
+        PipedProcessParams(tool_agfexport, String::FromFormat("game-cfg \"%s\" \"%s/acsetup.cfg\" %s",
+                                                              c.src_agf.GetCStr(), c.temp_dir.GetCStr(), c.verbose))));
+    // Always run "glvar" task, even if game has no global variables (no glvar scripts will be created in such case),
+    // as there are other tasks down the line that have "glvar" in prerequisites, so it must complete with success.
+    c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+        "glvar", &c.taskmgr,
+        PipedProcessParams(
+            tool_agfexport,
+            String::FromFormat("glvar \"%s\" \"%s/_GlobalVariables.ash\" \"%s/_GlobalVariables.asc\" --no-empty %s",
+                               c.src_agf.GetCStr(), c.temp_dir.GetCStr(), c.temp_dir.GetCStr(), c.verbose))));
+    c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+        "dlgasc", &c.taskmgr,
+        PipedProcessParams(tool_dlgasc, String::FromFormat("\"%s\" \"%s/__DialogScripts.asc\" %s", c.src_agf.GetCStr(),
+                                                           c.temp_dir.GetCStr(), c.verbose))));
+
+    c.deploy_temp_files.push_back("acsetup.cfg");
+    c.clnup_temp_files.push_back("_AutoGenerated.ash");
+    c.clnup_temp_files.push_back("_GlobalVariables.ash");
+    c.clnup_temp_files.push_back("_GlobalVariables.asc");
+    c.clnup_temp_files.push_back("__DialogScripts.asc");
+    c.pre_deploy_tasks.push_back({"game-cfg"});
+}
+
+// Compile game scripts. Like the editor, every script gets all the headers: the API, the
+// auto-generated and global variable headers, then every script module's header.
+static HError AddScriptTasks(BuildContext &c)
+{
+    // The compiled scripts name their headers after the header files, and the editor calls the
+    // script API header "_BuiltInScriptHeader.ash"; use a copy under that name
+    c.builtin_ash = Path::ConcatPaths(c.temp_dir, ScriptBuiltInHeader);
+    if (!File::CopyFile(c.api_ash, c.builtin_ash))
+        return new Error("Failed to copy %s to %s", c.api_ash.GetCStr(), c.builtin_ash.GetCStr());
+    c.clnup_temp_files.push_back(ScriptBuiltInHeader);
+
+    const String tool_agscc = Path::MakeEscapedExePath(c.sys_dir, ScriptCompiler);
+    c.all_script_headers =
+        String::FromFormat("%s" AGSCC_H_SEP "%s/%s", c.builtin_ash.GetCStr(), c.temp_dir.GetCStr(), ScriptAutoHeader);
+    if (c.project.has_globalvar_script)
+        c.all_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.temp_dir.GetCStr(), ScriptGlvarHeader);
+    for (const auto &header : c.project.scm_header_list)
+        c.module_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.src_dir.GetCStr(), header.GetCStr());
+    c.all_script_headers.Append(c.module_script_headers);
+
+    auto add_compile_task = [&](const String &script_dir, const String &script, std::vector<TaskInput> &&deps)
+    {
+        const String scom = Path::ReplaceExtension(script, "o");
+        const String task_name = String::FromFormat("agscc:%s", script.GetCStr());
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_name, &c.taskmgr,
+            PipedProcessParams(
+                tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", script_dir.GetCStr(),
+                                               script.GetCStr(), c.all_script_headers.GetCStr(), c.temp_dir.GetCStr(),
+                                               scom.GetCStr(), MakeAGSCCFlags(c.project.agscc_opts).GetCStr())),
+            std::move(deps))));
+        c.scom_obj.push_back(scom);
+        c.scom_tasks.push_back({task_name});
+    };
+
+    if (c.project.has_globalvar_script)
+        add_compile_task(c.temp_dir, ScriptGlvarScript, {{"autoash"}, {"glvar"}});
+    for (const auto &script : c.project.scm_list)
+        add_compile_task(c.src_dir, script, {{"autoash"}, {"glvar"}});
+    add_compile_task(c.temp_dir, ScriptDialogScript, {{"autoash"}, {"glvar"}, {"dlgasc"}});
+
+    // The scripts go into game28.dta, so the objects are not packed
+    std::copy(c.scom_obj.begin(), c.scom_obj.end(), std::back_inserter(c.clnup_temp_files));
+    return HError::None();
+}
+
+// Build game28.dta, with the compiled scripts inside as the editor does
+static void AddGameDataTask(BuildContext &c)
+{
+    const String tool_agf2dta = Path::MakeEscapedExePath(c.sys_dir, ToolAgf2Dta);
+    c.taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+        "agf2dta", &c.taskmgr,
+        PipedProcessParams(tool_agf2dta,
+                           String::FromFormat("\"%s\" \"%s/game28.dta\" --script-dir \"%s\" %s %s", c.src_agf.GetCStr(),
+                                              c.temp_dir.GetCStr(), c.temp_dir.GetCStr(),
+                                              c.bopts.Strict ? "--strict" : "", c.verbose)),
+        std::vector<TaskInput>(c.scom_tasks)));
+    c.pak_temp_files.push_back("game28.dta");
+    c.pre_pack_tasks.push_back({"agf2dta"});
+}
+
+// AGS 4 rooms are sources in Rooms/<n>/; projects of older layouts keep compiled room<n>.crm files
+static void SortRoomsByLayout(BuildContext &c)
+{
+    for (const int r : c.project.room_list)
+    {
+        if (File::IsFile(Path::ConcatPaths(c.src_dir, String::FromFormat("Rooms/%d/data.xml", r))))
+            c.room_sources_list.push_back(r);
         else
-            room_list_crm.push_back(String::FromFormat("room%d.crm", r));
+            c.room_list_crm.push_back(String::FromFormat("room%d.crm", r));
     }
+}
 
-    // Build rooms from their sources, with the compiled room scripts inside, as the editor does
+// Build rooms from their sources, with the compiled room scripts inside, as the editor does
+static HError AddRoomSourceTasks(BuildContext &c)
+{
+    const String tool_crmbuild = Path::MakeEscapedExePath(c.sys_dir, ToolCrmBuild);
+    const String tool_agscc = Path::MakeEscapedExePath(c.sys_dir, ScriptCompiler);
+    for (const int r : c.room_sources_list)
     {
-        const String tool_crmbuild = Path::MakeEscapedExePath(sys_dir, ToolCrmBuild);
-        const String tool_agscc = Path::MakeEscapedExePath(sys_dir, ScriptCompiler);
-        for (const int r : room_sources_list)
-        {
-            const String room_crm = String::FromFormat("room%d.crm", r);
-            const String room_asc = String::FromFormat("Rooms/%d/room%d.asc", r, r);
-            // The script's name as the Windows editor gives it: shown in messages, used by the debugger
-            const String room_script_name = String::FromFormat("Rooms\\%d\\room%d.asc", r, r);
-            const String room_scom = String::FromFormat("room%d.o", r);
-            // The editor declares the room's objects and areas in its copy of the auto-generated header,
-            // which keeps the header's name
-            const String room_dir = String::FromFormat("room%d", r);
-            const String room_autoash = String::FromFormat("%s/%s", room_dir.GetCStr(), ScriptAutoHeader);
-            if (!Directory::CreateAllDirectories(temp_dir, room_dir))
-                return new Error("Failed to create %s/%s", temp_dir.GetCStr(), room_dir.GetCStr());
-            const String task_ash = String::FromFormat("crmbuild:%s:ash", room_crm.GetCStr());
-            const String task_agscc = String::FromFormat("agscc:room%d.asc", r);
-            const String task_crm = String::FromFormat("crmbuild:%s", room_crm.GetCStr());
+        const String room_crm = String::FromFormat("room%d.crm", r);
+        const String room_asc = String::FromFormat("Rooms/%d/room%d.asc", r, r);
+        // The script's name as the Windows editor gives it: shown in messages, used by the debugger
+        const String room_script_name = String::FromFormat("Rooms\\%d\\room%d.asc", r, r);
+        const String room_scom = String::FromFormat("room%d.o", r);
+        // The editor declares the room's objects and areas in its copy of the auto-generated header,
+        // which keeps the header's name
+        const String room_dir = String::FromFormat("room%d", r);
+        const String room_autoash = String::FromFormat("%s/%s", room_dir.GetCStr(), ScriptAutoHeader);
+        if (!Directory::CreateAllDirectories(c.temp_dir, room_dir))
+            return new Error("Failed to create %s/%s", c.temp_dir.GetCStr(), room_dir.GetCStr());
+        const String task_ash = String::FromFormat("crmbuild:%s:ash", room_crm.GetCStr());
+        const String task_agscc = String::FromFormat("agscc:room%d.asc", r);
+        const String task_crm = String::FromFormat("crmbuild:%s", room_crm.GetCStr());
 
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-                task_ash, &taskmgr,
-                PipedProcessParams(tool_crmbuild,
-                                   String::FromFormat("\"%s\" %d --header \"%s/%s\" --prepend \"%s/%s\" %s",
-                                                      src_agf.GetCStr(), r, temp_dir.GetCStr(), room_autoash.GetCStr(),
-                                                      temp_dir.GetCStr(), ScriptAutoHeader, verbose)),
-                {{"autoash"}})));
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_ash, &c.taskmgr,
+            PipedProcessParams(tool_crmbuild,
+                               String::FromFormat("\"%s\" %d --header \"%s/%s\" --prepend \"%s/%s\" %s",
+                                                  c.src_agf.GetCStr(), r, c.temp_dir.GetCStr(), room_autoash.GetCStr(),
+                                                  c.temp_dir.GetCStr(), ScriptAutoHeader, c.verbose)),
+            {{"autoash"}})));
 
-            String room_headers = String::FromFormat("%s" AGSCC_H_SEP "%s/%s", builtin_ash.GetCStr(),
-                                                     temp_dir.GetCStr(), room_autoash.GetCStr());
-            if (has_globalvar_script)
-                room_headers.AppendFmt(AGSCC_H_SEP "%s/%s", temp_dir.GetCStr(), ScriptGlvarHeader);
-            room_headers.Append(module_script_headers);
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-                task_agscc, &taskmgr,
-                PipedProcessParams(tool_agscc,
-                                   String::FromFormat("\"%s/%s\" --name \"%s\" -H \"%s\" -o \"%s/%s\" %s",
-                                                      src_dir.GetCStr(), room_asc.GetCStr(), room_script_name.GetCStr(),
-                                                      room_headers.GetCStr(), temp_dir.GetCStr(), room_scom.GetCStr(),
-                                                      MakeAGSCCFlags(agscc_opts).GetCStr())),
-                {{"glvar"}, {task_ash}})));
+        String room_headers = String::FromFormat("%s" AGSCC_H_SEP "%s/%s", c.builtin_ash.GetCStr(),
+                                                 c.temp_dir.GetCStr(), room_autoash.GetCStr());
+        if (c.project.has_globalvar_script)
+            room_headers.AppendFmt(AGSCC_H_SEP "%s/%s", c.temp_dir.GetCStr(), ScriptGlvarHeader);
+        room_headers.Append(c.module_script_headers);
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_agscc, &c.taskmgr,
+            PipedProcessParams(tool_agscc,
+                               String::FromFormat("\"%s/%s\" --name \"%s\" -H \"%s\" -o \"%s/%s\" %s",
+                                                  c.src_dir.GetCStr(), room_asc.GetCStr(), room_script_name.GetCStr(),
+                                                  room_headers.GetCStr(), c.temp_dir.GetCStr(), room_scom.GetCStr(),
+                                                  MakeAGSCCFlags(c.project.agscc_opts).GetCStr())),
+            {{"glvar"}, {task_ash}})));
 
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
-                task_crm, &taskmgr,
-                PipedProcessParams(tool_crmbuild,
-                                   String::FromFormat("\"%s\" %d -o \"%s/%s\" --script \"%s/%s\" %s", src_agf.GetCStr(),
-                                                      r, temp_dir.GetCStr(), room_crm.GetCStr(), temp_dir.GetCStr(),
-                                                      room_scom.GetCStr(), verbose)),
-                {{task_agscc}})));
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_crm, &c.taskmgr,
+            PipedProcessParams(tool_crmbuild,
+                               String::FromFormat("\"%s\" %d -o \"%s/%s\" --script \"%s/%s\" %s", c.src_agf.GetCStr(),
+                                                  r, c.temp_dir.GetCStr(), room_crm.GetCStr(), c.temp_dir.GetCStr(),
+                                                  room_scom.GetCStr(), c.verbose)),
+            {{task_agscc}})));
 
-            pak_temp_files.push_back(room_crm);
-            clnup_temp_files.push_back(room_autoash);
-            clnup_temp_files.push_back(room_scom);
-            pre_pack_tasks.push_back(task_crm);
-        }
+        c.pak_temp_files.push_back(room_crm);
+        c.clnup_temp_files.push_back(room_autoash);
+        c.clnup_temp_files.push_back(room_scom);
+        c.pre_pack_tasks.push_back(task_crm);
     }
+    return HError::None();
+}
 
-    // Compile room scripts and prepare output room CRM files (without embedded scripts)
-    if (!room_list_crm.empty())
+// Compile room scripts and prepare output room CRM files (without embedded scripts)
+static void AddCompiledRoomTasks(BuildContext &c)
+{
+    if (c.room_list_crm.empty())
+        return;
+
+    const String tool_crmpak = Path::MakeEscapedExePath(c.sys_dir, ToolCrmPak);
+    const String tool_agscc = Path::MakeEscapedExePath(c.sys_dir, ScriptCompiler);
+
+    // Copy room files to temp dir, because we need to modify them
+    std::vector<std::pair<String, String>> copy_rooms;
+    for (const auto &r : c.room_list_crm)
+        copy_rooms.push_back(std::make_pair(Path::ConcatPaths(c.src_dir, r), Path::ConcatPaths(c.temp_dir, r)));
+    c.taskmgr.AddTask(std::unique_ptr<Task>(
+        new TaskMoveFiles("copy-rooms", &c.taskmgr, copy_rooms, FileMoveOp::Copy, false /* no skip */)));
+
+    // Add tasks for each room
+    for (const auto &r : c.room_list_crm)
     {
-        const String tool_crmpak = Path::MakeEscapedExePath(sys_dir, ToolCrmPak);
-        const String tool_agscc = Path::MakeEscapedExePath(sys_dir, ScriptCompiler);
+        const String room_asc = Path::ReplaceExtension(r, "asc");
+        const String room_ash = Path::ReplaceExtension(r, "ash");
+        const String room_scom = Path::ReplaceExtension(r, "o");
+        const String task_cut_script = String::FromFormat("crmpak:%s:cut-old-scripts", r.GetCStr());
+        const String task_ash = String::FromFormat("crmpak:%s:ash", r.GetCStr());
+        // Cut old scripts (we may skip this if we decide to import new scripts into room file instead)
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_cut_script, &c.taskmgr,
+            PipedProcessParams(tool_crmpak, String::FromFormat("\"%s/%s\" -x script %s", c.temp_dir.GetCStr(),
+                                                               r.GetCStr(), c.verbose)),
+            {{"copy-rooms"}})));
+        // Export room script header
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_ash, &c.taskmgr,
+            PipedProcessParams(tool_crmpak,
+                               String::FromFormat("\"%s/%s\" -e ash \"%s/%s\" %s", c.temp_dir.GetCStr(), r.GetCStr(),
+                                                  c.temp_dir.GetCStr(), room_ash.GetCStr(), c.verbose)),
+            {{"copy-rooms"}, {task_cut_script}})));
+        // Compile room script
+        const String room_headers = String::FromFormat("%s" AGSCC_H_SEP "%s/%s", c.all_script_headers.GetCStr(),
+                                                       c.temp_dir.GetCStr(), room_ash.GetCStr());
+        const String room_agscc_task = String::FromFormat("agscc:%s", room_asc.GetCStr());
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            room_agscc_task, &c.taskmgr,
+            PipedProcessParams(tool_agscc,
+                               String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", c.src_dir.GetCStr(),
+                                                  room_asc.GetCStr(), room_headers.GetCStr(), c.temp_dir.GetCStr(),
+                                                  room_scom.GetCStr(), MakeAGSCCFlags(c.project.agscc_opts).GetCStr())),
+            {{"autoash"}, {"glvar"}, {task_cut_script}, {task_ash}})));
 
-        // Copy room files to temp dir, because we need to modify them
-        std::vector<std::pair<String, String>> copy_rooms;
-        for (const auto &r : room_list_crm)
-            copy_rooms.push_back(std::make_pair(Path::ConcatPaths(src_dir, r), Path::ConcatPaths(temp_dir, r)));
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("copy-rooms", &taskmgr, copy_rooms, FileMoveOp::Copy, false /* no skip */)));
-
-        // Add tasks for each room
-        for (const auto &r : room_list_crm)
-        {
-            const String room_asc = Path::ReplaceExtension(r, "asc");
-            const String room_ash = Path::ReplaceExtension(r, "ash");
-            const String room_scom = Path::ReplaceExtension(r, "o");
-            const String task_cut_script = String::FromFormat("crmpak:%s:cut-old-scripts", r.GetCStr());
-            const String task_ash = String::FromFormat("crmpak:%s:ash", r.GetCStr());
-            // Cut old scripts (we may skip this if we decide to import new scripts into room file instead)
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_cut_script, &taskmgr,
-                PipedProcessParams(tool_crmpak, String::FromFormat("\"%s/%s\" -x script %s", temp_dir.GetCStr(), r.GetCStr(), verbose)),
-                {{"copy-rooms"}})));
-            // Export room script header
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_ash, &taskmgr,
-                PipedProcessParams(tool_crmpak, String::FromFormat("\"%s/%s\" -e ash \"%s/%s\" %s", temp_dir.GetCStr(), r.GetCStr(), temp_dir.GetCStr(), room_ash.GetCStr(), verbose)),
-                {{"copy-rooms"}, {task_cut_script}})));
-            // Compile room script
-            const String room_headers = String::FromFormat("%s" AGSCC_H_SEP "%s/%s", all_script_headers.GetCStr(), temp_dir.GetCStr(), room_ash.GetCStr());
-            const String room_agscc_task = String::FromFormat("agscc:%s", room_asc.GetCStr());
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(room_agscc_task, &taskmgr,
-                PipedProcessParams(tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", src_dir.GetCStr(), room_asc.GetCStr(), room_headers.GetCStr(), temp_dir.GetCStr(), room_scom.GetCStr(),
-                    MakeAGSCCFlags(agscc_opts).GetCStr())),
-                {{"autoash"}, {"glvar"}, {task_cut_script}, {task_ash}})));
-
-            pak_temp_files.push_back(r);
-            pak_temp_files.push_back(room_scom);
-            clnup_temp_files.push_back(room_ash);
-            pre_pack_tasks.push_back(room_agscc_task);
-        }
+        c.pak_temp_files.push_back(r);
+        c.pak_temp_files.push_back(room_scom);
+        c.clnup_temp_files.push_back(room_ash);
+        c.pre_pack_tasks.push_back(room_agscc_task);
     }
+}
 
-    // Compile translations
+// Compile translations
+static void AddTranslationTasks(BuildContext &c)
+{
+    const String tool_trac = Path::MakeEscapedExePath(c.sys_dir, ToolTrac);
+    for (const auto &tra : c.project.tra_list)
     {
-        const String tool_trac = Path::MakeEscapedExePath(sys_dir, ToolTrac);
-        for (const auto &tra : tra_list)
-        {
-            const String task_name = String::FromFormat("trac:%s", tra.GetCStr());
-            const String out_trafile = String::FromFormat("%s.tra", tra.GetCStr());
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_name, &taskmgr,
-                PipedProcessParams(tool_trac, String::FromFormat("\"%s/%s.trs\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
-                    src_dir.GetCStr(), tra.GetCStr(), temp_dir.GetCStr(), out_trafile.GetCStr(), game_opts.Name.GetCStr(), game_opts.UniqueID, verbose)))));
-            deploy_temp_files.push_back(out_trafile);
-            pre_deploy_tasks.push_back(task_name);
-        }
+        const String task_name = String::FromFormat("trac:%s", tra.GetCStr());
+        const String out_trafile = String::FromFormat("%s.tra", tra.GetCStr());
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            task_name, &c.taskmgr,
+            PipedProcessParams(tool_trac,
+                               String::FromFormat("\"%s/%s.trs\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
+                                                  c.src_dir.GetCStr(), tra.GetCStr(), c.temp_dir.GetCStr(),
+                                                  out_trafile.GetCStr(), c.project.game_opts.Name.GetCStr(),
+                                                  c.project.game_opts.UniqueID, c.verbose)))));
+        c.deploy_temp_files.push_back(out_trafile);
+        c.pre_deploy_tasks.push_back(task_name);
     }
+}
 
-    // Rebuild sprite file if necessary / possible;
-    // collect either one in source dir, or the one we built in temp dir to the list of packed files
+// Rebuild sprite file if necessary / possible;
+// collect either one in source dir, or the one we built in temp dir to the list of packed files
+static void AddSpriteTasks(BuildContext &c)
+{
+    const String src_spritefile = Path::ConcatPaths(c.src_dir, "acsprset.spr");
+    const String src_spriteindexfile = Path::ConcatPaths(c.src_dir, "sprindex.dat");
+    if (c.bopts.ReimportSprites || !File::IsFile(src_spritefile))
     {
-        const String src_spritefile = Path::ConcatPaths(src_dir, "acsprset.spr");
-        const String src_spriteindexfile = Path::ConcatPaths(src_dir, "sprindex.dat");
-        if (bopts.ReimportSprites || !File::IsFile(src_spritefile))
-        {
-            // TODO: get sprite packaging options from game settings
-            const String tool_spriteimport = Path::MakeEscapedExePath(sys_dir, ToolSpriteImport);
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess("spriteimport", &taskmgr,
-                PipedProcessParams(tool_spriteimport, String::FromFormat("-c \"%s\" \"%s/acsprset.spr\" -n \"%s/sprindex.dat\" %s %s", src_agf.GetCStr(), temp_dir.GetCStr(), temp_dir.GetCStr(),
-                    MakeSpriteImportFlags(game_opts).GetCStr(), verbose)))));
-            pak_temp_files.push_back("acsprset.spr");
-            pak_temp_files.push_back("sprindex.dat");
-            pre_pack_tasks.push_back({"spriteimport"});
-        }
+        // TODO: get sprite packaging options from game settings
+        const String tool_spriteimport = Path::MakeEscapedExePath(c.sys_dir, ToolSpriteImport);
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+            "spriteimport", &c.taskmgr,
+            PipedProcessParams(tool_spriteimport,
+                               String::FromFormat("-c \"%s\" \"%s/acsprset.spr\" -n \"%s/sprindex.dat\" %s %s",
+                                                  c.src_agf.GetCStr(), c.temp_dir.GetCStr(), c.temp_dir.GetCStr(),
+                                                  MakeSpriteImportFlags(c.project.game_opts).GetCStr(), c.verbose)))));
+        c.pak_temp_files.push_back("acsprset.spr");
+        c.pak_temp_files.push_back("sprindex.dat");
+        c.pre_pack_tasks.push_back({"spriteimport"});
+    }
+    else
+    {
+        c.pak_src_files.push_back("acsprset.spr");
+        if (File::IsFile(src_spriteindexfile))
+            c.pak_src_files.push_back("sprindex.dat");
+    }
+}
+
+// Reimport audio clips, if necessary / possible;
+// collect either ones in source dir, or the ones we import onto the temp dir to the list of packed files
+static HError AddAudioTasks(BuildContext &c)
+{
+    if (c.project.aclip_list.empty())
+        return HError::None();
+
+    // Create temp AudioCache dir always, because we use it to make hardlinks, write include file and package audio files
+    const String temp_audio_dir = Path::ConcatPaths(c.temp_dir, "AudioCache");
+    if (!Directory::CreateDirectory(temp_audio_dir))
+        return new Error("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr());
+
+    std::vector<DataUtil::AudioClipData> src_clips;
+    std::vector<DataUtil::AudioClipData> temp_clips;
+    for (const auto &aclip : c.project.aclip_list)
+    {
+        // TODO: check file times here! even if reimport audio is on, dont copy to temp if can take up-to-date file from src
+        if (c.bopts.ReimportAudio || !File::IsFile(Path::ConcatPaths(c.audiocache_dir, aclip.CacheFileName)))
+            temp_clips.push_back(aclip);
         else
-        {
-            pak_src_files.push_back("acsprset.spr");
-            if (File::IsFile(src_spriteindexfile))
-                pak_src_files.push_back("sprindex.dat");
-        }
+            src_clips.push_back(aclip);
     }
 
-    // Reimport audio clips, if necessary / possible;
-    // collect either ones in source dir, or the ones we import onto the temp dir to the list of packed files
-    if (aclip_list.size() > 0)
+    if (temp_clips.size() > 0)
     {
-        // Create temp AudioCache dir always, because we use it to make hardlinks, write include file and package audio files
-        const String temp_audio_dir = Path::ConcatPaths(bopts.TempDir, "AudioCache");
-        if (!Directory::CreateDirectory(temp_audio_dir))
-            return new Error("Error: failed to create temporary audio cache directory '%s'", temp_audio_dir.GetCStr());
-
-        std::vector<DataUtil::AudioClipData> src_clips;
-        std::vector<DataUtil::AudioClipData> temp_clips;
-        for (const auto &aclip : aclip_list)
+        std::vector<std::pair<String, String>> copy_aclips;
+        for (const auto &aclip : temp_clips)
         {
-            // TODO: check file times here! even if reimport audio is on, dont copy to temp if can take up-to-date file from src
-            if (bopts.ReimportAudio || !File::IsFile(Path::ConcatPaths(audiocache_dir, aclip.CacheFileName)))
-                temp_clips.push_back(aclip);
-            else
-                src_clips.push_back(aclip);
-        }
-
-        if (temp_clips.size() > 0)
-        {
-            std::vector<std::pair<String, String>> copy_aclips;
-            for (const auto &aclip : temp_clips)
-            {
-                const String source_fn = Path::IsRelativePath(aclip.SourceFileName) ? Path::ConcatPaths(src_dir, aclip.SourceFileName) : aclip.SourceFileName;
-                copy_aclips.push_back(std::make_pair(source_fn, Path::ConcatPaths(temp_audio_dir, aclip.CacheFileName)));
-                if (aclip.BundlingType == DataUtil::kAudioBundling_InMainData)
-                    pak_temp_audio_files.push_back(aclip.CacheFileName);
-                else
-                    avox_temp_files.push_back(aclip.CacheFileName);
-            }
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("import-audio", &taskmgr, copy_aclips,
-                FileMoveOp::Hardlink, true /* skip non-existing */, {})));
-            pre_pack_tasks.push_back({"import-audio"});
-            pre_avox_tasks.push_back({"import-audio"});
-        }
-
-        for (const auto &aclip : src_clips)
-        {
+            const String source_fn = Path::IsRelativePath(aclip.SourceFileName)
+                                         ? Path::ConcatPaths(c.src_dir, aclip.SourceFileName)
+                                         : aclip.SourceFileName;
+            copy_aclips.push_back(std::make_pair(source_fn, Path::ConcatPaths(temp_audio_dir, aclip.CacheFileName)));
             if (aclip.BundlingType == DataUtil::kAudioBundling_InMainData)
-                pak_src_audio_files.push_back(aclip.CacheFileName);
+                c.pak_temp_audio_files.push_back(aclip.CacheFileName);
             else
-                avox_src_files.push_back(aclip.CacheFileName);
+                c.avox_temp_files.push_back(aclip.CacheFileName);
         }
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles(
+            "import-audio", &c.taskmgr, copy_aclips, FileMoveOp::Hardlink, true /* skip non-existing */, {})));
+        c.pre_pack_tasks.push_back({"import-audio"});
+        c.pre_avox_tasks.push_back({"import-audio"});
     }
 
-    // Collect other necessary files from the source directory
+    for (const auto &aclip : src_clips)
     {
-        // Add font files: AGS 4 projects keep them in the Fonts folder, and the editor packs them
-        // without the folder; older projects have agsfntN files next to Game.agf
-        if (!font_files.empty())
+        if (aclip.BundlingType == DataUtil::kAudioBundling_InMainData)
+            c.pak_src_audio_files.push_back(aclip.CacheFileName);
+        else
+            c.avox_src_files.push_back(aclip.CacheFileName);
+    }
+    return HError::None();
+}
+
+// Collect other necessary files from the source directory
+static HError AddProjectFileTasks(BuildContext &c)
+{
+    // Add font files: AGS 4 projects keep them in the Fonts folder, and the editor packs them
+    // without the folder; older projects have agsfntN files next to Game.agf
+    if (!c.project.font_files.empty())
+    {
+        std::vector<std::pair<String, String>> copy_fonts;
+        for (const auto &file : c.project.font_files)
         {
-            std::vector<std::pair<String, String>> copy_fonts;
-            for (const auto &file : font_files)
-            {
-                copy_fonts.push_back(
-                    std::make_pair(Path::ConcatPaths(src_dir, String::FromFormat("Fonts/%s", file.GetCStr())),
-                                   Path::ConcatPaths(temp_dir, file)));
-                pak_temp_files.push_back(file);
-                clnup_temp_files.push_back(file);
-            }
-            taskmgr.AddTask(std::unique_ptr<Task>(
-                new TaskMoveFiles("copy-fonts", &taskmgr, copy_fonts, FileMoveOp::Copy, false /* no skip */)));
-            pre_pack_tasks.push_back({"copy-fonts"});
+            copy_fonts.push_back(
+                std::make_pair(Path::ConcatPaths(c.src_dir, String::FromFormat("Fonts/%s", file.GetCStr())),
+                               Path::ConcatPaths(c.temp_dir, file)));
+            c.pak_temp_files.push_back(file);
+            c.clnup_temp_files.push_back(file);
         }
-        for (const auto &fnt : font_list)
-        {
-            if (!font_files.empty())
-                break;
-            const String ttf_file = String::FromFormat("agsfnt%d.ttf", fnt);
-            const String wfn_file = String::FromFormat("agsfnt%d.wfn", fnt);
-            if (File::IsFile(Path::ConcatPaths(src_dir, ttf_file)))
-                pak_src_files.push_back(ttf_file);
-            if (File::IsFile(Path::ConcatPaths(src_dir, wfn_file)))
-                pak_src_files.push_back(wfn_file);
-        }
-
-        // Gather list of valid custom directories
-        for (const auto &cd : custom_dirs)
-        {
-            // Don't allow absolute paths
-            if (!Path::IsRelativePath(cd))
-                continue;
-
-            const String full_cd = Path::ConcatPaths(src_dir, cd);
-            // Don't let a custom path equal to the source dir
-            if (Path::ComparePaths(src_dir, full_cd) == 0)
-                continue;
-
-            // Don't allow paths to outside of the source dir
-            if (!Path::IsSameOrSubDir(src_dir, full_cd))
-                continue;
-
-            // TODO: // don't allow paths that match or inside restricted folders,
-            // or folders that were already used to make a list of assets
-
-            // Create same custom directory inside temporary dir
-            const String temp_cd = Path::ConcatPaths(temp_dir, cd);
-            if (!Directory::CreateDirectory(temp_cd))
-                return new Error("Error: failed to create temporary custom data directory '%s'", temp_cd.GetCStr());
-
-            for (FindFile ff = FindFile::Open(full_cd, "*", true, false); !ff.AtEnd(); ff.Next())
-                pak_src_files.push_back(Path::ConcatPaths(cd, ff.Current()));
-        }
+        c.taskmgr.AddTask(std::unique_ptr<Task>(
+            new TaskMoveFiles("copy-fonts", &c.taskmgr, copy_fonts, FileMoveOp::Copy, false /* no skip */)));
+        c.pre_pack_tasks.push_back({"copy-fonts"});
+    }
+    for (const auto &fnt : c.project.font_list)
+    {
+        if (!c.project.font_files.empty())
+            break;
+        const String ttf_file = String::FromFormat("agsfnt%d.ttf", fnt);
+        const String wfn_file = String::FromFormat("agsfnt%d.wfn", fnt);
+        if (File::IsFile(Path::ConcatPaths(c.src_dir, ttf_file)))
+            c.pak_src_files.push_back(ttf_file);
+        if (File::IsFile(Path::ConcatPaths(c.src_dir, wfn_file)))
+            c.pak_src_files.push_back(wfn_file);
     }
 
-    // Pack selected files into game.ags
+    // Gather list of valid custom directories
+    for (const auto &cd : c.project.custom_dirs)
     {
-        const String tool_agspak = Path::MakeEscapedExePath(sys_dir, ToolAgsPak);
-        const String audio_cache_dir = Path::ConcatPaths(src_dir, "AudioCache");
-        const String audio_cache_temp_dir = Path::ConcatPaths(temp_dir, "AudioCache");
+        // Don't allow absolute paths
+        if (!Path::IsRelativePath(cd))
+            continue;
 
-        std::vector<TaskInput> final_pre_pack_tasks = pre_pack_tasks;
+        const String full_cd = Path::ConcatPaths(c.src_dir, cd);
+        // Don't let a custom path equal to the source dir
+        if (Path::ComparePaths(c.src_dir, full_cd) == 0)
+            continue;
 
-        // Hardlink all packaged files from src dir into the temp dir,
-        // this is done to let use patterns file in the single location
-        std::vector<std::pair<String, String>> hl_files;
-        for (const auto &f : pak_src_files)
-            hl_files.push_back(std::make_pair(Path::ConcatPaths(src_dir, f), Path::ConcatPaths(temp_dir, f)));
-        for (const auto &f : pak_src_audio_files)
-            hl_files.push_back(std::make_pair(Path::ConcatPaths(audio_cache_dir, f), Path::ConcatPaths(audio_cache_temp_dir, f)));
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("hardlink-src", &taskmgr, hl_files, FileMoveOp::Hardlink, false /* no skip */, pre_pack_tasks)));
-        std::copy(pak_src_files.begin(), pak_src_files.end(), std::back_inserter(pak_temp_files));
-        std::copy(pak_src_audio_files.begin(), pak_src_audio_files.end(), std::back_inserter(pak_temp_audio_files));
-        final_pre_pack_tasks.push_back({"hardlink-src"});
+        // Don't allow paths to outside of the source dir
+        if (!Path::IsSameOrSubDir(c.src_dir, full_cd))
+            continue;
 
-        // Write patterns file for main data packed into game.ags
-        std::vector<String> file_pat;
-        for (const auto &f : pak_temp_files)
+        // TODO: // don't allow paths that match or inside restricted folders,
+        // or folders that were already used to make a list of assets
+
+        // Create same custom directory inside temporary dir
+        const String temp_cd = Path::ConcatPaths(c.temp_dir, cd);
+        if (!Directory::CreateDirectory(temp_cd))
+            return new Error("Error: failed to create temporary custom data directory '%s'", temp_cd.GetCStr());
+
+        for (FindFile ff = FindFile::Open(full_cd, "*", true, false); !ff.AtEnd(); ff.Next())
+            c.pak_src_files.push_back(Path::ConcatPaths(cd, ff.Current()));
+    }
+    return HError::None();
+}
+
+// Pack selected files into game.ags
+static void AddGamePackTask(BuildContext &c)
+{
+    const String tool_agspak = Path::MakeEscapedExePath(c.sys_dir, ToolAgsPak);
+    const String audio_cache_dir = Path::ConcatPaths(c.src_dir, "AudioCache");
+    const String audio_cache_temp_dir = Path::ConcatPaths(c.temp_dir, "AudioCache");
+
+    std::vector<TaskInput> final_pre_pack_tasks = c.pre_pack_tasks;
+
+    // Hardlink all packaged files from src dir into the temp dir,
+    // this is done to let use patterns file in the single location
+    std::vector<std::pair<String, String>> hl_files;
+    for (const auto &f : c.pak_src_files)
+        hl_files.push_back(std::make_pair(Path::ConcatPaths(c.src_dir, f), Path::ConcatPaths(c.temp_dir, f)));
+    for (const auto &f : c.pak_src_audio_files)
+        hl_files.push_back(
+            std::make_pair(Path::ConcatPaths(audio_cache_dir, f), Path::ConcatPaths(audio_cache_temp_dir, f)));
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles(
+        "hardlink-src", &c.taskmgr, hl_files, FileMoveOp::Hardlink, false /* no skip */, c.pre_pack_tasks)));
+    std::copy(c.pak_src_files.begin(), c.pak_src_files.end(), std::back_inserter(c.pak_temp_files));
+    std::copy(c.pak_src_audio_files.begin(), c.pak_src_audio_files.end(), std::back_inserter(c.pak_temp_audio_files));
+    final_pre_pack_tasks.push_back({"hardlink-src"});
+
+    // Write patterns file for main data packed into game.ags
+    std::vector<String> file_pat;
+    for (const auto &f : c.pak_temp_files)
+        file_pat.push_back(f);
+    const String include_file = "agspak-include.files";
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-agspak-includefile:root", &c.taskmgr,
+                                                                    Path::ConcatPaths(c.temp_dir, include_file),
+                                                                    file_pat, c.pre_pack_tasks)));
+    c.clnup_temp_files.push_back(include_file);
+    final_pre_pack_tasks.push_back({"write-agspak-includefile:root"});
+
+    // Write patterns file for the audio packed into game.ags (if necessary)
+    if (c.pak_temp_audio_files.size())
+    {
+        file_pat.clear();
+        for (const auto &f : c.pak_temp_audio_files)
             file_pat.push_back(f);
-        const String include_file = "agspak-include.files";
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-agspak-includefile:root", &taskmgr,
-            Path::ConcatPaths(temp_dir, include_file), file_pat, pre_pack_tasks)));
-        clnup_temp_files.push_back(include_file);
-        final_pre_pack_tasks.push_back({"write-agspak-includefile:root"});
+        c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList(
+            "write-agspak-includefile:audiocache", &c.taskmgr, Path::ConcatPaths(audio_cache_temp_dir, include_file),
+            file_pat, c.pre_pack_tasks)));
+        c.clnup_avox_temp_files.push_back(include_file);
+        final_pre_pack_tasks.push_back({"write-agspak-includefile:audiocache"});
+    }
 
-        // Write patterns file for the audio packed into game.ags (if necessary)
-        if (pak_temp_audio_files.size())
-        {
-            file_pat.clear();
-            for (const auto &f : pak_temp_audio_files)
-                file_pat.push_back(f);
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-agspak-includefile:audiocache", &taskmgr,
-                Path::ConcatPaths(audio_cache_temp_dir, include_file), file_pat, pre_pack_tasks)));
-            clnup_avox_temp_files.push_back(include_file);
-            final_pre_pack_tasks.push_back({"write-agspak-includefile:audiocache"});
-        }
-
-        const String game_pack_name = String::FromFormat("%s.ags", game_opts.FileName.GetCStr());
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess("agspak:game.ags", &taskmgr,
-            PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/%s\" \"%s\" -r -D \"%s\" -f \"%s\" --replace-dup %s",
-                temp_dir.GetCStr(), // output pak dir
-                game_pack_name.GetCStr(), // game.ags name
-                temp_dir.GetCStr(), // temp output dir
+    const String game_pack_name = String::FromFormat("%s.ags", c.project.game_opts.FileName.GetCStr());
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+        "agspak:game.ags", &c.taskmgr,
+        PipedProcessParams(
+            tool_agspak,
+            String::FromFormat(
+                "-c \"%s/%s\" \"%s\" -r -D \"%s\" -f \"%s\" --replace-dup %s",
+                c.temp_dir.GetCStr(),           // output pak dir
+                game_pack_name.GetCStr(),       // game.ags name
+                c.temp_dir.GetCStr(),           // temp output dir
                 audio_cache_temp_dir.GetCStr(), // temp audio cache (for audio clips embedded into game.ags)
-                include_file.GetCStr(), // patterns file
-                verbose
-            )), final_pre_pack_tasks)));
-        
-        deploy_temp_files.push_back(game_pack_name);
-        pre_deploy_tasks.push_back({"agspak:game.ags"});
-    }
+                include_file.GetCStr(),         // patterns file
+                c.verbose)),
+        final_pre_pack_tasks)));
 
-    // Pack selected files into audio.vox
-    if (avox_src_files.size() > 0 || avox_temp_files.size() > 0)
+    c.deploy_temp_files.push_back(game_pack_name);
+    c.pre_deploy_tasks.push_back({"agspak:game.ags"});
+}
+
+// Pack selected files into audio.vox
+static void AddAudioVoxTask(BuildContext &c)
+{
+    if (c.avox_src_files.empty() && c.avox_temp_files.empty())
+        return;
+
+    const String tool_agspak = Path::MakeEscapedExePath(c.sys_dir, ToolAgsPak);
+    const String audio_cache_dir = Path::ConcatPaths(c.src_dir, "AudioCache");
+    const String audio_cache_temp_dir = Path::ConcatPaths(c.temp_dir, "AudioCache");
+
+    std::vector<TaskInput> final_pre_avox_tasks = c.pre_avox_tasks;
+
+    // Hardlink all packaged files from src dir into the temp dir,
+    // this is done to let use patterns file in the single location
+    std::vector<std::pair<String, String>> hl_files;
+    for (const auto &f : c.avox_src_files)
+        hl_files.push_back(
+            std::make_pair(Path::ConcatPaths(audio_cache_dir, f), Path::ConcatPaths(audio_cache_temp_dir, f)));
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles(
+        "hardlink-avox-src", &c.taskmgr, hl_files, FileMoveOp::Hardlink, false /* no skip */, c.pre_avox_tasks)));
+    std::copy(c.avox_src_files.begin(), c.avox_src_files.end(), std::back_inserter(c.avox_temp_files));
+    final_pre_avox_tasks.push_back({"hardlink-avox-src"});
+
+    // Write patterns file
+    std::vector<String> file_pat;
+    for (const auto &f : c.avox_temp_files)
+        file_pat.push_back(f);
+
+    const String include_file = "avox-include.files";
+    c.taskmgr.AddTask(std::unique_ptr<Task>(
+        new TaskWriteStringList("write-avox-includefile", &c.taskmgr,
+                                Path::ConcatPaths(audio_cache_temp_dir, include_file), file_pat, c.pre_avox_tasks)));
+    c.clnup_avox_temp_files.push_back(include_file);
+    final_pre_avox_tasks.push_back({"write-avox-includefile"});
+
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+        "agspak:audio.vox", &c.taskmgr,
+        PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/audio.vox\" \"%s\" -f \"%s\" --replace-dup %s",
+                                                           c.temp_dir.GetCStr(),           // output pak dir
+                                                           audio_cache_temp_dir.GetCStr(), // temp output dir
+                                                           include_file.GetCStr(),         // file match filter
+                                                           c.verbose)),
+        final_pre_avox_tasks)));
+
+    std::copy(c.avox_src_files.begin(), c.avox_src_files.end(), std::back_inserter(c.clnup_avox_temp_files));
+    c.deploy_temp_files.push_back("audio.vox");
+    c.pre_deploy_tasks.push_back({"agspak:audio.vox"});
+}
+
+// Pack selected files into speech.vox
+// TODO: compile lipsync data from Pamela/Papagayo sources, would need a separate tool for that!
+// TODO: restrict voice files to the naming format (`NNNNXXXX.ext` old format and `name.X.ext` new format).
+// FIXME: use speech_file_filter in HasAnyFiles, but must make it support multi-pattern
+static void AddSpeechVoxTasks(BuildContext &c)
+{
+    const String tool_agspak = Path::MakeEscapedExePath(c.sys_dir, ToolAgsPak);
+    const String speech_file_filter = "*.mp3,*.ogg,*.wav" // default voice-over formats
+                                      ",syncdata.dat";    // compiled lipsync output
+    std::vector<String> sub_dirs = {{} /* placeholder for parent dir */};
+    Directory::GetDirs(c.speech_dir, sub_dirs);
+    for (const auto &sp_dir : sub_dirs)
     {
-        const String tool_agspak = Path::MakeEscapedExePath(sys_dir, ToolAgsPak);
-        const String audio_cache_dir = Path::ConcatPaths(src_dir, "AudioCache");
-        const String audio_cache_temp_dir = Path::ConcatPaths(temp_dir, "AudioCache");
-
-        std::vector<TaskInput> final_pre_avox_tasks = pre_avox_tasks;
-
-        // Hardlink all packaged files from src dir into the temp dir,
-        // this is done to let use patterns file in the single location
-        std::vector<std::pair<String, String>> hl_files;
-        for (const auto &f : avox_src_files)
-            hl_files.push_back(std::make_pair(Path::ConcatPaths(audio_cache_dir, f), Path::ConcatPaths(audio_cache_temp_dir, f)));
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("hardlink-avox-src", &taskmgr, hl_files, FileMoveOp::Hardlink, false /* no skip */, pre_avox_tasks)));
-        std::copy(avox_src_files.begin(), avox_src_files.end(), std::back_inserter(avox_temp_files));
-        final_pre_avox_tasks.push_back({"hardlink-avox-src"});
-
-        // Write patterns file
-        std::vector<String> file_pat;
-        for (const auto &f : avox_temp_files)
-            file_pat.push_back(f);
-
-        const String include_file = "avox-include.files";
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-avox-includefile", &taskmgr,
-            Path::ConcatPaths(audio_cache_temp_dir, include_file), file_pat, pre_avox_tasks)));
-        clnup_avox_temp_files.push_back(include_file);
-        final_pre_avox_tasks.push_back({"write-avox-includefile"});
-
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess("agspak:audio.vox", &taskmgr,
-            PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/audio.vox\" \"%s\" -f \"%s\" --replace-dup %s",
-                temp_dir.GetCStr(), // output pak dir
-                audio_cache_temp_dir.GetCStr(), // temp output dir
-                include_file.GetCStr(), // file match filter
-                verbose
-            )), final_pre_avox_tasks)));
-
-        std::copy(avox_src_files.begin(), avox_src_files.end(), std::back_inserter(clnup_avox_temp_files));
-        deploy_temp_files.push_back("audio.vox");
-        pre_deploy_tasks.push_back({"agspak:audio.vox"});
-    }
-
-    // TODO: compile lipsync data from Pamela/Papagayo sources
-    // would need a separate tool for that!
-
-    // Pack selected files into speech.vox
-    // TODO: restrict voice files to the naming format (`NNNNXXXX.ext` old format and `name.X.ext` new format).
-    // FIXME: use speech_file_filter in HasAnyFiles, but must make it support multi-pattern
-    {
-        const String tool_agspak = Path::MakeEscapedExePath(sys_dir, ToolAgsPak);
-        const String speech_file_filter = "*.mp3,*.ogg,*.wav" // default voice-over formats
-            ",syncdata.dat"; // compiled lipsync output
-        std::vector<String> sub_dirs = { {} /* placeholder for parent dir */};
-        Directory::GetDirs(speech_dir, sub_dirs);
-        for (const auto &sp_dir : sub_dirs)
+        const String dir_path = Path::ConcatPaths(c.speech_dir, sp_dir);
+        if (Directory::HasAnyFiles(dir_path))
         {
-            const String dir_path = Path::ConcatPaths(speech_dir, sp_dir);
-            if (Directory::HasAnyFiles(dir_path))
-            {
-                const String pak_name = sp_dir.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", sp_dir.GetCStr());
-                const String task_name = String::FromFormat("agspak:%s", pak_name.GetCStr());
-                taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_name, &taskmgr,
-                    PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/%s\" \"%s\" \"%s\" --replace-dup %s",
-                        temp_dir.GetCStr(), // output pak dir
-                        pak_name.GetCStr(),
-                        dir_path.GetCStr(), // speech input dir
-                        speech_file_filter.GetCStr(), // file match filter
-                        verbose
-                    )), pre_svox_tasks)));
+            const String pak_name = sp_dir.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", sp_dir.GetCStr());
+            const String task_name = String::FromFormat("agspak:%s", pak_name.GetCStr());
+            c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+                task_name, &c.taskmgr,
+                PipedProcessParams(tool_agspak, String::FromFormat("-c \"%s/%s\" \"%s\" \"%s\" --replace-dup %s",
+                                                                   c.temp_dir.GetCStr(), // output pak dir
+                                                                   pak_name.GetCStr(),
+                                                                   dir_path.GetCStr(),           // speech input dir
+                                                                   speech_file_filter.GetCStr(), // file match filter
+                                                                   c.verbose)),
+                c.pre_svox_tasks)));
 
-                deploy_temp_files.push_back(pak_name);
-                pre_deploy_tasks.push_back({task_name});
-            }
+            c.deploy_temp_files.push_back(pak_name);
+            c.pre_deploy_tasks.push_back({task_name});
         }
     }
+}
 
-    // Move final files to the destination dir
-    {
-        std::vector<std::pair<String, String>> deploy_data;
-        for (const auto &f : deploy_temp_files)
-            deploy_data.push_back(std::make_pair(Path::ConcatPaths(temp_dir, f), Path::ConcatPaths(out_dir, f)));
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("deploy-data", &taskmgr, deploy_data,
-            FileMoveOp::Move, false /* no skip */, pre_deploy_tasks)));
-    }
+// Move final files to the destination dir
+static void AddDeployTask(BuildContext &c)
+{
+    std::vector<std::pair<String, String>> deploy_data;
+    for (const auto &f : c.deploy_temp_files)
+        deploy_data.push_back(std::make_pair(Path::ConcatPaths(c.temp_dir, f), Path::ConcatPaths(c.out_dir, f)));
+    c.taskmgr.AddTask(std::unique_ptr<Task>(new TaskMoveFiles("deploy-data", &c.taskmgr, deploy_data, FileMoveOp::Move,
+                                                              false /* no skip */, c.pre_deploy_tasks)));
+}
 
-    // Cleanup on success
+// Cleanup on success
+static void AddCleanupTask(BuildContext &c)
+{
+    std::vector<String> cleanup_files;
+    for (const auto &f : c.pak_temp_files)
+        cleanup_files.push_back(Path::ConcatPaths(c.temp_dir, f));
+    for (const auto &f : c.deploy_temp_files)
+        cleanup_files.push_back(Path::ConcatPaths(c.temp_dir, f));
+    for (const auto &f : c.clnup_temp_files)
+        cleanup_files.push_back(Path::ConcatPaths(c.temp_dir, f));
+    const String &temp_audio_dir = Path::ConcatPaths(c.temp_dir, "AudioCache");
+    for (const auto &f : c.pak_temp_audio_files)
+        cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
+    for (const auto &f : c.avox_temp_files)
+        cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
+    for (const auto &f : c.clnup_avox_temp_files)
+        cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
+    c.taskmgr.AddTask(
+        std::unique_ptr<Task>(new TaskDeleteFiles("cleanup-temp", &c.taskmgr, cleanup_files, {{"deploy-data"}})));
+}
+
+HError BuildWithTaskManager(const BuildOptions &bopts)
+{
+    ProjectData project;
+    HError err = ReadProject(bopts, project);
+    if (!err)
+        return err;
+
+    // TODO: get number of threads from command line
+    TaskManager taskmgr(Math::Clamp(bopts.TaskThreads, BuildOptions::MinThreads, BuildOptions::MaxThreads),
+                        bopts.Verbose);
+    BuildContext ctx(bopts, taskmgr);
+    ctx.project = std::move(project);
+
+    // Configure game building pipeline, in this order: the stages put files on the lists in the
+    // order that packing follows
+    AddExportTasks(ctx);
+    if (!(err = AddScriptTasks(ctx)))
+        return err;
+    AddGameDataTask(ctx);
+    SortRoomsByLayout(ctx);
+    if (!(err = AddRoomSourceTasks(ctx)))
+        return err;
+    AddCompiledRoomTasks(ctx);
+    AddTranslationTasks(ctx);
+    AddSpriteTasks(ctx);
+    if (!(err = AddAudioTasks(ctx)))
+        return err;
+    if (!(err = AddProjectFileTasks(ctx)))
+        return err;
+    AddGamePackTask(ctx);
+    AddAudioVoxTask(ctx);
+    AddSpeechVoxTasks(ctx);
+    AddDeployTask(ctx);
     if (bopts.Cleanup)
-    {
-        std::vector<String> cleanup_files;
-        for (const auto &f : pak_temp_files)
-            cleanup_files.push_back(Path::ConcatPaths(temp_dir, f));
-        for (const auto &f : deploy_temp_files)
-            cleanup_files.push_back(Path::ConcatPaths(temp_dir, f));
-        for (const auto &f : clnup_temp_files)
-            cleanup_files.push_back(Path::ConcatPaths(temp_dir, f));
-        const String &temp_audio_dir = Path::ConcatPaths(temp_dir, "AudioCache");
-        for (const auto &f : pak_temp_audio_files)
-            cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
-        for (const auto &f : avox_temp_files)
-            cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
-        for (const auto &f : clnup_avox_temp_files)
-            cleanup_files.push_back(Path::ConcatPaths(temp_audio_dir, f));
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskDeleteFiles("cleanup-temp", &taskmgr, cleanup_files,
-            {{"deploy-data"}})));
-    }
+        AddCleanupTask(ctx);
 
-    HError err = taskmgr.RunAll();
+    err = taskmgr.RunAll();
     if (err)
-        printf("\n\nSuccessfully compiled \"%s\" game files in %s\n", game_opts.Name.GetCStr(), bopts.OutDir.GetCStr());
+        Diag::Log("\n\nSuccessfully compiled \"%s\" game files in %s\n", ctx.project.game_opts.Name.GetCStr(),
+                  bopts.OutDir.GetCStr());
     return err;
 }
 
@@ -790,6 +924,9 @@ const char *HELP_STRING = ""
 "  --build-debug          builds the project in debug mode (override).\n"
 "  --build-release        builds the project in release mode (override).\n"
 "  --strict               fail if the project has something the tools cannot read.\n"
+"  --json                 write progress, errors and warnings to stdout as JSON\n"
+"                         lines, and the usual log to stderr (see diagnostics.h);\n"
+"                         the line \"cancel\" on stdin cancels the build.\n"
 "  -c, --cleanup          deletes intermediate output on successful completion.\n"
 "  --import-audio         generate a new audio cache, importing audio files from\n"
 "                         the source files, according to game.agf specs.\n"
@@ -806,7 +943,22 @@ const char *HELP_STRING = ""
 "                         note that tasks may spawn new processes, executing other\n"
 "                         tools.\n"
 "  -v, --verbose          print operation details (also affects spawned processes)\n"
-;
+"\n"
+"Ctrl+C (SIGINT, SIGTERM) cancels the build: the running tools are stopped, the\n"
+"waiting ones do not start.\n"
+"Exit code: 0 on success, 2 when cancelled, -1 on any other failure.\n";
+
+// Reports a failure found before the build, returns the exit code
+static int Fail(const String &message)
+{
+Diag::Log("Error: %s\n", message.GetCStr());
+Diag::Diagnostic diag;
+diag.Tool = "agsbuild";
+diag.Message = message.GetCStr();
+Diag::EmitDiagnostic(diag);
+Diag::EmitEnd("failed");
+return -1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -824,6 +976,9 @@ int main(int argc, char *argv[])
         printf("%s\n", HELP_STRING);
         return -1;
     }
+
+    Diag::SetJsonOutput(cmdargs.Opt.count("--json") > 0);
+    Diag::InstallCancelHandlers();
 
     BuildOptions bopts;
     bopts.SrcAgf = Path::MakeAbsolutePath(cmdargs.PosArgs[0]);
@@ -861,55 +1016,61 @@ int main(int argc, char *argv[])
         bopts.OwnTempDir = true;
     }
 
-    printf("System dir: %s\n", bopts.SysDir.GetCStr());
-    printf("Script API header: %s\n", bopts.ApiAshPath.GetCStr());
-    printf("Project file: %s\n", bopts.SrcAgf.GetCStr());
-    printf("Project dir: %s\n", bopts.SrcDir.GetCStr());
-    printf("Output dir: %s\n", bopts.OutDir.GetCStr());
-    printf("Temp dir: %s\n\n", bopts.TempDir.GetCStr());
+    Diag::Log("System dir: %s\n", bopts.SysDir.GetCStr());
+    Diag::Log("Script API header: %s\n", bopts.ApiAshPath.GetCStr());
+    Diag::Log("Project file: %s\n", bopts.SrcAgf.GetCStr());
+    Diag::Log("Project dir: %s\n", bopts.SrcDir.GetCStr());
+    Diag::Log("Output dir: %s\n", bopts.OutDir.GetCStr());
+    Diag::Log("Temp dir: %s\n\n", bopts.TempDir.GetCStr());
 
     //-------------------------------------------------------------------------
     // Preliminary checks
     //-------------------------------------------------------------------------
     if (!File::IsFile(bopts.SrcAgf))
-    {
-        printf("Error: input project file '%s' not found or not a valid file", bopts.SrcAgf.GetCStr());
-        return -1;
-    }
+        return Fail(
+            String::FromFormat("input project file '%s' not found or not a valid file", bopts.SrcAgf.GetCStr()));
     if (!File::IsDirectory(bopts.SrcDir))
-    {
-        printf("Error: input project directory '%s' not found or not a valid directory", bopts.SrcDir.GetCStr());
-        return -1;
-    }
+        return Fail(String::FromFormat("input project directory '%s' not found or not a valid directory",
+                                       bopts.SrcDir.GetCStr()));
     if (!File::IsDirectory(bopts.OutDir))
-    {
-        printf("Error: output directory '%s' not found or not a valid directory", bopts.OutDir.GetCStr());
-        return -1;
-    }
+        return Fail(
+            String::FromFormat("output directory '%s' not found or not a valid directory", bopts.OutDir.GetCStr()));
 
     //-------------------------------------------------------------------------
     // Prepare
     //-------------------------------------------------------------------------
     if (bopts.OwnTempDir && !Directory::CreateDirectory(bopts.TempDir))
-    {
-        printf("Error: failed to create intermediate output directory '%s'", bopts.TempDir.GetCStr());
-        return -1;
-    }
+        return Fail(String::FromFormat("failed to create intermediate output directory '%s'", bopts.TempDir.GetCStr()));
 
     HError err = BuildWithTaskManager(bopts);
 
     //-------------------------------------------------------------------------
     // Cleanup
     //-------------------------------------------------------------------------
-    if (err)
-    {
-        if (bopts.OwnTempDir)
-            Directory::DeleteDirectory(bopts.TempDir);
-    }
+    if (err && bopts.OwnTempDir)
+        Directory::DeleteDirectory(bopts.TempDir);
 
     if (err)
-        printf("Done.\n");
-    else
-        printf("%s\n", err->FullMessage().GetCStr());
-    return err ? 0 : -1;
+    {
+        Diag::Log("Done.\n");
+        Diag::EmitEnd("success");
+        return 0;
+    }
+
+    Diag::Log("%s\n", err->FullMessage().GetCStr());
+    if (Diag::IsCancelRequested())
+    {
+        Diag::EmitEnd("cancelled");
+        return 2;
+    }
+    // The tasks have reported their errors; this is for what failed before or between them
+    if (Diag::ErrorCount() == 0)
+    {
+        Diag::Diagnostic diag;
+        diag.Tool = "agsbuild";
+        diag.Message = err->FullMessage().GetCStr();
+        Diag::EmitDiagnostic(diag);
+    }
+    Diag::EmitEnd("failed");
+    return -1;
 }

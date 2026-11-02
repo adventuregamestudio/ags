@@ -12,7 +12,9 @@
 //
 //=============================================================================
 #include "taskmanager.h"
+#include "diagnostics.h"
 #include "pipedprocess.h"
+#include <algorithm>
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/memorystream.h"
@@ -133,6 +135,21 @@ void Task::Cancel()
     _state = TaskState::Cancelled;
 }
 
+void Task::Abort()
+{
+    {
+        std::lock_guard<std::mutex> lk(_mutex);
+        _aborted = true;
+    }
+    OnAbort();
+}
+
+bool Task::IsAborted() const
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    return _aborted;
+}
+
 void Task::SetInputData(uint32_t in_index, const String &data)
 {
     std::lock_guard<std::mutex> lk(_mutex);
@@ -147,12 +164,23 @@ HError Task::Run()
 {
     {
         std::lock_guard<std::mutex> lk(_mutex);
+        if (_aborted)
+        {
+            _state = TaskState::Cancelled;
+            return new Error("Cancelled");
+        }
         _state = TaskState::Running;
     }
     _logWriter->WriteFormat("Task: %s\n", _name.GetCStr());
     HError err = RunImpl();
     {
         std::lock_guard<std::mutex> lk(_mutex);
+        if (_aborted)
+        {
+            _state = TaskState::Cancelled;
+            _logWriter->WriteFormat("Cancelled");
+            return new Error("Cancelled");
+        }
         _state = err ? TaskState::Success : TaskState::Failure;
         if (_state == TaskState::Success)
             _logWriter->WriteFormat("Success");
@@ -270,13 +298,44 @@ TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const 
 {
 }
 
+std::string TaskPipedProcess::GetTool() const
+{
+    // The program's name only: no directory, no quotes, no extension
+    std::string exe = _params.ExePath.GetCStr();
+    exe.erase(std::remove(exe.begin(), exe.end(), '"'), exe.end());
+    const size_t slash = exe.find_last_of("/\\");
+    if (slash != std::string::npos)
+        exe.erase(0, slash + 1);
+    if (exe.size() > 4 && exe.compare(exe.size() - 4, 4, ".exe") == 0)
+        exe.erase(exe.size() - 4);
+    return exe;
+}
+
+void TaskPipedProcess::OnAbort()
+{
+    std::lock_guard<std::mutex> lk(_processMutex);
+    if (_process)
+        _process->Terminate();
+}
+
 HError TaskPipedProcess::RunImpl()
 {
     _logWriter->WriteFormat("Running: %s %s\n", _params.ExePath.GetCStr(), _params.Params.GetCStr());
 
     std::vector<uint8_t> data;
     PipedProcess pp(_params.ExePath, _params.Params, _logWriter.get());
+    {
+        std::lock_guard<std::mutex> lk(_processMutex);
+        _process = &pp;
+    }
+    // Abort may have come before the process was registered
+    if (IsAborted())
+        pp.Terminate();
     HError err = pp.RunSync(_params.OutputToStdOut ? &data : nullptr);
+    {
+        std::lock_guard<std::mutex> lk(_processMutex);
+        _process = nullptr;
+    }
     if (!err)
         _logWriter->WriteFormat("Process failed with error:\n%s", err->FullMessage().GetCStr());
 
@@ -340,7 +399,8 @@ void TaskManager::AddTask(std::unique_ptr<Task> &&task)
 
 HError TaskManager::RunAll()
 {
-    printf("Prepared %zu tasks, running...\n", _allTasks.size());
+    Diag::Log("Prepared %zu tasks, running...\n", _allTasks.size());
+    Diag::EmitStart(_allTasks.size());
 
     // Begin with running as much tasks as possible
     RunReadyTasks();
@@ -348,6 +408,8 @@ HError TaskManager::RunAll()
     bool want_stop = false;
     while (!want_stop)
     {
+        if (Diag::IsCancelRequested() && !_cancelHandled)
+            CancelEverything();
         bool has_any_task_finished = false;
         want_stop = !UpdateTaskState(has_any_task_finished);
         if (has_any_task_finished)
@@ -372,20 +434,22 @@ HError TaskManager::RunAll()
         }
     }
 
-    printf("Tasks completed: %u / %u\n", success_tasks, total_tasks);
+    Diag::Log("Tasks completed: %u / %u\n", success_tasks, total_tasks);
     if (failed_tasks > 0u)
     {
-        printf("Tasks failed: %u / %u\n", failed_tasks, total_tasks);
+        Diag::Log("Tasks failed: %u / %u\n", failed_tasks, total_tasks);
         for (const auto name : failed_task_names)
-            printf("\t%s\n", name.GetCStr());
+            Diag::Log("\t%s\n", name.GetCStr());
     }
     if (cancelled_tasks > 0u)
     {
-        printf("Tasks cancelled: %u / %u\n", cancelled_tasks, total_tasks);
+        Diag::Log("Tasks cancelled: %u / %u\n", cancelled_tasks, total_tasks);
         for (const auto name : cancelled_task_names)
-            printf("\t%s\n", name.GetCStr());
+            Diag::Log("\t%s\n", name.GetCStr());
     }
 
+    if (_cancelHandled)
+        return new Error("The build was cancelled");
     return (failed_tasks == 0u && cancelled_tasks == 0u) ? HError::None()
         : new Error("%d task(s) failed to complete", failed_tasks + cancelled_tasks);
 }
@@ -421,7 +485,8 @@ void TaskManager::RunReadyTasks()
             {
                 is_ready_to_run = false;
                 auto_cancel = true;
-                printf("Task %s: prerequisite %s does not exist\n", task.first.GetCStr(), input.OutputTask.GetCStr());
+                Diag::Log("Task %s: prerequisite %s does not exist\n", task.first.GetCStr(),
+                          input.OutputTask.GetCStr());
             }
             else
             {
@@ -436,12 +501,13 @@ void TaskManager::RunReadyTasks()
                         if (auto_cancel)
                         {
                             auto_cancel_because = input.OutputTask;
-                            printf("Task %s: prerequisite %s has failed to complete\n", task.first.GetCStr(), input.OutputTask.GetCStr());
+                            Diag::Log("Task %s: prerequisite %s has failed to complete\n", task.first.GetCStr(),
+                                      input.OutputTask.GetCStr());
                         }
                     }
                     else
                     {
-                        printf("Internal error, task %s is in done list but is null\n", input.OutputTask.GetCStr());
+                        Diag::Log("Internal error, task %s is in done list but is null\n", input.OutputTask.GetCStr());
                         is_ready_to_run = false;
                         auto_cancel = true;
                     }
@@ -468,7 +534,8 @@ void TaskManager::RunReadyTasks()
             {
                 if (slot.Task == nullptr)
                 {
-                    printf("Task %s: run on thread %u\n", task.first.GetCStr(), slot.Slot);
+                    Diag::Log("Task %s: run on thread %u\n", task.first.GetCStr(), slot.Slot);
+                    Diag::EmitTask(task.first.GetCStr(), "running");
                     _freeThreads--;
                     slot.Task = task.second;
                     slot.Thread = std::thread(RunTaskOnThread, slot.Task);
@@ -504,14 +571,16 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
             if (state == TaskState::Success || state == TaskState::Failure)
             {
                 const auto &log = task->GetLogBuffer();
-                printf("-----------------------------------------------------------------------\n");
-                printf("%s\n", log.GetCStr());
-                printf("-----------------------------------------------------------------------\n");
+                Diag::Log("-----------------------------------------------------------------------\n");
+                Diag::Log("%s\n", log.GetCStr());
+                Diag::Log("-----------------------------------------------------------------------\n");
             }
+            if (state == TaskState::Success || state == TaskState::Failure || state == TaskState::Cancelled)
+                ReportFinishedTask(task, state);
 
             if (state == TaskState::Success)
             {
-                printf("Task %s: success\n", name.GetCStr());
+                Diag::Log("Task %s: success\n", name.GetCStr());
                 // If task has succeeded, then find all the dependent tasks,
                 // and pass the received output data into their inputs.
                 const auto &out_data = task->GetOutputData();
@@ -524,7 +593,8 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
                         {
                             if ((input.OutputTask == name) && (input.OutputIndex < out_data.size()))
                             {
-                                printf("Task %s: pass output data to task %s\n", name.GetCStr(), pending_task->GetName().GetCStr());
+                                Diag::Log("Task %s: pass output data to task %s\n", name.GetCStr(),
+                                          pending_task->GetName().GetCStr());
                                 pending_task->SetInputData(input.InputIndex, out_data[input.OutputIndex]);
                             }
                         }
@@ -537,7 +607,7 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
             }
             else if (state == TaskState::Failure || state == TaskState::Cancelled)
             {
-                printf("Task %s: %s\n", name.GetCStr(), (state == TaskState::Failure) ? "failed" : "cancelled");
+                Diag::Log("Task %s: %s\n", name.GetCStr(), (state == TaskState::Failure) ? "failed" : "cancelled");
                 // Cancel all of the failed/cancelled task dependent tasks (recursively)
                 std::vector<String> cancel_tasks;
                 CancelTaskDependents(name, cancel_tasks);
@@ -553,7 +623,7 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
             // If the task is no longer running (for any reason), then stop the thread and free this slot
             if (state != TaskState::Running && state != TaskState::Pending)
             {
-                printf("Task %s: stop, remove from thread %u\n", name.GetCStr(), slot.Slot);
+                Diag::Log("Task %s: stop, remove from thread %u\n", name.GetCStr(), slot.Slot);
                 if (slot.Thread.joinable())
                     slot.Thread.join();
                 slot = ThreadData(slot.Slot);
@@ -563,6 +633,8 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
         }
     }
 
+    if (has_any_task_finished)
+        Diag::EmitProgress(_doneTasks.size(), _allTasks.size());
     return (_pendingTasks.size() + _runTasks.size()) > 0u;
 }
 
@@ -572,10 +644,11 @@ void TaskManager::CancelTask(Task *task, const String &parent_task, std::vector<
     if (state == TaskState::Cancelled || state == TaskState::Failure)
         return; // already cancelled or failed
     if (parent_task.IsEmpty())
-        printf("Task %s: cancel (input(s) not available)\n", task->GetName().GetCStr());
+        Diag::Log("Task %s: cancel (input(s) not available)\n", task->GetName().GetCStr());
     else
-        printf("Task %s: cancel (input %s failed)\n", task->GetName().GetCStr(), parent_task.GetCStr());
+        Diag::Log("Task %s: cancel (input %s failed)\n", task->GetName().GetCStr(), parent_task.GetCStr());
     task->Cancel();
+    Diag::EmitTask(task->GetName().GetCStr(), "cancelled");
     cancel_tasks.push_back(task->GetName());
     CancelTaskDependents(task->GetName(), cancel_tasks);
 }
@@ -590,6 +663,55 @@ void TaskManager::CancelTaskDependents(const String &task_name, std::vector<Stri
         {
             CancelTask(pending_task, task_name, cancel_tasks);
         }
+    }
+}
+
+void TaskManager::CancelEverything()
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    _cancelHandled = true;
+    Diag::Log("Cancelling the build\n");
+    std::vector<String> cancel_tasks;
+    for (auto &entry : _pendingTasks)
+    {
+        entry.second->Cancel();
+        Diag::EmitTask(entry.first.GetCStr(), "cancelled");
+        cancel_tasks.push_back(entry.first);
+    }
+    MoveTasks(cancel_tasks, _pendingTasks, _doneTasks);
+    // The running tasks end as Cancelled, and UpdateTaskState collects them
+    for (auto &slot : _threads)
+    {
+        if (slot.Task != nullptr)
+            slot.Task->Abort();
+    }
+}
+
+void TaskManager::ReportFinishedTask(Task *task, TaskState state)
+{
+    const char *state_name =
+        state == TaskState::Success ? "success" : (state == TaskState::Failure ? "failed" : "cancelled");
+    Diag::EmitTask(task->GetName().GetCStr(), state_name);
+    if (state == TaskState::Cancelled)
+        return;
+
+    // What the tool printed, as diagnostics; a failure the tool did not explain gets one from the result
+    const std::string tool = task->GetTool();
+    bool has_error = false;
+    for (Diag::Diagnostic diag : Diag::ExtractDiagnostics(task->GetLogBuffer().GetCStr()))
+    {
+        diag.Tool = tool;
+        diag.Task = task->GetName().GetCStr();
+        has_error |= diag.Level == Diag::Severity::Error;
+        Diag::EmitDiagnostic(diag);
+    }
+    if (state == TaskState::Failure && !has_error)
+    {
+        Diag::Diagnostic diag;
+        diag.Tool = tool;
+        diag.Task = task->GetName().GetCStr();
+        diag.Message = task->GetResult()->FullMessage().GetCStr();
+        Diag::EmitDiagnostic(diag);
     }
 }
 

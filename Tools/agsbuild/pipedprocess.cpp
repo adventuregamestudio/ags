@@ -18,6 +18,7 @@
 #else
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/wait.h>
 #endif
 #include "util/memorystream.h"
@@ -124,6 +125,9 @@ HError PipedProcess::CreateProcess()
     if (_cpid == 0)
     {
         // Setup child process to write into the pipe
+        // Own process group, so Terminate kills whatever the shell started too, and the terminal's
+        // Ctrl+C reaches only agsbuild, which then stops its children itself
+        setpgid(0, 0);
         // Route write pipe's end to stdout and release the old handle
         dup2(_stdOutPipe[1], STDOUT_FILENO);
         // Route write pipe's end to stderr and release the old handle
@@ -145,6 +149,7 @@ HError PipedProcess::CreateProcess()
     else
     {
         // Setup parent process to read from the pipe
+        setpgid(_cpid, _cpid); // as the child does, whichever runs first
         // Close unused write end
         close(_stdOutPipe[1]);
         close(_stdErrPipe[1]);
@@ -152,7 +157,31 @@ HError PipedProcess::CreateProcess()
         _stdErrPipe[1] = 0;
     }
 #endif
+    _started = true;
+    if (_terminateRequested)
+        KillProcess();
     return HError::None();
+}
+
+void PipedProcess::Terminate()
+{
+    _terminateRequested = true;
+    if (_started)
+        KillProcess();
+}
+
+void PipedProcess::KillProcess()
+{
+    std::lock_guard<std::mutex> lk(_killMutex);
+    if (_closed)
+        return;
+#if (AGS_PLATFORM_OS_WINDOWS)
+    if (_pi.hProcess != nullptr)
+        TerminateProcess(_pi.hProcess, 1);
+#else
+    if (_cpid > 0)
+        kill(-_cpid, SIGKILL); // the whole process group
+#endif
 }
 
 #if (AGS_PLATFORM_OS_WINDOWS)
@@ -278,6 +307,10 @@ void PipedProcess::WaitForProcessSync()
 
 void PipedProcess::CloseProcess()
 {
+    {
+        std::lock_guard<std::mutex> lk(_killMutex);
+        _closed = true;
+    }
 #if (AGS_PLATFORM_OS_WINDOWS)
     // TODO: smart pointer for the pipe handle
     if (_hStdOutPipeRead != INVALID_HANDLE_VALUE)

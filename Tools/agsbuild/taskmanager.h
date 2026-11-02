@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <string>
 #include <unordered_map>
 #include <mutex>
 #include <thread>
@@ -36,6 +37,7 @@ enum class TaskState
 };
 
 class Task;
+class PipedProcess;
 
 class ITaskManager
 {
@@ -85,18 +87,27 @@ public:
     HError GetResult() const;
     std::vector<String> GetOutputData() const;
     String GetLogBuffer() const;
+    // The program this task runs for diagnostics, "agsbuild" if it runs none
+    virtual std::string GetTool() const { return "agsbuild"; }
 
     void Cancel();
+    // Stops a running task as soon as possible, and makes it end as Cancelled. Safe to call from
+    // another thread, also before the task has started.
+    void Abort();
+    bool IsAborted() const;
     void SetInputData(uint32_t in_index, const String &data);
 
     HError Run();
 
 protected:
     virtual HError RunImpl() { return HError::None(); }
+    // Called by Abort; has to stop RunImpl by some means
+    virtual void OnAbort() {}
 
     const String _name;
     ITaskManager *const _mgr = nullptr;
     TaskState _state = TaskState::Pending;
+    bool _aborted = false;
     HError _result = HError::None();
     const std::vector<TaskInput> _inputs;
     std::vector<String> _inputData;
@@ -207,10 +218,15 @@ public:
     TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params,
         const std::vector<TaskInput> &input_tasks);
 
+    std::string GetTool() const override;
+
 private:
     HError RunImpl() override;
+    void OnAbort() override;
 
     const PipedProcessParams _params;
+    std::mutex _processMutex;
+    PipedProcess *_process = nullptr; // the running process, if any
 };
 
 class TaskManager : public ITaskManager
@@ -226,6 +242,9 @@ private:
     bool UpdateTaskState(bool &has_any_task_succeed);
     void CancelTask(Task *task, const String &parent_task, std::vector<String> &cancel_tasks);
     void CancelTaskDependents(const String &task_name, std::vector<String> &cancel_tasks);
+    // Cancels the whole build: nothing waiting starts, running tasks are stopped
+    void CancelEverything();
+    void ReportFinishedTask(Task *task, TaskState state);
     void MoveTasks(std::vector<String> &tasks, std::unordered_map<String, Task*> &from, std::unordered_map<String, Task*> &to);
 
     struct ThreadData
@@ -248,6 +267,7 @@ private:
     std::vector<ThreadData> _threads;
     uint32_t _freeThreads = 0u;
     uint32_t _unnamedTaskCounter = 0u;
+    bool _cancelHandled = false;
     bool _verbose = false;
     std::mutex _mutex;
 };

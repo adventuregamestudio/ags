@@ -60,6 +60,7 @@ TINYXML2 = \
 	../../libsrc/tinyxml2/tinyxml2.cpp
 
 OBJS := main.cpp \
+	diagnostics.cpp \
 	pipedprocess.cpp \
 	taskmanager.cpp \
 	$(COMMON_OBJS) \

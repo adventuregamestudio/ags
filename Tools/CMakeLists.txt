@@ -202,6 +202,8 @@ add_executable(agsbuild agsbuild/main.cpp
         agsbuild/pipedprocess.cpp
         agsbuild/taskmanager.h
         agsbuild/taskmanager.cpp
+        agsbuild/diagnostics.h
+        agsbuild/diagnostics.cpp
         )
 set_target_properties(agsbuild PROPERTIES
         CXX_STANDARD 11
@@ -327,12 +329,16 @@ if(AGS_TESTS)
       ../Common/test/sdl2_stubs.c
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
+      agsbuild/diagnostics.cpp
       agsbuild/pipedprocess.cpp
+      agsbuild/taskmanager.cpp
+      test/diagnostics_test.cpp
       test/include_utils_test.cpp
       test/pipedprocess_test.cpp
       test/room_build_test.cpp
       test/xml_fields_test.cpp
       test/spriteimport_test.cpp
+      test/taskmanager_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
    set_target_properties(tools_test PROPERTIES

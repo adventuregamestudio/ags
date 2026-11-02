@@ -219,15 +219,19 @@
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
     <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
+    <ClCompile Include="..\..\Tools\agsbuild\diagnostics.cpp" />
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
+    <ClCompile Include="..\..\Tools\agsbuild\taskmanager.cpp" />
     <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\diagnostics_test.cpp" />
     <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />
     <ClCompile Include="..\..\Tools\test\room_build_test.cpp" />
     <ClCompile Include="..\..\Tools\test\xml_fields_test.cpp" />
     <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\taskmanager_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common.Lib\Common.Lib.vcxproj">

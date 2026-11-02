@@ -17,6 +17,8 @@
 #else
 #include <unistd.h>
 #endif
+#include <atomic>
+#include <mutex>
 #include "util/error.h"
 #include "util/string.h"
 #include "util/textstreamwriter.h"
@@ -36,7 +38,13 @@ public:
 
     int    GetExitCode() const;
 
+    // Kills the process; safe to call from another thread, at any time, also before the process was
+    // started (then it is killed as soon as it exists). RunSync returns after that as usual.
+    void Terminate();
+    bool WasTerminated() const { return _terminateRequested; }
+
 private:
+    void KillProcess();
     HError CreateProcess();
     HError RunProcessSync(std::vector<uint8_t> *stdout_data = nullptr);
     void   WaitForProcessSync();
@@ -56,6 +64,10 @@ private:
     String _command;
     AGS::Common::TextStreamWriter *_logWriter = nullptr;
     int    _exitCode = -1;
+    std::atomic<bool> _terminateRequested{false};
+    std::atomic<bool> _started{false};
+    std::mutex _killMutex; // protects the process handle against being closed while it is killed
+    bool _closed = false;
 #if (AGS_PLATFORM_OS_WINDOWS)
     HANDLE _hStdOutPipeRead = INVALID_HANDLE_VALUE;
     HANDLE _hStdOutPipeWrite = INVALID_HANDLE_VALUE;

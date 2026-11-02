@@ -45,7 +45,8 @@ private:
     bool   IsPipeCreated() const;
 
 #if (AGS_PLATFORM_OS_WINDOWS)
-    void   ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, bool print_to_buffer);
+    // Reads what the pipe has right now without blocking; returns whether anything was read
+    bool   ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, bool print_to_buffer);
 #else
     void   ReadFromPipe(int pipe_fd, std::vector<uint8_t> *output_data, bool print_to_buffer);
 #endif

@@ -304,10 +304,12 @@ if(AGS_TESTS)
       ../Common/util/path.cpp # needed by assetmanager.cpp
       ../Common/util/version.cpp # needed by common_stubs.cpp
       ../Common/util/wgt2allg.cpp # needed by Common bitmap/font implementations
+      agsbuild/pipedprocess.cpp # needed for pipedprocess_test.cpp
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
       test/data_helpers_test.cpp
       test/include_utils_test.cpp
+      test/pipedprocess_test.cpp
       test/spriteimport_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )

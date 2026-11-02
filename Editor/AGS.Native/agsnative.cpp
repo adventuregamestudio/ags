@@ -1210,6 +1210,11 @@ bool reload_font(int curFont)
     return load_font_size(curFont, thisgame.fonts[curFont]);
 }
 
+void unload_font(int curFont)
+{
+    freefont(curFont);
+}
+
 bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height)
 {
     FontMetrics metrics;

@@ -37,7 +37,7 @@ class CompilerOptions{
         bool EnforceNewStrings = true;        // do not allow old-style strings
         bool EnforceNewAudio = true;
         bool UseOldCustomDialogOptionsAPI = false;
-        bool UnicodeMode = true;
+        bool UseOldKeyboardHandling = false;
     };
 
     struct ScriptAPI {
@@ -54,6 +54,7 @@ public:
     std::vector<std::pair<std::string, std::string>> Macros{};
     std::vector<std::string> HeaderFiles{};
     std::string InputScriptFile{};
+    std::string ScriptName{}; // name of the script's section; default: the input file name
     std::string OutputObjFile{};
     std::string Version{};
     CompilerOptions() = default;

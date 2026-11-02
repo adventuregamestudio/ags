@@ -273,6 +273,7 @@ if(AGS_TESTS)
         test/string_test.cpp
         test/strutil_test.cpp
         test/utf8_test.cpp
+        test/scriptapi_test.cpp
         test/version_test.cpp
     )
     set_target_properties(common_test PROPERTIES

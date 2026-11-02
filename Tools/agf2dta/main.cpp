@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "data/agfreader.h"
 #include "data/data_file_writer.h"
+#include "data/xml_fields.h"
 #include "util/cmdlineopts.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -19,6 +20,8 @@ const char *HELP_STRING =
 "      Parses AGS project file INPUT-GAME.AGF and writes a compiled AGS game\n"
 "      data file (v3.x-4.x engines expect 'game28.dta' by default).\n"
 "Options:\n"
+"  --strict               treat elements the tool does not know, and values it\n"
+"                         cannot read, as errors instead of warnings\n"
 "  -h, --help             Show this help message\n";
 
 int main(int argc, char *argv[])
@@ -66,7 +69,13 @@ int main(int argc, char *argv[])
     }
 
     DataUtil::GameData game{};
+    AGF::XmlProblems::Clear();
     AGF::ReadGameData(game, reader);
+    const bool strict = parseResult.Opt.count("--strict") > 0;
+    for (const String &problem : AGF::XmlProblems::Get())
+        printf("%s: %s\n", strict ? "Error" : "Warning", problem.GetCStr());
+    if (strict && !AGF::XmlProblems::Get().empty())
+        return -1;
 
     //-----------------------------------------------------------------------//
     // Set the main game data struct values from Game.agf

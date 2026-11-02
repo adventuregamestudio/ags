@@ -11,11 +11,16 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <tinyxml2.h>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
+#include "data/scriptgen.h"
+#include "data/xml_fields.h"
 
 using namespace AGS;
 
@@ -155,4 +160,114 @@ TEST(AGFReader, EnumReadLipSyncType)
         AGF::ReadLipSyncType("PamelaVoiceFiles"));
     EXPECT_EQ(DataUtil::kLipSync_None,
         AGF::ReadLipSyncType("NotARealValue"));
+}
+
+// Parses the XML text; keeps the document for as long as its elements are used
+static tinyxml2::XMLElement *ParseXml(tinyxml2::XMLDocument &doc, const char *xml)
+{
+    EXPECT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(xml));
+    return doc.RootElement();
+}
+
+TEST(AGFReader, TablesReportWhatTheyDoNotKnow)
+{
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLElement *elem = ParseXml(
+        doc,
+        "<Character><Enabled>False</Enabled><Visible>False</Visible><Brand>New</Brand><StartX>x</StartX></Character>");
+    AGF::XmlProblems::Clear();
+    DataUtil::CharacterData data;
+    AGF::Character().ReadAllData(elem, data);
+
+    // what is known gets read, what is not is reported and does not stop the rest
+    EXPECT_FALSE(data.Enabled);
+    EXPECT_FALSE(data.Visible);
+    ASSERT_EQ(2u, AGF::XmlProblems::Get().size());
+    EXPECT_NE(std::string::npos, std::string(AGF::XmlProblems::Get()[0].GetCStr()).find("<Brand>"));
+    EXPECT_NE(std::string::npos, std::string(AGF::XmlProblems::Get()[1].GetCStr()).find("<StartX>"));
+    AGF::XmlProblems::Clear();
+}
+
+TEST(AGFReader, GlobalVariablesMayBeArrays)
+{
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLElement *elem = ParseXml(
+        doc, "<Game><GlobalVariables><Variables>"
+             "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>None</ArrayType><DefaultValue>True</DefaultValue>"
+             "<Name>flag</Name><Type>bool</Type></GlobalVariable>"
+             "<GlobalVariable><ArraySize>5</ArraySize><ArrayType>Array</ArrayType><DefaultValue></DefaultValue>"
+             "<Name>list</Name><Type>int</Type></GlobalVariable>"
+             "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>DynamicArray</ArrayType><DefaultValue>x</DefaultValue>"
+             "<Name>names</Name><Type>String</Type></GlobalVariable>"
+             "</Variables></GlobalVariables></Game>");
+    std::vector<DataUtil::Variable> vars;
+    AGF::ReadGlobalVariables(vars, elem);
+    ASSERT_EQ(3u, vars.size());
+
+    // as the editor's GlobalVariablesComponent writes them
+    EXPECT_STREQ("import bool flag;\nimport int list[5];\nimport String names[];\n",
+                 DataUtil::MakeVariablesScriptHeader(vars).GetCStr());
+    EXPECT_STREQ("bool flag = true;\nexport flag;\nint list[5];\nexport list;\nString names[];\nexport names;\n"
+                 "function game_start() {\n}\n",
+                 DataUtil::MakeVariablesScriptBody(vars).GetCStr());
+}
+
+// The drift guard: Tools/data/agf_elements.txt lists the XML elements that the editor writes
+// for each class of AGS.Types (it is kept current by AgfElementsTests in the editor's tests). Each
+// of them must have a row in a table of the reader, or the tools would ignore a project property.
+
+static std::string FindElementsFile()
+{
+#ifdef AGF_ELEMENTS_FILE
+    return AGF_ELEMENTS_FILE;
+#else
+    // from the working directory up to the checkout
+    std::string dir = ".";
+    for (int depth = 0; depth < 8; ++depth, dir += "/..")
+    {
+        std::string path = dir + "/Tools/data/agf_elements.txt";
+        if (std::ifstream(path).good())
+            return path;
+    }
+    return "Tools/data/agf_elements.txt";
+#endif
+}
+
+TEST(AgfElements, TablesReadEverythingTheEditorWrites)
+{
+    std::ifstream list(FindElementsFile());
+    ASSERT_TRUE(list.good()) << "cannot open " << FindElementsFile();
+
+    size_t classes = 0;
+    std::string line;
+    while (std::getline(list, line))
+    {
+        if (line.empty() || line[0] == '#')
+            continue;
+        const size_t colon = line.find(':');
+        ASSERT_NE(std::string::npos, colon) << line;
+        const std::string class_name = line.substr(0, colon);
+        ++classes;
+
+        const auto &known = AGF::GetKnownElements();
+        const auto table = std::find_if(known.begin(), known.end(),
+                                        [&](const AGF::KnownElements &k) { return class_name == k.ClassName; });
+        if (table == known.end())
+        {
+            ADD_FAILURE() << class_name << " has no table in agfreader.cpp (see GetKnownElements)";
+            continue;
+        }
+
+        std::istringstream elements(line.substr(colon + 1));
+        std::string element;
+        while (elements >> element)
+        {
+            const bool found = std::any_of(table->Elements.begin(), table->Elements.end(),
+                                           [&](const char *name) { return element == name; });
+            EXPECT_TRUE(found) << "The editor writes <" << element << "> in " << class_name
+                               << ", but its table has no row for it. Read it, or add a row without a reader "
+                                  "(nullptr) if building a game does not need it.";
+        }
+    }
+    EXPECT_GT(classes, 0u);
 }

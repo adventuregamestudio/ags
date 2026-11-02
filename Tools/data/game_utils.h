@@ -250,6 +250,8 @@ struct CharacterData : EntityRef
     int NormalView{};
     String RealName;
     bool Solid = true;
+    bool Enabled = true;
+    bool Visible = true;
     int SpeechAnimationDelay{};
     int SpeechColor{};
     int SpeechView{};
@@ -340,6 +342,8 @@ struct SpriteData
     int TransparentColourIndex = 0;
     bool RemapToGamePalette = false;
     bool RemapToRoomPalette = false;
+    // SpriteImportColorDepth: 0 converts to the game's depth, 8 keeps the image 8-bit
+    int ImportColorDepth = 0;
 };
 
 struct PaletteEntryData
@@ -525,7 +529,7 @@ struct GUIData : EntityRef
     int PopupYPos{};
     int Top{};
     int Transparency{};
-    int Visible{};
+    bool Visible{};
     int Width{};
     int ZOrder{};
     int Padding = TEXTWINDOW_PADDING_DEFAULT;
@@ -535,12 +539,21 @@ struct GUIData : EntityRef
     std::vector<std::shared_ptr<GUIControlData>> Controls;
 };
 
+enum VariableArrayType
+{
+    kVariable_Single, // not an array
+    kVariable_Array,  // fixed size array
+    kVariable_DynamicArray
+};
+
 // Game variable (for variables defined in the game project)
 struct Variable
 {
     String Type;
     String Name;
     String Value;
+    VariableArrayType ArrayType = kVariable_Single;
+    int ArraySize = 0;
 };
 
 // Game settings

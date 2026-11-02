@@ -90,8 +90,10 @@ String DialogScriptConverter::Convert()
     String ags_script =
         String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);
 
-    for (String thisLine = sr.ReadLine(); !sr.EOS(); thisLine = sr.ReadLine())
+    // every line, the last one too, as C# StringReader.ReadLine() gives them
+    while (!sr.EOS())
     {
+        const String thisLine = sr.ReadLine();
         _lineNumber++;
         String s = ConvertLine(thisLine);
         if (!s.IsNullOrSpace())

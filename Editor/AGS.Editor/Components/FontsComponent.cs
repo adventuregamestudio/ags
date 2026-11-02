@@ -649,6 +649,7 @@ namespace AGS.Editor.Components
         private void OnFontFileChanged(object sender, FileSystemEventArgs e)
         {
             string fileName = e.Name;
+            // Remember that multiple fonts can reference same font file, so update all linked fonts
             foreach (var font in _agsEditor.CurrentGame.Fonts)
             {
                 if (string.Compare(font.FontFileName, fileName, true) == 0)
@@ -666,7 +667,6 @@ namespace AGS.Editor.Components
                     {
                         updater.Debounce(() => { ReloadFontAfterFileChanged(font); });
                     }
-                    return;
                 }
             }
         }

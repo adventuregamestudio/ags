@@ -101,11 +101,11 @@ uint32_t _argb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alp
     return argb2argb_blend_core(src_col, dst_col, src_alpha);
 }
 
-static void set_argb2any_blender()
+void set_argb2any_blender(int alpha = 255)
 {
     set_blender_mode_ex(_blender_black, _blender_black, _blender_black, _argb2argb_blender,
-                        _blender_alpha15, _blender_alpha16, _blender_alpha24,
-                        0, 0, 0, 0xff);
+        _blender_alpha15, _blender_alpha16, _blender_alpha24,
+        0, 0, 0, alpha);
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font

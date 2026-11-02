@@ -223,6 +223,9 @@ namespace AGS.Types
 
             // Load events into the temporary interactions object with no Schema first
             Interactions interactions = new Interactions(null);
+            // Keep the script module read with the ScriptModule property; an old format
+            // Interactions node may still override it with its own
+            interactions.ScriptModule = _interactions.ScriptModule;
             interactions.FromXml(node);
             // Convert old interaction events to our new event properties
             if (interactions.IndexedFunctionNames.Count > 0)

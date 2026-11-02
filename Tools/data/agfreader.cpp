@@ -23,8 +23,15 @@ const char *XML_ROOT_NODE_NAME = "AGSEditorDocument";
 const char *XML_ATTRIBUTE_VERSION = "Version";
 const char *XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
 const char *XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
-const char *LATEST_XML_VERSION = "3.0.3.2";
-const int  LOWEST_SUPPORTED_FORMAT = 26; // AGS 3.5.0
+// Up to 4.0.0.19 the Editor wrote this fixed tag plus a VersionIndex; since 4.0.0.20 it writes the
+// project format version itself (AGSEditor.LATEST_XML_VERSION in the Editor).
+const char *LEGACY_XML_VERSION_TAG = "3.0.3.2";
+// The tools read only project formats that need no upgrade step; older projects must be opened
+// and saved in the Editor first, so the upgrade code exists only there. 4.0.0.33 moved the dialogs
+// out of Game.agf into their own files, so nothing older reads as is.
+const char *OLDEST_READABLE_XML_VERSION = "4.0.0.33";
+// The newest project format these tools know: keep in step with AGSEditor.LATEST_XML_VERSION.
+const char *LATEST_XML_VERSION = "4.0.0.33";
 
 using namespace AGS::Common;
 using namespace tinyxml2;
@@ -163,6 +170,21 @@ static const CstrArr<3> kTextBoxKeyClaimStyleNames = {{
     "All", "Handled", "TextOnly"
 }};
 
+// Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
+// returns a negative, zero or positive value like strcmp
+int CompareXmlVersions(const char *a, const char *b)
+{
+    int va[4] = {}, vb[4] = {};
+    std::sscanf(a, "%d.%d.%d.%d", &va[0], &va[1], &va[2], &va[3]);
+    std::sscanf(b, "%d.%d.%d.%d", &vb[0], &vb[1], &vb[2], &vb[3]);
+    for (int i = 0; i < 4; ++i)
+    {
+        if (va[i] != vb[i])
+            return va[i] < vb[i] ? -1 : 1;
+    }
+    return 0;
+}
+
 } // namespace
 
 namespace AGS
@@ -196,17 +218,22 @@ HError AGFReader::Open(const char *filename)
     const char *attr_filever = _doc->RootElement()->Attribute(XML_ATTRIBUTE_VERSION);
     if (!attr_filever)
         return new Error("Game.agf format version is missing");
-    if (strcmp(attr_filever, LATEST_XML_VERSION))
-        return new Error("Unsupported Game.agf format: %s", attr_filever);
-
-    const int attr_format = _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX);
     const char *attr_editorver = _doc->RootElement()->Attribute(XML_ATTRIBUTE_EDITOR_VERSION);
     _editorVersion = attr_editorver ? attr_editorver : "";
-    Debug::Printf("AGFReader: opened %s,\n format tag: %s\n format index: %d\n saved by AGS %s",
-        filename, attr_filever, attr_format, attr_editorver ? attr_editorver : "unknown");
+    Debug::Printf("AGFReader: opened %s,\n format: %s\n saved by AGS %s", filename, attr_filever,
+                  attr_editorver ? attr_editorver : "unknown");
 
-    if (attr_format < LOWEST_SUPPORTED_FORMAT)
-        return new Error("Unsupported Game.agf format index: %d", attr_format);
+    if (strcmp(attr_filever, LEGACY_XML_VERSION_TAG) == 0)
+        return new Error("Game.agf was saved by an older AGS Editor (format index %d). Open and save the project "
+                         "in the current Editor first.",
+                         _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX));
+    if (CompareXmlVersions(attr_filever, OLDEST_READABLE_XML_VERSION) < 0)
+        return new Error("Game.agf format %s is older than these tools can read (%s). Open and save the project in "
+                         "the current Editor first.",
+                         attr_filever, OLDEST_READABLE_XML_VERSION);
+    if (CompareXmlVersions(attr_filever, LATEST_XML_VERSION) > 0)
+        return new Error("Game.agf format %s is newer than these tools support (%s). Update the tools.", attr_filever,
+                         LATEST_XML_VERSION);
 
     DocElem game = _doc->RootElement()->FirstChildElement("Game");
     if (!game)

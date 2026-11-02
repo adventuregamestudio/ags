@@ -11,10 +11,48 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cstdio>
+#include <fstream>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
 
 using namespace AGS;
+
+// Writes a minimal Game.agf with the given root attributes and tries to open it
+static Common::HError OpenAgfWithRoot(const char *root_attributes)
+{
+    const char *path = "agfreader_test_version.agf";
+    {
+        std::ofstream f(path);
+        f << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AGSEditorDocument " << root_attributes
+          << ">\n  <Game />\n</AGSEditorDocument>\n";
+    }
+    AGF::AGFReader reader;
+    Common::HError err = reader.Open(path);
+    reader.Close();
+    std::remove(path);
+    return err;
+}
+
+TEST(AGFReader, OpenAcceptsCurrentProjectFormat)
+{
+    Common::HError err = OpenAgfWithRoot("Version=\"4.0.0.33\" EditorVersion=\"4.00.00.33\"");
+    EXPECT_TRUE(err) << (err ? "" : err->FullMessage().GetCStr());
+}
+
+TEST(AGFReader, OpenRejectsFormatsThatNeedAnUpgrade)
+{
+    // Legacy tag (Editor up to 4.0.0.19), and a version-string format older than the readable minimum:
+    // both have to be opened and saved in the Editor first
+    EXPECT_FALSE(OpenAgfWithRoot("Version=\"3.0.3.2\" VersionIndex=\"26\""));
+    EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.0.0.32\""));
+}
+
+TEST(AGFReader, OpenRejectsNewerFormats)
+{
+    EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.0.0.34\""));
+    EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.1.0.0\""));
+}
 
 TEST(AGFReader, EnumReadSkipSpeech)
 {

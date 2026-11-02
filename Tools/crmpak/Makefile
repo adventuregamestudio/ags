@@ -34,10 +34,10 @@ COMMON_OBJS = \
 	../../Common/data/data_helpers.cpp \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/game/customproperties.cpp \
-	../../Common/game/interactions.cpp \
 	../../Common/game/room_file.cpp \
 	../../Common/game/room_file_blocks.cpp \
 	../../Common/game/roomdata.cpp \
+	../../Common/game/scripteventtable.cpp \
 	../../Common/gfx/bitmapdata.cpp \
 	../../Common/gfx/image_bmp.cpp \
 	../../Common/gfx/image_file.cpp \
@@ -45,6 +45,7 @@ COMMON_OBJS = \
 	../../Common/gfx/image_png.cpp \
 	../../Common/gfx/sprite_data_fmt.cpp \
 	../../Common/script/cc_common.cpp \
+	../../Common/script/cc_reflect.cpp \
 	../../Common/script/cc_script.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \

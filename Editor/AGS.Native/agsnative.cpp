@@ -1096,19 +1096,22 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
 
     const int linespacing = get_font_linespacing(fontnum);
     const bool is_4bit_wfn = get_wfn_font_bits_per_pixel(fontnum) == 4;
+    const bool use_32bit_preview = is_4bit_wfn ||
+        (!is_bitmap_font(fontnum) && ShouldAntiAliasText());
+
     std::unique_ptr<AGSBitmap> tempblock(
-        BitmapHelper::CreateBitmap(ds_width, ds_height, is_4bit_wfn ? 32 : 8));
+        BitmapHelper::CreateBitmap(ds_width, ds_height, use_32bit_preview ? 32 : 8));
 
     // Dark-gray background for the text sample.
-    tempblock->Fill(is_4bit_wfn ?
-        makecol32(85, 85, 85) :
+    tempblock->Fill(use_32bit_preview ?
+        makeacol32(85, 85, 85, 255) :
         tempblock->GetCompatibleColor(8));
 
-    color_t text_color = is_4bit_wfn ?
+    color_t text_color = use_32bit_preview ?
         makeacol32(136, 136, 136, 255) :
         tempblock->GetCompatibleColor(15); // fixed white color
 
-    color_t outline_color = is_4bit_wfn ?
+    color_t outline_color = use_32bit_preview ?
         makeacol32(0, 0, 0, 255) :
         tempblock->GetCompatibleColor(0); // fixed black color
     AGS::Common::GUI::DrawTextLinesAligned(tempblock.get(), lines.GetVector(), lines.Count(), fontnum, linespacing, text_color, outline_color,

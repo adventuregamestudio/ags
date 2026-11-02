@@ -44,12 +44,11 @@ void font_recalc_metrics(int font_number);
 bool font_first_renderer_loaded();
 bool is_font_loaded(int font_number);
 bool is_bitmap_font(int font_number);
+// Enable or disable stencil rendering for the font's internal renderer.
+// Returns false if the renderer does not support stencil mode.
+bool set_font_stencil_mode(int font_number, bool enabled);
 // Returns 1 or 4 for WFN fonts, or 0 for other fonts.
 int get_wfn_font_bits_per_pixel(int font_number);
-// Render WFN text as a solid silhouette, without grayscale shading.
-// Returns false if the font is not a WFN font.
-bool wouttextxy_wfn_silhouette(AGS::Common::Bitmap* ds, int x, int y,
-    int font_number, color_t color, const char* text);
 bool font_supports_extended_characters(int font_number);
 // Gets font's topmost available char code;
 // returns -1 if this information is not available
@@ -140,6 +139,8 @@ void free_all_fonts();
 
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *texx);
+// Renders text as a solid-color stencil when supported by the font renderer.
+void wouttextxy_stencil(AGS::Common::Bitmap* ds, int x, int y, int font_number, color_t text_color, const char* texx);
 // FIXME: review this function, used only in AGS.Native (editor)
 void woutprintf(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(6);
 

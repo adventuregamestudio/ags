@@ -49,13 +49,12 @@ public:
   void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
   void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
   void SetCharacterSpacing(int fontNumber, int spacing) override;
+  // Enable or disable solid-color stencil rendering.
+  void SetStencilMode(bool enabled) override { _stencilMode = enabled; }
 
   int GetFontBitsPerPixel(int fontNumber) const;
   // Set eligible palette entries for 8-bit WFN grayscale shading.
   void SetPaletteEligibility(const uint8_t* palette_eligible);
-  // Render a WFN font as a solid silhouette, preserving transparent pixels.
-  void RenderTextSilhouette(const char* text, int fontNumber, BITMAP* destination,
-      int x, int y, int colour);
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
@@ -77,6 +76,7 @@ private:
   AGS::Common::AssetManager* _amgr = nullptr;
   uint8_t _paletteEligible[256] = {};
   bool _hasPaletteEligibility = false;
+  bool _stencilMode = false;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

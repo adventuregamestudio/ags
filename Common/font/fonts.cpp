@@ -260,6 +260,15 @@ bool is_bitmap_font(int font_number)
     return fonts[font_number].RendererInt->IsBitmapFont();
 }
 
+bool set_font_stencil_mode(int font_number, bool enabled)
+{
+    if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
+        return false;
+
+    fonts[font_number].RendererInt->SetStencilMode(enabled);
+    return true;
+}
+
 int get_wfn_font_bits_per_pixel(int font_number)
 {
     if (!assert_font_renderer(font_number) ||
@@ -267,19 +276,6 @@ int get_wfn_font_bits_per_pixel(int font_number)
         return 0;
 
     return wfnRenderer->GetFontBitsPerPixel(font_number);
-}
-
-bool wouttextxy_wfn_silhouette(Bitmap* ds, int x, int y,
-    int font_number, color_t color, const char* text)
-{
-    if (!assert_font_renderer(font_number) ||
-        fonts[font_number].Renderer != wfnRenderer.get())
-        return false;
-
-    wfnRenderer->RenderTextSilhouette(text, font_number,
-        ds->GetAllegroBitmap(), x, y, color);
-
-    return true;
 }
 
 bool font_supports_extended_characters(int font_number)
@@ -795,6 +791,16 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, c
         return; // each char is clipped but this speeds it up
 
     fonts[font_number].Renderer->RenderText(texx, font_number, (BITMAP *)ds->GetAllegroBitmap(), x, y, text_color);
+}
+
+void wouttextxy_stencil(Bitmap* ds, int x, int y, int font_number, color_t text_color, const char* texx)
+{
+    const bool stencil_mode = set_font_stencil_mode(font_number, true);
+
+    wouttextxy(ds, x, y, font_number, text_color, texx);
+
+    if (stencil_mode)
+        set_font_stencil_mode(font_number, false);
 }
 
 void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...)

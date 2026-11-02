@@ -116,12 +116,7 @@ static int RenderChar(Bitmap* ds, const int at_x, const int at_y, Rect clip,
 
 void WFNFontRenderer::RenderText(const char* text, int fontNumber, BITMAP* destination, int x, int y, int colour)
 {
-    RenderTextInternal(text, fontNumber, destination, x, y, colour, false);
-}
-
-void WFNFontRenderer::RenderTextSilhouette(const char* text, int fontNumber, BITMAP* destination, int x, int y, int colour)
-{
-    RenderTextInternal(text, fontNumber, destination, x, y, colour, true);
+    RenderTextInternal(text, fontNumber, destination, x, y, colour, _stencilMode);
 }
 
 void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMAP* destination, int x, int y, int colour, bool silhouette)

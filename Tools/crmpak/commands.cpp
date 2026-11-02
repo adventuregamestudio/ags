@@ -133,7 +133,8 @@ HRoomFileError ReadOnlyScriptNames(RoomDataExt &room, std::unique_ptr<Stream> &&
 
 HRoomFileError ReadOnlyCompiledScript(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{ kRoomFblk_CompScript3, "" }}, {});
+    // the compiled script is read into RoomData, unlike the script text
+    return ReadRoomData(&room, &room, std::move(in), data_ver, {{ kRoomFblk_CompScript3, "" }}, {});
 }
 
 HRoomFileError ReadOnlyScriptText(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)

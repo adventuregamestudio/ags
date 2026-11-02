@@ -61,10 +61,10 @@ size_t RunChatty(int lines)
 // agsbuild still held the pipe's write end.
 TEST(PipedProcess, ParallelLargeOutputCompletes)
 {
-    const int kLines = 2000, kProcesses = 6;
+    const int line_count = 2000, process_count = 6;
     std::vector<std::future<size_t>> runs;
-    for (int i = 0; i < kProcesses; ++i)
-        runs.push_back(std::async(std::launch::async, RunChatty, kLines));
+    for (int i = 0; i < process_count; ++i)
+        runs.push_back(std::async(std::launch::async, RunChatty, line_count));
 
     for (auto &run : runs)
     {
@@ -74,6 +74,6 @@ TEST(PipedProcess, ParallelLargeOutputCompletes)
             std::fprintf(stderr, "PipedProcess.ParallelLargeOutputCompletes: a process run did not finish\n");
             std::abort();
         }
-        EXPECT_GE(run.get(), static_cast<size_t>(kLines) * 40u) << "process output was cut short";
+        EXPECT_GE(run.get(), static_cast<size_t>(line_count) * 40u) << "process output was cut short";
     }
 }

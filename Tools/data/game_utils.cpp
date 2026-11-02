@@ -114,8 +114,8 @@ void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, Config
     cfg["misc"]["shared_data_dir"] = CustomPathForConfig(setup.UseCustomAppDataPath, setup.CustomAppDataPath);
     cfg["misc"]["titletext"] = setup.TitleText;
 
-    // Do not write show_fps in a release build, this is only intended for the developer
-    if (!settings || !settings->DebugMode)
+    // Only write show_fps in a debug build: it is meant for the developer
+    if (settings && settings->DebugMode)
     {
         cfg["misc"]["show_fps"] = setup.ShowFPS ? "1" : "0";
     }

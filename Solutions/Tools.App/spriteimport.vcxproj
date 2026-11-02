@@ -65,6 +65,7 @@
     <ClCompile Include="..\..\libsrc\stb\stb_image.c" />
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
+    <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
     <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp" />
     <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
     <ClCompile Include="..\..\Tools\spriteimport\commands.cpp" />

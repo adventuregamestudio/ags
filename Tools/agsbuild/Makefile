@@ -47,7 +47,8 @@ COMMON_OBJS = \
 	../../Common/util/textstreamwriter.cpp
 
 TOOL_OBJS = \
-	../../Tools/data/agfreader.cpp
+	../../Tools/data/agfreader.cpp \
+	../../Tools/data/xml_fields.cpp
 
 MINIMAL_ALLEGRO_OBJS = \
 	../../libsrc/allegro/src/allegro.c \

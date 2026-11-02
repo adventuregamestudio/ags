@@ -52,6 +52,7 @@
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
     <ClCompile Include="..\..\Tools\agf2dta\main.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
+    <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\characterinfo.h" />

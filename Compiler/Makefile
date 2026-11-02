@@ -59,7 +59,8 @@ COMPILER_OBJS = \
 	script/cs_compiler.cpp \
 	script/cs_parser.cpp \
 	preproc/cc_macrotable.cpp \
-	preproc/preprocessor.cpp
+	preproc/preprocessor.cpp \
+	preproc/script_annotations.cpp
 
 MINIMAL_ALLEGRO_OBJS = \
 	../libsrc/allegro/src/allegro.c \

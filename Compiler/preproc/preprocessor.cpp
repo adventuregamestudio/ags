@@ -16,6 +16,7 @@
 #include <string.h>
 #include "script/cs_parser_common.h"
 #include "preproc/preprocessor.h"
+#include "preproc/script_annotations.h"
 #include "script/cc_common.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
@@ -75,6 +76,12 @@ namespace Preprocessor {
         void WriteFormat(const char *fmt, ...) override { va_list argptr; va_start(argptr, fmt); _str.Append(String::FromFormatV(fmt, argptr)); va_end(argptr);}
         void WriteLineFormat(const char *fmt, ...) override { va_list argptr; va_start(argptr, fmt); _str.Append(String::FromFormatV(fmt, argptr)); va_end(argptr); _str.Append(li_end); }
         void WriteLineBreak() override { _str.Append(li_end); }
+        // Replaces oldValue with newValue within the range [startIndex, startIndex + count), as C# StringBuilder.Replace
+        void Replace(const String &oldValue, const String &newValue, size_t startIndex, size_t count) {
+            String part = _str.Mid(startIndex, count);
+            part.Replace(oldValue, newValue);
+            _str.ReplaceMid(startIndex, count, part);
+        }
 
         String GetString () {return _str;}
     };
@@ -381,6 +388,14 @@ namespace Preprocessor {
         {
             // do nothing -- scintilla can fold it, so it can be used to organize the code
         }
+        else if (directive == "module")
+        {
+            if (_moduleName.IsNullOrSpace())
+            {
+                String moduleName = GetNextWord(line);
+                _moduleName = moduleName;
+            }
+        }
         else
         {
             LogError(ErrorCode::UnknownPreprocessorDirective, String::FromFormat("Unknown preprocessor directive '%s'", directive.GetCStr()));
@@ -425,8 +440,8 @@ namespace Preprocessor {
                         String literal = line.Mid(0u, end_of_literal);
                         if (literal.StartsWith(NEW_SCRIPT_TOKEN_PREFIX))
                         {
-                            // Start the new script
-                            _scriptName = literal.Mid(strlen(NEW_SCRIPT_TOKEN_PREFIX));
+                            // Start the new script; the marker is parsed with its closing '"'
+                            ScriptAnnotations::ParseNewScriptMarker(line.Mid(0u, end_of_literal + 1), _scriptName);
                             _lineNumber = 0;
                         }
                     }
@@ -483,12 +498,14 @@ namespace Preprocessor {
     {
         _errors.clear();
         StringBuilder output = StringBuilder(script.GetLength());
-        _lineNumber = 0;
-        String escapedScriptName = scriptName;
-        escapedScriptName.Replace("\\", "\\\\");
-        output.WriteLine(String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr()));
         StringReader reader = StringReader(script);
         _scriptName = scriptName;
+        _moduleName = "";
+        _lineNumber = 0;
+        String newScriptMarker = ScriptAnnotations::MakeNewScriptMarker(scriptName);
+        output.WriteLine(newScriptMarker);
+        bool addedModuleMarker = false;
+
         while (reader.IsValid())
         {
             ++_lineNumber;
@@ -503,6 +520,13 @@ namespace Preprocessor {
                 else
                 {
                     thisLine = PreProcessDirective(thisLine);
+                }
+
+                if (!addedModuleMarker && !_moduleName.IsNullOrSpace())
+                {
+                    String moduleMarker = ScriptAnnotations::MakeNewScriptMarker(scriptName, _moduleName);
+                    output.Replace(newScriptMarker, moduleMarker, 0, newScriptMarker.GetLength());
+                    addedModuleMarker = true;
                 }
             }
             output.WriteLine(thisLine);

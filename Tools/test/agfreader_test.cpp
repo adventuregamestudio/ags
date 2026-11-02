@@ -13,6 +13,7 @@
 //=============================================================================
 #include <cstdio>
 #include <fstream>
+#include <tinyxml2.h>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
 
@@ -52,6 +53,34 @@ TEST(AGFReader, OpenRejectsNewerFormats)
 {
     EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.0.0.34\""));
     EXPECT_FALSE(OpenAgfWithRoot("Version=\"4.1.0.0\""));
+}
+
+// Parses a single XML element and reads its script name with the given parser
+static Common::String ReadScriptNameOf(AGF::EntityParser &parser, const char *xml)
+{
+    tinyxml2::XMLDocument doc;
+    if (doc.Parse(xml) != tinyxml2::XML_SUCCESS)
+        return "<parse error>";
+    return parser.ReadScriptName(doc.RootElement());
+}
+
+TEST(AGFReader, EntityScriptNames)
+{
+    // These entities are saved with a <ScriptName> element since the AGS 4 project format;
+    // the script header generator declares them by it
+    AGF::Dialog dialog;
+    AGF::GUIControl control;
+    AGF::InventoryItem item;
+    AGF::View view;
+    EXPECT_STREQ("dDialog1",
+                 ReadScriptNameOf(dialog, "<Dialog><ID>0</ID><ScriptName>dDialog1</ScriptName></Dialog>").GetCStr());
+    EXPECT_STREQ(
+        "Button2",
+        ReadScriptNameOf(control, "<GUIButton><ID>1</ID><ScriptName>Button2</ScriptName></GUIButton>").GetCStr());
+    EXPECT_STREQ("iKey", ReadScriptNameOf(item, "<InventoryItem><ID>1</ID><DisplayName /><ScriptName>iKey</ScriptName>"
+                                                "</InventoryItem>")
+                             .GetCStr());
+    EXPECT_STREQ("VWALK", ReadScriptNameOf(view, "<View><ID>2</ID><ScriptName>VWALK</ScriptName></View>").GetCStr());
 }
 
 TEST(AGFReader, EnumReadSkipSpeech)

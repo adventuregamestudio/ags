@@ -389,7 +389,7 @@ void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
 std::pair<String, String> StrUtil::GetKeyValue(const String &s, char key_val_separator)
 {
     String key, value;
-    const auto at = s.FindChar('=');
+    const auto at = s.FindChar(key_val_separator);
     if (at != String::NoIndex)
     {
         key = s.Left(at);

@@ -237,8 +237,8 @@ struct CharacterData : EntityRef
     int BlockingY{};
     int BlockingWidth{};
     int BlockingHeight{};
-    bool Clickable{};
-    bool DiagonalLoops{};
+    bool Clickable = true;
+    bool DiagonalLoops = true;
     int IdleAnimationDelay{};
     int IdleDelay{};
     int IdleView{};
@@ -248,20 +248,20 @@ struct CharacterData : EntityRef
     int MovementSpeedY{};
     int NormalView{};
     String RealName;
-    bool Solid{};
+    bool Solid = true;
     int SpeechAnimationDelay{};
     int SpeechColor{};
     int SpeechView{};
     int StartX{};
     int StartY{};
-    int StartingRoom{};
+    int StartingRoom = -1;
     int ThinkingView{};
     int Transparency{};
-    bool TurnBeforeWalking{};
-    bool TurnWhenFacing{};
-    bool UniformMovementSpeed{};
-    bool UseRoomAreaLighting{};
-    bool UseRoomAreaScaling{};
+    bool TurnBeforeWalking = true;
+    bool TurnWhenFacing = true;
+    bool UniformMovementSpeed = true;
+    bool UseRoomAreaLighting = true;
+    bool UseRoomAreaScaling = true;
     int BlendMode{}; // AGS.Types BlendMode, same values as Common::BlendMode
     Pointf GraphicAnchor = Pointf(0.5f, 1.f);
     Point GraphicOffset;

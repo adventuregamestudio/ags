@@ -592,8 +592,8 @@ struct GameSettings
     int GlobalSpeechAnimationDelay;
     bool HandleInvClicksInScript;
     bool InventoryCursors;
-    unsigned int InventoryHotspotMarkerCrosshairColor;
-    unsigned int InventoryHotspotMarkerDotColor;
+    int InventoryHotspotMarkerCrosshairColor{};
+    int InventoryHotspotMarkerDotColor{};
     int InventoryHotspotMarkerSprite;
     DataUtil::InventoryHotspotMarkerStyle InventoryHotspotMarkerStyle = kInventoryHotspot_None;
     bool LeftToRightPrecedence;

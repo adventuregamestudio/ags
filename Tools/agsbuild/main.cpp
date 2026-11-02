@@ -179,6 +179,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
     std::vector<DataUtil::AudioClipData> aclip_list;
     std::vector<String> custom_dirs;
     std::vector<int> font_list;
+    std::vector<String> font_files; // AGS 4: files in the Fonts folder
     std::vector<String> plugin_list;
     std::vector<int> room_list;
     std::vector<String> scm_list;
@@ -214,6 +215,7 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         AGF::ReadAudioClips(aclip_list, reader.GetGameRoot());
         AGF::ReadCustomDataDirectories(custom_dirs, reader.GetGameRoot());
         AGF::ReadFontList(font_list, reader.GetGameRoot());
+        AGF::ReadFontFileList(font_files, reader.GetGameRoot());
         AGF::ReadPluginList(plugin_list, reader.GetGameRoot());
         std::vector<std::pair<int, String>> room_list_with_desc;
         AGF::ReadRoomList(room_list_with_desc, reader.GetGameRoot());
@@ -283,15 +285,6 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         pre_deploy_tasks.push_back({"game-cfg"});
     }
 
-    // Build game28.dta
-    {
-        const String tool_agf2dta = Path::MakeEscapedExePath(sys_dir, ToolAgf2Dta);
-        taskmgr.AddTask(std::make_unique<TaskPipedProcess>("agf2dta", &taskmgr,
-            PipedProcessParams(tool_agf2dta, String::FromFormat("\"%s\" \"%s/game28.dta\" %s", src_agf.GetCStr(), temp_dir.GetCStr(), verbose))));
-        pak_temp_files.push_back("game28.dta");
-        pre_pack_tasks.push_back({"agf2dta"});
-    }
-
     // The compiled scripts name their headers after the header files, and the editor calls the
     // script API header "_BuiltInScriptHeader.ash"; use a copy under that name
     const String builtin_ash = Path::ConcatPaths(temp_dir, ScriptBuiltInHeader);
@@ -299,69 +292,58 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         return new Error("Failed to copy %s to %s", api_ash.GetCStr(), builtin_ash.GetCStr());
     clnup_temp_files.push_back(ScriptBuiltInHeader);
 
-    // Compile game scripts
+    // Compile game scripts. Like the editor, every script gets all the headers: the API, the
+    // auto-generated and global variable headers, then every script module's header.
     String all_script_headers;
-    String module_script_headers;          // script module headers, after the API, auto-generated and variable headers
-    std::vector<String> scom_modules_list; // compiled scripts that must be listed in ScriptModules.lst
+    String module_script_headers; // script module headers, after the API, auto-generated and variable headers
+    std::vector<String> scom_obj;
+    std::vector<TaskInput> scom_tasks;
     {
         const String tool_agscc = Path::MakeEscapedExePath(sys_dir, ScriptCompiler);
-        String base_headers =
+        all_script_headers =
             String::FromFormat("%s" AGSCC_H_SEP "%s/%s", builtin_ash.GetCStr(), temp_dir.GetCStr(), ScriptAutoHeader);
-        std::vector<String> scom_obj;
-        std::vector<String> scom_tasks;
+        if (has_globalvar_script)
+            all_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", temp_dir.GetCStr(), ScriptGlvarHeader);
+        for (const auto &header : scm_header_list)
+            module_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", src_dir.GetCStr(), header.GetCStr());
+        all_script_headers.Append(module_script_headers);
+
+        auto add_compile_task = [&](const String &script_dir, const String &script, std::vector<TaskInput> &&deps)
+        {
+            const String scom = Path::ReplaceExtension(script, "o");
+            const String task_name = String::FromFormat("agscc:%s", script.GetCStr());
+            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(
+                task_name, &taskmgr,
+                PipedProcessParams(
+                    tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", script_dir.GetCStr(),
+                                                   script.GetCStr(), all_script_headers.GetCStr(), temp_dir.GetCStr(),
+                                                   scom.GetCStr(), MakeAGSCCFlags(agscc_opts).GetCStr())),
+                std::move(deps))));
+            scom_obj.push_back(scom);
+            scom_tasks.push_back({task_name});
+        };
 
         if (has_globalvar_script)
-        {
-            base_headers.AppendFmt(AGSCC_H_SEP "%s/%s", temp_dir.GetCStr(), ScriptGlvarHeader);
-            const String task_name = String::FromFormat("agscc:%s", ScriptGlvarScript);
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_name, &taskmgr,
-                PipedProcessParams(tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", temp_dir.GetCStr(), ScriptGlvarScript, base_headers.GetCStr(), temp_dir.GetCStr(), ScriptGlvarScom,
-                    MakeAGSCCFlags(agscc_opts).GetCStr())),
-                {{"autoash"}, {"glvar"}})));
-            scom_obj.push_back(ScriptGlvarScom);
-            scom_tasks.push_back(task_name);
-        }
+            add_compile_task(temp_dir, ScriptGlvarScript, {{"autoash"}, {"glvar"}});
+        for (const auto &script : scm_list)
+            add_compile_task(src_dir, script, {{"autoash"}, {"glvar"}});
+        add_compile_task(temp_dir, ScriptDialogScript, {{"autoash"}, {"glvar"}, {"dlgasc"}});
 
-        {
-            String headers = base_headers;
-            for (size_t sm = 0; sm < scm_list.size(); ++sm)
-            {
-                if (sm < scm_header_list.size())
-                {
-                    headers.AppendFmt(AGSCC_H_SEP "%s/%s", src_dir.GetCStr(), scm_header_list[sm].GetCStr());
-                    module_script_headers.AppendFmt(AGSCC_H_SEP "%s/%s", src_dir.GetCStr(),
-                                                    scm_header_list[sm].GetCStr());
-                }
-                const String scm_obj = Path::ReplaceExtension(scm_list[sm], "o");
-                const String task_name = String::FromFormat("agscc:%s", scm_list[sm].GetCStr());
-                taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_name, &taskmgr,
-                    PipedProcessParams(tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", src_dir.GetCStr(), scm_list[sm].GetCStr(), headers.GetCStr(), temp_dir.GetCStr(), scm_obj.GetCStr(),
-                        MakeAGSCCFlags(agscc_opts).GetCStr())),
-                    {{"autoash"}, {"glvar"}})));
-                scom_obj.push_back(scm_obj);
-                scom_tasks.push_back(task_name);
-            }
-            all_script_headers = headers;
-        }
-        // TODO: perhaps write all, and let engine filter global script (and other special scripts) out?
-        for (const auto scm : scom_obj)
-            if (scm != "GlobalScript.o")
-                scom_modules_list.push_back(scm);
+        // The scripts go into game28.dta, so the objects are not packed
+        std::copy(scom_obj.begin(), scom_obj.end(), std::back_inserter(clnup_temp_files));
+    }
 
-        {
-            // Dialog script uses all the accumulated script module headers
-            const String task_name = String::FromFormat("agscc:%s", ScriptDialogScript);
-            taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_name, &taskmgr,
-                PipedProcessParams(tool_agscc, String::FromFormat("\"%s/%s\" -H \"%s\" -o \"%s/%s\" %s", temp_dir.GetCStr(), ScriptDialogScript, all_script_headers.GetCStr(), temp_dir.GetCStr(), ScriptDialogScom,
-                    MakeAGSCCFlags(agscc_opts).GetCStr())),
-                {{"autoash"}, {"glvar"}, {"dlgasc"}})));
-            // NOTE: dialog script is special and is not added to the "script modules" list
-            scom_obj.push_back(ScriptDialogScom);
-            scom_tasks.push_back(task_name);
-        }
-
-        std::copy(scom_obj.begin(), scom_obj.end(), std::back_inserter(pak_temp_files));
-        std::copy(scom_tasks.begin(), scom_tasks.end(), std::back_inserter(pre_pack_tasks));
+    // Build game28.dta, with the compiled scripts inside as the editor does
+    {
+        const String tool_agf2dta = Path::MakeEscapedExePath(sys_dir, ToolAgf2Dta);
+        taskmgr.AddTask(std::make_unique<TaskPipedProcess>(
+            "agf2dta", &taskmgr,
+            PipedProcessParams(tool_agf2dta,
+                               String::FromFormat("\"%s\" \"%s/game28.dta\" --script-dir \"%s\" %s", src_agf.GetCStr(),
+                                                  temp_dir.GetCStr(), temp_dir.GetCStr(), verbose)),
+            std::vector<TaskInput>(scom_tasks)));
+        pak_temp_files.push_back("game28.dta");
+        pre_pack_tasks.push_back({"agf2dta"});
     }
 
     // AGS 4 rooms are sources in Rooms/<n>/; projects of older layouts keep compiled room<n>.crm files
@@ -476,14 +458,6 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
         }
     }
 
-    // Write ScriptModules.lst
-    {
-        taskmgr.AddTask(std::unique_ptr<Task>(new TaskWriteStringList("write-script-list", &taskmgr,
-            Path::ConcatPaths(temp_dir, "ScriptModules.lst"), scom_modules_list)));
-        pak_temp_files.push_back("ScriptModules.lst");
-        pre_pack_tasks.push_back({"write-script-list"});
-    }
-
     // Compile translations
     {
         const String tool_trac = Path::MakeEscapedExePath(sys_dir, ToolTrac);
@@ -572,9 +546,27 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
 
     // Collect other necessary files from the source directory
     {
-        // Add font files
+        // Add font files: AGS 4 projects keep them in the Fonts folder, and the editor packs them
+        // without the folder; older projects have agsfntN files next to Game.agf
+        if (!font_files.empty())
+        {
+            std::vector<std::pair<String, String>> copy_fonts;
+            for (const auto &file : font_files)
+            {
+                copy_fonts.push_back(
+                    std::make_pair(Path::ConcatPaths(src_dir, String::FromFormat("Fonts/%s", file.GetCStr())),
+                                   Path::ConcatPaths(temp_dir, file)));
+                pak_temp_files.push_back(file);
+                clnup_temp_files.push_back(file);
+            }
+            taskmgr.AddTask(std::unique_ptr<Task>(
+                new TaskMoveFiles("copy-fonts", &taskmgr, copy_fonts, FileMoveOp::Copy, false /* no skip */)));
+            pre_pack_tasks.push_back({"copy-fonts"});
+        }
         for (const auto &fnt : font_list)
         {
+            if (!font_files.empty())
+                break;
             const String ttf_file = String::FromFormat("agsfnt%d.ttf", fnt);
             const String wfn_file = String::FromFormat("agsfnt%d.wfn", fnt);
             if (File::IsFile(Path::ConcatPaths(src_dir, ttf_file)))

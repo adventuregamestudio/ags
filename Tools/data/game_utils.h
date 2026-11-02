@@ -262,7 +262,12 @@ struct CharacterData : EntityRef
     bool UniformMovementSpeed{};
     bool UseRoomAreaLighting{};
     bool UseRoomAreaScaling{};
-    String ScriptModule;
+    int BlendMode{}; // AGS.Types BlendMode, same values as Common::BlendMode
+    Pointf GraphicAnchor = Pointf(0.5f, 1.f);
+    Point GraphicOffset;
+    String OnAnyClick;
+    String OnFrameEvent;
+    String ScriptModule = "GlobalScript.asc"; // the editor's default
     std::vector<String> InteractionEvents;
     std::vector<CustomPropertyValue> Properties;
 };
@@ -270,9 +275,12 @@ struct CharacterData : EntityRef
 struct ViewFrameData
 {
     int Delay{};
-    bool Flipped{};
+    String EventName;
+    int Flip{}; // SpriteFlipStyle: 1 horizontal, 2 vertical, 3 both
     int Image{};
     int Sound{}; // stable audio clip index in the AGF
+    int XOffset{};
+    int YOffset{};
 };
 
 struct ViewLoopData
@@ -302,6 +310,7 @@ struct FontData : EntityRef
     int SizeMultiplier = 1;
     FontMetricsFixup MetricsFixup = kFontMetrics_None;
     int VerticalOffset{};
+    String FontFileName;
 };
 
 struct SpriteData
@@ -366,6 +375,7 @@ struct AudioClipData : EntityRef
     bool Repeat{};
     int Priority = 50;
     int Volume = 100;
+    std::vector<CustomPropertyValue> Properties;
 };
 
 struct PluginData
@@ -385,6 +395,7 @@ struct DialogRef : EntityRef
 {
     int OptionCount = 0;
     bool ShowTextParser = false;
+    std::vector<CustomPropertyValue> Properties;
     std::vector<DialogOptionData> Options;
 };
 
@@ -407,6 +418,9 @@ struct GUIControlData : EntityRef
     int BorderWidth{};
     int PaddingX{};
     int PaddingY{};
+    int Transparency{}; // 0-100
+    int BlendMode{};
+    std::vector<CustomPropertyValue> Properties;
 };
 
 struct GUIButtonData : GUIControlData
@@ -419,6 +433,8 @@ struct GUIButtonData : GUIControlData
     int MouseoverImage{};
     int NewModeNumber{};
     String OnClick;
+    String OnFrameEvent;
+    bool IsTextWindowEdge{}; // a text window's edge, which the editor writes as a button
     int PushedImage{};
     String Text;
     FrameAlignment TextAlignment = kAlignTopCenter;
@@ -513,6 +529,8 @@ struct GUIData : EntityRef
     int ZOrder{};
     int Padding = TEXTWINDOW_PADDING_DEFAULT;
     int TextColor{};
+    int BlendMode{};
+    std::vector<CustomPropertyValue> Properties;
     std::vector<std::shared_ptr<GUIControlData>> Controls;
 };
 
@@ -548,6 +566,8 @@ struct GameSettings
     bool DebugMode;
     int DefaultRoomMaskResolution;
     String Description;
+    String DeveloperErrorText;
+    float FaceDirectionRatio{};
     String DeveloperName;
     String DeveloperURL;
     bool DialogOptionsBackwards;
@@ -672,8 +692,10 @@ struct InventoryItemData : EntityRef
     int CursorImage = 0;
     int HotspotX = 0;
     int HotspotY = 0;
+    FrameAlignment HotspotAlignment = kAlignNone;
     bool PlayerStartsWith = false;
-    String ScriptModule;
+    String OnAnyClick;
+    String ScriptModule = "GlobalScript.asc"; // the editor's default
     std::vector<String> InteractionEvents;
     std::vector<CustomPropertyValue> Properties;
 };
@@ -691,6 +713,8 @@ struct CursorData : EntityRef
     bool AnimateOnlyWhenMoving = false;
     bool StandardMode = false;
     int AnimationDelay = 5;
+    int StandardRole = -1;    // AGS.Types CursorRole
+    bool CreateEvent = false; // the cursor has an interaction event
 };
 
 // Lightweight game data used by script generation and dialog conversion.
@@ -717,6 +741,13 @@ struct GameRef
 
 // Full game data required for serializing a compiled game. The base GameRef
 // remains the lightweight representation used by the other data tools.
+// A compiled script embedded into the game data: its name and the compiled object file
+struct CompiledScriptData
+{
+    String FileName; // like "GlobalScript.asc"
+    std::vector<uint8_t> Data;
+};
+
 struct GameData : GameRef
 {
     std::vector<AudioClipData> AudioClips;
@@ -736,6 +767,12 @@ struct GameData : GameRef
     std::vector<String> GlobalMessages;
     std::vector<PluginData> Plugins;
     String EditorVersion;
+    // Compiled scripts, embedded as the editor does it; when not embedded, the engine loads
+    // them from separate files listed in ScriptModules.lst
+    bool EmbedScripts = false;
+    CompiledScriptData GlobalScript;
+    CompiledScriptData DialogScript;
+    std::vector<CompiledScriptData> ScriptModules; // in the order the editor compiles them
 };
 
 // Fills ConfigTree with contents of RuntimeSetup, in accordance to the AGS config format.

@@ -37,17 +37,9 @@ static const size_t MAX_XML_WALKABLE_AREAS = 16;
 static const size_t MAX_XML_WALK_BEHINDS = 16;
 static const size_t MAX_XML_REGIONS = 16;
 
-static const CstrArr<13> kBlendModeNames = {{"Normal", "Add", "Darken", "Lighten", "Multiply", "Screen", "Burn",
-                                             "Subtract", "Exclusion", "Dodge", "Copy", "CopyRGB", "CopyAlpha"}};
-
 //-----------------------------------------------------------------------------
 // Value parsers, following the AGS.Types property setters
 //-----------------------------------------------------------------------------
-
-static bool ParseBlendMode(const char *text, int &value)
-{
-    return ParseXmlEnum(text, kBlendModeNames, value);
-}
 
 // Script names must be valid script identifiers (Utilities.ValidateScriptName)
 static bool ParseScriptName(const char *text, String &value)
@@ -83,27 +75,6 @@ static bool ParseTransparency(const char *text, int &value)
 static bool ParseTintSaturation(const char *text, int &value)
 {
     return ParseXmlValue(text, value) && value != 0;
-}
-
-// GraphicAnchor is "x, y" (GraphicAnchorTypeConverter): numbers that don't parse read as 0,
-// and both are clamped to 0-1
-static bool ParseGraphicAnchor(const char *text, Pointf &value)
-{
-    String s = text;
-    s.Trim();
-    if (s.IsEmpty())
-    {
-        value = Pointf(); // the converter gives null, which sets the default struct
-        return true;
-    }
-    const auto parts = s.Split(',');
-    if (parts.size() != 2)
-        return false;
-    float x = 0.f, y = 0.f;
-    ParseXmlValue(parts[0].GetCStr(), x);
-    ParseXmlValue(parts[1].GetCStr(), y);
-    value = Pointf(Math::Clamp(x, 0.f, 1.f), Math::Clamp(y, 0.f, 1.f));
-    return true;
 }
 
 //-----------------------------------------------------------------------------

@@ -59,6 +59,7 @@ void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out);
 void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out);
 void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out);
+void WriteCompiledScripts(const DataUtil::GameData &game, Stream *out);
 void WritePluginsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteGuiBlock(const DataUtil::GameData &game, Stream *out);

@@ -16,6 +16,9 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <algorithm>
+#include <iterator>
+#include "util/memory_compat.h"
 
 using namespace AGS::Common;
 
@@ -38,7 +41,9 @@ static std::vector<String> SplitCommas(const char *text)
     return String(text).Split(',');
 }
 
-// Like C# Int32.Parse: optional whitespace and sign around decimal digits, no overflow
+// Like C# Int32.Parse: optional whitespace and sign around decimal digits, no overflow.
+// Colors are written in hex ("0xFFA8A8A8"), which the editor reads with Convert.ToInt32(s, 16):
+// all 32 bits, so values above 0x7FFFFFFF become negative.
 static bool ParseInt(const String &str, int &value)
 {
     const String s = Trimmed(str.GetCStr());
@@ -46,7 +51,15 @@ static bool ParseInt(const String &str, int &value)
         return false;
     char *end = nullptr;
     errno = 0;
-    const long v = std::strtol(s.GetCStr(), &end, 10);
+    if (s.CompareLeftNoCase("0x") == 0)
+    {
+        const unsigned long long v = std::strtoull(s.GetCStr() + 2, &end, 16);
+        if (*end != 0 || end == s.GetCStr() + 2 || errno == ERANGE || v > UINT32_MAX)
+            return false;
+        value = static_cast<int>(static_cast<uint32_t>(v));
+        return true;
+    }
+    const long long v = std::strtoll(s.GetCStr(), &end, 10);
     if (*end != 0 || errno == ERANGE || v < INT_MIN || v > INT_MAX)
         return false;
     value = static_cast<int>(v);
@@ -125,6 +138,33 @@ bool ParseXmlEnum(const char *text, const char *const names[], size_t count, int
         }
     }
     return ParseInt(s, value);
+}
+
+bool ParseGraphicAnchor(const char *text, Pointf &value)
+{
+    String s = text;
+    s.Trim();
+    if (s.IsEmpty())
+    {
+        value = Pointf(); // the converter gives null, which sets the default struct
+        return true;
+    }
+    const auto parts = s.Split(',');
+    if (parts.size() != 2)
+        return false;
+    float x = 0.f, y = 0.f;
+    ParseXmlValue(parts[0].GetCStr(), x);
+    ParseXmlValue(parts[1].GetCStr(), y);
+    value = Pointf(std::min(std::max(x, 0.f), 1.f), std::min(std::max(y, 0.f), 1.f));
+    return true;
+}
+
+bool ParseBlendMode(const char *text, int &value)
+{
+    static const char *const kBlendModeNames[] = {"Normal", "Add",     "Darken",   "Lighten",   "Multiply",
+                                                  "Screen", "Burn",    "Subtract", "Exclusion", "Dodge",
+                                                  "Copy",   "CopyRGB", "CopyAlpha"};
+    return ParseXmlEnum(text, kBlendModeNames, std::size(kBlendModeNames), value);
 }
 
 int CompareXmlVersions(const char *a, const char *b)

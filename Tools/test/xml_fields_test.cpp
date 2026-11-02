@@ -137,6 +137,9 @@ TEST(XmlFields, ValueParsersFollowTheEditor)
     int i = 0;
     EXPECT_TRUE(ParseXmlValue(" -12 ", i));
     EXPECT_EQ(-12, i);
+    EXPECT_TRUE(ParseXmlValue("0xFFA8A8A8", i)); // colors: all 32 bits, as Convert.ToInt32(s, 16)
+    EXPECT_EQ(static_cast<int>(0xFFA8A8A8u), i);
+    EXPECT_FALSE(ParseXmlValue("0x1FFFFFFFF", i));
     bool b = false;
     EXPECT_TRUE(ParseXmlValue("true", b)); // Convert.ToBoolean ignores case
     EXPECT_TRUE(b);

@@ -128,6 +128,8 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     game.LipSync = DataUtil::kLipSync_Text;
     game.LipSyncDefaultFrame = 3;
     game.Views.resize(2);
+    game.Views[0].ID = 1;
+    game.Views[1].ID = 2;
     game.Characters.resize(2);
     game.Inventory.resize(1);
     game.Fonts.resize(1);
@@ -151,7 +153,7 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     EXPECT_EQ(2, loaded.numviews);
     EXPECT_EQ(2, loaded.numcharacters);
     EXPECT_EQ(1, loaded.playercharacter);
-    EXPECT_EQ(2, loaded.numinvitems); // inventory slot 0 is reserved
+    EXPECT_EQ(1, loaded.numinvitems); // the list has item 0 already, as in the editor
     EXPECT_EQ(1, loaded.numfonts);
     EXPECT_EQ(1, loaded.numgui);
     EXPECT_EQ(2, loaded.numcursors);
@@ -279,15 +281,13 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
     auto in = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer));
 
-    InventoryItemInfo loaded[3]{};
+    InventoryItemInfo loaded[2]{};
     for (auto &item : loaded)
         item.ReadFromFile(in.get(), kGameVersion_Current);
-    EXPECT_TRUE(loaded[0].name.IsEmpty());
-    EXPECT_EQ(0, loaded[0].pic);
-    EXPECT_STREQ("Key", loaded[1].name.GetCStr());
-    EXPECT_EQ(10, loaded[1].pic);
-    EXPECT_STREQ("Coin", loaded[2].name.GetCStr());
-    EXPECT_EQ(20, loaded[2].pic);
+    EXPECT_STREQ("Key", loaded[0].name.GetCStr());
+    EXPECT_EQ(10, loaded[0].pic);
+    EXPECT_STREQ("Coin", loaded[1].name.GetCStr());
+    EXPECT_EQ(20, loaded[1].pic);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -388,7 +388,7 @@ TEST(DataFileWriter, RoundTripView)
     DataUtil::ViewFrameData frame;
     frame.Image = 12;
     frame.Delay = 3;
-    frame.Flipped = true;
+    frame.Flip = kSprTf_FlipX;
     frame.Sound = 42;
     DataUtil::ViewLoopData loop;
     loop.RunNextLoop = true;
@@ -422,12 +422,15 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     DataUtil::GameData game;
     DataUtil::ViewData first;
     DataUtil::ViewLoopData first_loop;
-    first_loop.Frames.push_back({ 1, false, 10, 0 });
+    first_loop.Frames.push_back({1, "", 0, 10, 0});
     first.Loops.push_back(first_loop);
     DataUtil::ViewData second;
     DataUtil::ViewLoopData second_loop;
-    second_loop.Frames.push_back({ 2, true, 20, 0 });
+    second_loop.Frames.push_back({2, "", kSprTf_FlipX, 20, 0});
     second.Loops.push_back(second_loop);
+    // the editor writes views by ID, with empty slots for missing IDs
+    first.ID = 3;
+    second.ID = 1;
     game.Views = { first, second };
 
     std::vector<uint8_t> buffer;
@@ -438,14 +441,15 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     auto in = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer));
 
-    ViewStruct loaded[2];
+    ViewStruct loaded[3];
     for (auto &view : loaded)
         view.ReadFromFile(in.get());
     ASSERT_EQ(1u, loaded[0].loops[0].frames.size());
-    ASSERT_EQ(1u, loaded[1].loops[0].frames.size());
-    EXPECT_EQ(10, loaded[0].loops[0].frames[0].pic);
-    EXPECT_EQ(20, loaded[1].loops[0].frames[0].pic);
-    EXPECT_NE(0, loaded[1].loops[0].frames[0].flags & kSprTf_FlipX);
+    EXPECT_EQ(0, loaded[1].numLoops); // no view 2
+    ASSERT_EQ(1u, loaded[2].loops[0].frames.size());
+    EXPECT_EQ(20, loaded[0].loops[0].frames[0].pic);
+    EXPECT_NE(0, loaded[0].loops[0].frames[0].flags & kSprTf_FlipX);
+    EXPECT_EQ(10, loaded[2].loops[0].frames[0].pic);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -575,13 +579,7 @@ TEST(DataFileWriter, RoundTripAudioBlock)
     EXPECT_STREQ("aTheme", loaded.Clips[0].scriptName.GetCStr());
     EXPECT_EQ(202, loaded.Clips[1].id);
     EXPECT_STREQ("aClick", loaded.Clips[1].scriptName.GetCStr());
-    EXPECT_EQ(202, loaded.ScoreClipID);
-
-    // PlaySoundOnScore stores the AGF clip index, not the script name. A
-    // missing index is serialized as the Engine's "none" value.
-    game.Settings.PlaySoundOnScore = -1;
-    loaded = RoundTripAudioBlock(game);
-    EXPECT_EQ(-1, loaded.ScoreClipID);
+    EXPECT_EQ(0, loaded.ScoreClipID); // [DEPRECATED]: the editor writes 0
 }
 
 TEST(DataFileWriter, RoundTripExt363Dialogs)
@@ -743,17 +741,12 @@ TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
     for (auto &properties : character_properties)
         ASSERT_EQ(kPropertyErr_NoError,
             Properties::ReadValues(properties, in.get()));
-    StringIMap unused_inventory_properties;
-    ASSERT_EQ(kPropertyErr_NoError,
-        Properties::ReadValues(unused_inventory_properties, in.get()));
     StringIMap inventory_properties[2];
     for (auto &properties : inventory_properties)
-        ASSERT_EQ(kPropertyErr_NoError,
-            Properties::ReadValues(properties, in.get()));
+        ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(properties, in.get()));
 
     EXPECT_STREQ("11", character_properties[0]["Value"].GetCStr());
     EXPECT_STREQ("22", character_properties[1]["Value"].GetCStr());
-    EXPECT_TRUE(unused_inventory_properties.empty());
     EXPECT_STREQ("33", inventory_properties[0]["Value"].GetCStr());
     EXPECT_STREQ("44", inventory_properties[1]["Value"].GetCStr());
     EXPECT_EQ(in->GetLength(), in->GetPosition());
@@ -901,10 +894,11 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
 {
     DataUtil::GameData game;
     DataUtil::ViewData first_view;
+    first_view.ID = 1;
     first_view.ScriptName = "vFirst";
-    DataUtil::ViewData second_view;
-    second_view.TypeName = "SecondView";
-    game.Views = { first_view, second_view };
+    DataUtil::ViewData third_view;
+    third_view.ID = 3;
+    game.Views = {first_view, third_view};
     DataUtil::InventoryItemData key;
     key.ScriptName = "iKey";
     DataUtil::InventoryItemData coin;
@@ -916,11 +910,10 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
         std::make_unique<VectorStream>(buffer));
 
     EXPECT_STREQ("vFirst", String::FromStream(in.get()).GetCStr());
-    EXPECT_STREQ("SecondView", String::FromStream(in.get()).GetCStr());
-    // This is the third independent serialization of unused inventory slot 0.
-    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty());
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // no view 2
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // view 3 has no script name
     EXPECT_STREQ("iKey", String::FromStream(in.get()).GetCStr());
-    EXPECT_STREQ("CoinItem", String::FromStream(in.get()).GetCStr());
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // no script name
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -1053,9 +1046,7 @@ TEST(DataFileWriter, RoundTripExt361ObjNames)
     ASSERT_EQ(1, in->ReadInt32());
     EXPECT_STREQ("cHero", StrUtil::ReadString(in.get()).GetCStr());
     EXPECT_STREQ("The Hero", StrUtil::ReadString(in.get()).GetCStr());
-    ASSERT_EQ(2, in->ReadInt32());
-    // Unlike the legacy v361 interaction block, this extension includes slot 0.
-    EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty());
+    ASSERT_EQ(1, in->ReadInt32());
     EXPECT_STREQ("Brass key", StrUtil::ReadString(in.get()).GetCStr());
     ASSERT_EQ(1, in->ReadInt32());
     EXPECT_STREQ("Look", StrUtil::ReadString(in.get()).GetCStr());
@@ -1102,12 +1093,7 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
     ASSERT_TRUE(error);
     EXPECT_STREQ("NpcModule", loaded_npc.GetScriptModule().GetCStr());
 
-    ASSERT_EQ(2, in->ReadInt32()); // unused slot 0 plus one real item
-    ScriptEventHandlers unused_item;
-    error = unused_item.Read(in.get());
-    ASSERT_TRUE(error);
-    EXPECT_TRUE(unused_item.GetScriptModule().IsEmpty());
-    EXPECT_TRUE(unused_item.GetHandlers().empty());
+    ASSERT_EQ(1, in->ReadInt32());
     ScriptEventHandlers loaded_key;
     error = loaded_key.Read(in.get());
     ASSERT_TRUE(error);
@@ -1125,6 +1111,7 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
     DataUtil::GameData game;
     game.Settings.GameName = "My Game";
     game.Settings.Description = "A test game";
+    game.Settings.DeveloperErrorText = "Oops";
     game.Settings.DeveloperName = "AGS Team";
     game.Settings.DeveloperURL = "https://example.invalid";
     game.Settings.Genre = "Adventure";
@@ -1138,7 +1125,8 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
 
     StringMap info;
     StrUtil::ReadStringMap(info, in.get());
-    ASSERT_EQ(8u, info.size());
+    ASSERT_EQ(9u, info.size());
+    EXPECT_STREQ("Oops", info["dev_error_text"].GetCStr());
     EXPECT_STREQ("My Game", info["title"].GetCStr());
     EXPECT_STREQ("A test game", info["description"].GetCStr());
     EXPECT_STREQ("AGS Team", info["dev_name"].GetCStr());
@@ -1344,7 +1332,7 @@ TEST(DataFileWriter, RoundTripGuiButton)
     EXPECT_EQ(button->NewModeNumber, actual.GetClickData(kGUIClickLeft));
     EXPECT_STREQ(button->Text.GetCStr(), actual.GetText().GetCStr());
     EXPECT_EQ(button->TextAlignment, actual.GetTextAlignment());
-    EXPECT_STREQ(button->OnClick.GetCStr(), actual.GetEventHandler(0).GetCStr());
+    EXPECT_TRUE(actual.GetEventHandler(0).IsEmpty()); // events are in "v400_eventtables"
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
 
@@ -1416,7 +1404,7 @@ TEST(DataFileWriter, RoundTripGuiSlider)
     EXPECT_EQ(slider->HandleImage, actual.GetHandleImage());
     EXPECT_EQ(slider->HandleOffset, actual.GetHandleOffset());
     EXPECT_EQ(slider->BackgroundImage, actual.GetBgImage());
-    EXPECT_STREQ(slider->OnChange.GetCStr(), actual.GetEventHandler(0).GetCStr());
+    EXPECT_TRUE(actual.GetEventHandler(0).IsEmpty()); // events are in "v400_eventtables"
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
 
@@ -1441,7 +1429,7 @@ TEST(DataFileWriter, RoundTripGuiTextBox)
     EXPECT_EQ(text_box->Font, actual.GetFont());
     EXPECT_EQ(text_box->TextColor, actual.GetTextColor());
     EXPECT_NE(0, actual.GetTextBoxFlags() & kTextBox_ShowBorder);
-    EXPECT_STREQ(text_box->OnActivate.GetCStr(), actual.GetEventHandler(0).GetCStr());
+    EXPECT_TRUE(actual.GetEventHandler(0).IsEmpty()); // events are in "v400_eventtables"
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
 
@@ -1474,8 +1462,7 @@ TEST(DataFileWriter, RoundTripGuiListBox)
     EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowArrows);
     EXPECT_EQ(static_cast<FrameAlignment>(list_box->TextAlignment),
         actual.GetTextAlignment());
-    EXPECT_STREQ(list_box->OnSelectionChanged.GetCStr(),
-        actual.GetEventHandler(0).GetCStr());
+    EXPECT_TRUE(actual.GetEventHandler(0).IsEmpty()); // events are in "v400_eventtables"
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
 

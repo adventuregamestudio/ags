@@ -19,13 +19,57 @@ const char *HELP_STRING =
 "      Parses AGS project file INPUT-GAME.AGF and writes a compiled AGS game\n"
 "      data file (v3.x-4.x engines expect 'game28.dta' by default).\n"
 "Options:\n"
+"  --script-dir <DIR>     embed the compiled scripts found in DIR (GlobalScript.o,\n"
+"                         __DialogScripts.o and the modules), as the editor does;\n"
+"                         otherwise the engine loads them from separate files\n"
 "  -h, --help             Show this help message\n";
+
+// Loads a compiled script object, which goes into the game data as it is
+static HError LoadCompiledScript(const String &script_dir, const String &script_name,
+                             DataUtil::CompiledScriptData &script)
+{
+const String obj_file = Path::ConcatPaths(script_dir, Path::ReplaceExtension(script_name, "o"));
+auto in = File::OpenFileRead(obj_file);
+if (!in)
+    return new Error(String::FromFormat("Compiled script not found: %s", obj_file.GetCStr()));
+script.FileName = script_name;
+script.Data.resize(static_cast<size_t>(in->GetLength()));
+if (in->Read(script.Data.data(), script.Data.size()) != script.Data.size())
+    return new Error(String::FromFormat("Failed to read %s", obj_file.GetCStr()));
+return HError::None();
+}
+
+// Collects the compiled scripts as the editor embeds them (DataFileWriter.GetScriptModuleList):
+// the global and dialog scripts, then the modules in compile order, the global variables first
+static HError LoadCompiledScripts(const String &script_dir, AGF::AGFReader &reader, DataUtil::GameData &game)
+{
+const String global_script = "GlobalScript.asc";
+std::vector<String> modules;
+if (!game.GlobalVars.empty())
+    modules.push_back("_GlobalVariables.asc");
+std::vector<String> scripts;
+AGF::ReadScriptList(scripts, reader.GetGameRoot());
+for (const auto &script : scripts)
+{
+    if (script != global_script)
+        modules.push_back(script);
+}
+
+HError err = LoadCompiledScript(script_dir, global_script, game.GlobalScript);
+if (err)
+    err = LoadCompiledScript(script_dir, "__DialogScripts.asc", game.DialogScript);
+game.ScriptModules.resize(modules.size());
+for (size_t i = 0; err && i < modules.size(); ++i)
+    err = LoadCompiledScript(script_dir, modules[i], game.ScriptModules[i]);
+game.EmbedScripts = static_cast<bool>(err);
+return err;
+}
 
 int main(int argc, char *argv[])
 {
-    printf("agf2dta v0.1.0 - AGS game main data file build tool\n"\
-        "Copyright (c) 2026 AGS Team and contributors\n");
-    ParseResult parseResult = Parse(argc,argv,{});
+printf("agf2dta v0.1.0 - AGS game main data file build tool\n"
+       "Copyright (c) 2026 AGS Team and contributors\n");
+ParseResult parseResult = Parse(argc, argv, {"--script-dir"});
     if (parseResult.HelpRequested)
     {
         printf("%s\n", HELP_STRING);
@@ -67,6 +111,17 @@ int main(int argc, char *argv[])
 
     DataUtil::GameData game{};
     AGF::ReadGameData(game, reader);
+    for (const auto &opt : parseResult.OptWithValue)
+    {
+        if (opt.first != "--script-dir")
+            continue;
+        const HError script_err = LoadCompiledScripts(opt.second, reader, game);
+        if (!script_err)
+        {
+            printf("Error: %s\n", script_err->FullMessage().GetCStr());
+            return -1;
+        }
+    }
 
     //-----------------------------------------------------------------------//
     // Set the main game data struct values from Game.agf

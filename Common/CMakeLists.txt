@@ -249,6 +249,7 @@ if(AGS_TESTS)
         test/datahelpers_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
+        test/imagefile_test.cpp
         test/indexedobjectpool_test.cpp
         test/inifile_test.cpp
         test/math_test.cpp

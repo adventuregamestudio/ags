@@ -411,7 +411,7 @@ struct GUIControlData : EntityRef
     bool Clickable{};
     bool Enabled{};
     bool Visible{};
-    bool Translated{};
+    bool Translated = true;
     bool ShowBorder{};
     bool SolidBackground{};
     int BackgroundColor{};

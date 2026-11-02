@@ -210,6 +210,10 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
+    <ClCompile Include="..\..\Tools\data\cc_script_stubs.cpp" />
+    <ClCompile Include="..\..\Tools\data\room_build.cpp" />
+    <ClCompile Include="..\..\Tools\data\room_utils.cpp" />
+    <ClCompile Include="..\..\Tools\data\room_xml.cpp" />
     <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
@@ -220,6 +224,7 @@
     <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\room_build_test.cpp" />
     <ClCompile Include="..\..\Tools\test\xml_fields_test.cpp" />
     <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
   </ItemGroup>

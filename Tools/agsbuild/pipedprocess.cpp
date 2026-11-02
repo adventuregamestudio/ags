@@ -12,6 +12,8 @@
 //
 //=============================================================================
 #include "pipedprocess.h"
+#include <algorithm>
+#include <mutex>
 #if (AGS_PLATFORM_OS_WINDOWS)
 #else
 #include <errno.h>
@@ -60,9 +62,18 @@ HError PipedProcess::RunSync(std::vector<uint8_t> *stdout_data)
     return err;
 }
 
+#if (AGS_PLATFORM_OS_WINDOWS)
+// Processes are started from several task threads at once. A child inherits every inheritable
+// handle that exists at the moment it is created, so pipe creation, process creation and closing
+// our copies of the pipe's write ends happen under one lock: then each child inherits only its
+// own pipe, and a pipe reports end-of-file as soon as its process exits.
+static std::mutex CreateProcessMutex;
+#endif
+
 HError PipedProcess::CreateProcess()
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
+    std::lock_guard<std::mutex> lk(CreateProcessMutex);
     STARTUPINFOW si = { sizeof(si), NULL, NULL, NULL, NULL, CREATE_NO_WINDOW, NULL };
 
     SECURITY_ATTRIBUTES sa;
@@ -71,6 +82,11 @@ HError PipedProcess::CreateProcess()
     sa.lpSecurityDescriptor = NULL; 
     const bool stdout_pipe = CreatePipe(&_hStdOutPipeRead, &_hStdOutPipeWrite, &sa, 1024u) == TRUE;
     const bool stderr_pipe = CreatePipe(&_hStdErrPipeRead, &_hStdErrPipeWrite, &sa, 1024u) == TRUE;
+    // Only the write ends are for the child; our read ends must not be inherited by anyone
+    if (stdout_pipe)
+        SetHandleInformation(_hStdOutPipeRead, HANDLE_FLAG_INHERIT, 0);
+    if (stderr_pipe)
+        SetHandleInformation(_hStdErrPipeRead, HANDLE_FLAG_INHERIT, 0);
     // NOTE: we only check the pipe result to know if we should dispose of it.
     // if pipe failed, we still can run the process, although we won't see it's output
     if (stdout_pipe || stderr_pipe)
@@ -83,10 +99,18 @@ HError PipedProcess::CreateProcess()
     
     std::vector<wchar_t> cmd(_command.GetLength() + 1);
     StrUtil::ConvertUtf8ToWstr(_command.GetCStr(), cmd.data(), cmd.size());
-    if (CreateProcessW(NULL, cmd.data(), NULL, NULL, TRUE /* bInheritHandles */, CREATE_NO_WINDOW, NULL, NULL, &si, &_pi) != TRUE)
-    {
-        return new Error("Process failed with err code: %u\n", GetLastError());
-    }
+    const bool created = CreateProcessW(NULL, cmd.data(), NULL, NULL, TRUE /* bInheritHandles */, CREATE_NO_WINDOW, NULL, NULL, &si, &_pi) == TRUE;
+    const DWORD create_error = created ? 0 : GetLastError();
+    // The child has its own copies of the write ends now. Keeping ours open would keep the pipes
+    // from ever reporting end-of-file, and would leak them into the next process we start.
+    if (_hStdOutPipeWrite != INVALID_HANDLE_VALUE)
+        CloseHandle(_hStdOutPipeWrite);
+    if (_hStdErrPipeWrite != INVALID_HANDLE_VALUE)
+        CloseHandle(_hStdErrPipeWrite);
+    _hStdOutPipeWrite = INVALID_HANDLE_VALUE;
+    _hStdErrPipeWrite = INVALID_HANDLE_VALUE;
+    if (!created)
+        return new Error("Process failed with err code: %u\n", create_error);
 #else
     const bool stdout_pipe = pipe(_stdOutPipe) >= 0;
     const bool stderr_pipe = pipe(_stdErrPipe) >= 0;
@@ -132,15 +156,19 @@ HError PipedProcess::CreateProcess()
 }
 
 #if (AGS_PLATFORM_OS_WINDOWS)
-void PipedProcess::ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, bool print_to_buffer)
+bool PipedProcess::ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, bool print_to_buffer)
 {
     uint8_t buffer[1024];
     DWORD pipe_has_bytes = 0;
+    bool any_read = false;
     if ((PeekNamedPipe(pipe, NULL, 0, NULL, &pipe_has_bytes, NULL) == TRUE) && (pipe_has_bytes > 0))
     {
+        // Never ask ReadFile for more than the pipe reported: a blocking ReadFile on an empty pipe
+        // waits until more data arrives, which never happens once the process has exited.
         DWORD bytes_read = 0;
         while (pipe_has_bytes > 0
-            && ReadFile(pipe, buffer, sizeof(buffer) - 1, &bytes_read, NULL) == TRUE && bytes_read > 0 && bytes_read != MAXDWORD)
+            && ReadFile(pipe, buffer, std::min<DWORD>(pipe_has_bytes, sizeof(buffer) - 1), &bytes_read, NULL) == TRUE
+            && bytes_read > 0 && bytes_read <= pipe_has_bytes)
         {
             if (output_data)
             {
@@ -152,8 +180,10 @@ void PipedProcess::ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, 
                 _logWriter->WriteString(reinterpret_cast<const char*>(buffer));
             }
             pipe_has_bytes -= bytes_read;
+            any_read = true;
         }
     }
+    return any_read;
 }
 #else
 void PipedProcess::ReadFromPipe(int pipe_fd, std::vector<uint8_t> *output_data, bool print_to_buffer)
@@ -196,6 +226,16 @@ HError PipedProcess::RunProcessSync(std::vector<uint8_t> *stdout_data)
             ReadFromPipe(_hStdErrPipeRead, nullptr, true);
     }
     while (proc_result == WAIT_TIMEOUT);
+    // Collect whatever the process wrote just before it exited
+    bool any_left = true;
+    while (any_left)
+    {
+        any_left = false;
+        if (_hStdOutPipeRead != INVALID_HANDLE_VALUE)
+            any_left |= ReadFromPipe(_hStdOutPipeRead, stdout_data, true);
+        if (_hStdErrPipeRead != INVALID_HANDLE_VALUE)
+            any_left |= ReadFromPipe(_hStdErrPipeRead, nullptr, true);
+    }
 #else
     if (_cpid == 0)
         return new Error("Internal error: external process was not initialized");
@@ -281,7 +321,8 @@ void PipedProcess::CloseProcess()
 bool PipedProcess::IsPipeCreated() const
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
-    return _hStdOutPipeRead != NULL && _hStdOutPipeWrite != NULL;
+    // Our write ends are closed right after the process starts, so only the read end tells
+    return _hStdOutPipeRead != NULL && _hStdOutPipeRead != INVALID_HANDLE_VALUE;
 #else
     return _stdOutPipe[0] >= 0;
 #endif

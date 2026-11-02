@@ -312,7 +312,9 @@ if(AGS_TESTS)
       ../Common/test/sdl2_stubs.c
       test/agfreader_test.cpp
       test/data_file_writer_test.cpp
+      agsbuild/pipedprocess.cpp
       test/include_utils_test.cpp
+      test/pipedprocess_test.cpp
       test/spriteimport_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )

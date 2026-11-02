@@ -213,10 +213,12 @@
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
+    <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
     <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
     <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />
     <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
   </ItemGroup>
   <ItemGroup>

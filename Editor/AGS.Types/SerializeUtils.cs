@@ -261,7 +261,7 @@ namespace AGS.Types
                             {
                                 throw new InvalidDataException("Type converter declared but not found for: " + prop.PropertyType.Name);
                             }
-                            writer.WriteElementString(prop.Name, typeConverter.ConvertToString(prop.GetValue(obj, null)));
+                            writer.WriteElementString(prop.Name, typeConverter.ConvertToInvariantString(prop.GetValue(obj, null)));
                         }
                         else
                         {
@@ -457,7 +457,7 @@ namespace AGS.Types
                     {
                         throw new InvalidDataException("Type converter declared but not found for: " + prop.PropertyType.Name);
                     }
-                    prop.SetValue(obj, typeConverter.ConvertFromString(elementValue), null);
+                    prop.SetValue(obj, typeConverter.ConvertFromInvariantString(elementValue), null);
                 }
                 else
                 {

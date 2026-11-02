@@ -36,11 +36,13 @@ COMMON_OBJS = \
 	../../Common/ac/wordsdictionary.cpp \
 	../../Common/data/data_helpers.cpp \
 	../../Common/debug/debugmanager.cpp \
+	../../Common/game/scripteventtable.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/directory.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
+	../../Common/util/memorystream.cpp \
 	../../Common/util/path.cpp \
 	../../Common/util/stdio_compat.c \
 	../../Common/util/stream.cpp \

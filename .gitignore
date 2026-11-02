@@ -108,6 +108,7 @@ Engine/ags
 
 
 # Various tools output (merge/diff backups, etc)
+*.bak
 *.orig
 
 

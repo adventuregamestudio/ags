@@ -25,6 +25,12 @@ namespace AGS
 namespace Common
 {
 
+// Converts a angle in degrees to a fixed-point representation used in Allegro4 functions
+inline fixed_t ToAllegroAngle(int angle)
+{
+    return itofix((angle * 256) / 360);
+}
+
 Bitmap::Bitmap()
 {
 }
@@ -431,16 +437,14 @@ void Bitmap::FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip)
 
 void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle)
 {
-    // convert to allegro angle
-    fixed_t al_angle = itofix((angle * 256) / 360);
+    fixed_t al_angle = ToAllegroAngle(angle);
     BITMAP *al_src_bmp = src->_alBitmap;
     rotate_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, al_angle);
 }
 
 void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle)
 {
-    // convert to allegro angle
-    fixed_t al_angle = itofix((angle * 256) / 360);
+    fixed_t al_angle = ToAllegroAngle(angle);
     BITMAP *al_src_bmp = src->_alBitmap;
     pivot_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, pivot_x, pivot_y, al_angle);
 }
@@ -551,15 +555,39 @@ int Bitmap::GetPixel(int x, int y) const
 // Vector drawing operations
 //=============================================================================
 
+inline void NormalizeAngles(int &angle1, int &angle2)
+{
+	angle1 %= 360;
+	angle2 %= 360;
+	if (angle2 < angle1)
+		angle2 += 360;
+}
+
+void Bitmap::DrawArc(int x, int y, int radius, int angle1, int angle2, color_t color)
+{
+	NormalizeAngles(angle1, angle2);
+	arc(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
+}
+
+void Bitmap::DrawCircle(const Circle &circle, color_t color)
+{
+	::circle(_alBitmap, circle.X, circle.Y, circle.Radius, color);
+}
+
+void Bitmap::DrawEllipse(int x, int y, int radiusx, int radiusy, color_t color)
+{
+	ellipse(_alBitmap, x, y, radiusx, radiusy, color);
+}
+
 void Bitmap::DrawLine(const Line &ln, color_t color)
 {
 	line(_alBitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, color);
 }
 
-void Bitmap::DrawTriangle(const Triangle &tr, color_t color)
+void Bitmap::DrawPie(int x, int y, int radius, int angle1, int angle2, color_t color)
 {
-	triangle(_alBitmap,
-		tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
+	NormalizeAngles(angle1, angle2);
+	_soft_pie(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
 void Bitmap::DrawRect(const Rect &rc, color_t color)
@@ -567,14 +595,39 @@ void Bitmap::DrawRect(const Rect &rc, color_t color)
 	rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
 }
 
-void Bitmap::FillRect(const Rect &rc, color_t color)
+void Bitmap::DrawTriangle(const Triangle &tr, color_t color)
 {
-	rectfill(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
+	// Allegro4 provides only triangle fill function, so we just draw 3 lines
+	line(_alBitmap, tr.X1, tr.Y1, tr.X2, tr.Y2, color);
+	line(_alBitmap, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
+	line(_alBitmap, tr.X3, tr.Y3, tr.X1, tr.Y1, color);
 }
 
 void Bitmap::FillCircle(const Circle &circle, color_t color)
 {
 	circlefill(_alBitmap, circle.X, circle.Y, circle.Radius, color);
+}
+
+void Bitmap::FillEllipse(int x, int y, int radiusx, int radiusy, color_t color)
+{
+	ellipsefill(_alBitmap, x, y, radiusx, radiusy, color);
+}
+
+void Bitmap::FillPie(int x, int y, int radius, int angle1, int angle2, color_t color)
+{
+	NormalizeAngles(angle1, angle2);
+	_soft_piefill(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
+}
+
+void Bitmap::FillRect(const Rect &rc, color_t color)
+{
+	rectfill(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
+}
+
+void Bitmap::FillTriangle(const Triangle &tr, color_t color)
+{
+	triangle(_alBitmap,
+		tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
 }
 
 void Bitmap::Fill(color_t color)

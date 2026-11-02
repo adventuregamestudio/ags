@@ -48,6 +48,9 @@ namespace Preprocessor {
         MacroTable _macros = MacroTable();
         int _lineNumber = 0;
         String _scriptName;
+        // Optional "module" (a group of types and imports) declared by "#module <name>"; it is added
+        // to the new-script marker as "<script>;<module>", which the compiler's scanner reads
+        String _moduleName;
         Version _applicationVersion;
         // Conditional statement stack remembers the results of all the nested conditions
         // that we have entered.

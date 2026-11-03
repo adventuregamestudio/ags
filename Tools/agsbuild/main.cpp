@@ -44,6 +44,7 @@ const char *ToolDlgAsc          = "agf2dlgasc";
 const char *ToolAgsPak          = "agspak";
 const char *ToolCrmPak          = "crmpak";
 const char *ToolTrac            = "trac";
+const char *ToolPo2Tra          = "po2tra";
 const char *ToolSpriteImport    = "spriteimport";
 const char *ScriptCompiler      = "agscc";
 const char *ScriptAPIHeader     = "agsdefns.sh";
@@ -397,13 +398,13 @@ HError BuildWithTaskManager(const BuildOptions &bopts)
 
     // Compile translations
     {
-        const String tool_trac = Path::MakeEscapedExePath(sys_dir, ToolTrac);
+        const String tool_po2tra = Path::MakeEscapedExePath(sys_dir, ToolPo2Tra);
         for (const auto &tra : tra_list)
         {
             const String task_name = String::FromFormat("trac:%s", tra.GetCStr());
             const String out_trafile = String::FromFormat("%s.tra", tra.GetCStr());
             taskmgr.AddTask(std::unique_ptr<Task>(new TaskPipedProcess(task_name, &taskmgr,
-                PipedProcessParams(tool_trac, String::FromFormat("\"%s/%s.trs\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
+                PipedProcessParams(tool_po2tra, String::FromFormat("\"%s/%s.po\" \"%s/%s\" --gamename \"%s\" --uniqueid %d %s",
                     src_dir.GetCStr(), tra.GetCStr(), temp_dir.GetCStr(), out_trafile.GetCStr(), game_opts.Name.GetCStr(), game_opts.UniqueID, verbose)))));
             deploy_temp_files.push_back(out_trafile);
             pre_deploy_tasks.push_back(task_name);

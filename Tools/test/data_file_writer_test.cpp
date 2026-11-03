@@ -125,6 +125,8 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     game.LipSync = DataUtil::kLipSync_Text;
     game.LipSyncDefaultFrame = 3;
     game.Views.resize(2);
+    game.Views[0].ID = 1;
+    game.Views[1].ID = 2;
     game.Characters.resize(2);
     game.Inventory.resize(1);
     game.Fonts.resize(1);
@@ -136,7 +138,8 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
     soff_t extension_offset_pos = 0;
-    DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
+    DataFileWriter::WriteGameSetupStructBase(game, DataFileWriter::CompiledData(game), out.get(),
+        extension_offset_pos);
     out.reset();
 
     auto in = AsStream<VectorStream>(buffer);
@@ -180,7 +183,7 @@ TEST(DataFileWriter, RoundTripGlobalMessagesBounds)
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
     soff_t extension_offset_pos = 0;
-    DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
+    DataFileWriter::WriteGameSetupStructBase(game, DataFileWriter::CompiledData(game), out.get(), extension_offset_pos);
     DataFileWriter::WriteGlobalMessagesBlock(game, out.get());
     out.reset();
 
@@ -450,22 +453,27 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     DataUtil::ViewLoopData second_loop;
     second_loop.Frames.push_back({ 2, true, 20, 0 });
     second.Loops.push_back(second_loop);
+    // the editor writes views by ID, with empty slots for missing IDs
+    first.ID = 3;
+    second.ID = 1;
     game.Views = { first, second };
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
-    DataFileWriter::WriteViewsBlock(game, out.get());
+    DataFileWriter::WriteViewsBlock(game, DataFileWriter::CompiledData(game), out.get());
     out.reset();
     auto in = AsStream<VectorStream>(buffer);
 
-    ViewStruct loaded[2];
+    ViewStruct loaded[3];
     for (auto &view : loaded)
         view.ReadFromFile(in.get());
     ASSERT_EQ(1u, loaded[0].loops[0].frames.size());
-    ASSERT_EQ(1u, loaded[1].loops[0].frames.size());
-    EXPECT_EQ(10, loaded[0].loops[0].frames[0].pic);
-    EXPECT_EQ(20, loaded[1].loops[0].frames[0].pic);
-    EXPECT_NE(0, loaded[1].loops[0].frames[0].flags & VFLG_FLIPSPRITE);
+    EXPECT_EQ(1,  loaded[0].loops[0].frames[0].flags & VFLG_FLIPSPRITE);
+    EXPECT_EQ(20, loaded[0].loops[0].frames[0].pic);
+    EXPECT_EQ(0,  loaded[1].numLoops); // no view 2
+    ASSERT_EQ(1u, loaded[2].loops[0].frames.size());
+    EXPECT_EQ(0,  loaded[2].loops[0].frames[0].flags & VFLG_FLIPSPRITE);
+    EXPECT_EQ(10, loaded[2].loops[0].frames[0].pic);
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -605,7 +613,7 @@ TEST(DataFileWriter, RoundTripExt363Dialogs)
     dialog.ScriptName = "dGreeting";
     dialog.ShowTextParser = true;
     dialog.Options.push_back({ "Hello", true, true });
-    dialog.Options.push_back({ "Goodbye", false, false });
+    dialog.Options.push_back({ "Say \\\"goodbye\\\"\\n(politely)", false, false }); // test escapes
     DataUtil::GameData game;
     game.Dialogs.push_back(dialog);
 
@@ -624,7 +632,7 @@ TEST(DataFileWriter, RoundTripExt363Dialogs)
     ASSERT_EQ(2u, loaded.Options.size());
     EXPECT_STREQ("Hello", loaded.Options[0].Text.GetCStr());
     EXPECT_NE(0, loaded.Options[0].Flags & DFLG_ON);
-    EXPECT_STREQ("Goodbye", loaded.Options[1].Text.GetCStr());
+    EXPECT_STREQ("Say \"goodbye\"\n(politely)", loaded.Options[1].Text.GetCStr());
     EXPECT_EQ(0, loaded.Options[1].Flags & DFLG_ON);
     EXPECT_NE(0, loaded.Options[1].Flags & DFLG_NOREPEAT);
 }
@@ -912,25 +920,32 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
 {
     DataUtil::GameData game;
     DataUtil::ViewData first_view;
+    first_view.ID = 1;
     first_view.ScriptName = "vFirst";
-    DataUtil::ViewData second_view;
-    second_view.TypeName = "SecondView";
-    game.Views = { first_view, second_view };
+    DataUtil::ViewData third_view;
+    third_view.ID = 3;
+    game.Views = {first_view, third_view};
     DataUtil::InventoryItemData key;
     key.ScriptName = "iKey";
     DataUtil::InventoryItemData coin;
-    coin.TypeName = "CoinItem";
-    game.Inventory = { key, coin };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteLegacyScriptNamesBlock);
+    coin.ScriptName = "CoinItem";
+    DataUtil::InventoryItemData unknown_item;
+    game.Inventory = { key, coin, unknown_item };
+    std::vector<uint8_t> buffer;
+    {
+        auto out = AsStream<VectorStream>(buffer, kStream_Write);
+        DataFileWriter::WriteLegacyScriptNamesBlock(game, DataFileWriter::CompiledData(game), out.get());
+    }
     auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_STREQ("vFirst", String::FromStream(in.get()).GetCStr());
-    EXPECT_STREQ("SecondView", String::FromStream(in.get()).GetCStr());
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // no view 2
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // view 3 has no script name
     // This is the third independent serialization of unused inventory slot 0.
-    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty());
-    EXPECT_STREQ("iKey", String::FromStream(in.get()).GetCStr());
-    EXPECT_STREQ("CoinItem", String::FromStream(in.get()).GetCStr());
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // no inventory item 0
+    EXPECT_STREQ("iKey", String::FromStream(in.get()).GetCStr()); // inventory item 1
+    EXPECT_STREQ("CoinItem", String::FromStream(in.get()).GetCStr()); // inventory item 2
+    EXPECT_TRUE(String::FromStream(in.get()).IsEmpty()); // inventory item 3 has no script name
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 
@@ -1128,11 +1143,13 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
 TEST(DataFileWriter, RoundTripExt363GameInfo)
 {
     DataUtil::GameData game;
-    game.Settings.GameName = "My Game";
-    game.Settings.Description = "A test game";
-    game.Settings.DeveloperName = "AGS Team";
-    game.Settings.DeveloperURL = "https://example.invalid";
-    game.Settings.Genre = "Adventure";
+    // the human-readable texts are unescaped, the others are written as they are
+    game.Settings.GameName = "My \\\"Game\\\"";
+    game.Settings.Description = "A test game\\nin two lines";
+    game.Settings.DeveloperErrorText = "Oops\\tagain";
+    game.Settings.DeveloperName = "AGS \\\\ Team";
+    game.Settings.DeveloperURL = "https://example.invalid/a\\b";
+    game.Settings.Genre = "Adventure \\046 puzzle";
     game.Settings.ReleaseDate = "2026-07-21";
     game.Settings.Version = "1.2.3";
     game.Settings.GameTextLanguage = "pt-BR";
@@ -1142,12 +1159,13 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
 
     StringMap info;
     StrUtil::ReadStringMap(info, in.get());
-    ASSERT_EQ(8u, info.size());
-    EXPECT_STREQ("My Game", info["title"].GetCStr());
-    EXPECT_STREQ("A test game", info["description"].GetCStr());
-    EXPECT_STREQ("AGS Team", info["dev_name"].GetCStr());
-    EXPECT_STREQ("https://example.invalid", info["dev_url"].GetCStr());
-    EXPECT_STREQ("Adventure", info["genre"].GetCStr());
+    ASSERT_EQ(9u, info.size());
+    EXPECT_STREQ("Oops\tagain", info["dev_error_text"].GetCStr());
+    EXPECT_STREQ("My \"Game\"", info["title"].GetCStr());
+    EXPECT_STREQ("A test game\nin two lines", info["description"].GetCStr());
+    EXPECT_STREQ("AGS \\ Team", info["dev_name"].GetCStr());
+    EXPECT_STREQ("https://example.invalid/a\\b", info["dev_url"].GetCStr());
+    EXPECT_STREQ("Adventure & puzzle", info["genre"].GetCStr());
     EXPECT_STREQ("21.07.2026", info["release_date"].GetCStr());
     EXPECT_STREQ("1.2.3", info["version"].GetCStr());
     EXPECT_STREQ("pt_BR", info["text_lang"].GetCStr());

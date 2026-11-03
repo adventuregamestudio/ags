@@ -33,8 +33,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iterator>
 
 #include "ac/characterinfo.h"
+#include "ac/def_version.h"
 #include "ac/dialogtopic.h"
 #include "ac/view.h"
 #include "ac/dynobj/scriptaudioclip.h"
@@ -48,6 +50,7 @@
 #include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guidefines.h"
+#include "util/memory_compat.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -64,6 +67,28 @@ String TextProperty(const String &text)
     // this is needed because Unescape will delete '\' in unrecognized sequence.
     return StrUtil::Unescape(PreprocessLineForOldStyleLinebreaks(text));
 }
+
+// Views by ID, as the editor writes them: slot i holds the view with ID i + 1, or null;
+// the list runs up to the highest view ID
+static std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::GameData &game)
+{
+    int max_id = 0;
+    for (const auto &view : game.Views)
+        max_id = std::max(max_id, view.ID);
+    std::vector<const DataUtil::ViewData *> views(max_id, nullptr);
+    for (const auto &view : game.Views)
+    {
+        if (view.ID > 0)
+            views[view.ID - 1] = &view;
+    }
+    return views;
+}
+
+CompiledData::CompiledData(const DataUtil::GameData &game)
+    : ViewsByID(GetViewsByID(game))
+{
+}
+
 
 bool ParseResolution(const String &text, int &width, int &height)
 {
@@ -246,6 +271,7 @@ void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
     item.cursorPic = ref.CursorImage;
     item.hotx = ref.HotspotX;
     item.hoty = ref.HotspotY;
+    item.hotAlign = ref.HotspotAlignment;
     item.flags = ref.PlayerStartsWith ? IFLG_STARTWITH : 0;
     item.WriteToFile(out);
 }
@@ -290,7 +316,7 @@ int GetGuiPopupStyle(DataUtil::GUIPopupStyle style)
 void WriteGui(Stream *out, const DataUtil::GUIData &ref,
     const std::vector<uint32_t> &control_refs)
 {
-    const String &name = ref.ScriptName.IsEmpty() ? ref.TypeName : ref.ScriptName;
+    const String &name = ref.ScriptName;
     StrUtil::WriteString(name, out);
     StrUtil::WriteString(ref.IsTextWindow ? String() : ref.OnClick, out);
     out->WriteInt32(ref.IsTextWindow ? 0 : ref.Left);
@@ -444,7 +470,7 @@ void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id)
 // Common/ac/dynobj/scriptaudioclip.cpp.
 void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
 {
-    const String &name = ref.ScriptName.IsEmpty() ? ref.TypeName : ref.ScriptName;
+    const String &name = ref.ScriptName;
     out->WriteInt32(ref.ID >= 0 ? ref.ID : index);
     String script_name = name;
     if (script_name.GetLength() > 29)
@@ -468,7 +494,7 @@ void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
 void WriteRoomName(Stream *out, int number, const String &description)
 {
     out->WriteInt32(number);
-    StrUtil::WriteCStr(description, out);
+    StrUtil::WriteCStr(TextProperty(description), out);
 }
 
 int ParseGameTextEncodingCodePage(const String &value)
@@ -567,7 +593,8 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 
 // Read by GameSetupStructBase::ReadFromFile() in
 // Common/ac/gamesetupstructbase.cpp, at the start of ReadGameData().
-void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_t &ext_offset_pos)
+void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
+    soff_t &ext_offset_pos)
 {
     String game_name = TextProperty(game.Settings.GameName);
     if (game_name.IsEmpty())
@@ -593,7 +620,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
         out->WriteByte(255); // opaque
     }
 
-    const int num_views = static_cast<int>(game.Views.size());
+    const int num_views = static_cast<int>(data.ViewsByID.size());
     const int num_characters = static_cast<int>(game.Characters.size());
     const int num_inventory = static_cast<int>(game.Inventory.size());
     const int num_dialogs = 0; // old dialog block is not used by this tool
@@ -640,7 +667,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(game.LipSyncDefaultFrame);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle == DataUtil::kInventoryHotspot_Sprite ?
         game.Settings.InventoryHotspotMarkerSprite : 0);
-    // reserved; 16 ints
+    // reserved; NUM_INTS_RESERVED ints
     for (int i = 0; i < GameSetupStructBase::NUM_INTS_RESERVED; ++i)
         out->WriteInt32(0);
 
@@ -758,10 +785,15 @@ void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
 
 // Read by ReadViews() in Common/game/main_game_file.cpp, which calls
 // ViewStruct::ReadFromFile().
-void WriteViewsBlock(const DataUtil::GameData &game, Stream *out)
+void WriteViewsBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
-    for (size_t i = 0; i < game.Views.size(); ++i)
-        WriteView(out, game, game.Views[i]);
+    for (const auto *view : data.ViewsByID)
+    {
+        if (view)
+            WriteView(out, game, *view);
+        else
+            out->WriteInt16(0); // no view with this ID: no loops
+    }
 }
 
 // Read by GameSetupStruct::read_characters()/ReadCharacters() in
@@ -901,20 +933,13 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 
 // Read by the trailing viewNames/invScriptNames/dialogScriptNames portion of
 // GameSetupStruct::read_customprops() in Common/ac/gamesetupstruct.cpp.
-void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out)
+void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out)
 {
-    for (size_t i = 0; i < game.Views.size(); ++i)
-    {
-        const String &name = game.Views[i].ScriptName.IsEmpty() ? game.Views[i].TypeName : game.Views[i].ScriptName;
-        StrUtil::WriteCStr(name, out);
-    }
-
+    for (const auto *view : data.ViewsByID)
+        StrUtil::WriteCStr(view ? view->ScriptName : String(), out); // no view: a single NUL byte
     out->WriteInt8(0); // inventory slot 0 is unused, so its name is a single NUL byte
-    for (size_t i = 0; i < game.Inventory.size(); ++i)
-    {
-        const String &name = game.Inventory[i].ScriptName.IsEmpty() ? game.Inventory[i].TypeName : game.Inventory[i].ScriptName;
-        StrUtil::WriteCStr(name, out);
-    }
+    for (const auto &item : game.Inventory)
+        StrUtil::WriteCStr(item.ScriptName, out);
 }
 
 // Read by GameSetupStruct::read_audio() in Common/ac/gamesetupstruct.cpp.
@@ -1051,7 +1076,7 @@ void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game)
     // Embedded scripts are intentionally absent; script objects are supplied externally.
     StrUtil::WriteString("", out);
     StrUtil::WriteString("", out);
-    out->WriteInt32(0); // script module filename count
+    out->WriteInt32(0); // script module name count
     out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
     for (const auto &character : game.Characters)
         WriteInteractionEvents(out, character.ScriptModule, character.InteractionEvents);
@@ -1074,13 +1099,16 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game)
         release_date = String::FromFormat("%02d.%02d.%04d", day, month, year);
     String text_lang = game.Settings.GameTextLanguage;
     text_lang.Replace('-', '_');
+    // The human-readable texts are unescaped as the other text properties are: the Editor keeps
+    // them escaped too (a line break typed in the description is stored as "\n")
     const std::pair<const char*, String> info[] = {
         {"title", TextProperty(game.Settings.GameName)}, {"description", TextProperty(game.Settings.Description)},
+        {"dev_error_text", TextProperty(game.Settings.DeveloperErrorText)},
         {"dev_name", TextProperty(game.Settings.DeveloperName)}, {"dev_url", game.Settings.DeveloperURL},
         {"genre", TextProperty(game.Settings.Genre)}, {"release_date", release_date},
         {"version", game.Settings.Version}, {"text_lang", text_lang}
     };
-    out->WriteInt32(8);
+    out->WriteInt32(static_cast<int32_t>(std::size(info)));
     for (const auto &item : info)
     {
         StrUtil::WriteString(item.first, out);
@@ -1217,7 +1245,8 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
         out->WriteInt32(static_cast<int32_t>(dialog.Options.size()));
         for (const auto &option : dialog.Options)
         {
-            StrUtil::WriteString(option.Text, out);
+            // unescaped, as the Editor does for the option names of the old dialogs block
+            StrUtil::WriteString(TextProperty(option.Text), out);
             int flags = 0;
             if (!option.Say) flags |= DFLG_NOREPEAT;
             if (option.Show) flags |= DFLG_ON;
@@ -1233,7 +1262,8 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
 // Read by DataExtReader::Read() through GameDataExtReader in
 // Common/game/main_game_file.cpp. The patched offset is read earlier by
 // GameSetupStructBase::ReadFromFile().
-void WriteExtensions(Stream *out, const DataUtil::GameData &game, soff_t ext_offset_pos)
+void WriteExtensions(Stream *out, const DataUtil::GameData &game, const CompiledData &data,
+    soff_t ext_offset_pos)
 {
     const soff_t ext_offset = out->GetPosition();
     out->Seek(ext_offset_pos, kSeekBegin);
@@ -1256,10 +1286,19 @@ void WriteHeaderBlock(const DataUtil::GameData &game, Stream *out)
     StrUtil::WriteFixedString("Adventure Creator Game File v2", 30, out);
     out->WriteInt32(kGameVersion_Current);
 
-    // Preserve the editor version recorded in Game.agf.
-    const String compiled_with = game.EditorVersion.IsEmpty() ? String("3.6.3.12") : game.EditorVersion;
-    out->WriteInt32(static_cast<int32_t>(compiled_with.GetLength()));
-    StrUtil::WriteFixedString(compiled_with, compiled_with.GetLength(), out);
+    // Write the compilation tool version.
+    // NOTE: the version found in the Game.agf is the version of app which saved the project last;
+    // it cannot be applied here, as it may be significantly older, and mismatch the data format
+    // that we use when compiling the game.
+    // The editor writes its own version, which is the engine version; a special version
+    // tags the data compiled by a variant of these tools
+    String compiled_with = ACI_VERSION_STR;
+    if (SPECIAL_VERSION[0] != 0)
+    {
+        compiled_with.AppendChar(' ');
+        compiled_with.Append(SPECIAL_VERSION);
+    }
+    StrUtil::WriteString(compiled_with, out);
 
     out->WriteInt32(0); // no extended capabilities
 }
@@ -1280,9 +1319,10 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
 
     Stream *stream = out.get();
 
+    const CompiledData data(game);
     WriteHeaderBlock(game, stream);
     soff_t ext_offset_pos = 0;
-    WriteGameSetupStructBase(game, stream, ext_offset_pos);
+    WriteGameSetupStructBase(game, data, stream, ext_offset_pos);
     WriteSaveGameInfo(game, stream);
     WriteFontBlock(game, stream);
     WriteSpriteFlags(game, stream);
@@ -1292,17 +1332,17 @@ HError WriteGameData28(const GameData &game, std::unique_ptr<Stream> &&out)
     WriteTextParserDictionary(game, stream);
     // Compiled global/dialog scripts and module list are omitted intentionally;
     // HasCCScript is false in GameSetupStructBase, so no zero payload is needed here.
-    WriteViewsBlock(game, stream);
+    WriteViewsBlock(game, data, stream);
     WriteCharactersBlock(game, stream);
     WriteLipSyncBlock(game, stream);
     WriteGlobalMessagesBlock(game, stream);
     WriteGuiBlock(game, stream);
     WritePluginsBlock(game, stream);
     WriteCustomPropertiesBlock(game, stream);
-    WriteLegacyScriptNamesBlock(game, stream);
+    WriteLegacyScriptNamesBlock(game, data, stream);
     WriteAudioBlock(game, stream);
     WriteRoomNamesBlock(game, stream);
-    WriteExtensions(stream, game, ext_offset_pos);
+    WriteExtensions(stream, game, data, ext_offset_pos);
 
     if (!out->Flush())
         return new Error("WriteGameData28: Failed to flush game data output stream.");

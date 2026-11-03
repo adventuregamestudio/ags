@@ -13,6 +13,7 @@
 //=============================================================================
 #include <stdio.h>
 void ThrowManagedException(const char *message);
+void set_argb2any_blender(int alpha = 255);
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 extern "C" bool Scintilla_RegisterClasses(void *hInstance);
@@ -153,6 +154,7 @@ struct NativeDrawState
     std::unique_ptr<AGSBitmap> guiCtrl32;
     std::unique_ptr<AGSBitmap> guiMainBmp;
     std::unique_ptr<AGSBitmap> guiCtrlBmp;
+    std::unique_ptr<AGSBitmap> guiPreview32;
 };
 std::unique_ptr<NativeDrawState> NDrawState;
 
@@ -1345,6 +1347,7 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
     {
         NDrawState->guiSurf32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
         NDrawState->guiCtrl32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
+        NDrawState->guiPreview32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
     }
     if (thisgame.color_depth != 4 && ((NDrawState->guiMainBmp == nullptr) || (NDrawState->guiMainBmp->GetSize() != gui_size)))
     {
@@ -1377,13 +1380,9 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         final_ctrl->Blit(NDrawState->guiCtrlBmp.get());
         set_color_conversion(old_conv);
     }
-    if (ctrl_trans == 0)
+    if (ctrl_trans < 100)
     {
-        final_gui->MaskedBlit(final_ctrl);
-    }
-    else if (ctrl_trans < 100)
-    {
-        set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
+        set_argb2any_blender(AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
         final_gui->TransBlendBlt(final_ctrl);
     }
 
@@ -1394,7 +1393,14 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         final_gui->DrawRect(Rect (x1, y1, x2, y2), 14);
     }
 
-    drawBlockScaledAt(hdc, final_gui, x, y, scale);
+    // GDI's StretchDIBits ignores alpha when displaying the GUI preview.
+    // Composite onto opaque magenta first to preserve antialiased TTF edges.
+    AGSBitmap* preview = NDrawState->guiPreview32.get();
+    preview->Clear(makeacol32(255, 0, 255, 255));
+    set_argb2any_blender();
+    preview->TransBlendBlt(final_gui);
+
+    drawBlockScaledAt(hdc, preview, x, y, scale);
 }
 
 #define SIMP_INDEX0     0

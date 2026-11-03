@@ -12,12 +12,57 @@
 //
 //=============================================================================
 #include <cstring>
+#include <fstream>
 #include <new>
 #include <tinyxml2.h>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
 
 using namespace AGS;
+
+TEST(AGFReader, AudioClipInheritsFolderSettings)
+{
+    // A folder keeps its settings in a child element of its own name (AudioClipFolder(XmlNode))
+    const char *xml = "<AudioClipFolder Name=\"Music\"><SubFolders /><AudioClips><AudioClip>"
+                      "<DefaultPriority>Inherit</DefaultPriority><DefaultRepeat>Inherit</DefaultRepeat>"
+                      "<DefaultVolume>-1</DefaultVolume><ID>0</ID><ScriptName>aTheme</ScriptName>"
+                      "</AudioClip></AudioClips>"
+                      "<AudioClipFolder><DefaultPriority>High</DefaultPriority><DefaultRepeat>True</DefaultRepeat>"
+                      "<DefaultVolume>70</DefaultVolume></AudioClipFolder></AudioClipFolder>";
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(xml));
+    AGF::AudioClip parser;
+    DataUtil::AudioClipData clip;
+    parser.ReadAllData(doc.RootElement()->FirstChildElement("AudioClips")->FirstChildElement("AudioClip"), clip);
+    EXPECT_TRUE(clip.Repeat);
+    EXPECT_EQ(70, clip.Volume);
+    EXPECT_EQ(75, clip.Priority); // High
+}
+
+TEST(AGFReader, GUIsAreInIDOrder)
+{
+    // Folders may list GUIs in any order; game data and the script header index them by ID
+    const char *path = "agfreader_test_guis.agf";
+    {
+        std::ofstream f(path);
+        f << "<AGSEditorDocument Version=\"3.0.3.2\" VersionIndex=\"3060316\" EditorVersion=\"3.6.4.0\">"
+             "<Game><Settings/><GUIs>"
+             "<GUIFolder Name=\"Main\"><SubFolders><GUIFolder Name=\"Sub\"><SubFolders /><GUIs>"
+             "<GUIMain><NormalGUI><ID>1</ID><Name>gSecond</Name><Controls /></NormalGUI></GUIMain>"
+             "</GUIs></GUIFolder></SubFolders><GUIs>"
+             "<GUIMain><NormalGUI><ID>0</ID><Name>gFirst</Name><Controls /></NormalGUI></GUIMain>"
+             "</GUIs></GUIFolder></GUIs></Game></AGSEditorDocument>\n";
+    }
+    AGF::AGFReader reader;
+    ASSERT_TRUE(reader.Open(path));
+    DataUtil::GameRef game;
+    AGF::ReadGameRef(game, reader);
+    reader.Close();
+    std::remove(path);
+    ASSERT_EQ(2u, game.GUI.size());
+    EXPECT_STREQ("gFirst", game.GUI[0].ScriptName.GetCStr());
+    EXPECT_STREQ("gSecond", game.GUI[1].ScriptName.GetCStr());
+}
 
 TEST(AGFReader, EnumReadSkipSpeech)
 {

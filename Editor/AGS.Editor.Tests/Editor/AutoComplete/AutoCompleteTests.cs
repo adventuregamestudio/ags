@@ -83,13 +83,10 @@ namespace AGS.Editor
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Not.Null);
         }
 
-        // TODO: following tests require that AutoComplete is fixed to manage possible
-        // comments and/or literals within variable declarations and assignment.
-        /*
         [Test]
         public void CheckHandlingStringLiterals()
         {
-            string scriptCode = "String assign_literal = \"int a = 5; int b = 10;\"\nint c = 15;";
+            string scriptCode = "String assign_literal = \"int a = 5; int b = 10;\";\nint c = 15;";
             Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
 
             Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
@@ -97,12 +94,24 @@ namespace AGS.Editor
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Null);
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("c"), Is.Not.Null);
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("assign_literal"), Is.Not.Null);
+        }
+
+        [Test]
+        public void CheckHandlingStringLiteralsAsFunctionArguments()
+        {
+            string scriptCode = "Display(\"int a = 5; int b = 10;\");\nint c = 15;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(1));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("a"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("b"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("c"), Is.Not.Null);
         }
 
         [Test]
         public void CheckHandlingStringLiteralsWithEscapedQuotes()
         {
-            string scriptCode = "String assign_literal = \"int a = 5;\\\"int b = 10;\\\\\"\nint c = 15;";
+            string scriptCode = "String assign_literal = \"int a = 5;\\\"int b = 10;\\\\\";\nint c = 15;";
             Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
 
             Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
@@ -111,7 +120,18 @@ namespace AGS.Editor
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("c"), Is.Not.Null);
             Assert.That(scriptToTest.AutoCompleteData.FindVariable("assign_literal"), Is.Not.Null);
         }
-        */
+
+        [Test]
+        public void CheckHandlingCommentInAssignment()
+        {
+            string scriptCode = "int value = /* ; int fake = 0; */ 5;\nint after = 15;";
+            Script scriptToTest = CachedAutoCompletedScriptFromCode(scriptCode);
+
+            Assert.That(scriptToTest.AutoCompleteData.Variables.Count, Is.EqualTo(2));
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("value"), Is.Not.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("fake"), Is.Null);
+            Assert.That(scriptToTest.AutoCompleteData.FindVariable("after"), Is.Not.Null);
+        }
 
         [Test]
         public void UnterminatedComment()

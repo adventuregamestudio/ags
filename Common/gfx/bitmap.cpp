@@ -200,7 +200,7 @@ void ReplaceColor(Bitmap *bmp, int color1, int color2)
 void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold)
 {
     auto bm_data = bmp->GetBitmapData();
-    PixelOp::ReplaceAlphaWithRGBMask(bm_data);
+    PixelOp::ReplaceAlphaWithRGBMask(bm_data, alpha_threshold);
 }
 
 

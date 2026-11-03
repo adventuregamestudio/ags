@@ -29,3 +29,17 @@ TEST(StrUtil, Unescape) {
     s = "Text\\rText";
     ASSERT_TRUE(StrUtil::Unescape(s) == "Text\rText");
 }
+
+TEST(StrUtil, GetKeyValue)
+{
+    auto kv = StrUtil::GetKeyValue(" Font1 = Size=12 ");
+    EXPECT_STREQ("Font1", kv.first.GetCStr());
+    EXPECT_STREQ("Size=12", kv.second.GetCStr());
+    // the given separator, not '='
+    kv = StrUtil::GetKeyValue("PARSERWORD:5", ':');
+    EXPECT_STREQ("PARSERWORD", kv.first.GetCStr());
+    EXPECT_STREQ("5", kv.second.GetCStr());
+    kv = StrUtil::GetKeyValue("NoSeparator");
+    EXPECT_STREQ("NoSeparator", kv.first.GetCStr());
+    EXPECT_TRUE(kv.second.IsEmpty());
+}

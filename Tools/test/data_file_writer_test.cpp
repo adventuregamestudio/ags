@@ -113,7 +113,7 @@ LoadedAudioBlock RoundTripAudioBlock(const DataUtil::GameData &game)
 TEST(DataFileWriter, RoundTripGameSetupStructBase)
 {
     DataUtil::GameData game;
-    game.Settings.GameName = "Round-trip game";
+    game.Settings.GameName = "Round-trip \\\"game\""; // test escaped quotes
     game.Settings.MaximumScore = 42;
     game.Settings.ColorDepth = DataUtil::kGameColorDepth_TrueColor;
     game.Settings.DialogOptionsBullet = 17;
@@ -147,7 +147,7 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     GameSetupStructBase::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
 
-    EXPECT_STREQ("Round-trip game", loaded.gamename.GetCStr());
+    EXPECT_STREQ("Round-trip \"game\"", loaded.gamename.GetCStr());
     EXPECT_EQ(2, loaded.numviews);
     EXPECT_EQ(2, loaded.numcharacters);
     EXPECT_EQ(1, loaded.playercharacter);
@@ -183,7 +183,7 @@ TEST(DataFileWriter, RoundTripCharacter)
     DataUtil::CharacterData character;
     character.ID = 7;
     character.ScriptName = "cHero";
-    character.RealName = "Hero";
+    character.RealName = "Hero of \\\"Fairy land\\\""; // test escaped quotes
     character.NormalView = 3;
     character.SpeechView = 5;
     character.StartingRoom = 6;
@@ -225,7 +225,7 @@ TEST(DataFileWriter, RoundTripCharacter)
     // TODO: expand this test to be able to check character inventory;
     // in 4.x it's now written in "v400_charinv" extension
     //EXPECT_EQ(1, loaded.invq[2]);
-    EXPECT_STREQ("Hero", loaded.name.GetCStr());
+    EXPECT_STREQ("Hero of \"Fairy land\"", loaded.name.GetCStr());
     EXPECT_STREQ("cHero", loaded.scrname.GetCStr());
     EXPECT_EQ(-4, loaded.blocking_x);
     EXPECT_EQ(8, loaded.blocking_y);
@@ -234,7 +234,7 @@ TEST(DataFileWriter, RoundTripCharacter)
 TEST(DataFileWriter, RoundTripInventoryItem)
 {
     DataUtil::InventoryItemData item;
-    item.Description = "Key";
+    item.Description = "Key that unlocks the \\\"door\\\""; // test escaped quotes
     item.Image = 10;
     item.CursorImage = 11;
     item.HotspotX = 3;
@@ -252,7 +252,7 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     InventoryItemInfo loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
-    EXPECT_STREQ("Key", loaded.name.GetCStr());
+    EXPECT_STREQ("Key that unlocks the \"doo", loaded.name.GetCStr()); // limited by LEGACY_MAX_INVENTORY_NAME_LENGTH
     EXPECT_EQ(10, loaded.pic);
     EXPECT_EQ(11, loaded.cursorPic);
     EXPECT_EQ(3, loaded.hotx);
@@ -686,7 +686,8 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     EXPECT_STREQ("100", loaded_item.DefaultValue.GetCStr());
 
     std::vector<DataUtil::CustomPropertyValue> values = {
-        { "Health", "75" }, { "Mood", "Happy" }
+        { "Health", "75" }, { "Mood", "Happy" }, { "String1", "Test \\\"escaped\\\" string" },
+        { "String2", "Test escaped \\[ square bracket" }, { "String3", "Test escaped\\nline-break" },
     };
     std::vector<uint8_t> values_buffer;
     auto values_out = std::make_unique<Stream>(
@@ -701,10 +702,16 @@ TEST(DataFileWriter, RoundTripCustomProperties)
         Properties::ReadValues(loaded_values, values_in.get()));
     const auto health_it = loaded_values.find("Health");
     const auto mood_it = loaded_values.find("Mood");
+    const auto string1_it = loaded_values.find("String1");
+    const auto string2_it = loaded_values.find("String2");
+    const auto string3_it = loaded_values.find("String3");
     ASSERT_NE(loaded_values.end(), health_it);
     ASSERT_NE(loaded_values.end(), mood_it);
     EXPECT_STREQ("75", health_it->second.GetCStr());
     EXPECT_STREQ("Happy", mood_it->second.GetCStr());
+    EXPECT_STREQ("Test \"escaped\" string", string1_it->second.GetCStr());
+    EXPECT_STREQ("Test escaped [ square bracket", string2_it->second.GetCStr()); // no old-style linebreaks in 4.x
+    EXPECT_STREQ("Test escaped\nline-break", string3_it->second.GetCStr());
 }
 
 TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
@@ -1353,7 +1360,7 @@ TEST(DataFileWriter, RoundTripGuiLabel)
     DataUtil::GameData game;
     DataUtil::GUIData gui = MakeGui();
     auto label = MakeControl<DataUtil::GUILabelData>("lblScore");
-    label->Text = "Score: @score@";
+    label->Text = "Score: @score@, game name is \\\"Adventure\\\"\\nThis is the next line";
     label->Font = 3;
     label->TextColor = 16;
     label->TextAlignment = kAlignMiddleCenter;
@@ -1364,7 +1371,7 @@ TEST(DataFileWriter, RoundTripGuiLabel)
     ASSERT_EQ(1u, loaded.Objects.Labels.size());
     const GUILabel &actual = loaded.Objects.Labels[0];
     ExpectControlBase(*label, actual);
-    EXPECT_STREQ(label->Text.GetCStr(), actual.GetText().GetCStr());
+    EXPECT_STREQ("Score: @score@, game name is \"Adventure\"\nThis is the next line", actual.GetText().GetCStr());
     EXPECT_EQ(label->Font, actual.GetFont());
     EXPECT_EQ(label->TextColor, actual.GetTextColor());
     EXPECT_EQ(label->TextAlignment, actual.GetTextAlignment());

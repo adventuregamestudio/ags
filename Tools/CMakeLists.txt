@@ -332,6 +332,9 @@ if(AGS_TESTS)
       AAStr::AAStr
       gtest
    )
+   if(AGS_USE_LOCAL_GTEST)
+       target_link_libraries(tools_test gtest)
+   endif()
 
    include(GoogleTest)
    gtest_add_tests(TARGET tools_test)

@@ -259,14 +259,14 @@ HError TaskWriteStringList::RunImpl()
 
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params)
     : Task(name, mgr)
-    , _params(params)
+    , _params(params.Clone())
 {
 }
 
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params,
     const std::vector<TaskInput> &input_tasks)
     : Task(name, mgr, input_tasks)
-    , _params(params)
+    , _params(params.Clone())
 {
 }
 

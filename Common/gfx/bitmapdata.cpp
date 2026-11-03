@@ -85,11 +85,14 @@ void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src
     const int src_px_off, const int src_py_off, const int width_px, const int height_px,
     uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off, const int dst_py_off)
 {
-    const size_t src_boff = (src_py_off * src_pitch) + (src_px_off * bpp);
-    const size_t dst_boff = (dst_py_off * dst_pitch) + (dst_px_off * bpp);
+    // Memory::BlockCopy takes the byte offset within a row: step the buffers to the first row here
+    const uint8_t *src_row = src_buffer + (src_py_off * src_pitch);
+    uint8_t *dst_row = dst_buffer + (dst_py_off * dst_pitch);
+    const size_t src_boff = src_px_off * bpp;
+    const size_t dst_boff = dst_px_off * bpp;
     const size_t width_b = width_px * bpp;
     // NOTE: all assertions are done further in Memory::BlockCopy
-    Memory::BlockCopy(src_buffer, src_pitch, src_boff, width_b, height_px, dst_buffer, dst_pitch, dst_boff);
+    Memory::BlockCopy(src_row, src_pitch, src_boff, width_b, height_px, dst_row, dst_pitch, dst_boff);
 }
 
 PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width, const int height)

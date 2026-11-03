@@ -166,10 +166,15 @@ namespace AGS.Editor
                     }
                 }
             }
+            // Clone the retrieved Image, because, apparently, when creating a new Bitmap
+            // using the actual Image on clipboard as a input, this operation "locks" something
+            // up in that Image, which may lead to memory access errors later.
+            // Don't understand whole picture tbh, but experimentally found that this cloning
+            // solution does the trick.
             if (dataObj.GetDataPresent(DataFormats.Bitmap))
-                return new Bitmap(dataObj.GetData(DataFormats.Bitmap) as Image);
+                return new Bitmap((dataObj.GetData(DataFormats.Bitmap) as Image).Clone() as Image);
             if (dataObj.GetDataPresent(typeof(Image)))
-                return new Bitmap(dataObj.GetData(typeof(Image)) as Image);
+                return new Bitmap((dataObj.GetData(typeof(Image)) as Image).Clone() as Image);
             return null;
         }
     }

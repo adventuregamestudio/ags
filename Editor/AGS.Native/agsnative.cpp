@@ -51,6 +51,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/path.h"
 #include "util/utf8.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 #include "data/assetmanager.h"
 #include "NativeUtils.h"
 
@@ -133,6 +134,7 @@ struct NativeDrawState
     std::unique_ptr<AGSBitmap> guiCtrl32;
     std::unique_ptr<AGSBitmap> guiMainBmp;
     std::unique_ptr<AGSBitmap> guiCtrlBmp;
+    std::unique_ptr<AGSBitmap> guiPreview32;
 };
 std::unique_ptr<NativeDrawState> NDrawState;
 
@@ -1017,6 +1019,7 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
     {
         NDrawState->guiSurf32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
         NDrawState->guiCtrl32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
+        NDrawState->guiPreview32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
     }
     if (thisgame.color_depth != 4 && ((NDrawState->guiMainBmp == nullptr) || (NDrawState->guiMainBmp->GetSize() != gui_size)))
     {
@@ -1048,13 +1051,9 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         final_ctrl->Blit(NDrawState->guiCtrlBmp.get());
         set_color_conversion(old_conv);
     }
-    if (ctrl_trans == 0)
+    if (ctrl_trans < 100)
     {
-        final_gui->MaskedBlit(final_ctrl);
-    }
-    else if (ctrl_trans < 100)
-    {
-        set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
+        AGS::Common::SetBlender(AGS::Common::kBlend_Normal, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
         final_gui->TransBlendBlt(final_ctrl);
     }
 
@@ -1063,7 +1062,14 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         final_gui->DrawRect(Rect (x1, y1, x2, y2), 14);
     }
 
-    drawBlockScaledAt(hdc, final_gui, x, y, scale);
+    // GDI's StretchDIBits ignores alpha when displaying the GUI preview.
+    // Composite onto opaque magenta first to preserve antialiased TTF edges.
+    AGSBitmap* preview = NDrawState->guiPreview32.get();
+    preview->Clear(makeacol32(255, 0, 255, 255));
+    set_argb2any_blender();
+    preview->TransBlendBlt(final_gui);
+
+    drawBlockScaledAt(hdc, preview, x, y, scale);
 }
 
 #define SIMP_INDEX0     0
@@ -1960,6 +1966,7 @@ static void ConvertPaletteToNativeFormat(AGSBitmap *dst, RGB *imgpal, cli::array
 
 void Convert8BitToHiColor(const AGSBitmap *src, const RGB *imgpal, AGSBitmap *dst, bool keep_transparency);
 void Convert8BitARGBTo32(const AGSBitmap *src, const RGB *imgpal, AGSBitmap *dst);
+static void ReplaceTransparentWithMask32(AGSBitmap *bmp);
 
 AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int *srcPalLen,
     bool fixColourDepth, int destColorDepth, bool importAlpha, bool keepTransparency, bool fixPalette, int *originalColDepth)
@@ -2066,6 +2073,10 @@ AGSBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, int 
         }
         else // let allegro do its own conversions
         {
+          // Allegro's blit keeps only the exact 32-bit mask color (with zero alpha) transparent;
+          // when downgrading a 32-bit image, also treat zero alpha and opaque magenta as transparent.
+          if (keepTransparency && (res_depth == 32) && (final_depth < 32))
+              ReplaceTransparentWithMask32(tempsprite.get());
           spriteAtRightDepth->Blit(tempsprite.get(), 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
         }
         set_color_conversion(oldColorConv);
@@ -2103,6 +2114,23 @@ static void Convert8BitToHiColor(const AGSBitmap *src, const RGB *imgpal, AGSBit
                 dst->PutPixel(x, y, safe_magenta);
             else
                 dst->PutPixel(x, y, color);
+        }
+    }
+}
+
+// Replaces pixels with zero alpha and opaque mask color pixels with the standard 32-bit mask color;
+// semi-transparent mask color pixels are kept as normal colors.
+static void ReplaceTransparentWithMask32(AGSBitmap *bmp)
+{
+    const int maskcolor = bmp->GetMaskColor();
+    const int opaque_maskcolor = static_cast<int>(static_cast<uint32_t>(maskcolor) | (0xFFu << _rgb_a_shift_32));
+    for (int x = 0; x < bmp->GetWidth(); ++x)
+    {
+        for (int y = 0; y < bmp->GetHeight(); ++y)
+        {
+            const int px = bmp->GetPixel(x, y);
+            if ((geta32(px) == 0) || (px == opaque_maskcolor))
+                bmp->PutPixel(x, y, maskcolor);
         }
     }
 }

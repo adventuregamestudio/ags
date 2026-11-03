@@ -93,6 +93,11 @@ bool ParseXmlEnum(const char *text, const std::array<const char *, N> &names, in
     return ParseXmlEnum(text, names.data(), N, value);
 }
 
+// AGS.Types GraphicAnchor: "x, y"; numbers that don't parse read as 0, both are clamped to 0-1
+bool ParseGraphicAnchor(const char *text, Pointf &value);
+// AGS.Types BlendMode, which has the values of Common::BlendMode
+bool ParseBlendMode(const char *text, int &value);
+
 // Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
 // returns a negative, zero or positive value like strcmp
 int CompareXmlVersions(const char *a, const char *b);

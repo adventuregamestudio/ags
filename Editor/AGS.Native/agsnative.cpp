@@ -13,7 +13,7 @@
 //=============================================================================
 #include <stdio.h>
 void ThrowManagedException(const char *message);
-void set_argb2any_blender();
+void set_argb2any_blender(int alpha = 255);
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 extern "C" bool Scintilla_RegisterClasses(void *hInstance);
@@ -1347,9 +1347,6 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
     {
         NDrawState->guiSurf32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
         NDrawState->guiCtrl32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
-    }
-    if (!NDrawState->guiPreview32 || NDrawState->guiPreview32->GetSize() != gui_size)
-    {
         NDrawState->guiPreview32.reset(new AGSBitmap(gui_size.Width, gui_size.Height, 32));
     }
     if (thisgame.color_depth != 4 && ((NDrawState->guiMainBmp == nullptr) || (NDrawState->guiMainBmp->GetSize() != gui_size)))
@@ -1383,14 +1380,9 @@ void drawGUIAt(HDC hdc, int x, int y, int x1, int y1, int x2, int y2, int resolu
         final_ctrl->Blit(NDrawState->guiCtrlBmp.get());
         set_color_conversion(old_conv);
     }
-    if (ctrl_trans == 0)
+    if (ctrl_trans < 100)
     {
-        set_argb2any_blender();
-        final_gui->TransBlendBlt(final_ctrl);
-    }
-    else if (ctrl_trans < 100)
-    {
-        set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
+        set_argb2any_blender(AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
         final_gui->TransBlendBlt(final_ctrl);
     }
 

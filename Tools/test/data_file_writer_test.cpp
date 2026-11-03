@@ -1024,16 +1024,22 @@ TEST(DataFileWriter, RoundTripExt361ObjNames)
 TEST(DataFileWriter, RoundTripExt362Interactions)
 {
     DataUtil::GameData game;
+    // The interaction schema: an event for each cursor with CreateEvent, indexed by cursor ID
+    game.Cursors.resize(4);
+    for (int i = 0; i < 4; ++i)
+    {
+        game.Cursors[i].ID = i;
+        game.Cursors[i].CreateEvent = i != 2;
+    }
     DataUtil::CharacterData hero;
     hero.ScriptModule = "HeroModule";
-    hero.InteractionEvents = { "LookAtHero", "TalkToHero" };
+    hero.InteractionEvents = {"LookAtHero", "TalkToHero"};
     DataUtil::CharacterData npc;
-    npc.ScriptModule = "NpcModule";
-    npc.InteractionEvents = { "LookAtNpc" };
-    game.Characters = { hero, npc };
+    npc.ScriptModule = "NpcModule"; // no handlers
+    game.Characters = {hero, npc};
     DataUtil::InventoryItemData key;
     key.ScriptModule = "InventoryModule";
-    key.InteractionEvents = { "UseKey" };
+    key.InteractionEvents = {"UseKey", "", "NotAnEvent"}; // cursor 2 has no event
     game.Inventory.push_back(key);
     DataUtil::GUIData gui;
     gui.ScriptModule = "GuiModule";
@@ -1050,20 +1056,24 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
     HError error = loaded_hero.Read(in.get());
     ASSERT_TRUE(error);
     EXPECT_STREQ("HeroModule", loaded_hero.GetScriptModule().GetCStr());
-    ASSERT_EQ(2u, loaded_hero.GetHandlers().size());
+    // as the editor writes it: a slot up to the last event index, even if empty
+    ASSERT_EQ(4u, loaded_hero.GetHandlers().size());
     EXPECT_STREQ("TalkToHero", loaded_hero.GetHandlers()[1].FunctionName.GetCStr());
+    EXPECT_TRUE(loaded_hero.GetHandlers()[3].FunctionName.IsEmpty());
     ScriptEventHandlers loaded_npc;
     error = loaded_npc.Read(in.get());
     ASSERT_TRUE(error);
     EXPECT_STREQ("NpcModule", loaded_npc.GetScriptModule().GetCStr());
+    EXPECT_EQ(0u, loaded_npc.GetHandlers().size()); // no handlers, an empty table
 
     ASSERT_EQ(1, in->ReadInt32());
     ScriptEventHandlers loaded_key;
     error = loaded_key.Read(in.get());
     ASSERT_TRUE(error);
     EXPECT_STREQ("InventoryModule", loaded_key.GetScriptModule().GetCStr());
-    ASSERT_EQ(1u, loaded_key.GetHandlers().size());
+    ASSERT_EQ(4u, loaded_key.GetHandlers().size());
     EXPECT_STREQ("UseKey", loaded_key.GetHandlers()[0].FunctionName.GetCStr());
+    EXPECT_TRUE(loaded_key.GetHandlers()[2].FunctionName.IsEmpty()); // not an event
 
     ASSERT_EQ(1, in->ReadInt32());
     EXPECT_STREQ("GuiModule", StrUtil::ReadString(in.get()).GetCStr());

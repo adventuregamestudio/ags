@@ -134,9 +134,7 @@ static const CstrArr<2> kAudioBundlingTypeNames = {{
     "InGameEXE", "InSeparateVOX"
 }};
 
-static const CstrArr<6> kAudioFileTypeNames = {{
-    "OGG", "MP3", "WAV", "VOC", "MIDI", "MOD"
-}};
+static const CstrArr<7> kAudioFileTypeNames = {{"OGG", "MP3", "WAV", "VOC", "MIDI", "MOD", "FLAC"}};
 
 static const CstrArr<5> kCrossfadeSpeedNames = {{
     "No", "SlowFade", "SlowishFade", "MediumFade", "FastFade"
@@ -1253,9 +1251,16 @@ void AudioClip::ReadAllData(DocElem elem, DataUtil::AudioClipData &data)
     {
         DocElem folder = node->ToElement();
         if (!folder || strcmp(folder->Name(), "AudioClipFolder") != 0) continue;
-        if (repeat < 0) repeat = ReadInheritableBool(ReadString(folder, "DefaultRepeat", "Inherit"));
-        if (priority < 0) priority = ReadAudioPriority(ReadString(folder, "DefaultPriority", "Inherit"));
-        if (volume < 0) volume = ReadInt(folder, "DefaultVolume", -1);
+        // The folder's own settings are in a child element of the same name (AudioClipFolder(XmlNode))
+        DocElem settings = folder->FirstChildElement("AudioClipFolder");
+        if (!settings)
+            continue;
+        if (repeat < 0)
+            repeat = ReadInheritableBool(ReadString(settings, "DefaultRepeat", "Inherit"));
+        if (priority < 0)
+            priority = ReadAudioPriority(ReadString(settings, "DefaultPriority", "Inherit"));
+        if (volume < 0)
+            volume = ReadInt(settings, "DefaultVolume", -1);
     }
     data.Repeat = repeat > 0;
     data.Priority = priority < 0 ? 50 : priority;
@@ -1564,6 +1569,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
             ReadGUI(gui_data, el);
             game.GUI.push_back(gui_data);
         }
+        SortByID(game.GUI); // folders may list them in another order
     }
     // Inventory items
     {
@@ -1716,6 +1722,7 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
             ReadAllEntityRefs(gui.Controls, control_list, control_parser, elem);
             game.GUI.push_back(gui);
         }
+        SortByID(game.GUI); // folders may list them in another order
     }
 
     {
@@ -1816,6 +1823,10 @@ void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
     {
         room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
     }
+    // by number, as the editor lists them, whatever the folders
+    std::stable_sort(room_list.begin(), room_list.end(),
+                     [](const std::pair<int, String> &a, const std::pair<int, String> &b)
+                     { return a.first < b.first; });
 }
 
 void ReadScriptList(std::vector<String> &script_list, DocElem root)

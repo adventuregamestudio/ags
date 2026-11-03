@@ -21,11 +21,9 @@
 // Deliberate differences from the Editor writer:
 //
 //  * compiled global/dialog scripts and script modules are not embedded. The
-//    legacy HasCCScript flag is clear, because AGS 3.6.1+ may load these from
-//    the separately generated script files;
-//  * v362_interevent2 retains character and inventory event function names,
-//    but its embedded global/dialog/module filenames are empty until those
-//    external-file names are part of GameData;
+//    legacy HasCCScript flag is clear, and the engine loads them as separate
+//    files (GlobalScript.o, __DialogScripts.o, ScriptModules.lst) since 3.6.1,
+//    so v362_interevent2 names no embedded scripts either;
 //  * settings that are absent from Game.agf/GameData (notably the legacy
 //    letterbox-resolution value) still use the modern/default representation.
 
@@ -33,6 +31,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iterator>
 
 #include "ac/characterinfo.h"
 #include "ac/def_version.h"
@@ -48,6 +47,7 @@
 #include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guidefines.h"
+#include "util/memory_compat.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -63,6 +63,23 @@ String TextProperty(const String &text)
 {
     return StrUtil::Unescape(text);
 }
+
+// Views by ID, as the editor writes them: slot i holds the view with ID i + 1, or null;
+// the list runs up to the highest view ID
+std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::GameData &game)
+{
+    int max_id = 0;
+    for (const auto &view : game.Views)
+        max_id = std::max(max_id, view.ID);
+    std::vector<const DataUtil::ViewData *> views(max_id, nullptr);
+    for (const auto &view : game.Views)
+    {
+        if (view.ID > 0)
+            views[view.ID - 1] = &view;
+    }
+    return views;
+}
+
 
 bool ParseResolution(const String &text, int &width, int &height)
 {
@@ -101,14 +118,6 @@ void WritePropertySchemaBlock(Stream *out,
         StrUtil::WriteString(TextProperty(item.Description), out);
         StrUtil::WriteString(TextProperty(item.DefaultValue), out);
     }
-}
-
-// Read by Properties::ReadValues() in Common/game/customproperties.cpp for
-// inventory slot 0, from GameSetupStruct::read_customprops().
-void WriteEmptyPropertyValues(Stream *out)
-{
-    out->WriteInt32(AGS::Common::kPropertyVersion_Current);
-    out->WriteInt32(0); // number of items
 }
 
 // Read inline by GameSetupStruct::read_font_infos() in
@@ -244,6 +253,7 @@ void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
     item.cursorPic = ref.CursorImage;
     item.hotx = ref.HotspotX;
     item.hoty = ref.HotspotY;
+    item.hotAlign = ref.HotspotAlignment;
     item.flags = ref.PlayerStartsWith ? IFLG_STARTWITH : 0;
     item.WriteToFile(out);
 }
@@ -261,6 +271,8 @@ void WriteCursor(Stream *out, const DataUtil::CursorData &ref)
     if (ref.Animate && ref.AnimateOnlyOnHotspots) cur.flags |= MCF_HOTSPOT;
     if (ref.Animate && ref.AnimateOnlyWhenMoving) cur.flags |= MCF_ANIMMOVE;
     if (ref.StandardMode) cur.flags |= MCF_STANDARD;
+    if (ref.CreateEvent)
+        cur.flags |= MCF_EVENT;
     cur.WriteToFile(out);
 }
 
@@ -325,8 +337,7 @@ int GetGuiControlFlags(const DataUtil::GUIControlData &control)
 
 // Read by GUIObject::ReadFromFile() in Common/gui/guiobject.cpp as the common
 // prefix of each concrete GUI control's ReadFromFile().
-void WriteGuiControl(Stream *out, const DataUtil::GUIControlData &control,
-    int extra_flags, const String *event_handler)
+void WriteGuiControl(Stream *out, const DataUtil::GUIControlData &control, int extra_flags)
 {
     out->WriteInt32(GetGuiControlFlags(control) | extra_flags);
     out->WriteInt32(control.Left);
@@ -335,9 +346,7 @@ void WriteGuiControl(Stream *out, const DataUtil::GUIControlData &control,
     out->WriteInt32(control.Height);
     out->WriteInt32(control.ZOrder);
     StrUtil::WriteCStr(control.ScriptName, out);
-    out->WriteInt32(event_handler ? 1 : 0);
-    if (event_handler)
-        StrUtil::WriteCStr(*event_handler, out);
+    out->WriteInt32(0); // old style events table, unused: the events are in "v400_eventtables"
 }
 
 int GetButtonClickAction(const String &action)
@@ -354,7 +363,7 @@ void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
 {
     const int flags = (button.ClipImage ? kGUICtrl_Clip : 0) |
         (button.WrapText ? kGUICtrl_WrapText : 0);
-    WriteGuiControl(out, button, flags, &button.OnClick);
+    WriteGuiControl(out, button, flags);
     out->WriteInt32(button.Image);
     out->WriteInt32(button.MouseoverImage);
     out->WriteInt32(button.PushedImage);
@@ -371,7 +380,7 @@ void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
 // Read by GUILabel::ReadFromFile() in Common/gui/guilabel.cpp.
 void WriteGuiLabel(Stream *out, const DataUtil::GUILabelData &label)
 {
-    WriteGuiControl(out, label, 0, nullptr);
+    WriteGuiControl(out, label, 0);
     StrUtil::WriteString(TextProperty(label.Text), out);
     out->WriteInt32(label.Font);
     out->WriteInt32(label.TextColor);
@@ -381,7 +390,7 @@ void WriteGuiLabel(Stream *out, const DataUtil::GUILabelData &label)
 // Read by GUIInvWindow::ReadFromFile() in Common/gui/guiinv.cpp.
 void WriteGuiInvWindow(Stream *out, const DataUtil::GUIInventoryData &inv)
 {
-    WriteGuiControl(out, inv, 0, nullptr);
+    WriteGuiControl(out, inv, 0);
     out->WriteInt32(inv.CharacterID);
     out->WriteInt32(inv.ItemWidth);
     out->WriteInt32(inv.ItemHeight);
@@ -390,7 +399,7 @@ void WriteGuiInvWindow(Stream *out, const DataUtil::GUIInventoryData &inv)
 // Read by GUISlider::ReadFromFile() in Common/gui/guislider.cpp.
 void WriteGuiSlider(Stream *out, const DataUtil::GUISliderData &slider)
 {
-    WriteGuiControl(out, slider, 0, &slider.OnChange);
+    WriteGuiControl(out, slider, 0);
     out->WriteInt32(slider.MinValue);
     out->WriteInt32(slider.MaxValue);
     out->WriteInt32(slider.Value);
@@ -402,7 +411,7 @@ void WriteGuiSlider(Stream *out, const DataUtil::GUISliderData &slider)
 // Read by GUITextBox::ReadFromFile() in Common/gui/guitextbox.cpp.
 void WriteGuiTextBox(Stream *out, const DataUtil::GUITextBoxData &text_box)
 {
-    WriteGuiControl(out, text_box, text_box.ShowBorder ? kGUICtrl_ShowBorder : 0, &text_box.OnActivate);
+    WriteGuiControl(out, text_box, text_box.ShowBorder ? kGUICtrl_ShowBorder : 0);
     StrUtil::WriteString(TextProperty(text_box.Text), out);
     out->WriteInt32(text_box.Font);
     out->WriteInt32(text_box.TextColor);
@@ -412,8 +421,7 @@ void WriteGuiTextBox(Stream *out, const DataUtil::GUITextBoxData &text_box)
 // Read by GUIListBox::ReadFromFile() in Common/gui/guilistbox.cpp.
 void WriteGuiListBox(Stream *out, const DataUtil::GUIListBoxData &list_box)
 {
-    WriteGuiControl(out, list_box, list_box.ShowBorder ? kGUICtrl_ShowBorder : 0,
-        &list_box.OnSelectionChanged);
+    WriteGuiControl(out, list_box, list_box.ShowBorder ? kGUICtrl_ShowBorder : 0);
     out->WriteInt32(0); // runtime items are not part of the project data
     out->WriteInt32(list_box.Font);
     out->WriteInt32(list_box.TextColor);
@@ -464,7 +472,7 @@ void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &ref, int index)
 void WriteRoomName(Stream *out, int number, const String &description)
 {
     out->WriteInt32(number);
-    StrUtil::WriteCStr(description, out);
+    StrUtil::WriteCStr(TextProperty(description), out);
 }
 
 int ParseGameTextEncodingCodePage(const String &value)
@@ -571,13 +579,14 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     {
         const DataUtil::PaletteEntryData entry = i < static_cast<int>(game.Palette.size()) ?
             game.Palette[i] : DataUtil::PaletteEntryData{};
-        out->WriteByte(entry.Red / 4);
-        out->WriteByte(entry.Green / 4);
-        out->WriteByte(entry.Blue / 4);
+        // full 8-bit components, as the editor writes them
+        out->WriteByte(entry.Red);
+        out->WriteByte(entry.Green);
+        out->WriteByte(entry.Blue);
         out->WriteByte(255); // opaque
     }
 
-    const int num_views = static_cast<int>(game.Views.size());
+    const int num_views = static_cast<int>(GetViewsByID(game).size());
     const int num_characters = static_cast<int>(game.Characters.size());
     const int num_inventory = static_cast<int>(game.Inventory.size());
     const int num_dialogs = 0; // old dialog block is not used by this tool
@@ -585,12 +594,12 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     const int num_gui = static_cast<int>(game.GUI.size());
     const int num_cursors = static_cast<int>(game.Cursors.size());
 
-    out->WriteInt32(num_views); // ViewCount
-    out->WriteInt32(num_characters); // Characters.Count
-    out->WriteInt32(game.PlayerCharacter); // PlayerCharacter.ID
-    out->WriteInt32(game.Settings.MaximumScore);
-    out->WriteInt16(static_cast<int16_t>(num_inventory + 1)); // add dummy item at index 0
-    out->WriteInt16(0); // alignment padding
+    out->WriteInt32(num_views);                           // ViewCount
+    out->WriteInt32(num_characters);                      // Characters.Count
+    out->WriteInt32(game.PlayerCharacter);                // PlayerCharacter.ID
+    out->WriteInt32(0);                                   // [DEPRECATED]
+    out->WriteInt16(static_cast<int16_t>(num_inventory)); // the list has item 0 already
+    out->WriteInt16(0);                                   // alignment padding
     out->WriteInt32(0); // was game.Dialogs.Count, write 0 for old format entries, we use "v363_dialogsnew" extension
     out->WriteInt32(0); // numdlgmessage, deprecated
     out->WriteInt32(num_fonts); // Fonts.Count
@@ -623,7 +632,9 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(game.LipSyncDefaultFrame);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle == DataUtil::kInventoryHotspot_Sprite ?
         game.Settings.InventoryHotspotMarkerSprite : 0);
-    out->WriteInt32(game.Settings.InventoryHotspotMarkerDotColor);
+    out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle != DataUtil::kInventoryHotspot_None
+                        ? game.Settings.InventoryHotspotMarkerDotColor
+                        : 0);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerCrosshairColor);
     // reserved; NUM_INTS_RESERVED ints
     for (int i = 0; i < GameSetupStructBase::NUM_INTS_RESERVED; ++i)
@@ -634,10 +645,10 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
 
     // skip NUM_LEGACY_GLOBALMES int32s since kGameVersion_400_33
 
-    out->WriteInt32(1); // dict != null
-    out->WriteInt32(0); // globalscript != null
-    out->WriteInt32(0); // chars != null
-    out->WriteInt32(0); // compiled scripts are loaded externally since 3.6.1
+    out->WriteInt32(1);                         // dict != null
+    out->WriteInt32(0);                         // globalscript != null
+    out->WriteInt32(0);                         // chars != null
+    out->WriteInt32(0);                         // compiled scripts are loaded from separate files since 3.6.1
 }
 
 // Read by GameSetupStruct::read_savegame_info() in
@@ -680,9 +691,6 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
 // which calls InventoryItemInfo::ReadFromFile().
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
 {
-    // Add dummy item at index 0
-    DataUtil::InventoryItemData dummy_item;
-    WriteInventoryItem(out, dummy_item);
     for (const auto &item_ref : game.Inventory)
         WriteInventoryItem(out, item_ref);
 }
@@ -702,7 +710,7 @@ void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (size_t i = 0; i < game.Characters.size(); ++i)
         WriteEmptyInteractionEvents(out);
-    for (size_t i = 0; i < game.Inventory.size(); ++i)
+    for (size_t i = 1; i < game.Inventory.size(); ++i) // legacy format: from item 1
         WriteEmptyInteractionEvents(out);
 }
 
@@ -742,8 +750,13 @@ void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
 // ViewStruct::ReadFromFile().
 void WriteViewsBlock(const DataUtil::GameData &game, Stream *out)
 {
-    for (size_t i = 0; i < game.Views.size(); ++i)
-        WriteView(out, game, game.Views[i]);
+    for (const auto *view : GetViewsByID(game))
+    {
+        if (view)
+            WriteView(out, game, *view);
+        else
+            out->WriteInt16(0); // no view with this ID: no loops
+    }
 }
 
 // Read by GameSetupStruct::read_characters()/ReadCharacters() in
@@ -875,8 +888,6 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
     WritePropertySchemaBlock(out, game.PropertySchema);
     for (const auto &character : game.Characters)
         WritePropertyValues(out, character.Properties);
-    // Add dummy item at index 0
-    WriteEmptyPropertyValues(out);
     for (const auto &item : game.Inventory)
         WritePropertyValues(out, item.Properties);
 }
@@ -885,18 +896,10 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
 // GameSetupStruct::read_customprops() in Common/ac/gamesetupstruct.cpp.
 void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out)
 {
-    for (size_t i = 0; i < game.Views.size(); ++i)
-    {
-        const String &name = game.Views[i].ScriptName.IsEmpty() ? game.Views[i].TypeName : game.Views[i].ScriptName;
-        StrUtil::WriteCStr(name, out);
-    }
-
-    out->WriteInt8(0); // inventory slot 0 is unused, so its name is a single NUL byte
-    for (size_t i = 0; i < game.Inventory.size(); ++i)
-    {
-        const String &name = game.Inventory[i].ScriptName.IsEmpty() ? game.Inventory[i].TypeName : game.Inventory[i].ScriptName;
-        StrUtil::WriteCStr(name, out);
-    }
+    for (const auto *view : GetViewsByID(game))
+        StrUtil::WriteCStr(view ? view->ScriptName : String(), out); // no view: a single NUL byte
+    for (const auto &item : game.Inventory)
+        StrUtil::WriteCStr(item.ScriptName, out);
 }
 
 // Read by GameSetupStruct::read_audio() in Common/ac/gamesetupstruct.cpp.
@@ -915,7 +918,7 @@ void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
     for (size_t i = 0; i < game.AudioClips.size(); ++i)
         WriteAudioClip(out, game.AudioClips[i], static_cast<int>(i));
 
-    out->WriteInt32(GetAudioID(game, game.Settings.PlaySoundOnScore));
+    out->WriteInt32(0); // [DEPRECATED]
 }
 
 // Read by GameSetupStruct::read_room_names() in
@@ -940,15 +943,6 @@ void WriteInteractionEvents(Stream *out, const String &module,
     out->WriteInt32(static_cast<int32_t>(events.size()));
     for (const auto &event : events)
         StrUtil::WriteString(event, out);
-}
-
-// Read by InteractionEvents::CreateFromStream_v362() in
-// Common/game/interactions.cpp for unused inventory slot 0.
-void WriteEmptyInteractionEventsV362(Stream *out)
-{
-    out->WriteInt32(kEventsTable_v362);
-    StrUtil::WriteString("", out);
-    out->WriteInt32(0);
 }
 
 // Read by GUIObject::ReadFromFile_Ext363() in Common/gui/guiobject.cpp as the
@@ -1010,9 +1004,7 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
         StrUtil::WriteString(character.ScriptName, out);
         StrUtil::WriteString(TextProperty(character.RealName), out);
     }
-    // Add dummy item at index 0
-    out->WriteInt32(static_cast<int32_t>(game.Inventory.size() + 1));
-    StrUtil::WriteString("", out);
+    out->WriteInt32(static_cast<int32_t>(game.Inventory.size()));
     for (const auto &item : game.Inventory)
         StrUtil::WriteString(TextProperty(item.Description), out);
     out->WriteInt32(static_cast<int32_t>(game.Cursors.size()));
@@ -1030,15 +1022,14 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
 // ReadInteractionScriptModules(), in Common/game/main_game_file.cpp.
 void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game)
 {
-    // Embedded scripts are intentionally absent; script objects are supplied externally.
+    // Names of the embedded scripts: none, the engine names the separate script files itself
     StrUtil::WriteString("", out);
     StrUtil::WriteString("", out);
-    out->WriteInt32(0); // script module filename count
+    out->WriteInt32(0); // script module name count
     out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
     for (const auto &character : game.Characters)
         WriteInteractionEvents(out, character.ScriptModule, character.InteractionEvents);
-    out->WriteInt32(static_cast<int32_t>(game.Inventory.size() + 1));
-    WriteEmptyInteractionEventsV362(out);
+    out->WriteInt32(static_cast<int32_t>(game.Inventory.size()));
     for (const auto &item : game.Inventory)
         WriteInteractionEvents(out, item.ScriptModule, item.InteractionEvents);
     out->WriteInt32(static_cast<int32_t>(game.GUI.size()));
@@ -1057,12 +1048,15 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game)
     String text_lang = game.Settings.GameTextLanguage;
     text_lang.Replace('-', '_');
     const std::pair<const char*, String> info[] = {
-        {"title", TextProperty(game.Settings.GameName)}, {"description", TextProperty(game.Settings.Description)},
-        {"dev_name", TextProperty(game.Settings.DeveloperName)}, {"dev_url", game.Settings.DeveloperURL},
-        {"genre", TextProperty(game.Settings.Genre)}, {"release_date", release_date},
-        {"version", game.Settings.Version}, {"text_lang", text_lang}
-    };
-    out->WriteInt32(8);
+        {"title", game.Settings.GameName}, {"description", game.Settings.Description},
+                                                    {"dev_error_text", game.Settings.DeveloperErrorText},
+                                                    {"dev_name", game.Settings.DeveloperName},
+                                                    {"dev_url", game.Settings.DeveloperURL},
+                                                    {"genre", game.Settings.Genre},
+                                                    {"release_date", release_date},
+                                                    {"version", game.Settings.Version},
+                                                    {"text_lang", text_lang}};
+    out->WriteInt32(static_cast<int32_t>(std::size(info)));
     for (const auto &item : info)
     {
         StrUtil::WriteString(item.first, out);
@@ -1212,6 +1206,252 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
     }
 }
 
+// The AGS 4 extensions, written as DataFileWriter.cs writes them
+
+// Reserved space after the blend mode of characters, GUIs and GUI controls:
+// colour options (flags, tint RGB, light level) and transform options
+static void WriteReservedColorAndTransformOptions(Stream *out)
+{
+    out->WriteByteCount(0, 3 * sizeof(int32_t));
+    out->WriteByteCount(0, 11 * sizeof(int32_t));
+}
+
+template <typename T>
+static void WriteControlProperties(Stream *out, const std::vector<std::shared_ptr<T>> &controls)
+{
+    out->WriteInt32(static_cast<int32_t>(controls.size()));
+    for (const auto &control : controls)
+        WritePropertyValues(out, control->Properties);
+}
+
+template <typename T>
+static void WriteControlGraphics(Stream *out, const std::vector<std::shared_ptr<T>> &controls)
+{
+    out->WriteInt32(static_cast<int32_t>(controls.size()));
+    for (const auto &control : controls)
+    {
+        out->WriteInt32(control->Transparency); // as a percentage
+        out->WriteInt32(control->BlendMode);
+        WriteReservedColorAndTransformOptions(out);
+    }
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "ext_ags399" branch in Common/game/main_game_file.cpp.
+void WriteExtAgs399(Stream *out, const DataUtil::GameData &game)
+{
+    for (const auto &character : game.Characters)
+    {
+        out->WriteInt32(character.BlendMode);
+        WriteReservedColorAndTransformOptions(out);
+    }
+    for (const auto &gui : game.GUI)
+    {
+        out->WriteInt32(gui.BlendMode);
+        WriteReservedColorAndTransformOptions(out);
+    }
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_gameopts" branch.
+void WriteExt400GameOpts(Stream *out, const DataUtil::GameData &game)
+{
+    out->WriteFloat32(game.Settings.FaceDirectionRatio);
+    out->WriteByteCount(0, 9 * sizeof(int32_t)); // reserved, for a total of 10 values
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_customprops" branch.
+void WriteExt400CustomProps(Stream *out, const DataUtil::GameData &game)
+{
+    out->WriteInt32(static_cast<int32_t>(game.AudioClips.size()));
+    for (const auto &clip : game.AudioClips)
+        WritePropertyValues(out, clip.Properties);
+    out->WriteInt32(static_cast<int32_t>(game.Dialogs.size()));
+    for (const auto &dialog : game.Dialogs)
+        WritePropertyValues(out, dialog.Properties);
+    out->WriteInt32(static_cast<int32_t>(game.GUI.size()));
+    for (const auto &gui : game.GUI)
+        WritePropertyValues(out, gui.Properties);
+
+    const auto buttons = CollectGuiControls<DataUtil::GUIButtonData>(game);
+    out->WriteInt32(static_cast<int32_t>(buttons.size()));
+    for (const auto &button : buttons) // text window edges have no properties
+        WritePropertyValues(out, button->IsTextWindowEdge ? std::vector<DataUtil::CustomPropertyValue>()
+                                                          : button->Properties);
+    WriteControlProperties(out, CollectGuiControls<DataUtil::GUILabelData>(game));
+    WriteControlProperties(out, CollectGuiControls<DataUtil::GUIInventoryData>(game));
+    WriteControlProperties(out, CollectGuiControls<DataUtil::GUISliderData>(game));
+    WriteControlProperties(out, CollectGuiControls<DataUtil::GUITextBoxData>(game));
+    WriteControlProperties(out, CollectGuiControls<DataUtil::GUIListBoxData>(game));
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_fontfiles" branch.
+void WriteExt400FontFiles(Stream *out, const DataUtil::GameData &game)
+{
+    out->WriteInt32(static_cast<int32_t>(game.Fonts.size()));
+    for (const auto &font : game.Fonts)
+        StrUtil::WriteString(font.FontFileName, out);
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_guictrlgfx" branch.
+void WriteExt400GuiControlGraphics(Stream *out, const DataUtil::GameData &game)
+{
+    WriteControlGraphics(out, CollectGuiControls<DataUtil::GUIButtonData>(game));
+    WriteControlGraphics(out, CollectGuiControls<DataUtil::GUILabelData>(game));
+    WriteControlGraphics(out, CollectGuiControls<DataUtil::GUIInventoryData>(game));
+    WriteControlGraphics(out, CollectGuiControls<DataUtil::GUISliderData>(game));
+    WriteControlGraphics(out, CollectGuiControls<DataUtil::GUITextBoxData>(game));
+    WriteControlGraphics(out, CollectGuiControls<DataUtil::GUIListBoxData>(game));
+}
+
+// One object's handlers in an events table; null for an object that has no events
+struct EventHandlers
+{
+    String ScriptModule;
+    std::vector<String> Functions;
+};
+
+// The editor's SerializeEventsTables: an event "schema" (the event names), then each object's
+// script module and handlers in the schema's order
+static void WriteEventsTables(Stream *out, const std::vector<const char *> &events,
+                              const std::vector<const EventHandlers *> &objects)
+{
+    const int32_t kEventsTable_v400 = 4000024;
+    out->WriteInt32(kEventsTable_v400);
+    out->WriteInt32(static_cast<int32_t>(events.size()));
+    for (const char *evt : events)
+        StrUtil::WriteString(evt, out);
+    out->WriteInt32(static_cast<int32_t>(objects.size()));
+    for (const auto *obj : objects)
+    {
+        out->WriteInt32(kEventsTable_v400);
+        StrUtil::WriteString(obj ? obj->ScriptModule : String(), out);
+        out->WriteInt32(obj ? static_cast<int32_t>(obj->Functions.size()) : 0);
+        if (obj)
+        {
+            for (const auto &fn : obj->Functions)
+                StrUtil::WriteString(fn, out);
+        }
+    }
+}
+
+template <typename T, typename GetHandlers>
+static void WriteEventsTables(Stream *out, const std::vector<const char *> &events, const std::vector<T> &objects,
+                              GetHandlers get_handlers)
+{
+    std::vector<EventHandlers> handlers;
+    for (const auto &obj : objects)
+        handlers.push_back(get_handlers(obj));
+    std::vector<const EventHandlers *> refs;
+    for (const auto &h : handlers)
+        refs.push_back(&h);
+    WriteEventsTables(out, events, refs);
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_eventtables" branch.
+void WriteExt400EventTables(Stream *out, const DataUtil::GameData &game)
+{
+    WriteEventsTables(out, {"OnAnyClick", "OnFrameEvent"}, game.Characters, [](const DataUtil::CharacterData &c)
+                      { return EventHandlers{c.ScriptModule, {c.OnAnyClick, c.OnFrameEvent}}; });
+    WriteEventsTables(out, {"OnAnyClick"}, game.Inventory, [](const DataUtil::InventoryItemData &i)
+                      { return EventHandlers{i.ScriptModule, {i.OnAnyClick}}; });
+    // text window GUIs have no events
+    std::vector<EventHandlers> gui_handlers(game.GUI.size());
+    std::vector<const EventHandlers *> gui_refs;
+    for (size_t i = 0; i < game.GUI.size(); ++i)
+    {
+        gui_handlers[i] = EventHandlers{game.GUI[i].ScriptModule, {game.GUI[i].OnClick}};
+        gui_refs.push_back(game.GUI[i].IsTextWindow ? nullptr : &gui_handlers[i]);
+    }
+    WriteEventsTables(out, {"OnClick"}, gui_refs);
+    // GUI controls have no script module of their own
+    WriteEventsTables(out, {"OnClick", "OnFrameEvent"}, CollectGuiControls<DataUtil::GUIButtonData>(game),
+                      [](const std::shared_ptr<DataUtil::GUIButtonData> &b)
+                      {
+                          return b->IsTextWindowEdge ? EventHandlers{"", {"", ""}}
+                                                     : EventHandlers{"", {b->OnClick, b->OnFrameEvent}};
+                      });
+    WriteEventsTables(out, {}, CollectGuiControls<DataUtil::GUILabelData>(game),
+                      [](const std::shared_ptr<DataUtil::GUILabelData> &) { return EventHandlers{}; });
+    WriteEventsTables(out, {}, CollectGuiControls<DataUtil::GUIInventoryData>(game),
+                      [](const std::shared_ptr<DataUtil::GUIInventoryData> &) { return EventHandlers{}; });
+    WriteEventsTables(out, {"OnChange"}, CollectGuiControls<DataUtil::GUISliderData>(game),
+                      [](const std::shared_ptr<DataUtil::GUISliderData> &c)
+                      { return EventHandlers{"", {c->OnChange}}; });
+    WriteEventsTables(out, {"OnActivate"}, CollectGuiControls<DataUtil::GUITextBoxData>(game),
+                      [](const std::shared_ptr<DataUtil::GUITextBoxData> &c)
+                      { return EventHandlers{"", {c->OnActivate}}; });
+    WriteEventsTables(out, {"OnSelectionChanged"}, CollectGuiControls<DataUtil::GUIListBoxData>(game),
+                      [](const std::shared_ptr<DataUtil::GUIListBoxData> &c)
+                      { return EventHandlers{"", {c->OnSelectionChanged}}; });
+
+    // cursor roles, for the interaction system
+    out->WriteInt32(static_cast<int32_t>(game.Cursors.size()));
+    for (const auto &cursor : game.Cursors)
+    {
+        out->WriteInt32(cursor.StandardRole);
+        out->WriteByteCount(0, 3 * sizeof(int32_t)); // reserved
+    }
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_viewevents" branch: the frame event names,
+// laid out like the views block
+void WriteExt400ViewFrameEvents(Stream *out, const DataUtil::GameData &game)
+{
+    const auto views = GetViewsByID(game);
+    out->WriteInt32(static_cast<int32_t>(views.size()));
+    for (const auto *view : views)
+    {
+        out->WriteInt32(view ? static_cast<int32_t>(view->Loops.size()) : 0);
+        if (!view)
+            continue;
+        for (const auto &loop : view->Loops)
+        {
+            out->WriteInt32(static_cast<int32_t>(loop.Frames.size()));
+            for (const auto &frame : loop.Frames)
+                StrUtil::WriteCStr(frame.EventName, out);
+        }
+    }
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_charopts2" branch.
+void WriteExt400CharacterOptions2(Stream *out, const DataUtil::GameData &game)
+{
+    out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
+    for (const auto &character : game.Characters)
+    {
+        out->WriteFloat32(character.GraphicAnchor.X);
+        out->WriteFloat32(character.GraphicAnchor.Y);
+        out->WriteInt32(character.GraphicOffset.X);
+        out->WriteInt32(character.GraphicOffset.Y);
+        out->WriteByteCount(0, 4 * sizeof(int32_t)); // reserved
+    }
+}
+
+// Read by GameDataExtReader::ReadBlock()'s "v400_charinv" branch: the player character's
+// starting inventory
+void WriteExt400CharacterInventory(Stream *out, const DataUtil::GameData &game)
+{
+    out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
+    for (size_t i = 0; i < game.Characters.size(); ++i)
+    {
+        const auto &character = game.Characters[i];
+        if ((character.ID >= 0 ? character.ID : static_cast<int>(i)) != game.PlayerCharacter)
+        {
+            out->WriteInt32(0); // no items
+            continue;
+        }
+        const auto count = std::count_if(game.Inventory.begin(), game.Inventory.end(),
+                                         [](const DataUtil::InventoryItemData &item) { return item.PlayerStartsWith; });
+        out->WriteInt32(static_cast<int32_t>(count));
+        for (const auto &item : game.Inventory)
+        {
+            if (!item.PlayerStartsWith)
+                continue;
+            out->WriteInt32(item.ID);
+            out->WriteInt32(1); // quantity
+        }
+    }
+}
+
 // Read by DataExtReader::Read() through GameDataExtReader in
 // Common/game/main_game_file.cpp. The patched offset is read earlier by
 // GameSetupStructBase::ReadFromFile().
@@ -1228,6 +1468,15 @@ void WriteExtensions(Stream *out, const DataUtil::GameData &game, soff_t ext_off
     WriteExtension(out, "v363_gameinfo", game, WriteExt363GameInfo);
     WriteExtension(out, "v363_dialogsnew", game, WriteExt363Dialogs);
     WriteExtension(out, "v363_guictrls2", game, WriteExt363GuiControls);
+    WriteExtension(out, "ext_ags399", game, WriteExtAgs399);
+    WriteExtension(out, "v400_gameopts", game, WriteExt400GameOpts);
+    WriteExtension(out, "v400_customprops", game, WriteExt400CustomProps);
+    WriteExtension(out, "v400_fontfiles", game, WriteExt400FontFiles);
+    WriteExtension(out, "v400_guictrlgfx", game, WriteExt400GuiControlGraphics);
+    WriteExtension(out, "v400_eventtables", game, WriteExt400EventTables);
+    WriteExtension(out, "v400_viewevents", game, WriteExt400ViewFrameEvents);
+    WriteExtension(out, "v400_charopts2", game, WriteExt400CharacterOptions2);
+    WriteExtension(out, "v400_charinv", game, WriteExt400CharacterInventory);
     out->WriteInt8(static_cast<uint8_t>(0xff));
 }
 
@@ -1242,7 +1491,8 @@ void WriteHeaderBlock(const DataUtil::GameData &game, Stream *out)
     // NOTE: the version found in the Game.agf is the version of app which saved the project last;
     // it cannot be applied here, as it may be significantly older, and mismatch the data format
     // that we use when compiling the game.
-    const String compiled_with = ACI_VERSION_STR " " SPECIAL_VERSION;
+    // the editor writes its own version, which is the engine version
+    const String compiled_with = ACI_VERSION_STR;
     StrUtil::WriteString(compiled_with, out);
 
     out->WriteInt32(0); // no extended capabilities

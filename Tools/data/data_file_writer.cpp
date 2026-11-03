@@ -57,6 +57,14 @@ namespace AGS
 namespace DataFileWriter
 {
 
+// Resolves old-style linebreaks and escaped symbols in a human-readable text
+String TextProperty(const String &text)
+{
+    // Escape backslashes before brackets: for '\[' support;
+    // this is needed because Unescape will delete '\' in unrecognized sequence.
+    return StrUtil::Unescape(PreprocessLineForOldStyleLinebreaks(text));
+}
+
 bool ParseResolution(const String &text, int &width, int &height)
 {
     width = 320;
@@ -91,8 +99,8 @@ void WritePropertySchemaBlock(Stream *out,
     {
         StrUtil::WriteString(item.Name, out);
         out->WriteInt32(static_cast<int32_t>(item.Type));
-        StrUtil::WriteString(item.Description, out);
-        StrUtil::WriteString(item.DefaultValue, out);
+        StrUtil::WriteString(TextProperty(item.Description), out);
+        StrUtil::WriteString(TextProperty(item.DefaultValue), out);
     }
 }
 
@@ -131,7 +139,7 @@ void WritePropertyValues(Stream *out,
     for (const auto &property : properties)
     {
         StrUtil::WriteString(property.Name, out);
-        StrUtil::WriteString(property.Value, out);
+        StrUtil::WriteString(TextProperty(property.Value), out);
     }
 }
 
@@ -219,7 +227,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     chinfo2.blocking_x = ref.BlockingX;
     chinfo2.blocking_y = ref.BlockingY;
 
-    const String &name = ref.RealName;
+    const String &name = TextProperty(ref.RealName);
     std::snprintf(chinfo.name, LEGACY_MAX_CHAR_NAME_LEN, "%s", name.GetCStr());
     std::snprintf(chinfo.scrname, LEGACY_MAX_SCRIPT_NAME_LEN, "%s", ref.ScriptName.GetCStr());
     chinfo2.name_new = name;
@@ -233,7 +241,7 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
 void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &ref)
 {
     InventoryItemInfo item{};
-    item.name = ref.Description;
+    item.name = TextProperty(ref.Description);
     item.pic = ref.Image;
     item.cursorPic = ref.CursorImage;
     item.hotx = ref.HotspotX;
@@ -360,7 +368,7 @@ void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
     out->WriteInt32(0);
     out->WriteInt32(button.NewModeNumber);
     out->WriteInt32(0);
-    StrUtil::WriteString(button.Text, out);
+    StrUtil::WriteString(TextProperty(button.Text), out);
     out->WriteInt32(button.TextAlignment);
 }
 
@@ -368,7 +376,7 @@ void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
 void WriteGuiLabel(Stream *out, const DataUtil::GUILabelData &label)
 {
     WriteGuiControl(out, label, 0, nullptr);
-    StrUtil::WriteString(label.Text, out);
+    StrUtil::WriteString(TextProperty(label.Text), out);
     out->WriteInt32(label.Font);
     out->WriteInt32(label.TextColor);
     out->WriteInt32(label.TextAlignment);
@@ -399,7 +407,7 @@ void WriteGuiSlider(Stream *out, const DataUtil::GUISliderData &slider)
 void WriteGuiTextBox(Stream *out, const DataUtil::GUITextBoxData &text_box)
 {
     WriteGuiControl(out, text_box, text_box.ShowBorder ? kGUICtrl_ShowBorder : 0, &text_box.OnActivate);
-    StrUtil::WriteString(text_box.Text, out);
+    StrUtil::WriteString(TextProperty(text_box.Text), out);
     out->WriteInt32(text_box.Font);
     out->WriteInt32(text_box.TextColor);
     out->WriteInt32(text_box.ShowBorder ? kTextBox_ShowBorder : 0);
@@ -578,7 +586,7 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 // Common/ac/gamesetupstructbase.cpp, at the start of ReadGameData().
 void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_t &ext_offset_pos)
 {
-    String game_name = game.Settings.GameName;
+    String game_name = TextProperty(game.Settings.GameName);
     if (game_name.IsEmpty())
         game_name = game.Settings.GameFileName;
     StrUtil::WriteFixedString(game_name, GameSetupStructBase::LEGACY_GAME_NAME_LENGTH, out);
@@ -792,8 +800,13 @@ void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
 void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (const auto &message : game.GlobalMessages)
+    {
         if (!message.IsEmpty())
-            WriteStringEncrypt(out, message.GetCStr());
+        {
+            String escaped_message = TextProperty(message);
+            WriteStringEncrypt(out, escaped_message.GetCStr());
+        }
+    }
 }
 
 // Read by GUI::ReadGUI() in Common/gui/guimain.cpp; that dispatches to
@@ -1024,19 +1037,19 @@ void WriteExt360Cursors(Stream *out, const DataUtil::GameData &game)
 // the legacy read_interaction_scripts() inventory list intentionally does not.
 void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
 {
-    StrUtil::WriteString(game.Settings.GameName, out);
+    StrUtil::WriteString(TextProperty(game.Settings.GameName), out);
     StrUtil::WriteString(game.Settings.SaveGameFolderName, out);
     out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
     for (const auto &character : game.Characters)
     {
         StrUtil::WriteString(character.ScriptName, out);
-        StrUtil::WriteString(character.RealName, out);
+        StrUtil::WriteString(TextProperty(character.RealName), out);
     }
     // Add dummy item at index 0
     out->WriteInt32(static_cast<int32_t>(game.Inventory.size() + 1));
     StrUtil::WriteString("", out);
     for (const auto &item : game.Inventory)
-        StrUtil::WriteString(item.Description, out);
+        StrUtil::WriteString(TextProperty(item.Description), out);
     out->WriteInt32(static_cast<int32_t>(game.Cursors.size()));
     for (const auto &cursor : game.Cursors)
         StrUtil::WriteString(cursor.ScriptName, out);
@@ -1079,9 +1092,9 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game)
     String text_lang = game.Settings.GameTextLanguage;
     text_lang.Replace('-', '_');
     const std::pair<const char*, String> info[] = {
-        {"title", game.Settings.GameName}, {"description", game.Settings.Description},
-        {"dev_name", game.Settings.DeveloperName}, {"dev_url", game.Settings.DeveloperURL},
-        {"genre", game.Settings.Genre}, {"release_date", release_date},
+        {"title", TextProperty(game.Settings.GameName)}, {"description", TextProperty(game.Settings.Description)},
+        {"dev_name", TextProperty(game.Settings.DeveloperName)}, {"dev_url", game.Settings.DeveloperURL},
+        {"genre", TextProperty(game.Settings.Genre)}, {"release_date", release_date},
         {"version", game.Settings.Version}, {"text_lang", text_lang}
     };
     out->WriteInt32(8);

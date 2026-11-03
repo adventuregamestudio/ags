@@ -141,6 +141,12 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>libsrc\allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\data\include_utils.h">

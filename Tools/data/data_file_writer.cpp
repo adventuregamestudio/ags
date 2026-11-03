@@ -606,8 +606,8 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(static_cast<int32_t>(game.Settings.ColorDepth)); // color_depth in bytes per pixel
     out->WriteInt32(0); // target_win
     out->WriteInt32(game.Settings.DialogOptionsBullet);
-    out->WriteInt16(static_cast<int16_t>(game.Settings.InventoryHotspotMarkerDotColor));
-    out->WriteInt16(static_cast<int16_t>(game.Settings.InventoryHotspotMarkerCrosshairColor));
+    out->WriteInt16(0); // [DEPRECATED] inventory hotspot dot color, now an int32 further on
+    out->WriteInt16(0); // [DEPRECATED] inventory hotspot crosshair color, now an int32 further on
     out->WriteInt32(game.Settings.UniqueID);
     out->WriteInt32(num_gui); // GUIs.Count
     out->WriteInt32(num_cursors); // Cursors.Count
@@ -1018,6 +1018,28 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
     }
 }
 
+// An object's interaction table as the editor writes it (SerializeInteractionScripts): one slot per
+// event index of the interaction schema, which has an event for each cursor with CreateEvent, at
+// the cursor's ID; empty if the object has no handlers
+static std::vector<String> MakeInteractionTable(const DataUtil::GameData &game, const std::vector<String> &events)
+{
+    if (std::all_of(events.begin(), events.end(), [](const String &e) { return e.IsEmpty(); }))
+        return {};
+    int top_index = -1;
+    for (const auto &cursor : game.Cursors)
+    {
+        if (cursor.CreateEvent)
+            top_index = std::max(top_index, cursor.ID);
+    }
+    std::vector<String> table(static_cast<size_t>(top_index + 1));
+    for (const auto &cursor : game.Cursors)
+    {
+        if (cursor.CreateEvent && static_cast<size_t>(cursor.ID) < events.size())
+            table[cursor.ID] = events[cursor.ID];
+    }
+    return table;
+}
+
 // Read by GameDataExtReader::ReadBlock()'s "v362_interevent2" branch, then
 // ReadInteractionScriptModules(), in Common/game/main_game_file.cpp.
 void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game)
@@ -1028,10 +1050,10 @@ void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game)
     out->WriteInt32(0); // script module name count
     out->WriteInt32(static_cast<int32_t>(game.Characters.size()));
     for (const auto &character : game.Characters)
-        WriteInteractionEvents(out, character.ScriptModule, character.InteractionEvents);
+        WriteInteractionEvents(out, character.ScriptModule, MakeInteractionTable(game, character.InteractionEvents));
     out->WriteInt32(static_cast<int32_t>(game.Inventory.size()));
     for (const auto &item : game.Inventory)
-        WriteInteractionEvents(out, item.ScriptModule, item.InteractionEvents);
+        WriteInteractionEvents(out, item.ScriptModule, MakeInteractionTable(game, item.InteractionEvents));
     out->WriteInt32(static_cast<int32_t>(game.GUI.size()));
     for (const auto &gui : game.GUI)
         StrUtil::WriteString(gui.ScriptModule, out);

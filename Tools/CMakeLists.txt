@@ -316,6 +316,7 @@ if(AGS_TESTS)
       test/data_file_writer_test.cpp
       agsbuild/pipedprocess.cpp
       test/include_utils_test.cpp
+      test/mfl_utils_test.cpp
       test/pipedprocess_test.cpp
       test/xml_fields_test.cpp
       test/spriteimport_test.cpp

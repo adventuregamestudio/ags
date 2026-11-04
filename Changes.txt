@@ -45,6 +45,8 @@ Editor:
    using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
+ - In Default Setup added "Direct3D 11" to graphics driver selection.
+ - In Default Setup added "Linear" graphics filter available for "Software" driver.
  - All objects Description properties, and similar (RealName), are renamed to DisplayName.
  - All objects Name properties are renamed to ScriptName.
  - Added optional ScriptName property to Region, Walkable Area and Walk-behind areas.

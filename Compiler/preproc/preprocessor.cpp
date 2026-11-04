@@ -381,6 +381,12 @@ namespace Preprocessor {
         {
             // do nothing -- scintilla can fold it, so it can be used to organize the code
         }
+        else if (directive == "module")
+        {
+            // only the first #module of a script counts, same as in the Editor's preprocessor
+            if (_moduleName.IsEmpty())
+                _moduleName = GetNextWord(line);
+        }
         else
         {
             LogError(ErrorCode::UnknownPreprocessorDirective, String::FromFormat("Unknown preprocessor directive '%s'", directive.GetCStr()));
@@ -425,8 +431,11 @@ namespace Preprocessor {
                         String literal = line.Mid(0u, end_of_literal);
                         if (literal.StartsWith(NEW_SCRIPT_TOKEN_PREFIX))
                         {
-                            // Start the new script
+                            // Start the new script; the marker may end with ";<module>"
                             _scriptName = literal.Mid(strlen(NEW_SCRIPT_TOKEN_PREFIX));
+                            const size_t module_at = _scriptName.FindChar(';');
+                            if (module_at != String::NoIndex)
+                                _scriptName.ClipRight(_scriptName.GetLength() - module_at);
                             _lineNumber = 0;
                         }
                     }
@@ -484,9 +493,7 @@ namespace Preprocessor {
         _errors.clear();
         StringBuilder output = StringBuilder(script.GetLength());
         _lineNumber = 0;
-        String escapedScriptName = scriptName;
-        escapedScriptName.Replace("\\", "\\\\");
-        output.WriteLine(String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr()));
+        _moduleName = "";
         StringReader reader = StringReader(script);
         _scriptName = scriptName;
         while (reader.IsValid())
@@ -514,7 +521,18 @@ namespace Preprocessor {
             LogError(ErrorCode::IfWithoutEndIf);
         }
 
-        return output.GetString();
+        // The new-script marker goes first; it is written last, because a #module anywhere in the
+        // script changes it to "<script>;<module>"
+        String escapedScriptName = scriptName;
+        escapedScriptName.Replace("\\", "\\\\");
+        String marker = _moduleName.IsEmpty()
+                            ? String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr())
+                            : String::FromFormat("%s%s;%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr(),
+                                                 _moduleName.GetCStr());
+        StringBuilder result = StringBuilder(script.GetLength() + marker.GetLength() + 2);
+        result.WriteLine(marker);
+        result.WriteString(output.GetString());
+        return result.GetString();
     }
 
     void Preprocessor::MergeMacros(MacroTable &macros) {

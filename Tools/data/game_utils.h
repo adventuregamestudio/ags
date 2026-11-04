@@ -185,7 +185,8 @@ enum AudioClipFileType
     kAudioFile_WAV = 3,
     kAudioFile_VOC = 4,
     kAudioFile_MIDI = 5,
-    kAudioFile_MOD = 6
+    kAudioFile_MOD = 6,
+    kAudioFile_FLAC = 7
 };
 
 enum CrossfadeSpeed

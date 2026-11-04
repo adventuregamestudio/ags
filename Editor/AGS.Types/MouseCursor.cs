@@ -113,7 +113,7 @@ namespace AGS.Types
 
         [Description("Sprite used to display the cursor")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int Image
         {
             get { return _image; }
@@ -133,7 +133,7 @@ namespace AGS.Types
 
         [Description("The view used to animate the cursor")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int View
         {
             get { return _view; }

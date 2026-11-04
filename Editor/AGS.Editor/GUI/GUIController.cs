@@ -1,3 +1,4 @@
+using AGS.Controls;
 using AGS.Editor.Components;
 using AGS.Editor.Preferences;
 using AGS.Types;

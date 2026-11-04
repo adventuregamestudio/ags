@@ -15,6 +15,7 @@
 #define __AGS_TOOL_DATA__TRAUTILS_H
 
 #include <memory>
+#include <vector>
 #include "data/tra_file.h"
 #include "util/stream.h"
 
@@ -37,6 +38,37 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in);
 HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out);
 // Write a compiled translation file from Translation object.
 HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out);
+
+// A translated text of a translation source, as written in the source (escaped)
+struct TranslationSourceEntry
+{
+    String Key;            // the game's text
+    String Value;          // its translation
+    bool Obsolete = false; // no longer in the game, kept in case it returns
+    bool Fuzzy = false;    // marked by a translator for review
+    int ParserWordID = -1; // the Text Parser word it translates, or -1
+};
+
+// A PO translation source as the editor reads it (AGS.Types.Translation): the options, and the
+// translated texts in the order of the file
+struct TranslationSource
+{
+    // Game identification, text options, encoding and language hints, font overrides;
+    // the dictionaries are not used
+    Translation Options;
+    std::vector<int> FontOverrideOrder; // the overridden fonts, in the order of the file
+    // A text found twice keeps its first place and the later translation, as in the editor
+    std::vector<TranslationSourceEntry> Entries;
+};
+
+// Parses a PO translation source, as the editor does (Translation.LoadDataImpl)
+HError ReadPO(TranslationSource &src, std::unique_ptr<Stream> &&in);
+// Writes a PO translation source from a compiled translation, in the layout of the editor's PO
+// (Translation.SaveDataImpl); the Text Parser's words get placeholder texts, the TRA has no game words
+HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out);
+// Writes a compiled translation from a PO source, as the editor does
+// (TranslationsComponent.CompileTranslation)
+HError WriteTRA(const TranslationSource &src, std::unique_ptr<Stream> &&out);
 
 } // namespace DataUtil
 } // namespace AGS

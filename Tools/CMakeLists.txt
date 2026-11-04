@@ -254,6 +254,14 @@ set_target_properties(trac PROPERTIES
         )
 target_link_libraries(trac PUBLIC libtools)
 
+#----- po2tra -------------------------------------------------
+add_executable(po2tra po2tra/main.cpp)
+set_target_properties(po2tra PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(po2tra PUBLIC libtools)
+
 list(APPEND TOOLS_TARGETS
         agf2dlgasc
         agf2dta
@@ -264,6 +272,7 @@ list(APPEND TOOLS_TARGETS
         spriteimport
         spritepak
         trac
+        po2tra
         )
 
 # Bundle-like target to build all tools
@@ -316,6 +325,7 @@ if(AGS_TESTS)
       test/include_utils_test.cpp
       test/pipedprocess_test.cpp
       test/spriteimport_test.cpp
+      test/tra_utils_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
    set_target_properties(tools_test PROPERTIES

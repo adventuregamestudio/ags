@@ -1458,6 +1458,10 @@ builtin managed struct Overlay {
   import readonly attribute int GraphicHeight;
   /// Gets/sets the opacity of this overlay.
   import attribute int Opacity;
+#ifdef SCRIPT_COMPAT_v400_24
+  /// [OBSOLETE] Gets/sets this overlay's transparency, 0-100; use Opacity.
+  import attribute int Transparency;
+#endif // SCRIPT_COMPAT_v400_24
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
   import attribute int ZOrder;
 #endif // SCRIPT_API_v360
@@ -1825,6 +1829,10 @@ builtin managed struct GUIControl {
   /// Gets/sets the control's opacity.
   import attribute int Opacity;
 #endif // SCRIPT_API_v360
+#ifdef SCRIPT_COMPAT_v400_24
+  /// [OBSOLETE] Gets/sets the control's transparency, 0-100; use Opacity.
+  import attribute int Transparency;
+#endif // SCRIPT_COMPAT_v400_24
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this control.
   import readonly attribute String ScriptName;
@@ -2144,6 +2152,10 @@ builtin managed struct GUI {
   readonly import attribute int  ID;
   /// Gets/sets the opacity of the GUI.
   import attribute int Opacity;
+#ifdef SCRIPT_COMPAT_v400_24
+  /// [OBSOLETE] Gets/sets the GUI's transparency, 0-100; use Opacity.
+  import attribute int Transparency;
+#endif // SCRIPT_COMPAT_v400_24
   /// Gets/sets whether the GUI is visible.
   import attribute bool Visible;
   /// Gets/sets the width of the GUI.
@@ -2902,6 +2914,10 @@ builtin managed struct Object {
   import attribute bool Solid;
   /// Gets/sets the object's opacity.
   import attribute int Opacity;
+#ifdef SCRIPT_COMPAT_v400_24
+  /// [OBSOLETE] Gets/sets the object's transparency, 0-100; use Opacity.
+  import attribute int Transparency;
+#endif // SCRIPT_COMPAT_v400_24
   /// Gets the current view number during an animation.
   readonly import attribute int View;
   /// Gets/sets whether the object is currently visible.
@@ -3206,6 +3222,10 @@ builtin managed struct Character {
   import attribute int  ThinkView;
   /// Gets/sets the character's current opacity level.
   import attribute int Opacity;
+#ifdef SCRIPT_COMPAT_v400_24
+  /// [OBSOLETE] Gets/sets the character's transparency, 0-100; use Opacity.
+  import attribute int Transparency;
+#endif // SCRIPT_COMPAT_v400_24
   /// Gets/sets whether the character turns on the spot to face the correct direction before walking.
   import attribute bool TurnBeforeWalking;
   /// Gets the character's current view number.

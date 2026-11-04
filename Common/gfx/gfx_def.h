@@ -241,6 +241,21 @@ namespace GfxDef
         }
     }
 
+    // The AGS 4.0 script property Transparency (0-100) on top of opacity (0-255 alpha), giving the
+    // values 4.0 gave: it stored Trans100ToLegacyTrans255() and returned LegacyTrans255ToTrans100()
+    // of it, so a read after a write may differ by one, as it did in 4.0 (37 reads back as 38)
+    inline int Trans100ToOpacity(const int transparency)
+    {
+        return LegacyTrans255ToAlpha255(Trans100ToLegacyTrans255(transparency));
+    }
+
+    // Opacity 251-254, which 4.0 could not store, would give -1: clamped
+    inline int OpacityToTrans100(const int opacity)
+    {
+        const int trans = LegacyTrans255ToTrans100(Alpha255ToLegacyTrans255(opacity));
+        return trans < 0 ? 0 : trans;
+    }
+
     // Convert Alignment to the graphic anchor, which is a
     // normalized relative coordinates in [0; 1] range
     inline Pointf GetGraphicAnchorFromAlignment(FrameAlignment align)

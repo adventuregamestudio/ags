@@ -1967,6 +1967,20 @@ void Character_SetOpacity(CharacterInfo *chaa, int opacity) {
     chaa->opacity = opacity;
 }
 
+// [OBSOLETE] Transparency of AGS 4.0, kept for the compiled 4.0 games
+int Character_GetTransparency(CharacterInfo *chaa) {
+
+    return GfxDef::OpacityToTrans100(chaa->opacity);
+}
+
+void Character_SetTransparency(CharacterInfo *chaa, int trans) {
+
+    if ((trans < 0) || (trans > 100))
+        quit("!SetCharTransparent: transparency value must be between 0 and 100");
+
+    chaa->opacity = GfxDef::Trans100ToOpacity(trans);
+}
+
 bool Character_GetVisible(CharacterInfo *chaa) {
     return chaa->is_visible();
 }
@@ -4583,6 +4597,18 @@ RuntimeScriptValue Sc_Character_SetOpacity(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetOpacity);
 }
 
+// int (CharacterInfo *)
+RuntimeScriptValue Sc_Character_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTransparency);
+}
+
+// void (CharacterInfo *, int trans)
+RuntimeScriptValue Sc_Character_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTransparency);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetTurnBeforeWalking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -5022,6 +5048,9 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_ThinkView",             API_FN_PAIR(Character_SetThinkView) },
         { "Character::get_Opacity",               API_FN_PAIR(Character_GetOpacity) },
         { "Character::set_Opacity",               API_FN_PAIR(Character_SetOpacity) },
+        // [OBSOLETE] Transparency => Opacity
+        { "Character::get_Transparency",          API_FN_PAIR(Character_GetTransparency) },
+        { "Character::set_Transparency",          API_FN_PAIR(Character_SetTransparency) },
         { "Character::get_TurnBeforeWalking",     API_FN_PAIR(Character_GetTurnBeforeWalking) },
         { "Character::set_TurnBeforeWalking",     API_FN_PAIR(Character_SetTurnBeforeWalking) },
         { "Character::get_Turning",               API_FN_PAIR(Character_GetTurning) },

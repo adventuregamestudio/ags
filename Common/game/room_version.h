@@ -49,6 +49,7 @@
 Since then format value is defined as AGS version represented as a
 16-bit N,N,N,NN (because old room format has version as 16-bit!)
 3.6.3.6: object's blocking rect set at design-time
+3.6.3.15: room backgrounds saved using sprite-like format (with Deflate)
 
 40:  v3.9.9 - room object blend modes
 v4.0.0: Raised for org purposes without format changes
@@ -61,9 +62,12 @@ enum RoomFileVersion
 {
     kRoomVersion_Undefined  = 0,
     kRoomVersion_3508       = 33,
-    kRoomVersion_399        = 40, // was reserved for early 4.0 alpha
     kRoomVersion_363_06     = 36306,
     kRoomVersion_363_15     = 36315,
+    // FIXME: the value of this version is lower than ones of 363, this makes
+    // it inconvenient to compare. Introduce a new constant with new format
+    // value, and convert data version from 40 on room load.
+    kRoomVersion_399        = 40, // was reserved for early 4.0 alpha
     kRoomVersion_400        = 4000000,
     kRoomVersion_400_17     = 4000017,
     kRoomVersion_400_24     = 4000024,
